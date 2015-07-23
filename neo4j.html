@@ -15,14 +15,15 @@
   <body>
     <script>
         
-    neo4j(function(session) {
-        var statement = "MERGE (a:Person {name:'Alice'}) RETURN a", //"RETURN 'hello, world' AS greeting",
+    var session = new Session();
+
+    function doStuff() {
+        var statement = document.getElementById("statement").value, //"MERGE (a:Person {name:'Alice'}) RETURN a", //"RETURN 'hello, world' AS greeting",
             parameters = {};
-            
-        document.body.appendChild(document.createTextNode("> " + statement));
+
+        var li = document.createElement("li");
+
         var table = document.createElement("table");
-        document.body.appendChild(table);
-        
         session.run(statement, parameters, function(record) {
         
             // On receipt of RECORD
@@ -48,10 +49,21 @@
             }
             
         });
-        
-    });
+
+        li.appendChild(table);
+        document.getElementById("results").appendChild(li);
+
+    }
 
     </script>
+
+    <form>
+      <textarea id="statement" rows="4" cols="80">RETURN 'hello, world' AS greeting</textarea>
+      <input type="button" onclick="doStuff()" value="RUN">
+    </form>
+
+    <ol id="results"></ol>
+
   </body>
 </html>
 

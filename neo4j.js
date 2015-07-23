@@ -70,6 +70,14 @@
         return record;
     }
 
+    function Request(statement, parameters, onHeader, onRecord, onFooter) {
+        this.statement = statement;
+        this.parameters = parameters;
+        this.onHeader = onHeader;
+        this.onRecord = onRecord;
+        this.onFooter = onFooter;
+    }
+
     function ResponseHandler(summaryHandler, detailHandler) {
         this.summaryHandler = summaryHandler;
         this.detailHandler = detailHandler;
@@ -234,7 +242,8 @@
     function Session(onReady) {
         var receiver = null,
             responseHandlers = [],
-            session = this;
+            ready = false,
+            requests = [];
 
         function handshake() {
             console.log("C: [HANDSHAKE] [1, 0, 0, 0]");
@@ -318,16 +327,33 @@
         function init() {
             var userAgent = "neo4j-javascript/0.0";
             console.log("C: INIT " + JSON.stringify(userAgent));
-            send(INIT, [userAgent], function() {
-                onReady(session);
+            send(INIT, [userAgent], function(success) {
+                if(success) {
+                    ready = true;
+                    runNext();
+                }
             });
         }
 
         this.run = function run(statement, parameters, onRecord, onHeader, onFooter) {
-            console.log("C: RUN " + JSON.stringify(statement) + " " + JSON.stringify(parameters));
-            send(RUN, [statement, parameters], onHeader);
-            console.log("C: PULL_ALL");
-            send(PULL_ALL, [], onFooter, onRecord);
+            requests.push(new Request(statement, parameters, onHeader, onRecord, onFooter));
+            runNext();
+        }
+        
+        function runNext() {
+            if (ready) {
+                var rq = requests.shift();
+                if (rq) {
+                    ready = false;
+                    console.log("C: RUN " + JSON.stringify(rq.statement) + " " + JSON.stringify(rq.parameters));
+                    send(RUN, [rq.statement, rq.parameters], rq.onHeader);
+                    console.log("C: PULL_ALL");
+                    send(PULL_ALL, [], function(metadata) {
+                        if (rq.onfooter) rq.onFooter(metadata);
+                        ready = true;
+                    }, rq.onRecord);
+                }
+            }
         }
 
         var ws = new WebSocket("ws://localhost:7688/"),
@@ -346,10 +372,8 @@
 
     }
 
-    // Expose the 'neo4j' function
-    window.neo4j = function neo4j(onReady) {
-        return new Session(onReady);
-    }
+    // Expose the 'Session' class
+    window.Session = Session;
 
 }());
 
