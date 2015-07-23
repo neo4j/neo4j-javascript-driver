@@ -21,8 +21,6 @@
         var statement = document.getElementById("statement").value, //"MERGE (a:Person {name:'Alice'}) RETURN a", //"RETURN 'hello, world' AS greeting",
             parameters = {};
 
-        var li = document.createElement("li");
-
         var table = document.createElement("table");
         session.run(statement, parameters, function(record) {
         
@@ -49,9 +47,12 @@
             }
             
         });
-
-        li.appendChild(table);
-        document.getElementById("results").appendChild(li);
+        
+        var results = document.getElementById("results");
+        while(results.childElementCount > 0) {
+            results.removeChild(results.children[0]);
+        }
+        results.appendChild(table);
 
     }
 
@@ -62,7 +63,7 @@
       <input type="button" onclick="doStuff()" value="RUN">
     </form>
 
-    <ol id="results"></ol>
+    <div id="results"></div>
 
   </body>
 </html>
