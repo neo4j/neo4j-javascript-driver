@@ -33,6 +33,8 @@
         IGNORED = 0x7E,         // 0111 1110 // IGNORED <metadata>
         FAILURE = 0x7F,         // 0111 1111 // FAILURE <metadata>
 
+        NODE = 0x4E;
+
         NULL = 0xC0,
         FLOAT_64 = 0xC1,
         FALSE = 0xC2,
@@ -41,6 +43,31 @@
     function Structure(signature, fields) {
         this.signature = signature;
         this.fields = fields;
+    }
+    
+    function Node(identity, labels, properties) {
+        this.identity = identity;
+        this.labels = labels;
+        this.properties = properties;
+        
+        this.toString = function toString() {
+            return "<Node identity=" + JSON.stringify(this.identity) + " labels=" + JSON.stringify(this.labels) + " properties=" + JSON.stringify(this.properties) + ">";
+        }
+    }
+
+    function hydrate(record) {
+        // TODO: nested things in collections
+        for (var i = 0; i < record.length; i++) {
+            if (record[i] instanceof Structure) {
+                fields = record[i].fields;
+                switch(record[i].signature) {
+                case NODE:
+                    record[i] = new Node(fields[0], fields[1], fields[2]);
+                    break;
+                }
+            }
+        }
+        return record;
     }
 
     function ResponseHandler(summaryHandler, detailHandler) {
@@ -257,7 +284,7 @@
             case RECORD:
                 console.log("S: RECORD " + JSON.stringify(message.fields[0]));
                 var handler = responseHandlers[0].detailHandler;
-                if(handler) handler(message.fields[0]);
+                if(handler) handler(hydrate(message.fields[0]));
                 break;
             default:
                 console.log("WTF");

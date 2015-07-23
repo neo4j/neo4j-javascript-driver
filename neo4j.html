@@ -16,7 +16,7 @@
     <script>
         
     neo4j(function(session) {
-        var statement = "RETURN 'hello, world' AS greeting",
+        var statement = "MERGE (a:Person {name:'Alice'}) RETURN a", //"RETURN 'hello, world' AS greeting",
             parameters = {};
             
         document.body.appendChild(document.createTextNode("> " + statement));
