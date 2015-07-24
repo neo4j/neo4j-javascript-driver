@@ -27,15 +27,21 @@
         background-color: #008CC2;
         color: #FFF;
     }
-    #log {
+    #logPanel {
         width: 300px;
         height: 400px;
         min-height: 400px;
         background-color: #222;
         vertical-align: top;
         color: #FFF;
-        font-size: 12px;
+        padding: 0;
+    }
+    #log {
+        margin: 0;
         padding: 3px 5px;
+        font: 12px "Courier New";
+        width: 300px;
+        height: 100%;
         overflow: scroll;
     }
     body {
@@ -114,8 +120,7 @@ RETURN alice, bob, alice_knows_bob</textarea></td>
 
           </td>
         
-          <td id="log">
-          </td>
+          <td id="logPanel"><pre id="log"></pre></td>
 
         </tr>
       </table>
