@@ -33,12 +33,27 @@
         IGNORED = 0x7E,         // 0111 1110 // IGNORED <metadata>
         FAILURE = 0x7F,         // 0111 1111 // FAILURE <metadata>
 
-        NODE = 0x4E;
+        NODE = 0x4E,
 
         NULL = 0xC0,
         FLOAT_64 = 0xC1,
         FALSE = 0xC2,
-        TRUE = 0xC3;
+        TRUE = 0xC3,
+        INT_8 = 0xC8,
+        INT_16 = 0xC9,
+        INT_32 = 0xCA,
+        INT_64 = 0xCB,
+        TEXT_8 = 0xD0,
+        TEXT_16 = 0xD1,
+        TEXT_32 = 0xD2,
+        LIST_8 = 0xD4,
+        LIST_16 = 0xD5,
+        LIST_32 = 0xD6,
+        MAP_8 = 0xD8,
+        MAP_16 = 0xD9,
+        MAP_32 = 0xDA,
+        STRUCT_8 = 0xDC,
+        STRUCT_16 = 0xDD;
 
     function Structure(signature, fields) {
         this.signature = signature;
@@ -55,19 +70,19 @@
         }
     }
 
-    function hydrate(record) {
-        // TODO: nested things in collections
-        for (var i = 0; i < record.length; i++) {
-            if (record[i] instanceof Structure) {
-                fields = record[i].fields;
-                switch(record[i].signature) {
-                case NODE:
-                    record[i] = new Node(fields[0], fields[1], fields[2]);
-                    break;
-                }
+    function hydrate(x) {
+        if (Array.isArray(x)) {
+            for (var i = 0; i < x.length; i++) {
+                x[i] = hydrate(x[i]);
+            }
+        } else if (x instanceof Structure) {
+            fields = x.fields;
+            switch(x.signature) {
+            case NODE:
+                x = new Node(fields[0], fields[1], fields[2]);
             }
         }
-        return record;
+        return x;
     }
 
     function Request(statement, parameters, onHeader, onRecord, onFooter) {
@@ -134,7 +149,7 @@
                 }
             } else {
                 // TODO
-                console.log("BAD THING 1!");
+                log("BAD THING 1!");
             }
         }
         
@@ -149,7 +164,7 @@
                 msg.write(bytes);
             } else {
                 // TODO
-                console.log("BAD THING 2!");
+                log("BAD THING 2!");
             }
         }
         
@@ -158,7 +173,7 @@
                 msg.write(new Uint8Array([0xA0 | size]));
             } else {
                 // TODO
-                console.log("BAD THING 3!");
+                log("BAD THING 3!");
             }
         }
         
@@ -167,7 +182,7 @@
                 msg.write(new Uint8Array([0xB0 | size, signature]));
             } else {
                 // TODO
-                console.log("BAD THING 4!");
+                log("BAD THING 4!");
             }
         }
         
@@ -189,21 +204,49 @@
         
         function readBytes(n) {
             var q = p + n,
-                s = data.slice(p, q);
+                s = data.subarray(p, q);
             p = q;
             return s;
         }
 
         this.unpack = function unpack() {
-            var marker = read();
+            var marker = read(), q = p;
             if (marker >= 0 && marker < 128) {
                 return marker;
+            } else if (marker >= 240 && marker < 256) {
+                return marker - 256;
             } else if (marker == NULL) {
                 return null;
             } else if (marker == TRUE) {
                 return true;
             } else if (marker == FALSE) {
                 return false;
+            } else if (marker == FLOAT_64) {
+                readBytes(8);
+                return new DataView(data.buffer).getFloat64(q);
+            } else if (marker == INT_8) {
+                readBytes(1);
+                return new DataView(data.buffer).getInt8(q);
+            } else if (marker == INT_16) {
+                readBytes(2);
+                return new DataView(data.buffer).getInt16(q);
+            } else if (marker == INT_32) {
+                readBytes(4);
+                return new DataView(data.buffer).getInt32(q);
+            } else if (marker == INT_64) {
+                readBytes(8);
+                return new DataView(data.buffer).getInt64(q);
+            } else if (marker == TEXT_8) {
+                var size = read();
+                return decoder.decode(readBytes(size));
+            } else if (marker == TEXT_16) {
+                readBytes(2);
+                var size = new DataView(data.buffer).getUint16(q);
+                return decoder.decode(readBytes(size));
+            } else if (marker == TEXT_32) {
+                readBytes(4);
+                var size = new DataView(data.buffer).getUint32(q);
+                return decoder.decode(readBytes(size));
             }
             var markerHigh = marker & 0xF0;
             if (markerHigh == 0x80) {
@@ -233,7 +276,7 @@
                 }
                 return value;
             } else {
-                console.log("UNPACKABLE: " + marker.toString(16));
+                log("UNPACKABLE: " + marker.toString(16));
             }
         }
 
@@ -246,15 +289,15 @@
             requests = [];
 
         function handshake() {
-            console.log("C: [HANDSHAKE] [1, 0, 0, 0]");
+            log("C: [HANDSHAKE] [1, 0, 0, 0]");
             receiver = function(data) {
                 var version = new DataView(data).getUint32(0);
-                console.log("S: [HANDSHAKE] " + version);
+                log("S: [HANDSHAKE] " + version);
                 if (version == 1) {
                     receiver = receiverV1;
                     init();
                 } else {
-                    console.log("UNKNOWN PROTOCOL VERSION " + version);
+                    log("UNKNOWN PROTOCOL VERSION " + version);
                 }
             }
             ws.send(new Uint8Array([0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0]));
@@ -267,7 +310,7 @@
         }
         
         function recv(data) {
-            console.log("S: " + data);
+            log("S: " + data);
             if (receiver) receiver(data);
         }
 
@@ -276,27 +319,27 @@
                 message = unpacker.unpack();
             switch(message.signature) {
             case SUCCESS:
-                console.log("S: SUCCESS " + JSON.stringify(message.fields[0]));
+                log("S: SUCCESS " + JSON.stringify(message.fields[0]));
                 var handler = responseHandlers.shift().summaryHandler;
                 if(handler) handler(true, message.fields[0]);
                 break;
             case FAILURE:
-                console.log("S: FAILURE " + JSON.stringify(message.fields[0]));
+                log("S: FAILURE " + JSON.stringify(message.fields[0]));
                 var handler = responseHandlers.shift().summaryHandler;
                 if(handler) handler(false, message.fields[0]);
                 break;
             case IGNORED:
-                console.log("S: IGNORED " + JSON.stringify(message.fields[0]));
+                log("S: IGNORED " + JSON.stringify(message.fields[0]));
                 var handler = responseHandlers.shift().summaryHandler
                 if(handler) handler(null, message.fields[0]);
                 break;
             case RECORD:
-                console.log("S: RECORD " + JSON.stringify(message.fields[0]));
+                log("S: RECORD " + JSON.stringify(message.fields[0]));
                 var handler = responseHandlers[0].detailHandler;
                 if(handler) handler(hydrate(message.fields[0]));
                 break;
             default:
-                console.log("WTF");
+                log("WTF");
             }
         }
 
@@ -326,7 +369,7 @@
 
         function init() {
             var userAgent = "neo4j-javascript/0.0";
-            console.log("C: INIT " + JSON.stringify(userAgent));
+            log("C: INIT " + JSON.stringify(userAgent));
             send(INIT, [userAgent], function(success) {
                 if(success) {
                     ready = true;
@@ -345,9 +388,9 @@
                 var rq = requests.shift();
                 if (rq) {
                     ready = false;
-                    console.log("C: RUN " + JSON.stringify(rq.statement) + " " + JSON.stringify(rq.parameters));
+                    log("C: RUN " + JSON.stringify(rq.statement) + " " + JSON.stringify(rq.parameters));
                     send(RUN, [rq.statement, rq.parameters], rq.onHeader);
-                    console.log("C: PULL_ALL");
+                    log("C: PULL_ALL");
                     send(PULL_ALL, [], function(metadata) {
                         if (rq.onfooter) rq.onFooter(metadata);
                         ready = true;
@@ -370,6 +413,12 @@
             handshake();
         };
 
+    }
+
+    function log(obj) {
+        var el = document.getElementById("log");
+        el.appendChild(document.createTextNode(obj.toString()));
+        el.appendChild(document.createElement("br"));
     }
 
     // Expose the 'Session' class

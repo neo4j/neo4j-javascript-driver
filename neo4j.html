@@ -3,21 +3,130 @@
   <head>
     <meta charset="utf-8">
     <style>
-    body {
-        font: 15px monospace;
+    #main {
+        width: 1200px;
+        margin: 0 auto;
+        background-color: #DDD;
+        position: relative;
     }
-    table, th, td {
-        border: 1px solid #CCC;
+    h1 {
+        margin: 0;
+        padding: .5em;
+    }
+    #console {
+        width: 900px;
+        vertical-align: top;
+    }
+    #runButton {
+        width: 44px;
+        height: 40px;
+        border-width: 0;
+        margin: 0;
+        font: bold 16px "Courier New";
+        cursor: pointer;
+        background-color: #008CC2;
+        color: #FFF;
+    }
+    #log {
+        width: 300px;
+        height: 400px;
+        min-height: 400px;
+        background-color: #222;
+        vertical-align: top;
+        color: #FFF;
+        font-size: 12px;
+        padding: 3px 5px;
+        overflow: scroll;
+    }
+    body {
+        font: 15px "Courier New";
+        background-color: #CCC;
+        margin: 0;
+        overflow-y: scroll;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    td {
+        position: relative;
+        padding: 0;
+    }
+    #results table {
+        width: auto;
+        background-color: #EEE;
+        font-size: 13px;
+    }
+    #results th {
+        border-right: 1px solid #DDD;
+        border-bottom: 1px solid #DDD;
+        padding: 3px 5px;
+        background-color: #999;
+        color: #FFF;
+    }
+    #results td {
+        border-right: 1px solid #BBB;
+        border-bottom: 1px solid #BBB;
+        padding: 3px 5px;
+        vertical-align: top;
+    }
+    form {
+        position: relative;
+    }
+    textarea {
+        border-width: 0;
+        font: 15px "Courier New";
+        margin: 0;
+        width: 100%;
+        resize: vertical;
+        min-height: 36px;
+        height: 72px;
+        padding: 0;
+        background-color: transparent;
+        vertical-align: top;
     }
     </style>
     <script src="neo4j.js"></script>
   </head>
   <body>
+
+    <div id="main">
+
+      <h1>Cypher Runner for New Remoting</h1>
+
+      <table width="100%" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td id="console">
+
+            <form>
+              <table>
+                <tr>
+                  <td style="padding:2px 2px 2px 4px;background-color:#FFF"><textarea id="statement">MERGE (alice:Person {name:'Alice'})
+MERGE (bob:Person {name:'Bob'})
+CREATE UNIQUE path=(alice)-[alice_knows_bob:KNOWS]->(bob)
+RETURN alice, bob, alice_knows_bob, path</textarea></td>
+                  <td style="width:44px;vertical-align:bottom;background-color:#0F5788"><input id="runButton" type="button" value="RUN" onfocus="this.blur()"></td>
+                </tr>
+              </table>
+            </form>
+
+            <div id="results"></div>
+
+          </td>
+        
+          <td id="log">
+          </td>
+
+        </tr>
+      </table>
+    
+    </div>
+
     <script>
         
     var session = new Session();
 
-    function doStuff() {
+    function run() {
         var statement = document.getElementById("statement").value, //"MERGE (a:Person {name:'Alice'}) RETURN a", //"RETURN 'hello, world' AS greeting",
             parameters = {};
 
@@ -55,15 +164,10 @@
         results.appendChild(table);
 
     }
+    
+    document.getElementById("runButton").onclick = run;
 
     </script>
-
-    <form>
-      <textarea id="statement" rows="4" cols="80">RETURN 'hello, world' AS greeting</textarea>
-      <input type="button" onclick="doStuff()" value="RUN">
-    </form>
-
-    <div id="results"></div>
 
   </body>
 </html>
