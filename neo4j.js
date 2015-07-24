@@ -34,6 +34,7 @@
         FAILURE = 0x7F,         // 0111 1111 // FAILURE <metadata>
 
         NODE = 0x4E,
+        RELATIONSHIP = 0x52,
 
         NULL = 0xC0,
         FLOAT_64 = 0xC1,
@@ -66,7 +67,44 @@
         this.properties = properties;
         
         this.toString = function toString() {
-            return "<Node identity=" + JSON.stringify(this.identity) + " labels=" + JSON.stringify(this.labels) + " properties=" + JSON.stringify(this.properties) + ">";
+            var s = "(" + this.identity.split('/')[1];
+            for (var i = 0; i < this.labels.length; i++) {
+                s += ":" + labels[i];
+            }
+            var keys = Object.keys(this.properties);
+            if (keys.length > 0) {
+                s += " {";
+                for(var i = 0; i < keys.length; i++) {
+                    if (i > 0) s += ",";
+                    s += keys[i] + ":" + JSON.stringify(this.properties[keys[i]]);
+                }
+                s += "}";
+            }
+            s += ")";
+            return s;
+        }
+    }
+
+    function Relationship(identity, start, end, type, properties) {
+        this.identity = identity;
+        this.start = start;
+        this.end = end;
+        this.type = type;
+        this.properties = properties;
+        
+        this.toString = function toString() {
+            var s = "(" + this.start.split('/')[1] + ")-[:" + this.type;
+            var keys = Object.keys(this.properties);
+            if (keys.length > 0) {
+                s += " {";
+                for(var i = 0; i < keys.length; i++) {
+                    if (i > 0) s += ",";
+                    s += keys[i] + ":" + JSON.stringify(this.properties[keys[i]]);
+                }
+                s += "}";
+            }
+            s += "]->(" + this.end.split('/')[1] + ")";
+            return s;
         }
     }
 
@@ -80,6 +118,10 @@
             switch(x.signature) {
             case NODE:
                 x = new Node(fields[0], fields[1], fields[2]);
+                break;
+            case RELATIONSHIP:
+                x = new Relationship(fields[0], fields[1], fields[2], fields[3], fields[4]);
+                break;
             }
         }
         return x;
@@ -202,6 +244,24 @@
             return ch;
         }
         
+        function readUint16() {
+            var q = p;
+            readBytes(2);
+            return new DataView(data.buffer).getUint16(q);
+        }
+        
+        function readUint32() {
+            var q = p;
+            readBytes(4);
+            return new DataView(data.buffer).getUint32(q);
+        }
+        
+        function readUint64() {
+            var q = p;
+            readBytes(8);
+            return new DataView(data.buffer).getUint64(q);
+        }
+        
         function readBytes(n) {
             var q = p + n,
                 s = data.subarray(p, q);
@@ -209,7 +269,32 @@
             return s;
         }
 
-        this.unpack = function unpack() {
+        function readList(size) {
+            var value = [];
+            for(var i = 0; i < size; i++)
+                value.push(unpack());
+            return value;
+        }
+
+        function readMap(size) {
+            var value = {};
+            for(var i = 0; i < size; i++) {
+                var key = unpack();
+                value[key] = unpack();
+            }
+            return value;
+        }
+
+        function readStruct(size) {
+            var signature = read(),
+                value = new Structure(signature, []);
+            for(var i = 0; i < size; i++) {
+                value.fields.push(unpack());
+            }
+            return value;
+        }
+
+        function unpack() {
             var marker = read(), q = p;
             if (marker >= 0 && marker < 128) {
                 return marker;
@@ -240,45 +325,43 @@
                 var size = read();
                 return decoder.decode(readBytes(size));
             } else if (marker == TEXT_16) {
-                readBytes(2);
-                var size = new DataView(data.buffer).getUint16(q);
+                var size = readUint16();
                 return decoder.decode(readBytes(size));
             } else if (marker == TEXT_32) {
-                readBytes(4);
-                var size = new DataView(data.buffer).getUint32(q);
+                var size = readUint32();
                 return decoder.decode(readBytes(size));
+            } else if (marker == LIST_8) {
+                return readList(read());
+            } else if (marker == LIST_16) {
+                return readList(readUint16());
+            } else if (marker == LIST_32) {
+                return readList(readUint32());
+            } else if (marker == MAP_8) {
+                return readMap(read());
+            } else if (marker == MAP_16) {
+                return readMap(readUint16());
+            } else if (marker == MAP_32) {
+                return readMap(readUint32());
+            } else if (marker == STRUCT_8) {
+                return readStruct(read());
+            } else if (marker == STRUCT_16) {
+                return readStruct(readUint16());
             }
             var markerHigh = marker & 0xF0;
             if (markerHigh == 0x80) {
                 var size = marker & 0x0F;
                 return decoder.decode(readBytes(size));
             } else if (markerHigh == 0x90) {
-                var size = marker & 0x0F,
-                    value = [];
-                for(var i = 0; i < size; i++) {
-                    value.push(unpack());
-                }
-                return value;
+                return readList(marker & 0x0F);
             } else if (markerHigh == 0xA0) {
-                var size = marker & 0x0F,
-                    value = {};
-                for(var i = 0; i < size; i++) {
-                    var key = unpack();
-                    value[key] = unpack();
-                }
-                return value;
+                return readMap(marker & 0x0F);
             } else if (markerHigh == 0xB0) {
-                var size = marker & 0x0F,
-                    signature = read(),
-                    value = new Structure(signature, []);
-                for(var i = 0; i < size; i++) {
-                    value.fields.push(unpack());
-                }
-                return value;
+                return readStruct(marker & 0x0F);
             } else {
                 log("UNPACKABLE: " + marker.toString(16));
             }
         }
+        this.unpack = unpack;
 
     }
 

@@ -103,8 +103,8 @@
                 <tr>
                   <td style="padding:2px 2px 2px 4px;background-color:#FFF"><textarea id="statement">MERGE (alice:Person {name:'Alice'})
 MERGE (bob:Person {name:'Bob'})
-CREATE UNIQUE path=(alice)-[alice_knows_bob:KNOWS]->(bob)
-RETURN alice, bob, alice_knows_bob, path</textarea></td>
+CREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)
+RETURN alice, bob, alice_knows_bob</textarea></td>
                   <td style="width:44px;vertical-align:bottom;background-color:#0F5788"><input id="runButton" type="button" value="RUN" onfocus="this.blur()"></td>
                 </tr>
               </table>
