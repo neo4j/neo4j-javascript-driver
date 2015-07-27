@@ -138,7 +138,8 @@
         this.onFooter = onFooter;
     }
 
-    function AckFailureRequest() {
+    function ProtocolError(msg) {
+        this.message = msg;
     }
 
     function ResponseHandler(summaryHandler, detailHandler) {
@@ -364,7 +365,7 @@
             } else if (markerHigh == 0xB0) {
                 return readStruct(marker & 0x0F);
             } else {
-                debug("UNPACKABLE: " + marker.toString(16));
+                throw new ProtocolError("Unknown packed value with marker " + marker.toString(16));
             }
         }
         this.unpack = unpack;
@@ -386,7 +387,7 @@
                     receiver = receiverV1;
                     init();
                 } else {
-                    debug("UNKNOWN PROTOCOL VERSION " + version);
+                    throw new ProtocolError("Unknown protocol version: " + version);
                 }
             }
             ws.send(new Uint8Array([0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0]));
@@ -403,7 +404,7 @@
             for(var i = 0; i < b.length; i++) {
                 h.push((b[i] < 0x10 ? "0" : "") + b[i].toString(16).toUpperCase());
             }
-            debug("S: " + h.join(" "));
+            //debug("S: " + h.join(" "));
             if (receiver) receiver(data);
         }
 
@@ -419,10 +420,12 @@
             case FAILURE:
                 debug("S: FAILURE " + JSON.stringify(message.fields[0]));
                 console.log(message.fields[0]);
-                requests.push(new AckFailureRequest());
-                runNext();
                 var handler = responseHandlers.shift().summaryHandler;
                 if(handler) handler(false, message.fields[0]);
+                debug("C: ACK_FAILURE");
+                responseHandlers.unshift(new ResponseHandler());
+                packer.pack(new Structure(ACK_FAILURE, []));
+                msg.end();
                 break;
             case IGNORED:
                 debug("S: IGNORED");
@@ -490,13 +493,6 @@
                             if (rq.onfooter) rq.onFooter(metadata);
                             ready = true;
                         }, rq.onRecord);
-                    } else if (rq instanceof AckFailureRequest) {
-                        // TODO: fix ACK_FAILURE handling
-                        ready = false;
-                        debug("C: ACK_FAILURE");
-                        send(ACK_FAILURE, [], function(metadata) {
-                            ready = true;
-                        });
                     } else {
                         debug("UNKNOWN REQUEST TYPE");
                     }
@@ -515,7 +511,11 @@
             reader.readAsArrayBuffer(event.data);
         };
         ws.onopen = function(event) {
+            debug("~~ [CONNECT] " + event.target.url);
             handshake();
+        };
+        ws.onclose = function(event) {
+            debug("~~ [CLOSE]");
         };
 
     }
@@ -524,6 +524,7 @@
         var el = document.getElementById("log");
         el.appendChild(document.createTextNode(obj.toString()));
         el.appendChild(document.createElement("br"));
+        el.scrollTop = el.scrollHeight;
     }
 
     // Expose the 'Session' class
