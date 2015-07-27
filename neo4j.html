@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <style>
     #main {
-        width: 1200px;
-        margin: 0 auto;
+        width: 50%;
+        margin: 0;
         background-color: #DDD;
         position: relative;
     }
@@ -14,12 +14,12 @@
         padding: .5em;
     }
     #console {
-        width: 800px;
+        width: 100%;
         vertical-align: top;
     }
     #runButton {
-        width: 44px;
-        height: 40px;
+        width: 100%;
+        height: 100%;
         border-width: 0;
         margin: 0;
         font: bold 16px "Courier New";
@@ -28,22 +28,20 @@
         color: #FFF;
     }
     #logPanel {
-        width: 400px;
-        max-width: 400px;
-        height: 400px;
-        min-height: 400px;
         background-color: #222;
-        vertical-align: top;
         color: #FFF;
-        padding: 0;
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 50%;
+        height: 100%;
     }
     #log {
         margin: 0;
-        padding: 3px 5px;
-        font: 12px "Courier New";
-        width: 100%;
+        padding: 0 2px;
         height: 100%;
-        overflow: scroll;
+        font: 13px "Courier New";
+        overflow-y: scroll;
     }
     body {
         font: 15px "Courier New";
@@ -92,6 +90,23 @@
         background-color: transparent;
         vertical-align: top;
     }
+    #parameters {
+        font: 13px "Courier New";
+    }
+    #parameters td {
+    }
+    #parameters input[type=text] {
+        border-width: 0;
+        background-color: transparent;
+        color: #FFF;
+        font: 13px "Courier New";
+        padding: 0;
+        margin: 0;
+    }
+    #parameters input[type=button] {
+        font: 13px "Courier New";
+        padding: 0 2px;
+    }
     </style>
     <script src="neo4j.js"></script>
   </head>
@@ -108,11 +123,15 @@
             <form>
               <table>
                 <tr>
-                  <td style="padding:2px 2px 2px 4px;background-color:#FFF"><textarea id="statement">MERGE (alice:Person {name:'Alice'})
-MERGE (bob:Person {name:'Bob'})
-CREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)
-RETURN alice, bob, alice_knows_bob</textarea></td>
-                  <td style="width:44px;vertical-align:bottom;background-color:#0F5788"><input id="runButton" type="button" value="RUN" onfocus="this.blur()"></td>
+                  <td style="width:75%;padding:2px 2px 2px 4px;background-color:#FFF;vertical-align:top" rowspan="2"><textarea id="statement"></textarea></td>
+                  <td style="width:25%;vertical-align:top;background-color:#0F5788;color:#FFF">
+                    <table id="parameters"><tbody>
+                      <tr><td><input type="text" id="key" placeholder="(parameter)"></td><td><input type="text" id="value" placeholder="(value)"></td><td width="20"><input id="addParameter" type="button" value="+"></td></tr>
+                    </tbody></table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="width:25%;height:40px;vertical-align:bottom;background-color:#0F5788"><input id="runButton" type="button" value="RUN" onfocus="this.blur()"></td>
                 </tr>
               </table>
             </form>
@@ -121,10 +140,10 @@ RETURN alice, bob, alice_knows_bob</textarea></td>
 
           </td>
         
-          <td id="logPanel"><pre id="log"></pre></td>
-
         </tr>
       </table>
+    
+      <div id="logPanel"><pre id="log"></pre></div>
     
     </div>
 
@@ -133,8 +152,8 @@ RETURN alice, bob, alice_knows_bob</textarea></td>
     var session = new Session();
 
     function run() {
-        var statement = document.getElementById("statement").value, //"MERGE (a:Person {name:'Alice'}) RETURN a", //"RETURN 'hello, world' AS greeting",
-            parameters = {};
+        var statement = document.getElementById("statement").value,
+            parameters = getParameters();
 
         var table = document.createElement("table");
         session.run(statement, parameters, function(record) {
@@ -171,7 +190,72 @@ RETURN alice, bob, alice_knows_bob</textarea></td>
 
     }
     
+    function addParameter(key, value) {
+        var row = document.getElementById("addParameter").parentNode.parentNode;
+        
+        if (!key) key = document.getElementById("key").value;
+        if (!value) value = document.getElementById("value").value;
+        
+        if (key.length > 0) {
+            var tbody = document.getElementById("parameters").getElementsByTagName("tbody")[0];
+            var tr = document.createElement("tr");
+
+            var td1 = document.createElement("td");
+            td1.setAttribute("class", "parameter");
+            td1.appendChild(document.createTextNode(key));
+            tr.appendChild(td1);
+
+            var td2 = document.createElement("td");
+            td2.appendChild(document.createTextNode(value));
+            tr.appendChild(td2);
+
+            var td3 = document.createElement("td");
+            var button = document.createElement("input");
+            button.setAttribute("type", "button");
+            button.setAttribute("value", "-");
+            button.onclick = function(event) {
+                removeParameter(event.target.parentNode.parentNode);
+            };
+            td3.appendChild(button);
+            tr.appendChild(td3);
+
+            document.getElementById("key").value = "";
+            document.getElementById("value").value = "";
+            
+            tbody.insertBefore(tr, row);
+        }
+    }
+    
+    function removeParameter(row) {
+        row.parentNode.removeChild(row);
+    }
+    
+    function getParameters() {
+        var map = {},
+            parameters = document.getElementById("parameters").getElementsByClassName("parameter");
+        for(var i = 0; i < parameters.length; i++) {
+            var p = parameters[i],
+                key = p.textContent,
+                value = p.nextSibling.textContent;
+            try {
+                map[key] = JSON.parse(value);
+            } catch(e) {
+                map[key] = value;
+            }
+        }
+        return map;
+    }
+    
+    document.getElementById("addParameter").onclick = function(event) {
+        addParameter();
+    };
     document.getElementById("runButton").onclick = run;
+
+    if (document.location.href.indexOf("example") >= 0) {
+        document.getElementById("statement").textContent = "MERGE (alice:Person {name:{name_a}})\nMERGE (bob:Person {name:{name_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob";
+        addParameter("name_a", "Alice");
+        addParameter("name_b", "Bob");
+    }
 
     </script>
 

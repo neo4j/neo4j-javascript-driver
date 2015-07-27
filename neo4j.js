@@ -152,7 +152,8 @@
             size = 0;
         
         function flush() {
-            ws.send(new Uint8Array([size/256>>0, size%256]));
+            var header = new Uint8Array([size/256>>0, size%256]);
+            ws.send(header);
             for(var i = 0; i < data.length; i++) {
                 ws.send(data[i]);
             }
@@ -172,7 +173,8 @@
 
         this.end = function end() {
             flush();
-            ws.send(new Uint8Array([0, 0]));
+            var zero = new Uint8Array([0, 0]);
+            ws.send(zero);
         }
         
     }
@@ -192,46 +194,60 @@
             } else if (typeof(value) == "object") {
                 var keys = Object.keys(value);
                 packMapHeader(keys.length);
-                for(var key in keys) {
+                for(var i = 0; i < keys.length; i++) {
+                    var key = keys[i];
                     packText(key);
                     pack(value[key]);
                 }
             } else {
                 // TODO
-                debug("BAD THING 1!");
+                console.log(value);
             }
         }
         
         function packText(value) {
             var bytes = encoder.encode(value);
             var size = bytes.length;
-            if (size < 16) {
+            if (size < 0x10) {
                 msg.write(new Uint8Array([0x80 | size]));
                 msg.write(bytes);
-            } else if (size < 256) {
+            } else if (size < 0x100) {
                 msg.write(new Uint8Array([0xD0, size]));
                 msg.write(bytes);
+            } else if (size < 0x10000) {
+                msg.write(new Uint8Array([0xD1, size/256>>0, size%256]));
+                msg.write(bytes);
+            } else if (size < 0x100000000) {
+                msg.write(new Uint8Array([0xD2, (size/16777216>>0)%256, (size/65536>>0)%256, (size/256>>0)%256, size%256]));
+                msg.write(bytes);
             } else {
-                // TODO
-                debug("BAD THING 2!");
+                throw new ProtocolError("UTF-8 strings of size " + size + " are not supported");
             }
         }
         
         function packMapHeader(size) {
-            if (size < 16) {
+            if (size < 0x10) {
                 msg.write(new Uint8Array([0xA0 | size]));
+            } else if (size < 0x100) {
+                msg.write(new Uint8Array([0xD8, size]));
+            } else if (size < 0x10000) {
+                msg.write(new Uint8Array([0xD9, size/256>>0, size%256]));
+            } else if (size < 0x100000000) {
+                msg.write(new Uint8Array([0xDA, (size/16777216>>0)%256, (size/65536>>0)%256, (size/256>>0)%256, size%256]));
             } else {
-                // TODO
-                debug("BAD THING 3!");
+                throw new ProtocolError("Maps of size " + size + " are not supported");
             }
         }
         
         function packStructHeader(size, signature) {
-            if (size < 16) {
+            if (size < 0x10) {
                 msg.write(new Uint8Array([0xB0 | size, signature]));
+            } else if (size < 0x100) {
+                msg.write(new Uint8Array([0xDC, size]));
+            } else if (size < 0x10000) {
+                msg.write(new Uint8Array([0xDD, size/256>>0, size%256]));
             } else {
-                // TODO
-                debug("BAD THING 4!");
+                throw new ProtocolError("Structures of size " + size + " are not supported");
             }
         }
         
@@ -243,6 +259,7 @@
 
     function Unpacker(data) {
         var p = 0,
+            view = new DataView(data.buffer);
             decoder = new TextDecoder();
         
         function read() {
@@ -254,19 +271,19 @@
         function readUint16() {
             var q = p;
             readBytes(2);
-            return new DataView(data.buffer).getUint16(q);
+            return view.getUint16(q);
         }
         
         function readUint32() {
             var q = p;
             readBytes(4);
-            return new DataView(data.buffer).getUint32(q);
+            return view.getUint32(q);
         }
         
         function readUint64() {
             var q = p;
             readBytes(8);
-            return new DataView(data.buffer).getUint64(q);
+            return view.getUint64(q);
         }
         
         function readBytes(n) {
@@ -295,9 +312,8 @@
         function readStruct(size) {
             var signature = read(),
                 value = new Structure(signature, []);
-            for(var i = 0; i < size; i++) {
+            for(var i = 0; i < size; i++)
                 value.fields.push(unpack());
-            }
             return value;
         }
 
@@ -314,29 +330,26 @@
             } else if (marker == FALSE) {
                 return false;
             } else if (marker == FLOAT_64) {
-                readBytes(8);
-                return new DataView(data.buffer).getFloat64(q);
+                p += 8;
+                return view.getFloat64(q);
             } else if (marker == INT_8) {
-                readBytes(1);
-                return new DataView(data.buffer).getInt8(q);
+                p += 1;
+                return view.getInt8(q);
             } else if (marker == INT_16) {
-                readBytes(2);
-                return new DataView(data.buffer).getInt16(q);
+                p += 2;
+                return view.getInt16(q);
             } else if (marker == INT_32) {
-                readBytes(4);
-                return new DataView(data.buffer).getInt32(q);
+                p += 4;
+                return view.getInt32(q);
             } else if (marker == INT_64) {
-                readBytes(8);
-                return new DataView(data.buffer).getInt64(q);
+                p += 8;
+                return view.getInt64(q);
             } else if (marker == TEXT_8) {
-                var size = read();
-                return decoder.decode(readBytes(size));
+                return decoder.decode(readBytes(read()));
             } else if (marker == TEXT_16) {
-                var size = readUint16();
-                return decoder.decode(readBytes(size));
+                return decoder.decode(readBytes(readUint16()));
             } else if (marker == TEXT_32) {
-                var size = readUint32();
-                return decoder.decode(readBytes(size));
+                return decoder.decode(readBytes(readUint32()));
             } else if (marker == LIST_8) {
                 return readList(read());
             } else if (marker == LIST_16) {
@@ -356,8 +369,7 @@
             }
             var markerHigh = marker & 0xF0;
             if (markerHigh == 0x80) {
-                var size = marker & 0x0F;
-                return decoder.decode(readBytes(size));
+                return decoder.decode(readBytes(marker & 0x0F));
             } else if (markerHigh == 0x90) {
                 return readList(marker & 0x0F);
             } else if (markerHigh == 0xA0) {
@@ -522,7 +534,7 @@
 
     function debug(obj) {
         var el = document.getElementById("log");
-        el.appendChild(document.createTextNode(obj.toString()));
+        el.appendChild(document.createTextNode(new Date().toISOString() + "  " + obj.toString()));
         el.appendChild(document.createElement("br"));
         el.scrollTop = el.scrollHeight;
     }
