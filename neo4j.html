@@ -2,9 +2,10 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <title>Cypher Runner for New Remoting</title>
     <style>
     #main {
-        width: 50%;
+        width: 60%;
         margin: 0;
         background-color: #DDD;
         position: relative;
@@ -33,7 +34,7 @@
         position: fixed;
         top: 0;
         right: 0;
-        width: 50%;
+        width: 40%;
         height: 100%;
     }
     #log {
@@ -252,9 +253,14 @@
     document.getElementById("runButton").onclick = run;
 
     if (document.location.href.indexOf("example") >= 0) {
-        document.getElementById("statement").textContent = "MERGE (alice:Person {name:{name_a}})\nMERGE (bob:Person {name:{name_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob";
+//        document.getElementById("statement").textContent = "MERGE (alice:Person {name:{name_a},age:{age_a},married:{married_a}})\nMERGE (bob:Person {name:{name_b},age:{age_b},married:{married_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob";
+        document.getElementById("statement").textContent = "MERGE (alice:Person {name:{name_a},age:{age_a}})\nMERGE (bob:Person {name:{name_b},age:{age_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob";
         addParameter("name_a", "Alice");
+        addParameter("age_a", 33);
+        //addParameter("married_a", "true");
         addParameter("name_b", "Bob");
+        addParameter("age_b", 44);
+        //addParameter("married_b", "false");
     }
 
     </script>

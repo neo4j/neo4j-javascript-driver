@@ -37,6 +37,10 @@
         RELATIONSHIP = 0x52,
         PATH = 0x50,
 
+        TINY_TEXT = 0x80,
+        TINY_LIST = 0x90,
+        TINY_MAP = 0xA0,
+        TINY_STRUCT = 0xB0,
         NULL = 0xC0,
         FLOAT_64 = 0xC1,
         FALSE = 0xC2,
@@ -183,57 +187,138 @@
 
         var encoder = new TextEncoder();
 
-        this.pack = function pack(value) {
-            if (typeof(value) == "string") {
-                packText(value);
-            } else if (value instanceof Structure) {
-                packStructHeader(value.fields.length, value.signature);
-                for(var i = 0; i < value.fields.length; i++) {
-                    pack(value.fields[i]);
-                }
-            } else if (typeof(value) == "object") {
-                var keys = Object.keys(value);
+        this.pack = function pack(x) {
+            if (x === null) {
+                packNull();
+            } else if (x === true) {
+                packTrue();
+            } else if (x === false) {
+                packFalse();
+            } else if (typeof(x) == "number") {
+                packNumber(x);
+            } else if (typeof(x) == "string") {
+                packText(x);
+            } else if (x instanceof Array) {
+                packListHeader(x.length);
+                for(var i = 0; i < x.length; i++)
+                    pack(x[i]);
+            } else if (x instanceof Structure) {
+                packStructHeader(x.fields.length, x.signature);
+                for(var i = 0; i < x.fields.length; i++)
+                    pack(x.fields[i]);
+            } else if (typeof(x) == "object") {
+                var keys = Object.keys(x);
                 packMapHeader(keys.length);
                 for(var i = 0; i < keys.length; i++) {
                     var key = keys[i];
                     packText(key);
-                    pack(value[key]);
+                    pack(x[key]);
                 }
             } else {
                 // TODO
-                console.log(value);
+                console.log(x);
             }
         }
         
-        function packText(value) {
-            var bytes = encoder.encode(value);
+        function packNull() {
+            msg.write(new Uint8Array([NULL]));
+        }
+        
+        function packTrue() {
+            msg.write(new Uint8Array([TRUE]));
+        }
+        
+        function packFalse() {
+            msg.write(new Uint8Array([FALSE]));
+        }
+        
+        function packNumber(x) {
+            if (x == x>>0)
+                packInteger(x);
+            else
+                packFloat(x);
+        }
+        
+        function packInteger(x) {
+            if (-0x10 <= x && x < 0x80) {
+                var a = new Uint8Array(1);
+                new DataView(a.buffer).setInt8(0, x);
+                msg.write(a);
+            } else if (-0x80 <= x && x < -0x10) {
+                var a = new Uint8Array(2);
+                a[0] = INT_8;
+                new DataView(a.buffer).setInt8(1, x);
+                msg.write(a);
+            } else if (-0x8000 <= x && x < 0x8000) {
+                var a = new Uint8Array(3);
+                a[0] = INT_16;
+                new DataView(a.buffer).setInt16(1, x);
+                msg.write(a);
+            } else if (-0x80000000 <= x && x < 0x80000000) {
+                var a = new Uint8Array(5);
+                a[0] = INT_32;
+                new DataView(a.buffer).setInt32(1, x);
+                msg.write(a);
+            } else {
+                // DataView does not support anything above 32-bit
+                // integers but all JavaScript numbers are double
+                // precision floating points anyway, so if we have
+                // anything outside of that range, we'll just pack it
+                // as a float.
+                packFloat(x);
+            }
+        }
+        
+        function packFloat(x) {
+            var a = new Uint8Array(9);
+            a[0] = FLOAT_64;
+            new DataView(a.buffer).setFloat64(1, x);
+            msg.write(a);
+        }
+        
+        function packText(x) {
+            var bytes = encoder.encode(x);
             var size = bytes.length;
             if (size < 0x10) {
-                msg.write(new Uint8Array([0x80 | size]));
+                msg.write(new Uint8Array([TINY_TEXT | size]));
                 msg.write(bytes);
             } else if (size < 0x100) {
-                msg.write(new Uint8Array([0xD0, size]));
+                msg.write(new Uint8Array([TEXT_8, size]));
                 msg.write(bytes);
             } else if (size < 0x10000) {
-                msg.write(new Uint8Array([0xD1, size/256>>0, size%256]));
+                msg.write(new Uint8Array([TEXT_16, size/256>>0, size%256]));
                 msg.write(bytes);
             } else if (size < 0x100000000) {
-                msg.write(new Uint8Array([0xD2, (size/16777216>>0)%256, (size/65536>>0)%256, (size/256>>0)%256, size%256]));
+                msg.write(new Uint8Array([TEXT_32, (size/16777216>>0)%256, (size/65536>>0)%256, (size/256>>0)%256, size%256]));
                 msg.write(bytes);
             } else {
                 throw new ProtocolError("UTF-8 strings of size " + size + " are not supported");
             }
         }
         
+        function packListHeader(size) {
+            if (size < 0x10) {
+                msg.write(new Uint8Array([TINY_LIST | size]));
+            } else if (size < 0x100) {
+                msg.write(new Uint8Array([LIST_8, size]));
+            } else if (size < 0x10000) {
+                msg.write(new Uint8Array([LIST_16, size/256>>0, size%256]));
+            } else if (size < 0x100000000) {
+                msg.write(new Uint8Array([LIST_32, (size/16777216>>0)%256, (size/65536>>0)%256, (size/256>>0)%256, size%256]));
+            } else {
+                throw new ProtocolError("Lists of size " + size + " are not supported");
+            }
+        }
+        
         function packMapHeader(size) {
             if (size < 0x10) {
-                msg.write(new Uint8Array([0xA0 | size]));
+                msg.write(new Uint8Array([TINY_MAP | size]));
             } else if (size < 0x100) {
-                msg.write(new Uint8Array([0xD8, size]));
+                msg.write(new Uint8Array([MAP_8, size]));
             } else if (size < 0x10000) {
-                msg.write(new Uint8Array([0xD9, size/256>>0, size%256]));
+                msg.write(new Uint8Array([MAP_16, size/256>>0, size%256]));
             } else if (size < 0x100000000) {
-                msg.write(new Uint8Array([0xDA, (size/16777216>>0)%256, (size/65536>>0)%256, (size/256>>0)%256, size%256]));
+                msg.write(new Uint8Array([MAP_32, (size/16777216>>0)%256, (size/65536>>0)%256, (size/256>>0)%256, size%256]));
             } else {
                 throw new ProtocolError("Maps of size " + size + " are not supported");
             }
@@ -241,11 +326,11 @@
         
         function packStructHeader(size, signature) {
             if (size < 0x10) {
-                msg.write(new Uint8Array([0xB0 | size, signature]));
+                msg.write(new Uint8Array([TINY_STRUCT | size, signature]));
             } else if (size < 0x100) {
-                msg.write(new Uint8Array([0xDC, size]));
+                msg.write(new Uint8Array([STRUCT_8, size]));
             } else if (size < 0x10000) {
-                msg.write(new Uint8Array([0xDD, size/256>>0, size%256]));
+                msg.write(new Uint8Array([STRUCT_16, size/256>>0, size%256]));
             } else {
                 throw new ProtocolError("Structures of size " + size + " are not supported");
             }
