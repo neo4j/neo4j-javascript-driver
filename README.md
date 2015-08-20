@@ -1,2 +1,2 @@
-# neo4j-javascript-driver
-Experimental JS driver for NDP
+# JavaScript driver for Neo4j Bolt Protocol
+
