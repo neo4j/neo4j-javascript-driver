@@ -37,3 +37,12 @@ session.run(statement, parameters,
 );
 ```
 
+## TODO
+
+The JavaScript driver is still missing at least the following:
+
+- Integration with *node.js*
+- `GraphDatabase` and `Driver` classes from the Session API used by other drivers
+- Ability to specify the remote database URL (currently hard-coded to `bolt:localhost`)
+- A `Transaction` class
+
