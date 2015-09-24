@@ -22,7 +22,7 @@
 
     var MAX_CHUNK_SIZE = 16383,
 
-        // Signature bytes for each message type
+    // Signature bytes for each message type
         INIT = 0x01,            // 0000 0001 // INIT <user_agent>
         ACK_FAILURE = 0x0F,     // 0000 1111 // ACK_FAILURE
         RUN = 0x10,             // 0001 0000 // RUN <statement> <parameters>
@@ -61,19 +61,19 @@
         MAP_32 = 0xDA,
         STRUCT_8 = 0xDC,
         STRUCT_16 = 0xDD,
-        
+
         USER_AGENT = "neo4j-javascript/0.0";
 
     function Structure(signature, fields) {
         this.signature = signature;
         this.fields = fields;
     }
-    
+
     function Node(identity, labels, properties) {
         this.identity = identity;
         this.labels = labels;
         this.properties = properties;
-        
+
         this.toString = function toString() {
             var s = "(" + this.identity.split('/')[1];
             for (var i = 0; i < this.labels.length; i++) {
@@ -99,7 +99,7 @@
         this.end = end;
         this.type = type;
         this.properties = properties;
-        
+
         this.toString = function toString() {
             var s = "(" + this.start.split('/')[1] + ")-[:" + this.type;
             var keys = Object.keys(this.properties);
@@ -115,16 +115,16 @@
             return s;
         }
     }
-    
+
     function UnboundRelationship(identity, type, properties) {
         this.identity = identity;
         this.type = type;
         this.properties = properties;
-        
+
         this.bind = function bind(start, end) {
             return new Relationship(identity, start, end, type, properties);
         }
-        
+
         this.toString = function toString() {
             var s = "-[:" + this.type;
             var keys = Object.keys(this.properties);
@@ -140,33 +140,38 @@
             return s;
         }
     }
-    
+
     function Path(nodes, rels, sequence) {
+        for(var i = 0; i < nodes.length; i++) {
+            nodes[i] = hydrate(nodes[i]);
+        }
         var last_node = nodes[0],
             entities = [last_node];
         for (var i = 0; i < sequence.length; i += 2) {
             var rel_index = sequence[i],
-                next_node = nodes[sequence[2 * i + 1]],
+                next_node = nodes[sequence[i + 1]],
                 rel;
             if (rel_index > 0) {
                 rel = hydrate(rels[rel_index - 1]);
+                entities.push(rel.bind(last_node.identity, next_node.identity));
             } else {
                 rel = hydrate(rels[-rel_index - 1]);
+                entities.push(rel.bind(next_node.identity, last_node.identity));
             }
-            entities.push(rel.bind(next_node, last_node))
-            entities.push(next_node)
+            entities.push(next_node);
+            last_node = next_node;
         }
-        
+
         this.nodes = [entities[0]];
         this.relationships = [];
         for (var i = 1; i < entities.length; i++) {
-            if (i % 2 == 1) {
+            if (i % 2 == 0) {
                 this.nodes.push(entities[i]);
             } else {
                 this.relationships.push(entities[i]);
             }
         }
-        
+
         this.toString = function toString() {
             return "<Path>";
         }
@@ -180,18 +185,18 @@
         } else if (x instanceof Structure) {
             fields = x.fields;
             switch(x.signature) {
-            case NODE:
-                x = new Node(fields[0], fields[1], fields[2]);
-                break;
-            case RELATIONSHIP:
-                x = new Relationship(fields[0], fields[1], fields[2], fields[3], fields[4]);
-                break;
-            case UNBOUND_RELATIONSHIP:
-                x = new UnboundRelationship(fields[0], fields[1], fields[2]);
-                break;
-            case PATH:
-                x = new Path(fields[0], fields[1], fields[2]);
-                break;
+                case NODE:
+                    x = new Node(fields[0], fields[1], fields[2]);
+                    break;
+                case RELATIONSHIP:
+                    x = new Relationship(fields[0], fields[1], fields[2], fields[3], fields[4]);
+                    break;
+                case UNBOUND_RELATIONSHIP:
+                    x = new UnboundRelationship(fields[0], fields[1], fields[2]);
+                    break;
+                case PATH:
+                    x = new Path(fields[0], fields[1], fields[2]);
+                    break;
             }
         }
         return x;
@@ -213,11 +218,11 @@
         this.summaryHandler = summaryHandler;
         this.detailHandler = detailHandler;
     }
-        
+
     function Message(ws) {
         var data = [],
             size = 0;
-        
+
         function flush() {
             var header = new Uint8Array([size/256>>0, size%256]);
             ws.send(header);
@@ -227,7 +232,7 @@
             data = [];
             size = 0;
         }
-        
+
         this.write = function write(b) {
             // TODO: when b > MAX_CHUNK_SIZE
             var newSize = size + b.length;
@@ -243,7 +248,7 @@
             var zero = new Uint8Array([0, 0]);
             ws.send(zero);
         }
-        
+
     }
 
     function Packer(msg) {
@@ -282,26 +287,26 @@
                 console.log(x);
             }
         }
-        
+
         function packNull() {
             msg.write(new Uint8Array([NULL]));
         }
-        
+
         function packTrue() {
             msg.write(new Uint8Array([TRUE]));
         }
-        
+
         function packFalse() {
             msg.write(new Uint8Array([FALSE]));
         }
-        
+
         function packNumber(x) {
             if (x == x>>0)
                 packInteger(x);
             else
                 packFloat(x);
         }
-        
+
         function packInteger(x) {
             if (-0x10 <= x && x < 0x80) {
                 var a = new Uint8Array(1);
@@ -331,14 +336,14 @@
                 packFloat(x);
             }
         }
-        
+
         function packFloat(x) {
             var a = new Uint8Array(9);
             a[0] = FLOAT_64;
             new DataView(a.buffer).setFloat64(1, x);
             msg.write(a);
         }
-        
+
         function packText(x) {
             var bytes = encoder.encode(x);
             var size = bytes.length;
@@ -358,7 +363,7 @@
                 throw new ProtocolError("UTF-8 strings of size " + size + " are not supported");
             }
         }
-        
+
         function packListHeader(size) {
             if (size < 0x10) {
                 msg.write(new Uint8Array([TINY_LIST | size]));
@@ -372,7 +377,7 @@
                 throw new ProtocolError("Lists of size " + size + " are not supported");
             }
         }
-        
+
         function packMapHeader(size) {
             if (size < 0x10) {
                 msg.write(new Uint8Array([TINY_MAP | size]));
@@ -386,7 +391,7 @@
                 throw new ProtocolError("Maps of size " + size + " are not supported");
             }
         }
-        
+
         function packStructHeader(size, signature) {
             if (size < 0x10) {
                 msg.write(new Uint8Array([TINY_STRUCT | size, signature]));
@@ -398,7 +403,7 @@
                 throw new ProtocolError("Structures of size " + size + " are not supported");
             }
         }
-        
+
         var bytes = function bytes() {
             return Uint8Array(data);
         }
@@ -409,31 +414,31 @@
         var p = 0,
             view = new DataView(data.buffer),
             decoder = new TextDecoder();
-        
+
         function read() {
             var ch = data[p];
             p += 1;
             return ch;
         }
-        
+
         function readUint16() {
             var q = p;
             readBytes(2);
             return view.getUint16(q);
         }
-        
+
         function readUint32() {
             var q = p;
             readBytes(4);
             return view.getUint32(q);
         }
-        
+
         function readUint64() {
             var q = p;
             readBytes(8);
             return view.getUint64(q);
         }
-        
+
         function readBytes(n) {
             var q = p + n,
                 s = data.subarray(p, q);
@@ -558,7 +563,7 @@
             packer.pack(new Structure(signature, fields));
             msg.end();
         }
-        
+
         function recv(data) {
             var b = new Uint8Array(data), h = [];
             for(var i = 0; i < b.length; i++) {
@@ -572,32 +577,32 @@
             var unpacker = new Unpacker(data),
                 message = unpacker.unpack();
             switch(message.signature) {
-            case SUCCESS:
-                debug("S: SUCCESS " + JSON.stringify(message.fields[0]));
-                var handler = responseHandlers.shift().summaryHandler;
-                if(handler) handler(true, message.fields[0]);
-                break;
-            case FAILURE:
-                debug("S: FAILURE " + JSON.stringify(message.fields[0]));
-                console.log(message.fields[0]);
-                var handler = responseHandlers.shift().summaryHandler;
-                if(handler) handler(false, message.fields[0]);
-                debug("C: ACK_FAILURE");
-                responseHandlers.unshift(new ResponseHandler());
-                packer.pack(new Structure(ACK_FAILURE, []));
-                msg.end();
-                break;
-            case IGNORED:
-                debug("S: IGNORED");
-                responseHandlers.shift();
-                break;
-            case RECORD:
-                debug("S: RECORD " + JSON.stringify(message.fields[0]));
-                var handler = responseHandlers[0].detailHandler;
-                if(handler) handler(hydrate(message.fields[0]));
-                break;
-            default:
-                debug("WTF");
+                case SUCCESS:
+                    debug("S: SUCCESS " + JSON.stringify(message.fields[0]));
+                    var handler = responseHandlers.shift().summaryHandler;
+                    if(handler) handler(true, message.fields[0]);
+                    break;
+                case FAILURE:
+                    debug("S: FAILURE " + JSON.stringify(message.fields[0]));
+                    console.log(message.fields[0]);
+                    var handler = responseHandlers.shift().summaryHandler;
+                    if(handler) handler(false, message.fields[0]);
+                    debug("C: ACK_FAILURE");
+                    responseHandlers.unshift(new ResponseHandler());
+                    packer.pack(new Structure(ACK_FAILURE, []));
+                    msg.end();
+                    break;
+                case IGNORED:
+                    debug("S: IGNORED");
+                    responseHandlers.shift();
+                    break;
+                case RECORD:
+                    debug("S: RECORD " + JSON.stringify(message.fields[0]));
+                    var handler = responseHandlers[0].detailHandler;
+                    if(handler) handler(hydrate(message.fields[0]));
+                    break;
+                default:
+                    debug("WTF");
             }
         }
 
@@ -613,7 +618,7 @@
                 messageData = newData;
             }
         }
-        
+
         function receiverV1(data) {
             var p = 0;
             while (p < data.byteLength) {
@@ -622,7 +627,7 @@
                 p = q + chunkSize;
                 onChunk(new Uint8Array(data.slice(q, p)));
             }
-            
+
         }
 
         function init() {
@@ -639,7 +644,7 @@
             requests.push(new RunRequest(statement, parameters, onHeader, onRecord, onFooter));
             runNext();
         }
-        
+
         function runNext() {
             if (ready) {
                 while (requests.length > 0) {
@@ -691,4 +696,3 @@
     window.Path = Path;
 
 }());
-
