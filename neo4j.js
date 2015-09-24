@@ -684,8 +684,11 @@
         console.log(obj);
     }
 
-    // Expose the 'Session' class
+    // Expose public classes
     window.Session = Session;
+    window.Node = Node;
+    window.Relationship = Relationship;
+    window.Path = Path;
 
 }());
 
