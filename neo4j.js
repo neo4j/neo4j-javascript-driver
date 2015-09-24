@@ -35,6 +35,7 @@
 
         NODE = 0x4E,
         RELATIONSHIP = 0x52,
+        UNBOUND_RELATIONSHIP = 0x72,
         PATH = 0x50,
 
         TINY_TEXT = 0x80,
@@ -114,6 +115,62 @@
             return s;
         }
     }
+    
+    function UnboundRelationship(identity, type, properties) {
+        this.identity = identity;
+        this.type = type;
+        this.properties = properties;
+        
+        this.bind = function bind(start, end) {
+            return new Relationship(identity, start, end, type, properties);
+        }
+        
+        this.toString = function toString() {
+            var s = "-[:" + this.type;
+            var keys = Object.keys(this.properties);
+            if (keys.length > 0) {
+                s += " {";
+                for(var i = 0; i < keys.length; i++) {
+                    if (i > 0) s += ",";
+                    s += keys[i] + ":" + JSON.stringify(this.properties[keys[i]]);
+                }
+                s += "}";
+            }
+            s += "]->";
+            return s;
+        }
+    }
+    
+    function Path(nodes, rels, sequence) {
+        var last_node = nodes[0],
+            entities = [last_node];
+        for (var i = 0; i < sequence.length; i += 2) {
+            var rel_index = sequence[i],
+                next_node = nodes[sequence[2 * i + 1]],
+                rel;
+            if (rel_index > 0) {
+                rel = hydrate(rels[rel_index - 1]);
+            } else {
+                rel = hydrate(rels[-rel_index - 1]);
+            }
+            entities.push(rel.bind(next_node, last_node))
+            entities.push(next_node)
+        }
+        
+        this.nodes = [entities[0]];
+        this.relationships = [];
+        for (var i = 1; i < entities.length; i++) {
+            if (i % 2 == 1) {
+                this.nodes.push(entities[i]);
+            } else {
+                this.relationships.push(entities[i]);
+            }
+        }
+        
+        this.toString = function toString() {
+            return "<Path>";
+        }
+    }
 
     function hydrate(x) {
         if (Array.isArray(x)) {
@@ -128,6 +185,12 @@
                 break;
             case RELATIONSHIP:
                 x = new Relationship(fields[0], fields[1], fields[2], fields[3], fields[4]);
+                break;
+            case UNBOUND_RELATIONSHIP:
+                x = new UnboundRelationship(fields[0], fields[1], fields[2]);
+                break;
+            case PATH:
+                x = new Path(fields[0], fields[1], fields[2]);
                 break;
             }
         }
@@ -344,7 +407,7 @@
 
     function Unpacker(data) {
         var p = 0,
-            view = new DataView(data.buffer);
+            view = new DataView(data.buffer),
             decoder = new TextDecoder();
         
         function read() {
@@ -598,7 +661,7 @@
         }
 
         var ws = new WebSocket("ws://localhost:7688/"),
-            msg = new Message(ws);
+            msg = new Message(ws),
             packer = new Packer(msg);
         ws.onmessage = function(event) {
             var reader = new FileReader();
