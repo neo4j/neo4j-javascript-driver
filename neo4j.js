@@ -618,10 +618,7 @@
     }
 
     function debug(obj) {
-        var el = document.getElementById("log");
-        el.appendChild(document.createTextNode(new Date().toISOString() + "  " + obj.toString()));
-        el.appendChild(document.createElement("br"));
-        el.scrollTop = el.scrollHeight;
+        console.log(obj);
     }
 
     // Expose the 'Session' class
