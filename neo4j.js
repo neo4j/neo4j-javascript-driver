@@ -587,7 +587,7 @@
                         send(RUN, [rq.statement, rq.parameters], rq.onHeader);
                         debug("C: PULL_ALL");
                         send(PULL_ALL, [], function(metadata) {
-                            if (rq.onfooter) rq.onFooter(metadata);
+                            if (rq.onFooter) rq.onFooter(metadata);
                             ready = true;
                         }, rq.onRecord);
                     } else {
