@@ -3,7 +3,6 @@
 The JavaScript driver for Bolt uses the websocket interface and is currently available for use within a browser context only.
 To use the driver, simply include the `neo4j.js` file within a page.
 
-
 ## Example
 
 ```javascript
@@ -36,6 +35,13 @@ session.run(statement, parameters,
 
 );
 ```
+
+## Building & testing
+
+    npm install
+    npm test
+
+This runs the test suite and produces browser-compatible standalone files under `build/`.
 
 ## TODO
 
