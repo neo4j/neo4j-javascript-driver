@@ -12,7 +12,7 @@
   "scripts" : {
     "test" : "gulp test",
     "build" : "gulp"
-  },    
+  },
 
   "main" : "lib/neo4j.js",
 
@@ -28,9 +28,11 @@
     "gulp-uglify": "^1.2.0",
     "gulp-util": "^3.0.6",
     "gulp-download": "^0.0.1",
-    "gulp-untar2": "^0.1.0", 
-    "gulp-gunzip": "^0.0.3", 
+    "gulp-untar2": "^0.1.0",
+    "gulp-gunzip": "^0.0.3",
     "gulp-cucumber": "^0.0.12",
+    "gulp-shell": "^0.4.3",
+    "gulp-watch": "^4.3.5",
     "jasmine-reporters": "^2.0.7",
     "vinyl-source-stream": "^1.1.0",
     "phantomjs": "^1.9.18"
