@@ -15,33 +15,43 @@ var reporters = require('jasmine-reporters');
 var jasminePhantomJs = require('gulp-jasmine2-phantomjs');
 var fs = require("fs");
 
-var browserifyTask = function (options) {
-
-  // Our app bundler
-  var appBundler = browserify({
-    entries: [options.src],
-    cache: {},
-    packageCache: {}
-  });
-
-  // Un-minified browser package
-  appBundler.bundle()
-      .on('error', gutil.log)
-      .pipe(source('neo4j-web.js'))
-      .pipe(gulp.dest(options.dest));
-
-
-  appBundler.bundle()
-      .on('error', gutil.log)
-      .pipe(source('neo4j-web.min.js'))
-      .pipe(gulp.dest(options.dest))
-      .pipe(gulpif(!options.development, streamify(uglify())))
-}
-
 gulp.task('default', ["test", "browser"]);
 
 /** Build all-in-one files for use in the browser */
 gulp.task('browser', function () {
+
+  gulp.src('./test/*.test.js')
+    .pipe(concat('all.test.js'))
+    .pipe(gulp.dest('./build/'));
+
+  browserify({ entries: ['build/all.test.js'] })
+     .bundle()
+     .on('error', gutil.log)
+     .pipe(source('neo4j-web.test.js'))
+     .pipe(gulp.dest('./build/browser/'));
+
+  var browserifyTask = function (options) {
+
+    // Our app bundler
+    var appBundler = browserify({
+      entries: [options.src],
+      cache: {},
+      packageCache: {}
+    });
+
+    // Un-minified browser package
+    appBundler.bundle()
+        .on('error', gutil.log)
+        .pipe(source('neo4j-web.js'))
+        .pipe(gulp.dest(options.dest));
+
+
+    appBundler.bundle()
+        .on('error', gutil.log)
+        .pipe(source('neo4j-web.min.js'))
+        .pipe(gulp.dest(options.dest))
+        .pipe(gulpif(!options.development, streamify(uglify())))
+  }
 
   browserifyTask({
     src:  'lib/neo4j.js',
@@ -74,16 +84,6 @@ gulp.task('test-nodejs', function () {
 
 gulp.task('test-browser', ['browser'], function () {
   // TODO: We should not use PhantomJS directly, instead we should run this via Karma to get wide cross-browser testing
-  gulp.src('./test/*.test.js')
-    .pipe(concat('all.test.js'))
-    .pipe(gulp.dest('./build/'));
-
-  browserify({ entries: ['build/all.test.js'] })
-     .bundle()
-     .on('error', gutil.log)
-     .pipe(source('neo4j-web.test.js'))
-     .pipe(gulp.dest('./build/browser/'));
-
   return gulp.src('./test/browser/testrunner-phantomjs.html').pipe(jasminePhantomJs());
 });
 
