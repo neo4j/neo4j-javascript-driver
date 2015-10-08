@@ -7,13 +7,18 @@ describe('connector', function() {
     var conn = connect("neo4j://localhost")
 
     // When
-    conn.initialize( "mydriver/0.0.0", function( err, msg ) {
+    conn.initialize( "mydriver/0.0.0", {
+      onCompleted: function( msg ) {
 
-      // Then
-      expect( err ).toBeNull();
-      expect( msg ).not.toBeNull(); // TODO Assert is success
+        // Then
+        expect( msg ).not.toBeNull(); // TODO Assert is success
 
-      done();
+        done();
+      },
+      onError: function( err ) {
+        expect( err ).toBeNull();
+        done();
+      }
     });
     conn.sync();
 
