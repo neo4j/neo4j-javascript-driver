@@ -1,6 +1,7 @@
 
 
 var Chunker = require('../../lib/internal/chunking').Chunker;
+var Dechunker = require('../../lib/internal/chunking').Dechunker;
 var alloc = require('../../lib/internal/buf').alloc;
 
 describe('Chunker', function() {
@@ -28,6 +29,42 @@ describe('Chunker', function() {
 
     // Then
     expect( ch.toHex() ).toBe("00 02 01 02 00 02 03 04 00 02 05 06 ");
+  });
+  it('should include message boundaries', function() {
+    // Given
+    var ch = new TestChannel();
+    var chunker = new Chunker(ch);
+
+    // When
+    chunker.writeInt32(1);
+    chunker.messageBoundary();
+    chunker.writeInt32(2);
+    chunker.flush();
+
+    // Then
+    expect( ch.toHex() ).toBe("00 04 00 00 00 01 00 00 00 04 00 00 00 02 ");
+  });
+});
+
+describe('Dechunker', function() {
+  it('should unchunk a simple message', function() {
+    // Given
+    var messages = [];
+    var dechunker = new Dechunker();
+    var chunker = new Chunker(dechunker);
+    dechunker.onmessage = function(buffer) { messages.push(buffer); };
+
+    // When
+    chunker.writeInt16(1);
+    chunker.writeInt16(2);
+    chunker.flush();
+    chunker.writeInt16(3);
+    chunker.messageBoundary();
+    chunker.flush();
+
+    // Then
+    expect( messages.length ).toBe( 1 );
+    expect( messages[0].toHex() ).toBe( "00 01 00 02 00 03 " );
   });
 });
 
