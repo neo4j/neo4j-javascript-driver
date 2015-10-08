@@ -1,6 +1,6 @@
 
 
-var alloc = require('../lib/buf').alloc;
+var alloc = require('../../lib/internal/buf').alloc;
 
 describe('buffers', function() {
   it('should have helpful toString', function() {
@@ -15,7 +15,7 @@ describe('buffers', function() {
     var str = b.toString();
 
     // Then
-    expect( str ).toContain("Buffer( position=4 )\n  10 80 f0 7f");
+    expect( str ).toContain("Buffer( position=4 )\n  01 08 0f 7f");
   });
 
   it('should read and write integers', function() {

@@ -7,3 +7,4 @@ pids
 .lock-wscript
 build
 node_modules
+.idea

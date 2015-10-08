@@ -1,5 +1,5 @@
 
-var connect = require("../lib/conn/connector.js").connect;
+var connect = require("../../lib/internal/connector.js").connect;
 
 describe('connector', function() {
   it('should read/write basic messages', function(done) {

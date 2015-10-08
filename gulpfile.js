@@ -1,6 +1,7 @@
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var gulp = require('gulp');
+var through = require('through2');
 var gulpif = require('gulp-if');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
@@ -20,44 +21,47 @@ gulp.task('default', ["test", "browser"]);
 /** Build all-in-one files for use in the browser */
 gulp.task('browser', function () {
 
-  gulp.src('./test/*.test.js')
-    .pipe(concat('all.test.js'))
-    .pipe(gulp.dest('./build/'));
-
-  browserify({ entries: ['build/all.test.js'] })
-     .bundle()
-     .on('error', gutil.log)
-     .pipe(source('neo4j-web.test.js'))
-     .pipe(gulp.dest('./build/browser/'));
-
-  var browserifyTask = function (options) {
-
-    // Our app bundler
-    var appBundler = browserify({
-      entries: [options.src],
-      cache: {},
-      packageCache: {}
-    });
-
-    // Un-minified browser package
-    appBundler.bundle()
+  var browserOutput = 'build/browser';
+  var testFiles = [];
+  gulp.src('./test/**/*.test.js')
+    .pipe( through.obj( function( file, enc, cb ) {
+      testFiles.push( file.path );
+      cb();
+    }, function(cb) {
+      // At end-of-stream, push the list of files to the next step
+      this.push( testFiles );
+      cb();
+    }))
+    .pipe( through.obj( function( testFiles, enc, cb) {
+      browserify({ 
+          entries: testFiles,  
+          debug: true 
+        })
+        .bundle()
         .on('error', gutil.log)
-        .pipe(source('neo4j-web.js'))
-        .pipe(gulp.dest(options.dest));
+        .pipe(source('neo4j-web.test.js'))
+        .pipe(gulp.dest(browserOutput));
+    }));
 
 
-    appBundler.bundle()
-        .on('error', gutil.log)
-        .pipe(source('neo4j-web.min.js'))
-        .pipe(gulp.dest(options.dest))
-        .pipe(gulpif(!options.development, streamify(uglify())))
-  }
-
-  browserifyTask({
-    src:  'lib/neo4j.js',
-    dest: 'build/browser'
+  // Our app bundler
+  var appBundler = browserify({
+    entries: ['lib/neo4j.js'],
+    cache: {},
+    packageCache: {}
   });
 
+  // Un-minified browser package
+  appBundler.bundle()
+    .on('error', gutil.log)
+    .pipe(source('neo4j-web.js'))
+    .pipe(gulp.dest(browserOutput));
+
+  appBundler.bundle()
+    .on('error', gutil.log)
+    .pipe(source('neo4j-web.min.js'))
+    .pipe(gulp.dest(browserOutput))
+    .pipe(streamify(uglify()));
 });
 
 gulp.task('test', ['test-nodejs', 'test-browser']);
@@ -72,7 +76,7 @@ gulp.task('stop-neo4j', shell.task([
 ]));
 
 gulp.task('test-nodejs', function () {
-  return gulp.src('test/*.test.js')
+  return gulp.src('test/**/*.test.js')
         .pipe(jasmine({
             // reporter: new reporters.JUnitXmlReporter({
             //   savePath: "build/nodejs-test-reports",

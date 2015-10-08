@@ -1,6 +1,6 @@
 
-var alloc = require('../lib/buf').alloc,
-    packstream = require("../lib/packstream.js"),
+var alloc = require('../../lib/internal/buf').alloc,
+    packstream = require("../../lib/internal/packstream.js"),
     Packer = packstream.Packer,
     Unpacker = packstream.Unpacker;
 
