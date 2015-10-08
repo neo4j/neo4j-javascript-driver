@@ -14,6 +14,10 @@ var shell = require('gulp-shell');
 var jasmine = require('gulp-jasmine');
 var reporters = require('jasmine-reporters');
 var jasminePhantomJs = require('gulp-jasmine2-phantomjs');
+var babelify = require('babelify');
+var babel = require('gulp-babel');
+var watch = require('gulp-watch');
+var batch = require('gulp-batch');
 var fs = require("fs");
 
 gulp.task('default', ["test", "browser"]);
@@ -36,7 +40,7 @@ gulp.task('browser', function () {
       browserify({ 
           entries: testFiles,  
           debug: true 
-        })
+        }).transform(babelify)
         .bundle()
         .on('error', gutil.log)
         .pipe(source('neo4j-web.test.js'))
@@ -48,8 +52,9 @@ gulp.task('browser', function () {
   var appBundler = browserify({
     entries: ['lib/neo4j.js'],
     cache: {},
+    standalone: 'neo4j',
     packageCache: {}
-  });
+  }).transform(babelify);
 
   // Un-minified browser package
   appBundler.bundle()
@@ -64,6 +69,21 @@ gulp.task('browser', function () {
     .pipe(streamify(uglify()));
 });
 
+var buildNode = function(options) {
+  return gulp.src(options.src)
+    .pipe(babel())
+    .pipe(gulp.dest(options.dest))
+}
+
+gulp.task('nodejs', function(){
+  return buildNode({
+    src: 'lib/**/*.js',
+    dest: 'build/node'
+    });
+})
+
+gulp.task('all', ['nodejs', 'browser']);
+
 gulp.task('test', ['test-nodejs', 'test-browser']);
 
 gulp.task('start-neo4j', ['download-neo4j'], shell.task([
@@ -75,7 +95,7 @@ gulp.task('stop-neo4j', shell.task([
   'build/neo4j-enterprise*/bin/neo4j stop',
 ]));
 
-gulp.task('test-nodejs', function () {
+gulp.task('test-nodejs', ['nodejs'], function () {
   return gulp.src('test/**/*.test.js')
         .pipe(jasmine({
             // reporter: new reporters.JUnitXmlReporter({
@@ -91,6 +111,11 @@ gulp.task('test-browser', ['browser'], function () {
   return gulp.src('./test/browser/testrunner-phantomjs.html').pipe(jasminePhantomJs());
 });
 
+gulp.task('watch', function () {
+    watch('lib/**/*.js', batch(function (events, done) {
+        gulp.start('all', done);
+    }));
+});
 
 gulp.task('download-neo4j', function() {
   if( !fs.existsSync('./build/neo4j-enterprise-3.0.0-alpha') ) {

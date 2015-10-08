@@ -1,6 +1,6 @@
 
 
-var alloc = require('../../lib/internal/buf').alloc;
+var alloc = require('../../build/node/internal/buf').alloc;
 
 describe('buffers', function() {
   it('should have helpful toString', function() {

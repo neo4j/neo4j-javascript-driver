@@ -1,8 +1,8 @@
 
 
-var Chunker = require('../../lib/internal/chunking').Chunker;
-var Dechunker = require('../../lib/internal/chunking').Dechunker;
-var alloc = require('../../lib/internal/buf').alloc;
+var Chunker = require('../../build/node/internal/chunking').Chunker;
+var Dechunker = require('../../build/node/internal/chunking').Dechunker;
+var alloc = require('../../build/node/internal/buf').alloc;
 
 describe('Chunker', function() {
   it('should chunk simple data', function() {

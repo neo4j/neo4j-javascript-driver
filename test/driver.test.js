@@ -1,5 +1,5 @@
 
-var neo4j = require("../lib/neo4j");
+var neo4j = require("../build/node/neo4j");
 
 describe('driver', function() {
   it('should expose sessions', function() {

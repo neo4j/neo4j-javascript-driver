@@ -1,5 +1,5 @@
 
-var utf8 = require('../../lib/internal/utf8');
+var utf8 = require('../../build/node/internal/utf8');
 
 describe('utf8', function() {
   it('should have a nice clean buffer position after serializing', function() {
