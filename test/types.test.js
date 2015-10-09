@@ -36,7 +36,7 @@ describe('map values', function() {
 });
 
 describe('node values', function() {
-  it('should support returning node objects', function(done) {
+  it('should support returning nodes ', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
     var session = driver.session();
@@ -56,7 +56,7 @@ describe('node values', function() {
 });
 
 describe('relationship values', function() {
-  it('should support returning relationship objects', function(done) {
+  it('should support returning relationships', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
     var session = driver.session();
@@ -71,6 +71,39 @@ describe('relationship values', function() {
         driver.close(); 
         done();
 
+      });
+  });
+});
+
+describe('path values', function() {
+  it('should support returning paths', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    var session = driver.session();
+    
+    // When
+    session.run("CREATE p=(:User { name:'Lisa' })<-[r:KNOWS {since:1234}]-() RETURN p")
+      .then(function(rs) {
+        var path = rs[0]['p'];
+
+        expect( path.start.properties ).toEqual( { name:"Lisa" } );
+        expect( path.end.properties ).toEqual( { } );
+
+        // Accessing path segments
+        expect( path.length ).toEqual( 1 );
+        for (var i = 0; i < path.length; i++) {
+          var segment = path.segments[i];
+
+          // The direction of the path segment goes from lisa to the blank node
+          expect( segment.start.properties ).toEqual( { name:"Lisa" } );
+          expect( segment.end.properties ).toEqual( { } );
+
+          // Which is the inverse of the relationship itself!
+          expect( segment.relationship.properties ).toEqual( { since:1234 } );
+        };
+
+        driver.close(); 
+        done();
       });
   });
 });
