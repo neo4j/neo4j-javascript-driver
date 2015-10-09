@@ -55,6 +55,26 @@ describe('node values', function() {
   });
 });
 
+describe('relationship values', function() {
+  it('should support returning relationship objects', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    var session = driver.session();
+    
+    // When
+    session.run("CREATE ()-[r:User {name:'Lisa'}]->() RETURN r, id(r)").then(function(rs) {
+        var rel = rs[0]['r'];
+
+        expect( rel.properties ).toEqual( { name:"Lisa" } );
+        expect( rel.type ).toEqual( "User" );
+        // expect( rel.identity ).toEqual( rs[0]['id(r)'] ); // TODO
+        driver.close(); 
+        done();
+
+      });
+  });
+});
+
 function testVal( val ) { 
   return function( done ) {
     var driver = neo4j.driver("neo4j://localhost");
