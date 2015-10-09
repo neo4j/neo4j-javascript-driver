@@ -10,10 +10,7 @@ describe('connector', function() {
     conn.initialize( "mydriver/0.0.0", {
       onCompleted: function( msg ) {
         expect( msg ).not.toBeNull();
-        done();
-      },
-      onError: function( err ) {
-        expect( err ).toBeNull();
+        conn.close();
         done();
       }
     });
@@ -34,6 +31,7 @@ describe('connector', function() {
       },
       onCompleted: function( tail ) {
         expect( records[0][0] ).toBe( 1 );
+        conn.close();
         done();
       }
     });

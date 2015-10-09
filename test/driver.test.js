@@ -11,5 +11,6 @@ describe('driver', function() {
 
     // Then
     expect( session ).not.toBeNull();
+    driver.close();
   });
 });

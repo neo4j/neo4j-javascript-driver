@@ -15,6 +15,7 @@ describe('session', function() {
       onCompleted : function( ) {
         expect( records.length ).toBe( 1 );
         expect( records[0]['a'] ).toBe( 1 );
+        driver.close();
         done();
       }
     });
@@ -36,7 +37,7 @@ describe('session', function() {
         expect( records[0]['a'] ).toBe( 1 );
         done();
       }
-    )
+    ).then( function() { driver.close(); })
   });
 
   it('should expose basic run/catch ', function(done) {
@@ -46,6 +47,7 @@ describe('session', function() {
     driver.session().run( "RETURN 1 AS").catch(
       function(error) {
         expect( error.fields.length).toBe(1);
+        driver.close();
         done();
       }
     )
