@@ -19,4 +19,35 @@ describe('session', function() {
       }
     });
   });
+
+  it('should expose basic run/then/then ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    // When & Then
+    driver.session().run( "RETURN 1 AS a")
+    .then( 
+      function( records ) {
+        expect( records.length ).toBe( 1 );
+        expect( records[0]['a'] ).toBe( 1 );
+      }
+    ).then(
+      function(records) {
+        expect( records.length ).toBe( 1 );
+        expect( records[0]['a'] ).toBe( 1 );
+        done();
+      }
+    )
+  });
+
+  it('should expose basic run/catch ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    // When & Then
+    driver.session().run( "RETURN 1 AS").catch(
+      function(error) {
+        expect( error.fields.length).toBe(1);
+        done();
+      }
+    )
+  });
 });
