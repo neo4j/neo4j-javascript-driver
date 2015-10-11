@@ -79,7 +79,7 @@ describe('relationship values', function() {
   });
 });
 
-fdescribe('path values', function() {
+describe('path values', function() {
   it('should support returning paths', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
