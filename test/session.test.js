@@ -8,7 +8,7 @@ describe('session', function() {
 
     // When & Then
     var records = [];
-    driver.session().run( "RETURN 1 AS a").subscribe( {
+    driver.session().run( "RETURN 1.0 AS a").subscribe( {
       onNext : function( record ) {
         records.push( record ); 
       },
@@ -25,7 +25,7 @@ describe('session', function() {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
     // When & Then
-    driver.session().run( "RETURN 1 AS a")
+    driver.session().run( "RETURN 1.0 AS a")
     .then( 
       function( records ) {
         expect( records.length ).toBe( 1 );

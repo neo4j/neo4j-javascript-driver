@@ -24,7 +24,7 @@ describe('connector', function() {
     // When
     var records = [];
     conn.initialize( "mydriver/0.0.0" );
-    conn.run( "RETURN 1", {} );
+    conn.run( "RETURN 1.0", {} );
     conn.pullAll( {
       onNext: function( record ) {
         records.push( record ); 

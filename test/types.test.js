@@ -10,6 +10,10 @@ describe('floating point values', function() {
   it('should support really small float ', testVal( 4.9e-324 ) ); // Min 64-bit
 });
 
+describe('integer values', function() {
+  it('should support integer 1 ', testVal( neo4j.int(1) ) );
+});
+
 describe('boolean values', function() {
   it('should support true ',  testVal( true ) );
   it('should support false ', testVal( false ) );
@@ -75,14 +79,14 @@ describe('relationship values', function() {
   });
 });
 
-describe('path values', function() {
+fdescribe('path values', function() {
   it('should support returning paths', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
     var session = driver.session();
     
     // When
-    session.run("CREATE p=(:User { name:'Lisa' })<-[r:KNOWS {since:1234}]-() RETURN p")
+    session.run("CREATE p=(:User { name:'Lisa' })<-[r:KNOWS {since:1234.0}]-() RETURN p")
       .then(function(rs) {
         var path = rs[0]['p'];
 
@@ -93,15 +97,12 @@ describe('path values', function() {
         expect( path.length ).toEqual( 1 );
         for (var i = 0; i < path.length; i++) {
           var segment = path.segments[i];
-
           // The direction of the path segment goes from lisa to the blank node
           expect( segment.start.properties ).toEqual( { name:"Lisa" } );
           expect( segment.end.properties ).toEqual( { } );
-
           // Which is the inverse of the relationship itself!
-          expect( segment.relationship.properties ).toEqual( { since:1234 } );
+          expect( segment.relationship.properties ).toEqual( { since: 1234 } );
         };
-
         driver.close(); 
         done();
       });
