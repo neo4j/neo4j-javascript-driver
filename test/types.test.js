@@ -12,6 +12,10 @@ describe('floating point values', function() {
 
 describe('integer values', function() {
   it('should support integer 1 ', testVal( neo4j.int(1) ) );
+  it('should support integer 0 ', testVal( neo4j.int(0) ) );
+  it('should support integer -1 ', testVal( neo4j.int(-1) ) );
+  it('should support integer larger than JS Numbers can model', testVal( neo4j.int("0x7fffffffffffffff") ) );
+  it('should support integer smaller than JS Numbers can model', testVal( neo4j.int("0x8000000000000000") ) );
 });
 
 describe('boolean values', function() {
