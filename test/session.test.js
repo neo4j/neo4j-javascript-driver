@@ -35,9 +35,8 @@ describe('session', function() {
       function(records) {
         expect( records.length ).toBe( 1 );
         expect( records[0]['a'] ).toBe( 1 );
-        done();
       }
-    ).then( function() { driver.close(); })
+    ).then( function() { driver.close(); done(); })
   });
 
   it('should expose basic run/catch ', function(done) {
