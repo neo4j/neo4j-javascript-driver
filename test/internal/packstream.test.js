@@ -20,6 +20,12 @@ describe('packstream', function() {
     expect( packAndUnpack( new Structure(1, ["Hello, world!!!"] ) ).fields[0] )  
      .toBe( "Hello, world!!!" );
   });
+  it('should pack lists', function() {
+   var list = ['a', 'b'];
+   var roundtripped = packAndUnpack( list );
+   expect( roundtripped[0] ).toBe( list[0] );
+   expect( roundtripped[1] ).toBe( list[1] );
+  });
 });
 
 function packAndUnpack( val ) {

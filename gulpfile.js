@@ -106,7 +106,7 @@ gulp.task('test-nodejs', ['nodejs'], function () {
         }));
 });
 
-gulp.task('test-browser', ['browser'], function () {
+gulp.task('test-browser', ['nodejs', 'browser'], function () {
   // TODO: We should not use PhantomJS directly, instead we should run this via Karma to get wide cross-browser testing
   return gulp.src('./test/browser/testrunner-phantomjs.html').pipe(jasminePhantomJs());
 });
