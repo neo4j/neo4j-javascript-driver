@@ -21,7 +21,7 @@ describe('session', function() {
     });
   });
 
-  it('should expose basic run/then/then ', function(done) {
+  it('should expose basic run/then/then/then ', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
     // When & Then
