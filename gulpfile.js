@@ -12,8 +12,8 @@ var gunzip = require('gulp-gunzip');
 var untar = require('gulp-untar2');
 var shell = require('gulp-shell');
 var jasmine = require('gulp-jasmine');
+var jasmineBrowser = require('gulp-jasmine-browser');
 var reporters = require('jasmine-reporters');
-var jasminePhantomJs = require('gulp-jasmine2-phantomjs');
 var babelify = require('babelify');
 var babel = require('gulp-babel');
 var watch = require('gulp-watch');
@@ -112,8 +112,9 @@ gulp.task('test-nodejs', ['nodejs'], function () {
 });
 
 gulp.task('test-browser', ['nodejs', 'browser'], function () {
-  // TODO: We should not use PhantomJS directly, instead we should run this via Karma to get wide cross-browser testing
-  return gulp.src('./test/browser/testrunner-phantomjs.html').pipe(jasminePhantomJs());
+  return gulp.src('build/browser/neo4j-web.test.js')
+    .pipe(jasmineBrowser.specRunner({console: true}))
+    .pipe(jasmineBrowser.headless({driver: 'slimerjs'}));
 });
 
 gulp.task('watch', function () {
