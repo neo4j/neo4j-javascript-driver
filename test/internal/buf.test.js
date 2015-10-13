@@ -18,7 +18,7 @@ describe('buffers', function() {
     var hex = b.toHex();
 
     // Then
-    expect( str ).toContain("Buffer( position=4 )\n  01 08 0f 7f");
+    expect( str ).toContain("( position=4 )\n  01 08 0f 7f");
     expect(hex).toBe("01 08 0f 7f ");
   });
 

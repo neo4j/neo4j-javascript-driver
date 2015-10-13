@@ -4,7 +4,7 @@ var neo4j = require('../build/node/neo4j');
 var statement = ['MERGE (alice:Person {name:{name_a},age:{age_a}})',
 	'MERGE (bob:Person {name:{name_b},age:{age_b}})',
 	'CREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)',
-	'RETURN alice AS xxx, bob, alice_knows_bob'
+	'RETURN alice AS, bob, alice_knows_bob'
 ];
 
 var params = {
