@@ -93,7 +93,7 @@
         padding: 0 2px;
     }
     </style>
-    <script src="neo4j.js"></script>
+    <script src="../build/browser/neo4j-web.min.js"></script>
   </head>
   <body>
 
@@ -131,38 +131,27 @@
     </div>
 
     <script>
-        
-    var session = new Session();
+    var driver = neo4j.driver("neo4j://localhost");
+    var session = driver.session();
 
     function run() {
         var statement = document.getElementById("statement").value,
             parameters = getParameters();
 
         var table = document.createElement("table");
-        session.run(statement, parameters, function(record) {
-        
-            // On receipt of RECORD
-            var tr = document.createElement("tr");
-            for(var i = 0; i < record.length; i++) {
-                var td = document.createElement("td");
-                td.appendChild(document.createTextNode(record[i]));
-                tr.appendChild(td);
-            }
-            table.appendChild(tr);
-            
-        }, function(success, metadata) {
-        
-            // On receipt of header summary message
-            if(success) {
+        session.run(statement, parameters).subscribe({
+            onNext: function(record) {
+                // On receipt of RECORD
                 var tr = document.createElement("tr");
-                for(var i = 0; i < metadata.fields.length; i++) {
-                    var th = document.createElement("th");
-                    th.appendChild(document.createTextNode(metadata.fields[i]));
-                    tr.appendChild(th);
+                for(var i in record) {
+                    var td = document.createElement("td");
+                    td.appendChild(document.createTextNode(record[i]));
+                    tr.appendChild(td);
                 }
                 table.appendChild(tr);
+            }, onCompleted: function(metadata) {
+                
             }
-            
         });
         
         var results = document.getElementById("results");
