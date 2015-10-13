@@ -1,11 +1,11 @@
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
 var gulp = require('gulp');
 var through = require('through2');
 var gulpif = require('gulp-if');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
-var streamify = require('gulp-streamify');
 var gutil = require('gulp-util');
 var download = require("gulp-download");
 var gunzip = require('gulp-gunzip');
@@ -65,8 +65,9 @@ gulp.task('browser', function () {
   appBundler.bundle()
     .on('error', gutil.log)
     .pipe(source('neo4j-web.min.js'))
-    .pipe(gulp.dest(browserOutput))
-    .pipe(streamify(uglify()));
+    .pipe(buffer())
+    .pipe(uglify())
+    .pipe(gulp.dest(browserOutput));
 });
 
 var buildNode = function(options) {
