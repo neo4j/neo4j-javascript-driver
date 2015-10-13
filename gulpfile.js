@@ -40,7 +40,9 @@ gulp.task('browser', function () {
       browserify({ 
           entries: testFiles,  
           debug: true 
-        }).transform(babelify)
+        }).transform(babelify.configure({
+          ignore: ["lib/external/**/*.js", "build/**/*.js"]
+        }))
         .bundle()
         .on('error', gutil.log)
         .pipe(source('neo4j-web.test.js'))
@@ -54,7 +56,9 @@ gulp.task('browser', function () {
     cache: {},
     standalone: 'neo4j',
     packageCache: {}
-  }).transform(babelify);
+  }).transform(babelify.configure({
+    ignore: ["lib/external/**/*.js", "build/**/*.js"]
+  }));
 
   // Un-minified browser package
   appBundler.bundle()
@@ -72,7 +76,7 @@ gulp.task('browser', function () {
 
 var buildNode = function(options) {
   return gulp.src(options.src)
-    .pipe(babel())
+    .pipe(babel({ignore: ['lib/external/**/*.js']}))
     .pipe(gulp.dest(options.dest))
 }
 
