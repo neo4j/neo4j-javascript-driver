@@ -9,7 +9,7 @@ var neo4j = require('build/node/neo4j');
 var statement = ['MERGE (alice:Person {name:{name_a},age:{age_a}})',
     'MERGE (bob:Person {name:{name_b},age:{age_b}})',
     'CREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)',
-    'RETURN alice AS, bob, alice_knows_bob'
+    'RETURN alice, bob, alice_knows_bob'
 ];
 
 var params = {
@@ -43,17 +43,17 @@ session.run(statement.join(' '), params).subscribe({
 // or
 // the collect way, with Javascript promises:
 session.run(statement.join(' '), params)
-.then(function(records){
-    records.forEach(function(record) {
-        for(var i in record) {
-            console.log(i);
-            console.log(record[i]);
-        }
+    .then(function(records){
+        records.forEach(function(record) {
+            for(var i in record) {
+                console.log(i);
+                console.log(record[i]);
+            }
+        })
     })
-})
-.catch(function(error) {
-    console.log(error);
-});
+    .catch(function(error) {
+        console.log(error);
+    });
 ```
 
 ## Building
