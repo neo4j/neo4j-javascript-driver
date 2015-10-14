@@ -1,10 +1,10 @@
-# Neo4j Bolt Driver for JavaScript
+# Neo4j Bolt Driver for Javascript
 
 An alpha-level database driver for a new Neo4j remoting protocol.
 
 Note: This is in active development, the API is not stable. Please try it out and give us feedback, but expect things to break in the medium term!
 
-## Add module to Nodejs application
+## Add module to Node.js application
 
 ```javascript
 var neo4j = require('build/node/neo4j');
@@ -17,7 +17,7 @@ A global object `neo4j` will be available.
 <script src="build/browser/neo4j-web.min.js"></script>
 ```
 
-## Usage examples (works both in nodejs and browser environments)
+## Usage examples (for both Node.js and browser environments)
 
 ```javascript
 var statement = ['MERGE (alice:Person {name:{name_a},age:{age_a}})',
@@ -83,4 +83,4 @@ See files under `examples/` on how to use.
     ./runTests.sh
 
 This runs the test suite against a fresh download of Neo4j.  
-Or `gulp test` if you already have a running version of a compatible Neo4j server running.
+Or `gulp test` if you already have a running version of a compatible Neo4j server.

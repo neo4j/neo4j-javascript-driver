@@ -8,3 +8,4 @@ pids
 build
 node_modules
 .idea
+docs/build
