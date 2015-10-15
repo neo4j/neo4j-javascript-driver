@@ -10,9 +10,10 @@
   },
   "scripts": {
     "test": "gulp test",
-    "build": "gulp"
+    "build": "gulp all",
+    "prepublish": "npm run build"
   },
-  "main": "lib/neo4j.js",
+  "main": "build/node/neo4j.js",
   "devDependencies": {
     "babelify": "^6.3.0",
     "browserify": "^11.0.0",
