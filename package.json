@@ -11,12 +11,14 @@
   "scripts": {
     "test": "gulp test",
     "build": "gulp all",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "docs": "node_modules/.bin/esdoc -c esdoc.json"
   },
   "main": "build/node/neo4j.js",
   "devDependencies": {
     "babelify": "^6.3.0",
     "browserify": "^11.0.0",
+    "esdoc": "^0.4.0",
     "glob": "^5.0.14",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.2.1",
