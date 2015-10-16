@@ -4,7 +4,7 @@ An alpha-level database driver for a new Neo4j remoting protocol.
 
 Note: This is in active development, the API is not stable. Please try it out and give us feedback, but expect things to break in the medium term!
 
-## Add module to Node.js application
+## Include module in Node.js application
 
 ```javascript
 var neo4j = require('build/node/neo4j');
@@ -44,8 +44,7 @@ session.run(statement.join(' '), params).subscribe({
     onNext: function(record) {
         // On receipt of RECORD
         for(var i in record) {
-            console.log(i);
-            console.log(record[i]);
+            console.log(i, ': ', record[i]);
         }
     }, onCompleted: function(metadata) {
         console.log(metadata);
@@ -55,13 +54,12 @@ session.run(statement.join(' '), params).subscribe({
 });
 
 // or
-// the collect way, with Javascript promises:
+// the Promise way, where the complete response is collected:
 session.run(statement.join(' '), params)
     .then(function(records){
         records.forEach(function(record) {
             for(var i in record) {
-                console.log(i);
-                console.log(record[i]);
+                console.log(i, ': ', record[i]);
             }
         })
     })
@@ -73,9 +71,9 @@ session.run(statement.join(' '), params)
 ## Building
 
     npm install 
-    gulp
+    npm build
 
-This produces browser-compatible standalone files under `build/browser` and a nodejs module version under `build/node`.  
+This produces browser-compatible standalone files under `build/browser` and a Node.js module version under `build/node`.  
 See files under `examples/` on how to use.
 
 ## Testing
@@ -83,4 +81,4 @@ See files under `examples/` on how to use.
     ./runTests.sh
 
 This runs the test suite against a fresh download of Neo4j.  
-Or `gulp test` if you already have a running version of a compatible Neo4j server.
+Or `npm test` if you already have a running version of a compatible Neo4j server.
