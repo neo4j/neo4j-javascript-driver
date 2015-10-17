@@ -133,7 +133,7 @@ gulp.task('watch', function () {
 gulp.task('download-neo4j', function() {
   if( !fs.existsSync('./build/neo4j-enterprise-3.0.0-alpha') ) {
     // Need to download
-    return download("http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-alpha-unix.tar.gz")
+    return download("http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-M01-NIGHTLY-unix.tar.gz")
           .pipe(gunzip())
           .pipe(untar())
           .pipe(gulp.dest('./build'));
