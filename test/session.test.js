@@ -51,4 +51,21 @@ describe('session', function() {
       }
     )
   });
+
+  it('should expose summarize method ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    var statement = "CREATE (n:Label) RETURN n";
+    // When & Then
+    var result = driver.session().run( statement );
+    result.then(function( records ) {
+      var sum = result.summarize();
+      expect(sum.statement).toBe( statement );
+      expect(sum.updateStatistics().containsUpdates()).toBe(true);
+      expect(sum.updateStatistics().nodesCreated()).toBe(1);
+      expect(sum.statementType).toBe('rw');
+      driver.close(); 
+      done();
+    });
+  });
 });
