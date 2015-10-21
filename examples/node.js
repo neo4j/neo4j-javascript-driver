@@ -17,17 +17,19 @@ var params = {
 var driver = neo4j.driver("neo4j://localhost");
 
 var streamSession = driver.session();
-streamSession.run(statement.join(' '), params).subscribe({
+var streamResult = streamSession.run(statement.join(' '), params);
+streamResult.subscribe({
   onNext: function(record) {
     // On receipt of RECORD
     for(var i in record) {
       console.log(i);
       console.log(record[i]);
     }
-  }, onCompleted: function(metadata) {
-    // On receipt of header summary message
+  }, onCompleted: function() {
+    var summary = streamResult.summarize();
+    //Print number of nodes created
     console.log('');
-    console.log(metadata);
+    console.log(summary.statistics.nodesCreated());
     streamSession.close();
   }, onError: function(error) {
     console.log(error);
@@ -35,18 +37,22 @@ streamSession.run(statement.join(' '), params).subscribe({
 });
 
 var promiseSession = driver.session();
-promiseSession.run(statement.join(' '), params)
-  .then(function(records){
-    records.forEach(function(record) {
-      for(var i in record) {
-        console.log(i);
-        console.log(record[i]);
-      }
-    })
-  })
-  .catch(function(error) {
-    console.log(error);
-  })
-  .then(function(){
-    promiseSession.close();
+var promiseResult = promiseSession.run(statement.join(' '), params);
+promiseResult.then(function(records) {
+  records.forEach(function(record) {
+    for(var i in record) {
+      console.log(i);
+      console.log(record[i]);
+    }
   });
+  var summary = promiseResult.summarize();
+  //Print number of nodes created
+  console.log('');
+  console.log(summary.statistics.nodesCreated());
+})
+.catch(function(error) {
+  console.log(error);
+})
+.then(function(){
+  promiseSession.close();
+});
