@@ -55,12 +55,14 @@ describe('session', function() {
   it('should expose summarize method ', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
-    var statement = "CREATE (n:Label) RETURN n";
+    var statement = "CREATE (n:Label {prop:{prop}}) RETURN n";
+    var params = {prop: "string"}
     // When & Then
-    var result = driver.session().run( statement );
+    var result = driver.session().run( statement, params );
     result.then(function( records ) {
       var sum = result.summarize();
-      expect(sum.statement).toBe( statement );
+      expect(sum.statement.text).toBe( statement );
+      expect(sum.statement.parameters).toBe( params );
       expect(sum.statistics.containsUpdates()).toBe(true);
       expect(sum.statistics.nodesCreated()).toBe(1);
       expect(sum.statementType).toBe('rw');
