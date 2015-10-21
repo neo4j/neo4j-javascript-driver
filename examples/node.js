@@ -29,7 +29,7 @@ streamResult.subscribe({
     var summary = streamResult.summarize();
     //Print number of nodes created
     console.log('');
-    console.log(summary.updateStatistics().nodesCreated());
+    console.log(summary.statistics.nodesCreated());
     streamSession.close();
   }, onError: function(error) {
     console.log(error);
@@ -48,7 +48,7 @@ promiseResult.then(function(records) {
   var summary = promiseResult.summarize();
   //Print number of nodes created
   console.log('');
-  console.log(summary.updateStatistics().nodesCreated());
+  console.log(summary.statistics.nodesCreated());
 })
 .catch(function(error) {
   console.log(error);
