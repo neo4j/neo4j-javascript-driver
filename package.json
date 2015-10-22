@@ -42,6 +42,7 @@
     "slimerjs": "^0.9.6",
     "through2": "~2.0.0",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "babel": "^5.8.23"
   }
 }
