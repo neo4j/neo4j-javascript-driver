@@ -11,6 +11,8 @@
   "scripts": {
     "test": "gulp test",
     "build": "gulp all",
+    "start-neo4j": "gulp start-neo4j",
+    "stop-neo4j": "gulp stop-neo4j",
     "prepublish": "npm run build",
     "docs": "node_modules/.bin/esdoc -c esdoc.json"
   },
