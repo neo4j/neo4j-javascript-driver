@@ -23,37 +23,13 @@ var runSequence = require('run-sequence');
 
 gulp.task('default', ["test"]);
 
+gulp.task('browser', function(cb){
+  runSequence('build-browser-test', 'build-browser', cb);
+})
+
 /** Build all-in-one files for use in the browser */
-gulp.task('browser', function () {
-
+gulp.task('build-browser', function () {
   var browserOutput = 'build/browser';
-  var testFiles = [];
-  gulp.src('./test/**/*.test.js')
-    .pipe( through.obj( function( file, enc, cb ) {
-      testFiles.push( file.path );
-      cb();
-    }, function(cb) {
-      // At end-of-stream, push the list of files to the next step
-      this.push( testFiles );
-      cb();
-    }))
-    .pipe( through.obj( function( testFiles, enc, cb) {
-      browserify({ 
-          entries: testFiles,
-          cache: {},
-          debug: true 
-        }).transform(babelify.configure({
-          ignore: /external/
-        }))
-        .bundle()
-        .on('error', gutil.log)
-        .pipe(source('neo4j-web.test.js'))
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(gulp.dest(browserOutput));
-    }));
-
-
   // Our app bundler
   var appBundler = browserify({
     entries: ['lib/neo4j.js'],
@@ -76,6 +52,41 @@ gulp.task('browser', function () {
     .pipe(buffer())
     .pipe(uglify())
     .pipe(gulp.dest(browserOutput));
+});
+
+gulp.task('build-browser-test', function(){
+  var browserOutput = 'build/browser';
+  var testFiles = [];
+  return gulp.src('./test/**/*.test.js')
+    .pipe( through.obj( function( file, enc, cb ) {
+      testFiles.push( file.path );
+      cb();
+    }, function(cb) {
+      // At end-of-stream, push the list of files to the next step
+      this.push( testFiles );
+      cb();
+    }))
+    .pipe( through.obj( function( testFiles, enc, cb) {
+      browserify({ 
+          entries: testFiles,
+          cache: {},
+          debug: true 
+        }).transform(babelify.configure({
+          ignore: /external/
+        }))
+        .bundle(function(err, res){
+          cb();
+        })
+        .on('error', gutil.log)
+        .pipe(source('neo4j-web.test.js'))
+        .pipe(buffer())
+        .pipe(uglify())
+        .pipe(gulp.dest(browserOutput))
+    },
+    function(cb) {
+      cb()
+    }
+    ));
 });
 
 var compress = function(source, dest, filename) {
