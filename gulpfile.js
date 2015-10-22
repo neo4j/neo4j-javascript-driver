@@ -141,7 +141,7 @@ gulp.task('test-browser', function (cb) {
 gulp.task('run-browser-test', function(){
   return gulp.src('build/browser/neo4j-web.test.js')
     .pipe(jasmineBrowser.specRunner({console: true}))
-    .pipe(jasmineBrowser.headless({driver: 'slimerjs'}))
+    .pipe(jasmineBrowser.headless())
 });
 
 gulp.task('watch', function () {

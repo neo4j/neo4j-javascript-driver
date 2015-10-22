@@ -18,6 +18,7 @@
   },
   "main": "build/node/neo4j.js",
   "devDependencies": {
+    "babel": "^5.8.23",
     "babelify": "^6.3.0",
     "browserify": "^11.0.0",
     "esdoc": "^0.4.0",
@@ -38,11 +39,10 @@
     "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
     "jasmine-reporters": "^2.0.7",
+    "phantomjs2-ext": "^0.1.0",
     "run-sequence": "^1.1.4",
-    "slimerjs": "^0.9.6",
     "through2": "~2.0.0",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "babel": "^5.8.23"
+    "vinyl-source-stream": "^1.1.0"
   }
 }
