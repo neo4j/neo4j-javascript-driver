@@ -19,11 +19,12 @@ var babel = require('gulp-babel');
 var watch = require('gulp-watch');
 var batch = require('gulp-batch');
 var fs = require("fs");
+var runSequence = require('run-sequence');
 
 gulp.task('default', ["test"]);
 
 /** Build all-in-one files for use in the browser */
-gulp.task('browser', ['nodejs'], function () {
+gulp.task('browser', function () {
 
   var browserOutput = 'build/browser';
   var testFiles = [];
@@ -94,9 +95,13 @@ gulp.task('nodejs', function(){
     });
 })
 
-gulp.task('all', ['nodejs', 'browser']);
+gulp.task('all', function(cb){
+  runSequence('nodejs', 'browser', cb);
+});
 
-gulp.task('test', ['test-nodejs', 'test-browser']);
+gulp.task('test', function(cb){
+  runSequence('test-nodejs', 'test-browser', cb);
+});
 
 gulp.task('start-neo4j', ['download-neo4j'], shell.task([
   'chmod +x build/neo4j-enterprise*/bin/neo4j',
@@ -118,10 +123,14 @@ gulp.task('test-nodejs', ['nodejs'], function () {
         }));
 });
 
-gulp.task('test-browser', ['browser'], function () {
+gulp.task('test-browser', function (cb) {
+  runSequence('all', 'run-browser-test', cb)
+});
+
+gulp.task('run-browser-test', function(){
   return gulp.src('build/browser/neo4j-web.test.js')
     .pipe(jasmineBrowser.specRunner({console: true}))
-    .pipe(jasmineBrowser.headless({driver: 'slimerjs'}));
+    .pipe(jasmineBrowser.headless({driver: 'slimerjs'}))
 });
 
 gulp.task('watch', function () {
