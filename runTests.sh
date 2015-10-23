@@ -1,10 +1,10 @@
 #!/bin/bash
 
 function finish {
-  gulp stop-neo4j
+  npm run stop-neo4j
 }
 trap finish EXIT
 
 npm install
-gulp start-neo4j
-gulp test
+npm run start-neo4j
+npm test
