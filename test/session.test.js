@@ -1,5 +1,6 @@
 
 var neo4j = require("../build/node/neo4j");
+var StatementType = require("../build/node/result").statementType;
 
 describe('session', function() {
   it('should expose basic run/subscribe ', function(done) {
@@ -10,7 +11,7 @@ describe('session', function() {
     var records = [];
     driver.session().run( "RETURN 1.0 AS a").subscribe( {
       onNext : function( record ) {
-        records.push( record ); 
+        records.push( record );
       },
       onCompleted : function( ) {
         expect( records.length ).toBe( 1 );
@@ -52,7 +53,7 @@ describe('session', function() {
     )
   });
 
-  it('should expose summarize method ', function(done) {
+  it('should expose summarize method for basic metadata ', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
     var statement = "CREATE (n:Label {prop:{prop}}) RETURN n";
@@ -65,7 +66,49 @@ describe('session', function() {
       expect(sum.statement.parameters).toBe( params );
       expect(sum.statistics.containsUpdates()).toBe(true);
       expect(sum.statistics.nodesCreated()).toBe(1);
-      expect(sum.statementType).toBe('rw');
+      expect(sum.statementType).toBe(StatementType.READ_WRITE);
+      driver.close(); 
+      done();
+    });
+  });
+
+  it('should expose plan ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    var statement = "EXPLAIN CREATE (n:Label {prop:{prop}}) RETURN n";
+    var params = {prop: "string"}
+    // When & Then
+    var result = driver.session().run( statement, params );
+    result.then(function( records ) {
+      var sum = result.summarize();
+      expect(sum.hasPlan()).toBe(true);
+      expect(sum.hasProfile()).toBe(false);
+      expect(sum.plan.operatorType).toBe('ProduceResults');
+      expect(sum.plan.arguments.runtime).toBe('INTERPRETED');
+      expect(sum.plan.identifiers[0]).toBe('n');
+      expect(sum.plan.children[0].operatorType).toBe('CreateNode');
+      driver.close(); 
+      done();
+    });
+  });
+
+  it('should expose profile ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    var statement = "PROFILE MATCH (n:Label {prop:{prop}}) RETURN n";
+    var params = {prop: "string"}
+    // When & Then
+    var result = driver.session().run( statement, params );
+    result.then(function( records ) {
+      var sum = result.summarize();
+      expect(sum.hasPlan()).toBe(true); //When there's a profile, there's a plan
+      expect(sum.hasProfile()).toBe(true);
+      expect(sum.profile.operatorType).toBe('ProduceResults');
+      expect(sum.profile.arguments.runtime).toBe('INTERPRETED');
+      expect(sum.profile.identifiers[0]).toBe('n');
+      expect(sum.profile.children[0].operatorType).toBe('Filter');
+      expect(sum.profile.rows).toBeGreaterThan(0);
+      //expect(sum.profile.dbHits).toBeGreaterThan(0);
       driver.close(); 
       done();
     });
