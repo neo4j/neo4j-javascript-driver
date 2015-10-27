@@ -22,6 +22,21 @@ describe('session', function() {
     });
   });
 
+  it('should call observers onError on error ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+
+    // When & Then
+    var records = [];
+    driver.session().run( "RETURN 1 AS").subscribe( {
+      onError: function(error) {
+        expect(error.fields.length).toBe(1);
+        driver.close();
+        done();
+      }
+    });
+  });
+
   it('should accept a statement object ', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
