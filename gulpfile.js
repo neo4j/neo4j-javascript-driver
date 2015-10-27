@@ -79,8 +79,6 @@ gulp.task('build-browser-test', function(){
         })
         .on('error', gutil.log)
         .pipe(source('neo4j-web.test.js'))
-        .pipe(buffer())
-        .pipe(uglify())
         .pipe(gulp.dest(browserOutput))
     },
     function(cb) {
