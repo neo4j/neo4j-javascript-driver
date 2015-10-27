@@ -84,8 +84,8 @@ describe('session', function() {
       var sum = result.summarize();
       expect(sum.statement.text).toBe( statement );
       expect(sum.statement.parameters).toBe( params );
-      expect(sum.statistics.containsUpdates()).toBe(true);
-      expect(sum.statistics.nodesCreated()).toBe(1);
+      expect(sum.updateStatistics.containsUpdates()).toBe(true);
+      expect(sum.updateStatistics.nodesCreated()).toBe(1);
       expect(sum.statementType).toBe(StatementType.READ_WRITE);
       driver.close(); 
       done();
