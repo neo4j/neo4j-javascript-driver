@@ -22,6 +22,26 @@ describe('session', function() {
     });
   });
 
+  it('should accept a statement object ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    var statement = {text: "RETURN 1 = {param} AS a", parameters: {param: 1}};
+
+    // When & Then
+    var records = [];
+    driver.session().run( statement ).subscribe( {
+      onNext : function( record ) {
+        records.push( record );
+      },
+      onCompleted : function( ) {
+        expect( records.length ).toBe( 1 );
+        expect( records[0]['a'] ).toBe( true );
+        driver.close();
+        done();
+      }
+    });
+  });
+
   it('should expose basic run/then/then/then ', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
