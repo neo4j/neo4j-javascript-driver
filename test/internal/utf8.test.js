@@ -16,7 +16,7 @@ describe('utf8', function() {
     expect( packAndUnpack( "åäö123" ) ).toBe( "åäö123"  );
   });
 
-  it('should read/write utf8 from a complete combined buffer', function() {
+  it('should decode utf8 from a complete combined buffer', function() {
     // Given
     var msg = "asåfqwer";
     var buf = utf8.encode(msg);
@@ -32,7 +32,7 @@ describe('utf8', function() {
     expect(decoded).toBe(msg);
   });
 
-  it('should read/write utf8 from part of a combined buffer', function() {
+  it('should decode utf8 from part of a combined buffer', function() {
     // Given
     var msg = "asåfq";
     var expectMsg = msg.substring(0, msg.length-1);
