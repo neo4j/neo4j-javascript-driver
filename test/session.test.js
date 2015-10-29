@@ -22,6 +22,28 @@ describe('session', function() {
     });
   });
 
+  it('should keep context in subscribe methods ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    function myObserver(){
+      this.local = 'hello';
+      var privateLocal = 'hello';
+      this.onNext = function() {
+        expect(privateLocal).toBe('hello');
+        expect(this.local).toBe('hello');
+      };
+      this.onCompleted = function() {
+        expect(privateLocal).toBe('hello');
+        expect(this.local).toBe('hello');
+        driver.close();
+        done();
+      }
+    }
+    
+    // When & Then
+    driver.session().run( "RETURN 1.0 AS a").subscribe(new myObserver());
+  });
+
   it('should call observers onError on error ', function(done) {
     // Given
     var driver = neo4j.driver("neo4j://localhost");
