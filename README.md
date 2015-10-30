@@ -46,8 +46,8 @@ session.run(statement.join(' '), params).subscribe({
         for(var i in record) {
             console.log(i, ': ', record[i]);
         }
-    }, onCompleted: function(metadata) {
-        console.log(metadata);
+    }, onCompleted: function() {
+        session.close();
     }, onError: function(error) {
         console.log(error);
     }
@@ -61,7 +61,8 @@ session.run(statement.join(' '), params)
             for(var i in record) {
                 console.log(i, ': ', record[i]);
             }
-        })
+        });
+        session.close();
     })
     .catch(function(error) {
         console.log(error);
