@@ -198,7 +198,9 @@ describe('session', function() {
     result.then(function( records ) {
       var sum = result.summarize();
       expect(sum.notifications.length).toBeGreaterThan(0);
-      expect(sum.notifications[0].position.offset).toBeGreaterThan(0);
+      expect(sum.notifications[0].code).toBe("Neo.ClientNotification.Statement.CartesianProduct");
+      expect(sum.notifications[0].title).toBe("This query builds a cartesian product between disconnected patterns.");
+      expect(sum.notifications[0].position.column).toBeGreaterThan(0);
       driver.close(); 
       done();
     });
