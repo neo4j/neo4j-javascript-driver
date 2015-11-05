@@ -18,7 +18,7 @@
  */
  
 var neo4j = require("../build/node/neo4j");
-var StatementType = require("../build/node/result").statementType;
+var StatementType = require("../build/node/result-summary").statementType;
 
 describe('session', function() {
   it('should expose basic run/subscribe ', function(done) {
@@ -184,6 +184,23 @@ describe('session', function() {
       expect(sum.profile.children[0].operatorType).toBe('Filter');
       expect(sum.profile.rows).toBeGreaterThan(0);
       //expect(sum.profile.dbHits).toBeGreaterThan(0);
+      driver.close(); 
+      done();
+    });
+  });
+
+  it('should expose cypher notifications ', function(done) {
+    // Given
+    var driver = neo4j.driver("neo4j://localhost");
+    var statement = "EXPLAIN MATCH (n), (m) RETURN n, m";
+    // When & Then
+    var result = driver.session().run( statement );
+    result.then(function( records ) {
+      var sum = result.summarize();
+      expect(sum.notifications.length).toBeGreaterThan(0);
+      expect(sum.notifications[0].code).toBe("Neo.ClientNotification.Statement.CartesianProduct");
+      expect(sum.notifications[0].title).toBe("This query builds a cartesian product between disconnected patterns.");
+      expect(sum.notifications[0].position.column).toBeGreaterThan(0);
       driver.close(); 
       done();
     });
