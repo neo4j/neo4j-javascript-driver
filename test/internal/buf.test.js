@@ -18,6 +18,7 @@
  */
 
 var alloc = require('../../build/node/internal/buf').alloc;
+var CombinedBuffer = require('../../build/node/internal/buf').CombinedBuffer;
 var utf8 = require('../../build/node/internal/utf8');
 var Unpacker = require("../../build/node/internal/packstream.js").Unpacker;
 
@@ -63,8 +64,7 @@ describe('buffers', function() {
   });
 
   it('should decode list correctly', function() {
-    //Given
-    
+    // Given
     var b = alloc(5);
     b.writeUInt8(0x92);
     b.writeUInt8(0x81);
@@ -72,10 +72,33 @@ describe('buffers', function() {
     b.writeUInt8(0x81);
     b.writeUInt8(0x62);
     b.reset();
+
+    // When
     var data = new Unpacker().unpack( b );
+
+    // Then
     expect(data[0]).toBe('a');
     expect(data[1]).toBe('b');
+  });
+});
+
+describe('CombinedBuffer', function() {
+  it('should read int8', function() {
+    // Given
+    var b1 = alloc(1);
+    var b2 = alloc(1);
+    b1.putInt8(0, 1);
+    b2.putInt8(0, 2);
+
+    var b = new CombinedBuffer([b1,b2]);
     
+    // When
+    var first = b.readInt8();
+    var second = b.readInt8();
+
+    // Then
+    expect(first).toBe(1);
+    expect(second).toBe(2);
   });
 });
 
