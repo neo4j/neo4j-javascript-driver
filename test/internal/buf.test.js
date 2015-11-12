@@ -100,6 +100,20 @@ describe('CombinedBuffer', function() {
     expect(first).toBe(1);
     expect(second).toBe(2);
   });
+
+  it('should read divided float64', function() {
+    // Given
+    var inner = alloc(8);
+    inner.putFloat64(0, 0.1);
+
+    var b = new CombinedBuffer([inner.readSlice(4),inner.readSlice(4)]);
+    
+    // When
+    var read = b.readFloat64();
+
+    // Then
+    expect(read).toBe(0.1);
+  });
 });
 
 function writeString(b, str) {
