@@ -1,0 +1,14 @@
+{
+  "name": "neo4j-js-driver",
+  "version": "1.0.0-M01",
+  "main": "build/browser/neo4j-web.min.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "docs",
+    "examples",
+    "build/node"
+  ]
+}
