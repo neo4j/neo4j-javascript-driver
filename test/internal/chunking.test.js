@@ -20,7 +20,6 @@
 var Chunker = require('../../build/node/internal/chunking').Chunker;
 var Dechunker = require('../../build/node/internal/chunking').Dechunker;
 var alloc = require('../../build/node/internal/buf').alloc;
-var CombinedBuffer = require('../../build/node/internal/buf').CombinedBuffer;
 
 describe('Chunker', function() {
   it('should chunk simple data', function() {
@@ -84,41 +83,6 @@ describe('Dechunker', function() {
     expect( messages.length ).toBe( 1 );
     expect( messages[0].toHex() ).toBe( "00 01 00 02 00 03 " );
   });
-
-  it('should handle message split at any point', function() {
-    // Given
-    var ch = new TestChannel();
-    var chunker = new Chunker(ch);
-
-    // And given the following message
-    chunker.writeInt8(1);
-    chunker.writeInt16(2);
-    chunker.writeInt32(3);
-    chunker.writeUInt8(4);
-    chunker.writeUInt32(5);
-    chunker.messageBoundary();
-    chunker.flush();
-
-    var chunked = ch.toBuffer();
-
-    // When I try splitting this chunked data at every possible position
-    // into two separate buffers, and send those to the dechunker
-    for (var i = 1; i < chunked.length; i++) {
-      var slice1 = chunked.getSlice( 0, i );
-      var slice2 = chunked.getSlice( i, chunked.length - i );
-
-      // Dechunk the slices
-      var messages = [];
-      var dechunker = new Dechunker();
-      dechunker.onmessage = function(buffer) { messages.push(buffer); };
-      dechunker.write( slice1 );
-      dechunker.write( slice2 );
-
-      // Then, the output should be correct
-      expect( messages.length ).toBe( 1 );
-      expect( messages[0].toHex() ).toBe( "01 00 02 00 00 00 03 04 00 00 00 05 " );
-    };
-  });
 });
 
 function TestChannel() {
@@ -127,18 +91,6 @@ function TestChannel() {
 
 TestChannel.prototype.write = function( buf ) {
   this._written.push(buf);
-};
-
-TestChannel.prototype.toHex = function() {
-  var out = "";
-  for( var i=0; i<this._written.length; i++ ) {
-    out += this._written[i].toHex();
-  }
-  return out;
-};
-
-TestChannel.prototype.toBuffer = function() {
-  return new CombinedBuffer( this._written );
 };
 
 TestChannel.prototype.toHex = function() {
