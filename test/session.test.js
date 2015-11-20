@@ -23,7 +23,7 @@ var StatementType = require("../build/node/result-summary").statementType;
 describe('session', function() {
   it('should expose basic run/subscribe ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
 
     // When & Then
     var records = [];
@@ -42,7 +42,7 @@ describe('session', function() {
 
   it('should keep context in subscribe methods ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     function myObserver(){
       this.local = 'hello';
       var privateLocal = 'hello';
@@ -64,7 +64,7 @@ describe('session', function() {
 
   it('should call observers onError on error ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
 
     // When & Then
     var records = [];
@@ -79,7 +79,7 @@ describe('session', function() {
 
   it('should accept a statement object ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var statement = {text: "RETURN 1 = {param} AS a", parameters: {param: 1}};
 
     // When & Then
@@ -99,7 +99,7 @@ describe('session', function() {
 
   it('should expose basic run/then/then/then ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     // When & Then
     driver.session().run( "RETURN 1.0 AS a")
     .then( 
@@ -117,7 +117,7 @@ describe('session', function() {
 
   it('should expose basic run/catch ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     // When & Then
     driver.session().run( "RETURN 1 AS").catch(
       function(error) {
@@ -130,7 +130,7 @@ describe('session', function() {
 
   it('should expose summarize method for basic metadata ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var statement = "CREATE (n:Label {prop:{prop}}) RETURN n";
     var params = {prop: "string"}
     // When & Then
@@ -149,7 +149,7 @@ describe('session', function() {
 
   it('should expose plan ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var statement = "EXPLAIN CREATE (n:Label {prop:{prop}}) RETURN n";
     var params = {prop: "string"}
     // When & Then
@@ -169,7 +169,7 @@ describe('session', function() {
 
   it('should expose profile ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var statement = "PROFILE MATCH (n:Label {prop:{prop}}) RETURN n";
     var params = {prop: "string"}
     // When & Then
@@ -191,7 +191,7 @@ describe('session', function() {
 
   it('should expose cypher notifications ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var statement = "EXPLAIN MATCH (n), (m) RETURN n, m";
     // When & Then
     var result = driver.session().run( statement );

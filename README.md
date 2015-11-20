@@ -35,7 +35,7 @@ var params = {
 
 
 // Create a Session object to contain all Cypher activity.
-var driver = neo4j.driver("neo4j://localhost");
+var driver = neo4j.driver("bolt://localhost");
 var session = driver.session();
 
 // Run a Cypher statement within an implicit transaction

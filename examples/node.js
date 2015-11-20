@@ -32,7 +32,7 @@ var params = {
   age_b: 44
 };
 
-var driver = neo4j.driver("neo4j://localhost");
+var driver = neo4j.driver("bolt://localhost");
 
 var streamSession = driver.session();
 var streamResult = streamSession.run(statement.join(' '), params);
