@@ -64,7 +64,7 @@ describe('map values', function() {
 describe('node values', function() {
   it('should support returning nodes ', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var session = driver.session();
     
     // When
@@ -84,7 +84,7 @@ describe('node values', function() {
 describe('relationship values', function() {
   it('should support returning relationships', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var session = driver.session();
     
     // When
@@ -104,7 +104,7 @@ describe('relationship values', function() {
 describe('path values', function() {
   it('should support returning paths', function(done) {
     // Given
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var session = driver.session();
     
     // When
@@ -133,7 +133,7 @@ describe('path values', function() {
 
 function testVal( val ) { 
   return function( done ) {
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt://localhost");
     var session = driver.session();
 
     session.run("RETURN {val} as v", {val: val})

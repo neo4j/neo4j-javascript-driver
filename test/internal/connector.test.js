@@ -22,7 +22,7 @@ var connect = require("../../build/node/internal/connector.js").connect;
 describe('connector', function() {
   it('should read/write basic messages', function(done) {
     // Given
-    var conn = connect("neo4j://localhost")
+    var conn = connect("bolt://localhost")
 
     // When
     conn.initialize( "mydriver/0.0.0", {
@@ -37,7 +37,7 @@ describe('connector', function() {
   });
   it('should retrieve stream', function(done) {
     // Given
-    var conn = connect("neo4j://localhost")
+    var conn = connect("bolt://localhost")
 
     // When
     var records = [];
