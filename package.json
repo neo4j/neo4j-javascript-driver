@@ -29,13 +29,11 @@
     "gulp-concat": "^2.6.0",
     "gulp-cucumber": "^0.0.12",
     "gulp-download": "^0.0.1",
-    "gulp-gunzip": "^0.0.3",
     "gulp-if": "^1.2.5",
     "gulp-jasmine": "^2.1.0",
     "gulp-jasmine-browser": "^0.2.3",
     "gulp-shell": "^0.4.3",
     "gulp-uglify": "^1.4.2",
-    "gulp-untar2": "^0.1.0",
     "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
     "jasmine-reporters": "^2.0.7",
@@ -43,6 +41,7 @@
     "run-sequence": "^1.1.4",
     "through2": "~2.0.0",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "gulp-decompress": "^1.2.0"
   }
 }
