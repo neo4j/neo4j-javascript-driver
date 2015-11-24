@@ -17,7 +17,7 @@
  * limitations under the License.
  */
  
-var connect = require("../../build/node/internal/connector.js").connect;
+var connect = require("../../lib/internal/connector.js").connect;
 
 describe('connector', function() {
   it('should read/write basic messages', function(done) {

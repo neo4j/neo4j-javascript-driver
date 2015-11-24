@@ -17,8 +17,8 @@
  * limitations under the License.
  */
  
-var utf8 = require('../../build/node/internal/utf8');
-var buffers = require('../../build/node/internal/buf');
+var utf8 = require('../../lib/internal/utf8');
+var buffers = require('../../lib/internal/buf');
 
 describe('utf8', function() {
   it('should have a nice clean buffer position after serializing', function() {

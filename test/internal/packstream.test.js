@@ -17,8 +17,8 @@
  * limitations under the License.
  */
  
-var alloc = require('../../build/node/internal/buf').alloc,
-    packstream = require("../../build/node/internal/packstream.js"),
+var alloc = require('../../lib/internal/buf').alloc,
+    packstream = require("../../lib/internal/packstream.js"),
     Packer = packstream.Packer,
     Unpacker = packstream.Unpacker,
     Structure = packstream.Structure;

@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-var Chunker = require('../../build/node/internal/chunking').Chunker;
-var Dechunker = require('../../build/node/internal/chunking').Dechunker;
-var alloc = require('../../build/node/internal/buf').alloc;
-var CombinedBuffer = require('../../build/node/internal/buf').CombinedBuffer;
+var Chunker = require('../../lib/internal/chunking').Chunker;
+var Dechunker = require('../../lib/internal/chunking').Dechunker;
+var alloc = require('../../lib/internal/buf').alloc;
+var CombinedBuffer = require('../../lib/internal/buf').CombinedBuffer;
 
 describe('Chunker', function() {
   it('should chunk simple data', function() {

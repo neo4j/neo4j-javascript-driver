@@ -7,14 +7,14 @@ Note: This is in active development, the API is not stable. Please try it out an
 ## Include module in Node.js application
 
 ```javascript
-var neo4j = require('build/node/neo4j');
+var neo4j = require('lib/neo4j');
 ```
 
 ## Include in web browser
 A global object `neo4j` will be available.
 
 ```html
-<script src="build/browser/neo4j-web.min.js"></script>
+<script src="lib/browser/neo4j-web.min.js"></script>
 ```
 
 ## Usage examples (for both Node.js and browser environments)
@@ -74,7 +74,7 @@ session.run(statement.join(' '), params)
     npm install 
     npm build
 
-This produces browser-compatible standalone files under `build/browser` and a Node.js module version under `build/node`.  
+This produces browser-compatible standalone files under `lib/browser` and a Node.js module version under `lib/`.  
 See files under `examples/` on how to use.
 
 ## Testing

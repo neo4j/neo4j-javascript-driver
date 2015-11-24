@@ -93,7 +93,7 @@
         padding: 0 2px;
     }
     </style>
-    <script src="../build/browser/neo4j-web.min.js"></script>
+    <script src="../lib/browser/neo4j-web.min.js"></script>
   </head>
   <body>
 
@@ -131,7 +131,7 @@
     </div>
 
     <script>
-    var driver = neo4j.driver("neo4j://localhost");
+    var driver = neo4j.driver("bolt+ws://localhost");
     var session = driver.session();
 
     function run() {

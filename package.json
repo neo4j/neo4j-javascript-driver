@@ -16,7 +16,7 @@
     "prepublish": "npm run build",
     "docs": "node_modules/.bin/esdoc -c esdoc.json"
   },
-  "main": "build/node/neo4j.js",
+  "main": "lib/neo4j.js",
   "devDependencies": {
     "babel": "^5.8.23",
     "babelify": "^6.3.0",

@@ -1,5 +1,5 @@
 {
-  "source": "./lib",
+  "source": "./src",
   "destination": "./docs/build",
   "includes": ["\\.js$"],
   "excludes": ["external"],

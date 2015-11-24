@@ -17,7 +17,7 @@
  * limitations under the License.
  */
  
-var neo4j = require('../build/node/neo4j');
+var neo4j = require('neo4j');
 
 var statement = ['MERGE (alice:Person {name:{name_a},age:{age_a}})',
   'MERGE (bob:Person {name:{name_b},age:{age_b}})',

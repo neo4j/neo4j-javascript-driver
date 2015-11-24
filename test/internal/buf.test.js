@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-var alloc = require('../../build/node/internal/buf').alloc;
-var CombinedBuffer = require('../../build/node/internal/buf').CombinedBuffer;
-var utf8 = require('../../build/node/internal/utf8');
-var Unpacker = require("../../build/node/internal/packstream.js").Unpacker;
+var alloc = require('../../lib/internal/buf').alloc;
+var CombinedBuffer = require('../../lib/internal/buf').CombinedBuffer;
+var utf8 = require('../../lib/internal/utf8');
+var Unpacker = require("../../lib/internal/packstream.js").Unpacker;
 
 describe('buffers', function() {
   it('should have helpful toString', function() {

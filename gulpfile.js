@@ -48,10 +48,10 @@ gulp.task('browser', function(cb){
 
 /** Build all-in-one files for use in the browser */
 gulp.task('build-browser', function () {
-  var browserOutput = 'build/browser';
+  var browserOutput = 'lib/browser';
   // Our app bundler
   var appBundler = browserify({
-    entries: ['lib/neo4j.js'],
+    entries: ['src/neo4j.js'],
     cache: {},
     standalone: 'neo4j',
     packageCache: {}
@@ -74,7 +74,7 @@ gulp.task('build-browser', function () {
 });
 
 gulp.task('build-browser-test', function(){
-  var browserOutput = 'build/browser';
+  var browserOutput = 'lib/browser/';
   var testFiles = [];
   return gulp.src('./test/**/*.test.js')
     .pipe( through.obj( function( file, enc, cb ) {
@@ -112,14 +112,14 @@ var compress = function(source, dest, filename) {
 
 var buildNode = function(options) {
   return gulp.src(options.src)
-    .pipe(babel({ignore: ['lib/external/**/*.js']}))
+    .pipe(babel({ignore: ['src/external/**/*.js']}))
     .pipe(gulp.dest(options.dest))
 }
 
 gulp.task('nodejs', function(){
   return buildNode({
-    src: 'lib/**/*.js',
-    dest: 'build/node'
+    src: 'src/**/*.js',
+    dest: 'lib'
     });
 })
 
@@ -156,13 +156,13 @@ gulp.task('test-browser', function (cb) {
 });
 
 gulp.task('run-browser-test', function(){
-  return gulp.src('build/browser/neo4j-web.test.js')
+  return gulp.src('lib/browser/neo4j-web.test.js')
     .pipe(jasmineBrowser.specRunner({console: true}))
     .pipe(jasmineBrowser.headless())
 });
 
 gulp.task('watch', function () {
-    watch('lib/**/*.js', batch(function (events, done) {
+    watch('src/**/*.js', batch(function (events, done) {
         gulp.start('all', done);
     }));
 });
