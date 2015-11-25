@@ -27,8 +27,6 @@ var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
 var gutil = require('gulp-util');
 var download = require("gulp-download");
-var gunzip = require('gulp-gunzip');
-var untar = require('gulp-untar2');
 var shell = require('gulp-shell');
 var jasmine = require('gulp-jasmine');
 var jasmineBrowser = require('gulp-jasmine-browser');
@@ -39,6 +37,9 @@ var watch = require('gulp-watch');
 var batch = require('gulp-batch');
 var fs = require("fs");
 var runSequence = require('run-sequence');
+var path = require('path');
+var childProcess = require("child_process");
+var decompress = require('gulp-decompress');
 
 gulp.task('default', ["test"]);
 
@@ -131,15 +132,6 @@ gulp.task('test', function(cb){
   runSequence('test-nodejs', 'test-browser', cb);
 });
 
-gulp.task('start-neo4j', ['download-neo4j'], shell.task([
-  'chmod +x build/neo4j-enterprise*/bin/neo4j',
-  'build/neo4j-enterprise*/bin/neo4j start',
-]));
-
-gulp.task('stop-neo4j', shell.task([
-  'build/neo4j-enterprise*/bin/neo4j stop',
-]));
-
 gulp.task('test-nodejs', ['nodejs'], function () {
   return gulp.src('test/**/*.test.js')
         .pipe(jasmine({
@@ -167,12 +159,62 @@ gulp.task('watch', function () {
     }));
 });
 
+var neo4jLinuxUrl = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-M01-NIGHTLY-unix.tar.gz';
+var neo4jWinUrl   = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-M01-NIGHTLY-windows.zip';
+var neo4jHome     = './build/neo4j-enterprise-3.0.0-M01';
+var isWin         = /^win/.test(process.platform);
+
 gulp.task('download-neo4j', function() {
-  if( !fs.existsSync('./build/neo4j-enterprise-3.0.0-alpha') ) {
+  if( !fs.existsSync(neo4jHome) ) {
     // Need to download
-    return download("http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-M01-NIGHTLY-unix.tar.gz")
-          .pipe(gunzip())
-          .pipe(untar())
-          .pipe(gulp.dest('./build'));
+    if(isWin) {
+        return download(neo4jWinUrl)
+              .pipe(decompress({strip: 1}))
+              .pipe(gulp.dest(neo4jHome));
+    }
+    else {
+        return download(neo4jLinuxUrl)
+              .pipe(decompress({strip: 1}))
+              .pipe(gulp.dest(neo4jHome));
+    }
+  }
+});
+
+var runPowershell = function( cmd ) {
+    var spawn = childProcess.spawn, child;
+    child = spawn("powershell.exe",[
+        'Import-Module ' + neo4jHome + '/bin/Neo4j-Management.psd1;' + cmd]);
+    child.stdout.on("data",function(data){
+        console.log("Powershell Data: " + data);
+    });
+    child.stderr.on("data",function(data){
+        console.log("Powershell Errors: " + data);
+    });
+    child.on("exit",function(){
+        console.log("Powershell Script finished");
+    });
+    child.stdin.end(); //end input
+}
+
+gulp.task('start-neo4j', ['download-neo4j'], function() {
+  if(isWin) {
+    runPowershell('Install-Neo4jServer -Neo4jServer ' + neo4jHome + ' -Name neo4j-js;' +
+                  'Start-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');
+  } else {
+    shell.task([
+      'chmod +x' + neo4jHome + 'bin/neo4j',
+      neo4jHome + '/bin/neo4j start',
+    ]);
+  }
+});
+
+gulp.task('stop-neo4j', function() {
+  if(isWin) {
+    runPowershell('Stop-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js;' +
+                  'Uninstall-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');
+  } else {
+    shell.task([
+      neo4jHome + '/bin/neo4j stop',
+    ])
   }
 });
