@@ -196,15 +196,21 @@ var runPowershell = function( cmd ) {
     child.stdin.end(); //end input
 }
 
+// gulp.task('start-neo4j', ['download-neo4j'], shell.task([
+//   'chmod +x ' + neo4jHome + '/bin/neo4j',
+//   neo4jHome + '/bin/neo4j start',
+// ]));
+
 gulp.task('start-neo4j', ['download-neo4j'], function() {
   if(isWin) {
     runPowershell('Install-Neo4jServer -Neo4jServer ' + neo4jHome + ' -Name neo4j-js;' +
                   'Start-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');
-  } else {
-    shell.task([
-      'chmod +x' + neo4jHome + 'bin/neo4j',
+  }
+  else {
+    return gulp.src('').pipe(shell([
+      'chmod +x ' + neo4jHome + '/bin/neo4j',
       neo4jHome + '/bin/neo4j start',
-    ]);
+    ]));
   }
 });
 
@@ -213,8 +219,8 @@ gulp.task('stop-neo4j', function() {
     runPowershell('Stop-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js;' +
                   'Uninstall-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');
   } else {
-    shell.task([
+    return gulp.src('').pipe(shell([
       neo4jHome + '/bin/neo4j stop',
-    ])
+    ]));
   }
 });
