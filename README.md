@@ -1,4 +1,4 @@
-# Neo4j Bolt Driver for Javascript
+# Neo4j Driver for Javascript
 
 An alpha-level database driver for a new Neo4j remoting protocol.
 
