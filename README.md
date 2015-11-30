@@ -7,7 +7,7 @@ Note: This is in active development, the API is not stable. Please try it out an
 ## Include module in Node.js application
 
 ```javascript
-var neo4j = require('lib/neo4j');
+var neo4j = require('neo4j');
 ```
 
 ## Include in web browser
