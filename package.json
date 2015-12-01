@@ -1,9 +1,9 @@
 {
   "name": "neo4j-driver",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha.1",
   "description": "Connect to Neo4j 3.0.0 and up from JavaScript",
   "author": "Neo Technology Inc.",
-  "license": "Apache License, Version 2.0",
+  "license": "Apache License 2.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"

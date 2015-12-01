@@ -17,8 +17,11 @@
  * limitations under the License.
  */
  
-import 'babel/polyfill';
 import {ResultSummary} from './result-summary';
+
+// Ensure Promise is available
+import {polyfill as polyfillPromise} from './external/es6-promise';
+polyfillPromise();
 
 /**
   * A Result instance is used for retrieving request response.
