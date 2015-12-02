@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-var neo4j = require("../lib/neo4j");
+
+var neo4j = require("../lib/neo4j").v1;
 
 describe('floating point values', function() {
   it('should support float 1.0 ', testVal( 1 ) );
   it('should support float 0.0 ', testVal( 0.0 ) );
-  it('should support pretty big float ', testVal( 3.4028235e+38 ) ); // Max 32-bit 
+  it('should support pretty big float ', testVal( 3.4028235e+38 ) ); // Max 32-bit
   it('should support really big float ', testVal( 1.7976931348623157e+308 ) ); // Max 64-bit
   it('should support pretty small float ', testVal( 1.4e-45 ) ); // Min 32-bit
   it('should support really small float ', testVal( 4.9e-324 ) ); // Min 64-bit
@@ -66,7 +66,7 @@ describe('node values', function() {
     // Given
     var driver = neo4j.driver("bolt://localhost");
     var session = driver.session();
-    
+
     // When
     session.run("CREATE (n:User {name:'Lisa'}) RETURN n, id(n)").then(function(rs) {
         var node = rs[0]['n'];
@@ -74,7 +74,7 @@ describe('node values', function() {
         expect( node.properties ).toEqual( { name:"Lisa" } );
         expect( node.labels ).toEqual( ["User"] );
         // expect( node.identity ).toEqual( rs[0]['id(n)'] ); // TODO
-        driver.close(); 
+        driver.close();
         done();
 
       });
@@ -86,7 +86,7 @@ describe('relationship values', function() {
     // Given
     var driver = neo4j.driver("bolt://localhost");
     var session = driver.session();
-    
+
     // When
     session.run("CREATE ()-[r:User {name:'Lisa'}]->() RETURN r, id(r)").then(function(rs) {
         var rel = rs[0]['r'];
@@ -94,7 +94,7 @@ describe('relationship values', function() {
         expect( rel.properties ).toEqual( { name:"Lisa" } );
         expect( rel.type ).toEqual( "User" );
         // expect( rel.identity ).toEqual( rs[0]['id(r)'] ); // TODO
-        driver.close(); 
+        driver.close();
         done();
 
       });
@@ -106,7 +106,7 @@ describe('path values', function() {
     // Given
     var driver = neo4j.driver("bolt://localhost");
     var session = driver.session();
-    
+
     // When
     session.run("CREATE p=(:User { name:'Lisa' })<-[r:KNOWS {since:1234.0}]-() RETURN p")
       .then(function(rs) {
@@ -125,20 +125,20 @@ describe('path values', function() {
           // Which is the inverse of the relationship itself!
           expect( segment.relationship.properties ).toEqual( { since: 1234 } );
         };
-        driver.close(); 
+        driver.close();
         done();
       });
   });
 });
 
-function testVal( val ) { 
+function testVal( val ) {
   return function( done ) {
     var driver = neo4j.driver("bolt://localhost");
     var session = driver.session();
 
     session.run("RETURN {val} as v", {val: val})
-      .then( function( records ) { 
-        expect( records[0]['v'] ).toEqual( val ); 
+      .then( function( records ) {
+        expect( records[0]['v'] ).toEqual( val );
         driver.close();
         done();
       });

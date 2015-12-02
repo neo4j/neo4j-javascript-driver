@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-var neo4j = require("../lib/neo4j");
+
+var neo4j = require("../lib/neo4j").v1;
 
 describe('driver', function() {
   it('should expose sessions', function() {
