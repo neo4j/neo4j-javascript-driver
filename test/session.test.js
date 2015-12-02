@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-var neo4j = require("../lib/neo4j");
+
+var neo4j = require("../lib/neo4j").v1;
 var StatementType = require("../lib/result-summary").statementType;
 
 describe('session', function() {
@@ -57,7 +57,7 @@ describe('session', function() {
         done();
       }
     }
-    
+
     // When & Then
     driver.session().run( "RETURN 1.0 AS a").subscribe(new myObserver());
   });
@@ -102,7 +102,7 @@ describe('session', function() {
     var driver = neo4j.driver("bolt://localhost");
     // When & Then
     driver.session().run( "RETURN 1.0 AS a")
-    .then( 
+    .then(
       function( records ) {
         expect( records.length ).toBe( 1 );
         expect( records[0]['a'] ).toBe( 1 );
@@ -142,7 +142,7 @@ describe('session', function() {
       expect(sum.updateStatistics.containsUpdates()).toBe(true);
       expect(sum.updateStatistics.nodesCreated()).toBe(1);
       expect(sum.statementType).toBe(StatementType.READ_WRITE);
-      driver.close(); 
+      driver.close();
       done();
     });
   });
@@ -162,7 +162,7 @@ describe('session', function() {
       expect(sum.plan.arguments.runtime).toBe('INTERPRETED');
       expect(sum.plan.identifiers[0]).toBe('n');
       expect(sum.plan.children[0].operatorType).toBe('CreateNode');
-      driver.close(); 
+      driver.close();
       done();
     });
   });
@@ -184,7 +184,7 @@ describe('session', function() {
       expect(sum.profile.children[0].operatorType).toBe('Filter');
       expect(sum.profile.rows).toBeGreaterThan(0);
       //expect(sum.profile.dbHits).toBeGreaterThan(0);
-      driver.close(); 
+      driver.close();
       done();
     });
   });
@@ -201,7 +201,7 @@ describe('session', function() {
       expect(sum.notifications[0].code).toBe("Neo.ClientNotification.Statement.CartesianProduct");
       expect(sum.notifications[0].title).toBe("This query builds a cartesian product between disconnected patterns.");
       expect(sum.notifications[0].position.column).toBeGreaterThan(0);
-      driver.close(); 
+      driver.close();
       done();
     });
   });

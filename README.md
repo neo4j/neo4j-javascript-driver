@@ -7,7 +7,7 @@ Note: This is in active development, the API is not stable. Please try it out an
 ## Include module in Node.js application
 
 ```javascript
-var neo4j = require('neo4j');
+var neo4j = require('neo4j').v1;
 ```
 
 ## Include in web browser
@@ -71,37 +71,37 @@ session.run(statement.join(' '), params)
 
 ## Building
 
-    npm install 
+    npm install
     npm build
 
-This produces browser-compatible standalone files under `lib/browser` and a Node.js module version under `lib/`.  
+This produces browser-compatible standalone files under `lib/browser` and a Node.js module version under `lib/`.
 See files under `examples/` on how to use.
 
 ## Testing
 
     ./runTests.sh
 
-This runs the test suite against a fresh download of Neo4j.  
+This runs the test suite against a fresh download of Neo4j.
 Or `npm test` if you already have a running version of a compatible Neo4j server.
 
 ### Testing on windows
-Running tests on windows requires PhantomJS installed and its bin folder added in windows system variable `Path`.  
-To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.  
-The admin right is required to start/stop Neo4j properly as a system service.  
+Running tests on windows requires PhantomJS installed and its bin folder added in windows system variable `Path`.
+To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.
+The admin right is required to start/stop Neo4j properly as a system service.
 While there is no need to grab admin right if you are running tests against an existing Neo4j server using `npm test`.
 
 ## A note on numbers and the Integer type
-For this driver to fully map to the Neo4j type system handling of 64-bits Integers is needed.  
-Javascript can saftely represent numbers between `-(2`<sup>`53`</sup>` - 1)` and `(2`<sup>`53`</sup>` - 1)`.  
-Therefore, an Integer type is introduced. 
+For this driver to fully map to the Neo4j type system handling of 64-bits Integers is needed.
+Javascript can saftely represent numbers between `-(2`<sup>`53`</sup>` - 1)` and `(2`<sup>`53`</sup>` - 1)`.
+Therefore, an Integer type is introduced.
 
 ### Write integers
-Number written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 22})` will be of type `Float` in Neo4j.  
-To write the `age` as an integer the `neo4j.int` method should be used.  
+Number written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 22})` will be of type `Float` in Neo4j.
+To write the `age` as an integer the `neo4j.int` method should be used.
 E.g. `session.run("CREATE (n:Node {age: {age}})", {age: neo4j.int(22)})`.
 
 ### Read integers
-To get the value of a from Neo4j received integer, the safeast way would be to use the `.toString()` method on 
-an Integer object.  
-E.g. `console.log(result.age.toString())`.  
+To get the value of a from Neo4j received integer, the safeast way would be to use the `.toString()` method on
+an Integer object.
+E.g. `console.log(result.age.toString())`.
 To check if a variable is of the Integer type, the method `neo4j.isInt(variable)` can be used.
