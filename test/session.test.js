@@ -18,7 +18,7 @@
  */
 
 var neo4j = require("../lib/neo4j").v1;
-var StatementType = require("../lib/result-summary").statementType;
+var StatementType = require("../lib/v1/result-summary").statementType;
 
 describe('session', function() {
   it('should expose basic run/subscribe ', function(done) {

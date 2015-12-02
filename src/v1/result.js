@@ -20,7 +20,7 @@
 import {ResultSummary} from './result-summary';
 
 // Ensure Promise is available
-import {polyfill as polyfillPromise} from './external/es6-promise';
+import {polyfill as polyfillPromise} from '../external/es6-promise';
 polyfillPromise();
 
 /**
