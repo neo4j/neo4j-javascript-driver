@@ -17,15 +17,18 @@
  * limitations under the License.
  */
 
-import {int, isInt} from './v1/integer';
-import Driver from './v1/driver';
-import VERSION from './version';
-import * as v1 from './v1/index.js';
+var neo4j = require("../../lib/v1");
 
-let USER_AGENT = "neo4j-javascript/" + VERSION;
+describe('driver', function() {
+  it('should expose sessions', function() {
+    // Given
+    var driver = neo4j.driver("bolt://localhost");
 
-console.log(v1);
+    // When
+    var session = driver.session();
 
-export default {
-  v1: v1
-}
+    // Then
+    expect( session ).not.toBeNull();
+    driver.close();
+  });
+});

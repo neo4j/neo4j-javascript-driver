@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-var neo4j = require("../lib/index").v1;
-var StatementType = require("../lib/v1/result-summary").statementType;
+var neo4j = require("../../lib/v1");
+var StatementType = require("../../lib/v1/result-summary").statementType;
 
 describe('session', function() {
   it('should expose basic run/subscribe ', function(done) {
