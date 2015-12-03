@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import neo4j from '../neo4j';
+import neo4j from '../index';
 
 /**
   * A ResultSummary instance contains structured metadata for a {Result}.

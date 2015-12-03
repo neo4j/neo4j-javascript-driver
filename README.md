@@ -1,72 +1,75 @@
 # Neo4j Driver for Javascript
 
-An alpha-level database driver for a new Neo4j remoting protocol.
+An alpha-level database driver for Neo4j 3.0.0+.
 
 Note: This is in active development, the API is not stable. Please try it out and give us feedback, but expect things to break in the medium term!
 
 ## Include module in Node.js application
 
+```shell
+npm install neo4j-driver
+```
+
 ```javascript
-var neo4j = require('neo4j').v1;
+var neo4j = require('neo4j-driver/v1');
 ```
 
 ## Include in web browser
-A global object `neo4j` will be available.
+
+We build a special browser version of the driver, which supports connecting to Neo4j over WebSockets.
 
 ```html
 <script src="lib/browser/neo4j-web.min.js"></script>
 ```
 
-## Usage examples (for both Node.js and browser environments)
+This will make a global `neo4j` object available, where you can access the `v1` API at `neo4j.v1`:
 
 ```javascript
-var statement = ['MERGE (alice:Person {name:{name_a},age:{age_a}})',
-    'MERGE (bob:Person {name:{name_b},age:{age_b}})',
-    'CREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)',
-    'RETURN alice, bob, alice_knows_bob'
-];
+var driver = neo4j.v1.driver("bolt://localhost");
+```
 
-var params = {
-    name_a: 'Alice',
-    age_a: 33,
-    name_b: 'Bob',
-    age_b: 44
-};
+## Usage examples
 
+```javascript
 
-// Create a Session object to contain all Cypher activity.
+// Create a driver instance
 var driver = neo4j.driver("bolt://localhost");
+
+// Create a session to run Cypher statements in.
+// Note: Always make sure to close sessions when you are done using them!
 var session = driver.session();
 
-// Run a Cypher statement within an implicit transaction
-// The streaming way:
-session.run(statement.join(' '), params).subscribe({
+// Run a Cypher statement, reading the result in a streaming manner as records arrive:
+session
+  .run("MATCH (alice {name : {nameParam} }) RETURN alice.age", { nameParam:'Alice' })
+  .subscribe({
     onNext: function(record) {
-        // On receipt of RECORD
-        for(var i in record) {
-            console.log(i, ': ', record[i]);
-        }
-    }, onCompleted: function() {
-        session.close();
-    }, onError: function(error) {
-        console.log(error);
+      console.log(record);
+    }, 
+    onCompleted: function() {
+      // Completed!
+      session.close();
+    }, 
+    onError: function(error) {
+      console.log(error);
     }
-});
+  });
 
 // or
-// the Promise way, where the complete response is collected:
-session.run(statement.join(' '), params)
-    .then(function(records){
-        records.forEach(function(record) {
-            for(var i in record) {
-                console.log(i, ': ', record[i]);
-            }
-        });
-        session.close();
-    })
-    .catch(function(error) {
-        console.log(error);
+// the Promise way, where the complete result is collected before we act on it:
+session
+  .run("MATCH (alice {name : {nameParam} }) RETURN alice.age", { nameParam:'Alice' })
+  .then(function(records){
+    records.forEach(function(record) {
+      console.log(record);
     });
+
+    // Completed!
+    session.close();
+  })
+  .catch(function(error) {
+    console.log(error);
+  });
 ```
 
 ## Building
@@ -85,23 +88,47 @@ This runs the test suite against a fresh download of Neo4j.
 Or `npm test` if you already have a running version of a compatible Neo4j server.
 
 ### Testing on windows
-Running tests on windows requires PhantomJS installed and its bin folder added in windows system variable `Path`.
-To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.
-The admin right is required to start/stop Neo4j properly as a system service.
+Running tests on windows requires PhantomJS installed and its bin folder added in windows system variable `Path`.  
+To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.  
+The admin right is required to start/stop Neo4j properly as a system service.  
 While there is no need to grab admin right if you are running tests against an existing Neo4j server using `npm test`.
 
 ## A note on numbers and the Integer type
-For this driver to fully map to the Neo4j type system handling of 64-bits Integers is needed.
-Javascript can saftely represent numbers between `-(2`<sup>`53`</sup>` - 1)` and `(2`<sup>`53`</sup>` - 1)`.
-Therefore, an Integer type is introduced.
+The Neo4j type system includes 64-bit integer values.
+However, Javascript can only safely represent integers between `-(2`<sup>`53`</sup>` - 1)` and `(2`<sup>`53`</sup>` - 1)`.  
+In order to support the full Neo4j type system, the driver includes an explicit Integer types.
+Any time the driver recieves an Integer value from Neo4j, it will be represented with the Integer type by the driver.
 
 ### Write integers
-Number written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 22})` will be of type `Float` in Neo4j.
-To write the `age` as an integer the `neo4j.int` method should be used.
-E.g. `session.run("CREATE (n:Node {age: {age}})", {age: neo4j.int(22)})`.
+Number written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 22})` will be of type `Float` in Neo4j.  
+To write the `age` as an integer the `neo4j.int` method should be used:
+
+```javascript
+var neo4j = require('neo4j-driver');
+
+session.run("CREATE (n {age: {myIntParam}})", {myIntParam: neo4j.int(22)});
+```
+
+To write integers larger than can be represented as JavaScript numbers, use a string argument to `neo4j.int`:
+
+```javascript
+session.run("CREATE (n {age: {myIntParam}})", {myIntParam: neo4j.int("9223372036854775807")});
+```
 
 ### Read integers
-To get the value of a from Neo4j received integer, the safeast way would be to use the `.toString()` method on
-an Integer object.
-E.g. `console.log(result.age.toString())`.
-To check if a variable is of the Integer type, the method `neo4j.isInt(variable)` can be used.
+Since Integers can be larger than can be represented as JavaScript numbers, it is only safe to convert Integer instances to JavaScript numbers if you know that they will not exceed `(2`<sup>`53`</sup>` - 1)` in size:
+
+```javascript
+var aSmallInteger = neo4j.int(123);
+var aNumber = aSmallInteger.toNumber();
+```
+
+If you will be handling integers larger than that, you can use the Integer instances directly, or convert them to strings:
+
+```javascript
+var aLargerInteger = neo4j.int("9223372036854775807");
+var integerAsString = aLargerInteger.toString();
+```
+
+To help you work with Integers, the Integer class exposes a large set of arithmetic methods.
+Refer to the Integer API docs for details.

@@ -1,9 +1,9 @@
 {
   "name": "neo4j-driver",
-  "version": "1.0.0-alpha.1",
+  "version": "0.0.0-dev",
   "description": "Connect to Neo4j 3.0.0 and up from JavaScript",
   "author": "Neo Technology Inc.",
-  "license": "Apache License 2.0",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
@@ -27,20 +27,22 @@
     "gulp-batch": "^1.0.5",
     "gulp-concat": "^2.6.0",
     "gulp-cucumber": "^0.0.12",
+    "gulp-decompress": "^1.2.0",
     "gulp-download": "^0.0.1",
     "gulp-if": "^1.2.5",
     "gulp-jasmine": "^2.1.0",
     "gulp-jasmine-browser": "^0.2.3",
+    "gulp-replace": "^0.5.4",
     "gulp-shell": "^0.4.3",
     "gulp-uglify": "^1.4.2",
     "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
     "jasmine-reporters": "^2.0.7",
+    "minimist": "^1.2.0",
     "phantomjs2-ext": "^0.1.0",
     "run-sequence": "^1.1.4",
     "through2": "~2.0.0",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "gulp-decompress": "^1.2.0"
+    "vinyl-source-stream": "^1.1.0"
   }
 }

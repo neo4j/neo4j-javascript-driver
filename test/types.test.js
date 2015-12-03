@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-var neo4j = require("../lib/neo4j").v1;
+var neo4j = require("../lib/index").v1;
 
 describe('floating point values', function() {
   it('should support float 1.0 ', testVal( 1 ) );

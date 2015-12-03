@@ -35,11 +35,13 @@ var babelify = require('babelify');
 var babel = require('gulp-babel');
 var watch = require('gulp-watch');
 var batch = require('gulp-batch');
+var replace = require('gulp-replace');
+var decompress = require('gulp-decompress');
 var fs = require("fs");
 var runSequence = require('run-sequence');
 var path = require('path');
 var childProcess = require("child_process");
-var decompress = require('gulp-decompress');
+var minimist = require('minimist');
 
 gulp.task('default', ["test"]);
 
@@ -52,7 +54,7 @@ gulp.task('build-browser', function () {
   var browserOutput = 'lib/browser';
   // Our app bundler
   var appBundler = browserify({
-    entries: ['src/neo4j.js'],
+    entries: ['src/index.js'],
     cache: {},
     standalone: 'neo4j',
     packageCache: {}
@@ -196,10 +198,16 @@ var runPowershell = function( cmd ) {
     child.stdin.end(); //end input
 }
 
-// gulp.task('start-neo4j', ['download-neo4j'], shell.task([
-//   'chmod +x ' + neo4jHome + '/bin/neo4j',
-//   neo4jHome + '/bin/neo4j start',
-// ]));
+gulp.task('set', function() {
+  // Get the --version arg from command line
+  var version = minimist(process.argv.slice(2), { string: 'version' }).version;
+
+  // Change the version in relevant files
+  return gulp.src(['package.json'], {base: "./"})
+      .pipe(replace('0.0.0-dev', version))
+      .pipe(gulp.dest('./'));
+
+});
 
 gulp.task('start-neo4j', ['download-neo4j'], function() {
   if(isWin) {
