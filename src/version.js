@@ -17,4 +17,11 @@
  * limitations under the License.
  */
 
+// DO NOT CHANGE THE VERSION BELOW HERE
+// This is set by the build system at release time, using
+//   gulp set --version <releaseversion>
+//
+// This is set up this way to keep the version in the code in
+// sync with the npm package version, and to allow the build
+// system to control version names at packaging time.
 export default { VERSION : "0.0.0-dev" };

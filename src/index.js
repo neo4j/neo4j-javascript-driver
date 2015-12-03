@@ -17,14 +17,7 @@
  * limitations under the License.
  */
 
-import {int, isInt} from './v1/integer';
-import Driver from './v1/driver';
-import VERSION from './version';
-import * as v1 from './v1/index.js';
-
-let USER_AGENT = "neo4j-javascript/" + VERSION;
-
-console.log(v1);
+import * as v1 from './v1/index';
 
 export default {
   v1: v1

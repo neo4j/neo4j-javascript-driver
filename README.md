@@ -87,6 +87,11 @@ See files under `examples/` on how to use.
 This runs the test suite against a fresh download of Neo4j.
 Or `npm test` if you already have a running version of a compatible Neo4j server.
 
+For development, you can have the build tool rerun the tests each time you change 
+the source code:
+
+    gulp watch-n-test
+
 ### Testing on windows
 Running tests on windows requires PhantomJS installed and its bin folder added in windows system variable `Path`.  
 To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.  

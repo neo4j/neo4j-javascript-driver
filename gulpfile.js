@@ -156,9 +156,13 @@ gulp.task('run-browser-test', function(){
 });
 
 gulp.task('watch', function () {
-    watch('src/**/*.js', batch(function (events, done) {
-        gulp.start('all', done);
-    }));
+  return watch('src/**/*.js', batch(function (events, done) {
+      gulp.start('all', done);
+  }));
+});
+
+gulp.task('watch-n-test', ['test-nodejs'], function () {
+  return gulp.watch(['src/**/*.js', "test/**/*.js"], ['test-nodejs'] );
 });
 
 var neo4jLinuxUrl = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-M01-NIGHTLY-unix.tar.gz';
@@ -198,6 +202,7 @@ var runPowershell = function( cmd ) {
     child.stdin.end(); //end input
 }
 
+/** Set the project version, controls package.json and version.js */
 gulp.task('set', function() {
   // Get the --version arg from command line
   var version = minimist(process.argv.slice(2), { string: 'version' }).version;
