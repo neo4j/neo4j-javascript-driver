@@ -4,6 +4,8 @@ An alpha-level database driver for Neo4j 3.0.0+.
 
 Note: This is in active development, the API is not stable. Please try it out and give us feedback, but expect things to break in the medium term!
 
+Find detailed docs at [alpha.neohq.net](http://alpha.neohq.net/docs/javascript-driver/).
+
 ## Include module in Node.js application
 
 ```shell
