@@ -32,7 +32,7 @@ describe('neo4j-driver', function() {
   it('should expose version 1 of the API package', function(done) {
     // When
     var neo4jV1 = require("../lib/v1");
-    
+
     // Then I can access and use V1 of the API
     var driver = neo4jV1.driver("bolt://localhost");
     driver.session().run( "RETURN 1" )

@@ -15,7 +15,7 @@
     "stop-neo4j": "gulp stop-neo4j",
     "docs": "node_modules/.bin/esdoc -c esdoc.json"
   },
-  "main": "lib/neo4j.js",
+  "main": "lib/index.js",
   "devDependencies": {
     "babel": "^5.8.23",
     "babelify": "^6.3.0",

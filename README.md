@@ -11,7 +11,7 @@ npm install neo4j-driver
 ```
 
 ```javascript
-var neo4j = require('neo4j-driver/v1');
+var neo4j = require('neo4j-driver').v1;
 ```
 
 ## Include in web browser
@@ -109,7 +109,7 @@ Number written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
-var neo4j = require('neo4j-driver');
+var neo4j = require('neo4j-driver').v1;
 
 session.run("CREATE (n {age: {myIntParam}})", {myIntParam: neo4j.int(22)});
 ```
