@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import neo4j from '../neo4j';
+import {int, isInt} from './integer';
 
 /**
   * A ResultSummary instance contains structured metadata for a {Result}.
@@ -126,7 +126,7 @@ class StatementStatistics {
       constraintsRemoved: 0
     }
     Object.keys(statistics).forEach((index) => {
-      let val = neo4j.v1.isInt(statistics[index]) ? statistics[index].toInt() : statistics[index];
+      let val = isInt(statistics[index]) ? statistics[index].toInt() : statistics[index];
       //To camelCase
       this._stats[index.replace(/(\-\w)/g, (m) => m[1].toUpperCase())] = val;
     });

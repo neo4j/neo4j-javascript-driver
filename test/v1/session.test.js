@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-var neo4j = require("../lib/neo4j").v1;
-var StatementType = require("../lib/v1/result-summary").statementType;
+var neo4j = require("../../lib/v1");
+var StatementType = require("../../lib/v1/result-summary").statementType;
 
 describe('session', function() {
   it('should expose basic run/subscribe ', function(done) {
@@ -135,7 +135,7 @@ describe('session', function() {
     var params = {prop: "string"}
     // When & Then
     var result = driver.session().run( statement, params );
-    result.then(function( records ) {
+    result.then(function() {
       var sum = result.summarize();
       expect(sum.statement.text).toBe( statement );
       expect(sum.statement.parameters).toBe( params );
@@ -154,7 +154,7 @@ describe('session', function() {
     var params = {prop: "string"}
     // When & Then
     var result = driver.session().run( statement, params );
-    result.then(function( records ) {
+    result.then(function() {
       var sum = result.summarize();
       expect(sum.hasPlan()).toBe(true);
       expect(sum.hasProfile()).toBe(false);
@@ -174,7 +174,7 @@ describe('session', function() {
     var params = {prop: "string"}
     // When & Then
     var result = driver.session().run( statement, params );
-    result.then(function( records ) {
+    result.then(function() {
       var sum = result.summarize();
       expect(sum.hasPlan()).toBe(true); //When there's a profile, there's a plan
       expect(sum.hasProfile()).toBe(true);
@@ -195,7 +195,7 @@ describe('session', function() {
     var statement = "EXPLAIN MATCH (n), (m) RETURN n, m";
     // When & Then
     var result = driver.session().run( statement );
-    result.then(function( records ) {
+    result.then(function() {
       var sum = result.summarize();
       expect(sum.notifications.length).toBeGreaterThan(0);
       expect(sum.notifications[0].code).toBe("Neo.ClientNotification.Statement.CartesianProduct");

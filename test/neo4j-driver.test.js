@@ -17,18 +17,26 @@
  * limitations under the License.
  */
 
-var neo4j = require("../lib/neo4j").v1;
-
-describe('driver', function() {
-  it('should expose sessions', function() {
-    // Given
-    var driver = neo4j.driver("bolt://localhost");
-
+describe('neo4j-driver', function() {
+  it('should expose version 1 of the API as a property', function(done) {
     // When
-    var session = driver.session();
+    var neo4jDriver = require("../lib");
 
-    // Then
-    expect( session ).not.toBeNull();
-    driver.close();
+    // Then I can access and use V1 of the API
+    var driver = neo4jDriver.v1.driver("bolt://localhost");
+    driver.session().run( "RETURN 1" )
+      .then( function() { driver.close(); })
+      .then( done );
+  });
+
+  it('should expose version 1 of the API package', function(done) {
+    // When
+    var neo4jV1 = require("../lib/v1");
+
+    // Then I can access and use V1 of the API
+    var driver = neo4jV1.driver("bolt://localhost");
+    driver.session().run( "RETURN 1" )
+      .then( function() { driver.close(); })
+      .then( done );
   });
 });

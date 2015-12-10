@@ -81,7 +81,11 @@ class StreamObserver {
    */
   onError(error) {
     if( this._observer ) {
-      this._observer.onError( error );
+      if( this._observer.onError ) {
+        this._observer.onError( error );
+      } else {
+        console.log( error );
+      }
     } else {
       this._error = error;
     }

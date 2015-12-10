@@ -30,6 +30,9 @@ describe('connector', function() {
         expect( msg ).not.toBeNull();
         conn.close();
         done();
+      },
+      onError: function(err) {
+        console.log(err);
       }
     });
     conn.sync();
@@ -45,7 +48,7 @@ describe('connector', function() {
     conn.run( "RETURN 1.0", {} );
     conn.pullAll( {
       onNext: function( record ) {
-        records.push( record ); 
+        records.push( record );
       },
       onCompleted: function( tail ) {
         expect( records[0][0] ).toBe( 1 );

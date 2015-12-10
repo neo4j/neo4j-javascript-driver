@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import WebSocketChannel from "./ch-websocket";
 import NodeChannel from "./ch-node";
 import chunking from "./chunking";
@@ -53,7 +53,9 @@ FAILURE = 0x7F,         // 0111 1111 // FAILURE <metadata>
 NODE = 0x4E,
 RELATIONSHIP = 0x52,
 UNBOUND_RELATIONSHIP = 0x72,
-PATH = 0x50;
+PATH = 0x50,
+//sent before version negotiation
+MAGIC_PREAMBLE = 0x6060B017;
 
 let URLREGEX = new RegExp([
   "[^/]+//",          // scheme
@@ -71,23 +73,27 @@ function port( url ) {
 
 function NO_OP(){};
 
+function LOG(err) {
+  console.log(err);
+};
+
 let NO_OP_OBSERVER = {
   onNext : NO_OP,
   onCompleted : NO_OP,
-  onError : NO_OP
+  onError : LOG
 }
 
 /** Maps from packstream structures to Neo4j domain objects */
 let _mappers = {
   node : ( unpacker, buf ) => {
-    return new GraphType.Node( 
+    return new GraphType.Node(
       unpacker.unpack(buf), // Identity
       unpacker.unpack(buf), // Labels
       unpacker.unpack(buf)  // Properties
     );
   },
   rel : ( unpacker, buf ) => {
-    return new GraphType.Relationship( 
+    return new GraphType.Relationship(
       unpacker.unpack(buf),  // Identity
       unpacker.unpack(buf),  // Start Node Identity
       unpacker.unpack(buf),  // End Node Identity
@@ -103,7 +109,7 @@ let _mappers = {
     );
   },
   path : ( unpacker, buf ) => {
-    let nodes = unpacker.unpack(buf), 
+    let nodes = unpacker.unpack(buf),
         rels = unpacker.unpack(buf),
         sequence = unpacker.unpack(buf);
     let prevNode = nodes[0],
@@ -115,8 +121,8 @@ let _mappers = {
         if (relIndex > 0) {
             rel = rels[relIndex - 1];
             if( rel instanceof GraphType.UnboundRelationship ) {
-              // To avoid duplication, relationships in a path do not contain 
-              // information about their start and end nodes, that's instead 
+              // To avoid duplication, relationships in a path do not contain
+              // information about their start and end nodes, that's instead
               // inferred from the path sequence. This is us inferring (and,
               // for performance reasons remembering) the start/end of a rel.
               rels[relIndex - 1] = rel = rel.bind(prevNode.identity, nextNode.identity);
@@ -142,7 +148,7 @@ let _mappers = {
  * same message structure with very little frills. This means Connectors are
  * naturally tied to a specific version of the protocol, and we expect
  * another layer will be needed to support multiple versions.
- * 
+ *
  * The connector tries to batch outbound messages by requiring its users
  * to call 'sync' when messages need to be sent, and it routes response
  * messages back to the originators of the requests that created those
@@ -152,11 +158,11 @@ let _mappers = {
 class Connection {
   /**
    * @constructor
-   * @param channel - channel with a 'write' function and a 'onmessage' 
+   * @param channel - channel with a 'write' function and a 'onmessage'
    *                  callback property
    */
   constructor (channel) {
-    /** 
+    /**
      * An ordered queue of observers, each exchange response (zero or more
      * RECORD messages followed by a SUCCESS message) we recieve will be routed
      * to the next pending observer.
@@ -191,7 +197,7 @@ class Connection {
         }
 
       } else {
-        // TODO: Report error 
+        // TODO: Report error
         console.log("FATAL, unknown protocol version:", proposed)
       }
     };
@@ -200,15 +206,18 @@ class Connection {
       self._handleMessage( self._unpacker.unpack( buf ) );
     }
 
-    let version_proposal = alloc( 4 * 4 );
-    version_proposal.writeInt32( 1 );
-    version_proposal.writeInt32( 0 );
-    version_proposal.writeInt32( 0 );
-    version_proposal.writeInt32( 0 );
-    version_proposal.reset();
-    this._ch.write( version_proposal );
+    let handshake = alloc( 5 * 4 );
+    //magic preamble
+    handshake.writeInt32( MAGIC_PREAMBLE );
+    //proposed versions
+    handshake.writeInt32( 1 );
+    handshake.writeInt32( 0 );
+    handshake.writeInt32( 0 );
+    handshake.writeInt32( 0 );
+    handshake.reset();
+    this._ch.write( handshake );
   }
-  
+
   _handleMessage( msg ) {
     switch( msg.signature ) {
       case RECORD:
@@ -227,7 +236,7 @@ class Connection {
         } finally {
           this._currentObserver = this._pendingObservers.shift();
           // Things are now broken. Pending observers will get FAILURE messages routed until
-          // We are done handling this failure. 
+          // We are done handling this failure.
           if( !this._isHandlingFailure ) {
             this._isHandlingFailure = true;
             let self = this;
