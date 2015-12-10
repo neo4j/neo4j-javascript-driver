@@ -165,8 +165,8 @@ gulp.task('watch-n-test', ['test-nodejs'], function () {
   return gulp.watch(['src/**/*.js', "test/**/*.js"], ['test-nodejs'] );
 });
 
-var neo4jLinuxUrl = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-M02-NIGHTLY-unix.tar.gz';
-var neo4jWinUrl   = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-M02-NIGHTLY-windows.zip';
+var neo4jLinuxUrl = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-NIGHTLY-unix.tar.gz';
+var neo4jWinUrl   = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-NIGHTLY-windows.zip';
 var neo4jHome     = './build/neo4j-enterprise-3.0.0-M02';
 var isWin         = /^win/.test(process.platform);
 
