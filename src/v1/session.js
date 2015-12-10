@@ -18,7 +18,8 @@
  */
  
 import StreamObserver from './internal/stream-observer';
-import {Result} from './result';
+import Result from './result';
+import Transaction from './transaction';
 
 /**
   * A Session instance is used for handling the connection and
@@ -40,7 +41,7 @@ class Session {
   /**
    * Run Cypher statement
    * Could be called with a statement object i.e.: {statement: "MATCH ...", parameters: {param: 1}}
-   * or with the statement and parameters as separate arguments.
+   * or with the statem ent and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
    * @return {Result} - New Result
@@ -57,6 +58,10 @@ class Session {
     return new Result( streamObserver, statement, parameters );
   }
 
+  beginTransaction() {
+    return new Transaction(this);
+  }
+ 
   /**
    * Close connection
    * @param {function()} cb - Function to be called on connection close

@@ -219,6 +219,7 @@ class Connection {
   }
 
   _handleMessage( msg ) {
+  
     switch( msg.signature ) {
       case RECORD:
         this._currentObserver.onNext( msg.fields[0] );

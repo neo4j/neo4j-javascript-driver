@@ -113,6 +113,4 @@ class Result {
   }
 }
 
-export default {
-  Result
-}
+export default Result
