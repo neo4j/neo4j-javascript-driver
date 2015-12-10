@@ -73,10 +73,14 @@ function port( url ) {
 
 function NO_OP(){};
 
+function LOG(err) {
+  console.log(err);
+};
+
 let NO_OP_OBSERVER = {
   onNext : NO_OP,
   onCompleted : NO_OP,
-  onError : NO_OP
+  onError : LOG
 }
 
 /** Maps from packstream structures to Neo4j domain objects */

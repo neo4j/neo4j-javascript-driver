@@ -30,6 +30,9 @@ describe('connector', function() {
         expect( msg ).not.toBeNull();
         conn.close();
         done();
+      },
+      onError: function(err) {
+        console.log(err);
       }
     });
     conn.sync();
