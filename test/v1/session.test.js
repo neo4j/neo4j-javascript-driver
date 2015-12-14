@@ -205,4 +205,31 @@ describe('session', function() {
       done();
     });
   });
+
+  it('should fail when using the session when having an open transaction', function (done) {
+    // Given
+    var session = neo4j.driver("bolt://localhost").session();
+
+    // When
+    session.beginTransaction();
+
+    //Then
+    session.run("RETURN 42")
+      .catch(function (error) {
+        expect(error.error).toBe("Please close the currently open transaction object before running " +
+          "more statements/transactions in the current session." )
+        done();
+      })
+  });
+
+  it('should fail when opening multiple transactions', function () {
+    // Given
+    var session = neo4j.driver("bolt://localhost").session();
+
+    // When
+    session.beginTransaction();
+
+    // Then
+    expect(session.beginTransaction).toThrow();
+  });
 });

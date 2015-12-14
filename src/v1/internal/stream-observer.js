@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-/** 
+
+/**
  * Handles a RUN/PULL_ALL, or RUN/DISCARD_ALL requests, maps the responses
  * in a way that a user-provided observer can see these as a clean Stream
  * of records.
@@ -106,7 +106,7 @@ class StreamObserver {
     if( this._queuedRecords.length > 0 ) {
       for (var i = 0; i < _queuedRecords.length; i++) {
         observer.onNext( _queuedRecords[i] );
-      };
+      }
     }
     if( this._tail ) {
       observer.onCompleted( this._tail );

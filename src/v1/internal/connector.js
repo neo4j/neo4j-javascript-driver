@@ -190,7 +190,7 @@ class Connection {
         // this to the dechunker
         self._ch.onmessage = (buf) => {
           self._dechunker.write(buf);
-        }
+        };
 
         if( buf.hasRemaining() ) {
           self._dechunker.write(buf.readSlice( buf.remaining() ));
@@ -219,7 +219,7 @@ class Connection {
   }
 
   _handleMessage( msg ) {
-  
+
     switch( msg.signature ) {
       case RECORD:
         this._currentObserver.onNext( msg.fields[0] );
@@ -234,6 +234,7 @@ class Connection {
       case FAILURE:
         try {
           this._currentObserver.onError( msg );
+          this._errorMsg = msg;
         } finally {
           this._currentObserver = this._pendingObservers.shift();
           // Things are now broken. Pending observers will get FAILURE messages routed until
@@ -257,6 +258,18 @@ class Connection {
           }
         }
         break;
+      case IGNORED:
+        try {
+          if (this._errorMsg)
+            this._currentObserver.onError(this._errorMsg);
+          else
+            this._currentObserver.onError(msg);
+        } finally {
+          this._currentObserver = this._pendingObservers.shift();
+        }
+        break;
+      default:
+        console.log("UNKNOWN MESSAGE: ", msg);
     }
   }
 

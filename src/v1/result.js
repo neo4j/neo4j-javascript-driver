@@ -38,7 +38,7 @@ class Result {
     this._p = null;
     this._statement = statement;
     this._parameters = parameters;
-    this.summary = {}
+    this.summary = {};
   }
 
   /**
@@ -56,7 +56,7 @@ class Result {
         onNext: (record) => { records.push(record); },
         onCompleted: () => { resolve(records); },
         onError: (error) => { reject(error); }
-      }
+      };
       self.subscribe(observer);
     });
   }
@@ -99,7 +99,7 @@ class Result {
     let onCompletedWrapper = (metadata) => {
       this.summary = new ResultSummary(this._statement, this._parameters, metadata);
       onCompletedOriginal.call(observer);
-    }
+    };
     observer.onCompleted = onCompletedWrapper;
     this._streamObserver.subscribe(observer);
   }

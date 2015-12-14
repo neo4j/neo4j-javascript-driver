@@ -47,11 +47,11 @@ session
   .subscribe({
     onNext: function(record) {
       console.log(record);
-    }, 
+    },
     onCompleted: function() {
       // Completed!
       session.close();
-    }, 
+    },
     onError: function(error) {
       console.log(error);
     }
@@ -72,6 +72,31 @@ session
   .catch(function(error) {
     console.log(error);
   });
+
+  //run statement in a transaction
+  var tx = session.beginTransaction();
+  tx.run("CREATE (alice {name : {nameParam} })", { nameParam:'Alice'}");
+  tx.run("MATCH (alice {name : {nameParam} }) RETURN alice.age", { nameParam:'Alice'}");
+  //decide if the transaction should be committed or rolled back
+  var success = ...
+  ...
+  if (success) {
+    tx.commit()
+      .subscribe({
+        onCompleted: function() {
+          // Completed!
+          session.close();
+         },
+         onError: function(error) {
+           console.log(error);
+          }
+        });
+   } else {
+     //transaction is rolled black nothing is created in the database
+     tx.rollback();
+   }
+
+
 ```
 
 ## Building
@@ -89,25 +114,25 @@ See files under `examples/` on how to use.
 This runs the test suite against a fresh download of Neo4j.
 Or `npm test` if you already have a running version of a compatible Neo4j server.
 
-For development, you can have the build tool rerun the tests each time you change 
+For development, you can have the build tool rerun the tests each time you change
 the source code:
 
     gulp watch-n-test
 
 ### Testing on windows
-Running tests on windows requires PhantomJS installed and its bin folder added in windows system variable `Path`.  
-To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.  
-The admin right is required to start/stop Neo4j properly as a system service.  
+Running tests on windows requires PhantomJS installed and its bin folder added in windows system variable `Path`.
+To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.
+The admin right is required to start/stop Neo4j properly as a system service.
 While there is no need to grab admin right if you are running tests against an existing Neo4j server using `npm test`.
 
 ## A note on numbers and the Integer type
 The Neo4j type system includes 64-bit integer values.
-However, Javascript can only safely represent integers between `-(2`<sup>`53`</sup>` - 1)` and `(2`<sup>`53`</sup>` - 1)`.  
+However, Javascript can only safely represent integers between `-(2`<sup>`53`</sup>` - 1)` and `(2`<sup>`53`</sup>` - 1)`.
 In order to support the full Neo4j type system, the driver includes an explicit Integer types.
 Any time the driver recieves an Integer value from Neo4j, it will be represented with the Integer type by the driver.
 
 ### Write integers
-Number written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 22})` will be of type `Float` in Neo4j.  
+Number written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 22})` will be of type `Float` in Neo4j.
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
