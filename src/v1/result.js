@@ -38,7 +38,6 @@ class Result {
     this._p = null;
     this._statement = statement;
     this._parameters = parameters;
-    this.summary = {};
   }
 
   /**
@@ -54,7 +53,10 @@ class Result {
       let records = [];
       let observer = {
         onNext: (record) => { records.push(record); },
-        onCompleted: () => { resolve(records); },
+        onCompleted: (summary) => {
+          records.summary = summary;
+          resolve(records);
+        },
         onError: (error) => { reject(error); }
       };
       self.subscribe(observer);
@@ -68,9 +70,9 @@ class Result {
    * @param {function(results: Object)} cb - Function to be called when all results are collected.
    * @return {Promise} promise.
    */
-  then(cb) {
+  then(onFulfilled, onRejected) {
     this._createPromise();
-    this._p.then(cb);
+    this._p.then(onFulfilled, onRejected);
     return this._p;
   }
 
@@ -80,9 +82,9 @@ class Result {
    * @param {function(error: Object)} cb - Function to be called upon errors.
    * @return {Promise} promise.
    */
-  catch(cb) {
+  catch(onRejected) {
     this._createPromise();
-    this._p.catch(cb);
+    this._p.catch(onRejected);
     return this._p;
   }
 
@@ -97,19 +99,11 @@ class Result {
   subscribe(observer) {
     let onCompletedOriginal = observer.onCompleted;
     let onCompletedWrapper = (metadata) => {
-      this.summary = new ResultSummary(this._statement, this._parameters, metadata);
-      onCompletedOriginal.call(observer);
+      let sum = new ResultSummary(this._statement, this._parameters, metadata);
+      onCompletedOriginal.call(observer, sum);
     };
     observer.onCompleted = onCompletedWrapper;
     this._streamObserver.subscribe(observer);
-  }
-
-  /**
-   * Get a metadata summary for the statement.
-   * @return {ResultSummary} - A ResultSummary class.
-   */
-  summarize() {
-    return this.summary;
   }
 }
 
