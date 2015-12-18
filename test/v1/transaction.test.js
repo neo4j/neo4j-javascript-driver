@@ -127,7 +127,7 @@ describe('transaction', function() {
       .then(function () {
         tx.commit()
           .catch(function (error) {
-            expect(error.error).toBeDefined();
+            expect(error).toBeDefined();
             driver.close();
             done();
           });
