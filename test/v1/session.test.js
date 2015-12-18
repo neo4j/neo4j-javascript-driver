@@ -134,9 +134,9 @@ describe('session', function() {
     var statement = "CREATE (n:Label {prop:{prop}}) RETURN n";
     var params = {prop: "string"}
     // When & Then
-    var result = driver.session().run( statement, params );
-    result.then(function() {
-      var sum = result.summarize();
+    driver.session().run( statement, params )
+          .then(function(result) {
+      var sum = result.summary;
       expect(sum.statement.text).toBe( statement );
       expect(sum.statement.parameters).toBe( params );
       expect(sum.updateStatistics.containsUpdates()).toBe(true);
@@ -153,9 +153,10 @@ describe('session', function() {
     var statement = "EXPLAIN CREATE (n:Label {prop:{prop}}) RETURN n";
     var params = {prop: "string"}
     // When & Then
-    var result = driver.session().run( statement, params );
-    result.then(function() {
-      var sum = result.summarize();
+    driver.session()
+          .run( statement, params )
+          .then(function(result) {
+      var sum = result.summary;
       expect(sum.hasPlan()).toBe(true);
       expect(sum.hasProfile()).toBe(false);
       expect(sum.plan.operatorType).toBe('ProduceResults');
@@ -173,9 +174,10 @@ describe('session', function() {
     var statement = "PROFILE MATCH (n:Label {prop:{prop}}) RETURN n";
     var params = {prop: "string"}
     // When & Then
-    var result = driver.session().run( statement, params );
-    result.then(function() {
-      var sum = result.summarize();
+    driver.session()
+          .run( statement, params )
+          .then(function(result) {
+      var sum = result.summary;
       expect(sum.hasPlan()).toBe(true); //When there's a profile, there's a plan
       expect(sum.hasProfile()).toBe(true);
       expect(sum.profile.operatorType).toBe('ProduceResults');
@@ -194,9 +196,10 @@ describe('session', function() {
     var driver = neo4j.driver("bolt://localhost");
     var statement = "EXPLAIN MATCH (n), (m) RETURN n, m";
     // When & Then
-    var result = driver.session().run( statement );
-    result.then(function() {
-      var sum = result.summarize();
+    driver.session()
+          .run( statement )
+          .then(function(result) {
+      var sum = result.summary;
       expect(sum.notifications.length).toBeGreaterThan(0);
       expect(sum.notifications[0].code).toBe("Neo.ClientNotification.Statement.CartesianProduct");
       expect(sum.notifications[0].title).toBe("This query builds a cartesian product between disconnected patterns.");
