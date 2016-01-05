@@ -33,7 +33,7 @@ class WebSocketChannel {
    * @param {Integer} opts.port - The port to use.
    */
   constructor (opts) {
-    this._url = "ws:" + opts.host + ":" + (opts.port || 7688);
+    this._url = "ws:" + opts.host + ":" + (opts.port || 7687);
     this._ws = new WebSocket(this._url);
     this._ws.binaryType = "arraybuffer";
     this._open = true;
