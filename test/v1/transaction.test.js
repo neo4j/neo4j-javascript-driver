@@ -30,7 +30,11 @@ describe('transaction', function() {
     session.run("MATCH (n) DETACH DELETE n").then(done);
   });
 
- it('should handle simple transaction', function(done) {
+  afterEach(function() {
+    driver.close();
+  });
+
+  it('should handle simple transaction', function(done) {
     // When
     var tx = session.beginTransaction();
     tx.run("CREATE (:TXNode1)");

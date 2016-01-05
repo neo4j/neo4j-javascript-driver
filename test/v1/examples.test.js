@@ -36,6 +36,10 @@ describe('transaction', function() {
     session.run("MATCH (n) DETACH DELETE n").then(done);
   });
 
+  afterEach(function() {
+    driver.close();
+  });
+
   it('should document a minimum viable snippet', function(done) {
     // tag::minimum-snippet[]
     var driver = neo4j.driver("bolt://localhost");
