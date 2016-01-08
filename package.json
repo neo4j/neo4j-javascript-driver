@@ -26,7 +26,7 @@
     "gulp-babel": "^5.2.1",
     "gulp-batch": "^1.0.5",
     "gulp-concat": "^2.6.0",
-    "gulp-cucumber": "^0.0.12",
+    "gulp-cucumber": "0.0.14",
     "gulp-decompress": "^1.2.0",
     "gulp-download": "^0.0.1",
     "gulp-if": "^1.2.5",

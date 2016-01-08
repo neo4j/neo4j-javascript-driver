@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
@@ -42,6 +42,7 @@ var runSequence = require('run-sequence');
 var path = require('path');
 var childProcess = require("child_process");
 var minimist = require('minimist');
+var cucumber = require('gulp-cucumber');
 
 gulp.task('default', ["test"]);
 
@@ -89,10 +90,10 @@ gulp.task('build-browser-test', function(){
       cb();
     }))
     .pipe( through.obj( function( testFiles, enc, cb) {
-      browserify({ 
+      browserify({
           entries: testFiles,
           cache: {},
-          debug: true 
+          debug: true
         }).transform(babelify.configure({
           ignore: /external/
         }))
@@ -184,6 +185,25 @@ gulp.task('download-neo4j', function() {
               .pipe(gulp.dest(neo4jHome));
     }
   }
+});
+
+var featureFiles   = 'https://s3-eu-west-1.amazonaws.com/remoting.neotechnology.com/driver-compliance/tck.tar.gz';
+var featureHome     = './build/tck';
+
+gulp.task('download-tck', function() {
+  if( !fs.existsSync(featureHome) ) {
+    // Need to download
+    return download(featureFiles)
+          .pipe(decompress({strip: 1}))
+          .pipe(gulp.dest(featureHome));
+  }
+});
+
+gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
+    return gulp.src(featureHome + "/*").pipe(cucumber({
+        'steps': 'test/v1/tck/steps/*.js',
+        'format': 'pretty'
+    }));
 });
 
 var runPowershell = function( cmd ) {
