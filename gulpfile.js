@@ -132,7 +132,7 @@ gulp.task('all', function(cb){
 });
 
 gulp.task('test', function(cb){
-  runSequence('test-nodejs', 'test-browser', cb);
+  runSequence('test-nodejs', 'test-browser', 'run-tck', cb);
 });
 
 gulp.task('test-nodejs', ['nodejs'], function () {
