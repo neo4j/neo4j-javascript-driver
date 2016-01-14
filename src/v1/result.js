@@ -54,7 +54,8 @@ class Result {
       let observer = {
         onNext: (record) => { records.push(record); },
         onCompleted: (summary) => {
-          resolve({records, summary});
+          records.summary = summary;
+          resolve(records);
         },
         onError: (error) => { reject(error); }
       };

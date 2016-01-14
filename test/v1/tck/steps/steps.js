@@ -129,17 +129,17 @@ module.exports = function () {
   this.Then(/^the result returned from the server should be a single record with a single value$/, function (callback) {
     var self = this;
       this.setWithParam.then( function(res) {
-        if(res.records.length != 1 || tempSizeOfObject(res.records[0]) != 1) {
-          callback(new Error("Expected the parameterized statement to return a single row, single field record. Got: " + res));
+        if(Object.keys(res[0]).length != 1 || Object.keys(res[0])[0].length != 1) {
+          callback(new Error("Expected the parameterized statement to return a single row, single field record. Got: " + Object.keys(res[0]).length + " records and: " + Object.keys(res[0])[0].length + " values"));
         } else {
-          self.paramResult = res.records[0]['x'];
+          self.paramResult = res[0]['x'];
         }
       }, function(err) {callback(new Error("Rejected Promise: " + err))});
       this.setWithLiteral.then( function(res) {
-        if(res.records.length != 1 || tempSizeOfObject(res.records[0]) != 1) {
-          callback(new Error("Expected the literal statement to return a single row, single field record. Got: " + res));
+        if(Object.keys(res[0]).length != 1 || Object.keys(res[0])[0].length != 1) {
+          callback(new Error("Expected the parameterized statement to return a single row, single field record. Got: " + Object.keys(res[0]).length + " records and: " + Object.keys(res[0])[0].length + " values"));
         } else {
-          self.literalResult = res.records[0]['x'];
+          self.literalResult = res[0]['x'];
           callback();
         }
       }, function(err) {callback(new Error("Rejected Promise: " + err))});
