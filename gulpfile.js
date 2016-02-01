@@ -191,12 +191,9 @@ var featureFiles   = 'https://s3-eu-west-1.amazonaws.com/remoting.neotechnology.
 var featureHome     = './build/tck';
 
 gulp.task('download-tck', function() {
-  if( !fs.existsSync(featureHome) ) {
-    // Need to download
-    return download(featureFiles)
-          .pipe(decompress({strip: 1}))
-          .pipe(gulp.dest(featureHome));
-  }
+  return download(featureFiles)
+        .pipe(decompress({strip: 1}))
+        .pipe(gulp.dest(featureHome));
 });
 
 gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
