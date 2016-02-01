@@ -41,19 +41,19 @@ module.exports = function () {
     var map = {};
     for(var i = 0; i < size; i++ ) {
       if (type === 'String') {
-        map["a" + tempSizeOfObject(this.M)] = stringOfSize(3);
+        map["a" + sizeOfObject(this.M)] = stringOfSize(3);
       }
       if (type === 'Integer') {
-        map["a" + tempSizeOfObject(this.M)] = randomInt();
+        map["a" + sizeOfObject(this.M)] = randomInt();
       }
       if (type === 'Boolean') {
-        map["a" + tempSizeOfObject(this.M)] = randomBool();
+        map["a" + sizeOfObject(this.M)] = randomBool();
       }
       if (type === 'Float') {
-        map["a" + tempSizeOfObject(this.M)] = randomFloat();
+        map["a" + sizeOfObject(this.M)] = randomFloat();
       }
       if (type === 'Null') {
-        map["a" + tempSizeOfObject(this.M)] = null;
+        map["a" + sizeOfObject(this.M)] = null;
       }
     }
     this.expectedValue = map;
@@ -96,71 +96,58 @@ module.exports = function () {
   this.Given(/^adding a table of values to the map M$/, function (table) {
     var rows = table.rows();
     for (var i = 0, len = rows.length; i < len; i++) {
-      this.M["a" + tempSizeOfObject(this.M)] = toParameter(rows[i][0], rows[i][1]);
+      this.M["a" + sizeOfObject(this.M)] = toParameter(rows[i][0], rows[i][1]);
     }
   });
 
   this.When(/^adding a table of lists to the map M$/, function (table) {
     var rows = table.rows();
     for (var i = 0, len = rows.length; i < len; i++) {
-      this.M["a" + tempSizeOfObject(this.M)] = getListFromString(rows[i][0], rows[i][1]);
+      this.M["a" + sizeOfObject(this.M)] = getListFromString(rows[i][0], rows[i][1]);
     }
   });
 
   this.When(/^adding a copy of map M to map M$/, function () {
     var copyt_of_map = Object.assign({}, this.M);
-    this.M["a" + tempSizeOfObject(this.M)] = copyt_of_map;
+    this.M["a" + sizeOfObject(this.M)] = copyt_of_map;
   });
 
   this.When(/^the driver asks the server to echo this value back$/, function () {
-    echoExpectedValue(this);
+    echoExpectedValue.call(this);
   });
 
   this.When(/^the driver asks the server to echo this list back$/, function () {
     this.expectedValue = this.L;
-    echoExpectedValue(this);
+    echoExpectedValue.call(this);
   });
 
   this.When(/^the driver asks the server to echo this map back$/, function () {
     this.expectedValue = this.M;
-    echoExpectedValue(this);
+    echoExpectedValue.call(this);
   });
 
-  this.Then(/^the result returned from the server should be a single record with a single value$/, function (callback) {
+  this.Then(/^the value given in the result should be the same as what was sent$/, function (callback) {
     var self = this;
-      this.setWithParam.then( function(res) {
-        if(Object.keys(res[0]).length != 1 || Object.keys(res[0])[0].length != 1) {
-          callback(new Error("Expected the parameterized statement to return a single row, single field record. Got: " + Object.keys(res[0]).length + " records and: " + Object.keys(res[0])[0].length + " values"));
-        } else {
-          self.paramResult = res[0]['x'];
-        }
-      }, function(err) {callback(new Error("Rejected Promise: " + err))});
-      this.setWithLiteral.then( function(res) {
-        if(Object.keys(res[0]).length != 1 || Object.keys(res[0])[0].length != 1) {
-          callback(new Error("Expected the parameterized statement to return a single row, single field record. Got: " + Object.keys(res[0]).length + " records and: " + Object.keys(res[0])[0].length + " values"));
-        } else {
-          self.literalResult = res[0]['x'];
-          callback();
-        }
-      }, function(err) {callback(new Error("Rejected Promise: " + err))});
-  });
-
-
-  this.Then(/^the value given in the result should be the same as what was sent$/, function () {
-    if (!compareValues(this.paramResult, this.expectedValue)) {
-        throw new Error("Expected the parameterized statement to return same as what was sent. Got: " + this.paramResult + " Expected: " + this.expectedValue);
+    var errorCallback = function(err) {callback(new Error("Rejected Promise: " + err))}
+    var successCallback = function(res) {
+      if(Object.keys(res[0]).length != 1 || Object.keys(res[0])[0].length != 1) {
+        callback(new Error("Expected the statement to return a single row, single field record. Got: " + Object.keys(res[0]).length + " records and: " + Object.keys(res[0])[0].length + " values"));
+      }
+      if (!compareValues(res[0]['x'], self.expectedValue)) {
+          callback(new Error("Expected the statement to return same as what was sent. Got: " + res[0]['x'] + " Expected: " + self.expectedValue));
+      }
+      callback();
     }
-    if(!compareValues(this.literalResult,this.expectedValue)) {
-        throw new Error("Expected the literal statement to return same as what was sent. Got: " + this.literalResult + " Expected: " + this.expectedValue);
-    }
+    this.withParamPromise.then(successCallback).catch(errorCallback);
+    this.withLiteralPromise.then(successCallback).catch(errorCallback);
+
   });
 
   this.After(function () {
     this.driver.close()
   });
 
-  //Should not be used in final!!!!
-  function tempSizeOfObject(obj) {
+  function sizeOfObject(obj) {
     var size = 0, key;
     for (key in obj) {
         if (obj.hasOwnProperty(key)) size++;
@@ -266,7 +253,7 @@ module.exports = function () {
     }
     else if (typeof one === "object" && one instanceof Array){
       if (one === other) return true;
-      if (tempSizeOfObject(one) != tempSizeOfObject(other)) return false;
+      if (sizeOfObject(one) != sizeOfObject(other)) return false;
       for (var i = 0; i < one.length; ++i) {
         if (!compareValues(one[i], other[i])) {
           console.log("Miss-match at index: [" + i + "] Values should be same but was : [" + one[i] +"] and : [" + other[i] + "]");
@@ -304,8 +291,8 @@ module.exports = function () {
     return list;
   }
 
-  function echoExpectedValue(self) {
-    self.setWithParam = self.session.run("RETURN {x} as x", {x:self.expectedValue});
-    self.setWithLiteral = self.session.run("RETURN "+jsToCypherLiteral(self.expectedValue)+" as x");
+  function echoExpectedValue() {
+    this.withParamPromise = this.session.run("RETURN {x} as x", {x:this.expectedValue});
+    this.withLiteralPromise = this.session.run("RETURN "+jsToCypherLiteral(this.expectedValue)+" as x");
   }
 };
