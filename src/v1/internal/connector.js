@@ -339,8 +339,9 @@ class Connection {
  * @param {string} url - 'neo4j'-prefixed URL to Neo4j Bolt endpoint
  * @return {Connection} - New connection
  */
-function connect( url ) {
-  return new Connection( new Channel({
+function connect( url, channel = null) {
+  channel = channel || Channel;
+  return new Connection( new channel({
     host: host(url),
     port: port(url)
   }));
