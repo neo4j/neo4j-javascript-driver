@@ -171,7 +171,7 @@ class Packer {
       this._ch.writeBytes(bytes);
     } else if (size < 0x100000000) {
       this._ch.writeUInt8(STRING_32);
-      this._ch.writeUInt8((size/16777216>>0)%256); // TODO: Why is it shifting by 0 here?
+      this._ch.writeUInt8((size/16777216>>0)%256);
       this._ch.writeUInt8((size/65536>>0)%256);
       this._ch.writeUInt8((size/256>>0)%256);
       this._ch.writeUInt8(size%256);
@@ -188,7 +188,9 @@ class Packer {
       this._ch.writeUInt8(LIST_8)
       this._ch.writeUInt8(size);
     } else if (size < 0x10000) {
-      this._ch.writeUInt8(LIST_16, size/256>>0, size%256);
+      this._ch.writeUInt8(LIST_16);
+      this._ch.writeUInt8((size/256>>0)%256);
+      this._ch.writeUInt8(size%256);
     } else if (size < 0x100000000) {
       this._ch.writeUInt8(LIST_32);
       this._ch.writeUInt8((size/16777216>>0)%256);

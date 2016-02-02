@@ -44,10 +44,22 @@ describe('packstream', function() {
    expect( roundtripped[0] ).toBe( list[0] );
    expect( roundtripped[1] ).toBe( list[1] );
   });
+
+  it('should pack long lists', function() {
+    var listLength = 256;
+    var list = [];
+    for(var i = 0; i < listLength; i++) {
+      list.push(null)
+    }
+    var roundtripped = packAndUnpack( list, 1400 );
+    expect( roundtripped[0] ).toBe( list[0] );
+    expect( roundtripped[1] ).toBe( list[1] );
+  });
 });
 
-function packAndUnpack( val ) {
-  var buffer = alloc(128);
+function packAndUnpack( val, bufferSize ) {
+  bufferSize = bufferSize || 128;
+  var buffer = alloc(bufferSize);
   new Packer( buffer ).pack( val );
   buffer.reset();
   return new Unpacker().unpack( buffer );
