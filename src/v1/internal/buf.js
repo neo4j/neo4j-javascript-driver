@@ -57,26 +57,26 @@ class BaseBuffer
    * @param p
    */
   getInt16 (p) {
-    return this.getInt8(p) << 8
-         | this.getUInt8(p + 1) & 0xFF;
+    return this.getInt8(p)      << 8
+         | this.getUInt8(p + 1);
   }
 
   /**
    * @param p
    */
   getUInt16 (p) {
-    return this.getUInt8(p) << 8
-         | this.getUInt8(p + 1) & 0xFF;
+    return this.getUInt8(p)     << 8
+         | this.getUInt8(p + 1);
   }
 
   /**
    * @param p
    */
   getInt32 (p) {
-    return this.getInt8(p)      << 24
-         | this.getUInt8(p + 1) << 16 & 0xFF
-         | this.getUInt8(p + 2) << 8  & 0xFF
-         | this.getUInt8(p + 3)       & 0xFF;
+    return this.getInt8(p)     << 24
+         | this.getUInt8(p + 1) << 16
+         | this.getUInt8(p + 2) << 8
+         | this.getUInt8(p + 3);
   }
 
   /**
@@ -84,9 +84,9 @@ class BaseBuffer
    */
   getUInt32 (p) {
     return this.getUInt8(p)     << 24
-         | this.getUInt8(p + 1) << 16 & 0xFF
-         | this.getUInt8(p + 2) << 8  & 0xFF
-         | this.getUInt8(p + 3)       & 0xFF;
+         | this.getUInt8(p + 1) << 16
+         | this.getUInt8(p + 2) << 8
+         | this.getUInt8(p + 3);
   }
 
   /**
@@ -94,13 +94,13 @@ class BaseBuffer
    */
   getInt64 (p) {
     return this.getInt8(p)      << 56
-         | this.getUInt8(p + 1) << 48 & 0xFF
-         | this.getUInt8(p + 2) << 40 & 0xFF
-         | this.getUInt8(p + 3) << 32 & 0xFF
-         | this.getUInt8(p + 4) << 24 & 0xFF
-         | this.getUInt8(p + 5) << 16 & 0xFF
-         | this.getUInt8(p + 6) << 8  & 0xFF
-         | this.getUInt8(p + 7)       & 0xFF;
+         | this.getUInt8(p + 1) << 48
+         | this.getUInt8(p + 2) << 40
+         | this.getUInt8(p + 3) << 32
+         | this.getUInt8(p + 4) << 24
+         | this.getUInt8(p + 5) << 16
+         | this.getUInt8(p + 6) << 8
+         | this.getUInt8(p + 7);
   }
 
   /**
@@ -119,7 +119,7 @@ class BaseBuffer
    */
   putInt16 ( p, val ) {
     this.putInt8(  p,     val >> 8 );
-    this.putUInt8( p + 1, val & 0xFF );
+    this.putUInt8( p + 1, val      & 0xFF );
   }
 
   /**
