@@ -108,8 +108,10 @@ module.exports = function () {
   });
 
   this.When(/^adding a copy of map M to map M$/, function () {
-    var copyt_of_map = Object.assign({}, this.M);
-    this.M["a" + sizeOfObject(this.M)] = copyt_of_map;
+    var copyt_of_map = {}
+    for(var key in this.M) {
+      copyt_of_map[key] = this.M[key]
+    }
   });
 
   this.When(/^the driver asks the server to echo this value back$/, function () {
@@ -256,7 +258,7 @@ module.exports = function () {
       if (sizeOfObject(one) != sizeOfObject(other)) return false;
       for (var i = 0; i < one.length; ++i) {
         if (!compareValues(one[i], other[i])) {
-          console.log("Miss-match at index: [" + i + "] Values should be same but was : [" + one[i] +"] and : [" + other[i] + "]");
+          console.log("Mismatch at index: [" + i + "] Values should be same but was : [" + one[i] +"] and : [" + other[i] + "]");
           return false;
         }
       }
@@ -268,7 +270,7 @@ module.exports = function () {
       for (var key in one) {
         if (typeof other[key] == "undefined") return false;
         if (!compareValues(one[key], other[key])) {
-          console.log("Miss-match at key: [" + key + "] Values should be same but was : [" + one[key] +"] and : [" + other[key] + "]");
+          console.log("Mismatch at key: [" + key + "] Values should be same but was : [" + one[key] +"] and : [" + other[key] + "]");
           return false;
         }
       }
