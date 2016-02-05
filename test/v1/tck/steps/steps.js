@@ -108,10 +108,11 @@ module.exports = function () {
   });
 
   this.When(/^adding a copy of map M to map M$/, function () {
-    var copyt_of_map = {}
+    var copy_of_map = {}
     for(var key in this.M) {
-      copyt_of_map[key] = this.M[key]
+      copy_of_map[key] = this.M[key]
     }
+    this.M["a" + sizeOfObject(this.M)] = copy_of_map;
   });
 
   this.When(/^the driver asks the server to echo this value back$/, function () {

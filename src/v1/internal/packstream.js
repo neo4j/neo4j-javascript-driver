@@ -65,11 +65,7 @@ class Structure {
     for (var i = 0; i < this.fields.length; i++) {
       if(i > 0) { fieldStr+=", " }
       fieldStr += this.fields[i];
-    };
-
-    var util = require('util')
-    console.log(util.inspect(this));
-
+    }
     return "Structure(" + this.signature + ", [" + this.fields + "])"
   }
 }
@@ -305,7 +301,6 @@ class Unpacker {
       return int(buffer.readInt16());
     } else if (marker == INT_32) {
       let b = buffer.readInt32();
-      console.log(b);
       return int(b);
     } else if (marker == INT_64) {
       let high = buffer.readInt32();

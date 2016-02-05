@@ -29,20 +29,20 @@ describe('packstream', function() {
   it('should pack integers', function() {
     var n, i;
     // test small numbers
-    //for(n = -999; n <= 999; n += 1) {
-    //  i = Integer.fromNumber(n);
-    //  expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
-    //}
+    for(n = -999; n <= 999; n += 1) {
+      i = Integer.fromNumber(n);
+      expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+    }
     // positive numbers
     for(n = 16; n <= 16 ; n += 1) {
       i = Integer.fromNumber(Math.pow(2, n));
       expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
     }
     // negative numbers
-    //for(n = 0; n <= 63 ; n += 1) {
-    //  i = Integer.fromNumber(-Math.pow(2, n));
-    //  expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
-    //}
+    for(n = 0; n <= 63 ; n += 1) {
+      i = Integer.fromNumber(-Math.pow(2, n));
+      expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+    }
   });
   it('should pack strings', function() {
     expect( packAndUnpack( "" ) ).toBe( "" );
