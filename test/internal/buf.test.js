@@ -40,15 +40,94 @@ describe('buffers', function() {
     expect(hex).toBe("01 08 0f 7f ");
   });
 
-  it('should read and write integers', function() {
+  it('should read and write 8-bit unsigned integers', function() {
+    // Given
+    var b = alloc(1);
+
+    for (var i = 0; i < 7; i++) {
+      var n = Math.pow(2, i);
+
+      // When
+      b.putUInt8( 0, n );
+
+      // Then
+      expect( b.getUInt8(0) ).toBe( n );
+    }
+  });
+
+  it('should read and write 16-bit unsigned integers', function() {
     // Given
     var b = alloc(2);
 
-    // When
-    b.putInt16( 0, -1234 );
+    for (var i = 0; i < 15; i++) {
+      var n = Math.pow(2, i);
 
-    // Then
-    expect( b.getInt16(0) ).toBe( -1234 );
+      // When
+      b.putUInt16( 0, n );
+
+      // Then
+      expect( b.getUInt16(0) ).toBe( n );
+    }
+  });
+
+  it('should read and write 32-bit unsigned integers', function() {
+    // Given
+    var b = alloc(4);
+
+    for (var i = 0; i < 30; i++) {
+      var n = Math.pow(2, i);
+
+      // When
+      b.putUInt32( 0, n );
+
+      // Then
+      expect( b.getUInt32(0) ).toBe( n );
+    }
+  });
+
+  it('should read and write 8-bit signed integers', function() {
+    // Given
+    var b = alloc(1);
+
+    for (var i = 0; i < 6; i++) {
+      var n = Math.pow(2, i);
+
+      // When
+      b.putInt8( 0, n );
+
+      // Then
+      expect( b.getInt8(0) ).toBe( n );
+    }
+  });
+
+  it('should read and write 16-bit signed integers', function() {
+    // Given
+    var b = alloc(2);
+
+    for (var i = 0; i < 14; i++) {
+      var n = Math.pow(2, i);
+
+      // When
+      b.putInt16( 0, n );
+
+      // Then
+      expect( b.getInt16(0) ).toBe( n );
+    }
+  });
+
+  it('should read and write 32-bit signed integers', function() {
+    // Given
+    var b = alloc(4);
+
+    for (var i = 0; i < 30; i++) {
+      var n = Math.pow(2, i);
+
+      // When
+      b.putInt32( 0, n );
+
+      // Then
+      expect( b.getInt32(0) ).toBe( n );
+    }
   });
 
   it('should encode list correctly', function() {

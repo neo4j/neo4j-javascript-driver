@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 // 64-bit Integer library, originally from Long.js by dcodeIO
 // https://github.com/dcodeIO/Long.js
 // License Apache 2
@@ -94,7 +94,7 @@ class Integer {
     if (this.isZero())
       return '0';
     var rem;
-    if (this.isNegative()) { 
+    if (this.isNegative()) {
       if (this.equals(Integer.MIN_VALUE)) {
         // We need to change the Integer value before it can be negated, so we remove
         // the bottom-most digit in this base and then recurse to do the rest.
@@ -162,7 +162,7 @@ class Integer {
    */
   isZero() {
     return this.high === 0 && this.low === 0;
-  } 
+  }
 
   /**
    * Tests if this Integer's value is negative.
@@ -205,8 +205,6 @@ class Integer {
   equals(other) {
     if (!Integer.isInteger(other))
       other = Integer.fromValue(other);
-    if ((this.high >>> 31) === 1 && (other.high >>> 31) === 1)
-      return false;
     return this.high === other.high && this.low === other.low;
   }
 

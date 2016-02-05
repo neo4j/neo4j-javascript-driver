@@ -19,16 +19,30 @@
  
 var alloc = require('../../lib/v1/internal/buf').alloc,
     packstream = require("../../lib/v1/internal/packstream.js"),
+    integer = require("../../lib/v1/integer.js"),
     Packer = packstream.Packer,
     Unpacker = packstream.Unpacker,
-    Structure = packstream.Structure;
+    Structure = packstream.Structure,
+    Integer = integer.Integer;
 
 describe('packstream', function() {
   it('should pack integers', function() {
-    // TODO: Test extremes - sorting out how to deal with integers > 32bit
-    expect( packAndUnpack( 1234 ) ).toBe( 1234 );
-    expect( packAndUnpack( 0 ) ).toBe( 0 );
-    expect( packAndUnpack( -1234 ) ).toBe( -1234 );
+    var n, i;
+    // test small numbers
+    for(n = -999; n <= 999; n += 1) {
+      i = Integer.fromNumber(n);
+      expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+    }
+    // positive numbers
+    for(n = 16; n <= 16 ; n += 1) {
+      i = Integer.fromNumber(Math.pow(2, n));
+      expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+    }
+    // negative numbers
+    for(n = 0; n <= 63 ; n += 1) {
+      i = Integer.fromNumber(-Math.pow(2, n));
+      expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+    }
   });
   it('should pack strings', function() {
     expect( packAndUnpack( "" ) ).toBe( "" );
@@ -44,10 +58,22 @@ describe('packstream', function() {
    expect( roundtripped[0] ).toBe( list[0] );
    expect( roundtripped[1] ).toBe( list[1] );
   });
+
+  it('should pack long lists', function() {
+    var listLength = 256;
+    var list = [];
+    for(var i = 0; i < listLength; i++) {
+      list.push(null)
+    }
+    var roundtripped = packAndUnpack( list, 1400 );
+    expect( roundtripped[0] ).toBe( list[0] );
+    expect( roundtripped[1] ).toBe( list[1] );
+  });
 });
 
-function packAndUnpack( val ) {
-  var buffer = alloc(128);
+function packAndUnpack( val, bufferSize ) {
+  bufferSize = bufferSize || 128;
+  var buffer = alloc(bufferSize);
   new Packer( buffer ).pack( val );
   buffer.reset();
   return new Unpacker().unpack( buffer );

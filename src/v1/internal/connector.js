@@ -337,10 +337,12 @@ class Connection {
  * Crete new connection to the provided url.
  * @access private
  * @param {string} url - 'neo4j'-prefixed URL to Neo4j Bolt endpoint
+ * @param {Channel} channel - Optionally inject Channel to be used.
  * @return {Connection} - New connection
  */
-function connect( url ) {
-  return new Connection( new Channel({
+function connect( url, channel = null) {
+  channel = channel || Channel;
+  return new Connection( new channel({
     host: host(url),
     port: port(url)
   }));

@@ -21,11 +21,12 @@ var Chunker = require('../../lib/v1/internal/chunking').Chunker;
 var Dechunker = require('../../lib/v1/internal/chunking').Dechunker;
 var alloc = require('../../lib/v1/internal/buf').alloc;
 var CombinedBuffer = require('../../lib/v1/internal/buf').CombinedBuffer;
+var DummyChannel = require('../../lib/v1/internal/ch-dummy.js').channel;
 
 describe('Chunker', function() {
   it('should chunk simple data', function() {
     // Given
-    var ch = new TestChannel();
+    var ch = new DummyChannel();
     var chunker = new Chunker(ch);
 
     // When
@@ -38,7 +39,7 @@ describe('Chunker', function() {
   });
   it('should chunk blobs larger than the output buffer', function() {
     // Given
-    var ch = new TestChannel();
+    var ch = new DummyChannel();
     var chunker = new Chunker(ch, 4);
 
     // When
@@ -50,7 +51,7 @@ describe('Chunker', function() {
   });
   it('should include message boundaries', function() {
     // Given
-    var ch = new TestChannel();
+    var ch = new DummyChannel();
     var chunker = new Chunker(ch);
 
     // When
@@ -87,7 +88,7 @@ describe('Dechunker', function() {
 
   it('should handle message split at any point', function() {
     // Given
-    var ch = new TestChannel();
+    var ch = new DummyChannel();
     var chunker = new Chunker(ch);
 
     // And given the following message
@@ -120,34 +121,6 @@ describe('Dechunker', function() {
     };
   });
 });
-
-function TestChannel() {
-  this._written = [];
-}
-
-TestChannel.prototype.write = function( buf ) {
-  this._written.push(buf);
-};
-
-TestChannel.prototype.toHex = function() {
-  var out = "";
-  for( var i=0; i<this._written.length; i++ ) {
-    out += this._written[i].toHex();
-  }
-  return out;
-};
-
-TestChannel.prototype.toBuffer = function() {
-  return new CombinedBuffer( this._written );
-};
-
-TestChannel.prototype.toHex = function() {
-  var out = "";
-  for( var i=0; i<this._written.length; i++ ) {
-    out += this._written[i].toHex();
-  }
-  return out;
-};
 
 function bytes() {
   var b = alloc( arguments.length );

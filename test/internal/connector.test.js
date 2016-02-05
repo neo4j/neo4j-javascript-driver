@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+var DummyChannel = require('../../lib/v1/internal/ch-dummy.js');
 var connect = require("../../lib/v1/internal/connector.js").connect;
 
 describe('connector', function() {
@@ -57,6 +57,20 @@ describe('connector', function() {
       }
     });
     conn.sync();
-
   });
+
+  it('should use DummyChannel to read what gets written', function(done) {
+    // Given
+    var observer = DummyChannel.observer;
+    var conn = connect("bolt://localhost", DummyChannel.channel)
+
+    // When
+    var records = [];
+    conn.initialize( "mydriver/0.0.0" );
+    conn.run( "RETURN 1", {} );
+    conn.sync();
+    expect( observer.instance.toHex() ).toBe( '60 60 b0 17 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 11 b1 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ' );
+    done();
+  });
+
 });

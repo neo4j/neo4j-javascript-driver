@@ -65,11 +65,7 @@ class Structure {
     for (var i = 0; i < this.fields.length; i++) {
       if(i > 0) { fieldStr+=", " }
       fieldStr += this.fields[i];
-    };
-
-    var util = require('util')
-    console.log(util.inspect(this));
-
+    }
     return "Structure(" + this.signature + ", [" + this.fields + "])"
   }
 }
@@ -128,25 +124,26 @@ class Packer {
     var high = x.high,
         low  = x.low;
 
-    this._ch.writeUInt8(INT_64);
-    this._ch.writeUInt32( high );
-    this._ch.writeUInt32( low );
-    // TODO Use the branches below to sort out most efficient packed format
-    // if (-0x10 <= x && x < 0x80) {
-    //   this._ch.writeUInt8(x);
-    // } else if (-0x80 <= x && x < -0x10) {
-    //   this._ch.writeUInt8(INT_8);
-    //   this._ch.writeUInt8(x);
-    // } else if (-0x8000 <= x && x < 0x8000) {
-    //   this._ch.writeUInt8(INT_16);
-    //   this._ch.writeInt16(x);
-    // } else if (-0x80000000 <= x && x < 0x80000000) {
-    //   this._ch.writeUInt8(INT_32);
-    //   this._ch.writeInt32(x);
-    // } else {
-    //   
-    // }
-
+    if (x.greaterThanOrEqual(-0x10) && x.lessThan(0x80)) {
+      this._ch.writeInt8(low);
+    }
+    else if (x.greaterThanOrEqual(-0x80) && x.lessThan(-0x10)) {
+      this._ch.writeUInt8(INT_8);
+      this._ch.writeInt8(low);
+    }
+    else if (x.greaterThanOrEqual(-0x8000) && x.lessThan(0x8000)) {
+      this._ch.writeUInt8(INT_16);
+      this._ch.writeInt16(low);
+    }
+    else if (x.greaterThanOrEqual(-0x80000000) && x.lessThan(0x80000000)) {
+      this._ch.writeUInt8(INT_32);
+      this._ch.writeInt32(low);
+    }
+    else {
+      this._ch.writeUInt8(INT_64);
+      this._ch.writeInt32(high);
+      this._ch.writeInt32(low);
+    }
   }
 
   packFloat(x) {
@@ -171,7 +168,7 @@ class Packer {
       this._ch.writeBytes(bytes);
     } else if (size < 0x100000000) {
       this._ch.writeUInt8(STRING_32);
-      this._ch.writeUInt8((size/16777216>>0)%256); // TODO: Why is it shifting by 0 here?
+      this._ch.writeUInt8((size/16777216>>0)%256);
       this._ch.writeUInt8((size/65536>>0)%256);
       this._ch.writeUInt8((size/256>>0)%256);
       this._ch.writeUInt8(size%256);
@@ -188,7 +185,9 @@ class Packer {
       this._ch.writeUInt8(LIST_8)
       this._ch.writeUInt8(size);
     } else if (size < 0x10000) {
-      this._ch.writeUInt8(LIST_16, size/256>>0, size%256);
+      this._ch.writeUInt8(LIST_16);
+      this._ch.writeUInt8((size/256>>0)%256);
+      this._ch.writeUInt8(size%256);
     } else if (size < 0x100000000) {
       this._ch.writeUInt8(LIST_32);
       this._ch.writeUInt8((size/16777216>>0)%256);
@@ -301,10 +300,11 @@ class Unpacker {
     } else if (marker == INT_16) {
       return int(buffer.readInt16());
     } else if (marker == INT_32) {
-      return int(buffer.readInt32());
+      let b = buffer.readInt32();
+      return int(b);
     } else if (marker == INT_64) {
       let high = buffer.readInt32();
-      let low  = buffer.readUInt32();
+      let low  = buffer.readInt32();
       return new Integer( low, high );
     } else if (marker == STRING_8) {
       return utf8.decode( buffer, buffer.readUInt8());
