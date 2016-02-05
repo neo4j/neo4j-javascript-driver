@@ -75,8 +75,8 @@ session
 
   //run statement in a transaction
   var tx = session.beginTransaction();
-  tx.run("CREATE (alice {name : {nameParam} })", { nameParam:'Alice'}");
-  tx.run("MATCH (alice {name : {nameParam} }) RETURN alice.age", { nameParam:'Alice'}");
+  tx.run("CREATE (alice {name : {nameParam} })", { nameParam:'Alice' });
+  tx.run("MATCH (alice {name : {nameParam} }) RETURN alice.age", { nameParam:'Alice' });
   //decide if the transaction should be committed or rolled back
   var success = ...
   ...
