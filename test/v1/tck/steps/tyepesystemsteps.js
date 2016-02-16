@@ -3,11 +3,6 @@ var util = require("./util");
 
 module.exports = function () {
 
-  this.Before(function( scenario ) {
-    this.driver = neo4j.driver("bolt://localhost");
-    this.session = this.driver.session();
-  });
-
   this.Given(/^A running database$/, function () {
     return this.session.run("RETURN 1 AS one");
   });

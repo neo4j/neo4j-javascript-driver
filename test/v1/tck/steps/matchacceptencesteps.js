@@ -3,16 +3,6 @@ var util = require("./util")
 
 module.exports = function () {
 
-  this.Before(function( scenario, callback ) {
-    this.driver = neo4j.driver("bolt://localhost");
-    this.session = this.driver.session();
-    this.session.run("MATCH (n) DETACH DELETE n").subscribe( {
-      onCompleted : function( ) {
-        callback();
-      }
-    });
-  });
-
   this.Given(/^init:(.*)$/, function (statement) {
     return this.session.run(statement);
   });
