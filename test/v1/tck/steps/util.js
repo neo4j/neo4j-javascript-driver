@@ -10,12 +10,12 @@ NODE = 'node';
 PATH = 'path';
 
 module.exports = {
-  literalTableToTestObject,
-  literalValueToTestValue,
-  compareValues,
-  sizeOfObject,
-  clone,
-  printable
+  literalTableToTestObject: literalTableToTestObject,
+  literalValueToTestValue: literalValueToTestValue,
+  compareValues: compareValues,
+  sizeOfObject: sizeOfObject,
+  clone: clone,
+  printable: printable
 };
 
 function literalTableToTestObject(literalResults) {
