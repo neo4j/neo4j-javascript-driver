@@ -245,8 +245,10 @@ function compareValues(given, expected) {
   else if (typeof given === "object" && given instanceof Object){
     if (given.length != expected.length) return false;
     var keys = Object.keys(given);
-    const union = new Set(keys.concat(Object.keys(expected)));
-    if (union.size !== keys.length) {
+    var keysExpected = Object.keys(expected);
+    keys.sort();
+    keysExpected.sort();
+    if (!compareValues(keys, keysExpected)) {
       return false;
     }
     for (var key in given) {
@@ -282,3 +284,9 @@ function clone(obj) {
     }
     return copy;
 }
+
+Number.isInteger = Number.isInteger || function(value) {
+  return typeof value === "number" &&
+    isFinite(value) &&
+    Math.floor(value) === value;
+};

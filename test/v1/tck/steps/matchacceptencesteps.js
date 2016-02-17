@@ -65,8 +65,10 @@ module.exports = function () {
 
   function compareResultObjects(given, expected) {
     var keys = Object.keys(given);
-    const union = new Set(keys.concat(Object.keys(expected)));
-    if (union.size !== keys.length) {
+    var keysExpected = Object.keys(expected);
+    keys.sort();
+    keysExpected.sort();
+    if (!util.compareValues(keys, keysExpected)) {
       return false;
     }
     for ( var i = 0 ; i < keys.length ; i++ ) {
