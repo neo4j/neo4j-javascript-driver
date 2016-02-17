@@ -13,6 +13,15 @@ module.exports = function () {
     callback();
   });
 
+  this.After(function (scenario, callback) {
+    if (!scenario.isSuccessful()) {
+      console.log("FAILED! Scenario: " + scenario.getName());
+      console.log("With Exception: " + scenario.getException());
+      return process.exit(2);
+    }
+    callback();
+  });
+
   function findTag(scenario, tag) {
     for (var i in scenario.getTags()) {
       if (scenario.getTags()[i].getName() == tag) {
