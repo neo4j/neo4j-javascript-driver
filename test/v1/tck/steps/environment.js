@@ -2,32 +2,38 @@ var neo4j = require("../../../../lib/v1");
 
 module.exports = function () {
 
-  this.Before(function( scenario, callback ) {
+  var failedScenarios = []
+
+  this.Before("@reset_database", function( scenario, callback ) {
     this.driver = neo4j.driver("bolt://localhost");
     this.session = this.driver.session();
-    if (findTag(scenario, '@reset_database')) {
-      this.session.run("MATCH (n) DETACH DELETE n").then( function( ) {
-          callback();
-      });
-    }
+    this.session.run("MATCH (n) DETACH DELETE n").then( function( ) {
+        callback();
+    });
+    callback();
+  });
+
+  this.Before("~@reset_database", function( scenario, callback ) {
+    this.driver = neo4j.driver("bolt://localhost");
+    this.session = this.driver.session();
     callback();
   });
 
   this.After(function (scenario, callback) {
     if (!scenario.isSuccessful()) {
-      console.log("FAILED! Scenario: " + scenario.getName());
-      console.log("With Exception: " + scenario.getException());
-      return process.exit(2);
+      failedScenarios.push(scenario)
     }
     callback();
   });
 
-  function findTag(scenario, tag) {
-    for (var i in scenario.getTags()) {
-      if (scenario.getTags()[i].getName() == tag) {
-        return true
+  this.registerHandler('AfterFeatures', function (event, callback) {
+    if (failedScenarios.length) {
+      for ( var i = 0; i < failedScenarios.length; i++) {
+        console.log("FAILED! Scenario: " + failedScenarios[i].getName());
+        console.log("With Exception: " + failedScenarios[i].getException() + "\n");
       }
+      return process.exit(2);
     }
-    return false;
-  }
+    callback();
+  });
 }
