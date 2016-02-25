@@ -48,7 +48,7 @@ gulp.task('default', ["test"]);
 
 gulp.task('browser', function(cb){
   runSequence('build-browser-test', 'build-browser', cb);
-})
+});
 
 /** Build all-in-one files for use in the browser */
 gulp.task('build-browser', function () {
@@ -168,7 +168,7 @@ gulp.task('watch-n-test', ['test-nodejs'], function () {
 
 var neo4jLinuxUrl = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-NIGHTLY-unix.tar.gz';
 var neo4jWinUrl   = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-NIGHTLY-windows.zip';
-var neo4jHome     = './build/neo4j-enterprise-3.0.0-M02';
+var neo4jHome     = './build/neo4j-enterprise-3.0.0';
 var isWin         = /^win/.test(process.platform);
 
 gulp.task('download-neo4j', function() {
@@ -185,6 +185,11 @@ gulp.task('download-neo4j', function() {
               .pipe(gulp.dest(neo4jHome));
     }
   }
+});
+
+gulp.task('set-password', ['download-neo4j'], function() {
+  return gulp.src('test/resources/auth')
+    .pipe(gulp.dest(neo4jHome + "/data/dbms/"));
 });
 
 var featureFiles   = 'https://s3-eu-west-1.amazonaws.com/remoting.neotechnology.com/driver-compliance/tck.tar.gz';
@@ -232,7 +237,7 @@ gulp.task('set', function() {
 
 });
 
-gulp.task('start-neo4j', ['download-neo4j'], function() {
+gulp.task('start-neo4j', ['set-password'], function() {
   if(isWin) {
     runPowershell('Install-Neo4jServer -Neo4jServer ' + neo4jHome + ' -Name neo4j-js;' +
                   'Start-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');

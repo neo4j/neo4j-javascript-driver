@@ -24,7 +24,7 @@ describe('transaction', function() {
   var driver, session;
 
   beforeEach(function(done) {
-    driver = neo4j.driver("bolt://localhost");
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     session = driver.session();
 
     session.run("MATCH (n) DETACH DELETE n").then(done);
