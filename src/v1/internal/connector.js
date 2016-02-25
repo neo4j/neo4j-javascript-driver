@@ -273,9 +273,9 @@ class Connection {
   }
 
   /** Queue an INIT-message to be sent to the database */
-  initialize( clientName, observer ) {
+  initialize( clientName, token, observer ) {
     this._queueObserver(observer);
-    this._packer.packStruct( INIT, [clientName] );
+    this._packer.packStruct( INIT, [clientName, token] );
     this._chunker.messageBoundary();
   }
 

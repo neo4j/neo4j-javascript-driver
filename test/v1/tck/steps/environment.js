@@ -5,7 +5,7 @@ module.exports = function () {
   var failedScenarios = []
 
   this.Before("@reset_database", function( scenario, callback ) {
-    this.driver = neo4j.driver("bolt://localhost");
+    this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     this.session = this.driver.session();
     this.session.run("MATCH (n) DETACH DELETE n").then( function( ) {
         callback();
@@ -14,7 +14,7 @@ module.exports = function () {
   });
 
   this.Before("~@reset_database", function( scenario, callback ) {
-    this.driver = neo4j.driver("bolt://localhost");
+    this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     this.session = this.driver.session();
     callback();
   });

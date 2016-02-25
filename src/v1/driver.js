@@ -29,12 +29,14 @@ class Driver {
    * @constructor
    * @param {string} url
    * @param {string} userAgent
+   * @param {Object} token
    */
-  constructor(url, userAgent) {
+  constructor(url, userAgent, token) {
     this._url = url;
     this._userAgent = userAgent || 'neo4j-javascript/0.0';
     this._openSessions = {};
     this._sessionIdGenerator = 0;
+    this._token = token || {};
   }
 
   /**
@@ -44,8 +46,7 @@ class Driver {
   session() {
     let sessionId = this._sessionIdGenerator++;
     let conn = connect(this._url);
-    conn.initialize(this._userAgent);
-
+    conn.initialize(this._userAgent, this._token);
     let _driver = this;
     let _session = new Session( conn, () => {
       // On close of session, remove it from the list of open sessions

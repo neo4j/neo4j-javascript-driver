@@ -21,9 +21,8 @@ describe('neo4j-driver', function() {
   it('should expose version 1 of the API as a property', function(done) {
     // When
     var neo4jDriver = require("../lib");
-
     // Then I can access and use V1 of the API
-    var driver = neo4jDriver.v1.driver("bolt://localhost");
+    var driver = neo4jDriver.v1.driver("bolt://localhost", neo4jDriver.v1.auth.basic("neo4j", "neo4j"));
     driver.session().run( "RETURN 1" )
       .then( function() { driver.close(); })
       .then( done );
@@ -34,7 +33,7 @@ describe('neo4j-driver', function() {
     var neo4jV1 = require("../lib/v1");
 
     // Then I can access and use V1 of the API
-    var driver = neo4jV1.driver("bolt://localhost");
+    var driver = neo4jV1.driver("bolt://localhost", neo4jV1.auth.basic("neo4j", "neo4j"));
     driver.session().run( "RETURN 1" )
       .then( function() { driver.close(); })
       .then( done );

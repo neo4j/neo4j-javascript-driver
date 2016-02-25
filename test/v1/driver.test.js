@@ -20,9 +20,10 @@
 var neo4j = require("../../lib/v1");
 
 describe('driver', function() {
+
   it('should expose sessions', function() {
     // Given
-    var driver = neo4j.driver("bolt://localhost");
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
     // When
     var session = driver.session();
