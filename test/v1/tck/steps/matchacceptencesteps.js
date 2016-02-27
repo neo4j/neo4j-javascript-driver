@@ -24,19 +24,17 @@ module.exports = function () {
     var successCallback = function(res) {
       var givenResults = [];
       var expectedPrint = printable(self.expectedResults);
-      for (var i = 0 ; i < res.records.length; i++)
-      {
+      for (var i = 0 ; i < res.records.length; i++)  {
           givenResults.push(getTestObject(res.records[i]));
       }
-      if ( givenResults.length != self.expectedResults.length)
-      {
+      if ( givenResults.length != self.expectedResults.length) {
         callback(new Error("Given and expected length of result array does not match. Give: " + givenResults.length + " Expected " + self.expectedResults.length));
       }
       if (!comapareResults(givenResults, self.expectedResults) ) {
         callback(new Error("Given and expected results does not match: " + printable(givenResults) + " Expected " + expectedPrint));
       }
       callback();
-    }
+    };
     this.rc.then(successCallback).catch(errorCallback);
   });
 
@@ -135,12 +133,12 @@ module.exports = function () {
     var id = 0;
     var startid = neo4j.int(path.start.identity.toString());
     var segments = path.segments;
-    for (var i in segments) {
+    for (var i = 0; i < segments.length; i++) {
       var segment = segments[i];
-      var relationship = segment.relationship;
       if (startid.notEquals(segment.start.identity)) {
         throw new Error("Path segment does not make sense")
       }
+      var relationship = segment.relationship;
       var endId = neo4j.int(segment.end.identity.toString());
       relationship.identity = neo4j.int(0);
       segment.start.identity = neo4j.int(id++);
