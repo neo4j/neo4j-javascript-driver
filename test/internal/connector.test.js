@@ -20,12 +20,13 @@ var DummyChannel = require('../../lib/v1/internal/ch-dummy.js');
 var connect = require("../../lib/v1/internal/connector.js").connect;
 
 describe('connector', function() {
-  it('should read/write basic messages', function(done) {
+
+  fit('should read/write basic messages', function(done) {
     // Given
     var conn = connect("bolt://localhost")
 
     // When
-    conn.initialize( "mydriver/0.0.0", {
+    conn.initialize( "mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"},  {
       onCompleted: function( msg ) {
         expect( msg ).not.toBeNull();
         conn.close();
@@ -44,7 +45,7 @@ describe('connector', function() {
 
     // When
     var records = [];
-    conn.initialize( "mydriver/0.0.0" );
+    conn.initialize( "mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"} );
     conn.run( "RETURN 1.0", {} );
     conn.pullAll( {
       onNext: function( record ) {
@@ -66,10 +67,10 @@ describe('connector', function() {
 
     // When
     var records = [];
-    conn.initialize( "mydriver/0.0.0" );
+    conn.initialize( "mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"} );
     conn.run( "RETURN 1", {} );
     conn.sync();
-    expect( observer.instance.toHex() ).toBe( '60 60 b0 17 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 11 b1 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ' );
+    expect( observer.instance.toHex() ).toBe( '60 60 b0 17 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 41 b2 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 a3 86 73 63 68 65 6d 65 85 62 61 73 69 63 89 70 72 69 6e 63 69 70 61 6c 85 6e 65 6f 34 6a 8b 63 72 65 64 65 6e 74 69 61 6c 73 85 6e 65 6f 34 6a 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ' );
     done();
   });
 

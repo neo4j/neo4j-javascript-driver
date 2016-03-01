@@ -25,9 +25,14 @@ import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './grap
 let USER_AGENT = "neo4j-javascript/" + VERSION;
 
 export default {
-  driver: (url) => new Driver(url, USER_AGENT),
-  int   : int,
-  isInt : isInt,
+  driver: (url, token) => new Driver(url, USER_AGENT, token),
+  int: int,
+  isInt: isInt,
+  auth : {
+    basic: (username, password) => {
+      return {scheme: "basic", principal: username, credentials: password};
+    }
+  },
   types : {
     Node               : Node,
     Relationship       : Relationship,

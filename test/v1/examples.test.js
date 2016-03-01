@@ -26,7 +26,7 @@ describe('transaction', function() {
   var driver, session, out, console;
 
   beforeEach(function(done) {
-    driver = neo4j.driver("bolt://localhost");
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     session = driver.session();
 
     // Override console.log, to assert on stdout output
@@ -42,7 +42,7 @@ describe('transaction', function() {
 
   it('should document a minimum viable snippet', function(done) {
     // tag::minimum-snippet[]
-    var driver = neo4j.driver("bolt://localhost");
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     var session = driver.session();
 
     session.run( "CREATE (neo:Person {name:'Neo', age:23})" );

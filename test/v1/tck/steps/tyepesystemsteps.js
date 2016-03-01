@@ -1,11 +1,7 @@
 var neo4j = require("../../../../lib/v1");
+var util = require("./util");
 
 module.exports = function () {
-
-  this.Before(function( scenario ) {
-    this.driver = neo4j.driver("bolt://localhost");
-    this.session = this.driver.session();
-  });
 
   this.Given(/^A running database$/, function () {
     return this.session.run("RETURN 1 AS one");
@@ -18,20 +14,23 @@ module.exports = function () {
   this.Given(/^a List of size (\d+) and type (.*)$/, function (size, type) {
     var list = [];
     for(var i = 0; i < size; i++ ) {
-      if (type === 'String') {
+      if (type.toLowerCase() === STRING) {
         list.push(stringOfSize(3));
       }
-      if (type === 'Integer') {
+      else if (type.toLowerCase() === INT) {
         list.push(randomInt());
       }
-      if (type === 'Boolean') {
+      else if (type.toLowerCase() === BOOL) {
         list.push(randomBool());
       }
-      if (type === 'Float') {
+      else if (type.toLowerCase() === FLOAT) {
         list.push(randomFloat());
       }
-      if (type === 'Null') {
+      else if (type.toLowerCase() === NULL) {
         list.push(null);
+      }
+      else {
+        throw new Error("No such type: " + type);
       }
     }
     this.expectedValue = list;
@@ -40,79 +39,61 @@ module.exports = function () {
   this.Given(/^a Map of size (\d+) and type (.*)$/, function (size, type) {
     var map = {};
     for(var i = 0; i < size; i++ ) {
-      if (type === 'String') {
-        map["a" + sizeOfObject(this.M)] = stringOfSize(3);
+      if (type.toLowerCase() === STRING) {
+        map["a" + util.sizeOfObject(this.M)] = stringOfSize(3);
       }
-      if (type === 'Integer') {
-        map["a" + sizeOfObject(this.M)] = randomInt();
+      else if (type.toLowerCase() === INT) {
+        map["a" + util.sizeOfObject(this.M)] = randomInt();
       }
-      if (type === 'Boolean') {
-        map["a" + sizeOfObject(this.M)] = randomBool();
+      else if (type.toLowerCase() === BOOL) {
+        map["a" + util.sizeOfObject(this.M)] = randomBool();
       }
-      if (type === 'Float') {
-        map["a" + sizeOfObject(this.M)] = randomFloat();
+      else if (type.toLowerCase() === FLOAT) {
+        map["a" + util.sizeOfObject(this.M)] = randomFloat();
       }
-      if (type === 'Null') {
-        map["a" + sizeOfObject(this.M)] = null;
+      else if (type.toLowerCase() === NULL) {
+        map["a" + util.sizeOfObject(this.M)] = null;
+      }
+      else {
+        throw new Error("No such type: " + type);
       }
     }
     this.expectedValue = map;
   });
 
-  this.Given(/^a list value (.*) of type (.*)$/, function (input, boltType) {
-    this.expectedValue = getListFromString(boltType, input);
+  this.Given(/^a value (.*)$/, function (input) {
+    this.expectedValue = util.literalValueToTestValue(input);
   });
 
-  this.Given(/^a value (.*) of type (.*)$/, function (input, boltType) {
-    this.expectedValue = toParameter(boltType, input)
-  });
-
-  this.Given(/^an empty list L$/, function () {
-    this.L = [];
-  });
-
-  this.Given(/^an empty map M$/, function () {
-    this.M = {};
-  });
-
-  this.Given(/^adding a table of values to the list L$/, function (table) {
-    var rows = table.rows();
+  this.Given(/^a list containing$/, function (table) {
+    var rows = table.rows()
+    this.expectedValue = [];
     for (var i = 0, len = rows.length; i < len; i++) {
-      this.L.push(toParameter(rows[i][0], rows[i][1]));
+      this.expectedValue.push(util.literalValueToTestValue(rows[i]));
     }
   });
 
-  this.Given(/^adding a table of lists to the list L$/, function (table) {
-    var rows = table.rows();
+  this.When(/^adding this list to itself$/, function () {
+    var clone = [];
+    for (var i = 0, len = this.expectedValue.length; i < len; i++) {
+      clone.push(util.clone(this.expectedValue[i]));
+    }
+    this.expectedValue.push([]);
+  });
+
+  this.Given(/^a map containing$/, function (table) {
+    var rows = table.rows()
+    this.expectedValue = {}
     for (var i = 0, len = rows.length; i < len; i++) {
-      this.L.push(getListFromString(rows[i][0], rows[i][1]));
+      var key = util.literalValueToTestValue(rows[i][0])
+      var value = util.literalValueToTestValue(rows[i][1])
+      this.expectedValue[key] = value;
     }
   });
 
-  this.Given(/^adding map M to list L$/, function () {
-    this.L.push(this.M);
-  });
-
-  this.Given(/^adding a table of values to the map M$/, function (table) {
-    var rows = table.rows();
-    for (var i = 0, len = rows.length; i < len; i++) {
-      this.M["a" + sizeOfObject(this.M)] = toParameter(rows[i][0], rows[i][1]);
-    }
-  });
-
-  this.When(/^adding a table of lists to the map M$/, function (table) {
-    var rows = table.rows();
-    for (var i = 0, len = rows.length; i < len; i++) {
-      this.M["a" + sizeOfObject(this.M)] = getListFromString(rows[i][0], rows[i][1]);
-    }
-  });
-
-  this.When(/^adding a copy of map M to map M$/, function () {
-    var copy_of_map = {}
-    for(var key in this.M) {
-      copy_of_map[key] = this.M[key]
-    }
-    this.M["a" + sizeOfObject(this.M)] = copy_of_map;
+  this.Given(/^adding this map to itself with key "(.*)"$/, function (key) {
+    var clone = util.clone(this.expectedValue);
+    this.expectedValue[key] = clone;
   });
 
   this.When(/^the driver asks the server to echo this value back$/, function () {
@@ -120,14 +101,13 @@ module.exports = function () {
   });
 
   this.When(/^the driver asks the server to echo this list back$/, function () {
-    this.expectedValue = this.L;
     echoExpectedValue.call(this);
   });
 
   this.When(/^the driver asks the server to echo this map back$/, function () {
-    this.expectedValue = this.M;
     echoExpectedValue.call(this);
   });
+
 
   this.Then(/^the value given in the result should be the same as what was sent$/, function (callback) {
     var self = this;
@@ -136,27 +116,19 @@ module.exports = function () {
       if(Object.keys(res[0]).length != 1 || Object.keys(res[0])[0].length != 1) {
         callback(new Error("Expected the statement to return a single row, single field record. Got: " + Object.keys(res[0]).length + " records and: " + Object.keys(res[0])[0].length + " values"));
       }
-      if (!compareValues(res[0]['x'], self.expectedValue)) {
+
+      if (!util.compareValues(res[0]['x'], self.expectedValue)) {
           callback(new Error("Expected the statement to return same as what was sent. Got: " + res[0]['x'] + " Expected: " + self.expectedValue));
       }
       callback();
     }
     this.withParamPromise.then(successCallback).catch(errorCallback);
     this.withLiteralPromise.then(successCallback).catch(errorCallback);
-
   });
 
   this.After(function () {
     this.driver.close()
   });
-
-  function sizeOfObject(obj) {
-    var size = 0, key;
-    for (key in obj) {
-        if (obj.hasOwnProperty(key)) size++;
-    }
-    return size;
-  }
 
   function stringOfSize(size) {
     var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -180,19 +152,19 @@ module.exports = function () {
 
   function toParameter(type, value) {
 
-    if (type === 'String') {
+    if (type.toLowerCase() === STRING) {
       return value.toString();
     }
-    if (type === 'Integer') {
+    if (type.toLowerCase() === INT) {
       return neo4j.int(value);
     }
-    if (type === 'Boolean') {
+    if (type.toLowerCase() === BOOL) {
       return Boolean(value);
     }
-    if (type === 'Float') {
+    if (type.toLowerCase() === FLOAT) {
       return parseFloat(value);
     }
-    if (type === 'Null') {
+    if (type.toLowerCase() === NULL) {
       return null;
     }
     else {
@@ -248,54 +220,9 @@ module.exports = function () {
     }
   }
 
-  function compareValues(one, other) {
-    if (neo4j.isInt(one)) {
-      if (one.equals(other)) {
-        return true;
-      }
-    }
-    else if (typeof one === "object" && one instanceof Array){
-      if (one === other) return true;
-      if (sizeOfObject(one) != sizeOfObject(other)) return false;
-      for (var i = 0; i < one.length; ++i) {
-        if (!compareValues(one[i], other[i])) {
-          console.log("Mismatch at index: [" + i + "] Values should be same but was : [" + one[i] +"] and : [" + other[i] + "]");
-          return false;
-        }
-      }
-      return true;
-    }
-    else if (typeof one === "object" && one instanceof Object){
-      if (one === other) return true;
-      if (one.length != other.length) return false;
-      for (var key in one) {
-        if (typeof other[key] == "undefined") return false;
-        if (!compareValues(one[key], other[key])) {
-          console.log("Mismatch at key: [" + key + "] Values should be same but was : [" + one[key] +"] and : [" + other[key] + "]");
-          return false;
-        }
-      }
-      return true;
-    }
-    else if (one === other) {
-      return true;
-    }
-    return false;
-  }
-
-  function getListFromString(type, input) {
-    var str = input.replace("[", "");
-    str = str.replace("]","");
-    str = str.split(",");
-    var list = [];
-    for(var i = 0; i < str.length; i++ ) {
-      list.push(toParameter(type,str[i]));
-    }
-    return list;
-  }
-
   function echoExpectedValue() {
     this.withParamPromise = this.session.run("RETURN {x} as x", {x:this.expectedValue});
     this.withLiteralPromise = this.session.run("RETURN "+jsToCypherLiteral(this.expectedValue)+" as x");
   }
+
 };
