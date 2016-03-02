@@ -24,9 +24,9 @@ module.exports = function () {
     var successCallback = function(res) {
       var givenResults = [];
       var expectedPrint = printable(self.expectedResults);
-      for (var i = 0 ; i < res.length; i++)
+      for (var i = 0 ; i < res.records.length; i++)
       {
-          givenResults.push(getTestObject(res[i]));
+          givenResults.push(getTestObject(res.records[i]));
       }
       if ( givenResults.length != self.expectedResults.length)
       {

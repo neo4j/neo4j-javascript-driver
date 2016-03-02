@@ -42,11 +42,11 @@ describe('transaction', function() {
     tx.commit()
       .then(function () {
         session.run("MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)")
-          .then(function (records) {
-            expect(records.length).toBe(1);
-            expect(records[0]['count(t1)'].toInt())
+          .then(function (result) {
+            expect(result.records.length).toBe(1);
+            expect(result.records[0]['count(t1)'].toInt())
               .toBe(1);
-            expect(records[0]['count(t2)'].toInt())
+            expect(result.records[0]['count(t2)'].toInt())
               .toBe(1);
             done();
           });
@@ -56,14 +56,14 @@ describe('transaction', function() {
   it('should handle interactive session', function (done) {
     // When
     var tx = session.beginTransaction();
-    tx.run("RETURN 'foo' AS res").then(function (records) {
-      tx.run("CREATE ({name: {param}})", {param: records[0]['res']});
+    tx.run("RETURN 'foo' AS res").then(function (result) {
+      tx.run("CREATE ({name: {param}})", {param: result.records[0]['res']});
       tx.commit()
         .then(function () {
           session.run("MATCH (a {name:'foo'}) RETURN count(a)")
-            .then(function (records) {
-              expect(records.length).toBe(1);
-              expect(records[0]['count(a)'].toInt()).toBe(1);
+            .then(function (result) {
+              expect(result.records.length).toBe(1);
+              expect(result.records[0]['count(a)'].toInt()).toBe(1);
               done();
             });
         });
@@ -146,14 +146,14 @@ describe('transaction', function() {
     tx.run("CREATE (:TXNode2)");
     tx.rollback()
       .then(function () {
-        session.run("MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)").then(function (records) {
-
-          expect(records.length).toBe(1);
-          expect(records[0]['count(t1)'].toInt())
-            .toBe(0);
-          expect(records[0]['count(t2)'].toInt())
-            .toBe(0);
-          done();
+        session.run("MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)")
+          .then(function (result) {
+            expect(result.records.length).toBe(1);
+            expect(result.records[0]['count(t1)'].toInt())
+              .toBe(0);
+            expect(result.records[0]['count(t2)'].toInt())
+              .toBe(0);
+            done();
         });
       });
   });

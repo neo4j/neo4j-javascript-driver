@@ -68,8 +68,8 @@ describe('node values', function() {
     var session = driver.session();
 
     // When
-    session.run("CREATE (n:User {name:'Lisa'}) RETURN n, id(n)").then(function(rs) {
-        var node = rs[0]['n'];
+    session.run("CREATE (n:User {name:'Lisa'}) RETURN n, id(n)").then(function(result) {
+        var node = result.records[0]['n'];
 
         expect( node.properties ).toEqual( { name:"Lisa" } );
         expect( node.labels ).toEqual( ["User"] );
@@ -88,8 +88,8 @@ describe('relationship values', function() {
     var session = driver.session();
 
     // When
-    session.run("CREATE ()-[r:User {name:'Lisa'}]->() RETURN r, id(r)").then(function(rs) {
-        var rel = rs[0]['r'];
+    session.run("CREATE ()-[r:User {name:'Lisa'}]->() RETURN r, id(r)").then(function(result) {
+        var rel = result.records[0]['r'];
 
         expect( rel.properties ).toEqual( { name:"Lisa" } );
         expect( rel.type ).toEqual( "User" );
@@ -109,8 +109,8 @@ describe('path values', function() {
 
     // When
     session.run("CREATE p=(:User { name:'Lisa' })<-[r:KNOWS {since:1234.0}]-() RETURN p")
-      .then(function(rs) {
-        var path = rs[0]['p'];
+      .then(function(result) {
+        var path = result.records[0]['p'];
 
         expect( path.start.properties ).toEqual( { name:"Lisa" } );
         expect( path.end.properties ).toEqual( { } );
@@ -137,8 +137,8 @@ function testVal( val ) {
     var session = driver.session();
 
     session.run("RETURN {val} as v", {val: val})
-      .then( function( records ) {
-        expect( records[0]['v'] ).toEqual( val );
+      .then( function( result ) {
+        expect( result.records[0]['v'] ).toEqual( val );
         driver.close();
         done();
       });

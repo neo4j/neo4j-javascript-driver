@@ -113,12 +113,12 @@ module.exports = function () {
     var self = this;
     var errorCallback = function(err) {callback(new Error("Rejected Promise: " + err))}
     var successCallback = function(res) {
-      if(Object.keys(res[0]).length != 1 || Object.keys(res[0])[0].length != 1) {
-        callback(new Error("Expected the statement to return a single row, single field record. Got: " + Object.keys(res[0]).length + " records and: " + Object.keys(res[0])[0].length + " values"));
+      if(Object.keys(res.records[0]).length != 1 || Object.keys(res.records[0])[0].length != 1) {
+        callback(new Error("Expected the statement to return a single row, single field record. Got: " + Object.keys(res.records[0]).length + " records and: " + Object.keys(res.records[0])[0].length + " values"));
       }
 
-      if (!util.compareValues(res[0]['x'], self.expectedValue)) {
-          callback(new Error("Expected the statement to return same as what was sent. Got: " + res[0]['x'] + " Expected: " + self.expectedValue));
+      if (!util.compareValues(res.records[0]['x'], self.expectedValue)) {
+          callback(new Error("Expected the statement to return same as what was sent. Got: " + res.records[0]['x'] + " Expected: " + self.expectedValue));
       }
       callback();
     }
