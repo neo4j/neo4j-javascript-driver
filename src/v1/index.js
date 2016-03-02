@@ -20,6 +20,7 @@
 import {int, isInt} from './integer';
 import Driver from './driver';
 import {VERSION} from '../version';
+import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
 
 let USER_AGENT = "neo4j-javascript/" + VERSION;
 
@@ -28,6 +29,15 @@ export default {
   int: int,
   isInt: isInt,
   auth : {
-    basic : (username, password) => { return { scheme:"basic", principal : username, credentials : password };}
+    basic: (username, password) => {
+      return {scheme: "basic", principal: username, credentials: password};
+    }
+  },
+  types : {
+    Node               : Node,
+    Relationship       : Relationship,
+    UnboundRelationship: UnboundRelationship,
+    PathSegment        : PathSegment,
+    Path               : Path
   }
 }
