@@ -61,8 +61,8 @@ session
 // the Promise way, where the complete result is collected before we act on it:
 session
   .run("MATCH (alice {name : {nameParam} }) RETURN alice.age", { nameParam:'Alice' })
-  .then(function(records){
-    records.forEach(function(record) {
+  .then(function(result){
+    result.records.forEach(function(record) {
       console.log(record);
     });
 

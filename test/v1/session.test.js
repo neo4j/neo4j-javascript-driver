@@ -106,14 +106,14 @@ describe('session', function() {
     // When & Then
     session.run( "RETURN 1.0 AS a")
     .then(
-      function( records ) {
-        expect( records.length ).toBe( 1 );
-        expect( records[0]['a'] ).toBe( 1 );
+      function(result) {
+        expect(result.records.length).toBe( 1 );
+        expect(result.records[0]['a']).toBe( 1 );
       }
     ).then(
-      function(records) {
-        expect( records.length ).toBe( 1 );
-        expect( records[0]['a'] ).toBe( 1 );
+      function(result) {
+        expect(result.records.length).toBe( 1 );
+        expect(result.records[0]['a']).toBe( 1 );
       }
     ).then( function() { done(); })
   });

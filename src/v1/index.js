@@ -26,18 +26,18 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
 
 export default {
   driver: (url, token) => new Driver(url, USER_AGENT, token),
-  int: int,
-  isInt: isInt,
-  auth : {
+  int,
+  isInt,
+  auth: {
     basic: (username, password) => {
       return {scheme: "basic", principal: username, credentials: password};
     }
   },
-  types : {
-    Node               : Node,
-    Relationship       : Relationship,
-    UnboundRelationship: UnboundRelationship,
-    PathSegment        : PathSegment,
-    Path               : Path
+  types: {
+    Node,
+    Relationship,
+    UnboundRelationship,
+    PathSegment,
+    Path
   }
 }
