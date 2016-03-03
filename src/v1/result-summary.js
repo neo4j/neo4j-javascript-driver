@@ -114,7 +114,7 @@ class StatementStatistics {
   constructor(statistics) {
     this._stats = {
       nodesCreated: 0,
-      nodesDelete: 0,
+      nodesDeleted: 0,
       relationshipsCreated: 0,
       relationshipsDeleted: 0,
       propertiesSet: 0,
@@ -124,11 +124,11 @@ class StatementStatistics {
       indexesRemoved: 0,
       constraintsAdded: 0,
       constraintsRemoved: 0
-    }
+    };
     Object.keys(statistics).forEach((index) => {
-      let val = isInt(statistics[index]) ? statistics[index].toInt() : statistics[index];
       //To camelCase
-      this._stats[index.replace(/(\-\w)/g, (m) => m[1].toUpperCase())] = val;
+      this._stats[index.replace(/(\-\w)/g, (m) => m[1].toUpperCase())] =
+        isInt(statistics[index]) ? statistics[index].toInt() : statistics[index];
     });
   }
 
@@ -233,7 +233,7 @@ class Notification {
   constructor(notification) {
     this.code = notification.code;
     this.title = notification.title;
-    this.description = notification.desciption;
+    this.description = notification.description;
     this.position = this._constructPosition(notification.position);
   }
 
