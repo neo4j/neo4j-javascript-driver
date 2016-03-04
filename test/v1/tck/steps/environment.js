@@ -19,6 +19,10 @@ module.exports = function () {
     callback();
   });
 
+  this.Before("@equality_test", function( scenario ) {
+    this.savedValues = {}
+  });
+
   this.After(function (scenario, callback) {
     if (!scenario.isSuccessful()) {
       failedScenarios.push(scenario)
