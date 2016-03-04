@@ -234,6 +234,7 @@ class Notification {
     this.code = notification.code;
     this.title = notification.title;
     this.description = notification.description;
+    this.severity = notification.severity;
     this.position = this._constructPosition(notification.position);
   }
 
