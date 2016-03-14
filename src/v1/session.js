@@ -68,7 +68,7 @@ class Session {
    * Begin a new transaction in this session. A session can have at most one transaction running at a time, if you
    * want to run multiple concurrent transactions, you should use multiple concurrent sessions.
    *
-   * While a transaction is open the session cannot be used to run statements.
+   * While a transaction is open the session cannot be used to run statements outside the transaction.
    *
    * @returns {Transaction} - New Transaction
    */
@@ -82,8 +82,8 @@ class Session {
   }
 
   /**
-   * Close connection
-   * @param {function()} cb - Function to be called on connection close
+   * Close this session
+   * @param {function()} cb - Function to be called after the session has been closed
    * @return
    */
   close(cb) {
