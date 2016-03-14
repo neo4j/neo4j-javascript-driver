@@ -114,6 +114,7 @@ let _mappers = {
         sequence = unpacker.unpack(buf);
     let prevNode = nodes[0],
         segments = [];
+
     for (let i = 0; i < sequence.length; i += 2) {
         let relIndex = sequence[i],
             nextNode = nodes[sequence[i + 1]],
@@ -138,9 +139,9 @@ let _mappers = {
         segments.push( new GraphType.PathSegment( prevNode, rel, nextNode ) );
         prevNode = nextNode;
     }
-    return new GraphType.Path( segments );
+    return new GraphType.Path(nodes[0], nodes[nodes.length - 1],  segments );
   }
-}
+};
 
 /**
  * A connection manages sending and recieving messages over a channel. A

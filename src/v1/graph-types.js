@@ -146,7 +146,7 @@ class PathSegment {
    * @param {Relationship} rel - Relationship segment
    * @param {string} end - Identity of end Node
    */
-  constructor( start, rel, end ) {
+  constructor(start, rel, end) {
     this.start = start;
     this.relationship = rel;
     this.end = end;
@@ -159,12 +159,14 @@ class PathSegment {
 class Path {
   /**
    * @constructor
+   * @param {Node} start  - start node
+   * @param {Node} end - end node
    * @param {Array} segments - Array of Segments
    */
-  constructor(segments) {
+  constructor(start, end, segments) {
+    this.start = start;
+    this.end = end;
     this.segments = segments;
-    this.start = segments[0].start;
-    this.end = segments[segments.length - 1].end;
     this.length = segments.length;
   }
 }
