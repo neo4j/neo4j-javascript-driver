@@ -47,14 +47,14 @@ class Session {
    * @param {Object} parameters - Map with parameters to use in statement
    * @return {Result} - New Result
    */
-  run(statement, parameters) {
+  run(statement, parameters = {}) {
     if(typeof statement === 'object' && statement.text) {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
     let streamObserver = new StreamObserver();
     if (!this._hasTx) {
-      this._conn.run(statement, parameters || {}, streamObserver);
+      this._conn.run(statement, parameters, streamObserver);
       this._conn.pullAll(streamObserver);
       this._conn.sync();
     } else {
@@ -86,9 +86,8 @@ class Session {
    * @param {function()} cb - Function to be called after the session has been closed
    * @return
    */
-  close(cb) {
-    this._onClose();
-    this._conn.close(cb);
+  close(cb=(()=>null)) {
+    this._onClose(cb);
   }
 }
 

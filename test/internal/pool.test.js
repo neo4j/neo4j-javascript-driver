@@ -19,7 +19,7 @@
 
 var Pool = require('../../lib/v1/internal/pool').Pool;
 
-fdescribe('Pool', function() {
+describe('Pool', function() {
   it('allocates if pool is empty', function() {
     // Given
     var counter = 0;

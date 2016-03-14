@@ -60,6 +60,12 @@ class NodeChannel {
         _self.onmessage( new NodeBuffer( buffer ) );
       }
     });
+
+    this._conn.on('error', function(err){
+      if( _self.onerror ) {
+        _self.onerror(err);
+      }
+    });
   }
   
   /**
