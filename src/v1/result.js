@@ -32,12 +32,14 @@ class Result {
    * Inject the observer to be used.
    * @constructor
    * @param {StreamObserver} streamObserver
+   * @param {mixed} statement - Cypher statement to execute
+   * @param {Object} parameters - Map with parameters to use in statement
    */
   constructor(streamObserver, statement, parameters) {
     this._streamObserver = streamObserver;
     this._p = null;
     this._statement = statement;
-    this._parameters = parameters;
+    this._parameters = parameters || {};
   }
 
   /**
@@ -66,7 +68,8 @@ class Result {
    * Waits for all results and calls the passed in function
    * with the results.
    * Cannot be used with the subscribe function.
-   * @param {function(results: Object)} cb - Function to be called when all results are collected.
+   * @param {function(error: Object)} onFulfilled - Function to be called when finished.
+   * @param {function(error: Object)} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
   then(onFulfilled, onRejected) {
@@ -78,7 +81,7 @@ class Result {
   /**
    * Catch errors when using promises.
    * Cannot be used with the subscribe function.
-   * @param {function(error: Object)} cb - Function to be called upon errors.
+   * @param {function(error: Object)} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
   catch(onRejected) {

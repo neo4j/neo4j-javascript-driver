@@ -89,7 +89,7 @@ class ProfiledPlan {
   /**
    * Create a ProfiledPlan instance
    * @constructor
-   * @param {Object} plan - Object with plan data
+   * @param {Object} profile - Object with profile data
    */
   constructor(profile) {
     this.operatorType = profile.operatorType;
@@ -235,10 +235,10 @@ class Notification {
     this.title = notification.title;
     this.description = notification.description;
     this.severity = notification.severity;
-    this.position = this._constructPosition(notification.position);
+    this.position = Notification._constructPosition(notification.position);
   }
 
-  _constructPosition(pos) {
+  static _constructPosition(pos) {
     if(!pos) {
       return {};
     }
@@ -255,7 +255,7 @@ const statementType = {
   READ_WRITE: 'rw',
   WRITE_ONLY: 'w',
   SCHEMA_WRITE: 's'
-}
+};
 
 export default {
   ResultSummary,
