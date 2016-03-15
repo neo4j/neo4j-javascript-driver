@@ -47,14 +47,14 @@ class Session {
    * @param {Object} parameters - Map with parameters to use in statement
    * @return {Result} - New Result
    */
-  run(statement, parameters) {
+  run(statement, parameters = {}) {
     if(typeof statement === 'object' && statement.text) {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
     let streamObserver = new StreamObserver();
     if (!this._hasTx) {
-      this._conn.run(statement, parameters || {}, streamObserver);
+      this._conn.run(statement, parameters, streamObserver);
       this._conn.pullAll(streamObserver);
       this._conn.sync();
     } else {
@@ -68,7 +68,7 @@ class Session {
    * Begin a new transaction in this session. A session can have at most one transaction running at a time, if you
    * want to run multiple concurrent transactions, you should use multiple concurrent sessions.
    *
-   * While a transaction is open the session cannot be used to run statements.
+   * While a transaction is open the session cannot be used to run statements outside the transaction.
    *
    * @returns {Transaction} - New Transaction
    */
@@ -82,13 +82,12 @@ class Session {
   }
 
   /**
-   * Close connection
-   * @param {function()} cb - Function to be called on connection close
+   * Close this session
+   * @param {function()} cb - Function to be called after the session has been closed
    * @return
    */
-  close(cb) {
-    this._onClose();
-    this._conn.close(cb);
+  close(cb=(()=>null)) {
+    this._onClose(cb);
   }
 }
 

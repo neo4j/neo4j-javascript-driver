@@ -21,7 +21,7 @@ var connect = require("../../lib/v1/internal/connector.js").connect;
 
 describe('connector', function() {
 
-  fit('should read/write basic messages', function(done) {
+  it('should read/write basic messages', function(done) {
     // Given
     var conn = connect("bolt://localhost")
 

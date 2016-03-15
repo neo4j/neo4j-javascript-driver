@@ -40,7 +40,8 @@ else {
 let
 // Signature bytes for each message type
 INIT = 0x01,            // 0000 0001 // INIT <user_agent>
-ACK_FAILURE = 0x0F,     // 0000 1111 // ACK_FAILURE
+ACK_FAILURE = 0x0D,     // 0000 1101 // ACK_FAILURE
+RESET = 0x0F,           // 0000 1111 // RESET
 RUN = 0x10,             // 0001 0000 // RUN <statement> <parameters>
 DISCARD_ALL = 0x2F,     // 0010 1111 // DISCARD *
 PULL_ALL = 0x3F,        // 0011 1111 // PULL *
@@ -177,6 +178,9 @@ class Connection {
     this._unpacker = new packstream.Unpacker();
     this._isHandlingFailure = false;
 
+    // Set to true on fatal errors, to get this out of session pool.
+    this._isBroken = false;
+
     // For deserialization, explain to the unpacker how to unpack nodes, rels, paths;
     this._unpacker.structMappers[NODE] = _mappers.node;
     this._unpacker.structMappers[RELATIONSHIP] = _mappers.rel;
@@ -198,14 +202,16 @@ class Connection {
         }
 
       } else {
-        // TODO: Report error
+        this._isBroken = true;
         console.log("FATAL, unknown protocol version:", proposed)
       }
     };
 
+    this._ch.onerror = () => self._isBroken = true;
+
     this._dechunker.onmessage = (buf) => {
       self._handleMessage( self._unpacker.unpack( buf ) );
-    }
+    };
 
     let handshake = alloc( 5 * 4 );
     //magic preamble
@@ -269,6 +275,7 @@ class Connection {
         }
         break;
       default:
+        this._isBroken = true;
         console.log("UNKNOWN MESSAGE: ", msg);
     }
   }
@@ -301,6 +308,13 @@ class Connection {
     this._chunker.messageBoundary();
   }
 
+  /** Queue a RESET-message to be sent to the database */
+  reset( observer ) {
+    this._queueObserver(observer);
+    this._packer.packStruct( RESET );
+    this._chunker.messageBoundary();
+  }
+
   /** Queue a ACK_FAILURE-message to be sent to the database */
   _ackFailure( observer ) {
     this._queueObserver(observer);
@@ -323,6 +337,11 @@ class Connection {
    */
   sync() {
     this._chunker.flush();
+  }
+
+  /** Check if this connection is in working condition */
+  isOpen() {
+    return !this._isBroken && this._ch._open;
   }
 
   /**

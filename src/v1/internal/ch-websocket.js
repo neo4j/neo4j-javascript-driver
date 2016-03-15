@@ -54,6 +54,12 @@ class WebSocketChannel {
         self.onmessage( b );
       } 
     };
+
+    this._ws.onerror = () => {
+      if( self.onerror ) {
+        self.onerror();
+      }
+    }
   }
 
   /**
