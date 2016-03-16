@@ -4,7 +4,7 @@ var util = require("./util")
 
 module.exports = function () {
 
-  this.When(/^the `Result Cursor` is summarized$/, function (callback) {
+  this.When(/^the `Statement Result` is consumed a `Result Summary` is returned$/, function (callback) {
     self = this;
     this.rc.then(function(res) {
       self.summary = res.summary;
@@ -12,15 +12,11 @@ module.exports = function () {
     }).catch(function(err) {callback(new Error("Rejected Promise: " + err))});
   });
 
-  this.Then(/^the `Result Cursor` is fully consumed$/, function () {
+  this.Then(/^the `Statement Result` is closed$/, function () {
     //No result cursor in JavaScript Driver
   });
 
-  this.Then(/^a `Result Summary` is returned$/, function () {
-    //skip this boring part
-  });
-
-  this.When(/^I request a `statement` from the `Result Summary`$/, function () {
+  this.When(/^I request a `Statement` from the `Result Summary`$/, function () {
     this.statement = this.summary.statement
   });
 
@@ -40,10 +36,10 @@ module.exports = function () {
     }
   });
 
-  this.Then(/^requesting `update statistics` from it should give$/, function (table) {
+  this.Then(/^requesting `Counters` from `Result Summary` should give$/, function (table) {
     var updateStatistics = this.summary.updateStatistics
     for ( var i = 0 ; i < table.hashes().length; i++) {
-      var statistic = table.hashes()[i].statistic;
+      var statistic = table.hashes()[i].counter;
       var expected = util.literalValueToTestValueNormalIntegers(table.hashes()[i].result);
       var given = getStatistic(statistic, updateStatistics)
       if (!util.compareValues(given, expected)) {
@@ -60,53 +56,53 @@ module.exports = function () {
     }
   });
 
-  this.Then(/^the summary has a `plan`$/, function () {
+  this.Then(/^the `Result Summary` has a `Plan`$/, function () {
     if(! this.summary.hasPlan()) {
       throw Error("Expected summary to have a `plan`. It did not...");
     }
   });
 
-  this.Then(/^the summary does not have a `plan`$/, function () {
+  this.Then(/^the `Result Summary` does not have a `Plan`$/, function () {
     if(this.summary.hasPlan()) {
       throw Error("Expected summary to NOT have a `plan`. It did not...");
     }
   });
 
-  this.Then(/^the summary has a `profile`$/, function () {
+  this.Then(/^the `Result Summary` has a `Profile`$/, function () {
     if(! this.summary.hasProfile()) {
       throw Error("Expected summary to have a `profile plan`. It did not...");
     }
   });
 
-  this.Then(/^the summary does not have a `profile`$/, function () {
+  this.Then(/^the `Result Summary` does not have a `Profile`$/, function () {
     if( this.summary.hasProfile()) {
       throw Error("Expected summary to NOT have a `profile plan`. It did...");
     }
   });
 
-  this.Then(/^requesting the `plan` it contains$/, function (table) {
+  this.Then(/^requesting the `Plan` it contains$/, function (table) {
     checkPlanExact(table, this.summary.plan)
   });
 
-  this.Then(/^the `plan` also contains method calls for:$/, function (table) {
+  this.Then(/^the `Plan` also contains method calls for:$/, function (table) {
     checkPlan(table, this.summary.plan)
   });
 
-  this.Then(/^requesting the `profile` it contains:$/, function (table) {
+  this.Then(/^requesting the `Profile` it contains:$/, function (table) {
     checkPlanExact(table, this.summary.profile)
 });
 
-this.Then(/^the `profile` also contains method calls for:$/, function (table) {
+this.Then(/^the `Profile` also contains method calls for:$/, function (table) {
   checkPlan(table, this.summary.profile)
 });
 
-this.Then(/^the summaries `notifications` is empty list$/, function (table) {
+this.Then(/^the `Result Summary` `Notifications` is empty$/, function () {
   if (! this.summary.notifications.length == 0) {
     throw Error("Expected no notifications. Got: " + this.summary.notifications.length)
   }
 });
 
-this.Then(/^the summaries `notifications` has one notification with$/, function (table) {
+this.Then(/^the `Result Summary` `Notifications` has one notification with$/, function (table) {
 
   var expected = {};
   if (this.summary.notifications.length > 1) {
@@ -155,6 +151,9 @@ this.Then(/^the summaries `notifications` has one notification with$/, function 
     }
     if (key == 'db hits') {
       return 'dbHits'
+    }
+    if (key == 'records') {
+      return 'rows'
     }
     else {
       return key

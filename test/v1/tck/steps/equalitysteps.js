@@ -35,20 +35,6 @@ module.exports = function () {
     }
   });
 
-  this.Given(/^`(.*)` is a copy of `(.*)` path with flipped relationship direction$/, function (key2, key1) {
-    var value1 = this.savedValues[key1];
-    var newSegments = []
-    for (var i = 0; i < value1.segments.length; i++) {
-      var segment = value1.segments[i];
-      var n1 = segment.start;
-      var n2 = segment.end;
-      var oldr = segment.relationship;
-      var r = new GraphType.Relationship(oldr.identity, oldr.end, oldr.start, oldr.type, oldr.properties);
-      newSegments.push(new GraphType.PathSegment(n1, r, n2))
-    }
-    this.savedValues[key2] = new GraphType.Path(newSegments);
-  });
-
 
   function getSingleValue(res) {
     var values = []
