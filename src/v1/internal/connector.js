@@ -81,7 +81,7 @@ function LOG(err) {
 let NO_OP_OBSERVER = {
   onNext : NO_OP,
   onCompleted : NO_OP,
-  onError : LOG
+  onError : NO_OP
 }
 
 /** Maps from packstream structures to Neo4j domain objects */
