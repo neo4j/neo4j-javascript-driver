@@ -20,6 +20,7 @@
 import Session from './session';
 import {Pool} from './internal/pool';
 import {connect} from "./internal/connector";
+import StreamObserver from './internal/stream-observer';
 
 /**
   * A Driver instance is used for mananging {@link Session}s.
@@ -52,8 +53,9 @@ class Driver {
    */
   _createConnection( release ) {
     let sessionId = this._sessionIdGenerator++;
+    let streamObserver = new _ConnectionStreamObserver(this);
     let conn = connect(this._url);
-    conn.initialize(this._userAgent, this._token);
+    conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
     conn._release = () => release(conn);
 
@@ -117,6 +119,24 @@ class Driver {
       if (this._openSessions.hasOwnProperty(sessionId)) {
         this._openSessions[sessionId].close();
       }
+    }
+  }
+}
+
+/** Internal stream observer used for connection state */
+class _ConnectionStreamObserver extends StreamObserver {
+  constructor(driver) {
+    super();
+    this._driver = driver;
+    this._hasFailed = false;
+  }
+  onError(error) {
+    if (!this._hasFailed) {
+      super.onError(error);
+      if(this._driver.onError) {
+        this._driver.onError(error);
+      }
+      this._hasFailed = true;
     }
   }
 }
