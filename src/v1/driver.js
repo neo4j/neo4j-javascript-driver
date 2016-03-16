@@ -32,13 +32,15 @@ class Driver {
    * @param {string} url
    * @param {string} userAgent
    * @param {Object} token
+   * @param {Object} config
    */
-  constructor(url, userAgent, token) {
+  constructor(url, userAgent = 'neo4j-javascript/0.0', token = {}, config = {}) {
     this._url = url;
-    this._userAgent = userAgent || 'neo4j-javascript/0.0';
+    this._userAgent = userAgent;
     this._openSessions = {};
     this._sessionIdGenerator = 0;
-    this._token = token || {};
+    this._token = token;
+    this._config = config;
     this._pool = new Pool(
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
@@ -54,7 +56,7 @@ class Driver {
   _createConnection( release ) {
     let sessionId = this._sessionIdGenerator++;
     let streamObserver = new _ConnectionStreamObserver(this);
-    let conn = connect(this._url);
+    let conn = connect(this._url, this._config);
     conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
     conn._release = () => release(conn);

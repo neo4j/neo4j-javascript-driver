@@ -17,27 +17,25 @@
  * limitations under the License.
  */
 
-import {int, isInt} from './integer';
-import Driver from './driver';
-import {VERSION} from '../version';
-import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
+// Central place to detect feature support for the current platform,
+// expand as needed.
 
-let USER_AGENT = "neo4j-javascript/" + VERSION;
-
-export default {
-  driver: (url, token, config={}) => new Driver(url, USER_AGENT, token, config),
-  int,
-  isInt,
-  auth: {
-    basic: (username, password) => {
-      return {scheme: "basic", principal: username, credentials: password};
+const FEATURES = {
+  trust_on_first_use : () => {
+    try {
+      // This is insane. We are verifying that we have a version of getPeerCertificate
+      // that supports reading the whole certificate, eg this commit:
+      // https://github.com/nodejs/node/commit/345c40b6
+      let desc = require('tls').TLSSocket.prototype.getPeerCertificate.toString();
+      return desc.startsWith("function getPeerCertificate(detailed)");
+    } catch( e ) {
+      return false;
     }
-  },
-  types: {
-    Node,
-    Relationship,
-    UnboundRelationship,
-    PathSegment,
-    Path
   }
+};
+
+function hasFeature( name ) {
+  return FEATURES[name] && FEATURES[name]();
 }
+
+export default hasFeature;

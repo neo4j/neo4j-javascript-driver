@@ -114,20 +114,39 @@ describe('examples', function() {
 
   it('should document how to require encryption', function() {
     // tag::tls-require-encryption[]
-    // Unfortunately, this feature is not yet implemented for JavaScript
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      // In NodeJS, encryption is on by default. In the web bundle, it is off.
+      encrypted:true
+    });
     // end::tls-require-encryption[]
+    driver.close();
   });
 
-  it('should document how to configure trust-on-first-use', function() {  
+  it('should document how to configure trust-on-first-use', function() {
     // tag::tls-trust-on-first-use[]
-    // Unfortunately, this feature is not yet implemented for JavaScript
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      // Note that trust-on-first-use is not available in the browser bundle,
+      // in NodeJS, trust-on-first-use is the default trust mode. In the browser
+      // it is TRUST_SIGNED_CERTIFICATES.
+      trust: "TRUST_ON_FIRST_USE",
+      encrypted:true
+    });
     // end::tls-trust-on-first-use[]
+    driver.close();
   }); 
 
-  it('should document how to configure a trusted signing certificate', function() {  
+  it('should document how to configure a trusted signing certificate', function() {
     // tag::tls-signed[]
-    // Unfortunately, this feature is not yet implemented for JavaScript
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      trust: "TRUST_SIGNED_CERTIFICATES",
+      // Configuring which certificates to trust here is only available
+      // in NodeJS. In the browser bundle the browsers list of trusted
+      // certificates is used, due to technical limitations in some browsers.
+      trustedCertificates : ["path/to/ca.crt"],
+      encrypted:true
+    });
     // end::tls-signed[]
+    driver.close();
   });
 
 });

@@ -17,27 +17,13 @@
  * limitations under the License.
  */
 
-import {int, isInt} from './integer';
-import Driver from './driver';
-import {VERSION} from '../version';
-import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
+// A common place for constructing error objects, to keep them
+// uniform across the driver surface.
 
-let USER_AGENT = "neo4j-javascript/" + VERSION;
+function newError(message, code="N/A") {
+  return {message, code};
+}
 
-export default {
-  driver: (url, token, config={}) => new Driver(url, USER_AGENT, token, config),
-  int,
-  isInt,
-  auth: {
-    basic: (username, password) => {
-      return {scheme: "basic", principal: username, credentials: password};
-    }
-  },
-  types: {
-    Node,
-    Relationship,
-    UnboundRelationship,
-    PathSegment,
-    Path
-  }
+export {
+  newError
 }

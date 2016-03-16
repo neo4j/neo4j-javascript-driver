@@ -1,0 +1,3 @@
+# Used by tests to ensure we get proper error if we already have
+# a known certificate for a given url.
+localhost:7687 f6468f97639f16b148141d613bf991fcb96bf4b31c55c4607901b53943a6b53da58eb21bdbb1e85de7c9aeb8ef6e6f53a023a8c4ffd02cad81a18d179fc869ea
