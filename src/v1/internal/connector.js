@@ -207,7 +207,12 @@ class Connection {
       }
     };
 
-    this._ch.onerror = () => self._isBroken = true;
+    this._ch.onerror = (error) => {
+      self._isBroken = true;
+      if(this._currentObserver.onError) {
+        this._currentObserver.onError(error);
+      }
+    }
 
     this._dechunker.onmessage = (buf) => {
       self._handleMessage( self._unpacker.unpack( buf ) );
@@ -266,9 +271,9 @@ class Connection {
         break;
       case IGNORED:
         try {
-          if (this._errorMsg)
+          if (this._errorMsg && this._currentObserver.onError)
             this._currentObserver.onError(this._errorMsg);
-          else
+          else if(this._currentObserver.onError)
             this._currentObserver.onError(msg);
         } finally {
           this._currentObserver = this._pendingObservers.shift();

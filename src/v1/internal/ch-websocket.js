@@ -55,9 +55,9 @@ class WebSocketChannel {
       } 
     };
 
-    this._ws.onerror = () => {
+    this._ws.onerror = (err) => {
       if( self.onerror ) {
-        self.onerror();
+        self.onerror(err);
       }
     }
   }
