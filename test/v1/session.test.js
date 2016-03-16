@@ -75,7 +75,6 @@ describe('session', function() {
   it('should call observers onError on error ', function(done) {
 
     // When & Then
-    var records = [];
     session.run( "RETURN 1 AS").subscribe( {
       onError: function(error) {
         expect(error.fields.length).toBe(1);
@@ -131,7 +130,7 @@ describe('session', function() {
   it('should expose summarize method for basic metadata ', function(done) {
     // Given
     var statement = "CREATE (n:Label {prop:{prop}}) RETURN n";
-    var params = {prop: "string"}
+    var params = {prop: "string"};
     // When & Then
     session.run( statement, params )
           .then(function(result) {
@@ -145,10 +144,22 @@ describe('session', function() {
     });
   });
 
+  it('should expose empty parameter map on call with no parameters', function(done) {
+    // Given
+    var statement = "CREATE (n:Label {prop:'string'}) RETURN n";
+    // When & Then
+    session.run(statement)
+      .then(function(result) {
+        var sum = result.summary;
+        expect(sum.statement.parameters).toEqual( {} );
+        done();
+      });
+  });
+
   it('should expose plan ', function(done) {
     // Given
     var statement = "EXPLAIN CREATE (n:Label {prop:{prop}}) RETURN n";
-    var params = {prop: "string"}
+    var params = {prop: "string"};
     // When & Then
     session
           .run( statement, params )
@@ -167,7 +178,7 @@ describe('session', function() {
   it('should expose profile ', function(done) {
     // Given
     var statement = "PROFILE MATCH (n:Label {prop:{prop}}) RETURN n";
-    var params = {prop: "string"}
+    var params = {prop: "string"};
     // When & Then
     session
           .run( statement, params )
@@ -194,7 +205,7 @@ describe('session', function() {
           .then(function(result) {
       var sum = result.summary;
       expect(sum.notifications.length).toBeGreaterThan(0);
-      expect(sum.notifications[0].code).toBe("Neo.ClientNotification.Statement.CartesianProduct");
+      expect(sum.notifications[0].code).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
       expect(sum.notifications[0].title).toBe("This query builds a cartesian product between disconnected patterns.");
       expect(sum.notifications[0].position.column).toBeGreaterThan(0);
       done();

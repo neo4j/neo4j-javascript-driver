@@ -21,7 +21,7 @@ var neo4j = require("../../lib/v1");
 
 var _console = console;
 
-describe('transaction', function() {
+describe('examples', function() {
 
   var driver, session, out, console;
 

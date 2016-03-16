@@ -18,7 +18,9 @@
  */
 
 import Session from './session';
+import {Pool} from './internal/pool';
 import {connect} from "./internal/connector";
+import StreamObserver from './internal/stream-observer';
 
 /**
   * A Driver instance is used for mananging {@link Session}s.
@@ -37,6 +39,47 @@ class Driver {
     this._openSessions = {};
     this._sessionIdGenerator = 0;
     this._token = token || {};
+    this._pool = new Pool(
+      this._createConnection.bind(this),
+      this._destroyConnection.bind(this),
+      this._validateConnection.bind(this)
+    );
+  }
+
+  /**
+   * Create a new connection instance.
+   * @return {Connection} new connector-api session instance, a low level session API.
+   * @access private
+   */
+  _createConnection( release ) {
+    let sessionId = this._sessionIdGenerator++;
+    let streamObserver = new _ConnectionStreamObserver(this);
+    let conn = connect(this._url);
+    conn.initialize(this._userAgent, this._token, streamObserver);
+    conn._id = sessionId;
+    conn._release = () => release(conn);
+
+    this._openSessions[sessionId] = conn;
+    return conn;
+  }
+
+  /**
+   * Check that a connection is usable
+   * @return {boolean} true if the connection is open
+   * @access private
+   **/
+  _validateConnection( conn ) {
+    return conn.isOpen();
+  }
+
+  /**
+   * Dispose of a live session, closing any associated resources.
+   * @return {Session} new session.
+   * @access private
+   */
+  _destroyConnection( conn ) {
+    delete this._openSessions[conn._id];
+    conn.close();
   }
 
   /**
@@ -44,17 +87,27 @@ class Driver {
    * @return {Session} new session.
    */
   session() {
-    let sessionId = this._sessionIdGenerator++;
-    let conn = connect(this._url);
-    conn.initialize(this._userAgent, this._token);
-    let _driver = this;
-    let _session = new Session( conn, () => {
-      // On close of session, remove it from the list of open sessions
-      delete _driver._openSessions[sessionId];
-    });
+    let conn = this._pool.acquire();
+    return new Session( conn, (cb) => {
+      // This gets called on Session#close(), and is where we return
+      // the pooled 'connection' instance.
 
-    this._openSessions[sessionId] = _session;
-    return _session;
+      // We don't pool Session instances, to avoid users using the Session
+      // after they've called close. The `Session` object is just a thin
+      // wrapper around Connection anyway, so it makes little difference.
+
+      // Queue up a 'reset', to ensure the next user gets a clean
+      // session to work with. No need to flush, this will get sent
+      // along with whatever the next thing the user wants to do with
+      // this session ends up being, so we save the network round trip.
+      conn.reset();
+
+      // Return connection to the pool
+      conn._release();
+
+      // Call user callback
+      if(cb) { cb(); }
+    });
   }
 
   /**
@@ -66,6 +119,24 @@ class Driver {
       if (this._openSessions.hasOwnProperty(sessionId)) {
         this._openSessions[sessionId].close();
       }
+    }
+  }
+}
+
+/** Internal stream observer used for connection state */
+class _ConnectionStreamObserver extends StreamObserver {
+  constructor(driver) {
+    super();
+    this._driver = driver;
+    this._hasFailed = false;
+  }
+  onError(error) {
+    if (!this._hasFailed) {
+      super.onError(error);
+      if(this._driver.onError) {
+        this._driver.onError(error);
+      }
+      this._hasFailed = true;
     }
   }
 }
