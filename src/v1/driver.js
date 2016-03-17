@@ -21,7 +21,7 @@ import Session from './session';
 import {Pool} from './internal/pool';
 import {connect} from "./internal/connector";
 import StreamObserver from './internal/stream-observer';
-import {VERSION} from '../../version';
+import {VERSION} from '../version';
 
 /**
  * A driver maintains one or more {@link Session sessions} with a remote
