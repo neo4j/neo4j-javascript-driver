@@ -204,7 +204,7 @@ gulp.task('download-tck', function() {
 gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
     return gulp.src(featureHome + "/*").pipe(cucumber({
         'steps': 'test/v1/tck/steps/*.js',
-        'format': 'pretty',
+        'format': 'summary',
         'tags' : ['~@in_dev', '~@db']
     }));
 });

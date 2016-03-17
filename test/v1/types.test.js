@@ -124,7 +124,7 @@ describe('path values', function() {
           expect( segment.end.properties ).toEqual( { } );
           // Which is the inverse of the relationship itself!
           expect( segment.relationship.properties ).toEqual( { since: 1234 } );
-        };
+        }
         driver.close();
         done();
       });

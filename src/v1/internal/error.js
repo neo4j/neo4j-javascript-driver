@@ -17,24 +17,13 @@
  * limitations under the License.
  */
 
-import {int, isInt} from './integer';
-import {driver} from './driver';
-import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
+// A common place for constructing error objects, to keep them
+// uniform across the driver surface.
 
-export default {
-  driver,
-  int,
-  isInt,
-  auth: {
-    basic: (username, password) => {
-      return {scheme: "basic", principal: username, credentials: password};
-    }
-  },
-  types: {
-    Node,
-    Relationship,
-    UnboundRelationship,
-    PathSegment,
-    Path
-  }
+function newError(message, code="N/A") {
+  return {message, code};
+}
+
+export {
+  newError
 }

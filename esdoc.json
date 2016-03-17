@@ -2,7 +2,7 @@
   "source": "./src",
   "destination": "./docs/build",
   "includes": ["\\.js$"],
-  "excludes": ["external"],
+  "excludes": ["external", "internal"],
   "package": "./package.json",
   "title": "Neo4j Bolt  Driver for Javascript",
   "unexportIdentifier": true,

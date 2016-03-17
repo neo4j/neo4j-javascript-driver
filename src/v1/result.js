@@ -74,8 +74,7 @@ class Result {
    */
   then(onFulfilled, onRejected) {
     this._createPromise();
-    this._p.then(onFulfilled, onRejected);
-    return this._p;
+    return this._p.then(onFulfilled, onRejected);
   }
 
   /**
@@ -86,8 +85,7 @@ class Result {
    */
   catch(onRejected) {
     this._createPromise();
-    this._p.catch(onRejected);
-    return this._p;
+    return this._p.catch(onRejected);
   }
 
   /**

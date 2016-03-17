@@ -20,10 +20,12 @@
 import WebSocketChannel from "./ch-websocket";
 import NodeChannel from "./ch-node";
 import chunking from "./chunking";
+import hasFeature from "./features";
 import packstream from "./packstream";
 import {alloc, CombinedBuffer} from "./buf";
 import GraphType from '../graph-types';
 import {int, isInt} from '../integer';
+import {newError} from './error';
 
 let Channel;
 if( WebSocketChannel.available ) {
@@ -72,17 +74,13 @@ function port( url ) {
   return url.match( URLREGEX )[3];
 }
 
-function NO_OP(){};
-
-function LOG(err) {
-  console.log(err);
-};
+function NO_OP(){}
 
 let NO_OP_OBSERVER = {
   onNext : NO_OP,
   onCompleted : NO_OP,
   onError : NO_OP
-}
+};
 
 /** Maps from packstream structures to Neo4j domain objects */
 let _mappers = {
@@ -188,6 +186,9 @@ class Connection {
     this._unpacker.structMappers[PATH] = _mappers.path;
 
     let self = this;
+    // TODO: Using `onmessage` and `onerror` came from the WebSocket API,
+    // it reads poorly and has several annoying drawbacks. Swap to having
+    // Channel extend EventEmitter instead, then we can use `on('data',..)`
     this._ch.onmessage = (buf) => {
       let proposed = buf.readInt32();
       if( proposed == 1 ) {
@@ -202,16 +203,20 @@ class Connection {
         }
 
       } else {
-        this._isBroken = true;
-        console.log("FATAL, unknown protocol version:", proposed)
+        self._handleFatalError(newError("Unknown Bolt protocol version: " + proposed));
       }
     };
 
-    this._ch.onerror = (error) => {
-      self._isBroken = true;
-      if(this._currentObserver.onError) {
-        this._currentObserver.onError(error);
-      }
+    // Listen to connection errors. Important note though;
+    // In some cases we will get a channel that is already broken (for instance,
+    // if the user passes invalid configuration options). In this case, onerror
+    // will have "already triggered" before we add out listener here. So the line
+    // below also checks that the channel is not already failed. This could be nicely
+    // encapsulated into Channel if we used `on('error', ..)` rather than `onerror=..`
+    // as outlined in the comment about `onmessage` further up in this file.
+    this._ch.onerror = this._handleFatalError.bind(this);
+    if( this._ch._error ) {
+      this._handleFatalError(this._ch._error);
     }
 
     this._dechunker.onmessage = (buf) => {
@@ -228,6 +233,28 @@ class Connection {
     handshake.writeInt32( 0 );
     handshake.reset();
     this._ch.write( handshake );
+  }
+
+  /**
+   * "Fatal" means the connection is dead. Only call this if something
+   * happens that cannot be recovered from. This will lead to all subscribers
+   * failing, and the connection getting ejected from the session pool.
+   *
+   * @param err an error object, forwarded to all current and future subscribers
+   * @private
+   */
+  _handleFatalError( err ) {
+    this._isBroken = true;
+    this._error = err;
+    if( this._currentObserver && this._currentObserver.onError ) {
+      this._currentObserver.onError(err);
+    }
+    while( this._pendingObservers.length > 0 ) {
+      let observer = this._pendingObservers.shift();
+      if( observer && observer.onError ) {
+        observer.onError(err);
+      }
+    }
   }
 
   _handleMessage( msg ) {
@@ -280,8 +307,7 @@ class Connection {
         }
         break;
       default:
-        this._isBroken = true;
-        console.log("UNKNOWN MESSAGE: ", msg);
+        this._handleFatalError(newError("Unknown Bolt protocol message: " + msg));
     }
   }
 
@@ -328,7 +354,16 @@ class Connection {
   }
 
   _queueObserver(observer) {
+    if( this._isBroken ) {
+      if( observer && observer.onError ) {
+        observer.onError(this._error);
+      }
+      return;
+    }
     observer = observer || NO_OP_OBSERVER;
+    observer.onCompleted = observer.onCompleted || NO_OP;
+    observer.onError = observer.onError || NO_OP;
+    observer.onNext = observer.onNext || NO_OP;
     if( this._currentObserver === undefined ) {
       this._currentObserver = observer;
     } else {
@@ -362,14 +397,20 @@ class Connection {
  * Crete new connection to the provided url.
  * @access private
  * @param {string} url - 'neo4j'-prefixed URL to Neo4j Bolt endpoint
- * @param {Channel} channel - Optionally inject Channel to be used.
+ * @param {object} config
  * @return {Connection} - New connection
  */
-function connect( url, channel = null) {
-  channel = channel || Channel;
-  return new Connection( new channel({
+function connect( url, config = {}) {
+  let Ch = config.channel || Channel;
+  return new Connection( new Ch({
     host: host(url),
-    port: port(url)
+    port: port(url) || 7687,
+    // Default to using encryption if trust-on-first-use is available
+    encrypted : config.encrypted || hasFeature("trust_on_first_use"),
+    // Default to using trust-on-first-use if it is available
+    trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_SIGNED_CERTIFICATES"),
+    trustedCertificates : config.trustedCertificates || [],
+    knownHosts : config.knownHosts
   }));
 }
 
