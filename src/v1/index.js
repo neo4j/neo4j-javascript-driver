@@ -18,14 +18,11 @@
  */
 
 import {int, isInt} from './integer';
-import Driver from './driver';
-import {VERSION} from '../version';
+import {driver} from './driver';
 import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
 
-let USER_AGENT = "neo4j-javascript/" + VERSION;
-
 export default {
-  driver: (url, token, config={}) => new Driver(url, USER_AGENT, token, config),
+  driver,
   int,
   isInt,
   auth: {
