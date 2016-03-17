@@ -24,13 +24,14 @@ import {polyfill as polyfillPromise} from '../external/es6-promise';
 polyfillPromise();
 
 /**
-  * A Result instance is used for retrieving request response.
+  * A stream of {@link Record} representing the result of a statement.
   * @access public
   */
 class Result {
   /**
    * Inject the observer to be used.
    * @constructor
+   * @access private
    * @param {StreamObserver} streamObserver
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
@@ -65,11 +66,11 @@ class Result {
   }
 
   /**
-   * Waits for all results and calls the passed in function
-   * with the results.
-   * Cannot be used with the subscribe function.
-   * @param {function(error: Object)} onFulfilled - Function to be called when finished.
-   * @param {function(error: Object)} onRejected - Function to be called upon errors.
+   * Waits for all results and calls the passed in function with the results.
+   * Cannot be combined with the {@link #subscribe} function.
+   *
+   * @param {function(result: {records:Array<Record>})} onFulfilled - Function to be called when finished.
+   * @param {function(error: {message:string, code:string})} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
   then(onFulfilled, onRejected) {
@@ -80,7 +81,7 @@ class Result {
   /**
    * Catch errors when using promises.
    * Cannot be used with the subscribe function.
-   * @param {function(error: Object)} onRejected - Function to be called upon errors.
+   * @param {function(error: {message:string, code:string})} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
   catch(onRejected) {
@@ -89,11 +90,13 @@ class Result {
   }
 
   /**
-   * Stream results to observer as they come in.
+   * Stream records to observer as they come in, this is a more efficient method
+   * of handling the results, and allows you to handle arbitrarily large results.
+   *
    * @param {Object} observer - Observer object
-   * @param {function(record: Object)} observer.onNext - Handle records, one by one.
-   * @param {function(metadata: Object)} observer.onComplete - Handle stream tail, the metadata.
-   * @param {function(error: Object)} observer.onError - Handle errors.
+   * @param {function(record: Record)} observer.onNext - Handle records, one by one.
+   * @param {function(metadata: Object)} observer.onCompleted - Handle stream tail, the metadata.
+   * @param {function(error: {message:string, code:string})} observer.onError - Handle errors.
    * @return
    */
   subscribe(observer) {

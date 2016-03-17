@@ -50,7 +50,7 @@ describe('examples', function() {
     session
       .run( "MATCH (p:Person) WHERE p.name = 'Neo' RETURN p.age" )
       .then( function( result ) {
-        console.log( "Neo is " + result.records[0]["p.age"].toInt() + " years old." );
+        console.log( "Neo is " + result.records[0].get("p.age").toInt() + " years old." );
 
         session.close();
         driver.close();

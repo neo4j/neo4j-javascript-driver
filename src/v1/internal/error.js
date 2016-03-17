@@ -21,9 +21,21 @@
 // uniform across the driver surface.
 
 function newError(message, code="N/A") {
-  return {message, code};
+  // TODO: Idea is that we can check the cod here and throw sub-classes
+  // of Neo4jError as appropriate
+  return new Neo4jError(message, code);
+}
+
+// TODO: This should be moved into public API
+class Neo4jError extends Error {
+  constructor( message, code="N/A" ) {
+    super( message );
+    this.message = message;
+    this.code = code;
+  }
 }
 
 export {
-  newError
+  newError,
+  Neo4jError
 }

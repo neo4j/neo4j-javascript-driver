@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import {Record} from "../record";
+
 /**
  * Handles a RUN/PULL_ALL, or RUN/DISCARD_ALL requests, maps the responses
  * in a way that a user-provided observer can see these as a clean Stream
@@ -32,7 +34,8 @@ class StreamObserver {
    * @constructor
    */
   constructor() {
-    this._head = null;
+    this._fieldKeys = null;
+    this._fieldLookup = null;
     this._queuedRecords = [];
     this._tail = null;
     this._error = null;
@@ -45,10 +48,7 @@ class StreamObserver {
    * @param {Array} rawRecord - An array with the raw record
    */
   onNext(rawRecord) {
-    let record = {};
-    for (var i = 0; i < this._head.length; i++) {
-      record[this._head[i]] = rawRecord[i];
-    }
+    let record = new Record(this._fieldKeys, rawRecord, this._fieldLookup);
     if( this._observer ) {
       this._observer.onNext( record );
     } else {
@@ -56,13 +56,20 @@ class StreamObserver {
     }
   }
 
-  /**
-   * TODO
-   */
   onCompleted(meta) {
-    if( this._head === null ) {
-      // Stream header
-      this._head = meta.fields;
+    if( this._fieldKeys === null ) {
+      // Stream header, build a name->index field lookup table
+      // to be used by records. This is an optimization to make it
+      // faster to look up fields in a record by name, rather than by index.
+      // Since the records we get back via Bolt are just arrays of values.
+      this._fieldKeys = [];
+      this._fieldLookup = {};
+      if( meta.fields && meta.fields.length > 0 ) {
+        this._fieldKeys = meta.fields;
+        for (var i = 0; i < meta.fields.length; i++) {
+          this._fieldLookup[meta.fields[i]] = i;
+        }
+      }
     } else {
       // End of stream
       if( this._observer ) {

@@ -46,7 +46,7 @@ describe('session', function() {
       },
       onCompleted : function( ) {
         expect( records.length ).toBe( 1 );
-        expect( records[0]['a'] ).toBe( 1 );
+        expect( records[0].get('a') ).toBe( 1 );
         done();
       }
     });
@@ -95,7 +95,7 @@ describe('session', function() {
       },
       onCompleted : function( ) {
         expect( records.length ).toBe( 1 );
-        expect( records[0]['a'] ).toBe( true );
+        expect( records[0].get('a') ).toBe( true );
         done();
       }
     });
@@ -107,13 +107,13 @@ describe('session', function() {
     .then(
       function(result) {
         expect(result.records.length).toBe( 1 );
-        expect(result.records[0]['a']).toBe( 1 );
+        expect(result.records[0].get('a')).toBe( 1 );
         return result
       }
     ).then(
       function(result) {
         expect(result.records.length).toBe( 1 );
-        expect(result.records[0]['a']).toBe( 1 );
+        expect(result.records[0].get('a')).toBe( 1 );
       }
     ).then( done );
   });

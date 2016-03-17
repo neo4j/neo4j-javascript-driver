@@ -69,7 +69,7 @@ describe('node values', function() {
 
     // When
     session.run("CREATE (n:User {name:'Lisa'}) RETURN n, id(n)").then(function(result) {
-        var node = result.records[0]['n'];
+        var node = result.records[0].get('n');
 
         expect( node.properties ).toEqual( { name:"Lisa" } );
         expect( node.labels ).toEqual( ["User"] );
@@ -89,7 +89,7 @@ describe('relationship values', function() {
 
     // When
     session.run("CREATE ()-[r:User {name:'Lisa'}]->() RETURN r, id(r)").then(function(result) {
-        var rel = result.records[0]['r'];
+        var rel = result.records[0].get('r');
 
         expect( rel.properties ).toEqual( { name:"Lisa" } );
         expect( rel.type ).toEqual( "User" );
@@ -110,7 +110,7 @@ describe('path values', function() {
     // When
     session.run("CREATE p=(:User { name:'Lisa' })<-[r:KNOWS {since:1234.0}]-() RETURN p")
       .then(function(result) {
-        var path = result.records[0]['p'];
+        var path = result.records[0].get('p');
 
         expect( path.start.properties ).toEqual( { name:"Lisa" } );
         expect( path.end.properties ).toEqual( { } );
@@ -127,7 +127,7 @@ describe('path values', function() {
         }
         driver.close();
         done();
-      });
+      }).catch(function(err) { console.log(err); });
   });
 });
 
@@ -138,9 +138,9 @@ function testVal( val ) {
 
     session.run("RETURN {val} as v", {val: val})
       .then( function( result ) {
-        expect( result.records[0]['v'] ).toEqual( val );
+        expect( result.records[0].get('v') ).toEqual( val );
         driver.close();
         done();
-      });
+      }).catch(function(err) { console.log(err); });
   }
 }
