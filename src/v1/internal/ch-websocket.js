@@ -38,6 +38,7 @@ class WebSocketChannel {
     this._open = true;
     this._pending = [];
     this._error = null;
+    this._handleConnectionError = this._handleConnectionError.bind(this);
 
     let scheme = "ws";
     if( opts.encrypted ) {
@@ -48,12 +49,12 @@ class WebSocketChannel {
           "strategy, 'TRUST_SIGNED_CERTIFICATES'. "+opts.trust+" is not supported. Please " +
           "either use TRUST_SIGNED_CERTIFICATES or disable encryption by setting " +
           "`encrypted:false` in the driver configuration.");
+        return;
       }
     }
     this._url = scheme + ":" + opts.host + ":" + opts.port;
     this._ws = new WebSocket(this._url);
     this._ws.binaryType = "arraybuffer";
-    this._handleConnectionError = this._handleConnectionError.bind(this);
 
     let self = this;
     this._ws.onopen = function() {
@@ -83,9 +84,10 @@ class WebSocketChannel {
         "to this Neo4j Driver. Please use your browsers development console to determine " +
         "the root cause of the failure. Common reasons include the database being " +
         "unavailable, using the wrong connection URL or temporary network problems. " +
-        "WebSocket `readyState` is: " + this._ws.readyState );
+        "If you have enabled encryption, ensure your browser is configured to trust the " +
+        "certificate Neo4j is configured to use. WebSocket `readyState` is: " + this._ws.readyState );
       if (this.onerror) {
-        this.onerror(error);
+        this.onerror(this._error);
       }
     }
   }

@@ -46,6 +46,7 @@ class Result {
   /**
    * Create and return new Promise
    * @return {Promise} new Promise.
+   * @access private
    */
   _createPromise() {
     if(this._p) {
@@ -106,6 +107,9 @@ class Result {
       onCompletedOriginal.call(observer, sum);
     };
     observer.onCompleted = onCompletedWrapper;
+    observer.onError = observer.onError || ((err) => {
+      console.log("Uncaught error when processing result: " + err);
+    });
     this._streamObserver.subscribe(observer);
   }
 }

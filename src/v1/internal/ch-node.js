@@ -100,7 +100,7 @@ const TrustStrategy = {
     };
 
     let socket = tls.connect(opts.port, opts.host, tlsOpts, function () {
-      var serverCert = socket.getPeerCertificate(true);
+      var serverCert = socket.getPeerCertificate(raw=true);
 
       if( !serverCert.raw ) {
         // If `raw` is not available, we're on an old version of NodeJS, and
