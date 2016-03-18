@@ -113,15 +113,15 @@ module.exports = function () {
     var self = this;
     var errorCallback = function(err) {callback(new Error("Rejected Promise: " + err))}
     var successCallback = function(res) {
-      if(Object.keys(res.records[0]).length != 1 || Object.keys(res.records[0])[0].length != 1) {
-        callback(new Error("Expected the statement to return a single row, single field record. Got: " + Object.keys(res.records[0]).length + " records and: " + Object.keys(res.records[0])[0].length + " values"));
+      if(res.records.length != 1 || res.records[0].length != 1) {
+        callback(new Error("Expected the statement to return a single record, single field record. Got: " + res.records.length + " records and: " + res.records[0].length + " values"));
       }
 
-      if (!util.compareValues(res.records[0]['x'], self.expectedValue)) {
-          callback(new Error("Expected the statement to return same as what was sent. Got: " + res.records[0]['x'] + " Expected: " + self.expectedValue));
+      if (!util.compareValues(res.records[0].get('x'), self.expectedValue)) {
+          callback(new Error("Expected the statement to return same as what was sent. Got: " + res.records[0].get('x') + " Expected: " + self.expectedValue));
       }
       callback();
-    }
+    };
     this.withParamPromise.then(successCallback).catch(errorCallback);
     this.withLiteralPromise.then(successCallback).catch(errorCallback);
   });
@@ -132,7 +132,7 @@ module.exports = function () {
 
   function stringOfSize(size) {
     var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    return Array(size).join().split(',').map(function() { return chars.charAt(Math.floor(Math.random() * chars.length)); }).join('');
+    return new Array(size).join().split(',').map(function() { return chars.charAt(Math.floor(Math.random() * chars.length)); }).join('');
   }
 
   function randomBool()

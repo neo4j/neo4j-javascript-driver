@@ -46,7 +46,7 @@ describe('session', function() {
       },
       onCompleted : function( ) {
         expect( records.length ).toBe( 1 );
-        expect( records[0]['a'] ).toBe( 1 );
+        expect( records[0].get('a') ).toBe( 1 );
         done();
       }
     });
@@ -95,26 +95,27 @@ describe('session', function() {
       },
       onCompleted : function( ) {
         expect( records.length ).toBe( 1 );
-        expect( records[0]['a'] ).toBe( true );
+        expect( records[0].get('a') ).toBe( true );
         done();
       }
     });
   });
 
-  it('should expose basic run/then/then/then ', function(done) {
+  it('should expose run/then/then/then ', function(done) {
     // When & Then
     session.run( "RETURN 1.0 AS a")
     .then(
       function(result) {
         expect(result.records.length).toBe( 1 );
-        expect(result.records[0]['a']).toBe( 1 );
+        expect(result.records[0].get('a')).toBe( 1 );
+        return result
       }
     ).then(
       function(result) {
         expect(result.records.length).toBe( 1 );
-        expect(result.records[0]['a']).toBe( 1 );
+        expect(result.records[0].get('a')).toBe( 1 );
       }
-    ).then( function() { done(); })
+    ).then( done );
   });
 
   it('should expose basic run/catch ', function(done) {

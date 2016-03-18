@@ -25,12 +25,12 @@ module.exports = function () {
       var givenResults = [];
       var expectedPrint = printable(self.expectedResults);
       for (var i = 0 ; i < res.records.length; i++)  {
-          givenResults.push(getTestObject(res.records[i]));
+        givenResults.push(getTestObject(res.records[i]));
       }
       if ( givenResults.length != self.expectedResults.length) {
         callback(new Error("Given and expected length of result array does not match. Give: " + givenResults.length + " Expected " + self.expectedResults.length));
       }
-      if (!comapareResults(givenResults, self.expectedResults) ) {
+      if (!compareResults(givenResults, self.expectedResults) ) {
         callback(new Error("Given and expected results does not match: " + printable(givenResults) + " Expected " + expectedPrint));
       }
       callback();
@@ -39,7 +39,7 @@ module.exports = function () {
   });
 
 
-  function comapareResults(given, expected) {
+  function compareResults(given, expected) {
     if (! (typeof given === "object" && given instanceof Array) ) {
       throw new Error("Should be type Array")
     }
@@ -79,22 +79,20 @@ module.exports = function () {
 
   }
 
-  function getTestObject(rels, func) {
-    result = {}
-    for (var key in rels)
-    {
-      var rel = rels[key];
+  function getTestObject(rels) {
+    result = {};
+    rels.forEach(function( rel, key ) {
       if (typeof rel === "object" && rel instanceof Array) {
         var relArray = [];
         for (var i in rel) {
-            relArray.push(getTestValue(rel[i]));
+          relArray.push(getTestValue(rel[i]));
         }
         result[key] = relArray;
       }
       else {
         result[key] = getTestValue(rel);
       }
-    }
+    });
     return result;
   }
 
@@ -102,7 +100,7 @@ module.exports = function () {
     if ( val === null) {
       return val;
     }
-    var con = val.constructor.name.toLowerCase()
+    var con = val.constructor.name.toLowerCase();
     if (con === NODE) {
       return stripNode(val);
     }

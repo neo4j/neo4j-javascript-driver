@@ -19,6 +19,7 @@
  
 import {debug} from "./log";
 import {HeapBuffer} from "./buf";
+import {newError} from './error';
 
 /**
  * Create a new WebSocketChannel to be used in web browsers.
@@ -33,11 +34,27 @@ class WebSocketChannel {
    * @param {Integer} opts.port - The port to use.
    */
   constructor (opts) {
-    this._url = "ws:" + opts.host + ":" + (opts.port || 7687);
-    this._ws = new WebSocket(this._url);
-    this._ws.binaryType = "arraybuffer";
+
     this._open = true;
     this._pending = [];
+    this._error = null;
+    this._handleConnectionError = this._handleConnectionError.bind(this);
+
+    let scheme = "ws";
+    if( opts.encrypted ) {
+      if( (!opts.trust) || opts.trust === "TRUST_SIGNED_CERTIFICATES" ) {
+        scheme = "wss";
+      } else {
+        this._error = newError("The browser version of this driver only supports one trust " +
+          "strategy, 'TRUST_SIGNED_CERTIFICATES'. "+opts.trust+" is not supported. Please " +
+          "either use TRUST_SIGNED_CERTIFICATES or disable encryption by setting " +
+          "`encrypted:false` in the driver configuration.");
+        return;
+      }
+    }
+    this._url = scheme + ":" + opts.host + ":" + opts.port;
+    this._ws = new WebSocket(this._url);
+    this._ws.binaryType = "arraybuffer";
 
     let self = this;
     this._ws.onopen = function() {
@@ -55,9 +72,22 @@ class WebSocketChannel {
       } 
     };
 
-    this._ws.onerror = (err) => {
-      if( self.onerror ) {
-        self.onerror(err);
+    this._ws.onerror = this._handleConnectionError;
+  }
+
+  _handleConnectionError() {
+    // onerror triggers on websocket close as well.. don't get me started.
+    if( this._open ) {
+      // http://stackoverflow.com/questions/25779831/how-to-catch-websocket-connection-to-ws-xxxnn-failed-connection-closed-be
+      this._error = newError( "WebSocket connection failure. Due to security " +
+        "constraints in your web browser, the reason for the failure is not available " +
+        "to this Neo4j Driver. Please use your browsers development console to determine " +
+        "the root cause of the failure. Common reasons include the database being " +
+        "unavailable, using the wrong connection URL or temporary network problems. " +
+        "If you have enabled encryption, ensure your browser is configured to trust the " +
+        "certificate Neo4j is configured to use. WebSocket `readyState` is: " + this._ws.readyState );
+      if (this.onerror) {
+        this.onerror(this._error);
       }
     }
   }
@@ -82,12 +112,10 @@ class WebSocketChannel {
    * Close the connection
    * @param {function} cb - Function to call on close.
    */
-  close ( cb ) {
-    if(cb) {
-      this._ws.onclose(cb);
-    }
+  close ( cb = ( () => null )) {
     this._open = false;
     this._ws.close();
+    this._ws.onclose = cb;
   }
 }
 

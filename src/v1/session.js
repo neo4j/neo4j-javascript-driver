@@ -82,7 +82,7 @@ class Session {
   }
 
   /**
-   * Close this session
+   * Close this session.
    * @param {function()} cb - Function to be called after the session has been closed
    * @return
    */
