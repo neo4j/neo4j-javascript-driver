@@ -56,7 +56,7 @@ describe('trust-signed-certificates', function() {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       encrypted: true,
       trust: "TRUST_SIGNED_CERTIFICATES",
-      trustedCertificates: ["build/neo4j-enterprise-3.0.0/conf/ssl/snakeoil.cert"]
+      trustedCertificates: ["build/neo4j-enterprise-3.1.0/conf/ssl/snakeoil.cert"]
     });
 
     // When

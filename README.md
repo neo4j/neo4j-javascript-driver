@@ -1,6 +1,6 @@
 # Neo4j Driver for Javascript
 
-An alpha-level database driver for Neo4j 3.0.0+.
+An alpha-level database driver for Neo4j 3.1.0+.
 
 Note: This is in active development, the API is not stable. Please try it out and give us feedback, but expect things to break in the medium term!
 

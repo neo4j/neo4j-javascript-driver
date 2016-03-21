@@ -1,7 +1,7 @@
 {
   "name": "neo4j-driver",
-  "version": "0.0.0-dev",
-  "description": "Connect to Neo4j 3.0.0 and up from JavaScript",
+  "version": "1.1.0-dev",
+  "description": "Connect to Neo4j 3.1.0 and up from JavaScript",
   "author": "Neo Technology Inc.",
   "license": "Apache-2.0",
   "repository": {
