@@ -399,7 +399,7 @@ class HeapBuffer extends BaseBuffer {
       let copy = new HeapBuffer(length);
       for (var i = 0; i < length; i++) {
         copy.putUInt8( i, this.getUInt8( i + start ) );
-      };
+      }
       return copy;
     }
   }
@@ -414,7 +414,7 @@ class HeapBuffer extends BaseBuffer {
 }
 
 /**
- * Represents a view of slice of another buffer.
+ * Represents a view as slice of another buffer.
  * @access private
  */
 class SliceBuffer extends BaseBuffer {
@@ -486,7 +486,7 @@ class CombinedBuffer extends BaseBuffer {
       } else {
         return buffer.getInt8(position);
       }
-    };
+    }
   }
 
   getFloat64 ( position ) {
@@ -561,12 +561,12 @@ try {
 } catch(e) {}
 
 /**
-* Allocate a new buffer using whatever mechanism is most sensible for the
-* current platform
-* @access private
-* @param {Integer} size
-* @return new buffer
-*/
+ * Allocate a new buffer using whatever mechanism is most sensible for the
+ * current platform
+ * @access private
+ * @param {Integer} size
+ * @return new buffer
+ */
 function alloc (size) {
   return new _DefaultBuffer(size);
 }

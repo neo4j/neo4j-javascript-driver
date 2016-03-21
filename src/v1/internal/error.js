@@ -17,24 +17,25 @@
  * limitations under the License.
  */
 
-import {int, isInt} from './integer';
-import {driver} from './driver';
-import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
+// A common place for constructing error objects, to keep them
+// uniform across the driver surface.
 
-export default {
-  driver,
-  int,
-  isInt,
-  auth: {
-    basic: (username, password) => {
-      return {scheme: "basic", principal: username, credentials: password};
-    }
-  },
-  types: {
-    Node,
-    Relationship,
-    UnboundRelationship,
-    PathSegment,
-    Path
+function newError(message, code="N/A") {
+  // TODO: Idea is that we can check the cod here and throw sub-classes
+  // of Neo4jError as appropriate
+  return new Neo4jError(message, code);
+}
+
+// TODO: This should be moved into public API
+class Neo4jError extends Error {
+  constructor( message, code="N/A" ) {
+    super( message );
+    this.message = message;
+    this.code = code;
   }
+}
+
+export {
+  newError,
+  Neo4jError
 }

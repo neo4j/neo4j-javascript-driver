@@ -34,7 +34,7 @@ describe('transaction', function() {
     driver.close();
   });
 
-  it('should handle simple transaction', function(done) {
+  it('should commit simple case', function(done) {
     // When
     var tx = session.beginTransaction();
     tx.run("CREATE (:TXNode1)");
@@ -44,9 +44,9 @@ describe('transaction', function() {
         session.run("MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)")
           .then(function (result) {
             expect(result.records.length).toBe(1);
-            expect(result.records[0]['count(t1)'].toInt())
+            expect(result.records[0].get('count(t1)').toInt())
               .toBe(1);
-            expect(result.records[0]['count(t2)'].toInt())
+            expect(result.records[0].get('count(t2)').toInt())
               .toBe(1);
             done();
           });
@@ -57,13 +57,13 @@ describe('transaction', function() {
     // When
     var tx = session.beginTransaction();
     tx.run("RETURN 'foo' AS res").then(function (result) {
-      tx.run("CREATE ({name: {param}})", {param: result.records[0]['res']});
+      tx.run("CREATE ({name: {param}})", {param: result.records[0].get('res')});
       tx.commit()
         .then(function () {
           session.run("MATCH (a {name:'foo'}) RETURN count(a)")
             .then(function (result) {
               expect(result.records.length).toBe(1);
-              expect(result.records[0]['count(a)'].toInt()).toBe(1);
+              expect(result.records[0].get('count(a)').toInt()).toBe(1);
               done();
             });
         });
@@ -149,9 +149,9 @@ describe('transaction', function() {
         session.run("MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)")
           .then(function (result) {
             expect(result.records.length).toBe(1);
-            expect(result.records[0]['count(t1)'].toInt())
+            expect(result.records[0].get('count(t1)').toInt())
               .toBe(0);
-            expect(result.records[0]['count(t2)'].toInt())
+            expect(result.records[0].get('count(t2)').toInt())
               .toBe(0);
             done();
         });

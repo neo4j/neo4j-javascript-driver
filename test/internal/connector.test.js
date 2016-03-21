@@ -63,7 +63,7 @@ describe('connector', function() {
   it('should use DummyChannel to read what gets written', function(done) {
     // Given
     var observer = DummyChannel.observer;
-    var conn = connect("bolt://localhost", DummyChannel.channel)
+    var conn = connect("bolt://localhost", {channel:DummyChannel.channel});
 
     // When
     var records = [];

@@ -73,7 +73,7 @@ class Relationship {
   }
 
   toString() {
-    let s = "(" + this.start.split('/')[1] + ")-[:" + this.type;
+    let s = "(" + this.start + ")-[:" + this.type;
     let keys = Object.keys(this.properties);
     if (keys.length > 0) {
       s += " {";
@@ -83,7 +83,7 @@ class Relationship {
       }
       s += "}";
     }
-    s += "]->(" + this.end.split('/')[1] + ")";
+    s += "]->(" + this.end + ")";
     return s;
   }
 }
