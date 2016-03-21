@@ -19,6 +19,7 @@
 var NodeChannel = require('../../lib/v1/internal/ch-node.js');
 var neo4j = require("../../lib/v1");
 var fs = require("fs");
+var hasFeature = require("../../lib/v1/internal/features");
 
 describe('trust-signed-certificates', function() {
 
@@ -46,7 +47,7 @@ describe('trust-signed-certificates', function() {
   });
 
   it('should accept known certificates', function(done) {
-    // Assuming we only run this test on NodeJS
+    // Assuming we only run this test on NodeJS with TOFU support
     if( !NodeChannel.available ) {
       done();
       return;
@@ -56,7 +57,7 @@ describe('trust-signed-certificates', function() {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       encrypted: true,
       trust: "TRUST_SIGNED_CERTIFICATES",
-      trustedCertificates: ["build/neo4j-enterprise-3.1.0/conf/ssl/snakeoil.cert"]
+      trustedCertificates: ["build/neo4j-enterprise-3.1.0/certificates/snakeoil.cert"]
     });
 
     // When
@@ -76,8 +77,8 @@ describe('trust-on-first-use', function() {
   var driver;
 
   it('should accept previously un-seen hosts', function(done) {
-    // Assuming we only run this test on NodeJS
-    if( !NodeChannel.available ) {
+    // Assuming we only run this test on NodeJS with TOFU support
+    if( !hasFeature("trust_on_first_use") ) {
       done();
       return;
     }
@@ -104,8 +105,8 @@ describe('trust-on-first-use', function() {
   });
 
   it('should should give helpful error if database cert does not match stored certificate', function(done) {
-    // Assuming we only run this test on NodeJS
-    if( !NodeChannel.available ) {
+    // Assuming we only run this test on NodeJS with TOFU support
+    if( !hasFeature("trust_on_first_use") ) {
       done();
       return;
     }
