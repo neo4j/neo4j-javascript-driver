@@ -182,7 +182,7 @@ gulp.task('download-neo4j', function() {
     else {
         return download(neo4jLinuxUrl)
               .pipe(decompress({strip: 1}))
-              .pipe(gulp.dest(neo4jHome))1
+              .pipe(gulp.dest(neo4jHome));
     }
   }
 });
