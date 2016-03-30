@@ -202,6 +202,13 @@ class BaseBuffer
   /**
    * Read from state position.
    */
+  readUInt32 () {
+    return this.getUInt32( this._updatePos(4) );
+  }
+
+  /**
+   * Read from state position.
+   */
   readInt16 () {
     return this.getInt16( this._updatePos(2) );
   }

@@ -47,6 +47,8 @@ describe('packstream', function() {
   it('should pack strings', function() {
     expect( packAndUnpack( "" ) ).toBe( "" );
     expect( packAndUnpack( "abcdefg123567" ) ).toBe( "abcdefg123567" );
+    var str = Array(65536 + 1).join('a'); // 2 ^ 16 + 1
+    expect( packAndUnpack(str, str.length + 8)).toBe(str);
   });
   it('should pack structures', function() {
     expect( packAndUnpack( new Structure(1, ["Hello, world!!!"] ) ).fields[0] )  
