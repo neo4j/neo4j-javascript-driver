@@ -3,15 +3,15 @@ var util = require("./util")
 
 module.exports = function () {
 
-  this.Given(/^init:(.*)$/, function (statement) {
+  this.Given(/^init: (.*)$/, function (statement) {
     return this.session.run(statement);
   });
 
-  this.When(/^running:(.*)$/, function (statement) {
+  this.When(/^running: (.*)$/, function (statement) {
       this.rc = this.session.run(statement);
   });
 
-  this.When(/^running parametrized:(.*)$/, function (statement, table) {
+  this.When(/^running parametrized: (.*)$/, function (statement, table) {
     var param = util.literalTableToTestObject(table.hashes())[0];
     this.rc = this.session.run(statement, param);
   });

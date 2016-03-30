@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import net from 'net';
 import tls from 'tls';
 import fs from 'fs';
@@ -210,7 +210,7 @@ class NodeChannel {
       this.onerror(err);
     }
   }
-  
+
   /**
    * Write the passed in buffer to connection
    * @param {NodeBuffer} buffer - Buffer to write
