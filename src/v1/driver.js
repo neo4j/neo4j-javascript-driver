@@ -53,7 +53,8 @@ class Driver {
     this._pool = new Pool(
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
-      this._validateConnection.bind(this)
+      this._validateConnection.bind(this),
+      config.connectionPoolSize
     );
   }
 

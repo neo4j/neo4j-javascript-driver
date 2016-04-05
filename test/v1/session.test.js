@@ -19,6 +19,7 @@
 
 var neo4j = require("../../lib/v1");
 var StatementType = require("../../lib/v1/result-summary").statementType;
+var Session = require("../../lib/v1/session");
 
 describe('session', function() {
 
@@ -34,6 +35,18 @@ describe('session', function() {
   afterEach(function() {
     driver.close();
   });
+
+  it('close should be idempotent ', function(){
+    // Given
+    var counter = 0;
+    var _session = new Session(null, function(){
+      counter++;
+    });
+    _session.close();
+    expect(counter).toBe(1);
+    _session.close();
+    expect(counter).toBe(1);
+  })
 
   it('should expose basic run/subscribe ', function(done) {
     // Given

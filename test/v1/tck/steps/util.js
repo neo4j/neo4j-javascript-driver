@@ -11,6 +11,7 @@ PATH = 'path';
 
 module.exports = {
   literalTableToTestObject: literalTableToTestObject,
+  literalValueToTestValueNormalIntegers : literalValueToTestValueNormalIntegers,
   literalValueToTestValue: literalValueToTestValue,
   compareValues: compareValues,
   sizeOfObject: sizeOfObject,
@@ -35,12 +36,20 @@ function literalLineToObjects(resultRow) {
   return resultObject;
 }
 
+function literalValueToTestValueNormalIntegers(values) {
+  return literalValueToTestObject(values, false)
+}
+
 function literalValueToTestValue(values) {
+  return literalValueToTestObject(values, true)
+}
+
+function literalValueToTestObject(values, bigInt) {
   if (isLiteralArray(values)) {
     values = getLiteralArray(values);
   }
   if (isLiteralMap(values)) {
-    return getProperties(values);
+    return parseMap(values, bigInt);
   }
   if (values instanceof Array) {
     var res = [];
@@ -49,12 +58,12 @@ function literalValueToTestValue(values) {
     }
   }
   else {
-     var res = convertValue(values);
+     var res = convertValue(values, bigInt);
   }
   return res;
 }
 
-function convertValue(value) {
+function convertValue(value, bigInt) {
   if (value === NULL) {
     return null;
   }
@@ -74,7 +83,13 @@ function convertValue(value) {
     return createPath(value);
   }
   if (value.match( "^(-?[0-9]+)$")) {
-    return neo4j.int(value)
+    if (bigInt)
+    {
+      return neo4j.int(value)
+    }
+    else {
+      return parseInt(value)
+    }
   }
   return parseFloat(value);
 }
@@ -159,6 +174,21 @@ function parseNodesAndRelationshipsFromPath(val) {
   return nodesAndRels;
 }
 
+function parseMap(val, bigInt) {
+  if (bigInt)
+  {
+    return properties = JSON.parse(val, function(k, v) {
+      if (Number.isInteger(v)) {
+        return neo4j.int(v);
+      }
+      return v;
+    });
+  }
+  else {
+    return properties = JSON.parse(val);
+  }
+}
+
 function getProperties(val) {
   var startIndex = val.indexOf("{");
   var endIndex = val.indexOf("}");
@@ -166,12 +196,7 @@ function getProperties(val) {
     return {};
   }
   val = val.substring(startIndex, endIndex + 1);
-  return properties = JSON.parse(val, function(k, v) {
-    if (Number.isInteger(v)) {
-      return neo4j.int(v);
-    }
-    return v;
-  });
+  return parseMap(val, true)
 }
 
 function printable(array) {
