@@ -110,22 +110,18 @@ gulp.task('build-browser-test', function(){
     ));
 });
 
-var compress = function(source, dest, filename) {
-
-}
-
 var buildNode = function(options) {
   return gulp.src(options.src)
     .pipe(babel({ignore: ['src/external/**/*.js']}))
     .pipe(gulp.dest(options.dest))
-}
+};
 
 gulp.task('nodejs', function(){
   return buildNode({
     src: 'src/**/*.js',
     dest: 'lib'
     });
-})
+});
 
 gulp.task('all', function(cb){
   runSequence('nodejs', 'browser', cb);
@@ -223,7 +219,7 @@ var runPowershell = function( cmd ) {
         console.log("Powershell Script finished");
     });
     child.stdin.end(); //end input
-}
+};
 
 /** Set the project version, controls package.json and version.js */
 gulp.task('set', function() {

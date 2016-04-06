@@ -1,8 +1,9 @@
 var neo4j = require("../../../../lib/v1");
+var fs = require("fs");
 
 module.exports = function () {
 
-  var failedScenarios = []
+  var failedScenarios = [];
 
   this.Before("@reset_database", function( scenario, callback ) {
     this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
@@ -13,20 +14,33 @@ module.exports = function () {
     callback();
   });
 
-  this.Before("~@reset_database", function( scenario, callback ) {
+  this.Before("@tls", function( scenario ) {
+    this.knownHosts1 = "known_hosts1";
+    this.knownHosts2 = "known_hosts2";
+    _deleteFile(this.knownHosts1);
+    _deleteFile(this.knownHosts2);
+  });
+
+  this.Before("~@reset_database", "~@tls", function( scenario, callback ) {
     this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     this.session = this.driver.session();
     callback();
   });
 
   this.Before("@equality_test", function( scenario ) {
-    this.savedValues = {}
+    this.savedValues = {};
   });
 
   this.After(function (scenario, callback) {
+    if (this.driver) {
+      this.driver.close();
+    }
     if (!scenario.isSuccessful()) {
       failedScenarios.push(scenario)
     }
+
+    _deleteFile(this.knownHosts1);
+    _deleteFile(this.knownHosts2);
     callback();
   });
 
@@ -40,4 +54,16 @@ module.exports = function () {
     }
     callback();
   });
-}
+
+  function _deleteFile(fname) {
+    if (!fname) return;
+
+    try {
+      fs.lstatSync(fname);
+      fs.unlinkSync(fname);
+    }
+    catch (e) {
+      // ignore
+    }
+  }
+};
