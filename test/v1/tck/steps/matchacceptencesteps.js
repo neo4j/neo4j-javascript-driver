@@ -182,4 +182,4 @@ module.exports = function () {
   function printable(array) {
     return JSON.stringify(array);
   }
-}
+};

@@ -27,6 +27,12 @@ NULL = 'null';
 RELATIONSHIP = 'relationship';
 NODE = 'node';
 PATH = 'path';
+var isWin = /^win/.test(process.platform);
+var neo4jHome     = './build/neo4j-enterprise-3.0.0';
+var neo4jCert = neo4jHome + '/certificates/neo4j.cert';
+var neo4jKey = neo4jHome + '/certificates/neo4j.key';
+var childProcess = require("child_process");
+var fs = require('fs');
 
 module.exports = {
   literalTableToTestObject: literalTableToTestObject,
@@ -35,7 +41,10 @@ module.exports = {
   compareValues: compareValues,
   sizeOfObject: sizeOfObject,
   clone: clone,
-  printable: printable
+  printable: printable,
+  changeCertificates: changeCertificates,
+  restart: restart,
+  neo4jCert: neo4jCert
 };
 
 function literalTableToTestObject(literalResults) {
@@ -334,3 +343,55 @@ Number.isInteger = Number.isInteger || function(value) {
     isFinite(value) &&
     Math.floor(value) === value;
 };
+
+function changeCertificates(keyFile, certFile) {
+  var key = fs.readFileSync(keyFile);
+  fs.writeFileSync(neo4jKey, key);
+  var cert = fs.readFileSync(certFile);
+  fs.writeFileSync(neo4jCert, cert);
+}
+
+function restart(callback) {
+  stopDatabase();
+  setTimeout(function () {
+    startDatabase();
+    setTimeout(function () {
+      callback();}, 5000);
+  }, 500);
+}
+
+function startDatabase() {
+  if(isWin) {
+    runPowerShell('Start-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');
+  } else {
+    childProcess.execSync(neo4jHome + '/bin/neo4j start', function (err, stdout, stderr) {
+      if (err) throw err;
+    });
+  }
+}
+
+function stopDatabase() {
+  if(isWin) {
+    runPowerShell('Stop-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js;');
+  } else {
+    childProcess.execSync(neo4jHome + '/bin/neo4j stop', function (err, stdout, stderr) {
+      if (err) throw err;
+    });
+  }
+}
+
+function runPowerShell( cmd ) {
+  var spawn = childProcess.spawn, child;
+  child = spawn("powershell.exe",[
+    'Import-Module ' + neo4jHome + '/bin/Neo4j-Management.psd1;' + cmd]);
+  child.stdout.on("data",function(data){
+    console.log("Powershell Data: " + data);
+  });
+  child.stderr.on("data",function(data){
+    console.log("Powershell Errors: " + data);
+  });
+  child.on("exit",function(){
+    console.log("Powershell Script finished");
+  });
+  child.stdin.end(); //end input
+}

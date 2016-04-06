@@ -145,10 +145,6 @@ module.exports = function () {
     this.withLiteralPromise.then(successCallback).catch(errorCallback);
   });
 
-  this.After(function () {
-    this.driver.close()
-  });
-
   function stringOfSize(size) {
     var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     return new Array(size).join().split(',').map(function() { return chars.charAt(Math.floor(Math.random() * chars.length)); }).join('');
