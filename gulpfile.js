@@ -110,22 +110,18 @@ gulp.task('build-browser-test', function(){
     ));
 });
 
-var compress = function(source, dest, filename) {
-
-}
-
 var buildNode = function(options) {
   return gulp.src(options.src)
     .pipe(babel({ignore: ['src/external/**/*.js']}))
     .pipe(gulp.dest(options.dest))
-}
+};
 
 gulp.task('nodejs', function(){
   return buildNode({
     src: 'src/**/*.js',
     dest: 'lib'
     });
-})
+});
 
 gulp.task('all', function(cb){
   runSequence('nodejs', 'browser', cb);
@@ -205,7 +201,7 @@ gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
     return gulp.src(featureHome + "/*").pipe(cucumber({
         'steps': 'test/v1/tck/steps/*.js',
         'format': 'pretty',
-        'tags' : ['~@in_dev', '~@db', '~@equality']
+        'tags' : ['~@in_dev', '~@db', '~@equality', '~@streaming_and_cursor_navigation']
     }));
 });
 
@@ -223,7 +219,7 @@ var runPowershell = function( cmd ) {
         console.log("Powershell Script finished");
     });
     child.stdin.end(); //end input
-}
+};
 
 /** Set the project version, controls package.json and version.js */
 gulp.task('set', function() {
