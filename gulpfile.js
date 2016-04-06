@@ -213,7 +213,7 @@ var runPowershell = function( cmd ) {
         console.log("Powershell Data: " + data);
     });
     child.stderr.on("data",function(data){
-        console.log("Powershell Errors: " + data);
+        console.error("Powershell Errors: " + data);
     });
     child.on("exit",function(){
         console.log("Powershell Script finished");

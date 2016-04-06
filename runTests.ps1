@@ -1,14 +1,15 @@
-Try
+npm install
+npm run start-neo4j
+npm test
+
+if(-Not ($?)) #failed to execute npm test
 {
-    npm install
-    npm run start-neo4j
-    npm test
+    $ErrorFound = $True
 }
-Catch [system.exception]
+
+npm run stop-neo4j
+
+if($ErrorFound -eq $True)
 {
-    "Error found while running tests"
-}
-Finally
-{
-    npm run stop-neo4j
+	exit 1
 }
