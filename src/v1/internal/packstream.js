@@ -21,6 +21,7 @@ import {debug} from "./log";
 import {alloc} from "./buf";
 import utf8 from "./utf8";
 import {Integer, int} from "../integer";
+import {newError} from './../error';
 
 let MAX_CHUNK_SIZE = 16383,
 TINY_STRING = 0x80,
@@ -108,7 +109,7 @@ class Packer {
         this.pack(x[key]);
       }
     } else {
-      throw new Error("Cannot pack this value: " + x);
+      throw newError("Cannot pack this value: " + x);
     }
   }
 
@@ -174,7 +175,7 @@ class Packer {
       this._ch.writeUInt8(size%256);
       this._ch.writeBytes(bytes);
     } else {
-      throw new ProtocolError("UTF-8 strings of size " + size + " are not supported");
+      throw newError("UTF-8 strings of size " + size + " are not supported");
     }
   }
 
@@ -195,7 +196,7 @@ class Packer {
       this._ch.writeUInt8((size/256>>0)%256);
       this._ch.writeUInt8(size%256);
     } else {
-      throw new ProtocolError("Lists of size " + size + " are not supported");
+      throw newError("Lists of size " + size + " are not supported");
     }
   }
 
@@ -216,7 +217,7 @@ class Packer {
       this._ch.writeUInt8((size/256>>0)%256);
       this._ch.writeUInt8(size%256);
     } else {
-      throw new ProtocolError("Maps of size " + size + " are not supported");
+      throw newError("Maps of size " + size + " are not supported");
     }
   }
 
@@ -233,7 +234,7 @@ class Packer {
       this._ch.writeUInt8(size/256>>0);
       this._ch.writeUInt8(size%256);
     } else {
-      throw new ProtocolError("Structures of size " + size + " are not supported");
+      throw newError("Structures of size " + size + " are not supported");
     }
   }
 }
@@ -340,7 +341,7 @@ class Unpacker {
     } else if (markerHigh == 0xB0) {
       return this.unpackStruct(markerLow, buffer);
     } else {
-      throw new ProtocolError("Unknown packed value with marker " + marker.toString(16));
+      throw newError("Unknown packed value with marker " + marker.toString(16));
     }
   }
 }
@@ -348,5 +349,5 @@ class Unpacker {
 export default {
   Packer,
   Unpacker,
-  Structure,
+  Structure
 };

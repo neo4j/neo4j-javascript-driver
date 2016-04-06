@@ -19,7 +19,7 @@
  
 import {debug} from "./log";
 import {HeapBuffer} from "./buf";
-import {newError} from './error';
+import {newError} from './../error';
 
 /**
  * Create a new WebSocketChannel to be used in web browsers.
@@ -104,7 +104,7 @@ class WebSocketChannel {
     } else if( buffer instanceof HeapBuffer ) {
       this._ws.send( buffer._buffer );
     } else {
-      throw new Error( "Don't know how to send buffer: " + buffer );
+      throw newError( "Don't know how to send buffer: " + buffer );
     }
   }
 
