@@ -8,6 +8,8 @@ Find detailed docs at [alpha.neohq.net](http://alpha.neohq.net/docs/javascript-d
 
 ```shell
 npm install neo4j-driver
+// or
+bower install neo4j-driver
 ```
 
 ```javascript
