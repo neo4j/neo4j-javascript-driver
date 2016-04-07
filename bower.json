@@ -1,0 +1,37 @@
+{
+  "name": "neo4j-driver",
+  "description": "Connect to Neo4j 3.0.0 and up from JavaScript",
+  "main": "lib/browser/neo4j-web.min.js",
+  "authors": [{
+    "name": "Neo Technology Inc."
+  }],
+  "license": "Apache-2.0",
+  "keywords": [
+    "neo4j"
+  ],
+  "moduleType": [
+    "amd",
+    "es6",
+    "globals",
+    "node"
+  ],
+  "ignore": [
+    "docs",
+    "src",
+    "test",
+    "build",
+    "node_modules",
+    "lib/browser/neo4j-web.test.js",
+    "package.json",
+    ".gitignore",
+    ".npmignore",
+    "esdoc.json",
+    "gulpfile.js",
+    "runTests.sh",
+    "runTests.ps1"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neo4j/neo4j-javascript-driver.git"
+  }
+}

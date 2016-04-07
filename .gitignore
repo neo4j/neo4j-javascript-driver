@@ -9,5 +9,4 @@ build
 node_modules
 .idea
 docs/build
-/lib
 .npmrc
