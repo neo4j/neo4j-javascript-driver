@@ -43,6 +43,7 @@ var path = require('path');
 var childProcess = require("child_process");
 var minimist = require('minimist');
 var cucumber = require('gulp-cucumber');
+var merge = require('merge-stream');
 
 gulp.task('default', ["test"]);
 
@@ -184,8 +185,20 @@ gulp.task('download-neo4j', function() {
 });
 
 gulp.task('set-password', ['download-neo4j'], function() {
-  return gulp.src('test/resources/auth')
-    .pipe(gulp.dest(neo4jHome + "/data/dbms/"));
+  var setPassword = gulp.src('test/resources/auth')
+  .pipe(gulp.dest(neo4jHome + "/data/dbms/"));
+
+  if(isWin)
+  {
+    var setServerName = gulp.src('test/resources/neo4j-wrapper.conf')
+    .pipe(gulp.dest(neo4jHome + "/conf/"));
+
+    return merge(setPassword, setServerName);
+  }
+  else
+  {
+    return setPassword;
+  }
 });
 
 var featureFiles   = 'https://s3-eu-west-1.amazonaws.com/remoting.neotechnology.com/driver-compliance/tck.tar.gz';
@@ -207,8 +220,7 @@ gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
 
 var runPowershell = function( cmd ) {
     var spawn = childProcess.spawn, child;
-    child = spawn("powershell.exe",[
-        'Import-Module ' + neo4jHome + '/bin/Neo4j-Management.psd1;' + cmd]);
+    child = spawn("powershell.exe",[cmd]);
     child.stdout.on("data",function(data){
         console.log("Powershell Data: " + data);
     });
@@ -235,8 +247,7 @@ gulp.task('set', function() {
 
 gulp.task('start-neo4j', ['set-password'], function() {
   if(isWin) {
-    runPowershell('Install-Neo4jServer -Neo4jServer ' + neo4jHome + ' -Name neo4j-js;' +
-                  'Start-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');
+    return runPowershell(neo4jHome + '/bin/neo4j.bat install-service;' + neo4jHome + '/bin/neo4j.bat start');
   }
   else {
     return gulp.src('').pipe(shell([
@@ -248,8 +259,7 @@ gulp.task('start-neo4j', ['set-password'], function() {
 
 gulp.task('stop-neo4j', function() {
   if(isWin) {
-    runPowershell('Stop-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js;' +
-                  'Uninstall-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');
+    return runPowershell(neo4jHome + '/bin/neo4j.bat stop;' + neo4jHome + '/bin/neo4j.bat uninstall-service');
   } else {
     return gulp.src('').pipe(shell([
       neo4jHome + '/bin/neo4j stop',

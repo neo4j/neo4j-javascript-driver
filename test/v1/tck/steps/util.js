@@ -362,7 +362,7 @@ function restart(callback) {
 
 function startDatabase() {
   if(isWin) {
-    runPowerShell('Start-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js');
+    return runPowershell(neo4jHome + '/bin/neo4j.bat install-service;' + neo4jHome + '/bin/neo4j.bat start');
   } else {
     childProcess.execSync(neo4jHome + '/bin/neo4j start', function (err, stdout, stderr) {
       if (err) throw err;
@@ -372,7 +372,7 @@ function startDatabase() {
 
 function stopDatabase() {
   if(isWin) {
-    runPowerShell('Stop-Neo4jServer -Neo4jServer ' + neo4jHome + ' -ServiceName neo4j-js;');
+    runPowershell(neo4jHome + '/bin/neo4j.bat stop;' + neo4jHome + '/bin/neo4j.bat uninstall-service');
   } else {
     childProcess.execSync(neo4jHome + '/bin/neo4j stop', function (err, stdout, stderr) {
       if (err) throw err;
@@ -380,18 +380,17 @@ function stopDatabase() {
   }
 }
 
-function runPowerShell( cmd ) {
-  var spawn = childProcess.spawn, child;
-  child = spawn("powershell.exe",[
-    'Import-Module ' + neo4jHome + '/bin/Neo4j-Management.psd1;' + cmd]);
-  child.stdout.on("data",function(data){
-    console.log("Powershell Data: " + data);
-  });
-  child.stderr.on("data",function(data){
-    console.log("Powershell Errors: " + data);
-  });
-  child.on("exit",function(){
-    console.log("Powershell Script finished");
-  });
-  child.stdin.end(); //end input
-}
+var runPowershell = function( cmd ) {
+    var spawn = childProcess.spawn, child;
+    child = spawn("powershell.exe",[cmd]);
+    child.stdout.on("data",function(data){
+        console.log("Powershell Data: " + data);
+    });
+    child.stderr.on("data",function(data){
+        console.error("Powershell Errors: " + data);
+    });
+    child.on("exit",function(){
+        console.log("Powershell Script finished");
+    });
+    child.stdin.end(); //end input
+};
