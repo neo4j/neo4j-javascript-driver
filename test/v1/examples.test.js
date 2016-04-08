@@ -17,16 +17,25 @@
  * limitations under the License.
  */
 
-var neo4j = require("../../lib/v1");
+var neo4jv1 = require("../../lib/v1");
 
 var _console = console;
 
-describe('examples', function() {
+/**
+* The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
+*
+* DO NOT add tests to this file that are not for that exact purpose.
+* DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
+*/
+fdescribe('examples', function() {
 
   var driver, session, out, console;
 
   beforeEach(function(done) {
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var neo4j = neo4jv1;
+    // tag::construct-driver[]
+    driver = neo4j.driver("bolt://localhost", neo4jv1.auth.basic("neo4j", "neo4j"));
+    //end::construct-driver[]
     session = driver.session();
 
     // Override console.log, to assert on stdout output
@@ -40,13 +49,18 @@ describe('examples', function() {
     driver.close();
   });
 
-  it('should document a minimum viable snippet', function(done) {
-    // tag::minimum-snippet[]
+  it('should document a minimal import and usage example', function (done) {
+    //OH my is this a hack
+    var require = function (arg) {
+      return {v1: neo4jv1}
+    };
+    // tag::minimal-example-import[]
+    var neo4j = require('neo4j-driver').v1;
+    // end::minimal-example-import[]
+    // tag::minimal-example[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     var session = driver.session();
-
     session.run( "CREATE (neo:Person {name:'Neo', age:23})" );
-
     session
       .run( "MATCH (p:Person) WHERE p.name = 'Neo' RETURN p.age" )
       .then( function( result ) {
@@ -56,14 +70,30 @@ describe('examples', function() {
         driver.close();
         done();
       });
-    // end::minimum-snippet[]
+    // tag::minimal-example[]
+  });
+
+  it('should be able to configure session pool size', function (done) {
+   var neo4j = neo4jv1;
+    // tag::configuration[]
+    driver = neo4j.driver("bolt://localhost", neo4jv1.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 10});
+    //end::configuration[]
+
+    session.run( "CREATE (neo:Person {name:'Neo', age:23})" );
+    session
+      .run( "MATCH (p:Person) WHERE p.name = 'Neo' RETURN p.age" )
+      .then( function( result ) {
+        session.close();
+        driver.close();
+        done();
+      });
   });
 
   it('should document a statement', function(done) {
     var resultPromise =
     // tag::statement[]
     session
-      .run( "CREATE (p:Person { name: {name} })", {"name": "The One"} )
+      .run( "CREATE (p:Person { name: {name} })", {name: "The One"} )
       .then( function(result) {
         var theOnesCreated = result.summary.updateStatistics.nodesCreated();
         console.log("There were " + theOnesCreated + " the ones created.")
@@ -96,6 +126,112 @@ describe('examples', function() {
     })
   });
 
+  it('should be able to iterate results', function(done) {
+    // tag::retain-result-query[]
+      session
+        .run( "MATCH (p:Person { name: {name} }) RETURN p.age", {name : "The One"} )
+        .subscribe({
+          onNext: function(record) {
+            console.log(record);
+          },
+          onCompleted: function() {
+            // Completed!
+            session.close();
+          },
+          onError: function(error) {
+            console.log(error);
+          }
+        });
+    // end::result-cursor[]
+    // Then
+    done();
+  });
+
+  it('should be able to do nested queries', function(done) {
+    session.run("CREATE (:Person {name:'The One'})").then(function() {
+        // tag::result-cursor[]
+        session
+          .run("MATCH (p:Person { name: {name} }) RETURN id(p)", {name: "The One"})
+          .then(function (result) {
+            var id = result.records[0].get('id(p)');
+            session.run( "MATCH (p) WHERE id(p) = {id} CREATE (p)-[:HAS_TRAIT]->(:Trait {type:'Immortal'})", {id: id })
+              .then(function (neoRecord) {
+                var immortalsCreated = neoRecord.summary.updateStatistics.nodesCreated();
+                var relationshipCreated = neoRecord.summary.updateStatistics.relationshipsCreated();
+                console.log("There were " + immortalsCreated + " immortal and " + relationshipCreated +
+                  " relationships created");
+              });
+          });
+      // tag::result-cursor[]
+    });
+
+    //await the result
+    setTimeout(function() {
+      expect(out[0]).toBe("There were 1 immortal and 1 relationships created");
+      done();
+    }, 500);
+  });
+
+  it('should be able to retain for later processing', function(done) {
+    session.run("CREATE (:Person {name:'The One', age: 23})").then(function() {
+      // tag::retain-result-process[]
+      session
+        .run("MATCH (p:Person { name: {name} }) RETURN p.age", {name: "The One"})
+        .then(function (result) {
+          for (i = 0; i < result.records.length; i++) {
+            result.records[i].forEach(function (value, key, record) {
+              console.log("Value for key " + key + " has value " + value);
+            });
+          }
+
+        });
+      // end::retain-result-process[]
+    });
+
+    //await the result
+    setTimeout(function() {
+      expect(out[0]).toBe("Value for key p.age has value 23");
+      done();
+    }, 500);
+  });
+
+
+  it('should be able to profile', function(done) {
+    session.run("CREATE (:Person {name:'The One', age: 23})").then(function() {
+      // tag::retain-result-process[]
+      session
+        .run("PROFILE MATCH (p:Person { name: {name} }) RETURN id(p)", {name: "The One"})
+        .then(function (result) {
+          console.log(result.summary.profile);
+        });
+      // end::retain-result-process[]
+    });
+
+    //await the result
+    setTimeout(function() {
+      expect(out.length).toBe(1);
+      done();
+    }, 500);
+  });
+
+  it('should be able to see notifications', function(done) {
+    // tag::retain-result-process[]
+    session
+      .run("EXPLAIN MATCH (a), (b) RETURN a,b")
+      .then(function (result) {
+        var notifications = result.summary.notifications, i;
+        for (i = 0; i < notifications.length; i++) {
+          console.log(notifications[i].code);
+        }
+      });
+    // end::retain-result-process[]
+
+    setTimeout(function () {
+      expect(out[0]).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
+      done();
+    }, 500);
+  });
+
   it('should document committing a transaction', function() {
     // tag::transaction-commit[]
     var tx = session.beginTransaction();
@@ -113,6 +249,7 @@ describe('examples', function() {
   });
 
   it('should document how to require encryption', function() {
+    var neo4j = neo4jv1;
     // tag::tls-require-encryption[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       // In NodeJS, encryption is on by default. In the web bundle, it is off.
@@ -123,6 +260,7 @@ describe('examples', function() {
   });
 
   it('should document how to configure trust-on-first-use', function() {
+    var neo4j = neo4jv1;
     // tag::tls-trust-on-first-use[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       // Note that trust-on-first-use is not available in the browser bundle,
@@ -136,6 +274,7 @@ describe('examples', function() {
   }); 
 
   it('should document how to configure a trusted signing certificate', function() {
+    var neo4j = neo4jv1;
     // tag::tls-signed[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       trust: "TRUST_SIGNED_CERTIFICATES",
