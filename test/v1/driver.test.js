@@ -32,4 +32,19 @@ describe('driver', function() {
     expect( session ).not.toBeNull();
     driver.close();
   });
+
+  it('should handle connection errors', function(done) {
+    // Given
+    var driver = neo4j.driver("bolt://localhoste", neo4j.auth.basic("neo4j", "neo4j"));
+
+    // Expect
+    driver.onError = function (err) {
+      //the error message is different whether in browser or node
+      expect(err.message).not.toBeNull();
+      done();
+    };
+
+    // When
+    driver.session();
+  });
 });
