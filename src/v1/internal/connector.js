@@ -25,7 +25,7 @@ import packstream from "./packstream";
 import {alloc, CombinedBuffer} from "./buf";
 import GraphType from '../graph-types';
 import {int, isInt} from '../integer';
-import {newError} from './error';
+import {newError} from './../error';
 
 let Channel;
 if( WebSocketChannel.available ) {
@@ -35,7 +35,7 @@ else if( NodeChannel.available ) {
     Channel = NodeChannel.channel;
 }
 else {
-    throw new Error("Fatal: No compatible transport available. Need to run on a platform with the WebSocket API.");
+    throw newError("Fatal: No compatible transport available. Need to run on a platform with the WebSocket API.");
 }
 
 

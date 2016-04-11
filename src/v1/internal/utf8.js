@@ -22,6 +22,7 @@
 
 import buf from "./buf";
 import {StringDecoder} from 'string_decoder';
+import {newError} from './../error';
 let platformObj = {};
 
 
@@ -52,7 +53,7 @@ try {
         return out;
       } 
       else {
-        throw new Error( "Don't know how to decode strings from `" + buffer + "`.");
+        throw newError( "Don't know how to decode strings from `" + buffer + "`.");
       }
     }
   }

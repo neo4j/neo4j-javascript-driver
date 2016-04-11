@@ -26,7 +26,6 @@ function newError(message, code="N/A") {
   return new Neo4jError(message, code);
 }
 
-// TODO: This should be moved into public API
 class Neo4jError extends Error {
   constructor( message, code="N/A" ) {
     super( message );
