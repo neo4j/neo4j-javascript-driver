@@ -83,7 +83,9 @@ gulp.task('build-browser-test', function(){
   var testFiles = [];
   return gulp.src('./test/**/*.test.js')
     .pipe( through.obj( function( file, enc, cb ) {
-      testFiles.push( file.path );
+      if(file.path.indexOf('examples.test.js') < 0) {
+        testFiles.push( file.path );
+      }
       cb();
     }, function(cb) {
       // At end-of-stream, push the list of files to the next step
