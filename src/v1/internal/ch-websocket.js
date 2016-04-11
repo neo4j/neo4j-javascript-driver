@@ -57,6 +57,13 @@ class WebSocketChannel {
     this._ws.binaryType = "arraybuffer";
 
     let self = this;
+    //All connection errors are not sent to the error handler
+    //we must also check for dirty close calls
+    this._ws.onclose = function(e) {
+        if (!e.wasClean) {
+          self._handleConnectionError();
+        }
+    };
     this._ws.onopen = function() {
       // Drain all pending messages
       let pending = self._pending;
