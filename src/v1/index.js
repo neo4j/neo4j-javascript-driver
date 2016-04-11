@@ -20,11 +20,12 @@
 import {int, isInt} from './integer';
 import {driver} from './driver';
 import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
-
+import {Neo4jError} from './error';
 export default {
   driver,
   int,
   isInt,
+  Neo4jError,
   auth: {
     basic: (username, password) => {
       return {scheme: "basic", principal: username, credentials: password};

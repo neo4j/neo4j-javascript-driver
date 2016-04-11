@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {newError} from "./internal/error";
+import {newError} from "./error";
 
 function generateFieldLookup( keys ) {
   let lookup = {};

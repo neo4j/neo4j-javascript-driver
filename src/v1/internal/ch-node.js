@@ -23,7 +23,7 @@ import fs from 'fs';
 import path from 'path';
 import {EOL} from 'os';
 import {NodeBuffer} from './buf';
-import {newError} from './error';
+import {newError} from './../error';
 
 let _CONNECTION_IDGEN = 0;
 
@@ -228,7 +228,7 @@ class NodeChannel {
       // console.log( "[Conn#"+this.id+"] SEND: ", buffer.toString() );
       this._conn.write( buffer._buffer );
     } else {
-      throw new Error( "Don't know how to write: " + buffer );
+      throw newError( "Don't know how to write: " + buffer );
     }
   }
 

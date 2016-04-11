@@ -21,6 +21,8 @@
 // https://github.com/dcodeIO/Long.js
 // License Apache 2
 
+import {newError} from "./error";
+
 /**
  * Constructs a 64 bit two's-complement integer, given its low and high 32 bit values as *signed* integers.
  *  See the from* functions below for more convenient ways of constructing Integers.
@@ -407,7 +409,7 @@ class Integer {
     if (!Integer.isInteger(divisor))
         divisor = Integer.fromValue(divisor);
     if (divisor.isZero())
-        throw(new Error('division by zero'));
+        throw newError('division by zero');
     if (this.isZero())
         return Integer.ZERO;
     var approx, rem, res;
@@ -666,16 +668,16 @@ Integer.fromBits = function(lowBits, highBits) {
  */
 Integer.fromString = function(str, radix) {
     if (str.length === 0)
-        throw Error('number format error: empty string');
+        throw newError('number format error: empty string');
     if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
         return Integer.ZERO;
     radix = radix || 10;
     if (radix < 2 || 36 < radix)
-        throw Error('radix out of range: ' + radix);
+        throw newError('radix out of range: ' + radix);
 
     var p;
     if ((p = str.indexOf('-')) > 0)
-        throw Error('number format error: interior "-" character: ' + str);
+        throw newError('number format error: interior "-" character: ' + str);
     else if (p === 0)
         return Integer.fromString(str.substring(1), radix).negate();
 

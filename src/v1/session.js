@@ -74,7 +74,7 @@ class Session {
    */
   beginTransaction() {
     if (this._hasTx) {
-      throw new Error("Cannot have multiple transactions open for the session. Use multiple sessions or close the transaction before opening a new one.")
+      throw new newError("Cannot have multiple transactions open for the session. Use multiple sessions or close the transaction before opening a new one.")
     }
 
     this._hasTx = true;

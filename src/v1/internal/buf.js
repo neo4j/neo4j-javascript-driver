@@ -22,6 +22,7 @@
   *(via Buffer API).
   */
 
+import {newError} from './../error';
 let _node = require("buffer");
 /**
   * Common base with default implementation for most buffer methods.
@@ -465,7 +466,7 @@ class CombinedBuffer extends BaseBuffer {
     let length = 0;
     for (let i = 0; i < buffers.length; i++) {
       length += buffers[i].length;
-    };
+    }
     super( length );
     this._buffers = buffers;
   }
@@ -480,7 +481,7 @@ class CombinedBuffer extends BaseBuffer {
       } else {
         return buffer.getUInt8(position);
       }
-    };
+    }
   }
 
   getInt8 ( position ) {
@@ -547,10 +548,10 @@ class NodeBuffer extends BaseBuffer {
         this._buffer,
         position,
         val.position,
-        val.position + bytesToCopy )
+        val.position + bytesToCopy );
       val.position += bytesToCopy;
     } else {
-      throw new Error("Copying not yet implemented.");
+      throw newError("Copying not yet implemented.");
     }
   };
 
