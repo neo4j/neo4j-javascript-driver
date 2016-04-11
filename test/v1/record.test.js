@@ -18,7 +18,7 @@
  */
 
 var Record = require("../../lib/v1/record").Record;
-var Neo4jError = require("../../lib/v1/internal/error").Neo4jError;
+var Neo4jError = require("../../lib/v1/error").Neo4jError;
 
 
 describe('Record', function() {
