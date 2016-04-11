@@ -91,6 +91,7 @@ const TrustStrategy = {
         onSuccess();
       }
     });
+    socket.on('error', onFailure);
     return socket;
   },
   TRUST_ON_FIRST_USE : function( opts, onSuccess, onFailure ) {
@@ -139,13 +140,16 @@ const TrustStrategy = {
         }
       });
     });
+    socket.on('error', onFailure);
     return socket;
   }
 };
 
 function connect( opts, onSuccess, onFailure=(()=>null) ) {
   if( opts.encrypted === false ) {
-    return net.connect(opts.port, opts.host, onSuccess);
+    var conn = net.connect(opts.port, opts.host, onSuccess);
+    conn.on('error', onFailure);
+    return conn;
   } else if( TrustStrategy[opts.trust]) {
     return TrustStrategy[opts.trust](opts, onSuccess, onFailure);
   } else {

@@ -46,7 +46,7 @@ describe('session', function() {
     expect(counter).toBe(1);
     _session.close();
     expect(counter).toBe(1);
-  })
+  });
 
   it('should expose basic run/subscribe ', function(done) {
     // Given

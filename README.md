@@ -14,7 +14,7 @@ bower install neo4j-driver
 ```
 
 ```javascript
-var neo4j = require('neo4j-driver').v1;
+var neo4j = require('neo4j-driver');
 ```
 
 ## Include in web browser
