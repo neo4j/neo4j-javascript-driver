@@ -281,6 +281,9 @@ function getLiteralArray(result) {
 }
 
 function compareValues(given, expected) {
+  if(given === undefined || expected === undefined) {
+    throw new Error("Got undefined");
+  }
   if (neo4j.isInt(given)) {
     if (given.equals(expected)) {
       return true;

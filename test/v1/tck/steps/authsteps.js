@@ -59,7 +59,7 @@ module.exports = function () {
     var expectedStartOfMessage = 'The client is unauthorized due to authentication failure.'
     var expectedCode = 'Neo.ClientError.Security.Unauthorized'
 
-    if (! message.startsWith(expectedStartOfMessage)) {
+    if (message.indexOf(expectedStartOfMessage) != 0) {
       throw new Error("Wrong error messsage. Expected: '" + expectedStartOfMessage + "'. Got: '" + message + "'");
     }
 
