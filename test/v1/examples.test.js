@@ -27,7 +27,7 @@ var _console = console;
 * DO NOT add tests to this file that are not for that exact purpose.
 * DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
 */
-fdescribe('examples', function() {
+xdescribe('examples', function() {
 
   var driver, session, out, console;
 
