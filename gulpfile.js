@@ -253,6 +253,10 @@ gulp.task('start-neo4j', ['set-password'], function() {
   }
   else {
     return gulp.src('').pipe(shell([
+      'mkdir -p ' + neo4jHome + '/logs',
+      'mkdir -p ' + neo4jHome + '/run',
+      'mkdir -p ' + neo4jHome + '/plugins',
+      'mkdir -p ' + neo4jHome + '/import',
       'chmod +x ' + neo4jHome + '/bin/neo4j',
       neo4jHome + '/bin/neo4j start',
     ]));
