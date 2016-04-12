@@ -234,8 +234,9 @@ describe('session', function() {
     //Then
     session.run("RETURN 42")
       .catch(function (error) {
-        expect(error.error).toBe("Please close the currently open transaction object before running " +
-          "more statements/transactions in the current session." );
+        expect(error.message).toBe("Statements cannot be run directly on a "
+         + "session with an open transaction; either run from within the "
+         + "transaction or use a different session." );
         done();
       })
   });
