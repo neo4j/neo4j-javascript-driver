@@ -360,14 +360,15 @@ function restart(callback) {
     startDatabase();
     setTimeout(function () {
       callback();}, 5000);
-  }, 500);
+  }, 5000);
 }
 
 function startDatabase() {
   if(isWin) {
     return runPowershell(neo4jHome + '/bin/neo4j.bat install-service;' + neo4jHome + '/bin/neo4j.bat start');
   } else {
-    childProcess.execSync(neo4jHome + '/bin/neo4j start', function (err, stdout, stderr) {
+    childProcess.exec(neo4jHome + '/bin/neo4j start', function (err, stdout, stderr) {
+      console.log("starting");
       if (err) throw err;
     });
   }
@@ -377,7 +378,8 @@ function stopDatabase() {
   if(isWin) {
     runPowershell(neo4jHome + '/bin/neo4j.bat stop;' + neo4jHome + '/bin/neo4j.bat uninstall-service');
   } else {
-    childProcess.execSync(neo4jHome + '/bin/neo4j stop', function (err, stdout, stderr) {
+    childProcess.exec(neo4jHome + '/bin/neo4j stop', function (err, stdout, stderr) {
+      console.log("stopping");
       if (err) throw err;
     });
   }
