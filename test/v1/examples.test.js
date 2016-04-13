@@ -69,7 +69,7 @@ describe('examples', function() {
         session.close();
         driver.close();
       });
-    // tag::minimal-example[]
+    // end::minimal-example[]
     setTimeout(function() {
       expect(out[0]).toBe("Neo is 23 years old.");
       done();
@@ -153,7 +153,7 @@ describe('examples', function() {
             console.log(error);
           }
         });
-    // end::result-cursor[]
+    // end::retain-result-query[]
     // Then
     done();
   });
@@ -210,18 +210,30 @@ describe('examples', function() {
     }, 500);
   });
 
+  it('should be able to handle cypher error', function(done) {
+    var session = sessionGlobal;
+
+    // tag::handle-cypher-error[]
+    session
+      .run("Then will cause a syntax error")
+      .catch( function(err) {
+        expect(err.fields[0].code).toBe( "Neo.ClientError.Statement.SyntaxError" );
+        done();
+      });
+    // end::handle-cypher-error[]
+  });
 
   it('should be able to profile', function(done) {
     var session = sessionGlobal;
 
     session.run("CREATE (:Person {name:'The One', age: 23})").then(function() {
-      // tag::retain-result-process[]
+      // tag::result-summary-query-profile[]
       session
         .run("PROFILE MATCH (p:Person { name: {name} }) RETURN id(p)", {name: "The One"})
         .then(function (result) {
           console.log(result.summary.profile);
         });
-      // end::retain-result-process[]
+      // end::result-summary-query-profile[]
     });
 
     //await the result
@@ -234,7 +246,7 @@ describe('examples', function() {
   it('should be able to see notifications', function(done) {
     var session = sessionGlobal;
 
-    // tag::retain-result-process[]
+    // tag::result-summary-notifications[]
     session
       .run("EXPLAIN MATCH (a), (b) RETURN a,b")
       .then(function (result) {
@@ -243,7 +255,7 @@ describe('examples', function() {
           console.log(notifications[i].code);
         }
       });
-    // end::retain-result-process[]
+    // end::result-summary-notifications[]
 
     setTimeout(function () {
       expect(out[0]).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
