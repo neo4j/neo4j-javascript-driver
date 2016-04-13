@@ -27,26 +27,27 @@ var _console = console;
 * DO NOT add tests to this file that are not for that exact purpose.
 * DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
 */
-xdescribe('examples', function() {
+describe('examples', function() {
 
-  var driver, session, out, console;
+  var driverGlobal, sessionGlobal, out, console;
 
   beforeEach(function(done) {
     var neo4j = neo4jv1;
     // tag::construct-driver[]
-    driver = neo4j.driver("bolt://localhost", neo4jv1.auth.basic("neo4j", "neo4j"));
+    driverGlobal = neo4j.driver("bolt://localhost", neo4jv1.auth.basic("neo4j", "neo4j"));
     //end::construct-driver[]
-    session = driver.session();
+    sessionGlobal = driverGlobal.session();
 
     // Override console.log, to assert on stdout output
     out = [];
     console = { log: function(msg) { out.push(msg); }  };
 
-    session.run("MATCH (n) DETACH DELETE n").then(done);
+    sessionGlobal.run("MATCH (n) DETACH DELETE n").then(done);
   });
 
   afterEach(function() {
-    driver.close();
+    sessionGlobal.close();
+    driverGlobal.close();
   });
 
   it('should document a minimal import and usage example', function (done) {
@@ -65,31 +66,39 @@ xdescribe('examples', function() {
       .run( "MATCH (p:Person) WHERE p.name = 'Neo' RETURN p.age" )
       .then( function( result ) {
         console.log( "Neo is " + result.records[0].get("p.age").toInt() + " years old." );
-
         session.close();
         driver.close();
-        done();
       });
-    // tag::minimal-example[]
+    // end::minimal-example[]
+    setTimeout(function() {
+      expect(out[0]).toBe("Neo is 23 years old.");
+      done();
+    }, 500);
   });
 
   it('should be able to configure session pool size', function (done) {
    var neo4j = neo4jv1;
     // tag::configuration[]
-    driver = neo4j.driver("bolt://localhost", neo4jv1.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 10});
+    var driver = neo4j.driver("bolt://localhost", neo4jv1.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
     //end::configuration[]
 
-    session.run( "CREATE (neo:Person {name:'Neo', age:23})" );
-    session
-      .run( "MATCH (p:Person) WHERE p.name = 'Neo' RETURN p.age" )
-      .then( function( result ) {
-        session.close();
+    var s = driver.session();
+    s.run( "CREATE (p:Person { name: {name} })", {name: "The One"} )
+      .then( function(result) {
+        var theOnesCreated = result.summary.updateStatistics.nodesCreated();
+        console.log(theOnesCreated);
+        s.close();
         driver.close();
-        done();
       });
+
+    setTimeout(function() {
+      expect(out[0]).toBe(1);
+      done();
+    }, 500);
   });
 
   it('should document a statement', function(done) {
+    var session = sessionGlobal;
     var resultPromise =
     // tag::statement[]
     session
@@ -108,6 +117,7 @@ xdescribe('examples', function() {
   });
 
   it('should document a statement without parameters', function(done) {
+    var session = sessionGlobal;
     var resultPromise =
     // tag::statement-without-parameters[]
     session
@@ -127,6 +137,7 @@ xdescribe('examples', function() {
   });
 
   it('should be able to iterate results', function(done) {
+    var session = sessionGlobal;
     // tag::retain-result-query[]
       session
         .run( "MATCH (p:Person { name: {name} }) RETURN p.age", {name : "The One"} )
@@ -142,12 +153,14 @@ xdescribe('examples', function() {
             console.log(error);
           }
         });
-    // end::result-cursor[]
+    // end::retain-result-query[]
     // Then
     done();
   });
 
   it('should be able to do nested queries', function(done) {
+    var session = sessionGlobal;
+
     session.run("CREATE (:Person {name:'The One'})").then(function() {
         // tag::result-cursor[]
         session
@@ -173,6 +186,8 @@ xdescribe('examples', function() {
   });
 
   it('should be able to retain for later processing', function(done) {
+    var session = sessionGlobal;
+
     session.run("CREATE (:Person {name:'The One', age: 23})").then(function() {
       // tag::retain-result-process[]
       session
@@ -195,16 +210,30 @@ xdescribe('examples', function() {
     }, 500);
   });
 
+  it('should be able to handle cypher error', function(done) {
+    var session = sessionGlobal;
+
+    // tag::handle-cypher-error[]
+    session
+      .run("Then will cause a syntax error")
+      .catch( function(err) {
+        expect(err.fields[0].code).toBe( "Neo.ClientError.Statement.SyntaxError" );
+        done();
+      });
+    // end::handle-cypher-error[]
+  });
 
   it('should be able to profile', function(done) {
+    var session = sessionGlobal;
+
     session.run("CREATE (:Person {name:'The One', age: 23})").then(function() {
-      // tag::retain-result-process[]
+      // tag::result-summary-query-profile[]
       session
         .run("PROFILE MATCH (p:Person { name: {name} }) RETURN id(p)", {name: "The One"})
         .then(function (result) {
           console.log(result.summary.profile);
         });
-      // end::retain-result-process[]
+      // end::result-summary-query-profile[]
     });
 
     //await the result
@@ -215,7 +244,9 @@ xdescribe('examples', function() {
   });
 
   it('should be able to see notifications', function(done) {
-    // tag::retain-result-process[]
+    var session = sessionGlobal;
+
+    // tag::result-summary-notifications[]
     session
       .run("EXPLAIN MATCH (a), (b) RETURN a,b")
       .then(function (result) {
@@ -224,7 +255,7 @@ xdescribe('examples', function() {
           console.log(notifications[i].code);
         }
       });
-    // end::retain-result-process[]
+    // end::result-summary-notifications[]
 
     setTimeout(function () {
       expect(out[0]).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
@@ -233,6 +264,8 @@ xdescribe('examples', function() {
   });
 
   it('should document committing a transaction', function() {
+    var session = sessionGlobal;
+
     // tag::transaction-commit[]
     var tx = session.beginTransaction();
     tx.run( "CREATE (p:Person { name: 'The One' })" );
@@ -241,6 +274,8 @@ xdescribe('examples', function() {
   });
 
   it('should document rolling back a transaction', function() {
+    var session = sessionGlobal;
+
     // tag::transaction-rollback[]
     var tx = session.beginTransaction();
     tx.run( "CREATE (p:Person { name: 'The One' })" );
@@ -249,6 +284,8 @@ xdescribe('examples', function() {
   });
 
   it('should document how to require encryption', function() {
+    var session = sessionGlobal;
+
     var neo4j = neo4jv1;
     // tag::tls-require-encryption[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
