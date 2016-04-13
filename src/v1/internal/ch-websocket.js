@@ -52,7 +52,7 @@ class WebSocketChannel {
         return;
       }
     }
-    this._url = scheme + ":" + opts.host + ":" + opts.port;
+    this._url = scheme + "://" + opts.host + ":" + opts.port;
     this._ws = new WebSocket(this._url);
     this._ws.binaryType = "arraybuffer";
 
