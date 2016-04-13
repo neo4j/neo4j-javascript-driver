@@ -20,6 +20,7 @@
 import StreamObserver from './internal/stream-observer';
 import Result from './result';
 import Transaction from './transaction';
+import {newError} from "./error";
 
 /**
   * A Session instance is used for handling the connection and
@@ -58,8 +59,9 @@ class Session {
       this._conn.pullAll(streamObserver);
       this._conn.sync();
     } else {
-      streamObserver.onError({error: "Please close the currently open transaction object before running " +
-        "more statements/transactions in the current session." });
+      streamObserver.onError(newError("Statements cannot be run directly on a "
+       + "session with an open transaction; either run from within the "
+       + "transaction or use a different session."));
     }
     return new Result( streamObserver, statement, parameters );
   }
@@ -74,7 +76,9 @@ class Session {
    */
   beginTransaction() {
     if (this._hasTx) {
-      throw new newError("Cannot have multiple transactions open for the session. Use multiple sessions or close the transaction before opening a new one.")
+      throw new newError("You cannot begin a transaction on a session with an "
+      + "open transaction; either run from within the transaction or use a "
+      + "different session.")
     }
 
     this._hasTx = true;
