@@ -255,7 +255,7 @@ describe('examples', function() {
                 console.log(error);
               }
             });
-        // tag::nested-statements[]
+        // end::nested-statements[]
         });
 
     //await the result
