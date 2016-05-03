@@ -185,6 +185,8 @@ class Connection {
     this._unpacker.structMappers[UNBOUND_RELATIONSHIP] = _mappers.unboundRel;
     this._unpacker.structMappers[PATH] = _mappers.path;
 
+
+
     let self = this;
     // TODO: Using `onmessage` and `onerror` came from the WebSocket API,
     // it reads poorly and has several annoying drawbacks. Swap to having
@@ -341,7 +343,19 @@ class Connection {
 
   /** Queue a RESET-message to be sent to the database */
   reset( observer ) {
-    this._queueObserver(observer);
+    this._isHandlingFailure = true;
+    let self = this;
+    let wrappedObs = {
+      onNext: observer ? observer.onNext : NO_OP,
+      onError: observer ? observer.onError : NO_OP,
+      onCompleted: () => {
+        self._isHandlingFailure = false;
+        if (observer) {
+          observer.onCompleted();
+        }
+      }
+    };
+    this._queueObserver(wrappedObs);
     this._packer.packStruct( RESET );
     this._chunker.messageBoundary();
   }
