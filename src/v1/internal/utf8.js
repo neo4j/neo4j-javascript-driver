@@ -37,18 +37,19 @@ try {
       return new buf.NodeBuffer( new node.Buffer(str, "UTF-8") );
     },
     "decode" : function( buffer, length ) {
+      let start = buffer.position,
+          end = start + length;
+      buffer.position = end;
+
       if( buffer instanceof buf.NodeBuffer ) {
-        let start = buffer.position,
-            end = start + length;
-        buffer.position = end;
         return buffer._buffer.toString( 'utf8', start, end );
       } 
       else if( buffer instanceof buf.CombinedBuffer ) {
-        let out = streamDecodeCombinedBuffer(buffer._buffers, length,
+        let out = streamDecodeCombinedBuffer(buffer._buffers, end,
           (partBuffer) => {
             return decoder.write(partBuffer._buffer);
           },
-          () => { return decoder.end(); }
+          () => { return decoder.end().slice(start, end); }
         );
         return out;
       } 
