@@ -29,6 +29,27 @@ describe('utf8', function() {
     expect( buffer.position ).toBe( 0 );
   });
 
+  it('should respect position of single buffer', function() {
+    // When
+    var buffer = utf8.encode("hello, world!");
+    buffer.readInt8();
+    var decoded = utf8.decode(buffer, buffer.length - 1);
+    // Then
+    expect( decoded ).toBe( "ello, world!" );
+    expect(buffer.position).toEqual(13)
+  });
+
+
+  it('should be able to decode substring', function() {
+    // When
+    var buffer = utf8.encode("hello, world!");
+    buffer.readInt8();
+    var decoded = utf8.decode(buffer, 3);
+    // Then
+    expect( decoded ).toBe( "ell" );
+    expect(buffer.position).toEqual(4)
+  });
+
   it('should read/write utf8', function() {
     expect( packAndUnpack( "" ) ).toBe( "" );
     expect( packAndUnpack( "åäö123" ) ).toBe( "åäö123"  );
@@ -66,6 +87,72 @@ describe('utf8', function() {
 
     // Then
     expect(decoded).toBe(expectMsg);
+  });
+
+  it('should respect the position in the combined buffer', function() {
+    // Given
+    var msg = "abcdefgh";
+    var buf = utf8.encode(msg);
+    var bufa = buf.readSlice(4);
+    var bufb = buf.readSlice(4);
+    var combined = new buffers.CombinedBuffer( [bufa, bufb] );
+    //move position forward
+    combined.readInt8();
+    combined.readInt8();
+
+    // When
+    var decoded = utf8.decode(combined, combined.length - 2);
+
+
+    // Then
+    expect(decoded).toEqual("cdefgh");
+    expect(combined.position).toBe(8)
+  });
+
+  it('should be able to decode a substring in a combined buffer across buffers', function() {
+    // Given
+    var msg = "abcdefghijkl";
+    var buf = utf8.encode(msg);
+    var bufa = buf.readSlice(4);
+    var bufb = buf.readSlice(4);
+    var bufc = buf.readSlice(4);
+    var combined = new buffers.CombinedBuffer( [bufa, bufb, bufc] );
+    //move position forward
+    combined.readInt8();
+    combined.readInt8();
+    combined.readInt8();
+    combined.readInt8();
+    combined.readInt8();
+
+    // When
+    var decoded = utf8.decode(combined, 4);
+
+    // Then
+    expect(decoded).toBe("fghi");
+    expect(combined.position).toBe(9)
+  });
+
+  it('should be able to decode a substring in a combined within buffer', function() {
+    // Given
+    var msg = "abcdefghijkl";
+    var buf = utf8.encode(msg);
+    var bufa = buf.readSlice(4);
+    var bufb = buf.readSlice(4);
+    var bufc = buf.readSlice(4);
+    var combined = new buffers.CombinedBuffer( [bufa, bufb, bufc] );
+    //move position forward
+    combined.readInt8();
+    combined.readInt8();
+    combined.readInt8();
+    combined.readInt8();
+    combined.readInt8();
+
+    // When
+    var decoded = utf8.decode(combined, 2);
+
+    // Then
+    expect(decoded).toBe("fg");
+    expect(combined.position).toBe(7)
   });
 });
 

@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import buf from './buf';
 
 let
-  _CHUNK_HEADER_SIZE= 2,
+  _CHUNK_HEADER_SIZE = 2,
   _MESSAGE_BOUNDARY = 0x00,
   _DEFAULT_BUFFER_SIZE = 1400; // http://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
 
@@ -29,98 +29,98 @@ let
  * @access private
  */
 class Chunker extends buf.BaseBuffer {
-  constructor( channel, bufferSize ) {
-    super( 0 );
+  constructor(channel, bufferSize) {
+    super(0);
     this._bufferSize = bufferSize || _DEFAULT_BUFFER_SIZE;
     this._ch = channel;
-    this._buffer = buf.alloc( this._bufferSize );
+    this._buffer = buf.alloc(this._bufferSize);
     this._currentChunkStart = 0;
     this._chunkOpen = false;
   }
 
-  putUInt8 ( position, val ) {
+  putUInt8(position, val) {
     this._ensure(1);
-    this._buffer.writeUInt8( val );
+    this._buffer.writeUInt8(val);
   }
 
-  putInt8 ( position, val ) {
+  putInt8(position, val) {
     this._ensure(1);
-    this._buffer.writeInt8( val );
+    this._buffer.writeInt8(val);
   }
 
-  putFloat64 ( position, val ) {
+  putFloat64(position, val) {
     this._ensure(8);
-    this._buffer.writeFloat64( val );
+    this._buffer.writeFloat64(val);
   }
 
-  putBytes ( position, data ) {
-    // TODO: If data is larger than our chunk size or so, we're very likely better off just passing this buffer on rather than doing the copy here
-    // TODO: *however* note that we need some way to find out when the data has been written (and thus the buffer can be re-used) if we take that approach
-    while ( data.remaining() > 0 )
-    {
+  putBytes(position, data) {
+    // TODO: If data is larger than our chunk size or so, we're very likely better off just passing this buffer on
+    // rather than doing the copy here TODO: *however* note that we need some way to find out when the data has been
+    // written (and thus the buffer can be re-used) if we take that approach
+    while (data.remaining() > 0) {
       // Ensure there is an open chunk, and that it has at least one byte of space left
-      this._ensure( 1 );
-      if( this._buffer.remaining() > data.remaining() ) {
-        this._buffer.writeBytes( data );  
+      this._ensure(1);
+      if (this._buffer.remaining() > data.remaining()) {
+        this._buffer.writeBytes(data);
       } else {
-        this._buffer.writeBytes( data.readSlice( this._buffer.remaining() ) );
+        this._buffer.writeBytes(data.readSlice(this._buffer.remaining()));
       }
     }
     return this;
   }
 
-  flush () {
-    if ( this._buffer.position > 0 ) {
+  flush() {
+    if (this._buffer.position > 0) {
       this._closeChunkIfOpen();
 
       // Local copy and clear the buffer field. This ensures that the buffer is not re-released if the flush call fails
       let out = this._buffer;
       this._buffer = null;
 
-      this._ch.write( out.getSlice( 0, out.position ) );
+      this._ch.write(out.getSlice(0, out.position));
 
       // Alloc a new output buffer. We assume we're using NodeJS's buffer pooling under the hood here!
-      this._buffer = buf.alloc( this._bufferSize );
+      this._buffer = buf.alloc(this._bufferSize);
       this._chunkOpen = false;
     }
     return this;
   }
 
-  /** 
+  /**
    * Bolt messages are encoded in one or more chunks, and the boundary between two messages
    * is encoded as a 0-length chunk, `00 00`. This inserts such a message boundary, closing
-   * any currently open chunk as needed 
+   * any currently open chunk as needed
    */
-  messageBoundary () {
-    
+  messageBoundary() {
+
     this._closeChunkIfOpen();
 
-    if ( this._buffer.remaining() < _CHUNK_HEADER_SIZE ) {
+    if (this._buffer.remaining() < _CHUNK_HEADER_SIZE) {
       this.flush();
     }
 
     // Write message boundary
-    this._buffer.writeInt16( _MESSAGE_BOUNDARY );
+    this._buffer.writeInt16(_MESSAGE_BOUNDARY);
   }
 
   /** Ensure at least the given size is available for writing */
-  _ensure ( size ) {
+  _ensure(size) {
     let toWriteSize = this._chunkOpen ? size : size + _CHUNK_HEADER_SIZE;
-    if ( this._buffer.remaining() < toWriteSize ) {
+    if (this._buffer.remaining() < toWriteSize) {
       this.flush();
     }
 
-    if ( !this._chunkOpen ) {
+    if (!this._chunkOpen) {
       this._currentChunkStart = this._buffer.position;
       this._buffer.position = this._buffer.position + _CHUNK_HEADER_SIZE;
       this._chunkOpen = true;
     }
   }
 
-  _closeChunkIfOpen () {
-    if ( this._chunkOpen ) {
+  _closeChunkIfOpen() {
+    if (this._chunkOpen) {
       let chunkSize = this._buffer.position - (this._currentChunkStart + _CHUNK_HEADER_SIZE);
-      this._buffer.putUInt16( this._currentChunkStart, chunkSize );
+      this._buffer.putUInt16(this._currentChunkStart, chunkSize);
       this._chunkOpen = false;
     }
   }
@@ -139,10 +139,10 @@ class Dechunker {
     this._state = this.AWAITING_CHUNK;
   }
 
-  AWAITING_CHUNK ( buf ) {
-    if ( buf.remaining() >= 2 ) {
+  AWAITING_CHUNK(buf) {
+    if (buf.remaining() >= 2) {
       // Whole header available, read that
-      return this._onHeader( buf.readUInt16() );
+      return this._onHeader(buf.readUInt16());
     } else {
       // Only one byte available, read that and wait for the second byte
       this._partialChunkHeader = buf.readUInt8() << 8;
@@ -150,40 +150,40 @@ class Dechunker {
     }
   }
 
-  IN_HEADER ( buf ) {
+  IN_HEADER(buf) {
     // First header byte read, now we read the next one
-    return this._onHeader( (this._partialChunkHeader | buf.readUInt8()) & 0xFFFF );
+    return this._onHeader((this._partialChunkHeader | buf.readUInt8()) & 0xFFFF);
   }
 
-  IN_CHUNK ( buf ) {
-    if ( this._chunkSize <= buf.remaining() ) {
+  IN_CHUNK(buf) {
+    if (this._chunkSize <= buf.remaining()) {
       // Current packet is larger than current chunk, or same size:
-      this._currentMessage.push( buf.readSlice( this._chunkSize ) );
+      this._currentMessage.push(buf.readSlice(this._chunkSize));
       return this.AWAITING_CHUNK;
     } else {
       // Current packet is smaller than the chunk we're reading, split the current chunk itself up
       this._chunkSize -= buf.remaining();
-      this._currentMessage.push( buf.readSlice( buf.remaining() ) );
+      this._currentMessage.push(buf.readSlice(buf.remaining()));
       return this.IN_CHUNK;
     }
   }
 
-  CLOSED ( buf ) {
+  CLOSED(buf) {
     // no-op
   }
 
   /** Called when a complete chunk header has been recieved */
-  _onHeader ( header ) {
-    if(header == 0) {
+  _onHeader(header) {
+    if (header == 0) {
       // Message boundary
       let message;
-      if( this._currentMessage.length == 1 ) {
+      if (this._currentMessage.length == 1) {
         message = this._currentMessage[0];
       } else {
         message = new buf.CombinedBuffer( this._currentMessage );
       }
       this._currentMessage = [];
-      this.onmessage( message );
+      this.onmessage(message);
       return this.AWAITING_CHUNK;
     } else {
       this._chunkSize = header;
@@ -191,15 +191,15 @@ class Dechunker {
     }
   }
 
-  write ( buf ) {
-    while( buf.hasRemaining() ) {
-      this._state = this._state( buf );
+  write(buf) {
+    while (buf.hasRemaining()) {
+      this._state = this._state(buf);
     }
   }
 }
 
 
 export default {
-    Chunker: Chunker,
-    Dechunker: Dechunker
+  Chunker: Chunker,
+  Dechunker: Dechunker
 }
