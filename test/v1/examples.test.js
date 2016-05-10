@@ -33,8 +33,8 @@ describe('examples', function() {
 
   beforeEach(function(done) {
     var neo4j = neo4jv1;
-    // tag::construct-driver[]
-    driverGlobal = neo4j.driver("bolt://localhost", neo4jv1.auth.basic("neo4j", "neo4j"));
+    //tag::construct-driver[]
+    driverGlobal = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     //end::construct-driver[]
     sessionGlobal = driverGlobal.session();
 
@@ -61,25 +61,28 @@ describe('examples', function() {
     // tag::minimal-example[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     var session = driver.session();
-    session.run( "CREATE (neo:Person {name:'Neo', age:23})" );
     session
-      .run( "MATCH (p:Person) WHERE p.name = 'Neo' RETURN p.age" )
+      .run( "CREATE (a:Person {name:'Arthur', title:'King'})" )
+      .then( function()
+      {
+        return session.run( "MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title" )  
+      })
       .then( function( result ) {
-        console.log( "Neo is " + result.records[0].get("p.age").toInt() + " years old." );
+        console.log( result.records[0].get("title") + " " + result.records[0].get("name") );
         session.close();
         driver.close();
-      });
+      })
     // end::minimal-example[]
-    setTimeout(function() {
-      expect(out[0]).toBe("Neo is 23 years old.");
-      done();
-    }, 500);
+      .then(function() {
+        expect(out[0]).toBe("King Arthur");
+        done();
+      });
   });
 
   it('should be able to configure session pool size', function (done) {
    var neo4j = neo4jv1;
     // tag::configuration[]
-    var driver = neo4j.driver("bolt://localhost", neo4jv1.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
     //end::configuration[]
 
     var s = driver.session();
@@ -89,123 +92,175 @@ describe('examples', function() {
         console.log(theOnesCreated);
         s.close();
         driver.close();
-      });
-
-    setTimeout(function() {
-      expect(out[0]).toBe(1);
-      done();
-    }, 500);
+      })
+      .then(function() {
+        expect(out[0]).toBe(1);
+        done();
+    });
   });
 
   it('should document a statement', function(done) {
     var session = sessionGlobal;
-    var resultPromise =
     // tag::statement[]
     session
-      .run( "CREATE (p:Person { name: {name} })", {name: "The One"} )
+      .run( "CREATE (person:Person {name: {name}})", {name: "Arthur"} )
+    // end::statement[]
       .then( function(result) {
         var theOnesCreated = result.summary.updateStatistics.nodesCreated();
         console.log("There were " + theOnesCreated + " the ones created.")
+      })
+      .then(function() {
+        expect(out[0]).toBe("There were 1 the ones created.");
+        done();
       });
-    // end::statement[]
-
-    // Then
-    resultPromise.then(function() {
-      expect(out[0]).toBe("There were 1 the ones created.");
-      done();
-    });
   });
 
   it('should document a statement without parameters', function(done) {
     var session = sessionGlobal;
-    var resultPromise =
     // tag::statement-without-parameters[]
     session
-      .run( "CREATE (p:Person { name: 'The One' })" )
-      
+      .run( "CREATE (p:Person { name: 'Arthur' })" )
+    // end::statement-without-parameters[]
       .then( function(result) {
         var theOnesCreated = result.summary.updateStatistics.nodesCreated();
         console.log("There were " + theOnesCreated + " the ones created.");
       });
-    // end::statement-without-parameters[]
 
     // Then
-    resultPromise.then(function() {
+    setTimeout(function() {
       expect(out[0]).toBe("There were 1 the ones created.");
       done();
-    })
+    }, 500)
   });
 
   it('should be able to iterate results', function(done) {
     var session = sessionGlobal;
-    // tag::retain-result-query[]
+    session
+      .run( "CREATE (weapon:Weapon { name: 'Sword in the stone' })" )
+      .then(function() {
+    // tag::result-traversal[]
+      var searchTerm = "Sword";
       session
-        .run( "MATCH (p:Person { name: {name} }) RETURN p.age", {name : "The One"} )
+        .run( "MATCH (weapon:Weapon) WHERE weapon.name CONTAINS {term} RETURN weapon.name", {term : searchTerm} )
         .subscribe({
           onNext: function(record) {
-            console.log(record);
+            console.log("" + record.get("weapon.name"));
           },
           onCompleted: function() {
-            // Completed!
             session.close();
           },
           onError: function(error) {
             console.log(error);
           }
         });
-    // end::retain-result-query[]
-    // Then
-    done();
-  });
-
-  it('should be able to do nested queries', function(done) {
-    var session = sessionGlobal;
-
-    session.run("CREATE (:Person {name:'The One'})").then(function() {
-        // tag::result-cursor[]
-        session
-          .run("MATCH (p:Person { name: {name} }) RETURN id(p)", {name: "The One"})
-          .then(function (result) {
-            var id = result.records[0].get('id(p)');
-            session.run( "MATCH (p) WHERE id(p) = {id} CREATE (p)-[:HAS_TRAIT]->(:Trait {type:'Immortal'})", {id: id })
-              .then(function (neoRecord) {
-                var immortalsCreated = neoRecord.summary.updateStatistics.nodesCreated();
-                var relationshipCreated = neoRecord.summary.updateStatistics.relationshipsCreated();
-                console.log("There were " + immortalsCreated + " immortal and " + relationshipCreated +
-                  " relationships created");
-              });
-          });
-      // tag::result-cursor[]
+    // end::result-traversal[]
     });
-
-    //await the result
+    // Then
     setTimeout(function() {
-      expect(out[0]).toBe("There were 1 immortal and 1 relationships created");
+      expect(out[0]).toBe("Sword in the stone");
       done();
     }, 500);
+  });
+
+  it('should be able to access records', function(done) {
+    var session = sessionGlobal;
+    session
+      .run( "CREATE (weapon:Weapon { name: 'Sword in the stone', owner: 'Arthur', material: 'Stone', size: 'Huge' })" )
+      .then(function() {
+      // tag::access-record[]
+        var searchTerm = "Arthur";
+        session
+          .run( "MATCH (weapon:Weapon) WHERE weapon.owner CONTAINS {term} RETURN weapon.name, weapon.material, weapon.size", {term : searchTerm} )
+          .subscribe({
+            onNext: function(record) {
+              var sword = [];
+              record.forEach(function(value, key)
+              {
+                sword.push(key + ": " + value);
+              });
+              console.log(sword);
+            },
+            onCompleted: function() {
+              session.close();
+            },
+            onError: function(error) {
+              console.log(error);
+            }
+          });
+      // end::access-record[]
+      });
+
+    // Then
+    setTimeout(function() {
+      expect(out[0].length).toBe(3);
+      done();
+    }, 500)
   });
 
   it('should be able to retain for later processing', function(done) {
     var session = sessionGlobal;
 
-    session.run("CREATE (:Person {name:'The One', age: 23})").then(function() {
-      // tag::retain-result-process[]
+    session
+    .run("CREATE (knight:Person:Knight { name: 'Lancelot', castle: 'Camelot' })")
+    .then(function() {
+      // tag::retain-result[]
       session
-        .run("MATCH (p:Person { name: {name} }) RETURN p.age", {name: "The One"})
+        .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN knight.name AS name", {castle: "Camelot"})
         .then(function (result) {
+          var records = [];
           for (i = 0; i < result.records.length; i++) {
-            result.records[i].forEach(function (value, key, record) {
-              console.log("Value for key " + key + " has value " + value);
-            });
+            records.push(result.records[i]);
           }
-
+          return records;
+        })
+        .then(function (records) {
+          for(i = 0; i < records.length; i ++)
+          {
+            console.log(records[i].get("name") + " is a knight of Camelot");
+          }
         });
-      // end::retain-result-process[]
+      // end::retain-result[]
     });
 
     //await the result
     setTimeout(function() {
-      expect(out[0]).toBe("Value for key p.age has value 23");
+      expect(out[0]).toBe("Lancelot is a knight of Camelot");
+      done();
+    }, 500);
+  });
+
+  it('should be able to do nested queries', function(done) {
+    var session = sessionGlobal;
+    session
+      .run( "CREATE (knight:Person:Knight { name: 'Lancelot', castle: 'Camelot' })" +
+            "CREATE (king:Person { name: 'Arthur', title: 'King' })" )
+      .then(function() {
+        // tag::nested-statements[]
+          session
+            .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id", {"castle": "Camelot"})
+            .subscribe({
+              onNext: function(record) {
+                session
+                  .run("MATCH (knight) WHERE id(knight) = {id} MATCH (king:Person) WHERE king.name = {king} CREATE (knight)-[:DEFENDS]->(king)",
+                  {"id": record.get("knight_id"), "king": "Arthur"});
+              },
+              onCompleted: function() {
+                session
+                  .run("MATCH (:Knight)-[:DEFENDS]->() RETURN count(*)")
+                  .then(function (result) {
+                    console.log("Count is " + result.records[0].get(0).toInt());
+                  });
+              },
+              onError: function(error) {
+                console.log(error);
+              }
+            });
+        // end::nested-statements[]
+        });
+
+    //await the result
+    setTimeout(function() {
+      expect(out[0]).toBe("Count is 1");
       done();
     }, 500);
   });
@@ -226,10 +281,10 @@ describe('examples', function() {
   it('should be able to profile', function(done) {
     var session = sessionGlobal;
 
-    session.run("CREATE (:Person {name:'The One', age: 23})").then(function() {
+    session.run("CREATE (:Person {name:'Arthur'})").then(function() {
       // tag::result-summary-query-profile[]
       session
-        .run("PROFILE MATCH (p:Person { name: {name} }) RETURN id(p)", {name: "The One"})
+        .run("PROFILE MATCH (p:Person {name: {name}}) RETURN id(p)", {name: "Arthur"})
         .then(function (result) {
           console.log(result.summary.profile);
         });
@@ -248,7 +303,7 @@ describe('examples', function() {
 
     // tag::result-summary-notifications[]
     session
-      .run("EXPLAIN MATCH (a), (b) RETURN a,b")
+      .run("EXPLAIN MATCH (king), (queen) RETURN king, queen")
       .then(function (result) {
         var notifications = result.summary.notifications, i;
         for (i = 0; i < notifications.length; i++) {
@@ -268,7 +323,7 @@ describe('examples', function() {
 
     // tag::transaction-commit[]
     var tx = session.beginTransaction();
-    tx.run( "CREATE (p:Person { name: 'The One' })" );
+    tx.run( "CREATE (:Person {name: 'Guinevere'})" );
     tx.commit();
     // end::transaction-commit[]
   });
@@ -278,7 +333,7 @@ describe('examples', function() {
 
     // tag::transaction-rollback[]
     var tx = session.beginTransaction();
-    tx.run( "CREATE (p:Person { name: 'The One' })" );
+    tx.run( "CREATE (:Person {name: 'Merlin'})" );
     tx.rollback();
     // end::transaction-rollback[]
   });
@@ -308,7 +363,7 @@ describe('examples', function() {
     });
     // end::tls-trust-on-first-use[]
     driver.close();
-  }); 
+  });
 
   it('should document how to configure a trusted signing certificate', function() {
     var neo4j = neo4jv1;
@@ -322,6 +377,17 @@ describe('examples', function() {
       encrypted:true
     });
     // end::tls-signed[]
+    driver.close();
+  });
+
+  it('should document how to disable auth', function() {
+    var neo4j = neo4jv1;
+    // tag::connect-with-auth-disabled[]
+    var driver = neo4j.driver("bolt://localhost", {
+      // In NodeJS, encryption is on by default. In the web bundle, it is off.
+      encrypted:true
+    });
+    // end::connect-with-auth-disabled[]
     driver.close();
   });
 

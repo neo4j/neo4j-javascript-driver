@@ -249,4 +249,24 @@ describe('session', function() {
     // Then
     expect(session.beginTransaction).toThrow();
   });
+  it('should return lots of data', function (done) {
+    session.run("UNWIND range(1,1000) AS x CREATE (t:testNode {name: 'testNameString'})")
+    .then(function () {
+      session.run("MATCH (n) RETURN n.name")
+        .subscribe({
+          onNext: function (record) {
+            var node = record.get('n');
+            expect(node.name).toEqual("testNameString");
+          },
+          onCompleted: function () {
+            // Completed!
+            session.close();
+            done()
+          },
+          onError: function (error) {
+            console.log(error);
+          }
+        })
+      });
+  });
 });
