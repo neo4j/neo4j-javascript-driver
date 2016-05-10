@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 // This module defines a cross-platform UTF-8 encoder and decoder that works
 // with the Buffer API defined in buf.js
 
@@ -37,21 +37,21 @@ try {
       return new buf.NodeBuffer( new node.Buffer(str, "UTF-8") );
     },
     "decode" : function( buffer, length ) {
+      let start = buffer.position,
+        end = start + length;
+      buffer.position = end;
       if( buffer instanceof buf.NodeBuffer ) {
-        let start = buffer.position,
-            end = start + length;
-        buffer.position = end;
         return buffer._buffer.toString( 'utf8', start, end );
-      } 
+      }
       else if( buffer instanceof buf.CombinedBuffer ) {
-        let out = streamDecodeCombinedBuffer(buffer._buffers, length,
+        let out = streamDecodeCombinedBuffer(buffer._buffers, length + start,
           (partBuffer) => {
             return decoder.write(partBuffer._buffer);
           },
-          () => { return decoder.end(); }
+          () => { return decoder.end().slice(start, end); }
         );
         return out;
-      } 
+      }
       else {
         throw newError( "Don't know how to decode strings from `" + buffer + "`.");
       }
@@ -74,7 +74,7 @@ try {
         return decoder.decode( buffer.readView( length ) );
       }
       else {
-        // Decoding combined buffer is complicated. For simplicity, for now, 
+        // Decoding combined buffer is complicated. For simplicity, for now,
         // we simply copy the combined buffer into a regular buffer and decode that.
         var tmpBuf = buf.alloc( length );
         for (var i = 0; i < length; i++) {
