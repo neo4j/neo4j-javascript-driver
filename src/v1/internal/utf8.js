@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 // This module defines a cross-platform UTF-8 encoder and decoder that works
 // with the Buffer API defined in buf.js
 
@@ -33,33 +33,34 @@ try {
   let node = require("buffer");
 
   platformObj = {
-    "encode" : function( str ) {
-      return new buf.NodeBuffer( new node.Buffer(str, "UTF-8") );
+    "encode": function (str) {
+      return new buf.NodeBuffer(new node.Buffer(str, "UTF-8"));
     },
-    "decode" : function( buffer, length ) {
-      let start = buffer.position,
+    "decode": function (buffer, length) {
+      if (buffer instanceof buf.NodeBuffer) {
+        let start = buffer.position,
           end = start + length;
-      buffer.position = end;
-
-      if( buffer instanceof buf.NodeBuffer ) {
-        return buffer._buffer.toString( 'utf8', start, end );
-      } 
-      else if( buffer instanceof buf.CombinedBuffer ) {
-        let out = streamDecodeCombinedBuffer(buffer._buffers, end,
+        buffer.position = Math.min(end, buffer.length);
+        return buffer._buffer.toString('utf8', start, end);
+      }
+      else if (buffer instanceof buf.CombinedBuffer) {
+        let out = streamDecodeCombinedBuffer(buffer, length,
           (partBuffer) => {
             return decoder.write(partBuffer._buffer);
           },
-          () => { return decoder.end().slice(start, end); }
+          () => {
+            return decoder.end();
+          }
         );
         return out;
-      } 
+      }
       else {
-        throw newError( "Don't know how to decode strings from `" + buffer + "`.");
+        throw newError("Don't know how to decode strings from `" + buffer + "`.");
       }
     }
   }
 
-} catch( e ) {
+} catch (e) {
 
   // Not on NodeJS, add shim for WebAPI TextEncoder/TextDecoder
   var textEncoding = require('../../external/text-encoding/index');
@@ -67,22 +68,22 @@ try {
   let decoder = new textEncoding.TextDecoder("utf-8");
 
   platformObj = {
-    "encode" : function( str ) {
-      return new buf.HeapBuffer( encoder.encode(str).buffer );
+    "encode": function (str) {
+      return new buf.HeapBuffer(encoder.encode(str).buffer);
     },
-    "decode" : function( buffer, length ) {
-      if( buffer instanceof buf.HeapBuffer ) {
-        return decoder.decode( buffer.readView( length ) );
+    "decode": function (buffer, length) {
+      if (buffer instanceof buf.HeapBuffer) {
+        return decoder.decode(buffer.readView(Math.min(length, buffer.length - buffer.position)));
       }
       else {
         // Decoding combined buffer is complicated. For simplicity, for now, 
         // we simply copy the combined buffer into a regular buffer and decode that.
-        var tmpBuf = buf.alloc( length );
+        var tmpBuf = buf.alloc(length);
         for (var i = 0; i < length; i++) {
-          tmpBuf.writeUInt8( buffer.readUInt8() );
-        };
+          tmpBuf.writeUInt8(buffer.readUInt8());
+        }
         tmpBuf.reset();
-        return decoder.decode( tmpBuf.readView( length ) );
+        return decoder.decode(tmpBuf.readView(length));
       }
     }
   }
@@ -90,21 +91,26 @@ try {
 
 let streamDecodeCombinedBuffer = (combinedBuffers, length, decodeFn, endFn) => {
   let remainingBytesToRead = length;
+  let position = combinedBuffers.position;
+  combinedBuffers._updatePos(Math.min(length, combinedBuffers.length - position));
   // Reduce CombinedBuffers to a decoded string
-  let out = combinedBuffers.reduce(function(last, partBuffer){
-    if(remainingBytesToRead <= 0) {
+  let out = combinedBuffers._buffers.reduce(function (last, partBuffer) {
+    if (remainingBytesToRead <= 0) {
       return last;
-    }
-    if(partBuffer.length > remainingBytesToRead) { // When we don't want the whole buffer
-      let lastSlice = partBuffer.readSlice(remainingBytesToRead);
-      partBuffer._updatePos(remainingBytesToRead);
-      remainingBytesToRead = 0;
+    } else if (position >= partBuffer.length) {
+      position -= partBuffer.length;
+      return '';
+    } else {
+      partBuffer._updatePos(position - partBuffer.position);
+      let bytesToRead = Math.min(partBuffer.length - position, remainingBytesToRead);
+      let lastSlice = partBuffer.readSlice(bytesToRead);
+      partBuffer._updatePos(bytesToRead);
+      remainingBytesToRead = Math.max(remainingBytesToRead - lastSlice.length, 0);
+      position = 0;
       return last + decodeFn(lastSlice);
     }
-    remainingBytesToRead -= partBuffer.length;
-    return last + decodeFn(partBuffer);
   }, '');
   return out + endFn();
-}
+};
 
 export default platformObj;
