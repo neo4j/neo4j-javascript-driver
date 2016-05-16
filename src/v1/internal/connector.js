@@ -203,8 +203,11 @@ class Connection {
         if( buf.hasRemaining() ) {
           self._dechunker.write(buf.readSlice( buf.remaining() ));
         }
-
-      } else {
+      } else if (proposed == 1213486160) {//server responded 1213486160 == 0x48545450 == "HTTP"
+        self._handleFatalError(newError("Server responded HTTP. Make sure you are not trying to connect to the http endpoint " +
+          "(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)"));
+      }
+      else {
         self._handleFatalError(newError("Unknown Bolt protocol version: " + proposed));
       }
     };
