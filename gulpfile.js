@@ -216,7 +216,7 @@ gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
     return gulp.src(featureHome + "/*").pipe(cucumber({
         'steps': 'test/v1/tck/steps/*.js',
         'format': 'pretty',
-        'tags' : ['~@fixed_session_pool', '~@db', '~@equality', '~@streaming_and_cursor_navigation', '~@tls']
+        'tags' : ['~@fixed_session_pool', '~@db', '~@equality', '~@streaming_and_cursor_navigation']
     }));
 });
 
