@@ -130,7 +130,7 @@ describe('examples', function() {
     setTimeout(function() {
       expect(out[0]).toBe("There were 1 the ones created.");
       done();
-    }, 500)
+    }, 1000)
   });
 
   it('should be able to iterate results', function(done) {
@@ -159,7 +159,7 @@ describe('examples', function() {
     setTimeout(function() {
       expect(out[0]).toBe("Sword in the stone");
       done();
-    }, 500);
+    }, 1000);
   });
 
   it('should be able to access records', function(done) {
@@ -194,7 +194,7 @@ describe('examples', function() {
     setTimeout(function() {
       expect(out[0].length).toBe(3);
       done();
-    }, 500)
+    }, 1000)
   });
 
   it('should be able to retain for later processing', function(done) {
@@ -226,7 +226,7 @@ describe('examples', function() {
     setTimeout(function() {
       expect(out[0]).toBe("Lancelot is a knight of Camelot");
       done();
-    }, 500);
+    }, 1000);
   });
 
   it('should be able to do nested queries', function(done) {
@@ -262,7 +262,7 @@ describe('examples', function() {
     setTimeout(function() {
       expect(out[0]).toBe("Count is 1");
       done();
-    }, 500);
+    }, 1000);
   });
 
   it('should be able to handle cypher error', function(done) {
@@ -295,7 +295,7 @@ describe('examples', function() {
     setTimeout(function() {
       expect(out.length).toBe(1);
       done();
-    }, 500);
+    }, 1000);
   });
 
   it('should be able to see notifications', function(done) {
@@ -315,7 +315,7 @@ describe('examples', function() {
     setTimeout(function () {
       expect(out[0]).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
       done();
-    }, 500);
+    }, 1000);
   });
 
   it('should document committing a transaction', function() {

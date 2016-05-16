@@ -15,7 +15,7 @@ module.exports = function () {
     callback();
   });
 
-  this.Then(/^sessions should simply work$/, function (callback) {
+  this.Then(/^sessions should simply work$/, {timeout: 60 * 1000},  function (callback) {
     var session = this.driver1.session();
     session.run("RETURN 1").then(function (result) {
       session.close();

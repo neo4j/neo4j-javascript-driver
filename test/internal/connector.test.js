@@ -74,4 +74,25 @@ describe('connector', function() {
     done();
   });
 
+  it('should provide error message when connecting to http-port', function(done) {
+    // Given
+    var conn = connect("bolt://localhost:7474");
+
+    // When
+    conn.initialize( "mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"},  {
+      onCompleted: function( msg ) {
+      },
+      onError: function(err) {
+        //only node gets the pretty error message
+        if( require('../../lib/v1/internal/ch-node.js').available ) {
+          expect(err.message).toBe("Server responded HTTP. Make sure you are not trying to connect to the http endpoint " +
+            "(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)");
+        }
+        done();
+      }
+    });
+    conn.sync();
+
+  });
+
 });
