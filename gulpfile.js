@@ -198,16 +198,23 @@ gulp.task('set', function() {
 
 var neo4jHome  = path.resolve('./build/neo4j');
 var neorunPath = path.resolve('./neokit/neorun.py');
+var neorunStartArgsName = "--neorun.start.args"; // use this args to provide additional args for running neorun.start
 
 gulp.task('start-neo4j', function() {
 
-    //var neorunArgs = minimist(process.argv.slice(2), { string: 'opts' }).opts;
-    var neorunArgs;
-    neorunArgs = neorunArgs || '-v 3.0.1 -p neo4j';
+    var neorunStartArgs = '-p neo4j'; // default args to neorun.start: change the default password to neo4j
+    process.argv.slice(2).forEach(function (val) {
+        if(val.startsWith(neorunStartArgsName))
+        {
+            neorunStartArgs = val.split("=")[1];
+        }
+    });
+
+    neorunStartArgs = neorunStartArgs.match(/\S+/g) || '';
 
     return runScript([
         neorunPath, '--start=' + neo4jHome
-    ].concat( neorunArgs.split(" ") ) );
+    ].concat( neorunStartArgs ) );
 });
 
 gulp.task('stop-neo4j', function() {
