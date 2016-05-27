@@ -165,46 +165,9 @@ gulp.task('watch-n-test', ['test-nodejs'], function () {
   return gulp.watch(['src/**/*.js', "test/**/*.js"], ['test-nodejs'] );
 });
 
-var neo4jLinuxUrl = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-NIGHTLY-unix.tar.gz';
-var neo4jWinUrl   = 'http://alpha.neohq.net/dist/neo4j-enterprise-3.0.0-NIGHTLY-windows.zip';
-var neo4jHome     = './build/neo4j-enterprise-3.0.0';
-var isWin         = /^win/.test(process.platform);
-
-gulp.task('download-neo4j', function() {
-  if( !fs.existsSync(neo4jHome) ) {
-    // Need to download
-    if(isWin) {
-        return download(neo4jWinUrl)
-              .pipe(decompress({strip: 1}))
-              .pipe(gulp.dest(neo4jHome));
-    }
-    else {
-        return download(neo4jLinuxUrl)
-              .pipe(decompress({strip: 1}))
-              .pipe(gulp.dest(neo4jHome));
-    }
-  }
-});
-
-gulp.task('set-password', ['download-neo4j'], function() {
-  var setPassword = gulp.src('test/resources/auth')
-  .pipe(gulp.dest(neo4jHome + "/data/dbms/"));
-
-  if(isWin)
-  {
-    var setServerName = gulp.src('test/resources/neo4j-wrapper.conf')
-    .pipe(gulp.dest(neo4jHome + "/conf/"));
-
-    return merge(setPassword, setServerName);
-  }
-  else
-  {
-    return setPassword;
-  }
-});
 
 var featureFiles   = 'https://s3-eu-west-1.amazonaws.com/remoting.neotechnology.com/driver-compliance/tck.tar.gz';
-var featureHome     = './build/tck';
+var featureHome    = './build/tck';
 
 gulp.task('download-tck', function() {
   return download(featureFiles)
@@ -220,21 +183,6 @@ gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
     }));
 });
 
-var runPowershell = function( cmd ) {
-    var spawn = childProcess.spawn, child;
-    child = spawn("powershell.exe",[cmd]);
-    child.stdout.on("data",function(data){
-        console.log("Powershell Data: " + data);
-    });
-    child.stderr.on("data",function(data){
-        console.error("Powershell Errors: " + data);
-    });
-    child.on("exit",function(){
-        console.log("Powershell Script finished");
-    });
-    child.stdin.end(); //end input
-};
-
 /** Set the project version, controls package.json and version.js */
 gulp.task('set', function() {
   // Get the --version arg from command line
@@ -247,28 +195,44 @@ gulp.task('set', function() {
 
 });
 
-gulp.task('start-neo4j', ['set-password'], function() {
-  if(isWin) {
-    return runPowershell(neo4jHome + '/bin/neo4j.bat install-service;' + neo4jHome + '/bin/neo4j.bat start');
-  }
-  else {
-    return gulp.src('').pipe(shell([
-      'mkdir -p ' + neo4jHome + '/logs',
-      'mkdir -p ' + neo4jHome + '/run',
-      'mkdir -p ' + neo4jHome + '/plugins',
-      'mkdir -p ' + neo4jHome + '/import',
-      'chmod +x ' + neo4jHome + '/bin/neo4j',
-      neo4jHome + '/bin/neo4j start',
-    ]));
-  }
+
+var neo4jHome  = path.resolve('./build/neo4j');
+var neorunPath = path.resolve('./neokit/neorun.py');
+var neorunStartArgsName = "--neorun.start.args"; // use this args to provide additional args for running neorun.start
+
+gulp.task('start-neo4j', function() {
+
+    var neorunStartArgs = '-p neo4j'; // default args to neorun.start: change the default password to neo4j
+    process.argv.slice(2).forEach(function (val) {
+        if(val.startsWith(neorunStartArgsName))
+        {
+            neorunStartArgs = val.split("=")[1];
+        }
+    });
+
+    neorunStartArgs = neorunStartArgs.match(/\S+/g) || '';
+
+    return runScript([
+        neorunPath, '--start=' + neo4jHome
+    ].concat( neorunStartArgs ) );
 });
 
 gulp.task('stop-neo4j', function() {
-  if(isWin) {
-    return runPowershell(neo4jHome + '/bin/neo4j.bat stop;' + neo4jHome + '/bin/neo4j.bat uninstall-service');
-  } else {
-    return gulp.src('').pipe(shell([
-      neo4jHome + '/bin/neo4j stop',
-    ]));
-  }
+    return runScript([
+        neorunPath, '--stop=' + neo4jHome
+    ]);
 });
+
+var runScript = function(cmd) {
+    var spawnSync = childProcess.spawnSync, child, code;
+    child = spawnSync('python', cmd);
+    console.log("Script Outputs:\n" + child.stdout.toString());
+    var error = child.stderr.toString();
+    if (error.trim() !== "")
+        console.log("Script Errors:\n"+ error);
+    code = child.status;
+    if( code !==0 )
+    {
+        throw "Script finished with code " + code
+    }
+};

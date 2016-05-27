@@ -1,13 +1,16 @@
 var neo4j = require("../../../../lib/v1");
 var util = require("./util");
 
+var CALLBACK_TIMEOUT = 60 * 1000;
+
 module.exports = function () {
 
-  this.Given(/^a running Neo(\d+)j Database$/, {timeout: 60 * 1000}, function (ignored, callback) {
+  this.Given(/^a running Neo(\d+)j Database$/, {timeout: CALLBACK_TIMEOUT}, function (ignored, callback) {
     if (this.driver1) this.driver1.close();
     if (this.driver2) this.driver2.close();
     util.changeCertificates('./test/resources/derived.key', './test/resources/derived.cert');
-    util.restart(callback);
+    util.restart();
+    callback();
   });
 
   this.When(/^I connect via a TLS\-enabled transport for the first time for the given hostname and port$/, function (callback) {
@@ -15,7 +18,7 @@ module.exports = function () {
     callback();
   });
 
-  this.Then(/^sessions should simply work$/, {timeout: 60 * 1000},  function (callback) {
+  this.Then(/^sessions should simply work$/, {timeout: CALLBACK_TIMEOUT},  function (callback) {
     var session = this.driver1.session();
     session.run("RETURN 1").then(function (result) {
       session.close();
@@ -26,15 +29,14 @@ module.exports = function () {
   });
 
   this.Given(/^a running Neo(\d+)j Database that I have connected to with a TLS\-enabled transport in the past$/,
-    {timeout: 60 * 1000}, function (arg1, callback) {
+    {timeout: CALLBACK_TIMEOUT}, function (arg1, callback) {
       util.changeCertificates('./test/resources/derived.key', './test/resources/derived.cert');
       var self = this;
-      util.restart(function () {
-        var driver = _connectWithHostFile(self.knownHosts1);
-        driver.session().run("RETURN 1").then(function (result) {
-          driver.close();
-          callback();
-        });
+      util.restart();
+      var driver = _connectWithHostFile(self.knownHosts1);
+      driver.session().run("RETURN 1").then(function (result) {
+        driver.close();
+        callback();
       });
     });
 
@@ -43,9 +45,10 @@ module.exports = function () {
     callback();
   });
 
-  this.Given(/^the database has changed which certificate it uses$/, {timeout: 60 * 1000}, function (callback) {
+  this.Given(/^the database has changed which certificate it uses$/, {timeout: CALLBACK_TIMEOUT}, function (callback) {
     util.changeCertificates('./test/resources/other.key', './test/resources/other.cert');
-    util.restart(callback);
+    util.restart();
+    callback();
   });
 
   this.Then(/^creating sessions should fail$/, function (callback) {
@@ -114,9 +117,10 @@ module.exports = function () {
   });
 
   this.Given(/^a running Neo(\d+)j Database using a certificate signed by the same trusted certificate$/,
-    {timeout: 60 * 1000}, function (arg1, callback) {
+    {timeout: CALLBACK_TIMEOUT}, function (arg1, callback) {
       util.changeCertificates('./test/resources/derived.key', './test/resources/derived.cert');
-      util.restart(callback);
+      util.restart();
+      callback();
     });
 
   this.When(/^I connect via a TLS\-enabled transport$/, function (callback) {
@@ -124,7 +128,7 @@ module.exports = function () {
     callback();
   });
 
-  this.Given(/^a running Neo(\d+)j Database using that exact trusted certificate$/, {timeout: 60 * 1000}, function (arg1, callback) {
+  this.Given(/^a running Neo(\d+)j Database using that exact trusted certificate$/, {timeout: CALLBACK_TIMEOUT}, function (arg1, callback) {
     //will have to hack a little bit here since the root cert cannot be used by the server since its
     //common name is not set to localhost
     this.config = {
@@ -135,13 +139,15 @@ module.exports = function () {
     };
 
     util.changeCertificates('./test/resources/other.key', './test/resources/other.cert');
-    util.restart(callback);
+    util.restart();
+    callback();
   });
 
-  this.Given(/^a running Neo(\d+)j Database using a certificate not signed by the trusted certificate$/, {timeout: 60 * 1000},
+  this.Given(/^a running Neo(\d+)j Database using a certificate not signed by the trusted certificate$/, {timeout: CALLBACK_TIMEOUT},
     function (arg1, callback) {
       util.changeCertificates('./test/resources/other.key', './test/resources/other.cert');
-      util.restart(callback);
+      util.restart();
+      callback();
     });
 
   this.Then(/^I should get a helpful error explaining that no trusted certificate found$/, function (callback) {
