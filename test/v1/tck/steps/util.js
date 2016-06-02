@@ -27,8 +27,9 @@ NULL = 'null';
 RELATIONSHIP = 'relationship';
 NODE = 'node';
 PATH = 'path';
-var isWin = /^win/.test(process.platform);
-var neo4jHome     = './build/neo4j-enterprise-3.1.0';
+
+var neorunPath = './neokit/neorun.py';
+var neo4jHome = './build/neo4j';
 var neo4jCert = neo4jHome + '/certificates/neo4j.cert';
 var neo4jKey = neo4jHome + '/certificates/neo4j.key';
 var childProcess = require("child_process");
@@ -354,48 +355,33 @@ function changeCertificates(keyFile, certFile) {
   fs.writeFileSync(neo4jCert, cert);
 }
 
-function restart(callback) {
+function restart() {
   stopDatabase();
-  setTimeout(function () {
-    startDatabase();
-    setTimeout(function () {
-      callback();}, 5000);
-  }, 5000);
+  startDatabase();
 }
 
 function startDatabase() {
-  if(isWin) {
-    return runPowershell(neo4jHome + '/bin/neo4j.bat install-service;' + neo4jHome + '/bin/neo4j.bat start');
-  } else {
-    childProcess.exec(neo4jHome + '/bin/neo4j start', function (err, stdout, stderr) {
-      console.log("starting");
-      if (err) throw err;
-    });
-  }
+  return runScript([
+    neorunPath, '--start=' + neo4jHome
+  ]);
 }
 
 function stopDatabase() {
-  if(isWin) {
-    runPowershell(neo4jHome + '/bin/neo4j.bat stop;' + neo4jHome + '/bin/neo4j.bat uninstall-service');
-  } else {
-    childProcess.exec(neo4jHome + '/bin/neo4j stop', function (err, stdout, stderr) {
-      console.log("stopping");
-      if (err) throw err;
-    });
-  }
+  return runScript([
+    neorunPath, '--stop=' + neo4jHome
+  ]);
 }
 
-var runPowershell = function( cmd ) {
-    var spawn = childProcess.spawn, child;
-    child = spawn("powershell.exe",[cmd]);
-    child.stdout.on("data",function(data){
-        console.log("Powershell Data: " + data);
-    });
-    child.stderr.on("data",function(data){
-        console.error("Powershell Errors: " + data);
-    });
-    child.on("exit",function(){
-        console.log("Powershell Script finished");
-    });
-    child.stdin.end(); //end input
+var runScript = function(cmd) {
+  var spawnSync = childProcess.spawnSync, child, code;
+  child = spawnSync('python', cmd);
+  console.log("Script Outputs:\n" + child.stdout.toString());
+  var error = child.stderr.toString();
+  if (error.trim() !== "")
+    console.log("Script Errors:\n"+ error);
+  code = child.status;
+  if( code !==0 )
+  {
+    throw "Script finished with code " + code
+  }
 };
