@@ -10,7 +10,7 @@ try
 	}
 	else
 	{
-		$env.NEORUN_START_ARGS="$args"
+		$env:NEORUN_START_ARGS="$args"
 		npm run start-neo4j
 	}
 
