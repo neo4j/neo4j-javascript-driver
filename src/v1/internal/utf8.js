@@ -20,6 +20,8 @@
 // This module defines a cross-platform UTF-8 encoder and decoder that works
 // with the Buffer API defined in buf.js
 
+import {TextEncoder, TextDecoder } from 'text-encoding-utf-8'
+
 import buf from "./buf";
 import {StringDecoder} from 'string_decoder';
 import {newError} from './../error';
@@ -63,9 +65,8 @@ try {
 } catch (e) {
 
   // Not on NodeJS, add shim for WebAPI TextEncoder/TextDecoder
-  var textEncoding = require('../../external/text-encoding/index');
-  let encoder = new textEncoding.TextEncoder("utf-8");
-  let decoder = new textEncoding.TextDecoder("utf-8");
+  let encoder = new TextEncoder("utf-8");
+  let decoder = new TextDecoder("utf-8");
 
   platformObj = {
     "encode": function (str) {
