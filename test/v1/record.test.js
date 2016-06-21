@@ -30,6 +30,17 @@ describe('Record', function() {
     expect(record.get("name")).toEqual("Bob");
   });
 
+  it('should allow checking if fields exist', function() {
+    // Given
+    var record = new Record( ["name"], ["Bob"] );
+
+    // When & Then
+    expect(record.has("name")).toEqual(true);
+    expect(record.has("invalid key")).toEqual(false);
+    expect(record.has(0)).toEqual(true);
+    expect(record.has(1)).toEqual(false);
+  });
+
   it('should give helpful error on no such key', function() {
     // Given
     var record = new Record( ["name"], ["Bob"] );
