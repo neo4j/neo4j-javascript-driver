@@ -20,8 +20,7 @@
 import {ResultSummary} from './result-summary';
 
 // Ensure Promise is available
-import {polyfill as polyfillPromise} from '../external/es6-promise';
-polyfillPromise();
+require('es6-promise').polyfill();
 
 /**
   * A stream of {@link Record} representing the result of a statement.
