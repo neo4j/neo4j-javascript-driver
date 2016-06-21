@@ -100,6 +100,22 @@ class Record {
 
     return this._fields[index];
   }
+
+  /**
+   * Check if a value from this record, either by index or by field key, exists.
+   *
+   * @param {string|Number} key Field key, or the index of the field.
+   * @returns {boolean}
+   */
+  has( key ) {
+    // if key is a number, we check if it is in the _fields array
+    if( typeof key === "number" ) {
+      return ( key >= 0 && key < this._fields.length );
+    }
+
+    // if it's not a number, we check _fieldLookup dictionary directly
+    return this._fieldLookup[key] !== undefined;
+  }
 }
 
 export {Record}
