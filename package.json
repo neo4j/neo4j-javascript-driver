@@ -46,5 +46,9 @@
     "through2": "~2.0.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
+  },
+  "dependencies": {
+    "es6-promise": "^3.2.1",
+    "text-encoding-utf-8": "^1.0.1"
   }
 }
