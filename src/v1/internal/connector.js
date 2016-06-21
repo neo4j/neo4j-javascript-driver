@@ -28,11 +28,11 @@ import {int, isInt} from '../integer';
 import {newError} from './../error';
 
 let Channel;
-if( WebSocketChannel.available ) {
-    Channel = WebSocketChannel.channel;
-}
-else if( NodeChannel.available ) {
+if( NodeChannel.available ) {
     Channel = NodeChannel.channel;
+}
+else if ( WebSocketChannel.available ) {
+    Channel = WebSocketChannel.channel;
 }
 else {
     throw newError("Fatal: No compatible transport available. Need to run on a platform with the WebSocket API.");
