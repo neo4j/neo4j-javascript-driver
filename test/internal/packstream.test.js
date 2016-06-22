@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 var alloc = require('../../lib/v1/internal/buf').alloc,
     packstream = require("../../lib/v1/internal/packstream.js"),
     integer = require("../../lib/v1/integer.js"),
@@ -32,16 +32,19 @@ describe('packstream', function() {
     for(n = -999; n <= 999; n += 1) {
       i = Integer.fromNumber(n);
       expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+      expect( packAndUnpack( i, undefined, {preferNativeInt: true} ) ).toBe( i.toNumber() );
     }
     // positive numbers
     for(n = 16; n <= 16 ; n += 1) {
       i = Integer.fromNumber(Math.pow(2, n));
       expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+      expect( packAndUnpack( i, undefined, {preferNativeInt: true} ) ).toBe( i.toNumber() );
     }
     // negative numbers
     for(n = 0; n <= 63 ; n += 1) {
       i = Integer.fromNumber(-Math.pow(2, n));
       expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+      expect( packAndUnpack( i, undefined, {preferNativeInt: true} ).toString() ).toEqual( i.toString() );
     }
   });
   it('should pack strings', function() {
@@ -51,7 +54,7 @@ describe('packstream', function() {
     expect( packAndUnpack(str, str.length + 8)).toBe(str);
   });
   it('should pack structures', function() {
-    expect( packAndUnpack( new Structure(1, ["Hello, world!!!"] ) ).fields[0] )  
+    expect( packAndUnpack( new Structure(1, ["Hello, world!!!"] ) ).fields[0] )
      .toBe( "Hello, world!!!" );
   });
   it('should pack lists', function() {
@@ -73,10 +76,10 @@ describe('packstream', function() {
   });
 });
 
-function packAndUnpack( val, bufferSize ) {
+function packAndUnpack( val, bufferSize, options ) {
   bufferSize = bufferSize || 128;
   var buffer = alloc(bufferSize);
   new Packer( buffer ).pack( val );
   buffer.reset();
-  return new Unpacker().unpack( buffer );
+  return new Unpacker(options).unpack( buffer );
 }

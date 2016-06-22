@@ -161,7 +161,7 @@ class Connection {
    * @param channel - channel with a 'write' function and a 'onmessage'
    *                  callback property
    */
-  constructor (channel) {
+  constructor (channel, config) {
     /**
      * An ordered queue of observers, each exchange response (zero or more
      * RECORD messages followed by a SUCCESS message) we recieve will be routed
@@ -173,7 +173,7 @@ class Connection {
     this._dechunker = new chunking.Dechunker();
     this._chunker = new chunking.Chunker( channel );
     this._packer = new packstream.Packer( this._chunker );
-    this._unpacker = new packstream.Unpacker();
+    this._unpacker = new packstream.Unpacker( config );
     this._isHandlingFailure = false;
 
     // Set to true on fatal errors, to get this out of session pool.
@@ -428,7 +428,7 @@ function connect( url, config = {}) {
     trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
     knownHosts : config.knownHosts
-  }));
+  }), config);
 }
 
 export default {
