@@ -34,6 +34,8 @@ describe('integer values', function() {
   it('should support integer -1 ', testVal( neo4j.int(-1) ) );
   it('should support integer larger than JS Numbers can model', testVal( neo4j.int("0x7fffffffffffffff") ) );
   it('should support integer smaller than JS Numbers can model', testVal( neo4j.int("0x8000000000000000") ) );
+
+  it('should support integer 1 casting to native ', testVal( neo4j.int(1), 1, {preferNativeInt: true} ) );
 });
 
 describe('boolean values', function() {
@@ -131,14 +133,14 @@ describe('path values', function() {
   });
 });
 
-function testVal( val ) {
+function testVal( val, expected, config ) {
   return function( done ) {
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), config);
     var session = driver.session();
 
     session.run("RETURN {val} as v", {val: val})
       .then( function( result ) {
-        expect( result.records[0].get('v') ).toEqual( val );
+        expect( result.records[0].get('v') ).toEqual( expected || val );
         driver.close();
         done();
       }).catch(function(err) { console.log(err); });

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import {debug} from "./log";
 import {alloc} from "./buf";
 import utf8 from "./utf8";
@@ -244,7 +244,9 @@ class Packer {
   * @access private
   */
 class Unpacker {
-  constructor () {
+  constructor (config) {
+    this._config = config || {};
+
     // Higher level layers can specify how to map structs to higher-level objects.
     // If we recieve a struct that has a signature that does not have a mapper,
     // we simply return a Structure object.
@@ -255,7 +257,7 @@ class Unpacker {
     let value = [];
     for(let i = 0; i < size; i++) {
       value.push( this.unpack( buffer ) );
-    } 
+    }
     return value;
   }
 
@@ -277,8 +279,16 @@ class Unpacker {
       let value = new Structure(signature, []);
       for(let i = 0; i < size; i++) {
         value.fields.push(this.unpack(buffer));
-      } 
+      }
       return value;
+    }
+  }
+
+  unpackSmallInt (value) {
+    if( this._config.preferNativeInt ) {
+      return value;
+    } else {
+      return int(value);
     }
   }
 
@@ -293,16 +303,15 @@ class Unpacker {
     } else if (marker == FLOAT_64) {
       return buffer.readFloat64();
     } else if (marker >= 0 && marker < 128) {
-      return int(marker);
+      return this.unpackSmallInt(marker);
     } else if (marker >= 240 && marker < 256) {
-      return int(marker - 256);
+      return this.unpackSmallInt(marker - 256);
     } else if (marker == INT_8) {
-      return int(buffer.readInt8());
+      return this.unpackSmallInt(buffer.readInt8());
     } else if (marker == INT_16) {
-      return int(buffer.readInt16());
+      return this.unpackSmallInt(buffer.readInt16());
     } else if (marker == INT_32) {
-      let b = buffer.readInt32();
-      return int(b);
+      return this.unpackSmallInt(buffer.readInt32());
     } else if (marker == INT_64) {
       let high = buffer.readInt32();
       let low  = buffer.readInt32();
