@@ -96,17 +96,27 @@ class Packer {
     } else if (x instanceof Array) {
       this.packListHeader(x.length);
       for(let i = 0; i < x.length; i++) {
-        this.pack(x[i]);
+        this.pack(x[i] === undefined ? null : x[i]);
       }
     } else if (x instanceof Structure) {
       this.packStruct( x.signature, x.fields );
     } else if (typeof(x) == "object") {
       let keys = Object.keys(x);
-      this.packMapHeader(keys.length);
+
+      let count = 0;
+      for(let i = 0; i < keys.length; i++) {
+        if (x[keys[i]] !== undefined) {
+          count++;
+        }
+      }
+
+      this.packMapHeader(count);
       for(let i = 0; i < keys.length; i++) {
         let key = keys[i];
-        this.packString(key);
-        this.pack(x[key]);
+        if (x[key] !== undefined) {
+          this.packString(key);
+          this.pack(x[key]);
+        }
       }
     } else {
       throw newError("Cannot pack this value: " + x);
