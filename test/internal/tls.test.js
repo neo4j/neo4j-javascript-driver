@@ -20,6 +20,7 @@ var NodeChannel = require('../../lib/v1/internal/ch-node.js');
 var neo4j = require("../../lib/v1");
 var fs = require("fs");
 var hasFeature = require("../../lib/v1/internal/features");
+var isLocalHost = require("../../lib/v1/internal/util").isLocalHost;
 
 describe('trust-signed-certificates', function() {
 
@@ -34,7 +35,7 @@ describe('trust-signed-certificates', function() {
 
     // Given
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
-      encrypted: true,
+      encrypted: "ENCRYPTION_ON",
       trust: "TRUST_SIGNED_CERTIFICATES",
       trustedCertificates: ["test/resources/random.certificate"]
     });
@@ -55,7 +56,7 @@ describe('trust-signed-certificates', function() {
 
     // Given
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
-      encrypted: true,
+      encrypted: "ENCRYPTION_ON",
       trust: "TRUST_SIGNED_CERTIFICATES",
       trustedCertificates: ["build/neo4j/certificates/neo4j.cert"]
     });
@@ -90,7 +91,7 @@ describe('trust-on-first-use', function() {
     }
 
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
-      encrypted: true,
+      encrypted: "ENCRYPTION_ON",
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
     });
@@ -115,7 +116,7 @@ describe('trust-on-first-use', function() {
     var knownHostsPath = "test/resources/random_known_hosts";
 
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
-      encrypted: true,
+      encrypted: "ENCRYPTION_ON",
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
     });
@@ -126,6 +127,19 @@ describe('trust-on-first-use', function() {
         "and no longer matches the certificate stored for localhost:7687");
       done();
     });
+  });
+
+  it('should detect localhost', function() {
+    expect(isLocalHost('localhost')).toBe(true);
+    expect(isLocalHost('LOCALHOST')).toBe(true);
+    expect(isLocalHost('localHost')).toBe(true);
+    expect(isLocalHost('127.0.0.1')).toBe(true);
+    expect(isLocalHost('127.0.0.11')).toBe(true);
+    expect(isLocalHost('127.1.0.0')).toBe(true);
+
+    expect(isLocalHost('172.1.0.0')).toBe(false);
+    expect(isLocalHost('127.0.0.0.0')).toBe(false);
+    expect(isLocalHost("google.com")).toBe(false);
   });
 
   afterEach(function(){

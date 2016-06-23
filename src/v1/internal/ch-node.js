@@ -23,6 +23,7 @@ import fs from 'fs';
 import path from 'path';
 import {EOL} from 'os';
 import {NodeBuffer} from './buf';
+import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_ON, ENCRYPTION_OFF} from './util';
 import {newError} from './../error';
 
 let _CONNECTION_IDGEN = 0;
@@ -71,7 +72,7 @@ const TrustStrategy = {
         "to verify trust for encrypted  connections, but have not configured any " +
         "trustedCertificates. You  must specify the path to at least one trusted " +
         "X.509 certificate for this to work. Two other alternatives is to use " +
-        "TRUST_ON_FIRST_USE or to disable encryption by setting encrypted=false " +
+        "TRUST_ON_FIRST_USE or to disable encryption by setting encrypted=\"" + ENCRYPTION_OFF + "\"" +
         "in your driver configuration."));
       return;
     }
@@ -89,7 +90,8 @@ const TrustStrategy = {
           " the signing certificate, or the server certificate, to the list of certificates trusted by this driver" +
           " using `neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
           " is a security measure to protect against man-in-the-middle attacks. If you are just trying " +
-          " Neo4j out and are not concerned about encryption, simply disable it using `encrypted=false` in the driver" +
+          " Neo4j out and are not concerned about encryption, simply disable it using `encrypted=\"" + ENCRYPTION_OFF +
+          "\"` in the driver" +
           " options."));
       } else {
         onSuccess();
@@ -115,7 +117,7 @@ const TrustStrategy = {
         onFailure(newError("You are using a version of NodeJS that does not " +
           "support trust-on-first use encryption. You can either upgrade NodeJS to " +
           "a newer version, use `trust:TRUST_SIGNED_CERTIFICATES` in your driver " +
-          "config instead, or disable encryption using `encrypted:false`."));
+          "config instead, or disable encryption using `encrypted:\"" + ENCRYPTION_OFF+ "\"`."));
         return;
       }
 
@@ -140,7 +142,7 @@ const TrustStrategy = {
             "update the file with the new certificate. You can configure which file the driver " +
             "should use to store this information by setting `knownHosts` to another path in " +
             "your driver configuration - and you can disable encryption there as well using " +
-            "`encrypted:false`."))
+            "`encrypted:\"" + ENCRYPTION_OFF + "\"`."))
         }
       });
     });
@@ -150,7 +152,9 @@ const TrustStrategy = {
 };
 
 function connect( opts, onSuccess, onFailure=(()=>null) ) {
-  if( opts.encrypted === false ) {
+  //still allow boolean for backwards compatibility
+  if (opts.encrypted === false || opts.encrypted === ENCRYPTION_OFF ||
+    (opts.encrypted === ENCRYPTION_NON_LOCAL && isLocalHost(opts.host))) {
     var conn = net.connect(opts.port, opts.host, onSuccess);
     conn.on('error', onFailure);
     return conn;
@@ -160,7 +164,7 @@ function connect( opts, onSuccess, onFailure=(()=>null) ) {
     onFailure(newError("Unknown trust strategy: " + opts.trust + ". Please use either " +
       "trust:'TRUST_SIGNED_CERTIFICATES' or trust:'TRUST_ON_FIRST_USE' in your driver " +
       "configuration. Alternatively, you can disable encryption by setting " +
-      "`encrypted:false`. There is no mechanism to use encryption without trust verification, " +
+      "`encrypted:\"" + ENCRYPTION_OFF + "\"`. There is no mechanism to use encryption without trust verification, " +
       "because this incurs the overhead of encryption without improving security. If " +
       "the driver does not verify that the peer it is connected to is really Neo4j, it " +
       "is very easy for an attacker to bypass the encryption by pretending to be Neo4j."));

@@ -20,6 +20,7 @@
 import {debug} from "./log";
 import {HeapBuffer} from "./buf";
 import {newError} from './../error';
+import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_ON, ENCRYPTION_OFF} from './util';
 
 /**
  * Create a new WebSocketChannel to be used in web browsers.
@@ -41,14 +42,16 @@ class WebSocketChannel {
     this._handleConnectionError = this._handleConnectionError.bind(this);
 
     let scheme = "ws";
-    if( opts.encrypted ) {
+    //Allow boolean for backwards compatibility
+    if( opts.encrypted === true || opts.encrypted === ENCRYPTION_ON ||
+      (opts.encrypted === ENCRYPTION_NON_LOCAL && !isLocalHost(opts.host))) {
       if( (!opts.trust) || opts.trust === "TRUST_SIGNED_CERTIFICATES" ) {
         scheme = "wss";
       } else {
         this._error = newError("The browser version of this driver only supports one trust " +
           "strategy, 'TRUST_SIGNED_CERTIFICATES'. "+opts.trust+" is not supported. Please " +
           "either use TRUST_SIGNED_CERTIFICATES or disable encryption by setting " +
-          "`encrypted:false` in the driver configuration.");
+          "`encrypted:\"" + ENCRYPTION_OFF + "\"` in the driver configuration.");
         return;
       }
     }
