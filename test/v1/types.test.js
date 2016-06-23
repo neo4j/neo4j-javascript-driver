@@ -49,6 +49,7 @@ describe('string values', function() {
 
 describe('list values', function() {
   it('should support empty lists ',   testVal( [] ) );
+  it('should support sparse lists ',   testVal( [ undefined, 4 ], [ null, 4 ] ) );
   it('should support float lists ',   testVal( [ 1,2,3 ] ) );
   it('should support boolean lists ', testVal( [ true, false ] ) );
   it('should support string lists ',  testVal( [ "", "hello!" ] ) );
@@ -59,6 +60,7 @@ describe('list values', function() {
 describe('map values', function() {
   it('should support empty maps ', testVal( {} ) );
   it('should support basic maps ', testVal( {a:1, b:{}, c:[], d:{e:1}} ) );
+  it('should support sparse maps ', testVal( {foo: undefined, bar: null}, {bar: null} ) );
 });
 
 describe('node values', function() {
@@ -131,14 +133,14 @@ describe('path values', function() {
   });
 });
 
-function testVal( val ) {
+function testVal( val, expected ) {
   return function( done ) {
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     var session = driver.session();
 
     session.run("RETURN {val} as v", {val: val})
       .then( function( result ) {
-        expect( result.records[0].get('v') ).toEqual( val );
+        expect( result.records[0].get('v') ).toEqual( expected || val );
         driver.close();
         done();
       }).catch(function(err) { console.log(err); });
