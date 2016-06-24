@@ -719,6 +719,23 @@ Integer.fromValue = function(val) {
 };
 
 /**
+ * Returns a number or Integer for a given pair of low and high bits, preferring number when in scope.
+ * @access private
+ * @param {number} lowBits The low 32 bits
+ * @param {number} highBits The high 32 bits
+ * @returns {!Integer|number} The corresponding Integer value
+ * @expose
+ */
+Integer.asNative = function(lowBits, highBits) {
+  var val = new Integer(lowBits, highBits);
+  if (val.greaterThan(MIN_NATIVE) && val.lessThan(MAX_NATIVE)) {
+    return val.toNumber();
+  } else {
+    return val;
+  }
+};
+
+/**
  * @type {number}
  * @const
  * @inner
@@ -800,6 +817,24 @@ Integer.MAX_VALUE = Integer.fromBits(0xFFFFFFFF|0, 0x7FFFFFFF|0, false);
  * @expose
  */
 Integer.MIN_VALUE = Integer.fromBits(0, 0x80000000|0, false);
+
+/**
+ * Minimum safe native value.
+ * @type {!Integer}
+ * @const
+ * @inner
+ * @private
+ */
+var MIN_NATIVE = Integer.fromValue(Number.MIN_SAFE_INTEGER);
+
+/**
+ * Maximum safe native value.
+ * @type {!Integer}
+ * @const
+ * @inner
+ * @private
+ */
+var MAX_NATIVE = Integer.fromValue(Number.MAX_SAFE_INTEGER);
 
 /**
  * Cast value to Integer type.
