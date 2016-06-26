@@ -77,6 +77,20 @@ class Record {
   }
 
   /**
+   * Generates an object out of the current Record
+   *
+   * @returns {Object}
+   */
+  toObject() {
+    const object = {};
+    this.forEach((value, key) => {
+      object[key] = value
+    });
+
+    return object;
+  }
+
+  /**
    * Get a value from this record, either by index or by field key.
    *
    * @param {string|Number} key Field key, or the index of the field.
