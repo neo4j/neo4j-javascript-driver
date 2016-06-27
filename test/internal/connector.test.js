@@ -76,7 +76,7 @@ describe('connector', function() {
 
   it('should provide error message when connecting to http-port', function(done) {
     // Given
-    var conn = connect("bolt://localhost:7474");
+    var conn = connect("bolt://localhost:7474", {encrypted:false});
 
     // When
     conn.initialize( "mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"},  {

@@ -423,7 +423,7 @@ function connect( url, config = {}) {
     host: host(url),
     port: port(url) || 7687,
     // Default to using encryption if trust-on-first-use is available
-    encrypted : config.encrypted || hasFeature("trust_on_first_use"),
+    encrypted : (config.encrypted == null) ?  hasFeature("trust_on_first_use") : config.encrypted,
     // Default to using trust-on-first-use if it is available
     trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
