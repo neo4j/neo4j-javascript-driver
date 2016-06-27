@@ -41,6 +41,19 @@ describe('Record', function() {
     expect(record.has(1)).toEqual(false);
   });
 
+  it('should transform Record into Object', function() {
+    // Given
+    var record = new Record( ["name", "age", "nested"], ["Bob", 20.5, {test: true}] );
+
+    // When
+    var obj = record.toObject();
+
+    // Then
+    expect(obj.name).toEqual("Bob");
+    expect(obj.age).toEqual(20.5);
+    expect(obj.nested.test).toEqual(true);
+  });
+
   it('should give helpful error on no such key', function() {
     // Given
     var record = new Record( ["name"], ["Bob"] );
