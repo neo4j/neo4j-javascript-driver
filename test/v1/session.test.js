@@ -23,6 +23,7 @@ var Session = require("../../lib/v1/session");
 
 describe('session', function () {
 
+  console.log("####session.test.js");
   var driver, session;
 
   beforeEach(function (done) {

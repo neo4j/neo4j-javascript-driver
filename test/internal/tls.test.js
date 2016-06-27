@@ -77,6 +77,7 @@ describe('trust-on-first-use', function() {
   var driver;
 
   it('should accept previously un-seen hosts', function(done) {
+    console.log("HELLO");
     // Assuming we only run this test on NodeJS with TOFU support
     if( !hasFeature("trust_on_first_use") ) {
       done();

@@ -21,6 +21,7 @@ var neo4j = require("../../lib/v1");
 
 describe('result stream', function() {
 
+  console.log("####result.test.js");
   var driver, session;
 
   beforeEach(function(done) {

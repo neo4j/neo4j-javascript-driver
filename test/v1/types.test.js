@@ -18,8 +18,8 @@
  */
 
 var neo4j = require("../../lib/v1");
-
-describe('floating point values', function() {
+console.log("####types.test.js");
+fdescribe('floating point values', function() {
   it('should support float 1.0 ', testVal( 1 ) );
   it('should support float 0.0 ', testVal( 0.0 ) );
   it('should support pretty big float ', testVal( 3.4028235e+38 ) ); // Max 32-bit

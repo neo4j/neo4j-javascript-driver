@@ -56,8 +56,12 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
   });
 }
 
-function storeFingerprint( serverId, knownHostsPath, fingerprint ) {
-  fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8" );
+function storeFingerprint(serverId, knownHostsPath, fingerprint) {
+  fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
+    if (err) {
+      console.log(err);
+    }
+  });
 }
 
 const TrustStrategy = {
