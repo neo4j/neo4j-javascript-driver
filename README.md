@@ -2,7 +2,7 @@
 
 A database driver for Neo4j 3.0.0+.
 
-Find detailed docs at [alpha.neohq.net](http://alpha.neohq.net/docs/javascript-driver/).
+Find detailed docs [here](http://neo4j.com/docs/api/javascript-driver/current/).
 
 ## Include module in Node.js application
 
