@@ -21,6 +21,7 @@ var neo4j = require("../../lib/v1");
 
 describe('driver', function() {
 
+  console.log("####driver.test.js");
   it('should expose sessions', function() {
     // Given
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));

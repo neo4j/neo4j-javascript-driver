@@ -29,6 +29,7 @@ var _console = console;
 */
 describe('examples', function() {
 
+  console.log("####examples.test.js");
   var driverGlobal, sessionGlobal, out, console;
 
   beforeEach(function(done) {

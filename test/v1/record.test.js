@@ -22,6 +22,8 @@ var Neo4jError = require("../../lib/v1/error").Neo4jError;
 
 
 describe('Record', function() {
+  console.log("####record.test.js");
+
   it('should allow getting fields by name', function() {
     // Given
     var record = new Record( ["name"], ["Bob"] );
