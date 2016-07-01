@@ -156,6 +156,7 @@ let _mappers = {
  * @access private
  */
 class Connection {
+
   /**
    * @constructor
    * @param channel - channel with a 'write' function and a 'onmessage'
@@ -319,28 +320,30 @@ class Connection {
   /** Queue an INIT-message to be sent to the database */
   initialize( clientName, token, observer ) {
     this._queueObserver(observer);
-    this._packer.packStruct( INIT, [clientName, token] );
+    this._packer.packStruct( INIT, [this._packable(clientName), this._packable(token)],
+      (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
   }
 
   /** Queue a RUN-message to be sent to the database */
   run( statement, params, observer ) {
     this._queueObserver(observer);
-    this._packer.packStruct( RUN, [statement, params] );
+    this._packer.packStruct( RUN, [this._packable(statement), this._packable(params)],
+      (err) => this._handleFatalError(err)  );
     this._chunker.messageBoundary();
   }
 
   /** Queue a PULL_ALL-message to be sent to the database */
   pullAll( observer ) {
     this._queueObserver(observer);
-    this._packer.packStruct( PULL_ALL );
+    this._packer.packStruct( PULL_ALL, [], (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
   }
 
   /** Queue a DISCARD_ALL-message to be sent to the database */
   discardAll( observer ) {
     this._queueObserver(observer);
-    this._packer.packStruct( DISCARD_ALL );
+    this._packer.packStruct( DISCARD_ALL, [], (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
   }
 
@@ -359,14 +362,14 @@ class Connection {
       }
     };
     this._queueObserver(wrappedObs);
-    this._packer.packStruct( RESET );
+    this._packer.packStruct( RESET, [], (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
   }
 
   /** Queue a ACK_FAILURE-message to be sent to the database */
   _ackFailure( observer ) {
     this._queueObserver(observer);
-    this._packer.packStruct( ACK_FAILURE );
+    this._packer.packStruct( ACK_FAILURE, [], (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
   }
 
@@ -407,6 +410,10 @@ class Connection {
    */
   close(cb) {
     this._ch.close(cb);
+  }
+
+  _packable(value) {
+      return this._packer.packable(value, (err) => this._handleFatalError(err));
   }
 }
 

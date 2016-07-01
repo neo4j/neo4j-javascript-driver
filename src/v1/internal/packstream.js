@@ -80,57 +80,77 @@ class Packer {
     this._ch = channel;
   }
 
-  pack (x) {
+  /**
+   * Creates a packable function out of the provided value
+   * @param x the value to pack
+   * @param onError callback for the case when value cannot be packed
+   * @returns Function
+   */
+  packable (x, onError) {
     if (x === null) {
-      this._ch.writeUInt8( NULL );
+      return () => this._ch.writeUInt8( NULL );
     } else if (x === true) {
-      this._ch.writeUInt8( TRUE );
+      return () => this._ch.writeUInt8( TRUE );
     } else if (x === false) {
-      this._ch.writeUInt8( FALSE );
+      return () => this._ch.writeUInt8( FALSE );
     } else if (typeof(x) == "number") {
-      this.packFloat(x);
+      return () => this.packFloat(x);
     } else if (typeof(x) == "string") {
-      this.packString(x);
+      return () => this.packString(x, onError);
     } else if (x instanceof Integer) {
-      this.packInteger( x );
+      return () => this.packInteger( x );
     } else if (x instanceof Array) {
-      this.packListHeader(x.length);
-      for(let i = 0; i < x.length; i++) {
-        this.pack(x[i] === undefined ? null : x[i]);
+      return () => {
+        this.packListHeader(x.length, onError);
+        for (let i = 0; i < x.length; i++) {
+          this.packable(x[i] === undefined ? null : x[i], onError)();
+        }
       }
     } else if (x instanceof Structure) {
-      this.packStruct( x.signature, x.fields );
+      var packableFields = [];
+      for (var i = 0; i < x.fields.length; i++) {
+        packableFields[i] = this.packable(x.fields[i], onError);
+      }
+      return () => this.packStruct( x.signature, packableFields );
     } else if (typeof(x) == "object") {
-      let keys = Object.keys(x);
+      return () => {
+        let keys = Object.keys(x);
 
-      let count = 0;
-      for(let i = 0; i < keys.length; i++) {
-        if (x[keys[i]] !== undefined) {
-          count++;
+        let count = 0;
+        for (let i = 0; i < keys.length; i++) {
+          if (x[keys[i]] !== undefined) {
+            count++;
+          }
         }
-      }
-
-      this.packMapHeader(count);
-      for(let i = 0; i < keys.length; i++) {
-        let key = keys[i];
-        if (x[key] !== undefined) {
-          this.packString(key);
-          this.pack(x[key]);
+        this.packMapHeader(count, onError);
+        for (let i = 0; i < keys.length; i++) {
+          let key = keys[i];
+          if (x[key] !== undefined) {
+            this.packString(key);
+            this.packable(x[key], onError)();
+          }
         }
-      }
+      };
     } else {
-      throw newError("Cannot pack this value: " + x);
+      if (onError) {
+        onError(newError("Cannot pack this value: " + x));
+      }
+      return () => undefined;
     }
   }
 
-  packStruct ( signature, fields ) {
-    fields = fields || [];
-    this.packStructHeader(fields.length, signature);
-    for(let i = 0; i < fields.length; i++) {
-      this.pack(fields[i]);
+  /**
+   * Packs a struct
+   * @param signature the signature of the struct
+   * @param packableFields the fields of the struct, make sure you call `packable on all fields`
+   */
+  packStruct ( signature, packableFields, onError) {
+    packableFields = packableFields || [];
+    this.packStructHeader(packableFields.length, signature, onError);
+    for(let i = 0; i < packableFields.length; i++) {
+      packableFields[i]();
     }
   }
-
   packInteger (x) {
     var high = x.high,
         low  = x.low;
@@ -156,13 +176,12 @@ class Packer {
       this._ch.writeInt32(low);
     }
   }
-
   packFloat(x) {
     this._ch.writeUInt8(FLOAT_64);
     this._ch.writeFloat64(x);
   }
 
-  packString (x) {
+  packString (x, onError) {
     let bytes = utf8.encode(x);
     let size = bytes.length;
     if (size < 0x10) {
@@ -185,11 +204,11 @@ class Packer {
       this._ch.writeUInt8(size%256);
       this._ch.writeBytes(bytes);
     } else {
-      throw newError("UTF-8 strings of size " + size + " are not supported");
+      onError(newError("UTF-8 strings of size " + size + " are not supported"));
     }
   }
 
-  packListHeader (size) {
+  packListHeader (size, onError) {
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_LIST | size);
     } else if (size < 0x100) {
@@ -206,11 +225,11 @@ class Packer {
       this._ch.writeUInt8((size/256>>0)%256);
       this._ch.writeUInt8(size%256);
     } else {
-      throw newError("Lists of size " + size + " are not supported");
+      onError(newError("Lists of size " + size + " are not supported"));
     }
   }
 
-  packMapHeader (size) {
+  packMapHeader (size, onError) {
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_MAP | size);
     } else if (size < 0x100) {
@@ -227,11 +246,11 @@ class Packer {
       this._ch.writeUInt8((size/256>>0)%256);
       this._ch.writeUInt8(size%256);
     } else {
-      throw newError("Maps of size " + size + " are not supported");
+      onError(newError("Maps of size " + size + " are not supported"));
     }
   }
 
-  packStructHeader (size, signature) {
+  packStructHeader (size, signature, onError) {
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_STRUCT | size);
       this._ch.writeUInt8(signature);
@@ -244,7 +263,7 @@ class Packer {
       this._ch.writeUInt8(size/256>>0);
       this._ch.writeUInt8(size%256);
     } else {
-      throw newError("Structures of size " + size + " are not supported");
+      onError(newError("Structures of size " + size + " are not supported"));
     }
   }
 }

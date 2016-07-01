@@ -292,6 +292,20 @@ describe('session', function () {
     }, 1500);
   });
 
+  it('should fail nicely on unpackable values ', function (done) {
+    // Given
+    var unpackable = function(){throw Error()};
+
+    var statement = "RETURN {param}";
+    var params = {param: unpackable};
+    // When & Then
+    session
+      .run(statement, params)
+      .catch(function (ignore) {
+        done();
+      })
+  });
+
 });
 
 

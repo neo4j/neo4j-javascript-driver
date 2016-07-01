@@ -26,6 +26,8 @@ var alloc = require('../../lib/v1/internal/buf').alloc,
     Integer = integer.Integer;
 
 describe('packstream', function() {
+
+
   it('should pack integers', function() {
     var n, i;
     // test small numbers
@@ -76,7 +78,7 @@ describe('packstream', function() {
 function packAndUnpack( val, bufferSize ) {
   bufferSize = bufferSize || 128;
   var buffer = alloc(bufferSize);
-  new Packer( buffer ).pack( val );
+  new Packer( buffer ).packable( val )();
   buffer.reset();
   return new Unpacker().unpack( buffer );
 }
