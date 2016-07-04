@@ -42,8 +42,8 @@ describe('trust-signed-certificates', function() {
 
     // When
     driver.session().run( "RETURN 1").catch( function(err) {
-        expect( err.message ).toContain( "Server certificate is not trusted" );
-        done();
+      expect( err.message ).toContain( "Server certificate is not trusted" );
+      done();
     });
   });
 

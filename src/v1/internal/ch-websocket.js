@@ -41,6 +41,8 @@ class WebSocketChannel {
     this._error = null;
     this._handleConnectionError = this._handleConnectionError.bind(this);
 
+    this._encrypted = opts.encrypted;
+
     let scheme = "ws";
     //Allow boolean for backwards compatibility
     if( opts.encrypted === true || opts.encrypted === ENCRYPTION_ON ||
@@ -100,6 +102,10 @@ class WebSocketChannel {
         this.onerror(this._error);
       }
     }
+  }
+  
+  isEncrypted() {
+    return this._encrypted;
   }
 
   /**

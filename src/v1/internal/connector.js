@@ -26,7 +26,7 @@ import {alloc, CombinedBuffer} from "./buf";
 import GraphType from '../graph-types';
 import {int, isInt} from '../integer';
 import {newError} from './../error';
-import {ENCRYPTION_NON_LOCAL, ENCRYPTION_ON, ENCRYPTION_OFF} from './util';
+import {ENCRYPTION_NON_LOCAL, ENCRYPTION_OFF, shouldEncrypt} from './util';
 
 let Channel;
 if( WebSocketChannel.available ) {
@@ -402,6 +402,10 @@ class Connection {
     return !this._isBroken && this._ch._open;
   }
 
+  isEncrypted() {
+    return this._ch.isEncrypted();
+  }
+
   /**
    * Call close on the channel.
    * @param {function} cb - Function to call on close.
@@ -423,9 +427,9 @@ function connect( url, config = {}) {
   return new Connection( new Ch({
     host: host(url),
     port: port(url) || 7687,
-    // Default to using encryption if trust-on-first-use is available
-    encrypted : (config.encrypted == null) || (hasFeature("trust_on_first_use") ? ENCRYPTION_NON_LOCAL : ENCRYPTION_OFF),
-    // Default to using trust-on-first-use if it is available
+    // Default to using ENCRYPTION_NON_LOCAL if trust-on-first-use is available
+    encrypted : shouldEncrypt(config.encrypted, (hasFeature("trust_on_first_use") ? ENCRYPTION_NON_LOCAL : ENCRYPTION_OFF), host(url)),
+    // Default to using TRUST_ON_FIRST_USE if it is available
     trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
     knownHosts : config.knownHosts

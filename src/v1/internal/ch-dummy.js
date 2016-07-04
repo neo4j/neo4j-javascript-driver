@@ -29,6 +29,9 @@ class DummyChannel {
   constructor(opts) {
     this.written = [];
   }
+  isEncrypted() {
+    return false;
+  }
   write( buf ) {
     this.written.push(buf);
     observer.updateInstance(this);

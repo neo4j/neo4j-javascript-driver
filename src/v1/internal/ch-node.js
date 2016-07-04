@@ -23,7 +23,7 @@ import fs from 'fs';
 import path from 'path';
 import {EOL} from 'os';
 import {NodeBuffer} from './buf';
-import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_ON, ENCRYPTION_OFF} from './util';
+import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_OFF} from './util';
 import {newError} from './../error';
 
 let _CONNECTION_IDGEN = 0;
@@ -194,6 +194,7 @@ class NodeChannel {
     this._error = null;
     this._handleConnectionError = this._handleConnectionError.bind(this);
 
+    this._encrypted = opts.encrypted;
     this._conn = connect(opts, () => {
       if(!self._open) {
         return;
@@ -221,6 +222,10 @@ class NodeChannel {
     if( this.onerror ) {
       this.onerror(err);
     }
+  }
+
+  isEncrypted() {
+    return this._encrypted;
   }
 
   /**
