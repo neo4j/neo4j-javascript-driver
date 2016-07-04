@@ -40,6 +40,10 @@ class Session {
     this._hasTx = false;
   }
 
+  isEncrypted() {
+    return this._conn.isEncrypted();
+  }
+
   /**
    * Run Cypher statement
    * Could be called with a statement object i.e.: {statement: "MATCH ...", parameters: {param: 1}}

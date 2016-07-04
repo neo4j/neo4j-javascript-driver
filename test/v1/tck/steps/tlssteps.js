@@ -74,7 +74,7 @@ module.exports = function () {
       "If you trust that this certificate is valid, simply remove the line starting with localhost:7687 in `known_hosts1`, " +
       "and the driver will update the file with the new certificate. You can configure which file the driver should use " +
       "to store this information by setting `knownHosts` to another path in your driver configuration - " +
-      "and you can disable encryption there as well using `encrypted:false`.";
+      "and you can disable encryption there as well using `encrypted:\"ENCRYPTION_OFF\"`.";
     if (this.error.message !== expected) {
       callback(new Error("Given and expected results does not match: " + this.error.message + " Expected " + expected));
     } else {
@@ -107,7 +107,7 @@ module.exports = function () {
 
   this.Given(/^a driver configured to use a trusted certificate$/, function (callback) {
     this.config = {
-      encrypted: true,
+      encrypted: "ENCRYPTION_ON",
       trust: "TRUST_SIGNED_CERTIFICATES",
       knownHosts: this.knownHosts1,
       trustedCertificates: ['./test/resources/root.cert']
@@ -132,7 +132,7 @@ module.exports = function () {
     //will have to hack a little bit here since the root cert cannot be used by the server since its
     //common name is not set to localhost
     this.config = {
-      encrypted: true,
+      encrypted: "ENCRYPTION_ON",
       trust: "TRUST_SIGNED_CERTIFICATES",
       knownHosts: this.knownHosts1,
       trustedCertificates: [util.neo4jCert]
@@ -156,7 +156,7 @@ module.exports = function () {
       "certificate, or the server certificate, to the list of certificates trusted by this driver using " +
       "`neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This  is a security measure to protect " +
       "against man-in-the-middle attacks. If you are just trying  Neo4j out and are not concerned about encryption, " +
-      "simply disable it using `encrypted=false` in the driver options.";
+      "simply disable it using `encrypted=\"ENCRYPTION_OFF\"` in the driver options.";
     if (this.error.message !== expected) {
       callback(new Error("Given and expected results does not match: " + this.error.message + " Expected " + expected));
     } else {
@@ -168,7 +168,7 @@ module.exports = function () {
     return neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: hostFile,
-      encrypted: true
+      encrypted: "ENCRYPTION_ON"
     });
   }
 };
