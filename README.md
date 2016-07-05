@@ -173,4 +173,4 @@ var integerAsString = aLargerInteger.toString();
 ```
 
 To help you work with Integers, the Integer class exposes a large set of arithmetic methods.
-Refer to the Integer API docs for details.
+Refer to the [Integer API docs](http://neo4j.com/docs/api/javascript-driver/current/class/src/v1/integer.js~Integer.html) for details.
