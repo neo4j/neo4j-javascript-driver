@@ -13,6 +13,7 @@
     "build": "gulp all",
     "start-neo4j": "gulp start-neo4j",
     "stop-neo4j": "gulp stop-neo4j",
+    "run-tck": "gulp run-tck",
     "docs": "node_modules/.bin/esdoc -c esdoc.json"
   },
   "main": "lib/index.js",

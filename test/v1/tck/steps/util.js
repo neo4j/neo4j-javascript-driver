@@ -374,7 +374,6 @@ function stopDatabase() {
 var runScript = function(cmd) {
   var spawnSync = childProcess.spawnSync, child, code;
   child = spawnSync('python', cmd);
-  console.log("Script Outputs:\n" + child.stdout.toString());
   var error = child.stderr.toString();
   if (error.trim() !== "")
     console.log("Script Errors:\n"+ error);
