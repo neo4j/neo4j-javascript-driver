@@ -177,7 +177,7 @@ gulp.task('download-tck', function() {
 gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
     return gulp.src(featureHome + "/*").pipe(cucumber({
         'steps': 'test/v1/tck/steps/*.js',
-        'format': 'pretty',
+        'format': 'progress',
         'tags' : ['~@fixed_session_pool', '~@db', '~@equality', '~@streaming_and_cursor_navigation']
     }));
 });
