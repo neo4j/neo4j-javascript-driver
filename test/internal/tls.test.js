@@ -167,7 +167,30 @@ describe('trust-on-first-use', function() {
     driver.session();
 
     setTimeout(function() {
-      expect( fs.readFileSync(knownHostsPath, 'utf8').trim().split('\n').length ).toBe( 1 );
+      var lines = {};
+      fs.readFileSync(knownHostsPath, 'utf8')
+          .split('\n')
+          .filter(function(line) {
+            return !! (line.trim());
+          })
+          .forEach(function(line) {
+            if (!lines[line]) {
+              lines[line] = 0;
+            }
+            lines[line]++;
+          });
+
+      var duplicatedLines = Object
+          .keys(lines)
+          .map(function(line) {
+              return lines[line];
+          })
+          .filter(function(count) {
+              return count > 1;
+          })
+          .length;
+
+      expect( duplicatedLines ).toBe( 0 );
       done();
     }, 1000);
   });
