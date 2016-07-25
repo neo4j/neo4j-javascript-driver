@@ -46,7 +46,7 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
   require('readline').createInterface({
     input: fs.createReadStream(knownHostsPath)
   }).on('line', (line)  => {
-    if( line.startsWith( serverId )) {
+    if( !found && line.startsWith( serverId )) {
       found = true;
       cb( line.split(" ")[1] );
     }

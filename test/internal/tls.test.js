@@ -77,6 +77,42 @@ describe('trust-on-first-use', function() {
 
   var driver;
 
+  it('should not throw an error if the host file contains two host duplicates', function(done) {
+    'use strict';
+    // Assuming we only run this test on NodeJS with TOFU support
+    if( !hasFeature("trust_on_first_use") ) {
+      done();
+      return;
+    }
+
+    // Given
+    var knownHostsPath = "build/known_hosts";
+    if( fs.existsSync(knownHostsPath) ) {
+      fs.unlinkSync(knownHostsPath);
+    }
+
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      encrypted: true,
+      trust: "TRUST_ON_FIRST_USE",
+      knownHosts: knownHostsPath
+    });
+
+    driver.session(); // write into the knownHost file
+
+    // duplicate the same serverId twice
+    setTimeout(function() {
+      var text = fs.readFileSync(knownHostsPath,'utf8');
+      fs.writeFileSync(knownHostsPath, text+text);
+    }, 1000);
+
+    // When
+    driver.session().run("RETURN true AS a").then( function(data) {
+      // Then we get to here.
+      expect( data.records[0].get('a') ).toBe( true );
+      done();
+    });
+  });
+
   it('should accept previously un-seen hosts', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
     if( !hasFeature("trust_on_first_use") ) {
