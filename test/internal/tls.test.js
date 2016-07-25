@@ -90,22 +90,23 @@ describe('trust-on-first-use', function() {
       fs.unlinkSync(knownHostsPath);
     }
 
-    fs.writeFileSync(
-      knownHostsPath,
-      'localhost:7687 abcd\n' +
-      'localhost:7687 abcd'
-    );
-
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       encrypted: true,
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
     });
 
+    driver.session(); // write into the knownHost file
+
+    // duplicate the same serverId twice
+    setTimeout(function() {
+      var text = fs.readFileSync(knownHostsPath,'utf8');
+      fs.writeFileSync(knownHostsPath, text+text);
+    }, 1000);
+
     // When
     driver.session().run("RETURN true AS a").then( function(data) {
       // Then we get to here.
-      // And then the known_hosts file should have correct contents
       expect( data.records[0].get('a') ).toBe( true );
       done();
     });
