@@ -1,9 +1,22 @@
 # Neo4j Driver for Javascript
 
-
 A database driver for Neo4j 3.0.0+.
 
 Find detailed docs [here](http://neo4j.com/docs/api/javascript-driver/current/).
+
+## Edit your database configuration
+
+Open `.neo4j.conf` and enable Bolt connections
+
+```
+# Bolt connector
+#
+dbms.connector.bolt.type=BOLT
+dbms.connector.bolt.enabled=true
+dbms.connector.bolt.tls_level=OPTIONAL
+# To have Bolt accept non-local connections, uncomment this line:
+dbms.connector.bolt.address=0.0.0.0:7687
+``` 
 
 ## Include module in Node.js application
 
