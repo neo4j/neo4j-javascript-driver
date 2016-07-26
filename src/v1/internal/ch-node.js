@@ -45,7 +45,7 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
   require('readline').createInterface({
     input: fs.createReadStream(knownHostsPath)
   }).on('line', (line)  => {
-    if( line.startsWith( serverId )) {
+    if( !found && line.startsWith( serverId )) {
       found = true;
       cb( line.split(" ")[1] );
     }
@@ -56,11 +56,29 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
   });
 }
 
-function storeFingerprint(serverId, knownHostsPath, fingerprint) {
+const _lockFingerprintFromAppending = {};
+function storeFingerprint( serverId, knownHostsPath, fingerprint ) {
+  // we check if the serverId has been appended
+  if(!!_lockFingerprintFromAppending[serverId]){
+    // if it has, we ignore it
+    return;
+  }
+
+  // we make the line as appended
+  // ( 1 is more efficient to store than true because true is an oddball )
+  _lockFingerprintFromAppending[serverId] = 1;
+
+  // we append to file
   fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
     if (err) {
       console.log(err);
     }
+  });
+
+  // since the error occurs in the span of one tick
+  // after one tick we clean up to not interfere with anything else
+  setImmediate(() => {
+    delete _lockFingerprintFromAppending[serverId];
   });
 }
 
