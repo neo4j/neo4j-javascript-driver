@@ -57,11 +57,11 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
 }
 
 const _lockFingerprintFromAppending = {};
-function storeFingerprint( serverId, knownHostsPath, fingerprint ) {
+function storeFingerprint( serverId, knownHostsPath, fingerprint, cb ) {
   // we check if the serverId has been appended
   if(!!_lockFingerprintFromAppending[serverId]){
     // if it has, we ignore it
-    return;
+    return cb(null);
   }
 
   // we make the line as appended
@@ -70,15 +70,11 @@ function storeFingerprint( serverId, knownHostsPath, fingerprint ) {
 
   // we append to file
   fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
+    delete _lockFingerprintFromAppending[serverId];
     if (err) {
       console.log(err);
     }
-  });
-
-  // since the error occurs in the span of one tick
-  // after one tick we clean up to not interfere with anything else
-  setImmediate(() => {
-    delete _lockFingerprintFromAppending[serverId];
+    return cb(err);
   });
 }
 
@@ -145,8 +141,12 @@ const TrustStrategy = {
         if( knownFingerprint === serverFingerprint ) {
           onSuccess();
         } else if( knownFingerprint == null ) {
-          storeFingerprint( serverId, knownHostsPath, serverFingerprint );
-          onSuccess();
+          storeFingerprint( serverId, knownHostsPath, serverFingerprint, (err) => {
+            if (err) {
+              return onFailure(err);
+            }
+            return onSuccess();
+          });
         } else {
           onFailure(newError("Database encryption certificate has changed, and no longer " +
             "matches the certificate stored for " + serverId + " in `" + knownHostsPath +
