@@ -57,29 +57,11 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
   });
 }
 
-const _lockFingerprintFromAppending = {};
-function storeFingerprint( serverId, knownHostsPath, fingerprint ) {
-  // we check if the serverId has been appended
-  if(!!_lockFingerprintFromAppending[serverId]){
-    // if it has, we ignore it
-    return;
-  }
-
-  // we make the line as appended
-  // ( 1 is more efficient to store than true because true is an oddball )
-  _lockFingerprintFromAppending[serverId] = 1;
-
-  // we append to file
+function storeFingerprint(serverId, knownHostsPath, fingerprint) {
   fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
     if (err) {
       console.log(err);
     }
-  });
-
-  // since the error occurs in the span of one tick
-  // after one tick we clean up to not interfere with anything else
-  setImmediate(() => {
-    delete _lockFingerprintFromAppending[serverId];
   });
 }
 

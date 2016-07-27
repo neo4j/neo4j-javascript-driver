@@ -142,60 +142,7 @@ describe('trust-on-first-use', function() {
       done();
     });
   });
-
-  it('should not duplicate fingerprint entries', function(done) {
-    // Assuming we only run this test on NodeJS with TOFU support
-    if( !hasFeature("trust_on_first_use") ) {
-      done();
-      return;
-    }
-
-    // Given
-    var knownHostsPath = "build/known_hosts";
-    if( fs.existsSync(knownHostsPath) ) {
-      fs.unlinkSync(knownHostsPath);
-    }
-    fs.writeFileSync(knownHostsPath, '');
-
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
-      encrypted: true,
-      trust: "TRUST_ON_FIRST_USE",
-      knownHosts: knownHostsPath
-    });
-
-    // When
-    driver.session();
-    driver.session();
-
-    setTimeout(function() {
-      var lines = {};
-      fs.readFileSync(knownHostsPath, 'utf8')
-          .split('\n')
-          .filter(function(line) {
-            return !! (line.trim());
-          })
-          .forEach(function(line) {
-            if (!lines[line]) {
-              lines[line] = 0;
-            }
-            lines[line]++;
-          });
-
-      var duplicatedLines = Object
-          .keys(lines)
-          .map(function(line) {
-              return lines[line];
-          })
-          .filter(function(count) {
-              return count > 1;
-          })
-          .length;
-
-      expect( duplicatedLines ).toBe( 0 );
-      done();
-    }, 1000);
-  });
-
+  
   it('should should give helpful error if database cert does not match stored certificate', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
     if( !hasFeature("trust_on_first_use") ) {
