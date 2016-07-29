@@ -86,7 +86,7 @@ function storeFingerprint(serverId, knownHostsPath, fingerprint) {
   try {
     fs.accessSync(knownHostsPath);
   } catch (_) {
-    let pathWithoutFile = [].concat(knownHostsPath.split(path.sep)).slice(0, -1).join(path.sep);
+    let pathWithoutFile = knownHostsPath.split(path.sep).slice(0, -1).join(path.sep);
     mkFullPath(pathWithoutFile);
   }
   fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
