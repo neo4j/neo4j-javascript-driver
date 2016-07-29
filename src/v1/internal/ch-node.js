@@ -37,27 +37,21 @@ function userHome() {
 }
 
 function mkFullPath(pathToCreate) {
-  let joinedDirs = [];
-  let pathToKnownHostsParts = pathToCreate.split(path.sep)
-  pathToKnownHostsParts = pathToKnownHostsParts.map((part) => {
-    if( !part.length ) return path.sep
-    return part;
-  });
-  pathToKnownHostsParts.forEach((dir) => {
-    joinedDirs.push(dir);
-    let newPath = path.join.apply(null, joinedDirs)
-    try {
-      fs.accessSync( newPath );
+  try {
+    fs.mkdirSync( pathToCreate );
+  } catch (e) {
+    if(e.code === 'ENOENT') {
+      // Create parent dir
+      mkFullPath(path.dirname( pathToCreate ));
+      // And now try again
+      mkFullPath( pathToCreate );
       return;
     }
-    catch (_) {
-      try {
-        fs.mkdirSync( newPath );
-      } catch(e) {
-        if ( e.code != 'EEXIST' ) throw e;
-      }
+    if (e.code === 'EEXIST') {
+      return;
     }
-  });
+    throw e;
+  }
 }
 
 function loadFingerprint( serverId, knownHostsPath, cb ) {
@@ -86,8 +80,7 @@ function storeFingerprint(serverId, knownHostsPath, fingerprint) {
   try {
     fs.accessSync(knownHostsPath);
   } catch (_) {
-    let pathWithoutFile = knownHostsPath.split(path.sep).slice(0, -1).join(path.sep);
-    mkFullPath(pathWithoutFile);
+    mkFullPath(path.dirname(knownHostsPath));
   }
   fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
     if (err) {

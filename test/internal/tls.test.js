@@ -19,6 +19,7 @@
 var NodeChannel = require('../../lib/v1/internal/ch-node.js');
 var neo4j = require("../../lib/v1");
 var fs = require("fs");
+var path = require('path');
 var hasFeature = require("../../lib/v1/internal/features");
 
 describe('trust-signed-certificates', function() {
@@ -85,8 +86,8 @@ describe('trust-on-first-use', function() {
 
     // Given
     // Non existing directory
-    var knownHostsDir = "build/hosts"
-    var knownHostsPath = knownHostsDir + "/known_hosts";
+    var knownHostsDir = path.join("build", "hosts");
+    var knownHostsPath = path.join(knownHostsDir, "known_hosts");
     try {
       fs.unlinkSync(knownHostsPath);
     } catch (_) { }
@@ -105,6 +106,11 @@ describe('trust-on-first-use', function() {
       // Then we get to here.
       // And then the known_hosts file should have been created
       expect( function() { fs.accessSync(knownHostsPath) }).not.toThrow()
+      done();
+    }).catch( function(){
+      // Just here to gracefully exit test on failure so we don't get timeouts
+      // when done() isn't called.
+      expect( 'this' ).toBe( 'to never happen' );
       done();
     });
   });
