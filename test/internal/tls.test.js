@@ -76,6 +76,39 @@ describe('trust-on-first-use', function() {
 
   var driver;
 
+  it("should create known_hosts file including full path if it doesn't exist", function(done) {
+    // Assuming we only run this test on NodeJS with TOFU support
+    if( !hasFeature("trust_on_first_use") ) {
+      done();
+      return;
+    }
+
+    // Given
+    // Non existing directory
+    var knownHostsDir = "build/hosts"
+    var knownHostsPath = knownHostsDir + "/known_hosts";
+    try {
+      fs.unlinkSync(knownHostsPath);
+    } catch (_) { }
+    try {
+      fs.rmdirSync(knownHostsDir);
+    } catch (_) { }
+
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      encrypted: true,
+      trust: "TRUST_ON_FIRST_USE",
+      knownHosts: knownHostsPath
+    });
+
+    // When
+    driver.session().run( "RETURN 1").then( function() {
+      // Then we get to here.
+      // And then the known_hosts file should have been created
+      expect( function() { fs.accessSync(knownHostsPath) }).not.toThrow()
+      done();
+    });
+  });
+
   it('should not throw an error if the host file contains two host duplicates', function(done) {
     'use strict';
     // Assuming we only run this test on NodeJS with TOFU support
