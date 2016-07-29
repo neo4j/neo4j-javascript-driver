@@ -36,10 +36,35 @@ function userHome() {
   return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 }
 
+function mkFullPath(pathToCreate) {
+  let joinedDirs = [];
+  let pathToKnownHostsParts = pathToCreate.split(path.sep)
+  pathToKnownHostsParts = pathToKnownHostsParts.map((part) => {
+    if( !part.length ) return path.sep
+    return part;
+  });
+  pathToKnownHostsParts.forEach((dir) => {
+    joinedDirs.push(dir);
+    let newPath = path.join.apply(null, joinedDirs)
+    try {
+      fs.accessSync( newPath );
+      return;
+    }
+    catch (_) {
+      try {
+        fs.mkdirSync( newPath );
+      } catch(e) {
+        if ( e.code != 'EEXIST' ) throw e;
+      }
+    }
+  });
+}
+
 function loadFingerprint( serverId, knownHostsPath, cb ) {
-  if( !fs.existsSync( knownHostsPath )) {
-    cb(null);
-    return;
+  try {
+    fs.accessSync( knownHostsPath );
+  } catch(e) {
+    return cb(null)
   }
   let found = false;
   require('readline').createInterface({
@@ -57,6 +82,13 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
 }
 
 function storeFingerprint(serverId, knownHostsPath, fingerprint) {
+  // If file doesn't exist, create full path to it
+  try {
+    fs.accessSync(knownHostsPath);
+  } catch (_) {
+    let pathWithoutFile = [].concat(knownHostsPath.split(path.sep)).slice(0, -1).join(path.sep);
+    mkFullPath(pathWithoutFile);
+  }
   fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
     if (err) {
       console.log(err);
