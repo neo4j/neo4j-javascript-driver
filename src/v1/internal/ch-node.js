@@ -36,10 +36,29 @@ function userHome() {
   return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 }
 
+function mkFullPath(pathToCreate) {
+  try {
+    fs.mkdirSync( pathToCreate );
+  } catch (e) {
+    if(e.code === 'ENOENT') {
+      // Create parent dir
+      mkFullPath(path.dirname( pathToCreate ));
+      // And now try again
+      mkFullPath( pathToCreate );
+      return;
+    }
+    if (e.code === 'EEXIST') {
+      return;
+    }
+    throw e;
+  }
+}
+
 function loadFingerprint( serverId, knownHostsPath, cb ) {
-  if( !fs.existsSync( knownHostsPath )) {
-    cb(null);
-    return;
+  try {
+    fs.accessSync( knownHostsPath );
+  } catch(e) {
+    return cb(null)
   }
   let found = false;
   require('readline').createInterface({
@@ -64,11 +83,13 @@ function storeFingerprint( serverId, knownHostsPath, fingerprint, cb ) {
     return cb(null);
   }
 
-  // we make the line as appended
-  // ( 1 is more efficient to store than true because true is an oddball )
-  _lockFingerprintFromAppending[serverId] = 1;
+  // If file doesn't exist, create full path to it
+  try {
+    fs.accessSync(knownHostsPath);
+  } catch (_) {
+    mkFullPath(path.dirname(knownHostsPath));
+  }
 
-  // we append to file
   fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
     delete _lockFingerprintFromAppending[serverId];
     if (err) {
