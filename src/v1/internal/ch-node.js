@@ -76,17 +76,27 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
   });
 }
 
-function storeFingerprint(serverId, knownHostsPath, fingerprint) {
+const _lockFingerprintFromAppending = {};
+function storeFingerprint( serverId, knownHostsPath, fingerprint, cb ) {
+  // we check if the serverId has been appended
+  if(!!_lockFingerprintFromAppending[serverId]){
+    // if it has, we ignore it
+    return cb(null);
+  }
+
   // If file doesn't exist, create full path to it
   try {
     fs.accessSync(knownHostsPath);
   } catch (_) {
     mkFullPath(path.dirname(knownHostsPath));
   }
+
   fs.appendFile(knownHostsPath, serverId + " " + fingerprint + EOL, "utf8", (err) => {
+    delete _lockFingerprintFromAppending[serverId];
     if (err) {
       console.log(err);
     }
+    return cb(err);
   });
 }
 
@@ -154,8 +164,12 @@ const TrustStrategy = {
         if( knownFingerprint === serverFingerprint ) {
           onSuccess();
         } else if( knownFingerprint == null ) {
-          storeFingerprint( serverId, knownHostsPath, serverFingerprint );
-          onSuccess();
+          storeFingerprint( serverId, knownHostsPath, serverFingerprint, (err) => {
+            if (err) {
+              return onFailure(err);
+            }
+            return onSuccess();
+          });
         } else {
           onFailure(newError("Database encryption certificate has changed, and no longer " +
             "matches the certificate stored for " + serverId + " in `" + knownHostsPath +
