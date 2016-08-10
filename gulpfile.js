@@ -131,7 +131,14 @@ gulp.task('all', function(cb){
 });
 
 gulp.task('test', function(cb){
-  runSequence('test-nodejs', 'test-browser', 'run-tck', cb);
+  runSequence('test-nodejs', 'test-browser', 'run-tck', function (err) {
+    if (err) {
+      var exitCode = 2;
+      console.log('[FAIL] test task failed - exiting with code ' + exitCode);
+      return process.exit(exitCode);
+    }
+    return cb();
+  });
 });
 
 gulp.task('test-nodejs', ['nodejs'], function () {

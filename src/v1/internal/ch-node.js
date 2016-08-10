@@ -84,6 +84,10 @@ function storeFingerprint( serverId, knownHostsPath, fingerprint, cb ) {
     return cb(null);
   }
 
+  // we make the line as appended
+  // ( 1 is more efficient to store than true because true is an oddball )
+  _lockFingerprintFromAppending[serverId] = 1;
+
   // If file doesn't exist, create full path to it
   try {
     fs.accessSync(knownHostsPath);
