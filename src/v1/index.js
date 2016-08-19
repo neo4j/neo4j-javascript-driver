@@ -21,6 +21,10 @@ import {int, isInt} from './integer';
 import {driver} from './driver';
 import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
 import {Neo4jError} from './error';
+import Result from './result';
+import ResultSummary from './result-summary';
+import {Record} from './record';
+
 export default {
   driver,
   int,
@@ -36,6 +40,9 @@ export default {
     Relationship,
     UnboundRelationship,
     PathSegment,
-    Path
+    Path,
+    Result,
+    ResultSummary,
+    Record
   }
 }

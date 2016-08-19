@@ -75,4 +75,22 @@ describe('driver', function() {
     // When
     driver.session();
   });
+
+  var exposedTypes = [
+    'Node',
+    'Path',
+    'PathSegment',
+    'Record',
+    'Relationship',
+    'Result',
+    'ResultSummary',
+    'UnboundRelationship',
+  ];
+
+  exposedTypes.forEach(type => {
+    it(`should expose type ${type}`, function() {
+      expect(undefined === neo4j.types[type]).toBe(false);
+    });
+  });
+
 });
