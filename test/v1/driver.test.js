@@ -47,4 +47,19 @@ describe('driver', function() {
     // When
     driver.session();
   });
+
+  it('should fail early on wrong credentials', function(done) {
+    // Given
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "who would use such a password"));
+
+    // Expect
+    driver.onError = function (err) {
+      //the error message is different whether in browser or node
+      expect(err.fields[0].code).toEqual('Neo.ClientError.Security.Unauthorized');
+      done();
+    };
+
+    // When
+    driver.session();
+  });
 });
