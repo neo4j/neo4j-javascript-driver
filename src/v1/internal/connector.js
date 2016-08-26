@@ -324,6 +324,7 @@ class Connection {
     this._packer.packStruct( INIT, [this._packable(clientName), this._packable(token)],
       (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
+    this.sync();
   }
 
   /** Queue a RUN-message to be sent to the database */

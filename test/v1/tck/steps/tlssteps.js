@@ -151,7 +151,6 @@ module.exports = function () {
     });
 
   this.Then(/^I should get a helpful error explaining that no trusted certificate found$/, function (callback) {
-    console.log(this.error.message);
     var expected = "Server certificate is not trusted. If you trust the database you are connecting to, add the signing " +
       "certificate, or the server certificate, to the list of certificates trusted by this driver using " +
       "`neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This  is a security measure to protect " +
