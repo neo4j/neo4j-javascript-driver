@@ -57,14 +57,12 @@ module.exports = function () {
     var message = this.err.fields[0].message
     var code = this.err.fields[0].code
 
-    // TODO uncomment this once we fix the init sync
-    //var expectedStartOfMessage = 'No operations allowed until you send an INIT message successfully.'
-    var expectedCode = 'Neo.ClientError';
+    var expectedStartOfMessage = 'The client is unauthorized due to authentication failure.';
+    var expectedCode = 'Neo.ClientError.Security.Unauthorized';
 
-    // TODO uncomment this once we fix the init sync
-    //if (message.indexOf(expectedStartOfMessage) != 0) {
-    //  throw new Error("Wrong error messsage. Expected: '" + expectedStartOfMessage + "'. Got: '" + message + "'");
-    //}
+    if (message.indexOf(expectedStartOfMessage) != 0) {
+      throw new Error("Wrong error messsage. Expected: '" + expectedStartOfMessage + "'. Got: '" + message + "'");
+    }
 
     if (code.indexOf(expectedCode) != 0) {
       throw new Error("Wrong error code. Expected: '" + expectedCode + "'. Got: '" + code + "'");
