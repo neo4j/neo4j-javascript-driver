@@ -145,6 +145,29 @@ const TrustStrategy = {
     socket.on('error', onFailure);
     return socket;
   },
+  TRUST_SYSTEM_CA_SIGNED_CERTIFICATES : function( opts, onSuccess, onFailure ) {
+
+    let tlsOpts = {
+      // Because we manually check for this in the connect callback, to give
+      // a more helpful error to the user
+      rejectUnauthorized: false
+    };
+    let socket = tls.connect(opts.port, opts.host, tlsOpts, function () {
+      if (!socket.authorized) {
+        onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, use " +
+          "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES and add" +
+          " the signing certificate, or the server certificate, to the list of certificates trusted by this driver" +
+          " using `neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
+          " is a security measure to protect against man-in-the-middle attacks. If you are just trying " +
+          " Neo4j out and are not concerned about encryption, simply disable it using `encrypted=false` in the driver" +
+          " options."));
+      } else {
+        onSuccess();
+      }
+    });
+    socket.on('error', onFailure);
+    return socket;
+  },
   TRUST_ON_FIRST_USE : function( opts, onSuccess, onFailure ) {
     let tlsOpts = {
       // Because we manually verify the certificate against known_hosts

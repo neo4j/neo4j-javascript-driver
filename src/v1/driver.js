@@ -201,7 +201,10 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // an encryption certificate that is in, or is signed by, a certificate listed
  *       // as trusted. In the web bundle, this list of trusted certificates is maintained
  *       // by the web browser. In NodeJS, you configure the list with the next config option.
- *       trust: "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES",
+ *       //
+ *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES meand that you trust whatever certificates
+ *       // are in the default certificate chain of th
+ *       trust: "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES" | TRUST_CUSTOM_CA_SIGNED_CERTIFICATES | TRUST_SYSTEM_CA_SIGNED_CERTIFICATES,
  *
  *       // List of one or more paths to trusted encryption certificates. This only
  *       // works in the NodeJS bundle, and only matters if you use "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES".
