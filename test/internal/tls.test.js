@@ -22,7 +22,7 @@ var fs = require("fs");
 var path = require('path');
 var hasFeature = require("../../lib/v1/internal/features");
 
-fdescribe('trust-signed-certificates', function() {
+describe('trust-signed-certificates', function() {
 
   var driver;
 
@@ -76,7 +76,7 @@ fdescribe('trust-signed-certificates', function() {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       encrypted: true,
       trust: "TRUST_SIGNED_CERTIFICATES",
-      trustedCertificates: ["build/neo4j/certificates/neo4j.cert", "build/neo4j/certificates/neo4j.cert"]
+      trustedCertificates: ["build/neo4j/certificates/neo4j.cert", "test/resources/random.certificate"]
     });
 
     // When

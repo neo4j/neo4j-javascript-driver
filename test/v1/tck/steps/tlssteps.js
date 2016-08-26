@@ -76,7 +76,7 @@ module.exports = function () {
       "to store this information by setting `knownHosts` to another path in your driver configuration - " +
       "and you can disable encryption there as well using `encrypted:false`.";
     if (this.error.message !== expected) {
-      callback(new Error("Given and expected results does not match: " + this.error.message + " Expected " + expected));
+      callback(new Error("Given and expected results does not match: " + this.error.message + " Expected: " + expected));
     } else {
       callback();
     }
@@ -156,7 +156,7 @@ module.exports = function () {
       "certificate, or the server certificate, to the list of certificates trusted by this driver using " +
       "`neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This  is a security measure to protect " +
       "against man-in-the-middle attacks. If you are just trying  Neo4j out and are not concerned about encryption, " +
-      "simply disable it using `encrypted=false` in the driver options.";
+      "simply disable it using `encrypted=false` in the driver options. Socket responded with: DEPTH_ZERO_SELF_SIGNED_CERT";
     if (this.error.message !== expected) {
       callback(new Error("Given and expected results does not match: " + this.error.message + " Expected " + expected));
     } else {
