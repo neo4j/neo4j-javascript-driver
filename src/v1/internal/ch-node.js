@@ -116,7 +116,7 @@ const TrustStrategy = {
     }
 
     let tlsOpts = {
-      ca: opts.trustedCertificates.map(fs.readFileSync),
+      ca: opts.trustedCertificates.map((f) => fs.readFileSync(f)),
       // Because we manually check for this in the connect callback, to give
       // a more helpful error to the user
       rejectUnauthorized: false
