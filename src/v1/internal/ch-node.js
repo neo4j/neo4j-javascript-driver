@@ -104,9 +104,17 @@ function storeFingerprint( serverId, knownHostsPath, fingerprint, cb ) {
 }
 
 const TrustStrategy = {
-  TRUST_SIGNED_CERTIFICATES : function( opts, onSuccess, onFailure ) {
+  /**
+   * @deprecated Since version 1.0. Will be deleted in a future version. TRUST_CUSTOM_CA_SIGNED_CERTIFICATES.
+   */
+  TRUST_SIGNED_CERTIFICATES: function( opts, onSuccess, onFailure ) {
+    console.log("`TRUST_SIGNED_CERTIFICATES` has been deprecated as option and will be removed in a future version of " +
+      "the driver. Pleas use `TRUST_CUSTOM_CA_SIGNED_CERTIFICATES` instead.");
+    return TrustStrategy.TRUST_CUSTOM_CA_SIGNED_CERTIFICATES(opts, onSuccess, onFailure);
+  },
+  TRUST_CUSTOM_CA_SIGNED_CERTIFICATES : function( opts, onSuccess, onFailure ) {
     if( !opts.trustedCertificates || opts.trustedCertificates.length == 0 ) {
-      onFailure(newError("You are using TRUST_SIGNED_CERTIFICATES as the method " +
+      onFailure(newError("You are using TRUST_CUSTOM_CA_SIGNED_CERTIFICATES as the method " +
         "to verify trust for encrypted  connections, but have not configured any " +
         "trustedCertificates. You  must specify the path to at least one trusted " +
         "X.509 certificate for this to work. Two other alternatives is to use " +
@@ -153,7 +161,7 @@ const TrustStrategy = {
         // do TOFU, and the safe approach is to fail.
         onFailure(newError("You are using a version of NodeJS that does not " +
           "support trust-on-first use encryption. You can either upgrade NodeJS to " +
-          "a newer version, use `trust:TRUST_SIGNED_CERTIFICATES` in your driver " +
+          "a newer version, use `trust:TRUST_CUSTOM_CA_SIGNED_CERTIFICATES` in your driver " +
           "config instead, or disable encryption using `encrypted:false`."));
         return;
       }
@@ -201,7 +209,7 @@ function connect( opts, onSuccess, onFailure=(()=>null) ) {
     return TrustStrategy[opts.trust](opts, onSuccess, onFailure);
   } else {
     onFailure(newError("Unknown trust strategy: " + opts.trust + ". Please use either " +
-      "trust:'TRUST_SIGNED_CERTIFICATES' or trust:'TRUST_ON_FIRST_USE' in your driver " +
+      "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' or trust:'TRUST_ON_FIRST_USE' in your driver " +
       "configuration. Alternatively, you can disable encryption by setting " +
       "`encrypted:false`. There is no mechanism to use encryption without trust verification, " +
       "because this incurs the overhead of encryption without improving security. If " +

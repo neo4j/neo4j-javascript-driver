@@ -196,7 +196,7 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // This means that by default, connections "just work" while still giving you
  *       // good encrypted protection.
  *       //
- *       // TRUST_SIGNED_CERTIFICATES is the classic approach to trust verification -
+ *       // TRUST_CUSTOM_CA_SIGNED_CERTIFICATES is the classic approach to trust verification -
  *       // whenever we establish an encrypted connection, we ensure the host is using
  *       // an encryption certificate that is in, or is signed by, a certificate listed
  *       // as trusted. In the web bundle, this list of trusted certificates is maintained
@@ -204,7 +204,7 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  *       trust: "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES",
  *
  *       // List of one or more paths to trusted encryption certificates. This only
- *       // works in the NodeJS bundle, and only matters if you use "TRUST_SIGNED_CERTIFICATES".
+ *       // works in the NodeJS bundle, and only matters if you use "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES".
  *       // The certificate files should be in regular X.509 PEM format.
  *       // For instance, ['./trusted.pem']
  *       trustedCertificates: [],
