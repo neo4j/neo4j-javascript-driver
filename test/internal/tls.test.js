@@ -73,7 +73,6 @@ describe('trust-signed-certificates', function() {
   });
 });
 
-
 describe('trust-on-first-use', function() {
 
   var driver;

@@ -18,12 +18,12 @@
  */
 
 var neo4j = require("../../../../lib/v1");
-var util = require("./util")
+var util = require("./util");
 
 module.exports = function () {
 
-  var username = "user"
-  var password = "password"
+  var username = "user";
+  var password = "password";
 
   this.Given(/^a driver is configured with auth enabled and correct password is provided$/, function () {
     this.driver.close();
@@ -43,19 +43,21 @@ module.exports = function () {
   });
 
   this.Then(/^reading and writing to the database should not be possible$/, function (callback) {
-    var session = this.driver.session()
+   this.driver.onError = function(err) {
+     self.err = err;
+   };
+    var session = this.driver.session();
     var self = this;
     session.run("CREATE (:label1)").then( function(  ) {
       callback(new Error("Should not be able to run session!"));
     }).catch( function(err) {
-      self.err = err;
       callback();
     });
   });
 
   this.Then(/^a `Protocol Error` is raised$/, function () {
-    var message = this.err.fields[0].message
-    var code = this.err.fields[0].code
+    var message = this.err.fields[0].message;
+    var code = this.err.fields[0].code;
 
     var expectedStartOfMessage = 'The client is unauthorized due to authentication failure.';
     var expectedCode = 'Neo.ClientError.Security.Unauthorized';
@@ -68,4 +70,4 @@ module.exports = function () {
       throw new Error("Wrong error code. Expected: '" + expectedCode + "'. Got: '" + code + "'");
     }
   });
-}
+};
