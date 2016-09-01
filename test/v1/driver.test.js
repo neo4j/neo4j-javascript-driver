@@ -62,4 +62,17 @@ describe('driver', function() {
     // When
     driver.session();
   });
+
+  it('should indicate success early on correct credentials', function(done) {
+    // Given
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+
+    // Expect
+    driver.onCompleted = function (meta) {
+      done();
+    };
+
+    // When
+    driver.session();
+  });
 });
