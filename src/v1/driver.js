@@ -160,6 +160,11 @@ class _ConnectionStreamObserver extends StreamObserver {
       this._hasFailed = true;
     }
   }
+  onCompleted(message) {
+    if(this._driver.onCompleted) {
+        this._driver.onCompleted(message);
+    }
+  }
 }
 
 let USER_AGENT = "neo4j-javascript/" + VERSION;
