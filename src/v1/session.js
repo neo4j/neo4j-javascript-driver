@@ -20,6 +20,7 @@
 import StreamObserver from './internal/stream-observer';
 import Result from './result';
 import Transaction from './transaction';
+import {Integer, int} from "./integer";
 import {newError} from "./error";
 
 /**
@@ -53,7 +54,7 @@ class Session {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    let streamObserver = new StreamObserver();
+    let streamObserver = new _RunObserver();
     if (!this._hasTx) {
       this._conn.run(statement, parameters, streamObserver);
       this._conn.pullAll(streamObserver);
@@ -63,7 +64,7 @@ class Session {
        + "session with an open transaction; either run from within the "
        + "transaction or use a different session."));
     }
-    return new Result( streamObserver, statement, parameters );
+    return new Result( streamObserver, statement, parameters, () => streamObserver.meta() );
   }
 
   /**
@@ -100,6 +101,27 @@ class Session {
     } else {
       cb();
     }
+  }
+}
+
+/** Internal stream observer used for transactional results*/
+class _RunObserver extends StreamObserver {
+  constructor() {
+    super();
+    this._meta = {};
+  }
+
+  onCompleted(meta) {
+    super.onCompleted(meta);
+    for(var key in meta){
+      if(meta.hasOwnProperty(key)){
+        this._meta[key]=meta[key];
+      }
+    }
+  }
+
+  meta() {
+    return this._meta;
   }
 }
 

@@ -37,6 +37,8 @@ class ResultSummary {
     this.plan = metadata.plan || metadata.profile ? new Plan(metadata.plan || metadata.profile) : false;
     this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false;
     this.notifications = this._buildNotifications(metadata.notifications);
+    this.resultConsumedAfter = metadata.result_consumed_after;
+    this.resultAvailableAfter = metadata.result_available_after;
   }
 
   _buildNotifications(notifications) {
