@@ -90,6 +90,81 @@ describe('trust-signed-certificates', function() {
   });
 });
 
+describe('trust-custom-ca-signed-certificates', function() {
+
+  var driver;
+
+  it('should reject unknown certificates', function(done) {
+    // Assuming we only run this test on NodeJS
+    if( !NodeChannel.available ) {
+      done();
+      return;
+    }
+
+    // Given
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      encrypted: true,
+      trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
+      trustedCertificates: ["test/resources/random.certificate"]
+    });
+
+    // When
+    driver.session().run( "RETURN 1").catch( function(err) {
+      expect( err.message ).toContain( "Server certificate is not trusted" );
+      done();
+    });
+  });
+
+  it('should accept known certificates', function(done) {
+    // Assuming we only run this test on NodeJS with TOFU support
+    if( !NodeChannel.available ) {
+      done();
+      return;
+    }
+
+    // Given
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      encrypted: true,
+      trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
+      trustedCertificates: ["build/neo4j/certificates/neo4j.cert"]
+    });
+
+    // When
+    driver.session().run( "RETURN 1").then( done );
+  });
+
+  afterEach(function(){
+    if( driver ) {
+      driver.close();
+    }
+  });
+});
+
+describe('trust-system-ca-signed-certificates', function() {
+
+  var driver;
+
+  fit('should reject unknown certificates', function(done) {
+    // Assuming we only run this test on NodeJS
+    if( !NodeChannel.available ) {
+      done();
+      return;
+    }
+
+    // Given
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      encrypted: true,
+      trust: "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES"
+    });
+
+    // When
+    driver.session().run( "RETURN 1").catch( function(err) {
+      expect( err.message ).toContain( "Server certificate is not trusted" );
+      done();
+    });
+  });
+});
+
 describe('trust-on-first-use', function() {
 
   var driver;
