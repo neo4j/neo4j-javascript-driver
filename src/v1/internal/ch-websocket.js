@@ -53,7 +53,7 @@ class WebSocketChannel {
         this._error = newError("The browser version of this driver only supports one trust " +
           "strategy, 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'. "+opts.trust+" is not supported. Please " +
           "either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting " +
-          "`encrypted:\"ENCRYPTION_OFF\"` in the driver configuration.");
+          "`encrypted:\"" + ENCRYPTION_OFF + "\"` in the driver configuration.");
         return;
       }
     }
