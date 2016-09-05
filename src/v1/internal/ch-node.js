@@ -137,9 +137,8 @@ const TrustStrategy = {
           " the signing certificate, or the server certificate, to the list of certificates trusted by this driver" +
           " using `neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
           " is a security measure to protect against man-in-the-middle attacks. If you are just trying " +
-          " Neo4j out and are not concerned about encryption, simply disable it using `encrypted=\"" + ENCRYPTION_OFF +
-          "\"` in the driver" +
-          " options. Socket responded with: " + socket.authorizationError));
+          " Neo4j out and are not concerned about encryption, simply disable it using `encrypted=\"" + ENCRYPTION_OFF + "\"`" +
+          " in the driver options. Socket responded with: " + socket.authorizationError));
       } else {
         onSuccess();
       }
@@ -161,8 +160,8 @@ const TrustStrategy = {
           " the signing certificate, or the server certificate, to the list of certificates trusted by this driver" +
           " using `neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
           " is a security measure to protect against man-in-the-middle attacks. If you are just trying " +
-          " Neo4j out and are not concerned about encryption, simply disable it using `encrypted=false` in the driver" +
-          " options."));
+          " Neo4j out and are not concerned about encryption, simply disable it using `encrypted=\"" + ENCRYPTION_OFF + "\"`" +
+          " in the driver options. Socket responded with: " + socket.authorizationError));
       } else {
         onSuccess();
       }

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 import {debug} from "./log";
 import {HeapBuffer} from "./buf";
 import {newError} from './../error';
@@ -46,14 +46,14 @@ class WebSocketChannel {
     let scheme = "ws";
     //Allow boolean for backwards compatibility
     if( opts.encrypted === true || opts.encrypted === ENCRYPTION_ON ||
-       (opts.encrypted === ENCRYPTION_NON_LOCAL && !isLocalHost(opts.host)) ||
-       opts.trust === "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" ) {
+      (opts.encrypted === ENCRYPTION_NON_LOCAL && !isLocalHost(opts.host)) ) {
+      if((!opts.trust) || opts.trust === "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" ) {
         scheme = "wss";
       } else {
         this._error = newError("The browser version of this driver only supports one trust " +
           "strategy, 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'. "+opts.trust+" is not supported. Please " +
           "either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting " +
-          "`encrypted:\"" + ENCRYPTION_OFF + "\"` in the driver configuration.");
+          "`encrypted:\"ENCRYPTION_OFF\"` in the driver configuration.");
         return;
       }
     }
@@ -81,7 +81,7 @@ class WebSocketChannel {
       if( self.onmessage ) {
         var b = new HeapBuffer( event.data );
         self.onmessage( b );
-      } 
+      }
     };
 
     this._ws.onerror = this._handleConnectionError;
@@ -103,7 +103,7 @@ class WebSocketChannel {
       }
     }
   }
-  
+
   isEncrypted() {
     return this._encrypted;
   }
