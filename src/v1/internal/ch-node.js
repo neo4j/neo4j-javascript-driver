@@ -116,7 +116,7 @@ const TrustStrategy = {
     }
 
     let tlsOpts = {
-      ca: opts.trustedCertificates.map(fs.readFileSync),
+      ca: opts.trustedCertificates.map((f) => fs.readFileSync(f)),
       // Because we manually check for this in the connect callback, to give
       // a more helpful error to the user
       rejectUnauthorized: false
@@ -129,7 +129,7 @@ const TrustStrategy = {
           " using `neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
           " is a security measure to protect against man-in-the-middle attacks. If you are just trying " +
           " Neo4j out and are not concerned about encryption, simply disable it using `encrypted=false` in the driver" +
-          " options."));
+          " options. Socket responded with: " + socket.authorizationError));
       } else {
         onSuccess();
       }

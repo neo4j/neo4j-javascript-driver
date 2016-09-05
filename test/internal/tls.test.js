@@ -65,6 +65,24 @@ describe('trust-signed-certificates', function() {
     driver.session().run( "RETURN 1").then( done );
   });
 
+  it('should handle multiple certificates', function(done) {
+    // Assuming we only run this test on NodeJS with TOFU support
+    if( !NodeChannel.available ) {
+      done();
+      return;
+    }
+
+    // Given
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      encrypted: true,
+      trust: "TRUST_SIGNED_CERTIFICATES",
+      trustedCertificates: ["build/neo4j/certificates/neo4j.cert", "test/resources/random.certificate"]
+    });
+
+    // When
+    driver.session().run( "RETURN 1").then( done );
+  });
+
   afterEach(function(){
     if( driver ) {
       driver.close();
