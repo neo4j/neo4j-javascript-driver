@@ -76,6 +76,32 @@ describe('driver', function() {
     driver.session();
   });
 
+  it('should be possible to create custom auth tokens', function(done) {
+    // Given
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.custom("neo4j", "neo4j", "native", "basic"));
+
+    // Expect
+    driver.onCompleted = function (meta) {
+      done();
+    };
+
+    // When
+    driver.session();
+  });
+
+  it('should be possible to create custom auth tokens with additional parameters', function(done) {
+    // Given
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.custom("neo4j", "neo4j", "native", "basic", {secret: 42}));
+
+    // Expect
+    driver.onCompleted = function (meta) {
+      done();
+    };
+
+    // When
+    driver.session();
+  });
+
   var exposedTypes = [
     'Node',
     'Path',

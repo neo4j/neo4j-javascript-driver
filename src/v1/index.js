@@ -31,8 +31,20 @@ export default {
   isInt,
   Neo4jError,
   auth: {
-    basic: (username, password) => {
-      return {scheme: "basic", principal: username, credentials: password};
+    basic: (username, password, realm = undefined) => {
+      if (realm) {
+        return {scheme: "basic", principal: username, credentials: password, realm: realm};
+      } else {
+        return {scheme: "basic", principal: username, credentials: password};
+      }
+    },
+    custom: (principal, credentials, realm, scheme = "basic", parameters = undefined ) => {
+      if (parameters) {
+        return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm,
+          parameters: parameters}
+      } else {
+        return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm}
+      }
     }
   },
   types: {
