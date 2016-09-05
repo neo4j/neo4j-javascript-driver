@@ -56,11 +56,11 @@ module.exports = function () {
   });
 
   this.Then(/^requesting `Counters` from `Result Summary` should give$/, function (table) {
-    var updateStatistics = this.summary.updateStatistics
+    var counters = this.summary.counters;
     for ( var i = 0 ; i < table.hashes().length; i++) {
       var statistic = table.hashes()[i].counter;
       var expected = util.literalValueToTestValueNormalIntegers(table.hashes()[i].result);
-      var given = getStatistic(statistic, updateStatistics)
+      var given = getStatistic(statistic, counters)
       if (!util.compareValues(given, expected)) {
         throw Error("Statistics for: " + statistic + " does not match. Expected: '" + expected + "' Given: '" + given + "'");
       }
@@ -195,42 +195,42 @@ this.Then(/^the `Result Summary` `Notifications` has one notification with$/, fu
     throw Error("No statement type mapping of: " + type)
   }
 
-  function getStatistic(statementString, updateStatistics) {
+  function getStatistic(statementString, counters) {
     if (statementString == 'nodes created') {
-      return updateStatistics.nodesCreated();
+      return counters.nodesCreated();
     }
     if (statementString == 'nodes deleted') {
-      return updateStatistics.nodesDeleted();
+      return counters.nodesDeleted();
     }
     if (statementString == 'relationships created') {
-      return updateStatistics.relationshipsCreated();
+      return counters.relationshipsCreated();
     }
     if (statementString == 'relationships deleted') {
-      return updateStatistics.relationshipsDeleted();
+      return counters.relationshipsDeleted();
     }
     if (statementString == 'properties set') {
-      return updateStatistics.propertiesSet();
+      return counters.propertiesSet();
     }
     if (statementString == 'labels added') {
-      return updateStatistics.labelsAdded();
+      return counters.labelsAdded();
     }
     if (statementString == 'labels removed') {
-      return updateStatistics.labelsRemoved();
+      return counters.labelsRemoved();
     }
     if (statementString == 'indexes added') {
-      return updateStatistics.indexesAdded();
+      return counters.indexesAdded();
     }
     if (statementString == 'indexes removed') {
-      return updateStatistics.indexesRemoved();
+      return counters.indexesRemoved();
     }
     if (statementString == 'constraints added') {
-      return updateStatistics.constraintsAdded();
+      return counters.constraintsAdded();
     }
     if (statementString == 'constraints removed') {
-      return updateStatistics.constraintsRemoved();
+      return counters.constraintsRemoved();
     }
     if (statementString == 'contains updates') {
-      return updateStatistics.containsUpdates();
+      return counters.containsUpdates();
     }
     throw Error("No statistics mapping of: " + statementString)
   }

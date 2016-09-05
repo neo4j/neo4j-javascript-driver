@@ -33,12 +33,14 @@ class ResultSummary {
   constructor(statement, parameters, metadata) {
     this.statement = {text: statement, parameters};
     this.statementType = metadata.type;
-    this.updateStatistics = new StatementStatistics(metadata.stats || {});
+    let counters = new StatementStatistics(metadata.stats || {});
+    this.counters = counters;
+    //for backwards compatibility, remove in future version
+    this.updateStatistics = counters;
     this.plan = metadata.plan || metadata.profile ? new Plan(metadata.plan || metadata.profile) : false;
     this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false;
     this.notifications = this._buildNotifications(metadata.notifications);
   }
-
   _buildNotifications(notifications) {
     if(!notifications) {
       return [];
