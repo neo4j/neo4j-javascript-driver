@@ -88,7 +88,7 @@ describe('examples', function() {
     var s = driver.session();
     s.run( "CREATE (p:Person { name: {name} })", {name: "The One"} )
       .then( function(result) {
-        var theOnesCreated = result.summary.updateStatistics.nodesCreated();
+        var theOnesCreated = result.summary.counters.nodesCreated();
         console.log(theOnesCreated);
         s.close();
         driver.close();
@@ -106,7 +106,7 @@ describe('examples', function() {
       .run( "CREATE (person:Person {name: {name}})", {name: "Arthur"} )
     // end::statement[]
       .then( function(result) {
-        var theOnesCreated = result.summary.updateStatistics.nodesCreated();
+        var theOnesCreated = result.summary.counters.nodesCreated();
         console.log("There were " + theOnesCreated + " the ones created.")
       })
       .then(function() {
@@ -122,7 +122,7 @@ describe('examples', function() {
       .run( "CREATE (p:Person { name: 'Arthur' })" )
     // end::statement-without-parameters[]
       .then( function(result) {
-        var theOnesCreated = result.summary.updateStatistics.nodesCreated();
+        var theOnesCreated = result.summary.counters.nodesCreated();
         console.log("There were " + theOnesCreated + " the ones created.");
       });
 

@@ -23,10 +23,13 @@ var Session = require("../../lib/v1/session");
 
 describe('session', function () {
 
-  var driver, session;
+  var driver, session, server;
 
   beforeEach(function (done) {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    driver.onCompleted = function (meta) {
+      server = meta['server'];
+    };
     session = driver.session();
 
     session.run("MATCH (n) DETACH DELETE n").then(done);
@@ -151,9 +154,31 @@ describe('session', function () {
         var sum = result.summary;
         expect(sum.statement.text).toBe(statement);
         expect(sum.statement.parameters).toBe(params);
-        expect(sum.updateStatistics.containsUpdates()).toBe(true);
-        expect(sum.updateStatistics.nodesCreated()).toBe(1);
+        expect(sum.counters.containsUpdates()).toBe(true);
+        expect(sum.counters.nodesCreated()).toBe(1);
         expect(sum.statementType).toBe(StatementType.READ_WRITE);
+        done();
+      });
+  });
+
+  it('should expose execution time information when using 3.1 and onwards', function (done) {
+
+    //lazy way of checking the version number
+    //if server has been set we know it is at least
+    //3.1 (todo actually parse the version string)
+    if (!server) {
+      done();
+      return;
+    }
+    // Given
+    var statement = "UNWIND range(1,10000) AS n RETURN n AS number";
+    // When & Then
+
+    session.run(statement)
+      .then(function (result) {
+        var sum = result.summary;
+        expect(sum.resultAvailableAfter.toInt()).toBeGreaterThan(0);
+        expect(sum.resultConsumedAfter.toInt()).toBeGreaterThan(0);
         done();
       });
   });
@@ -305,7 +330,6 @@ describe('session', function () {
         done();
       })
   });
-
 });
 
 
