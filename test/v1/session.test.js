@@ -154,8 +154,8 @@ describe('session', function () {
         var sum = result.summary;
         expect(sum.statement.text).toBe(statement);
         expect(sum.statement.parameters).toBe(params);
-        expect(sum.updateStatistics.containsUpdates()).toBe(true);
-        expect(sum.updateStatistics.nodesCreated()).toBe(1);
+        expect(sum.counters.containsUpdates()).toBe(true);
+        expect(sum.counters.nodesCreated()).toBe(1);
         expect(sum.statementType).toBe(StatementType.READ_WRITE);
         done();
       });
