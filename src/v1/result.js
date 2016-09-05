@@ -35,12 +35,14 @@ class Result {
    * @param {StreamObserver} streamObserver
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
+   * @param metaSupplier function, when called provides metadata
    */
-  constructor(streamObserver, statement, parameters) {
+  constructor(streamObserver, statement, parameters, metaSupplier) {
     this._streamObserver = streamObserver;
     this._p = null;
     this._statement = statement;
     this._parameters = parameters || {};
+    this._metaSupplier = metaSupplier || function(){return {};};
   }
 
   /**
@@ -102,7 +104,15 @@ class Result {
    */
   subscribe(observer) {
     let onCompletedOriginal = observer.onCompleted;
+    let self = this;
     let onCompletedWrapper = (metadata) => {
+
+      let additionalMeta = self._metaSupplier();
+      for(var key in additionalMeta) {
+        if (additionalMeta.hasOwnProperty(key)) {
+          metadata[key] = additionalMeta[key];
+        }
+      }
       let sum = new ResultSummary(this._statement, this._parameters, metadata);
       onCompletedOriginal.call(observer, sum);
     };
