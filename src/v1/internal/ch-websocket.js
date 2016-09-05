@@ -46,13 +46,13 @@ class WebSocketChannel {
     let scheme = "ws";
     //Allow boolean for backwards compatibility
     if( opts.encrypted === true || opts.encrypted === ENCRYPTION_ON ||
-      (opts.encrypted === ENCRYPTION_NON_LOCAL && !isLocalHost(opts.host))) {
-      if( (!opts.trust) || opts.trust === "TRUST_SIGNED_CERTIFICATES" ) {
+       (opts.encrypted === ENCRYPTION_NON_LOCAL && !isLocalHost(opts.host)) ||
+       opts.trust === "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" ) {
         scheme = "wss";
       } else {
         this._error = newError("The browser version of this driver only supports one trust " +
-          "strategy, 'TRUST_SIGNED_CERTIFICATES'. "+opts.trust+" is not supported. Please " +
-          "either use TRUST_SIGNED_CERTIFICATES or disable encryption by setting " +
+          "strategy, 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'. "+opts.trust+" is not supported. Please " +
+          "either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting " +
           "`encrypted:\"" + ENCRYPTION_OFF + "\"` in the driver configuration.");
         return;
       }

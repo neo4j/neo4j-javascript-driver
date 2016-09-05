@@ -438,7 +438,7 @@ function connect( url, config = {}) {
     // Default to using ENCRYPTION_NON_LOCAL if trust-on-first-use is available
     encrypted : shouldEncrypt(config.encrypted, (hasFeature("trust_on_first_use") ? ENCRYPTION_NON_LOCAL : ENCRYPTION_OFF), host(url)),
     // Default to using TRUST_ON_FIRST_USE if it is available
-    trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_SIGNED_CERTIFICATES"),
+    trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
     knownHosts : config.knownHosts
   }));

@@ -108,7 +108,7 @@ module.exports = function () {
   this.Given(/^a driver configured to use a trusted certificate$/, function (callback) {
     this.config = {
       encrypted: "ENCRYPTION_ON",
-      trust: "TRUST_SIGNED_CERTIFICATES",
+      trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
       knownHosts: this.knownHosts1,
       trustedCertificates: ['./test/resources/root.cert']
     };
@@ -133,7 +133,7 @@ module.exports = function () {
     //common name is not set to localhost
     this.config = {
       encrypted: "ENCRYPTION_ON",
-      trust: "TRUST_SIGNED_CERTIFICATES",
+      trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
       knownHosts: this.knownHosts1,
       trustedCertificates: [util.neo4jCert]
     };

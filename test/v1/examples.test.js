@@ -357,7 +357,7 @@ describe('examples', function() {
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       // Note that trust-on-first-use is not available in the browser bundle,
       // in NodeJS, trust-on-first-use is the default trust mode. In the browser
-      // it is TRUST_SIGNED_CERTIFICATES.
+      // it is TRUST_CUSTOM_CA_SIGNED_CERTIFICATES.
       trust: "TRUST_ON_FIRST_USE",
       encrypted:"ENCRYPTION_NON_LOCAL"
     });
@@ -369,7 +369,7 @@ describe('examples', function() {
     var neo4j = neo4jv1;
     // tag::tls-signed[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
-      trust: "TRUST_SIGNED_CERTIFICATES",
+      trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
       // Configuring which certificates to trust here is only available
       // in NodeJS. In the browser bundle the browsers list of trusted
       // certificates is used, due to technical limitations in some browsers.
