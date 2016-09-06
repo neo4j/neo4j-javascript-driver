@@ -38,7 +38,7 @@ export default {
         return {scheme: "basic", principal: username, credentials: password};
       }
     },
-    custom: (principal, credentials, realm, scheme = "basic", parameters = undefined ) => {
+    custom: (principal, credentials, realm, scheme, parameters = undefined ) => {
       if (parameters) {
         return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm,
           parameters: parameters}
