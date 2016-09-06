@@ -25,7 +25,10 @@ var hasFeature = require("../../lib/v1/internal/features");
 describe('trust-signed-certificates', function() {
 
   var driver;
-
+  var log = console.log
+  beforeEach(function() {
+    console.log = function () {}; // To mute deprecation message in test output
+  })
   it('should reject unknown certificates', function(done) {
     // Assuming we only run this test on NodeJS
     if( !NodeChannel.available ) {
@@ -87,16 +90,13 @@ describe('trust-signed-certificates', function() {
     if( driver ) {
       driver.close();
     }
+    console.log = log;
   });
 });
 
 describe('trust-custom-ca-signed-certificates', function() {
 
   var driver;
-  var log = console.log
-  beforeEach(function() {
-    console.log = function () {}; // To mute deprecation message in test output
-  })
   it('should reject unknown certificates', function(done) {
     // Assuming we only run this test on NodeJS
     if( !NodeChannel.available ) {
@@ -140,7 +140,6 @@ describe('trust-custom-ca-signed-certificates', function() {
     if( driver ) {
       driver.close();
     }
-    console.log = log;
   });
 });
 
