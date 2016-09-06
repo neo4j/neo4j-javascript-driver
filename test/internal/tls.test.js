@@ -93,7 +93,10 @@ describe('trust-signed-certificates', function() {
 describe('trust-custom-ca-signed-certificates', function() {
 
   var driver;
-
+  var log = console.log
+  beforeEach(function() {
+    console.log = function () {}; // To mute deprecation message in test output
+  })
   it('should reject unknown certificates', function(done) {
     // Assuming we only run this test on NodeJS
     if( !NodeChannel.available ) {
@@ -137,6 +140,7 @@ describe('trust-custom-ca-signed-certificates', function() {
     if( driver ) {
       driver.close();
     }
+    console.log = log;
   });
 });
 
@@ -144,7 +148,7 @@ describe('trust-system-ca-signed-certificates', function() {
 
   var driver;
 
-  fit('should reject unknown certificates', function(done) {
+  it('should reject unknown certificates', function(done) {
     // Assuming we only run this test on NodeJS
     if( !NodeChannel.available ) {
       done();
@@ -326,7 +330,7 @@ describe('trust-on-first-use', function() {
       done();
     }, 1000);
   });
-  
+
   it('should should give helpful error if database cert does not match stored certificate', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
     if( !hasFeature("trust_on_first_use") ) {
