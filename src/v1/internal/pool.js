@@ -40,11 +40,16 @@ class Pool {
   }
 
   acquire() {
-    if( this._pool.length > 0 ) {
-      return this._pool.pop();
-    } else {
-      return this._create( this._release );
+    let resource;
+    while( this._pool.length ) {
+      resource = this._pool.pop();
+
+      if( this._validate(resource) ) {
+        return resource;
+      }
     }
+
+    return this._create(this._release);
   }
 
   _release(resource) {
