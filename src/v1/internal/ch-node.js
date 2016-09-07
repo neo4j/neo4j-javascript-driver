@@ -276,6 +276,7 @@ class NodeChannel {
       });
 
       self._conn.on('error', self._handleConnectionError);
+      self._conn.on('end', self._handleConnectionTerminated);
 
       // Drain all pending messages
       let pending = self._pending;
@@ -290,6 +291,13 @@ class NodeChannel {
     this._error = err;
     if( this.onerror ) {
       this.onerror(err);
+    }
+  }
+
+  _handleConnectionTerminated() {
+    this._error = new Error('Connection was closed by server');
+    if( this.onerror ) {
+      this.onerror(this._error);
     }
   }
 
@@ -318,6 +326,7 @@ class NodeChannel {
     this._open = false;
     if( this._conn ) {
       this._conn.end();
+      this._conn.removeListener('end', this._handleConnectionTerminated);
       this._conn.on('end', cb);
     } else {
       cb();
