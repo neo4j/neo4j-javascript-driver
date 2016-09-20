@@ -35,14 +35,15 @@ class Pool {
     this._destroy = destroy;
     this._validate = validate;
     this._maxIdle = maxIdle;
-    this._pool = [];
+    this._pools = {};
     this._release = this._release.bind(this);
   }
 
-  acquire() {
+  acquire(key) {
     let resource;
-    while( this._pool.length ) {
-      resource = this._pool.pop();
+    let pool = this._pools[key] || [];
+    while( pool.length ) {
+      resource = pool.pop();
 
       if( this._validate(resource) ) {
         return resource;
@@ -54,11 +55,16 @@ class Pool {
     return this._create(this._release);
   }
 
-  _release(resource) {
-    if( this._pool.length >= this._maxIdle || !this._validate(resource) ) {
+  _release(key, resource) {
+    let pool = this._pools[key];
+    if (!pool) {
+      pool = [];
+      this._pools[key] = pool;
+    }
+    if( pool.length >= this._maxIdle || !this._validate(resource) ) {
       this._destroy(resource);
     } else {
-      this._pool.push(resource);
+      pool.push(resource);
     }
   }
 }

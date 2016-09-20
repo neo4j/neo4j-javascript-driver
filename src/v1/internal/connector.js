@@ -177,13 +177,15 @@ class Connection {
    * @constructor
    * @param channel - channel with a 'write' function and a 'onmessage'
    *                  callback property
+   * @param url - url to connect to
    */
-  constructor (channel) {
+  constructor (channel, url) {
     /**
      * An ordered queue of observers, each exchange response (zero or more
      * RECORD messages followed by a SUCCESS message) we recieve will be routed
      * to the next pending observer.
      */
+    this.url = url;
     this._pendingObservers = [];
     this._currentObserver = undefined;
     this._ch = channel;
@@ -464,7 +466,7 @@ function connect( url, config = {}) {
     trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
     knownHosts : config.knownHosts
-  }));
+  }), url);
 }
 
 export default {

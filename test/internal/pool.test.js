@@ -23,11 +23,12 @@ describe('Pool', function() {
   it('allocates if pool is empty', function() {
     // Given
     var counter = 0;
+    var key = "bolt://localhost:7687";
     var pool = new Pool( function (release) { return new Resource(counter++, release) } );
 
     // When
-    var r0 = pool.acquire();
-    var r1 = pool.acquire();
+    var r0 = pool.acquire(key);
+    var r1 = pool.acquire(key);
 
     // Then
     expect( r0.id ).toBe( 0 );
@@ -37,22 +38,45 @@ describe('Pool', function() {
   it('pools if resources are returned', function() {
     // Given a pool that allocates
     var counter = 0;
+    var key = "bolt://localhost:7687";
     var pool = new Pool( function (release) { return new Resource(counter++, release) } );
 
     // When
-    var r0 = pool.acquire();
-    r0.close();
-    var r1 = pool.acquire();
+    var r0 = pool.acquire(key);
+    r0.close(key);
+    var r1 = pool.acquire(key);
 
     // Then
     expect( r0.id ).toBe( 0 );
     expect( r1.id ).toBe( 0 );
   });
 
+  it('handles multiple keys', function() {
+    // Given a pool that allocates
+    var counter = 0;
+    var key1 = "bolt://localhost:7687";
+    var key2 = "bolt://localhost:7688";
+    var pool = new Pool( function (release) { return new Resource(counter++, release) } );
+
+    // When
+    var r0 = pool.acquire(key1);
+    var r1 = pool.acquire(key2);
+    r0.close(key1);
+    var r2 = pool.acquire(key1);
+    var r3 = pool.acquire(key2);
+
+    // Then
+    expect( r0.id ).toBe( 0 );
+    expect( r1.id ).toBe( 1 );
+    expect( r2.id ).toBe( 0 );
+    expect( r3.id ).toBe( 2 );
+  });
+
   it('frees if pool reaches max size', function() {
     // Given a pool that tracks destroyed resources
     var counter = 0,
         destroyed = [];
+    var key = "bolt://localhost:7687";
     var pool = new Pool(
       function (release) { return new Resource(counter++, release) },
       function (resource) { destroyed.push(resource); },
@@ -61,12 +85,12 @@ describe('Pool', function() {
     );
 
     // When
-    var r0 = pool.acquire();
-    var r1 = pool.acquire();
-    var r2 = pool.acquire();
-    r0.close();
-    r1.close();
-    r2.close();
+    var r0 = pool.acquire(key);
+    var r1 = pool.acquire(key);
+    var r2 = pool.acquire(key);
+    r0.close(key);
+    r1.close(key);
+    r2.close(key);
 
     // Then
     expect( destroyed.length ).toBe( 1 );
@@ -77,6 +101,7 @@ describe('Pool', function() {
     // Given a pool that allocates
     var counter = 0,
       destroyed = [];
+    var key = "bolt://localhost:7687";
     var pool = new Pool(
       function (release) { return new Resource(counter++, release) },
       function (resource) { destroyed.push(resource); },
@@ -85,10 +110,10 @@ describe('Pool', function() {
     );
 
     // When
-    var r0 = pool.acquire();
-    var r1 = pool.acquire();
-    r0.close();
-    r1.close();
+    var r0 = pool.acquire(key);
+    var r1 = pool.acquire(key);
+    r0.close(key);
+    r1.close(key);
 
     // Then
     expect( destroyed.length ).toBe( 2 );
@@ -97,8 +122,8 @@ describe('Pool', function() {
   });
 });
 
-function Resource( id, release ) {
+function Resource( id, release) {
   var self = this;
   this.id = id;
-  this.close = function() { release(self); };
+  this.close = function(key) { release(key, self); };
 }

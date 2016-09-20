@@ -69,7 +69,7 @@ class Driver {
     let conn = connect(this._url, this._config);
     conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
-    conn._release = () => release(conn);
+    conn._release = () => release(this._url, conn);
 
     this._openSessions[sessionId] = conn;
     return conn;
@@ -108,7 +108,7 @@ class Driver {
    * @return {Session} new session.
    */
   session() {
-    let conn = this._pool.acquire();
+    let conn = this._pool.acquire(this._url);
     return new Session( conn, (cb) => {
       // This gets called on Session#close(), and is where we return
       // the pooled 'connection' instance.
