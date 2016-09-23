@@ -28,9 +28,8 @@ module.exports = function () {
     this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     this.session = this.driver.session();
     this.session.run("MATCH (n) DETACH DELETE n").then( function( ) {
-        callback();
+      callback();
     });
-    callback();
   });
 
   this.Before("@tls", function( scenario ) {
