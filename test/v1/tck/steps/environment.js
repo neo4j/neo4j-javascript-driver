@@ -58,7 +58,7 @@ module.exports = function () {
     this.savedValues = {};
   });
 
-  this.After(function (scenario, callback) {
+  this.After("~@error_reporting",function (scenario, callback) {
     if (this.session) {
       this.session.close();
     }

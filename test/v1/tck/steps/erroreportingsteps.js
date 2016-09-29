@@ -30,12 +30,12 @@ module.exports = function () {
   });
 
   this.When(/^`run` a query with that same session without closing the transaction first$/, function (callback) {
-    self = this;
+    var self = this;
     this.session.run("CREATE (:n)").then(function(result) {callback()}).catch(function(err) {self.error = err; callback()})
   });
 
   this.Then(/^it throws a `ClientException`$/, function (table) {
-    expected = table.rows()[0][0];
+    var expected = table.rows()[0][0];
     if (this.error === undefined) {
       throw new Error("Exepcted an error but got none.")
     }
@@ -66,6 +66,7 @@ module.exports = function () {
     var driver = neo4j.driver("bolt://localhost:7777", neo4j.auth.basic("neo4j", "neo4j"));
     driver.onError = function (error) { self.error = error; callback()};
     driver.session();
+    setTimeout(callback, 1000);
   });
 
   this.When(/^I set up a driver with wrong scheme$/, function (callback) {
