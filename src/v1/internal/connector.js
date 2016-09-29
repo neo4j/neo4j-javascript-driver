@@ -58,7 +58,8 @@ RELATIONSHIP = 0x52,
 UNBOUND_RELATIONSHIP = 0x72,
 PATH = 0x50,
 //sent before version negotiation
-MAGIC_PREAMBLE = 0x6060B017;
+MAGIC_PREAMBLE = 0x6060B017,
+DEBUG = false;
 
 let URLREGEX = new RegExp([
   "[^/]+//",          // scheme
@@ -68,6 +69,20 @@ let URLREGEX = new RegExp([
 
 function host( url ) {
   return url.match( URLREGEX )[2];
+}
+
+/**
+ * Very rudimentary log handling, should probably be replaced by something proper at some point.
+ * @param actor the part that sent the message, 'S' for server and 'C' for client
+ * @param msg the bolt message
+ */
+function log(actor, msg) {
+  if (DEBUG) {
+    for(var i = 2; i < arguments.length; i++) {
+      msg += " " + JSON.stringify(arguments[i]);
+    }
+    console.log(actor + ":" + msg);
+  }
 }
 
 function port( url ) {
@@ -186,8 +201,6 @@ class Connection {
     this._unpacker.structMappers[UNBOUND_RELATIONSHIP] = _mappers.unboundRel;
     this._unpacker.structMappers[PATH] = _mappers.path;
 
-
-
     let self = this;
     // TODO: Using `onmessage` and `onerror` came from the WebSocket API,
     // it reads poorly and has several annoying drawbacks. Swap to having
@@ -266,9 +279,11 @@ class Connection {
   _handleMessage( msg ) {
     switch( msg.signature ) {
       case RECORD:
+        log("S", "RECORD", msg.fields[0]);
         this._currentObserver.onNext( msg.fields[0] );
         break;
       case SUCCESS:
+        log("S", "SUCCESS", msg.fields[0]);
         try {
           this._currentObserver.onCompleted( msg.fields[0] );
         } finally {
@@ -276,6 +291,7 @@ class Connection {
         }
         break;
       case FAILURE:
+        log("S", "FAILURE", msg);
         try {
           this._currentObserver.onError( msg );
           this._errorMsg = msg;
@@ -303,6 +319,7 @@ class Connection {
         }
         break;
       case IGNORED:
+        log("S", "IGNORED");
         try {
           if (this._errorMsg && this._currentObserver.onError)
             this._currentObserver.onError(this._errorMsg);
@@ -319,6 +336,7 @@ class Connection {
 
   /** Queue an INIT-message to be sent to the database */
   initialize( clientName, token, observer ) {
+    log("C", "INIT", clientName, token);
     this._queueObserver(observer);
     this._packer.packStruct( INIT, [this._packable(clientName), this._packable(token)],
       (err) => this._handleFatalError(err) );
@@ -328,6 +346,7 @@ class Connection {
 
   /** Queue a RUN-message to be sent to the database */
   run( statement, params, observer ) {
+    log("C", "RUN", statement, params);
     this._queueObserver(observer);
     this._packer.packStruct( RUN, [this._packable(statement), this._packable(params)],
       (err) => this._handleFatalError(err)  );
@@ -336,6 +355,7 @@ class Connection {
 
   /** Queue a PULL_ALL-message to be sent to the database */
   pullAll( observer ) {
+    log("C", "PULL_ALL");
     this._queueObserver(observer);
     this._packer.packStruct( PULL_ALL, [], (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
@@ -343,6 +363,7 @@ class Connection {
 
   /** Queue a DISCARD_ALL-message to be sent to the database */
   discardAll( observer ) {
+    log("C", "DISCARD_ALL");
     this._queueObserver(observer);
     this._packer.packStruct( DISCARD_ALL, [], (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
@@ -350,6 +371,7 @@ class Connection {
 
   /** Queue a RESET-message to be sent to the database */
   reset( observer ) {
+    log("C", "RESET");
     this._isHandlingFailure = true;
     let self = this;
     let wrappedObs = {
@@ -369,6 +391,7 @@ class Connection {
 
   /** Queue a ACK_FAILURE-message to be sent to the database */
   _ackFailure( observer ) {
+    log("C", "ACK_FAILURE");
     this._queueObserver(observer);
     this._packer.packStruct( ACK_FAILURE, [], (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
