@@ -266,6 +266,7 @@ class NodeChannel {
     this._open = true;
     this._error = null;
     this._handleConnectionError = this._handleConnectionError.bind(this);
+    this._handleConnectionTerminated = this._handleConnectionTerminated.bind(this);
 
     this._encrypted = opts.encrypted;
     this._conn = connect(opts, () => {
@@ -299,10 +300,8 @@ class NodeChannel {
   }
 
   _handleConnectionTerminated() {
-      this._error = new Error('Connection was closed by server');
-      if( this.onerror ) {
-        this.onerror(this._error);
-      }
+      this._open = false;
+      this._conn = undefined;
   }
 
   isEncrypted() {

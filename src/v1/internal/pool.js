@@ -46,6 +46,8 @@ class Pool {
 
       if( this._validate(resource) ) {
         return resource;
+      } else {
+        this._destroy(resource);
       }
     }
 
