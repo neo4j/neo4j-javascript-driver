@@ -57,22 +57,23 @@ module.exports = function () {
   });
 
   this.When(/^I run a non valid cypher statement$/, function (callback) {
-    self = this;
+    var self = this;
     this.session.run("CRETE (:n)").then(function(result) {callback()}).catch(function(err) {self.error = err.fields[0]; callback()})
   });
 
   this.When(/^I set up a driver to an incorrect port$/, function (callback) {
-    self = this;
-    driver = neo4j.driver("bolt://localhost:7777", neo4j.auth.basic("neo4j", "neo4j"));
-    driver.session();
+    var self = this;
+    var driver = neo4j.driver("bolt://localhost:7777", neo4j.auth.basic("neo4j", "neo4j"));
     driver.onError = function (error) { self.error = error; callback()};
+    driver.session();
   });
 
   this.When(/^I set up a driver with wrong scheme$/, function (callback) {
-    self = this;
-    driver = neo4j.driver("wrong://localhost:7474", neo4j.auth.basic("neo4j", "neo4j"));
+    var self = this;
+    var driver = neo4j.driver("wrong://localhost:7474", neo4j.auth.basic("neo4j", "neo4j"));
     driver.session();
     driver.onError = function (error) { self.error = error; callback()};
+    driver.close();
   });
 
-}
+};
