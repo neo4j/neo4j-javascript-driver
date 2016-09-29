@@ -235,4 +235,4 @@ this.Then(/^the `Result Summary` `Notifications` has one notification with$/, fu
     throw Error("No statistics mapping of: " + statementString)
   }
 
-}
+};

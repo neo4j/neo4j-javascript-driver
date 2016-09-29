@@ -22,18 +22,26 @@ var fs = require("fs");
 
 module.exports = function () {
 
+  var driver = undefined;
+
   var failedScenarios = [];
 
+  this.registerHandler("BeforeFeatures", function(event, next) {
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+
+    return next()
+  });
+
   this.Before("@reset_database", function( scenario, callback ) {
-    this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    this.driver = driver;
     this.session = this.driver.session();
     this.session.run("MATCH (n) DETACH DELETE n").then( function( ) {
-        callback();
+      callback();
     });
-    callback();
   });
 
   this.Before("@tls", function( scenario ) {
+
     this.knownHosts1 = "known_hosts1";
     this.knownHosts2 = "known_hosts2";
     _deleteFile(this.knownHosts1);
@@ -41,7 +49,7 @@ module.exports = function () {
   });
 
   this.Before("~@reset_database", "~@tls", function( scenario, callback ) {
-    this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    this.driver = driver;
     this.session = this.driver.session();
     callback();
   });
@@ -50,9 +58,9 @@ module.exports = function () {
     this.savedValues = {};
   });
 
-  this.After(function (scenario, callback) {
-    if (this.driver) {
-      this.driver.close();
+  this.After("~@error_reporting",function (scenario, callback) {
+    if (this.session) {
+      this.session.close();
     }
     if (!scenario.isSuccessful()) {
       failedScenarios.push(scenario)
@@ -64,6 +72,9 @@ module.exports = function () {
   });
 
   this.registerHandler('AfterFeatures', function (event, callback) {
+    if (driver) {
+      driver.close();
+    }
     if (failedScenarios.length) {
       for ( var i = 0; i < failedScenarios.length; i++) {
         console.log("FAILED! Scenario: " + failedScenarios[i].getName());

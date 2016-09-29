@@ -26,28 +26,36 @@ module.exports = function () {
   var password = "password";
 
   this.Given(/^a driver is configured with auth enabled and correct password is provided$/, function () {
-    this.driver.close();
+    if (this.driver) {
+      this.driver.close();
+    }
     this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
   });
 
   this.Then(/^reading and writing to the database should be possible$/, function (callback) {
-    var session = this.driver.session()
+    var session = this.driver.session();
     session.run("CREATE (:label1)").then( function(  ) {
         callback();
     }).catch(function(err) {callback(new Error("Rejected Promise: " + err))});
   });
 
   this.Given(/^a driver is configured with auth enabled and the wrong password is provided$/, function () {
-    this.driver.close();
+    if (this.driver) {
+      this.driver.close();
+    }
     this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "wrong"));
+    this.driver.session();
   });
 
-  this.Then(/^reading and writing to the database should not be possible$/, function (callback) {
-   this.driver.onError = function(err) {
-     self.err = err;
-   };
-    var session = this.driver.session();
+  this.Then(/^reading and writing to the database should not be possible$/, {timeout:5000}, function (callback) {
+
     var self = this;
+    this.driver.onError = function (err) {
+      self.err = err;
+      callback();
+    };
+
+    var session = this.driver.session();
     session.run("CREATE (:label1)").then( function(  ) {
       callback(new Error("Should not be able to run session!"));
     }).catch( function(err) {

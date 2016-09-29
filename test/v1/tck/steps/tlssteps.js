@@ -51,7 +51,7 @@ module.exports = function () {
     callback();
   });
 
-  this.Then(/^creating sessions should fail$/, function (callback) {
+  this.Then(/^creating sessions should fail$/,  {timeout: CALLBACK_TIMEOUT}, function (callback) {
     var session = this.driver1.session();
     var self = this;
     session.run("RETURN 1")

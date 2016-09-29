@@ -23,7 +23,7 @@ var Session = require("../../lib/v1/session");
 
 describe('session', function () {
 
-  var driver, session, server;
+  var driver, session, server, originalTimeout;
 
   beforeEach(function (done) {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
@@ -31,11 +31,14 @@ describe('session', function () {
       server = meta['server'];
     };
     session = driver.session();
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
     session.run("MATCH (n) DETACH DELETE n").then(done);
   });
 
   afterEach(function () {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
     driver.close();
   });
 
@@ -177,8 +180,8 @@ describe('session', function () {
     session.run(statement)
       .then(function (result) {
         var sum = result.summary;
-        expect(sum.resultAvailableAfter.toInt()).toBeGreaterThan(0);
-        expect(sum.resultConsumedAfter.toInt()).toBeGreaterThan(0);
+        expect(sum.resultAvailableAfter.toInt()).not.toBeLessThan(0);
+        expect(sum.resultConsumedAfter.toInt()).not.toBeLessThan(0);
         done();
       });
   });
@@ -313,8 +316,8 @@ describe('session', function () {
           .then(function (ignore) {
             done();
           });
-      }, 1000);
-    }, 1500);
+      }, 500);
+    }, 500);
   });
 
   it('should fail nicely on unpackable values ', function (done) {

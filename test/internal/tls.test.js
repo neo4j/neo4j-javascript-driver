@@ -26,10 +26,10 @@ var isLocalHost = require("../../lib/v1/internal/util").isLocalHost;
 describe('trust-signed-certificates', function() {
 
   var driver;
-  var log = console.log
+  var log = console.log;
   beforeEach(function() {
     console.log = function () {}; // To mute deprecation message in test output
-  })
+  });
   it('should reject unknown certificates', function(done) {
     // Assuming we only run this test on NodeJS
     if( !NodeChannel.available ) {
