@@ -109,7 +109,7 @@ const TrustStrategy = {
    */
   TRUST_SIGNED_CERTIFICATES: function( opts, onSuccess, onFailure ) {
     console.log("`TRUST_SIGNED_CERTIFICATES` has been deprecated as option and will be removed in a future version of " +
-      "the driver. Pleas use `TRUST_CUSTOM_CA_SIGNED_CERTIFICATES` instead.");
+      "the driver. Please use `TRUST_CUSTOM_CA_SIGNED_CERTIFICATES` instead.");
     return TrustStrategy.TRUST_CUSTOM_CA_SIGNED_CERTIFICATES(opts, onSuccess, onFailure);
   },
   TRUST_CUSTOM_CA_SIGNED_CERTIFICATES : function( opts, onSuccess, onFailure ) {
