@@ -42,10 +42,10 @@ class Pool {
   acquire(key) {
     let resource;
     let pool = this._pools[key] || [];
-    while( pool.length ) {
+    while (pool.length) {
       resource = pool.pop();
 
-      if( this._validate(resource) ) {
+      if (this._validate(resource)) {
         return resource;
       } else {
         this._destroy(resource);
@@ -53,6 +53,20 @@ class Pool {
     }
 
     return this._create(this._release);
+  }
+
+  purge(key) {
+    let resource;
+    let pool = this._pools[key] || [];
+    while (pool.length) {
+      resource = pool.pop();
+      this._destroy(resource)
+    }
+    delete this._pools[key]
+  }
+
+  has(key) {
+    return (key in this._pools);
   }
 
   _release(key, resource) {

@@ -120,6 +120,38 @@ describe('Pool', function() {
     expect( destroyed[0].id ).toBe( r0.id );
     expect( destroyed[1].id ).toBe( r1.id );
   });
+
+
+  it('purges keys', function() {
+    // Given a pool that allocates
+    var counter = 0;
+    var key1 = "bolt://localhost:7687";
+    var key2 = "bolt://localhost:7688";
+    var pool = new Pool( function (release) { return new Resource(counter++, release) },
+      function (res) {res.destroyed = true; return true}
+    );
+
+    // When
+    var r0 = pool.acquire(key1);
+    var r1 = pool.acquire(key2);
+    r0.close(key1);
+    r1.close(key2);
+    expect(pool.has(key1)).toBe(true);
+    expect(pool.has(key2)).toBe(true);
+    pool.purge(key1);
+    expect(pool.has(key1)).toBe(false);
+    expect(pool.has(key2)).toBe(true);
+
+    var r2 = pool.acquire(key1);
+    var r3 = pool.acquire(key2);
+
+    // Then
+    expect( r0.id ).toBe( 0 );
+    expect( r0.destroyed ).toBe( true );
+    expect( r1.id ).toBe( 1 );
+    expect( r2.id ).toBe( 2 );
+    expect( r3.id ).toBe( 1 );
+  });
 });
 
 function Resource( id, release) {
