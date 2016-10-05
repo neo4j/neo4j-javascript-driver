@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {Record} from "../record";
+import Record from "../record";
 
 /**
  * Handles a RUN/PULL_ALL, or RUN/DISCARD_ALL requests, maps the responses

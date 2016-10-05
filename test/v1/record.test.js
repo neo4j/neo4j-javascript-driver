@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-var Record = require("../../lib/v1/record").Record;
+var Record = require("../../lib/v1/record").default;
 var Neo4jError = require("../../lib/v1/error").Neo4jError;
 
 

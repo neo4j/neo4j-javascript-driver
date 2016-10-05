@@ -20,7 +20,7 @@ var NodeChannel = require('../../lib/v1/internal/ch-node.js');
 var neo4j = require("../../lib/v1");
 var fs = require("fs");
 var path = require('path');
-var hasFeature = require("../../lib/v1/internal/features");
+var hasFeature = require("../../lib/v1/internal/features").default;
 var isLocalHost = require("../../lib/v1/internal/util").isLocalHost;
 
 describe('trust-signed-certificates', function() {

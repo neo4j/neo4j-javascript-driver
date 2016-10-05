@@ -29,24 +29,32 @@ var _console = console;
 */
 describe('examples', function() {
 
-  var driverGlobal, sessionGlobal, out, console;
+  var driverGlobal, out, console, originalTimeout;
+
+  beforeAll(function () {
+    var neo4j = neo4jv1;
+
+    //tag::construct-driver[]
+    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    //end::construct-driver[]
+    driverGlobal = driver;
+  });
 
   beforeEach(function(done) {
-    var neo4j = neo4jv1;
-    //tag::construct-driver[]
-    driverGlobal = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
-    //end::construct-driver[]
-    sessionGlobal = driverGlobal.session();
-
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
     // Override console.log, to assert on stdout output
     out = [];
     console = { log: function(msg) { out.push(msg); }  };
-
-    sessionGlobal.run("MATCH (n) DETACH DELETE n").then(done);
+    var session = driverGlobal.session();
+    session.run("MATCH (n) DETACH DELETE n").then(function () {
+      session.close();
+      done();
+    });
   });
 
-  afterEach(function() {
-    sessionGlobal.close();
+  afterAll(function() {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
     driverGlobal.close();
   });
 
@@ -100,14 +108,15 @@ describe('examples', function() {
   });
 
   it('should document a statement', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
     // tag::statement[]
     session
       .run( "CREATE (person:Person {name: {name}})", {name: "Arthur"} )
     // end::statement[]
       .then( function(result) {
         var theOnesCreated = result.summary.counters.nodesCreated();
-        console.log("There were " + theOnesCreated + " the ones created.")
+        console.log("There were " + theOnesCreated + " the ones created.");
+        session.close();
       })
       .then(function() {
         expect(out[0]).toBe("There were 1 the ones created.");
@@ -116,7 +125,7 @@ describe('examples', function() {
   });
 
   it('should document a statement without parameters', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
     // tag::statement-without-parameters[]
     session
       .run( "CREATE (p:Person { name: 'Arthur' })" )
@@ -124,6 +133,7 @@ describe('examples', function() {
       .then( function(result) {
         var theOnesCreated = result.summary.counters.nodesCreated();
         console.log("There were " + theOnesCreated + " the ones created.");
+        session.close();
       });
 
     // Then
@@ -134,7 +144,7 @@ describe('examples', function() {
   });
 
   it('should be able to iterate results', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
     session
       .run( "CREATE (weapon:Weapon { name: 'Sword in the stone' })" )
       .then(function() {
@@ -163,7 +173,7 @@ describe('examples', function() {
   });
 
   it('should be able to access records', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
     session
       .run( "CREATE (weapon:Weapon { name: 'Sword in the stone', owner: 'Arthur', material: 'Stone', size: 'Huge' })" )
       .then(function() {
@@ -198,7 +208,7 @@ describe('examples', function() {
   });
 
   it('should be able to retain for later processing', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
 
     session
     .run("CREATE (knight:Person:Knight { name: 'Lancelot', castle: 'Camelot' })")
@@ -208,16 +218,17 @@ describe('examples', function() {
         .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN knight.name AS name", {castle: "Camelot"})
         .then(function (result) {
           var records = [];
-          for (i = 0; i < result.records.length; i++) {
+          for (var i = 0; i < result.records.length; i++) {
             records.push(result.records[i]);
           }
           return records;
         })
         .then(function (records) {
-          for(i = 0; i < records.length; i ++)
-          {
+          for(var i = 0; i < records.length; i ++) {
             console.log(records[i].get("name") + " is a knight of Camelot");
           }
+          session.close();
+
         });
       // end::retain-result[]
     });
@@ -230,7 +241,7 @@ describe('examples', function() {
   });
 
   it('should be able to do nested queries', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();;
     session
       .run( "CREATE (knight:Person:Knight { name: 'Lancelot', castle: 'Camelot' })" +
             "CREATE (king:Person { name: 'Arthur', title: 'King' })" )
@@ -249,6 +260,7 @@ describe('examples', function() {
                   .run("MATCH (:Knight)-[:DEFENDS]->() RETURN count(*)")
                   .then(function (result) {
                     console.log("Count is " + result.records[0].get(0).toInt());
+                    session.close();
                   });
               },
               onError: function(error) {
@@ -266,27 +278,30 @@ describe('examples', function() {
   });
 
   it('should be able to handle cypher error', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
 
     // tag::handle-cypher-error[]
     session
       .run("Then will cause a syntax error")
       .catch( function(err) {
         expect(err.fields[0].code).toBe( "Neo.ClientError.Statement.SyntaxError" );
+        session.close();
         done();
       });
     // end::handle-cypher-error[]
   });
 
   it('should be able to profile', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
 
     session.run("CREATE (:Person {name:'Arthur'})").then(function() {
       // tag::result-summary-query-profile[]
       session
         .run("PROFILE MATCH (p:Person {name: {name}}) RETURN id(p)", {name: "Arthur"})
         .then(function (result) {
+          //_console.log(result.summary.profile);
           console.log(result.summary.profile);
+          session.close();
         });
       // end::result-summary-query-profile[]
     });
@@ -295,11 +310,11 @@ describe('examples', function() {
     setTimeout(function() {
       expect(out.length).toBe(1);
       done();
-    }, 1000);
+    }, 2000);
   });
 
   it('should be able to see notifications', function(done) {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
 
     // tag::result-summary-notifications[]
     session
@@ -309,6 +324,7 @@ describe('examples', function() {
         for (i = 0; i < notifications.length; i++) {
           console.log(notifications[i].code);
         }
+        session.close();
       });
     // end::result-summary-notifications[]
 
@@ -319,28 +335,26 @@ describe('examples', function() {
   });
 
   it('should document committing a transaction', function() {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();
 
     // tag::transaction-commit[]
     var tx = session.beginTransaction();
     tx.run( "CREATE (:Person {name: 'Guinevere'})" );
-    tx.commit();
+    tx.commit().then(function() {session.close()});
     // end::transaction-commit[]
   });
 
   it('should document rolling back a transaction', function() {
-    var session = sessionGlobal;
+    var session = driverGlobal.session();;
 
     // tag::transaction-rollback[]
     var tx = session.beginTransaction();
     tx.run( "CREATE (:Person {name: 'Merlin'})" );
-    tx.rollback();
+    tx.rollback().then(function() {session.close()});
     // end::transaction-rollback[]
   });
 
   it('should document how to require encryption', function() {
-    var session = sessionGlobal;
-
     var neo4j = neo4jv1;
     // tag::tls-require-encryption[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {

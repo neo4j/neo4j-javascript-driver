@@ -18,11 +18,14 @@
  */
 
 import Session from './session';
-import {Pool} from './internal/pool';
-import {connect} from "./internal/connector";
+import Pool from './internal/pool';
+import Integer from './integer';
+import {connect, scheme} from "./internal/connector";
 import StreamObserver from './internal/stream-observer';
-import {VERSION} from '../version';
+import VERSION from '../version';
+import "babel-polyfill";
 
+let READ = 'READ', WRITE = 'WRITE';
 /**
  * A driver maintains one or more {@link Session sessions} with a remote
  * Neo4j instance. Through the {@link Session sessions} you can send statements
@@ -53,7 +56,7 @@ class Driver {
     this._pool = new Pool(
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
-      this._validateConnection.bind(this),
+      Driver._validateConnection.bind(this),
       config.connectionPoolSize
     );
   }
@@ -63,7 +66,7 @@ class Driver {
    * @return {Connection} new connector-api session instance, a low level session API.
    * @access private
    */
-  _createConnection( release ) {
+  _createConnection(release) {
     let sessionId = this._sessionIdGenerator++;
     let streamObserver = new _ConnectionStreamObserver(this);
     let conn = connect(this._url, this._config);
@@ -80,7 +83,7 @@ class Driver {
    * @return {boolean} true if the connection is open
    * @access private
    **/
-  _validateConnection( conn ) {
+  static _validateConnection(conn) {
     return conn.isOpen();
   }
 
@@ -89,7 +92,7 @@ class Driver {
    * @return {Session} new session.
    * @access private
    */
-  _destroyConnection( conn ) {
+  _destroyConnection(conn) {
     delete this._openSessions[conn._id];
     conn.close();
   }
@@ -109,7 +112,11 @@ class Driver {
    */
   session() {
     let conn = this._pool.acquire(this._url);
-    return new Session( conn, (cb) => {
+    return this._createSession(conn);
+  }
+
+  _createSession(conn) {
+    return new Session(conn, (cb) => {
       // This gets called on Session#close(), and is where we return
       // the pooled 'connection' instance.
 
@@ -126,7 +133,9 @@ class Driver {
       conn._release();
 
       // Call user callback
-      if(cb) { cb(); }
+      if (cb) {
+        cb();
+      }
     });
   }
 
@@ -144,6 +153,191 @@ class Driver {
   }
 }
 
+class RoundRobinArray {
+  constructor(items) {
+    this._items = items || [];
+    this._index = 0;
+  }
+
+  hop() {
+    let elem = this._items[this._index];
+    this._index = (this._index + 1) % (this._items.length - 1);
+    return elem;
+  }
+
+  push(elem) {
+    this._items.push(elem);
+  }
+
+  pushAll(elems) {
+    Array.prototype.push.apply(this._items, elems);
+  }
+
+  empty() {
+    return this._items.length === 0;
+  }
+
+  clear() {
+    this._items = [];
+    this._index = 0;
+  }
+
+  size() {
+    return this._items.length;
+  }
+
+  toArray() {
+    return this._items;
+  }
+
+  remove(item) {
+    let index = this._items.indexOf(item);
+    while (index != -1) {
+      this._items.splice(index, 1);
+      if (index < this._index) {
+        this._index -= 1;
+      }
+      //make sure we are in range
+      this._index %= (this._items.length - 1);
+    }
+  }
+}
+
+let GET_SERVERS = "CALL dbms.cluster.routing.getServers";
+class RoutingDriver extends Driver {
+
+  constructor(url, userAgent = 'neo4j-javascript/0.0', token = {}, config = {}) {
+    super(url, userAgent, token, config);
+    this._routers = new RoundRobinArray();
+    this._routers.push(url);
+    this._readers = new RoundRobinArray();
+    this._writers = new RoundRobinArray();
+    this._expires = Date.now();
+    this._checkServers();
+  }
+
+  _checkServers() {
+    if (this._expires < Date.now() ||
+      this._routers.empty() ||
+      this._readers.empty() ||
+      this._writers.empty()) {
+      this._callServers();
+    }
+  }
+
+  async _callServers() {
+    let seen = this._allServers();
+    //clear writers and readers
+    this._writers.clear();
+    this._readers.clear();
+    //we have to wait to clear routers until
+    //we have discovered new ones
+    let newRouters = new RoundRobinArray();
+    let success = false;
+
+    while (!this._routers.empty() && !success) {
+      let url = this._routers.hop();
+      try {
+        let res = await this._call(url);
+        if (res.records.length != 1) continue;
+        let record = res.records[0];
+        //Note we are loosing precision here but we are not
+        //terribly worried since it is only
+        //for dates more than 140000 years into the future.
+        this._expires += record.get('ttl').toNumber();
+        let servers = record.get('servers');
+        for (let i = 0; i <= servers.length; i++) {
+          let server = servers[i];
+          seen.delete(server);
+          let role = server['role'];
+          let addresses = server['addresses'];
+          if (role === 'ROUTE') {
+            newRouters.push(server);
+          } else if (role === 'WRITE') {
+            this._writers.push(server);
+          } else if (role === 'READ') {
+            this._readers.push(server);
+          }
+        }
+
+        if (newRouters.empty()) continue;
+        //we have results
+        this._routers = newRouters();
+        //these are no longer valid according to server
+        let self = this;
+        seen.forEach((key) => {
+          self._pool.purge(key);
+        });
+        success = true;
+        return;
+      } catch (error) {
+        //continue
+        this._forget(url);
+        console.log(error);
+      }
+    }
+
+    if (this.onError) {
+      this.onError("Server could not perform discovery, please open a new driver with a different seed address.");
+    }
+    this.close();
+  }
+
+  //TODO make nice, expose constants?
+  session(mode) {
+   let conn = this._aquireConnection(mode);
+    return this._createSession(conn);
+  }
+
+  _aquireConnection(mode) {
+    //make sure we have enough servers
+    this._checkServers();
+
+    let m = mode || WRITE;
+    if (m === READ) {
+      return this._pools.acquire(this._readers.hop());
+    } else if (m === WRITE) {
+      return this._pools.acquire(this._writers.hop());
+    } else {
+      //TODO fail
+    }
+  }
+
+  _allServers() {
+    let seen = new Set(this._routers.toArray());
+    let writers = this._writers.toArray()
+    let readers = this._readers.toArray()
+    for (let i = 0; i < writers.length; i++) {
+      seen.add(writers[i]);
+    }
+    for (let i = 0; i < readers.length; i++) {
+      seen.add(writers[i]);
+    }
+    return seen;
+  }
+
+  async _call(url) {
+    let conn = this._pool.acquire(url);
+    let session = this._createSession(conn);
+    console.log("calling " + GET_SERVERS);
+    return session.run(GET_SERVERS)
+      .then((res) => {
+        session.close();
+        return res;
+      }).catch((err) => {
+        this._forget(url);
+        return Promise.reject(err);
+      });
+  }
+
+  _forget(url) {
+    this._pools.purge(url);
+    this._routers.remove(url);
+    this._readers.remove(url);
+    this._writers.remove(url);
+  }
+}
+
 /** Internal stream observer used for connection state */
 class _ConnectionStreamObserver extends StreamObserver {
   constructor(driver) {
@@ -151,18 +345,20 @@ class _ConnectionStreamObserver extends StreamObserver {
     this._driver = driver;
     this._hasFailed = false;
   }
+
   onError(error) {
     if (!this._hasFailed) {
       super.onError(error);
-      if(this._driver.onError) {
+      if (this._driver.onError) {
         this._driver.onError(error);
       }
       this._hasFailed = true;
     }
   }
+
   onCompleted(message) {
-    if(this._driver.onCompleted) {
-        this._driver.onCompleted(message);
+    if (this._driver.onCompleted) {
+      this._driver.onCompleted(message);
     }
   }
 }
@@ -205,7 +401,8 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  *       //
  *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES meand that you trust whatever certificates
  *       // are in the default certificate chain of th
- *       trust: "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES" | TRUST_CUSTOM_CA_SIGNED_CERTIFICATES | TRUST_SYSTEM_CA_SIGNED_CERTIFICATES,
+ *       trust: "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES" | TRUST_CUSTOM_CA_SIGNED_CERTIFICATES |
+ * TRUST_SYSTEM_CA_SIGNED_CERTIFICATES,
  *
  *       // List of one or more paths to trusted encryption certificates. This only
  *       // works in the NodeJS bundle, and only matters if you use "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES".
@@ -226,8 +423,13 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  * @param {Object} config Configuration object. See the configuration section above for details.
  * @returns {Driver}
  */
-function driver(url, authToken, config={}) {
-  return new Driver(url, USER_AGENT, authToken, config);
+function driver(url, authToken, config = {}) {
+  let sch = scheme(url);
+  if (sch === "bolt+routing://") {
+    return new RoutingDriver(url, USER_AGENT, authToken, config);
+  } else {
+    return new Driver(url, USER_AGENT, authToken, config);
+  }
 }
 
 export {Driver, driver}

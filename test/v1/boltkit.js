@@ -19,25 +19,28 @@
 
 var childProcess = require("child_process");
 
-var BoltKit = function () {};
+var BoltKit = function (verbose) {
+  this.verbose = verbose || false;
+};
 
 BoltKit.prototype.start = function(script, port) {
   var spawn = childProcess.spawn, server, code = -1;
 
   server = spawn('/usr/local/bin/boltstub', ['-v', port, script]);
-  server.stdout.on('data', (data) => {
-    console.log(`${data}`);
-  });
-  server.stderr.on('data', (data) => {
-    console.log(`${data}`);
-  });
+  if (this.verbose) {
+    server.stdout.on('data', (data) => {
+      console.log(`${data}`);
+    });
+    server.stderr.on('data', (data) => {
+      console.log(`${data}`);
+    });
+    server.on('end', function (data) {
+      console.log(data);
+    });
+  }
 
   server.on('close', function (c) {
     code = c;
-  });
-
-  server.on('end', function (data) {
-    console.log(data);
   });
 
   server.on('error', function (err) {
@@ -57,7 +60,17 @@ BoltKit.prototype.run = function(callback) {
   setTimeout(callback, 500);
 };
 
+function boltKitSupport() {
+  try {
+    var test = childProcess.spawn;
+    return !!test;
+  } catch (e) {
+    return false;
+  }
+}
+
 module.exports = {
-  BoltKit: BoltKit
+  BoltKit: BoltKit,
+  BoltKitSupport: boltKitSupport()
 };
 

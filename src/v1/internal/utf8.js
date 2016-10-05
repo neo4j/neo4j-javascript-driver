@@ -20,7 +20,7 @@
 // This module defines a cross-platform UTF-8 encoder and decoder that works
 // with the Buffer API defined in buf.js
 
-import buf from "./buf";
+import {alloc, NodeBuffer, HeapBuffer, CombinedBuffer} from "./buf";
 import {StringDecoder} from 'string_decoder';
 import {newError} from './../error';
 let platformObj = {};
@@ -34,16 +34,16 @@ try {
 
   platformObj = {
     "encode": function (str) {
-      return new buf.NodeBuffer(new node.Buffer(str, "UTF-8"));
+      return new NodeBuffer(new node.Buffer(str, "UTF-8"));
     },
     "decode": function (buffer, length) {
-      if (buffer instanceof buf.NodeBuffer) {
+      if (buffer instanceof NodeBuffer) {
         let start = buffer.position,
           end = start + length;
         buffer.position = Math.min(end, buffer.length);
         return buffer._buffer.toString('utf8', start, end);
       }
-      else if (buffer instanceof buf.CombinedBuffer) {
+      else if (buffer instanceof CombinedBuffer) {
         let out = streamDecodeCombinedBuffer(buffer, length,
           (partBuffer) => {
             return decoder.write(partBuffer._buffer);
@@ -69,16 +69,16 @@ try {
 
   platformObj = {
     "encode": function (str) {
-      return new buf.HeapBuffer(encoder.encode(str).buffer);
+      return new HeapBuffer(encoder.encode(str).buffer);
     },
     "decode": function (buffer, length) {
-      if (buffer instanceof buf.HeapBuffer) {
+      if (buffer instanceof HeapBuffer) {
         return decoder.decode(buffer.readView(Math.min(length, buffer.length - buffer.position)));
       }
       else {
         // Decoding combined buffer is complicated. For simplicity, for now, 
         // we simply copy the combined buffer into a regular buffer and decode that.
-        var tmpBuf = buf.alloc(length);
+        var tmpBuf = alloc(length);
         for (var i = 0; i < length; i++) {
           tmpBuf.writeUInt8(buffer.readUInt8());
         }

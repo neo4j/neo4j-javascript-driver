@@ -20,7 +20,8 @@
 import StreamObserver from './internal/stream-observer';
 import Result from './result';
 import Transaction from './transaction';
-import {Integer, int} from "./integer";
+import Integer from "./integer";
+import {int} from "./integer";
 import {newError} from "./error";
 
 /**

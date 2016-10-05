@@ -23,38 +23,52 @@ import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './grap
 import {Neo4jError} from './error';
 import Result from './result';
 import ResultSummary from './result-summary';
-import {Record} from './record';
+import Record from './record';
 
-export default {
+const auth ={
+  basic: (username, password, realm = undefined) => {
+    if (realm) {
+      return {scheme: "basic", principal: username, credentials: password, realm: realm};
+    } else {
+      return {scheme: "basic", principal: username, credentials: password};
+    }
+  },
+    custom: (principal, credentials, realm, scheme, parameters = undefined ) => {
+    if (parameters) {
+      return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm,
+        parameters: parameters}
+    } else {
+      return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm}
+    }
+  }
+};
+
+const types ={
+  Node,
+  Relationship,
+  UnboundRelationship,
+  PathSegment,
+  Path,
+  Result,
+  ResultSummary,
+  Record
+  };
+
+const forExport = {
   driver,
   int,
   isInt,
   Neo4jError,
-  auth: {
-    basic: (username, password, realm = undefined) => {
-      if (realm) {
-        return {scheme: "basic", principal: username, credentials: password, realm: realm};
-      } else {
-        return {scheme: "basic", principal: username, credentials: password};
-      }
-    },
-    custom: (principal, credentials, realm, scheme, parameters = undefined ) => {
-      if (parameters) {
-        return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm,
-          parameters: parameters}
-      } else {
-        return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm}
-      }
-    }
-  },
-  types: {
-    Node,
-    Relationship,
-    UnboundRelationship,
-    PathSegment,
-    Path,
-    Result,
-    ResultSummary,
-    Record
-  }
+  auth,
+  types
+};
+
+export {
+  driver,
+  int,
+  isInt,
+  Neo4jError,
+  auth,
+  types
 }
+export default forExport

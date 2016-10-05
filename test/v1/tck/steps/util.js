@@ -19,14 +19,14 @@
 
 var neo4j = require("../../../../lib/v1");
 
-INT = 'integer';
-FLOAT = 'float';
-STRING = 'string';
-BOOL = 'boolean';
-NULL = 'null';
-RELATIONSHIP = 'relationship';
-NODE = 'node';
-PATH = 'path';
+const INT = 'integer';
+const FLOAT = 'float';
+const STRING = 'string';
+const BOOL = 'boolean';
+const NULL = 'null';
+const RELATIONSHIP = 'relationship';
+const NODE = 'node';
+const PATH = 'path';
 
 var neorunPath = './neokit/neorun.py';
 var neo4jHome = './build/neo4j';
@@ -34,19 +34,6 @@ var neo4jCert = neo4jHome + '/certificates/neo4j.cert';
 var neo4jKey = neo4jHome + '/certificates/neo4j.key';
 var childProcess = require("child_process");
 var fs = require('fs');
-
-module.exports = {
-  literalTableToTestObject: literalTableToTestObject,
-  literalValueToTestValueNormalIntegers : literalValueToTestValueNormalIntegers,
-  literalValueToTestValue: literalValueToTestValue,
-  compareValues: compareValues,
-  sizeOfObject: sizeOfObject,
-  clone: clone,
-  printable: printable,
-  changeCertificates: changeCertificates,
-  restart: restart,
-  neo4jCert: neo4jCert
-};
 
 function literalTableToTestObject(literalResults) {
   var resultValues = [];
@@ -57,7 +44,7 @@ function literalTableToTestObject(literalResults) {
 }
 
 function literalLineToObjects(resultRow) {
-  resultObject = {};
+  var resultObject = {};
   for ( var key in resultRow)
   {
     resultObject[key] = literalValueToTestValue(resultRow[key]);
@@ -177,7 +164,7 @@ function createPath(val) {
   path.segments = [];
   if (entities.length > 2) {
     for (var i = 0; i < entities.length-2; i+=2) {
-      segment = {"start": entities[i],
+      var segment = {"start": entities[i],
                  "end": entities[i+2],
                  "relationship": entities[i+1]};
        path.segments.push(segment);
@@ -206,7 +193,7 @@ function parseNodesAndRelationshipsFromPath(val) {
 function parseMap(val, bigInt) {
   if (bigInt)
   {
-    return properties = JSON.parse(val, function(k, v) {
+    return JSON.parse(val, function(k, v) {
       if (Number.isInteger(v)) {
         return neo4j.int(v);
       }
@@ -214,7 +201,7 @@ function parseMap(val, bigInt) {
     });
   }
   else {
-    return properties = JSON.parse(val);
+    return JSON.parse(val);
   }
 }
 
@@ -256,7 +243,7 @@ function getLabels(val) {
   if ( val.indexOf(":") < 0) {
     return [];
   }
-  labels = val.split(":")
+  var labels = val.split(":")
   labels.splice(0, labels.length-1);
   return labels;
 }
@@ -383,4 +370,25 @@ var runScript = function(cmd) {
   {
     throw "Script finished with code " + code
   }
+};
+
+module.exports = {
+  literalTableToTestObject: literalTableToTestObject,
+  literalValueToTestValueNormalIntegers : literalValueToTestValueNormalIntegers,
+  literalValueToTestValue: literalValueToTestValue,
+  compareValues: compareValues,
+  sizeOfObject: sizeOfObject,
+  clone: clone,
+  printable: printable,
+  changeCertificates: changeCertificates,
+  restart: restart,
+  neo4jCert: neo4jCert,
+  INT: INT,
+  FLOAT: FLOAT,
+  STRING: STRING,
+  BOOL: BOOL,
+  NULL: NULL,
+  NODE: NODE,
+  RELATIONSHIP: RELATIONSHIP,
+  PATH: PATH
 };

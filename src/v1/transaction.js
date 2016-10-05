@@ -42,7 +42,7 @@ class Transaction {
   /**
    * Run Cypher statement
    * Could be called with a statement object i.e.: {statement: "MATCH ...", parameters: {param: 1}}
-   * or with the statem ent and parameters as separate arguments.
+   * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
    * @return {Result} - New Result

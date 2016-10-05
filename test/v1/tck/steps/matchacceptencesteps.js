@@ -39,7 +39,7 @@ module.exports = function () {
   this.Then(/^result:$/, function (table, callback) {
     this.expectedResults = util.literalTableToTestObject(table.hashes());
     var self = this;
-    var errorCallback = function(err) {callback(new Error("Rejected Promise: " + err))}
+    var errorCallback = function(err) {callback(new Error("Rejected Promise: " + err))};
     var successCallback = function(res) {
       var givenResults = [];
       var expectedPrint = printable(self.expectedResults);
@@ -99,7 +99,7 @@ module.exports = function () {
   }
 
   function getTestObject(rels) {
-    result = {};
+    var result = {};
     rels.forEach(function( rel, key ) {
       if (typeof rel === "object" && rel instanceof Array) {
         var relArray = [];
@@ -120,13 +120,13 @@ module.exports = function () {
       return val;
     }
     var con = val.constructor.name.toLowerCase();
-    if (con === NODE) {
+    if (con === util.NODE) {
       return stripNode(val);
     }
-    else if (con === RELATIONSHIP) {
+    else if (con === util.RELATIONSHIP) {
       return stripRelationship(val);
     }
-    else if (con === PATH) {
+    else if (con === util.PATH) {
       return stripPath(val);
     }
     else {
@@ -150,8 +150,9 @@ module.exports = function () {
     var id = 0;
     var startid = neo4j.int(path.start.identity.toString());
     var segments = path.segments;
+    var segment;
     for (var i = 0; i < segments.length; i++) {
-      var segment = segments[i];
+      segment = segments[i];
       if (startid.notEquals(segment.start.identity)) {
         throw new Error("Path segment does not make sense")
       }

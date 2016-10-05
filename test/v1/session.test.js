@@ -19,7 +19,7 @@
 
 var neo4j = require("../../lib/v1");
 var StatementType = require("../../lib/v1/result-summary").statementType;
-var Session = require("../../lib/v1/session");
+var Session = require("../../lib/v1/session").default;
 
 describe('session', function () {
 

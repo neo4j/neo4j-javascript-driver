@@ -18,12 +18,11 @@
  */
  
 var alloc = require('../../lib/v1/internal/buf').alloc,
-    packstream = require("../../lib/v1/internal/packstream.js"),
-    integer = require("../../lib/v1/integer.js"),
+    packstream = require("../../lib/v1/internal/packstream"),
+    Integer = require("../../lib/v1/integer").default,
     Packer = packstream.Packer,
     Unpacker = packstream.Unpacker,
-    Structure = packstream.Structure,
-    Integer = integer.Integer;
+    Structure = packstream.Structure;
 
 describe('packstream', function() {
 

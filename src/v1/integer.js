@@ -817,8 +817,9 @@ let int = Integer.fromValue;
  */
 let isInt = Integer.isInteger;
 
-export default {
-    Integer,
+export {
     int,
-    isInt
+    isInt,
 }
+
+export default Integer

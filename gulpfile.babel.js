@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+require("babel-polyfill");
 
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
@@ -52,7 +53,8 @@ gulp.task('browser', function(cb){
 });
 
 /** Build all-in-one files for use in the browser */
-gulp.task('build-browser', function () {
+gulp.task('bu' +
+  'ild-browser', function () {
   var browserOutput = 'lib/browser';
   // Our app bundler
   var appBundler = browserify({
@@ -61,7 +63,7 @@ gulp.task('build-browser', function () {
     standalone: 'neo4j',
     packageCache: {}
   }).transform(babelify.configure({
-    ignore: /external/
+    presets: ['es2015', 'stage-3'], ignore: /external/
   })).bundle();
 
   // Un-minified browser package
@@ -98,7 +100,7 @@ gulp.task('build-browser-test', function(){
           cache: {},
           debug: true
         }).transform(babelify.configure({
-          ignore: /external/
+          presets: ['es2015', 'stage-3'], ignore: /external/
         }))
         .bundle(function(err, res){
           cb();
@@ -115,7 +117,7 @@ gulp.task('build-browser-test', function(){
 
 var buildNode = function(options) {
   return gulp.src(options.src)
-    .pipe(babel({ignore: ['src/external/**/*.js']}))
+    .pipe(babel({presets: ['es2015', 'stage-3'], ignore: ['src/external/**/*.js']}))
     .pipe(gulp.dest(options.dest))
 };
 

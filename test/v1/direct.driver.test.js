@@ -17,12 +17,17 @@
  * limitations under the License.
  */
 
-var neo4j = require("../../lib/v1");
+var neo4j = require("../../lib/v1").default;
 var boltkit = require('./boltkit');
 
 describe('direct driver', function() {
 
   it('should run query', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
     // Given
     var kit = new boltkit.BoltKit();
     var server = kit.start('./test/resources/boltkit/return_x.script', 9001);

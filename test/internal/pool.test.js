@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-var Pool = require('../../lib/v1/internal/pool').Pool;
+var Pool = require('../../lib/v1/internal/pool').default;
 
 describe('Pool', function() {
   it('allocates if pool is empty', function() {
