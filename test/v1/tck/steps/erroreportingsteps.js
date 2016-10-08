@@ -36,7 +36,7 @@ module.exports = function () {
 
   this.Then(/^it throws a `ClientException`$/, function (table) {
     var expected = table.rows()[0][0];
-    if (this.error === undefined) {
+    if (!this.error) {
       throw new Error("Exepcted an error but got none.")
     }
     if (this.error.message.indexOf(expected) != 0) {
@@ -70,11 +70,12 @@ module.exports = function () {
   });
 
   this.When(/^I set up a driver with wrong scheme$/, function (callback) {
-    var self = this;
-    var driver = neo4j.driver("wrong://localhost:7474", neo4j.auth.basic("neo4j", "neo4j"));
-    driver.session();
-    driver.onError = function (error) { self.error = error; callback()};
-    driver.close();
+    try {
+      neo4j.driver("wrong://localhost:7474", neo4j.auth.basic("neo4j", "neo4j"));
+    } catch (e){
+      this.error = e;
+      callback();
+    }
   });
 
 };

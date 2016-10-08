@@ -49,7 +49,7 @@ describe('transaction', function() {
             expect(result.records[0].get('count(t2)').toInt())
               .toBe(1);
             done();
-          });
+          }).catch(function (e) {console.log(e)});
       });
   });
 

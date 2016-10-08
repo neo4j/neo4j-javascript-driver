@@ -116,7 +116,7 @@ class Driver {
   }
 
   _createSession(conn) {
-    return new Session(conn, (cb) => {
+    return new Session(new Promise((resolve, reject) => resolve(conn)), (cb) => {
       // This gets called on Session#close(), and is where we return
       // the pooled 'connection' instance.
 
@@ -204,6 +204,47 @@ class RoundRobinArray {
 }
 
 let GET_SERVERS = "CALL dbms.cluster.routing.getServers";
+
+class ClusterView {
+  constructor(expires, routers, readers, writers) {
+    this.expires = expires;
+    this.routers = routers;
+    this.readers = readers;
+    this.routers = writers;
+  }
+}
+
+function newClusterView(session) {
+  return session.run(GET_SERVERS)
+    .then((res) => {
+      session.close();
+      let record = res.records[0];
+      //Note we are loosing precision here but we are not
+      //terribly worried since it is only
+      //for dates more than 140000 years into the future.
+      let expires = record.get('ttl').toNumber();
+      let servers = record.get('servers');
+      let routers = new RoundRobinArray();
+      let readers = new RoundRobinArray();
+      let writers = new RoundRobinArray();
+      for (let i = 0; i <= servers.length; i++) {
+        let server = servers[i];
+
+        let role = server['role'];
+        let addresses = server['addresses'];
+        if (role === 'ROUTE') {
+          routers.pushAll(addresses);
+        } else if (role === 'WRITE') {
+          writers.pushAll(addresses);
+        } else if (role === 'READ') {
+          readers.pushAll(addresses);
+        }
+      }
+
+      return new ClusterView(expires, routers, readers, writers);
+    });
+}
+
 class RoutingDriver extends Driver {
 
   constructor(url, userAgent = 'neo4j-javascript/0.0', token = {}, config = {}) {
@@ -213,15 +254,25 @@ class RoutingDriver extends Driver {
     this._readers = new RoundRobinArray();
     this._writers = new RoundRobinArray();
     this._expires = Date.now();
-    this._checkServers();
   }
 
-  _checkServers() {
+  //TODO make nice, expose constants?
+  session(mode) {
+    //Check so that we have servers available
+    this._checkServers().then( () => {
+      let conn = this._acquireConnection(mode);
+      return this._createSession(conn);
+    });
+  }
+
+  async _checkServers() {
     if (this._expires < Date.now() ||
       this._routers.empty() ||
       this._readers.empty() ||
       this._writers.empty()) {
-      this._callServers();
+      return await this._callServers();
+    } else {
+      return new Promise((resolve, reject) => resolve(false));
     }
   }
 
@@ -239,6 +290,7 @@ class RoutingDriver extends Driver {
       let url = this._routers.hop();
       try {
         let res = await this._call(url);
+        console.log("got result");
         if (res.records.length != 1) continue;
         let record = res.records[0];
         //Note we are loosing precision here but we are not
@@ -246,9 +298,11 @@ class RoutingDriver extends Driver {
         //for dates more than 140000 years into the future.
         this._expires += record.get('ttl').toNumber();
         let servers = record.get('servers');
+        console.log(servers);
         for (let i = 0; i <= servers.length; i++) {
           let server = servers[i];
-          seen.delete(server);
+          seen.remove(server);
+
           let role = server['role'];
           let addresses = server['addresses'];
           if (role === 'ROUTE') {
@@ -266,38 +320,33 @@ class RoutingDriver extends Driver {
         //these are no longer valid according to server
         let self = this;
         seen.forEach((key) => {
-          self._pool.purge(key);
+          console.log("remove seen");
+          self._pools.purge(key);
         });
         success = true;
-        return;
+        return new Promise((resolve, reject) => resolve(true));
       } catch (error) {
         //continue
-        this._forget(url);
         console.log(error);
+        this._forget(url);
       }
     }
 
+    let errorMsg = "Server could not perform discovery, please open a new driver with a different seed address.";
     if (this.onError) {
-      this.onError("Server could not perform discovery, please open a new driver with a different seed address.");
+      this.onError(errorMsg);
     }
-    this.close();
+
+    return new Promise((resolve, reject) => reject(errorMsg));
   }
 
-  //TODO make nice, expose constants?
-  session(mode) {
-   let conn = this._aquireConnection(mode);
-    return this._createSession(conn);
-  }
-
-  _aquireConnection(mode) {
+  _acquireConnection(mode) {
     //make sure we have enough servers
-    this._checkServers();
-
     let m = mode || WRITE;
     if (m === READ) {
-      return this._pools.acquire(this._readers.hop());
+      return this._pool.acquire(this._readers.hop());
     } else if (m === WRITE) {
-      return this._pools.acquire(this._writers.hop());
+      return this._pool.acquire(this._writers.hop());
     } else {
       //TODO fail
     }
@@ -305,8 +354,8 @@ class RoutingDriver extends Driver {
 
   _allServers() {
     let seen = new Set(this._routers.toArray());
-    let writers = this._writers.toArray()
-    let readers = this._readers.toArray()
+    let writers = this._writers.toArray();
+    let readers = this._readers.toArray();
     for (let i = 0; i < writers.length; i++) {
       seen.add(writers[i]);
     }
@@ -319,18 +368,19 @@ class RoutingDriver extends Driver {
   async _call(url) {
     let conn = this._pool.acquire(url);
     let session = this._createSession(conn);
-    console.log("calling " + GET_SERVERS);
     return session.run(GET_SERVERS)
       .then((res) => {
         session.close();
         return res;
       }).catch((err) => {
+        console.log(err);
         this._forget(url);
         return Promise.reject(err);
       });
   }
 
   _forget(url) {
+    console.log("forget");
     this._pools.purge(url);
     this._routers.remove(url);
     this._readers.remove(url);
@@ -426,9 +476,12 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
 function driver(url, authToken, config = {}) {
   let sch = scheme(url);
   if (sch === "bolt+routing://") {
-    return new RoutingDriver(url, USER_AGENT, authToken, config);
-  } else {
+      return new RoutingDriver(url, USER_AGENT, authToken, config);
+  } else if (sch === "bolt://") {
     return new Driver(url, USER_AGENT, authToken, config);
+  } else {
+    throw new Error("Unknown scheme: " + sch);
+
   }
 }
 

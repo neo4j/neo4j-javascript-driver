@@ -27,19 +27,19 @@ xdescribe('routing driver ', function() {
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
+    var kit = new boltkit.BoltKit(true);
     var server = kit.start('./test/resources/boltkit/discover_servers.script', 9001);
 
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://localhost:9001", neo4j.auth.basic("neo4j", "neo4j"));
-
-      setTimeout(function () {
-        driver.close();
-        server.exit(function (code) {
-          expect(code).toEqual(0);
-          done();
+        var session = driver.session();
+        session.run("MATCH (n) RETURN n.name"). then(function() {
+          driver.close();
+          server.exit(function (code) {
+            expect(code).toEqual(0);
+            done();
+          });
         });
-      }, 1000);
     });
   });
 });

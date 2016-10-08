@@ -49,7 +49,7 @@ BoltKit.prototype.start = function(script, port) {
 
   var Server = function(){};
   //give process some time to exit
-  Server.prototype.exit = function(callback) {setTimeout(function(){callback(code);}, 500)};
+  Server.prototype.exit = function(callback) {setTimeout(function(){callback(code);}, 1000)};
 
   return new Server();
 };
@@ -57,7 +57,7 @@ BoltKit.prototype.start = function(script, port) {
 //Make sure boltstub is started before running
 //user code
 BoltKit.prototype.run = function(callback) {
-  setTimeout(callback, 500);
+  setTimeout(callback, 1000);
 };
 
 function boltKitSupport() {

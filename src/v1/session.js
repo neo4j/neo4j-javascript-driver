@@ -33,17 +33,13 @@ import {newError} from "./error";
 class Session {
   /**
    * @constructor
-   * @param {Connection} conn - A connection to use
+   * @param {Promise} connectionPromise - A connection to use
    * @param {function()} onClose - Function to be called on connection close
    */
-  constructor( conn, onClose ) {
-    this._conn = conn;
+  constructor( connectionPromise, onClose ) {
+    this._connectionPromise = connectionPromise;
     this._onClose = onClose;
     this._hasTx = false;
-  }
-
-  isEncrypted() {
-    return this._conn.isEncrypted();
   }
 
   /**
@@ -61,9 +57,11 @@ class Session {
     }
     let streamObserver = new _RunObserver();
     if (!this._hasTx) {
-      this._conn.run(statement, parameters, streamObserver);
-      this._conn.pullAll(streamObserver);
-      this._conn.sync();
+      this._connectionPromise.then((conn) => {
+        conn.run(statement, parameters, streamObserver);
+        conn.pullAll(streamObserver);
+        conn.sync();
+      }).catch((err) => streamObserver.onError(err));
     } else {
       streamObserver.onError(newError("Statements cannot be run directly on a "
        + "session with an open transaction; either run from within the "
@@ -82,13 +80,13 @@ class Session {
    */
   beginTransaction() {
     if (this._hasTx) {
-      throw new newError("You cannot begin a transaction on a session with an "
+      throw newError("You cannot begin a transaction on a session with an "
       + "open transaction; either run from within the transaction or use a "
       + "different session.")
     }
 
     this._hasTx = true;
-    return new Transaction(this._conn, () => {this._hasTx = false});
+    return new Transaction(this._connectionPromise, () => {this._hasTx = false});
   }
 
   /**

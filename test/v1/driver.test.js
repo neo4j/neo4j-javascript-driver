@@ -48,6 +48,10 @@ describe('driver', function() {
     driver.session();
   });
 
+  it('should handle wrong scheme ', function() {
+    expect(function(){neo4j.driver("tank://localhost", neo4j.auth.basic("neo4j", "neo4j"))}).toThrow(new Error("Unknown scheme: tank://"));
+  });
+
   it('should fail early on wrong credentials', function(done) {
     // Given
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "who would use such a password"));
