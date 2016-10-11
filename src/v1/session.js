@@ -33,7 +33,7 @@ import {newError} from "./error";
 class Session {
   /**
    * @constructor
-   * @param {Promise} connectionPromise - A connection to use
+   * @param {Promise.<Connection>} connectionPromise - Promise of a connection to use
    * @param {function()} onClose - Function to be called on connection close
    */
   constructor( connectionPromise, onClose ) {
