@@ -52,7 +52,7 @@ class Pool {
       }
     }
 
-    return this._create(this._release);
+    return this._create(key, this._release);
   }
 
   purge(key) {

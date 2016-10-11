@@ -20,10 +20,11 @@
 import {int, isInt} from './integer';
 import {driver} from './driver';
 import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
-import {Neo4jError} from './error';
+import {Neo4jError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from './error';
 import Result from './result';
 import ResultSummary from './result-summary';
 import Record from './record';
+import {READ, WRITE} from './driver';
 
 const auth ={
   basic: (username, password, realm = undefined) => {
@@ -60,7 +61,11 @@ const forExport = {
   isInt,
   Neo4jError,
   auth,
-  types
+  types,
+  READ,
+  WRITE,
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
 };
 
 export {
@@ -69,6 +74,10 @@ export {
   isInt,
   Neo4jError,
   auth,
-  types
+  types,
+  READ,
+  WRITE,
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
 }
 export default forExport

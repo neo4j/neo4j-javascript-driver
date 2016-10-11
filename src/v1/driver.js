@@ -20,9 +20,10 @@
 import Session from './session';
 import Pool from './internal/pool';
 import Integer from './integer';
-import {connect, scheme} from "./internal/connector";
+import {connect, parseScheme, parseUrl} from "./internal/connector";
 import StreamObserver from './internal/stream-observer';
 import VERSION from '../version';
+import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
 import "babel-polyfill";
 
 let READ = 'READ', WRITE = 'WRITE';
@@ -66,10 +67,10 @@ class Driver {
    * @return {Connection} new connector-api session instance, a low level session API.
    * @access private
    */
-  _createConnection(release) {
+  _createConnection(url, release) {
     let sessionId = this._sessionIdGenerator++;
     let streamObserver = new _ConnectionStreamObserver(this);
-    let conn = connect(this._url, this._config);
+    let conn = connect(url, this._config);
     conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
     conn._release = () => release(this._url, conn);
@@ -112,11 +113,11 @@ class Driver {
    */
   session() {
     let conn = this._pool.acquire(this._url);
-    return this._createSession(conn);
+    return this._createSession(Promise.resolve(conn));
   }
 
-  _createSession(conn) {
-    return new Session(new Promise((resolve, reject) => resolve(conn)), (cb) => {
+  _createSession(connectionPromise) {
+    return new Session(connectionPromise, (cb) => {
       // This gets called on Session#close(), and is where we return
       // the pooled 'connection' instance.
 
@@ -126,11 +127,14 @@ class Driver {
 
       // Queue up a 'reset', to ensure the next user gets a clean
       // session to work with.
-      conn.reset();
-      conn.sync();
+      connectionPromise.then( (conn) => {
+        conn.reset();
+        conn.sync();
 
-      // Return connection to the pool
-      conn._release();
+        // Return connection to the pool
+        conn._release();
+      });
+
 
       // Call user callback
       if (cb) {
@@ -161,7 +165,11 @@ class RoundRobinArray {
 
   hop() {
     let elem = this._items[this._index];
-    this._index = (this._index + 1) % (this._items.length - 1);
+    if (this._items.length === 0) {
+      this._index = 0;
+    } else {
+      this._index = (this._index + 1) % (this._items.length);
+    }
     return elem;
   }
 
@@ -198,7 +206,11 @@ class RoundRobinArray {
         this._index -= 1;
       }
       //make sure we are in range
-      this._index %= (this._items.length - 1);
+      if (this._items.length === 0) {
+        this._index = 0;
+      } else {
+        this._index %= this._items.length;
+      }
     }
   }
 }
@@ -206,11 +218,38 @@ class RoundRobinArray {
 let GET_SERVERS = "CALL dbms.cluster.routing.getServers";
 
 class ClusterView {
-  constructor(expires, routers, readers, writers) {
-    this.expires = expires;
-    this.routers = routers;
-    this.readers = readers;
-    this.routers = writers;
+  constructor(routers, readers, writers, expires) {
+    this.routers = routers || new RoundRobinArray();
+    this.readers = readers || new RoundRobinArray();
+    this.writers = writers || new RoundRobinArray();
+    this._expires = expires || -1;
+
+  }
+
+  needsUpdate() {
+    return this._expires < Date.now() ||
+      this.routers.empty() ||
+      this.readers.empty() ||
+      this.writers.empty();
+  }
+
+  all() {
+    let seen = new Set(this.routers.toArray());
+    let writers = this.writers.toArray();
+    let readers = this.readers.toArray();
+    for (let i = 0; i < writers.length; i++) {
+      seen.add(writers[i]);
+    }
+    for (let i = 0; i < readers.length; i++) {
+      seen.add(readers[i]);
+    }
+    return seen;
+  }
+
+  remove(item) {
+    this.routers.remove(item);
+    this.readers.remove(item);
+    this.writers.remove(item);
   }
 }
 
@@ -218,16 +257,19 @@ function newClusterView(session) {
   return session.run(GET_SERVERS)
     .then((res) => {
       session.close();
+      if (res.records.length != 1) {
+        return Promise.reject(newError("Invalid routing response from server", SERVICE_UNAVAILABLE));
+      }
       let record = res.records[0];
-      //Note we are loosing precision here but we are not
-      //terribly worried since it is only
-      //for dates more than 140000 years into the future.
+      //Note we are loosing precision here but let's hope that in
+      //the 140000 years to come before this precision loss
+      //hits us, that we get native 64 bit integers in javascript
       let expires = record.get('ttl').toNumber();
       let servers = record.get('servers');
       let routers = new RoundRobinArray();
       let readers = new RoundRobinArray();
       let writers = new RoundRobinArray();
-      for (let i = 0; i <= servers.length; i++) {
+      for (let i = 0; i < servers.length; i++) {
         let server = servers[i];
 
         let role = server['role'];
@@ -240,8 +282,7 @@ function newClusterView(session) {
           readers.pushAll(addresses);
         }
       }
-
-      return new ClusterView(expires, routers, readers, writers);
+      return new ClusterView(routers, readers, writers, expires);
     });
 }
 
@@ -249,142 +290,67 @@ class RoutingDriver extends Driver {
 
   constructor(url, userAgent = 'neo4j-javascript/0.0', token = {}, config = {}) {
     super(url, userAgent, token, config);
-    this._routers = new RoundRobinArray();
-    this._routers.push(url);
-    this._readers = new RoundRobinArray();
-    this._writers = new RoundRobinArray();
-    this._expires = Date.now();
+    this._clusterView = new ClusterView(new RoundRobinArray([parseUrl(url)]));
   }
 
-  //TODO make nice, expose constants?
   session(mode) {
-    //Check so that we have servers available
-    this._checkServers().then( () => {
-      let conn = this._acquireConnection(mode);
-      return this._createSession(conn);
-    });
+    let conn = this._acquireConnection(mode);
+    return this._createSession(conn);
   }
 
-  async _checkServers() {
-    if (this._expires < Date.now() ||
-      this._routers.empty() ||
-      this._readers.empty() ||
-      this._writers.empty()) {
-      return await this._callServers();
+  _updatedClusterView() {
+    if (!this._clusterView.needsUpdate()) {
+      return Promise.resolve(this._clusterView);
     } else {
-      return new Promise((resolve, reject) => resolve(false));
+      let routers = this._clusterView.routers;
+      let acc = Promise.reject();
+      for (let i = 0; i < routers.size(); i++) {
+        acc = acc.catch(() => {
+          let conn = this._pool.acquire(routers.hop());
+          let session = this._createSession(Promise.resolve(conn));
+          return newClusterView(session).catch((err) => {
+            this._forget(conn);
+            return Promise.reject(err);
+          });
+        });
+      }
+
+      return acc;
     }
   }
-
-  async _callServers() {
-    let seen = this._allServers();
-    //clear writers and readers
-    this._writers.clear();
-    this._readers.clear();
-    //we have to wait to clear routers until
-    //we have discovered new ones
-    let newRouters = new RoundRobinArray();
-    let success = false;
-
-    while (!this._routers.empty() && !success) {
-      let url = this._routers.hop();
-      try {
-        let res = await this._call(url);
-        console.log("got result");
-        if (res.records.length != 1) continue;
-        let record = res.records[0];
-        //Note we are loosing precision here but we are not
-        //terribly worried since it is only
-        //for dates more than 140000 years into the future.
-        this._expires += record.get('ttl').toNumber();
-        let servers = record.get('servers');
-        console.log(servers);
-        for (let i = 0; i <= servers.length; i++) {
-          let server = servers[i];
-          seen.remove(server);
-
-          let role = server['role'];
-          let addresses = server['addresses'];
-          if (role === 'ROUTE') {
-            newRouters.push(server);
-          } else if (role === 'WRITE') {
-            this._writers.push(server);
-          } else if (role === 'READ') {
-            this._readers.push(server);
-          }
-        }
-
-        if (newRouters.empty()) continue;
-        //we have results
-        this._routers = newRouters();
-        //these are no longer valid according to server
-        let self = this;
-        seen.forEach((key) => {
-          console.log("remove seen");
-          self._pools.purge(key);
-        });
-        success = true;
-        return new Promise((resolve, reject) => resolve(true));
-      } catch (error) {
-        //continue
-        console.log(error);
-        this._forget(url);
-      }
-    }
-
-    let errorMsg = "Server could not perform discovery, please open a new driver with a different seed address.";
-    if (this.onError) {
-      this.onError(errorMsg);
-    }
-
-    return new Promise((resolve, reject) => reject(errorMsg));
+  _diff(oldView, updatedView) {
+    let oldSet = oldView.all();
+    let newSet = updatedView.all();
+    newSet.forEach((item) => {
+      oldSet.delete(item);
+    });
+    return oldSet;
   }
 
   _acquireConnection(mode) {
-    //make sure we have enough servers
     let m = mode || WRITE;
-    if (m === READ) {
-      return this._pool.acquire(this._readers.hop());
-    } else if (m === WRITE) {
-      return this._pool.acquire(this._writers.hop());
-    } else {
-      //TODO fail
-    }
-  }
-
-  _allServers() {
-    let seen = new Set(this._routers.toArray());
-    let writers = this._writers.toArray();
-    let readers = this._readers.toArray();
-    for (let i = 0; i < writers.length; i++) {
-      seen.add(writers[i]);
-    }
-    for (let i = 0; i < readers.length; i++) {
-      seen.add(writers[i]);
-    }
-    return seen;
-  }
-
-  async _call(url) {
-    let conn = this._pool.acquire(url);
-    let session = this._createSession(conn);
-    return session.run(GET_SERVERS)
-      .then((res) => {
-        session.close();
-        return res;
-      }).catch((err) => {
-        console.log(err);
-        this._forget(url);
-        return Promise.reject(err);
+    //make sure we have enough servers
+    return this._updatedClusterView().then((view) => {
+      let toRemove = this._diff(this._clusterView, view);
+      let self = this;
+      toRemove.forEach((url) => {
+        self._pool.purge(url);
       });
+      //update our cached view
+      this._clusterView = view;
+      if (m === READ) {
+        return this._pool.acquire(view.readers.hop());
+      } else if (m === WRITE) {
+        return this._pool.acquire(view.writers.hop());
+      } else {
+        return Promise.reject(m + " is not a valid option");
+      }
+    });
   }
 
   _forget(url) {
-    console.log("forget");
-    this._pools.purge(url);
-    this._routers.remove(url);
-    this._readers.remove(url);
-    this._writers.remove(url);
+    this._pool.purge(url);
+    this._clusterView.remove(url);
   }
 }
 
@@ -474,15 +440,15 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  * @returns {Driver}
  */
 function driver(url, authToken, config = {}) {
-  let sch = scheme(url);
-  if (sch === "bolt+routing://") {
-      return new RoutingDriver(url, USER_AGENT, authToken, config);
-  } else if (sch === "bolt://") {
-    return new Driver(url, USER_AGENT, authToken, config);
+  let scheme = parseScheme(url);
+  if (scheme === "bolt+routing://") {
+      return new RoutingDriver(parseUrl(url), USER_AGENT, authToken, config);
+  } else if (scheme === "bolt://") {
+    return new Driver(parseUrl(url), USER_AGENT, authToken, config);
   } else {
-    throw new Error("Unknown scheme: " + sch);
+    throw new Error("Unknown scheme: " + scheme);
 
   }
 }
 
-export {Driver, driver}
+export {Driver, driver, READ, WRITE}

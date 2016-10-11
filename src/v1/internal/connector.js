@@ -63,26 +63,26 @@ MAGIC_PREAMBLE = 0x6060B017,
 DEBUG = false;
 
 let URLREGEX = new RegExp([
-  "([^/]+//)",          // scheme
+  "([^/]+//)?",          // scheme
   "(([^:/?#]*)",      // hostname
   "(?::([0-9]+))?)",  // port (optional)
   ".*"].join(""));     // everything else
 
-function host( url ) {
+function parseScheme( url ) {
+  let scheme = url.match(URLREGEX)[1] || '';
+  return scheme.toLowerCase();
+}
+
+function parseUrl(url) {
+  return url.match( URLREGEX )[2];
+}
+
+function parseHost( url ) {
   return url.match( URLREGEX )[3];
 }
 
-function port( url ) {
+function parsePort( url ) {
   return url.match( URLREGEX )[4];
-}
-
-function scheme( url ) {
-  let scheme = url.match( URLREGEX )[1];
-  if (scheme) {
-    return scheme.toLowerCase();
-  }
-
-  return scheme;
 }
 
 /**
@@ -468,10 +468,10 @@ class Connection {
 function connect( url, config = {}) {
   let Ch = config.channel || Channel;
   return new Connection( new Ch({
-    host: host(url),
-    port: port(url) || 7687,
+    host: parseHost(url),
+    port: parsePort(url) || 7687,
     // Default to using ENCRYPTION_NON_LOCAL if trust-on-first-use is available
-    encrypted : shouldEncrypt(config.encrypted, (hasFeature("trust_on_first_use") ? ENCRYPTION_NON_LOCAL : ENCRYPTION_OFF), host(url)),
+    encrypted : shouldEncrypt(config.encrypted, (hasFeature("trust_on_first_use") ? ENCRYPTION_NON_LOCAL : ENCRYPTION_OFF), parseHost(url)),
     // Default to using TRUST_ON_FIRST_USE if it is available
     trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
@@ -481,6 +481,7 @@ function connect( url, config = {}) {
 
 export {
     connect,
-    scheme,
+    parseScheme,
+    parseUrl,
     Connection
 }

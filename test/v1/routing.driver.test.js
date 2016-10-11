@@ -19,7 +19,7 @@
 
 var neo4j = require("../../lib/v1");
 var boltkit = require('./boltkit');
-xdescribe('routing driver ', function() {
+describe('routing driver ', function() {
 
   it('should discover server', function (done) {
     if (!boltkit.BoltKitSupport) {
@@ -27,19 +27,309 @@ xdescribe('routing driver ', function() {
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit(true);
+    var kit = new boltkit.BoltKit();
     var server = kit.start('./test/resources/boltkit/discover_servers.script', 9001);
 
     kit.run(function () {
-      var driver = neo4j.driver("bolt+routing://localhost:9001", neo4j.auth.basic("neo4j", "neo4j"));
-        var session = driver.session();
-        session.run("MATCH (n) RETURN n.name"). then(function() {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session();
+        session.run("MATCH (n) RETURN n.name").then(function() {
+
+          // Then
+          expect(driver._clusterView.routers.toArray()).toEqual(["127.0.0.1:9001","127.0.0.1:9002","127.0.0.1:9003"]);
+          expect(driver._clusterView.readers.toArray()).toEqual(["127.0.0.1:9002","127.0.0.1:9003"]);
+          expect(driver._clusterView.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+
           driver.close();
           server.exit(function (code) {
             expect(code).toEqual(0);
             done();
           });
         });
+    });
+  });
+
+  it('should discover new servers', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var server = kit.start('./test/resources/boltkit/discover_new_servers.script', 9001);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session();
+      session.run("MATCH (n) RETURN n.name").then(function() {
+
+        // Then
+        expect(driver._clusterView.routers.toArray()).toEqual(["127.0.0.1:9004","127.0.0.1:9002","127.0.0.1:9003"]);
+        expect(driver._clusterView.readers.toArray()).toEqual(["127.0.0.1:9005","127.0.0.1:9003"]);
+        expect(driver._clusterView.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+
+        driver.close();
+        server.exit(function (code) {
+          expect(code).toEqual(0);
+          done();
+        });
+      });
+    });
+  });
+
+  it('should handle empty response from server', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var server = kit.start('./test/resources/boltkit/handle_empty_get_servers_response.script', 9001);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.READ);
+      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+        expect(err.code).toEqual(neo4j.SERVICE_UNAVAILABLE);
+        driver.close();
+        server.exit(function (code) {
+          expect(code).toEqual(0);
+          done();
+        });
+      });
+    });
+  });
+
+  it('should acquire read server', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var readServer = kit.start('./test/resources/boltkit/read_server.script', 9005);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.READ);
+      session.run("MATCH (n) RETURN n.name").then(function(res) {
+
+        // Then
+        expect(res.records[0].get('n.name')).toEqual('Bob');
+        expect(res.records[1].get('n.name')).toEqual('Alice');
+        expect(res.records[2].get('n.name')).toEqual('Tina');
+        driver.close();
+        seedServer.exit(function (code1) {
+          readServer.exit(function (code2) {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should round-robin among read servers', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var readServer1 = kit.start('./test/resources/boltkit/read_server.script', 9005);
+    var readServer2 = kit.start('./test/resources/boltkit/read_server.script', 9006);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.READ);
+      session.run("MATCH (n) RETURN n.name").then(function (res) {
+        // Then
+        expect(res.records[0].get('n.name')).toEqual('Bob');
+        expect(res.records[1].get('n.name')).toEqual('Alice');
+        expect(res.records[2].get('n.name')).toEqual('Tina');
+        session.close();
+        session = driver.session(neo4j.READ);
+        session.run("MATCH (n) RETURN n.name").then(function (res) {
+          // Then
+          expect(res.records[0].get('n.name')).toEqual('Bob');
+          expect(res.records[1].get('n.name')).toEqual('Alice');
+          expect(res.records[2].get('n.name')).toEqual('Tina');
+          session.close();
+
+          driver.close();
+          seedServer.exit(function (code1) {
+            readServer1.exit(function (code2) {
+              readServer2.exit(function (code3) {
+                expect(code1).toEqual(0);
+                expect(code2).toEqual(0);
+                expect(code3).toEqual(0);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should handle missing read server', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var readServer = kit.start('./test/resources/boltkit/dead_server.script', 9005);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.READ);
+      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+        console.log(err.sessionExpired);
+        expect(err.code).toEqual(neo4j.SESSION_EXPIRED);
+        driver.close();
+        seedServer.exit(function (code1) {
+          readServer.exit(function (code2) {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should acquire write server', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var writeServer = kit.start('./test/resources/boltkit/write_server.script', 9007);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.WRITE);
+      session.run("CREATE (n {name:'Bob'})").then(function() {
+
+        // Then
+        driver.close();
+        seedServer.exit(function (code1) {
+          writeServer.exit(function (code2) {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should round-robin among write servers', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var readServer1 = kit.start('./test/resources/boltkit/write_server.script', 9007);
+    var readServer2 = kit.start('./test/resources/boltkit/write_server.script', 9008);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.WRITE);
+      session.run("CREATE (n {name:'Bob'})").then(function () {
+        session = driver.session(neo4j.WRITE);
+        session.run("CREATE (n {name:'Bob'})").then(function () {
+          // Then
+          driver.close();
+          seedServer.exit(function (code1) {
+            readServer1.exit(function (code2) {
+              readServer2.exit(function (code3) {
+                expect(code1).toEqual(0);
+                expect(code2).toEqual(0);
+                expect(code3).toEqual(0);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should handle missing write server', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var readServer = kit.start('./test/resources/boltkit/dead_server.script', 9007);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.WRITE);
+      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+        expect(err.code).toEqual(neo4j.SESSION_EXPIRED);
+        driver.close();
+        seedServer.exit(function (code1) {
+          readServer.exit(function (code2) {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should remember endpoints', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var readServer = kit.start('./test/resources/boltkit/read_server.script', 9005);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.READ);
+      session.run("MATCH (n) RETURN n.name").then(function() {
+
+        // Then
+        expect(driver._clusterView.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
+        expect(driver._clusterView.readers.toArray()).toEqual(['127.0.0.1:9005', '127.0.0.1:9006']);
+        expect(driver._clusterView.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
+        driver.close();
+        seedServer.exit(function (code1) {
+          readServer.exit(function (code2) {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
     });
   });
 });
