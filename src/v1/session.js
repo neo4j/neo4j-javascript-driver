@@ -55,9 +55,10 @@ class Session {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    let streamObserver = new _RunObserver();
+    let streamObserver = new _RunObserver(this._onRunFailure());
     if (!this._hasTx) {
       this._connectionPromise.then((conn) => {
+        streamObserver.resolveConnection(conn);
         conn.run(statement, parameters, streamObserver);
         conn.pullAll(streamObserver);
         conn.sync();
@@ -105,12 +106,17 @@ class Session {
       cb();
     }
   }
+
+  //Can be overridden to add error callback on RUN
+  _onRunFailure() {
+    return (err) => {return err};
+  }
 }
 
 /** Internal stream observer used for transactional results*/
 class _RunObserver extends StreamObserver {
-  constructor() {
-    super();
+  constructor(onError) {
+    super(onError);
     this._meta = {};
   }
 

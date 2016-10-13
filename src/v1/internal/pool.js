@@ -41,7 +41,11 @@ class Pool {
 
   acquire(key) {
     let resource;
-    let pool = this._pools[key] || [];
+    let pool = this._pools[key];
+    if (!pool) {
+      pool = [];
+      this._pools[key] = pool;
+    }
     while (pool.length) {
       resource = pool.pop();
 
@@ -65,6 +69,14 @@ class Pool {
     delete this._pools[key]
   }
 
+  purgeAll() {
+    for (let key in this._pools.keys) {
+      if (this._pools.hasOwnPropertykey) {
+        this.purge(key);
+      }
+    }
+  }
+
   has(key) {
     return (key in this._pools);
   }
@@ -72,8 +84,8 @@ class Pool {
   _release(key, resource) {
     let pool = this._pools[key];
     if (!pool) {
-      pool = [];
-      this._pools[key] = pool;
+      //key has been purged, don't put it back
+      return;
     }
     if( pool.length >= this._maxIdle || !this._validate(resource) ) {
       this._destroy(resource);

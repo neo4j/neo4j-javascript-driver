@@ -23,8 +23,6 @@ import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
 import RoundRobinArray from './internal/round-robin-array';
 import "babel-polyfill";
 
-
-
 /**
  * A driver that supports routing in a core-edge cluster.
  */
@@ -35,9 +33,40 @@ class RoutingDriver extends Driver {
     this._clusterView = new ClusterView(new RoundRobinArray([url]));
   }
 
-  session(mode) {
-    let conn = this._acquireConnection(mode);
-    return this._createSession(conn);
+  _createSession(connectionPromise, cb) {
+    return new RoutingSession(connectionPromise, cb, (err, conn) => {
+      let code = err.code;
+      if (!code) {
+        try {
+          code = err.fields[0].code;
+        } catch (e) {
+          code = 'UNKNOWN';
+        }
+      }
+
+      if (code === SERVICE_UNAVAILABLE || code === SESSION_EXPIRED) {
+        if (conn) {
+          this._forget(conn.url)
+        } else {
+          connectionPromise.then((conn) => {
+            this._forget(conn.url);
+          });
+        }
+        return err;
+      } else if (code === 'Neo.ClientError.Cluster.NotALeader') {
+        let url = 'UNKNOWN';
+        if (conn) {
+          url = conn.url;
+          this._clusterView.writers.remove(conn.url);
+        } else {
+          connectionPromise.then((conn) => {
+            this._clusterView.writers.remove(conn.url);
+          });
+        }
+
+        return newError("No longer possible to write to server at " + url, SESSION_EXPIRED);
+      }
+    });
   }
 
   _updatedClusterView() {
@@ -60,6 +89,7 @@ class RoutingDriver extends Driver {
       return acc;
     }
   }
+
   _diff(oldView, updatedView) {
     let oldSet = oldView.all();
     let newSet = updatedView.all();
@@ -81,9 +111,17 @@ class RoutingDriver extends Driver {
       //update our cached view
       this._clusterView = view;
       if (m === READ) {
-        return this._pool.acquire(view.readers.hop());
+        let key = view.readers.hop();
+        if (!key) {
+          return Promise.reject(newError('No read servers available', SESSION_EXPIRED));
+        }
+        return this._pool.acquire(key);
       } else if (m === WRITE) {
-        return this._pool.acquire(view.writers.hop());
+        let key = view.writers.hop();
+        if (!key) {
+          return Promise.reject(newError('No write servers available', SESSION_EXPIRED));
+        }
+        return this._pool.acquire(key);
       } else {
         return Promise.reject(m + " is not a valid option");
       }
@@ -95,7 +133,6 @@ class RoutingDriver extends Driver {
     this._clusterView.remove(url);
   }
 }
-
 
 class ClusterView {
   constructor(routers, readers, writers, expires) {
@@ -130,6 +167,17 @@ class ClusterView {
     this.routers.remove(item);
     this.readers.remove(item);
     this.writers.remove(item);
+  }
+}
+
+class RoutingSession extends Session {
+  constructor(connectionPromise, onClose, onFailedConnection) {
+    super(connectionPromise, onClose);
+    this._onFailedConnection = onFailedConnection;
+  }
+
+  _onRunFailure() {
+    return this._onFailedConnection;
   }
 }
 
@@ -170,6 +218,9 @@ function newClusterView(session) {
         }
       }
       return new ClusterView(routers, readers, writers, expires);
+    })
+    .catch(() => {
+      return Promise.reject(newError("No servers could be found at this instant.", SERVICE_UNAVAILABLE));
     });
 }
 

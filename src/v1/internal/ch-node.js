@@ -293,9 +293,10 @@ class NodeChannel {
   }
 
   _handleConnectionError( err ) {
-    this._error = err;
+    let msg = err.message || 'Failed to connect to server';
+    this._error = newError(msg, SESSION_EXPIRED);
     if( this.onerror ) {
-      this.onerror(err);
+      this.onerror(this._error);
     }
   }
 

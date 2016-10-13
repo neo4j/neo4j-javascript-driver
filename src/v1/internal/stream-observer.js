@@ -32,14 +32,16 @@ import Record from "../record";
 class StreamObserver {
   /**
    * @constructor
+   * @param errorCallback optional callback to be used for adding additional logic on error
    */
-  constructor() {
+  constructor(errorCallback = () => {}) {
     this._fieldKeys = null;
     this._fieldLookup = null;
     this._queuedRecords = [];
     this._tail = null;
     this._error = null;
     this._hasFailed = false;
+    this._errorCallback = errorCallback;
   }
 
   /**
@@ -81,6 +83,10 @@ class StreamObserver {
     }
   }
 
+  resolveConnection(conn) {
+    this._conn = conn;
+  }
+
   /**
    * Will be called on errors.
    * If user-provided observer is present, pass the error
@@ -88,18 +94,19 @@ class StreamObserver {
    * @param {Object} error - An error object
    */
   onError(error) {
+    let transformedError = this._errorCallback(error, this._conn);
     if(this._hasFailed) {
       return;
     }
     this._hasFailed = true;
     if( this._observer ) {
       if( this._observer.onError ) {
-        this._observer.onError( error );
+        this._observer.onError( transformedError );
       } else {
-        console.log( error );
+        console.log( transformedError );
       }
     } else {
-      this._error = error;
+      this._error = transformedError;
     }
   }
 

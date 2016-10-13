@@ -108,15 +108,12 @@ class Driver {
    * it is returned to the pool, the session will be reset to a clean state and
    * made available for others to use.
    *
+   * @param {String} mode of session - optional
    * @return {Session} new session.
    */
-  session() {
-    let conn = this._pool.acquire(this._url);
-    return this._createSession(Promise.resolve(conn));
-  }
-
-  _createSession(connectionPromise) {
-    return new Session(connectionPromise, (cb) => {
+  session(mode) {
+    let connectionPromise = this._acquireConnection(mode);
+    return this._createSession(connectionPromise, (cb) => {
       // This gets called on Session#close(), and is where we return
       // the pooled 'connection' instance.
 
@@ -134,12 +131,21 @@ class Driver {
         conn._release();
       });
 
-
       // Call user callback
       if (cb) {
         cb();
       }
     });
+  }
+
+  //Extension point
+  _acquireConnection(mode) {
+   return Promise.resolve(this._pool.acquire(this._url));
+  }
+
+  //Extension point
+  _createSession(connectionPromise, cb) {
+    return new Session(connectionPromise, cb);
   }
 
   /**
@@ -152,6 +158,8 @@ class Driver {
       if (this._openSessions.hasOwnProperty(sessionId)) {
         this._openSessions[sessionId].close();
       }
+
+      this._pool.purgeAll();
     }
   }
 }
