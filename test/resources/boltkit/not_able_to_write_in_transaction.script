@@ -10,3 +10,5 @@ C: RUN "CREATE ()" {}
 C: PULL_ALL
 S: FAILURE {"code": "Neo.ClientError.Cluster.NotALeader", "message": "blabla"}
 S: IGNORED
+C: RUN "COMMIT" {}
+S: IGNORED

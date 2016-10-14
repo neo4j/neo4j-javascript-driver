@@ -34,7 +34,7 @@ class StreamObserver {
    * @constructor
    * @param errorCallback optional callback to be used for adding additional logic on error
    */
-  constructor(errorCallback = () => {}) {
+  constructor(errorCallback = (err) => {return err}) {
     this._fieldKeys = null;
     this._fieldLookup = null;
     this._queuedRecords = [];

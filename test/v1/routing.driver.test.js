@@ -487,5 +487,39 @@ describe('routing driver ', function() {
       });
     });
   });
+
+  it('should handle leader switch while writing on transaction', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit(true);
+    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var readServer = kit.start('./test/resources/boltkit/not_able_to_write_in_transaction.script', 9007);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session();
+      var tx = session.beginTransaction();
+      tx.run("CREATE ()");
+
+      tx.commit().catch(function (err) {
+        //the server at 9007 should have been removed
+        expect(driver._clusterView.writers.toArray()).toEqual([ '127.0.0.1:9008']);
+        expect(err.code).toEqual(neo4j.SESSION_EXPIRED);
+        session.close();
+        driver.close();
+        seedServer.exit(function (code1) {
+          readServer.exit(function (code2) {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
 });
 

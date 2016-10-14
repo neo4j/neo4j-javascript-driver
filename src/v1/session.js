@@ -87,7 +87,7 @@ class Session {
     }
 
     this._hasTx = true;
-    return new Transaction(this._connectionPromise, () => {this._hasTx = false});
+    return new Transaction(this._connectionPromise, () => {this._hasTx = false}, this._onRunFailure());
   }
 
   /**

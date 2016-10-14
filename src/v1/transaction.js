@@ -30,16 +30,18 @@ class Transaction {
    * @param {Promise} connectionPromise - A connection to use
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    */
-  constructor(connectionPromise, onClose) {
+  constructor(connectionPromise, onClose, errorTransformer) {
     this._connectionPromise = connectionPromise;
     let streamObserver = new _TransactionStreamObserver(this);
     this._connectionPromise.then((conn) => {
+      streamObserver.resolveConnection(conn);
       conn.run("BEGIN", {}, streamObserver);
       conn.discardAll(streamObserver);
     }).catch(streamObserver.onError);
 
     this._state = _states.ACTIVE;
     this._onClose = onClose;
+    this._errorTransformer = errorTransformer;
   }
 
   /**
@@ -98,7 +100,7 @@ class Transaction {
 /** Internal stream observer used for transactional results*/
 class _TransactionStreamObserver extends StreamObserver {
   constructor(tx) {
-    super();
+    super(tx._errorTransformer || ((err) => {return err}));
     this._tx = tx;
     //this is to to avoid multiple calls to onError caused by IGNORED
     this._hasFailed = false;
@@ -126,6 +128,7 @@ let _states = {
     },
     run: (connectionPromise, observer, statement, parameters) => {
       connectionPromise.then((conn) => {
+        observer.resolveConnection(conn);
         conn.run( statement, parameters || {}, observer );
         conn.pullAll( observer );
         conn.sync();
@@ -204,6 +207,7 @@ let _states = {
 
 function _runDiscardAll(msg, connectionPromise, observer) {
   connectionPromise.then((conn) => {
+    observer.resolveConnection(conn);
     conn.run(msg, {}, observer);
     conn.discardAll(observer);
     conn.sync();
