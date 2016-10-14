@@ -130,6 +130,15 @@ const types ={
   Record
   };
 
+const session = {
+  READ,
+  WRITE
+};
+const error = {
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
+};
+
 const forExport = {
   driver,
   int,
@@ -137,10 +146,8 @@ const forExport = {
   Neo4jError,
   auth,
   types,
-  READ,
-  WRITE,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
+  session,
+  error
 };
 
 export {
@@ -150,9 +157,7 @@ export {
   Neo4jError,
   auth,
   types,
-  READ,
-  WRITE,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
+  session,
+  error
 }
 export default forExport

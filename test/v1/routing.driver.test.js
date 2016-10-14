@@ -81,6 +81,37 @@ describe('routing driver ', function() {
     });
   });
 
+  it('should discover new servers using subscribe', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var server = kit.start('./test/resources/boltkit/discover_new_servers.script', 9001);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session();
+      session.run("MATCH (n) RETURN n.name").subscribe({
+        onCompleted: function () {
+
+          // Then
+          expect(driver._clusterView.routers.toArray()).toEqual(["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
+          expect(driver._clusterView.readers.toArray()).toEqual(["127.0.0.1:9005", "127.0.0.1:9003"]);
+          expect(driver._clusterView.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+
+          driver.close();
+          server.exit(function (code) {
+            expect(code).toEqual(0);
+            done();
+          });
+        }
+      });
+    });
+  });
+
   it('should handle empty response from server', function (done) {
     if (!boltkit.BoltKitSupport) {
       done();
@@ -95,7 +126,7 @@ describe('routing driver ', function() {
       // When
       var session = driver.session(neo4j.READ);
       session.run("MATCH (n) RETURN n.name").catch(function (err) {
-        expect(err.code).toEqual(neo4j.SERVICE_UNAVAILABLE);
+        expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
         driver.close();
         server.exit(function (code) {
           expect(code).toEqual(0);
@@ -118,7 +149,7 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.READ);
+      var session = driver.session(neo4j.session.READ);
       session.run("MATCH (n) RETURN n.name").then(function(res) {
 
         session.close();
@@ -155,14 +186,14 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.READ);
+      var session = driver.session(neo4j.session.READ);
       session.run("MATCH (n) RETURN n.name").then(function (res) {
         // Then
         expect(res.records[0].get('n.name')).toEqual('Bob');
         expect(res.records[1].get('n.name')).toEqual('Alice');
         expect(res.records[2].get('n.name')).toEqual('Tina');
         session.close();
-        session = driver.session(neo4j.READ);
+        session = driver.session(neo4j.session.READ);
         session.run("MATCH (n) RETURN n.name").then(function (res) {
           // Then
           expect(res.records[0].get('n.name')).toEqual('Bob');
@@ -199,9 +230,9 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.READ);
+      var session = driver.session(neo4j.session.READ);
       session.run("MATCH (n) RETURN n.name").catch(function (err) {
-        expect(err.code).toEqual(neo4j.SESSION_EXPIRED);
+        expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         driver.close();
         seedServer.exit(function (code1) {
           readServer.exit(function (code2) {
@@ -227,7 +258,7 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.WRITE);
+      var session = driver.session(neo4j.session.WRITE);
       session.run("CREATE (n {name:'Bob'})").then(function() {
 
         // Then
@@ -257,9 +288,9 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.WRITE);
+      var session = driver.session(neo4j.session.WRITE);
       session.run("CREATE (n {name:'Bob'})").then(function () {
-        session = driver.session(neo4j.WRITE);
+        session = driver.session(neo4j.session.WRITE);
         session.run("CREATE (n {name:'Bob'})").then(function () {
           // Then
           driver.close();
@@ -291,9 +322,9 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.WRITE);
+      var session = driver.session(neo4j.session.WRITE);
       session.run("MATCH (n) RETURN n.name").catch(function (err) {
-        expect(err.code).toEqual(neo4j.SESSION_EXPIRED);
+        expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         driver.close();
         seedServer.exit(function (code1) {
           readServer.exit(function (code2) {
@@ -319,7 +350,7 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.READ);
+      var session = driver.session(neo4j.session.READ);
       session.run("MATCH (n) RETURN n.name").then(function() {
 
         // Then
@@ -351,7 +382,7 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.READ);
+      var session = driver.session(neo4j.session.READ);
       session.run("MATCH (n) RETURN n.name").catch(function() {
         session.close();
         // Then
@@ -384,7 +415,7 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.READ);
+      var session = driver.session(neo4j.session.READ);
       session.run("MATCH (n) RETURN n.name").catch(function(err) {
         session.close();
         // Then
@@ -415,9 +446,9 @@ describe('routing driver ', function() {
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
       // When
-      var session = driver.session(neo4j.READ);
+      var session = driver.session(neo4j.session.READ);
       session.run("MATCH (n) RETURN n.name").catch(function (err) {
-        session = driver.session(neo4j.READ);
+        session = driver.session(neo4j.session.READ);
         session.run("MATCH (n) RETURN n.name").then(function (res) {
           driver.close();
           seedServer.exit(function (code1) {
@@ -438,7 +469,7 @@ describe('routing driver ', function() {
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit(true);
+    var kit = new boltkit.BoltKit();
     var server = kit.start('./test/resources/boltkit/non_discovery.script', 9001);
 
     kit.run(function () {
@@ -446,7 +477,7 @@ describe('routing driver ', function() {
       // When
       var session = driver.session();
       session.run("MATCH (n) RETURN n.name").catch(function (err) {
-        expect(err.code).toEqual(neo4j.SERVICE_UNAVAILABLE);
+        expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
         session.close();
         driver.close();
         server.exit(function(code) {
@@ -463,7 +494,7 @@ describe('routing driver ', function() {
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit(true);
+    var kit = new boltkit.BoltKit();
     var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
     var readServer = kit.start('./test/resources/boltkit/not_able_to_write.script', 9007);
 
@@ -474,7 +505,7 @@ describe('routing driver ', function() {
       session.run("CREATE ()").catch(function (err) {
         //the server at 9007 should have been removed
         expect(driver._clusterView.writers.toArray()).toEqual([ '127.0.0.1:9008']);
-        expect(err.code).toEqual(neo4j.SESSION_EXPIRED);
+        expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         session.close();
         driver.close();
         seedServer.exit(function (code1) {
@@ -494,7 +525,7 @@ describe('routing driver ', function() {
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit(true);
+    var kit = new boltkit.BoltKit();
     var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
     var readServer = kit.start('./test/resources/boltkit/not_able_to_write_in_transaction.script', 9007);
 
@@ -508,7 +539,7 @@ describe('routing driver ', function() {
       tx.commit().catch(function (err) {
         //the server at 9007 should have been removed
         expect(driver._clusterView.writers.toArray()).toEqual([ '127.0.0.1:9008']);
-        expect(err.code).toEqual(neo4j.SESSION_EXPIRED);
+        expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         session.close();
         driver.close();
         seedServer.exit(function (code1) {

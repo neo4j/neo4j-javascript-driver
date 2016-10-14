@@ -29,6 +29,7 @@ class Transaction {
    * @constructor
    * @param {Promise} connectionPromise - A connection to use
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
+   * @param errorTransformer callback use to transform error
    */
   constructor(connectionPromise, onClose, errorTransformer) {
     this._connectionPromise = connectionPromise;

@@ -32,16 +32,16 @@ import Record from "../record";
 class StreamObserver {
   /**
    * @constructor
-   * @param errorCallback optional callback to be used for adding additional logic on error
+   * @param errorTransformer optional callback to be used for adding additional logic on error
    */
-  constructor(errorCallback = (err) => {return err}) {
+  constructor(errorTransformer = (err) => {return err}) {
     this._fieldKeys = null;
     this._fieldLookup = null;
     this._queuedRecords = [];
     this._tail = null;
     this._error = null;
     this._hasFailed = false;
-    this._errorCallback = errorCallback;
+    this._errorTransformer = errorTransformer;
   }
 
   /**
@@ -94,7 +94,7 @@ class StreamObserver {
    * @param {Object} error - An error object
    */
   onError(error) {
-    let transformedError = this._errorCallback(error, this._conn);
+    let transformedError = this._errorTransformer(error, this._conn);
     if(this._hasFailed) {
       return;
     }
