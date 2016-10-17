@@ -154,6 +154,17 @@ gulp.task('test-nodejs', ['nodejs'], function () {
         }));
 });
 
+gulp.task('test-boltkit', ['nodejs'], function () {
+  return gulp.src('test/**/*.boltkit.it.js')
+    .pipe(jasmine({
+      // reporter: new reporters.JUnitXmlReporter({
+      //   savePath: "build/nodejs-test-reports",
+      //   consolidateAll: false
+      // }),
+      includeStackTrace: true
+    }));
+});
+
 gulp.task('test-browser', function (cb) {
   runSequence('all', 'run-browser-test', cb)
 });
