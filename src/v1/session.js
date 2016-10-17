@@ -79,7 +79,7 @@ class Session {
    *
    * @returns {Transaction} - New Transaction
    */
-  beginTransaction() {
+  beginTransaction(bookmark) {
     if (this._hasTx) {
       throw newError("You cannot begin a transaction on a session with an "
       + "open transaction; either run from within the transaction or use a "
@@ -87,7 +87,13 @@ class Session {
     }
 
     this._hasTx = true;
-    return new Transaction(this._connectionPromise, () => {this._hasTx = false}, this._onRunFailure());
+    return new Transaction(this._connectionPromise, () => {
+      this._hasTx = false},
+      this._onRunFailure(), bookmark, (bookmark) => {this._lastBookmark = bookmark});
+  }
+
+  lastBookmark() {
+    return this._lastBookmark;
   }
 
   /**

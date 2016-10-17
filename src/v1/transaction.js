@@ -30,19 +30,25 @@ class Transaction {
    * @param {Promise} connectionPromise - A connection to use
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param errorTransformer callback use to transform error
+   * @param bookmark optional bookmark
    */
-  constructor(connectionPromise, onClose, errorTransformer) {
+  constructor(connectionPromise, onClose, errorTransformer, bookmark, onBookmark) {
     this._connectionPromise = connectionPromise;
     let streamObserver = new _TransactionStreamObserver(this);
+    let params = {};
+    if (bookmark) {
+      params = {bookmark: bookmark};
+    }
     this._connectionPromise.then((conn) => {
       streamObserver.resolveConnection(conn);
-      conn.run("BEGIN", {}, streamObserver);
+      conn.run("BEGIN", params, streamObserver);
       conn.discardAll(streamObserver);
     }).catch(streamObserver.onError);
 
     this._state = _states.ACTIVE;
     this._onClose = onClose;
     this._errorTransformer = errorTransformer;
+    this._onBookmark = onBookmark || (() => {});
   }
 
   /**
@@ -112,6 +118,14 @@ class _TransactionStreamObserver extends StreamObserver {
       this._tx._onError();
       super.onError(error);
       this._hasFailed = true;
+    }
+  }
+
+  onCompleted(meta) {
+    super.onCompleted(meta);
+    let bookmark = meta.bookmark;
+    if (bookmark) {
+      this._tx._onBookmark(bookmark);
     }
   }
 }

@@ -214,4 +214,17 @@ describe('transaction', function() {
         done();
       });
   });
+
+  it('should provide bookmark on commit', function (done) {
+    // When
+    var tx = session.beginTransaction();
+    expect(session.lastBookmark()).not.toBeDefined();
+    tx.run("CREATE (:TXNode1)");
+    tx.run("CREATE (:TXNode2)");
+    tx.commit()
+      .then(function () {
+        expect(session.lastBookmark()).toBeDefined();
+        done();
+      });
+  });
 });
