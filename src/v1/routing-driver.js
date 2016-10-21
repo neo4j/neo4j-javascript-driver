@@ -21,6 +21,8 @@ import Session from './session';
 import {Driver, READ, WRITE} from './driver';
 import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
 import RoundRobinArray from './internal/round-robin-array';
+import {int} from './integer'
+import Integer from './integer'
 import "babel-polyfill";
 
 /**
@@ -139,13 +141,13 @@ class ClusterView {
     this.routers = routers || new RoundRobinArray();
     this.readers = readers || new RoundRobinArray();
     this.writers = writers || new RoundRobinArray();
-    this._expires = expires || -1;
+    this._expires = expires || int(-1);
 
   }
 
   needsUpdate() {
-    return this._expires < Date.now() ||
-      this.routers.empty() ||
+    return this._expires.lessThan(Date.now()) ||
+      this.routers.size() <= 1 ||
       this.readers.empty() ||
       this.writers.empty();
   }
@@ -196,10 +198,13 @@ function newClusterView(session) {
         return Promise.reject(newError("Invalid routing response from server", SERVICE_UNAVAILABLE));
       }
       let record = res.records[0];
-      //Note we are loosing precision here but let's hope that in
-      //the 140000 years to come before this precision loss
-      //hits us, that we get native 64 bit integers in javascript
-      let expires = record.get('ttl').toNumber();
+      let now = int(Date.now());
+      let expires = record.get('ttl').multiply(1000).add(now);
+      //if the server uses a really big expire time like Long.MAX_VALUE
+      //this may have overflowed
+      if (expires.lessThan(now)) {
+        expires = Integer.MAX_VALUE;
+      }
       let servers = record.get('servers');
       let routers = new RoundRobinArray();
       let readers = new RoundRobinArray();
