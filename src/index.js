@@ -19,6 +19,5 @@
 
 import * as v1 from './v1/index';
 
-export default {
-  v1: v1
-}
+export { v1 }
+export default v1
