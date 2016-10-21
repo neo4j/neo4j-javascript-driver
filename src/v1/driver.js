@@ -22,7 +22,7 @@ import Pool from './internal/pool';
 import Integer from './integer';
 import {connect} from "./internal/connector";
 import StreamObserver from './internal/stream-observer';
-import {newError} from "./error";
+import {newError, SERVICE_UNAVAILABLE} from "./error";
 import "babel-polyfill";
 
 let READ = 'READ', WRITE = 'WRITE';
@@ -113,6 +113,13 @@ class Driver {
    */
   session(mode) {
     let connectionPromise = this._acquireConnection(mode);
+    connectionPromise.catch((err) => {
+      if (this.onError && err.code === SERVICE_UNAVAILABLE) {
+        this.onError(err);
+      } else {
+        return Promise.reject(err);
+      }
+    });
     return this._createSession(connectionPromise, (cb) => {
       // This gets called on Session#close(), and is where we return
       // the pooled 'connection' instance.

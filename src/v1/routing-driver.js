@@ -38,6 +38,7 @@ class RoutingDriver extends Driver {
   _createSession(connectionPromise, cb) {
     return new RoutingSession(connectionPromise, cb, (err, conn) => {
       let code = err.code;
+      let msg = err.message;
       if (!code) {
         try {
           code = err.fields[0].code;
@@ -45,6 +46,16 @@ class RoutingDriver extends Driver {
           code = 'UNKNOWN';
         }
       }
+      if (!msg) {
+        try {
+          msg = err.fields[0].message;
+        } catch (e) {
+          msg = 'Unknown failure occurred';
+        }
+      }
+      //just to simplify later error handling
+      err.code = code;
+      err.message = msg;
 
       if (code === SERVICE_UNAVAILABLE || code === SESSION_EXPIRED) {
         if (conn) {
@@ -65,8 +76,9 @@ class RoutingDriver extends Driver {
             this._clusterView.writers.remove(conn.url);
           });
         }
-
         return newError("No longer possible to write to server at " + url, SESSION_EXPIRED);
+      } else {
+        return err;
       }
     });
   }
@@ -224,8 +236,12 @@ function newClusterView(session) {
       }
       return new ClusterView(routers, readers, writers, expires);
     })
-    .catch(() => {
+    .catch((e) => {
+      if (e.code === 'Neo.ClientError.Procedure.ProcedureNotFound') {
+        return Promise.reject(newError("Server could not perform routing, make sure you are connecting to a causal cluster", SERVICE_UNAVAILABLE));
+      } else {
       return Promise.reject(newError("No servers could be found at this instant.", SERVICE_UNAVAILABLE));
+      }
     });
 }
 
