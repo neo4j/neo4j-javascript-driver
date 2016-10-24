@@ -63,7 +63,7 @@ class RoutingDriver extends Driver {
         } else {
           connectionPromise.then((conn) => {
             this._forget(conn.url);
-          });
+          }).catch(() => {/*ignore*/});
         }
         return err;
       } else if (code === 'Neo.ClientError.Cluster.NotALeader') {
@@ -74,7 +74,7 @@ class RoutingDriver extends Driver {
         } else {
           connectionPromise.then((conn) => {
             this._clusterView.writers.remove(conn.url);
-          });
+          }).catch(() => {/*ignore*/});
         }
         return newError("No longer possible to write to server at " + url, SESSION_EXPIRED);
       } else {
@@ -87,19 +87,19 @@ class RoutingDriver extends Driver {
     if (!this._clusterView.needsUpdate()) {
       return Promise.resolve(this._clusterView);
     } else {
+      let p = () => {
+        let conn = this._pool.acquire(routers.hop());
+        let session = this._createSession(Promise.resolve(conn));
+        return newClusterView(session).catch((err) => {
+          this._forget(conn);
+          return Promise.reject(err);
+        });
+      };
       let routers = this._clusterView.routers;
       let acc = Promise.reject();
       for (let i = 0; i < routers.size(); i++) {
-        acc = acc.catch(() => {
-          let conn = this._pool.acquire(routers.hop());
-          let session = this._createSession(Promise.resolve(conn));
-          return newClusterView(session).catch((err) => {
-            this._forget(conn);
-            return Promise.reject(err);
-          });
-        });
+        acc = acc.catch(p);
       }
-
       return acc;
     }
   }
@@ -139,7 +139,7 @@ class RoutingDriver extends Driver {
       } else {
         return Promise.reject(m + " is not a valid option");
       }
-    });
+    }).catch((err) => {return Promise.reject(err)});
   }
 
   _forget(url) {

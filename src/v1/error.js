@@ -23,7 +23,7 @@
 let SERVICE_UNAVAILABLE = 'ServiceUnavailable';
 let SESSION_EXPIRED = 'SessionExpired';
 function newError(message, code="N/A") {
-  // TODO: Idea is that we can check the cod here and throw sub-classes
+  // TODO: Idea is that we can check the code here and throw sub-classes
   // of Neo4jError as appropriate
   return new Neo4jError(message, code);
 }

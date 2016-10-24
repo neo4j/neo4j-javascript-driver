@@ -123,16 +123,19 @@ describe('routing driver ', function() {
 
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+
       // When
       var session = driver.session(neo4j.READ);
       session.run("MATCH (n) RETURN n.name").catch(function (err) {
         expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+
+        session.close();
         driver.close();
         server.exit(function (code) {
           expect(code).toEqual(0);
           done();
         });
-      });
+      }).catch(function (err) {console.log(err)});
     });
   });
 

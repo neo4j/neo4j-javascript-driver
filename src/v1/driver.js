@@ -117,7 +117,7 @@ class Driver {
       if (this.onError && err.code === SERVICE_UNAVAILABLE) {
         this.onError(err);
       } else {
-        return Promise.reject(err);
+        //we don't need to tell the driver about this error
       }
     });
     return this._createSession(connectionPromise, (cb) => {
@@ -130,13 +130,14 @@ class Driver {
 
       // Queue up a 'reset', to ensure the next user gets a clean
       // session to work with.
+
       connectionPromise.then( (conn) => {
         conn.reset();
         conn.sync();
 
         // Return connection to the pool
         conn._release();
-      });
+      }).catch( () => {/*ignore errors here*/});
 
       // Call user callback
       if (cb) {
@@ -165,7 +166,6 @@ class Driver {
       if (this._openSessions.hasOwnProperty(sessionId)) {
         this._openSessions[sessionId].close();
       }
-
       this._pool.purgeAll();
     }
   }
