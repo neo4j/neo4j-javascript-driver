@@ -87,7 +87,7 @@ class RoutingDriver extends Driver {
     if (!this._clusterView.needsUpdate()) {
       return Promise.resolve(this._clusterView);
     } else {
-      let p = () => {
+      let call = () => {
         let conn = this._pool.acquire(routers.hop());
         let session = this._createSession(Promise.resolve(conn));
         return newClusterView(session).catch((err) => {
@@ -96,9 +96,12 @@ class RoutingDriver extends Driver {
         });
       };
       let routers = this._clusterView.routers;
+      //Build a promise chain that ends on the first successful call
+      //i.e. call().catch(call).catch(call).catch(call)...
+      //each call will try a different router
       let acc = Promise.reject();
       for (let i = 0; i < routers.size(); i++) {
-        acc = acc.catch(p);
+        acc = acc.catch(call);
       }
       return acc;
     }
@@ -240,7 +243,7 @@ function newClusterView(session) {
       if (e.code === 'Neo.ClientError.Procedure.ProcedureNotFound') {
         return Promise.reject(newError("Server could not perform routing, make sure you are connecting to a causal cluster", SERVICE_UNAVAILABLE));
       } else {
-      return Promise.reject(newError("No servers could be found at this instant.", SERVICE_UNAVAILABLE));
+        return Promise.reject(newError("No servers could be found at this instant.", SERVICE_UNAVAILABLE));
       }
     });
 }

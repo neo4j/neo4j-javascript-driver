@@ -33,6 +33,8 @@ describe('examples', function() {
 
   beforeAll(function () {
     var neo4j = neo4jv1;
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
     //tag::construct-driver[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
@@ -41,8 +43,7 @@ describe('examples', function() {
   });
 
   beforeEach(function(done) {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+
     // Override console.log, to assert on stdout output
     out = [];
     console = { log: function(msg) { out.push(msg); }  };
