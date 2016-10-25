@@ -88,7 +88,7 @@ class RoutingDriver extends Driver {
       return Promise.resolve(this._clusterView);
     } else {
       let call = () => {
-        let conn = this._pool.acquire(routers.hop());
+        let conn = this._pool.acquire(routers.next());
         let session = this._createSession(Promise.resolve(conn));
         return newClusterView(session).catch((err) => {
           this._forget(conn);
@@ -128,13 +128,13 @@ class RoutingDriver extends Driver {
       //update our cached view
       this._clusterView = view;
       if (m === READ) {
-        let key = view.readers.hop();
+        let key = view.readers.next();
         if (!key) {
           return Promise.reject(newError('No read servers available', SESSION_EXPIRED));
         }
         return this._pool.acquire(key);
       } else if (m === WRITE) {
-        let key = view.writers.hop();
+        let key = view.writers.next();
         if (!key) {
           return Promise.reject(newError('No write servers available', SESSION_EXPIRED));
         }
@@ -236,6 +236,9 @@ function newClusterView(session) {
         } else if (role === 'READ') {
           readers.pushAll(addresses);
         }
+      }
+      if (routers.empty() || writers.empty()) {
+        return Promise.reject(newError("Invalid routing response from server", SERVICE_UNAVAILABLE))
       }
       return new ClusterView(routers, readers, writers, expires);
     })

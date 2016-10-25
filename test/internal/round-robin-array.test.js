@@ -23,104 +23,104 @@ describe('round-robin-array', function() {
   it('should step through array', function () {
     var array = new RoundRobinArray([1,2,3,4,5]);
 
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(3);
-    expect(array.hop()).toEqual(4);
-    expect(array.hop()).toEqual(5);
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(3);
+    expect(array.next()).toEqual(4);
+    expect(array.next()).toEqual(5);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
     //....
   });
 
   it('should step through single element array', function () {
     var array = new RoundRobinArray([5]);
 
-    expect(array.hop()).toEqual(5);
-    expect(array.hop()).toEqual(5);
-    expect(array.hop()).toEqual(5);
+    expect(array.next()).toEqual(5);
+    expect(array.next()).toEqual(5);
+    expect(array.next()).toEqual(5);
     //....
   });
 
   it('should handle deleting item before current ', function () {
     var array = new RoundRobinArray([1,2,3,4,5]);
 
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
     array.remove(2);
-    expect(array.hop()).toEqual(3);
-    expect(array.hop()).toEqual(4);
-    expect(array.hop()).toEqual(5);
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(3);
+    expect(array.next()).toEqual(3);
+    expect(array.next()).toEqual(4);
+    expect(array.next()).toEqual(5);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(3);
     //....
   });
 
   it('should handle deleting item on current ', function () {
     var array = new RoundRobinArray([1,2,3,4,5]);
 
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
     array.remove(3);
-    expect(array.hop()).toEqual(4);
-    expect(array.hop()).toEqual(5);
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(4);
+    expect(array.next()).toEqual(4);
+    expect(array.next()).toEqual(5);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(4);
     //....
   });
 
   it('should handle deleting item after current ', function () {
     var array = new RoundRobinArray([1,2,3,4,5]);
 
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
     array.remove(4);
-    expect(array.hop()).toEqual(3);
-    expect(array.hop()).toEqual(5);
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(3);
+    expect(array.next()).toEqual(3);
+    expect(array.next()).toEqual(5);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(3);
     //....
   });
 
   it('should handle deleting last item ', function () {
     var array = new RoundRobinArray([1,2,3,4,5]);
 
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(3);
-    expect(array.hop()).toEqual(4);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(3);
+    expect(array.next()).toEqual(4);
     array.remove(5);
-    expect(array.hop()).toEqual(1);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(3);
-    expect(array.hop()).toEqual(4);
-    expect(array.hop()).toEqual(1);
+    expect(array.next()).toEqual(1);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(3);
+    expect(array.next()).toEqual(4);
+    expect(array.next()).toEqual(1);
     //....
   });
 
   it('should handle deleting first item ', function () {
     var array = new RoundRobinArray([1,2,3,4,5]);
     array.remove(1);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(3);
-    expect(array.hop()).toEqual(4);
-    expect(array.hop()).toEqual(5);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(3);
-    expect(array.hop()).toEqual(4);
-    expect(array.hop()).toEqual(5);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(3);
+    expect(array.next()).toEqual(4);
+    expect(array.next()).toEqual(5);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(3);
+    expect(array.next()).toEqual(4);
+    expect(array.next()).toEqual(5);
     //....
   });
 
   it('should handle deleting multiple items ', function () {
     var array = new RoundRobinArray([1,2,3,1,1]);
     array.remove(1);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(3);
-    expect(array.hop()).toEqual(2);
-    expect(array.hop()).toEqual(3);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(3);
+    expect(array.next()).toEqual(2);
+    expect(array.next()).toEqual(3);
     //....
   });
 

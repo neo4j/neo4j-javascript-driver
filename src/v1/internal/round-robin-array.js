@@ -26,7 +26,7 @@ class RoundRobinArray {
     this._index = 0;
   }
 
-  hop() {
+  next() {
     let elem = this._items[this._index];
     if (this._items.length === 0) {
       this._index = 0;

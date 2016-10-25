@@ -201,7 +201,6 @@ describe('routing driver ', function () {
 
     kit.run(function () {
       var driver = neo4j.driver("bolt+routing://127.0.0.1:9000", neo4j.auth.basic("neo4j", "neo4j"));
-      //driver.onError  = console.log;
       // When
       var session = driver.session(neo4j.session.READ);
       session.run("MATCH (n) RETURN n.name").then(function (res) {
@@ -616,6 +615,30 @@ describe('routing driver ', function () {
         });
       });
     });
+  });
+
+  it('should fail if missing write server', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/no_writers.script', 9001);
+
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9001", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.session.WRITE);
+      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+        expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+        driver.close();
+        seedServer.exit(function (code) {
+            expect(code).toEqual(0);
+            done();
+          });
+        });
+      });
   });
 });
 
