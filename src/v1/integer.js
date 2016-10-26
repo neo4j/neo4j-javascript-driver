@@ -32,6 +32,8 @@ import {newError} from "./error";
  * @param {number} low The low (signed) 32 bits of the long
  * @param {number} high The high (signed) 32 bits of the long
  * @constructor
+ *
+ * @deprecated This class will be removed or made internal in a future version of the driver.
  */
 class Integer {
   constructor(low, high) {
@@ -841,16 +843,16 @@ Integer.MIN_VALUE = Integer.fromBits(0, 0x80000000|0, false);
 /**
  * Minimum safe value.
  * @type {!Integer}
- * @private
+ * @expose
  */
-Integer.MIN_SAFE_VALUE = Integer.fromNumber(Number.MIN_SAFE_INTEGER);
+Integer.MIN_SAFE_VALUE = Integer.fromBits(0x1|0, 0xFFFFFFFFFFE00000|0);
 
 /**
 * Maximum safe value.
 * @type {!Integer}
-* @private
+* @expose
 */
-Integer.MAX_SAFE_VALUE = Integer.fromNumber(Number.MAX_SAFE_INTEGER);
+Integer.MAX_SAFE_VALUE = Integer.fromBits(0xFFFFFFFF|0,0x1FFFFF|0);
 
 /**
  * Cast value to Integer type.

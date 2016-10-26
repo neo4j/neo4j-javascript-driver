@@ -40,5 +40,4 @@ describe('Pool', function() {
     expect(integer.toString(int("-9007199254740991"))).toEqual("-9007199254740991");
     expect(integer.toString(int("-9007199254740992"))).toEqual("-9007199254740992");
   });
-
 });
