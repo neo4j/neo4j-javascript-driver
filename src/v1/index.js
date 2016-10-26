@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {int, isInt} from './integer';
+import {int, isInt, inSafeRange, toNumber, toString} from './integer';
 import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
 import {Neo4jError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from './error';
 import Result from './result';
@@ -138,11 +138,17 @@ const error = {
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED
 };
+const integer = {
+  toNumber,
+  toString,
+  inSafeRange
+};
 
 const forExport = {
   driver,
   int,
   isInt,
+  integer,
   Neo4jError,
   auth,
   types,
@@ -154,6 +160,7 @@ export {
   driver,
   int,
   isInt,
+  integer,
   Neo4jError,
   auth,
   types,

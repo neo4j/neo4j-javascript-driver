@@ -67,6 +67,8 @@ class Integer {
   // Common constant values ZERO, ONE, NEG_ONE, etc. are defined below the from*
   // methods on which they depend.
 
+
+  inSafeRange() {return this.greaterThanOrEqual(Integer.MIN_SAFE_VALUE) && this.lessThanOrEqual(Integer.MAX_SAFE_VALUE)}
   /**
    * Converts the Integer to an exact javascript Number, assuming it is a 32 bit integer.
    * @returns {number}
@@ -719,6 +721,41 @@ Integer.fromValue = function(val) {
 };
 
 /**
+ * Converts the specified value to a number.
+ * @access private
+ * @param {!Integer|number|string|!{low: number, high: number}} val Value
+ * @returns {number}
+ * @expose
+ */
+Integer.toNumber = function(val) {
+ return Integer.fromValue(val).toNumber();
+};
+
+/**
+* Converts the specified value to a string.
+* @access private
+* @param {!Integer|number|string|!{low: number, high: number}} val Value
+* @param {number} radix optional radix for string conversion, defaults to 10
+* @returns {String}
+* @expose
+*/
+Integer.toString = function(val, radix) {
+  return Integer.fromValue(val).toString(radix)
+};
+
+/**
+ * Checks if the given value is in the safe range in order to be converted to a native number
+ * @access private
+ * @param {!Integer|number|string|!{low: number, high: number}} val Value
+ * @param {number} radix optional radix for string conversion, defaults to 10
+ * @returns {boolean}
+ * @expose
+ */
+Integer.inSafeRange = function(val) {
+  return Integer.fromValue(val).inSafeRange();
+};
+
+/**
  * @type {number}
  * @const
  * @inner
@@ -802,6 +839,20 @@ Integer.MAX_VALUE = Integer.fromBits(0xFFFFFFFF|0, 0x7FFFFFFF|0, false);
 Integer.MIN_VALUE = Integer.fromBits(0, 0x80000000|0, false);
 
 /**
+ * Minimum safe value.
+ * @type {!Integer}
+ * @private
+ */
+Integer.MIN_SAFE_VALUE = Integer.fromNumber(Number.MIN_SAFE_INTEGER);
+
+/**
+* Maximum safe value.
+* @type {!Integer}
+* @private
+*/
+Integer.MAX_SAFE_VALUE = Integer.fromNumber(Number.MAX_SAFE_INTEGER);
+
+/**
  * Cast value to Integer type.
  * @access public
  * @param {Mixed} value - The value to use.
@@ -812,14 +863,42 @@ let int = Integer.fromValue;
 /**
  * Check if a variable is of Integer type.
  * @access public
- * @param {Mixed} value - The varaible to check.
+ * @param {Mixed} value - The variable to check.
  * @return {Boolean} - Is it of the Integer type?
  */
 let isInt = Integer.isInteger;
 
+/**
+ * Check if a variable can be safely converted to a number
+ * @access public
+ * @param {Mixed} value - The variable to check
+ * @return {Boolean} - true if it is safe to call toNumber on variable otherwise false
+ */
+let inSafeRange = Integer.inSafeRange;
+
+/**
+ * Converts a variable to a number
+ * @access public
+ * @param {Mixed} value - The variable to convert
+ * @return {number} - the variable as a number
+ */
+let toNumber = Integer.toNumber;
+
+/**
+ * Converts the integer to a string representation
+ * @access public
+ * @param {Mixed} value - The variable to convert
+ * @param {number} radix - radix to use in string conversion, defaults to 10
+ * @return {String} - returns a string representation of the integer
+ */
+let toString = Integer.toString;
+
 export {
     int,
     isInt,
+    inSafeRange,
+    toNumber,
+    toString
 }
 
 export default Integer
