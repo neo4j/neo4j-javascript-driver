@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import buf from './buf';
+import {alloc, BaseBuffer, CombinedBuffer} from './buf';
 
 let
   _CHUNK_HEADER_SIZE = 2,
@@ -28,12 +28,12 @@ let
  * Looks like a writable buffer, chunks output transparently into a channel below.
  * @access private
  */
-class Chunker extends buf.BaseBuffer {
+class Chunker extends BaseBuffer {
   constructor(channel, bufferSize) {
     super(0);
     this._bufferSize = bufferSize || _DEFAULT_BUFFER_SIZE;
     this._ch = channel;
-    this._buffer = buf.alloc(this._bufferSize);
+    this._buffer = alloc(this._bufferSize);
     this._currentChunkStart = 0;
     this._chunkOpen = false;
   }
@@ -80,7 +80,7 @@ class Chunker extends buf.BaseBuffer {
       this._ch.write(out.getSlice(0, out.position));
 
       // Alloc a new output buffer. We assume we're using NodeJS's buffer pooling under the hood here!
-      this._buffer = buf.alloc(this._bufferSize);
+      this._buffer = alloc(this._bufferSize);
       this._chunkOpen = false;
     }
     return this;
@@ -180,7 +180,7 @@ class Dechunker {
       if (this._currentMessage.length == 1) {
         message = this._currentMessage[0];
       } else {
-        message = new buf.CombinedBuffer( this._currentMessage );
+        message = new CombinedBuffer( this._currentMessage );
       }
       this._currentMessage = [];
       this.onmessage(message);
@@ -198,8 +198,7 @@ class Dechunker {
   }
 }
 
-
-export default {
-  Chunker: Chunker,
-  Dechunker: Dechunker
+export {
+  Chunker,
+  Dechunker
 }

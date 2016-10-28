@@ -23,7 +23,7 @@ const observer = {
   updateInstance: (instance) => {
     observer.instance = instance
   }
-}
+};
 
 class DummyChannel {
   constructor(opts) {
@@ -48,7 +48,6 @@ class DummyChannel {
   }
 }
 
-export default {
-  channel: DummyChannel,
-  observer: observer
-}
+const channel = DummyChannel;
+
+export { channel, observer }

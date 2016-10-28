@@ -171,7 +171,7 @@ class Path {
   }
 }
 
-export default {
+export {
   Node,
   Relationship,
   UnboundRelationship,

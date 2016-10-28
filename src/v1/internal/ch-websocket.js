@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {debug} from "./log";
+import debug from "./log";
 import {HeapBuffer} from "./buf";
 import {newError} from './../error';
 import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_ON, ENCRYPTION_OFF} from './util';

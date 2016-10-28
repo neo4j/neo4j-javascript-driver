@@ -19,11 +19,11 @@
 
 import WebSocketChannel from "./ch-websocket";
 import NodeChannel from "./ch-node";
-import chunking from "./chunking";
+import {Dechunker, Chunker} from "./chunking";
 import hasFeature from "./features";
-import packstream from "./packstream";
+import {Packer,Unpacker} from "./packstream";
 import {alloc, CombinedBuffer} from "./buf";
-import GraphType from '../graph-types';
+import {Node, Relationship, UnboundRelationship, Path, PathSegment} from '../graph-types';
 import {int, isInt} from '../integer';
 import {newError} from './../error';
 import {ENCRYPTION_NON_LOCAL, ENCRYPTION_OFF, shouldEncrypt} from './util';
@@ -63,13 +63,26 @@ MAGIC_PREAMBLE = 0x6060B017,
 DEBUG = false;
 
 let URLREGEX = new RegExp([
-  "[^/]+//",          // scheme
+  "([^/]+//)?",          // scheme
   "(([^:/?#]*)",      // hostname
   "(?::([0-9]+))?)",  // port (optional)
   ".*"].join(""));     // everything else
 
-function host( url ) {
+function parseScheme( url ) {
+  let scheme = url.match(URLREGEX)[1] || '';
+  return scheme.toLowerCase();
+}
+
+function parseUrl(url) {
   return url.match( URLREGEX )[2];
+}
+
+function parseHost( url ) {
+  return url.match( URLREGEX )[3];
+}
+
+function parsePort( url ) {
+  return url.match( URLREGEX )[4];
 }
 
 /**
@@ -86,9 +99,6 @@ function log(actor, msg) {
   }
 }
 
-function port( url ) {
-  return url.match( URLREGEX )[3];
-}
 
 function NO_OP(){}
 
@@ -101,14 +111,14 @@ let NO_OP_OBSERVER = {
 /** Maps from packstream structures to Neo4j domain objects */
 let _mappers = {
   node : ( unpacker, buf ) => {
-    return new GraphType.Node(
+    return new Node(
       unpacker.unpack(buf), // Identity
       unpacker.unpack(buf), // Labels
       unpacker.unpack(buf)  // Properties
     );
   },
   rel : ( unpacker, buf ) => {
-    return new GraphType.Relationship(
+    return new Relationship(
       unpacker.unpack(buf),  // Identity
       unpacker.unpack(buf),  // Start Node Identity
       unpacker.unpack(buf),  // End Node Identity
@@ -117,7 +127,7 @@ let _mappers = {
     );
   },
   unboundRel : ( unpacker, buf ) => {
-    return new GraphType.UnboundRelationship(
+    return new UnboundRelationship(
       unpacker.unpack(buf),  // Identity
       unpacker.unpack(buf),  // Type
       unpacker.unpack(buf) // Properties
@@ -136,7 +146,7 @@ let _mappers = {
             rel;
         if (relIndex > 0) {
             rel = rels[relIndex - 1];
-            if( rel instanceof GraphType.UnboundRelationship ) {
+            if( rel instanceof UnboundRelationship ) {
               // To avoid duplication, relationships in a path do not contain
               // information about their start and end nodes, that's instead
               // inferred from the path sequence. This is us inferring (and,
@@ -145,16 +155,16 @@ let _mappers = {
             }
         } else {
             rel = rels[-relIndex - 1];
-            if( rel instanceof GraphType.UnboundRelationship ) {
+            if( rel instanceof UnboundRelationship ) {
               // See above
               rels[-relIndex - 1] = rel = rel.bind(nextNode.identity, prevNode.identity);
             }
         }
         // Done hydrating one path segment.
-        segments.push( new GraphType.PathSegment( prevNode, rel, nextNode ) );
+        segments.push( new PathSegment( prevNode, rel, nextNode ) );
         prevNode = nextNode;
     }
-    return new GraphType.Path(nodes[0], nodes[nodes.length - 1],  segments );
+    return new Path(nodes[0], nodes[nodes.length - 1],  segments );
   }
 };
 
@@ -177,20 +187,22 @@ class Connection {
    * @constructor
    * @param channel - channel with a 'write' function and a 'onmessage'
    *                  callback property
+   * @param url - url to connect to
    */
-  constructor (channel) {
+  constructor (channel, url) {
     /**
      * An ordered queue of observers, each exchange response (zero or more
      * RECORD messages followed by a SUCCESS message) we recieve will be routed
      * to the next pending observer.
      */
+    this.url = url;
     this._pendingObservers = [];
     this._currentObserver = undefined;
     this._ch = channel;
-    this._dechunker = new chunking.Dechunker();
-    this._chunker = new chunking.Chunker( channel );
-    this._packer = new packstream.Packer( this._chunker );
-    this._unpacker = new packstream.Unpacker();
+    this._dechunker = new Dechunker();
+    this._chunker = new Chunker( channel );
+    this._packer = new Packer( this._chunker );
+    this._unpacker = new Unpacker();
     this._isHandlingFailure = false;
 
     // Set to true on fatal errors, to get this out of session pool.
@@ -456,18 +468,20 @@ class Connection {
 function connect( url, config = {}) {
   let Ch = config.channel || Channel;
   return new Connection( new Ch({
-    host: host(url),
-    port: port(url) || 7687,
+    host: parseHost(url),
+    port: parsePort(url) || 7687,
     // Default to using ENCRYPTION_NON_LOCAL if trust-on-first-use is available
-    encrypted : shouldEncrypt(config.encrypted, (hasFeature("trust_on_first_use") ? ENCRYPTION_NON_LOCAL : ENCRYPTION_OFF), host(url)),
+    encrypted : shouldEncrypt(config.encrypted, (hasFeature("trust_on_first_use") ? ENCRYPTION_NON_LOCAL : ENCRYPTION_OFF), parseHost(url)),
     // Default to using TRUST_ON_FIRST_USE if it is available
     trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
     knownHosts : config.knownHosts
-  }));
+  }), url);
 }
 
-export default {
+export {
     connect,
+    parseScheme,
+    parseUrl,
     Connection
 }

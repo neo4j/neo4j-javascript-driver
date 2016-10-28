@@ -27,22 +27,34 @@ import Result from './result';
 class Transaction {
   /**
    * @constructor
-   * @param {Connection} conn - A connection to use
+   * @param {Promise} connectionPromise - A connection to use
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
+   * @param errorTransformer callback use to transform error
+   * @param bookmark optional bookmark
    */
-  constructor(conn, onClose) {
-    this._conn = conn;
+  constructor(connectionPromise, onClose, errorTransformer, bookmark, onBookmark) {
+    this._connectionPromise = connectionPromise;
     let streamObserver = new _TransactionStreamObserver(this);
-    this._conn.run("BEGIN", {}, streamObserver);
-    this._conn.discardAll(streamObserver);
+    let params = {};
+    if (bookmark) {
+      params = {bookmark: bookmark};
+    }
+    this._connectionPromise.then((conn) => {
+      streamObserver.resolveConnection(conn);
+      conn.run("BEGIN", params, streamObserver);
+      conn.discardAll(streamObserver);
+    }).catch(streamObserver.onError);
+
     this._state = _states.ACTIVE;
     this._onClose = onClose;
+    this._errorTransformer = errorTransformer;
+    this._onBookmark = onBookmark || (() => {});
   }
 
   /**
    * Run Cypher statement
    * Could be called with a statement object i.e.: {statement: "MATCH ...", parameters: {param: 1}}
-   * or with the statem ent and parameters as separate arguments.
+   * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
    * @return {Result} - New Result
@@ -52,7 +64,7 @@ class Transaction {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    return this._state.run(this._conn,  new _TransactionStreamObserver(this), statement, parameters);
+    return this._state.run(this._connectionPromise,  new _TransactionStreamObserver(this), statement, parameters);
   }
 
   /**
@@ -63,7 +75,7 @@ class Transaction {
    * @returns {Result} - New Result
    */
   commit() {
-    let committed = this._state.commit(this._conn, new _TransactionStreamObserver(this));
+    let committed = this._state.commit(this._connectionPromise, new _TransactionStreamObserver(this));
     this._state = committed.state;
     //clean up
     this._onClose();
@@ -79,7 +91,7 @@ class Transaction {
    * @returns {Result} - New Result
    */
   rollback() {
-    let committed = this._state.rollback(this._conn, new _TransactionStreamObserver(this));
+    let committed = this._state.rollback(this._connectionPromise, new _TransactionStreamObserver(this));
     this._state = committed.state;
     //clean up
     this._onClose();
@@ -95,7 +107,7 @@ class Transaction {
 /** Internal stream observer used for transactional results*/
 class _TransactionStreamObserver extends StreamObserver {
   constructor(tx) {
-    super();
+    super(tx._errorTransformer || ((err) => {return err}));
     this._tx = tx;
     //this is to to avoid multiple calls to onError caused by IGNORED
     this._hasFailed = false;
@@ -108,23 +120,35 @@ class _TransactionStreamObserver extends StreamObserver {
       this._hasFailed = true;
     }
   }
+
+  onCompleted(meta) {
+    super.onCompleted(meta);
+    let bookmark = meta.bookmark;
+    if (bookmark) {
+      this._tx._onBookmark(bookmark);
+    }
+  }
 }
 
 /** internal state machine of the transaction*/
 let _states = {
   //The transaction is running with no explicit success or failure marked
   ACTIVE: {
-    commit: (conn, observer) => {
-      return {result: _runDiscardAll("COMMIT", conn, observer),
+    commit: (connectionPromise, observer) => {
+      return {result: _runDiscardAll("COMMIT", connectionPromise, observer),
         state: _states.SUCCEEDED}
     },
-    rollback: (conn, observer) => {
-      return {result: _runDiscardAll("ROLLBACK", conn, observer), state: _states.ROLLED_BACK};
+    rollback: (connectionPromise, observer) => {
+      return {result: _runDiscardAll("ROLLBACK", connectionPromise, observer), state: _states.ROLLED_BACK};
     },
-    run: (conn, observer, statement, parameters) => {
-      conn.run( statement, parameters || {}, observer );
-      conn.pullAll( observer );
-      conn.sync();
+    run: (connectionPromise, observer, statement, parameters) => {
+      connectionPromise.then((conn) => {
+        observer.resolveConnection(conn);
+        conn.run( statement, parameters || {}, observer );
+        conn.pullAll( observer );
+        conn.sync();
+      }).catch(observer.onError);
+
       return new Result( observer, statement, parameters );
     }
   },
@@ -196,10 +220,14 @@ let _states = {
   }
 };
 
-function _runDiscardAll(msg, conn, observer) {
-  conn.run(msg, {}, observer );
-  conn.discardAll(observer);
-  conn.sync();
+function _runDiscardAll(msg, connectionPromise, observer) {
+  connectionPromise.then((conn) => {
+    observer.resolveConnection(conn);
+    conn.run(msg, {}, observer);
+    conn.discardAll(observer);
+    conn.sync();
+  }).catch(observer.onError);
+
   return new Result(observer, msg, {});
 }
 

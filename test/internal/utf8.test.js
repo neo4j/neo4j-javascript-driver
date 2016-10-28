@@ -17,7 +17,7 @@
  * limitations under the License.
  */
  
-var utf8 = require('../../lib/v1/internal/utf8');
+var utf8 = require('../../lib/v1/internal/utf8').default;
 var buffers = require('../../lib/v1/internal/buf');
 
 describe('utf8', function() {

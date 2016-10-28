@@ -20,7 +20,8 @@
 import StreamObserver from './internal/stream-observer';
 import Result from './result';
 import Transaction from './transaction';
-import {Integer, int} from "./integer";
+import Integer from "./integer";
+import {int} from "./integer";
 import {newError} from "./error";
 
 /**
@@ -32,17 +33,13 @@ import {newError} from "./error";
 class Session {
   /**
    * @constructor
-   * @param {Connection} conn - A connection to use
+   * @param {Promise.<Connection>} connectionPromise - Promise of a connection to use
    * @param {function()} onClose - Function to be called on connection close
    */
-  constructor( conn, onClose ) {
-    this._conn = conn;
+  constructor( connectionPromise, onClose ) {
+    this._connectionPromise = connectionPromise;
     this._onClose = onClose;
     this._hasTx = false;
-  }
-
-  isEncrypted() {
-    return this._conn.isEncrypted();
   }
 
   /**
@@ -58,11 +55,14 @@ class Session {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    let streamObserver = new _RunObserver();
+    let streamObserver = new _RunObserver(this._onRunFailure());
     if (!this._hasTx) {
-      this._conn.run(statement, parameters, streamObserver);
-      this._conn.pullAll(streamObserver);
-      this._conn.sync();
+      this._connectionPromise.then((conn) => {
+        streamObserver.resolveConnection(conn);
+        conn.run(statement, parameters, streamObserver);
+        conn.pullAll(streamObserver);
+        conn.sync();
+      }).catch((err) => streamObserver.onError(err));
     } else {
       streamObserver.onError(newError("Statements cannot be run directly on a "
        + "session with an open transaction; either run from within the "
@@ -79,15 +79,21 @@ class Session {
    *
    * @returns {Transaction} - New Transaction
    */
-  beginTransaction() {
+  beginTransaction(bookmark) {
     if (this._hasTx) {
-      throw new newError("You cannot begin a transaction on a session with an "
+      throw newError("You cannot begin a transaction on a session with an "
       + "open transaction; either run from within the transaction or use a "
       + "different session.")
     }
 
     this._hasTx = true;
-    return new Transaction(this._conn, () => {this._hasTx = false});
+    return new Transaction(this._connectionPromise, () => {
+      this._hasTx = false},
+      this._onRunFailure(), bookmark, (bookmark) => {this._lastBookmark = bookmark});
+  }
+
+  lastBookmark() {
+    return this._lastBookmark;
   }
 
   /**
@@ -106,12 +112,17 @@ class Session {
       cb();
     }
   }
+
+  //Can be overridden to add error callback on RUN
+  _onRunFailure() {
+    return (err) => {return err};
+  }
 }
 
 /** Internal stream observer used for transactional results*/
 class _RunObserver extends StreamObserver {
-  constructor() {
-    super();
+  constructor(onError) {
+    super(onError);
     this._meta = {};
   }
 

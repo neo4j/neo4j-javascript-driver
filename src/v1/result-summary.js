@@ -261,7 +261,8 @@ const statementType = {
   SCHEMA_WRITE: 's'
 };
 
-export default {
-  ResultSummary,
+export {
   statementType
 }
+
+export default ResultSummary

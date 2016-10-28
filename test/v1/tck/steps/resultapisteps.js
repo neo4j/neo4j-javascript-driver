@@ -24,7 +24,7 @@ var util = require("./util")
 module.exports = function () {
 
   this.When(/^the `Statement Result` is consumed a `Result Summary` is returned$/, function (callback) {
-    self = this;
+    var self = this;
     this.rc.then(function(res) {
       self.summary = res.summary;
       callback();

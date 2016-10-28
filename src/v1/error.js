@@ -20,8 +20,10 @@
 // A common place for constructing error objects, to keep them
 // uniform across the driver surface.
 
+let SERVICE_UNAVAILABLE = 'ServiceUnavailable';
+let SESSION_EXPIRED = 'SessionExpired';
 function newError(message, code="N/A") {
-  // TODO: Idea is that we can check the cod here and throw sub-classes
+  // TODO: Idea is that we can check the code here and throw sub-classes
   // of Neo4jError as appropriate
   return new Neo4jError(message, code);
 }
@@ -36,5 +38,7 @@ class Neo4jError extends Error {
 
 export {
   newError,
-  Neo4jError
+  Neo4jError,
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
 }

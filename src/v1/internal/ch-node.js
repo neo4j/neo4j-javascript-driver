@@ -24,7 +24,7 @@ import path from 'path';
 import {EOL} from 'os';
 import {NodeBuffer} from './buf';
 import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_OFF} from './util';
-import {newError} from './../error';
+import {newError, SESSION_EXPIRED} from './../error';
 
 let _CONNECTION_IDGEN = 0;
 
@@ -293,15 +293,18 @@ class NodeChannel {
   }
 
   _handleConnectionError( err ) {
-    this._error = err;
+    let msg = err.message || 'Failed to connect to server';
+    this._error = newError(msg, SESSION_EXPIRED);
     if( this.onerror ) {
-      this.onerror(err);
+      this.onerror(this._error);
     }
   }
 
   _handleConnectionTerminated() {
-      this._open = false;
-      this._conn = undefined;
+      this._error = newError('Connection was closed by server', SESSION_EXPIRED);
+      if( this.onerror ) {
+        this.onerror(this._error);
+      }
   }
 
   isEncrypted() {

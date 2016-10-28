@@ -579,7 +579,7 @@ function alloc (size) {
   return new _DefaultBuffer(size);
 }
 
-export default {
+export {
   BaseBuffer,
   HeapBuffer,
   SliceBuffer,

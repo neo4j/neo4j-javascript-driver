@@ -18,11 +18,14 @@
  */
 
 import Session from './session';
-import {Pool} from './internal/pool';
+import Pool from './internal/pool';
+import Integer from './integer';
 import {connect} from "./internal/connector";
 import StreamObserver from './internal/stream-observer';
-import {VERSION} from '../version';
+import {newError, SERVICE_UNAVAILABLE} from "./error";
+import "babel-polyfill";
 
+let READ = 'READ', WRITE = 'WRITE';
 /**
  * A driver maintains one or more {@link Session sessions} with a remote
  * Neo4j instance. Through the {@link Session sessions} you can send statements
@@ -53,7 +56,7 @@ class Driver {
     this._pool = new Pool(
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
-      this._validateConnection.bind(this),
+      Driver._validateConnection.bind(this),
       config.connectionPoolSize
     );
   }
@@ -63,13 +66,13 @@ class Driver {
    * @return {Connection} new connector-api session instance, a low level session API.
    * @access private
    */
-  _createConnection( release ) {
+  _createConnection(url, release) {
     let sessionId = this._sessionIdGenerator++;
     let streamObserver = new _ConnectionStreamObserver(this);
-    let conn = connect(this._url, this._config);
+    let conn = connect(url, this._config);
     conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
-    conn._release = () => release(conn);
+    conn._release = () => release(this._url, conn);
 
     this._openSessions[sessionId] = conn;
     return conn;
@@ -80,7 +83,7 @@ class Driver {
    * @return {boolean} true if the connection is open
    * @access private
    **/
-  _validateConnection( conn ) {
+  static _validateConnection(conn) {
     return conn.isOpen();
   }
 
@@ -89,7 +92,7 @@ class Driver {
    * @return {Session} new session.
    * @access private
    */
-  _destroyConnection( conn ) {
+  _destroyConnection(conn) {
     delete this._openSessions[conn._id];
     conn.close();
   }
@@ -105,11 +108,19 @@ class Driver {
    * it is returned to the pool, the session will be reset to a clean state and
    * made available for others to use.
    *
+   * @param {String} mode of session - optional
    * @return {Session} new session.
    */
-  session() {
-    let conn = this._pool.acquire();
-    return new Session( conn, (cb) => {
+  session(mode) {
+    let connectionPromise = this._acquireConnection(mode);
+    connectionPromise.catch((err) => {
+      if (this.onError && err.code === SERVICE_UNAVAILABLE) {
+        this.onError(err);
+      } else {
+        //we don't need to tell the driver about this error
+      }
+    });
+    return this._createSession(connectionPromise, (cb) => {
       // This gets called on Session#close(), and is where we return
       // the pooled 'connection' instance.
 
@@ -119,15 +130,30 @@ class Driver {
 
       // Queue up a 'reset', to ensure the next user gets a clean
       // session to work with.
-      conn.reset();
-      conn.sync();
 
-      // Return connection to the pool
-      conn._release();
+      connectionPromise.then( (conn) => {
+        conn.reset();
+        conn.sync();
+
+        // Return connection to the pool
+        conn._release();
+      }).catch( () => {/*ignore errors here*/});
 
       // Call user callback
-      if(cb) { cb(); }
+      if (cb) {
+        cb();
+      }
     });
+  }
+
+  //Extension point
+  _acquireConnection(mode) {
+   return Promise.resolve(this._pool.acquire(this._url));
+  }
+
+  //Extension point
+  _createSession(connectionPromise, cb) {
+    return new Session(connectionPromise, cb);
   }
 
   /**
@@ -140,6 +166,7 @@ class Driver {
       if (this._openSessions.hasOwnProperty(sessionId)) {
         this._openSessions[sessionId].close();
       }
+      this._pool.purgeAll();
     }
   }
 }
@@ -151,83 +178,26 @@ class _ConnectionStreamObserver extends StreamObserver {
     this._driver = driver;
     this._hasFailed = false;
   }
+
   onError(error) {
     if (!this._hasFailed) {
       super.onError(error);
-      if(this._driver.onError) {
+      if (this._driver.onError) {
         this._driver.onError(error);
       }
       this._hasFailed = true;
     }
   }
+
   onCompleted(message) {
-    if(this._driver.onCompleted) {
-        this._driver.onCompleted(message);
+    if (this._driver.onCompleted) {
+      this._driver.onCompleted(message);
     }
   }
 }
 
-let USER_AGENT = "neo4j-javascript/" + VERSION;
 
-/**
- * Construct a new Neo4j Driver. This is your main entry point for this
- * library.
- *
- * ## Configuration
- *
- * This function optionally takes a configuration argument. Available configuration
- * options are as follows:
- *
- *     {
- *       // Encryption level: one of ENCRYPTION_ON, ENCRYPTION_OFF or ENCRYPTION_NON_LOCAL.
- *       // ENCRYPTION_NON_LOCAL is on by default in modern NodeJS installs,
- *       // but off by default in the Web Bundle and old (<=1.0.0) NodeJS installs
- *       // due to technical limitations on those platforms.
- *       encrypted: ENCRYPTION_ON|ENCRYPTION_OFF|ENCRYPTION_NON_LOCAL
- *
- *       // Trust strategy to use if encryption is enabled. There is no mode to disable
- *       // trust other than disabling encryption altogether. The reason for
- *       // this is that if you don't know who you are talking to, it is easy for an
- *       // attacker to hijack your encrypted connection, rendering encryption pointless.
- *       //
- *       // TRUST_ON_FIRST_USE is the default for modern NodeJS deployments, and works
- *       // similarly to how `ssl` works - the first time we connect to a new host,
- *       // we remember the certificate they use. If the certificate ever changes, we
- *       // assume it is an attempt to hijack the connection and require manual intervention.
- *       // This means that by default, connections "just work" while still giving you
- *       // good encrypted protection.
- *       //
- *       // TRUST_CUSTOM_CA_SIGNED_CERTIFICATES is the classic approach to trust verification -
- *       // whenever we establish an encrypted connection, we ensure the host is using
- *       // an encryption certificate that is in, or is signed by, a certificate listed
- *       // as trusted. In the web bundle, this list of trusted certificates is maintained
- *       // by the web browser. In NodeJS, you configure the list with the next config option.
- *       //
- *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES meand that you trust whatever certificates
- *       // are in the default certificate chain of th
- *       trust: "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES" | TRUST_CUSTOM_CA_SIGNED_CERTIFICATES | TRUST_SYSTEM_CA_SIGNED_CERTIFICATES,
- *
- *       // List of one or more paths to trusted encryption certificates. This only
- *       // works in the NodeJS bundle, and only matters if you use "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES".
- *       // The certificate files should be in regular X.509 PEM format.
- *       // For instance, ['./trusted.pem']
- *       trustedCertificates: [],
- *
- *       // Path to a file where the driver saves hosts it has seen in the past, this is
- *       // very similar to the ssl tool's known_hosts file. Each time we connect to a
- *       // new host, a hash of their certificate is stored along with the domain name and
- *       // port, and this is then used to verify the host certificate does not change.
- *       // This setting has no effect unless TRUST_ON_FIRST_USE is enabled.
- *       knownHosts:"~/.neo4j/known_hosts",
- *     }
- *
- * @param {string} url The URL for the Neo4j database, for instance "bolt://localhost"
- * @param {Map<String,String>} authToken Authentication credentials. See {@link auth} for helpers.
- * @param {Object} config Configuration object. See the configuration section above for details.
- * @returns {Driver}
- */
-function driver(url, authToken, config={}) {
-  return new Driver(url, USER_AGENT, authToken, config);
-}
 
-export {Driver, driver}
+export {Driver, READ, WRITE}
+
+export default Driver

@@ -21,10 +21,13 @@ var neo4j = require("../../lib/v1");
 
 describe('transaction', function() {
 
-  var driver, session;
+  var driver, session, server;
 
   beforeEach(function(done) {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    driver.onCompleted = function (meta) {
+      server = meta['server'];
+    };
     session = driver.session();
 
     session.run("MATCH (n) DETACH DELETE n").then(done);
@@ -49,7 +52,7 @@ describe('transaction', function() {
             expect(result.records[0].get('count(t2)').toInt())
               .toBe(1);
             done();
-          });
+          }).catch(function (e) {console.log(e)});
       });
   });
 
@@ -162,7 +165,7 @@ describe('transaction', function() {
     // When
     var tx = session.beginTransaction();
     tx.run("CREATE (:TXNode1)");
-    tx.rollback()
+    tx.rollback();
 
     tx.commit()
           .catch(function (error) {
@@ -211,6 +214,25 @@ describe('transaction', function() {
       .catch(function (error) {
         expect(error.error).toBeDefined();
         driver.close();
+        done();
+      });
+  });
+
+  it('should provide bookmark on commit', function (done) {
+    //bookmarking is not in 3.0
+    if (!server) {
+      done();
+      return;
+    }
+
+    // When
+    var tx = session.beginTransaction();
+    expect(session.lastBookmark()).not.toBeDefined();
+    tx.run("CREATE (:TXNode1)");
+    tx.run("CREATE (:TXNode2)");
+    tx.commit()
+      .then(function () {
+        expect(session.lastBookmark()).toBeDefined();
         done();
       });
   });

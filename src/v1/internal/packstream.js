@@ -17,10 +17,11 @@
  * limitations under the License.
  */
  
-import {debug} from "./log";
+import debug from "./log";
 import {alloc} from "./buf";
 import utf8 from "./utf8";
-import {Integer, int} from "../integer";
+import Integer from "../integer";
+import {int} from "../integer";
 import {newError} from './../error';
 
 let MAX_CHUNK_SIZE = 16383,
@@ -375,8 +376,8 @@ class Unpacker {
   }
 }
 
-export default {
+export {
   Packer,
   Unpacker,
   Structure
-};
+}

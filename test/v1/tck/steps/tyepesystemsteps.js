@@ -33,19 +33,19 @@ module.exports = function () {
   this.Given(/^a List of size (\d+) and type (.*)$/, function (size, type) {
     var list = [];
     for(var i = 0; i < size; i++ ) {
-      if (type.toLowerCase() === STRING) {
+      if (type.toLowerCase() === util.STRING) {
         list.push(stringOfSize(3));
       }
-      else if (type.toLowerCase() === INT) {
+      else if (type.toLowerCase() === util.INT) {
         list.push(randomInt());
       }
-      else if (type.toLowerCase() === BOOL) {
+      else if (type.toLowerCase() === util.BOOL) {
         list.push(randomBool());
       }
-      else if (type.toLowerCase() === FLOAT) {
+      else if (type.toLowerCase() === util.FLOAT) {
         list.push(randomFloat());
       }
-      else if (type.toLowerCase() === NULL) {
+      else if (type.toLowerCase() === util.NULL) {
         list.push(null);
       }
       else {
@@ -58,19 +58,19 @@ module.exports = function () {
   this.Given(/^a Map of size (\d+) and type (.*)$/, function (size, type) {
     var map = {};
     for(var i = 0; i < size; i++ ) {
-      if (type.toLowerCase() === STRING) {
+      if (type.toLowerCase() === util.STRING) {
         map["a" + util.sizeOfObject(this.M)] = stringOfSize(3);
       }
-      else if (type.toLowerCase() === INT) {
+      else if (type.toLowerCase() === util.INT) {
         map["a" + util.sizeOfObject(this.M)] = randomInt();
       }
-      else if (type.toLowerCase() === BOOL) {
+      else if (type.toLowerCase() === util.BOOL) {
         map["a" + util.sizeOfObject(this.M)] = randomBool();
       }
-      else if (type.toLowerCase() === FLOAT) {
+      else if (type.toLowerCase() === util.FLOAT) {
         map["a" + util.sizeOfObject(this.M)] = randomFloat();
       }
-      else if (type.toLowerCase() === NULL) {
+      else if (type.toLowerCase() === util.NULL) {
         map["a" + util.sizeOfObject(this.M)] = null;
       }
       else {
@@ -208,10 +208,10 @@ module.exports = function () {
       return f.replace("+", "");
     }
     else if( jsVal === undefined || jsVal === null) {
-      return 'Null'
+      return 'Null';
     }
     else if( typeof jsVal === "object" && jsVal instanceof Array ) {
-      var list = "["
+      var list = "[";
       for(var i = 0; i < jsVal.length; i++ ) {
         list += jsToCypherLiteral(jsVal[i]);
         if ( i < jsVal.length -1) {

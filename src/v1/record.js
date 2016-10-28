@@ -132,4 +132,4 @@ class Record {
   }
 }
 
-export {Record}
+export default Record

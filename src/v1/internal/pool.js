@@ -35,34 +35,65 @@ class Pool {
     this._destroy = destroy;
     this._validate = validate;
     this._maxIdle = maxIdle;
-    this._pool = [];
+    this._pools = {};
     this._release = this._release.bind(this);
   }
 
-  acquire() {
+  acquire(key) {
     let resource;
-    while( this._pool.length ) {
-      resource = this._pool.pop();
+    let pool = this._pools[key];
+    if (!pool) {
+      pool = [];
+      this._pools[key] = pool;
+    }
+    while (pool.length) {
+      resource = pool.pop();
 
-      if( this._validate(resource) ) {
+      if (this._validate(resource)) {
         return resource;
       } else {
         this._destroy(resource);
       }
     }
 
-    return this._create(this._release);
+    return this._create(key, this._release);
   }
 
-  _release(resource) {
-    if( this._pool.length >= this._maxIdle || !this._validate(resource) ) {
+  purge(key) {
+    let resource;
+    let pool = this._pools[key] || [];
+    while (pool.length) {
+      resource = pool.pop();
+      this._destroy(resource)
+    }
+    delete this._pools[key]
+  }
+
+  purgeAll() {
+    for (let key in this._pools.keys) {
+      if (this._pools.hasOwnPropertykey) {
+        this.purge(key);
+      }
+    }
+  }
+
+  has(key) {
+    return (key in this._pools);
+  }
+
+  _release(key, resource) {
+    let pool = this._pools[key];
+    if (!pool) {
+      //key has been purged, don't put it back
+      return;
+    }
+    if( pool.length >= this._maxIdle || !this._validate(resource) ) {
       this._destroy(resource);
     } else {
-      this._pool.push(resource);
+      pool.push(resource);
     }
   }
 }
 
-export default {
-    Pool
-}
+export default Pool
+

@@ -19,7 +19,7 @@
 
 var alloc = require('../../lib/v1/internal/buf').alloc;
 var CombinedBuffer = require('../../lib/v1/internal/buf').CombinedBuffer;
-var utf8 = require('../../lib/v1/internal/utf8');
+var utf8 = require('../../lib/v1/internal/utf8').default;
 var Unpacker = require("../../lib/v1/internal/packstream.js").Unpacker;
 
 describe('buffers', function() {
