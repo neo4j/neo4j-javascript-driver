@@ -640,5 +640,37 @@ describe('routing driver ', function () {
         });
       });
   });
-});
+  it('should re-use connections', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+    // Given
+    var kit = new boltkit.BoltKit();
+    var seedServer = kit.start('./test/resources/boltkit/single_write_server.script', 9002);
+    var writeServer = kit.start('./test/resources/boltkit/two_write_responses_server.script', 9001);
 
+    kit.run(function () {
+      var driver = neo4j.driver("bolt+routing://127.0.0.1:9002", neo4j.auth.basic("neo4j", "neo4j"));
+      // When
+      var session = driver.session(neo4j.session.WRITE);
+      session.run("CREATE (n {name:'Bob'})").then(function () {
+        session.close(function() {
+          var connections = Object.keys(driver._openSessions).length
+          session = driver.session(neo4j.session.WRITE);
+          session.run("CREATE ()").then(function () {
+            driver.close();
+            seedServer.exit(function (code1) {
+              writeServer.exit(function (code2) {
+                expect(connections).toEqual(Object.keys(driver._openSessions).length)
+                expect(code1).toEqual(0);
+                expect(code2).toEqual(0);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});
