@@ -1,0 +1,12 @@
+!: AUTO INIT
+!: AUTO RESET
+!: AUTO PULL_ALL
+
+C: RUN "CREATE (n {name:'Bob'})" {}
+   PULL_ALL
+S: SUCCESS {}
+   SUCCESS {}
+C: RUN "CREATE ()" {}
+   PULL_ALL
+S: SUCCESS {}
+   SUCCESS {}

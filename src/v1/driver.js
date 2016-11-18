@@ -72,7 +72,7 @@ class Driver {
     let conn = connect(url, this._config);
     conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
-    conn._release = () => release(this._url, conn);
+    conn._release = () => release(url, conn);
 
     this._openSessions[sessionId] = conn;
     return conn;
