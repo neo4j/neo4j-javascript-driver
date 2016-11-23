@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "neo4j-driver": "file:../../"
-  }
-}

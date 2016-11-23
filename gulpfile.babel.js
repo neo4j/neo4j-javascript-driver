@@ -45,8 +45,6 @@ var minimist = require('minimist');
 var cucumber = require('gulp-cucumber');
 var merge = require('merge-stream');
 var install = require("gulp-install");
-var rename = require("gulp-rename");
-var del = require('del');
 var os = require('os');
 var file = require('gulp-file');
 
@@ -136,6 +134,7 @@ gulp.task('all', function(cb){
   runSequence('nodejs', 'browser', cb);
 });
 
+// prepares directory for package.test.js
 gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
   var testDir = path.join(os.tmpdir(), 'sandbox');
   fs.emptyDirSync(testDir);
