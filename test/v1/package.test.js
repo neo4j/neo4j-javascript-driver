@@ -17,12 +17,13 @@
  * limitations under the License.
  */
 
-var neo4jv1 = require("../../build/sandbox/node_modules/neo4j-driver/lib/v1");
+var path = require('path');
+var neo4jReq = require(path.join(require('os').tmpdir(), 'sandbox', 'node_modules/neo4j-driver/lib'));
 
 describe('Package', function() {
   var driverGlobal, originalTimeout;
   beforeAll(function () {
-    var neo4j = neo4jv1;
+    var neo4j = neo4jReq.v1;
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 

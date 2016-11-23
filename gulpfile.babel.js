@@ -46,6 +46,7 @@ var cucumber = require('gulp-cucumber');
 var merge = require('merge-stream');
 var install = require("gulp-install");
 var rename = require("gulp-rename");
+var del = require('del');
 
 gulp.task('default', ["test"]);
 
@@ -134,9 +135,10 @@ gulp.task('all', function(cb){
 });
 
 gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
+  del.sync([path.join(require('os').tmpdir(), 'sandbox')])
   return gulp.src('./test/resources/test-package.json')
     .pipe(rename('package.json'))
-    .pipe(gulp.dest('./build/sandbox'))
+    .pipe(gulp.dest(path.join(require('os').tmpdir(), 'sandbox')))
     .pipe(install())
 })
 

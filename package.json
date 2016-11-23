@@ -26,6 +26,7 @@
     "babel-register": "^6.18.0",
     "babelify": "^7.3.0",
     "browserify": "^13.1.0",
+    "del": "^2.2.2",
     "esdoc": "^0.4.0",
     "esdoc-importpath-plugin": "0.0.1",
     "glob": "^5.0.14",
