@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-require("babel-polyfill");
 
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
@@ -100,7 +99,7 @@ gulp.task('build-browser-test', function(){
           cache: {},
           debug: true
         }).transform(babelify.configure({
-          presets: ['es2015', 'stage-3'], ignore: /external/
+          presets: ['es2015', 'stage-3'], plugins: ['transform-runtime'], ignore: /external/
         }))
         .bundle(function(err, res){
           cb();
@@ -117,7 +116,7 @@ gulp.task('build-browser-test', function(){
 
 var buildNode = function(options) {
   return gulp.src(options.src)
-    .pipe(babel({presets: ['es2015', 'stage-3'], ignore: ['src/external/**/*.js']}))
+    .pipe(babel({presets: ['es2015', 'stage-3'], plugins: ['transform-runtime'], ignore: ['src/external/**/*.js']}))
     .pipe(gulp.dest(options.dest))
 };
 

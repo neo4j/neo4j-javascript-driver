@@ -19,9 +19,6 @@
 
 import ResultSummary from './result-summary';
 
-// Ensure Promise is available
-import "babel-polyfill";
-
 /**
   * A stream of {@link Record} representing the result of a statement.
   * @access public
