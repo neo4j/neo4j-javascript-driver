@@ -37,7 +37,7 @@ var watch = require('gulp-watch');
 var batch = require('gulp-batch');
 var replace = require('gulp-replace');
 var decompress = require('gulp-decompress');
-var fs = require("fs");
+var fs = require("fs-extra");
 var runSequence = require('run-sequence');
 var path = require('path');
 var childProcess = require("child_process");
@@ -47,6 +47,8 @@ var merge = require('merge-stream');
 var install = require("gulp-install");
 var rename = require("gulp-rename");
 var del = require('del');
+var os = require('os');
+var file = require('gulp-file');
 
 gulp.task('default', ["test"]);
 
@@ -135,12 +137,19 @@ gulp.task('all', function(cb){
 });
 
 gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
-  del.sync([path.join(require('os').tmpdir(), 'sandbox')])
-  return gulp.src('./test/resources/test-package.json')
-    .pipe(rename('package.json'))
-    .pipe(gulp.dest(path.join(require('os').tmpdir(), 'sandbox')))
-    .pipe(install())
-})
+  var testDir = path.join(os.tmpdir(), 'sandbox');
+  fs.emptyDirSync(testDir);
+
+  var packageJsonContent = JSON.stringify({
+      "dependencies":{
+          "neo4j-driver" : __dirname
+      }
+  });
+
+  return file('package.json', packageJsonContent, {src:true})
+      .pipe(gulp.dest(testDir))
+      .pipe(install());
+});
 
 gulp.task('test', function(cb){
   runSequence('install-driver-into-sandbox', 'test-nodejs', 'test-browser', 'run-tck', function (err) {

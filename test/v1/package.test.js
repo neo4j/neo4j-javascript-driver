@@ -18,7 +18,8 @@
  */
 
 var path = require('path');
-var neo4jReq = require(path.join(require('os').tmpdir(), 'sandbox', 'node_modules/neo4j-driver/lib'));
+var os = require('os');
+var neo4jReq = require(path.join(os.tmpdir(), 'sandbox', 'node_modules', 'neo4j-driver', 'lib'));
 
 describe('Package', function() {
   var driverGlobal, originalTimeout;
@@ -27,9 +28,7 @@ describe('Package', function() {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
-    //tag::construct-driver[]
     var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
-    //end::construct-driver[]
     driverGlobal = driver;
   });
   afterAll(function() {
@@ -37,16 +36,16 @@ describe('Package', function() {
     driverGlobal.close();
   });
 
-  fit('should work work', function(done){
+  it('should work', function(done){
     var session = driverGlobal.session();
-    session.run('RETURN 1').then(function(r) {
-      expect(1).toBe(1);
+    session.run('RETURN 1 AS answer').then(function(result) {
+      expect(result.records.length).toBe(1);
+      expect(result.records[0].get('answer').toNumber()).toBe(1);
       session.close();
       done();
     }).catch(function(e) {
-      console.log(e)
-      expect(1).toBe(2);
-      done();
+      console.log(e);
+      done.fail("Error in test")
     })
   })
-})
+});
