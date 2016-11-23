@@ -44,6 +44,8 @@ var childProcess = require("child_process");
 var minimist = require('minimist');
 var cucumber = require('gulp-cucumber');
 var merge = require('merge-stream');
+var install = require("gulp-install");
+var rename = require("gulp-rename");
 
 gulp.task('default', ["test"]);
 
@@ -131,8 +133,15 @@ gulp.task('all', function(cb){
   runSequence('nodejs', 'browser', cb);
 });
 
+gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
+  return gulp.src('./test/resources/test-package.json')
+    .pipe(rename('package.json'))
+    .pipe(gulp.dest('./build/sandbox'))
+    .pipe(install())
+})
+
 gulp.task('test', function(cb){
-  runSequence('test-nodejs', 'test-browser', 'run-tck', function (err) {
+  runSequence('install-driver-into-sandbox', 'test-nodejs', 'test-browser', 'run-tck', function (err) {
     if (err) {
       var exitCode = 2;
       console.log('[FAIL] test task failed - exiting with code ' + exitCode);
