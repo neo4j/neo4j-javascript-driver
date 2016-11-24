@@ -20,10 +20,18 @@
 var neo4j = require("../../lib/v1");
 
 describe('driver', function() {
-
+  var driver;
+  beforeEach(function() {
+    driver = null;
+  })
+  afterEach(function() {
+    if(driver) {
+      driver.close();
+    }
+  })
   it('should expose sessions', function() {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
     // When
     var session = driver.session();
@@ -35,7 +43,7 @@ describe('driver', function() {
 
   it('should handle connection errors', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhoste", neo4j.auth.basic("neo4j", "neo4j"));
+    driver = neo4j.driver("bolt://localhoste", neo4j.auth.basic("neo4j", "neo4j"));
 
     // Expect
     driver.onError = function (err) {
@@ -54,7 +62,7 @@ describe('driver', function() {
 
   it('should fail early on wrong credentials', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "who would use such a password"));
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "who would use such a password"));
 
     // Expect
     driver.onError = function (err) {
@@ -69,7 +77,7 @@ describe('driver', function() {
 
   it('should indicate success early on correct credentials', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
     // Expect
     driver.onCompleted = function (meta) {
@@ -82,7 +90,7 @@ describe('driver', function() {
 
   it('should be possible to pass a realm with basic auth tokens', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j", "native"));
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j", "native"));
 
     // Expect
     driver.onCompleted = function (meta) {
@@ -95,7 +103,7 @@ describe('driver', function() {
 
   it('should be possible to create custom auth tokens', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.custom("neo4j", "neo4j", "native", "basic"));
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.custom("neo4j", "neo4j", "native", "basic"));
 
     // Expect
     driver.onCompleted = function (meta) {
@@ -108,7 +116,7 @@ describe('driver', function() {
 
   it('should be possible to create custom auth tokens with additional parameters', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.custom("neo4j", "neo4j", "native", "basic", {secret: 42}));
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.custom("neo4j", "neo4j", "native", "basic", {secret: 42}));
 
     // Expect
     driver.onCompleted = function () {
@@ -121,7 +129,7 @@ describe('driver', function() {
 
   it('should fail nicely when connecting with routing to standalone server', function(done) {
     // Given
-    var driver = neo4j.driver("bolt+routing://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    driver = neo4j.driver("bolt+routing://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
     // Expect
     driver.onError = function (err) {

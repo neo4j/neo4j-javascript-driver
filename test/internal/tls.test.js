@@ -172,7 +172,11 @@ describe('trust-system-ca-signed-certificates', function() {
 describe('trust-on-first-use', function() {
 
   var driver;
-
+  afterEach(function(){
+    if( driver ) {
+      driver.close();
+    }
+  });
   it("should create known_hosts file including full path if it doesn't exist", function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
     if( !hasFeature("trust_on_first_use") ) {
@@ -191,7 +195,7 @@ describe('trust-on-first-use', function() {
       fs.rmdirSync(knownHostsDir);
     } catch (_) { }
 
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
       encrypted: true,
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
