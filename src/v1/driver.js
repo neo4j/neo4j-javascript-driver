@@ -23,7 +23,6 @@ import Integer from './integer';
 import {connect} from "./internal/connector";
 import StreamObserver from './internal/stream-observer';
 import {newError, SERVICE_UNAVAILABLE} from "./error";
-import "babel-polyfill";
 
 let READ = 'READ', WRITE = 'WRITE';
 /**

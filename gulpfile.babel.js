@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-require("babel-polyfill");
 
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
@@ -38,13 +37,16 @@ var watch = require('gulp-watch');
 var batch = require('gulp-batch');
 var replace = require('gulp-replace');
 var decompress = require('gulp-decompress');
-var fs = require("fs");
+var fs = require("fs-extra");
 var runSequence = require('run-sequence');
 var path = require('path');
 var childProcess = require("child_process");
 var minimist = require('minimist');
 var cucumber = require('gulp-cucumber');
 var merge = require('merge-stream');
+var install = require("gulp-install");
+var os = require('os');
+var file = require('gulp-file');
 
 gulp.task('default', ["test"]);
 
@@ -100,7 +102,7 @@ gulp.task('build-browser-test', function(){
           cache: {},
           debug: true
         }).transform(babelify.configure({
-          presets: ['es2015', 'stage-3'], ignore: /external/
+          presets: ['es2015', 'stage-3'], plugins: ['transform-runtime'], ignore: /external/
         }))
         .bundle(function(err, res){
           cb();
@@ -117,7 +119,7 @@ gulp.task('build-browser-test', function(){
 
 var buildNode = function(options) {
   return gulp.src(options.src)
-    .pipe(babel({presets: ['es2015', 'stage-3'], ignore: ['src/external/**/*.js']}))
+    .pipe(babel({presets: ['es2015', 'stage-3'], plugins: ['transform-runtime'], ignore: ['src/external/**/*.js']}))
     .pipe(gulp.dest(options.dest))
 };
 
@@ -132,6 +134,22 @@ gulp.task('all', function(cb){
   runSequence('nodejs', 'browser', cb);
 });
 
+// prepares directory for package.test.js
+gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
+  var testDir = path.join(os.tmpdir(), 'sandbox');
+  fs.emptyDirSync(testDir);
+
+  var packageJsonContent = JSON.stringify({
+      "dependencies":{
+          "neo4j-driver" : __dirname
+      }
+  });
+
+  return file('package.json', packageJsonContent, {src:true})
+      .pipe(gulp.dest(testDir))
+      .pipe(install());
+});
+
 gulp.task('test', function(cb){
   runSequence('test-nodejs', 'test-browser', 'run-tck', function (err) {
     if (err) {
@@ -143,7 +161,7 @@ gulp.task('test', function(cb){
   });
 });
 
-gulp.task('test-nodejs', ['nodejs'], function () {
+gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
   return gulp.src('test/**/*.test.js')
         .pipe(jasmine({
             // reporter: new reporters.JUnitXmlReporter({

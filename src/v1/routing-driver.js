@@ -23,7 +23,6 @@ import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
 import RoundRobinArray from './internal/round-robin-array';
 import {int} from './integer'
 import Integer from './integer'
-import "babel-polyfill";
 
 /**
  * A driver that supports routing in a core-edge cluster.
