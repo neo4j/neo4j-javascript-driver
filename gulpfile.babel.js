@@ -151,7 +151,7 @@ gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
 });
 
 gulp.task('test', function(cb){
-  runSequence('install-driver-into-sandbox', 'test-nodejs', 'test-browser', 'run-tck', function (err) {
+  runSequence('test-nodejs', 'test-browser', 'run-tck', function (err) {
     if (err) {
       var exitCode = 2;
       console.log('[FAIL] test task failed - exiting with code ' + exitCode);
@@ -161,7 +161,7 @@ gulp.task('test', function(cb){
   });
 });
 
-gulp.task('test-nodejs', ['nodejs'], function () {
+gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
   return gulp.src('test/**/*.test.js')
         .pipe(jasmine({
             // reporter: new reporters.JUnitXmlReporter({
