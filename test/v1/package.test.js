@@ -19,26 +19,29 @@
 
 var path = require('path');
 var os = require('os');
-var neo4jReq = require(path.join(os.tmpdir(), 'sandbox', 'node_modules', 'neo4j-driver', 'lib'));
+var NodeChannel = require('../../lib/v1/internal/ch-node').default;
 
 describe('Package', function() {
-
-  var driverGlobal, originalTimeout;
-
-  beforeAll(function () {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
-
-    var neo4j = neo4jReq.v1;
-    driverGlobal = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
-  });
-
+  var driverGlobal = {close: function() {}};
   afterAll(function() {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
     driverGlobal.close();
   });
 
   it('should work', function(done){
+    var neo4jReq;
+    // Assuming we only run this test on NodeJS
+    if( !NodeChannel.available ) {
+      done();
+      return;
+    }
+
+    try {
+      neo4jReq = require(path.join(os.tmpdir(), 'sandbox', 'node_modules', 'neo4j-driver', 'lib'));
+    } catch(e) {
+      done.fail('Could not load sandbox package')
+    }
+
+    driverGlobal = neo4jReq.v1.driver("bolt://localhost", neo4jReq.v1.auth.basic("neo4j", "neo4j"));
     var session = driverGlobal.session();
     session.run('RETURN 1 AS answer').then(function(result) {
       expect(result.records.length).toBe(1);
