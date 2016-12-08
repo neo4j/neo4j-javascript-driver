@@ -3,7 +3,13 @@
 
 A database driver for Neo4j 3.0.0+.
 
-Find detailed docs [here](http://neo4j.com/docs/api/javascript-driver/current/).
+Resources to get you started:
+
+* [Detailed docs](http://neo4j.com/docs/api/javascript-driver/current/).
+* [Sample small project using the driver](https://github.com/neo4j-examples/movies-javascript-bolt)
+* [Sample application using the driver](https://github.com/neo4j-examples/neo4j-movies-template)
+* [Neo4j Manual](https://neo4j.com/docs/)
+* [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
 ## Include module in Node.js application
 
