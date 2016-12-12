@@ -37,7 +37,7 @@ describe('examples', function() {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
     //tag::construct-driver[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt+routing://mycluster:7687", neo4j.auth.basic("neo4j", "neo4j"));
     //end::construct-driver[]
     driverGlobal = driver;
   });
@@ -68,13 +68,13 @@ describe('examples', function() {
     var neo4j = require('neo4j-driver').v1;
     // end::minimal-example-import[]
     // tag::minimal-example[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt+routing://mycluster:7687", neo4j.auth.basic("neo4j", "neo4j"));
     var session = driver.session();
     session
       .run( "CREATE (a:Person {name:'Arthur', title:'King'})" )
       .then( function()
       {
-        return session.run( "MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title" )  
+        return session.run( "MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title" )
       })
       .then( function( result ) {
         console.log( result.records[0].get("title") + " " + result.records[0].get("name") );
@@ -91,7 +91,7 @@ describe('examples', function() {
   it('should be able to configure session pool size', function (done) {
    var neo4j = neo4jv1;
     // tag::configuration[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
+    var driver = neo4j.driver("bolt+routing://mycluster:7687", neo4j.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
     //end::configuration[]
 
     var s = driver.session();
@@ -358,7 +358,7 @@ describe('examples', function() {
   it('should document how to require encryption', function() {
     var neo4j = neo4jv1;
     // tag::tls-require-encryption[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    var driver = neo4j.driver("bolt+routing://mycluster:7687", neo4j.auth.basic("neo4j", "neo4j"), {
       //In NodeJS, encryption is ENCRYPTION_NON_LOCAL on by default. In the web bundle, it is ENCRYPTION_OFF.
       encrypted:"ENCRYPTION_ON"
     });
@@ -369,7 +369,7 @@ describe('examples', function() {
   it('should document how to configure trust-on-first-use', function() {
     var neo4j = neo4jv1;
     // tag::tls-trust-on-first-use[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    var driver = neo4j.driver("bolt+routing://mycluster:7687", neo4j.auth.basic("neo4j", "neo4j"), {
       // Note that trust-on-first-use is not available in the browser bundle,
       // in NodeJS, trust-on-first-use is the default trust mode. In the browser
       // it is TRUST_CUSTOM_CA_SIGNED_CERTIFICATES.
@@ -383,7 +383,7 @@ describe('examples', function() {
   it('should document how to configure a trusted signing certificate', function() {
     var neo4j = neo4jv1;
     // tag::tls-signed[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    var driver = neo4j.driver("bolt+routing://mycluster:7687", neo4j.auth.basic("neo4j", "neo4j"), {
       trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
       // Configuring which certificates to trust here is only available
       // in NodeJS. In the browser bundle the browsers list of trusted
@@ -398,7 +398,7 @@ describe('examples', function() {
   it('should document how to disable auth', function() {
     var neo4j = neo4jv1;
     // tag::connect-with-auth-disabled[]
-    var driver = neo4j.driver("bolt://localhost", {
+    var driver = neo4j.driver("bolt+routing://mycluster:7687", {
       // In NodeJS, encryption is on by default. In the web bundle, it is off.
       encrypted:"ENCRYPTION_NON_LOCAL"
     });
