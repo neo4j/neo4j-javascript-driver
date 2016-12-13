@@ -62,10 +62,11 @@ describe('examples', function() {
     var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"));
     var session = driver.session();
     session
-      .run( "CREATE (a:Person {name:'Arthur', title:'King'})" )
+      .run( "CREATE (a:Person {name: {name}, title: {title}})", {name: "Arthur", title: "King"})
       .then( function()
       {
-        return session.run( "MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title" )
+        return session.run( "MATCH (a:Person) WHERE a.name = {name} RETURN a.name AS name, a.title AS title",
+            {name: "Arthur"})
       })
       .then( function( result ) {
         console.log( result.records[0].get("title") + " " + result.records[0].get("name") );
@@ -86,7 +87,7 @@ describe('examples', function() {
     //end::configuration[]
 
     var s = driver.session();
-    s.run( "CREATE (p:Person { name: {name} })", {name: "The One"} )
+    s.run( "CREATE (p:Person {name: {name}})", {name: "The One"} )
       .then( function(result) {
         var theOnesCreated = result.summary.counters.nodesCreated();
         console.log(theOnesCreated);
@@ -119,7 +120,7 @@ describe('examples', function() {
     var session = sessionGlobal;
     // tag::statement-without-parameters[]
     session
-      .run( "CREATE (p:Person { name: 'Arthur' })" )
+      .run( "CREATE (p:Person {name: 'Arthur'})" )
     // end::statement-without-parameters[]
       .then( function(result) {
         var theOnesCreated = result.summary.counters.nodesCreated();
@@ -136,12 +137,12 @@ describe('examples', function() {
   it('should be able to iterate results', function(done) {
     var session = sessionGlobal;
     session
-      .run( "CREATE (weapon:Weapon { name: 'Sword in the stone' })" )
+      .run( "CREATE (weapon:Weapon {name: {name}})", {name: "Sword in the stone"} )
       .then(function() {
     // tag::result-traversal[]
       var searchTerm = "Sword";
       session
-        .run( "MATCH (weapon:Weapon) WHERE weapon.name CONTAINS {term} RETURN weapon.name", {term : searchTerm} )
+        .run( "MATCH (weapon:Weapon) WHERE weapon.name CONTAINS {term} RETURN weapon.name", {term: searchTerm} )
         .subscribe({
           onNext: function(record) {
             console.log("" + record.get("weapon.name"));
@@ -165,12 +166,14 @@ describe('examples', function() {
   it('should be able to access records', function(done) {
     var session = sessionGlobal;
     session
-      .run( "CREATE (weapon:Weapon { name: 'Sword in the stone', owner: 'Arthur', material: 'Stone', size: 'Huge' })" )
+      .run( "CREATE (weapon:Weapon {name: {name}, owner: {owner}, material: {material}, size: {size}})",
+          {name: "Sword in the stone", owner: "Arthur", material: "Stone", size: "Huge"})
       .then(function() {
       // tag::access-record[]
         var searchTerm = "Arthur";
         session
-          .run( "MATCH (weapon:Weapon) WHERE weapon.owner CONTAINS {term} RETURN weapon.name, weapon.material, weapon.size", {term : searchTerm} )
+          .run( "MATCH (weapon:Weapon) WHERE weapon.owner CONTAINS {term} RETURN weapon.name, weapon.material, weapon.size",
+              {term: searchTerm} )
           .subscribe({
             onNext: function(record) {
               var sword = [];
@@ -201,11 +204,12 @@ describe('examples', function() {
     var session = sessionGlobal;
 
     session
-    .run("CREATE (knight:Person:Knight { name: 'Lancelot', castle: 'Camelot' })")
+    .run("CREATE (knight:Person:Knight {name: {name}, castle: {castle}})", {name: "Lancelot", castle: "Camelot"})
     .then(function() {
       // tag::retain-result[]
       session
-        .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN knight.name AS name", {castle: "Camelot"})
+        .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN knight.name AS name",
+            {castle: "Camelot"})
         .then(function (result) {
           var records = [];
           for (i = 0; i < result.records.length; i++) {
@@ -232,17 +236,19 @@ describe('examples', function() {
   it('should be able to do nested queries', function(done) {
     var session = sessionGlobal;
     session
-      .run( "CREATE (knight:Person:Knight { name: 'Lancelot', castle: 'Camelot' })" +
-            "CREATE (king:Person { name: 'Arthur', title: 'King' })" )
+      .run( "CREATE (knight:Person:Knight {name: {name1}, castle: {castle}})" +
+            "CREATE (king:Person {name: {name2}, title: {title}})",
+          {name1: "Lancelot", castle: "Camelot", name2: "Arthur", title: "King"})
       .then(function() {
         // tag::nested-statements[]
           session
-            .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id", {"castle": "Camelot"})
+            .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id",
+                {castle: "Camelot"})
             .subscribe({
               onNext: function(record) {
                 session
                   .run("MATCH (knight) WHERE id(knight) = {id} MATCH (king:Person) WHERE king.name = {king} CREATE (knight)-[:DEFENDS]->(king)",
-                  {"id": record.get("knight_id"), "king": "Arthur"});
+                  {id: record.get("knight_id"), king: "Arthur"});
               },
               onCompleted: function() {
                 session
@@ -281,7 +287,7 @@ describe('examples', function() {
   it('should be able to profile', function(done) {
     var session = sessionGlobal;
 
-    session.run("CREATE (:Person {name:'Arthur'})").then(function() {
+    session.run("CREATE (:Person {name: {name}})", {name: "Arthur"}).then(function() {
       // tag::result-summary-query-profile[]
       session
         .run("PROFILE MATCH (p:Person {name: {name}}) RETURN id(p)", {name: "Arthur"})
@@ -323,7 +329,7 @@ describe('examples', function() {
 
     // tag::transaction-commit[]
     var tx = session.beginTransaction();
-    tx.run( "CREATE (:Person {name: 'Guinevere'})" );
+    tx.run( "CREATE (:Person {name: {name}})", {name: "Guinevere"} );
     tx.commit();
     // end::transaction-commit[]
   });
@@ -333,7 +339,7 @@ describe('examples', function() {
 
     // tag::transaction-rollback[]
     var tx = session.beginTransaction();
-    tx.run( "CREATE (:Person {name: 'Merlin'})" );
+    tx.run( "CREATE (:Person {name: {name}})", {name: "Merlin"});
     tx.rollback();
     // end::transaction-rollback[]
   });
