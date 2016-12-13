@@ -37,7 +37,7 @@ describe('examples', function() {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
     //tag::construct-driver[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"));
     //end::construct-driver[]
     driverGlobal = driver;
   });
@@ -68,13 +68,14 @@ describe('examples', function() {
     var neo4j = require('neo4j-driver').v1;
     // end::minimal-example-import[]
     // tag::minimal-example[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"));
     var session = driver.session();
     session
-      .run( "CREATE (a:Person {name:'Arthur', title:'King'})" )
+      .run( "CREATE (a:Person {name: {name}, title: {title}})", {name: "Arthur", title: "King"})
       .then( function()
       {
-        return session.run( "MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title" )  
+        return session.run( "MATCH (a:Person) WHERE a.name = {name} RETURN a.name AS name, a.title AS title",
+            {name: "Arthur"})
       })
       .then( function( result ) {
         console.log( result.records[0].get("title") + " " + result.records[0].get("name") );
@@ -91,11 +92,11 @@ describe('examples', function() {
   it('should be able to configure session pool size', function (done) {
    var neo4j = neo4jv1;
     // tag::configuration[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
+    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
     //end::configuration[]
 
     var s = driver.session();
-    s.run( "CREATE (p:Person { name: {name} })", {name: "The One"} )
+    s.run( "CREATE (p:Person {name: {name}})", {name: "The One"} )
       .then( function(result) {
         var theOnesCreated = result.summary.counters.nodesCreated();
         console.log(theOnesCreated);
@@ -129,7 +130,7 @@ describe('examples', function() {
     var session = driverGlobal.session();
     // tag::statement-without-parameters[]
     session
-      .run( "CREATE (p:Person { name: 'Arthur' })" )
+      .run( "CREATE (p:Person {name: 'Arthur'})" )
     // end::statement-without-parameters[]
       .then( function(result) {
         var theOnesCreated = result.summary.counters.nodesCreated();
@@ -147,12 +148,12 @@ describe('examples', function() {
   it('should be able to iterate results', function(done) {
     var session = driverGlobal.session();
     session
-      .run( "CREATE (weapon:Weapon { name: 'Sword in the stone' })" )
+      .run( "CREATE (weapon:Weapon {name: {name}})", {name: "Sword in the stone"} )
       .then(function() {
     // tag::result-traversal[]
       var searchTerm = "Sword";
       session
-        .run( "MATCH (weapon:Weapon) WHERE weapon.name CONTAINS {term} RETURN weapon.name", {term : searchTerm} )
+        .run( "MATCH (weapon:Weapon) WHERE weapon.name CONTAINS {term} RETURN weapon.name", {term: searchTerm} )
         .subscribe({
           onNext: function(record) {
             console.log("" + record.get("weapon.name"));
@@ -176,12 +177,14 @@ describe('examples', function() {
   it('should be able to access records', function(done) {
     var session = driverGlobal.session();
     session
-      .run( "CREATE (weapon:Weapon { name: 'Sword in the stone', owner: 'Arthur', material: 'Stone', size: 'Huge' })" )
+      .run( "CREATE (weapon:Weapon {name: {name}, owner: {owner}, material: {material}, size: {size}})",
+          {name: "Sword in the stone", owner: "Arthur", material: "Stone", size: "Huge"})
       .then(function() {
       // tag::access-record[]
         var searchTerm = "Arthur";
         session
-          .run( "MATCH (weapon:Weapon) WHERE weapon.owner CONTAINS {term} RETURN weapon.name, weapon.material, weapon.size", {term : searchTerm} )
+          .run( "MATCH (weapon:Weapon) WHERE weapon.owner CONTAINS {term} RETURN weapon.name, weapon.material, weapon.size",
+              {term: searchTerm} )
           .subscribe({
             onNext: function(record) {
               var sword = [];
@@ -212,11 +215,12 @@ describe('examples', function() {
     var session = driverGlobal.session();
 
     session
-    .run("CREATE (knight:Person:Knight { name: 'Lancelot', castle: 'Camelot' })")
+    .run("CREATE (knight:Person:Knight {name: {name}, castle: {castle}})", {name: "Lancelot", castle: "Camelot"})
     .then(function() {
       // tag::retain-result[]
       session
-        .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN knight.name AS name", {castle: "Camelot"})
+        .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN knight.name AS name",
+            {castle: "Camelot"})
         .then(function (result) {
           var records = [];
           for (var i = 0; i < result.records.length; i++) {
@@ -244,17 +248,19 @@ describe('examples', function() {
   it('should be able to do nested queries', function(done) {
     var session = driverGlobal.session();;
     session
-      .run( "CREATE (knight:Person:Knight { name: 'Lancelot', castle: 'Camelot' })" +
-            "CREATE (king:Person { name: 'Arthur', title: 'King' })" )
+      .run( "CREATE (knight:Person:Knight {name: {name1}, castle: {castle}})" +
+            "CREATE (king:Person {name: {name2}, title: {title}})",
+          {name1: "Lancelot", castle: "Camelot", name2: "Arthur", title: "King"})
       .then(function() {
         // tag::nested-statements[]
           session
-            .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id", {"castle": "Camelot"})
+            .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id",
+                {castle: "Camelot"})
             .subscribe({
               onNext: function(record) {
                 session
                   .run("MATCH (knight) WHERE id(knight) = {id} MATCH (king:Person) WHERE king.name = {king} CREATE (knight)-[:DEFENDS]->(king)",
-                  {"id": record.get("knight_id"), "king": "Arthur"});
+                  {id: record.get("knight_id"), king: "Arthur"});
               },
               onCompleted: function() {
                 session
@@ -295,7 +301,7 @@ describe('examples', function() {
   it('should be able to profile', function(done) {
     var session = driverGlobal.session();
 
-    session.run("CREATE (:Person {name:'Arthur'})").then(function() {
+    session.run("CREATE (:Person {name: {name}})", {name: "Arthur"}).then(function() {
       // tag::result-summary-query-profile[]
       session
         .run("PROFILE MATCH (p:Person {name: {name}}) RETURN id(p)", {name: "Arthur"})
@@ -340,7 +346,7 @@ describe('examples', function() {
 
     // tag::transaction-commit[]
     var tx = session.beginTransaction();
-    tx.run( "CREATE (:Person {name: 'Guinevere'})" );
+    tx.run( "CREATE (:Person {name: {name}})", {name: "Guinevere"} );
     tx.commit().then(function() {session.close()});
     // end::transaction-commit[]
   });
@@ -350,7 +356,7 @@ describe('examples', function() {
 
     // tag::transaction-rollback[]
     var tx = session.beginTransaction();
-    tx.run( "CREATE (:Person {name: 'Merlin'})" );
+    tx.run( "CREATE (:Person {name: {name}})", {name: "Merlin"});
     tx.rollback().then(function() {session.close()});
     // end::transaction-rollback[]
   });
@@ -358,7 +364,7 @@ describe('examples', function() {
   it('should document how to require encryption', function() {
     var neo4j = neo4jv1;
     // tag::tls-require-encryption[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {
       //In NodeJS, encryption is ENCRYPTION_NON_LOCAL on by default. In the web bundle, it is ENCRYPTION_OFF.
       encrypted:"ENCRYPTION_ON"
     });
@@ -369,7 +375,7 @@ describe('examples', function() {
   it('should document how to configure trust-on-first-use', function() {
     var neo4j = neo4jv1;
     // tag::tls-trust-on-first-use[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {
       // Note that trust-on-first-use is not available in the browser bundle,
       // in NodeJS, trust-on-first-use is the default trust mode. In the browser
       // it is TRUST_CUSTOM_CA_SIGNED_CERTIFICATES.
@@ -383,7 +389,7 @@ describe('examples', function() {
   it('should document how to configure a trusted signing certificate', function() {
     var neo4j = neo4jv1;
     // tag::tls-signed[]
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {
       trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
       // Configuring which certificates to trust here is only available
       // in NodeJS. In the browser bundle the browsers list of trusted
@@ -398,7 +404,7 @@ describe('examples', function() {
   it('should document how to disable auth', function() {
     var neo4j = neo4jv1;
     // tag::connect-with-auth-disabled[]
-    var driver = neo4j.driver("bolt://localhost", {
+    var driver = neo4j.driver("bolt://localhost:7687", {
       // In NodeJS, encryption is on by default. In the web bundle, it is off.
       encrypted:"ENCRYPTION_NON_LOCAL"
     });
