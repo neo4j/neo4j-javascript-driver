@@ -134,6 +134,11 @@ class _TransactionStreamObserver extends StreamObserver {
       this._tx._onBookmark(bookmark);
     }
   }
+
+  serverMeta() {
+    const serverMeta = {server: this._conn.server};
+    return serverMeta;
+  }
 }
 
 /** internal state machine of the transaction*/
@@ -155,7 +160,7 @@ let _states = {
         conn.sync();
       }).catch(observer.onError);
 
-      return new Result( observer, statement, parameters );
+      return new Result( observer, statement, parameters, () => observer.serverMeta() );
     }
   },
 

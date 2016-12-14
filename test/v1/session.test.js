@@ -164,6 +164,29 @@ describe('session', function () {
       });
   });
 
+  it('should expose server info on successful query', function (done) {
+    //lazy way of checking the version number
+    //if server has been set we know it is at least
+    //3.1 (todo actually parse the version string)
+    if (!server) {
+      done();
+      return;
+    }
+
+    // Given
+    var statement = 'RETURN 1';
+
+    // When & Then
+    session.run(statement)
+      .then(function (result) {
+        var sum = result.summary;
+        expect(sum.server).toBeDefined();
+        expect(sum.server.address).toEqual('localhost:7687');
+        expect(sum.server.version).toBeDefined();
+        done();
+      });
+  });
+
   it('should expose execution time information when using 3.1 and onwards', function (done) {
 
     //lazy way of checking the version number

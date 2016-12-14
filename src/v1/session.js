@@ -136,7 +136,8 @@ class _RunObserver extends StreamObserver {
   }
 
   meta() {
-    return this._meta;
+    const serverMeta = {server: this._conn.server};
+    return Object.assign({}, this._meta, serverMeta);
   }
 }
 
