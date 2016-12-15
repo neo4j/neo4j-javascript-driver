@@ -47,6 +47,7 @@ var merge = require('merge-stream');
 var install = require("gulp-install");
 var os = require('os');
 var file = require('gulp-file');
+var semver = require('semver');
 
 gulp.task('default', ["test"]);
 
@@ -225,8 +226,13 @@ gulp.task('set', function() {
   // Get the --version arg from command line
   var version = minimist(process.argv.slice(2), { string: 'version' }).version;
 
+  if (!semver.valid(version)) {
+      throw 'Invalid version "' + version + '"';
+  }
+
   // Change the version in relevant files
-  return gulp.src(['package.json'], {base: "./"})
+  var versionFile = path.join('src', 'version.js');
+  return gulp.src([versionFile], {base: "./"})
       .pipe(replace('0.0.0-dev', version))
       .pipe(gulp.dest('./'));
 
