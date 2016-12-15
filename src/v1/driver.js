@@ -45,7 +45,7 @@ class Driver {
    * @param {Object} config
    * @access private
    */
-  constructor(url, userAgent = 'neo4j-javascript/0.0', token = {}, config = {}) {
+  constructor(url, userAgent, token = {}, config = {}) {
     this._url = url;
     this._userAgent = userAgent;
     this._openSessions = {};

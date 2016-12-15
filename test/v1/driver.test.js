@@ -142,6 +142,16 @@ describe('driver', function() {
     driver.session();
   });
 
+  it('should have correct user agent', () => {
+    const directDriver = neo4j.driver("bolt://localhost");
+    expect(directDriver._userAgent).toBe("neo4j-javascript/0.0.0-dev");
+    directDriver.close();
+
+    const routingDriver = neo4j.driver("bolt+routing://localhost");
+    expect(routingDriver._userAgent).toBe("neo4j-javascript/0.0.0-dev");
+    routingDriver.close();
+  });
+
   var exposedTypes = [
     'Node',
     'Path',
