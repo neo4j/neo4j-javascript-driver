@@ -106,7 +106,7 @@ function storeFingerprint( serverId, knownHostsPath, fingerprint, cb ) {
 
 const TrustStrategy = {
   /**
-   * @deprecated Since version 1.0. Will be deleted in a future version. TRUST_CUSTOM_CA_SIGNED_CERTIFICATES.
+   * @deprecated Since version 1.0. Will be deleted in a future version. {@link #TRUST_CUSTOM_CA_SIGNED_CERTIFICATES}.
    */
   TRUST_SIGNED_CERTIFICATES: function( opts, onSuccess, onFailure ) {
     console.log("`TRUST_SIGNED_CERTIFICATES` has been deprecated as option and will be removed in a future version of " +
@@ -169,7 +169,13 @@ const TrustStrategy = {
     socket.on('error', onFailure);
     return socket;
   },
+  /**
+   * @deprecated in 1.1 in favour of {@link #TRUST_ALL_CERTIFICATES}. Will be deleted in a future version.
+   */
   TRUST_ON_FIRST_USE : function( opts, onSuccess, onFailure ) {
+      console.log("`TRUST_ON_FIRST_USE` has been deprecated as option and will be removed in a future version of " +
+          "the driver. Please use `TRUST_ALL_CERTIFICATES` instead.");
+
     let tlsOpts = {
       // Because we manually verify the certificate against known_hosts
       rejectUnauthorized: false
