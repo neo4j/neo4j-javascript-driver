@@ -17,35 +17,10 @@
  * limitations under the License.
  */
 
-let LOCALHOST_MATCHER = /^(localhost|127(\.\d+){3})$/i;
-let ENCRYPTION_ON = "ENCRYPTION_ON";
-let ENCRYPTION_OFF = "ENCRYPTION_OFF";
-let ENCRYPTION_NON_LOCAL = "ENCRYPTION_NON_LOCAL";
-
-function isLocalHost(host)  {
-  return LOCALHOST_MATCHER.test(host);
-}
-
-/* Coerce an encryption setting to a definitive boolean value,
- * given a valid default and a target host. If encryption is
- * explicitly set on or off, then the mapping is a simple
- * conversion to true or false respectively. If set to
- * ENCRYPTION_NON_LOCAL then respond according to whether or
- * not the host is localhost/127.x.x.x. In all other cases
- * (including undefined) then fall back to the default and
- * re-evaluate.
- */
-function shouldEncrypt(encryption, encryptionDefault, host) {
-  if (encryption === ENCRYPTION_ON || encryption === true) return true;
-  if (encryption === ENCRYPTION_OFF || encryption === false) return false;
-  if (encryption === ENCRYPTION_NON_LOCAL) return !isLocalHost(host);
-  return shouldEncrypt(encryptionDefault, ENCRYPTION_OFF, host);
-}
+const ENCRYPTION_ON = "ENCRYPTION_ON";
+const ENCRYPTION_OFF = "ENCRYPTION_OFF";
 
 export {
-    isLocalHost,
-    shouldEncrypt,
     ENCRYPTION_ON,
-    ENCRYPTION_OFF,
-    ENCRYPTION_NON_LOCAL
+    ENCRYPTION_OFF
 }

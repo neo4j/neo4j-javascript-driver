@@ -16,17 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import WebSocketChannel from "./ch-websocket";
-import NodeChannel from "./ch-node";
+import WebSocketChannel from './ch-websocket';
+import NodeChannel from './ch-node';
 import {Dechunker, Chunker} from "./chunking";
-import hasFeature from "./features";
-import {Packer,Unpacker} from "./packstream";
-import {alloc, CombinedBuffer} from "./buf";
-import {Node, Relationship, UnboundRelationship, Path, PathSegment} from '../graph-types';
-import {int, isInt} from '../integer';
+import hasFeature from './features';
+import {Packer, Unpacker} from './packstream';
+import {alloc} from './buf';
+import {Node, Relationship, UnboundRelationship, Path, PathSegment} from '../graph-types'
 import {newError} from './../error';
-import {ENCRYPTION_NON_LOCAL, ENCRYPTION_OFF, shouldEncrypt} from './util';
 
 let Channel;
 if( WebSocketChannel.available ) {
@@ -470,8 +467,8 @@ function connect( url, config = {}) {
   return new Connection( new Ch({
     host: parseHost(url),
     port: parsePort(url) || 7687,
-    // Default to using ENCRYPTION_NON_LOCAL if trust-on-first-use is available
-    encrypted : shouldEncrypt(config.encrypted, (hasFeature("trust_on_first_use") ? ENCRYPTION_NON_LOCAL : ENCRYPTION_OFF), parseHost(url)),
+    // Default to using encryption if trust-on-first-use is available
+    encrypted : (config.encrypted == null) ?  hasFeature("trust_on_first_use") : config.encrypted,
     // Default to using TRUST_ON_FIRST_USE if it is available
     trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],

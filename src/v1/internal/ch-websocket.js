@@ -17,10 +17,9 @@
  * limitations under the License.
  */
 
-import debug from "./log";
-import {HeapBuffer} from "./buf";
+import {HeapBuffer} from './buf';
 import {newError} from './../error';
-import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_ON, ENCRYPTION_OFF} from './util';
+import {ENCRYPTION_ON, ENCRYPTION_OFF} from './util';
 
 /**
  * Create a new WebSocketChannel to be used in web browsers.
@@ -45,8 +44,7 @@ class WebSocketChannel {
 
     let scheme = "ws";
     //Allow boolean for backwards compatibility
-    if( opts.encrypted === true || opts.encrypted === ENCRYPTION_ON ||
-      (opts.encrypted === ENCRYPTION_NON_LOCAL && !isLocalHost(opts.host)) ) {
+    if( opts.encrypted === true || opts.encrypted === ENCRYPTION_ON) {
       if((!opts.trust) || opts.trust === "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" ) {
         scheme = "wss";
       } else {

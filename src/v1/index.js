@@ -58,11 +58,8 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  * options are as follows:
  *
  *     {
- *       // Encryption level: one of ENCRYPTION_ON, ENCRYPTION_OFF or ENCRYPTION_NON_LOCAL.
- *       // ENCRYPTION_NON_LOCAL is on by default in modern NodeJS installs,
- *       // but off by default in the Web Bundle and old (<=1.0.0) NodeJS installs
- *       // due to technical limitations on those platforms.
- *       encrypted: ENCRYPTION_ON|ENCRYPTION_OFF|ENCRYPTION_NON_LOCAL
+ *       // Encryption level: ENCRYPTION_ON or ENCRYPTION_OFF.
+ *       encrypted: ENCRYPTION_ON|ENCRYPTION_OFF
  *
  *       // Trust strategy to use if encryption is enabled. There is no mode to disable
  *       // trust other than disabling encryption altogether. The reason for

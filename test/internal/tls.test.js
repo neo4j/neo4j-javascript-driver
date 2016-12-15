@@ -21,7 +21,6 @@ var neo4j = require("../../lib/v1");
 var fs = require("fs");
 var path = require('path');
 var hasFeature = require("../../lib/v1/internal/features").default;
-var isLocalHost = require("../../lib/v1/internal/util").isLocalHost;
 
 describe('trust-signed-certificates', function() {
 
@@ -357,19 +356,6 @@ describe('trust-on-first-use', function() {
         "and no longer matches the certificate stored for localhost:7687");
       done();
     });
-  });
-
-  it('should detect localhost', function() {
-    expect(isLocalHost('localhost')).toBe(true);
-    expect(isLocalHost('LOCALHOST')).toBe(true);
-    expect(isLocalHost('localHost')).toBe(true);
-    expect(isLocalHost('127.0.0.1')).toBe(true);
-    expect(isLocalHost('127.0.0.11')).toBe(true);
-    expect(isLocalHost('127.1.0.0')).toBe(true);
-
-    expect(isLocalHost('172.1.0.0')).toBe(false);
-    expect(isLocalHost('127.0.0.0.0')).toBe(false);
-    expect(isLocalHost("google.com")).toBe(false);
   });
 
   afterEach(function(){

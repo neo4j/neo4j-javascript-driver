@@ -23,7 +23,7 @@ import fs from 'fs';
 import path from 'path';
 import {EOL} from 'os';
 import {NodeBuffer} from './buf';
-import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_OFF} from './util';
+import {ENCRYPTION_OFF} from './util';
 import {newError, SESSION_EXPIRED} from './../error';
 
 let _CONNECTION_IDGEN = 0;
@@ -226,8 +226,7 @@ const TrustStrategy = {
 
 function connect( opts, onSuccess, onFailure=(()=>null) ) {
   //still allow boolean for backwards compatibility
-  if (opts.encrypted === false || opts.encrypted === ENCRYPTION_OFF ||
-    (opts.encrypted === ENCRYPTION_NON_LOCAL && isLocalHost(opts.host))) {
+  if (opts.encrypted === false || opts.encrypted === ENCRYPTION_OFF) {
     var conn = net.connect(opts.port, opts.host, onSuccess);
     conn.on('error', onFailure);
     return conn;
