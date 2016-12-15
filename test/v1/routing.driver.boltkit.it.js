@@ -640,6 +640,7 @@ describe('routing driver ', function () {
         });
       });
   });
+
   it('should re-use connections', function (done) {
     if (!boltkit.BoltKitSupport) {
       done();
@@ -674,10 +675,60 @@ describe('routing driver ', function () {
     });
   });
 
-  function newDriver(url) {
-      // BoltKit currently does not support encryption, create driver with encryption turned off
-      return neo4j.driver(url, neo4j.auth.basic("neo4j", "neo4j"), {
-        encrypted: "ENCRYPTION_OFF"
+  it('should expose server info in cluster', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    // Given
+    var kit = new boltkit.BoltKit();
+    var routingServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    var writeServer = kit.start('./test/resources/boltkit/write_server_with_version.script', 9007);
+    var readServer = kit.start('./test/resources/boltkit/read_server_with_version.script', 9005);
+
+    kit.run(function () {
+      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+      // When
+      var readSession = driver.session(neo4j.session.READ);
+      readSession.run('MATCH (n) RETURN n.name').then(function (readResult) {
+        var writeSession = driver.session(neo4j.session.WRITE);
+        writeSession.run("CREATE (n {name:'Bob'})").then(function (writeResult) {
+            var readServerInfo = readResult.summary.server;
+            var writeServerInfo = writeResult.summary.server;
+
+            readSession.close();
+            writeSession.close();
+            driver.close();
+
+            routingServer.exit(function (routingServerExitCode) {
+              writeServer.exit(function (writeServerExitCode) {
+                readServer.exit(function (readServerExitCode) {
+
+                  expect(readServerInfo.address).toBe('127.0.0.1:9005');
+                  expect(readServerInfo.version).toBe('TheReadServerV1');
+
+                  expect(writeServerInfo.address).toBe('127.0.0.1:9007');
+                  expect(writeServerInfo.version).toBe('TheWriteServerV1');
+
+                  expect(routingServerExitCode).toEqual(0);
+                  expect(writeServerExitCode).toEqual(0);
+                  expect(readServerExitCode).toEqual(0);
+
+                  done();
+                });
+              });
+            });
+        })
       });
+    });
+  });
+
+  function newDriver(url) {
+    // BoltKit currently does not support encryption, create driver with encryption turned off
+    return neo4j.driver(url, neo4j.auth.basic("neo4j", "neo4j"), {
+      encrypted: "ENCRYPTION_OFF"
+    });
   }
+
 });
