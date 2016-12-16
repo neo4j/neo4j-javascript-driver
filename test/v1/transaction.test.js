@@ -236,4 +236,68 @@ describe('transaction', function() {
         done();
       });
   });
+
+  it('should rollback when very first run fails', done => {
+      const tx1 = session.beginTransaction();
+      tx1.run('RETURN foo')
+          .catch(error => {
+              expectSyntaxError(error);
+
+              const tx2 = session.beginTransaction();
+              tx2.run('RETURN 1')
+                  .then(result => {
+                      expect(result.records[0].get(0).toNumber()).toEqual(1);
+                      tx2.commit()
+                          .then(() => done());
+                  });
+          });
+  });
+
+  it('should rollback when some run fails', done => {
+      const tx1 = session.beginTransaction();
+      tx1.run('CREATE (:Person)')
+          .then(() => {
+              tx1.run('RETURN foo')
+                  .catch(error => {
+                      expectSyntaxError(error);
+
+                      const tx2 = session.beginTransaction();
+                      tx2.run('MATCH (n:Person) RETURN count(n)')
+                          .then(result => {
+                              expect(result.records[0].get(0).toNumber()).toEqual(0);
+                              tx2.commit()
+                                  .then(() => done());
+                          });
+                  });
+          });
+  });
+
+  it('should fail to commit transaction that had run failures', done => {
+      const tx1 = session.beginTransaction();
+      tx1.run('CREATE (:Person)')
+          .then(() => {
+              tx1.run('RETURN foo')
+                  .catch(error => {
+                      expectSyntaxError(error);
+                      tx1.commit()
+                          .catch(error => {
+                              const errorMessage = error.error;
+                              const index = errorMessage.indexOf('Cannot commit statements in this transaction');
+                              expect(index).not.toBeLessThan(0);
+
+                              const tx2 = session.beginTransaction();
+                              tx2.run('MATCH (n:Person) RETURN count(n)')
+                                  .then(result => {
+                                      expect(result.records[0].get(0).toNumber()).toEqual(0);
+                                      done();
+                                  });
+                          });
+                  });
+          });
+  });
+
+  function expectSyntaxError(error) {
+    const code = error.fields[0].code;
+    expect(code).toBe('Neo.ClientError.Statement.SyntaxError');
+  }
 });

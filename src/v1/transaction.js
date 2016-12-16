@@ -99,7 +99,13 @@ class Transaction {
   }
 
   _onError() {
-    this._onClose();
+    // rollback explicitly if tx.run failed, rollback
+    if (this._state == _states.ACTIVE) {
+        this.rollback();
+    } else {
+        // else just do the cleanup
+        this._onClose();
+    }
     this._state = _states.FAILED;
   }
 }
