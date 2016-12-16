@@ -152,6 +152,17 @@ describe('driver', function() {
     routingDriver.close();
   });
 
+  it('should fail when TRUST_ON_FIRST_USE is used with routing', () => {
+    const createRoutingDriverWithTOFU = () => {
+      driver = neo4j.driver('bolt+routing://localhost', neo4j.auth.basic('neo4j', 'neo4j'), {
+        encrypted: "ENCRYPTION_ON",
+          trust: 'TRUST_ON_FIRST_USE'
+      });
+    };
+
+    expect(createRoutingDriverWithTOFU).toThrow();
+  });
+
   var exposedTypes = [
     'Node',
     'Path',

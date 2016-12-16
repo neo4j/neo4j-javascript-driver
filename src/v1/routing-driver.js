@@ -30,7 +30,7 @@ import Integer from './integer'
 class RoutingDriver extends Driver {
 
   constructor(url, userAgent, token = {}, config = {}) {
-    super(url, userAgent, token, config);
+    super(url, userAgent, token, RoutingDriver._validateConfig(config));
     this._clusterView = new ClusterView(new RoundRobinArray([url]));
   }
 
@@ -147,6 +147,13 @@ class RoutingDriver extends Driver {
   _forget(url) {
     this._pool.purge(url);
     this._clusterView.remove(url);
+  }
+
+  static _validateConfig(config) {
+    if(config.trust === 'TRUST_ON_FIRST_USE') {
+      throw newError('The chosen trust mode is not compatible with a routing driver');
+    }
+    return config;
   }
 }
 
