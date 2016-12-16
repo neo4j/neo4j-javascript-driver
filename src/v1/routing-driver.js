@@ -29,7 +29,7 @@ import Integer from './integer'
  */
 class RoutingDriver extends Driver {
 
-  constructor(url, userAgent = 'neo4j-javascript/0.0', token = {}, config = {}) {
+  constructor(url, userAgent, token = {}, config = {}) {
     super(url, userAgent, token, config);
     this._clusterView = new ClusterView(new RoundRobinArray([url]));
   }

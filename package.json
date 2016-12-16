@@ -15,7 +15,8 @@
     "start-neo4j": "gulp start-neo4j",
     "stop-neo4j": "gulp stop-neo4j",
     "run-tck": "gulp run-tck",
-    "docs": "node_modules/.bin/esdoc -c esdoc.json"
+    "docs": "node_modules/.bin/esdoc -c esdoc.json",
+    "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version"
   },
   "main": "lib/index.js",
   "devDependencies": {
@@ -52,6 +53,7 @@
     "minimist": "^1.2.0",
     "phantomjs-prebuilt": "^2.1.7 ",
     "run-sequence": "^1.1.4",
+    "semver": "^5.3.0",
     "through2": "~2.0.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
