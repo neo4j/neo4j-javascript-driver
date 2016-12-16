@@ -468,9 +468,9 @@ function connect( url, config = {}) {
     host: parseHost(url),
     port: parsePort(url) || 7687,
     // Default to using encryption if trust-on-first-use is available
-    encrypted : (config.encrypted == null) ?  hasFeature("trust_on_first_use") : config.encrypted,
-    // Default to using TRUST_ON_FIRST_USE if it is available
-    trust : config.trust || (hasFeature("trust_on_first_use") ? "TRUST_ON_FIRST_USE" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
+    encrypted : (config.encrypted == null) ?  hasFeature("trust_all_certificates") : config.encrypted,
+    // Default to using TRUST_ALL_CERTIFICATES if it is available
+    trust : config.trust || (hasFeature("trust_all_certificates") ? "TRUST_ALL_CERTIFICATES" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
     knownHosts : config.knownHosts
   }), url);

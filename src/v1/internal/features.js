@@ -26,9 +26,18 @@ const FEATURES = {
       // This is insane. We are verifying that we have a version of getPeerCertificate
       // that supports reading the whole certificate, eg this commit:
       // https://github.com/nodejs/node/commit/345c40b6
-      let desc = require('tls').TLSSocket.prototype.getPeerCertificate;
-      return desc.length >= 1;
+      const getPeerCertificateFunction = require('tls').TLSSocket.prototype.getPeerCertificate;
+      const numberOfParameters = getPeerCertificateFunction.length;
+      return numberOfParameters >= 1;
     } catch( e ) {
+      return false;
+    }
+  },
+  trust_all_certificates: () => {
+    try {
+      const getPeerCertificateFunction = require('tls').TLSSocket.prototype.getPeerCertificate;
+      return true;
+    } catch (e) {
       return false;
     }
   }

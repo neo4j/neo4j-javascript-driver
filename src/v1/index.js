@@ -66,7 +66,10 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // this is that if you don't know who you are talking to, it is easy for an
  *       // attacker to hijack your encrypted connection, rendering encryption pointless.
  *       //
- *       // TRUST_ON_FIRST_USE is the default for modern NodeJS deployments, and works
+ *       // TRUST_ALL_CERTIFICATES is the default choice for NodeJS deployments. It only requires
+ *       // new host to provide a certificate and does no verification of the provided certificate.
+ *       //
+ *       // TRUST_ON_FIRST_USE is available for modern NodeJS deployments, and works
  *       // similarly to how `ssl` works - the first time we connect to a new host,
  *       // we remember the certificate they use. If the certificate ever changes, we
  *       // assume it is an attempt to hijack the connection and require manual intervention.
@@ -81,8 +84,8 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  *       //
  *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES meand that you trust whatever certificates
  *       // are in the default certificate chain of th
- *       trust: "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES" | TRUST_CUSTOM_CA_SIGNED_CERTIFICATES |
- * TRUST_SYSTEM_CA_SIGNED_CERTIFICATES,
+ *       trust: "TRUST_ALL_CERTIFICATES" | "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES" |
+  *       "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" | "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES",
  *
  *       // List of one or more paths to trusted encryption certificates. This only
  *       // works in the NodeJS bundle, and only matters if you use "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES".

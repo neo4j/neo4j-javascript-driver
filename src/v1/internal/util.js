@@ -20,7 +20,22 @@
 const ENCRYPTION_ON = "ENCRYPTION_ON";
 const ENCRYPTION_OFF = "ENCRYPTION_OFF";
 
+function isEmptyObjectOrNull(object) {
+    if (!object) {
+        return true;
+    }
+
+    for (let prop in object) {
+        if (object.hasOwnProperty(prop)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export {
+    isEmptyObjectOrNull,
     ENCRYPTION_ON,
     ENCRYPTION_OFF
 }
