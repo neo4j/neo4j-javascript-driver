@@ -19,8 +19,6 @@
 
 var neo4jv1 = require("../../lib/v1");
 
-var _console = console;
-
 /**
 * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
 *
@@ -29,7 +27,12 @@ var _console = console;
 */
 describe('examples', function() {
 
-  var driverGlobal, out, console, originalTimeout;
+  var driverGlobal;
+  var console;
+  var originalTimeout;
+
+  var testResultPromise;
+  var resolveTestResultPromise;
 
   beforeAll(function () {
     var neo4j = neo4jv1;
@@ -44,9 +47,13 @@ describe('examples', function() {
 
   beforeEach(function(done) {
 
+    testResultPromise = new Promise(function (resolve, reject) {
+      resolveTestResultPromise = resolve;
+    });
+
     // Override console.log, to assert on stdout output
-    out = [];
-    console = { log: function(msg) { out.push(msg); }  };
+    console = {log: resolveTestResultPromise};
+
     var session = driverGlobal.session();
     session.run("MATCH (n) DETACH DELETE n").then(function () {
       session.close();
@@ -81,12 +88,13 @@ describe('examples', function() {
         console.log( result.records[0].get("title") + " " + result.records[0].get("name") );
         session.close();
         driver.close();
-      })
-    // end::minimal-example[]
-      .then(function() {
-        expect(out[0]).toBe("King Arthur");
-        done();
       });
+    // end::minimal-example[]
+
+    testResultPromise.then(function (loggedMsg) {
+      expect(loggedMsg).toBe("King Arthur");
+      done();
+    });
   });
 
   it('should be able to configure session pool size', function (done) {
@@ -102,10 +110,11 @@ describe('examples', function() {
         console.log(theOnesCreated);
         s.close();
         driver.close();
-      })
-      .then(function() {
-        expect(out[0]).toBe(1);
-        done();
+      });
+
+    testResultPromise.then(function (loggedCount) {
+      expect(loggedCount).toBe(1);
+      done();
     });
   });
 
@@ -119,11 +128,12 @@ describe('examples', function() {
         var theOnesCreated = result.summary.counters.nodesCreated();
         console.log("There were " + theOnesCreated + " the ones created.");
         session.close();
-      })
-      .then(function() {
-        expect(out[0]).toBe("There were 1 the ones created.");
-        done();
       });
+
+    testResultPromise.then(function (loggedMsg) {
+      expect(loggedMsg).toBe("There were 1 the ones created.");
+      done();
+    });
   });
 
   it('should document a statement without parameters', function(done) {
@@ -139,10 +149,10 @@ describe('examples', function() {
       });
 
     // Then
-    setTimeout(function() {
-      expect(out[0]).toBe("There were 1 the ones created.");
+    testResultPromise.then(function(loggedMsg){
+      expect(loggedMsg).toBe("There were 1 the ones created.");
       done();
-    }, 1000)
+    });
   });
 
   it('should be able to iterate results', function(done) {
@@ -167,11 +177,12 @@ describe('examples', function() {
         });
     // end::result-traversal[]
     });
+
     // Then
-    setTimeout(function() {
-      expect(out[0]).toBe("Sword in the stone");
+    testResultPromise.then(function(loggedMsg){
+      expect(loggedMsg).toBe("Sword in the stone");
       done();
-    }, 1000);
+    });
   });
 
   it('should be able to access records', function(done) {
@@ -205,10 +216,10 @@ describe('examples', function() {
       });
 
     // Then
-    setTimeout(function() {
-      expect(out[0].length).toBe(3);
+    testResultPromise.then(function(loggedCount){
+      expect(loggedCount.length).toBe(3);
       done();
-    }, 1000)
+    });
   });
 
   it('should be able to retain for later processing', function(done) {
@@ -238,15 +249,14 @@ describe('examples', function() {
       // end::retain-result[]
     });
 
-    //await the result
-    setTimeout(function() {
-      expect(out[0]).toBe("Lancelot is a knight of Camelot");
+    testResultPromise.then(function(loggedMsg){
+      expect(loggedMsg).toBe("Lancelot is a knight of Camelot");
       done();
-    }, 1000);
+    });
   });
 
   it('should be able to do nested queries', function(done) {
-    var session = driverGlobal.session();;
+    var session = driverGlobal.session();
     session
       .run( "CREATE (knight:Person:Knight {name: {name1}, castle: {castle}})" +
             "CREATE (king:Person {name: {name2}, title: {title}})",
@@ -277,11 +287,10 @@ describe('examples', function() {
         // end::nested-statements[]
         });
 
-    //await the result
-    setTimeout(function() {
-      expect(out[0]).toBe("Count is 1");
+    testResultPromise.then(function(loggedMsg){
+      expect(loggedMsg).toBe("Count is 1");
       done();
-    }, 1000);
+    });
   });
 
   it('should be able to handle cypher error', function(done) {
@@ -289,13 +298,17 @@ describe('examples', function() {
 
     // tag::handle-cypher-error[]
     session
-      .run("Then will cause a syntax error")
+      .run("This will cause a syntax error")
       .catch( function(err) {
-        expect(err.fields[0].code).toBe( "Neo.ClientError.Statement.SyntaxError" );
+        console.log(err);
         session.close();
-        done();
       });
     // end::handle-cypher-error[]
+
+    testResultPromise.then(function(loggedError){
+      expect(loggedError.fields[0].code).toBe( "Neo.ClientError.Statement.SyntaxError" );
+      done();
+    });
   });
 
   it('should be able to profile', function(done) {
@@ -306,18 +319,16 @@ describe('examples', function() {
       session
         .run("PROFILE MATCH (p:Person {name: {name}}) RETURN id(p)", {name: "Arthur"})
         .then(function (result) {
-          //_console.log(result.summary.profile);
           console.log(result.summary.profile);
           session.close();
         });
       // end::result-summary-query-profile[]
     });
 
-    //await the result
-    setTimeout(function() {
-      expect(out.length).toBe(1);
+    testResultPromise.then(function (loggedMsg) {
+      expect(loggedMsg).toBeDefined();
       done();
-    }, 2000);
+    });
   });
 
   it('should be able to see notifications', function(done) {
@@ -335,10 +346,10 @@ describe('examples', function() {
       });
     // end::result-summary-notifications[]
 
-    setTimeout(function () {
-      expect(out[0]).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
+    testResultPromise.then(function (loggedMsg) {
+      expect(loggedMsg).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
       done();
-    }, 1000);
+    });
   });
 
   it('should document committing a transaction', function() {
@@ -352,7 +363,7 @@ describe('examples', function() {
   });
 
   it('should document rolling back a transaction', function() {
-    var session = driverGlobal.session();;
+    var session = driverGlobal.session();
 
     // tag::transaction-rollback[]
     var tx = session.beginTransaction();
