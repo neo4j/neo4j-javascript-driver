@@ -365,7 +365,7 @@ describe('examples', function() {
     var neo4j = neo4jv1;
     // tag::tls-require-encryption[]
     var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {
-      //In NodeJS, encryption is ENCRYPTION_NON_LOCAL on by default. In the web bundle, it is ENCRYPTION_OFF.
+        // In NodeJS, encryption is on by default. In the web bundle, it is off.
       encrypted:"ENCRYPTION_ON"
     });
     // end::tls-require-encryption[]
@@ -377,10 +377,10 @@ describe('examples', function() {
     // tag::tls-trust-on-first-use[]
     var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {
       // Note that trust-on-first-use is not available in the browser bundle,
-      // in NodeJS, trust-on-first-use is the default trust mode. In the browser
+      // in NodeJS, trust-all-certificates is the default trust mode. In the browser
       // it is TRUST_CUSTOM_CA_SIGNED_CERTIFICATES.
       trust: "TRUST_ON_FIRST_USE",
-      encrypted:"ENCRYPTION_NON_LOCAL"
+      encrypted:"ENCRYPTION_ON"
     });
     // end::tls-trust-on-first-use[]
     driver.close();
@@ -395,7 +395,7 @@ describe('examples', function() {
       // in NodeJS. In the browser bundle the browsers list of trusted
       // certificates is used, due to technical limitations in some browsers.
       trustedCertificates : ["path/to/ca.crt"],
-      encrypted:"ENCRYPTION_NON_LOCAL"
+      encrypted:"ENCRYPTION_ON"
     });
     // end::tls-signed[]
     driver.close();
@@ -406,7 +406,7 @@ describe('examples', function() {
     // tag::connect-with-auth-disabled[]
     var driver = neo4j.driver("bolt://localhost:7687", {
       // In NodeJS, encryption is on by default. In the web bundle, it is off.
-      encrypted:"ENCRYPTION_NON_LOCAL"
+      encrypted:"ENCRYPTION_ON"
     });
     // end::connect-with-auth-disabled[]
     driver.close();
