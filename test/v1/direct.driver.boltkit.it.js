@@ -33,7 +33,10 @@ describe('direct driver', function() {
     var server = kit.start('./test/resources/boltkit/return_x.script', 9001);
 
     kit.run(function () {
-        var driver = neo4j.driver("bolt://localhost:9001", neo4j.auth.basic("neo4j", "neo4j"));
+        // BoltKit currently does not support encryption, create driver with encryption turned off
+        var driver = neo4j.driver("bolt://localhost:9001", neo4j.auth.basic("neo4j", "neo4j"), {
+          encrypted: "ENCRYPTION_OFF"
+        });
         // When
         var session = driver.session();
         // Then

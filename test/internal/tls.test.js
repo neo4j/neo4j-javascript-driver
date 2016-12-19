@@ -16,19 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var NodeChannel = require('../../lib/v1/internal/ch-node.js');
+var NodeChannel = require('../../lib/v1/internal/ch-node.js').default;
 var neo4j = require("../../lib/v1");
 var fs = require("fs");
 var path = require('path');
 var hasFeature = require("../../lib/v1/internal/features").default;
-var isLocalHost = require("../../lib/v1/internal/util").isLocalHost;
 
 describe('trust-signed-certificates', function() {
 
   var driver;
-  var log = console.log;
+  var log;
   beforeEach(function() {
-    console.log = function () {}; // To mute deprecation message in test output
+    log = muteConsoleLog();
   });
   it('should reject unknown certificates', function(done) {
     // Assuming we only run this test on NodeJS
@@ -91,7 +90,37 @@ describe('trust-signed-certificates', function() {
     if( driver ) {
       driver.close();
     }
-    console.log = log;
+    unMuteConsoleLog(log);
+  });
+});
+
+describe('trust-all-certificates', function () {
+
+  var driver;
+  it('should work with default certificate', function (done) {
+    // Assuming we only run this test on NodeJS with TAC support
+    if (!hasFeature("trust_all_certificates")) {
+      done();
+      return;
+    }
+
+    // Given
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+      encrypted: "ENCRYPTION_ON",
+      trust: "TRUST_ALL_CERTIFICATES"
+    });
+
+    // When
+    driver.session().run("RETURN 1").then(function (result) {
+      expect(result.records[0].get(0).toNumber()).toBe(1);
+      done();
+    });
+  });
+
+  afterEach(function () {
+    if (driver) {
+      driver.close();
+    }
   });
 });
 
@@ -172,7 +201,12 @@ describe('trust-system-ca-signed-certificates', function() {
 describe('trust-on-first-use', function() {
 
   var driver;
+  var log;
+  beforeEach(function() {
+    log = muteConsoleLog();
+  });
   afterEach(function(){
+    unMuteConsoleLog(log);
     if( driver ) {
       driver.close();
     }
@@ -359,22 +393,20 @@ describe('trust-on-first-use', function() {
     });
   });
 
-  it('should detect localhost', function() {
-    expect(isLocalHost('localhost')).toBe(true);
-    expect(isLocalHost('LOCALHOST')).toBe(true);
-    expect(isLocalHost('localHost')).toBe(true);
-    expect(isLocalHost('127.0.0.1')).toBe(true);
-    expect(isLocalHost('127.0.0.11')).toBe(true);
-    expect(isLocalHost('127.1.0.0')).toBe(true);
-
-    expect(isLocalHost('172.1.0.0')).toBe(false);
-    expect(isLocalHost('127.0.0.0.0')).toBe(false);
-    expect(isLocalHost("google.com")).toBe(false);
-  });
-
   afterEach(function(){
     if( driver ) {
       driver.close();
     }
   });
 });
+
+// To mute deprecation message in test output
+function muteConsoleLog() {
+  const originalLog = console.log;
+  console.log = () => {};
+  return originalLog;
+}
+
+function unMuteConsoleLog(originalLog) {
+  console.log = originalLog;
+}

@@ -16,15 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import net from 'net';
-import tls from 'tls';
-import fs from 'fs';
-import path from 'path';
-import {EOL} from 'os';
-import {NodeBuffer} from './buf';
-import {isLocalHost, ENCRYPTION_NON_LOCAL, ENCRYPTION_OFF} from './util';
-import {newError, SESSION_EXPIRED} from './../error';
+import net from "net";
+import tls from "tls";
+import fs from "fs";
+import path from "path";
+import {EOL} from "os";
+import {NodeBuffer} from "./buf";
+import {ENCRYPTION_OFF, isEmptyObjectOrNull} from "./util";
+import {newError, SESSION_EXPIRED} from "./../error";
 
 let _CONNECTION_IDGEN = 0;
 
@@ -106,7 +105,7 @@ function storeFingerprint( serverId, knownHostsPath, fingerprint, cb ) {
 
 const TrustStrategy = {
   /**
-   * @deprecated Since version 1.0. Will be deleted in a future version. TRUST_CUSTOM_CA_SIGNED_CERTIFICATES.
+   * @deprecated Since version 1.0. Will be deleted in a future version. {@link #TRUST_CUSTOM_CA_SIGNED_CERTIFICATES}.
    */
   TRUST_SIGNED_CERTIFICATES: function( opts, onSuccess, onFailure ) {
     console.log("`TRUST_SIGNED_CERTIFICATES` has been deprecated as option and will be removed in a future version of " +
@@ -119,7 +118,7 @@ const TrustStrategy = {
         "to verify trust for encrypted  connections, but have not configured any " +
         "trustedCertificates. You  must specify the path to at least one trusted " +
         "X.509 certificate for this to work. Two other alternatives is to use " +
-        "TRUST_ON_FIRST_USE or to disable encryption by setting encrypted=\"" + ENCRYPTION_OFF + "\"" +
+        "TRUST_ALL_CERTIFICATES or to disable encryption by setting encrypted=\"" + ENCRYPTION_OFF + "\"" +
         "in your driver configuration."));
       return;
     }
@@ -169,7 +168,13 @@ const TrustStrategy = {
     socket.on('error', onFailure);
     return socket;
   },
+  /**
+   * @deprecated in 1.1 in favour of {@link #TRUST_ALL_CERTIFICATES}. Will be deleted in a future version.
+   */
   TRUST_ON_FIRST_USE : function( opts, onSuccess, onFailure ) {
+      console.log("`TRUST_ON_FIRST_USE` has been deprecated as option and will be removed in a future version of " +
+          "the driver. Please use `TRUST_ALL_CERTIFICATES` instead.");
+
     let tlsOpts = {
       // Because we manually verify the certificate against known_hosts
       rejectUnauthorized: false
@@ -221,13 +226,32 @@ const TrustStrategy = {
     });
     socket.on('error', onFailure);
     return socket;
+  },
+
+  TRUST_ALL_CERTIFICATES: function (opts, onSuccess, onFailure) {
+    const tlsOpts = {
+      rejectUnauthorized: false
+    };
+    const socket = tls.connect(opts.port, opts.host, tlsOpts, function () {
+      const certificate = socket.getPeerCertificate();
+      if (isEmptyObjectOrNull(certificate)) {
+        onFailure(newError("Secure connection was successful but server did not return any valid " +
+            "certificates. Such connection can not be trusted. If you are just trying " +
+            " Neo4j out and are not concerned about encryption, simply disable it using " +
+            "`encrypted=\"" + ENCRYPTION_OFF + "\"` in the driver options. " +
+            "Socket responded with: " + socket.authorizationError));
+      } else {
+        onSuccess();
+      }
+    });
+    socket.on('error', onFailure);
+    return socket;
   }
 };
 
 function connect( opts, onSuccess, onFailure=(()=>null) ) {
   //still allow boolean for backwards compatibility
-  if (opts.encrypted === false || opts.encrypted === ENCRYPTION_OFF ||
-    (opts.encrypted === ENCRYPTION_NON_LOCAL && isLocalHost(opts.host))) {
+  if (opts.encrypted === false || opts.encrypted === ENCRYPTION_OFF) {
     var conn = net.connect(opts.port, opts.host, onSuccess);
     conn.on('error', onFailure);
     return conn;
@@ -235,7 +259,7 @@ function connect( opts, onSuccess, onFailure=(()=>null) ) {
     return TrustStrategy[opts.trust](opts, onSuccess, onFailure);
   } else {
     onFailure(newError("Unknown trust strategy: " + opts.trust + ". Please use either " +
-      "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' or trust:'TRUST_ON_FIRST_USE' in your driver " +
+      "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' or trust:'TRUST_ALL_CERTIFICATES' in your driver " +
       "configuration. Alternatively, you can disable encryption by setting " +
       "`encrypted:\"" + ENCRYPTION_OFF + "\"`. There is no mechanism to use encryption without trust verification, " +
       "because this incurs the overhead of encryption without improving security. If " +
