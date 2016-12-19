@@ -47,7 +47,9 @@ module.exports = function () {
         givenResults.push(getTestObject(res.records[i]));
       }
       if ( givenResults.length != self.expectedResults.length) {
-        callback(new Error("Given and expected length of result array does not match. Give: " + givenResults.length + " Expected " + self.expectedResults.length));
+        callback(new Error("Given and expected length of result array does not match.\n" +
+            "Given length: " + givenResults.length + " Expected length" + self.expectedResults.length + "\n" +
+            "Given: " + printable(givenResults) + " Expected: " + expectedPrint));
       }
       if (!compareResults(givenResults, self.expectedResults) ) {
         callback(new Error("Given and expected results does not match: " + printable(givenResults) + " Expected " + expectedPrint));
