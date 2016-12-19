@@ -682,44 +682,102 @@ describe('routing driver ', function () {
     }
 
     // Given
-    var kit = new boltkit.BoltKit();
-    var routingServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var writeServer = kit.start('./test/resources/boltkit/write_server_with_version.script', 9007);
-    var readServer = kit.start('./test/resources/boltkit/read_server_with_version.script', 9005);
+    const kit = new boltkit.BoltKit();
+    const routingServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const writeServer = kit.start('./test/resources/boltkit/write_server_with_version.script', 9007);
+    const readServer = kit.start('./test/resources/boltkit/read_server_with_version.script', 9005);
 
     kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var readSession = driver.session(neo4j.session.READ);
-      readSession.run('MATCH (n) RETURN n.name').then(function (readResult) {
-        var writeSession = driver.session(neo4j.session.WRITE);
-        writeSession.run("CREATE (n {name:'Bob'})").then(function (writeResult) {
-            var readServerInfo = readResult.summary.server;
-            var writeServerInfo = writeResult.summary.server;
+      const readSession = driver.session(neo4j.session.READ);
+      readSession.run('MATCH (n) RETURN n.name').then(readResult => {
+        const writeSession = driver.session(neo4j.session.WRITE);
+        writeSession.run("CREATE (n {name:'Bob'})").then(writeResult => {
+          const readServerInfo = readResult.summary.server;
+          const writeServerInfo = writeResult.summary.server;
 
-            readSession.close();
-            writeSession.close();
-            driver.close();
+          readSession.close();
+          writeSession.close();
+          driver.close();
 
-            routingServer.exit(function (routingServerExitCode) {
-              writeServer.exit(function (writeServerExitCode) {
-                readServer.exit(function (readServerExitCode) {
+          routingServer.exit(routingServerExitCode => {
+            writeServer.exit(writeServerExitCode => {
+              readServer.exit(readServerExitCode => {
 
-                  expect(readServerInfo.address).toBe('127.0.0.1:9005');
-                  expect(readServerInfo.version).toBe('TheReadServerV1');
+                expect(readServerInfo.address).toBe('127.0.0.1:9005');
+                expect(readServerInfo.version).toBe('TheReadServerV1');
 
-                  expect(writeServerInfo.address).toBe('127.0.0.1:9007');
-                  expect(writeServerInfo.version).toBe('TheWriteServerV1');
+                expect(writeServerInfo.address).toBe('127.0.0.1:9007');
+                expect(writeServerInfo.version).toBe('TheWriteServerV1');
 
-                  expect(routingServerExitCode).toEqual(0);
-                  expect(writeServerExitCode).toEqual(0);
-                  expect(readServerExitCode).toEqual(0);
+                expect(routingServerExitCode).toEqual(0);
+                expect(writeServerExitCode).toEqual(0);
+                expect(readServerExitCode).toEqual(0);
 
-                  done();
-                });
+                done();
               });
             });
+          });
         })
+      });
+    });
+  });
+
+  it('should expose server info in cluster using observer', function (done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    // Given
+    const kit = new boltkit.BoltKit();
+    const routingServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const writeServer = kit.start('./test/resources/boltkit/write_server_with_version.script', 9007);
+    const readServer = kit.start('./test/resources/boltkit/read_server_with_version.script', 9005);
+
+    kit.run(function () {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
+      // When
+      const readSession = driver.session(neo4j.session.READ);
+      readSession.run('MATCH (n) RETURN n.name').subscribe({
+        onNext: () => {
+        },
+        onError: () => {
+        },
+        onCompleted: readSummary => {
+          const writeSession = driver.session(neo4j.session.WRITE);
+          writeSession.run("CREATE (n {name:'Bob'})").subscribe({
+            onNext: () => {
+            },
+            onError: () => {
+            },
+            onCompleted: writeSummary => {
+              readSession.close();
+              writeSession.close();
+              driver.close();
+
+              routingServer.exit(function (routingServerExitCode) {
+                writeServer.exit(function (writeServerExitCode) {
+                  readServer.exit(function (readServerExitCode) {
+
+                    expect(readSummary.server.address).toBe('127.0.0.1:9005');
+                    expect(readSummary.server.version).toBe('TheReadServerV1');
+
+                    expect(writeSummary.server.address).toBe('127.0.0.1:9007');
+                    expect(writeSummary.server.version).toBe('TheWriteServerV1');
+
+                    expect(routingServerExitCode).toEqual(0);
+                    expect(writeServerExitCode).toEqual(0);
+                    expect(readServerExitCode).toEqual(0);
+
+                    done();
+                  });
+                });
+              });
+            }
+          })
+        }
       });
     });
   });
