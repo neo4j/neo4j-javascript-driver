@@ -26,11 +26,11 @@ import {Node, Relationship, UnboundRelationship, Path, PathSegment} from '../gra
 import {newError} from './../error';
 
 let Channel;
-if( WebSocketChannel.available ) {
-    Channel = WebSocketChannel.channel;
+if( NodeChannel.available ) {
+  Channel = NodeChannel.channel;
 }
-else if( NodeChannel.available ) {
-    Channel = NodeChannel.channel;
+else if( WebSocketChannel.available ) {
+    Channel = WebSocketChannel.channel;
 }
 else {
     throw newError("Fatal: No compatible transport available. Need to run on a platform with the WebSocket API.");
