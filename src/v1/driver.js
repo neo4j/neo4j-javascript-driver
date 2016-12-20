@@ -67,8 +67,8 @@ class Driver {
    */
   _createConnection(url, release) {
     let sessionId = this._sessionIdGenerator++;
-    let streamObserver = new _ConnectionStreamObserver(this);
     let conn = connect(url, this._config);
+    let streamObserver = new _ConnectionStreamObserver(this, conn);
     conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
     conn._release = () => release(url, conn);
@@ -172,9 +172,10 @@ class Driver {
 
 /** Internal stream observer used for connection state */
 class _ConnectionStreamObserver extends StreamObserver {
-  constructor(driver) {
+  constructor(driver, conn) {
     super();
     this._driver = driver;
+    this._conn = conn;
     this._hasFailed = false;
   }
 
@@ -191,6 +192,9 @@ class _ConnectionStreamObserver extends StreamObserver {
   onCompleted(message) {
     if (this._driver.onCompleted) {
       this._driver.onCompleted(message);
+    }
+    if (this._conn && message && message.server) {
+      this._conn.setServerVersion(message.server);
     }
   }
 }

@@ -193,6 +193,7 @@ class Connection {
      * to the next pending observer.
      */
     this.url = url;
+    this.server = {address: url};
     this._pendingObservers = [];
     this._currentObserver = undefined;
     this._ch = channel;
@@ -453,6 +454,10 @@ class Connection {
   _packable(value) {
       return this._packer.packable(value, (err) => this._handleFatalError(err));
   }
+
+  setServerVersion(version) {
+    this.server.version = version;
+  }
 }
 
 /**
@@ -464,6 +469,10 @@ class Connection {
  */
 function connect( url, config = {}) {
   let Ch = config.channel || Channel;
+  const host = parseHost(url);
+  const port = parsePort(url) || 7687;
+  const completeUrl = host + ':' + port;
+
   return new Connection( new Ch({
     host: parseHost(url),
     port: parsePort(url) || 7687,
@@ -473,7 +482,7 @@ function connect( url, config = {}) {
     trust : config.trust || (hasFeature("trust_all_certificates") ? "TRUST_ALL_CERTIFICATES" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
     knownHosts : config.knownHosts
-  }), url);
+  }), completeUrl);
 }
 
 export {

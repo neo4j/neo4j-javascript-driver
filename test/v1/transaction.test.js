@@ -296,8 +296,67 @@ describe('transaction', function() {
           });
   });
 
+  it('should expose server info on successful query', function (done) {
+    if (neo4jVersionOlderThan31(done)) {
+      return;
+    }
+
+    // Given
+    const statement = 'RETURN 1';
+
+    // When & Then
+    const tx = session.beginTransaction();
+    tx.run(statement)
+      .then(result => {
+        const sum = result.summary;
+        expect(sum.server).toBeDefined();
+        expect(sum.server.address).toEqual('localhost:7687');
+        expect(sum.server.version).toBeDefined();
+      });
+    tx.commit().then(done);
+  });
+
+  it('should expose server info on successful query using observer', function (done) {
+    if (neo4jVersionOlderThan31(done)) {
+      return;
+    }
+
+    // Given
+    const statement = 'RETURN 1';
+
+    // When & Then
+    const tx = session.beginTransaction();
+    tx.run(statement)
+      .subscribe({
+        onNext: record => {
+        },
+        onError: error => {
+        },
+        onCompleted: summary => {
+          const server = summary.server;
+
+          expect(server).toBeDefined();
+          expect(server.address).toEqual('localhost:7687');
+          expect(server.version).toBeDefined();
+
+          done();
+        }
+      });
+  });
+
   function expectSyntaxError(error) {
     const code = error.fields[0].code;
     expect(code).toBe('Neo.ClientError.Statement.SyntaxError');
+  }
+
+  function neo4jVersionOlderThan31(done) {
+    //lazy way of checking the version number
+    //if server has been set we know it is at least
+    //3.1 (todo actually parse the version string)
+    if (!server) {
+      done();
+      return true;
+    }
+    return false;
   }
 });

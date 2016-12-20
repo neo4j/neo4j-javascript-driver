@@ -40,6 +40,7 @@ class ResultSummary {
     this.plan = metadata.plan || metadata.profile ? new Plan(metadata.plan || metadata.profile) : false;
     this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false;
     this.notifications = this._buildNotifications(metadata.notifications);
+    this.server = new ServerInfo(metadata.server);
     this.resultConsumedAfter = metadata.result_consumed_after;
     this.resultAvailableAfter = metadata.result_available_after;
   }
@@ -250,6 +251,24 @@ class Notification {
       offset: pos.offset.toInt(),
       line: pos.line.toInt(),
       column: pos.column.toInt()
+    }
+  }
+}
+
+/**
+  * Class for exposing server info from a result.
+  * @access public
+  */
+class ServerInfo {
+  /**
+   * Create a ServerInfo instance
+   * @constructor
+   * @param {Object} serverMeta - Object with serverMeta data
+   */
+  constructor(serverMeta) {
+    if (serverMeta) {
+      this.address = serverMeta.address;
+      this.version = serverMeta.version;
     }
   }
 }
