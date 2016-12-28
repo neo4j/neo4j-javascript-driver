@@ -13,11 +13,20 @@ Resources to get you started:
 
 ## Include module in Node.js application
 
+Stable channel:
 ```shell
 npm install neo4j-driver
 // or
 bower install neo4j-driver
 ```
+
+Pre-release channel:
+```shell
+npm install neo4j-driver@next
+```
+
+Please note that `@next` only points to pre-releases that are not suitable for production use.
+To get the latest stable release omit `@next` part altogether or use `@latest` instead.
 
 ```javascript
 var neo4j = require('neo4j-driver').v1;

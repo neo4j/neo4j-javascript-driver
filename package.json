@@ -16,8 +16,7 @@
     "stop-neo4j": "gulp stop-neo4j",
     "run-tck": "gulp run-tck",
     "docs": "esdoc -c esdoc.json",
-    "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version",
-    "publishRelease": "npm-publish-safe-latest next"
+    "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version"
   },
   "main": "lib/index.js",
   "devDependencies": {
@@ -52,7 +51,6 @@
     "jasmine-reporters": "^2.0.7",
     "merge-stream": "^1.0.0",
     "minimist": "^1.2.0",
-    "npm-publish-safe-latest": "^1.1.6",
     "phantomjs-prebuilt": "^2.1.7 ",
     "run-sequence": "^1.1.4",
     "semver": "^5.3.0",
