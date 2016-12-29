@@ -187,6 +187,6 @@ export {
   auth,
   types,
   session,
-  error,
+  error
 }
 export default forExport
