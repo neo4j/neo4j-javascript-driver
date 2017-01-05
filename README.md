@@ -139,6 +139,13 @@ if (success) {
 }
 ```
 
+Subscriber API allows following combinations of `onNext`, `onCompleted` and `onError` callback invocations:
+ * zero or more `onNext` followed by `onCompleted` when operation was successful. `onError` will not be invoked 
+ in this case
+ * zero or more `onNext` followed by `onError` when operation failed. Callback `onError` might be invoked after 
+ couple `onNext` invocations because records are streamed lazily by the database. `onCompleted` will not be invoked 
+ in this case
+
 ## Building
 
     npm install
