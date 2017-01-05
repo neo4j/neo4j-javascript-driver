@@ -31,6 +31,13 @@ To get the latest stable release omit `@next` part altogether or use `@latest` i
 ```javascript
 var neo4j = require('neo4j-driver').v1;
 ```
+Driver instance should be closed when Node.js application exits:
+
+```javascript
+driver.close();
+```
+
+otherwise application shutdown might hang or it might exit with a non-zero exit code.
 
 ## Include in web browser
 
@@ -44,6 +51,14 @@ This will make a global `neo4j` object available, where you can access the `v1` 
 
 ```javascript
 var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+```
+
+It is not required to explicitly close the driver on a web page. Web browser should gracefully close all open 
+WebSockets when the page is unloaded. However, driver instance should be explicitly closed when it's lifetime
+is not the same as the lifetime of the web page:
+ 
+```javascript
+driver.close();
 ```
 
 ## Usage examples
