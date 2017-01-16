@@ -98,7 +98,7 @@ class Packer {
       return () => this.packFloat(x);
     } else if (typeof(x) == "string") {
       return () => this.packString(x, onError);
-    } else if (x instanceof Integer) {
+    } else if (Integer.isInteger(x)) {
       return () => this.packInteger( x );
     } else if (x instanceof Array) {
       return () => {
