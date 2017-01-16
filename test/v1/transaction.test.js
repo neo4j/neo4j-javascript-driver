@@ -219,9 +219,7 @@ describe('transaction', function() {
   });
 
   it('should provide bookmark on commit', function (done) {
-    //bookmarking is not in 3.0
-    if (!server) {
-      done();
+    if (neo4jVersionOlderThan31(done)) {
       return;
     }
 
@@ -232,9 +230,69 @@ describe('transaction', function() {
     tx.run("CREATE (:TXNode2)");
     tx.commit()
       .then(function () {
-        expect(session.lastBookmark()).toBeDefined();
+        expectValidLastBookmark(session);
         done();
       });
+  });
+
+  it('should have no bookmark when tx is rolled back', function (done) {
+    if (neo4jVersionOlderThan31(done)) {
+      return;
+    }
+
+    expect(session.lastBookmark()).not.toBeDefined();
+    const tx1 = session.beginTransaction();
+
+    tx1.run('CREATE ()').then(() => {
+      tx1.commit().then(() => {
+        expectValidLastBookmark(session);
+
+        const tx2 = session.beginTransaction();
+        tx2.run('CREATE ()').then(() => {
+          tx2.rollback().then(() => {
+            expect(session.lastBookmark()).not.toBeDefined();
+
+            const tx3 = session.beginTransaction();
+            tx3.run('CREATE ()').then(() => {
+              tx3.commit().then(() => {
+                expectValidLastBookmark(session);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should have no bookmark when tx fails', function (done) {
+    if (neo4jVersionOlderThan31(done)) {
+      return;
+    }
+
+    expect(session.lastBookmark()).not.toBeDefined();
+    const tx1 = session.beginTransaction();
+
+    tx1.run('CREATE ()').then(() => {
+      tx1.commit().then(() => {
+        expectValidLastBookmark(session);
+
+        const tx2 = session.beginTransaction();
+
+        tx2.run('RETURN').catch(error => {
+          expectSyntaxError(error);
+          expect(session.lastBookmark()).not.toBeDefined();
+
+          const tx3 = session.beginTransaction();
+          tx3.run('CREATE ()').then(() => {
+            tx3.commit().then(() => {
+              expectValidLastBookmark(session);
+              done();
+            });
+          });
+        });
+      });
+    });
   });
 
   it('should rollback when very first run fails', done => {
@@ -347,6 +405,11 @@ describe('transaction', function() {
   function expectSyntaxError(error) {
     const code = error.fields[0].code;
     expect(code).toBe('Neo.ClientError.Statement.SyntaxError');
+  }
+
+  function expectValidLastBookmark(session) {
+    expect(session.lastBookmark()).toBeDefined();
+    expect(session.lastBookmark()).not.toBeNull();
   }
 
   function neo4jVersionOlderThan31(done) {

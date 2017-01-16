@@ -31,6 +31,7 @@ class Transaction {
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param errorTransformer callback use to transform error
    * @param bookmark optional bookmark
+   * @param onBookmark callback invoked when new bookmark is produced
    */
   constructor(connectionPromise, onClose, errorTransformer, bookmark, onBookmark) {
     this._connectionPromise = connectionPromise;
@@ -129,10 +130,8 @@ class _TransactionStreamObserver extends StreamObserver {
 
   onCompleted(meta) {
     super.onCompleted(meta);
-    let bookmark = meta.bookmark;
-    if (bookmark) {
-      this._tx._onBookmark(bookmark);
-    }
+    const bookmark = meta.bookmark;
+    this._tx._onBookmark(bookmark);
   }
 
   serverMeta() {
