@@ -16,38 +16,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-import debug from "./log";
-import {alloc} from "./buf";
 import utf8 from "./utf8";
-import Integer from "../integer";
-import {int} from "../integer";
-import {newError} from './../error';
+import Integer, {int, isInt} from "../integer";
+import {newError} from "./../error";
 
-let MAX_CHUNK_SIZE = 16383,
-TINY_STRING = 0x80,
-TINY_LIST = 0x90,
-TINY_MAP = 0xA0,
-TINY_STRUCT = 0xB0,
-NULL = 0xC0,
-FLOAT_64 = 0xC1,
-FALSE = 0xC2,
-TRUE = 0xC3,
-INT_8 = 0xC8,
-INT_16 = 0xC9,
-INT_32 = 0xCA,
-INT_64 = 0xCB,
-STRING_8 = 0xD0,
-STRING_16 = 0xD1,
-STRING_32 = 0xD2,
-LIST_8 = 0xD4,
-LIST_16 = 0xD5,
-LIST_32 = 0xD6,
-MAP_8 = 0xD8,
-MAP_16 = 0xD9,
-MAP_32 = 0xDA,
-STRUCT_8 = 0xDC,
-STRUCT_16 = 0xDD;
+const TINY_STRING = 0x80;
+const TINY_LIST = 0x90;
+const TINY_MAP = 0xA0;
+const TINY_STRUCT = 0xB0;
+const NULL = 0xC0;
+const FLOAT_64 = 0xC1;
+const FALSE = 0xC2;
+const TRUE = 0xC3;
+const INT_8 = 0xC8;
+const INT_16 = 0xC9;
+const INT_32 = 0xCA;
+const INT_64 = 0xCB;
+const STRING_8 = 0xD0;
+const STRING_16 = 0xD1;
+const STRING_32 = 0xD2;
+const LIST_8 = 0xD4;
+const LIST_16 = 0xD5;
+const LIST_32 = 0xD6;
+const MAP_8 = 0xD8;
+const MAP_16 = 0xD9;
+const MAP_32 = 0xDA;
+const STRUCT_8 = 0xDC;
+const STRUCT_16 = 0xDD;
 
 /**
   * A Structure have a signature and fields.
@@ -98,7 +93,7 @@ class Packer {
       return () => this.packFloat(x);
     } else if (typeof(x) == "string") {
       return () => this.packString(x, onError);
-    } else if (Integer.isInteger(x)) {
+    } else if (isInt(x)) {
       return () => this.packInteger( x );
     } else if (x instanceof Array) {
       return () => {
