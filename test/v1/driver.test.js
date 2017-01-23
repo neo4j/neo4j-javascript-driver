@@ -56,8 +56,20 @@ describe('driver', function() {
     driver.session();
   });
 
-  it('should handle wrong scheme ', function() {
-    expect(function(){neo4j.driver("tank://localhost", neo4j.auth.basic("neo4j", "neo4j"))}).toThrow(new Error("Unknown scheme: tank://"));
+  it('should handle wrong scheme', () => {
+    expect(() => neo4j.driver("tank://localhost", neo4j.auth.basic("neo4j", "neo4j")))
+      .toThrow(new Error("Unknown scheme: tank://"));
+  });
+
+  it('should handle URL parameter string', () => {
+    expect(() => neo4j.driver({uri: 'bolt://localhost'})).toThrowError(TypeError);
+
+    expect(() => neo4j.driver(['bolt:localhost'])).toThrowError(TypeError);
+
+    expect(() => {
+      const driver = neo4j.driver(String('bolt://localhost', neo4j.auth.basic("neo4j", "neo4j")));
+      return driver.session();
+    }).toBeDefined();
   });
 
   it('should fail early on wrong credentials', function(done) {

@@ -16,13 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import StreamObserver from './internal/stream-observer';
-import Result from './result';
-import Transaction from './transaction';
-import Integer from "./integer";
-import {int} from "./integer";
+import StreamObserver from "./internal/stream-observer";
+import Result from "./result";
+import Transaction from "./transaction";
 import {newError} from "./error";
+import {assertString} from "./internal/util";
 
 /**
   * A Session instance is used for handling the connection and
@@ -55,7 +53,9 @@ class Session {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    let streamObserver = new _RunObserver(this._onRunFailure());
+    assertString(statement, "Cypher statement");
+
+    const streamObserver = new _RunObserver(this._onRunFailure());
     if (!this._hasTx) {
       this._connectionPromise.then((conn) => {
         streamObserver.resolveConnection(conn);
@@ -80,6 +80,10 @@ class Session {
    * @returns {Transaction} - New Transaction
    */
   beginTransaction(bookmark) {
+    if (bookmark) {
+      assertString(bookmark, "Bookmark");
+    }
+
     if (this._hasTx) {
       throw newError("You cannot begin a transaction on a session with an "
       + "open transaction; either run from within the transaction or use a "

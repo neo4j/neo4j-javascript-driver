@@ -27,6 +27,7 @@ import {Driver, READ, WRITE} from './driver';
 import RoutingDriver from './routing-driver';
 import VERSION from '../version';
 import {parseScheme, parseUrl} from "./internal/connector";
+import {assertString} from "./internal/util";
 
 
 const auth ={
@@ -107,7 +108,8 @@ let USER_AGENT = "neo4j-javascript/" + VERSION;
  * @returns {Driver}
  */
 function driver(url, authToken, config = {}) {
-  let scheme = parseScheme(url);
+  assertString(url, 'Bolt URL');
+  const scheme = parseScheme(url);
   if (scheme === "bolt+routing://") {
     return new RoutingDriver(parseUrl(url), USER_AGENT, authToken, config);
   } else if (scheme === "bolt://") {
