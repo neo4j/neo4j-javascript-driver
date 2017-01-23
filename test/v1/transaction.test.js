@@ -374,6 +374,31 @@ describe('transaction', () => {
       });
   });
 
+  it('should fail nicely for illegal statement', () => {
+    const tx = session.beginTransaction();
+
+    expect(() => tx.run()).toThrowError(TypeError);
+    expect(() => tx.run(null)).toThrowError(TypeError);
+    expect(() => tx.run({})).toThrowError(TypeError);
+    expect(() => tx.run(42)).toThrowError(TypeError);
+    expect(() => tx.run([])).toThrowError(TypeError);
+    expect(() => tx.run(['CREATE ()'])).toThrowError(TypeError);
+
+    expect(() => tx.run({statement: 'CREATE ()'})).toThrowError(TypeError);
+    expect(() => tx.run({cypher: 'CREATE ()'})).toThrowError(TypeError);
+  });
+
+  it('should accept a statement object ', done => {
+    const tx = session.beginTransaction();
+    const statement = {text: "RETURN 1 AS a"};
+
+    tx.run(statement).then(result => {
+      expect(result.records.length).toBe(1);
+      expect(result.records[0].get('a').toInt()).toBe(1);
+      done();
+    }).catch(console.log);
+  });
+
   function expectSyntaxError(error) {
     const code = error.fields[0].code;
     expect(code).toBe('Neo.ClientError.Statement.SyntaxError');

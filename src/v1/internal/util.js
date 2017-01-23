@@ -20,22 +20,47 @@
 const ENCRYPTION_ON = "ENCRYPTION_ON";
 const ENCRYPTION_OFF = "ENCRYPTION_OFF";
 
-function isEmptyObjectOrNull(object) {
-    if (!object) {
-        return true;
-    }
-
-    for (let prop in object) {
-        if (object.hasOwnProperty(prop)) {
-            return false;
-        }
-    }
-
+function isEmptyObjectOrNull(obj) {
+  if (isNull(obj)) {
     return true;
+  }
+
+  if (!isObject(obj)) {
+    return false;
+  }
+
+  for (let prop in obj) {
+    if (obj.hasOwnProperty(prop)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isNull(obj) {
+  return obj === null;
+}
+
+function isObject(obj) {
+  const type = typeof obj;
+  return type === 'function' || type === 'object' && Boolean(obj);
+}
+
+function assertString(obj, objName) {
+  if (!isString(obj)) {
+    throw new TypeError(objName + ' expected to be string but was: ' + JSON.stringify(obj));
+  }
+  return obj;
+}
+
+function isString(str) {
+  return Object.prototype.toString.call(str) === '[object String]';
 }
 
 export {
-    isEmptyObjectOrNull,
-    ENCRYPTION_ON,
-    ENCRYPTION_OFF
+  isEmptyObjectOrNull,
+  assertString,
+  ENCRYPTION_ON,
+  ENCRYPTION_OFF
 }

@@ -18,6 +18,7 @@
  */
 import StreamObserver from './internal/stream-observer';
 import Result from './result';
+import {assertString} from './internal/util';
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -65,6 +66,8 @@ class Transaction {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
+    assertString(statement, "Cypher statement");
+
     return this._state.run(this._connectionPromise,  new _TransactionStreamObserver(this), statement, parameters);
   }
 

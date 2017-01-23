@@ -356,6 +356,25 @@ describe('session', function () {
         done();
       })
   });
+
+  it('should fail nicely for illegal statement', () => {
+    expect(() => session.run()).toThrowError(TypeError);
+    expect(() => session.run(null)).toThrowError(TypeError);
+    expect(() => session.run({})).toThrowError(TypeError);
+    expect(() => session.run(42)).toThrowError(TypeError);
+    expect(() => session.run([])).toThrowError(TypeError);
+    expect(() => session.run(['CREATE ()'])).toThrowError(TypeError);
+
+    expect(() => session.run({statement: 'CREATE ()'})).toThrowError(TypeError);
+    expect(() => session.run({cypher: 'CREATE ()'})).toThrowError(TypeError);
+  });
+
+  it('should fail nicely for illegal bookmark', () => {
+    expect(() => session.beginTransaction({})).toThrowError(TypeError);
+    expect(() => session.beginTransaction(42)).toThrowError(TypeError);
+    expect(() => session.beginTransaction([])).toThrowError(TypeError);
+    expect(() => session.beginTransaction(['bookmark'])).toThrowError(TypeError);
+  });
 });
 
 
