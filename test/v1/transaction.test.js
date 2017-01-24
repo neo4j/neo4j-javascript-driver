@@ -20,9 +20,16 @@ import neo4j from "../../lib/v1";
 
 describe('transaction', () => {
 
-  let driver, session, server;
+  let driver;
+  let session;
+  let server;
+  let originalTimeout;
 
   beforeEach(done => {
+    // make jasmine timeout high enough to test unreachable bookmarks
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
     driver.onCompleted = meta => {
       server = meta['server'];
@@ -33,6 +40,7 @@ describe('transaction', () => {
   });
 
   afterEach(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
     driver.close();
   });
 
@@ -279,6 +287,43 @@ describe('transaction', () => {
         });
       });
     });
+  });
+
+  it('should fail for invalid bookmark', done => {
+    if (neo4jVersionOlderThan31(done)) {
+      return;
+    }
+
+    const invalidBookmark = 'hi, this is an invalid bookmark';
+    const tx = session.beginTransaction(invalidBookmark);
+    tx.run('RETURN 1').catch(error => {
+      expect(error.fields[0].code).toBe('Neo.ClientError.Transaction.InvalidBookmark');
+      done();
+    });
+  });
+
+  it('should fail to run query for unreachable bookmark', done => {
+    if (neo4jVersionOlderThan31(done)) {
+      return;
+    }
+
+    const tx1 = session.beginTransaction();
+    tx1.run('CREATE ()').then(result => {
+      expect(result.summary.counters.nodesCreated()).toBe(1);
+
+      tx1.commit().then(() => {
+        expectValidLastBookmark(session);
+
+        const unreachableBookmark = session.lastBookmark() + "0";
+        const tx2 = session.beginTransaction(unreachableBookmark);
+        tx2.run('CREATE ()').catch(error => {
+          const message = error.fields[0].message;
+          const expectedPrefix = message.indexOf('Database not up to the requested version') === 0;
+          expect(expectedPrefix).toBeTruthy();
+          done();
+        });
+      }).catch(console.log);
+    }).catch(console.log);
   });
 
   it('should rollback when very first run fails', done => {
