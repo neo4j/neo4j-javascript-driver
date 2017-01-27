@@ -16,12 +16,69 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import RoundRobinArray from "../../lib/v1/internal/round-robin-array";
 
-var RoundRobinArray = require('../../lib/v1/internal/round-robin-array').default;
+describe('round-robin-array', () => {
 
-describe('round-robin-array', function() {
-  it('should step through array', function () {
-    var array = new RoundRobinArray([1,2,3,4,5]);
+  it('should behave correctly when empty', () => {
+    const array = new RoundRobinArray();
+
+    expect(array.isEmpty()).toBeTruthy();
+    expect(array.size()).toEqual(0);
+    expect(array.next()).toBeNull();
+    expect(array.toArray()).toEqual([]);
+
+    array.remove(1);
+
+    expect(array.isEmpty()).toBeTruthy();
+    expect(array.size()).toEqual(0);
+    expect(array.next()).toBeNull();
+    expect(array.toArray()).toEqual([]);
+  });
+
+  it('should behave correctly when contains single element', () => {
+    const array = new RoundRobinArray([5]);
+
+    expect(array.isEmpty()).toBeFalsy();
+    expect(array.size()).toEqual(1);
+    expect(array.next()).toEqual(5);
+    expect(array.toArray()).toEqual([5]);
+
+    array.remove(1);
+
+    expect(array.isEmpty()).toBeFalsy();
+    expect(array.size()).toEqual(1);
+    expect(array.next()).toEqual(5);
+    expect(array.toArray()).toEqual([5]);
+
+    array.remove(5);
+
+    expect(array.isEmpty()).toBeTruthy();
+    expect(array.size()).toEqual(0);
+    expect(array.next()).toBeNull();
+    expect(array.toArray()).toEqual([]);
+  });
+
+  it('should push items', () => {
+    const array1 = new RoundRobinArray();
+    array1.pushAll([]);
+    expect(array1.toArray()).toEqual([]);
+
+    const array2 = new RoundRobinArray();
+    array2.pushAll([1]);
+    expect(array2.toArray()).toEqual([1]);
+
+    const array3 = new RoundRobinArray([1, 2, 3]);
+    array3.pushAll([4, 5]);
+    expect(array3.toArray()).toEqual([1, 2, 3, 4, 5]);
+
+    const array4 = new RoundRobinArray([1, 2, 3]);
+    array4.pushAll([]);
+    expect(array4.toArray()).toEqual([1, 2, 3]);
+  });
+
+  it('should step through array', () => {
+    const array = new RoundRobinArray([1, 2, 3, 4, 5]);
 
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(2);
@@ -30,34 +87,32 @@ describe('round-robin-array', function() {
     expect(array.next()).toEqual(5);
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(2);
-    //....
   });
 
-  it('should step through single element array', function () {
-    var array = new RoundRobinArray([5]);
+  it('should step through single element array', () => {
+    const array = new RoundRobinArray([5]);
 
     expect(array.next()).toEqual(5);
     expect(array.next()).toEqual(5);
     expect(array.next()).toEqual(5);
-    //....
   });
 
-  it('should handle deleting item before current ', function () {
-    var array = new RoundRobinArray([1,2,3,4,5]);
+  it('should handle deleting item before current ', () => {
+    const array = new RoundRobinArray([1, 2, 3, 4, 5]);
 
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(2);
     array.remove(2);
-    expect(array.next()).toEqual(3);
     expect(array.next()).toEqual(4);
     expect(array.next()).toEqual(5);
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(3);
-    //....
+    expect(array.next()).toEqual(4);
+    expect(array.next()).toEqual(5);
   });
 
-  it('should handle deleting item on current ', function () {
-    var array = new RoundRobinArray([1,2,3,4,5]);
+  it('should handle deleting item on current ', () => {
+    const array = new RoundRobinArray([1, 2, 3, 4, 5]);
 
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(2);
@@ -67,11 +122,11 @@ describe('round-robin-array', function() {
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(2);
     expect(array.next()).toEqual(4);
-    //....
+    expect(array.next()).toEqual(5);
   });
 
-  it('should handle deleting item after current ', function () {
-    var array = new RoundRobinArray([1,2,3,4,5]);
+  it('should handle deleting item after current ', () => {
+    const array = new RoundRobinArray([1, 2, 3, 4, 5]);
 
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(2);
@@ -81,11 +136,10 @@ describe('round-robin-array', function() {
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(2);
     expect(array.next()).toEqual(3);
-    //....
   });
 
-  it('should handle deleting last item ', function () {
-    var array = new RoundRobinArray([1,2,3,4,5]);
+  it('should handle deleting last item ', () => {
+    const array = new RoundRobinArray([1, 2, 3, 4, 5]);
 
     expect(array.next()).toEqual(1);
     expect(array.next()).toEqual(2);
@@ -97,11 +151,10 @@ describe('round-robin-array', function() {
     expect(array.next()).toEqual(3);
     expect(array.next()).toEqual(4);
     expect(array.next()).toEqual(1);
-    //....
   });
 
-  it('should handle deleting first item ', function () {
-    var array = new RoundRobinArray([1,2,3,4,5]);
+  it('should handle deleting first item ', () => {
+    const array = new RoundRobinArray([1, 2, 3, 4, 5]);
     array.remove(1);
     expect(array.next()).toEqual(2);
     expect(array.next()).toEqual(3);
@@ -111,17 +164,15 @@ describe('round-robin-array', function() {
     expect(array.next()).toEqual(3);
     expect(array.next()).toEqual(4);
     expect(array.next()).toEqual(5);
-    //....
   });
 
-  it('should handle deleting multiple items ', function () {
-    var array = new RoundRobinArray([1,2,3,1,1]);
+  it('should handle deleting multiple items ', () => {
+    const array = new RoundRobinArray([1, 2, 3, 1, 1]);
     array.remove(1);
     expect(array.next()).toEqual(2);
     expect(array.next()).toEqual(3);
     expect(array.next()).toEqual(2);
     expect(array.next()).toEqual(3);
-    //....
   });
 
 });

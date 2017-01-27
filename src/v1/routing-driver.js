@@ -169,8 +169,8 @@ class ClusterView {
   needsUpdate() {
     return this._expires.lessThan(Date.now()) ||
       this.routers.size() <= 1 ||
-      this.readers.empty() ||
-      this.writers.empty();
+      this.readers.isEmpty() ||
+      this.writers.isEmpty();
   }
 
   all() {
@@ -243,7 +243,7 @@ function newClusterView(session) {
           readers.pushAll(addresses);
         }
       }
-      if (routers.empty() || writers.empty()) {
+      if (routers.isEmpty() || writers.isEmpty()) {
         return Promise.reject(newError("Invalid routing response from server", SERVICE_UNAVAILABLE))
       }
       return new ClusterView(routers, readers, writers, expires);
