@@ -83,13 +83,36 @@ class RoutingDriver extends Driver {
     });
   }
 
-  _refreshedRoutingTable() {
+  _acquireConnection(mode) {
+    return this._freshRoutingTable().then(routingTable => {
+      if (mode === READ) {
+        return this._acquireConnectionToServer(routingTable.readers, "read");
+      } else if (mode === WRITE) {
+        return this._acquireConnectionToServer(routingTable.writers, "write");
+      } else {
+        throw newError('Illegal session mode ' + mode);
+      }
+    });
+  }
+
+  _acquireConnectionToServer(serversRoundRobinArray, serverName) {
+    const address = serversRoundRobinArray.next();
+    if (!address) {
+      return Promise.reject(newError('No ' + serverName + ' servers available', SESSION_EXPIRED));
+    }
+    return this._pool.acquire(address);
+  }
+
+  _freshRoutingTable() {
     const currentRoutingTable = this._routingTable;
 
     if (!currentRoutingTable.isStale()) {
       return Promise.resolve(currentRoutingTable);
     }
+    return this._refreshRoutingTable(currentRoutingTable);
+  }
 
+  _refreshRoutingTable(currentRoutingTable) {
     const knownRouters = currentRoutingTable.routers.toArray();
 
     const refreshedTablePromise = knownRouters.reduce((refreshedTablePromise, currentRouter, currentIndex) => {
@@ -117,42 +140,27 @@ class RoutingDriver extends Driver {
 
     return refreshedTablePromise.then(newRoutingTable => {
       if (newRoutingTable) {
-        // valid routing table fetched, close old connections to servers not present in the new routing table
-        const staleServers = currentRoutingTable.serversDiff(newRoutingTable);
-        staleServers.forEach(server => this._pool.purge);
-
-        // make this driver instance aware of the new table
-        this._routingTable = newRoutingTable;
-
+        this._updateRoutingTable(newRoutingTable);
         return newRoutingTable
       }
       throw newError('Could not perform discovery. No routing servers available.', SERVICE_UNAVAILABLE);
     });
   }
 
-  _acquireConnection(mode) {
-    return this._refreshedRoutingTable().then(routingTable => {
-      if (mode === READ) {
-        return this._acquireConnectionToServer(routingTable.readers, "read");
-      } else if (mode === WRITE) {
-        return this._acquireConnectionToServer(routingTable.writers, "write");
-      } else {
-        throw newError('Illegal session mode ' + mode);
-      }
-    });
-  }
-
-  _acquireConnectionToServer(serversRoundRobinArray, serverName) {
-    const address = serversRoundRobinArray.next();
-    if (!address) {
-      return Promise.reject(newError('No ' + serverName + ' servers available', SESSION_EXPIRED));
-    }
-    return this._pool.acquire(address);
-  }
-
   _forget(url) {
     this._routingTable.forget(url);
     this._pool.purge(url);
+  }
+
+  _updateRoutingTable(newRoutingTable) {
+    const currentRoutingTable = this._routingTable;
+
+    // close old connections to servers not present in the new routing table
+    const staleServers = currentRoutingTable.serversDiff(newRoutingTable);
+    staleServers.forEach(server => this._pool.purge);
+
+    // make this driver instance aware of the new table
+    this._routingTable = newRoutingTable;
   }
 
   static _validateConfig(config) {
