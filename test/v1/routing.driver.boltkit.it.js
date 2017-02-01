@@ -19,7 +19,8 @@
 
 var neo4j = require("../../lib/v1");
 var boltkit = require('./boltkit');
-describe('routing driver ', function () {
+
+describe('routing driver', function () {
  var originalTimeout;
 
   beforeAll(function(){
@@ -49,9 +50,9 @@ describe('routing driver ', function () {
         session.close();
         // Then
         expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
-        expect(driver._clusterView.routers.toArray()).toEqual(["127.0.0.1:9001", "127.0.0.1:9002", "127.0.0.1:9003"]);
-        expect(driver._clusterView.readers.toArray()).toEqual(["127.0.0.1:9002", "127.0.0.1:9003"]);
-        expect(driver._clusterView.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+        expect(driver._routingTable.routers.toArray()).toEqual(["127.0.0.1:9001", "127.0.0.1:9002", "127.0.0.1:9003"]);
+        expect(driver._routingTable.readers.toArray()).toEqual(["127.0.0.1:9002", "127.0.0.1:9003"]);
+        expect(driver._routingTable.writers.toArray()).toEqual(["127.0.0.1:9001"]);
 
         driver.close();
         server.exit(function (code) {
@@ -78,9 +79,9 @@ describe('routing driver ', function () {
       session.run("MATCH (n) RETURN n.name").then(function () {
 
         // Then
-        expect(driver._clusterView.routers.toArray()).toEqual(["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
-        expect(driver._clusterView.readers.toArray()).toEqual(["127.0.0.1:9005", "127.0.0.1:9003"]);
-        expect(driver._clusterView.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+        expect(driver._routingTable.routers.toArray()).toEqual(["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
+        expect(driver._routingTable.readers.toArray()).toEqual(["127.0.0.1:9005", "127.0.0.1:9003"]);
+        expect(driver._routingTable.writers.toArray()).toEqual(["127.0.0.1:9001"]);
 
         driver.close();
         server.exit(function (code) {
@@ -108,9 +109,9 @@ describe('routing driver ', function () {
         onCompleted: function () {
 
           // Then
-          expect(driver._clusterView.routers.toArray()).toEqual(["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
-          expect(driver._clusterView.readers.toArray()).toEqual(["127.0.0.1:9005", "127.0.0.1:9003"]);
-          expect(driver._clusterView.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+          expect(driver._routingTable.routers.toArray()).toEqual(["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
+          expect(driver._routingTable.readers.toArray()).toEqual(["127.0.0.1:9005", "127.0.0.1:9003"]);
+          expect(driver._routingTable.writers.toArray()).toEqual(["127.0.0.1:9001"]);
 
           driver.close();
           server.exit(function (code) {
@@ -137,7 +138,7 @@ describe('routing driver ', function () {
       // When
       var session = driver.session(neo4j.READ);
       session.run("MATCH (n) RETURN n.name").catch(function (err) {
-        expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+        expect(err.code).toEqual(neo4j.error.PROTOCOL_ERROR);
 
         session.close();
         driver.close();
@@ -418,9 +419,9 @@ describe('routing driver ', function () {
       session.run("MATCH (n) RETURN n.name").then(function () {
 
         // Then
-        expect(driver._clusterView.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
-        expect(driver._clusterView.readers.toArray()).toEqual(['127.0.0.1:9005', '127.0.0.1:9006']);
-        expect(driver._clusterView.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
+        expect(driver._routingTable.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
+        expect(driver._routingTable.readers.toArray()).toEqual(['127.0.0.1:9005', '127.0.0.1:9006']);
+        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
         seedServer.exit(function (code1) {
           readServer.exit(function (code2) {
@@ -452,9 +453,9 @@ describe('routing driver ', function () {
         // Then
         expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
         expect(driver._pool.has('127.0.0.1:9005')).toBeFalsy();
-        expect(driver._clusterView.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
-        expect(driver._clusterView.readers.toArray()).toEqual(['127.0.0.1:9006']);
-        expect(driver._clusterView.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
+        expect(driver._routingTable.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
+        expect(driver._routingTable.readers.toArray()).toEqual(['127.0.0.1:9006']);
+        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
         seedServer.exit(function (code1) {
           readServer.exit(function (code2) {
@@ -485,9 +486,9 @@ describe('routing driver ', function () {
         // Then
         expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
         expect(driver._pool.has('127.0.0.1:9005')).toBeFalsy();
-        expect(driver._clusterView.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
-        expect(driver._clusterView.readers.toArray()).toEqual(['127.0.0.1:9006']);
-        expect(driver._clusterView.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
+        expect(driver._routingTable.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
+        expect(driver._routingTable.readers.toArray()).toEqual(['127.0.0.1:9006']);
+        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
         seedServer.exit(function (code) {
           expect(code).toEqual(0);
@@ -568,7 +569,7 @@ describe('routing driver ', function () {
       var session = driver.session();
       session.run("CREATE ()").catch(function (err) {
         //the server at 9007 should have been removed
-        expect(driver._clusterView.writers.toArray()).toEqual(['127.0.0.1:9008']);
+        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9008']);
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         session.close();
         driver.close();
@@ -602,7 +603,7 @@ describe('routing driver ', function () {
 
       tx.commit().catch(function (err) {
         //the server at 9007 should have been removed
-        expect(driver._clusterView.writers.toArray()).toEqual(['127.0.0.1:9008']);
+        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9008']);
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         session.close();
         driver.close();

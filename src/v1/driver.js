@@ -17,11 +17,10 @@
  * limitations under the License.
  */
 
-import Session from './session';
-import Pool from './internal/pool';
-import Integer from './integer';
+import Session from "./session";
+import Pool from "./internal/pool";
 import {connect} from "./internal/connector";
-import StreamObserver from './internal/stream-observer';
+import StreamObserver from "./internal/stream-observer";
 import {newError, SERVICE_UNAVAILABLE} from "./error";
 
 const READ = 'READ', WRITE = 'WRITE';
@@ -111,7 +110,8 @@ class Driver {
    * @return {Session} new session.
    */
   session(mode) {
-    let connectionPromise = this._acquireConnection(mode);
+    const sessionMode = Driver._validateSessionMode(mode);
+    const connectionPromise = this._acquireConnection(sessionMode);
     connectionPromise.catch((err) => {
       if (this.onError && err.code === SERVICE_UNAVAILABLE) {
         this.onError(err);
@@ -143,6 +143,14 @@ class Driver {
         cb();
       }
     });
+  }
+
+  static _validateSessionMode(rawMode) {
+    const mode = rawMode || WRITE;
+    if (mode !== READ && mode !== WRITE) {
+      throw newError('Illegal session mode ' + mode);
+    }
+    return mode;
   }
 
   //Extension point

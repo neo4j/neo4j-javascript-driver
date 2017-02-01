@@ -117,10 +117,13 @@ class RoutingDriver extends Driver {
 
     return refreshedTablePromise.then(newRoutingTable => {
       if (newRoutingTable) {
-        // correct routing table was fetched, we need to clean all connections that are not in the new table and
-        // return the new table
+        // valid routing table fetched, close old connections to servers not present in the new routing table
         const staleServers = currentRoutingTable.serversDiff(newRoutingTable);
         staleServers.forEach(server => this._pool.purge);
+
+        // make this driver instance aware of the new table
+        this._routingTable = newRoutingTable;
+
         return newRoutingTable
       }
       throw newError('Could not perform discovery. No routing servers available.', SERVICE_UNAVAILABLE);
@@ -128,14 +131,13 @@ class RoutingDriver extends Driver {
   }
 
   _acquireConnection(mode) {
-    const connectionMode = mode || WRITE;
     return this._refreshedRoutingTable().then(routingTable => {
-      if (connectionMode === READ) {
+      if (mode === READ) {
         return this._acquireConnectionToServer(routingTable.readers, "read");
-      } else if (connectionMode === WRITE) {
+      } else if (mode === WRITE) {
         return this._acquireConnectionToServer(routingTable.writers, "write");
       } else {
-        return Promise.reject(connectionMode + " is not a valid option"); // todo: better message
+        throw newError('Illegal session mode ' + mode);
       }
     });
   }
@@ -149,8 +151,8 @@ class RoutingDriver extends Driver {
   }
 
   _forget(url) {
+    this._routingTable.forget(url);
     this._pool.purge(url);
-    this._routingTable.remove(url);
   }
 
   static _validateConfig(config) {
