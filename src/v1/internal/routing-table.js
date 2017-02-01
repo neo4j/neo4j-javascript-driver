@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import {int} from "../integer";
+import RoundRobinArray from "./round-robin-array";
 
 const MIN_ROUTERS = 1;
 
@@ -26,8 +27,7 @@ export default class RoutingTable {
     this.routers = routers || new RoundRobinArray();
     this.readers = readers || new RoundRobinArray();
     this.writers = writers || new RoundRobinArray();
-
-    this._expirationTime = expirationTime || int(0);
+    this.expirationTime = expirationTime || int(0);
   }
 
   forget(address) {
@@ -46,7 +46,7 @@ export default class RoutingTable {
   }
 
   isStale() {
-    return this._expirationTime.lessThan(Date.now()) ||
+    return this.expirationTime.lessThan(Date.now()) ||
       this.routers.size() <= MIN_ROUTERS ||
       this.readers.isEmpty() ||
       this.writers.isEmpty();

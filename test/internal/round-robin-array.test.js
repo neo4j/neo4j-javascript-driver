@@ -61,20 +61,43 @@ describe('round-robin-array', () => {
 
   it('should push items', () => {
     const array1 = new RoundRobinArray();
-    array1.pushAll([]);
-    expect(array1.toArray()).toEqual([]);
+    array1.pushAll([1]);
+    expect(array1.toArray()).toEqual([1]);
 
-    const array2 = new RoundRobinArray();
-    array2.pushAll([1]);
-    expect(array2.toArray()).toEqual([1]);
+    const array2 = new RoundRobinArray([]);
+    array2.pushAll([1, 2, 3]);
+    expect(array2.toArray()).toEqual([1, 2, 3]);
 
     const array3 = new RoundRobinArray([1, 2, 3]);
     array3.pushAll([4, 5]);
     expect(array3.toArray()).toEqual([1, 2, 3, 4, 5]);
+  });
 
-    const array4 = new RoundRobinArray([1, 2, 3]);
-    array4.pushAll([]);
-    expect(array4.toArray()).toEqual([1, 2, 3]);
+  it('should push empty array', () => {
+    const emptyArray = new RoundRobinArray();
+    emptyArray.pushAll([]);
+    expect(emptyArray.isEmpty()).toBeTruthy();
+
+    const nonEmptyArray = new RoundRobinArray([1, 2, 3]);
+    nonEmptyArray.pushAll([]);
+    expect(nonEmptyArray.toArray()).toEqual([1, 2, 3]);
+  });
+
+  it('should throw when trying to push illegal items', () => {
+    const emptyArray = new RoundRobinArray();
+    const nonEmptyArray = new RoundRobinArray([1, 2, 3]);
+
+    expect(() => emptyArray.pushAll(undefined)).toThrow();
+    expect(() => nonEmptyArray.pushAll(undefined)).toThrow();
+
+    expect(() => emptyArray.pushAll(null)).toThrow();
+    expect(() => nonEmptyArray.pushAll(null)).toThrow();
+
+    expect(() => emptyArray.pushAll({})).toThrow();
+    expect(() => nonEmptyArray.pushAll({})).toThrow();
+
+    expect(() => emptyArray.pushAll({a: 1, b: 2})).toThrow();
+    expect(() => nonEmptyArray.pushAll({a: 1, b: 2})).toThrow();
   });
 
   it('should step through array', () => {

@@ -20,7 +20,8 @@
 /**
  * An array that lets you hop through the elements endlessly.
  */
-class RoundRobinArray {
+export default class RoundRobinArray {
+
   constructor(items) {
     this._items = items || [];
     this._offset = 0;
@@ -36,6 +37,10 @@ class RoundRobinArray {
   }
 
   pushAll(elems) {
+    if (!Array.isArray(elems)) {
+      throw new TypeError('Array expected but got: ' + elems);
+    }
+
     Array.prototype.push.apply(this._items, elems);
   }
 
@@ -55,5 +60,3 @@ class RoundRobinArray {
     this._items = this._items.filter(element => element !== item);
   }
 }
-
-export default RoundRobinArray

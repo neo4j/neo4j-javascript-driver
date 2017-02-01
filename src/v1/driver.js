@@ -24,7 +24,7 @@ import {connect} from "./internal/connector";
 import StreamObserver from './internal/stream-observer';
 import {newError, SERVICE_UNAVAILABLE} from "./error";
 
-let READ = 'READ', WRITE = 'WRITE';
+const READ = 'READ', WRITE = 'WRITE';
 /**
  * A driver maintains one or more {@link Session sessions} with a remote
  * Neo4j instance. Through the {@link Session sessions} you can send statements
