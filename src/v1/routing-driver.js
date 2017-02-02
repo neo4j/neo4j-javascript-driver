@@ -129,9 +129,9 @@ class RoutingDriver extends Driver {
           this._forget(previousRouter);
         }
 
-        // todo: properly close this connection
         const connection = this._pool.acquire(currentRouter);
-        const session = this._createSession(Promise.resolve(connection));
+        const connectionPromise = Promise.resolve(connection);
+        const session = this._createSession(connectionPromise, this._releaseConnection(connectionPromise));
 
         // try next router
         return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter);

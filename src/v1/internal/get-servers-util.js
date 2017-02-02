@@ -27,8 +27,8 @@ const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound';
 export default class GetServersUtil {
 
   callGetServers(session, routerAddress) {
-    // todo: session should be closed here along with the underlying connection
     return session.run(PROCEDURE_CALL).then(result => {
+      session.close();
       return result.records;
     }).catch(error => {
       if (error.code === PROCEDURE_NOT_FOUND_CODE) {

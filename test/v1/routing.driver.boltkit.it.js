@@ -783,6 +783,66 @@ describe('routing driver', function () {
     });
   });
 
+  it('should close connection used for routing table refreshing', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    // server is both router and writer
+    const server = kit.start('./test/resources/boltkit/discover_new_servers.script', 9001);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+
+      const acquiredConnections = [];
+      const releasedConnections = [];
+      setUpPoolToMemorizeAllAcquiredAndReleasedConnections(driver, acquiredConnections, releasedConnections);
+
+      const session = driver.session();
+      session.run('MATCH (n) RETURN n.name').then(() => {
+        session.close(() => {
+          driver.close();
+          server.exit(code => {
+            expect(code).toEqual(0);
+
+            // two connections should have been acquired: one for rediscovery and one for the query
+            expect(acquiredConnections.length).toEqual(2);
+            // same two connections should have been released
+            expect(releasedConnections.length).toEqual(2);
+
+            // verify that acquired connections are those that we released
+            for (let i = 0; i < acquiredConnections.length; i++) {
+              expect(acquiredConnections[i]).toBe(releasedConnections[i]);
+            }
+
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  function setUpPoolToMemorizeAllAcquiredAndReleasedConnections(driver, acquiredConnections, releasedConnections) {
+    // make connection pool remember all acquired connections
+    const originalAcquire = driver._pool.acquire.bind(driver._pool);
+    const memorizingAcquire = (...args) => {
+      const connection = originalAcquire(...args);
+      acquiredConnections.push(connection);
+      return connection;
+    };
+    driver._pool.acquire = memorizingAcquire;
+
+    // make connection pool remember all released connections
+    const originalRelease = driver._pool._release;
+    const rememberingRelease = (key, resource) => {
+      originalRelease(key, resource);
+      releasedConnections.push(resource);
+    };
+    driver._pool._release = rememberingRelease;
+  }
+
   function newDriver(url) {
     // BoltKit currently does not support encryption, create driver with encryption turned off
     return neo4j.driver(url, neo4j.auth.basic("neo4j", "neo4j"), {

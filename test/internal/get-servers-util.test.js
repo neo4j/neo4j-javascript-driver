@@ -40,8 +40,26 @@ describe('get-servers-util', () => {
   it('should return retrieved records when query succeeds', done => {
     const session = FakeSession.successful({records: ['foo', 'bar', 'baz']});
 
-    callGetServers(session, '').then(records => {
+    callGetServers(session).then(records => {
       expect(records).toEqual(['foo', 'bar', 'baz']);
+      done();
+    }).catch(console.log);
+  });
+
+  it('should close session when query succeeds', done => {
+    const session = FakeSession.successful({records: ['foo', 'bar', 'baz']});
+
+    callGetServers(session).then(() => {
+      expect(session.isClosed()).toBeTruthy();
+      done();
+    }).catch(console.log);
+  });
+
+  it('should not close session when query fails', done => {
+    const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED));
+
+    callGetServers(session).then(() => {
+      expect(session.isClosed()).toBeFalsy();
       done();
     }).catch(console.log);
   });
@@ -229,6 +247,7 @@ describe('get-servers-util', () => {
 
     constructor(runResponse) {
       this._runResponse = runResponse;
+      this._closed = false;
     }
 
     static successful(result) {
@@ -241,6 +260,14 @@ describe('get-servers-util', () => {
 
     run() {
       return this._runResponse;
+    }
+
+    close() {
+      this._closed = true;
+    }
+
+    isClosed() {
+      return this._closed;
     }
   }
 });
