@@ -1,5 +1,6 @@
 declare class Node {
-  constructor(identity: string,
+  constructor(
+    identity: string,
     labels: string[],
     properties: Object
   )
@@ -14,11 +15,13 @@ declare class Relationship {
   type: string;
   properties: Object;
 
-  constructor(identity: string,
+  constructor(
+    identity: string,
     start: string,
     end: string,
     type: string,
-    properties: Object)
+    properties: Object
+  );
 
   toString(): string;
 }
@@ -28,12 +31,13 @@ declare class UnboundRelationship {
   type: string;
   properties: Object;
 
-  constructor(identity: string,
+  constructor(
+    identity: string,
     type: string,
-    properties: Object)
+    properties: Object
+  );
 
-  bind( start: string, end: string ): Relationship;
-
+  bind(start: string, end: string): Relationship;
   toString(): string;
 }
 
@@ -42,9 +46,11 @@ declare class PathSegment {
   rel: Relationship;
   end: string;
 
-  constructor(start: string,
+  constructor(
+    start: string,
     rel: Relationship,
-    end: string)
+    end: string
+  );
 }
 
 declare class Path {
