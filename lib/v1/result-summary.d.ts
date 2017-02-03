@@ -1,12 +1,22 @@
 import Integer, { int, isInt } from "./integer";
 
 declare class ResultSummary {
-  constructor(statement: string, parameters: Object, metadata: Object)
+  statement: {text: string, parameters: { [index: string]: any }};
+  statementType: string;
+  counters: StatementStatistic;
+  //for backwards compatibility, remove in future version
+  updateStatistics: StatementStatistic;
+  plan: Plan;
+  profile: ProfiledPlan;
+  notifications: Notification[];
+  server: ServerInfo;
+  resultConsumedAfter: any | undefined;
+  resultAvailableAfter: any | undefined;
 
-  _buildNotifications( notifications: any ): Notification[];
+  constructor(statement: string, parameters?: { [index: string]: any }, metadata?: { [index: string]: any })
 
+  protected _buildNotifications(notifications: any): Notification[];
   hasPlan(): boolean;
-
   hasProfile(): boolean;
 }
 
@@ -15,7 +25,7 @@ declare class Plan {
   identifiers: any;
   arguments: any;
   children: Plan[];
-  constructor( plan: Object )
+  constructor(plan: Object)
 }
 
 declare class ProfiledPlan {
@@ -25,7 +35,7 @@ declare class ProfiledPlan {
   dbhits: Integer;
   rows: Integer;
   children: Plan[];
-  constructor( plan: Object )
+  constructor(plan: Object)
 }
 
 interface Statistics {
@@ -43,8 +53,9 @@ interface Statistics {
 }
 
 declare class StatementStatistic {
-  _stats: Statistics;
-  constructor( statistics: Statistics )
+  protected _stats: Statistics;
+
+  constructor(statistics: Statistics);
 
   containsUpdates(): boolean;
 
@@ -61,39 +72,38 @@ declare class StatementStatistic {
   constraintsRemoved(): Integer;
 }
 
-declare class Notification {
+declare interface NotificationPosition {
+  offset: Integer;
+  line: Integer;
+  column: Integer;
+}
+
+declare interface NotificationStructure {
   code: any;
   title: string;
   description: string;
   severity: string;
-  position: any;
+  position: NotificationPosition;
+}
 
-  constructor( notification: {
-    code: any,
-    title: string,
-    description: string,
-    severity: string,
-    position: any } )
+declare class Notification implements Partial<NotificationStructure> {
+  constructor(notification: NotificationStructure);
 
-  _constructPosition( pos ): {
-    offset: Integer,
-    line: Integer,
-    column: Integer,
-  } | {}
+  _constructPosition(pos: NotificationPosition): NotificationPosition;
 }
 
 declare class ServerInfo {
   address: string;
   version: string;
 
-  constructor( serverMeta: {address: string, version: string} )
+  constructor(serverMeta: { address: string, version: string });
 }
 
-declare type statementType = {
-  READ_ONLY: "r",
-  READ_WRITE: "rw",
-  WRITE_ONLY: "w",
-  SCHEMA_WRITE: "s"
+declare const statementType: {
+  READ_ONLY: "r";
+  READ_WRITE: "rw";
+  WRITE_ONLY: "w";
+  SCHEMA_WRITE: "s";
 };
 
 export { statementType }
