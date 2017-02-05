@@ -42,7 +42,7 @@ declare class Driver {
   close(): void;
 }
 
-declare class _ConnectionStreamObserver extends StreamObserver {
+declare class _ConnectionStreamObserver<T> extends StreamObserver<T> {
   constructor(driver: Driver, conn: Connection);
 
   onError(error: Error): void;

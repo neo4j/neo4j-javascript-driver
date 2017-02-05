@@ -21,7 +21,7 @@ declare class Transaction {
 declare function _runDiscardAll<T>(
   msg: any,
   connectionPromise: PromiseLike<Connection>,
-  observer: StreamObserver
+  observer: StreamObserver<T>
 ): Result<T, {}>;
 
 export default Transaction;

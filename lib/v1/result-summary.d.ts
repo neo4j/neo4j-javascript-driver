@@ -1,7 +1,7 @@
 import Integer, { int, isInt } from "./integer";
 
 declare class ResultSummary {
-  statement: {text: string, parameters: { [index: string]: any }};
+  statement: { text: string, parameters: { [index: string]: any } };
   statementType: string;
   counters: StatementStatistic;
   //for backwards compatibility, remove in future version
