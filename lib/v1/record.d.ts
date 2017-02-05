@@ -5,14 +5,13 @@ declare type Visitor<T> = (field: string, value: T, context: Record<T>) => void;
 declare class Record<T> {
   keys: string[];
   length: number;
-  _fields: string[];
+  _fields: T[];
 
   constructor(keys: string[], fields: string[], fieldLookup: { [index: string]: string });
 
   forEach(visitor: Visitor<T>): void;
-  toObject(): Partial<T>;
-  get<K extends any>(key: number): K;
-  get<K extends keyof T>(key: K): T[K];
+  toObject(): Partial<{ [ret: string]: T>;
+  get<K extends T>(key: string | number): K;
   has(key: string | number): boolean;
 }
 
