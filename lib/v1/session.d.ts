@@ -23,7 +23,7 @@ declare class Session {
   protected _onRunFailure(): Function;
 }
 
-declare class _RunObserver extends StreamObserver {
+declare class _RunObserver<T> extends StreamObserver<T> {
   constructor(
     onError: Function
   );
