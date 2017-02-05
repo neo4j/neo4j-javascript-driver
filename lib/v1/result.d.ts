@@ -3,7 +3,7 @@ import Record from "./record";
 import StreamObserver from "./internal/stream-observer";
 
 declare type ResultType<T> = {
-  records: Array<Record<T> & T>;
+  records: Array<Record<T>>;
   summary: ResultSummary;
 }
 
