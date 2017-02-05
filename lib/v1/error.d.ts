@@ -7,7 +7,7 @@ declare class Neo4jError extends Error {
   code: string;
   message: string;
 
-  constructor(message: any, code: string)
+  constructor(message: any, code: string);
 }
 
 export {

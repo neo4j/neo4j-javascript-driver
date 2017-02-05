@@ -4,6 +4,7 @@ import { Neo4jError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from "./error";
 import Result from "./result";
 import ResultSummary from "./result-summary";
 import Record from "./record";
+import Session from './session';
 import { Driver, READ, WRITE, AuthCredentials, ConfigurationOptions } from "./driver";
 import RoutingDriver from "./routing-driver";
 import VERSION from "../version";
@@ -63,8 +64,10 @@ declare const forExport: {
   types: typeof types;
   session: typeof session;
   error: typeof error;
+  Driver: Driver;
   AuthCredentials: AuthCredentials;
   ConfigurationOptions: ConfigurationOptions;
+  Session: Session;
 };
 
 export {
@@ -78,6 +81,7 @@ export {
   session,
   error,
   AuthCredentials,
+  Session,
   ConfigurationOptions,
 }
 
