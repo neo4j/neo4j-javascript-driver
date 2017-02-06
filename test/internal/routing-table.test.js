@@ -87,6 +87,26 @@ describe('routing-table', () => {
     expect(table.writers.toArray()).toEqual([]);
   });
 
+  it('should forget router', () => {
+    const table = createTable([1, 2], [1, 3], [4, 1], notExpired());
+
+    table.forgetRouter(1);
+
+    expect(table.routers.toArray()).toEqual([2]);
+    expect(table.readers.toArray()).toEqual([1, 3]);
+    expect(table.writers.toArray()).toEqual([4, 1]);
+  });
+
+  it('should forget writer', () => {
+    const table = createTable([1, 2, 3], [2, 1, 5], [5, 1], notExpired());
+
+    table.forgetWriter(1);
+
+    expect(table.routers.toArray()).toEqual([1, 2, 3]);
+    expect(table.readers.toArray()).toEqual([2, 1, 5]);
+    expect(table.writers.toArray()).toEqual([5]);
+  });
+
   it('should return all servers in diff when other table is empty', () => {
     const oldTable = createTable([1, 2], [3, 4], [5, 6], notExpired());
     const newTable = createTable([], [], [], notExpired());

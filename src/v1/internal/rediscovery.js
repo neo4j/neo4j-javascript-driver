@@ -47,11 +47,8 @@ export default class Rediscovery {
 
       Rediscovery._assertNonEmpty(routers, 'routers', routerAddress);
       Rediscovery._assertNonEmpty(readers, 'readers', routerAddress);
-
-      if (writers.isEmpty()) {
-        // retrieved routing table has no writers, next router should be queried
-        return null;
-      }
+      // case with no writers is processed higher in the promise chain because only RoutingDriver knows
+      // how to deal with such table and how to treat router that returned such table
 
       return new RoutingTable(routers, readers, writers, expirationTime);
     });

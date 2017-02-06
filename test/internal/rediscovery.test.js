@@ -129,7 +129,7 @@ describe('rediscovery', () => {
     });
   });
 
-  it('should return null when no writers', done => {
+  it('should return routing table when no writers', done => {
     const util = new FakeGetServersUtil({
       callGetServers: () => [new Record(['a'], ['aaa'])],
       parseTtl: () => int(42),
@@ -143,7 +143,8 @@ describe('rediscovery', () => {
     });
 
     lookupRoutingTableOnRouter(util).then(routingTable => {
-      expect(routingTable).toBeNull();
+      expect(routingTable).toBeDefined();
+      expect(routingTable).not.toBeNull();
       done();
     });
   });

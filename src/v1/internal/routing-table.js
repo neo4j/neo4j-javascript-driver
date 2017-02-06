@@ -38,6 +38,14 @@ export default class RoutingTable {
     this.writers.remove(address);
   }
 
+  forgetRouter(address) {
+    this.routers.remove(address);
+  }
+
+  forgetWriter(address) {
+    this.writers.remove(address);
+  }
+
   serversDiff(otherRoutingTable) {
     const oldServers = new Set(this._allServers());
     const newServers = otherRoutingTable._allServers();

@@ -1,0 +1,13 @@
+!: AUTO INIT
+!: AUTO RESET
+!: AUTO PULL_ALL
+
+C: RUN "CALL dbms.cluster.routing.getServers" {}
+   PULL_ALL
+S: SUCCESS {"fields": ["ttl", "servers"]}
+   RECORD [9223372036854775807, [{"addresses": {{{writers}}},"role": "WRITE"}, {"addresses": {{{readers}}}, "role": "READ"},{"addresses": {{{routers}}}, "role": "ROUTE"}]]
+   SUCCESS {}
+C: RUN "MATCH (n) RETURN n.name" {}
+   PULL_ALL
+S: SUCCESS {"fields": ["n.name"]}
+   SUCCESS {}

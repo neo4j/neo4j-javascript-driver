@@ -70,10 +70,10 @@ class RoutingDriver extends Driver {
         let url = 'UNKNOWN';
         if (conn) {
           url = conn.url;
-          this._routingTable.writers.remove(conn.url);
+          this._routingTable.forgetWriter(conn.url);
         } else {
           connectionPromise.then((conn) => {
-            this._routingTable.writers.remove(conn.url);
+            this._routingTable.forgetWriter(conn.url);
           }).catch(() => {/*ignore*/});
         }
         return newError("No longer possible to write to server at " + url, SESSION_EXPIRED);
@@ -118,33 +118,41 @@ class RoutingDriver extends Driver {
     const refreshedTablePromise = knownRouters.reduce((refreshedTablePromise, currentRouter, currentIndex) => {
       return refreshedTablePromise.then(newRoutingTable => {
         if (newRoutingTable) {
-          // correct routing table was fetched, just return it
-          return newRoutingTable
+          if (!newRoutingTable.writers.isEmpty()) {
+            // valid routing table was fetched - just return it, try next router otherwise
+            return newRoutingTable;
+          }
+        } else {
+          // returned routing table was undefined, this means a connection error happened and we need to forget the
+          // previous router and try the next one
+          const previousRouter = knownRouters[currentIndex - 1];
+          if (previousRouter) {
+            currentRoutingTable.forgetRouter(previousRouter);
+          }
         }
-
-        // returned routing table was undefined, this means a connection error happened and we need to forget the
-        // previous router and try the next one
-        const previousRouter = knownRouters[currentIndex - 1];
-        if (previousRouter) {
-          this._forget(previousRouter);
-        }
-
-        const connection = this._pool.acquire(currentRouter);
-        const connectionPromise = Promise.resolve(connection);
-        const session = this._createSession(connectionPromise, this._releaseConnection(connectionPromise));
 
         // try next router
+        const session = this._createSessionForRediscovery(currentRouter);
         return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter);
       })
     }, Promise.resolve(null));
 
     return refreshedTablePromise.then(newRoutingTable => {
-      if (newRoutingTable) {
+      if (newRoutingTable && !newRoutingTable.writers.isEmpty()) {
         this._updateRoutingTable(newRoutingTable);
         return newRoutingTable
       }
       throw newError('Could not perform discovery. No routing servers available.', SERVICE_UNAVAILABLE);
     });
+  }
+
+  _createSessionForRediscovery(routerAddress) {
+    const connection = this._pool.acquire(routerAddress);
+    const connectionPromise = Promise.resolve(connection);
+    // error transformer here is a no-op unlike the one in a regular session, this is so because errors are
+    // handled in the rediscovery promise chain and we do not need to do this in the error transformer
+    const errorTransformer = error => error;
+    return new RoutingSession(connectionPromise, this._releaseConnection(connectionPromise), errorTransformer);
   }
 
   _forget(url) {

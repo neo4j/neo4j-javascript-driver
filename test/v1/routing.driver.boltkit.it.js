@@ -17,18 +17,19 @@
  * limitations under the License.
  */
 
-var neo4j = require("../../lib/v1");
-var boltkit = require('./boltkit');
+import neo4j from "../../src/v1";
+import boltkit from "./boltkit";
+import RoutingTable from "../../src/v1/internal/routing-table";
 
 describe('routing driver', function () {
- var originalTimeout;
+  var originalTimeout;
 
-  beforeAll(function(){
+  beforeAll(function () {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
   });
 
-  afterAll(function(){
+  afterAll(function () {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
@@ -50,9 +51,9 @@ describe('routing driver', function () {
         session.close();
         // Then
         expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
-        expect(driver._routingTable.routers.toArray()).toEqual(["127.0.0.1:9001", "127.0.0.1:9002", "127.0.0.1:9003"]);
-        expect(driver._routingTable.readers.toArray()).toEqual(["127.0.0.1:9002", "127.0.0.1:9003"]);
-        expect(driver._routingTable.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+        assertHasRouters(driver, ["127.0.0.1:9001", "127.0.0.1:9002", "127.0.0.1:9003"]);
+        assertHasReaders(driver, ["127.0.0.1:9002", "127.0.0.1:9003"]);
+        assertHasWriters(driver, ["127.0.0.1:9001"]);
 
         driver.close();
         server.exit(function (code) {
@@ -79,9 +80,9 @@ describe('routing driver', function () {
       session.run("MATCH (n) RETURN n.name").then(function () {
 
         // Then
-        expect(driver._routingTable.routers.toArray()).toEqual(["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
-        expect(driver._routingTable.readers.toArray()).toEqual(["127.0.0.1:9005", "127.0.0.1:9003"]);
-        expect(driver._routingTable.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+        assertHasRouters(driver, ["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
+        assertHasReaders(driver, ["127.0.0.1:9005", "127.0.0.1:9003"]);
+        assertHasWriters(driver, ["127.0.0.1:9001"]);
 
         driver.close();
         server.exit(function (code) {
@@ -109,9 +110,9 @@ describe('routing driver', function () {
         onCompleted: function () {
 
           // Then
-          expect(driver._routingTable.routers.toArray()).toEqual(["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
-          expect(driver._routingTable.readers.toArray()).toEqual(["127.0.0.1:9005", "127.0.0.1:9003"]);
-          expect(driver._routingTable.writers.toArray()).toEqual(["127.0.0.1:9001"]);
+          assertHasRouters(driver, ["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
+          assertHasReaders(driver, ["127.0.0.1:9005", "127.0.0.1:9003"]);
+          assertHasWriters(driver, ["127.0.0.1:9001"]);
 
           driver.close();
           server.exit(function (code) {
@@ -130,7 +131,7 @@ describe('routing driver', function () {
     }
     // Given
     var kit = new boltkit.BoltKit();
-    var server = kit.start('./test/resources/boltkit/handle_empty_get_servers_response.script', 9001);
+    var server = kit.start('./test/resources/boltkit/empty_get_servers_response.script', 9001);
 
     kit.run(function () {
       var driver = newDriver("bolt+routing://127.0.0.1:9001");
@@ -419,9 +420,9 @@ describe('routing driver', function () {
       session.run("MATCH (n) RETURN n.name").then(function () {
 
         // Then
-        expect(driver._routingTable.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
-        expect(driver._routingTable.readers.toArray()).toEqual(['127.0.0.1:9005', '127.0.0.1:9006']);
-        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
+        assertHasRouters(driver, ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
+        assertHasReaders(driver, ['127.0.0.1:9005', '127.0.0.1:9006']);
+        assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
         seedServer.exit(function (code1) {
           readServer.exit(function (code2) {
@@ -453,9 +454,9 @@ describe('routing driver', function () {
         // Then
         expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
         expect(driver._pool.has('127.0.0.1:9005')).toBeFalsy();
-        expect(driver._routingTable.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
-        expect(driver._routingTable.readers.toArray()).toEqual(['127.0.0.1:9006']);
-        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
+        assertHasRouters(driver, ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
+        assertHasReaders(driver, ['127.0.0.1:9006']);
+        assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
         seedServer.exit(function (code1) {
           readServer.exit(function (code2) {
@@ -486,9 +487,9 @@ describe('routing driver', function () {
         // Then
         expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
         expect(driver._pool.has('127.0.0.1:9005')).toBeFalsy();
-        expect(driver._routingTable.routers.toArray()).toEqual(['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
-        expect(driver._routingTable.readers.toArray()).toEqual(['127.0.0.1:9006']);
-        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9007', '127.0.0.1:9008']);
+        assertHasRouters(driver, ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
+        assertHasReaders(driver, ['127.0.0.1:9006']);
+        assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
         seedServer.exit(function (code) {
           expect(code).toEqual(0);
@@ -528,24 +529,27 @@ describe('routing driver', function () {
     });
   });
 
-  it('should handle server not able to do routing', function (done) {
+  it('should handle server not able to do routing', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
-    // Given
-    var kit = new boltkit.BoltKit();
-    var server = kit.start('./test/resources/boltkit/non_discovery.script', 9001);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    // Given
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/non_discovery.script', 9001);
+
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session();
-      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+      const session = driver.session();
+      session.run("MATCH (n) RETURN n.name").catch(err => {
         expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+        expect(err.message.indexOf('could not perform routing') > 0).toBeTruthy();
+        assertHasRouters(driver, ['127.0.0.1:9001']);
         session.close();
         driver.close();
-        server.exit(function (code) {
+        server.exit(code => {
           expect(code).toEqual(0);
           done();
         });
@@ -569,7 +573,7 @@ describe('routing driver', function () {
       var session = driver.session();
       session.run("CREATE ()").catch(function (err) {
         //the server at 9007 should have been removed
-        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9008']);
+        assertHasWriters(driver, ['127.0.0.1:9008']);
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         session.close();
         driver.close();
@@ -603,7 +607,7 @@ describe('routing driver', function () {
 
       tx.commit().catch(function (err) {
         //the server at 9007 should have been removed
-        expect(driver._routingTable.writers.toArray()).toEqual(['127.0.0.1:9008']);
+        assertHasWriters(driver, ['127.0.0.1:9008']);
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         session.close();
         driver.close();
@@ -635,11 +639,61 @@ describe('routing driver', function () {
         expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
         driver.close();
         seedServer.exit(function (code) {
-            expect(code).toEqual(0);
-            done();
+          expect(code).toEqual(0);
+          done();
+        });
+      });
+    });
+  });
+
+  it('should try next router when no writers', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const server1 = kit.start('./test/resources/boltkit/routing_table_with_zero_ttl.script', 9000);
+    const server2 = kit.start('./test/resources/boltkit/no_writers.script', 9090);
+    const server3 = kit.start('./test/resources/boltkit/no_writers.script', 9091);
+    const server4 = kit.start('./test/resources/boltkit/no_writers.script', 9092);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9000');
+
+      const session1 = driver.session();
+      session1.run('MATCH (n) RETURN n').then(result1 => {
+        expect(result1.summary.server.address).toEqual('127.0.0.1:9000');
+        session1.close();
+
+        assertHasRouters(driver, ['127.0.0.1:9090', '127.0.0.1:9091', '127.0.0.1:9092', '127.0.0.1:9000']);
+        const memorizingRoutingTable = setUpMemorizingRoutingTable(driver);
+
+        const session2 = driver.session();
+        session2.run('MATCH (n) RETURN n').then(result2 => {
+          expect(result2.summary.server.address).toEqual('127.0.0.1:9000');
+          session2.close();
+
+          memorizingRoutingTable.assertForgotRouters([]);
+          assertHasRouters(driver, ['127.0.0.1:9000']);
+          driver.close();
+
+          server1.exit(code1 => {
+            server2.exit(code2 => {
+              server3.exit(code3 => {
+                server4.exit(code4 => {
+                  expect(code1).toEqual(0);
+                  expect(code2).toEqual(0);
+                  expect(code3).toEqual(0);
+                  expect(code4).toEqual(0);
+                  done();
+                });
+              });
+            });
           });
         });
       });
+    });
   });
 
   it('should re-use connections', function (done) {
@@ -657,7 +711,7 @@ describe('routing driver', function () {
       // When
       var session = driver.session(neo4j.session.WRITE);
       session.run("CREATE (n {name:'Bob'})").then(function () {
-        session.close(function() {
+        session.close(function () {
           var connections = Object.keys(driver._openSessions).length
           session = driver.session(neo4j.session.WRITE);
           session.run("CREATE ()").then(function () {
@@ -783,6 +837,44 @@ describe('routing driver', function () {
     });
   });
 
+  it('should forget routers when fails to connect', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/routing_table_with_zero_ttl.script', 9000);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9000');
+
+      const session1 = driver.session();
+      session1.run('MATCH (n) RETURN n').then(result1 => {
+        expect(result1.summary.server.address).toEqual('127.0.0.1:9000');
+        session1.close();
+
+        assertHasRouters(driver, ['127.0.0.1:9090', '127.0.0.1:9091', '127.0.0.1:9092', '127.0.0.1:9000']);
+        const memorizingRoutingTable = setUpMemorizingRoutingTable(driver);
+
+        const session2 = driver.session();
+        session2.run('MATCH (n) RETURN n').then(result2 => {
+          expect(result2.summary.server.address).toEqual('127.0.0.1:9000');
+          session2.close();
+
+          memorizingRoutingTable.assertForgotRouters(['127.0.0.1:9090', '127.0.0.1:9091', '127.0.0.1:9092']);
+          assertHasRouters(driver, ['127.0.0.1:9000']);
+          driver.close();
+
+          server.exit(code1 => {
+            expect(code1).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
   it('should close connection used for routing table refreshing', done => {
     if (!boltkit.BoltKitSupport) {
       done();
@@ -824,6 +916,175 @@ describe('routing driver', function () {
     });
   });
 
+  it('should throw protocol error when no records', done => {
+    testForProtocolError('./test/resources/boltkit/empty_get_servers_response.script', done);
+  });
+
+  it('should throw protocol error when no TTL entry', done => {
+    testForProtocolError('./test/resources/boltkit/no_ttl_entry_get_servers.script', done);
+  });
+
+  it('should throw protocol error when no servers entry', done => {
+    testForProtocolError('./test/resources/boltkit/no_servers_entry_get_servers.script', done);
+  });
+
+  it('should throw protocol error when multiple records', done => {
+    testForProtocolError('./test/resources/boltkit/unparseable_ttl_get_servers.script', done);
+  });
+
+  it('should throw protocol error on unparsable record', done => {
+    testForProtocolError('./test/resources/boltkit/unparseable_servers_get_servers.script', done);
+  });
+
+  it('should throw protocol error when no routers', done => {
+    testForProtocolError('./test/resources/boltkit/no_routers_get_servers.script', done);
+  });
+
+  it('should throw protocol error when no readers', done => {
+    testForProtocolError('./test/resources/boltkit/no_readers_get_servers.script', done);
+  });
+
+  it('should accept routing table with 1 router, 1 reader and 1 writer', done => {
+    testRoutingTableAcceptance(
+      {
+        routers: ['127.0.0.1:9090'],
+        readers: ['127.0.0.1:9091'],
+        writers: ['127.0.0.1:9000']
+      },
+      9000, done);
+  });
+
+  it('should accept routing table with 2 routers, 1 reader and 1 writer', done => {
+    testRoutingTableAcceptance(
+      {
+        routers: ['127.0.0.1:9090', '127.0.0.1:9091'],
+        readers: ['127.0.0.1:9091'],
+        writers: ['127.0.0.1:9000']
+      },
+      9000, done);
+  });
+
+  it('should accept routing table with 1 router, 2 readers and 1 writer', done => {
+    testRoutingTableAcceptance(
+      {
+        routers: ['127.0.0.1:9090'],
+        readers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+        writers: ['127.0.0.1:9000']
+      },
+      9000, done);
+  });
+
+  it('should accept routing table with 2 routers, 2 readers and 1 writer', done => {
+    testRoutingTableAcceptance(
+      {
+        routers: ['127.0.0.1:9090', '127.0.0.1:9091'],
+        readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
+        writers: ['127.0.0.1:9000']
+      },
+      9000, done);
+  });
+
+  it('should accept routing table with 1 router, 1 reader and 2 writers', done => {
+    testRoutingTableAcceptance(
+      {
+        routers: ['127.0.0.1:9090'],
+        readers: ['127.0.0.1:9091'],
+        writers: ['127.0.0.1:9000', '127.0.0.1:9092']
+      },
+      9000, done);
+  });
+
+  it('should accept routing table with 2 routers, 1 reader and 2 writers', done => {
+    testRoutingTableAcceptance(
+      {
+        routers: ['127.0.0.1:9090', '127.0.0.1:9091'],
+        readers: ['127.0.0.1:9092'],
+        writers: ['127.0.0.1:9000', '127.0.0.1:9093']
+      },
+      9000, done);
+  });
+
+  it('should accept routing table with 1 router, 2 readers and 2 writers', done => {
+    testRoutingTableAcceptance(
+      {
+        routers: ['127.0.0.1:9090'],
+        readers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+        writers: ['127.0.0.1:9000', '127.0.0.1:9093']
+      },
+      9000, done);
+  });
+
+  it('should accept routing table with 2 routers, 2 readers and 2 writers', done => {
+    testRoutingTableAcceptance(
+      {
+        routers: ['127.0.0.1:9090', '127.0.0.1:9091'],
+        readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
+        writers: ['127.0.0.1:9000', '127.0.0.1:9094']
+      },
+      9000, done);
+  });
+
+  function testForProtocolError(scriptFile, done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const server = kit.start(scriptFile, 9001);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+
+      const session = driver.session();
+      session.run('MATCH (n) RETURN n.name').catch(error => {
+        expect(error.code).toEqual(neo4j.error.PROTOCOL_ERROR);
+
+        session.close();
+        driver.close();
+
+        server.exit(code => {
+          expect(code).toEqual(0);
+          done();
+        })
+      });
+    });
+  }
+
+  function testRoutingTableAcceptance(clusterMembers, port, done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const {routers, readers, writers} = clusterMembers;
+    const params = {
+      routers: joinStrings(routers),
+      readers: joinStrings(readers),
+      writers: joinStrings(writers)
+    };
+    const kit = new boltkit.BoltKit();
+    const server = kit.startWithTemplate('./test/resources/boltkit/one_of_each_template.script.mst', params, port);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:' + port);
+
+      const session = driver.session();
+      session.run('MATCH (n) RETURN n.name').then(result => {
+
+        expect(result.summary.server.address).toEqual('127.0.0.1:' + port);
+
+        session.close();
+        driver.close();
+
+        server.exit(code => {
+          expect(code).toEqual(0);
+          done();
+        })
+      });
+    });
+  }
+
   function setUpPoolToMemorizeAllAcquiredAndReleasedConnections(driver, acquiredConnections, releasedConnections) {
     // make connection pool remember all acquired connections
     const originalAcquire = driver._pool.acquire.bind(driver._pool);
@@ -848,6 +1109,45 @@ describe('routing driver', function () {
     return neo4j.driver(url, neo4j.auth.basic("neo4j", "neo4j"), {
       encrypted: "ENCRYPTION_OFF"
     });
+  }
+
+  function assertHasRouters(driver, expectedRouters) {
+    expect(driver._routingTable.routers.toArray()).toEqual(expectedRouters);
+  }
+
+  function assertHasReaders(driver, expectedReaders) {
+    expect(driver._routingTable.readers.toArray()).toEqual(expectedReaders);
+  }
+
+  function assertHasWriters(driver, expectedWriters) {
+    expect(driver._routingTable.writers.toArray()).toEqual(expectedWriters);
+  }
+
+  function setUpMemorizingRoutingTable(driver) {
+    const memorizingRoutingTable = new MemorizingRoutingTable(driver._routingTable);
+    driver._routingTable = memorizingRoutingTable;
+    return memorizingRoutingTable;
+  }
+
+  function joinStrings(array) {
+    return '[' + array.map(s => '"' + s + '"').join(',') + ']';
+  }
+
+  class MemorizingRoutingTable extends RoutingTable {
+
+    constructor(initialTable) {
+      super(initialTable.routers, initialTable.readers, initialTable.writers, initialTable.expirationTime);
+      this._forgottenRouters = [];
+    }
+
+    forgetRouter(address) {
+      super.forgetRouter(address);
+      this._forgottenRouters.push(address);
+    }
+
+    assertForgotRouters(expectedRouters) {
+      expect(this._forgottenRouters).toEqual(expectedRouters);
+    }
   }
 
 });
