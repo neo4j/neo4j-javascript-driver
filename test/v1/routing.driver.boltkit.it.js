@@ -21,32 +21,32 @@ import neo4j from "../../src/v1";
 import boltkit from "./boltkit";
 import RoutingTable from "../../src/v1/internal/routing-table";
 
-describe('routing driver', function () {
-  var originalTimeout;
+describe('routing driver', () => {
+  let originalTimeout;
 
-  beforeAll(function () {
+  beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
   });
 
-  afterAll(function () {
+  afterAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
-  it('should discover server', function (done) {
+  it('should discover server', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var server = kit.start('./test/resources/boltkit/discover_servers.script', 9001);
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/discover_servers.script', 9001);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session();
-      session.run("MATCH (n) RETURN n.name").then(function () {
+      const session = driver.session();
+      session.run("MATCH (n) RETURN n.name").then(() => {
 
         session.close();
         // Then
@@ -56,7 +56,7 @@ describe('routing driver', function () {
         assertHasWriters(driver, ["127.0.0.1:9001"]);
 
         driver.close();
-        server.exit(function (code) {
+        server.exit(code => {
           expect(code).toEqual(0);
           done();
         });
@@ -64,20 +64,20 @@ describe('routing driver', function () {
     });
   });
 
-  it('should discover new servers', function (done) {
+  it('should discover new servers', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var server = kit.start('./test/resources/boltkit/discover_new_servers.script', 9001);
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/discover_new_servers.script', 9001);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session();
-      session.run("MATCH (n) RETURN n.name").then(function () {
+      const session = driver.session();
+      session.run("MATCH (n) RETURN n.name").then(() => {
 
         // Then
         assertHasRouters(driver, ["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
@@ -85,7 +85,7 @@ describe('routing driver', function () {
         assertHasWriters(driver, ["127.0.0.1:9001"]);
 
         driver.close();
-        server.exit(function (code) {
+        server.exit(code => {
           expect(code).toEqual(0);
           done();
         });
@@ -93,21 +93,21 @@ describe('routing driver', function () {
     });
   });
 
-  it('should discover new servers using subscribe', function (done) {
+  it('should discover new servers using subscribe', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var server = kit.start('./test/resources/boltkit/discover_new_servers.script', 9001);
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/discover_new_servers.script', 9001);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session();
+      const session = driver.session();
       session.run("MATCH (n) RETURN n.name").subscribe({
-        onCompleted: function () {
+        onCompleted: () => {
 
           // Then
           assertHasRouters(driver, ["127.0.0.1:9004", "127.0.0.1:9002", "127.0.0.1:9003"]);
@@ -115,7 +115,7 @@ describe('routing driver', function () {
           assertHasWriters(driver, ["127.0.0.1:9001"]);
 
           driver.close();
-          server.exit(function (code) {
+          server.exit(code => {
             expect(code).toEqual(0);
             done();
           });
@@ -124,50 +124,50 @@ describe('routing driver', function () {
     });
   });
 
-  it('should handle empty response from server', function (done) {
+  it('should handle empty response from server', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var server = kit.start('./test/resources/boltkit/empty_get_servers_response.script', 9001);
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/empty_get_servers_response.script', 9001);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
 
       // When
-      var session = driver.session(neo4j.READ);
-      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+      const session = driver.session(neo4j.READ);
+      session.run("MATCH (n) RETURN n.name").catch(err => {
         expect(err.code).toEqual(neo4j.error.PROTOCOL_ERROR);
 
         session.close();
         driver.close();
-        server.exit(function (code) {
+        server.exit(code => {
           expect(code).toEqual(0);
           done();
         });
-      }).catch(function (err) {
+      }).catch(err => {
         console.log(err)
       });
     });
   });
 
-  it('should acquire read server', function (done) {
+  it('should acquire read server', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer = kit.start('./test/resources/boltkit/read_server.script', 9005);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer = kit.start('./test/resources/boltkit/read_server.script', 9005);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.READ);
-      session.run("MATCH (n) RETURN n.name").then(function (res) {
+      const session = driver.session(neo4j.session.READ);
+      session.run("MATCH (n) RETURN n.name").then(res => {
 
         session.close();
 
@@ -178,8 +178,8 @@ describe('routing driver', function () {
         expect(res.records[1].get('n.name')).toEqual('Alice');
         expect(res.records[2].get('n.name')).toEqual('Tina');
         driver.close();
-        seedServer.exit(function (code1) {
-          readServer.exit(function (code2) {
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
             expect(code1).toEqual(0);
             expect(code2).toEqual(0);
             done();
@@ -189,41 +189,41 @@ describe('routing driver', function () {
     });
   });
 
-  it('should pick first available route-server', function (done) {
+  it('should pick first available route-server', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/short_ttl.script', 9000);
-    var nextRouter = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9003);
-    var readServer1 = kit.start('./test/resources/boltkit/read_server.script', 9004);
-    var readServer2 = kit.start('./test/resources/boltkit/read_server.script', 9005);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/short_ttl.script', 9000);
+    const nextRouter = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9003);
+    const readServer1 = kit.start('./test/resources/boltkit/read_server.script', 9004);
+    const readServer2 = kit.start('./test/resources/boltkit/read_server.script', 9005);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9000");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9000");
       // When
-      var session = driver.session(neo4j.session.READ);
-      session.run("MATCH (n) RETURN n.name").then(function (res) {
+      const session1 = driver.session(neo4j.session.READ);
+      session1.run("MATCH (n) RETURN n.name").then(res => {
         // Then
         expect(res.records[0].get('n.name')).toEqual('Bob');
         expect(res.records[1].get('n.name')).toEqual('Alice');
         expect(res.records[2].get('n.name')).toEqual('Tina');
-        session.close();
+        session1.close();
 
-        session = driver.session(neo4j.session.READ);
-        session.run("MATCH (n) RETURN n.name").then(function (res) {
+        const session2 = driver.session(neo4j.session.READ);
+        session2.run("MATCH (n) RETURN n.name").then(res => {
           // Then
           expect(res.records[0].get('n.name')).toEqual('Bob');
           expect(res.records[1].get('n.name')).toEqual('Alice');
           expect(res.records[2].get('n.name')).toEqual('Tina');
-          session.close();
+          session2.close();
           driver.close();
-          seedServer.exit(function (code1) {
-            nextRouter.exit(function (code2) {
-              readServer1.exit(function (code3) {
-                readServer2.exit(function (code4) {
+          seedServer.exit(code1 => {
+            nextRouter.exit(code2 => {
+              readServer1.exit(code3 => {
+                readServer2.exit(code4 => {
                   expect(code1).toEqual(0);
                   expect(code2).toEqual(0);
                   expect(code3).toEqual(0);
@@ -238,39 +238,39 @@ describe('routing driver', function () {
     });
   });
 
-  it('should round-robin among read servers', function (done) {
+  it('should round-robin among read servers', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer1 = kit.start('./test/resources/boltkit/read_server.script', 9005);
-    var readServer2 = kit.start('./test/resources/boltkit/read_server.script', 9006);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer1 = kit.start('./test/resources/boltkit/read_server.script', 9005);
+    const readServer2 = kit.start('./test/resources/boltkit/read_server.script', 9006);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.READ);
-      session.run("MATCH (n) RETURN n.name").then(function (res) {
+      const session1 = driver.session(neo4j.session.READ);
+      session1.run("MATCH (n) RETURN n.name").then(res => {
         // Then
         expect(res.records[0].get('n.name')).toEqual('Bob');
         expect(res.records[1].get('n.name')).toEqual('Alice');
         expect(res.records[2].get('n.name')).toEqual('Tina');
-        session.close();
-        session = driver.session(neo4j.session.READ);
-        session.run("MATCH (n) RETURN n.name").then(function (res) {
+        session1.close();
+        const session2 = driver.session(neo4j.session.READ);
+        session2.run("MATCH (n) RETURN n.name").then(res => {
           // Then
           expect(res.records[0].get('n.name')).toEqual('Bob');
           expect(res.records[1].get('n.name')).toEqual('Alice');
           expect(res.records[2].get('n.name')).toEqual('Tina');
-          session.close();
+          session2.close();
 
           driver.close();
-          seedServer.exit(function (code1) {
-            readServer1.exit(function (code2) {
-              readServer2.exit(function (code3) {
+          seedServer.exit(code1 => {
+            readServer1.exit(code2 => {
+              readServer2.exit(code3 => {
                 expect(code1).toEqual(0);
                 expect(code2).toEqual(0);
                 expect(code3).toEqual(0);
@@ -283,25 +283,25 @@ describe('routing driver', function () {
     });
   });
 
-  it('should handle missing read server', function (done) {
+  it('should handle missing read server', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer = kit.start('./test/resources/boltkit/dead_server.script', 9005);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer = kit.start('./test/resources/boltkit/dead_server.script', 9005);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.READ);
-      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+      const session = driver.session(neo4j.session.READ);
+      session.run("MATCH (n) RETURN n.name").catch(err => {
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         driver.close();
-        seedServer.exit(function (code1) {
-          readServer.exit(function (code2) {
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
             expect(code1).toEqual(0);
             expect(code2).toEqual(0);
             done();
@@ -311,26 +311,26 @@ describe('routing driver', function () {
     });
   });
 
-  it('should acquire write server', function (done) {
+  it('should acquire write server', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var writeServer = kit.start('./test/resources/boltkit/write_server.script', 9007);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const writeServer = kit.start('./test/resources/boltkit/write_server.script', 9007);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.WRITE);
-      session.run("CREATE (n {name:'Bob'})").then(function () {
+      const session = driver.session(neo4j.session.WRITE);
+      session.run("CREATE (n {name:'Bob'})").then(() => {
 
         // Then
         driver.close();
-        seedServer.exit(function (code1) {
-          writeServer.exit(function (code2) {
+        seedServer.exit(code1 => {
+          writeServer.exit(code2 => {
             expect(code1).toEqual(0);
             expect(code2).toEqual(0);
             done();
@@ -340,29 +340,29 @@ describe('routing driver', function () {
     });
   });
 
-  it('should round-robin among write servers', function (done) {
+  it('should round-robin among write servers', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer1 = kit.start('./test/resources/boltkit/write_server.script', 9007);
-    var readServer2 = kit.start('./test/resources/boltkit/write_server.script', 9008);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer1 = kit.start('./test/resources/boltkit/write_server.script', 9007);
+    const readServer2 = kit.start('./test/resources/boltkit/write_server.script', 9008);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.WRITE);
-      session.run("CREATE (n {name:'Bob'})").then(function () {
-        session = driver.session(neo4j.session.WRITE);
-        session.run("CREATE (n {name:'Bob'})").then(function () {
+      const session1 = driver.session(neo4j.session.WRITE);
+      session1.run("CREATE (n {name:'Bob'})").then(() => {
+        const session2 = driver.session(neo4j.session.WRITE);
+        session2.run("CREATE (n {name:'Bob'})").then(() => {
           // Then
           driver.close();
-          seedServer.exit(function (code1) {
-            readServer1.exit(function (code2) {
-              readServer2.exit(function (code3) {
+          seedServer.exit(code1 => {
+            readServer1.exit(code2 => {
+              readServer2.exit(code3 => {
                 expect(code1).toEqual(0);
                 expect(code2).toEqual(0);
                 expect(code3).toEqual(0);
@@ -375,25 +375,25 @@ describe('routing driver', function () {
     });
   });
 
-  it('should handle missing write server', function (done) {
+  it('should handle missing write server', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer = kit.start('./test/resources/boltkit/dead_server.script', 9007);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer = kit.start('./test/resources/boltkit/dead_server.script', 9007);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.WRITE);
-      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+      const session = driver.session(neo4j.session.WRITE);
+      session.run("MATCH (n) RETURN n.name").catch(err => {
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         driver.close();
-        seedServer.exit(function (code1) {
-          readServer.exit(function (code2) {
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
             expect(code1).toEqual(0);
             expect(code2).toEqual(0);
             done();
@@ -403,29 +403,29 @@ describe('routing driver', function () {
     });
   });
 
-  it('should remember endpoints', function (done) {
+  it('should remember endpoints', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer = kit.start('./test/resources/boltkit/read_server.script', 9005);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer = kit.start('./test/resources/boltkit/read_server.script', 9005);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.READ);
-      session.run("MATCH (n) RETURN n.name").then(function () {
+      const session = driver.session(neo4j.session.READ);
+      session.run("MATCH (n) RETURN n.name").then(() => {
 
         // Then
         assertHasRouters(driver, ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
         assertHasReaders(driver, ['127.0.0.1:9005', '127.0.0.1:9006']);
         assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
-        seedServer.exit(function (code1) {
-          readServer.exit(function (code2) {
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
             expect(code1).toEqual(0);
             expect(code2).toEqual(0);
             done();
@@ -435,21 +435,21 @@ describe('routing driver', function () {
     });
   });
 
-  it('should forget endpoints on failure', function (done) {
+  it('should forget endpoints on failure', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer = kit.start('./test/resources/boltkit/dead_server.script', 9005);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer = kit.start('./test/resources/boltkit/dead_server.script', 9005);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.READ);
-      session.run("MATCH (n) RETURN n.name").catch(function () {
+      const session = driver.session(neo4j.session.READ);
+      session.run("MATCH (n) RETURN n.name").catch(() => {
         session.close();
         // Then
         expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
@@ -458,8 +458,8 @@ describe('routing driver', function () {
         assertHasReaders(driver, ['127.0.0.1:9006']);
         assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
-        seedServer.exit(function (code1) {
-          readServer.exit(function (code2) {
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
             expect(code1).toEqual(0);
             expect(code2).toEqual(0);
             done();
@@ -469,20 +469,20 @@ describe('routing driver', function () {
     });
   });
 
-  it('should forget endpoints on session acquisition failure', function (done) {
+  it('should forget endpoints on session acquisition failure', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.READ);
-      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+      const session = driver.session(neo4j.session.READ);
+      session.run("MATCH (n) RETURN n.name").catch(() => {
         session.close();
         // Then
         expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
@@ -491,7 +491,7 @@ describe('routing driver', function () {
         assertHasReaders(driver, ['127.0.0.1:9006']);
         assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
         driver.close();
-        seedServer.exit(function (code) {
+        seedServer.exit(code => {
           expect(code).toEqual(0);
           done();
         });
@@ -499,26 +499,26 @@ describe('routing driver', function () {
     });
   });
 
-  it('should rediscover if necessary', function (done) {
+  it('should rediscover if necessary', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/rediscover.script', 9001);
-    var readServer = kit.start('./test/resources/boltkit/read_server.script', 9005);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/rediscover.script', 9001);
+    const readServer = kit.start('./test/resources/boltkit/read_server.script', 9005);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.READ);
-      session.run("MATCH (n) RETURN n.name").catch(function (err) {
-        session = driver.session(neo4j.session.READ);
-        session.run("MATCH (n) RETURN n.name").then(function (res) {
+      const session1 = driver.session(neo4j.session.READ);
+      session1.run("MATCH (n) RETURN n.name").catch(() => {
+        const session2 = driver.session(neo4j.session.READ);
+        session2.run("MATCH (n) RETURN n.name").then(() => {
           driver.close();
-          seedServer.exit(function (code1) {
-            readServer.exit(function (code2) {
+          seedServer.exit(code1 => {
+            readServer.exit(code2 => {
               expect(code1).toEqual(0);
               expect(code2).toEqual(0);
               done();
@@ -557,28 +557,28 @@ describe('routing driver', function () {
     });
   });
 
-  it('should handle leader switch while writing', function (done) {
+  it('should handle leader switch while writing', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer = kit.start('./test/resources/boltkit/not_able_to_write.script', 9007);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer = kit.start('./test/resources/boltkit/not_able_to_write.script', 9007);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session();
-      session.run("CREATE ()").catch(function (err) {
+      const session = driver.session();
+      session.run("CREATE ()").catch(err => {
         //the server at 9007 should have been removed
         assertHasWriters(driver, ['127.0.0.1:9008']);
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         session.close();
         driver.close();
-        seedServer.exit(function (code1) {
-          readServer.exit(function (code2) {
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
             expect(code1).toEqual(0);
             expect(code2).toEqual(0);
             done();
@@ -588,31 +588,31 @@ describe('routing driver', function () {
     });
   });
 
-  it('should handle leader switch while writing on transaction', function (done) {
+  it('should handle leader switch while writing on transaction', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    var readServer = kit.start('./test/resources/boltkit/not_able_to_write_in_transaction.script', 9007);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const readServer = kit.start('./test/resources/boltkit/not_able_to_write_in_transaction.script', 9007);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session();
-      var tx = session.beginTransaction();
+      const session = driver.session();
+      const tx = session.beginTransaction();
       tx.run("CREATE ()");
 
-      tx.commit().catch(function (err) {
+      tx.commit().catch(err => {
         //the server at 9007 should have been removed
         assertHasWriters(driver, ['127.0.0.1:9008']);
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         session.close();
         driver.close();
-        seedServer.exit(function (code1) {
-          readServer.exit(function (code2) {
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
             expect(code1).toEqual(0);
             expect(code2).toEqual(0);
             done();
@@ -622,23 +622,23 @@ describe('routing driver', function () {
     });
   });
 
-  it('should fail if missing write server', function (done) {
+  it('should fail if missing write server', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/no_writers.script', 9001);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/no_writers.script', 9001);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9001");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
-      var session = driver.session(neo4j.session.WRITE);
-      session.run("MATCH (n) RETURN n.name").catch(function (err) {
+      const session = driver.session(neo4j.session.WRITE);
+      session.run("MATCH (n) RETURN n.name").catch(err => {
         expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
         driver.close();
-        seedServer.exit(function (code) {
+        seedServer.exit(code => {
           expect(code).toEqual(0);
           done();
         });
@@ -696,29 +696,29 @@ describe('routing driver', function () {
     });
   });
 
-  it('should re-use connections', function (done) {
+  it('should re-use connections', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
     // Given
-    var kit = new boltkit.BoltKit();
-    var seedServer = kit.start('./test/resources/boltkit/single_write_server.script', 9002);
-    var writeServer = kit.start('./test/resources/boltkit/two_write_responses_server.script', 9001);
+    const kit = new boltkit.BoltKit();
+    const seedServer = kit.start('./test/resources/boltkit/single_write_server.script', 9002);
+    const writeServer = kit.start('./test/resources/boltkit/two_write_responses_server.script', 9001);
 
-    kit.run(function () {
-      var driver = newDriver("bolt+routing://127.0.0.1:9002");
+    kit.run(() => {
+      const driver = newDriver("bolt+routing://127.0.0.1:9002");
       // When
-      var session = driver.session(neo4j.session.WRITE);
-      session.run("CREATE (n {name:'Bob'})").then(function () {
-        session.close(function () {
-          var connections = Object.keys(driver._openSessions).length
-          session = driver.session(neo4j.session.WRITE);
-          session.run("CREATE ()").then(function () {
+      const session1 = driver.session(neo4j.session.WRITE);
+      session1.run("CREATE (n {name:'Bob'})").then(() => {
+        session1.close(() => {
+          const connections = Object.keys(driver._openSessions).length;
+          const session2 = driver.session(neo4j.session.WRITE);
+          session2.run("CREATE ()").then(() => {
             driver.close();
-            seedServer.exit(function (code1) {
-              writeServer.exit(function (code2) {
-                expect(connections).toEqual(Object.keys(driver._openSessions).length)
+            seedServer.exit(code1 => {
+              writeServer.exit(code2 => {
+                expect(connections).toEqual(Object.keys(driver._openSessions).length);
                 expect(code1).toEqual(0);
                 expect(code2).toEqual(0);
                 done();
@@ -730,7 +730,7 @@ describe('routing driver', function () {
     });
   });
 
-  it('should expose server info in cluster', function (done) {
+  it('should expose server info in cluster', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
@@ -742,7 +742,7 @@ describe('routing driver', function () {
     const writeServer = kit.start('./test/resources/boltkit/write_server_with_version.script', 9007);
     const readServer = kit.start('./test/resources/boltkit/read_server_with_version.script', 9005);
 
-    kit.run(function () {
+    kit.run(() => {
       const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
       const readSession = driver.session(neo4j.session.READ);
@@ -779,7 +779,7 @@ describe('routing driver', function () {
     });
   });
 
-  it('should expose server info in cluster using observer', function (done) {
+  it('should expose server info in cluster using observer', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
@@ -791,7 +791,7 @@ describe('routing driver', function () {
     const writeServer = kit.start('./test/resources/boltkit/write_server_with_version.script', 9007);
     const readServer = kit.start('./test/resources/boltkit/read_server_with_version.script', 9005);
 
-    kit.run(function () {
+    kit.run(() => {
       const driver = newDriver("bolt+routing://127.0.0.1:9001");
       // When
       const readSession = driver.session(neo4j.session.READ);
@@ -812,9 +812,9 @@ describe('routing driver', function () {
               writeSession.close();
               driver.close();
 
-              routingServer.exit(function (routingServerExitCode) {
-                writeServer.exit(function (writeServerExitCode) {
-                  readServer.exit(function (readServerExitCode) {
+              routingServer.exit(routingServerExitCode => {
+                writeServer.exit(writeServerExitCode => {
+                  readServer.exit(readServerExitCode => {
 
                     expect(readSummary.server.address).toBe('127.0.0.1:9005');
                     expect(readSummary.server.version).toBe('TheReadServerV1');
