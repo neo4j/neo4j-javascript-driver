@@ -1,0 +1,9 @@
+!: AUTO INIT
+!: AUTO RESET
+!: AUTO PULL_ALL
+
+C: RUN "CALL dbms.cluster.routing.getServers" {}
+   PULL_ALL
+S: SUCCESS {"fields": ["ttl", "servers"]}
+   RECORD [9223372036854775807, [{"notAddresses": ["127.0.0.1:9001"],"memberRole": "WRITER"}, {"notAddresses": ["127.0.0.1:9002","127.0.0.1:9003"], "memberRole": "READER"},{"notAddresses": ["127.0.0.1:9001","127.0.0.1:9002"], "memberRole": "ROUTER"}]]
+   SUCCESS {}

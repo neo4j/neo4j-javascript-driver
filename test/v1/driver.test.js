@@ -139,14 +139,14 @@ describe('driver', function() {
     driver.session();
   });
 
-  it('should fail nicely when connecting with routing to standalone server', function(done) {
+  it('should fail nicely when connecting with routing to standalone server', done => {
     // Given
     driver = neo4j.driver("bolt+routing://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
     // Expect
-    driver.onError = function (err) {
-      expect(err.message).toEqual('Server could not perform routing, make sure you are connecting to a causal cluster');
-      expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+    driver.onError = error => {
+      expect(error.message).toEqual('Server localhost could not perform routing. Make sure you are connecting to a causal cluster');
+      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
       done();
     };
 

@@ -20,8 +20,10 @@
 // A common place for constructing error objects, to keep them
 // uniform across the driver surface.
 
-let SERVICE_UNAVAILABLE = 'ServiceUnavailable';
-let SESSION_EXPIRED = 'SessionExpired';
+const SERVICE_UNAVAILABLE = 'ServiceUnavailable';
+const SESSION_EXPIRED = 'SessionExpired';
+const PROTOCOL_ERROR = 'ProtocolError';
+
 function newError(message, code="N/A") {
   // TODO: Idea is that we can check the code here and throw sub-classes
   // of Neo4jError as appropriate
@@ -40,5 +42,6 @@ export {
   newError,
   Neo4jError,
   SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
+  SESSION_EXPIRED,
+  PROTOCOL_ERROR
 }

@@ -20,37 +20,32 @@
 /**
  * An array that lets you hop through the elements endlessly.
  */
-class RoundRobinArray {
+export default class RoundRobinArray {
+
   constructor(items) {
     this._items = items || [];
-    this._index = 0;
+    this._offset = 0;
   }
 
   next() {
-    let elem = this._items[this._index];
-    if (this._items.length === 0) {
-      this._index = 0;
-    } else {
-      this._index = (this._index + 1) % (this._items.length);
+    if (this.isEmpty()) {
+      return null;
     }
-    return elem;
-  }
-
-  push(elem) {
-    this._items.push(elem);
+    const index = this._offset % this.size();
+    this._offset++;
+    return this._items[index];
   }
 
   pushAll(elems) {
+    if (!Array.isArray(elems)) {
+      throw new TypeError('Array expected but got: ' + elems);
+    }
+
     Array.prototype.push.apply(this._items, elems);
   }
 
-  empty() {
+  isEmpty() {
     return this._items.length === 0;
-  }
-
-  clear() {
-    this._items = [];
-    this._index = 0;
   }
 
   size() {
@@ -62,21 +57,6 @@ class RoundRobinArray {
   }
 
   remove(item) {
-    let index = this._items.indexOf(item);
-    while (index != -1) {
-      this._items.splice(index, 1);
-      if (index < this._index) {
-        this._index -= 1;
-      }
-      //make sure we are in range
-      if (this._items.length === 0) {
-        this._index = 0;
-      } else {
-        this._index %= this._items.length;
-      }
-      index = this._items.indexOf(item, index);
-    }
+    this._items = this._items.filter(element => element !== item);
   }
 }
-
-export default RoundRobinArray

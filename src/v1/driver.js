@@ -17,14 +17,13 @@
  * limitations under the License.
  */
 
-import Session from './session';
-import Pool from './internal/pool';
-import Integer from './integer';
+import Session from "./session";
+import Pool from "./internal/pool";
 import {connect} from "./internal/connector";
-import StreamObserver from './internal/stream-observer';
+import StreamObserver from "./internal/stream-observer";
 import {newError, SERVICE_UNAVAILABLE} from "./error";
 
-let READ = 'READ', WRITE = 'WRITE';
+const READ = 'READ', WRITE = 'WRITE';
 /**
  * A driver maintains one or more {@link Session sessions} with a remote
  * Neo4j instance. Through the {@link Session sessions} you can send statements
@@ -111,7 +110,8 @@ class Driver {
    * @return {Session} new session.
    */
   session(mode) {
-    let connectionPromise = this._acquireConnection(mode);
+    const sessionMode = Driver._validateSessionMode(mode);
+    const connectionPromise = this._acquireConnection(sessionMode);
     connectionPromise.catch((err) => {
       if (this.onError && err.code === SERVICE_UNAVAILABLE) {
         this.onError(err);
@@ -119,30 +119,41 @@ class Driver {
         //we don't need to tell the driver about this error
       }
     });
-    return this._createSession(connectionPromise, (cb) => {
-      // This gets called on Session#close(), and is where we return
-      // the pooled 'connection' instance.
+    return this._createSession(connectionPromise, this._releaseConnection(connectionPromise));
+  }
 
-      // We don't pool Session instances, to avoid users using the Session
-      // after they've called close. The `Session` object is just a thin
-      // wrapper around Connection anyway, so it makes little difference.
-
-      // Queue up a 'reset', to ensure the next user gets a clean
-      // session to work with.
-
-      connectionPromise.then( (conn) => {
+  /**
+   * The returned function gets called on Session#close(), and is where we return the pooled 'connection' instance.
+   * We don't pool Session instances, to avoid users using the Session after they've called close.
+   * The `Session` object is just a thin wrapper around Connection anyway, so it makes little difference.
+   * @param {Promise} connectionPromise - promise resolved with the connection.
+   * @return {function(*=)} - function that releases the connection and then executes an optional callback.
+   * @protected
+   */
+  _releaseConnection(connectionPromise) {
+    return userDefinedCallback => {
+      connectionPromise.then(conn => {
+        // Queue up a 'reset', to ensure the next user gets a clean session to work with.
         conn.reset();
         conn.sync();
 
         // Return connection to the pool
         conn._release();
-      }).catch( () => {/*ignore errors here*/});
+      }).catch(ignoredError => {
+      });
 
-      // Call user callback
-      if (cb) {
-        cb();
+      if (userDefinedCallback) {
+        userDefinedCallback();
       }
-    });
+    };
+  }
+
+  static _validateSessionMode(rawMode) {
+    const mode = rawMode || WRITE;
+    if (mode !== READ && mode !== WRITE) {
+      throw newError('Illegal session mode ' + mode);
+    }
+    return mode;
   }
 
   //Extension point

@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 
-import Session from './session';
-import {Driver, READ, WRITE} from './driver';
+import Session from "./session";
+import {Driver, READ, WRITE} from "./driver";
 import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
-import RoundRobinArray from './internal/round-robin-array';
-import {int} from './integer'
-import Integer from './integer'
+import RoundRobinArray from "./internal/round-robin-array";
+import RoutingTable from "./internal/routing-table";
+import Rediscovery from "./internal/rediscovery";
 
 /**
  * A driver that supports routing in a core-edge cluster.
@@ -31,7 +31,8 @@ class RoutingDriver extends Driver {
 
   constructor(url, userAgent, token = {}, config = {}) {
     super(url, userAgent, token, RoutingDriver._validateConfig(config));
-    this._clusterView = new ClusterView(new RoundRobinArray([url]));
+    this._routingTable = new RoutingTable(new RoundRobinArray([url]));
+    this._rediscovery = new Rediscovery();
   }
 
   _createSession(connectionPromise, cb) {
@@ -69,10 +70,10 @@ class RoutingDriver extends Driver {
         let url = 'UNKNOWN';
         if (conn) {
           url = conn.url;
-          this._clusterView.writers.remove(conn.url);
+          this._routingTable.forgetWriter(conn.url);
         } else {
           connectionPromise.then((conn) => {
-            this._clusterView.writers.remove(conn.url);
+            this._routingTable.forgetWriter(conn.url);
           }).catch(() => {/*ignore*/});
         }
         return newError("No longer possible to write to server at " + url, SESSION_EXPIRED);
@@ -82,71 +83,92 @@ class RoutingDriver extends Driver {
     });
   }
 
-  _updatedClusterView() {
-    if (!this._clusterView.needsUpdate()) {
-      return Promise.resolve(this._clusterView);
-    } else {
-      let call = () => {
-        let conn = this._pool.acquire(routers.next());
-        let session = this._createSession(Promise.resolve(conn));
-        return newClusterView(session).catch((err) => {
-          this._forget(conn);
-          return Promise.reject(err);
-        });
-      };
-      let routers = this._clusterView.routers;
-      //Build a promise chain that ends on the first successful call
-      //i.e. call().catch(call).catch(call).catch(call)...
-      //each call will try a different router
-      let acc = Promise.reject();
-      for (let i = 0; i < routers.size(); i++) {
-        acc = acc.catch(call);
-      }
-      return acc;
-    }
-  }
-
-  _diff(oldView, updatedView) {
-    let oldSet = oldView.all();
-    let newSet = updatedView.all();
-    newSet.forEach((item) => {
-      oldSet.delete(item);
-    });
-    return oldSet;
-  }
-
   _acquireConnection(mode) {
-    let m = mode || WRITE;
-    //make sure we have enough servers
-    return this._updatedClusterView().then((view) => {
-      let toRemove = this._diff(this._clusterView, view);
-      let self = this;
-      toRemove.forEach((url) => {
-        self._pool.purge(url);
-      });
-      //update our cached view
-      this._clusterView = view;
-      if (m === READ) {
-        let key = view.readers.next();
-        if (!key) {
-          return Promise.reject(newError('No read servers available', SESSION_EXPIRED));
-        }
-        return this._pool.acquire(key);
-      } else if (m === WRITE) {
-        let key = view.writers.next();
-        if (!key) {
-          return Promise.reject(newError('No write servers available', SESSION_EXPIRED));
-        }
-        return this._pool.acquire(key);
+    return this._freshRoutingTable().then(routingTable => {
+      if (mode === READ) {
+        return this._acquireConnectionToServer(routingTable.readers, "read");
+      } else if (mode === WRITE) {
+        return this._acquireConnectionToServer(routingTable.writers, "write");
       } else {
-        return Promise.reject(m + " is not a valid option");
+        throw newError('Illegal session mode ' + mode);
       }
-    }).catch((err) => {return Promise.reject(err)});
+    });
+  }
+
+  _acquireConnectionToServer(serversRoundRobinArray, serverName) {
+    const address = serversRoundRobinArray.next();
+    if (!address) {
+      return Promise.reject(newError('No ' + serverName + ' servers available', SESSION_EXPIRED));
+    }
+    return this._pool.acquire(address);
+  }
+
+  _freshRoutingTable() {
+    const currentRoutingTable = this._routingTable;
+
+    if (!currentRoutingTable.isStale()) {
+      return Promise.resolve(currentRoutingTable);
+    }
+    return this._refreshRoutingTable(currentRoutingTable);
+  }
+
+  _refreshRoutingTable(currentRoutingTable) {
+    const knownRouters = currentRoutingTable.routers.toArray();
+
+    const refreshedTablePromise = knownRouters.reduce((refreshedTablePromise, currentRouter, currentIndex) => {
+      return refreshedTablePromise.then(newRoutingTable => {
+        if (newRoutingTable) {
+          if (!newRoutingTable.writers.isEmpty()) {
+            // valid routing table was fetched - just return it, try next router otherwise
+            return newRoutingTable;
+          }
+        } else {
+          // returned routing table was undefined, this means a connection error happened and we need to forget the
+          // previous router and try the next one
+          const previousRouter = knownRouters[currentIndex - 1];
+          if (previousRouter) {
+            currentRoutingTable.forgetRouter(previousRouter);
+          }
+        }
+
+        // try next router
+        const session = this._createSessionForRediscovery(currentRouter);
+        return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter);
+      })
+    }, Promise.resolve(null));
+
+    return refreshedTablePromise.then(newRoutingTable => {
+      if (newRoutingTable && !newRoutingTable.writers.isEmpty()) {
+        this._updateRoutingTable(newRoutingTable);
+        return newRoutingTable
+      }
+      throw newError('Could not perform discovery. No routing servers available.', SERVICE_UNAVAILABLE);
+    });
+  }
+
+  _createSessionForRediscovery(routerAddress) {
+    const connection = this._pool.acquire(routerAddress);
+    const connectionPromise = Promise.resolve(connection);
+    // error transformer here is a no-op unlike the one in a regular session, this is so because errors are
+    // handled in the rediscovery promise chain and we do not need to do this in the error transformer
+    const errorTransformer = error => error;
+    return new RoutingSession(connectionPromise, this._releaseConnection(connectionPromise), errorTransformer);
   }
 
   _forget(url) {
+    this._routingTable.forget(url);
     this._pool.purge(url);
-    this._clusterView.remove(url);
+  }
+
+  _updateRoutingTable(newRoutingTable) {
+    const currentRoutingTable = this._routingTable;
+
+    // close old connections to servers not present in the new routing table
+    const staleServers = currentRoutingTable.serversDiff(newRoutingTable);
+    staleServers.forEach(server => this._pool.purge);
+
+    // make this driver instance aware of the new table
+    this._routingTable = newRoutingTable;
   }
 
   static _validateConfig(config) {
@@ -154,42 +176,6 @@ class RoutingDriver extends Driver {
       throw newError('The chosen trust mode is not compatible with a routing driver');
     }
     return config;
-  }
-}
-
-class ClusterView {
-  constructor(routers, readers, writers, expires) {
-    this.routers = routers || new RoundRobinArray();
-    this.readers = readers || new RoundRobinArray();
-    this.writers = writers || new RoundRobinArray();
-    this._expires = expires || int(-1);
-
-  }
-
-  needsUpdate() {
-    return this._expires.lessThan(Date.now()) ||
-      this.routers.size() <= 1 ||
-      this.readers.empty() ||
-      this.writers.empty();
-  }
-
-  all() {
-    let seen = new Set(this.routers.toArray());
-    let writers = this.writers.toArray();
-    let readers = this.readers.toArray();
-    for (let i = 0; i < writers.length; i++) {
-      seen.add(writers[i]);
-    }
-    for (let i = 0; i < readers.length; i++) {
-      seen.add(readers[i]);
-    }
-    return seen;
-  }
-
-  remove(item) {
-    this.routers.remove(item);
-    this.readers.remove(item);
-    this.writers.remove(item);
   }
 }
 
@@ -202,59 +188,6 @@ class RoutingSession extends Session {
   _onRunFailure() {
     return this._onFailedConnection;
   }
-}
-
-let GET_SERVERS = "CALL dbms.cluster.routing.getServers";
-
-/**
- * Calls `getServers` and retrieves a new promise of a ClusterView.
- * @param session
- * @returns {Promise.<ClusterView>}
- */
-function newClusterView(session) {
-  return session.run(GET_SERVERS)
-    .then((res) => {
-      session.close();
-      if (res.records.length != 1) {
-        return Promise.reject(newError("Invalid routing response from server", SERVICE_UNAVAILABLE));
-      }
-      let record = res.records[0];
-      let now = int(Date.now());
-      let expires = record.get('ttl').multiply(1000).add(now);
-      //if the server uses a really big expire time like Long.MAX_VALUE
-      //this may have overflowed
-      if (expires.lessThan(now)) {
-        expires = Integer.MAX_VALUE;
-      }
-      let servers = record.get('servers');
-      let routers = new RoundRobinArray();
-      let readers = new RoundRobinArray();
-      let writers = new RoundRobinArray();
-      for (let i = 0; i < servers.length; i++) {
-        let server = servers[i];
-
-        let role = server['role'];
-        let addresses = server['addresses'];
-        if (role === 'ROUTE') {
-          routers.pushAll(addresses);
-        } else if (role === 'WRITE') {
-          writers.pushAll(addresses);
-        } else if (role === 'READ') {
-          readers.pushAll(addresses);
-        }
-      }
-      if (routers.empty() || writers.empty()) {
-        return Promise.reject(newError("Invalid routing response from server", SERVICE_UNAVAILABLE))
-      }
-      return new ClusterView(routers, readers, writers, expires);
-    })
-    .catch((e) => {
-      if (e.code === 'Neo.ClientError.Procedure.ProcedureNotFound') {
-        return Promise.reject(newError("Server could not perform routing, make sure you are connecting to a causal cluster", SERVICE_UNAVAILABLE));
-      } else {
-        return Promise.reject(newError("No servers could be found at this instant.", SERVICE_UNAVAILABLE));
-      }
-    });
 }
 
 export default RoutingDriver

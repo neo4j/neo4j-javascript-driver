@@ -375,6 +375,26 @@ describe('session', function () {
     expect(() => session.beginTransaction([])).toThrowError(TypeError);
     expect(() => session.beginTransaction(['bookmark'])).toThrowError(TypeError);
   });
+
+  it('should allow creation of a ' + neo4j.session.READ + ' session', done => {
+    const readSession = driver.session(neo4j.session.READ);
+    readSession.run('RETURN 1').then(() => {
+      readSession.close();
+      done();
+    });
+  });
+
+  it('should allow creation of a ' + neo4j.session.WRITE + ' session', done => {
+    const writeSession = driver.session(neo4j.session.WRITE);
+    writeSession.run('CREATE ()').then(() => {
+      writeSession.close();
+      done();
+    });
+  });
+
+  it('should fail for illegal session mode', () => {
+    expect(() => driver.session('ILLEGAL_MODE')).toThrow();
+  });
 });
 
 

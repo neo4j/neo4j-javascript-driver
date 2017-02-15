@@ -17,10 +17,21 @@
  * limitations under the License.
  */
 
-var childProcess = require("child_process");
+var childProcess = require('child_process');
+var Mustache = require('Mustache');
+var fs = require('fs');
+var tmp = require('tmp');
 
 var BoltKit = function (verbose) {
   this.verbose = verbose || false;
+};
+
+BoltKit.prototype.startWithTemplate = function (scriptTemplate, parameters, port) {
+  var template = fs.readFileSync(scriptTemplate, 'utf-8');
+  var scriptContents = Mustache.render(template, parameters);
+  var script = tmp.fileSync().name;
+  fs.writeFileSync(script, scriptContents, 'utf-8');
+  return this.start(script, port);
 };
 
 BoltKit.prototype.start = function(script, port) {

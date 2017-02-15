@@ -19,7 +19,7 @@
 
 import {int, isInt, inSafeRange, toNumber, toString} from './integer';
 import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
-import {Neo4jError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from './error';
+import {Neo4jError, SERVICE_UNAVAILABLE, SESSION_EXPIRED, PROTOCOL_ERROR} from './error';
 import Result from './result';
 import ResultSummary from './result-summary';
 import Record from './record';
@@ -138,7 +138,8 @@ const session = {
 };
 const error = {
   SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
+  SESSION_EXPIRED,
+  PROTOCOL_ERROR
 };
 const integer = {
   toNumber,
