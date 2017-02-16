@@ -58,7 +58,7 @@ module.exports = function () {
 
   this.When(/^I run a non valid cypher statement$/, function (callback) {
     var self = this;
-    this.session.run("CRETE (:n)").then(function(result) {callback()}).catch(function(err) {self.error = err.fields[0]; callback()})
+    this.session.run("CRETE (:n)").then(function(result) {callback()}).catch(function(err) {self.error = err; callback()})
   });
 
   this.When(/^I set up a driver to an incorrect port$/, function (callback) {

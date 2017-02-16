@@ -18,11 +18,11 @@
  */
 import WebSocketChannel from './ch-websocket';
 import NodeChannel from './ch-node';
-import {Dechunker, Chunker} from "./chunking";
+import {Chunker, Dechunker} from './chunking';
 import hasFeature from './features';
 import {Packer, Unpacker} from './packstream';
 import {alloc} from './buf';
-import {Node, Relationship, UnboundRelationship, Path, PathSegment} from '../graph-types'
+import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
 import {newError} from './../error';
 
 let Channel;
@@ -201,7 +201,9 @@ class Connection {
     this._chunker = new Chunker( channel );
     this._packer = new Packer( this._chunker );
     this._unpacker = new Unpacker();
+
     this._isHandlingFailure = false;
+    this._currentFailure = null;
 
     // Set to true on fatal errors, to get this out of session pool.
     this._isBroken = false;
@@ -288,15 +290,17 @@ class Connection {
   }
 
   _handleMessage( msg ) {
+    const payload = msg.fields[0];
+
     switch( msg.signature ) {
       case RECORD:
-        log("S", "RECORD", msg.fields[0]);
-        this._currentObserver.onNext( msg.fields[0] );
+        log("S", "RECORD", msg);
+        this._currentObserver.onNext( payload );
         break;
       case SUCCESS:
-        log("S", "SUCCESS", msg.fields[0]);
+        log("S", "SUCCESS", msg);
         try {
-          this._currentObserver.onCompleted( msg.fields[0] );
+          this._currentObserver.onCompleted( payload );
         } finally {
           this._currentObserver = this._pendingObservers.shift();
         }
@@ -304,15 +308,14 @@ class Connection {
       case FAILURE:
         log("S", "FAILURE", msg);
         try {
-          this._currentObserver.onError( msg );
-          this._errorMsg = msg;
+          this._currentFailure = newError(payload.message, payload.code);
+          this._currentObserver.onError( this._currentFailure );
         } finally {
           this._currentObserver = this._pendingObservers.shift();
           // Things are now broken. Pending observers will get FAILURE messages routed until
           // We are done handling this failure.
           if( !this._isHandlingFailure ) {
             this._isHandlingFailure = true;
-            let self = this;
 
             // isHandlingFailure was false, meaning this is the first failure message
             // we see from this failure. We may see several others, one for each message
@@ -320,22 +323,23 @@ class Connection {
             // We only want to and need to ACK the first one, which is why we are tracking
             // this _isHandlingFailure thing.
             this._ackFailure({
-               onNext: NO_OP,
-               onError: NO_OP,
-               onCompleted: () => {
-                  self._isHandlingFailure = false;
-               }
+              onNext: NO_OP,
+              onError: NO_OP,
+              onCompleted: () => {
+                this._isHandlingFailure = false;
+                this._currentFailure = null;
+              }
             });
           }
         }
         break;
       case IGNORED:
-        log("S", "IGNORED");
+        log("S", "IGNORED", msg);
         try {
-          if (this._errorMsg && this._currentObserver.onError)
-            this._currentObserver.onError(this._errorMsg);
+          if (this._currentFailure && this._currentObserver.onError)
+            this._currentObserver.onError(this._currentFailure);
           else if(this._currentObserver.onError)
-            this._currentObserver.onError(msg);
+            this._currentObserver.onError(payload);
         } finally {
           this._currentObserver = this._pendingObservers.shift();
         }

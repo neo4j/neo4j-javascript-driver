@@ -79,7 +79,7 @@ describe('driver', function() {
     // Expect
     driver.onError = function (err) {
       //the error message is different whether in browser or node
-      expect(err.fields[0].code).toEqual('Neo.ClientError.Security.Unauthorized');
+      expect(err.code).toEqual('Neo.ClientError.Security.Unauthorized');
       done();
     };
 

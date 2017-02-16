@@ -64,8 +64,8 @@ module.exports = function () {
   });
 
   this.Then(/^a `Protocol Error` is raised$/, function () {
-    var message = this.err.fields[0].message;
-    var code = this.err.fields[0].code;
+    var message = this.err.message;
+    var code = this.err.code;
 
     var expectedStartOfMessage = 'The client is unauthorized due to authentication failure.';
     var expectedCode = 'Neo.ClientError.Security.Unauthorized';

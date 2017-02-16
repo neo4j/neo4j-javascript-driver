@@ -22,7 +22,6 @@
   *(via Buffer API).
   */
 
-import {newError} from './../error';
 let _node = require("buffer");
 /**
   * Common base with default implementation for most buffer methods.
@@ -551,7 +550,7 @@ class NodeBuffer extends BaseBuffer {
         val.position + bytesToCopy );
       val.position += bytesToCopy;
     } else {
-      throw newError("Copying not yet implemented.");
+      super.putBytes(position, val);
     }
   };
 

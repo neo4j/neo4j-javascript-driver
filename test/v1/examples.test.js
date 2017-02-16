@@ -306,7 +306,7 @@ describe('examples', function() {
     // end::handle-cypher-error[]
 
     testResultPromise.then(function(loggedError){
-      expect(loggedError.fields[0].code).toBe( "Neo.ClientError.Statement.SyntaxError" );
+      expect(loggedError.code).toBe( 'Neo.ClientError.Statement.SyntaxError' );
       done();
     });
   });

@@ -17,8 +17,12 @@
  * limitations under the License.
  */
 
-import * as DummyChannel from "../../src/v1/internal/ch-dummy";
-import {connect} from "../../src/v1/internal/connector";
+import * as DummyChannel from '../../src/v1/internal/ch-dummy';
+import {connect, Connection} from '../../src/v1/internal/connector';
+import {Packer} from '../../src/v1/internal/packstream';
+import {Chunker} from '../../src/v1/internal/chunking';
+import {alloc} from '../../src/v1/internal/buf';
+import {Neo4jError} from '../../src/v1/error';
 
 describe('connector', () => {
 
@@ -93,5 +97,49 @@ describe('connector', () => {
     conn.sync();
 
   });
+
+  it('should convert failure messages to errors', done => {
+    const channel = new DummyChannel.channel;
+    const connection = new Connection(channel, 'bolt://localhost');
+
+    const errorCode = 'Neo.ClientError.Schema.ConstraintValidationFailed';
+    const errorMessage = 'Node 0 already exists with label User and property "email"=[john@doe.com]';
+
+    connection._queueObserver({
+      onError: error => {
+        expectNeo4jError(error, errorCode, errorMessage);
+        done();
+      }
+    });
+
+    channel.onmessage(packedHandshakeMessage());
+    channel.onmessage(packedFailureMessage(errorCode, errorMessage));
+  });
+
+  function packedHandshakeMessage() {
+    const result = alloc(4);
+    result.putInt32(0, 1);
+    result.reset();
+    return result;
+  }
+
+  function packedFailureMessage(code, message) {
+    const channel = new DummyChannel.channel;
+    const chunker = new Chunker(channel);
+    const packer = new Packer(chunker);
+    packer.packStruct(0x7F, [packer.packable({code: code, message: message})]);
+    chunker.messageBoundary();
+    chunker.flush();
+    const data = channel.toBuffer();
+    const result = alloc(data.length);
+    result.putBytes(0, data);
+    return result;
+  }
+
+  function expectNeo4jError(error, expectedCode, expectedMessage) {
+    expect(() => {
+      throw error;
+    }).toThrow(new Neo4jError(expectedMessage, expectedCode));
+  }
 
 });

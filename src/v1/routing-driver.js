@@ -36,28 +36,8 @@ class RoutingDriver extends Driver {
   }
 
   _createSession(connectionPromise, cb) {
-    return new RoutingSession(connectionPromise, cb, (err, conn) => {
-      let code = err.code;
-      let msg = err.message;
-      if (!code) {
-        try {
-          code = err.fields[0].code;
-        } catch (e) {
-          code = 'UNKNOWN';
-        }
-      }
-      if (!msg) {
-        try {
-          msg = err.fields[0].message;
-        } catch (e) {
-          msg = 'Unknown failure occurred';
-        }
-      }
-      //just to simplify later error handling
-      err.code = code;
-      err.message = msg;
-
-      if (code === SERVICE_UNAVAILABLE || code === SESSION_EXPIRED) {
+    return new RoutingSession(connectionPromise, cb, (error, conn) => {
+      if (error.code === SERVICE_UNAVAILABLE || error.code === SESSION_EXPIRED) {
         if (conn) {
           this._forget(conn.url)
         } else {
@@ -65,8 +45,8 @@ class RoutingDriver extends Driver {
             this._forget(conn.url);
           }).catch(() => {/*ignore*/});
         }
-        return err;
-      } else if (code === 'Neo.ClientError.Cluster.NotALeader') {
+        return error;
+      } else if (error.code === 'Neo.ClientError.Cluster.NotALeader') {
         let url = 'UNKNOWN';
         if (conn) {
           url = conn.url;
@@ -76,9 +56,9 @@ class RoutingDriver extends Driver {
             this._routingTable.forgetWriter(conn.url);
           }).catch(() => {/*ignore*/});
         }
-        return newError("No longer possible to write to server at " + url, SESSION_EXPIRED);
+        return newError('No longer possible to write to server at ' + url, SESSION_EXPIRED);
       } else {
-        return err;
+        return error;
       }
     });
   }
