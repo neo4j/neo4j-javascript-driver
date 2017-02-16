@@ -65,9 +65,9 @@ class Structure {
     let fieldStr = "";
     for (var i = 0; i < this.fields.length; i++) {
       if(i > 0) { fieldStr+=", " }
-      fieldStr += this.fields[i];
+      fieldStr += JSON.stringify(this.fields[i]);
     }
-    return "Structure(" + this.signature + ", [" + this.fields + "])"
+    return "Structure(" + this.signature + ", [" + fieldStr + "])"
   }
 }
 
