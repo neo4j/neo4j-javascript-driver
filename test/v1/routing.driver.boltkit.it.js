@@ -21,12 +21,18 @@ import neo4j from "../../src/v1";
 import boltkit from "./boltkit";
 import RoutingTable from "../../src/v1/internal/routing-table";
 
+jasmine.getEnv().addReporter({
+  specStarted: result => {
+    console.log('+++ Running test: ' + result.fullName);
+  }
+});
+
 describe('routing driver', () => {
   let originalTimeout;
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
   });
 
   afterAll(() => {
