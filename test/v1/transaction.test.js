@@ -77,9 +77,9 @@ describe('transaction', () => {
 
   it('should handle failures with subscribe', done => {
     const tx = session.beginTransaction();
-    tx.run("THIS IS NOT CYPHER")
+    tx.run('THIS IS NOT CYPHER')
       .catch(error => {
-        expect(error.fields.length).toBe(1);
+        expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError');
         driver.close();
         done();
       });
@@ -87,10 +87,10 @@ describe('transaction', () => {
 
   it('should handle failures with catch', done => {
     const tx = session.beginTransaction();
-    tx.run("THIS IS NOT CYPHER")
+    tx.run('THIS IS NOT CYPHER')
       .subscribe({
         onError: error => {
-          expect(error.fields.length).toBe(1);
+          expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError');
           driver.close();
           done();
         }
@@ -297,7 +297,7 @@ describe('transaction', () => {
     const invalidBookmark = 'hi, this is an invalid bookmark';
     const tx = session.beginTransaction(invalidBookmark);
     tx.run('RETURN 1').catch(error => {
-      expect(error.fields[0].code).toBe('Neo.ClientError.Transaction.InvalidBookmark');
+      expect(error.code).toBe('Neo.ClientError.Transaction.InvalidBookmark');
       done();
     });
   });
@@ -317,7 +317,7 @@ describe('transaction', () => {
         const unreachableBookmark = session.lastBookmark() + "0";
         const tx2 = session.beginTransaction(unreachableBookmark);
         tx2.run('CREATE ()').catch(error => {
-          const message = error.fields[0].message;
+          const message = error.message;
           const expectedPrefix = message.indexOf('Database not up to the requested version') === 0;
           expect(expectedPrefix).toBeTruthy();
           done();
@@ -445,8 +445,7 @@ describe('transaction', () => {
   });
 
   function expectSyntaxError(error) {
-    const code = error.fields[0].code;
-    expect(code).toBe('Neo.ClientError.Statement.SyntaxError');
+    expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError');
   }
 
   function expectValidLastBookmark(session) {

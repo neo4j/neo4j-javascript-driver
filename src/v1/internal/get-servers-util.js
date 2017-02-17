@@ -31,7 +31,7 @@ export default class GetServersUtil {
       session.close();
       return result.records;
     }).catch(error => {
-      if (this._isProcedureNotFoundError(error)) {
+      if (error.code === PROCEDURE_NOT_FOUND_CODE) {
         // throw when getServers procedure not found because this is clearly a configuration issue
         throw newError('Server ' + routerAddress + ' could not perform routing. ' +
           'Make sure you are connecting to a causal cluster', SERVICE_UNAVAILABLE);
@@ -91,17 +91,5 @@ export default class GetServersUtil {
         'Unable to parse servers entry from router ' + routerAddress + ' from record:\n' + JSON.stringify(record),
         PROTOCOL_ERROR);
     }
-  }
-
-  _isProcedureNotFoundError(error) {
-    let errorCode = error.code;
-    if (!errorCode) {
-      try {
-        errorCode = error.fields[0].code;
-      } catch (e) {
-        errorCode = 'UNKNOWN';
-      }
-    }
-    return errorCode === PROCEDURE_NOT_FOUND_CODE;
   }
 }

@@ -94,9 +94,9 @@ describe('session', function () {
   it('should call observers onError on error ', function (done) {
 
     // When & Then
-    session.run("RETURN 1 AS").subscribe({
+    session.run('RETURN 1 AS').subscribe({
       onError: function (error) {
-        expect(error.fields.length).toBe(1);
+        expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError');
         done();
       }
     });
@@ -139,9 +139,9 @@ describe('session', function () {
 
   it('should expose basic run/catch ', function (done) {
     // When & Then
-    session.run("RETURN 1 AS").catch(
+    session.run('RETURN 1 AS').catch(
       function (error) {
-        expect(error.fields.length).toBe(1);
+        expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError');
         done();
       }
     )
