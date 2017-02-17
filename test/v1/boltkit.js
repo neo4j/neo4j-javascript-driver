@@ -69,7 +69,7 @@ BoltKit.prototype.start = function(script, port) {
 //Make sure boltstub is started before running
 //user code
 BoltKit.prototype.run = function(callback) {
-  setTimeout(callback, 5000);
+  setTimeout(callback, 1000);
 };
 
 function boltKitSupport() {
