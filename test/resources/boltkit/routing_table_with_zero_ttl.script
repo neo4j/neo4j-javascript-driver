@@ -5,7 +5,7 @@
 C: RUN "CALL dbms.cluster.routing.getServers" {}
    PULL_ALL
 S: SUCCESS {"fields": ["ttl", "servers"]}
-   RECORD [0, [{"addresses": ["127.0.0.1:9090","127.0.0.1:9091","127.0.0.1:9092","127.0.0.1:9000"],"role": "ROUTE"}, {"addresses": ["127.0.0.1:9000"], "role": "READ"},{"addresses": ["127.0.0.1:9000"], "role": "WRITE"}]]
+   RECORD [0, [{"addresses": ["127.0.0.1:9090","127.0.0.1:9091","127.0.0.1:9092","127.0.0.1:9999"],"role": "ROUTE"}, {"addresses": ["127.0.0.1:9999"], "role": "READ"},{"addresses": ["127.0.0.1:9999"], "role": "WRITE"}]]
    SUCCESS {}
 C: RUN "MATCH (n) RETURN n" {}
    PULL_ALL
@@ -14,7 +14,7 @@ S: SUCCESS {"fields": ["n"]}
 C: RUN "CALL dbms.cluster.routing.getServers" {}
    PULL_ALL
 S: SUCCESS {"fields": ["ttl", "servers"]}
-   RECORD [0, [{"addresses": ["127.0.0.1:9000"],"role": "ROUTE"}, {"addresses": ["127.0.0.1:9000"], "role": "READ"},{"addresses": ["127.0.0.1:9000"], "role": "WRITE"}]]
+   RECORD [0, [{"addresses": ["127.0.0.1:9999"],"role": "ROUTE"}, {"addresses": ["127.0.0.1:9999"], "role": "READ"},{"addresses": ["127.0.0.1:9999"], "role": "WRITE"}]]
    SUCCESS {}
 C: RUN "MATCH (n) RETURN n" {}
    PULL_ALL
