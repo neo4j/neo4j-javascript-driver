@@ -18,7 +18,7 @@
  */
 
 var childProcess = require('child_process');
-var Mustache = require('Mustache');
+var Mustache = require('mustache');
 var fs = require('fs');
 var tmp = require('tmp');
 
