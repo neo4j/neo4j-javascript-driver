@@ -21,18 +21,12 @@ import neo4j from "../../src/v1";
 import boltkit from "./boltkit";
 import RoutingTable from "../../src/v1/internal/routing-table";
 
-jasmine.getEnv().addReporter({
-  specStarted: result => {
-    console.log('+++ Running test: ' + result.fullName);
-  }
-});
-
 describe('routing driver', () => {
   let originalTimeout;
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
   });
 
   afterAll(() => {
@@ -660,9 +654,9 @@ describe('routing driver', () => {
 
     const kit = new boltkit.BoltKit();
     const server1 = kit.start('./test/resources/boltkit/routing_table_with_zero_ttl.script', 9999);
-    const server2 = kit.start('./test/resources/boltkit/no_writers.script', 13001);
-    const server3 = kit.start('./test/resources/boltkit/no_writers.script', 9091);
-    const server4 = kit.start('./test/resources/boltkit/no_writers.script', 9092);
+    const server2 = kit.start('./test/resources/boltkit/no_writers.script', 9091);
+    const server3 = kit.start('./test/resources/boltkit/no_writers.script', 9092);
+    const server4 = kit.start('./test/resources/boltkit/no_writers.script', 9093);
 
     kit.run(() => {
       const driver = newDriver('bolt+routing://127.0.0.1:9999');
@@ -672,7 +666,7 @@ describe('routing driver', () => {
         expect(result1.summary.server.address).toEqual('127.0.0.1:9999');
         session1.close();
 
-        assertHasRouters(driver, ['127.0.0.1:13001', '127.0.0.1:9091', '127.0.0.1:9092', '127.0.0.1:9999']);
+        assertHasRouters(driver, ['127.0.0.1:9091', '127.0.0.1:9092', '127.0.0.1:9093', '127.0.0.1:9999']);
         const memorizingRoutingTable = setUpMemorizingRoutingTable(driver);
 
         const session2 = driver.session();
@@ -860,7 +854,7 @@ describe('routing driver', () => {
         expect(result1.summary.server.address).toEqual('127.0.0.1:9999');
         session1.close();
 
-        assertHasRouters(driver, ['127.0.0.1:13001', '127.0.0.1:9091', '127.0.0.1:9092', '127.0.0.1:9999']);
+        assertHasRouters(driver, ['127.0.0.1:9091', '127.0.0.1:9092', '127.0.0.1:9093', '127.0.0.1:9999']);
         const memorizingRoutingTable = setUpMemorizingRoutingTable(driver);
 
         const session2 = driver.session();
@@ -868,7 +862,7 @@ describe('routing driver', () => {
           expect(result2.summary.server.address).toEqual('127.0.0.1:9999');
           session2.close();
 
-          memorizingRoutingTable.assertForgotRouters(['127.0.0.1:13001', '127.0.0.1:9091', '127.0.0.1:9092']);
+          memorizingRoutingTable.assertForgotRouters(['127.0.0.1:9091', '127.0.0.1:9092', '127.0.0.1:9093']);
           assertHasRouters(driver, ['127.0.0.1:9999']);
           driver.close();
 
@@ -953,8 +947,8 @@ describe('routing driver', () => {
   it('should accept routing table with 1 router, 1 reader and 1 writer', done => {
     testRoutingTableAcceptance(
       {
-        routers: ['127.0.0.1:13001'],
-        readers: ['127.0.0.1:9091'],
+        routers: ['127.0.0.1:9091'],
+        readers: ['127.0.0.1:9092'],
         writers: ['127.0.0.1:9999']
       },
       9999, done);
@@ -963,8 +957,8 @@ describe('routing driver', () => {
   it('should accept routing table with 2 routers, 1 reader and 1 writer', done => {
     testRoutingTableAcceptance(
       {
-        routers: ['127.0.0.1:13001', '127.0.0.1:9091'],
-        readers: ['127.0.0.1:9091'],
+        routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+        readers: ['127.0.0.1:9092'],
         writers: ['127.0.0.1:9999']
       },
       9999, done);
@@ -973,8 +967,8 @@ describe('routing driver', () => {
   it('should accept routing table with 1 router, 2 readers and 1 writer', done => {
     testRoutingTableAcceptance(
       {
-        routers: ['127.0.0.1:13001'],
-        readers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+        routers: ['127.0.0.1:9091'],
+        readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
         writers: ['127.0.0.1:9999']
       },
       9999, done);
@@ -983,8 +977,8 @@ describe('routing driver', () => {
   it('should accept routing table with 2 routers, 2 readers and 1 writer', done => {
     testRoutingTableAcceptance(
       {
-        routers: ['127.0.0.1:13001', '127.0.0.1:9091'],
-        readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
+        routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+        readers: ['127.0.0.1:9093', '127.0.0.1:9094'],
         writers: ['127.0.0.1:9999']
       },
       9999, done);
@@ -993,9 +987,9 @@ describe('routing driver', () => {
   it('should accept routing table with 1 router, 1 reader and 2 writers', done => {
     testRoutingTableAcceptance(
       {
-        routers: ['127.0.0.1:13001'],
-        readers: ['127.0.0.1:9091'],
-        writers: ['127.0.0.1:9999', '127.0.0.1:9092']
+        routers: ['127.0.0.1:9091'],
+        readers: ['127.0.0.1:9092'],
+        writers: ['127.0.0.1:9999', '127.0.0.1:9093']
       },
       9999, done);
   });
@@ -1003,9 +997,9 @@ describe('routing driver', () => {
   it('should accept routing table with 2 routers, 1 reader and 2 writers', done => {
     testRoutingTableAcceptance(
       {
-        routers: ['127.0.0.1:13001', '127.0.0.1:9091'],
-        readers: ['127.0.0.1:9092'],
-        writers: ['127.0.0.1:9999', '127.0.0.1:9093']
+        routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+        readers: ['127.0.0.1:9093'],
+        writers: ['127.0.0.1:9999', '127.0.0.1:9094']
       },
       9999, done);
   });
@@ -1013,9 +1007,9 @@ describe('routing driver', () => {
   it('should accept routing table with 1 router, 2 readers and 2 writers', done => {
     testRoutingTableAcceptance(
       {
-        routers: ['127.0.0.1:13001'],
-        readers: ['127.0.0.1:9091', '127.0.0.1:9092'],
-        writers: ['127.0.0.1:9999', '127.0.0.1:9093']
+        routers: ['127.0.0.1:9091'],
+        readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
+        writers: ['127.0.0.1:9999', '127.0.0.1:9094']
       },
       9999, done);
   });
@@ -1023,9 +1017,9 @@ describe('routing driver', () => {
   it('should accept routing table with 2 routers, 2 readers and 2 writers', done => {
     testRoutingTableAcceptance(
       {
-        routers: ['127.0.0.1:13001', '127.0.0.1:9091'],
-        readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
-        writers: ['127.0.0.1:9999', '127.0.0.1:9094']
+        routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+        readers: ['127.0.0.1:9093', '127.0.0.1:9094'],
+        writers: ['127.0.0.1:9999', '127.0.0.1:9095']
       },
       9999, done);
   });

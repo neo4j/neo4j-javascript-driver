@@ -23,7 +23,7 @@ var fs = require('fs');
 var tmp = require('tmp');
 
 var BoltKit = function (verbose) {
-  this.verbose = verbose || true;
+  this.verbose = verbose || false;
 };
 
 BoltKit.prototype.startWithTemplate = function (scriptTemplate, parameters, port) {
@@ -37,17 +37,16 @@ BoltKit.prototype.startWithTemplate = function (scriptTemplate, parameters, port
 BoltKit.prototype.start = function(script, port) {
   var spawn = childProcess.spawn, server, code = -1;
 
-  console.log('+++ Starting boltstub on port ' + port);
   server = spawn('/usr/local/bin/boltstub', ['-v', port, script]);
   if (this.verbose) {
     server.stdout.on('data', (data) => {
-      console.log(`+++ Boltstup on port ${port}:\n${data}`);
+      console.log(`${data}`);
     });
     server.stderr.on('data', (data) => {
-      console.log(`+++ Boltstup on port ${port}:\n${data}`);
+      console.log(`${data}`);
     });
     server.on('end', function (data) {
-      console.log(`+++ Boltstup on port ${port}:\n${data}`);
+      console.log(data);
     });
   }
 
@@ -56,7 +55,7 @@ BoltKit.prototype.start = function(script, port) {
   });
 
   server.on('error', function (err) {
-    console.log('Failed to start child process on port ' + port + ' error: ' + err);
+    console.log('Failed to start child process:' + err);
   });
 
   var Server = function(){};
