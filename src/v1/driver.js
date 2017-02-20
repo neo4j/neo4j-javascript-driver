@@ -127,7 +127,7 @@ class Driver {
    * We don't pool Session instances, to avoid users using the Session after they've called close.
    * The `Session` object is just a thin wrapper around Connection anyway, so it makes little difference.
    * @param {Promise} connectionPromise - promise resolved with the connection.
-   * @return {function(*=)} - function that releases the connection and then executes an optional callback.
+   * @return {function(callback: function)} - function that releases the connection and then executes an optional callback.
    * @protected
    */
   _releaseConnection(connectionPromise) {
