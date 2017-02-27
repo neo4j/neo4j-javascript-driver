@@ -36,7 +36,7 @@ function generateFieldLookup( keys ) {
  * each record represents one user found by the statement above. You can access
  * the values of each field either by name:
  *
- *     record.get("n.name")
+ *     record.get("u.name")
  *
  * Or by it's position:
  *
