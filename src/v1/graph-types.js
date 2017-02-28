@@ -23,7 +23,7 @@
 class Node {
   /**
    * @constructor
-   * @param {string} identity - Unique identity
+   * @param {Integer} identity - Unique identity
    * @param {Array} labels - Array for all labels
    * @param {Object} properties - Map with node properties
    */
@@ -58,9 +58,9 @@ class Node {
 class Relationship {
   /**
    * @constructor
-   * @param {string} identity - Unique identity
-   * @param {string} start - Identity of start Node
-   * @param {string} end - Identity of end Node
+   * @param {Integer} identity - Unique identity
+   * @param {Integer} start - Identity of start Node
+   * @param {Integer} end - Identity of end Node
    * @param {string} type - Relationship type
    * @param {Object} properties - Map with relationship properties
    */
@@ -95,7 +95,7 @@ class Relationship {
 class UnboundRelationship {
   /**
    * @constructor
-   * @param {string} identity - Unique identity
+   * @param {Integer} identity - Unique identity
    * @param {string} type - Relationship type
    * @param {Object} properties - Map with relationship properties
    */
@@ -107,8 +107,8 @@ class UnboundRelationship {
 
   /**
    * Bind relationship
-   * @param {string} start - Indentity of start node
-   * @param {string} end - Indentity of end node
+   * @param {Integer} start - Identity of start node
+   * @param {Integer} end - Identity of end node
    * @return {Relationship} - Created relationship
    */
   bind( start, end ) {
@@ -142,9 +142,9 @@ class UnboundRelationship {
 class PathSegment {
   /**
    * @constructor
-   * @param {string} start - Identity of start Node
-   * @param {Relationship} rel - Relationship segment
-   * @param {string} end - Identity of end Node
+   * @param {Node} start - start node
+   * @param {Relationship} rel - relationship that connects start and end node
+   * @param {Node} end - end node
    */
   constructor(start, rel, end) {
     this.start = start;
