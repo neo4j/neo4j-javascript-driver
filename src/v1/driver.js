@@ -22,6 +22,7 @@ import Pool from './internal/pool';
 import {connect} from './internal/connector';
 import StreamObserver from './internal/stream-observer';
 import {newError, SERVICE_UNAVAILABLE} from './error';
+import {DirectConnectionProvider} from './internal/connection-providers';
 
 const READ = 'READ', WRITE = 'WRITE';
 /**
@@ -57,6 +58,7 @@ class Driver {
       Driver._validateConnection.bind(this),
       config.connectionPoolSize
     );
+    this._connectionProvider = this._createConnectionProvider(url, this._pool);
   }
 
   /**
@@ -111,7 +113,7 @@ class Driver {
    */
   session(mode) {
     const sessionMode = Driver._validateSessionMode(mode);
-    const connectionPromise = this._acquireConnection(sessionMode);
+    const connectionPromise = this._connectionProvider.acquireConnection(sessionMode);
     connectionPromise.catch((err) => {
       if (this.onError && err.code === SERVICE_UNAVAILABLE) {
         this.onError(err);
@@ -131,8 +133,8 @@ class Driver {
   }
 
   //Extension point
-  _acquireConnection(mode) {
-   return Promise.resolve(this._pool.acquire(this._url));
+  _createConnectionProvider(address, connectionPool) {
+    return new DirectConnectionProvider(address, connectionPool);
   }
 
   //Extension point
