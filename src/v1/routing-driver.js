@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 
-import Session from "./session";
-import {Driver, READ, WRITE} from "./driver";
-import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
-import RoundRobinArray from "./internal/round-robin-array";
-import RoutingTable from "./internal/routing-table";
-import Rediscovery from "./internal/rediscovery";
+import Session from './session';
+import {Driver, READ, WRITE} from './driver';
+import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from './error';
+import RoundRobinArray from './internal/round-robin-array';
+import RoutingTable from './internal/routing-table';
+import Rediscovery from './internal/rediscovery';
 
 /**
  * A driver that supports routing in a core-edge cluster.
@@ -35,8 +35,8 @@ class RoutingDriver extends Driver {
     this._rediscovery = new Rediscovery();
   }
 
-  _createSession(connectionPromise, cb) {
-    return new RoutingSession(connectionPromise, cb, (error, conn) => {
+  _createSession(connectionPromise) {
+    return new RoutingSession(connectionPromise, (error, conn) => {
       if (error.code === SERVICE_UNAVAILABLE || error.code === SESSION_EXPIRED) {
         if (conn) {
           this._forget(conn.url)
@@ -132,7 +132,7 @@ class RoutingDriver extends Driver {
     // error transformer here is a no-op unlike the one in a regular session, this is so because errors are
     // handled in the rediscovery promise chain and we do not need to do this in the error transformer
     const errorTransformer = error => error;
-    return new RoutingSession(connectionPromise, this._releaseConnection(connectionPromise), errorTransformer);
+    return new RoutingSession(connectionPromise, errorTransformer);
   }
 
   _forget(url) {
@@ -160,8 +160,8 @@ class RoutingDriver extends Driver {
 }
 
 class RoutingSession extends Session {
-  constructor(connectionPromise, onClose, onFailedConnection) {
-    super(connectionPromise, onClose);
+  constructor(connectionPromise, onFailedConnection) {
+    super(connectionPromise);
     this._onFailedConnection = onFailedConnection;
   }
 

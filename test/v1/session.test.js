@@ -45,16 +45,56 @@ describe('session', () => {
     driver.close();
   });
 
-  it('close should be idempotent ', () => {
-    // Given
-    let counter = 0;
-    const _session = new Session(null, () => {
-      counter++;
+  it('close should invoke callback ', done => {
+    const connection = new FakeConnection();
+    const session = new Session(Promise.resolve(connection));
+
+    session.close(done);
+  });
+
+  it('close should invoke callback even when already closed ', done => {
+    const connection = new FakeConnection();
+    const session = new Session(Promise.resolve(connection));
+
+    session.close(() => {
+      session.close(() => {
+        session.close(() => {
+          done();
+        });
+      });
     });
-    _session.close();
-    expect(counter).toBe(1);
-    _session.close();
-    expect(counter).toBe(1);
+  });
+
+  it('close should be idempotent ', done => {
+    const connection = new FakeConnection();
+    const session = new Session(Promise.resolve(connection));
+
+    session.close(() => {
+      expect(connection.closedOnce()).toBeTruthy();
+
+      session.close(() => {
+        expect(connection.closedOnce()).toBeTruthy();
+
+        session.close(() => {
+          expect(connection.closedOnce()).toBeTruthy();
+          done();
+        });
+      });
+    });
+  });
+
+  it('should be possible to close driver after closing session with failed tx ', done => {
+    const driver = neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j', 'neo4j'));
+    const session = driver.session();
+    const tx = session.beginTransaction();
+    tx.run('INVALID QUERY').catch(() => {
+      tx.rollback().catch(() => {
+        session.close(() => {
+          driver.close();
+          done();
+        });
+      });
+    });
   });
 
   it('should expose basic run/subscribe ', done => {
@@ -74,7 +114,7 @@ describe('session', () => {
     });
   });
 
-  it('should keep context in subscribe methods ', function (done) {
+  it('should keep context in subscribe methods ', done => {
     // Given
     function MyObserver() {
       this.local = 'hello';
@@ -87,7 +127,7 @@ describe('session', () => {
         expect(privateLocal).toBe('hello');
         expect(this.local).toBe('hello');
         done();
-      }
+      };
     }
 
     // When & Then
@@ -400,6 +440,31 @@ describe('session', () => {
   it('should fail for illegal session mode', () => {
     expect(() => driver.session('ILLEGAL_MODE')).toThrow();
   });
+
+  class FakeConnection {
+
+    constructor() {
+      this.resetInvoked = 0;
+      this.syncInvoked = 0;
+      this.releaseInvoked = 0;
+    }
+
+    reset() {
+      this.resetInvoked++;
+    }
+
+    sync() {
+      this.syncInvoked++;
+    }
+
+    _release() {
+      this.releaseInvoked++;
+    }
+
+    closedOnce() {
+      return this.resetInvoked === 1 && this.syncInvoked === 1 && this.releaseInvoked === 1;
+    }
+  }
 });
 
 
