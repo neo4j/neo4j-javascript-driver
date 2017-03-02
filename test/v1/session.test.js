@@ -17,35 +17,38 @@
  * limitations under the License.
  */
 
-var neo4j = require("../../lib/v1");
-var StatementType = require("../../lib/v1/result-summary").statementType;
-var Session = require("../../lib/v1/session").default;
+import neo4j from '../../src/v1';
+import {statementType} from '../../src/v1/result-summary';
+import Session from '../../src/v1/session';
 
-describe('session', function () {
+describe('session', () => {
 
-  var driver, session, server, originalTimeout;
+  let driver;
+  let session;
+  let server;
+  let originalTimeout;
 
-  beforeEach(function (done) {
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
-    driver.onCompleted = function (meta) {
+  beforeEach(done => {
+    driver = neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j', 'neo4j'));
+    driver.onCompleted = meta => {
       server = meta['server'];
     };
     session = driver.session();
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
-    session.run("MATCH (n) DETACH DELETE n").then(done);
+    session.run('MATCH (n) DETACH DELETE n').then(done);
   });
 
-  afterEach(function () {
+  afterEach(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
     driver.close();
   });
 
-  it('close should be idempotent ', function () {
+  it('close should be idempotent ', () => {
     // Given
-    var counter = 0;
-    var _session = new Session(null, function () {
+    let counter = 0;
+    const _session = new Session(null, () => {
       counter++;
     });
     _session.close();
@@ -54,16 +57,16 @@ describe('session', function () {
     expect(counter).toBe(1);
   });
 
-  it('should expose basic run/subscribe ', function (done) {
+  it('should expose basic run/subscribe ', done => {
     // Given
 
     // When & Then
-    var records = [];
+    const records = [];
     session.run("RETURN 1.0 AS a").subscribe({
-      onNext: function (record) {
+      onNext: record => {
         records.push(record);
       },
-      onCompleted: function () {
+      onCompleted: () => {
         expect(records.length).toBe(1);
         expect(records[0].get('a')).toBe(1);
         done();
@@ -73,9 +76,9 @@ describe('session', function () {
 
   it('should keep context in subscribe methods ', function (done) {
     // Given
-    function myObserver() {
+    function MyObserver() {
       this.local = 'hello';
-      var privateLocal = 'hello';
+      const privateLocal = 'hello';
       this.onNext = function () {
         expect(privateLocal).toBe('hello');
         expect(this.local).toBe('hello');
@@ -88,31 +91,31 @@ describe('session', function () {
     }
 
     // When & Then
-    session.run("RETURN 1.0 AS a").subscribe(new myObserver());
+    session.run('RETURN 1.0 AS a').subscribe(new MyObserver());
   });
 
-  it('should call observers onError on error ', function (done) {
+  it('should call observers onError on error ', done => {
 
     // When & Then
     session.run('RETURN 1 AS').subscribe({
-      onError: function (error) {
+      onError: error => {
         expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError');
         done();
       }
     });
   });
 
-  it('should accept a statement object ', function (done) {
+  it('should accept a statement object ', done => {
     // Given
-    var statement = {text: "RETURN 1 = {param} AS a", parameters: {param: 1}};
+    const statement = {text: 'RETURN 1 = {param} AS a', parameters: {param: 1}};
 
     // When & Then
-    var records = [];
+    const records = [];
     session.run(statement).subscribe({
-      onNext: function (record) {
+      onNext: record => {
         records.push(record);
       },
-      onCompleted: function () {
+      onCompleted: () => {
         expect(records.length).toBe(1);
         expect(records[0].get('a')).toBe(true);
         done();
@@ -120,51 +123,51 @@ describe('session', function () {
     });
   });
 
-  it('should expose run/then/then/then ', function (done) {
+  it('should expose run/then/then/then ', done => {
     // When & Then
     session.run("RETURN 1.0 AS a")
       .then(
-        function (result) {
+        result => {
           expect(result.records.length).toBe(1);
           expect(result.records[0].get('a')).toBe(1);
           return result
         }
       ).then(
-      function (result) {
+      result => {
         expect(result.records.length).toBe(1);
         expect(result.records[0].get('a')).toBe(1);
       }
     ).then(done);
   });
 
-  it('should expose basic run/catch ', function (done) {
+  it('should expose basic run/catch ', done => {
     // When & Then
     session.run('RETURN 1 AS').catch(
-      function (error) {
+      error => {
         expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError');
         done();
       }
     )
   });
 
-  it('should expose summarize method for basic metadata ', function (done) {
+  it('should expose summarize method for basic metadata ', done => {
     // Given
-    var statement = "CREATE (n:Label {prop:{prop}}) RETURN n";
-    var params = {prop: "string"};
+    const statement = 'CREATE (n:Label {prop:{prop}}) RETURN n';
+    const params = {prop: 'string'};
     // When & Then
     session.run(statement, params)
-      .then(function (result) {
-        var sum = result.summary;
+      .then(result => {
+        const sum = result.summary;
         expect(sum.statement.text).toBe(statement);
         expect(sum.statement.parameters).toBe(params);
         expect(sum.counters.containsUpdates()).toBe(true);
         expect(sum.counters.nodesCreated()).toBe(1);
-        expect(sum.statementType).toBe(StatementType.READ_WRITE);
+        expect(sum.statementType).toBe(statementType.READ_WRITE);
         done();
       });
   });
 
-  it('should expose server info on successful query', function (done) {
+  it('should expose server info on successful query', done => {
     //lazy way of checking the version number
     //if server has been set we know it is at least
     //3.1 (todo actually parse the version string)
@@ -174,12 +177,12 @@ describe('session', function () {
     }
 
     // Given
-    var statement = 'RETURN 1';
+    const statement = 'RETURN 1';
 
     // When & Then
     session.run(statement)
-      .then(function (result) {
-        var sum = result.summary;
+      .then(result => {
+        const sum = result.summary;
         expect(sum.server).toBeDefined();
         expect(sum.server.address).toEqual('localhost:7687');
         expect(sum.server.version).toBeDefined();
@@ -187,7 +190,7 @@ describe('session', function () {
       });
   });
 
-  it('should expose execution time information when using 3.1 and onwards', function (done) {
+  it('should expose execution time information when using 3.1 and onwards', done => {
 
     //lazy way of checking the version number
     //if server has been set we know it is at least
@@ -197,39 +200,39 @@ describe('session', function () {
       return;
     }
     // Given
-    var statement = "UNWIND range(1,10000) AS n RETURN n AS number";
+    const statement = 'UNWIND range(1,10000) AS n RETURN n AS number';
     // When & Then
 
     session.run(statement)
-      .then(function (result) {
-        var sum = result.summary;
+      .then(result => {
+        const sum = result.summary;
         expect(sum.resultAvailableAfter.toInt()).not.toBeLessThan(0);
         expect(sum.resultConsumedAfter.toInt()).not.toBeLessThan(0);
         done();
       });
   });
 
-  it('should expose empty parameter map on call with no parameters', function (done) {
+  it('should expose empty parameter map on call with no parameters', done => {
     // Given
-    var statement = "CREATE (n:Label {prop:'string'}) RETURN n";
+    const statement = 'CREATE (n:Label {prop:\'string\'}) RETURN n';
     // When & Then
     session.run(statement)
-      .then(function (result) {
-        var sum = result.summary;
+      .then(result => {
+        const sum = result.summary;
         expect(sum.statement.parameters).toEqual({});
         done();
       });
   });
 
-  it('should expose plan ', function (done) {
+  it('should expose plan ', done => {
     // Given
-    var statement = "EXPLAIN CREATE (n:Label {prop:{prop}}) RETURN n";
-    var params = {prop: "string"};
+    const statement = 'EXPLAIN CREATE (n:Label {prop:{prop}}) RETURN n';
+    const params = {prop: 'string'};
     // When & Then
     session
       .run(statement, params)
-      .then(function (result) {
-        var sum = result.summary;
+      .then(result => {
+        const sum = result.summary;
         expect(sum.hasPlan()).toBe(true);
         expect(sum.hasProfile()).toBe(false);
         expect(sum.plan.operatorType).toBe('ProduceResults');
@@ -240,15 +243,15 @@ describe('session', function () {
       });
   });
 
-  it('should expose profile ', function (done) {
+  it('should expose profile ', done => {
     // Given
-    var statement = "PROFILE MATCH (n:Label {prop:{prop}}) RETURN n";
-    var params = {prop: "string"};
+    const statement = 'PROFILE MATCH (n:Label {prop:{prop}}) RETURN n';
+    const params = {prop: 'string'};
     // When & Then
     session
       .run(statement, params)
-      .then(function (result) {
-        var sum = result.summary;
+      .then(result => {
+        const sum = result.summary;
         expect(sum.hasPlan()).toBe(true); //When there's a profile, there's a plan
         expect(sum.hasProfile()).toBe(true);
         expect(sum.profile.operatorType).toBe('ProduceResults');
@@ -261,14 +264,14 @@ describe('session', function () {
       });
   });
 
-  it('should expose cypher notifications ', function (done) {
+  it('should expose cypher notifications ', done => {
     // Given
-    var statement = "EXPLAIN MATCH (n), (m) RETURN n, m";
+    const statement = 'EXPLAIN MATCH (n), (m) RETURN n, m';
     // When & Then
     session
       .run(statement)
-      .then(function (result) {
-        var sum = result.summary;
+      .then(result => {
+        const sum = result.summary;
         expect(sum.notifications.length).toBeGreaterThan(0);
         expect(sum.notifications[0].code).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
         expect(sum.notifications[0].title).toBe("This query builds a cartesian product between disconnected patterns.");
@@ -277,14 +280,14 @@ describe('session', function () {
       });
   });
 
-  it('should fail when using the session when having an open transaction', function (done) {
+  it('should fail when using the session when having an open transaction', done => {
 
     // When
     session.beginTransaction();
 
     //Then
     session.run("RETURN 42")
-      .catch(function (error) {
+      .catch(error => {
         expect(error.message).toBe("Statements cannot be run directly on a "
           + "session with an open transaction; either run from within the "
           + "transaction or use a different session.");
@@ -292,7 +295,7 @@ describe('session', function () {
       })
   });
 
-  it('should fail when opening multiple transactions', function () {
+  it('should fail when opening multiple transactions', () => {
 
     // When
     session.beginTransaction();
@@ -301,22 +304,22 @@ describe('session', function () {
     expect(session.beginTransaction).toThrow();
   });
 
-  it('should return lots of data', function (done) {
+  it('should return lots of data', done => {
     session.run("UNWIND range(1,10000) AS x CREATE (:ATTRACTION {prop: 'prop'})")
-      .then(function () {
+      .then(() => {
         session.run("MATCH (n) RETURN n")
           .subscribe(
             {
-              onNext: function (record) {
-                var node = record.get('n');
+              onNext: record => {
+                const node = record.get('n');
                 expect(node.labels[0]).toEqual("ATTRACTION");
                 expect(node.properties.prop).toEqual("prop");
               },
-              onCompleted: function () {
+              onCompleted: () => {
                 session.close();
                 done()
               },
-              onError: function (error) {
+              onError: error => {
                 console.log(error);
               }
             }
@@ -325,34 +328,36 @@ describe('session', function () {
       });
   });
 
-  it('should be able to close a long running query ', function (done) {
+  it('should be able to close a long running query ', done => {
     //given a long running query
     session.run("unwind range(1,1000000) as x create (n {prop:x}) delete n");
 
     //wait some time than close the session and run
     //a new query
-    setTimeout(function () {
+    setTimeout(() => {
       session.close();
-      var anotherSession = driver.session();
-      setTimeout(function () {
+      const anotherSession = driver.session();
+      setTimeout(() => {
         anotherSession.run("RETURN 1.0 as a")
-          .then(function (ignore) {
+          .then(ignore => {
             done();
           });
       }, 500);
     }, 500);
   });
 
-  it('should fail nicely on unpackable values ', function (done) {
+  it('should fail nicely on unpackable values ', done => {
     // Given
-    var unpackable = function(){throw Error()};
+    const unpackable = () => {
+      throw Error();
+    };
 
-    var statement = "RETURN {param}";
-    var params = {param: unpackable};
+    const statement = 'RETURN {param}';
+    const params = {param: unpackable};
     // When & Then
     session
       .run(statement, params)
-      .catch(function (ignore) {
+      .catch(ignore => {
         done();
       })
   });
