@@ -64,6 +64,37 @@ describe('routing driver', () => {
     });
   });
 
+  it('should purge connections to stale servers after routing table refresh', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9042);
+    const reader = kit.start('./test/resources/boltkit/read_server.script', 9005);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9042');
+      const session = driver.session(neo4j.session.READ);
+      session.run('MATCH (n) RETURN n.name').then(() => {
+        session.close();
+
+        expect(driver._pool.has('127.0.0.1:9042')).toBeFalsy();
+        expect(driver._pool.has('127.0.0.1:9005')).toBeTruthy();
+
+        driver.close();
+        router.exit(routerCode => {
+          reader.exit(readerCode => {
+            expect(routerCode).toEqual(0);
+            expect(readerCode).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
   it('should discover new servers', done => {
     if (!boltkit.BoltKitSupport) {
       done();

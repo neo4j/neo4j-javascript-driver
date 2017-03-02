@@ -145,7 +145,7 @@ class RoutingDriver extends Driver {
 
     // close old connections to servers not present in the new routing table
     const staleServers = currentRoutingTable.serversDiff(newRoutingTable);
-    staleServers.forEach(server => this._pool.purge);
+    staleServers.forEach(server => this._pool.purge(server));
 
     // make this driver instance aware of the new table
     this._routingTable = newRoutingTable;
