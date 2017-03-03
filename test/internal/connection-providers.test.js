@@ -539,6 +539,46 @@ describe('LoadBalancer', () => {
     });
   });
 
+  it('forgets all routers when they fail while acquiring read connection', done => {
+    const loadBalancer = newLoadBalancer(
+      ['server-1', 'server-2', 'server-3'],
+      ['server-4', 'server-5'],
+      ['server-6', 'server-7'],
+      newPool(),
+      int(0) // expired routing table
+    );
+
+    loadBalancer.acquireConnection(READ).catch(error => {
+      expect(error.code).toEqual(SERVICE_UNAVAILABLE);
+      expectRoutingTable(loadBalancer,
+        [],
+        ['server-4', 'server-5'],
+        ['server-6', 'server-7']
+      );
+      done();
+    });
+  });
+
+  it('forgets all routers when they fail while acquiring write connection', done => {
+    const loadBalancer = newLoadBalancer(
+      ['server-1', 'server-2', 'server-3'],
+      ['server-4', 'server-5'],
+      ['server-6', 'server-7'],
+      newPool(),
+      int(0) // expired routing table
+    );
+
+    loadBalancer.acquireConnection(WRITE).catch(error => {
+      expect(error.code).toEqual(SERVICE_UNAVAILABLE);
+      expectRoutingTable(loadBalancer,
+        [],
+        ['server-4', 'server-5'],
+        ['server-6', 'server-7']
+      );
+      done();
+    });
+  });
+
 });
 
 function newLoadBalancer(routers, readers, writers, pool = null, expirationTime = Integer.MAX_VALUE, routerToRoutingTable = {}) {

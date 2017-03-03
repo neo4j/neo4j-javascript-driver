@@ -104,10 +104,8 @@ export class LoadBalancer extends ConnectionProvider {
         } else {
           // returned routing table was undefined, this means a connection error happened and we need to forget the
           // previous router and try the next one
-          const previousRouter = knownRouters[currentIndex - 1];
-          if (previousRouter) {
-            currentRoutingTable.forgetRouter(previousRouter);
-          }
+          const previousRouterIndex = currentIndex - 1;
+          this._forgetRouter(currentRoutingTable, knownRouters, previousRouterIndex);
         }
 
         // try next router
@@ -116,12 +114,17 @@ export class LoadBalancer extends ConnectionProvider {
       });
     }, Promise.resolve(null));
 
-    // todo: who removes the final router when all routers fail?
     return refreshedTablePromise.then(newRoutingTable => {
       if (newRoutingTable && !newRoutingTable.writers.isEmpty()) {
         this._updateRoutingTable(newRoutingTable);
         return newRoutingTable;
       }
+
+      // forget the last known router because it did not return a valid routing table
+      const lastRouterIndex = knownRouters.length - 1;
+      this._forgetRouter(currentRoutingTable, knownRouters, lastRouterIndex);
+
+      // none of the existing routers returned valid routing table, throw exception
       throw newError('Could not perform discovery. No routing servers available.', SERVICE_UNAVAILABLE);
     });
   }
@@ -141,5 +144,12 @@ export class LoadBalancer extends ConnectionProvider {
 
     // make this driver instance aware of the new table
     this._routingTable = newRoutingTable;
+  }
+
+  _forgetRouter(routingTable, routersArray, routerIndex) {
+    const address = routersArray[routerIndex];
+    if (address) {
+      routingTable.forgetRouter(address);
+    }
   }
 }
