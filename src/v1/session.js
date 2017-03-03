@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import StreamObserver from "./internal/stream-observer";
-import Result from "./result";
-import Transaction from "./transaction";
-import {newError} from "./error";
-import {assertString} from "./internal/util";
+import StreamObserver from './internal/stream-observer';
+import Result from './result';
+import Transaction from './transaction';
+import {newError} from './error';
+import {assertString} from './internal/util';
 
 /**
   * A Session instance is used for handling the connection and
@@ -32,11 +32,10 @@ class Session {
   /**
    * @constructor
    * @param {Promise.<Connection>} connectionPromise - Promise of a connection to use
-   * @param {function()} onClose - Function to be called on connection close
    */
-  constructor( connectionPromise, onClose ) {
+  constructor(connectionPromise) {
     this._connectionPromise = connectionPromise;
-    this._onClose = onClose;
+    this._open = true;
     this._hasTx = false;
   }
 
@@ -102,24 +101,40 @@ class Session {
 
   /**
    * Close this session.
-   * @param {function()} cb - Function to be called after the session has been closed
+   * @param {function()} callback - Function to be called after the session has been closed
    * @return
    */
-  close(cb=(()=>null)) {
-    if(this._onClose) {
-      try {
-        this._onClose(cb);
-      } finally {
-        this._onClose = null;
-      }
+  close(callback = (() => null)) {
+    if (this._open) {
+      this._open = false;
+      this._releaseCurrentConnection().then(callback);
     } else {
-      cb();
+      callback();
     }
   }
 
   //Can be overridden to add error callback on RUN
   _onRunFailure() {
     return (err) => {return err};
+  }
+
+  /**
+   * Return the current pooled connection instance to the connection pool.
+   * We don't pool Session instances, to avoid users using the Session after they've called close.
+   * The `Session` object is just a thin wrapper around Connection anyway, so it makes little difference.
+   * @return {Promise} - promise resolved then connection is returned to the pool.
+   * @private
+   */
+  _releaseCurrentConnection() {
+    return this._connectionPromise.then(conn => {
+      // Queue up a 'reset', to ensure the next user gets a clean session to work with.
+      conn.reset();
+      conn.sync();
+
+      // Return connection to the pool
+      conn._release();
+    }).catch(ignoredError => {
+    });
   }
 }
 

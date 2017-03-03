@@ -17,11 +17,12 @@
  * limitations under the License.
  */
 
-import Session from "./session";
-import Pool from "./internal/pool";
-import {connect} from "./internal/connector";
-import StreamObserver from "./internal/stream-observer";
-import {newError, SERVICE_UNAVAILABLE} from "./error";
+import Session from './session';
+import Pool from './internal/pool';
+import {connect} from './internal/connector';
+import StreamObserver from './internal/stream-observer';
+import {newError, SERVICE_UNAVAILABLE} from './error';
+import {DirectConnectionProvider} from './internal/connection-providers';
 
 const READ = 'READ', WRITE = 'WRITE';
 /**
@@ -57,6 +58,7 @@ class Driver {
       Driver._validateConnection.bind(this),
       config.connectionPoolSize
     );
+    this._connectionProvider = this._createConnectionProvider(url, this._pool);
   }
 
   /**
@@ -111,7 +113,7 @@ class Driver {
    */
   session(mode) {
     const sessionMode = Driver._validateSessionMode(mode);
-    const connectionPromise = this._acquireConnection(sessionMode);
+    const connectionPromise = this._connectionProvider.acquireConnection(sessionMode);
     connectionPromise.catch((err) => {
       if (this.onError && err.code === SERVICE_UNAVAILABLE) {
         this.onError(err);
@@ -119,33 +121,7 @@ class Driver {
         //we don't need to tell the driver about this error
       }
     });
-    return this._createSession(connectionPromise, this._releaseConnection(connectionPromise));
-  }
-
-  /**
-   * The returned function gets called on Session#close(), and is where we return the pooled 'connection' instance.
-   * We don't pool Session instances, to avoid users using the Session after they've called close.
-   * The `Session` object is just a thin wrapper around Connection anyway, so it makes little difference.
-   * @param {Promise} connectionPromise - promise resolved with the connection.
-   * @return {function(callback: function)} - function that releases the connection and then executes an optional callback.
-   * @protected
-   */
-  _releaseConnection(connectionPromise) {
-    return userDefinedCallback => {
-      connectionPromise.then(conn => {
-        // Queue up a 'reset', to ensure the next user gets a clean session to work with.
-        conn.reset();
-        conn.sync();
-
-        // Return connection to the pool
-        conn._release();
-      }).catch(ignoredError => {
-      });
-
-      if (userDefinedCallback) {
-        userDefinedCallback();
-      }
-    };
+    return this._createSession(connectionPromise);
   }
 
   static _validateSessionMode(rawMode) {
@@ -157,13 +133,13 @@ class Driver {
   }
 
   //Extension point
-  _acquireConnection(mode) {
-   return Promise.resolve(this._pool.acquire(this._url));
+  _createConnectionProvider(address, connectionPool) {
+    return new DirectConnectionProvider(address, connectionPool);
   }
 
   //Extension point
-  _createSession(connectionPromise, cb) {
-    return new Session(connectionPromise, cb);
+  _createSession(connectionPromise) {
+    return new Session(connectionPromise);
   }
 
   /**

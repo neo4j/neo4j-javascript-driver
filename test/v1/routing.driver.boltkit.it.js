@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import neo4j from "../../src/v1";
-import boltkit from "./boltkit";
-import RoutingTable from "../../src/v1/internal/routing-table";
+import neo4j from '../../src/v1';
+import boltkit from './boltkit';
+import RoutingTable from '../../src/v1/internal/routing-table';
 
 describe('routing driver', () => {
   let originalTimeout;
@@ -50,7 +50,7 @@ describe('routing driver', () => {
 
         session.close();
         // Then
-        expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9001')).toBeTruthy();
         assertHasRouters(driver, ["127.0.0.1:9001", "127.0.0.1:9002", "127.0.0.1:9003"]);
         assertHasReaders(driver, ["127.0.0.1:9002", "127.0.0.1:9003"]);
         assertHasWriters(driver, ["127.0.0.1:9001"]);
@@ -80,8 +80,8 @@ describe('routing driver', () => {
       session.run('MATCH (n) RETURN n.name').then(() => {
         session.close();
 
-        expect(driver._pool.has('127.0.0.1:9042')).toBeFalsy();
-        expect(driver._pool.has('127.0.0.1:9005')).toBeTruthy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9042')).toBeFalsy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9005')).toBeTruthy();
 
         driver.close();
         router.exit(routerCode => {
@@ -202,8 +202,8 @@ describe('routing driver', () => {
 
         session.close();
 
-        expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
-        expect(driver._pool.has('127.0.0.1:9005')).toBeTruthy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9001')).toBeTruthy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9005')).toBeTruthy();
         // Then
         expect(res.records[0].get('n.name')).toEqual('Bob');
         expect(res.records[1].get('n.name')).toEqual('Alice');
@@ -483,8 +483,8 @@ describe('routing driver', () => {
       session.run("MATCH (n) RETURN n.name").catch(() => {
         session.close();
         // Then
-        expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
-        expect(driver._pool.has('127.0.0.1:9005')).toBeFalsy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9001')).toBeTruthy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9005')).toBeFalsy();
         assertHasRouters(driver, ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
         assertHasReaders(driver, ['127.0.0.1:9006']);
         assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
@@ -516,8 +516,8 @@ describe('routing driver', () => {
       session.run("MATCH (n) RETURN n.name").catch(() => {
         session.close();
         // Then
-        expect(driver._pool.has('127.0.0.1:9001')).toBeTruthy();
-        expect(driver._pool.has('127.0.0.1:9005')).toBeFalsy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9001')).toBeTruthy();
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9005')).toBeFalsy();
         assertHasRouters(driver, ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
         assertHasReaders(driver, ['127.0.0.1:9006']);
         assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
@@ -1118,21 +1118,23 @@ describe('routing driver', () => {
 
   function setUpPoolToMemorizeAllAcquiredAndReleasedConnections(driver, acquiredConnections, releasedConnections) {
     // make connection pool remember all acquired connections
-    const originalAcquire = driver._pool.acquire.bind(driver._pool);
+    const connectionPool = getConnectionPool(driver);
+
+    const originalAcquire = connectionPool.acquire.bind(connectionPool);
     const memorizingAcquire = (...args) => {
       const connection = originalAcquire(...args);
       acquiredConnections.push(connection);
       return connection;
     };
-    driver._pool.acquire = memorizingAcquire;
+    connectionPool.acquire = memorizingAcquire;
 
     // make connection pool remember all released connections
-    const originalRelease = driver._pool._release;
+    const originalRelease = connectionPool._release;
     const rememberingRelease = (key, resource) => {
       originalRelease(key, resource);
       releasedConnections.push(resource);
     };
-    driver._pool._release = rememberingRelease;
+    connectionPool._release = rememberingRelease;
   }
 
   function newDriver(url) {
@@ -1142,22 +1144,42 @@ describe('routing driver', () => {
     });
   }
 
+  function hasAddressInConnectionPool(driver, address) {
+    return getConnectionPool(driver).has(address);
+  }
+
   function assertHasRouters(driver, expectedRouters) {
-    expect(driver._routingTable.routers.toArray()).toEqual(expectedRouters);
+    expect(getRoutingTable(driver).routers.toArray()).toEqual(expectedRouters);
   }
 
   function assertHasReaders(driver, expectedReaders) {
-    expect(driver._routingTable.readers.toArray()).toEqual(expectedReaders);
+    expect(getRoutingTable(driver).readers.toArray()).toEqual(expectedReaders);
   }
 
   function assertHasWriters(driver, expectedWriters) {
-    expect(driver._routingTable.writers.toArray()).toEqual(expectedWriters);
+    expect(getRoutingTable(driver).writers.toArray()).toEqual(expectedWriters);
   }
 
   function setUpMemorizingRoutingTable(driver) {
-    const memorizingRoutingTable = new MemorizingRoutingTable(driver._routingTable);
-    driver._routingTable = memorizingRoutingTable;
+    const memorizingRoutingTable = new MemorizingRoutingTable(getRoutingTable(driver));
+    setRoutingTable(driver, memorizingRoutingTable);
     return memorizingRoutingTable;
+  }
+
+  function getConnectionPool(driver) {
+    return driver._connectionProvider._connectionPool;
+  }
+
+  function setConnectionPool(driver, newConnectionPool) {
+    driver._connectionProvider._connectionPool = newConnectionPool;
+  }
+
+  function getRoutingTable(driver) {
+    return driver._connectionProvider._routingTable;
+  }
+
+  function setRoutingTable(driver, newRoutingTable) {
+    driver._connectionProvider._routingTable = newRoutingTable;
   }
 
   function joinStrings(array) {
