@@ -77,6 +77,28 @@ describe('LoadBalancer', () => {
     );
   });
 
+  it('purges connections when address is forgotten', () => {
+    const pool = newPool();
+
+    pool.acquire('server-1');
+    pool.acquire('server-3');
+    pool.acquire('server-5');
+    expectPoolToContain(pool, ['server-1', 'server-3', 'server-5']);
+
+    const loadBalancer = newLoadBalancer(
+      ['server-1', 'server-2'],
+      ['server-3', 'server-2'],
+      ['server-2', 'server-4'],
+      pool
+    );
+
+    loadBalancer.forget('server-1');
+    loadBalancer.forget('server-5');
+
+    expectPoolToContain(pool, ['server-3']);
+    expectPoolToNotContain(pool, ['server-1', 'server-5']);
+  });
+
   it('can forget writer address', () => {
     const loadBalancer = newLoadBalancer(
       ['server-1', 'server-2'],
@@ -548,6 +570,12 @@ function expectRoutingTable(loadBalancer, routers, readers, writers) {
   expect(loadBalancer._routingTable.routers.toArray()).toEqual(routers);
   expect(loadBalancer._routingTable.readers.toArray()).toEqual(readers);
   expect(loadBalancer._routingTable.writers.toArray()).toEqual(writers);
+}
+
+function expectPoolToContain(pool, addresses) {
+  addresses.forEach(address => {
+    expect(pool.has(address)).toBeTruthy();
+  });
 }
 
 function expectPoolToNotContain(pool, addresses) {

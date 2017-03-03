@@ -67,6 +67,7 @@ export class LoadBalancer extends ConnectionProvider {
 
   forget(address) {
     this._routingTable.forget(address);
+    this._connectionPool.purge(address);
   }
 
   forgetWriter(address) {
@@ -115,6 +116,7 @@ export class LoadBalancer extends ConnectionProvider {
       });
     }, Promise.resolve(null));
 
+    // todo: who removes the final router when all routers fail?
     return refreshedTablePromise.then(newRoutingTable => {
       if (newRoutingTable && !newRoutingTable.writers.isEmpty()) {
         this._updateRoutingTable(newRoutingTable);

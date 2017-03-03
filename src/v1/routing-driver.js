@@ -39,10 +39,10 @@ class RoutingDriver extends Driver {
     return new RoutingSession(connectionPromise, (error, conn) => {
       if (error.code === SERVICE_UNAVAILABLE || error.code === SESSION_EXPIRED) {
         if (conn) {
-          this._forget(conn.url)
+          this._connectionProvider.forget(conn.url);
         } else {
           connectionPromise.then((conn) => {
-            this._forget(conn.url);
+            this._connectionProvider.forget(conn.url);
           }).catch(() => {/*ignore*/});
         }
         return error;
@@ -61,11 +61,6 @@ class RoutingDriver extends Driver {
         return error;
       }
     });
-  }
-
-  _forget(url) {
-    this._connectionProvider.forget(url);
-    this._pool.purge(url);
   }
 
   static _validateConfig(config) {
