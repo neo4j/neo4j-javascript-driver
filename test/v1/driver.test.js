@@ -53,7 +53,7 @@ describe('driver', function() {
     };
 
     // When
-    driver.session();
+    startNewTransaction(driver);
   });
 
   it('should handle wrong scheme', () => {
@@ -84,7 +84,7 @@ describe('driver', function() {
     };
 
     // When
-    driver.session();
+    startNewTransaction(driver);
   });
 
   it('should indicate success early on correct credentials', function(done) {
@@ -97,7 +97,7 @@ describe('driver', function() {
     };
 
     // When
-    driver.session();
+    startNewTransaction(driver);
   });
 
   it('should be possible to pass a realm with basic auth tokens', function(done) {
@@ -110,7 +110,7 @@ describe('driver', function() {
     };
 
     // When
-    driver.session();
+    startNewTransaction(driver);
   });
 
   it('should be possible to create custom auth tokens', function(done) {
@@ -123,7 +123,7 @@ describe('driver', function() {
     };
 
     // When
-    driver.session();
+    startNewTransaction(driver);
   });
 
   it('should be possible to create custom auth tokens with additional parameters', function(done) {
@@ -136,7 +136,7 @@ describe('driver', function() {
     };
 
     // When
-    driver.session();
+    startNewTransaction(driver);
   });
 
   it('should fail nicely when connecting with routing to standalone server', done => {
@@ -151,7 +151,7 @@ describe('driver', function() {
     };
 
     // When
-    driver.session();
+    startNewTransaction(driver);
   });
 
   it('should have correct user agent', () => {
@@ -191,5 +191,14 @@ describe('driver', function() {
       expect(undefined === neo4j.types[type]).toBe(false);
     });
   });
+
+  /**
+   * Starts new transaction to force new network connection.
+   * @param {Driver} driver - the driver to use.
+   */
+  function startNewTransaction(driver) {
+    const session = driver.session();
+    expect(session.beginTransaction()).toBeDefined();
+  }
 
 });

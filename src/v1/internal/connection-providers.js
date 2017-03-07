@@ -33,7 +33,9 @@ class ConnectionProvider {
   _withAdditionalOnErrorCallback(connectionPromise, driverOnErrorCallback) {
     // install error handler from the driver on the connection promise; this callback is installed separately
     // so that it does not handle errors, instead it is just an additional error reporting facility.
-    connectionPromise.catch(error => driverOnErrorCallback(error));
+    connectionPromise.catch(error => {
+      driverOnErrorCallback(error)
+    });
     // return the original connection promise
     return connectionPromise;
   }
@@ -49,7 +51,8 @@ export class DirectConnectionProvider extends ConnectionProvider {
   }
 
   acquireConnection(mode) {
-    const connectionPromise = Promise.resolve(this._connectionPool.acquire(this._address));
+    const connection = this._connectionPool.acquire(this._address);
+    const connectionPromise = Promise.resolve(connection);
     return this._withAdditionalOnErrorCallback(connectionPromise, this._driverOnErrorCallback);
   }
 }

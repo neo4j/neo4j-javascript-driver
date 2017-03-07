@@ -21,6 +21,8 @@ import Result from './result';
 import Transaction from './transaction';
 import {newError} from './error';
 import {assertString} from './internal/util';
+import ConnectionHolder from './internal/connection-holder';
+import {READ, WRITE} from './driver';
 
 /**
   * A Session instance is used for handling the connection and
@@ -29,14 +31,16 @@ import {assertString} from './internal/util';
   */
 
 class Session {
+
   /**
    * @constructor
-   * todo: doc params
+   * @param {string} mode - the default access mode for this session.
+   * @param connectionProvider - the connection provider to acquire connections from.
    */
   constructor(mode, connectionProvider) {
     this._mode = mode;
-    this._connectionProvider = connectionProvider;
-    this._connectionPromise = this._connectionProvider.acquireConnection(this._mode);
+    this._readConnectionHolder = new ConnectionHolder(READ, connectionProvider);
+    this._writeConnectionHolder = new ConnectionHolder(WRITE, connectionProvider);
     this._open = true;
     this._hasTx = false;
   }
@@ -57,19 +61,21 @@ class Session {
     assertString(statement, "Cypher statement");
 
     const streamObserver = new _RunObserver(this._onRunFailure());
+    const connectionHolder = this._connectionHolderWithMode(this._mode);
     if (!this._hasTx) {
-      this._connectionPromise.then((conn) => {
-        streamObserver.resolveConnection(conn);
-        conn.run(statement, parameters, streamObserver);
-        conn.pullAll(streamObserver);
-        conn.sync();
-      }).catch((err) => streamObserver.onError(err));
+      connectionHolder.initializeConnection();
+      connectionHolder.getConnection().then(connection => {
+        streamObserver.resolveConnection(connection);
+        connection.run(statement, parameters, streamObserver);
+        connection.pullAll(streamObserver);
+        connection.sync();
+      }).catch(error => streamObserver.onError(error));
     } else {
       streamObserver.onError(newError("Statements cannot be run directly on a "
        + "session with an open transaction; either run from within the "
        + "transaction or use a different session."));
     }
-    return new Result( streamObserver, statement, parameters, () => streamObserver.meta() );
+    return new Result( streamObserver, statement, parameters, () => streamObserver.meta(), connectionHolder );
   }
 
   /**
@@ -92,8 +98,15 @@ class Session {
     }
 
     this._hasTx = true;
-    return new Transaction(this._connectionPromise, () => {
-      this._hasTx = false},
+
+    // todo: add mode parameter
+    const mode = this._mode;
+    const connectionHolder = this._connectionHolderWithMode(mode);
+    connectionHolder.initializeConnection();
+
+    return new Transaction(connectionHolder, () => {
+        this._hasTx = false;
+      },
       this._onRunFailure(), bookmark, (bookmark) => {this._lastBookmark = bookmark});
   }
 
@@ -109,7 +122,11 @@ class Session {
   close(callback = (() => null)) {
     if (this._open) {
       this._open = false;
-      this._releaseCurrentConnection().then(callback);
+      this._readConnectionHolder.close().then(() => {
+        this._writeConnectionHolder.close().then(() => {
+          callback();
+        });
+      });
     } else {
       callback();
     }
@@ -120,23 +137,14 @@ class Session {
     return (err) => {return err};
   }
 
-  /**
-   * Return the current pooled connection instance to the connection pool.
-   * We don't pool Session instances, to avoid users using the Session after they've called close.
-   * The `Session` object is just a thin wrapper around Connection anyway, so it makes little difference.
-   * @return {Promise} - promise resolved then connection is returned to the pool.
-   * @private
-   */
-  _releaseCurrentConnection() {
-    return this._connectionPromise.then(conn => {
-      // Queue up a 'reset', to ensure the next user gets a clean session to work with.
-      conn.reset();
-      conn.sync();
-
-      // Return connection to the pool
-      conn._release();
-    }).catch(ignoredError => {
-    });
+  _connectionHolderWithMode(mode) {
+    if (mode === READ) {
+      return this._readConnectionHolder;
+    } else if (mode === WRITE) {
+      return this._writeConnectionHolder;
+    } else {
+      throw newError('Unknown access mode: ' + mode);
+    }
   }
 }
 

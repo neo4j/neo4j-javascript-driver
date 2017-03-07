@@ -269,7 +269,9 @@ describe('trust-on-first-use', function() {
       knownHosts: knownHostsPath
     });
 
-    driver.session(); // write into the knownHost file
+    // create session and transaction to force creation of new connection and writing into the knownHost file
+    const session = driver.session();
+    expect(session.beginTransaction()).toBeDefined();
 
     // duplicate the same serverId twice
     setTimeout(function() {

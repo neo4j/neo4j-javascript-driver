@@ -22,6 +22,7 @@ import {statementType} from '../../src/v1/result-summary';
 import Session from '../../src/v1/session';
 import {READ} from '../../src/v1/driver';
 import {SingleConnectionProvider} from '../../src/v1/internal/connection-providers';
+import FakeConnection from '../internal/fake-connection';
 
 describe('session', () => {
 
@@ -72,13 +73,13 @@ describe('session', () => {
     const session = newSessionWithConnection(connection);
 
     session.close(() => {
-      expect(connection.closedOnce()).toBeTruthy();
+      expect(connection.isReleasedOnceOnSessionClose()).toBeTruthy();
 
       session.close(() => {
-        expect(connection.closedOnce()).toBeTruthy();
+        expect(connection.isReleasedOnceOnSessionClose()).toBeTruthy();
 
         session.close(() => {
-          expect(connection.closedOnce()).toBeTruthy();
+          expect(connection.isReleasedOnceOnSessionClose()).toBeTruthy();
           done();
         });
       });
@@ -372,20 +373,25 @@ describe('session', () => {
 
   it('should be able to close a long running query ', done => {
     //given a long running query
-    session.run("unwind range(1,1000000) as x create (n {prop:x}) delete n");
+    session.run('unwind range(1,1000000) as x create (n {prop:x}) delete n').catch(error => {
+      // long running query should fail
+      expect(error).toBeDefined();
 
-    //wait some time than close the session and run
-    //a new query
+      // and it should be possible to start another session and run a query
+      const anotherSession = driver.session();
+      anotherSession.run('RETURN 1.0 as a').then(result => {
+        expect(result.records.length).toBe(1);
+        expect(result.records[0].get('a')).toBe(1);
+        done();
+      }).catch(error => {
+        console.log('Query failed after a long running query was terminated', error);
+      });
+    });
+
+    // wait some time than close the session with a long running query
     setTimeout(() => {
       session.close();
-      const anotherSession = driver.session();
-      setTimeout(() => {
-        anotherSession.run("RETURN 1.0 as a")
-          .then(ignore => {
-            done();
-          });
-      }, 500);
-    }, 500);
+    }, 1000);
   });
 
   it('should fail nicely on unpackable values ', done => {
@@ -443,41 +449,138 @@ describe('session', () => {
     expect(() => driver.session('ILLEGAL_MODE')).toThrow();
   });
 
+  it('should release connection to the pool after run', done => {
+    withQueryInTmpSession(driver, () => {
+      const idleConnectionsBefore = idleConnectionCount(driver);
+
+      session.run('RETURN 1').then(() => {
+        const idleConnectionsAfter = idleConnectionCount(driver);
+        expect(idleConnectionsBefore).toEqual(idleConnectionsAfter);
+        done();
+      });
+    });
+  });
+
+  it('should release connection to the pool after run failure', done => {
+    withQueryInTmpSession(driver, () => {
+      const idleConnectionsBefore = idleConnectionCount(driver);
+
+      session.run('RETURN 10 / 0').catch(() => {
+        const idleConnectionsAfter = idleConnectionCount(driver);
+        expect(idleConnectionsBefore).toEqual(idleConnectionsAfter);
+        done();
+      });
+    });
+  });
+
+  it('should release connection to the pool when result is consumed', done => {
+    withQueryInTmpSession(driver, () => {
+      const idleConnectionsBefore = idleConnectionCount(driver);
+
+      session.run('UNWIND range(0, 10) AS x RETURN x + 1').subscribe({
+        onNext: () => {
+          // one less idle connection, one connection is used for the current query
+          expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore - 1);
+        },
+        onError: error => {
+          console.log(error);
+        },
+        onCompleted: () => {
+          expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore);
+          done();
+        }
+      });
+    });
+  });
+
+  it('should release connection to the pool when result fails', done => {
+    withQueryInTmpSession(driver, () => {
+      const idleConnectionsBefore = idleConnectionCount(driver);
+
+      session.run('UNWIND range(10, 0, -1) AS x RETURN 10 / x').subscribe({
+        onNext: () => {
+          // one less idle connection, one connection is used for the current query
+          expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore - 1);
+        },
+        onError: ignoredError => {
+          expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore);
+          done();
+        },
+        onCompleted: () => {
+        }
+      });
+    });
+  });
+
+  it('should release connection to the pool when transaction commits', done => {
+    withQueryInTmpSession(driver, () => {
+      const idleConnectionsBefore = idleConnectionCount(driver);
+
+      const tx = session.beginTransaction();
+      tx.run('UNWIND range(0, 10) AS x RETURN x + 1').subscribe({
+        onNext: () => {
+          // one less idle connection, one connection is used for the current transaction
+          expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore - 1);
+        },
+        onError: error => {
+          console.log(error);
+        },
+        onCompleted: () => {
+          // one less idle connection, one connection is used for the current transaction
+          expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore - 1);
+          tx.commit().then(() => {
+            expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore);
+            done();
+          });
+        }
+      });
+    });
+  });
+
+  it('should release connection to the pool when transaction rolls back', done => {
+    withQueryInTmpSession(driver, () => {
+      const idleConnectionsBefore = idleConnectionCount(driver);
+
+      const tx = session.beginTransaction();
+      tx.run('UNWIND range(0, 10) AS x RETURN x + 1').subscribe({
+        onNext: () => {
+          // one less idle connection, one connection is used for the current transaction
+          expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore - 1);
+        },
+        onError: error => {
+          console.log(error);
+        },
+        onCompleted: () => {
+          // one less idle connection, one connection is used for the current transaction
+          expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore - 1);
+          tx.rollback().then(() => {
+            expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore);
+            done();
+          });
+        }
+      });
+    });
+  });
+
+  function withQueryInTmpSession(driver, callback) {
+    const tmpSession = driver.session();
+    return tmpSession.run('RETURN 1').then(() => {
+      tmpSession.close(callback);
+    });
+  }
+
   function newSessionWithConnection(connection) {
     const connectionProvider = new SingleConnectionProvider(Promise.resolve(connection));
-    return new Session(READ, connectionProvider);
+    const session = new Session(READ, connectionProvider);
+    session.beginTransaction(); // force session to acquire new connection
+    return session;
   }
 
-  class FakeConnection {
-
-    constructor() {
-      this.resetInvoked = 0;
-      this.syncInvoked = 0;
-      this.releaseInvoked = 0;
-    }
-
-    run() {
-    }
-
-    discardAll() {
-    }
-
-    reset() {
-      this.resetInvoked++;
-    }
-
-    sync() {
-      this.syncInvoked++;
-    }
-
-    _release() {
-      this.releaseInvoked++;
-    }
-
-    closedOnce() {
-      return this.resetInvoked === 1 && this.syncInvoked === 1 && this.releaseInvoked === 1;
-    }
+  function idleConnectionCount(driver) {
+    const connectionProvider = driver._connectionProvider;
+    const address = connectionProvider._address;
+    const connectionPool = connectionProvider._connectionPool;
+    const idleConnections = connectionPool._pools[address];
+    return idleConnections.length;
   }
 });
-
-
