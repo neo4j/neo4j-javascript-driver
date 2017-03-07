@@ -20,6 +20,8 @@
 import neo4j from '../../src/v1';
 import {statementType} from '../../src/v1/result-summary';
 import Session from '../../src/v1/session';
+import {READ} from '../../src/v1/driver';
+import {SingleConnectionProvider} from '../../src/v1/internal/connection-providers';
 
 describe('session', () => {
 
@@ -47,14 +49,14 @@ describe('session', () => {
 
   it('close should invoke callback ', done => {
     const connection = new FakeConnection();
-    const session = new Session(Promise.resolve(connection));
+    const session = newSessionWithConnection(connection);
 
     session.close(done);
   });
 
   it('close should invoke callback even when already closed ', done => {
     const connection = new FakeConnection();
-    const session = new Session(Promise.resolve(connection));
+    const session = newSessionWithConnection(connection);
 
     session.close(() => {
       session.close(() => {
@@ -67,7 +69,7 @@ describe('session', () => {
 
   it('close should be idempotent ', done => {
     const connection = new FakeConnection();
-    const session = new Session(Promise.resolve(connection));
+    const session = newSessionWithConnection(connection);
 
     session.close(() => {
       expect(connection.closedOnce()).toBeTruthy();
@@ -441,12 +443,23 @@ describe('session', () => {
     expect(() => driver.session('ILLEGAL_MODE')).toThrow();
   });
 
+  function newSessionWithConnection(connection) {
+    const connectionProvider = new SingleConnectionProvider(Promise.resolve(connection));
+    return new Session(READ, connectionProvider);
+  }
+
   class FakeConnection {
 
     constructor() {
       this.resetInvoked = 0;
       this.syncInvoked = 0;
       this.releaseInvoked = 0;
+    }
+
+    run() {
+    }
+
+    discardAll() {
     }
 
     reset() {

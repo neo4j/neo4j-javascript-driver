@@ -31,10 +31,12 @@ import {assertString} from './internal/util';
 class Session {
   /**
    * @constructor
-   * @param {Promise.<Connection>} connectionPromise - Promise of a connection to use
+   * todo: doc params
    */
-  constructor(connectionPromise) {
-    this._connectionPromise = connectionPromise;
+  constructor(mode, connectionProvider) {
+    this._mode = mode;
+    this._connectionProvider = connectionProvider;
+    this._connectionPromise = this._connectionProvider.acquireConnection(this._mode);
     this._open = true;
     this._hasTx = false;
   }
