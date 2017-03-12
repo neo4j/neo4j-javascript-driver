@@ -17,39 +17,208 @@
  * limitations under the License.
  */
 
-var neo4j = require("../../lib/v1").default;
-var boltkit = require('./boltkit');
+import neo4j from '../../lib/v1';
+import {READ, WRITE} from '../../lib/v1/driver';
+import boltkit from './boltkit';
 
-describe('direct driver', function() {
+describe('direct driver', () => {
 
-  it('should run query', function (done) {
+  it('should run query', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
 
     // Given
-    var kit = new boltkit.BoltKit();
-    var server = kit.start('./test/resources/boltkit/return_x.script', 9001);
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/return_x.script', 9001);
 
-    kit.run(function () {
-        // BoltKit currently does not support encryption, create driver with encryption turned off
-        var driver = neo4j.driver("bolt://localhost:9001", neo4j.auth.basic("neo4j", "neo4j"), {
-          encrypted: "ENCRYPTION_OFF"
-        });
-        // When
-        var session = driver.session();
-        // Then
-        session.run("RETURN {x}", {'x': 1}).then(function (res) {
+    kit.run(() => {
+      const driver = createDriver();
+      // When
+      const session = driver.session();
+      // Then
+      session.run('RETURN {x}', {'x': 1}).then(res => {
           expect(res.records[0].get('x').toInt()).toEqual(1);
           session.close();
           driver.close();
-          server.exit(function(code) {
-            expect(code).toEqual(0);
-            done();
-          });
+        server.exit(code => {
+          expect(code).toEqual(0);
+          done();
         });
+      });
     });
   });
+
+  it('should send and receive bookmark for read transaction', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/read_tx_with_bookmarks.script', 9001);
+
+    kit.run(() => {
+      const driver = createDriver();
+      const session = driver.session(READ, 'OldBookmark');
+      const tx = session.beginTransaction();
+      tx.run('MATCH (n) RETURN n.name AS name').then(result => {
+        const records = result.records;
+        expect(records.length).toEqual(2);
+        expect(records[0].get('name')).toEqual('Bob');
+        expect(records[1].get('name')).toEqual('Alice');
+
+        tx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('NewBookmark');
+
+          session.close(() => {
+            driver.close();
+            server.exit(code => {
+              expect(code).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should send and receive bookmark for write transaction', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/write_tx_with_bookmarks.script', 9001);
+
+    kit.run(() => {
+      const driver = createDriver();
+      const session = driver.session(WRITE, 'OldBookmark');
+      const tx = session.beginTransaction();
+      tx.run('CREATE (n {name:\'Bob\'})').then(result => {
+        const records = result.records;
+        expect(records.length).toEqual(0);
+
+        tx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('NewBookmark');
+
+          session.close(() => {
+            driver.close();
+            server.exit(code => {
+              expect(code).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should send and receive bookmark between write and read transactions', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/write_read_tx_with_bookmarks.script', 9001);
+
+    kit.run(() => {
+      const driver = createDriver();
+      const session = driver.session(WRITE, 'BookmarkA');
+      const writeTx = session.beginTransaction();
+      writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
+        const records = result.records;
+        expect(records.length).toEqual(0);
+
+        writeTx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('BookmarkB');
+
+          const readTx = session.beginTransaction();
+          readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
+            const records = result.records;
+            expect(records.length).toEqual(1);
+            expect(records[0].get('name')).toEqual('Bob');
+
+            readTx.commit().then(() => {
+              expect(session.lastBookmark()).toEqual('BookmarkC');
+
+              session.close(() => {
+                driver.close();
+                server.exit(code => {
+                  expect(code).toEqual(0);
+                  done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should be possible to override bookmark', done => {
+    testBookmarkOverride('BookmarkOverride', done);
+  });
+
+  it('should be possible to override bookmark with null', done => {
+    testBookmarkOverride(null, done);
+  });
+
+  function testBookmarkOverride(bookmarkOverride, done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const bookmarkScriptValue = bookmarkOverride ? JSON.stringify({bookmark: bookmarkOverride}) : '{}';
+    const params = {bookmarkOverride: bookmarkScriptValue};
+    const server = kit.startWithTemplate(
+      './test/resources/boltkit/write_read_tx_with_bookmark_override.script.mst', params, 9001);
+
+    kit.run(() => {
+      const driver = createDriver();
+      const session = driver.session(WRITE, 'BookmarkA');
+      const writeTx = session.beginTransaction();
+      writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
+        const records = result.records;
+        expect(records.length).toEqual(0);
+
+        writeTx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('BookmarkB');
+
+          const readTx = session.beginTransaction(bookmarkOverride);
+          readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
+            const records = result.records;
+            expect(records.length).toEqual(1);
+            expect(records[0].get('name')).toEqual('Bob');
+
+            readTx.commit().then(() => {
+              expect(session.lastBookmark()).toEqual('BookmarkC');
+
+              session.close(() => {
+                driver.close();
+                server.exit(code => {
+                  expect(code).toEqual(0);
+                  done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  }
+
 });
 
+function createDriver() {
+  // BoltKit currently does not support encryption, create driver with encryption turned off
+  const config = {
+    encrypted: 'ENCRYPTION_OFF'
+  };
+  return neo4j.driver('bolt://localhost:9001', neo4j.auth.basic('neo4j', 'neo4j'), config);
+}

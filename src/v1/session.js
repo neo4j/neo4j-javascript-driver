@@ -34,15 +34,17 @@ class Session {
 
   /**
    * @constructor
-   * @param {string} mode - the default access mode for this session.
-   * @param connectionProvider - the connection provider to acquire connections from.
+   * @param {string} mode the default access mode for this session.
+   * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
+   * @param {string} bookmark - the initial bookmark for this session.
    */
-  constructor(mode, connectionProvider) {
+  constructor(mode, connectionProvider, bookmark) {
     this._mode = mode;
     this._readConnectionHolder = new ConnectionHolder(READ, connectionProvider);
     this._writeConnectionHolder = new ConnectionHolder(WRITE, connectionProvider);
     this._open = true;
     this._hasTx = false;
+    this._lastBookmark = bookmark;
   }
 
   /**
@@ -84,11 +86,17 @@ class Session {
    *
    * While a transaction is open the session cannot be used to run statements outside the transaction.
    *
+   * @param {string} bookmark - a reference to a previous transaction. DEPRECATED: This function is deprecated in
+   * favour of {@link Driver#session(string)} that accepts an initial bookmark. Session will ensure that all nested
+   * transactions are chained with bookmarks to guarantee causal consistency.
    * @returns {Transaction} - New Transaction
    */
   beginTransaction(bookmark) {
     if (bookmark) {
-      assertString(bookmark, "Bookmark");
+      assertString(bookmark, 'Bookmark');
+    }
+    if (typeof bookmark !== 'undefined') {
+      this._lastBookmark = bookmark;
     }
 
     if (this._hasTx) {
@@ -99,19 +107,23 @@ class Session {
 
     this._hasTx = true;
 
-    // todo: add mode parameter
-    const mode = this._mode;
-    const connectionHolder = this._connectionHolderWithMode(mode);
+    const connectionHolder = this._connectionHolderWithMode(this._mode);
     connectionHolder.initializeConnection();
 
     return new Transaction(connectionHolder, () => {
         this._hasTx = false;
       },
-      this._onRunFailure(), bookmark, (bookmark) => {this._lastBookmark = bookmark});
+      this._onRunFailure(), this._lastBookmark, this._updateBookmark.bind(this));
   }
 
   lastBookmark() {
     return this._lastBookmark;
+  }
+
+  _updateBookmark(newBookmark) {
+    if (newBookmark) {
+      this._lastBookmark = newBookmark;
+    }
   }
 
   /**

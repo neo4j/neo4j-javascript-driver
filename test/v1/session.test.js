@@ -562,6 +562,59 @@ describe('session', () => {
     });
   });
 
+  it('should update last bookmark after every read tx commit', done => {
+    const bookmarkBefore = session.lastBookmark();
+
+    const tx = session.beginTransaction();
+    tx.run('RETURN 42 as answer').then(result => {
+      const records = result.records;
+      expect(records.length).toEqual(1);
+      expect(records[0].get('answer').toNumber()).toEqual(42);
+
+      tx.commit().then(() => {
+        const bookmarkAfter = session.lastBookmark();
+        expect(bookmarkAfter).toBeDefined();
+        expect(bookmarkAfter).not.toBeNull();
+        expect(bookmarkAfter).not.toEqual(bookmarkBefore);
+
+        done();
+      });
+    });
+  });
+
+  it('should update last bookmark after every write tx commit', done => {
+    const bookmarkBefore = session.lastBookmark();
+
+    const tx = session.beginTransaction();
+    tx.run('CREATE ()').then(() => {
+      tx.commit().then(() => {
+        const bookmarkAfter = session.lastBookmark();
+        expect(bookmarkAfter).toBeDefined();
+        expect(bookmarkAfter).not.toBeNull();
+        expect(bookmarkAfter).not.toEqual(bookmarkBefore);
+
+        done();
+      });
+    });
+  });
+
+  it('should not lose last bookmark after run', done => {
+    const tx = session.beginTransaction();
+    tx.run('CREATE ()').then(() => {
+      tx.commit().then(() => {
+        const bookmarkBefore = session.lastBookmark();
+        expect(bookmarkBefore).toBeDefined();
+        expect(bookmarkBefore).not.toBeNull();
+
+        session.run('CREATE ()').then(() => {
+          const bookmarkAfter = session.lastBookmark();
+          expect(bookmarkAfter).toEqual(bookmarkBefore);
+          done();
+        });
+      });
+    });
+  });
+
   function withQueryInTmpSession(driver, callback) {
     const tmpSession = driver.session();
     return tmpSession.run('RETURN 1').then(() => {
