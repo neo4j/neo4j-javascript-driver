@@ -108,12 +108,14 @@ class Driver {
    * it is returned to the pool, the session will be reset to a clean state and
    * made available for others to use.
    *
-   * @param {String} mode of session - optional
+   * @param {string} [mode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
+   * @param {string} [bookmark=null] the initial reference to some previous transaction. Value is optional and
+   * absence indicates that that the bookmark does not exist or is unknown.
    * @return {Session} new session.
    */
-  session(mode) {
+  session(mode, bookmark) {
     const sessionMode = Driver._validateSessionMode(mode);
-    return this._createSession(sessionMode, this._connectionProvider);
+    return this._createSession(sessionMode, this._connectionProvider, bookmark);
   }
 
   static _validateSessionMode(rawMode) {
@@ -130,8 +132,8 @@ class Driver {
   }
 
   //Extension point
-  _createSession(mode, connectionProvider) {
-    return new Session(mode, connectionProvider);
+  _createSession(mode, connectionProvider, bookmark) {
+    return new Session(mode, connectionProvider, bookmark);
   }
 
   _driverOnErrorCallback(error) {

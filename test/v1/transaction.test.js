@@ -229,7 +229,7 @@ describe('transaction', () => {
     }).catch(console.log);
   });
 
-  it('should have no bookmark when tx is rolled back', done => {
+  it('should have bookmark when tx is rolled back', done => {
     if (neo4jVersionOlderThan31(done)) {
       return;
     }
@@ -240,11 +240,14 @@ describe('transaction', () => {
     tx1.run('CREATE ()').then(() => {
       tx1.commit().then(() => {
         expectValidLastBookmark(session);
+        const bookmarkBefore = session.lastBookmark();
 
         const tx2 = session.beginTransaction();
         tx2.run('CREATE ()').then(() => {
           tx2.rollback().then(() => {
-            expect(session.lastBookmark()).not.toBeDefined();
+            expectValidLastBookmark(session);
+            const bookmarkAfter = session.lastBookmark();
+            expect(bookmarkAfter).toEqual(bookmarkBefore);
 
             const tx3 = session.beginTransaction();
             tx3.run('CREATE ()').then(() => {
@@ -270,12 +273,14 @@ describe('transaction', () => {
     tx1.run('CREATE ()').then(() => {
       tx1.commit().then(() => {
         expectValidLastBookmark(session);
+        const bookmarkBefore = session.lastBookmark();
 
         const tx2 = session.beginTransaction();
 
         tx2.run('RETURN').catch(error => {
           expectSyntaxError(error);
-          expect(session.lastBookmark()).not.toBeDefined();
+          const bookmarkAfter = session.lastBookmark();
+          expect(bookmarkAfter).toEqual(bookmarkBefore);
 
           const tx3 = session.beginTransaction();
           tx3.run('CREATE ()').then(() => {

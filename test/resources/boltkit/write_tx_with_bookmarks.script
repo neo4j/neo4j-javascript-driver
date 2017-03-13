@@ -1,0 +1,16 @@
+!: AUTO INIT
+!: AUTO RESET
+!: AUTO PULL_ALL
+
+C: RUN "BEGIN" {"bookmark": "OldBookmark"}
+   PULL_ALL
+S: SUCCESS {}
+   SUCCESS {}
+C: RUN "CREATE (n {name:'Bob'})" {}
+   PULL_ALL
+S: SUCCESS {}
+   SUCCESS {"bookmark": "NewBookmark"}
+C: RUN "COMMIT" {}
+   PULL_ALL
+S: SUCCESS {}
+   SUCCESS {}

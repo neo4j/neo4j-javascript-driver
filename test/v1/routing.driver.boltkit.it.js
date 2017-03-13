@@ -18,6 +18,7 @@
  */
 
 import neo4j from '../../src/v1';
+import {READ, WRITE} from '../../src/v1/driver';
 import boltkit from './boltkit';
 import RoutingTable from '../../src/v1/internal/routing-table';
 
@@ -1054,6 +1055,166 @@ describe('routing driver', () => {
       9999, done);
   });
 
+  it('should send and receive bookmark', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const writer = kit.start('./test/resources/boltkit/write_tx_with_bookmarks.script', 9007);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+
+      const session = driver.session();
+      const tx = session.beginTransaction('OldBookmark');
+      tx.run('CREATE (n {name:\'Bob\'})').then(() => {
+        tx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('NewBookmark');
+
+          session.close();
+          driver.close();
+
+          router.exit(code1 => {
+            writer.exit(code2 => {
+              expect(code1).toEqual(0);
+              expect(code2).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should send initial bookmark wihtout access mode', done => {
+    testWriteSessionWithAccessModeAndBookmark(null, 'OldBookmark', done);
+  });
+
+  it('should use write session mode and initial bookmark', done => {
+    testWriteSessionWithAccessModeAndBookmark(WRITE, 'OldBookmark', done);
+  });
+
+  it('should use read session mode and initial bookmark', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const writer = kit.start('./test/resources/boltkit/read_tx_with_bookmarks.script', 9005);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+
+      const session = driver.session(READ, 'OldBookmark');
+      const tx = session.beginTransaction();
+      tx.run('MATCH (n) RETURN n.name AS name').then(result => {
+        const records = result.records;
+        expect(records.length).toEqual(2);
+        expect(records[0].get('name')).toEqual('Bob');
+        expect(records[1].get('name')).toEqual('Alice');
+
+        tx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('NewBookmark');
+
+          session.close();
+          driver.close();
+
+          router.exit(code1 => {
+            writer.exit(code2 => {
+              expect(code1).toEqual(0);
+              expect(code2).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should pass bookmark from transaction to transaction', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints_with_one_of_each.script', 9001);
+    const writer = kit.start('./test/resources/boltkit/write_read_tx_with_bookmarks.script', 9007);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+
+      const session = driver.session(null, 'BookmarkA');
+      const writeTx = session.beginTransaction();
+      writeTx.run('CREATE (n {name:\'Bob\'})').then(() => {
+        writeTx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('BookmarkB');
+
+          const readTx = session.beginTransaction();
+          readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
+            const records = result.records;
+            expect(records.length).toEqual(1);
+            expect(records[0].get('name')).toEqual('Bob');
+
+            readTx.commit().then(() => {
+              expect(session.lastBookmark()).toEqual('BookmarkC');
+
+              session.close();
+              driver.close();
+
+              router.exit(code1 => {
+                writer.exit(code2 => {
+                  expect(code1).toEqual(0);
+                  expect(code2).toEqual(0);
+                  done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  function testWriteSessionWithAccessModeAndBookmark(accessMode, bookmark, done) {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const writer = kit.start('./test/resources/boltkit/write_tx_with_bookmarks.script', 9007);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+
+      const session = driver.session(accessMode, bookmark);
+      const tx = session.beginTransaction();
+      tx.run('CREATE (n {name:\'Bob\'})').then(() => {
+        tx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('NewBookmark');
+
+          session.close();
+          driver.close();
+
+          router.exit(code1 => {
+            writer.exit(code2 => {
+              expect(code1).toEqual(0);
+              expect(code2).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  }
+
   function testForProtocolError(scriptFile, done) {
     if (!boltkit.BoltKitSupport) {
       done();
@@ -1167,10 +1328,6 @@ describe('routing driver', () => {
 
   function getConnectionPool(driver) {
     return driver._connectionProvider._connectionPool;
-  }
-
-  function setConnectionPool(driver, newConnectionPool) {
-    driver._connectionProvider._connectionPool = newConnectionPool;
   }
 
   function getRoutingTable(driver) {
