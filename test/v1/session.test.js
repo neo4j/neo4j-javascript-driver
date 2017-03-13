@@ -86,6 +86,23 @@ describe('session', () => {
     });
   });
 
+  it('should close transaction executor', done => {
+    const session = newSessionWithConnection(new FakeConnection());
+
+    let closeCalledTimes = 0;
+    const transactionExecutor = session._transactionExecutor;
+    const originalClose = transactionExecutor.close;
+    transactionExecutor.close = () => {
+      closeCalledTimes++;
+      originalClose.call(transactionExecutor);
+    };
+
+    session.close(() => {
+      expect(closeCalledTimes).toEqual(1);
+      done();
+    });
+  });
+
   it('should be possible to close driver after closing session with failed tx ', done => {
     const driver = neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j', 'neo4j'));
     const session = driver.session();

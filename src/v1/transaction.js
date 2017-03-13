@@ -104,14 +104,21 @@ class Transaction {
   }
 
   _onError() {
-    // rollback explicitly if tx.run failed, rollback
     if (this._state == _states.ACTIVE) {
-        this.rollback();
+      // attempt to rollback, useful when Transaction#run() failed
+      return this.rollback().catch(ignoredError => {
+        // ignore all errors because it is best effort and transaction might already be rolled back
+      }).then(() => {
+        // after rollback attempt change this transaction's state to FAILED
+        this._state = _states.FAILED;
+      });
     } else {
-        // else just do the cleanup
-        this._onClose();
+      // error happened in in-active transaction, just to the cleanup and change state to FAILED
+      this._state = _states.FAILED;
+      this._onClose();
+      // no async actions needed - return resolved promise
+      return Promise.resolve();
     }
-    this._state = _states.FAILED;
   }
 }
 
@@ -126,9 +133,10 @@ class _TransactionStreamObserver extends StreamObserver {
 
   onError(error) {
     if (!this._hasFailed) {
-      this._tx._onError();
-      super.onError(error);
-      this._hasFailed = true;
+      this._tx._onError().then(() => {
+        super.onError(error);
+        this._hasFailed = true;
+      });
     }
   }
 

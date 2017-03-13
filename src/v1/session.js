@@ -22,7 +22,8 @@ import Transaction from './transaction';
 import {newError} from './error';
 import {assertString} from './internal/util';
 import ConnectionHolder from './internal/connection-holder';
-import {READ, WRITE} from './driver';
+import Driver, {READ, WRITE} from './driver';
+import TransactionExecutor from './internal/transaction-executor';
 
 /**
   * A Session instance is used for handling the connection and
@@ -36,7 +37,7 @@ class Session {
    * @constructor
    * @param {string} mode the default access mode for this session.
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
-   * @param {string} bookmark - the initial bookmark for this session.
+   * @param {string} [bookmark=undefined] - the initial bookmark for this session.
    */
   constructor(mode, connectionProvider, bookmark) {
     this._mode = mode;
@@ -45,6 +46,7 @@ class Session {
     this._open = true;
     this._hasTx = false;
     this._lastBookmark = bookmark;
+    this._transactionExecutor = new TransactionExecutor()
   }
 
   /**
@@ -92,21 +94,24 @@ class Session {
    * @returns {Transaction} - New Transaction
    */
   beginTransaction(bookmark) {
+    return this._beginTransaction(this._mode, bookmark);
+  }
+
+  _beginTransaction(accessMode, bookmark) {
     if (bookmark) {
       assertString(bookmark, 'Bookmark');
       this._updateBookmark(bookmark);
     }
 
     if (this._hasTx) {
-      throw newError("You cannot begin a transaction on a session with an "
-      + "open transaction; either run from within the transaction or use a "
-      + "different session.")
+      throw newError('You cannot begin a transaction on a session with an open transaction; ' +
+        'either run from within the transaction or use a different session.');
     }
 
-    this._hasTx = true;
-
-    const connectionHolder = this._connectionHolderWithMode(this._mode);
+    const mode = Driver._validateSessionMode(accessMode);
+    const connectionHolder = this._connectionHolderWithMode(mode);
     connectionHolder.initializeConnection();
+    this._hasTx = true;
 
     return new Transaction(connectionHolder, () => {
         this._hasTx = false;
@@ -116,6 +121,21 @@ class Session {
 
   lastBookmark() {
     return this._lastBookmark;
+  }
+
+  readTransaction(transactionWork) {
+    return this._runTransaction(READ, transactionWork);
+  }
+
+  writeTransaction(transactionWork) {
+    return this._runTransaction(WRITE, transactionWork);
+  }
+
+  _runTransaction(accessMode, transactionWork) {
+    return this._transactionExecutor.execute(
+      () => this._beginTransaction(accessMode, this.lastBookmark()),
+      transactionWork
+    );
   }
 
   _updateBookmark(newBookmark) {
@@ -132,6 +152,7 @@ class Session {
   close(callback = (() => null)) {
     if (this._open) {
       this._open = false;
+      this._transactionExecutor.close();
       this._readConnectionHolder.close().then(() => {
         this._writeConnectionHolder.close().then(() => {
           callback();

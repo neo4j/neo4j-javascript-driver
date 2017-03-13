@@ -21,13 +21,15 @@ import neo4j from '../../src/v1';
 import {READ, WRITE} from '../../src/v1/driver';
 import boltkit from './boltkit';
 import RoutingTable from '../../src/v1/internal/routing-table';
+import {SESSION_EXPIRED} from '../../src/v1/error';
+import {hijackNextDateNowCall} from '../internal/timers-util';
 
 describe('routing driver', () => {
   let originalTimeout;
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
   });
 
   afterAll(() => {
@@ -41,7 +43,7 @@ describe('routing driver', () => {
     }
     // Given
     const kit = new boltkit.BoltKit();
-    const server = kit.start('./test/resources/boltkit/discover_servers.script', 9001);
+    const server = kit.start('./test/resources/boltkit/discover_servers_and_read.script', 9001);
 
     kit.run(() => {
       const driver = newDriver("bolt+routing://127.0.0.1:9001");
@@ -323,7 +325,7 @@ describe('routing driver', () => {
     // Given
     const kit = new boltkit.BoltKit();
     const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    const readServer = kit.start('./test/resources/boltkit/dead_server.script', 9005);
+    const readServer = kit.start('./test/resources/boltkit/dead_read_server.script', 9005);
 
     kit.run(() => {
       const driver = newDriver("bolt+routing://127.0.0.1:9001");
@@ -415,7 +417,7 @@ describe('routing driver', () => {
     // Given
     const kit = new boltkit.BoltKit();
     const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    const readServer = kit.start('./test/resources/boltkit/dead_server.script', 9007);
+    const readServer = kit.start('./test/resources/boltkit/dead_read_server.script', 9007);
 
     kit.run(() => {
       const driver = newDriver("bolt+routing://127.0.0.1:9001");
@@ -475,7 +477,7 @@ describe('routing driver', () => {
     // Given
     const kit = new boltkit.BoltKit();
     const seedServer = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
-    const readServer = kit.start('./test/resources/boltkit/dead_server.script', 9005);
+    const readServer = kit.start('./test/resources/boltkit/dead_read_server.script', 9005);
 
     kit.run(() => {
       const driver = newDriver("bolt+routing://127.0.0.1:9001");
@@ -1180,6 +1182,287 @@ describe('routing driver', () => {
       });
     });
   });
+
+  it('should retry read transaction until success', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const brokenReader = kit.start('./test/resources/boltkit/dead_read_server.script', 9005);
+    const reader = kit.start('./test/resources/boltkit/read_server.script', 9006);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+      const session = driver.session();
+
+      let invocations = 0;
+      const resultPromise = session.readTransaction(tx => {
+        invocations++;
+        return tx.run('MATCH (n) RETURN n.name');
+      });
+
+      resultPromise.then(result => {
+        expect(result.records.length).toEqual(3);
+        expect(invocations).toEqual(2);
+
+        session.close(() => {
+          driver.close();
+          router.exit(code1 => {
+            brokenReader.exit(code2 => {
+              reader.exit(code3 => {
+                expect(code1).toEqual(0);
+                expect(code2).toEqual(0);
+                expect(code3).toEqual(0);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should retry write transaction until success', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const brokenWriter = kit.start('./test/resources/boltkit/dead_write_server.script', 9007);
+    const writer = kit.start('./test/resources/boltkit/write_server.script', 9008);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+      const session = driver.session();
+
+      let invocations = 0;
+      const resultPromise = session.writeTransaction(tx => {
+        invocations++;
+        return tx.run('CREATE (n {name:\'Bob\'})');
+      });
+
+      resultPromise.then(result => {
+        expect(result.records.length).toEqual(0);
+        expect(invocations).toEqual(2);
+
+        session.close(() => {
+          driver.close();
+          router.exit(code1 => {
+            brokenWriter.exit(code2 => {
+              writer.exit(code3 => {
+                expect(code1).toEqual(0);
+                expect(code2).toEqual(0);
+                expect(code3).toEqual(0);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should retry read transaction until failure', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const brokenReader1 = kit.start('./test/resources/boltkit/dead_read_server.script', 9005);
+    const brokenReader2 = kit.start('./test/resources/boltkit/dead_read_server.script', 9006);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+      const session = driver.session();
+
+      let invocations = 0;
+      const resultPromise = session.readTransaction(tx => {
+        invocations++;
+        if (invocations === 2) {
+          // make retries stop after two invocations
+          moveNextDateNow30SecondsForward();
+        }
+        return tx.run('MATCH (n) RETURN n.name');
+      });
+
+      resultPromise.catch(error => {
+        expect(error.code).toEqual(SESSION_EXPIRED);
+        expect(invocations).toEqual(2);
+
+        session.close(() => {
+          driver.close();
+          router.exit(code1 => {
+            brokenReader1.exit(code2 => {
+              brokenReader2.exit(code3 => {
+                expect(code1).toEqual(0);
+                expect(code2).toEqual(0);
+                expect(code3).toEqual(0);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should retry write transaction until failure', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9001);
+    const brokenWriter1 = kit.start('./test/resources/boltkit/dead_write_server.script', 9007);
+    const brokenWriter2 = kit.start('./test/resources/boltkit/dead_write_server.script', 9008);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+      const session = driver.session();
+
+      let invocations = 0;
+      const resultPromise = session.writeTransaction(tx => {
+        invocations++;
+        if (invocations === 2) {
+          // make retries stop after two invocations
+          moveNextDateNow30SecondsForward();
+        }
+        return tx.run('CREATE (n {name:\'Bob\'})');
+      });
+
+      resultPromise.catch(error => {
+        expect(error.code).toEqual(SESSION_EXPIRED);
+        expect(invocations).toEqual(2);
+
+        session.close(() => {
+          driver.close();
+          router.exit(code1 => {
+            brokenWriter1.exit(code2 => {
+              brokenWriter2.exit(code3 => {
+                expect(code1).toEqual(0);
+                expect(code2).toEqual(0);
+                expect(code3).toEqual(0);
+                done();
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should retry read transaction and perform rediscovery until success', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router1 = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9010);
+    const brokenReader1 = kit.start('./test/resources/boltkit/dead_read_server.script', 9005);
+    const brokenReader2 = kit.start('./test/resources/boltkit/dead_read_server.script', 9006);
+    const router2 = kit.start('./test/resources/boltkit/discover_servers.script', 9001);
+    const reader = kit.start('./test/resources/boltkit/read_server.script', 9002);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+      const session = driver.session();
+
+      let invocations = 0;
+      const resultPromise = session.readTransaction(tx => {
+        invocations++;
+        return tx.run('MATCH (n) RETURN n.name');
+      });
+
+      resultPromise.then(result => {
+        expect(result.records.length).toEqual(3);
+        expect(invocations).toEqual(3);
+
+        session.close(() => {
+          driver.close();
+          router1.exit(code1 => {
+            brokenReader1.exit(code2 => {
+              brokenReader2.exit(code3 => {
+                router2.exit(code4 => {
+                  reader.exit(code5 => {
+                    expect(code1).toEqual(0);
+                    expect(code2).toEqual(0);
+                    expect(code3).toEqual(0);
+                    expect(code4).toEqual(0);
+                    expect(code5).toEqual(0);
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should retry write transaction and perform rediscovery until success', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router1 = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9010);
+    const brokenWriter1 = kit.start('./test/resources/boltkit/dead_write_server.script', 9007);
+    const brokenWriter2 = kit.start('./test/resources/boltkit/dead_write_server.script', 9008);
+    const router2 = kit.start('./test/resources/boltkit/discover_servers.script', 9002);
+    const writer = kit.start('./test/resources/boltkit/write_server.script', 9009);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+      const session = driver.session();
+
+      let invocations = 0;
+      const resultPromise = session.writeTransaction(tx => {
+        invocations++;
+        return tx.run('CREATE (n {name:\'Bob\'})');
+      });
+
+      resultPromise.then(result => {
+        expect(result.records.length).toEqual(0);
+        expect(invocations).toEqual(3);
+
+        session.close(() => {
+          driver.close();
+          router1.exit(code1 => {
+            brokenWriter1.exit(code2 => {
+              brokenWriter2.exit(code3 => {
+                router2.exit(code4 => {
+                  writer.exit(code5 => {
+                    expect(code1).toEqual(0);
+                    expect(code2).toEqual(0);
+                    expect(code3).toEqual(0);
+                    expect(code4).toEqual(0);
+                    expect(code5).toEqual(0);
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  function moveNextDateNow30SecondsForward() {
+    const currentTime = Date.now();
+    hijackNextDateNowCall(currentTime + 30 * 1000 + 1);
+  }
 
   function testWriteSessionWithAccessModeAndBookmark(accessMode, bookmark, done) {
     if (!boltkit.BoltKitSupport) {
