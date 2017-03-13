@@ -939,11 +939,10 @@ describe('routing driver', () => {
             for (let i = 0; i < acquiredConnections.length; i++) {
               expect(acquiredConnections[i]).toBe(releasedConnections[i]);
             }
-
             done();
           });
         });
-      });
+      }).catch(console.log);
     });
   });
 

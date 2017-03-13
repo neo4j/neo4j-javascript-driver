@@ -25,11 +25,14 @@ import RoundRobinArray from '../../src/v1/internal/round-robin-array';
 import {DirectConnectionProvider, LoadBalancer} from '../../src/v1/internal/connection-providers';
 import Pool from '../../src/v1/internal/pool';
 
+const NO_OP_DRIVER_CALLBACK = () => {
+};
+
 describe('DirectConnectionProvider', () => {
 
   it('acquires connection from the pool', done => {
     const pool = newPool();
-    const connectionProvider = new DirectConnectionProvider('localhost:123', pool);
+    const connectionProvider = newDirectConnectionProvider('localhost:123', pool);
 
     connectionProvider.acquireConnection(READ).then(connection => {
       expect(connection).toBeDefined();
@@ -132,7 +135,7 @@ describe('LoadBalancer', () => {
   });
 
   it('initializes routing table with the given router', () => {
-    const loadBalancer = new LoadBalancer('server-ABC', newPool());
+    const loadBalancer = new LoadBalancer('server-ABC', newPool(), NO_OP_DRIVER_CALLBACK);
 
     expectRoutingTable(loadBalancer,
       ['server-ABC'],
@@ -581,8 +584,12 @@ describe('LoadBalancer', () => {
 
 });
 
+function newDirectConnectionProvider(address, pool) {
+  return new DirectConnectionProvider(address, pool, NO_OP_DRIVER_CALLBACK);
+}
+
 function newLoadBalancer(routers, readers, writers, pool = null, expirationTime = Integer.MAX_VALUE, routerToRoutingTable = {}) {
-  const loadBalancer = new LoadBalancer(null, pool || newPool());
+  const loadBalancer = new LoadBalancer(null, pool || newPool(), NO_OP_DRIVER_CALLBACK);
   loadBalancer._routingTable = new RoutingTable(
     new RoundRobinArray(routers),
     new RoundRobinArray(readers),

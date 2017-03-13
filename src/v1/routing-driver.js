@@ -31,30 +31,24 @@ class RoutingDriver extends Driver {
     super(url, userAgent, token, RoutingDriver._validateConfig(config));
   }
 
-  _createConnectionProvider(address, connectionPool) {
-    return new LoadBalancer(address, connectionPool);
+  _createConnectionProvider(address, connectionPool, driverOnErrorCallback) {
+    return new LoadBalancer(address, connectionPool, driverOnErrorCallback);
   }
 
-  _createSession(connectionPromise) {
-    return new RoutingSession(connectionPromise, (error, conn) => {
+  _createSession(mode, connectionProvider) {
+    return new RoutingSession(mode, connectionProvider, (error, conn) => {
       if (error.code === SERVICE_UNAVAILABLE || error.code === SESSION_EXPIRED) {
+        // connection is undefined if error happened before connection was acquired
         if (conn) {
           this._connectionProvider.forget(conn.url);
-        } else {
-          connectionPromise.then((conn) => {
-            this._connectionProvider.forget(conn.url);
-          }).catch(() => {/*ignore*/});
         }
         return error;
       } else if (error.code === 'Neo.ClientError.Cluster.NotALeader') {
         let url = 'UNKNOWN';
+        // connection is undefined if error happened before connection was acquired
         if (conn) {
           url = conn.url;
           this._connectionProvider.forgetWriter(conn.url);
-        } else {
-          connectionPromise.then((conn) => {
-            this._connectionProvider.forgetWriter(conn.url);
-          }).catch(() => {/*ignore*/});
         }
         return newError('No longer possible to write to server at ' + url, SESSION_EXPIRED);
       } else {
@@ -72,8 +66,8 @@ class RoutingDriver extends Driver {
 }
 
 class RoutingSession extends Session {
-  constructor(connectionPromise, onFailedConnection) {
-    super(connectionPromise);
+  constructor(mode, connectionProvider, onFailedConnection) {
+    super(mode, connectionProvider);
     this._onFailedConnection = onFailedConnection;
   }
 

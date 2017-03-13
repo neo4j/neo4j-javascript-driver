@@ -58,7 +58,7 @@ class Driver {
       Driver._validateConnection.bind(this),
       config.connectionPoolSize
     );
-    this._connectionProvider = this._createConnectionProvider(url, this._pool);
+    this._connectionProvider = this._createConnectionProvider(url, this._pool, this._driverOnErrorCallback.bind(this));
   }
 
   /**
@@ -113,15 +113,7 @@ class Driver {
    */
   session(mode) {
     const sessionMode = Driver._validateSessionMode(mode);
-    const connectionPromise = this._connectionProvider.acquireConnection(sessionMode);
-    connectionPromise.catch((err) => {
-      if (this.onError && err.code === SERVICE_UNAVAILABLE) {
-        this.onError(err);
-      } else {
-        //we don't need to tell the driver about this error
-      }
-    });
-    return this._createSession(connectionPromise);
+    return this._createSession(sessionMode, this._connectionProvider);
   }
 
   static _validateSessionMode(rawMode) {
@@ -133,13 +125,22 @@ class Driver {
   }
 
   //Extension point
-  _createConnectionProvider(address, connectionPool) {
-    return new DirectConnectionProvider(address, connectionPool);
+  _createConnectionProvider(address, connectionPool, driverOnErrorCallback) {
+    return new DirectConnectionProvider(address, connectionPool, driverOnErrorCallback);
   }
 
   //Extension point
-  _createSession(connectionPromise) {
-    return new Session(connectionPromise);
+  _createSession(mode, connectionProvider) {
+    return new Session(mode, connectionProvider);
+  }
+
+  _driverOnErrorCallback(error) {
+    const userDefinedOnErrorCallback = this.onError;
+    if (userDefinedOnErrorCallback && error.code === SERVICE_UNAVAILABLE) {
+      userDefinedOnErrorCallback(error);
+    } else {
+      // we don't need to tell the driver about this error
+    }
   }
 
   /**

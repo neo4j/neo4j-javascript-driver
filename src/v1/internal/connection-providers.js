@@ -29,32 +29,46 @@ class ConnectionProvider {
   acquireConnection(mode) {
     throw new Error('Abstract method');
   }
+
+  _withAdditionalOnErrorCallback(connectionPromise, driverOnErrorCallback) {
+    // install error handler from the driver on the connection promise; this callback is installed separately
+    // so that it does not handle errors, instead it is just an additional error reporting facility.
+    connectionPromise.catch(error => {
+      driverOnErrorCallback(error)
+    });
+    // return the original connection promise
+    return connectionPromise;
+  }
 }
 
 export class DirectConnectionProvider extends ConnectionProvider {
 
-  constructor(address, connectionPool) {
+  constructor(address, connectionPool, driverOnErrorCallback) {
     super();
     this._address = address;
     this._connectionPool = connectionPool;
+    this._driverOnErrorCallback = driverOnErrorCallback;
   }
 
   acquireConnection(mode) {
-    return Promise.resolve(this._connectionPool.acquire(this._address));
+    const connection = this._connectionPool.acquire(this._address);
+    const connectionPromise = Promise.resolve(connection);
+    return this._withAdditionalOnErrorCallback(connectionPromise, this._driverOnErrorCallback);
   }
 }
 
 export class LoadBalancer extends ConnectionProvider {
 
-  constructor(address, connectionPool) {
+  constructor(address, connectionPool, driverOnErrorCallback) {
     super();
     this._routingTable = new RoutingTable(new RoundRobinArray([address]));
     this._rediscovery = new Rediscovery();
     this._connectionPool = connectionPool;
+    this._driverOnErrorCallback = driverOnErrorCallback;
   }
 
   acquireConnection(mode) {
-    return this._freshRoutingTable().then(routingTable => {
+    const connectionPromise = this._freshRoutingTable().then(routingTable => {
       if (mode === READ) {
         return this._acquireConnectionToServer(routingTable.readers, 'read');
       } else if (mode === WRITE) {
@@ -63,6 +77,7 @@ export class LoadBalancer extends ConnectionProvider {
         throw newError('Illegal mode ' + mode);
       }
     });
+    return this._withAdditionalOnErrorCallback(connectionPromise, this._driverOnErrorCallback);
   }
 
   forget(address) {
@@ -132,7 +147,8 @@ export class LoadBalancer extends ConnectionProvider {
   _createSessionForRediscovery(routerAddress) {
     const connection = this._connectionPool.acquire(routerAddress);
     const connectionPromise = Promise.resolve(connection);
-    return new Session(connectionPromise);
+    const connectionProvider = new SingleConnectionProvider(connectionPromise);
+    return new Session(READ, connectionProvider);
   }
 
   _updateRoutingTable(newRoutingTable) {
@@ -151,5 +167,19 @@ export class LoadBalancer extends ConnectionProvider {
     if (address) {
       routingTable.forgetRouter(address);
     }
+  }
+}
+
+export class SingleConnectionProvider extends ConnectionProvider {
+
+  constructor(connectionPromise) {
+    super();
+    this._connectionPromise = connectionPromise;
+  }
+
+  acquireConnection(mode) {
+    const connectionPromise = this._connectionPromise;
+    this._connectionPromise = null;
+    return connectionPromise;
   }
 }

@@ -96,7 +96,6 @@ function log(actor, msg) {
   }
 }
 
-
 function NO_OP(){}
 
 let NO_OP_OBSERVER = {
@@ -384,9 +383,9 @@ class Connection {
     this._chunker.messageBoundary();
   }
 
-  /** Queue a RESET-message to be sent to the database */
-  reset( observer ) {
-    log("C", "RESET");
+  /** Queue a RESET-message to be sent to the database. Mutes failure handling. */
+  resetAsync( observer ) {
+    log("C", "RESET_ASYNC");
     this._isHandlingFailure = true;
     let self = this;
     let wrappedObs = {
@@ -401,6 +400,14 @@ class Connection {
     };
     this._queueObserver(wrappedObs);
     this._packer.packStruct( RESET, [], (err) => this._handleFatalError(err) );
+    this._chunker.messageBoundary();
+  }
+
+  /** Queue a RESET-message to be sent to the database */
+  reset(observer) {
+    log('C', 'RESET');
+    this._queueObserver(observer);
+    this._packer.packStruct(RESET, [], (err) => this._handleFatalError(err));
     this._chunker.messageBoundary();
   }
 

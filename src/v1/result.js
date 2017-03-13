@@ -18,6 +18,7 @@
  */
 
 import ResultSummary from './result-summary';
+import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
 
 /**
   * A stream of {@link Record} representing the result of a statement.
@@ -32,13 +33,15 @@ class Result {
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
    * @param metaSupplier function, when called provides metadata
+   * @param {ConnectionHolder} connectionHolder - to be notified when result is either fully consumed or error happened.
    */
-  constructor(streamObserver, statement, parameters, metaSupplier) {
+  constructor(streamObserver, statement, parameters, metaSupplier, connectionHolder) {
     this._streamObserver = streamObserver;
     this._p = null;
     this._statement = statement;
     this._parameters = parameters || {};
     this._metaSupplier = metaSupplier || function(){return {};};
+    this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER;
   }
 
   /**
@@ -99,23 +102,39 @@ class Result {
    * @return
    */
   subscribe(observer) {
-    let onCompletedOriginal = observer.onCompleted;
-    let self = this;
-    let onCompletedWrapper = (metadata) => {
+    const onCompletedOriginal = observer.onCompleted;
+    const self = this;
+    const onCompletedWrapper = (metadata) => {
 
-      let additionalMeta = self._metaSupplier();
-      for(var key in additionalMeta) {
+      const additionalMeta = self._metaSupplier();
+      for(let key in additionalMeta) {
         if (additionalMeta.hasOwnProperty(key)) {
           metadata[key] = additionalMeta[key];
         }
       }
-      let sum = new ResultSummary(this._statement, this._parameters, metadata);
-      onCompletedOriginal.call(observer, sum);
+      const sum = new ResultSummary(this._statement, this._parameters, metadata);
+
+      // notify connection holder that the used connection is not needed any more because result has
+      // been fully consumed; call the original onCompleted callback after that
+      self._connectionHolder.releaseConnection().then(() => {
+        onCompletedOriginal.call(observer, sum);
+      });
     };
     observer.onCompleted = onCompletedWrapper;
-    observer.onError = observer.onError || ((err) => {
-      console.log("Uncaught error when processing result: " + err);
+
+    const onErrorOriginal = observer.onError || (error => {
+      console.log("Uncaught error when processing result: " + error);
     });
+
+    const onErrorWrapper = error => {
+      // notify connection holder that the used connection is not needed any more because error happened
+      // and result can't bee consumed any further; call the original onError callback after that
+      self._connectionHolder.releaseConnection().then(() => {
+        onErrorOriginal.call(observer, error);
+      });
+    };
+    observer.onError = onErrorWrapper;
+
     this._streamObserver.subscribe(observer);
   }
 }

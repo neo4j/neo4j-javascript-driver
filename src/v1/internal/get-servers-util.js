@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import RoundRobinArray from "./round-robin-array";
-import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE} from "../error";
-import Integer, {int} from "../integer";
+import RoundRobinArray from './round-robin-array';
+import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE} from '../error';
+import Integer, {int} from '../integer';
 
 const PROCEDURE_CALL = 'CALL dbms.cluster.routing.getServers';
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound';

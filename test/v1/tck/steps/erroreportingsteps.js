@@ -65,7 +65,7 @@ module.exports = function () {
     var self = this;
     var driver = neo4j.driver("bolt://localhost:7777", neo4j.auth.basic("neo4j", "neo4j"));
     driver.onError = function (error) { self.error = error; callback()};
-    driver.session();
+    driver.session().beginTransaction();
     setTimeout(callback, 1000);
   });
 
