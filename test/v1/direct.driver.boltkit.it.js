@@ -160,24 +160,13 @@ describe('direct driver', () => {
   });
 
   it('should be possible to override bookmark', done => {
-    testBookmarkOverride('BookmarkOverride', done);
-  });
-
-  it('should be possible to override bookmark with null', done => {
-    testBookmarkOverride(null, done);
-  });
-
-  function testBookmarkOverride(bookmarkOverride, done) {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
     }
 
     const kit = new boltkit.BoltKit();
-    const bookmarkScriptValue = bookmarkOverride ? JSON.stringify({bookmark: bookmarkOverride}) : '{}';
-    const params = {bookmarkOverride: bookmarkScriptValue};
-    const server = kit.startWithTemplate(
-      './test/resources/boltkit/write_read_tx_with_bookmark_override.script.mst', params, 9001);
+    const server = kit.start('./test/resources/boltkit/write_read_tx_with_bookmark_override.script', 9001);
 
     kit.run(() => {
       const driver = createDriver();
@@ -190,7 +179,7 @@ describe('direct driver', () => {
         writeTx.commit().then(() => {
           expect(session.lastBookmark()).toEqual('BookmarkB');
 
-          const readTx = session.beginTransaction(bookmarkOverride);
+          const readTx = session.beginTransaction('BookmarkOverride');
           readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
             const records = result.records;
             expect(records.length).toEqual(1);
@@ -211,8 +200,51 @@ describe('direct driver', () => {
         });
       });
     });
-  }
 
+  });
+
+  it('should not be possible to override bookmark with null', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/write_read_tx_with_bookmarks.script', 9001);
+
+    kit.run(() => {
+      const driver = createDriver();
+      const session = driver.session(WRITE, 'BookmarkA');
+      const writeTx = session.beginTransaction();
+      writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
+        const records = result.records;
+        expect(records.length).toEqual(0);
+
+        writeTx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('BookmarkB');
+
+          const readTx = session.beginTransaction(null);
+          readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
+            const records = result.records;
+            expect(records.length).toEqual(1);
+            expect(records[0].get('name')).toEqual('Bob');
+
+            readTx.commit().then(() => {
+              expect(session.lastBookmark()).toEqual('BookmarkC');
+
+              session.close(() => {
+                driver.close();
+                server.exit(code => {
+                  expect(code).toEqual(0);
+                  done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
 });
 
 function createDriver() {

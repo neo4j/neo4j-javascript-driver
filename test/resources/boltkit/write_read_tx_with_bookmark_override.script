@@ -14,7 +14,7 @@ C: RUN "COMMIT" {}
    PULL_ALL
 S: SUCCESS {}
    SUCCESS {}
-C: RUN "BEGIN" {{{bookmarkOverride}}}
+C: RUN "BEGIN" {"bookmark": "BookmarkOverride"}
    PULL_ALL
 S: SUCCESS {}
    SUCCESS {}

@@ -86,7 +86,7 @@ class Session {
    *
    * While a transaction is open the session cannot be used to run statements outside the transaction.
    *
-   * @param {string} bookmark - a reference to a previous transaction. DEPRECATED: This function is deprecated in
+   * @param {string} bookmark - a reference to a previous transaction. DEPRECATED: This parameter is deprecated in
    * favour of {@link Driver#session(string)} that accepts an initial bookmark. Session will ensure that all nested
    * transactions are chained with bookmarks to guarantee causal consistency.
    * @returns {Transaction} - New Transaction
@@ -94,9 +94,7 @@ class Session {
   beginTransaction(bookmark) {
     if (bookmark) {
       assertString(bookmark, 'Bookmark');
-    }
-    if (typeof bookmark !== 'undefined') {
-      this._lastBookmark = bookmark;
+      this._updateBookmark(bookmark);
     }
 
     if (this._hasTx) {
