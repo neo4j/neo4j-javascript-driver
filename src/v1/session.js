@@ -38,15 +38,16 @@ class Session {
    * @param {string} mode the default access mode for this session.
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
    * @param {string} [bookmark=undefined] - the initial bookmark for this session.
+   * @param {Object} [config={}] - this driver configuration.
    */
-  constructor(mode, connectionProvider, bookmark) {
+  constructor(mode, connectionProvider, bookmark, config) {
     this._mode = mode;
     this._readConnectionHolder = new ConnectionHolder(READ, connectionProvider);
     this._writeConnectionHolder = new ConnectionHolder(WRITE, connectionProvider);
     this._open = true;
     this._hasTx = false;
     this._lastBookmark = bookmark;
-    this._transactionExecutor = new TransactionExecutor()
+    this._transactionExecutor = _createTransactionExecutor(config);
   }
 
   /**
@@ -134,7 +135,7 @@ class Session {
    * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
-   * {@link #maxTransactionRetryTime} property in milliseconds.
+   * <code>maxTransactionRetryTime</code> property in milliseconds.
    *
    * @param {function(Transaction)} transactionWork - callback that executes operations against
    * a given {@link Transaction}.
@@ -151,7 +152,7 @@ class Session {
    * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
-   * {@link #maxTransactionRetryTime} property in milliseconds.
+   * <code>maxTransactionRetryTime</code> property in milliseconds.
    *
    * @param {function(Transaction)} transactionWork - callback that executes operations against
    * a given {@link Transaction}.
@@ -230,6 +231,11 @@ class _RunObserver extends StreamObserver {
     const serverMeta = {server: this._conn.server};
     return Object.assign({}, this._meta, serverMeta);
   }
+}
+
+function _createTransactionExecutor(config) {
+  const maxRetryTimeMs = (config && config.maxTransactionRetryTime) ? config.maxTransactionRetryTime : null;
+  return new TransactionExecutor(maxRetryTimeMs);
 }
 
 export default Session;

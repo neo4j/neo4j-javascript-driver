@@ -35,8 +35,8 @@ class RoutingDriver extends Driver {
     return new LoadBalancer(address, connectionPool, driverOnErrorCallback);
   }
 
-  _createSession(mode, connectionProvider, bookmark) {
-    return new RoutingSession(mode, connectionProvider, bookmark, (error, conn) => {
+  _createSession(mode, connectionProvider, bookmark, config) {
+    return new RoutingSession(mode, connectionProvider, bookmark, config, (error, conn) => {
       if (error.code === SERVICE_UNAVAILABLE || error.code === SESSION_EXPIRED) {
         // connection is undefined if error happened before connection was acquired
         if (conn) {
@@ -66,8 +66,8 @@ class RoutingDriver extends Driver {
 }
 
 class RoutingSession extends Session {
-  constructor(mode, connectionProvider, bookmark, onFailedConnection) {
-    super(mode, connectionProvider, bookmark);
+  constructor(mode, connectionProvider, bookmark, config, onFailedConnection) {
+    super(mode, connectionProvider, bookmark, config);
     this._onFailedConnection = onFailedConnection;
   }
 

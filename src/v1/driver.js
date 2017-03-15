@@ -115,7 +115,7 @@ class Driver {
    */
   session(mode, bookmark) {
     const sessionMode = Driver._validateSessionMode(mode);
-    return this._createSession(sessionMode, this._connectionProvider, bookmark);
+    return this._createSession(sessionMode, this._connectionProvider, bookmark, this._config);
   }
 
   static _validateSessionMode(rawMode) {
@@ -132,8 +132,8 @@ class Driver {
   }
 
   //Extension point
-  _createSession(mode, connectionProvider, bookmark) {
-    return new Session(mode, connectionProvider, bookmark);
+  _createSession(mode, connectionProvider, bookmark, config) {
+    return new Session(mode, connectionProvider, bookmark, config);
   }
 
   _driverOnErrorCallback(error) {

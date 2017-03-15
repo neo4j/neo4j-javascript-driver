@@ -97,7 +97,7 @@ describe('examples', function() {
     });
   });
 
-  it('should be able to configure session pool size', function (done) {
+  it('should be able to configure connection pool size', function (done) {
    var neo4j = neo4jv1;
     // tag::configuration[]
     var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
@@ -116,6 +116,17 @@ describe('examples', function() {
       expect(loggedCount).toBe(1);
       done();
     });
+  });
+
+  it('should be able to configure maximum transaction retry time', function () {
+    var neo4j = neo4jv1;
+    // tag::configuration[]
+    var maxRetryTimeMs = 45 * 1000; // 45 seconds
+    var driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic('neo4j', 'neo4j'), {maxTransactionRetryTime: maxRetryTimeMs});
+    //end::configuration[]
+
+    var session = driver.session();
+    expect(session._transactionExecutor._maxRetryTimeMs).toBe(maxRetryTimeMs);
   });
 
   it('should document a statement', function(done) {

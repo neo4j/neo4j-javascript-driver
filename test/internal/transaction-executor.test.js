@@ -150,6 +150,25 @@ describe('TransactionExecutor', () => {
     }, 1000);
   });
 
+  it('should allow zero max retry time', () => {
+    const executor = new TransactionExecutor(0);
+    expect(executor._maxRetryTimeMs).toEqual(0);
+  });
+
+  it('should allow zero initial delay', () => {
+    const executor = new TransactionExecutor(42, 0);
+    expect(executor._initialRetryDelayMs).toEqual(0);
+  });
+
+  it('should disallow zero multiplier', () => {
+    expect(() => new TransactionExecutor(42, 42, 0)).toThrow();
+  });
+
+  it('should allow zero jitter factor', () => {
+    const executor = new TransactionExecutor(42, 42, 42, 0);
+    expect(executor._jitterFactor).toEqual(0);
+  });
+
   function testRetryWhenTransactionCreatorFails(errorCodes, done) {
     const executor = new TransactionExecutor();
     const transactionCreator = throwingTransactionCreator(errorCodes, new FakeTransaction());

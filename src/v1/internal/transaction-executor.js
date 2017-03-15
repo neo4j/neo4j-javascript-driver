@@ -27,10 +27,10 @@ const DEFAULT_RETRY_DELAY_JITTER_FACTOR = 0.2;
 export default class TransactionExecutor {
 
   constructor(maxRetryTimeMs, initialRetryDelayMs, multiplier, jitterFactor) {
-    this._maxRetryTimeMs = maxRetryTimeMs || DEFAULT_MAX_RETRY_TIME_MS;
-    this._initialRetryDelayMs = initialRetryDelayMs || DEFAULT_INITIAL_RETRY_DELAY_MS;
-    this._multiplier = multiplier || DEFAULT_RETRY_DELAY_MULTIPLIER;
-    this._jitterFactor = jitterFactor || DEFAULT_RETRY_DELAY_JITTER_FACTOR;
+    this._maxRetryTimeMs = _valueOrDefault(maxRetryTimeMs, DEFAULT_MAX_RETRY_TIME_MS);
+    this._initialRetryDelayMs = _valueOrDefault(initialRetryDelayMs, DEFAULT_INITIAL_RETRY_DELAY_MS);
+    this._multiplier = _valueOrDefault(multiplier, DEFAULT_RETRY_DELAY_MULTIPLIER);
+    this._jitterFactor = _valueOrDefault(jitterFactor, DEFAULT_RETRY_DELAY_JITTER_FACTOR);
 
     this._inFlightTimeoutIds = [];
 
@@ -140,3 +140,10 @@ export default class TransactionExecutor {
     }
   }
 };
+
+function _valueOrDefault(value, defaultValue) {
+  if (value || value === 0) {
+    return value;
+  }
+  return defaultValue;
+}
