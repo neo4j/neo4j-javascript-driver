@@ -164,23 +164,17 @@ gulp.task('test', function(cb){
 
 gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
   return gulp.src('test/**/*.test.js')
-        .pipe(jasmine({
-            // reporter: new reporters.JUnitXmlReporter({
-            //   savePath: "build/nodejs-test-reports",
-            //   consolidateAll: false
-            // }),
-            includeStackTrace: true
-        }));
+    .pipe(jasmine({
+      includeStackTrace: true,
+      verbose: true
+    }));
 });
 
 gulp.task('test-boltkit', ['nodejs'], function () {
   return gulp.src('test/**/*.boltkit.it.js')
     .pipe(jasmine({
-      // reporter: new reporters.JUnitXmlReporter({
-      //   savePath: "build/nodejs-test-reports",
-      //   consolidateAll: false
-      // }),
-      includeStackTrace: true
+      includeStackTrace: true,
+      verbose: true
     }));
 });
 
