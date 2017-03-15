@@ -572,6 +572,10 @@ describe('session', () => {
   });
 
   it('should update last bookmark after every read tx commit', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
     const bookmarkBefore = session.lastBookmark();
 
     const tx = session.beginTransaction();
@@ -592,6 +596,10 @@ describe('session', () => {
   });
 
   it('should update last bookmark after every write tx commit', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
     const bookmarkBefore = session.lastBookmark();
 
     const tx = session.beginTransaction();
@@ -608,6 +616,10 @@ describe('session', () => {
   });
 
   it('should not lose last bookmark after run', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
     const tx = session.beginTransaction();
     tx.run('CREATE ()').then(() => {
       tx.commit().then(() => {
