@@ -119,14 +119,45 @@ class Session {
       this._onRunFailure(), this._lastBookmark, this._updateBookmark.bind(this));
   }
 
+  /**
+   * Return the bookmark received following the last completed {@link Transaction}.
+   *
+   * @return a reference to a previous transac'tion
+   */
   lastBookmark() {
     return this._lastBookmark;
   }
 
+  /**
+   * Execute given unit of work in a {@link Driver#READ} transaction.
+   *
+   * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
+   * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
+   * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
+   * {@link #maxTransactionRetryTime} property in milliseconds.
+   *
+   * @param {function(Transaction)} transactionWork - callback that executes operations against
+   * a given {@link Transaction}.
+   * @return {Promise} resolved promise as returned by the given function or rejected promise when given
+   * function or commit fails.
+   */
   readTransaction(transactionWork) {
     return this._runTransaction(READ, transactionWork);
   }
 
+  /**
+   * Execute given unit of work in a {@link Driver#WRITE} transaction.
+   *
+   * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
+   * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
+   * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
+   * {@link #maxTransactionRetryTime} property in milliseconds.
+   *
+   * @param {function(Transaction)} transactionWork - callback that executes operations against
+   * a given {@link Transaction}.
+   * @return {Promise} resolved promise as returned by the given function or rejected promise when given
+   * function or commit fails.
+   */
   writeTransaction(transactionWork) {
     return this._runTransaction(WRITE, transactionWork);
   }
