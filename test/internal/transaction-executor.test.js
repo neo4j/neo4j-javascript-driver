@@ -317,6 +317,10 @@ class FakeTransaction {
     this._commitErrorCode = commitErrorCode;
   }
 
+  isOpen() {
+    return true;
+  }
+
   commit() {
     if (this._commitErrorCode) {
       return Promise.reject(error(this._commitErrorCode));

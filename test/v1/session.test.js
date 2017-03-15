@@ -28,13 +28,13 @@ describe('session', () => {
 
   let driver;
   let session;
-  let server;
+  let serverMetadata;
   let originalTimeout;
 
   beforeEach(done => {
     driver = neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j', 'neo4j'));
     driver.onCompleted = meta => {
-      server = meta['server'];
+      serverMetadata = meta['server'];
     };
     session = driver.session();
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
@@ -228,11 +228,7 @@ describe('session', () => {
   });
 
   it('should expose server info on successful query', done => {
-    //lazy way of checking the version number
-    //if server has been set we know it is at least
-    //3.1 (todo actually parse the version string)
-    if (!server) {
-      done();
+    if (!serverIs31OrLater(done)) {
       return;
     }
 
@@ -251,14 +247,10 @@ describe('session', () => {
   });
 
   it('should expose execution time information when using 3.1 and onwards', done => {
-
-    //lazy way of checking the version number
-    //if server has been set we know it is at least
-    //3.1 (todo actually parse the version string)
-    if (!server) {
-      done();
+    if (!serverIs31OrLater(done)) {
       return;
     }
+
     // Given
     const statement = 'UNWIND range(1,10000) AS n RETURN n AS number';
     // When & Then
@@ -632,6 +624,184 @@ describe('session', () => {
     });
   });
 
+  it('should commit read transaction', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
+    const bookmarkBefore = session.lastBookmark();
+    const resultPromise = session.readTransaction(tx => tx.run('RETURN 42 AS answer'));
+
+    resultPromise.then(result => {
+      expect(result.records.length).toEqual(1);
+      expect(result.records[0].get('answer').toNumber()).toEqual(42);
+
+      const bookmarkAfter = session.lastBookmark();
+      verifyBookmark(bookmarkAfter);
+      expect(bookmarkAfter).not.toEqual(bookmarkBefore);
+
+      done();
+    });
+  });
+
+  it('should commit write transaction', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
+    const bookmarkBefore = session.lastBookmark();
+    const resultPromise = session.writeTransaction(tx => tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer'));
+
+    resultPromise.then(result => {
+      expect(result.records.length).toEqual(1);
+      expect(result.records[0].get('answer').toNumber()).toEqual(42);
+      expect(result.summary.counters.nodesCreated()).toEqual(1);
+
+      const bookmarkAfter = session.lastBookmark();
+      verifyBookmark(bookmarkAfter);
+      expect(bookmarkAfter).not.toEqual(bookmarkBefore);
+
+      countNodes('Node', 'id', 42).then(count => {
+        expect(count).toEqual(1);
+        done();
+      });
+    });
+  });
+
+  it('should not commit already committed read transaction', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
+    const resultPromise = session.readTransaction(tx => {
+      return new Promise((resolve, reject) => {
+        tx.run('RETURN 42 AS answer').then(result => {
+          tx.commit().then(() => {
+            resolve({result: result, bookmark: session.lastBookmark()});
+          }).catch(error => reject(error));
+        }).catch(error => reject(error));
+      });
+    });
+
+    resultPromise.then(outcome => {
+      const bookmark = outcome.bookmark;
+      const result = outcome.result;
+
+      verifyBookmark(bookmark);
+      expect(session.lastBookmark()).toEqual(bookmark); // expect bookmark to not change
+
+      expect(result.records.length).toEqual(1);
+      expect(result.records[0].get('answer').toNumber()).toEqual(42);
+
+      done();
+    });
+  });
+
+  it('should not commit already committed write transaction', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
+    const resultPromise = session.readTransaction(tx => {
+      return new Promise((resolve, reject) => {
+        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer').then(result => {
+          tx.commit().then(() => {
+            resolve({result: result, bookmark: session.lastBookmark()});
+          }).catch(error => reject(error));
+        }).catch(error => reject(error));
+      });
+    });
+
+    resultPromise.then(outcome => {
+      const bookmark = outcome.bookmark;
+      const result = outcome.result;
+
+      verifyBookmark(bookmark);
+      expect(session.lastBookmark()).toEqual(bookmark); // expect bookmark to not change
+
+      expect(result.records.length).toEqual(1);
+      expect(result.records[0].get('answer').toNumber()).toEqual(42);
+      expect(result.summary.counters.nodesCreated()).toEqual(1);
+
+      countNodes('Node', 'id', 42).then(count => {
+        expect(count).toEqual(1);
+        done();
+      });
+    });
+  });
+
+  it('should not commit rolled back read transaction', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
+    const bookmarkBefore = session.lastBookmark();
+    const resultPromise = session.readTransaction(tx => {
+      return new Promise((resolve, reject) => {
+        tx.run('RETURN 42 AS answer').then(result => {
+          tx.rollback().then(() => {
+            resolve(result);
+          }).catch(error => reject(error));
+        }).catch(error => reject(error));
+      });
+    });
+
+    resultPromise.then(result => {
+      expect(result.records.length).toEqual(1);
+      expect(result.records[0].get('answer').toNumber()).toEqual(42);
+      expect(session.lastBookmark()).toBe(bookmarkBefore); // expect bookmark to not change
+
+      done();
+    });
+  });
+
+  it('should not commit rolled back write transaction', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
+    const bookmarkBefore = session.lastBookmark();
+    const resultPromise = session.readTransaction(tx => {
+      return new Promise((resolve, reject) => {
+        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer').then(result => {
+          tx.rollback().then(() => {
+            resolve(result);
+          }).catch(error => reject(error));
+        }).catch(error => reject(error));
+      });
+    });
+
+    resultPromise.then(result => {
+      expect(result.records.length).toEqual(1);
+      expect(result.records[0].get('answer').toNumber()).toEqual(42);
+      expect(result.summary.counters.nodesCreated()).toEqual(1);
+      expect(session.lastBookmark()).toBe(bookmarkBefore); // expect bookmark to not change
+
+      countNodes('Node', 'id', 42).then(count => {
+        expect(count).toEqual(0);
+        done();
+      });
+    });
+  });
+
+  function serverIs31OrLater(done) {
+    // lazy way of checking the version number
+    // if server has been set we know it is at least 3.1
+    if (!serverMetadata) {
+      done();
+      return false;
+    }
+    return true;
+  }
+
+  function countNodes(label, propertyKey, propertyValue) {
+    return new Promise((resolve, reject) => {
+      session.run(`MATCH (n: ${label} {${propertyKey}: ${propertyValue}}) RETURN count(n) AS count`).then(result => {
+        resolve(result.records[0].get('count').toNumber());
+      }).catch(error => reject(error));
+    });
+  }
+
   function withQueryInTmpSession(driver, callback) {
     const tmpSession = driver.session();
     return tmpSession.run('RETURN 1').then(() => {
@@ -652,5 +822,10 @@ describe('session', () => {
     const connectionPool = connectionProvider._connectionPool;
     const idleConnections = connectionPool._pools[address];
     return idleConnections.length;
+  }
+
+  function verifyBookmark(bookmark) {
+    expect(bookmark).toBeDefined();
+    expect(bookmark).not.toBeNull();
   }
 });

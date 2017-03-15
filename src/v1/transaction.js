@@ -61,7 +61,7 @@ class Transaction {
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
-   * @return {Result} - New Result
+   * @return {Result} New Result
    */
   run(statement, parameters) {
     if(typeof statement === 'object' && statement.text) {
@@ -78,7 +78,7 @@ class Transaction {
    *
    * After committing the transaction can no longer be used.
    *
-   * @returns {Result} - New Result
+   * @returns {Result} New Result
    */
   commit() {
     let committed = this._state.commit(this._connectionHolder, new _TransactionStreamObserver(this));
@@ -93,7 +93,7 @@ class Transaction {
    *
    * After rolling back, the transaction can no longer be used.
    *
-   * @returns {Result} - New Result
+   * @returns {Result} New Result
    */
   rollback() {
     let committed = this._state.rollback(this._connectionHolder, new _TransactionStreamObserver(this));
@@ -103,8 +103,16 @@ class Transaction {
     return committed.result;
   }
 
+  /**
+   * Check if this transaction is active, which means commit and rollback did not happen.
+   * @return {boolean} <code>true</code> when not committed and not rolled back, <code>false</code> otherwise.
+   */
+  isOpen() {
+    return this._state == _states.ACTIVE;
+  }
+
   _onError() {
-    if (this._state == _states.ACTIVE) {
+    if (this.isOpen()) {
       // attempt to rollback, useful when Transaction#run() failed
       return this.rollback().catch(ignoredError => {
         // ignore all errors because it is best effort and transaction might already be rolled back

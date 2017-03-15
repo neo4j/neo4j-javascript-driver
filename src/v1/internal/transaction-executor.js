@@ -86,14 +86,21 @@ export default class TransactionExecutor {
       const resultPromise = Promise.resolve(transactionWorkResult);
 
       resultPromise.then(result => {
-        // transaction work returned resolved promise, try to commit the transaction
-        tx.commit().then(() => {
-          // transaction was committed, return result to the user
+        if (tx.isOpen()) {
+          // transaction work returned resolved promise and transaction has not been committed/rolled back
+          // try to commit the transaction
+          tx.commit().then(() => {
+            // transaction was committed, return result to the user
+            resolve(result);
+          }).catch(error => {
+            // transaction failed to commit, propagate the failure
+            reject(error);
+          });
+        } else {
+          // transaction work returned resolved promise and transaction is already committed/rolled back
+          // return the result returned by given transaction work
           resolve(result);
-        }).catch(error => {
-          // transaction failed to commit, propagate the failure
-          reject(error);
-        });
+        }
       }).catch(error => {
         // transaction work returned rejected promise, propagate the failure
         reject(error);

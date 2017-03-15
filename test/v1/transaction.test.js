@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import neo4j from "../../lib/v1";
+import neo4j from '../../lib/v1';
 
 describe('transaction', () => {
 
@@ -447,6 +447,42 @@ describe('transaction', () => {
       expect(result.records[0].get('a').toInt()).toBe(1);
       done();
     }).catch(console.log);
+  });
+
+  it('should be open when neither committed nor rolled back', () => {
+    const tx = session.beginTransaction();
+    expect(tx.isOpen()).toBeTruthy();
+  });
+
+  it('should not be open after commit', done => {
+    const tx = session.beginTransaction();
+
+    tx.run('CREATE ()').then(() => {
+      tx.commit().then(() => {
+        expect(tx.isOpen()).toBeFalsy();
+        done();
+      });
+    });
+  });
+
+  it('should not be open after rollback', done => {
+    const tx = session.beginTransaction();
+
+    tx.run('CREATE ()').then(() => {
+      tx.rollback().then(() => {
+        expect(tx.isOpen()).toBeFalsy();
+        done();
+      });
+    });
+  });
+
+  it('should not be open after run error', done => {
+    const tx = session.beginTransaction();
+
+    tx.run('RETURN').catch(() => {
+      expect(tx.isOpen()).toBeFalsy();
+      done();
+    });
   });
 
   function expectSyntaxError(error) {
