@@ -120,10 +120,10 @@ describe('examples', function() {
 
   it('should be able to configure maximum transaction retry time', function () {
     var neo4j = neo4jv1;
-    // tag::configuration[]
+    // tag::configuration-transaction-retry-time[]
     var maxRetryTimeMs = 45 * 1000; // 45 seconds
     var driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic('neo4j', 'neo4j'), {maxTransactionRetryTime: maxRetryTimeMs});
-    //end::configuration[]
+    //end::configuration-transaction-retry-time[]
 
     var session = driver.session();
     expect(session._transactionExecutor._maxRetryTimeMs).toBe(maxRetryTimeMs);
