@@ -137,7 +137,7 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * <code>maxTransactionRetryTime</code> property in milliseconds.
    *
-   * @param {function(Transaction)} transactionWork - callback that executes operations against
+   * @param {function(tx: Transaction): Promise} transactionWork - callback that executes operations against
    * a given {@link Transaction}.
    * @return {Promise} resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
@@ -154,7 +154,7 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * <code>maxTransactionRetryTime</code> property in milliseconds.
    *
-   * @param {function(Transaction)} transactionWork - callback that executes operations against
+   * @param {function(tx: Transaction): Promise} transactionWork - callback that executes operations against
    * a given {@link Transaction}.
    * @return {Promise} resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
