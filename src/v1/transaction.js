@@ -165,11 +165,11 @@ let _states = {
   //The transaction is running with no explicit success or failure marked
   ACTIVE: {
     commit: (connectionHolder, observer) => {
-      return {result: _runDiscardAll("COMMIT", connectionHolder, observer),
+      return {result: _runPullAll("COMMIT", connectionHolder, observer),
         state: _states.SUCCEEDED}
     },
     rollback: (connectionHolder, observer) => {
-      return {result: _runDiscardAll("ROLLBACK", connectionHolder, observer), state: _states.ROLLED_BACK};
+      return {result: _runPullAll("ROLLBACK", connectionHolder, observer), state: _states.ROLLED_BACK};
     },
     run: (connectionHolder, observer, statement, parameters) => {
       connectionHolder.getConnection().then(conn => {
@@ -250,7 +250,7 @@ let _states = {
   }
 };
 
-function _runDiscardAll(msg, connectionHolder, observer) {
+function _runPullAll(msg, connectionHolder, observer) {
   connectionHolder.getConnection().then(
     conn => {
       observer.resolveConnection(conn);
