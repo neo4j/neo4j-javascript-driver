@@ -1,6 +1,9 @@
 !: AUTO INIT
 !: AUTO RESET
 !: AUTO PULL_ALL
+!: AUTO RUN "COMMIT" {}
+!: AUTO RUN "ROLLBACK" {}
+!: AUTO RUN "BEGIN" {}
 
 C: RUN "MATCH (n) RETURN n.name" {}
    PULL_ALL

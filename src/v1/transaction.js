@@ -61,7 +61,7 @@ class Transaction {
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
-   * @return {Result} - New Result
+   * @return {Result} New Result
    */
   run(statement, parameters) {
     if(typeof statement === 'object' && statement.text) {
@@ -78,7 +78,7 @@ class Transaction {
    *
    * After committing the transaction can no longer be used.
    *
-   * @returns {Result} - New Result
+   * @returns {Result} New Result
    */
   commit() {
     let committed = this._state.commit(this._connectionHolder, new _TransactionStreamObserver(this));
@@ -93,7 +93,7 @@ class Transaction {
    *
    * After rolling back, the transaction can no longer be used.
    *
-   * @returns {Result} - New Result
+   * @returns {Result} New Result
    */
   rollback() {
     let committed = this._state.rollback(this._connectionHolder, new _TransactionStreamObserver(this));
@@ -103,15 +103,30 @@ class Transaction {
     return committed.result;
   }
 
+  /**
+   * Check if this transaction is active, which means commit and rollback did not happen.
+   * @return {boolean} <code>true</code> when not committed and not rolled back, <code>false</code> otherwise.
+   */
+  isOpen() {
+    return this._state == _states.ACTIVE;
+  }
+
   _onError() {
-    // rollback explicitly if tx.run failed, rollback
-    if (this._state == _states.ACTIVE) {
-        this.rollback();
+    if (this.isOpen()) {
+      // attempt to rollback, useful when Transaction#run() failed
+      return this.rollback().catch(ignoredError => {
+        // ignore all errors because it is best effort and transaction might already be rolled back
+      }).then(() => {
+        // after rollback attempt change this transaction's state to FAILED
+        this._state = _states.FAILED;
+      });
     } else {
-        // else just do the cleanup
-        this._onClose();
+      // error happened in in-active transaction, just to the cleanup and change state to FAILED
+      this._state = _states.FAILED;
+      this._onClose();
+      // no async actions needed - return resolved promise
+      return Promise.resolve();
     }
-    this._state = _states.FAILED;
   }
 }
 
@@ -126,9 +141,10 @@ class _TransactionStreamObserver extends StreamObserver {
 
   onError(error) {
     if (!this._hasFailed) {
-      this._tx._onError();
-      super.onError(error);
-      this._hasFailed = true;
+      this._tx._onError().then(() => {
+        super.onError(error);
+        this._hasFailed = true;
+      });
     }
   }
 
@@ -149,11 +165,11 @@ let _states = {
   //The transaction is running with no explicit success or failure marked
   ACTIVE: {
     commit: (connectionHolder, observer) => {
-      return {result: _runDiscardAll("COMMIT", connectionHolder, observer),
+      return {result: _runPullAll("COMMIT", connectionHolder, observer),
         state: _states.SUCCEEDED}
     },
     rollback: (connectionHolder, observer) => {
-      return {result: _runDiscardAll("ROLLBACK", connectionHolder, observer), state: _states.ROLLED_BACK};
+      return {result: _runPullAll("ROLLBACK", connectionHolder, observer), state: _states.ROLLED_BACK};
     },
     run: (connectionHolder, observer, statement, parameters) => {
       connectionHolder.getConnection().then(conn => {
@@ -234,7 +250,7 @@ let _states = {
   }
 };
 
-function _runDiscardAll(msg, connectionHolder, observer) {
+function _runPullAll(msg, connectionHolder, observer) {
   connectionHolder.getConnection().then(
     conn => {
       observer.resolveConnection(conn);
