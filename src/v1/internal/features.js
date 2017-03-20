@@ -40,6 +40,17 @@ const FEATURES = {
     } catch (e) {
       return false;
     }
+  },
+  dns_lookup: () => {
+    try {
+      const lookupFunction = require('dns').lookup;
+      if (lookupFunction && typeof lookupFunction === 'function') {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 };
 

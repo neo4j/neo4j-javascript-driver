@@ -1,0 +1,18 @@
+!: AUTO INIT
+!: AUTO RESET
+!: AUTO PULL_ALL
+!: AUTO RUN "BEGIN" {}
+!: AUTO RUN "COMMIT" {}
+!: AUTO RUN "ROLLBACK" {}
+
+C: RUN "CALL dbms.cluster.routing.getServers" {}
+   PULL_ALL
+S: SUCCESS {"fields": ["ttl", "servers"]}
+   RECORD [9223372036854775807, [{"addresses": ["127.0.0.1:9008"],"role": "WRITE"}, {"addresses": ["127.0.0.1:9001","127.0.0.1:9009","127.0.0.1:9010"], "role": "READ"},{"addresses": ["127.0.0.1:9001","127.0.0.1:9011"], "role": "ROUTE"}]]
+   SUCCESS {}
+C: RUN "MATCH (n) RETURN n.name AS name" {}
+   PULL_ALL
+S: SUCCESS {"fields": ["name"]}
+   RECORD ["Bob"]
+   RECORD ["Alice"]
+   SUCCESS {}

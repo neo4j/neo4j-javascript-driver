@@ -23,18 +23,20 @@ import Session from '../session';
 import RoundRobinArray from './round-robin-array';
 import RoutingTable from './routing-table';
 import Rediscovery from './rediscovery';
+import hasFeature from './features';
+import {DnsHostNameResolver, DummyHostNameResolver} from './host-name-resolvers';
 
 class ConnectionProvider {
 
   acquireConnection(mode) {
-    throw new Error('Abstract method');
+    throw new Error('Abstract function');
   }
 
   _withAdditionalOnErrorCallback(connectionPromise, driverOnErrorCallback) {
     // install error handler from the driver on the connection promise; this callback is installed separately
     // so that it does not handle errors, instead it is just an additional error reporting facility.
     connectionPromise.catch(error => {
-      driverOnErrorCallback(error)
+      driverOnErrorCallback(error);
     });
     // return the original connection promise
     return connectionPromise;
@@ -61,10 +63,12 @@ export class LoadBalancer extends ConnectionProvider {
 
   constructor(address, connectionPool, driverOnErrorCallback) {
     super();
-    this._routingTable = new RoutingTable(new RoundRobinArray([address]));
+    this._seedRouter = address;
+    this._routingTable = new RoutingTable(new RoundRobinArray([this._seedRouter]));
     this._rediscovery = new Rediscovery();
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
+    this._hostNameResolver = LoadBalancer._createHostNameResolver();
   }
 
   acquireConnection(mode) {
@@ -109,7 +113,42 @@ export class LoadBalancer extends ConnectionProvider {
   _refreshRoutingTable(currentRoutingTable) {
     const knownRouters = currentRoutingTable.routers.toArray();
 
-    const refreshedTablePromise = knownRouters.reduce((refreshedTablePromise, currentRouter, currentIndex) => {
+    return this._fetchNewRoutingTable(knownRouters, currentRoutingTable).then(newRoutingTable => {
+      if (LoadBalancer._isValidRoutingTable(newRoutingTable)) {
+        // one of the known routers returned a valid routing table - use it
+        return newRoutingTable;
+      }
+
+      if (!newRoutingTable) {
+        // returned routing table was undefined, this means a connection error happened and the last known
+        // router did not return a valid routing table, so we need to forget it
+        const lastRouterIndex = knownRouters.length - 1;
+        LoadBalancer._forgetRouter(currentRoutingTable, knownRouters, lastRouterIndex);
+      }
+
+      // none of the known routers returned a valid routing table - try to use seed router address for rediscovery
+      return this._fetchNewRoutingTableUsingSeedRouterAddress(knownRouters, this._seedRouter);
+    }).then(newRoutingTable => {
+      if (LoadBalancer._isValidRoutingTable(newRoutingTable)) {
+        this._updateRoutingTable(newRoutingTable);
+        return newRoutingTable;
+      }
+
+      // none of the existing routers returned valid routing table, throw exception
+      throw newError('Could not perform discovery. No routing servers available.', SERVICE_UNAVAILABLE);
+    });
+  }
+
+  _fetchNewRoutingTableUsingSeedRouterAddress(knownRouters, seedRouter) {
+    return this._hostNameResolver.resolve(seedRouter).then(resolvedRouterAddresses => {
+      // filter out all addresses that we've already tried
+      const newAddresses = resolvedRouterAddresses.filter(address => knownRouters.indexOf(address) < 0);
+      return this._fetchNewRoutingTable(newAddresses, null);
+    });
+  }
+
+  _fetchNewRoutingTable(routerAddresses, routingTable) {
+    return routerAddresses.reduce((refreshedTablePromise, currentRouter, currentIndex) => {
       return refreshedTablePromise.then(newRoutingTable => {
         if (newRoutingTable) {
           if (!newRoutingTable.writers.isEmpty()) {
@@ -120,7 +159,7 @@ export class LoadBalancer extends ConnectionProvider {
           // returned routing table was undefined, this means a connection error happened and we need to forget the
           // previous router and try the next one
           const previousRouterIndex = currentIndex - 1;
-          this._forgetRouter(currentRoutingTable, knownRouters, previousRouterIndex);
+          LoadBalancer._forgetRouter(routingTable, routerAddresses, previousRouterIndex);
         }
 
         // try next router
@@ -128,20 +167,6 @@ export class LoadBalancer extends ConnectionProvider {
         return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter);
       });
     }, Promise.resolve(null));
-
-    return refreshedTablePromise.then(newRoutingTable => {
-      if (newRoutingTable && !newRoutingTable.writers.isEmpty()) {
-        this._updateRoutingTable(newRoutingTable);
-        return newRoutingTable;
-      }
-
-      // forget the last known router because it did not return a valid routing table
-      const lastRouterIndex = knownRouters.length - 1;
-      this._forgetRouter(currentRoutingTable, knownRouters, lastRouterIndex);
-
-      // none of the existing routers returned valid routing table, throw exception
-      throw newError('Could not perform discovery. No routing servers available.', SERVICE_UNAVAILABLE);
-    });
   }
 
   _createSessionForRediscovery(routerAddress) {
@@ -162,11 +187,22 @@ export class LoadBalancer extends ConnectionProvider {
     this._routingTable = newRoutingTable;
   }
 
-  _forgetRouter(routingTable, routersArray, routerIndex) {
+  static _isValidRoutingTable(routingTable) {
+    return routingTable && !routingTable.writers.isEmpty();
+  }
+
+  static _forgetRouter(routingTable, routersArray, routerIndex) {
     const address = routersArray[routerIndex];
-    if (address) {
+    if (routingTable && address) {
       routingTable.forgetRouter(address);
     }
+  }
+
+  static _createHostNameResolver() {
+    if (hasFeature('dns_lookup')) {
+      return new DnsHostNameResolver();
+    }
+    return new DummyHostNameResolver();
   }
 }
 

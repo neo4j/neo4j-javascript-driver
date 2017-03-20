@@ -1459,6 +1459,79 @@ describe('routing driver', () => {
     });
   });
 
+  it('should use seed router for rediscovery when all other routers are dead', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit(true);
+    const router1 = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9010);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+      const session = driver.session();
+
+      // restart router on the same port with different script that contains itself as reader
+      router1.exit(() => {
+        const router2 = kit.start('./test/resources/boltkit/rediscover_using_initial_router.script', 9010);
+
+        session.readTransaction(tx => tx.run('MATCH (n) RETURN n.name AS name')).then(result => {
+          const records = result.records;
+          expect(records.length).toEqual(2);
+          expect(records[0].get('name')).toEqual('Bob');
+          expect(records[1].get('name')).toEqual('Alice');
+
+          session.close(() => {
+            driver.close();
+            router2.exit(code => {
+              expect(code).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should use resolved seed router addresses for rediscovery when all other routers are dead', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router1 = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9010);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+      // make seed address resolve to 3 different addresses (only last one has backing stub server):
+      setupFakeHostNameResolution(driver, '127.0.0.1:9010', ['127.0.0.1:9011', '127.0.0.1:9012', '127.0.0.1:9009']);
+      const session = driver.session();
+
+      // start new router on a different port to emulate host name resolution
+      // this router uses different script that contains itself as reader
+      router1.exit(() => {
+        const router2 = kit.start('./test/resources/boltkit/rediscover_using_initial_router.script', 9009);
+
+        session.readTransaction(tx => tx.run('MATCH (n) RETURN n.name AS name')).then(result => {
+          const records = result.records;
+          expect(records.length).toEqual(2);
+          expect(records[0].get('name')).toEqual('Bob');
+          expect(records[1].get('name')).toEqual('Alice');
+
+          session.close(() => {
+            driver.close();
+            router2.exit(code => {
+              expect(code).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
   function moveNextDateNow30SecondsForward() {
     const currentTime = Date.now();
     hijackNextDateNowCall(currentTime + 30 * 1000 + 1);
@@ -1609,6 +1682,10 @@ describe('routing driver', () => {
     return memorizingRoutingTable;
   }
 
+  function setupFakeHostNameResolution(driver, seedRouter, resolvedAddresses) {
+    driver._connectionProvider._hostNameResolver = new FakeHostNameResolver(seedRouter, resolvedAddresses);
+  }
+
   function getConnectionPool(driver) {
     return driver._connectionProvider._connectionPool;
   }
@@ -1639,6 +1716,21 @@ describe('routing driver', () => {
 
     assertForgotRouters(expectedRouters) {
       expect(this._forgottenRouters).toEqual(expectedRouters);
+    }
+  }
+
+  class FakeHostNameResolver {
+
+    constructor(seedRouter, resolvedAddresses) {
+      this._seedRouter = seedRouter;
+      this._resolvedAddresses = resolvedAddresses;
+    }
+
+    resolve(seedRouter) {
+      if (seedRouter === this._seedRouter) {
+        return Promise.resolve(this._resolvedAddresses);
+      }
+      return Promise.reject(new Error('Unexpected seed router address ' + seedRouter));
     }
   }
 
