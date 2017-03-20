@@ -1465,7 +1465,7 @@ describe('routing driver', () => {
       return;
     }
 
-    const kit = new boltkit.BoltKit(true);
+    const kit = new boltkit.BoltKit();
     const router1 = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9010);
 
     kit.run(() => {
