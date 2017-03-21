@@ -500,5 +500,7 @@ export {
     connect,
     parseScheme,
     parseUrl,
+    parseHost,
+    parsePort,
     Connection
 }
