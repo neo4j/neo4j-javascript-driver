@@ -24,6 +24,8 @@ import {hijackNextDateNowCall, setTimeoutMock} from './timers-util';
 const TRANSIENT_ERROR_1 = 'Neo.TransientError.Transaction.DeadlockDetected';
 const TRANSIENT_ERROR_2 = 'Neo.TransientError.Network.CommunicationError';
 const UNKNOWN_ERROR = 'Neo.DatabaseError.General.UnknownError';
+const TX_TERMINATED_ERROR = 'Neo.TransientError.Transaction.Terminated';
+const LOCKS_TERMINATED_ERROR = 'Neo.TransientError.Transaction.LockClientStopped';
 const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError';
 
 describe('TransactionExecutor', () => {
@@ -60,6 +62,14 @@ describe('TransactionExecutor', () => {
 
   it('should not retry when transaction work returns promise rejected with unknown error', done => {
     testNoRetryOnUnknownError([UNKNOWN_ERROR], 1, done);
+  });
+
+  it('should not retry when transaction work returns promise rejected with transaction termination error', done => {
+    testNoRetryOnUnknownError([TX_TERMINATED_ERROR], 1, done);
+  });
+
+  it('should not retry when transaction work returns promise rejected with locks termination error', done => {
+    testNoRetryOnUnknownError([LOCKS_TERMINATED_ERROR], 1, done);
   });
 
   it('should stop retrying when time expires', done => {

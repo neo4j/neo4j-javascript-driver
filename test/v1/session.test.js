@@ -796,6 +796,120 @@ describe('session', () => {
     });
   });
 
+  it('should interrupt query waiting on a lock when closed', done => {
+    if (!serverIs31OrLater(done)) {
+      // locks are transaction termination aware by default only in 3.1+
+      return;
+    }
+
+    session.run('CREATE ()').then(() => {
+      session.close(() => {
+        const session1 = driver.session();
+        const session2 = driver.session();
+        const tx1 = session1.beginTransaction();
+
+        tx1.run('MATCH (n) SET n.id = 1 RETURN 42 AS answer').then(result => {
+          // node is now locked by tx1
+          expect(result.records.length).toEqual(1);
+          expect(result.records[0].get(0).toNumber()).toEqual(42);
+
+          // this query should get stuck waiting for the lock
+          session2.run('MATCH (n) SET n.id = 2 RETURN 42 AS answer').catch(error => {
+            expectTransactionTerminatedError(error);
+            tx1.commit().then(() => {
+              readAllNodeIds().then(ids => {
+                expect(ids).toEqual([1]);
+                done();
+              });
+            });
+          });
+
+          setTimeout(() => {
+            // close session after a while
+            session2.close();
+          }, 1000);
+        });
+      });
+    });
+  });
+
+  it('should interrupt transaction waiting on a lock when closed', done => {
+    if (!serverIs31OrLater(done)) {
+      // locks are transaction termination aware by default only in 3.1+
+      return;
+    }
+
+    session.run('CREATE ()').then(() => {
+      session.close(() => {
+        const session1 = driver.session();
+        const session2 = driver.session();
+        const tx1 = session1.beginTransaction();
+        const tx2 = session2.beginTransaction();
+
+        tx1.run('MATCH (n) SET n.id = 1 RETURN 42 AS answer').then(result => {
+          // node is now locked by tx1
+          expect(result.records.length).toEqual(1);
+          expect(result.records[0].get(0).toNumber()).toEqual(42);
+
+          // this query should get stuck waiting for the lock
+          tx2.run('MATCH (n) SET n.id = 2 RETURN 42 AS answer').catch(error => {
+            expectTransactionTerminatedError(error);
+            tx1.commit().then(() => {
+              readAllNodeIds().then(ids => {
+                expect(ids).toEqual([1]);
+                done();
+              });
+            });
+          });
+
+          setTimeout(() => {
+            // close session after a while
+            session2.close();
+          }, 1000);
+        });
+      });
+    });
+  });
+
+  it('should interrupt transaction function waiting on a lock when closed', done => {
+    if (!serverIs31OrLater(done)) {
+      // locks are transaction termination aware by default only in 3.1+
+      return;
+    }
+
+    session.run('CREATE ()').then(() => {
+      session.close(() => {
+        const session1 = driver.session();
+        const session2 = driver.session();
+        const tx1 = session1.beginTransaction();
+
+        tx1.run('MATCH (n) SET n.id = 1 RETURN 42 AS answer').then(result => {
+          // node is now locked by tx1
+          expect(result.records.length).toEqual(1);
+          expect(result.records[0].get(0).toNumber()).toEqual(42);
+
+          session2.writeTransaction(tx2 => {
+            // this query should get stuck waiting for the lock
+            return tx2.run('MATCH (n) SET n.id = 2 RETURN 42 AS answer').catch(error => {
+              expectTransactionTerminatedError(error);
+              tx1.commit().then(() => {
+                readAllNodeIds().then(ids => {
+                  expect(ids).toEqual([1]);
+                  done();
+                });
+              });
+            });
+          });
+
+          setTimeout(() => {
+            // close session after a while
+            session2.close();
+          }, 1000);
+        });
+      });
+    });
+  });
+
   function serverIs31OrLater(done) {
     // lazy way of checking the version number
     // if server has been set we know it is at least 3.1
@@ -839,5 +953,22 @@ describe('session', () => {
   function verifyBookmark(bookmark) {
     expect(bookmark).toBeDefined();
     expect(bookmark).not.toBeNull();
+  }
+
+  function expectTransactionTerminatedError(error) {
+    expect(error.message.toLowerCase().indexOf('transaction terminated') >= 0).toBeTruthy();
+  }
+
+  function readAllNodeIds() {
+    return new Promise((resolve, reject) => {
+      const session = driver.session();
+      session.run('MATCH (n) RETURN n.id').then(result => {
+        const ids = result.records.map(record => record.get(0).toNumber());
+        session.close();
+        resolve(ids);
+      }).catch(error => {
+        reject(error);
+      });
+    });
   }
 });
