@@ -42,6 +42,8 @@ class StreamObserver {
     this._error = null;
     this._hasFailed = false;
     this._errorTransformer = errorTransformer;
+    this._observer = null;
+    this._conn = null;
   }
 
   /**
@@ -69,7 +71,7 @@ class StreamObserver {
       this._fieldLookup = {};
       if( meta.fields && meta.fields.length > 0 ) {
         this._fieldKeys = meta.fields;
-        for (var i = 0; i < meta.fields.length; i++) {
+        for (let i = 0; i < meta.fields.length; i++) {
           this._fieldLookup[meta.fields[i]] = i;
         }
       }
@@ -94,7 +96,7 @@ class StreamObserver {
    * @param {Object} error - An error object
    */
   onError(error) {
-    let transformedError = this._errorTransformer(error, this._conn);
+    const transformedError = this._errorTransformer(error, this._conn);
     if(this._hasFailed) {
       return;
     }
@@ -123,8 +125,8 @@ class StreamObserver {
       return;
     }
     if( this._queuedRecords.length > 0 ) {
-      for (var i = 0; i < _queuedRecords.length; i++) {
-        observer.onNext( _queuedRecords[i] );
+      for (let i = 0; i < this._queuedRecords.length; i++) {
+        observer.onNext( this._queuedRecords[i] );
       }
     }
     if( this._tail ) {
