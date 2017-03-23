@@ -1007,22 +1007,16 @@ function newLoadBalancer(routers, readers, writers,
                          expirationTime = Integer.MAX_VALUE,
                          routerToRoutingTable = {}) {
   const seedRouter = 'server-non-existing-seed-router';
-  const loadBalancer = new LoadBalancer(seedRouter, pool || newPool(), NO_OP_DRIVER_CALLBACK);
-  loadBalancer._routingTable = new RoutingTable(
-    new RoundRobinArray(routers),
-    new RoundRobinArray(readers),
-    new RoundRobinArray(writers),
-    expirationTime
-  );
-  loadBalancer._rediscovery = new FakeRediscovery(routerToRoutingTable);
-  return loadBalancer;
+  return newLoadBalancerWithSeedRouter(seedRouter, [seedRouter], routers, readers, writers, expirationTime,
+    routerToRoutingTable, pool);
 }
 
 function newLoadBalancerWithSeedRouter(seedRouter, seedRouterResolved,
                                        routers, readers, writers,
                                        expirationTime = Integer.MAX_VALUE,
-                                       routerToRoutingTable = {}) {
-  const loadBalancer = new LoadBalancer(seedRouter, newPool(), NO_OP_DRIVER_CALLBACK);
+                                       routerToRoutingTable = {},
+                                       connectionPool = null) {
+  const loadBalancer = new LoadBalancer(seedRouter, connectionPool || newPool(), NO_OP_DRIVER_CALLBACK);
   loadBalancer._routingTable = new RoutingTable(
     new RoundRobinArray(routers),
     new RoundRobinArray(readers),
