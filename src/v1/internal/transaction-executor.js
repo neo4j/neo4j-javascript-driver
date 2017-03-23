@@ -122,7 +122,23 @@ export default class TransactionExecutor {
     return error && error.code &&
       (error.code === SERVICE_UNAVAILABLE ||
       error.code === SESSION_EXPIRED ||
-      error.code.indexOf('TransientError') >= 0);
+      this._isTransientError(error));
+  }
+
+  static _isTransientError(error) {
+    // Retries should not happen when transaction was explicitly terminated by the user.
+    // Termination of transaction might result in two different error codes depending on where it was
+    // terminated. These are really client errors but classification on the server is not entirely correct and
+    // they are classified as transient.
+    
+    const code = error.code;
+    if (code.indexOf('TransientError') >= 0) {
+      if (code === 'Neo.TransientError.Transaction.Terminated' || code === 'Neo.TransientError.Transaction.LockClientStopped') {
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   _verifyAfterConstruction() {
