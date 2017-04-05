@@ -56,8 +56,7 @@ gulp.task('browser', function(cb){
 });
 
 /** Build all-in-one files for use in the browser */
-gulp.task('bu' +
-  'ild-browser', function () {
+gulp.task('build-browser', function () {
   var browserOutput = 'lib/browser';
   // Our app bundler
   var appBundler = browserify({
