@@ -23,7 +23,7 @@ import path from 'path';
 import {EOL} from 'os';
 import {NodeBuffer} from './buf';
 import {ENCRYPTION_OFF, isEmptyObjectOrNull} from './util';
-import {newError, SERVICE_UNAVAILABLE} from './../error';
+import {newError} from './../error';
 
 let _CONNECTION_IDGEN = 0;
 
@@ -107,13 +107,13 @@ const TrustStrategy = {
   /**
    * @deprecated Since version 1.0. Will be deleted in a future version. {@link #TRUST_CUSTOM_CA_SIGNED_CERTIFICATES}.
    */
-  TRUST_SIGNED_CERTIFICATES: function( opts, onSuccess, onFailure ) {
+  TRUST_SIGNED_CERTIFICATES: function( config, onSuccess, onFailure ) {
     console.log("`TRUST_SIGNED_CERTIFICATES` has been deprecated as option and will be removed in a future version of " +
       "the driver. Please use `TRUST_CUSTOM_CA_SIGNED_CERTIFICATES` instead.");
-    return TrustStrategy.TRUST_CUSTOM_CA_SIGNED_CERTIFICATES(opts, onSuccess, onFailure);
+    return TrustStrategy.TRUST_CUSTOM_CA_SIGNED_CERTIFICATES(config, onSuccess, onFailure);
   },
-  TRUST_CUSTOM_CA_SIGNED_CERTIFICATES : function( opts, onSuccess, onFailure ) {
-    if( !opts.trustedCertificates || opts.trustedCertificates.length == 0 ) {
+  TRUST_CUSTOM_CA_SIGNED_CERTIFICATES : function( config, onSuccess, onFailure ) {
+    if( !config.trustedCertificates || config.trustedCertificates.length === 0 ) {
       onFailure(newError("You are using TRUST_CUSTOM_CA_SIGNED_CERTIFICATES as the method " +
         "to verify trust for encrypted  connections, but have not configured any " +
         "trustedCertificates. You  must specify the path to at least one trusted " +
@@ -124,13 +124,13 @@ const TrustStrategy = {
     }
 
     let tlsOpts = {
-      ca: opts.trustedCertificates.map((f) => fs.readFileSync(f)),
+      ca: config.trustedCertificates.map((f) => fs.readFileSync(f)),
       // Because we manually check for this in the connect callback, to give
       // a more helpful error to the user
       rejectUnauthorized: false
     };
 
-    let socket = tls.connect(opts.port, opts.host, tlsOpts, function () {
+    let socket = tls.connect(config.port, config.host, tlsOpts, function () {
       if (!socket.authorized) {
         onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, add" +
           " the signing certificate, or the server certificate, to the list of certificates trusted by this driver" +
@@ -145,14 +145,14 @@ const TrustStrategy = {
     socket.on('error', onFailure);
     return socket;
   },
-  TRUST_SYSTEM_CA_SIGNED_CERTIFICATES : function( opts, onSuccess, onFailure ) {
+  TRUST_SYSTEM_CA_SIGNED_CERTIFICATES : function( config, onSuccess, onFailure ) {
 
     let tlsOpts = {
       // Because we manually check for this in the connect callback, to give
       // a more helpful error to the user
       rejectUnauthorized: false
     };
-    let socket = tls.connect(opts.port, opts.host, tlsOpts, function () {
+    let socket = tls.connect(config.port, config.host, tlsOpts, function () {
       if (!socket.authorized) {
         onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, use " +
           "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES and add" +
@@ -171,7 +171,7 @@ const TrustStrategy = {
   /**
    * @deprecated in 1.1 in favour of {@link #TRUST_ALL_CERTIFICATES}. Will be deleted in a future version.
    */
-  TRUST_ON_FIRST_USE : function( opts, onSuccess, onFailure ) {
+  TRUST_ON_FIRST_USE : function( config, onSuccess, onFailure ) {
       console.log("`TRUST_ON_FIRST_USE` has been deprecated as option and will be removed in a future version of " +
           "the driver. Please use `TRUST_ALL_CERTIFICATES` instead.");
 
@@ -180,7 +180,7 @@ const TrustStrategy = {
       rejectUnauthorized: false
     };
 
-    let socket = tls.connect(opts.port, opts.host, tlsOpts, function () {
+    let socket = tls.connect(config.port, config.host, tlsOpts, function () {
       var serverCert = socket.getPeerCertificate(/*raw=*/true);
 
       if( !serverCert.raw ) {
@@ -195,9 +195,9 @@ const TrustStrategy = {
         return;
       }
 
-      var serverFingerprint = require('crypto').createHash('sha512').update(serverCert.raw).digest("hex");
-      let knownHostsPath = opts.knownHosts || path.join(userHome(), ".neo4j", "known_hosts");
-      let serverId = opts.host + ":" + opts.port;
+      const serverFingerprint = require('crypto').createHash('sha512').update(serverCert.raw).digest("hex");
+      const knownHostsPath = config.knownHostsPath || path.join(userHome(), ".neo4j", "known_hosts");
+      const serverId = config.host + ":" + config.port;
 
       loadFingerprint(serverId, knownHostsPath, (knownFingerprint) => {
         if( knownFingerprint === serverFingerprint ) {
@@ -228,11 +228,11 @@ const TrustStrategy = {
     return socket;
   },
 
-  TRUST_ALL_CERTIFICATES: function (opts, onSuccess, onFailure) {
+  TRUST_ALL_CERTIFICATES: function (config, onSuccess, onFailure) {
     const tlsOpts = {
       rejectUnauthorized: false
     };
-    const socket = tls.connect(opts.port, opts.host, tlsOpts, function () {
+    const socket = tls.connect(config.port, config.host, tlsOpts, function () {
       const certificate = socket.getPeerCertificate();
       if (isEmptyObjectOrNull(certificate)) {
         onFailure(newError("Secure connection was successful but server did not return any valid " +
@@ -249,16 +249,23 @@ const TrustStrategy = {
   }
 };
 
-function connect( opts, onSuccess, onFailure=(()=>null) ) {
+/**
+ * Connect using node socket.
+ * @param {ChannelConfig} config - configuration of this channel.
+ * @param {function} onSuccess - callback to execute on connection success.
+ * @param {function} onFailure - callback to execute on connection failure.
+ * @return {*} socket connection.
+ */
+function connect( config, onSuccess, onFailure=(()=>null) ) {
   //still allow boolean for backwards compatibility
-  if (opts.encrypted === false || opts.encrypted === ENCRYPTION_OFF) {
-    var conn = net.connect(opts.port, opts.host, onSuccess);
+  if (config.encrypted === false || config.encrypted === ENCRYPTION_OFF) {
+    var conn = net.connect(config.port, config.host, onSuccess);
     conn.on('error', onFailure);
     return conn;
-  } else if( TrustStrategy[opts.trust]) {
-    return TrustStrategy[opts.trust](opts, onSuccess, onFailure);
+  } else if( TrustStrategy[config.trust]) {
+    return TrustStrategy[config.trust](config, onSuccess, onFailure);
   } else {
-    onFailure(newError("Unknown trust strategy: " + opts.trust + ". Please use either " +
+    onFailure(newError("Unknown trust strategy: " + config.trust + ". Please use either " +
       "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' or trust:'TRUST_ALL_CERTIFICATES' in your driver " +
       "configuration. Alternatively, you can disable encryption by setting " +
       "`encrypted:\"" + ENCRYPTION_OFF + "\"`. There is no mechanism to use encryption without trust verification, " +
@@ -277,11 +284,9 @@ class NodeChannel {
 
   /**
    * Create new instance
-   * @param {Object} opts - Options object
-   * @param {string} opts.host - The host, including protocol to connect to.
-   * @param {Integer} opts.port - The port to use.
+   * @param {ChannelConfig} config - configuration for this channel.
    */
-  constructor (opts) {
+  constructor (config) {
     let self = this;
 
     this.id = _CONNECTION_IDGEN++;
@@ -291,10 +296,10 @@ class NodeChannel {
     this._error = null;
     this._handleConnectionError = this._handleConnectionError.bind(this);
     this._handleConnectionTerminated = this._handleConnectionTerminated.bind(this);
-    this._errorCode = opts.errorCode || SERVICE_UNAVAILABLE;
+    this._connectionErrorCode = config.connectionErrorCode;
 
-    this._encrypted = opts.encrypted;
-    this._conn = connect(opts, () => {
+    this._encrypted = config.encrypted;
+    this._conn = connect(config, () => {
       if(!self._open) {
         return;
       }
@@ -319,14 +324,14 @@ class NodeChannel {
 
   _handleConnectionError( err ) {
     let msg = err.message || 'Failed to connect to server';
-    this._error = newError(msg, this._errorCode);
+    this._error = newError(msg, this._connectionErrorCode);
     if( this.onerror ) {
       this.onerror(this._error);
     }
   }
 
   _handleConnectionTerminated() {
-      this._error = newError('Connection was closed by server', this._errorCode);
+      this._error = newError('Connection was closed by server', this._connectionErrorCode);
       if( this.onerror ) {
         this.onerror(this._error);
       }

@@ -18,7 +18,7 @@
  */
 
 import {HeapBuffer} from './buf';
-import {newError, SERVICE_UNAVAILABLE} from './../error';
+import {newError} from './../error';
 import {ENCRYPTION_OFF, ENCRYPTION_ON} from './util';
 
 /**
@@ -29,34 +29,32 @@ class WebSocketChannel {
 
   /**
    * Create new instance
-   * @param {Object} opts - Options object
-   * @param {string} opts.host - The host, including protocol to connect to.
-   * @param {Integer} opts.port - The port to use.
+   * @param {ChannelConfig} config - configuration for this channel.
    */
-  constructor (opts) {
+  constructor(config) {
 
     this._open = true;
     this._pending = [];
     this._error = null;
     this._handleConnectionError = this._handleConnectionError.bind(this);
-    this._errorCode = opts.errorCode || SERVICE_UNAVAILABLE;
+    this._connectionErrorCode = config.connectionErrorCode;
 
-    this._encrypted = opts.encrypted;
+    this._encrypted = config.encrypted;
 
     let scheme = "ws";
     //Allow boolean for backwards compatibility
-    if( opts.encrypted === true || opts.encrypted === ENCRYPTION_ON) {
-      if((!opts.trust) || opts.trust === "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" ) {
+    if (config.encrypted === true || config.encrypted === ENCRYPTION_ON) {
+      if ((!config.trust) || config.trust === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
         scheme = "wss";
       } else {
         this._error = newError("The browser version of this driver only supports one trust " +
-          "strategy, 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'. "+opts.trust+" is not supported. Please " +
+          'strategy, \'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES\'. ' + config.trust + ' is not supported. Please ' +
           "either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting " +
           "`encrypted:\"" + ENCRYPTION_OFF + "\"` in the driver configuration.");
         return;
       }
     }
-    this._url = scheme + "://" + opts.host + ":" + opts.port;
+    this._url = scheme + '://' + config.host + ':' + config.port;
     this._ws = new WebSocket(this._url);
     this._ws.binaryType = "arraybuffer";
 
@@ -96,7 +94,7 @@ class WebSocketChannel {
         "the root cause of the failure. Common reasons include the database being " +
         "unavailable, using the wrong connection URL or temporary network problems. " +
         "If you have enabled encryption, ensure your browser is configured to trust the " +
-        "certificate Neo4j is configured to use. WebSocket `readyState` is: " + this._ws.readyState, this._errorCode );
+        "certificate Neo4j is configured to use. WebSocket `readyState` is: " + this._ws.readyState, this._connectionErrorCode );
       if (this.onerror) {
         this.onerror(this._error);
       }
