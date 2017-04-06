@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-var neo4jv1 = require("../../lib/v1");
+import neo4j from '../../src/v1';
 
 /**
 * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
@@ -25,413 +25,438 @@ var neo4jv1 = require("../../lib/v1");
 * DO NOT add tests to this file that are not for that exact purpose.
 * DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
 */
-describe('examples', function() {
+describe('examples', () => {
 
-  var driverGlobal;
-  var console;
-  var originalTimeout;
+  let driverGlobal;
+  let console;
+  let originalTimeout;
 
-  var testResultPromise;
-  var resolveTestResultPromise;
+  let testResultPromise;
+  let resolveTestResultPromise;
 
-  beforeAll(function () {
-    var neo4j = neo4jv1;
+  beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
-    //tag::construct-driver[]
-    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"));
-    //end::construct-driver[]
-    driverGlobal = driver;
+    driverGlobal = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic('neo4j', 'neo4j'));
   });
 
-  beforeEach(function(done) {
+  beforeEach(done => {
 
-    testResultPromise = new Promise(function (resolve, reject) {
+    testResultPromise = new Promise((resolve, reject) => {
       resolveTestResultPromise = resolve;
     });
 
     // Override console.log, to assert on stdout output
     console = {log: resolveTestResultPromise};
 
-    var session = driverGlobal.session();
-    session.run("MATCH (n) DETACH DELETE n").then(function () {
-      session.close();
-      done();
+    const session = driverGlobal.session();
+    session.run('MATCH (n) DETACH DELETE n').then(() => {
+      session.close(() => {
+        done();
+      });
     });
   });
 
-  afterAll(function() {
+  afterAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
     driverGlobal.close();
   });
 
-  it('should document a minimal import and usage example', function (done) {
-    //OH my is this a hack
-    var require = function (arg) {
-      return {v1: neo4jv1}
+  it('autocommit transaction example', done => {
+    const driver = driverGlobal;
+
+    // tag::autocommit-transaction[]
+    function addPerson(name) {
+      const session = driver.session();
+      return session.run('CREATE (a:Person {name: $name})', {name: name}).then(result => {
+        session.close();
+        return result;
+      });
+    }
+
+    // end::autocommit-transaction[]
+
+    addPerson('Alice').then(() => {
+      const session = driver.session();
+      session.run('MATCH (a:Person {name: $name}) RETURN count(a) AS result', {name: 'Alice'}).then(result => {
+        session.close(() => {
+          expect(result.records[0].get('result').toInt()).toEqual(1);
+          done();
+        });
+      });
+    });
+  });
+
+  it('basic auth example', done => {
+    const user = 'neo4j';
+    const password = 'neo4j';
+
+    // tag::basic-auth[]
+    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password));
+    // end::basic-auth[]
+
+    driver.onCompleted = () => {
+      done();
     };
-    // tag::minimal-example-import[]
-    var neo4j = require('neo4j-driver').v1;
-    // end::minimal-example-import[]
-    // tag::minimal-example[]
-    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"));
-    var session = driver.session();
-    session
-      .run( "CREATE (a:Person {name: {name}, title: {title}})", {name: "Arthur", title: "King"})
-      .then( function()
+
+    const session = driver.session();
+    session.run('RETURN 1').then(() => {
+      session.close();
+    });
+  });
+
+  it('config max retry time example', done => {
+    const user = 'neo4j';
+    const password = 'neo4j';
+
+    // tag::config-max-retry-time[]
+    const maxRetryTimeMs = 15 * 1000; // 15 seconds
+    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password),
       {
-        return session.run( "MATCH (a:Person) WHERE a.name = {name} RETURN a.name AS name, a.title AS title",
-            {name: "Arthur"})
-      })
-      .then( function( result ) {
-        console.log( result.records[0].get("title") + " " + result.records[0].get("name") );
+        maxTransactionRetryTime: maxRetryTimeMs
+      }
+    );
+    // end::config-max-retry-time[]
+
+    driver.onCompleted = () => {
+      done();
+    };
+
+    const session = driver.session();
+    session.run('RETURN 1').then(() => {
+      session.close();
+    });
+  });
+
+  it('config trust example', done => {
+    const user = 'neo4j';
+    const password = 'neo4j';
+
+    // tag::config-trust[]
+    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password),
+      {
+        encrypted: 'ENCRYPTION_ON',
+        trust: 'TRUST_ALL_CERTIFICATES'
+      }
+    );
+    // end::config-trust[]
+
+    driver.onCompleted = () => {
+      done();
+    };
+
+    driver.onError = error => {
+      console.log(error);
+    };
+
+    const session = driver.session();
+    session.run('RETURN 1').then(() => {
+      session.close();
+    }).catch(error => {
+    });
+  });
+
+  it('config unencrypted example', done => {
+    const user = 'neo4j';
+    const password = 'neo4j';
+
+    // tag::config-unencrypted[]
+    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password),
+      {
+        encrypted: 'ENCRYPTION_OFF'
+      }
+    );
+    // end::config-unencrypted[]
+
+    driver.onCompleted = () => {
+      done();
+    };
+
+    const session = driver.session();
+    session.run('RETURN 1').then(() => {
+      session.close();
+    });
+  });
+
+  it('custom auth example', () => {
+    const principal = 'principal';
+    const credentials = 'credentials';
+    const realm = 'realm';
+    const scheme = 'scheme';
+    const parameters = {};
+
+    // tag::custom-auth[]
+    const driver = neo4j.driver(
+      'bolt://localhost:7687',
+      neo4j.auth.custom(principal, credentials, realm, scheme, parameters)
+    );
+    // end::custom-auth[]
+
+    expect(driver).toBeDefined();
+  });
+
+  it('cypher error example', done => {
+    const driver = driverGlobal;
+    const personName = 'Bob';
+
+    // tag::cypher-error[]
+    const session = driver.session();
+
+    const readTxPromise = session.readTransaction(tx => tx.run('SELECT * FROM Employees WHERE name = $name', {name: personName}));
+
+    readTxPromise.catch(error => {
+      session.close();
+      console.log(error.message);
+    });
+    // end::cypher-error[]
+
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg).toBe(
+        'Invalid input \'L\': expected \'t/T\' (line 1, column 3 (offset: 2))\n' +
+        '"SELECT * FROM Employees WHERE name = $name"\n' +
+        '   ^');
+      done();
+    });
+  });
+
+  it('driver lifecycle example', done => {
+    const user = 'neo4j';
+    const password = 'neo4j';
+
+    // tag::driver-lifecycle[]
+    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password));
+
+    driver.onCompleted = metadata => {
+      console.log('Driver created');
+    };
+
+    driver.onError = error => {
+      console.log(error);
+    };
+
+    const session = driver.session();
+    session.run('CREATE (i:Item)').then(() => {
+      session.close();
+
+      // ... on application exit:
+      driver.close();
+    });
+    // end::driver-lifecycle[]
+
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg).toEqual('Driver created');
+      done();
+    });
+  });
+
+  it('hello world example', done => {
+    const user = 'neo4j';
+    const password = 'neo4j';
+
+    // tag::hello-world[]
+    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password));
+    const session = driver.session();
+
+    const resultPromise = session.writeTransaction(tx => tx.run(
+      'CREATE (a:Greeting) SET a.message = $message RETURN a.message + ", from node " + id(a)',
+      {message: 'hello, world'}));
+
+    resultPromise.then(result => {
+      session.close();
+
+      const singleRecord = result.records[0];
+      const greeting = singleRecord.get(0);
+
+      console.log(greeting);
+
+      // on application exit:
+      driver.close();
+    });
+    // end::hello-world[]
+
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg.indexOf('hello, world, from node') === 0).toBeTruthy();
+      done();
+    });
+  });
+
+  it('read write transaction example', done => {
+    const driver = driverGlobal;
+    const personName = 'Alice';
+
+    // tag::read-write-transaction[]
+    const session = driver.session();
+
+    const writeTxPromise = session.writeTransaction(tx => tx.run('CREATE (a:Person {name: $name})', {name: personName}));
+
+    writeTxPromise.then(() => {
+      const readTxPromise = session.readTransaction(tx => tx.run('MATCH (a:Person {name: $name}) RETURN id(a)', {name: personName}));
+
+      readTxPromise.then(result => {
         session.close();
-        driver.close();
-      });
-    // end::minimal-example[]
 
-    testResultPromise.then(function (loggedMsg) {
-      expect(loggedMsg).toBe("King Arthur");
+        const singleRecord = result.records[0];
+        const createdNodeId = singleRecord.get(0);
+
+        console.log('Matched created node with id: ' + createdNodeId);
+      });
+    });
+    // end::read-write-transaction[]
+
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg.indexOf('Matched created node with id') === 0).toBeTruthy();
       done();
     });
   });
 
-  it('should be able to configure connection pool size', function (done) {
-   var neo4j = neo4jv1;
-    // tag::configuration[]
-    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {connectionPoolSize: 50});
-    //end::configuration[]
+  it('result consume example', done => {
+    const driver = driverGlobal;
+    const names = {nameA: 'Alice', nameB: 'Bob'};
+    const tmpSession = driver.session();
 
-    var s = driver.session();
-    s.run( "CREATE (p:Person {name: {name}})", {name: "The One"} )
-      .then( function(result) {
-        var theOnesCreated = result.summary.counters.nodesCreated();
-        console.log(theOnesCreated);
-        s.close();
-        driver.close();
-      });
+    tmpSession.run('CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})', names).then(() => {
+      tmpSession.close(() => {
 
-    testResultPromise.then(function (loggedCount) {
-      expect(loggedCount).toBe(1);
-      done();
-    });
-  });
+        // tag::result-consume[]
+        const session = driver.session();
+        const result = session.run('MATCH (a:Person) RETURN a.name ORDER BY a.name');
+        const collectedNames = [];
 
-  it('should be able to configure maximum transaction retry time', function () {
-    var neo4j = neo4jv1;
-    // tag::configuration-transaction-retry-time[]
-    var maxRetryTimeMs = 45 * 1000; // 45 seconds
-    var driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic('neo4j', 'neo4j'), {maxTransactionRetryTime: maxRetryTimeMs});
-    //end::configuration-transaction-retry-time[]
-
-    var session = driver.session();
-    expect(session._transactionExecutor._maxRetryTimeMs).toBe(maxRetryTimeMs);
-  });
-
-  it('should document a statement', function(done) {
-    var session = driverGlobal.session();
-    // tag::statement[]
-    session
-      .run( "CREATE (person:Person {name: {name}})", {name: "Arthur"} )
-    // end::statement[]
-      .then( function(result) {
-        var theOnesCreated = result.summary.counters.nodesCreated();
-        console.log("There were " + theOnesCreated + " the ones created.");
-        session.close();
-      });
-
-    testResultPromise.then(function (loggedMsg) {
-      expect(loggedMsg).toBe("There were 1 the ones created.");
-      done();
-    });
-  });
-
-  it('should document a statement without parameters', function(done) {
-    var session = driverGlobal.session();
-    // tag::statement-without-parameters[]
-    session
-      .run( "CREATE (p:Person {name: 'Arthur'})" )
-    // end::statement-without-parameters[]
-      .then( function(result) {
-        var theOnesCreated = result.summary.counters.nodesCreated();
-        console.log("There were " + theOnesCreated + " the ones created.");
-        session.close();
-      });
-
-    // Then
-    testResultPromise.then(function(loggedMsg){
-      expect(loggedMsg).toBe("There were 1 the ones created.");
-      done();
-    });
-  });
-
-  it('should be able to iterate results', function(done) {
-    var session = driverGlobal.session();
-    session
-      .run( "CREATE (weapon:Weapon {name: {name}})", {name: "Sword in the stone"} )
-      .then(function() {
-    // tag::result-traversal[]
-      var searchTerm = "Sword";
-      session
-        .run( "MATCH (weapon:Weapon) WHERE weapon.name CONTAINS {term} RETURN weapon.name", {term: searchTerm} )
-        .subscribe({
-          onNext: function(record) {
-            console.log("" + record.get("weapon.name"));
+        result.subscribe({
+          onNext: record => {
+            const name = record.get(0);
+            collectedNames.push(name);
           },
-          onCompleted: function() {
+          onCompleted: () => {
             session.close();
+
+            console.log('Names: ' + collectedNames.join(', '));
           },
-          onError: function(error) {
+          onError: error => {
             console.log(error);
           }
         });
-    // end::result-traversal[]
-    });
-
-    // Then
-    testResultPromise.then(function(loggedMsg){
-      expect(loggedMsg).toBe("Sword in the stone");
-      done();
-    });
-  });
-
-  it('should be able to access records', function(done) {
-    var session = driverGlobal.session();
-    session
-      .run( "CREATE (weapon:Weapon {name: {name}, owner: {owner}, material: {material}, size: {size}})",
-          {name: "Sword in the stone", owner: "Arthur", material: "Stone", size: "Huge"})
-      .then(function() {
-      // tag::access-record[]
-        var searchTerm = "Arthur";
-        session
-          .run( "MATCH (weapon:Weapon) WHERE weapon.owner CONTAINS {term} RETURN weapon.name, weapon.material, weapon.size",
-              {term: searchTerm} )
-          .subscribe({
-            onNext: function(record) {
-              var sword = [];
-              record.forEach(function(value, key)
-              {
-                sword.push(key + ": " + value);
-              });
-              console.log(sword);
-            },
-            onCompleted: function() {
-              session.close();
-            },
-            onError: function(error) {
-              console.log(error);
-            }
-          });
-      // end::access-record[]
+        // end::result-consume[]
       });
+    });
 
-    // Then
-    testResultPromise.then(function(loggedCount){
-      expect(loggedCount.length).toBe(3);
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg).toEqual('Names: Alice, Bob');
       done();
     });
   });
 
-  it('should be able to retain for later processing', function(done) {
-    var session = driverGlobal.session();
+  it('result retain example', done => {
+    const driver = driverGlobal;
+    const companyName = 'Acme';
+    const personNames = {nameA: 'Alice', nameB: 'Bob'};
+    const tmpSession = driver.session();
 
-    session
-    .run("CREATE (knight:Person:Knight {name: {name}, castle: {castle}})", {name: "Lancelot", castle: "Camelot"})
-    .then(function() {
-      // tag::retain-result[]
-      session
-        .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN knight.name AS name",
-            {castle: "Camelot"})
-        .then(function (result) {
-          var records = [];
-          for (var i = 0; i < result.records.length; i++) {
-            records.push(result.records[i]);
+    tmpSession.run('CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})', personNames).then(() => {
+      tmpSession.close(() => {
+
+        // tag::result-retain[]
+        const session = driver.session();
+
+        const readTxPromise = session.readTransaction(tx => tx.run('MATCH (a:Person) RETURN a.name AS name'));
+
+        const addEmployeesPromise = readTxPromise.then(result => {
+          const nameRecords = result.records;
+
+          let writeTxsPromise = Promise.resolve();
+          for (let i = 0; i < nameRecords.length; i++) {
+            const name = nameRecords[i].get('name');
+
+            writeTxsPromise = writeTxsPromise.then(() =>
+              session.writeTransaction(tx =>
+                tx.run(
+                  'MATCH (emp:Person {name: $person_name}) ' +
+                  'MERGE (com:Company {name: $company_name}) ' +
+                  'MERGE (emp)-[:WORKS_FOR]->(com)',
+                  {'person_name': name, 'company_name': companyName})));
           }
-          return records;
-        })
-        .then(function (records) {
-          for(var i = 0; i < records.length; i ++) {
-            console.log(records[i].get("name") + " is a knight of Camelot");
-          }
+
+          return writeTxsPromise.then(() => nameRecords.length);
+        });
+
+        addEmployeesPromise.then(employeesCreated => {
           session.close();
-
+          console.log('Created ' + employeesCreated + ' employees');
         });
-      // end::retain-result[]
-    });
-
-    testResultPromise.then(function(loggedMsg){
-      expect(loggedMsg).toBe("Lancelot is a knight of Camelot");
-      done();
-    });
-  });
-
-  it('should be able to do nested queries', function(done) {
-    var session = driverGlobal.session();
-    session
-      .run( "CREATE (knight:Person:Knight {name: {name1}, castle: {castle}})" +
-            "CREATE (king:Person {name: {name2}, title: {title}})",
-          {name1: "Lancelot", castle: "Camelot", name2: "Arthur", title: "King"})
-      .then(function() {
-        // tag::nested-statements[]
-          session
-            .run("MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id",
-                {castle: "Camelot"})
-            .subscribe({
-              onNext: function(record) {
-                session
-                  .run("MATCH (knight) WHERE id(knight) = {id} MATCH (king:Person) WHERE king.name = {king} CREATE (knight)-[:DEFENDS]->(king)",
-                  {id: record.get("knight_id"), king: "Arthur"});
-              },
-              onCompleted: function() {
-                session
-                  .run("MATCH (:Knight)-[:DEFENDS]->() RETURN count(*)")
-                  .then(function (result) {
-                    console.log("Count is " + result.records[0].get(0).toInt());
-                    session.close();
-                  });
-              },
-              onError: function(error) {
-                console.log(error);
-              }
-            });
-        // end::nested-statements[]
-        });
-
-    testResultPromise.then(function(loggedMsg){
-      expect(loggedMsg).toBe("Count is 1");
-      done();
-    });
-  });
-
-  it('should be able to handle cypher error', function(done) {
-    var session = driverGlobal.session();
-
-    // tag::handle-cypher-error[]
-    session
-      .run("This will cause a syntax error")
-      .catch( function(err) {
-        console.log(err);
-        session.close();
+        // end::result-retain[]
       });
-    // end::handle-cypher-error[]
+    });
 
-    testResultPromise.then(function(loggedError){
-      expect(loggedError.code).toBe( 'Neo.ClientError.Statement.SyntaxError' );
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg).toEqual('Created 2 employees');
       done();
     });
   });
 
-  it('should be able to profile', function(done) {
-    var session = driverGlobal.session();
+  it('service unavailable example', done => {
+    const user = 'neo4j';
+    const password = 'wrongPassword';
 
-    session.run("CREATE (:Person {name: {name}})", {name: "Arthur"}).then(function() {
-      // tag::result-summary-query-profile[]
-      session
-        .run("PROFILE MATCH (p:Person {name: {name}}) RETURN id(p)", {name: "Arthur"})
-        .then(function (result) {
-          console.log(result.summary.profile);
-          session.close();
-        });
-      // end::result-summary-query-profile[]
+    // tag::service-unavailable[]
+    const driver = neo4j.driver('bolt://localhost:7688', neo4j.auth.basic(user, password), {maxTransactionRetryTime: 3000});
+    const session = driver.session();
+
+    const writeTxPromise = session.writeTransaction(tx => tx.run('CREATE (a:Item)'));
+
+    writeTxPromise.catch(error => {
+      if (error.code === neo4j.error.SERVICE_UNAVAILABLE) {
+        console.log('Unable to create node: ' + error.code);
+      }
     });
+    // end::service-unavailable[]
 
-    testResultPromise.then(function (loggedMsg) {
-      expect(loggedMsg).toBeDefined();
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg).toBe('Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE);
       done();
     });
   });
 
-  it('should be able to see notifications', function(done) {
-    var session = driverGlobal.session();
+  it('session example', done => {
+    const driver = driverGlobal;
+    const personName = 'Alice';
 
-    // tag::result-summary-notifications[]
-    session
-      .run("EXPLAIN MATCH (king), (queen) RETURN king, queen")
-      .then(function (result) {
-        var notifications = result.summary.notifications, i;
-        for (i = 0; i < notifications.length; i++) {
-          console.log(notifications[i].code);
-        }
-        session.close();
+    // tag::session[]
+    const session = driver.session();
+
+    session.run('CREATE (a:Person {name: $name})', {'name': personName}).then(() => {
+      session.close(() => {
+        console.log('Person created, session closed');
       });
-    // end::result-summary-notifications[]
+    });
+    // end::session[]
 
-    testResultPromise.then(function (loggedMsg) {
-      expect(loggedMsg).toBe("Neo.ClientNotification.Statement.CartesianProductWarning");
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg).toBe('Person created, session closed');
       done();
     });
   });
 
-  it('should document committing a transaction', function() {
-    var session = driverGlobal.session();
+  it('transaction function example', done => {
+    const driver = driverGlobal;
+    const personName = 'Alice';
 
-    // tag::transaction-commit[]
-    var tx = session.beginTransaction();
-    tx.run( "CREATE (:Person {name: {name}})", {name: "Guinevere"} );
-    tx.commit().then(function() {session.close()});
-    // end::transaction-commit[]
-  });
+    // tag::transaction-function[]
+    const session = driver.session();
+    const writeTxPromise = session.writeTransaction(tx => tx.run('CREATE (a:Person {name: $name})', {'name': personName}));
 
-  it('should document rolling back a transaction', function() {
-    var session = driverGlobal.session();
+    writeTxPromise.then(result => {
+      session.close();
 
-    // tag::transaction-rollback[]
-    var tx = session.beginTransaction();
-    tx.run( "CREATE (:Person {name: {name}})", {name: "Merlin"});
-    tx.rollback().then(function() {session.close()});
-    // end::transaction-rollback[]
-  });
-
-  it('should document how to require encryption', function() {
-    var neo4j = neo4jv1;
-    // tag::tls-require-encryption[]
-    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {
-        // In NodeJS, encryption is on by default. In the web bundle, it is off.
-      encrypted:"ENCRYPTION_ON"
+      if (result) {
+        console.log('Person created');
+      }
     });
-    // end::tls-require-encryption[]
-    driver.close();
-  });
+    // end::transaction-function[]
 
-  it('should document how to configure trust-on-first-use', function() {
-    var neo4j = neo4jv1;
-    // tag::tls-trust-on-first-use[]
-    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {
-      // Note that trust-on-first-use is not available in the browser bundle,
-      // in NodeJS, trust-all-certificates is the default trust mode. In the browser
-      // it is TRUST_CUSTOM_CA_SIGNED_CERTIFICATES.
-      trust: "TRUST_ON_FIRST_USE",
-      encrypted:"ENCRYPTION_ON"
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg).toBe('Person created');
+      done();
     });
-    // end::tls-trust-on-first-use[]
-    driver.close();
   });
-
-  it('should document how to configure a trusted signing certificate', function() {
-    var neo4j = neo4jv1;
-    // tag::tls-signed[]
-    var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "neo4j"), {
-      trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
-      // Configuring which certificates to trust here is only available
-      // in NodeJS. In the browser bundle the browsers list of trusted
-      // certificates is used, due to technical limitations in some browsers.
-      trustedCertificates : ["path/to/ca.crt"],
-      encrypted:"ENCRYPTION_ON"
-    });
-    // end::tls-signed[]
-    driver.close();
-  });
-
-  it('should document how to disable auth', function() {
-    var neo4j = neo4jv1;
-    // tag::connect-with-auth-disabled[]
-    var driver = neo4j.driver("bolt://localhost:7687", {
-      // In NodeJS, encryption is on by default. In the web bundle, it is off.
-      encrypted:"ENCRYPTION_ON"
-    });
-    // end::connect-with-auth-disabled[]
-    driver.close();
-  });
-
 });

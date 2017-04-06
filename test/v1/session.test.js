@@ -910,6 +910,38 @@ describe('session', () => {
     });
   });
 
+  it('should be able to do nested queries', done => {
+    session.run(
+      'CREATE (knight:Person:Knight {name: {name1}, castle: {castle}})' +
+      'CREATE (king:Person {name: {name2}, title: {title}})',
+      {name1: 'Lancelot', castle: 'Camelot', name2: 'Arthur', title: 'King'})
+      .then(() => {
+        session.run(
+          'MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id',
+          {castle: 'Camelot'}).subscribe(
+          {
+            onNext: record => {
+              session
+                .run('MATCH (knight) WHERE id(knight) = {id} MATCH (king:Person) WHERE king.name = {king} CREATE (knight)-[:DEFENDS]->(king)',
+                  {id: record.get('knight_id'), king: 'Arthur'});
+            },
+            onCompleted: () => {
+              session
+                .run('MATCH (:Knight)-[:DEFENDS]->() RETURN count(*)')
+                .then(result => {
+                  session.close();
+                  const count = result.records[0].get(0).toInt();
+                  expect(count).toEqual(1);
+                  done();
+                });
+            },
+            onError: error => {
+              console.log(error);
+            }
+          });
+      });
+  });
+
   function serverIs31OrLater(done) {
     // lazy way of checking the version number
     // if server has been set we know it is at least 3.1
