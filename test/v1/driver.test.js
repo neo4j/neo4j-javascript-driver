@@ -17,36 +17,40 @@
  * limitations under the License.
  */
 
-var neo4j = require("../../lib/v1");
+import neo4j from '../../src/v1';
 
-describe('driver', function() {
-  var driver;
-  beforeEach(function() {
+describe('driver', () => {
+
+  let driver;
+
+  beforeEach(() => {
     driver = null;
-  })
-  afterEach(function() {
+  });
+
+  afterEach(() => {
     if(driver) {
       driver.close();
     }
-  })
-  it('should expose sessions', function() {
+  });
+
+  it('should expose sessions', () => {
     // Given
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
     // When
-    var session = driver.session();
+    const session = driver.session();
 
     // Then
     expect( session ).not.toBeNull();
     driver.close();
   });
 
-  it('should handle connection errors', function(done) {
+  it('should handle connection errors', done => {
     // Given
     driver = neo4j.driver("bolt://localhoste", neo4j.auth.basic("neo4j", "neo4j"));
 
     // Expect
-    driver.onError = function (err) {
+    driver.onError = err => {
       //the error message is different whether in browser or node
       expect(err.message).not.toBeNull();
       done();
@@ -72,12 +76,12 @@ describe('driver', function() {
     }).toBeDefined();
   });
 
-  it('should fail early on wrong credentials', function(done) {
+  it('should fail early on wrong credentials', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "who would use such a password"));
 
     // Expect
-    driver.onError = function (err) {
+    driver.onError = err => {
       //the error message is different whether in browser or node
       expect(err.code).toEqual('Neo.ClientError.Security.Unauthorized');
       done();
@@ -87,12 +91,12 @@ describe('driver', function() {
     startNewTransaction(driver);
   });
 
-  it('should indicate success early on correct credentials', function(done) {
+  it('should indicate success early on correct credentials', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
     // Expect
-    driver.onCompleted = function (meta) {
+    driver.onCompleted = meta => {
       done();
     };
 
@@ -100,12 +104,12 @@ describe('driver', function() {
     startNewTransaction(driver);
   });
 
-  it('should be possible to pass a realm with basic auth tokens', function(done) {
+  it('should be possible to pass a realm with basic auth tokens', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j", "native"));
 
     // Expect
-    driver.onCompleted = function (meta) {
+    driver.onCompleted = meta => {
       done();
     };
 
@@ -113,12 +117,12 @@ describe('driver', function() {
     startNewTransaction(driver);
   });
 
-  it('should be possible to create custom auth tokens', function(done) {
+  it('should be possible to create custom auth tokens', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", neo4j.auth.custom("neo4j", "neo4j", "native", "basic"));
 
     // Expect
-    driver.onCompleted = function (meta) {
+    driver.onCompleted = meta => {
       done();
     };
 
@@ -126,12 +130,12 @@ describe('driver', function() {
     startNewTransaction(driver);
   });
 
-  it('should be possible to create custom auth tokens with additional parameters', function(done) {
+  it('should be possible to create custom auth tokens with additional parameters', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", neo4j.auth.custom("neo4j", "neo4j", "native", "basic", {secret: 42}));
 
     // Expect
-    driver.onCompleted = function () {
+    driver.onCompleted = () => {
       done();
     };
 
@@ -175,7 +179,7 @@ describe('driver', function() {
     expect(createRoutingDriverWithTOFU).toThrow();
   });
 
-  var exposedTypes = [
+  const exposedTypes = [
     'Node',
     'Path',
     'PathSegment',
@@ -187,7 +191,7 @@ describe('driver', function() {
   ];
 
   exposedTypes.forEach(type => {
-    it(`should expose type ${type}`, function() {
+    it(`should expose type ${type}`, () => {
       expect(undefined === neo4j.types[type]).toBe(false);
     });
   });
