@@ -16,14 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import net from "net";
-import tls from "tls";
-import fs from "fs";
-import path from "path";
-import {EOL} from "os";
-import {NodeBuffer} from "./buf";
-import {ENCRYPTION_OFF, isEmptyObjectOrNull} from "./util";
-import {newError, SESSION_EXPIRED} from "./../error";
+import net from 'net';
+import tls from 'tls';
+import fs from 'fs';
+import path from 'path';
+import {EOL} from 'os';
+import {NodeBuffer} from './buf';
+import {ENCRYPTION_OFF, isEmptyObjectOrNull} from './util';
+import {newError, SERVICE_UNAVAILABLE} from './../error';
 
 let _CONNECTION_IDGEN = 0;
 
@@ -291,6 +291,7 @@ class NodeChannel {
     this._error = null;
     this._handleConnectionError = this._handleConnectionError.bind(this);
     this._handleConnectionTerminated = this._handleConnectionTerminated.bind(this);
+    this._errorCode = opts.errorCode || SERVICE_UNAVAILABLE;
 
     this._encrypted = opts.encrypted;
     this._conn = connect(opts, () => {
@@ -318,14 +319,14 @@ class NodeChannel {
 
   _handleConnectionError( err ) {
     let msg = err.message || 'Failed to connect to server';
-    this._error = newError(msg, SESSION_EXPIRED);
+    this._error = newError(msg, this._errorCode);
     if( this.onerror ) {
       this.onerror(this._error);
     }
   }
 
   _handleConnectionTerminated() {
-      this._error = newError('Connection was closed by server', SESSION_EXPIRED);
+      this._error = newError('Connection was closed by server', this._errorCode);
       if( this.onerror ) {
         this.onerror(this._error);
       }

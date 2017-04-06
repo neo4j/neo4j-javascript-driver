@@ -23,7 +23,7 @@ import hasFeature from './features';
 import {Packer, Unpacker} from './packstream';
 import {alloc} from './buf';
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
-import {newError} from './../error';
+import {newError, SERVICE_UNAVAILABLE} from './../error';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -475,10 +475,11 @@ class Connection {
  * Crete new connection to the provided url.
  * @access private
  * @param {string} url - 'neo4j'-prefixed URL to Neo4j Bolt endpoint
- * @param {object} config
+ * @param {object} config - this driver configuration
+ * @param {string} errorCode - error code for errors raised on connection errors
  * @return {Connection} - New connection
  */
-function connect( url, config = {}) {
+function connect( url, config = {}, errorCode = SERVICE_UNAVAILABLE) {
   let Ch = config.channel || Channel;
   const host = parseHost(url);
   const port = parsePort(url) || 7687;
@@ -492,7 +493,8 @@ function connect( url, config = {}) {
     // Default to using TRUST_ALL_CERTIFICATES if it is available
     trust : config.trust || (hasFeature("trust_all_certificates") ? "TRUST_ALL_CERTIFICATES" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
     trustedCertificates : config.trustedCertificates || [],
-    knownHosts : config.knownHosts
+    knownHosts : config.knownHosts,
+    errorCode: errorCode
   }), completeUrl);
 }
 

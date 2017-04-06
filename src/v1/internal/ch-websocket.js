@@ -18,8 +18,8 @@
  */
 
 import {HeapBuffer} from './buf';
-import {newError} from './../error';
-import {ENCRYPTION_ON, ENCRYPTION_OFF} from './util';
+import {newError, SERVICE_UNAVAILABLE} from './../error';
+import {ENCRYPTION_OFF, ENCRYPTION_ON} from './util';
 
 /**
  * Create a new WebSocketChannel to be used in web browsers.
@@ -39,6 +39,7 @@ class WebSocketChannel {
     this._pending = [];
     this._error = null;
     this._handleConnectionError = this._handleConnectionError.bind(this);
+    this._errorCode = opts.errorCode || SERVICE_UNAVAILABLE;
 
     this._encrypted = opts.encrypted;
 
@@ -95,7 +96,7 @@ class WebSocketChannel {
         "the root cause of the failure. Common reasons include the database being " +
         "unavailable, using the wrong connection URL or temporary network problems. " +
         "If you have enabled encryption, ensure your browser is configured to trust the " +
-        "certificate Neo4j is configured to use. WebSocket `readyState` is: " + this._ws.readyState );
+        "certificate Neo4j is configured to use. WebSocket `readyState` is: " + this._ws.readyState, this._errorCode );
       if (this.onerror) {
         this.onerror(this._error);
       }

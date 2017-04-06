@@ -245,6 +245,31 @@ describe('direct driver', () => {
       });
     });
   });
+
+  it('should throw service unavailable when server dies', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const server = kit.start('./test/resources/boltkit/dead_read_server.script', 9001);
+
+    kit.run(() => {
+      const driver = createDriver();
+      const session = driver.session();
+      session.run('MATCH (n) RETURN n.name').catch(error => {
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+
+        driver.close();
+        server.exit(code => {
+          expect(code).toEqual(0);
+          done();
+        });
+      });
+    });
+  });
+
 });
 
 function createDriver() {

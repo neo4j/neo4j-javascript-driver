@@ -68,7 +68,7 @@ class Driver {
    */
   _createConnection(url, release) {
     let sessionId = this._sessionIdGenerator++;
-    let conn = connect(url, this._config);
+    let conn = connect(url, this._config, this._connectionErrorCode());
     let streamObserver = new _ConnectionStreamObserver(this, conn);
     conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
@@ -126,14 +126,20 @@ class Driver {
     return mode;
   }
 
-  //Extension point
+  // Extension point
   _createConnectionProvider(address, connectionPool, driverOnErrorCallback) {
     return new DirectConnectionProvider(address, connectionPool, driverOnErrorCallback);
   }
 
-  //Extension point
+  // Extension point
   _createSession(mode, connectionProvider, bookmark, config) {
     return new Session(mode, connectionProvider, bookmark, config);
+  }
+
+  // Extension point
+  _connectionErrorCode() {
+    // connection errors might result in different error codes depending on the driver
+    return SERVICE_UNAVAILABLE;
   }
 
   _driverOnErrorCallback(error) {

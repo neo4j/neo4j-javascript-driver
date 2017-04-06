@@ -996,6 +996,30 @@ describe('LoadBalancer', () => {
     });
   });
 
+  it('throws service unavailable when refreshed routing table has no readers', done => {
+    const pool = newPool();
+    const updatedRoutingTable = newRoutingTable(
+      ['server-A', 'server-B'],
+      [],
+      ['server-C', 'server-D']
+    );
+    const loadBalancer = newLoadBalancer(
+      ['server-1', 'server-2'],
+      ['server-3', 'server-4'],
+      ['server-5', 'server-6'],
+      pool,
+      int(0), // expired routing table
+      {
+        'server-1': updatedRoutingTable,
+      }
+    );
+
+    loadBalancer.acquireConnection(READ).catch(error => {
+      expect(error.code).toEqual(SERVICE_UNAVAILABLE);
+      done();
+    });
+  });
+
 });
 
 function newDirectConnectionProvider(address, pool) {

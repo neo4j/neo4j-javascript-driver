@@ -50,9 +50,10 @@ describe('driver', () => {
     driver = neo4j.driver("bolt://localhoste", neo4j.auth.basic("neo4j", "neo4j"));
 
     // Expect
-    driver.onError = err => {
+    driver.onError = error => {
       //the error message is different whether in browser or node
-      expect(err.message).not.toBeNull();
+      expect(error.message).not.toBeNull();
+      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
       done();
     };
 
