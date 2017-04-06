@@ -63,39 +63,45 @@ driver.close();
 
 ## Usage examples
 
+Driver creation:
 ```javascript
-
 // Create a driver instance, for the user neo4j with password neo4j.
 // It should be enough to have a single driver per database per application.
 var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
 // Register a callback to know if driver creation was successful:
-driver.onCompleted = function() {
+driver.onCompleted = function () {
   // proceed with using the driver, it was successfully instantiated
 };
 
 // Register a callback to know if driver creation failed.
 // This could happen due to wrong credentials or database unavailability:
-driver.onError = function(error) {
+driver.onError = function (error) {
   console.log('Driver instantiation failed', error);
 };
 
+// Close the driver when application exits.
+// This closes all used network connections.
+driver.close();
+```
+
+Session API:
+```javascript
 // Create a session to run Cypher statements in.
 // Note: Always make sure to close sessions when you are done using them!
 var session = driver.session();
 
 // Run a Cypher statement, reading the result in a streaming manner as records arrive:
 session
-  .run("MERGE (alice:Person {name : {nameParam} }) RETURN alice.name", { nameParam:'Alice' })
+  .run('MERGE (alice:Person {name : {nameParam} }) RETURN alice.name AS name', {nameParam: 'Alice'})
   .subscribe({
-    onNext: function(record) {
-     console.log(record._fields);
+    onNext: function (record) {
+      console.log(record.get('name'));
     },
-    onCompleted: function() {
-      // Completed!
+    onCompleted: function () {
       session.close();
     },
-    onError: function(error) {
+    onError: function (error) {
       console.log(error);
     }
   });
@@ -103,55 +109,102 @@ session
 // or
 // the Promise way, where the complete result is collected before we act on it:
 session
-  .run("MERGE (james:Person {name : {nameParam} }) RETURN james.name", { nameParam:'James' })
-  .then(function(result){
-    result.records.forEach(function(record) {
-      console.log(record._fields);
+  .run('MERGE (james:Person {name : {nameParam} }) RETURN james.name AS name', {nameParam: 'James'})
+  .then(function (result) {
+    result.records.forEach(function (record) {
+      console.log(record.get('name'));
     });
-    // Completed!
     session.close();
   })
-  .catch(function(error) {
+  .catch(function (error) {
     console.log(error);
   });
+```
 
-//run statement in a transaction
+Transaction functions API:
+```javascript
+// Transaction functions provide a convenient API with minimal boilerplate and
+// retries on network fluctuations and transient errors. Maximum retry time is
+// configured on the driver level and is 30 seconds by default:
+neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {maxTransactionRetryTime: 30000});
+
+// It is possible to execute read transactions that will benefit from automatic
+// retries on both single instance ('bolt' URI scheme) and Causal Cluster
+// ('bolt+routing' URI scheme) and will get automatic load balancing in cluster deployments
+var readTxResultPromise = session.readTransaction(function (transaction) {
+  // used transaction will be committed automatically, no need for explicit commit/rollback
+
+  var result = transaction.run('MATCH (person:Person) RETURN person.name AS name');
+  // at this point it is possible to either return the result or process it and return the
+  // result of processing it is also possible to run more statements in the same transaction
+  return result;
+});
+
+// returned Promise can be later consumed like this:
+readTxResultPromise.then(function (result) {
+  session.close();
+  console.log(result.records);
+}).catch(function (error) {
+  console.log(error);
+});
+
+// It is possible to execute write transactions that will benefit from automatic retries
+// on both single instance ('bolt' URI scheme) and Causal Cluster ('bolt+routing' URI scheme)
+var writeTxResultPromise = session.writeTransaction(function (transaction) {
+  // used transaction will be committed automatically, no need for explicit commit/rollback
+
+  var result = transaction.run('MERGE (alice:Person {name : \'Alice\' }) RETURN alice.name AS name');
+  // at this point it is possible to either return the result or process it and return the
+  // result of processing it is also possible to run more statements in the same transaction
+  return result.records.map(function (record) {
+    return record.get('name');
+  });
+});
+
+// returned Promise can be later consumed like this:
+writeTxResultPromise.then(function (namesArray) {
+  session.close();
+  console.log(namesArray);
+}).catch(function (error) {
+  console.log(error);
+});
+```
+
+Explicit transactions API:
+```javascript
+// run statement in a transaction
 var tx = session.beginTransaction();
-tx.run("MERGE (bob:Person {name : {nameParam} }) RETURN bob.name", { nameParam:'Bob' })
+tx.run("MERGE (bob:Person {name : {nameParam} }) RETURN bob.name AS name", {nameParam: 'Bob'})
   .subscribe({
-    onNext: function(record) {
-      console.log(record._fields);
-      },
-    onCompleted: function() {
-      // Completed!
+    onNext: function (record) {
+      console.log(record.get('name'));
+    },
+    onCompleted: function () {
       session.close();
     },
-    onError: function(error) {
+    onError: function (error) {
       console.log(error);
     }
   });
-  
+
 //decide if the transaction should be committed or rolled back
 var success = false;
 
 if (success) {
   tx.commit()
     .subscribe({
-      onCompleted: function() {
-        // Completed!
+      onCompleted: function () {
+        // this transaction is now committed 
       },
-      onError: function(error) {
+      onError: function (error) {
         console.log(error);
-        }
-      });
-  } else {
+      }
+    });
+} else {
   //transaction is rolled black and nothing is created in the database
   console.log('rolled back');
   tx.rollback();
 }
-
-// Close the driver when application exits
-driver.close();
 ```
 
 Subscriber API allows following combinations of `onNext`, `onCompleted` and `onError` callback invocations:
