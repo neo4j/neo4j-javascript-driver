@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../error';
+import {newError, SERVICE_UNAVAILABLE} from '../error';
 import {READ, WRITE} from '../driver';
 import Session from '../session';
 import RoundRobinArray from './round-robin-array';
@@ -96,7 +96,7 @@ export class LoadBalancer extends ConnectionProvider {
   _acquireConnectionToServer(serversRoundRobinArray, serverName) {
     const address = serversRoundRobinArray.next();
     if (!address) {
-      return Promise.reject(newError('No ' + serverName + ' servers available', SESSION_EXPIRED));
+      return Promise.reject(newError('No ' + serverName + ' servers available', SERVICE_UNAVAILABLE));
     }
     return this._connectionPool.acquire(address);
   }

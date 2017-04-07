@@ -26,16 +26,24 @@ const observer = {
 };
 
 class DummyChannel {
-  constructor(opts) {
+
+  /**
+   * @constructor
+   * @param {ChannelConfig} config - configuration for the new channel.
+   */
+  constructor(config) {
     this.written = [];
   }
+
   isEncrypted() {
     return false;
   }
+
   write( buf ) {
     this.written.push(buf);
     observer.updateInstance(this);
   }
+
   toHex() {
     var out = "";
     for( var i=0; i<this.written.length; i++ ) {
@@ -43,6 +51,7 @@ class DummyChannel {
     }
     return out;
   }
+
   toBuffer () {
     return new CombinedBuffer( this.written );
   }

@@ -19,7 +19,7 @@
 
 import Session from './session';
 import {Driver} from './driver';
-import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from './error';
+import {newError, SESSION_EXPIRED} from './error';
 import {LoadBalancer} from './internal/connection-providers';
 
 /**
@@ -37,13 +37,10 @@ class RoutingDriver extends Driver {
 
   _createSession(mode, connectionProvider, bookmark, config) {
     return new RoutingSession(mode, connectionProvider, bookmark, config, (error, conn) => {
-      if (error.code === SERVICE_UNAVAILABLE || error.code === SESSION_EXPIRED) {
-        // connection is undefined if error happened before connection was acquired
-        if (conn) {
-          this._connectionProvider.forget(conn.url);
-        }
+      if (error.code === SESSION_EXPIRED) {
+        this._forgetConnection(conn);
         return error;
-      } else if (error.code === 'Neo.ClientError.Cluster.NotALeader') {
+      } else if (RoutingDriver._isFailureToWrite(error)) {
         let url = 'UNKNOWN';
         // connection is undefined if error happened before connection was acquired
         if (conn) {
@@ -57,11 +54,29 @@ class RoutingDriver extends Driver {
     });
   }
 
+  _connectionErrorCode() {
+    // connection errors mean SERVICE_UNAVAILABLE for direct driver but for routing driver they should only
+    // result in SESSION_EXPIRED because there might still exist other servers capable of serving the request
+    return SESSION_EXPIRED;
+  }
+
+  _forgetConnection(connection) {
+    // connection is undefined if error happened before connection was acquired
+    if (connection) {
+      this._connectionProvider.forget(connection.url);
+    }
+  }
+
   static _validateConfig(config) {
     if(config.trust === 'TRUST_ON_FIRST_USE') {
       throw newError('The chosen trust mode is not compatible with a routing driver');
     }
     return config;
+  }
+
+  static _isFailureToWrite(error) {
+    return error.code === 'Neo.ClientError.Cluster.NotALeader' ||
+      error.code === 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase';
   }
 }
 

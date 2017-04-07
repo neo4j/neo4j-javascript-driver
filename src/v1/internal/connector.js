@@ -19,11 +19,11 @@
 import WebSocketChannel from './ch-websocket';
 import NodeChannel from './ch-node';
 import {Chunker, Dechunker} from './chunking';
-import hasFeature from './features';
 import {Packer, Unpacker} from './packstream';
 import {alloc} from './buf';
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
 import {newError} from './../error';
+import ChannelConfig from './ch-config';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -475,25 +475,18 @@ class Connection {
  * Crete new connection to the provided url.
  * @access private
  * @param {string} url - 'neo4j'-prefixed URL to Neo4j Bolt endpoint
- * @param {object} config
+ * @param {object} config - this driver configuration
+ * @param {string=null} connectionErrorCode - error code for errors raised on connection errors
  * @return {Connection} - New connection
  */
-function connect( url, config = {}) {
-  let Ch = config.channel || Channel;
+function connect(url, config = {}, connectionErrorCode = null) {
+  const Ch = config.channel || Channel;
   const host = parseHost(url);
   const port = parsePort(url) || 7687;
   const completeUrl = host + ':' + port;
+  const channelConfig = new ChannelConfig(host, port, config, connectionErrorCode);
 
-  return new Connection( new Ch({
-    host: parseHost(url),
-    port: parsePort(url) || 7687,
-    // Default to using encryption if trust-on-first-use is available
-    encrypted : (config.encrypted == null) ?  hasFeature("trust_all_certificates") : config.encrypted,
-    // Default to using TRUST_ALL_CERTIFICATES if it is available
-    trust : config.trust || (hasFeature("trust_all_certificates") ? "TRUST_ALL_CERTIFICATES" : "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES"),
-    trustedCertificates : config.trustedCertificates || [],
-    knownHosts : config.knownHosts
-  }), completeUrl);
+  return new Connection( new Ch(channelConfig), completeUrl);
 }
 
 export {
