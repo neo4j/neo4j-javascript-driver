@@ -34,11 +34,15 @@ describe('examples', () => {
   let testResultPromise;
   let resolveTestResultPromise;
 
+  const user = 'neo4j';
+  const password = 'neo4j';
+  const uri = 'bolt://localhost:7687';
+
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
-    driverGlobal = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic('neo4j', 'neo4j'));
+    driverGlobal = neo4j.driver(uri, neo4j.auth.basic('neo4j', 'neo4j'));
   });
 
   beforeEach(done => {
@@ -89,11 +93,8 @@ describe('examples', () => {
   });
 
   it('basic auth example', done => {
-    const user = 'neo4j';
-    const password = 'neo4j';
-
     // tag::basic-auth[]
-    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password));
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
     // end::basic-auth[]
 
     driver.onCompleted = () => {
@@ -107,12 +108,9 @@ describe('examples', () => {
   });
 
   it('config max retry time example', done => {
-    const user = 'neo4j';
-    const password = 'neo4j';
-
     // tag::config-max-retry-time[]
     const maxRetryTimeMs = 15 * 1000; // 15 seconds
-    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password),
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
       {
         maxTransactionRetryTime: maxRetryTimeMs
       }
@@ -130,11 +128,8 @@ describe('examples', () => {
   });
 
   it('config trust example', done => {
-    const user = 'neo4j';
-    const password = 'neo4j';
-
     // tag::config-trust[]
-    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password),
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
       {
         encrypted: 'ENCRYPTION_ON',
         trust: 'TRUST_ALL_CERTIFICATES'
@@ -158,11 +153,8 @@ describe('examples', () => {
   });
 
   it('config unencrypted example', done => {
-    const user = 'neo4j';
-    const password = 'neo4j';
-
     // tag::config-unencrypted[]
-    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password),
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
       {
         encrypted: 'ENCRYPTION_OFF'
       }
@@ -179,21 +171,25 @@ describe('examples', () => {
     });
   });
 
-  it('custom auth example', () => {
-    const principal = 'principal';
-    const credentials = 'credentials';
-    const realm = 'realm';
-    const scheme = 'scheme';
+  it('custom auth example', done => {
+    const principal = user;
+    const credentials = password;
+    const realm = undefined;
+    const scheme = 'basic';
     const parameters = {};
 
     // tag::custom-auth[]
-    const driver = neo4j.driver(
-      'bolt://localhost:7687',
-      neo4j.auth.custom(principal, credentials, realm, scheme, parameters)
-    );
+    const driver = neo4j.driver(uri, neo4j.auth.custom(principal, credentials, realm, scheme, parameters));
     // end::custom-auth[]
 
-    expect(driver).toBeDefined();
+    driver.onCompleted = () => {
+      done();
+    };
+
+    const session = driver.session();
+    session.run('RETURN 1').then(() => {
+      session.close();
+    });
   });
 
   it('cypher error example', done => {
@@ -221,11 +217,8 @@ describe('examples', () => {
   });
 
   it('driver lifecycle example', done => {
-    const user = 'neo4j';
-    const password = 'neo4j';
-
     // tag::driver-lifecycle[]
-    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password));
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
 
     driver.onCompleted = metadata => {
       console.log('Driver created');
@@ -251,11 +244,8 @@ describe('examples', () => {
   });
 
   it('hello world example', done => {
-    const user = 'neo4j';
-    const password = 'neo4j';
-
     // tag::hello-world[]
-    const driver = neo4j.driver('bolt://localhost:7687', neo4j.auth.basic(user, password));
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
     const session = driver.session();
 
     const resultPromise = session.writeTransaction(tx => tx.run(
@@ -395,11 +385,11 @@ describe('examples', () => {
   });
 
   it('service unavailable example', done => {
-    const user = 'neo4j';
+    const uri = 'bolt://localhost:7688'; // wrong port
     const password = 'wrongPassword';
 
     // tag::service-unavailable[]
-    const driver = neo4j.driver('bolt://localhost:7688', neo4j.auth.basic(user, password), {maxTransactionRetryTime: 3000});
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {maxTransactionRetryTime: 3000});
     const session = driver.session();
 
     const writeTxPromise = session.writeTransaction(tx => tx.run('CREATE (a:Item)'));
