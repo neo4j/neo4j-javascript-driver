@@ -208,10 +208,10 @@ describe('examples', () => {
     // end::cypher-error[]
 
     testResultPromise.then(loggedMsg => {
-      expect(loggedMsg).toBe(
+      expect(removeLineBreaks(loggedMsg)).toBe(removeLineBreaks(
         'Invalid input \'L\': expected \'t/T\' (line 1, column 3 (offset: 2))\n' +
         '"SELECT * FROM Employees WHERE name = $name"\n' +
-        '   ^');
+        '   ^'));
       done();
     });
   });
@@ -450,3 +450,7 @@ describe('examples', () => {
     });
   });
 });
+
+function removeLineBreaks(string) {
+  return string.replace(/(\r\n|\n|\r)/gm, ' ');
+}
