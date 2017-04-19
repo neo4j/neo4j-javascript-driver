@@ -50,7 +50,7 @@ We build a special browser version of the driver, which supports connecting to N
 This will make a global `neo4j` object available, where you can access the `v1` API at `neo4j.v1`:
 
 ```javascript
-var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("username", "password"));
 ```
 
 It is not required to explicitly close the driver on a web page. Web browser should gracefully close all open 
@@ -67,7 +67,7 @@ Driver creation:
 ```javascript
 // Create a driver instance, for the user neo4j with password neo4j.
 // It should be enough to have a single driver per database per application.
-var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("username", "password"));
 
 // Register a callback to know if driver creation was successful:
 driver.onCompleted = function () {
@@ -126,7 +126,7 @@ Transaction functions API:
 // Transaction functions provide a convenient API with minimal boilerplate and
 // retries on network fluctuations and transient errors. Maximum retry time is
 // configured on the driver level and is 30 seconds by default:
-neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {maxTransactionRetryTime: 30000});
+neo4j.driver("bolt://localhost", neo4j.auth.basic("username", "password"), {maxTransactionRetryTime: 30000});
 
 // It is possible to execute read transactions that will benefit from automatic
 // retries on both single instance ('bolt' URI scheme) and Causal Cluster

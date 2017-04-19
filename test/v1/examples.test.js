@@ -18,6 +18,7 @@
  */
 
 import neo4j from '../../src/v1';
+import sharedNeo4j from '../internal/shared-neo4j';
 
 /**
 * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
@@ -34,15 +35,15 @@ describe('examples', () => {
   let testResultPromise;
   let resolveTestResultPromise;
 
-  const user = 'neo4j';
-  const password = 'neo4j';
+  const user = sharedNeo4j.username;
+  const password = sharedNeo4j.password;
   const uri = 'bolt://localhost:7687';
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
-    driverGlobal = neo4j.driver(uri, neo4j.auth.basic('neo4j', 'neo4j'));
+    driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken);
   });
 
   beforeEach(done => {

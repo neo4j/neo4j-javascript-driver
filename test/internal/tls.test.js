@@ -21,6 +21,7 @@ var neo4j = require("../../lib/v1");
 var fs = require("fs");
 var path = require('path');
 var hasFeature = require("../../lib/v1/internal/features").default;
+var sharedNeo4j = require("../internal/shared-neo4j").default;
 
 describe('trust-signed-certificates', function() {
 
@@ -37,7 +38,7 @@ describe('trust-signed-certificates', function() {
     }
 
     // Given
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
       trust: "TRUST_SIGNED_CERTIFICATES",
       trustedCertificates: ["test/resources/random.certificate"]
@@ -58,10 +59,10 @@ describe('trust-signed-certificates', function() {
     }
 
     // Given
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
       trust: "TRUST_SIGNED_CERTIFICATES",
-      trustedCertificates: ["build/neo4j/certificates/neo4j.cert"]
+      trustedCertificates: [neo4jCertPath()]
     });
 
     // When
@@ -76,10 +77,10 @@ describe('trust-signed-certificates', function() {
     }
 
     // Given
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
       trust: "TRUST_SIGNED_CERTIFICATES",
-      trustedCertificates: ["build/neo4j/certificates/neo4j.cert", "build/neo4j/certificates/neo4j.cert"]
+      trustedCertificates: [neo4jCertPath(), neo4jCertPath()]
     });
 
     // When
@@ -105,7 +106,7 @@ describe('trust-all-certificates', function () {
     }
 
     // Given
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
       trust: "TRUST_ALL_CERTIFICATES"
     });
@@ -135,7 +136,7 @@ describe('trust-custom-ca-signed-certificates', function() {
     }
 
     // Given
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
       trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
       trustedCertificates: ["test/resources/random.certificate"]
@@ -156,10 +157,10 @@ describe('trust-custom-ca-signed-certificates', function() {
     }
 
     // Given
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
       trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
-      trustedCertificates: ["build/neo4j/certificates/neo4j.cert"]
+      trustedCertificates: [neo4jCertPath()]
     });
 
     // When
@@ -185,7 +186,7 @@ describe('trust-system-ca-signed-certificates', function() {
     }
 
     // Given
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
       trust: "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES"
     });
@@ -229,7 +230,7 @@ describe('trust-on-first-use', function() {
       fs.rmdirSync(knownHostsDir);
     } catch (_) { }
 
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
@@ -263,7 +264,7 @@ describe('trust-on-first-use', function() {
       fs.unlinkSync(knownHostsPath);
     }
 
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
@@ -302,7 +303,7 @@ describe('trust-on-first-use', function() {
       fs.unlinkSync(knownHostsPath);
     }
 
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
@@ -331,7 +332,7 @@ describe('trust-on-first-use', function() {
     }
     fs.writeFileSync(knownHostsPath, '');
 
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
@@ -381,7 +382,7 @@ describe('trust-on-first-use', function() {
     // Given
     var knownHostsPath = "test/resources/random_known_hosts";
 
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: knownHostsPath
@@ -411,4 +412,8 @@ function muteConsoleLog() {
 
 function unMuteConsoleLog(originalLog) {
   console.log = originalLog;
+}
+
+function neo4jCertPath() {
+  return sharedNeo4j.neo4jCertPath(path.join('build', 'neo4j'));
 }
