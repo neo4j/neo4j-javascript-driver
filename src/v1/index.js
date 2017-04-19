@@ -38,6 +38,9 @@ const auth ={
       return {scheme: "basic", principal: username, credentials: password};
     }
   },
+    kerberos:(base64EncodedTicket)=> {
+    return {scheme:"kerberos", credentials: base64EncodedTicket};
+    },
     custom: (principal, credentials, realm, scheme, parameters = undefined ) => {
     if (parameters) {
       return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm,
