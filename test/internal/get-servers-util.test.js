@@ -245,9 +245,10 @@ describe('get-servers-util', () => {
 
   class FakeSession {
 
-    constructor(runResponse) {
-      this._runResponse = runResponse;
+    constructor(runResponses) {
+      this._runResponses = runResponses;
       this._closed = false;
+      this._runCounter = 0;
     }
 
     static successful(result) {
@@ -259,7 +260,7 @@ describe('get-servers-util', () => {
     }
 
     run() {
-      return this._runResponse;
+      return this._runResponses[this._runCounter ++];
     }
 
     close() {

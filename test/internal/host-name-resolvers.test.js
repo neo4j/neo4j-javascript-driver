@@ -19,7 +19,38 @@
 
 import {DnsHostNameResolver, DummyHostNameResolver} from '../../src/v1/internal/host-name-resolvers';
 import hasFeature from '../../src/v1/internal/features';
-import {parseHost, parsePort, parseScheme} from '../../src/v1/internal/connector';
+import {parseHost, parsePort, parseScheme, parseRoutingContext} from '../../src/v1/internal/connector';
+
+describe('RoutingContextParser', ()=>{
+
+  it('should parse routing context', done => {
+    const url = "bolt://localhost:7687/cat?name=molly&age=1&color=white";
+    const context = parseRoutingContext(url);
+    expect(context).toEqual({name:"molly", age:"1", color:"white"});
+
+    done();
+  });
+
+  it('should return empty routing context', done =>{
+    const url1 = "bolt://localhost:7687/cat?";
+    const context1 = parseRoutingContext(url1);
+    expect(context1).toEqual({});
+
+    const url2 = "bolt://localhost:7687/lalala";
+    const context2 = parseRoutingContext(url2);
+    expect(context2).toEqual({});
+
+    done();
+  });
+
+  it('should error for unmatched pair', done=>{
+    const url = "bolt://localhost?cat";
+    expect(()=>parseRoutingContext(url)).toThrow(
+      new Error("Invalid parameters: 'cat' in url 'bolt://localhost?cat'."));
+
+    done();
+  });
+});
 
 describe('DummyHostNameResolver', () => {
 

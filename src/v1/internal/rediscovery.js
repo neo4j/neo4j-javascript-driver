@@ -24,7 +24,7 @@ import {newError, PROTOCOL_ERROR} from "../error";
 export default class Rediscovery {
 
   constructor(getServersUtil) {
-    this._getServersUtil = getServersUtil || new GetServersUtil();
+    this._getServersUtil = getServersUtil;
   }
 
   lookupRoutingTableOnRouter(session, routerAddress) {
