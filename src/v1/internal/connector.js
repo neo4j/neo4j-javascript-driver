@@ -60,10 +60,12 @@ MAGIC_PREAMBLE = 0x6060B017,
 DEBUG = false;
 
 let URLREGEX = new RegExp([
-  "([^/]+//)?",          // scheme
+  "([^/]+//)?",       // scheme
   "(([^:/?#]*)",      // hostname
   "(?::([0-9]+))?)",  // port (optional)
-  ".*"].join(""));     // everything else
+  "([^?]*)?",         // everything else
+  "(\\?(.+))?"        // query
+].join(""));
 
 function parseScheme( url ) {
   let scheme = url.match(URLREGEX)[1] || '';
@@ -80,6 +82,21 @@ function parseHost( url ) {
 
 function parsePort( url ) {
   return url.match( URLREGEX )[4];
+}
+
+function parseRoutingContext(url) {
+  const query = url.match(URLREGEX)[7] || '';
+  const map = {};
+  if (query.length !== 0) {
+    query.split("&").forEach(val => {
+      const keyValue = val.split("=");
+      if (keyValue.length !== 2) {
+        throw new Error("Invalid parameters: '" + keyValue + "' in url '" + url + "'.");
+      }
+      map[keyValue[0]] = keyValue[1];
+    });
+  }
+  return map;
 }
 
 /**
@@ -495,5 +512,6 @@ export {
     parseUrl,
     parseHost,
     parsePort,
+    parseRoutingContext,
     Connection
 }

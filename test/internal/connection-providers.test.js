@@ -135,7 +135,7 @@ describe('LoadBalancer', () => {
   });
 
   it('initializes routing table with the given router', () => {
-    const loadBalancer = new LoadBalancer('server-ABC', newPool(), NO_OP_DRIVER_CALLBACK);
+    const loadBalancer = new LoadBalancer('server-ABC', {}, newPool(), NO_OP_DRIVER_CALLBACK);
 
     expectRoutingTable(loadBalancer,
       ['server-ABC'],
@@ -1040,7 +1040,7 @@ function newLoadBalancerWithSeedRouter(seedRouter, seedRouterResolved,
                                        expirationTime = Integer.MAX_VALUE,
                                        routerToRoutingTable = {},
                                        connectionPool = null) {
-  const loadBalancer = new LoadBalancer(seedRouter, connectionPool || newPool(), NO_OP_DRIVER_CALLBACK);
+  const loadBalancer = new LoadBalancer(seedRouter, {}, connectionPool || newPool(), NO_OP_DRIVER_CALLBACK);
   loadBalancer._routingTable = new RoutingTable(
     new RoundRobinArray(routers),
     new RoundRobinArray(readers),
