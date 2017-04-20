@@ -50,7 +50,7 @@ We build a special browser version of the driver, which supports connecting to N
 This will make a global `neo4j` object available, where you can access the `v1` API at `neo4j.v1`:
 
 ```javascript
-var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("username", "password"));
+var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 ```
 
 It is not required to explicitly close the driver on a web page. Web browser should gracefully close all open 
@@ -67,7 +67,7 @@ Driver creation:
 ```javascript
 // Create a driver instance, for the user neo4j with password neo4j.
 // It should be enough to have a single driver per database per application.
-var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("username", "password"));
+var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 
 // Register a callback to know if driver creation was successful:
 driver.onCompleted = function () {
@@ -126,7 +126,7 @@ Transaction functions API:
 // Transaction functions provide a convenient API with minimal boilerplate and
 // retries on network fluctuations and transient errors. Maximum retry time is
 // configured on the driver level and is 30 seconds by default:
-neo4j.driver("bolt://localhost", neo4j.auth.basic("username", "password"), {maxTransactionRetryTime: 30000});
+neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {maxTransactionRetryTime: 30000});
 
 // It is possible to execute read transactions that will benefit from automatic
 // retries on both single instance ('bolt' URI scheme) and Causal Cluster
@@ -224,10 +224,19 @@ See files under `examples/` on how to use.
 
 ## Testing
 
-    ./runTests.sh
+Tests **require** latest [Boltkit](https://github.com/neo4j-contrib/boltkit) to be installed in the system. It is needed to start, stop and configure local test database. Boltkit can be installed with the following command:
 
-This runs the test suite against a fresh download of Neo4j.
-Or `npm test` if you already have a running version of a compatible Neo4j server.
+    pip install --upgrade boltkit
+
+To run tests against "default" Neo4j version:
+
+    ./runTests.sh
+    
+To run tests against specified Neo4j version (latest enterprise 3.2 snapshot in this case):
+    
+    ./runTests.sh '-e 3.2'
+
+Simple `npm test` can also be used if you already have a running version of a compatible Neo4j server.
 
 For development, you can have the build tool rerun the tests each time you change
 the source code:
