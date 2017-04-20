@@ -233,10 +233,12 @@ gulp.task('set', function() {
 
 var neo4jHome = path.resolve('./build/neo4j');
 
-gulp.task('start-neo4j', function () {
+gulp.task('start-neo4j', function (done) {
   sharedNeo4j.start(neo4jHome, process.env.NEOCTRL_ARGS);
+  done();
 });
 
-gulp.task('stop-neo4j', function () {
+gulp.task('stop-neo4j', function (done) {
   sharedNeo4j.stop(neo4jHome);
+  done();
 });
