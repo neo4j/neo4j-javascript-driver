@@ -20,25 +20,44 @@
 import RoundRobinArray from './round-robin-array';
 import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE} from '../error';
 import Integer, {int} from '../integer';
+import {ServerVersion, VERSION3_2} from './server-version-util'
 
-const PROCEDURE_CALL = 'CALL dbms.cluster.routing.getServers';
+const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers';
+const GET_ROUTING_TABLE_PARAM = "context";
+const CALL_GET_ROUTING_TABLE = "CALL dbms.cluster.routing.getRoutingTable({"
+  + GET_ROUTING_TABLE_PARAM + "})";
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound';
 
 export default class GetServersUtil {
 
+  constructor(routingContext={}) {
+    this._routingContext = routingContext;
+  }
+
   callGetServers(session, routerAddress) {
-    return session.run(PROCEDURE_CALL).then(result => {
-      session.close();
-      return result.records;
-    }).catch(error => {
-      if (error.code === PROCEDURE_NOT_FOUND_CODE) {
-        // throw when getServers procedure not found because this is clearly a configuration issue
-        throw newError('Server ' + routerAddress + ' could not perform routing. ' +
-          'Make sure you are connecting to a causal cluster', SERVICE_UNAVAILABLE);
+    session.run("RETURN 1").then(result=>{
+      let statement = {text:CALL_GET_SERVERS};
+
+      if(ServerVersion.fromString(result.summary.server.version).compare(VERSION3_2)>=0)
+      {
+        statement = {
+          text:CALL_GET_ROUTING_TABLE,
+          parameters:{GET_ROUTING_TABLE_PARAM: this._routingContext}};
       }
-      // return nothing when failed to connect because code higher in the callstack is still able to retry with a
-      // different session towards a different router
-      return null;
+
+      return session.run(statement).then(result => {
+        session.close();
+        return result.records;
+      }).catch(error => {
+        if (error.code === PROCEDURE_NOT_FOUND_CODE) {
+          // throw when getServers procedure not found because this is clearly a configuration issue
+          throw newError('Server ' + routerAddress + ' could not perform routing. ' +
+            'Make sure you are connecting to a causal cluster', SERVICE_UNAVAILABLE);
+        }
+        // return nothing when failed to connect because code higher in the callstack is still able to retry with a
+        // different session towards a different router
+        return null;
+      });
     });
   }
 
