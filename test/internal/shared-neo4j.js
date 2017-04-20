@@ -95,7 +95,7 @@ const password = 'password';
 const authToken = neo4j.auth.basic(username, password);
 
 const neoCtrlVersionParam = '-e';
-const defaultNeo4jVersion = '3.1.2';
+const defaultNeo4jVersion = '3.1.3';
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`;
 
 function neo4jCertPath(dir) {
@@ -237,8 +237,8 @@ class RunCommandResult {
 
   constructor(spawnResult) {
     this.successful = spawnResult.status === 0;
-    this.stdout = (spawnResult.stdout.toString() || '').trim();
-    this.stderr = (spawnResult.stderr.toString() || '').trim();
+    this.stdout = (spawnResult.stdout || '').toString().trim();
+    this.stderr = (spawnResult.stderr || '').toString().trim();
     this.fullOutput = 'STDOUT:\n\t' + this.stdout + '\n' +
       'STDERR:\n\t' + this.stderr + '\n' +
       'EXIT CODE:\n\t' + spawnResult.status + '\n' +
