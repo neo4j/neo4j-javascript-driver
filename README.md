@@ -232,9 +232,9 @@ To run tests against "default" Neo4j version:
 
     ./runTests.sh
     
-To run tests against specified Neo4j version (latest enterprise 3.2 snapshot in this case):
+To run tests against specified Neo4j version:
     
-    ./runTests.sh '-e 3.2'
+    ./runTests.sh '-e 3.1.3'
 
 Simple `npm test` can also be used if you already have a running version of a compatible Neo4j server.
 
