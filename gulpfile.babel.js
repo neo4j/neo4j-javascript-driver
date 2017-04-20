@@ -22,7 +22,6 @@ var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
 var gulp = require('gulp');
 var through = require('through2');
-var gulpif = require('gulp-if');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
 var gutil = require('gulp-util');
@@ -40,7 +39,6 @@ var decompress = require('gulp-decompress');
 var fs = require("fs-extra");
 var runSequence = require('run-sequence');
 var path = require('path');
-var childProcess = require("child_process");
 var minimist = require('minimist');
 var cucumber = require('gulp-cucumber');
 var merge = require('merge-stream');
@@ -48,6 +46,7 @@ var install = require("gulp-install");
 var os = require('os');
 var file = require('gulp-file');
 var semver = require('semver');
+var sharedNeo4j = require('./test/internal/shared-neo4j').default;
 
 gulp.task('default', ["test"]);
 
@@ -232,43 +231,12 @@ gulp.task('set', function() {
 });
 
 
-var neo4jHome  = path.resolve('./build/neo4j');
-var neorunPath = path.resolve('./neokit/neorun.py');
-var neorunStartArgsName = "--neorun.start.args"; // use this args to provide additional args for running neorun.start
+var neo4jHome = path.resolve('./build/neo4j');
 
-gulp.task('start-neo4j', function() {
-
-    var neorunStartArgs = '-p neo4j'; // default args to neorun.start: change the default password to neo4j
-    process.argv.slice(2).forEach(function (val) {
-        if(val.startsWith(neorunStartArgsName))
-        {
-            neorunStartArgs = val.split("=")[1];
-        }
-    });
-
-    neorunStartArgs = neorunStartArgs.match(/\S+/g) || '';
-
-    return runScript([
-        neorunPath, '--start=' + neo4jHome
-    ].concat( neorunStartArgs ) );
+gulp.task('start-neo4j', function () {
+  sharedNeo4j.start(neo4jHome, process.env.NEOCTRL_ARGS);
 });
 
-gulp.task('stop-neo4j', function() {
-    return runScript([
-        neorunPath, '--stop=' + neo4jHome
-    ]);
+gulp.task('stop-neo4j', function () {
+  sharedNeo4j.stop(neo4jHome);
 });
-
-var runScript = function(cmd) {
-    var spawnSync = childProcess.spawnSync, child, code;
-    child = spawnSync('python', cmd);
-    console.log("Script Outputs:\n" + child.stdout.toString());
-    var error = child.stderr.toString();
-    if (error.trim() !== "")
-        console.log("Script Errors:\n"+ error);
-    code = child.status;
-    if( code !==0 )
-    {
-        throw "Script finished with code " + code
-    }
-};

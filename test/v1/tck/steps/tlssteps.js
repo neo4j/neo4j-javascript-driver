@@ -1,5 +1,6 @@
 var neo4j = require("../../../../lib/v1");
 var util = require("./util");
+var sharedNeo4j = require("../../../internal/shared-neo4j").default;
 
 var CALLBACK_TIMEOUT = 60 * 1000;
 
@@ -124,7 +125,7 @@ module.exports = function () {
     });
 
   this.When(/^I connect via a TLS\-enabled transport$/, function (callback) {
-    this.driver1 = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), this.config);
+    this.driver1 = neo4j.driver("bolt://localhost", neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password), this.config);
     callback();
   });
 
@@ -164,7 +165,7 @@ module.exports = function () {
   });
 
   function _connectWithHostFile(hostFile) {
-    return neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {
+    return neo4j.driver("bolt://localhost", neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password), {
       trust: "TRUST_ON_FIRST_USE",
       knownHosts: hostFile,
       encrypted: "ENCRYPTION_ON"

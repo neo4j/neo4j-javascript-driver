@@ -18,6 +18,7 @@
  */
 
 var neo4j = require("../../lib/v1");
+var sharedNeo4j = require("../internal/shared-neo4j").default;
 
 describe('floating point values', function() {
   it('should support float 1.0 ', testVal( 1 ) );
@@ -66,7 +67,7 @@ describe('map values', function() {
 describe('node values', function() {
   it('should support returning nodes ', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
     var session = driver.session();
 
     // When
@@ -86,7 +87,7 @@ describe('node values', function() {
 describe('relationship values', function() {
   it('should support returning relationships', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
     var session = driver.session();
 
     // When
@@ -106,7 +107,7 @@ describe('relationship values', function() {
 describe('path values', function() {
   it('should support returning paths', function(done) {
     // Given
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
     var session = driver.session();
 
     // When
@@ -135,7 +136,7 @@ describe('path values', function() {
 
 function testVal( val, expected ) {
   return function( done ) {
-    var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    var driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
     var session = driver.session();
 
     session.run("RETURN {val} as v", {val: val})

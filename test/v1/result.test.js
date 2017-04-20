@@ -17,46 +17,45 @@
  * limitations under the License.
  */
 
-var neo4j = require("../../lib/v1");
+import neo4j from '../../src/v1';
+import sharedNeo4j from '../internal/shared-neo4j';
 
-describe('result stream', function() {
+describe('result stream', () => {
 
-  var driver, session;
+  let driver, session;
 
-  beforeEach(function(done) {
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+  beforeEach(done => {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
     session = driver.session();
 
     session.run("MATCH (n) DETACH DELETE n").then(done);
   });
 
-  afterEach(function() {
+  afterEach(() => {
     driver.close();
   });
 
-  it('should allow chaining `then`, returning a new thing in each', function(done) {
+  it('should allow chaining `then`, returning a new thing in each', done => {
     // When & Then
     session.run( "RETURN 1")
-      .then( function() {
-        return "first";
-      })
-      .then( function(arg) {
+      .then(() => 'first')
+      .then(arg => {
         expect(arg).toBe( "first" );
         return "second";
       })
-      .then( function(arg) {
+      .then(arg => {
         expect(arg).toBe( "second" );
       })
       .then(done);
   });
 
-  it('should allow catching exception thrown in `then`', function(done) {
+  it('should allow catching exception thrown in `then`', done => {
     // When & Then
     session.run( "RETURN 1")
-      .then( function() {
+      .then(() => {
         throw new Error("Away with you!");
       })
-      .catch( function(err) {
+      .catch(err => {
         expect(err.message).toBe( "Away with you!" );
         done()
       });

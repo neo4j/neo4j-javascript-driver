@@ -19,6 +19,7 @@
 
 var neo4j = require("../../../../lib/v1");
 var fs = require("fs");
+var sharedNeo4j = require("../../../internal/shared-neo4j").default;
 
 module.exports = function () {
 
@@ -27,7 +28,7 @@ module.exports = function () {
   var failedScenarios = [];
 
   this.registerHandler("BeforeFeatures", function(event, next) {
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password));
 
     return next()
   });

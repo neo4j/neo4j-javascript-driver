@@ -20,6 +20,7 @@
 import neo4j from '../../lib/v1';
 import {READ, WRITE} from '../../lib/v1/driver';
 import boltkit from './boltkit';
+import sharedNeo4j from '../internal/shared-neo4j';
 
 describe('direct driver', () => {
 
@@ -277,5 +278,5 @@ function createDriver() {
   const config = {
     encrypted: 'ENCRYPTION_OFF'
   };
-  return neo4j.driver('bolt://localhost:9001', neo4j.auth.basic('neo4j', 'neo4j'), config);
+  return neo4j.driver('bolt://localhost:9001', sharedNeo4j.authToken, config);
 }
