@@ -16,7 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import neo4j from '../../lib/v1';
+import neo4j from '../../src/v1';
+import sharedNeo4j from '../internal/shared-neo4j';
 
 describe('transaction', () => {
 
@@ -30,7 +31,7 @@ describe('transaction', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
     driver.onCompleted = meta => {
       server = meta['server'];
     };

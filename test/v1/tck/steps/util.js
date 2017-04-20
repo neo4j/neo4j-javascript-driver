@@ -18,6 +18,7 @@
  */
 
 var neo4j = require("../../../../lib/v1");
+var sharedNeo4j = require("../../../internal/shared-neo4j").default;
 
 const INT = 'integer';
 const FLOAT = 'float';
@@ -28,12 +29,12 @@ const RELATIONSHIP = 'relationship';
 const NODE = 'node';
 const PATH = 'path';
 
-var neorunPath = './neokit/neorun.py';
-var neo4jHome = './build/neo4j';
-var neo4jCert = neo4jHome + '/certificates/neo4j.cert';
-var neo4jKey = neo4jHome + '/certificates/neo4j.key';
-var childProcess = require("child_process");
 var fs = require('fs');
+var path = require('path');
+
+var neo4jHome = path.join('build', 'neo4j');
+var neo4jCert = sharedNeo4j.neo4jCertPath(neo4jHome);
+var neo4jKey = sharedNeo4j.neo4jKeyPath(neo4jHome);
 
 function literalTableToTestObject(literalResults) {
   var resultValues = [];
@@ -343,34 +344,8 @@ function changeCertificates(keyFile, certFile) {
 }
 
 function restart() {
-  stopDatabase();
-  startDatabase();
+  sharedNeo4j.restart(neo4jHome);
 }
-
-function startDatabase() {
-  return runScript([
-    neorunPath, '--start=' + neo4jHome
-  ]);
-}
-
-function stopDatabase() {
-  return runScript([
-    neorunPath, '--stop=' + neo4jHome
-  ]);
-}
-
-var runScript = function(cmd) {
-  var spawnSync = childProcess.spawnSync, child, code;
-  child = spawnSync('python', cmd);
-  var error = child.stderr.toString();
-  if (error.trim() !== "")
-    console.log("Script Errors:\n"+ error);
-  code = child.status;
-  if( code !==0 )
-  {
-    throw "Script finished with code " + code
-  }
-};
 
 module.exports = {
   literalTableToTestObject: literalTableToTestObject,

@@ -19,17 +19,15 @@
 
 var neo4j = require("../../../../lib/v1");
 var util = require("./util");
+var sharedNeo4j = require("../../../internal/shared-neo4j").default;
 
 module.exports = function () {
-
-  var username = "user";
-  var password = "password";
 
   this.Given(/^a driver is configured with auth enabled and correct password is provided$/, function () {
     if (this.driver) {
       this.driver.close();
     }
-    this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+    this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password));
   });
 
   this.Then(/^reading and writing to the database should be possible$/, function (callback) {
@@ -43,7 +41,7 @@ module.exports = function () {
     if (this.driver) {
       this.driver.close();
     }
-    this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "wrong"));
+    this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic(sharedNeo4j.username, "wrong"));
     this.driver.session();
   });
 

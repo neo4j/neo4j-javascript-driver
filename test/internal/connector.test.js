@@ -23,6 +23,7 @@ import {Packer} from '../../src/v1/internal/packstream';
 import {Chunker} from '../../src/v1/internal/chunking';
 import {alloc} from '../../src/v1/internal/buf';
 import {Neo4jError} from '../../src/v1/error';
+import sharedNeo4j from '../internal/shared-neo4j';
 
 describe('connector', () => {
 
@@ -31,7 +32,7 @@ describe('connector', () => {
     const conn = connect("bolt://localhost");
 
     // When
-    conn.initialize("mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"}, {
+    conn.initialize("mydriver/0.0.0", basicAuthToken(), {
       onCompleted: msg => {
         expect(msg).not.toBeNull();
         conn.close();
@@ -49,7 +50,7 @@ describe('connector', () => {
 
     // When
     const records = [];
-    conn.initialize("mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"});
+    conn.initialize("mydriver/0.0.0", basicAuthToken());
     conn.run("RETURN 1.0", {});
     conn.pullAll({
       onNext: record => {
@@ -70,10 +71,10 @@ describe('connector', () => {
     const conn = connect("bolt://localhost", {channel: DummyChannel.channel});
 
     // When
-    conn.initialize("mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"});
+    conn.initialize("mydriver/0.0.0", basicAuthToken());
     conn.run("RETURN 1", {});
     conn.sync();
-    expect(observer.instance.toHex()).toBe('60 60 b0 17 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 41 b2 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 a3 86 73 63 68 65 6d 65 85 62 61 73 69 63 89 70 72 69 6e 63 69 70 61 6c 85 6e 65 6f 34 6a 8b 63 72 65 64 65 6e 74 69 61 6c 73 85 6e 65 6f 34 6a 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ');
+    expect(observer.instance.toHex()).toBe('60 60 b0 17 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 44 b2 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 a3 86 73 63 68 65 6d 65 85 62 61 73 69 63 89 70 72 69 6e 63 69 70 61 6c 85 6e 65 6f 34 6a 8b 63 72 65 64 65 6e 74 69 61 6c 73 88 70 61 73 73 77 6f 72 64 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ');
     done();
   });
 
@@ -82,7 +83,7 @@ describe('connector', () => {
     const conn = connect("bolt://localhost:7474", {encrypted: false});
 
     // When
-    conn.initialize("mydriver/0.0.0", {scheme: "basic", principal: "neo4j", credentials: "neo4j"}, {
+    conn.initialize("mydriver/0.0.0", basicAuthToken(), {
       onCompleted: msg => {
       },
       onError: err => {
@@ -140,6 +141,14 @@ describe('connector', () => {
     expect(() => {
       throw error;
     }).toThrow(new Neo4jError(expectedMessage, expectedCode));
+  }
+
+  function basicAuthToken() {
+    return {
+      scheme: 'basic',
+      principal: sharedNeo4j.username,
+      credentials: sharedNeo4j.password
+    };
   }
 
 });

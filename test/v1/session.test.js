@@ -23,6 +23,7 @@ import Session from '../../src/v1/session';
 import {READ} from '../../src/v1/driver';
 import {SingleConnectionProvider} from '../../src/v1/internal/connection-providers';
 import FakeConnection from '../internal/fake-connection';
+import sharedNeo4j from '../internal/shared-neo4j';
 
 describe('session', () => {
 
@@ -32,7 +33,7 @@ describe('session', () => {
   let originalTimeout;
 
   beforeEach(done => {
-    driver = neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j', 'neo4j'));
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
     driver.onCompleted = meta => {
       serverMetadata = meta['server'];
     };
@@ -104,7 +105,7 @@ describe('session', () => {
   });
 
   it('should be possible to close driver after closing session with failed tx ', done => {
-    const driver = neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j', 'neo4j'));
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
     const session = driver.session();
     const tx = session.beginTransaction();
     tx.run('INVALID QUERY').catch(() => {

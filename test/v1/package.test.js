@@ -20,6 +20,7 @@
 var path = require('path');
 var os = require('os');
 var NodeChannel = require('../../lib/v1/internal/ch-node').default;
+var sharedNeo4j = require('../../test/internal/shared-neo4j').default;
 
 describe('Package', function() {
   var driverGlobal = {close: function() {}};
@@ -41,7 +42,7 @@ describe('Package', function() {
       done.fail('Could not load sandbox package')
     }
 
-    driverGlobal = neo4jReq.v1.driver("bolt://localhost", neo4jReq.v1.auth.basic("neo4j", "neo4j"));
+    driverGlobal = neo4jReq.v1.driver("bolt://localhost", neo4jReq.v1.auth.basic(sharedNeo4j.username, sharedNeo4j.password));
     var session = driverGlobal.session();
     session.run('RETURN 1 AS answer').then(function(result) {
       expect(result.records.length).toBe(1);
