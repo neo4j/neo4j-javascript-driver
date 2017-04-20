@@ -308,7 +308,7 @@ describe('session', () => {
         expect(sum.hasPlan()).toBe(true); //When there's a profile, there's a plan
         expect(sum.hasProfile()).toBe(true);
         expect(sum.profile.operatorType).toBe('ProduceResults');
-        expect(sum.profile.arguments.runtime).toBe('INTERPRETED');
+        expect(['INTERPRETED', 'COMPILED']).toContain(sum.profile.arguments.runtime);
         expect(sum.profile.identifiers[0]).toBe('n');
         expect(sum.profile.children[0].operatorType).toBe('Filter');
         expect(sum.profile.rows).toBe(0);
