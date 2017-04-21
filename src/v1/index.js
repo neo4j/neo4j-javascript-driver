@@ -26,8 +26,7 @@ import Record from './record';
 import {Driver, READ, WRITE} from './driver';
 import RoutingDriver from './routing-driver';
 import VERSION from '../version';
-import {parseRoutingContext, parseScheme, parseUrl} from './internal/connector';
-import {assertString, isEmptyObjectOrNull} from './internal/util';
+import {assertString, isEmptyObjectOrNull, parseRoutingContext, parseScheme, parseUrl} from './internal/util';
 
 const auth = {
   basic: (username, password, realm = undefined) => {

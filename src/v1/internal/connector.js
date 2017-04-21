@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import WebSocketChannel from './ch-websocket';
 import NodeChannel from './ch-node';
 import {Chunker, Dechunker} from './chunking';
@@ -24,6 +25,7 @@ import {alloc} from './buf';
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
 import {newError} from './../error';
 import ChannelConfig from './ch-config';
+import {parseHost, parsePort} from './util';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -58,46 +60,6 @@ PATH = 0x50,
 //sent before version negotiation
 MAGIC_PREAMBLE = 0x6060B017,
 DEBUG = false;
-
-let URLREGEX = new RegExp([
-  "([^/]+//)?",       // scheme
-  "(([^:/?#]*)",      // hostname
-  "(?::([0-9]+))?)",  // port (optional)
-  "([^?]*)?",         // everything else
-  "(\\?(.+))?"        // query
-].join(""));
-
-function parseScheme( url ) {
-  let scheme = url.match(URLREGEX)[1] || '';
-  return scheme.toLowerCase();
-}
-
-function parseUrl(url) {
-  return url.match( URLREGEX )[2];
-}
-
-function parseHost( url ) {
-  return url.match( URLREGEX )[3];
-}
-
-function parsePort( url ) {
-  return url.match( URLREGEX )[4];
-}
-
-function parseRoutingContext(url) {
-  const query = url.match(URLREGEX)[7] || '';
-  const map = {};
-  if (query.length !== 0) {
-    query.split("&").forEach(val => {
-      const keyValue = val.split("=");
-      if (keyValue.length !== 2) {
-        throw new Error("Invalid parameters: '" + keyValue + "' in url '" + url + "'.");
-      }
-      map[keyValue[0]] = keyValue[1];
-    });
-  }
-  return map;
-}
 
 /**
  * Very rudimentary log handling, should probably be replaced by something proper at some point.
@@ -507,11 +469,6 @@ function connect(url, config = {}, connectionErrorCode = null) {
 }
 
 export {
-    connect,
-    parseScheme,
-    parseUrl,
-    parseHost,
-    parsePort,
-    parseRoutingContext,
-    Connection
-}
+  connect,
+  Connection
+};
