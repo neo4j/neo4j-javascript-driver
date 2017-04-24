@@ -59,28 +59,34 @@ class Session {
    * @return {Result} - New Result
    */
   run(statement, parameters = {}) {
-    if(typeof statement === 'object' && statement.text) {
+    if (typeof statement === 'object' && statement.text) {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    assertString(statement, "Cypher statement");
+    assertString(statement, 'Cypher statement');
 
+    return this._run(statement, parameters, (connection, streamObserver) =>
+      connection.run(statement, parameters, streamObserver)
+    );
+  }
+
+  _run(statement, parameters, statementRunner) {
     const streamObserver = new _RunObserver(this._onRunFailure());
     const connectionHolder = this._connectionHolderWithMode(this._mode);
     if (!this._hasTx) {
       connectionHolder.initializeConnection();
       connectionHolder.getConnection().then(connection => {
         streamObserver.resolveConnection(connection);
-        connection.run(statement, parameters, streamObserver);
+        statementRunner(connection, streamObserver);
         connection.pullAll(streamObserver);
         connection.sync();
       }).catch(error => streamObserver.onError(error));
     } else {
-      streamObserver.onError(newError("Statements cannot be run directly on a "
-       + "session with an open transaction; either run from within the "
-       + "transaction or use a different session."));
+      streamObserver.onError(newError('Statements cannot be run directly on a ' +
+        'session with an open transaction; either run from within the ' +
+        'transaction or use a different session.'));
     }
-    return new Result( streamObserver, statement, parameters, () => streamObserver.meta(), connectionHolder );
+    return new Result(streamObserver, statement, parameters, () => streamObserver.meta(), connectionHolder);
   }
 
   /**

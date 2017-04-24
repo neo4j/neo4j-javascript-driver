@@ -1549,6 +1549,87 @@ describe('routing driver', () => {
     });
   });
 
+  it('should invoke procedure get routing table when server version permits', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/get_routing_table.script', 9001);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001');
+      const session = driver.session();
+      session.run('MATCH (n) RETURN n.name AS name').then(result => {
+        const names = result.records.map(record => record.get('name'));
+        expect(names).toEqual(['Alice', 'Bob', 'Eve']);
+
+        session.close(() => {
+          driver.close();
+          router.exit(code => {
+            expect(code).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should send routing context to server', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/get_routing_table_with_context.script', 9001);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001/?policy=my_policy&region=china');
+      const session = driver.session();
+      session.run('MATCH (n) RETURN n.name AS name').then(result => {
+        const names = result.records.map(record => record.get('name'));
+        expect(names).toEqual(['Alice', 'Bob']);
+
+        session.close(() => {
+          driver.close();
+          router.exit(code => {
+            expect(code).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should ignore routing context when server does not support it', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/rediscover_and_read_with_init.script', 9001);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9001/?policy=my_policy');
+      const session = driver.session();
+      session.run('MATCH (n) RETURN n.name').then(result => {
+        const names = result.records.map(record => record.get(0));
+        expect(names).toEqual(['Bob', 'Tina']);
+
+        session.close(() => {
+          driver.close();
+          router.exit(code => {
+            expect(code).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
   function moveNextDateNow30SecondsForward() {
     const currentTime = Date.now();
     hijackNextDateNowCall(currentTime + 30 * 1000 + 1);
@@ -1700,19 +1781,23 @@ describe('routing driver', () => {
   }
 
   function setupFakeHostNameResolution(driver, seedRouter, resolvedAddresses) {
-    driver._connectionProvider._hostNameResolver = new FakeHostNameResolver(seedRouter, resolvedAddresses);
+    const connectionProvider = driver._getOrCreateConnectionProvider();
+    connectionProvider._hostNameResolver = new FakeHostNameResolver(seedRouter, resolvedAddresses);
   }
 
   function getConnectionPool(driver) {
-    return driver._connectionProvider._connectionPool;
+    const connectionProvider = driver._getOrCreateConnectionProvider();
+    return connectionProvider._connectionPool;
   }
 
   function getRoutingTable(driver) {
-    return driver._connectionProvider._routingTable;
+    const connectionProvider = driver._getOrCreateConnectionProvider();
+    return connectionProvider._routingTable;
   }
 
   function setRoutingTable(driver, newRoutingTable) {
-    driver._connectionProvider._routingTable = newRoutingTable;
+    const connectionProvider = driver._getOrCreateConnectionProvider();
+    connectionProvider._routingTable = newRoutingTable;
   }
 
   function joinStrings(array) {

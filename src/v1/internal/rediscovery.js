@@ -17,18 +17,27 @@
  * limitations under the License.
  */
 
-import GetServersUtil from "./get-servers-util";
-import RoutingTable from "./routing-table";
-import {newError, PROTOCOL_ERROR} from "../error";
+import RoutingTable from './routing-table';
+import {newError, PROTOCOL_ERROR} from '../error';
 
 export default class Rediscovery {
 
-  constructor(getServersUtil) {
-    this._getServersUtil = getServersUtil;
+  /**
+   * @constructor
+   * @param {RoutingUtil} routingUtil the util to use.
+   */
+  constructor(routingUtil) {
+    this._routingUtil = routingUtil;
   }
 
+  /**
+   * Try to fetch new routing table from the given router.
+   * @param {Session} session the session to use.
+   * @param {string} routerAddress the URL of the router.
+   * @return {Promise<RoutingTable>} promise resolved with new routing table or null when connection error happened.
+   */
   lookupRoutingTableOnRouter(session, routerAddress) {
-    return this._getServersUtil.callGetServers(session, routerAddress).then(records => {
+    return this._routingUtil.callRoutingProcedure(session, routerAddress).then(records => {
       if (records === null) {
         // connection error happened, unable to retrieve routing table from this router, next one should be queried
         return null;
@@ -42,8 +51,8 @@ export default class Rediscovery {
 
       const record = records[0];
 
-      const expirationTime = this._getServersUtil.parseTtl(record, routerAddress);
-      const {routers, readers, writers} = this._getServersUtil.parseServers(record, routerAddress);
+      const expirationTime = this._routingUtil.parseTtl(record, routerAddress);
+      const {routers, readers, writers} = this._routingUtil.parseServers(record, routerAddress);
 
       Rediscovery._assertNonEmpty(routers, 'routers', routerAddress);
       Rediscovery._assertNonEmpty(readers, 'readers', routerAddress);

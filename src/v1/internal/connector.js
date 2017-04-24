@@ -26,6 +26,7 @@ import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../gra
 import {newError} from './../error';
 import ChannelConfig from './ch-config';
 import {parseHost, parsePort} from './util';
+import StreamObserver from './stream-observer';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -183,6 +184,8 @@ class Connection {
     this._isHandlingFailure = false;
     this._currentFailure = null;
 
+    this._state = new ConnectionState(this);
+
     // Set to true on fatal errors, to get this out of session pool.
     this._isBroken = false;
 
@@ -330,7 +333,8 @@ class Connection {
   /** Queue an INIT-message to be sent to the database */
   initialize( clientName, token, observer ) {
     log("C", "INIT", clientName, token);
-    this._queueObserver(observer);
+    const initObserver = this._state.wrap(observer);
+    this._queueObserver(initObserver);
     this._packer.packStruct( INIT, [this._packable(clientName), this._packable(token)],
       (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
@@ -417,6 +421,15 @@ class Connection {
   }
 
   /**
+   * Get promise resolved when connection initialization succeed or rejected when it fails.
+   * Connection is initialized using {@link initialize} function.
+   * @return {Promise<Connection>} the result of connection initialization.
+   */
+  initializationCompleted() {
+    return this._state.initializationCompleted();
+  }
+
+  /**
    * Synchronize - flush all queued outgoing messages and route their responses
    * to their respective handlers.
    */
@@ -447,6 +460,59 @@ class Connection {
 
   setServerVersion(version) {
     this.server.version = version;
+  }
+}
+
+class ConnectionState {
+
+  /**
+   * @constructor
+   * @param {Connection} connection the connection to track state for.
+   */
+  constructor(connection) {
+    this._connection = connection;
+    this._resolvePromise = null;
+    this._promise = new Promise(resolve => {
+      this._resolvePromise = resolve;
+    });
+  }
+
+  /**
+   * Wrap the given observer to track connection's initialization state.
+   * @param {StreamObserver} observer the observer used for INIT message.
+   * @return {StreamObserver} updated observer.
+   */
+  wrap(observer) {
+    return {
+      onNext: record => {
+        if (observer && observer.onNext) {
+          observer.onNext(record);
+        }
+      },
+      onError: error => {
+        this._resolvePromise(Promise.reject(error));
+        if (observer && observer.onError) {
+          observer.onError(error);
+        }
+      },
+      onCompleted: metaData => {
+        if (metaData && metaData.server) {
+          this._connection.setServerVersion(metaData.server);
+        }
+        this._resolvePromise(this._connection);
+        if (observer && observer.onCompleted) {
+          observer.onCompleted(metaData);
+        }
+      }
+    };
+  }
+
+  /**
+   * Get promise resolved when connection initialization succeed or rejected when it fails.
+   * @return {Promise<Connection>} the result of connection initialization.
+   */
+  initializationCompleted() {
+    return this._promise;
   }
 }
 

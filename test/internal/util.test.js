@@ -19,7 +19,7 @@
 
 import * as util from '../../src/v1/internal/util';
 
-fdescribe('util', () => {
+describe('util', () => {
 
   it('should check empty objects', () => {
     expect(util.isEmptyObjectOrNull(null)).toBeTruthy();

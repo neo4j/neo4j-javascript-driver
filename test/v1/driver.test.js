@@ -181,6 +181,10 @@ describe('driver', () => {
     expect(createRoutingDriverWithTOFU).toThrow();
   });
 
+  it('should fail when bolt:// scheme used with routing params', () => {
+    expect(() => neo4j.driver('bolt://localhost:7687/?policy=my_policy')).toThrow();
+  });
+
   const exposedTypes = [
     'Node',
     'Path',

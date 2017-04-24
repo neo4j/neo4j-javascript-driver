@@ -18,7 +18,7 @@
  */
 
 import Rediscovery from "../../src/v1/internal/rediscovery";
-import GetServersUtil from "../../src/v1/internal/get-servers-util";
+import RoutingUtil from "../../src/v1/internal/routing-util";
 import {newError, PROTOCOL_ERROR} from "../../src/v1/error";
 import Record from "../../src/v1/record";
 import {int} from "../../src/v1/integer";
@@ -30,8 +30,8 @@ const ROUTER_ADDRESS = 'bolt+routing://test.router.com';
 describe('rediscovery', () => {
 
   it('should return null when connection error happens', done => {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => null,
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => null,
     });
 
     lookupRoutingTableOnRouter(util).then(routingTable => {
@@ -41,8 +41,8 @@ describe('rediscovery', () => {
   });
 
   it('should throw when no records are returned', done => {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => [],
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => [],
     });
 
     lookupRoutingTableOnRouter(util).catch(error => {
@@ -52,8 +52,8 @@ describe('rediscovery', () => {
   });
 
   it('should throw when multiple records are returned', done => {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => [new Record(['a'], ['aaa']), new Record(['b'], ['bbb'])]
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => [new Record(['a'], ['aaa']), new Record(['b'], ['bbb'])]
     });
 
     lookupRoutingTableOnRouter(util).catch(error => {
@@ -63,8 +63,8 @@ describe('rediscovery', () => {
   });
 
   it('should throw when ttl parsing throws', done => {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => [new Record(['a'], ['aaa'])],
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
       parseTtl: () => {
         throw newError('Unable to parse TTL', PROTOCOL_ERROR);
       }
@@ -77,8 +77,8 @@ describe('rediscovery', () => {
   });
 
   it('should throw when servers parsing throws', done => {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => [new Record(['a'], ['aaa'])],
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
       parseTtl: () => int(42),
       parseServers: () => {
         throw newError('Unable to parse servers', PROTOCOL_ERROR);
@@ -92,8 +92,8 @@ describe('rediscovery', () => {
   });
 
   it('should throw when no routers', done => {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => [new Record(['a'], ['aaa'])],
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
       parseTtl: () => int(42),
       parseServers: () => {
         return {
@@ -111,8 +111,8 @@ describe('rediscovery', () => {
   });
 
   it('should throw when no readers', done => {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => [new Record(['a'], ['aaa'])],
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
       parseTtl: () => int(42),
       parseServers: () => {
         return {
@@ -130,8 +130,8 @@ describe('rediscovery', () => {
   });
 
   it('should return routing table when no writers', done => {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => [new Record(['a'], ['aaa'])],
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
       parseTtl: () => int(42),
       parseServers: () => {
         return {
@@ -162,8 +162,8 @@ describe('rediscovery', () => {
   });
 
   function testValidRoutingTable(routerAddresses, readerAddresses, writerAddresses, expires, done) {
-    const util = new FakeGetServersUtil({
-      callGetServers: () => [new Record(['a'], ['aaa'])],
+    const util = new FakeRoutingUtil({
+      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
       parseTtl: () => expires,
       parseServers: () => {
         return {
@@ -188,8 +188,8 @@ describe('rediscovery', () => {
     });
   }
 
-  function lookupRoutingTableOnRouter(getServersUtil) {
-    const rediscovery = new Rediscovery(getServersUtil);
+  function lookupRoutingTableOnRouter(routingUtil) {
+    const rediscovery = new Rediscovery(routingUtil);
     return rediscovery.lookupRoutingTableOnRouter(null, ROUTER_ADDRESS);
   }
 
@@ -202,19 +202,19 @@ describe('rediscovery', () => {
     throw new Error('Should not be called');
   }
 
-  class FakeGetServersUtil extends GetServersUtil {
+  class FakeRoutingUtil extends RoutingUtil {
 
-    constructor({callGetServers = shouldNotBeCalled, parseTtl = shouldNotBeCalled, parseServers = shouldNotBeCalled}) {
+    constructor({callRoutingProcedure = shouldNotBeCalled, parseTtl = shouldNotBeCalled, parseServers = shouldNotBeCalled}) {
       super();
-      this._callGetServers = callGetServers;
+      this._callAvailableRoutingProcedure = callRoutingProcedure;
       this._parseTtl = parseTtl;
       this._parseServers = parseServers;
     }
 
-    callGetServers(session, routerAddress) {
+    callRoutingProcedure(session, routerAddress) {
       return new Promise((resolve, reject) => {
         try {
-          resolve(this._callGetServers());
+          resolve(this._callAvailableRoutingProcedure());
         } catch (error) {
           reject(error);
         }

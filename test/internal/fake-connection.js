@@ -31,9 +31,14 @@ export default class FakeConnection {
     this.resetAsyncInvoked = 0;
     this.syncInvoked = 0;
     this.releaseInvoked = 0;
+    this.seenStatements = [];
+    this.seenParameters = [];
+    this.server = {};
   }
 
-  run() {
+  run(statement, parameters) {
+    this.seenStatements.push(statement);
+    this.seenParameters.push(parameters);
   }
 
   discardAll() {
@@ -53,6 +58,10 @@ export default class FakeConnection {
 
   _release() {
     this.releaseInvoked++;
+  }
+
+  initializationCompleted() {
+    return Promise.resolve(this);
   }
 
   isReleasedOnceOnSessionClose() {
@@ -79,5 +88,10 @@ export default class FakeConnection {
       this.resetInvoked === times &&
       this.syncInvoked === times &&
       this.releaseInvoked === times;
+  }
+
+  withServerVersion(version) {
+    this.server.version = version;
+    return this;
   }
 };

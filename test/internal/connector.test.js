@@ -24,8 +24,9 @@ import {Chunker} from '../../src/v1/internal/chunking';
 import {alloc} from '../../src/v1/internal/buf';
 import {Neo4jError} from '../../src/v1/error';
 import sharedNeo4j from '../internal/shared-neo4j';
+import {ServerVersion} from '../../src/v1/internal/server-version';
 
-describe('connector', () => {
+fdescribe('connector', () => {
 
   it('should read/write basic messages', done => {
     // Given
@@ -115,6 +116,64 @@ describe('connector', () => {
 
     channel.onmessage(packedHandshakeMessage());
     channel.onmessage(packedFailureMessage(errorCode, errorMessage));
+  });
+
+  it('should notify when connection initialization completes', done => {
+    const connection = connect('bolt://localhost');
+
+    connection.initializationCompleted().then(initializedConnection => {
+      expect(initializedConnection).toBe(connection);
+      done();
+    });
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken());
+  });
+
+  it('should notify when connection initialization fails', done => {
+    const connection = connect('bolt://localhost:7474'); // wrong port
+
+    connection.initializationCompleted().then(() => {
+      console.log('THEN called: ', arguments)
+    }).catch(error => {
+      expect(error).toBeDefined();
+      done();
+    });
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken());
+  });
+
+  it('should notify provided observer when connection initialization completes', done => {
+    const connection = connect('bolt://localhost');
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+      onCompleted: metaData => {
+        expect(metaData).toBeDefined();
+        done();
+      },
+    });
+  });
+
+  it('should notify provided observer when connection initialization fails', done => {
+    const connection = connect('bolt://localhost:7474'); // wrong port
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+      onError: error => {
+        expect(error).toBeDefined();
+        done();
+      },
+    });
+  });
+
+  it('should have server version after connection initialization completed', done => {
+    const connection = connect('bolt://localhost');
+
+    connection.initializationCompleted().then(initializedConnection => {
+      const serverVersion = ServerVersion.fromString(initializedConnection.server.version);
+      expect(serverVersion).toBeDefined();
+      done();
+    });
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken());
   });
 
   function packedHandshakeMessage() {

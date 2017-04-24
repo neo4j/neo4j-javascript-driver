@@ -1102,6 +1102,10 @@ class FakeConnection {
   static create(address, release) {
     return new FakeConnection(address, release);
   }
+
+  initializationCompleted() {
+    return Promise.resolve(this);
+  }
 }
 
 class FakeRediscovery {

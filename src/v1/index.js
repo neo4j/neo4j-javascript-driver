@@ -128,19 +128,17 @@ function driver(url, authToken, config = {}) {
   assertString(url, 'Bolt URL');
   const scheme = parseScheme(url);
   const routingContext = parseRoutingContext(url);
-  if (scheme === "bolt+routing://") {
+  if (scheme === 'bolt+routing://') {
     return new RoutingDriver(parseUrl(url), routingContext, USER_AGENT, authToken, config);
-  } else if (scheme === "bolt://") {
-    if(!isEmptyObjectOrNull(routingContext))
-    {
-      throw new Error("Routing context are not supported with scheme 'bolt'. Given URI: '" + url + "'");
+  } else if (scheme === 'bolt://') {
+    if (!isEmptyObjectOrNull(routingContext)) {
+      throw new Error(`Routing parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
     }
     return new Driver(parseUrl(url), USER_AGENT, authToken, config);
   } else {
-    throw new Error("Unknown scheme: " + scheme);
+    throw new Error(`Unknown scheme: ${scheme}`);
   }
 }
-
 
 const types ={
   Node,
