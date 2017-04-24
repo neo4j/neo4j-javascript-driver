@@ -26,7 +26,7 @@ import {Neo4jError} from '../../src/v1/error';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion} from '../../src/v1/internal/server-version';
 
-fdescribe('connector', () => {
+describe('connector', () => {
 
   it('should read/write basic messages', done => {
     // Given

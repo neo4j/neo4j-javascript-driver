@@ -471,10 +471,12 @@ class ConnectionState {
    */
   constructor(connection) {
     this._connection = connection;
+
+    this._initialized = false;
+    this._initializationError = null;
+
     this._resolvePromise = null;
-    this._promise = new Promise(resolve => {
-      this._resolvePromise = resolve;
-    });
+    this._rejectPromise = null;
   }
 
   /**
@@ -490,7 +492,11 @@ class ConnectionState {
         }
       },
       onError: error => {
-        this._resolvePromise(Promise.reject(error));
+        this._initializationError = error;
+        if (this._rejectPromise) {
+          this._rejectPromise(error);
+          this._rejectPromise = null;
+        }
         if (observer && observer.onError) {
           observer.onError(error);
         }
@@ -499,7 +505,11 @@ class ConnectionState {
         if (metaData && metaData.server) {
           this._connection.setServerVersion(metaData.server);
         }
-        this._resolvePromise(this._connection);
+        this._initialized = true;
+        if (this._resolvePromise) {
+          this._resolvePromise(this._connection);
+          this._resolvePromise = null;
+        }
         if (observer && observer.onCompleted) {
           observer.onCompleted(metaData);
         }
@@ -512,7 +522,16 @@ class ConnectionState {
    * @return {Promise<Connection>} the result of connection initialization.
    */
   initializationCompleted() {
-    return this._promise;
+    if (this._initialized) {
+      return Promise.resolve(this._connection);
+    } else if (this._initializationError) {
+      return Promise.reject(this._initializationError);
+    } else {
+      return new Promise((resolve, reject) => {
+        this._resolvePromise = resolve;
+        this._rejectPromise = reject;
+      });
+    }
   }
 }
 
