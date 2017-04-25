@@ -17,37 +17,46 @@
  * limitations under the License.
  */
 
-import {int, isInt, inSafeRange, toNumber, toString} from './integer';
-import {Node, Relationship, UnboundRelationship, PathSegment, Path} from './graph-types'
-import {Neo4jError, SERVICE_UNAVAILABLE, SESSION_EXPIRED, PROTOCOL_ERROR} from './error';
+import {inSafeRange, int, isInt, toNumber, toString} from './integer';
+import {Node, Path, PathSegment, Relationship, UnboundRelationship} from './graph-types';
+import {Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from './error';
 import Result from './result';
 import ResultSummary from './result-summary';
 import Record from './record';
 import {Driver, READ, WRITE} from './driver';
 import RoutingDriver from './routing-driver';
 import VERSION from '../version';
-import {parseScheme, parseUrl} from "./internal/connector";
-import {assertString} from "./internal/util";
+import {parseScheme, parseUrl} from './internal/connector';
+import {assertString} from './internal/util';
 
 
-const auth ={
+const auth = {
   basic: (username, password, realm = undefined) => {
     if (realm) {
-      return {scheme: "basic", principal: username, credentials: password, realm: realm};
+      return {scheme: 'basic', principal: username, credentials: password, realm: realm};
     } else {
-      return {scheme: "basic", principal: username, credentials: password};
+      return {scheme: 'basic', principal: username, credentials: password};
     }
   },
-    custom: (principal, credentials, realm, scheme, parameters = undefined ) => {
+  kerberos: (base64EncodedTicket) => {
+    return {
+      scheme: 'kerberos',
+      principal: '', // This empty string is required for backwards compatibility.
+      credentials: base64EncodedTicket
+    };
+  },
+  custom: (principal, credentials, realm, scheme, parameters = undefined) => {
     if (parameters) {
-      return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm,
-        parameters: parameters}
+      return {
+        scheme: scheme, principal: principal, credentials: credentials, realm: realm,
+        parameters: parameters
+      };
     } else {
-      return  {scheme: scheme, principal: principal, credentials: credentials, realm: realm}
+      return {scheme: scheme, principal: principal, credentials: credentials, realm: realm};
     }
   }
 };
-let USER_AGENT = "neo4j-javascript/" + VERSION;
+const USER_AGENT = "neo4j-javascript/" + VERSION;
 
 /**
  * Construct a new Neo4j Driver. This is your main entry point for this
