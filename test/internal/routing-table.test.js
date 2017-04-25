@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoutingTable from "../../src/v1/internal/routing-table";
-import RoundRobinArray from "../../src/v1/internal/round-robin-array";
-import {int} from "../../src/v1/integer";
+import RoutingTable from '../../src/v1/internal/routing-table';
+import RoundRobinArray from '../../src/v1/internal/round-robin-array';
+import {int} from '../../src/v1/integer';
 
 describe('routing-table', () => {
 
@@ -32,9 +32,9 @@ describe('routing-table', () => {
     expect(table.isStale()).toBeTruthy();
   });
 
-  it('should be stale when has single router', () => {
+  it('should not be stale when has single router', () => {
     const table = createTable([1], [2, 3], [4, 5], notExpired());
-    expect(table.isStale()).toBeTruthy();
+    expect(table.isStale()).toBeFalsy();
   });
 
   it('should be stale when no readers', () => {
