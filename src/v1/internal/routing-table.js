@@ -18,6 +18,7 @@
  */
 import {int} from '../integer';
 import RoundRobinArray from './round-robin-array';
+import {READ, WRITE} from '../driver';
 
 const MIN_ROUTERS = 1;
 
@@ -53,14 +54,28 @@ export default class RoutingTable {
     return Array.from(oldServers);
   }
 
-  isStale() {
+  /**
+   * Check if this routing table is fresh to perform the required operation.
+   * @param {string} accessMode the type of operation. Allowed values are {@link READ} and {@link WRITE}.
+   * @return {boolean} <code>true</code> when this table contains servers to serve the required operation,
+   * <code>false</code> otherwise.
+   */
+  isStaleFor(accessMode) {
     return this.expirationTime.lessThan(Date.now()) ||
       this.routers.size() < MIN_ROUTERS ||
-      this.readers.isEmpty() ||
-      this.writers.isEmpty();
+      accessMode === READ && this.readers.isEmpty() ||
+      accessMode === WRITE && this.writers.isEmpty();
   }
 
   _allServers() {
     return [...this.routers.toArray(), ...this.readers.toArray(), ...this.writers.toArray()];
+  }
+
+  toString() {
+    return `RoutingTable[` +
+      `expirationTime=${this.expirationTime}, ` +
+      `routers=${this.routers}, ` +
+      `readers=${this.readers}, ` +
+      `writers=${this.writers}]`;
   }
 }

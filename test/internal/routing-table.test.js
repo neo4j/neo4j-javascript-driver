@@ -19,42 +19,50 @@
 import RoutingTable from '../../src/v1/internal/routing-table';
 import RoundRobinArray from '../../src/v1/internal/round-robin-array';
 import {int} from '../../src/v1/integer';
+import {READ, WRITE} from '../../src/v1/driver';
 
 describe('routing-table', () => {
 
   it('should not be stale when has routers, readers, writers and future expiration date', () => {
     const table = createTable([1, 2], [3, 4], [5, 6], notExpired());
-    expect(table.isStale()).toBeFalsy();
+    expect(table.isStaleFor(READ)).toBeFalsy();
+    expect(table.isStaleFor(WRITE)).toBeFalsy();
   });
 
   it('should be stale when expiration date in the past', () => {
     const table = createTable([1, 2], [1, 2], [1, 2], expired());
-    expect(table.isStale()).toBeTruthy();
+    expect(table.isStaleFor(READ)).toBeTruthy();
+    expect(table.isStaleFor(WRITE)).toBeTruthy();
   });
 
   it('should not be stale when has single router', () => {
     const table = createTable([1], [2, 3], [4, 5], notExpired());
-    expect(table.isStale()).toBeFalsy();
+    expect(table.isStaleFor(READ)).toBeFalsy();
+    expect(table.isStaleFor(WRITE)).toBeFalsy();
   });
 
-  it('should be stale when no readers', () => {
+  it('should be stale for reads but not writes when no readers', () => {
     const table = createTable([1, 2], [], [3, 4], notExpired());
-    expect(table.isStale()).toBeTruthy();
+    expect(table.isStaleFor(READ)).toBeTruthy();
+    expect(table.isStaleFor(WRITE)).toBeFalsy();
   });
 
-  it('should be stale when no writers', () => {
+  it('should be stale for writes but not reads when no writers', () => {
     const table = createTable([1, 2], [3, 4], [], notExpired());
-    expect(table.isStale()).toBeTruthy();
+    expect(table.isStaleFor(READ)).toBeFalsy();
+    expect(table.isStaleFor(WRITE)).toBeTruthy();
   });
 
   it('should not be stale with single reader', () => {
     const table = createTable([1, 2], [3], [4, 5], notExpired());
-    expect(table.isStale()).toBeFalsy();
+    expect(table.isStaleFor(READ)).toBeFalsy();
+    expect(table.isStaleFor(WRITE)).toBeFalsy();
   });
 
   it('should not be stale with single writer', () => {
     const table = createTable([1, 2], [3, 4], [5], notExpired());
-    expect(table.isStale()).toBeFalsy();
+    expect(table.isStaleFor(READ)).toBeFalsy();
+    expect(table.isStaleFor(WRITE)).toBeFalsy();
   });
 
   it('should forget reader, writer but not router', () => {
@@ -159,6 +167,11 @@ describe('routing-table', () => {
     const servers = oldTable.serversDiff(newTable);
 
     expect(servers).toEqual([11, 22, 33, 44]);
+  });
+
+  it('should have correct toString', () => {
+    const table = createTable([1, 2], [3, 4], [5, 6], 42);
+    expect(table.toString()).toEqual('RoutingTable[expirationTime=42, routers=[1,2], readers=[3,4], writers=[5,6]]');
   });
 
   function expired() {

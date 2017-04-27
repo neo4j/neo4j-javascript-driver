@@ -132,9 +132,7 @@ describe('connector', () => {
   it('should notify when connection initialization fails', done => {
     const connection = connect('bolt://localhost:7474'); // wrong port
 
-    connection.initializationCompleted().then(() => {
-      console.log('THEN called: ', arguments)
-    }).catch(error => {
+    connection.initializationCompleted().catch(error => {
       expect(error).toBeDefined();
       done();
     });

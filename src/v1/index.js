@@ -132,7 +132,7 @@ function driver(url, authToken, config = {}) {
     return new RoutingDriver(parseUrl(url), routingContext, USER_AGENT, authToken, config);
   } else if (scheme === 'bolt://') {
     if (!isEmptyObjectOrNull(routingContext)) {
-      throw new Error(`Routing parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
+      throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
     }
     return new Driver(parseUrl(url), USER_AGENT, authToken, config);
   } else {
