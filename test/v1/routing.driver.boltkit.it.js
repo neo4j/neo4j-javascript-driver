@@ -1630,6 +1630,48 @@ describe('routing driver', () => {
     });
   });
 
+  it('should treat routing table with single router as valid', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/discover_one_router.script', 9010);
+    const reader1 = kit.start('./test/resources/boltkit/read_server.script', 9003);
+    const reader2 = kit.start('./test/resources/boltkit/read_server.script', 9004);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+      const session = driver.session(READ);
+
+      session.run('MATCH (n) RETURN n.name').then(result1 => {
+        expect(result1.records.length).toEqual(3);
+        expect(result1.summary.server.address).toEqual('127.0.0.1:9003');
+
+        session.run('MATCH (n) RETURN n.name').then(result2 => {
+          expect(result2.records.length).toEqual(3);
+          expect(result2.summary.server.address).toEqual('127.0.0.1:9004');
+
+          session.close(() => {
+            driver.close();
+            router.exit(code1 => {
+
+              reader1.exit(code2 => {
+                reader2.exit(code3 => {
+                  expect(code1).toEqual(0);
+                  expect(code2).toEqual(0);
+                  expect(code3).toEqual(0);
+                  done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
   function moveNextDateNow30SecondsForward() {
     const currentTime = Date.now();
     hijackNextDateNowCall(currentTime + 30 * 1000 + 1);
