@@ -19,7 +19,7 @@
 
 import {READ, WRITE} from '../../src/v1/driver';
 import Integer, {int} from '../../src/v1/integer';
-import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
+import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
 import RoutingTable from '../../src/v1/internal/routing-table';
 import RoundRobinArray from '../../src/v1/internal/round-robin-array';
 import {DirectConnectionProvider, LoadBalancer} from '../../src/v1/internal/connection-providers';
@@ -291,7 +291,7 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('refreshes stale routing table to get write connection', done => {
+  it('refreshes stale routing table to get write connection when one router fails', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
@@ -323,27 +323,22 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('refreshes stale routing table to get read connection when one router returns illegal response', done => {
+  it('refreshes routing table without readers to get read connection', done => {
     const pool = newPool();
-    const newIllegalRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      [] // no writers - table is illegal and should be skipped
-    );
-    const newLegalRoutingTable = newRoutingTable(
+    const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
       ['server-C', 'server-D'],
       ['server-E', 'server-F']
     );
     const loadBalancer = newLoadBalancer(
       ['server-1', 'server-2'],
+      [], // no readers
       ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
       pool,
-      int(0), // expired routing table
+      Integer.MAX_VALUE,
       {
-        'server-1': newIllegalRoutingTable,
-        'server-2': newLegalRoutingTable,
+        'server-1': null, // returns no routing table
+        'server-2': updatedRoutingTable,
       }
     );
 
@@ -360,14 +355,9 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('refreshes stale routing table to get write connection when one router returns illegal response', done => {
+  it('refreshes routing table without writers to get write connection', done => {
     const pool = newPool();
-    const newIllegalRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      [] // no writers - table is illegal and should be skipped
-    );
-    const newLegalRoutingTable = newRoutingTable(
+    const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
       ['server-C', 'server-D'],
       ['server-E', 'server-F']
@@ -375,12 +365,12 @@ describe('LoadBalancer', () => {
     const loadBalancer = newLoadBalancer(
       ['server-1', 'server-2'],
       ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [], // no writers
       pool,
       int(0), // expired routing table
       {
-        'server-1': newIllegalRoutingTable,
-        'server-2': newLegalRoutingTable,
+        'server-1': null, // returns no routing table
+        'server-2': updatedRoutingTable,
       }
     );
 
@@ -435,11 +425,11 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('throws when all routers return illegal routing tables while getting read connection', done => {
-    const newIllegalRoutingTable = newRoutingTable(
+  it('throws when all routers return routing tables without readers while getting read connection', done => {
+    const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      [] // no writers - table is illegal and should be skipped
+      [], // no readers - table can't satisfy connection requirement
+      ['server-C', 'server-D']
     );
     const loadBalancer = newLoadBalancer(
       ['server-1', 'server-2'],
@@ -448,22 +438,22 @@ describe('LoadBalancer', () => {
       newPool(),
       int(0), // expired routing table
       {
-        'server-1': newIllegalRoutingTable,
-        'server-2': newIllegalRoutingTable
+        'server-1': updatedRoutingTable,
+        'server-2': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(READ).catch(error => {
-      expect(error.code).toEqual(SERVICE_UNAVAILABLE);
+      expect(error.code).toEqual(SESSION_EXPIRED);
       done();
     });
   });
 
-  it('throws when all routers return illegal routing tables while getting write connection', done => {
-    const newIllegalRoutingTable = newRoutingTable(
+  it('throws when all routers return routing tables without writers while getting write connection', done => {
+    const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
       ['server-C', 'server-D'],
-      [] // no writers - table is illegal and should be skipped
+      [] // no writers - table can't satisfy connection requirement
     );
     const loadBalancer = newLoadBalancer(
       ['server-1', 'server-2'],
@@ -472,13 +462,13 @@ describe('LoadBalancer', () => {
       newPool(),
       int(0), // expired routing table
       {
-        'server-1': newIllegalRoutingTable,
-        'server-2': newIllegalRoutingTable
+        'server-1': updatedRoutingTable,
+        'server-2': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(WRITE).catch(error => {
-      expect(error.code).toEqual(SERVICE_UNAVAILABLE);
+      expect(error.code).toEqual(SESSION_EXPIRED);
       done();
     });
   });
@@ -582,12 +572,7 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('uses seed router address when all existing routers failed', done => {
-    const illegalRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      [] // no writers - table is illegal and should be skipped
-    );
+  it('uses seed router address when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B', 'server-C'],
       ['server-D', 'server-E'],
@@ -602,7 +587,7 @@ describe('LoadBalancer', () => {
       int(0), // expired routing table
       {
         'server-1': null, // returns no routing table
-        'server-2': illegalRoutingTable,
+        'server-2': null, // returns no routing table
         'server-3': null, // returns no routing table
         'server-0': updatedRoutingTable
       }
@@ -624,12 +609,7 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('uses resolved seed router address when all existing routers failed', done => {
-    const illegalRoutingTable = newRoutingTable(
-      ['server-A'],
-      ['server-B'],
-      [] // no writers - table is illegal and should be skipped
-    );
+  it('uses resolved seed router address when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
       ['server-C', 'server-D'],
@@ -643,8 +623,8 @@ describe('LoadBalancer', () => {
       ['server-6', 'server-7'],
       int(0), // expired routing table
       {
-        'server-1': illegalRoutingTable,
-        'server-2': illegalRoutingTable,
+        'server-1': null, // returns no routing table
+        'server-2': null, // returns no routing table
         'server-3': null, // returns no routing table
         'server-01': updatedRoutingTable
       }
@@ -666,12 +646,7 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('uses resolved seed router address that returns correct routing table when all existing routers failed', done => {
-    const illegalRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      [] // no writers - table is illegal and should be skipped
-    );
+  it('uses resolved seed router address that returns correct routing table when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
       ['server-C'],
@@ -685,9 +660,9 @@ describe('LoadBalancer', () => {
       ['server-3'],
       int(0), // expired routing table
       {
-        'server-1': illegalRoutingTable,
+        'server-1': null, // returns no routing table
         'server-01': null, // returns no routing table
-        'server-02': illegalRoutingTable,
+        'server-02': null, // returns no routing table
         'server-03': updatedRoutingTable
       }
     );
@@ -708,9 +683,7 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('fails when existing routers fail and seed router returns an invalid routing table', done => {
-    const emptyIllegalRoutingTable = newRoutingTable([], [], []);
-
+  it('fails when both existing routers and seed router fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
       'server-0', ['server-0'], // seed router address resolves just to itself
       ['server-1', 'server-2', 'server-3'],
@@ -718,10 +691,10 @@ describe('LoadBalancer', () => {
       ['server-6'],
       int(0), // expired routing table
       {
-        'server-1': emptyIllegalRoutingTable,
+        'server-1': null, // returns no routing table
         'server-2': null, // returns no routing table
         'server-3': null, // returns no routing table
-        'server-0': emptyIllegalRoutingTable
+        'server-0': null // returns no routing table
       }
     );
 
@@ -729,7 +702,7 @@ describe('LoadBalancer', () => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE);
 
       expectRoutingTable(loadBalancer,
-        ['server-1'], // only server-1 is in the table, it returned a routing table which turned out to be invalid
+        [], // all routers were forgotten because they failed
         ['server-4', 'server-5'],
         ['server-6'],
       );
@@ -738,7 +711,7 @@ describe('LoadBalancer', () => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE);
 
         expectRoutingTable(loadBalancer,
-          ['server-1'], // only server-1 is in the table, it returned a routing table which turned out to be invalid
+          [], // all routers were forgotten because they failed
           ['server-4', 'server-5'],
           ['server-6'],
         );
@@ -748,13 +721,7 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('fails when existing routers fail and resolved seed router returns an invalid routing table', done => {
-    const illegalRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      [] // no writers - table is illegal and should be skipped
-    );
-
+  it('fails when both existing routers and resolved seed router fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
       'server-0', ['server-01'], // seed router address resolves to a different one
       ['server-1', 'server-2'],
@@ -763,7 +730,7 @@ describe('LoadBalancer', () => {
       int(0), // expired routing table
       {
         'server-1': null, // returns no routing table
-        'server-2': illegalRoutingTable,
+        'server-2': null, // returns no routing table
         'server-01': null // returns no routing table
       }
     );
@@ -772,7 +739,7 @@ describe('LoadBalancer', () => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE);
 
       expectRoutingTable(loadBalancer,
-        ['server-2'], // only server-2 is in the table, it returned a routing table which turned out to be invalid
+        [], // all routers were forgotten because they failed
         ['server-3'],
         ['server-4'],
       );
@@ -781,7 +748,7 @@ describe('LoadBalancer', () => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE);
 
         expectRoutingTable(loadBalancer,
-          ['server-2'], // only server-2 is in the table, it returned a routing table which turned out to be invalid
+          [], // all routers were forgotten because they failed
           ['server-3'],
           ['server-4'],
         );
@@ -791,13 +758,7 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('fails when existing routers fail and all resolved seed routers return an invalid routing table', done => {
-    const illegalRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      [] // no writers - table is illegal and should be skipped
-    );
-
+  it('fails when both existing routers and all resolved seed routers fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
       'server-0', ['server-02', 'server-01'], // seed router address resolves to 2 different addresses
       ['server-1', 'server-2', 'server-3'],
@@ -808,7 +769,7 @@ describe('LoadBalancer', () => {
         'server-1': null, // returns no routing table
         'server-2': null, // returns no routing table
         'server-3': null, // returns no routing table
-        'server-01': illegalRoutingTable,
+        'server-01': null, // returns no routing table
         'server-02': null // returns no routing table
       }
     );
@@ -904,12 +865,7 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('uses resolved seed router that returns correct routing table when no existing routers exist', done => {
-    const illegalRoutingTable = newRoutingTable(
-      ['server-A'],
-      ['server-B'],
-      [] // no writers - table is illegal and should be skipped
-    );
+  it('uses resolved seed router that returns routing table when no existing routers exist', done => {
     const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B', 'server-C'],
       ['server-D', 'server-E'],
@@ -923,8 +879,8 @@ describe('LoadBalancer', () => {
       ['server-2', 'server-3'],
       Integer.MAX_VALUE, // not expired
       {
-        'server-01': null,
-        'server-02': illegalRoutingTable,
+        'server-01': null, // returns no routing table
+        'server-02': null, // returns no routing table
         'server-03': updatedRoutingTable
       }
     );
@@ -946,11 +902,6 @@ describe('LoadBalancer', () => {
   });
 
   it('ignores already probed routers after seed router resolution', done => {
-    const illegalRoutingTable = newRoutingTable(
-      ['server-A'],
-      ['server-B'],
-      [] // no writers - table is illegal and should be skipped
-    );
     const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
       ['server-C', 'server-D'],
@@ -964,9 +915,9 @@ describe('LoadBalancer', () => {
       ['server-5', 'server-6'],
       int(0), // expired routing table
       {
-        'server-1': null,
-        'server-01': null,
-        'server-2': illegalRoutingTable,
+        'server-1': null, // returns no routing table
+        'server-01': null, // returns no routing table
+        'server-2': null, // returns no routing table
         'server-02': updatedRoutingTable
       }
     );
@@ -996,11 +947,11 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('throws service unavailable when refreshed routing table has no readers', done => {
+  it('throws session expired when refreshed routing table has no readers', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
       ['server-A', 'server-B'],
-      [],
+      [], // no readers
       ['server-C', 'server-D']
     );
     const loadBalancer = newLoadBalancer(
@@ -1015,8 +966,86 @@ describe('LoadBalancer', () => {
     );
 
     loadBalancer.acquireConnection(READ).catch(error => {
-      expect(error.code).toEqual(SERVICE_UNAVAILABLE);
+      expect(error.code).toEqual(SESSION_EXPIRED);
       done();
+    });
+  });
+
+  it('throws session expired when refreshed routing table has no writers', done => {
+    const pool = newPool();
+    const updatedRoutingTable = newRoutingTable(
+      ['server-A', 'server-B'],
+      ['server-C', 'server-D'],
+      [] // no writers
+    );
+    const loadBalancer = newLoadBalancer(
+      ['server-1', 'server-2'],
+      ['server-3', 'server-4'],
+      ['server-5', 'server-6'],
+      pool,
+      int(0), // expired routing table
+      {
+        'server-1': updatedRoutingTable,
+      }
+    );
+
+    loadBalancer.acquireConnection(WRITE).catch(error => {
+      expect(error.code).toEqual(SESSION_EXPIRED);
+      done();
+    });
+  });
+
+  it('should use resolved seed router after accepting table with no writers', done => {
+    const routingTable1 = newRoutingTable(
+      ['server-A', 'server-B'],
+      ['server-C', 'server-D'],
+      [] // no writers
+    );
+    const routingTable2 = newRoutingTable(
+      ['server-AA', 'server-BB'],
+      ['server-CC', 'server-DD'],
+      ['server-EE']
+    );
+
+    const loadBalancer = newLoadBalancerWithSeedRouter(
+      'server-0', ['server-02', 'server-01'], // seed router address resolves to 2 different addresses
+      ['server-1'],
+      ['server-2', 'server-3'],
+      ['server-4', 'server-5'],
+      int(0), // expired routing table
+      {
+        'server-1': routingTable1,
+        'server-A': routingTable1,
+        'server-B': routingTable1,
+        'server-01': null, // returns no routing table
+        'server-02': routingTable2
+      }
+    );
+
+    loadBalancer.acquireConnection(READ).then(connection1 => {
+      expect(connection1.address).toEqual('server-C');
+
+      loadBalancer.acquireConnection(READ).then(connection2 => {
+        expect(connection2.address).toEqual('server-D');
+
+        expectRoutingTable(loadBalancer,
+          ['server-A', 'server-B'],
+          ['server-C', 'server-D'],
+          []
+        );
+
+        loadBalancer.acquireConnection(WRITE).then(connection3 => {
+          expect(connection3.address).toEqual('server-EE');
+
+          expectRoutingTable(loadBalancer,
+            ['server-AA', 'server-BB'],
+            ['server-CC', 'server-DD'],
+            ['server-EE']
+          );
+
+          done();
+        });
+      });
     });
   });
 
@@ -1062,12 +1091,12 @@ function newRoutingTable(routers, readers, writers, expirationTime = Integer.MAX
 }
 
 function setupLoadBalancerToRememberRouters(loadBalancer, routersArray) {
-  const originalFetch = loadBalancer._fetchNewRoutingTable.bind(loadBalancer);
+  const originalFetch = loadBalancer._fetchRoutingTable.bind(loadBalancer);
   const rememberingFetch = (routerAddresses, routingTable) => {
     routersArray.push(routerAddresses);
     return originalFetch(routerAddresses, routingTable);
   };
-  loadBalancer._fetchNewRoutingTable = rememberingFetch;
+  loadBalancer._fetchRoutingTable = rememberingFetch;
 }
 
 function newPool() {

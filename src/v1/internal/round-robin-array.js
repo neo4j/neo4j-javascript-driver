@@ -59,4 +59,8 @@ export default class RoundRobinArray {
   remove(item) {
     this._items = this._items.filter(element => element !== item);
   }
+
+  toString() {
+    return JSON.stringify(this._items);
+  }
 }

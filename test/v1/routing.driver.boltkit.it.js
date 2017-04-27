@@ -670,7 +670,7 @@ describe('routing driver', () => {
       // When
       const session = driver.session(neo4j.session.WRITE);
       session.run("MATCH (n) RETURN n.name").catch(err => {
-        expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+        expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED);
         driver.close();
         seedServer.exit(code => {
           expect(code).toEqual(0);
@@ -680,7 +680,7 @@ describe('routing driver', () => {
     });
   });
 
-  it('should try next router when no writers', done => {
+  it('should try next router when current router fails to return a routing table', done => {
     if (!boltkit.BoltKitSupport) {
       done();
       return;
@@ -688,9 +688,9 @@ describe('routing driver', () => {
 
     const kit = new boltkit.BoltKit();
     const server1 = kit.start('./test/resources/boltkit/routing_table_with_zero_ttl.script', 9999);
-    const server2 = kit.start('./test/resources/boltkit/no_writers.script', 9091);
-    const server3 = kit.start('./test/resources/boltkit/no_writers.script', 9092);
-    const server4 = kit.start('./test/resources/boltkit/no_writers.script', 9093);
+    const server2 = kit.start('./test/resources/boltkit/dead_routing_server.script', 9091);
+    const server3 = kit.start('./test/resources/boltkit/dead_routing_server.script', 9092);
+    const server4 = kit.start('./test/resources/boltkit/dead_routing_server.script', 9093);
 
     kit.run(() => {
       const driver = newDriver('bolt+routing://127.0.0.1:9999');
@@ -708,7 +708,8 @@ describe('routing driver', () => {
           expect(result2.summary.server.address).toEqual('127.0.0.1:9999');
           session2.close();
 
-          memorizingRoutingTable.assertForgotRouters([]);
+          // returned routers failed to respond and should have been forgotten
+          memorizingRoutingTable.assertForgotRouters(['127.0.0.1:9091', '127.0.0.1:9092', '127.0.0.1:9093']);
           assertHasRouters(driver, ['127.0.0.1:9999']);
           driver.close();
 
@@ -1663,6 +1664,164 @@ describe('routing driver', () => {
                   expect(code2).toEqual(0);
                   expect(code3).toEqual(0);
                   done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should use routing table without writers for reads', done => {
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/discover_no_writers.script', 9010);
+    const reader = kit.start('./test/resources/boltkit/read_server.script', 9002);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+
+      const session = driver.session(READ);
+      session.run('MATCH (n) RETURN n.name').then(result => {
+        session.close(() => {
+          expect(result.records.map(record => record.get(0))).toEqual(['Bob', 'Alice', 'Tina']);
+
+          driver.close();
+
+          router.exit(code1 => {
+            reader.exit(code2 => {
+              expect(code1).toEqual(0);
+              expect(code2).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should serve reads but fail writes when no writers available', done => {
+    const kit = new boltkit.BoltKit();
+    const router1 = kit.start('./test/resources/boltkit/discover_no_writers.script', 9010);
+    const router2 = kit.start('./test/resources/boltkit/discover_no_writers.script', 9004);
+    const reader = kit.start('./test/resources/boltkit/read_server.script', 9003);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+
+      const readSession = driver.session();
+
+      readSession.readTransaction(tx => tx.run('MATCH (n) RETURN n.name')).then(result => {
+        readSession.close(() => {
+          expect(result.records.map(record => record.get(0))).toEqual(['Bob', 'Alice', 'Tina']);
+
+          const writeSession = driver.session(WRITE);
+          writeSession.run('CREATE (n {name:\'Bob\'})').catch(error => {
+            expect(error.code).toEqual(neo4j.error.SESSION_EXPIRED);
+
+            driver.close();
+
+            router1.exit(code1 => {
+              router2.exit(code2 => {
+                reader.exit(code3 => {
+                  expect(code1).toEqual(0);
+                  expect(code2).toEqual(0);
+                  expect(code3).toEqual(0);
+                  done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should accept routing table without writers and then rediscover', done => {
+    const kit = new boltkit.BoltKit();
+
+    // first router does not have itself in the resulting routing table so connection
+    // towards it will be closed after rediscovery
+    const router1 = kit.start('./test/resources/boltkit/discover_no_writers.script', 9010);
+    let router2 = null;
+    const reader = kit.start('./test/resources/boltkit/read_server.script', 9003);
+    const writer = kit.start('./test/resources/boltkit/write_server.script', 9007);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+
+      const readSession = driver.session();
+
+      readSession.readTransaction(tx => tx.run('MATCH (n) RETURN n.name')).then(result => {
+        readSession.close(() => {
+          expect(result.records.map(record => record.get(0))).toEqual(['Bob', 'Alice', 'Tina']);
+
+          // start another router which knows about writes, use same address as the initial router
+          router2 = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9010);
+          kit.run(() => {
+            const writeSession = driver.session(WRITE);
+            writeSession.run('CREATE (n {name:\'Bob\'})').then(result => {
+              writeSession.close(() => {
+                expect(result.records).toEqual([]);
+
+                driver.close();
+
+                router1.exit(code1 => {
+                  router2.exit(code2 => {
+                    reader.exit(code3 => {
+                      writer.exit(code4 => {
+                        expect(code1).toEqual(0);
+                        expect(code2).toEqual(0);
+                        expect(code3).toEqual(0);
+                        expect(code4).toEqual(0);
+                        done();
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should use resolved seed router for discovery after accepting a table without writers', done => {
+    const kit = new boltkit.BoltKit();
+    const seedRouter = kit.start('./test/resources/boltkit/no_writers.script', 9010);
+    const resolvedSeedRouter = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9020);
+    const reader = kit.start('./test/resources/boltkit/read_server.script', 9005);
+    const writer = kit.start('./test/resources/boltkit/write_server.script', 9007);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+
+      const readSession = driver.session(READ);
+      readSession.run('MATCH (n) RETURN n.name').then(result => {
+        readSession.close(() => {
+          expect(result.records.map(record => record.get(0))).toEqual(['Bob', 'Alice', 'Tina']);
+
+          setupFakeHostNameResolution(driver, '127.0.0.1:9010', ['127.0.0.1:9020']);
+
+          const writeSession = driver.session(WRITE);
+          writeSession.run('CREATE (n {name:\'Bob\'})').then(result => {
+            writeSession.close(() => {
+              expect(result.records).toEqual([]);
+
+              driver.close();
+
+              seedRouter.exit(code1 => {
+                resolvedSeedRouter.exit(code2 => {
+                  reader.exit(code3 => {
+                    writer.exit(code4 => {
+                      expect(code1).toEqual(0);
+                      expect(code2).toEqual(0);
+                      expect(code3).toEqual(0);
+                      expect(code4).toEqual(0);
+                      done();
+                    });
+                  });
                 });
               });
             });

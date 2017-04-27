@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoundRobinArray from "../../lib/v1/internal/round-robin-array";
+import RoundRobinArray from '../../lib/v1/internal/round-robin-array';
 
 describe('round-robin-array', () => {
 
@@ -196,6 +196,11 @@ describe('round-robin-array', () => {
     expect(array.next()).toEqual(3);
     expect(array.next()).toEqual(2);
     expect(array.next()).toEqual(3);
+  });
+
+  it('should have correct toString ', () => {
+    const array = new RoundRobinArray([1, 2, 3]);
+    expect(array.toString()).toEqual('[1,2,3]');
   });
 
 });
