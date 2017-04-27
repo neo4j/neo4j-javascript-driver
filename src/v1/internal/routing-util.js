@@ -20,14 +20,28 @@
 import RoundRobinArray from './round-robin-array';
 import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE} from '../error';
 import Integer, {int} from '../integer';
+import {ServerVersion, VERSION_3_2_0} from './server-version';
 
-const PROCEDURE_CALL = 'CALL dbms.cluster.routing.getServers';
+const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers';
+const GET_ROUTING_TABLE_PARAM = 'context';
+const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable({' + GET_ROUTING_TABLE_PARAM + '})';
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound';
 
-export default class GetServersUtil {
+export default class RoutingUtil {
 
-  callGetServers(session, routerAddress) {
-    return session.run(PROCEDURE_CALL).then(result => {
+  constructor(routingContext) {
+    this._routingContext = routingContext;
+  }
+
+  /**
+   * Invoke routing procedure using the given session.
+   * @param {Session} session the session to use.
+   * @param {string} routerAddress the URL of the router.
+   * @return {Promise<Record[]>} promise resolved with records returned by the procedure call or null if
+   * connection error happened.
+   */
+  callRoutingProcedure(session, routerAddress) {
+    return this._callAvailableRoutingProcedure(session).then(result => {
       session.close();
       return result.records;
     }).catch(error => {
@@ -91,5 +105,19 @@ export default class GetServersUtil {
         'Unable to parse servers entry from router ' + routerAddress + ' from record:\n' + JSON.stringify(record),
         PROTOCOL_ERROR);
     }
+  }
+
+  _callAvailableRoutingProcedure(session) {
+    return session._run(null, null, (connection, streamObserver) => {
+      const serverVersionString = connection.server.version;
+      const serverVersion = ServerVersion.fromString(serverVersionString);
+
+      if (serverVersion.compareTo(VERSION_3_2_0) >= 0) {
+        const params = {[GET_ROUTING_TABLE_PARAM]: this._routingContext};
+        connection.run(CALL_GET_ROUTING_TABLE, params, streamObserver);
+      } else {
+        connection.run(CALL_GET_SERVERS, {}, streamObserver);
+      }
+    });
   }
 }

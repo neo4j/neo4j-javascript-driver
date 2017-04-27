@@ -25,6 +25,7 @@ import RoutingTable from './routing-table';
 import Rediscovery from './rediscovery';
 import hasFeature from './features';
 import {DnsHostNameResolver, DummyHostNameResolver} from './host-name-resolvers';
+import RoutingUtil from './routing-util';
 
 class ConnectionProvider {
 
@@ -61,11 +62,11 @@ export class DirectConnectionProvider extends ConnectionProvider {
 
 export class LoadBalancer extends ConnectionProvider {
 
-  constructor(address, connectionPool, driverOnErrorCallback) {
+  constructor(address, routingContext, connectionPool, driverOnErrorCallback) {
     super();
     this._seedRouter = address;
     this._routingTable = new RoutingTable(new RoundRobinArray([this._seedRouter]));
-    this._rediscovery = new Rediscovery();
+    this._rediscovery = new Rediscovery(new RoutingUtil(routingContext));
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
     this._hostNameResolver = LoadBalancer._createHostNameResolver();
@@ -171,8 +172,10 @@ export class LoadBalancer extends ConnectionProvider {
 
   _createSessionForRediscovery(routerAddress) {
     const connection = this._connectionPool.acquire(routerAddress);
-    const connectionPromise = Promise.resolve(connection);
-    const connectionProvider = new SingleConnectionProvider(connectionPromise);
+    // initialized connection is required for routing procedure call
+    // server version needs to be known to decide which routing procedure to use
+    const initializedConnectionPromise = connection.initializationCompleted();
+    const connectionProvider = new SingleConnectionProvider(initializedConnectionPromise);
     return new Session(READ, connectionProvider);
   }
 

@@ -26,9 +26,7 @@ import Record from './record';
 import {Driver, READ, WRITE} from './driver';
 import RoutingDriver from './routing-driver';
 import VERSION from '../version';
-import {parseScheme, parseUrl} from './internal/connector';
-import {assertString} from './internal/util';
-
+import {assertString, isEmptyObjectOrNull, parseRoutingContext, parseScheme, parseUrl} from './internal/util';
 
 const auth = {
   basic: (username, password, realm = undefined) => {
@@ -129,16 +127,18 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
 function driver(url, authToken, config = {}) {
   assertString(url, 'Bolt URL');
   const scheme = parseScheme(url);
-  if (scheme === "bolt+routing://") {
-    return new RoutingDriver(parseUrl(url), USER_AGENT, authToken, config);
-  } else if (scheme === "bolt://") {
+  const routingContext = parseRoutingContext(url);
+  if (scheme === 'bolt+routing://') {
+    return new RoutingDriver(parseUrl(url), routingContext, USER_AGENT, authToken, config);
+  } else if (scheme === 'bolt://') {
+    if (!isEmptyObjectOrNull(routingContext)) {
+      throw new Error(`Routing parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
+    }
     return new Driver(parseUrl(url), USER_AGENT, authToken, config);
   } else {
-    throw new Error("Unknown scheme: " + scheme);
-
+    throw new Error(`Unknown scheme: ${scheme}`);
   }
 }
-
 
 const types ={
   Node,

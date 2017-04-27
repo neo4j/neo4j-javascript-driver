@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {parseHost, parsePort} from './connector';
+import {parseHost, parsePort} from './util';
 
 class HostNameResolver {
 

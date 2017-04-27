@@ -58,7 +58,13 @@ class Driver {
       Driver._validateConnection.bind(this),
       config.connectionPoolSize
     );
-    this._connectionProvider = this._createConnectionProvider(url, this._pool, this._driverOnErrorCallback.bind(this));
+
+    /**
+     * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
+     * @type {ConnectionProvider}
+     * @private
+     */
+    this._connectionProvider = null;
   }
 
   /**
@@ -115,7 +121,8 @@ class Driver {
    */
   session(mode, bookmark) {
     const sessionMode = Driver._validateSessionMode(mode);
-    return this._createSession(sessionMode, this._connectionProvider, bookmark, this._config);
+    const connectionProvider = this._getOrCreateConnectionProvider();
+    return this._createSession(sessionMode, connectionProvider, bookmark, this._config);
   }
 
   static _validateSessionMode(rawMode) {
@@ -140,6 +147,14 @@ class Driver {
   _connectionErrorCode() {
     // connection errors might result in different error codes depending on the driver
     return SERVICE_UNAVAILABLE;
+  }
+
+  _getOrCreateConnectionProvider() {
+    if (!this._connectionProvider) {
+      const driverOnErrorCallback = this._driverOnErrorCallback.bind(this);
+      this._connectionProvider = this._createConnectionProvider(this._url, this._pool, driverOnErrorCallback);
+    }
+    return this._connectionProvider;
   }
 
   _driverOnErrorCallback(error) {
@@ -189,8 +204,9 @@ class _ConnectionStreamObserver extends StreamObserver {
     if (this._driver.onCompleted) {
       this._driver.onCompleted(message);
     }
-    if (this._conn && message && message.server) {
-      this._conn.setServerVersion(message.server);
+
+    if (this._observer && this._observer.onComplete) {
+      this._observer.onCompleted(message);
     }
   }
 }

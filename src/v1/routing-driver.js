@@ -27,12 +27,13 @@ import {LoadBalancer} from './internal/connection-providers';
  */
 class RoutingDriver extends Driver {
 
-  constructor(url, userAgent, token = {}, config = {}) {
+  constructor(url, routingContext, userAgent, token = {}, config = {}) {
     super(url, userAgent, token, RoutingDriver._validateConfig(config));
+    this._routingContext = routingContext;
   }
 
   _createConnectionProvider(address, connectionPool, driverOnErrorCallback) {
-    return new LoadBalancer(address, connectionPool, driverOnErrorCallback);
+    return new LoadBalancer(address, this._routingContext, connectionPool, driverOnErrorCallback);
   }
 
   _createSession(mode, connectionProvider, bookmark, config) {

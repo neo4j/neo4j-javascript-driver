@@ -19,7 +19,7 @@
 
 import {DnsHostNameResolver, DummyHostNameResolver} from '../../src/v1/internal/host-name-resolvers';
 import hasFeature from '../../src/v1/internal/features';
-import {parseHost, parsePort, parseScheme} from '../../src/v1/internal/connector';
+import {parseHost, parsePort, parseScheme} from '../../src/v1/internal/util';
 
 describe('DummyHostNameResolver', () => {
 

@@ -17,11 +17,12 @@
  * limitations under the License.
  */
 
-import GetServersUtil from "../../src/v1/internal/get-servers-util";
-import Record from "../../src/v1/record";
-import Integer, {int} from "../../src/v1/integer";
-import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "../../src/v1/error";
-import lolex from "lolex";
+import RoutingUtil from '../../src/v1/internal/routing-util';
+import Record from '../../src/v1/record';
+import Integer, {int} from '../../src/v1/integer';
+import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
+import lolex from 'lolex';
+import FakeConnection from './fake-connection';
 
 const ROUTER_ADDRESS = 'bolt+routing://test.router.com';
 
@@ -40,7 +41,7 @@ describe('get-servers-util', () => {
   it('should return retrieved records when query succeeds', done => {
     const session = FakeSession.successful({records: ['foo', 'bar', 'baz']});
 
-    callGetServers(session).then(records => {
+    callRoutingProcedure(session).then(records => {
       expect(records).toEqual(['foo', 'bar', 'baz']);
       done();
     }).catch(console.log);
@@ -49,7 +50,7 @@ describe('get-servers-util', () => {
   it('should close session when query succeeds', done => {
     const session = FakeSession.successful({records: ['foo', 'bar', 'baz']});
 
-    callGetServers(session).then(() => {
+    callRoutingProcedure(session).then(() => {
       expect(session.isClosed()).toBeTruthy();
       done();
     }).catch(console.log);
@@ -58,7 +59,7 @@ describe('get-servers-util', () => {
   it('should not close session when query fails', done => {
     const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED));
 
-    callGetServers(session).then(() => {
+    callRoutingProcedure(session).then(() => {
       expect(session.isClosed()).toBeFalsy();
       done();
     }).catch(console.log);
@@ -67,7 +68,7 @@ describe('get-servers-util', () => {
   it('should return null on connection error', done => {
     const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED));
 
-    callGetServers(session).then(records => {
+    callRoutingProcedure(session).then(records => {
       expect(records).toBeNull();
       done();
     }).catch(console.log);
@@ -76,10 +77,65 @@ describe('get-servers-util', () => {
   it('should fail when procedure not found', done => {
     const session = FakeSession.failed(newError('Oh no!', 'Neo.ClientError.Procedure.ProcedureNotFound'));
 
-    callGetServers(session).catch(error => {
+    callRoutingProcedure(session).catch(error => {
       expect(error.code).toBe(SERVICE_UNAVAILABLE);
       expect(error.message).toBe('Server ' + ROUTER_ADDRESS + ' could not perform routing. ' +
         'Make sure you are connecting to a causal cluster');
+      done();
+    });
+  });
+
+  it('should use getServers procedure when server version is older than 3.2.0', done => {
+    const connection = new FakeConnection().withServerVersion('Neo4j/3.1.9');
+    const session = FakeSession.withFakeConnection(connection);
+
+    callRoutingProcedure(session, {}).then(() => {
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getServers']);
+      expect(connection.seenParameters).toEqual([{}]);
+      done();
+    });
+  });
+
+  it('should use getRoutingTable procedure with empty routing context when server version is 3.2.0', done => {
+    const connection = new FakeConnection().withServerVersion('Neo4j/3.2.0');
+    const session = FakeSession.withFakeConnection(connection);
+
+    callRoutingProcedure(session, {}).then(() => {
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable({context})']);
+      expect(connection.seenParameters).toEqual([{context: {}}]);
+      done();
+    });
+  });
+
+  it('should use getRoutingTable procedure with routing context when server version is 3.2.0', done => {
+    const connection = new FakeConnection().withServerVersion('Neo4j/3.2.0');
+    const session = FakeSession.withFakeConnection(connection);
+
+    callRoutingProcedure(session, {key1: 'value1', key2: 'value2'}).then(() => {
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable({context})']);
+      expect(connection.seenParameters).toEqual([{context: {key1: 'value1', key2: 'value2'}}]);
+      done();
+    });
+  });
+
+  it('should use getRoutingTable procedure with empty routing context when server version is newer than 3.2.0', done => {
+    const connection = new FakeConnection().withServerVersion('Neo4j/3.3.5');
+    const session = FakeSession.withFakeConnection(connection);
+
+    callRoutingProcedure(session, {}).then(() => {
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable({context})']);
+      expect(connection.seenParameters).toEqual([{context: {}}]);
+      done();
+    });
+  });
+
+  it('should use getRoutingTable procedure with routing context when server version is newer than 3.2.0', done => {
+    const connection = new FakeConnection().withServerVersion('Neo4j/3.2.8');
+    const session = FakeSession.withFakeConnection(connection);
+
+    callRoutingProcedure(session, {key1: 'foo', key2: 'bar'}).then(() => {
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable({context})']);
+      expect(connection.seenParameters).toEqual([{context: {key1: 'foo', key2: 'bar'}}]);
       done();
     });
   });
@@ -197,18 +253,18 @@ describe('get-servers-util', () => {
     expect(writers.toArray()).toEqual(writerAddresses);
   }
 
-  function callGetServers(session) {
-    const util = new GetServersUtil();
-    return util.callGetServers(session, ROUTER_ADDRESS);
+  function callRoutingProcedure(session, routingContext) {
+    const util = new RoutingUtil(routingContext || {});
+    return util.callRoutingProcedure(session, ROUTER_ADDRESS);
   }
 
   function parseTtl(record) {
-    const util = new GetServersUtil();
+    const util = new RoutingUtil();
     return util.parseTtl(record, ROUTER_ADDRESS);
   }
 
   function parseServers(record) {
-    const util = new GetServersUtil();
+    const util = new RoutingUtil();
     return util.parseServers(record, ROUTER_ADDRESS);
   }
 
@@ -245,21 +301,30 @@ describe('get-servers-util', () => {
 
   class FakeSession {
 
-    constructor(runResponse) {
+    constructor(runResponse, fakeConnection) {
       this._runResponse = runResponse;
+      this._fakeConnection = fakeConnection;
       this._closed = false;
     }
 
     static successful(result) {
-      return new FakeSession(Promise.resolve(result));
+      return new FakeSession(Promise.resolve(result), null);
     }
 
     static failed(error) {
-      return new FakeSession(Promise.reject(error));
+      return new FakeSession(Promise.reject(error), null);
     }
 
-    run() {
-      return this._runResponse;
+    static withFakeConnection(connection) {
+      return new FakeSession(null, connection);
+    }
+
+    _run(ignoreStatement, ignoreParameters, statementRunner) {
+      if (this._runResponse) {
+        return this._runResponse;
+      }
+      statementRunner(this._fakeConnection);
+      return Promise.resolve();
     }
 
     close() {

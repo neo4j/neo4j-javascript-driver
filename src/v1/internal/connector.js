@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import WebSocketChannel from './ch-websocket';
 import NodeChannel from './ch-node';
 import {Chunker, Dechunker} from './chunking';
@@ -24,6 +25,8 @@ import {alloc} from './buf';
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
 import {newError} from './../error';
 import ChannelConfig from './ch-config';
+import {parseHost, parsePort} from './util';
+import StreamObserver from './stream-observer';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -58,29 +61,6 @@ PATH = 0x50,
 //sent before version negotiation
 MAGIC_PREAMBLE = 0x6060B017,
 DEBUG = false;
-
-let URLREGEX = new RegExp([
-  "([^/]+//)?",          // scheme
-  "(([^:/?#]*)",      // hostname
-  "(?::([0-9]+))?)",  // port (optional)
-  ".*"].join(""));     // everything else
-
-function parseScheme( url ) {
-  let scheme = url.match(URLREGEX)[1] || '';
-  return scheme.toLowerCase();
-}
-
-function parseUrl(url) {
-  return url.match( URLREGEX )[2];
-}
-
-function parseHost( url ) {
-  return url.match( URLREGEX )[3];
-}
-
-function parsePort( url ) {
-  return url.match( URLREGEX )[4];
-}
 
 /**
  * Very rudimentary log handling, should probably be replaced by something proper at some point.
@@ -203,6 +183,8 @@ class Connection {
 
     this._isHandlingFailure = false;
     this._currentFailure = null;
+
+    this._state = new ConnectionState(this);
 
     // Set to true on fatal errors, to get this out of session pool.
     this._isBroken = false;
@@ -351,7 +333,8 @@ class Connection {
   /** Queue an INIT-message to be sent to the database */
   initialize( clientName, token, observer ) {
     log("C", "INIT", clientName, token);
-    this._queueObserver(observer);
+    const initObserver = this._state.wrap(observer);
+    this._queueObserver(initObserver);
     this._packer.packStruct( INIT, [this._packable(clientName), this._packable(token)],
       (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
@@ -438,6 +421,15 @@ class Connection {
   }
 
   /**
+   * Get promise resolved when connection initialization succeed or rejected when it fails.
+   * Connection is initialized using {@link initialize} function.
+   * @return {Promise<Connection>} the result of connection initialization.
+   */
+  initializationCompleted() {
+    return this._state.initializationCompleted();
+  }
+
+  /**
    * Synchronize - flush all queued outgoing messages and route their responses
    * to their respective handlers.
    */
@@ -471,6 +463,78 @@ class Connection {
   }
 }
 
+class ConnectionState {
+
+  /**
+   * @constructor
+   * @param {Connection} connection the connection to track state for.
+   */
+  constructor(connection) {
+    this._connection = connection;
+
+    this._initialized = false;
+    this._initializationError = null;
+
+    this._resolvePromise = null;
+    this._rejectPromise = null;
+  }
+
+  /**
+   * Wrap the given observer to track connection's initialization state.
+   * @param {StreamObserver} observer the observer used for INIT message.
+   * @return {StreamObserver} updated observer.
+   */
+  wrap(observer) {
+    return {
+      onNext: record => {
+        if (observer && observer.onNext) {
+          observer.onNext(record);
+        }
+      },
+      onError: error => {
+        this._initializationError = error;
+        if (this._rejectPromise) {
+          this._rejectPromise(error);
+          this._rejectPromise = null;
+        }
+        if (observer && observer.onError) {
+          observer.onError(error);
+        }
+      },
+      onCompleted: metaData => {
+        if (metaData && metaData.server) {
+          this._connection.setServerVersion(metaData.server);
+        }
+        this._initialized = true;
+        if (this._resolvePromise) {
+          this._resolvePromise(this._connection);
+          this._resolvePromise = null;
+        }
+        if (observer && observer.onCompleted) {
+          observer.onCompleted(metaData);
+        }
+      }
+    };
+  }
+
+  /**
+   * Get promise resolved when connection initialization succeed or rejected when it fails.
+   * @return {Promise<Connection>} the result of connection initialization.
+   */
+  initializationCompleted() {
+    if (this._initialized) {
+      return Promise.resolve(this._connection);
+    } else if (this._initializationError) {
+      return Promise.reject(this._initializationError);
+    } else {
+      return new Promise((resolve, reject) => {
+        this._resolvePromise = resolve;
+        this._rejectPromise = reject;
+      });
+    }
+  }
+}
+
 /**
  * Crete new connection to the provided url.
  * @access private
@@ -490,10 +554,6 @@ function connect(url, config = {}, connectionErrorCode = null) {
 }
 
 export {
-    connect,
-    parseScheme,
-    parseUrl,
-    parseHost,
-    parsePort,
-    Connection
-}
+  connect,
+  Connection
+};
