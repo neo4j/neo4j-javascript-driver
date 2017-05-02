@@ -193,6 +193,14 @@ describe('examples', () => {
     });
   });
 
+  it('kerberos auth example', () => {
+    const ticket = 'a base64 encoded ticket';
+
+    // tag::kerberos-auth[]
+    const driver = neo4j.driver(uri, neo4j.auth.kerberos(ticket));
+    // end::kerberos-auth[]
+  });
+
   it('cypher error example', done => {
     const driver = driverGlobal;
     const personName = 'Bob';
