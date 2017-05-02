@@ -117,6 +117,30 @@ describe('connector', () => {
     channel.onmessage(packedFailureMessage(errorCode, errorMessage));
   });
 
+  it('should notify provided observer when connection initialization completes', done => {
+    const connection = connect('bolt://localhost');
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+      onCompleted: metaData => {
+        expect(connection.isOpen()).toBeTruthy();
+        expect(metaData).toBeDefined();
+        done();
+      },
+    });
+  });
+
+  it('should notify provided observer when connection initialization fails', done => {
+    const connection = connect('bolt://localhost:7474'); // wrong port
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+      onError: error => {
+        expect(connection.isOpen()).toBeFalsy();
+        expect(error).toBeDefined();
+        done();
+      },
+    });
+  });
+
   function packedHandshakeMessage() {
     const result = alloc(4);
     result.putInt32(0, 1);

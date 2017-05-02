@@ -288,6 +288,20 @@ class Connection {
     }
   }
 
+  /**
+   * Mark this connection as failed because processing of INIT message failed and server will close the connection.
+   * Initialization failure is a fatal error for the connection.
+   * @param {Neo4jError} error the initialization error.
+   * @param {StreamObserver} initObserver the initialization observer that noticed the failure.
+   * @protected
+   */
+  _initializationFailed(error, initObserver) {
+    if (this._currentObserver === initObserver) {
+      this._currentObserver = null; // init observer detected the failure and should not be notified again
+    }
+    this._handleFatalError(error);
+  }
+
   _handleMessage( msg ) {
     const payload = msg.fields[0];
 
@@ -351,7 +365,8 @@ class Connection {
   /** Queue an INIT-message to be sent to the database */
   initialize( clientName, token, observer ) {
     log("C", "INIT", clientName, token);
-    this._queueObserver(observer);
+    const initObserver = new InitObserver(this, observer);
+    this._queueObserver(initObserver);
     this._packer.packStruct( INIT, [this._packable(clientName), this._packable(token)],
       (err) => this._handleFatalError(err) );
     this._chunker.messageBoundary();
@@ -487,6 +502,40 @@ function connect(url, config = {}, connectionErrorCode = null) {
   const channelConfig = new ChannelConfig(host, port, config, connectionErrorCode);
 
   return new Connection( new Ch(channelConfig), completeUrl);
+}
+
+/**
+ * Observer that wraps user-defined observer for INIT message and handles initialization failures. Connection is
+ * closed by the server if processing of INIT message fails so this observer will handle initialization failure
+ * as a fatal error.
+ */
+class InitObserver {
+
+  /**
+   * @constructor
+   * @param {Connection} connection the connection used to send INIT message.
+   * @param {StreamObserver} originalObserver the observer to wrap and delegate calls to.
+   */
+  constructor(connection, originalObserver) {
+    this._connection = connection;
+    this._originalObserver = originalObserver || NO_OP_OBSERVER;
+  }
+
+  onNext(record) {
+    this._originalObserver.onNext(record);
+  }
+
+  onError(error) {
+    try {
+      this._originalObserver.onError(error);
+    } finally {
+      this._connection._initializationFailed(error, this);
+    }
+  }
+
+  onCompleted(metaData) {
+    this._originalObserver.onCompleted(metaData);
+  }
 }
 
 export {
