@@ -57,7 +57,7 @@ UNBOUND_RELATIONSHIP = 0x72,
 PATH = 0x50,
 //sent before version negotiation
 MAGIC_PREAMBLE = 0x6060B017,
-DEBUG = false;
+DEBUG = true;
 
 let URLREGEX = new RegExp([
   "([^/]+//)?",          // scheme
