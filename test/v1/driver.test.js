@@ -80,7 +80,7 @@ describe('driver', () => {
 
   it('should fail early on wrong credentials', done => {
     // Given
-    driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "who would use such a password"));
+    driver = neo4j.driver("bolt://localhost", wrongCredentials());
 
     // Expect
     driver.onError = err => {
@@ -91,6 +91,16 @@ describe('driver', () => {
 
     // When
     startNewTransaction(driver);
+  });
+
+  it('should fail queries on wrong credentials', done => {
+    driver = neo4j.driver("bolt://localhost", wrongCredentials());
+
+    const session = driver.session();
+    session.run('RETURN 1').catch(error => {
+      expect(error.code).toEqual('Neo.ClientError.Security.Unauthorized');
+      done();
+    });
   });
 
   it('should indicate success early on correct credentials', done => {
@@ -205,6 +215,10 @@ describe('driver', () => {
   function startNewTransaction(driver) {
     const session = driver.session();
     expect(session.beginTransaction()).toBeDefined();
+  }
+
+  function wrongCredentials() {
+    return neo4j.auth.basic('neo4j', 'who would use such a password');
   }
 
 });
