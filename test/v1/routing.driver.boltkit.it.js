@@ -1831,6 +1831,33 @@ describe('routing driver', () => {
     });
   });
 
+  it('should fail rediscovery on auth error', done => {
+    if (!boltkit.BoltKitSupport) {
+      done();
+      return;
+    }
+
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/failed_auth.script', 9010);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+      const session = driver.session();
+      session.run('RETURN 1').catch(error => {
+        expect(error.code).toEqual('Neo.ClientError.Security.Unauthorized');
+        expect(error.message).toEqual('Some server auth error message');
+
+        session.close(() => {
+          driver.close();
+          router.exit(code => {
+            expect(code).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
   function moveNextDateNow30SecondsForward() {
     const currentTime = Date.now();
     hijackNextDateNowCall(currentTime + 30 * 1000 + 1);

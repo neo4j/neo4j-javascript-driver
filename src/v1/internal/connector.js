@@ -254,7 +254,7 @@ class Connection {
    * failing, and the connection getting ejected from the session pool.
    *
    * @param err an error object, forwarded to all current and future subscribers
-   * @private
+   * @protected
    */
   _handleFatalError( err ) {
     this._isBroken = true;
@@ -271,6 +271,12 @@ class Connection {
   }
 
   _handleMessage( msg ) {
+    if (this._isBroken) {
+      // ignore all incoming messages when this connection is broken. all previously pending observers failed
+      // with the fatal error. all future observers will fail with same fatal error.
+      return;
+    }
+
     const payload = msg.fields[0];
 
     switch( msg.signature ) {
@@ -283,7 +289,7 @@ class Connection {
         try {
           this._currentObserver.onCompleted( payload );
         } finally {
-          this._currentObserver = this._pendingObservers.shift();
+          this._updateCurrentObserver();
         }
         break;
       case FAILURE:
@@ -292,7 +298,7 @@ class Connection {
           this._currentFailure = newError(payload.message, payload.code);
           this._currentObserver.onError( this._currentFailure );
         } finally {
-          this._currentObserver = this._pendingObservers.shift();
+          this._updateCurrentObserver();
           // Things are now broken. Pending observers will get FAILURE messages routed until
           // We are done handling this failure.
           if( !this._isHandlingFailure ) {
@@ -322,7 +328,7 @@ class Connection {
           else if(this._currentObserver.onError)
             this._currentObserver.onError(payload);
         } finally {
-          this._currentObserver = this._pendingObservers.shift();
+          this._updateCurrentObserver();
         }
         break;
       default:
@@ -429,6 +435,14 @@ class Connection {
     return this._state.initializationCompleted();
   }
 
+  /*
+   * Pop next pending observer form the list of observers and make it current observer.
+   * @protected
+   */
+  _updateCurrentObserver() {
+    this._currentObserver = this._pendingObservers.shift();
+  }
+
   /**
    * Synchronize - flush all queued outgoing messages and route their responses
    * to their respective handlers.
@@ -480,7 +494,8 @@ class ConnectionState {
   }
 
   /**
-   * Wrap the given observer to track connection's initialization state.
+   * Wrap the given observer to track connection's initialization state. Connection is closed by the server if
+   * processing of INIT message fails so returned observer will handle initialization failure as a fatal error.
    * @param {StreamObserver} observer the observer used for INIT message.
    * @return {StreamObserver} updated observer.
    */
@@ -497,8 +512,14 @@ class ConnectionState {
           this._rejectPromise(error);
           this._rejectPromise = null;
         }
-        if (observer && observer.onError) {
-          observer.onError(error);
+
+        this._connection._updateCurrentObserver(); // make sure this same observer will not be called again
+        try {
+          if (observer && observer.onError) {
+            observer.onError(error);
+          }
+        } finally {
+          this._connection._handleFatalError(error);
         }
       },
       onCompleted: metaData => {

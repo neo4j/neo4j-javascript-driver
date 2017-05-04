@@ -26,6 +26,7 @@ const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers';
 const GET_ROUTING_TABLE_PARAM = 'context';
 const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable({' + GET_ROUTING_TABLE_PARAM + '})';
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound';
+const UNAUTHORIZED_CODE = 'Neo.ClientError.Security.Unauthorized';
 
 export default class RoutingUtil {
 
@@ -49,10 +50,14 @@ export default class RoutingUtil {
         // throw when getServers procedure not found because this is clearly a configuration issue
         throw newError('Server ' + routerAddress + ' could not perform routing. ' +
           'Make sure you are connecting to a causal cluster', SERVICE_UNAVAILABLE);
+      } else if (error.code === UNAUTHORIZED_CODE) {
+        // auth error is a sign of a configuration issue, rediscovery should not proceed
+        throw error;
+      } else {
+        // return nothing when failed to connect because code higher in the callstack is still able to retry with a
+        // different session towards a different router
+        return null;
       }
-      // return nothing when failed to connect because code higher in the callstack is still able to retry with a
-      // different session towards a different router
-      return null;
     });
   }
 
