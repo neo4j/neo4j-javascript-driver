@@ -24,6 +24,7 @@ import {LoadBalancer} from './internal/connection-providers';
 
 /**
  * A driver that supports routing in a core-edge cluster.
+ * @private
  */
 class RoutingDriver extends Driver {
 

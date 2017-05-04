@@ -26,8 +26,8 @@ import {DirectConnectionProvider} from './internal/connection-providers';
 
 const READ = 'READ', WRITE = 'WRITE';
 /**
- * A driver maintains one or more {@link Session sessions} with a remote
- * Neo4j instance. Through the {@link Session sessions} you can send statements
+ * A driver maintains one or more {@link Session}s with a remote
+ * Neo4j instance. Through the {@link Session}s you can send statements
  * and retrieve results from the database.
  *
  * Drivers are reasonably expensive to create - you should strive to keep one
@@ -109,7 +109,7 @@ class Driver {
    * will be pulling a session out of the common pool.
    *
    * This comes with some responsibility - make sure you always call
-   * {@link Session#close()} when you are done using a session, and likewise,
+   * {@link close} when you are done using a session, and likewise,
    * make sure you don't close your session before you are done using it. Once
    * it is returned to the pool, the session will be reset to a clean state and
    * made available for others to use.

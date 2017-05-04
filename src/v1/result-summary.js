@@ -107,7 +107,7 @@ class ProfiledPlan {
 }
 
 /**
-  * Get statistical information for a {Result}.
+  * Get statistical information for a {@link Result}.
   * @access public
   */
 class StatementStatistics {
