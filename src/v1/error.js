@@ -20,8 +20,17 @@
 // A common place for constructing error objects, to keep them
 // uniform across the driver surface.
 
+/**
+ * @type {string}
+ */
 const SERVICE_UNAVAILABLE = 'ServiceUnavailable';
+/**
+ * @type {string}
+ */
 const SESSION_EXPIRED = 'SessionExpired';
+/**
+ * @type {string}
+ */
 const PROTOCOL_ERROR = 'ProtocolError';
 
 function newError(message, code="N/A") {

@@ -90,7 +90,7 @@ class Session {
    * While a transaction is open the session cannot be used to run statements outside the transaction.
    *
    * @param {string} bookmark - a reference to a previous transaction. DEPRECATED: This parameter is deprecated in
-   * favour of {@link Driver#session(string)} that accepts an initial bookmark. Session will ensure that all nested
+   * favour of {@link Driver#session} that accepts an initial bookmark. Session will ensure that all nested
    * transactions are chained with bookmarks to guarantee causal consistency.
    * @returns {Transaction} - New Transaction
    */
@@ -123,14 +123,14 @@ class Session {
   /**
    * Return the bookmark received following the last completed {@link Transaction}.
    *
-   * @return a reference to a previous transac'tion
+   * @return a reference to a previous transaction
    */
   lastBookmark() {
     return this._lastBookmark;
   }
 
   /**
-   * Execute given unit of work in a {@link Driver#READ} transaction.
+   * Execute given unit of work in a {@link READ} transaction.
    *
    * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
@@ -147,7 +147,7 @@ class Session {
   }
 
   /**
-   * Execute given unit of work in a {@link Driver#WRITE} transaction.
+   * Execute given unit of work in a {@link WRITE} transaction.
    *
    * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial

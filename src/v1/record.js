@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {newError} from "./error";
+import {newError} from './error';
 
 function generateFieldLookup( keys ) {
   let lookup = {};
@@ -68,7 +68,7 @@ class Record {
    * will get three arguments - the value, the key and this record, in that
    * order.
    *
-   * @param visitor
+   * @param {function(value: Object, key: string, record: Record)} visitor the function to apply to each field.
    */
   forEach( visitor ) {
     for(let i=0;i<this.keys.length;i++) {

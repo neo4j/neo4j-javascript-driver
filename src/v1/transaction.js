@@ -57,7 +57,7 @@ class Transaction {
 
   /**
    * Run Cypher statement
-   * Could be called with a statement object i.e.: {statement: "MATCH ...", parameters: {param: 1}}
+   * Could be called with a statement object i.e.: <code>{statement: "MATCH ...", parameters: {param: 1}}</code>
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
@@ -179,7 +179,7 @@ let _states = {
         conn.sync();
       }).catch(error => observer.onError(error));
 
-      return newRunResult(observer, statement, parameters, () => observer.serverMeta());
+      return _newRunResult(observer, statement, parameters, () => observer.serverMeta());
     }
   },
 
@@ -192,19 +192,19 @@ let _states = {
         "transaction has failed and the transaction has been rolled back. Please start a new" +
         " transaction to run another statement."
       });
-      return {result: newDummyResult(observer, "COMMIT", {}), state: _states.FAILED};
+      return {result: _newDummyResult(observer, "COMMIT", {}), state: _states.FAILED};
     },
     rollback: (connectionHolder, observer) => {
       observer.onError({error:
       "Cannot rollback transaction, because previous statements in the " +
       "transaction has failed and the transaction has already been rolled back."});
-      return {result: newDummyResult(observer, "ROLLBACK", {}), state: _states.FAILED};
+      return {result: _newDummyResult(observer, "ROLLBACK", {}), state: _states.FAILED};
     },
     run: (connectionHolder, observer, statement, parameters) => {
       observer.onError({error:
       "Cannot run statement, because previous statements in the " +
       "transaction has failed and the transaction has already been rolled back."});
-      return newDummyResult(observer, statement, parameters);
+      return _newDummyResult(observer, statement, parameters);
     }
   },
 
@@ -215,17 +215,17 @@ let _states = {
         error: "Cannot commit statements in this transaction, because commit has already been successfully called on the transaction and transaction has been closed. Please start a new" +
         " transaction to run another statement."
       });
-      return {result: newDummyResult(observer, "COMMIT", {}), state: _states.SUCCEEDED};
+      return {result: _newDummyResult(observer, "COMMIT", {}), state: _states.SUCCEEDED};
     },
     rollback: (connectionHolder, observer) => {
       observer.onError({error:
         "Cannot rollback transaction, because transaction has already been successfully closed."});
-      return {result: newDummyResult(observer, "ROLLBACK", {}), state: _states.SUCCEEDED};
+      return {result: _newDummyResult(observer, "ROLLBACK", {}), state: _states.SUCCEEDED};
     },
     run: (connectionHolder, observer, statement, parameters) => {
       observer.onError({error:
       "Cannot run statement, because transaction has already been successfully closed."});
-      return newDummyResult(observer, statement, parameters);
+      return _newDummyResult(observer, statement, parameters);
     }
   },
 
@@ -235,17 +235,17 @@ let _states = {
       observer.onError({
         error: "Cannot commit this transaction, because it has already been rolled back."
       });
-      return {result: newDummyResult(observer, "COMMIT", {}), state: _states.ROLLED_BACK};
+      return {result: _newDummyResult(observer, "COMMIT", {}), state: _states.ROLLED_BACK};
     },
     rollback: (connectionHolder, observer) => {
       observer.onError({error:
         "Cannot rollback transaction, because transaction has already been rolled back."});
-      return {result: newDummyResult(observer, "ROLLBACK", {}), state: _states.ROLLED_BACK};
+      return {result: _newDummyResult(observer, "ROLLBACK", {}), state: _states.ROLLED_BACK};
     },
     run: (connectionHolder, observer, statement, parameters) => {
       observer.onError({error:
         "Cannot run statement, because transaction has already been rolled back."});
-      return newDummyResult(observer, statement, parameters);
+      return _newDummyResult(observer, statement, parameters);
     }
   }
 };
@@ -274,8 +274,9 @@ function _runPullAll(msg, connectionHolder, observer) {
  * @param {object} parameters - the parameters for cypher statement that produced the result.
  * @param {function} metadataSupplier - the function that returns a metadata object.
  * @return {Result} new result.
+ * @private
  */
-function newRunResult(observer, statement, parameters, metadataSupplier) {
+function _newRunResult(observer, statement, parameters, metadataSupplier) {
   return new Result(observer, statement, parameters, metadataSupplier, EMPTY_CONNECTION_HOLDER);
 }
 
@@ -287,8 +288,9 @@ function newRunResult(observer, statement, parameters, metadataSupplier) {
  * @param {string} statement - the cypher statement that produced the result.
  * @param {object} parameters - the parameters for cypher statement that produced the result.
  * @return {Result} new result.
+ * @private
  */
-function newDummyResult(observer, statement, parameters) {
+function _newDummyResult(observer, statement, parameters) {
   return new Result(observer, statement, parameters, emptyMetadataSupplier, EMPTY_CONNECTION_HOLDER);
 }
 

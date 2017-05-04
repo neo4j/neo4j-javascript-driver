@@ -24,7 +24,7 @@ class Node {
   /**
    * @constructor
    * @param {Integer} identity - Unique identity
-   * @param {Array} labels - Array for all labels
+   * @param {Array<string>} labels - Array for all labels
    * @param {Object} properties - Map with node properties
    */
   constructor(identity, labels, properties) {
@@ -161,7 +161,7 @@ class Path {
    * @constructor
    * @param {Node} start  - start node
    * @param {Node} end - end node
-   * @param {Array} segments - Array of Segments
+   * @param {Array<PathSegment>} segments - Array of Segments
    */
   constructor(start, end, segments) {
     this.start = start;
