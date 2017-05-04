@@ -24,6 +24,7 @@ import {alloc} from './buf';
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
 import {newError} from './../error';
 import ChannelConfig from './ch-config';
+import StreamObserver from './stream-observer';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -57,7 +58,7 @@ UNBOUND_RELATIONSHIP = 0x72,
 PATH = 0x50,
 //sent before version negotiation
 MAGIC_PREAMBLE = 0x6060B017,
-DEBUG = true;
+DEBUG = false;
 
 let URLREGEX = new RegExp([
   "([^/]+//)?",          // scheme
@@ -272,7 +273,7 @@ class Connection {
    * failing, and the connection getting ejected from the session pool.
    *
    * @param err an error object, forwarded to all current and future subscribers
-   * @private
+   * @protected
    */
   _handleFatalError( err ) {
     this._isBroken = true;
@@ -288,21 +289,13 @@ class Connection {
     }
   }
 
-  /**
-   * Mark this connection as failed because processing of INIT message failed and server will close the connection.
-   * Initialization failure is a fatal error for the connection.
-   * @param {Neo4jError} error the initialization error.
-   * @param {StreamObserver} initObserver the initialization observer that noticed the failure.
-   * @protected
-   */
-  _initializationFailed(error, initObserver) {
-    if (this._currentObserver === initObserver) {
-      this._currentObserver = null; // init observer detected the failure and should not be notified again
-    }
-    this._handleFatalError(error);
-  }
-
   _handleMessage( msg ) {
+    if (this._isBroken) {
+      // ignore all incoming messages when this connection is broken. all previously pending observers failed
+      // with the fatal error. all future observers will fail with same fatal error.
+      return;
+    }
+
     const payload = msg.fields[0];
 
     switch( msg.signature ) {
@@ -315,7 +308,7 @@ class Connection {
         try {
           this._currentObserver.onCompleted( payload );
         } finally {
-          this._currentObserver = this._pendingObservers.shift();
+          this._updateCurrentObserver();
         }
         break;
       case FAILURE:
@@ -324,7 +317,7 @@ class Connection {
           this._currentFailure = newError(payload.message, payload.code);
           this._currentObserver.onError( this._currentFailure );
         } finally {
-          this._currentObserver = this._pendingObservers.shift();
+          this._updateCurrentObserver();
           // Things are now broken. Pending observers will get FAILURE messages routed until
           // We are done handling this failure.
           if( !this._isHandlingFailure ) {
@@ -354,7 +347,7 @@ class Connection {
           else if(this._currentObserver.onError)
             this._currentObserver.onError(payload);
         } finally {
-          this._currentObserver = this._pendingObservers.shift();
+          this._updateCurrentObserver();
         }
         break;
       default:
@@ -453,6 +446,14 @@ class Connection {
   }
 
   /**
+   * Pop next pending observer form the list of observers and make it current observer.
+   * @protected
+   */
+  _updateCurrentObserver() {
+    this._currentObserver = this._pendingObservers.shift();
+  }
+
+  /**
    * Synchronize - flush all queued outgoing messages and route their responses
    * to their respective handlers.
    */
@@ -509,7 +510,7 @@ function connect(url, config = {}, connectionErrorCode = null) {
  * closed by the server if processing of INIT message fails so this observer will handle initialization failure
  * as a fatal error.
  */
-class InitObserver {
+class InitObserver extends StreamObserver {
 
   /**
    * @constructor
@@ -517,6 +518,7 @@ class InitObserver {
    * @param {StreamObserver} originalObserver the observer to wrap and delegate calls to.
    */
   constructor(connection, originalObserver) {
+    super();
     this._connection = connection;
     this._originalObserver = originalObserver || NO_OP_OBSERVER;
   }
@@ -526,10 +528,11 @@ class InitObserver {
   }
 
   onError(error) {
+    this._connection._updateCurrentObserver(); // make sure this same observer will not be called again
     try {
       this._originalObserver.onError(error);
     } finally {
-      this._connection._initializationFailed(error, this);
+      this._connection._handleFatalError(error);
     }
   }
 

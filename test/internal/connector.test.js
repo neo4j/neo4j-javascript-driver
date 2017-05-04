@@ -141,6 +141,30 @@ describe('connector', () => {
     });
   });
 
+  it('should fail all new observers after initialization error', done => {
+    const connection = connect('bolt://localhost:7474'); // wrong port
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+      onError: initialError => {
+        expect(initialError).toBeDefined();
+
+        connection.run('RETURN 1', {}, {
+          onError: error1 => {
+            expect(error1).toEqual(initialError);
+
+            connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+              onError: error2 => {
+                expect(error2).toEqual(initialError);
+
+                done();
+              }
+            });
+          }
+        });
+      },
+    });
+  });
+
   function packedHandshakeMessage() {
     const result = alloc(4);
     result.putInt32(0, 1);
