@@ -28,6 +28,8 @@ import sharedNeo4j from '../internal/shared-neo4j';
 */
 describe('examples', () => {
 
+  const neo4jV1 = neo4j;
+
   let driverGlobal;
   let console;
   let originalTimeout;
@@ -268,6 +270,39 @@ describe('examples', () => {
 
     testResultPromise.then(loggedMsg => {
       expect(loggedMsg.indexOf('hello, world, from node') === 0).toBeTruthy();
+      done();
+    });
+  });
+
+  it('developer page example', done => {
+    const require = () => {
+      return {v1: neo4jV1};
+    };
+
+    // tag::developer-page[]
+    const neo4j = require('neo4j-driver').v1;
+
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+    const session = driver.session();
+
+    const personName = 'Alice';
+    const resultPromise = session.run('CREATE (a:Person {name: $name}) RETURN a', {name: personName});
+
+    resultPromise.then(result => {
+      session.close();
+
+      const singleRecord = result.records[0];
+      const node = singleRecord.get(0);
+
+      console.log(node.properties.name);
+
+      // on application exit:
+      driver.close();
+    });
+    // end::developer-page[]
+
+    testResultPromise.then(loggedMsg => {
+      expect(loggedMsg).toEqual(personName);
       done();
     });
   });
