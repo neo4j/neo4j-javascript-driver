@@ -21,11 +21,12 @@ import neo4j from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
 
 /**
-* The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
-*
-* DO NOT add tests to this file that are not for that exact purpose.
-* DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
-*/
+ * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
+ * Formatting of code here is important. Lines are rendered in manual and language guide web page as is.
+ *
+ * DO NOT add tests to this file that are not for that exact purpose.
+ * DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
+ */
 describe('examples', () => {
 
   const neo4jV1 = neo4j;
@@ -286,7 +287,10 @@ describe('examples', () => {
     const session = driver.session();
 
     const personName = 'Alice';
-    const resultPromise = session.run('CREATE (a:Person {name: $name}) RETURN a', {name: personName});
+    const resultPromise = session.run(
+      'CREATE (a:Person {name: $name}) RETURN a',
+      {name: personName}
+    );
 
     resultPromise.then(result => {
       session.close();
