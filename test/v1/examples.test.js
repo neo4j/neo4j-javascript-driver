@@ -282,12 +282,12 @@ describe('examples', () => {
     });
   });
 
-  it('developer page example', done => {
+  it('language guide page example', done => {
     const require = () => {
       return {v1: neo4jV1};
     };
 
-    // tag::developer-page[]
+    // tag::language-guide-page[]
     const neo4j = require('neo4j-driver').v1;
 
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
@@ -307,7 +307,7 @@ describe('examples', () => {
       // on application exit:
       driver.close();
     });
-    // end::developer-page[]
+    // end::language-guide-page[]
 
     testResultPromise.then(loggedMsg => {
       expect(loggedMsg).toEqual(personName);
