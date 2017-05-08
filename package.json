@@ -14,12 +14,14 @@
     "build": "gulp all",
     "start-neo4j": "gulp start-neo4j",
     "stop-neo4j": "gulp stop-neo4j",
+    "run-stress-tests": "gulp run-stress-tests",
     "run-tck": "gulp run-tck",
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version"
   },
   "main": "lib/index.js",
   "devDependencies": {
+    "async": "^2.4.0",
     "babel-core": "^6.17.0",
     "babel-plugin-transform-runtime": "^6.15.0",
     "babel-preset-es2015": "^6.16.0",
@@ -49,6 +51,7 @@
     "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
     "jasmine-reporters": "^2.0.7",
+    "lodash": "^4.17.4",
     "lolex": "^1.5.2",
     "merge-stream": "^1.0.0",
     "minimist": "^1.2.0",
