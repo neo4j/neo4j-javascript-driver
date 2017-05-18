@@ -23,7 +23,7 @@ import parallelLimit from 'async/parallelLimit';
 import _ from 'lodash';
 import sharedNeo4j from '../internal/shared-neo4j';
 
-describe('stress tests', () => {
+fdescribe('stress tests', () => {
 
   const TEST_MODES = {
     fast: {
@@ -78,6 +78,7 @@ describe('stress tests', () => {
         done.fail(error);
       }
 
+      verifyServers(context);
       verifyNodeCount(context)
         .then(() => done())
         .catch(error => done.fail(error));
@@ -152,12 +153,9 @@ describe('stress tests', () => {
       context.log(commandId, `About to run ${accessMode} query`);
 
       session.run(query, params).then(result => {
-
-        if (accessMode === WRITE) {
-          context.nodeCreated();
-        }
-
+        context.queryCompleted(result, accessMode);
         context.log(commandId, `Query completed successfully`);
+
         session.close(() => {
           const possibleError = verifyQueryResult(result);
           callback(possibleError);
@@ -187,13 +185,9 @@ describe('stress tests', () => {
             commandError = commitError;
           }
         }).then(() => {
-          context.setBookmark(session.lastBookmark());
-
+          context.queryCompleted(result, accessMode, session.lastBookmark());
           context.log(commandId, `Transaction committed successfully`);
 
-          if (accessMode === WRITE) {
-            context.nodeCreated();
-          }
           session.close(() => {
             callback(commandError);
           });
@@ -249,6 +243,17 @@ describe('stress tests', () => {
     });
   }
 
+  function verifyServers(context) {
+    const routing = DATABASE_URI.indexOf('bolt+routing') === 0;
+    const seenServers = context.seenServers();
+
+    if (routing && seenServers.length <= 1) {
+      throw new Error(`Routing driver used too few servers: ${seenServers}`);
+    } else if (!routing && seenServers.length !== 1) {
+      throw new Error(`Direct driver used too many servers: ${seenServers}`);
+    }
+  }
+
   function randomParams() {
     return {
       name: `Person-${Date.now()}`,
@@ -301,18 +306,25 @@ describe('stress tests', () => {
       this.createdNodesCount = 0;
       this._commandIdCouter = 0;
       this._loggingEnabled = loggingEnabled;
+      this._seenServers = new Set();
     }
 
-    setBookmark(bookmark) {
-      this.bookmark = bookmark;
-    }
-
-    nodeCreated() {
-      this.createdNodesCount++;
+    queryCompleted(result, accessMode, bookmark) {
+      if (accessMode === WRITE) {
+        this.createdNodesCount++;
+      }
+      if (bookmark) {
+        this.bookmark = bookmark;
+      }
+      this._seenServers.add(result.summary.server.address);
     }
 
     nextCommandId() {
       return this._commandIdCouter++;
+    }
+
+    seenServers() {
+      return Array.from(this._seenServers);
     }
 
     log(commandId, message) {
