@@ -21,8 +21,8 @@ import {newError} from './error';
 
 function generateFieldLookup( keys ) {
   return keys.reduce(
-    (acc, name, index) => {
-      acc[name] = index
+    (acc, key, index) => {
+      acc[key] = index
       return acc
     },
     {}
