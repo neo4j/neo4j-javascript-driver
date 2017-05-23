@@ -242,3 +242,11 @@ gulp.task('stop-neo4j', function (done) {
   sharedNeo4j.stop(neo4jHome);
   done();
 });
+
+gulp.task('run-stress-tests', function () {
+  return gulp.src('test/**/stress.test.js')
+    .pipe(jasmine({
+      includeStackTrace: true,
+      verbose: true
+    }));
+});
