@@ -20,9 +20,13 @@
 import {newError} from './error';
 
 function generateFieldLookup( keys ) {
-  let lookup = {};
-  keys.forEach( (name, idx) => { lookup[name] = idx; });
-  return lookup;
+  return keys.reduce(
+    (acc, key, index) => {
+      acc[key] = index
+      return acc
+    },
+    {}
+  );
 }
 
 /**
