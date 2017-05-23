@@ -23,7 +23,7 @@ import parallelLimit from 'async/parallelLimit';
 import _ from 'lodash';
 import sharedNeo4j from '../internal/shared-neo4j';
 
-fdescribe('stress tests', () => {
+describe('stress tests', () => {
 
   const TEST_MODES = {
     fast: {
