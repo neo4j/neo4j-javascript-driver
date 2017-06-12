@@ -20,6 +20,7 @@
     "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version"
   },
   "main": "lib/index.js",
+  "types": "types/index.d.ts",
   "devDependencies": {
     "async": "^2.4.0",
     "babel-core": "^6.17.0",
@@ -64,9 +65,7 @@
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   },
-  "typings": "./lib/index.d.ts",
   "dependencies": {
-    "@types/node": "^6.0.54",
     "babel-runtime": "^6.18.0"
   }
 }
