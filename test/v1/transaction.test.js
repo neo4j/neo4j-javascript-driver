@@ -61,7 +61,21 @@ describe('transaction', () => {
     }).catch(console.log);
   });
 
-  it('should handle interactive session', done => {
+  it('should populate resultAvailableAfter for transaction#run when using 3.1 and onwards', done => {
+    if (neo4jVersionOlderThan31(done)) {
+        return;
+    }
+    const tx = session.beginTransaction();
+    tx.run("CREATE (:TXNode1)").then(result => {
+      tx.commit().then(() => {
+        expect(result.summary.resultAvailableAfter).toBeDefined();
+        expect(result.summary.resultAvailableAfter.toInt()).not.toBeLessThan(0);
+        done();
+      }).catch(console.log);
+    }).catch(console.log);
+  });
+
+    it('should handle interactive session', done => {
     const tx = session.beginTransaction();
     tx.run("RETURN 'foo' AS res").then(result => {
       tx.run("CREATE ({name: {param}})", {param: result.records[0].get('res')}).then(() => {
