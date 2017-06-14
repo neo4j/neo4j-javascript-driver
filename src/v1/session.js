@@ -71,7 +71,7 @@ class Session {
   }
 
   _run(statement, parameters, statementRunner) {
-    const streamObserver = new _RunObserver(this._onRunFailure());
+    const streamObserver = new StreamObserver(this._onRunFailure());
     const connectionHolder = this._connectionHolderWithMode(this._mode);
     if (!this._hasTx) {
       connectionHolder.initializeConnection();
@@ -86,7 +86,7 @@ class Session {
         'session with an open transaction; either run from within the ' +
         'transaction or use a different session.'));
     }
-    return new Result(streamObserver, statement, parameters, () => streamObserver.meta(), connectionHolder);
+    return new Result(streamObserver, statement, parameters, () => streamObserver.serverMetadata(), connectionHolder);
   }
 
   /**
@@ -214,28 +214,6 @@ class Session {
     } else {
       throw newError('Unknown access mode: ' + mode);
     }
-  }
-}
-
-/** Internal stream observer used for transactional results*/
-class _RunObserver extends StreamObserver {
-  constructor(onError) {
-    super(onError);
-    this._meta = {};
-  }
-
-  onCompleted(meta) {
-    super.onCompleted(meta);
-    for(var key in meta){
-      if(meta.hasOwnProperty(key)){
-        this._meta[key]=meta[key];
-      }
-    }
-  }
-
-  meta() {
-    const serverMeta = {server: this._conn.server};
-    return Object.assign({}, this._meta, serverMeta);
   }
 }
 

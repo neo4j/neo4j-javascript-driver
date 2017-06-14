@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import Record from "../record";
 
 /**
@@ -44,6 +43,7 @@ class StreamObserver {
     this._errorTransformer = errorTransformer;
     this._observer = null;
     this._conn = null;
+    this._meta = {};
   }
 
   /**
@@ -83,6 +83,20 @@ class StreamObserver {
         this._tail = meta;
       }
     }
+    this._copyMetadataOnCompletion( meta );
+  }
+
+  _copyMetadataOnCompletion(meta) {
+      for (var key in meta) {
+          if (meta.hasOwnProperty(key)) {
+              this._meta[key] = meta[key];
+          }
+      }
+  }
+
+  serverMetadata() {
+      const serverMeta = {server: this._conn.server};
+      return Object.assign({}, this._meta, serverMeta);
   }
 
   resolveConnection(conn) {
