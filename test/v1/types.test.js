@@ -19,6 +19,8 @@
 
 import neo4j from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
+import _ from 'lodash';
+import {ServerVersion, VERSION_3_2_0} from '../../src/v1/internal/server-version';
 
 describe('floating point values', () => {
   it('should support float 1.0 ', testValue(1));
@@ -136,18 +138,117 @@ describe('path values', () => {
   });
 });
 
-function testValue(actual, expected) {
-  return done => {
+describe('byte arrays', () => {
+
+  let originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+  let serverSupportsByteArrays = false;
+
+  beforeEach(done => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
     const session = driver.session();
-
-    session.run('RETURN {val} as v', {val: actual})
-      .then(result => {
-        expect(result.records[0].get('v')).toEqual(expected || actual);
-        driver.close();
-        done();
-      }).catch(err => {
-      console.log(err);
+    session.run('RETURN 1').then(result => {
+      driver.close();
+      const serverVersion = ServerVersion.fromString(result.summary.server.version);
+      serverSupportsByteArrays = serverVersion.compareTo(VERSION_3_2_0) >= 0;
+      done();
     });
-  };
+  });
+
+  afterEach(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+
+  it('should support returning empty byte array', done => {
+    if(!serverSupportsByteArrays) {
+      done();
+      return;
+    }
+
+    testValue(new Int8Array(0))(done);
+  });
+
+  it('should support returning empty byte array', conditionalTestValues(serverSupportsByteArrays, new Int8Array(0)));
+
+  it('should support returning short byte arrays', conditionalTestValues(serverSupportsByteArrays, randomByteArrays(100, 1, 255)));
+
+  it('should support returning medium byte arrays', conditionalTestValues(serverSupportsByteArrays, randomByteArrays(50, 256, 65535)));
+
+  it('should support returning long byte arrays', conditionalTestValues(serverSupportsByteArrays, randomByteArrays(10, 65536, 2 * 65536)));
+
+  it('should fail to return byte array', done => {
+    if (serverSupportsByteArrays) {
+      done();
+      return;
+    }
+
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+    const session = driver.session();
+    session.run('RETURN {array}', {array: randomByteArray(42)}).catch(error => {
+      driver.close();
+      expect(error.message).toEqual('Byte arrays are not supported by the database this driver is connected to');
+      done();
+    });
+  });
+});
+
+function conditionalTestValues(condition, values) {
+  if (!condition) {
+    return done => done();
+  }
+
+  const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+  const queriesPromise = values.reduce((acc, value) =>
+    acc.then(() => runReturnQuery(driver, value)), Promise.resolve());
+  return asTestFunction(queriesPromise, driver);
+}
+
+function testValue(actual, expected) {
+  const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+  const queryPromise = runReturnQuery(driver, actual, expected);
+  return asTestFunction(queryPromise, driver);
+}
+
+function testValues(values) {
+  const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+  const queriesPromise = values.reduce((acc, value) =>
+    acc.then(() => runReturnQuery(driver, value)), Promise.resolve());
+  return asTestFunction(queriesPromise, driver);
+}
+
+function runReturnQuery(driver, actual, expected) {
+  const session = driver.session();
+  return new Promise((resolve, reject) => {
+    session.run('RETURN {val} as v', {val: actual}).then(result => {
+      expect(result.records[0].get('v')).toEqual(expected || actual);
+      session.close();
+      resolve();
+    }).catch(error => {
+      reject(error);
+    });
+  });
+}
+
+function asTestFunction(promise, driver) {
+  return done =>
+    promise.then(() => {
+      driver.close();
+      done();
+    }).catch(error => {
+      driver.close();
+      console.log(error);
+    });
+}
+
+function randomByteArrays(count, minLength, maxLength) {
+  return _.range(count).map(() => {
+    const length = _.random(minLength, maxLength);
+    return randomByteArray(length);
+  });
+}
+
+function randomByteArray(length) {
+  const array = _.range(length).map(() => _.random(-128, 127));
+  return new Int8Array(array);
 }

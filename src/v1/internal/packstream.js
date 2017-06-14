@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import utf8 from "./utf8";
-import Integer, {int, isInt} from "../integer";
-import {newError} from "./../error";
+import utf8 from './utf8';
+import Integer, {int, isInt} from '../integer';
+import {newError} from './../error';
 
 const TINY_STRING = 0x80;
 const TINY_LIST = 0x90;
@@ -38,6 +38,9 @@ const STRING_32 = 0xD2;
 const LIST_8 = 0xD4;
 const LIST_16 = 0xD5;
 const LIST_32 = 0xD6;
+const BYTES_8 = 0xCC;
+const BYTES_16 = 0xCD;
+const BYTES_32 = 0xCE;
 const MAP_8 = 0xD8;
 const MAP_16 = 0xD9;
 const MAP_32 = 0xDA;
@@ -74,6 +77,7 @@ class Structure {
 class Packer {
   constructor (channel) {
     this._ch = channel;
+    this._byteArraysSupported = true;
   }
 
   /**
@@ -95,6 +99,8 @@ class Packer {
       return () => this.packString(x, onError);
     } else if (isInt(x)) {
       return () => this.packInteger( x );
+    } else if (x instanceof Int8Array) {
+      return () => this.packBytes(x, onError);
     } else if (x instanceof Array) {
       return () => {
         this.packListHeader(x.length, onError);
@@ -225,6 +231,36 @@ class Packer {
     }
   }
 
+  packBytes(array, onError) {
+    if(this._byteArraysSupported) {
+      this.packBytesHeader(array.length, onError);
+      for (let i = 0; i < array.length; i++) {
+        this._ch.writeInt8(array[i]);
+      }
+    }else {
+      onError(newError("Byte arrays are not supported by the database this driver is connected to"));
+    }
+  }
+
+  packBytesHeader(size, onError) {
+    if (size < 0x100) {
+      this._ch.writeUInt8(BYTES_8);
+      this._ch.writeUInt8(size);
+    } else if (size < 0x10000) {
+      this._ch.writeUInt8(BYTES_16);
+      this._ch.writeUInt8((size / 256 >> 0) % 256);
+      this._ch.writeUInt8(size % 256);
+    } else if (size < 0x100000000) {
+      this._ch.writeUInt8(BYTES_32);
+      this._ch.writeUInt8((size / 16777216 >> 0) % 256);
+      this._ch.writeUInt8((size / 65536 >> 0) % 256);
+      this._ch.writeUInt8((size / 256 >> 0) % 256);
+      this._ch.writeUInt8(size % 256);
+    } else {
+      onError(newError('Byte arrays of size ' + size + ' are not supported'));
+    }
+  }
+
   packMapHeader (size, onError) {
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_MAP | size);
@@ -262,6 +298,10 @@ class Packer {
       onError(newError("Structures of size " + size + " are not supported"));
     }
   }
+
+  disableByteArrays() {
+    this._byteArraysSupported = false;
+  }
 }
 
 /**
@@ -281,6 +321,14 @@ class Unpacker {
     for(let i = 0; i < size; i++) {
       value.push( this.unpack( buffer ) );
     } 
+    return value;
+  }
+
+  unpackBytes(size, buffer) {
+    const value = new Int8Array(size);
+    for (let i = 0; i < size; i++) {
+      value[i] = buffer.readInt8();
+    }
     return value;
   }
 
@@ -344,6 +392,12 @@ class Unpacker {
       return this.unpackList(buffer.readUInt16(), buffer);
     } else if (marker == LIST_32) {
       return this.unpackList(buffer.readUInt32(), buffer);
+    } else if (marker == BYTES_8) {
+      return this.unpackBytes(buffer.readUInt8(), buffer);
+    } else if (marker == BYTES_16) {
+      return this.unpackBytes(buffer.readUInt16(), buffer);
+    } else if (marker == BYTES_32) {
+      return this.unpackBytes(buffer.readUInt32(), buffer);
     } else if (marker == MAP_8) {
       return this.unpackMap(buffer.readUInt8(), buffer);
     } else if (marker == MAP_16) {

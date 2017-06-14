@@ -95,7 +95,7 @@ const password = 'password';
 const authToken = neo4j.auth.basic(username, password);
 
 const neoCtrlVersionParam = '-e';
-const defaultNeo4jVersion = '3.1.3';
+const defaultNeo4jVersion = '3.2.0';
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`;
 
 function neo4jCertPath(dir) {

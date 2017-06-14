@@ -27,6 +27,7 @@ import {newError} from './../error';
 import ChannelConfig from './ch-config';
 import {parseHost, parsePort} from './util';
 import StreamObserver from './stream-observer';
+import {ServerVersion, VERSION_3_2_0} from './server-version';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -472,8 +473,17 @@ class Connection {
       return this._packer.packable(value, (err) => this._handleFatalError(err));
   }
 
-  setServerVersion(version) {
-    this.server.version = version;
+  /**
+   * @protected
+   */
+  _markInitialized(metadata) {
+    const serverVersion = metadata.server;
+    if (!this.server.version) {
+      this.server.version = serverVersion;
+      if (ServerVersion.fromString(serverVersion).compareTo(VERSION_3_2_0) < 0) {
+        this._packer.disableByteArrays();
+      }
+    }
   }
 }
 
@@ -524,7 +534,7 @@ class ConnectionState {
       },
       onCompleted: metaData => {
         if (metaData && metaData.server) {
-          this._connection.setServerVersion(metaData.server);
+          this._connection._markInitialized(metaData);
         }
         this._initialized = true;
         if (this._resolvePromise) {
