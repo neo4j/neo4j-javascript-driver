@@ -197,6 +197,12 @@ describe('trust-system-ca-signed-certificates', function() {
       done();
     });
   });
+
+  afterEach(function () {
+    if (driver) {
+      driver.close();
+    }
+  });
 });
 
 describe('trust-on-first-use', function() {
