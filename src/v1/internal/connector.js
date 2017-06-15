@@ -477,10 +477,12 @@ class Connection {
    * @protected
    */
   _markInitialized(metadata) {
-    const serverVersion = metadata.server;
+    const serverVersion = metadata ? metadata.server : null;
     if (!this.server.version) {
       this.server.version = serverVersion;
-      if (ServerVersion.fromString(serverVersion).compareTo(VERSION_3_2_0) < 0) {
+
+      const version = ServerVersion.fromString(serverVersion);
+      if (version.compareTo(VERSION_3_2_0) < 0) {
         this._packer.disableByteArrays();
       }
     }
@@ -533,9 +535,7 @@ class ConnectionState {
         }
       },
       onCompleted: metaData => {
-        if (metaData && metaData.server) {
-          this._connection._markInitialized(metaData);
-        }
+        this._connection._markInitialized(metaData);
         this._initialized = true;
         if (this._resolvePromise) {
           this._resolvePromise(this._connection);

@@ -143,7 +143,7 @@ describe('byte arrays', () => {
   let originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
   let serverSupportsByteArrays = false;
 
-  beforeEach(done => {
+  beforeAll(done => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
@@ -156,7 +156,7 @@ describe('byte arrays', () => {
     });
   });
 
-  afterEach(() => {
+  afterAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
