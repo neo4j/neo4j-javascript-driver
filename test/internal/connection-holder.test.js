@@ -21,11 +21,12 @@ import ConnectionHolder, {EMPTY_CONNECTION_HOLDER} from '../../src/v1/internal/c
 import {SingleConnectionProvider} from '../../src/v1/internal/connection-providers';
 import {READ} from '../../src/v1/driver';
 import FakeConnection from './fake-connection';
+import StreamObserver from '../../src/v1/internal/stream-observer';
 
 describe('EmptyConnectionHolder', () => {
 
   it('should return rejected promise instead of connection', done => {
-    EMPTY_CONNECTION_HOLDER.getConnection().catch(() => {
+    EMPTY_CONNECTION_HOLDER.getConnection(new StreamObserver()).catch(() => {
       done();
     });
   });
@@ -62,8 +63,40 @@ describe('ConnectionHolder', () => {
 
     connectionHolder.initializeConnection();
 
-    connectionHolder.getConnection().then(connection => {
-      expect(connection).toBe(connection);
+    connectionHolder.getConnection(new StreamObserver()).then(conn => {
+      expect(conn).toBe(connection);
+      verifyConnectionInitialized(conn);
+      done();
+    });
+  });
+
+  it('should make stream observer aware about connection when initialization successful', done => {
+    const connection = new FakeConnection().withServerVersion('Neo4j/9.9.9');
+    const connectionProvider = newSingleConnectionProvider(connection);
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const streamObserver = new StreamObserver();
+
+    connectionHolder.initializeConnection();
+
+    connectionHolder.getConnection(streamObserver).then(conn => {
+      verifyConnectionInitialized(conn);
+      verifyConnection(streamObserver, 'Neo4j/9.9.9');
+      done();
+    });
+  });
+
+  it('should make stream observer aware about connection when initialization fails', done => {
+    const connection = new FakeConnection().withServerVersion('Neo4j/7.7.7').withFailedInitialization(new Error('Oh!'));
+    const connectionProvider = newSingleConnectionProvider(connection);
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const streamObserver = new StreamObserver();
+
+    connectionHolder.initializeConnection();
+
+    connectionHolder.getConnection(streamObserver).catch(error => {
+      expect(error.message).toEqual('Oh!');
+      verifyConnectionInitialized(connection);
+      verifyConnection(streamObserver, 'Neo4j/7.7.7');
       done();
     });
   });
@@ -194,4 +227,17 @@ class RecordingConnectionProvider extends SingleConnectionProvider {
 
 function newSingleConnectionProvider(connection) {
   return new SingleConnectionProvider(Promise.resolve(connection));
+}
+
+function verifyConnectionInitialized(connection) {
+  expect(connection.initializationInvoked).toEqual(1);
+}
+
+function verifyConnection(streamObserver, expectedServerVersion) {
+  expect(streamObserver._conn).toBeDefined();
+  expect(streamObserver._conn).not.toBeNull();
+
+  // server version is taken from connection, verify it as well
+  const metadata = streamObserver.serverMetadata();
+  expect(metadata.server.version).toEqual(expectedServerVersion);
 }

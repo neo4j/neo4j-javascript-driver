@@ -54,7 +54,8 @@ export class DirectConnectionProvider extends ConnectionProvider {
   }
 
   acquireConnection(mode) {
-    const connectionPromise = acquireConnectionFromPool(this._connectionPool, this._address);
+    const connection = this._connectionPool.acquire(this._address);
+    const connectionPromise = Promise.resolve(connection);
     return this._withAdditionalOnErrorCallback(connectionPromise, this._driverOnErrorCallback);
   }
 }
@@ -101,7 +102,7 @@ export class LoadBalancer extends ConnectionProvider {
         `Failed to obtain connection towards ${serverName} server. Known routing table is: ${this._routingTable}`,
         SESSION_EXPIRED));
     }
-    return acquireConnectionFromPool(this._connectionPool, address);
+    return this._connectionPool.acquire(address);
   }
 
   _freshRoutingTable(accessMode) {
@@ -198,9 +199,10 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   _createSessionForRediscovery(routerAddress) {
+    const connection = this._connectionPool.acquire(routerAddress);
     // initialized connection is required for routing procedure call
     // server version needs to be known to decide which routing procedure to use
-    const initializedConnectionPromise = acquireConnectionFromPool(this._connectionPool, routerAddress);
+    const initializedConnectionPromise = connection.initializationCompleted();
     const connectionProvider = new SingleConnectionProvider(initializedConnectionPromise);
     return new Session(READ, connectionProvider);
   }
@@ -260,20 +262,4 @@ export class SingleConnectionProvider extends ConnectionProvider {
     this._connectionPromise = null;
     return connectionPromise;
   }
-}
-
-// todo: test that all connection providers return initialized connections
-
-/**
- * Acquire an initialized connection from the given connection pool for the given address. Returned connection
- * promise will be resolved by a connection which completed initialization, i.e. received a SUCCESS response
- * for it's INIT message.
- * @param {Pool} connectionPool the connection pool to acquire connection from.
- * @param {string} address the server address.
- * @return {Promise<Connection>} the initialized connection.
- */
-function acquireConnectionFromPool(connectionPool, address) {
-  const connection = connectionPool.acquire(address);
-  // initialized connection is required to be able to perform subsequent server version checks
-  return connection.initializationCompleted();
 }

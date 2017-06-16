@@ -44,16 +44,6 @@ describe('DirectConnectionProvider', () => {
     });
   });
 
-  it('returns an initialized connection', done => {
-    const pool = newPool();
-    const connectionProvider = newDirectConnectionProvider('localhost:123', pool);
-
-    connectionProvider.acquireConnection(READ).then(connection => {
-      expect(connection.initialized).toBeTruthy();
-      done();
-    });
-  });
-
 });
 
 describe('LoadBalancer', () => {
@@ -1059,26 +1049,6 @@ describe('LoadBalancer', () => {
     });
   });
 
-  it('returns an initialized connection', done => {
-    const pool = newPool();
-    const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
-      pool
-    );
-
-    loadBalancer.acquireConnection(READ).then(connection => {
-      expect(connection.initialized).toBeTruthy();
-
-      loadBalancer.acquireConnection(WRITE).then(connection => {
-        expect(connection.initialized).toBeTruthy();
-
-        done();
-      });
-    });
-  });
-
 });
 
 function newDirectConnectionProvider(address, pool) {
@@ -1156,7 +1126,6 @@ class FakeConnection {
   constructor(address, release) {
     this.address = address;
     this.release = release;
-    this.initialized = false;
   }
 
   static create(address, release) {
@@ -1164,7 +1133,6 @@ class FakeConnection {
   }
 
   initializationCompleted() {
-    this.initialized = true;
     return Promise.resolve(this);
   }
 }
