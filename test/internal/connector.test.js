@@ -28,63 +28,72 @@ import {ServerVersion} from '../../src/v1/internal/server-version';
 
 describe('connector', () => {
 
+  let connection;
+
+  afterEach(done => {
+    const usedConnection = connection;
+    connection = null;
+    if (usedConnection) {
+      usedConnection.close();
+    }
+    done();
+  });
+
   it('should read/write basic messages', done => {
     // Given
-    const conn = connect("bolt://localhost");
+    connection = connect("bolt://localhost");
 
     // When
-    conn.initialize("mydriver/0.0.0", basicAuthToken(), {
+    connection.initialize("mydriver/0.0.0", basicAuthToken(), {
       onCompleted: msg => {
         expect(msg).not.toBeNull();
-        conn.close();
         done();
       },
       onError: console.log
     });
-    conn.sync();
+    connection.sync();
 
   });
 
   it('should retrieve stream', done => {
     // Given
-    const conn = connect("bolt://localhost");
+    connection = connect("bolt://localhost");
 
     // When
     const records = [];
-    conn.initialize("mydriver/0.0.0", basicAuthToken());
-    conn.run("RETURN 1.0", {});
-    conn.pullAll({
+    connection.initialize("mydriver/0.0.0", basicAuthToken());
+    connection.run("RETURN 1.0", {});
+    connection.pullAll({
       onNext: record => {
         records.push(record);
       },
       onCompleted: () => {
         expect(records[0][0]).toBe(1);
-        conn.close();
         done();
       }
     });
-    conn.sync();
+    connection.sync();
   });
 
   it('should use DummyChannel to read what gets written', done => {
     // Given
     const observer = DummyChannel.observer;
-    const conn = connect("bolt://localhost", {channel: DummyChannel.channel});
+    connection = connect("bolt://localhost", {channel: DummyChannel.channel});
 
     // When
-    conn.initialize("mydriver/0.0.0", basicAuthToken());
-    conn.run("RETURN 1", {});
-    conn.sync();
+    connection.initialize("mydriver/0.0.0", basicAuthToken());
+    connection.run("RETURN 1", {});
+    connection.sync();
     expect(observer.instance.toHex()).toBe('60 60 b0 17 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 44 b2 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 a3 86 73 63 68 65 6d 65 85 62 61 73 69 63 89 70 72 69 6e 63 69 70 61 6c 85 6e 65 6f 34 6a 8b 63 72 65 64 65 6e 74 69 61 6c 73 88 70 61 73 73 77 6f 72 64 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ');
     done();
   });
 
   it('should provide error message when connecting to http-port', done => {
     // Given
-    const conn = connect("bolt://localhost:7474", {encrypted: false});
+    connection = connect("bolt://localhost:7474", {encrypted: false});
 
     // When
-    conn.initialize("mydriver/0.0.0", basicAuthToken(), {
+    connection.initialize("mydriver/0.0.0", basicAuthToken(), {
       onCompleted: msg => {
       },
       onError: err => {
@@ -96,13 +105,13 @@ describe('connector', () => {
         done();
       }
     });
-    conn.sync();
+    connection.sync();
 
   });
 
   it('should convert failure messages to errors', done => {
     const channel = new DummyChannel.channel;
-    const connection = new Connection(channel, 'bolt://localhost');
+    connection = new Connection(channel, 'bolt://localhost');
 
     const errorCode = 'Neo.ClientError.Schema.ConstraintValidationFailed';
     const errorMessage = 'Node 0 already exists with label User and property "email"=[john@doe.com]';
@@ -119,7 +128,7 @@ describe('connector', () => {
   });
 
   it('should notify when connection initialization completes', done => {
-    const connection = connect('bolt://localhost');
+    connection = connect('bolt://localhost');
 
     connection.initializationCompleted().then(initializedConnection => {
       expect(initializedConnection).toBe(connection);
@@ -130,7 +139,7 @@ describe('connector', () => {
   });
 
   it('should notify when connection initialization fails', done => {
-    const connection = connect('bolt://localhost:7474'); // wrong port
+    connection = connect('bolt://localhost:7474'); // wrong port
 
     connection.initializationCompleted().catch(error => {
       expect(error).toBeDefined();
@@ -141,7 +150,7 @@ describe('connector', () => {
   });
 
   it('should notify provided observer when connection initialization completes', done => {
-    const connection = connect('bolt://localhost');
+    connection = connect('bolt://localhost');
 
     connection.initialize('mydriver/0.0.0', basicAuthToken(), {
       onCompleted: metaData => {
@@ -153,7 +162,7 @@ describe('connector', () => {
   });
 
   it('should notify provided observer when connection initialization fails', done => {
-    const connection = connect('bolt://localhost:7474'); // wrong port
+    connection = connect('bolt://localhost:7474'); // wrong port
 
     connection.initialize('mydriver/0.0.0', basicAuthToken(), {
       onError: error => {
@@ -165,7 +174,7 @@ describe('connector', () => {
   });
 
   it('should have server version after connection initialization completed', done => {
-    const connection = connect('bolt://localhost');
+    connection = connect('bolt://localhost');
 
     connection.initializationCompleted().then(initializedConnection => {
       const serverVersion = ServerVersion.fromString(initializedConnection.server.version);
@@ -177,7 +186,7 @@ describe('connector', () => {
   });
 
   it('should fail all new observers after initialization error', done => {
-    const connection = connect('bolt://localhost:7474'); // wrong port
+    connection = connect('bolt://localhost:7474'); // wrong port
 
     connection.initialize('mydriver/0.0.0', basicAuthToken(), {
       onError: initialError => {
