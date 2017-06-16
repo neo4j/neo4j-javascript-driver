@@ -2,7 +2,7 @@
 !: AUTO PULL_ALL
 
 C: INIT "neo4j-javascript/0.0.0-dev" {"credentials": "neo4j", "scheme": "basic", "principal": "neo4j"}
-S: SUCCESS {"server": "TheReadServerV1"}
+S: SUCCESS {"server": "Neo4j/8.8.8"}
 C: RUN "MATCH (n) RETURN n.name" {}
    PULL_ALL
 S: SUCCESS {"fields": ["n.name"]}

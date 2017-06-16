@@ -62,7 +62,7 @@ class Driver {
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
      * @type {ConnectionProvider}
-     * @private
+     * @protected
      */
     this._connectionProvider = null;
   }
