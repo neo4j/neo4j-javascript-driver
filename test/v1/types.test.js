@@ -160,8 +160,8 @@ describe('byte arrays', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
-  it('should support returning empty byte array', done => {
-    if(!serverSupportsByteArrays) {
+  it('should support returning empty byte array if server supports byte arrays', done => {
+    if (!serverSupportsByteArrays) {
       done();
       return;
     }
@@ -169,15 +169,43 @@ describe('byte arrays', () => {
     testValue(new Int8Array(0))(done);
   });
 
-  it('should support returning empty byte array', conditionalTestValues(serverSupportsByteArrays, new Int8Array(0)));
+  it('should support returning empty byte array if server supports byte arrays', done => {
+    if (!serverSupportsByteArrays) {
+      done();
+      return;
+    }
 
-  it('should support returning short byte arrays', conditionalTestValues(serverSupportsByteArrays, randomByteArrays(100, 1, 255)));
+    testValues([new Int8Array(0)])(done);
+  });
 
-  it('should support returning medium byte arrays', conditionalTestValues(serverSupportsByteArrays, randomByteArrays(50, 256, 65535)));
+  it('should support returning short byte arrays if server supports byte arrays', done => {
+    if (!serverSupportsByteArrays) {
+      done();
+      return;
+    }
 
-  it('should support returning long byte arrays', conditionalTestValues(serverSupportsByteArrays, randomByteArrays(10, 65536, 2 * 65536)));
+    testValues(randomByteArrays(100, 1, 255))(done);
+  });
 
-  it('should fail to return byte array', done => {
+  it('should support returning medium byte arrays if server supports byte arrays', done => {
+    if (!serverSupportsByteArrays) {
+      done();
+      return;
+    }
+
+    testValues(randomByteArrays(50, 256, 65535))(done);
+  });
+
+  it('should support returning long byte arrays if server supports byte arrays', done => {
+    if (!serverSupportsByteArrays) {
+      done();
+      return;
+    }
+
+    testValues(randomByteArrays(10, 65536, 2 * 65536))(done);
+  });
+
+  it('should fail to return byte array if server does not support byte arrays', done => {
     if (serverSupportsByteArrays) {
       done();
       return;
@@ -193,28 +221,35 @@ describe('byte arrays', () => {
   });
 });
 
-function conditionalTestValues(condition, values) {
-  if (!condition) {
-    return done => done();
-  }
-
-  const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
-  const queriesPromise = values.reduce((acc, value) =>
-    acc.then(() => runReturnQuery(driver, value)), Promise.resolve());
-  return asTestFunction(queriesPromise, driver);
-}
-
 function testValue(actual, expected) {
-  const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
-  const queryPromise = runReturnQuery(driver, actual, expected);
-  return asTestFunction(queryPromise, driver);
+  return done => {
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+    const queryPromise = runReturnQuery(driver, actual, expected);
+
+    queryPromise.then(() => {
+      driver.close();
+      done();
+    }).catch(error => {
+      driver.close();
+      console.log(error);
+    });
+  };
 }
 
 function testValues(values) {
-  const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
-  const queriesPromise = values.reduce((acc, value) =>
-    acc.then(() => runReturnQuery(driver, value)), Promise.resolve());
-  return asTestFunction(queriesPromise, driver);
+  return done => {
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+    const queriesPromise = values.reduce((acc, value) =>
+      acc.then(() => runReturnQuery(driver, value)), Promise.resolve());
+
+    queriesPromise.then(() => {
+      driver.close();
+      done();
+    }).catch(error => {
+      driver.close();
+      console.log(error);
+    });
+  };
 }
 
 function runReturnQuery(driver, actual, expected) {
@@ -228,17 +263,6 @@ function runReturnQuery(driver, actual, expected) {
       reject(error);
     });
   });
-}
-
-function asTestFunction(promise, driver) {
-  return done =>
-    promise.then(() => {
-      driver.close();
-      done();
-    }).catch(error => {
-      driver.close();
-      console.log(error);
-    });
 }
 
 function randomByteArrays(count, minLength, maxLength) {
