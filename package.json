@@ -16,6 +16,7 @@
     "stop-neo4j": "gulp stop-neo4j",
     "run-stress-tests": "gulp run-stress-tests",
     "run-tck": "gulp run-tck",
+    "test-types": "tsc -p ./test/types/tsconfig.json",
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version"
   },
@@ -62,6 +63,7 @@
     "semver": "^5.3.0",
     "through2": "~2.0.0",
     "tmp": "0.0.31",
+    "typescript": "^2.3.4",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   },
