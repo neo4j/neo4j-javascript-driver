@@ -1,62 +1,81 @@
+/**
+ * Copyright (c) 2002-2017 "Neo Technology,","
+ * Network Engine for Objects in Lund AB [http://neotechnology.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import Integer from "./integer";
+
 declare class Node {
-  constructor(
-    identity: string,
-    labels: string[],
-    properties: Object
-  )
+  constructor(identity: Integer,
+              labels: string[],
+              properties: object)
 
   toString(): string;
 }
 
 declare class Relationship {
-  identity: string;
-  start: string;
-  end: string;
+  identity: Integer;
+  start: Integer;
+  end: Integer;
   type: string;
-  properties: Object;
+  properties: object;
 
-  constructor(
-    identity: string,
-    start: string,
-    end: string,
-    type: string,
-    properties: Object
-  );
+  constructor(identity: Integer,
+              start: Integer,
+              end: Integer,
+              type: string,
+              properties: object);
 
   toString(): string;
 }
 
 declare class UnboundRelationship {
-  identity: string;
+  identity: Integer;
   type: string;
-  properties: Object;
+  properties: object;
 
-  constructor(
-    identity: string,
-    type: string,
-    properties: Object
-  );
+  constructor(identity: Integer,
+              type: string,
+              properties: object);
 
-  bind(start: string, end: string): Relationship;
+  bind(start: Integer, end: Integer): Relationship;
+
   toString(): string;
 }
 
 declare class PathSegment {
-  start: string;
+  start: Node;
   rel: Relationship;
-  end: string;
+  end: Node;
 
-  constructor(
-    start: string,
-    rel: Relationship,
-    end: string
-  );
+  constructor(start: Node,
+              rel: Relationship,
+              end: Node);
 }
 
 declare class Path {
   start: Node;
   end: Node;
   segments: PathSegment[];
+  length: number;
+
+  constructor(start: Node,
+              end: Node,
+              segments: PathSegment[]);
 }
 
 export {

@@ -1,35 +1,37 @@
-import { Connection } from './internal/connector'
-import StreamObserver from "./internal/stream-observer";
-import Result from "./result";
+/**
+ * Copyright (c) 2002-2017 "Neo Technology,","
+ * Network Engine for Objects in Lund AB [http://neotechnology.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import Transaction from "./transaction";
-import Integer, { int } from "./integer";
-import { newError } from "./error";
+import StatementRunner from "./statement-runner";
 
-declare class Session {
-  _connectionPromise: PromiseLike<Connection>;
-  _onClose: Function;
-  _hasTx: boolean;
+type TransactionWork<T> = (tx: Transaction) => T | Promise<T>;
 
-  constructor(
-    connectionPromise: PromiseLike<Connection>,
-    onClose: Function
-  );
+declare interface Session extends StatementRunner {
+  beginTransaction(): Transaction;
 
-  run<T, Params extends { [index: string]: any }>(statement: string, parameters?: Params): Result<T, Params>;
-  run<T>(statement: string): Result<T, {}>;
-  beginTransaction(bookmark?: any): Transaction;
-  lastBookmark(): any;
-  close(cb?: () => void): void;
-  protected _onRunFailure(): Function;
-}
+  lastBookmark(): string | null;
 
-declare class _RunObserver<T> extends StreamObserver<T> {
-  constructor(
-    onError: Function
-  );
+  readTransaction<T>(work: TransactionWork<T>): Promise<T>;
 
-  onCompleted(meta: Object): void;
-  meta(): Object;
+  writeTransaction<T>(work: TransactionWork<T>): Promise<T>;
+
+  close(callback?: () => void): void;
 }
 
 export default Session;

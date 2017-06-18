@@ -49,9 +49,8 @@ class Record {
    * Create a new record object.
    * @constructor
    * @access private
-   * @param {Object} keys An array of field keys, in the order the fields appear
-   *                      in the record
-   * @param {Object} fields An array of field values
+   * @param {string[]} keys An array of field keys, in the order the fields appear in the record
+   * @param {Array} fields An array of field values
    * @param {Object} fieldLookup An object of fieldName -> value index, used to map
    *                            field names to values. If this is null, one will be
    *                            generated.

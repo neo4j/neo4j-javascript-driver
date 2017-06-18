@@ -1,40 +1,58 @@
-import { int, isInt, inSafeRange, toNumber, toString } from "./integer";
-import { Node, Relationship, UnboundRelationship, PathSegment, Path } from "./graph-types";
-import { Neo4jError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from "./error";
+/**
+ * Copyright (c) 2002-2017 "Neo Technology,","
+ * Network Engine for Objects in Lund AB [http://neotechnology.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {inSafeRange, int, isInt, toNumber, toString} from "./integer";
+import {Node, Path, PathSegment, Relationship, UnboundRelationship} from "./graph-types";
+import {Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
 import Result from "./result";
 import ResultSummary from "./result-summary";
 import Record from "./record";
-import Session from './session';
-import { Driver, READ, WRITE, AuthCredentials, ConfigurationOptions } from "./driver";
-import RoutingDriver from "./routing-driver";
-import VERSION from "../version";
-import { parseScheme, parseUrl } from "./internal/connector";
+import Session from "./session";
+import {AuthToken, Config, Driver, READ, WRITE} from "./driver";
+import Transaction from "./transaction";
 
 declare const auth: {
   basic: (username: string,
-    password: string,
-    realm?: string) => AuthCredentials,
+          password: string,
+          realm?: string) => AuthToken,
+
+  kerberos: (base64EncodedTicket: string) => AuthToken,
+
   custom: (principal: string,
-    credentials: string,
-    realm: string,
-    scheme: string,
-    parameters?: { [key: string]: any }) => AuthCredentials,
+           credentials: string,
+           realm: string,
+           scheme: string,
+           parameters?: { [key: string]: string }) => AuthToken,
 };
 
-declare const USER_AGENT: string;
-
 declare function driver(url: string,
-  authToken: AuthCredentials,
-  config?: ConfigurationOptions): Driver;
+                        authToken: AuthToken,
+                        config?: Config): Driver;
 
 declare const types: {
-  Node: typeof Node;
+  Node: Node;
   Relationship: typeof Relationship;
   UnboundRelationship: typeof UnboundRelationship;
   PathSegment: typeof PathSegment;
   Path: typeof Path;
-  Result: typeof Result;
-  ResultSummary: typeof ResultSummary;
+  Result: Result;
+  ResultSummary: ResultSummary;
   Record: typeof Record;
 };
 
@@ -46,6 +64,7 @@ declare const session: {
 declare const error: {
   SERVICE_UNAVAILABLE: typeof SERVICE_UNAVAILABLE;
   SESSION_EXPIRED: typeof SESSION_EXPIRED;
+  PROTOCOL_ERROR: typeof PROTOCOL_ERROR;
 };
 
 declare const integer: {
@@ -65,9 +84,10 @@ declare const forExport: {
   session: typeof session;
   error: typeof error;
   Driver: Driver;
-  AuthCredentials: AuthCredentials;
-  ConfigurationOptions: ConfigurationOptions;
+  AuthToken: AuthToken;
+  Config: Config;
   Session: Session;
+  Transaction: Transaction;
 };
 
 export {
@@ -80,9 +100,9 @@ export {
   types,
   session,
   error,
-  AuthCredentials,
+  AuthToken,
   Session,
-  ConfigurationOptions,
+  Config,
 }
 
 export default forExport;

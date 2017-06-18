@@ -1,27 +1,31 @@
-import { Connection } from './internal/connector'
-import StreamObserver from "./internal/stream-observer";
+/**
+ * Copyright (c) 2002-2017 "Neo Technology,","
+ * Network Engine for Objects in Lund AB [http://neotechnology.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import Result from "./result";
+import StatementRunner from "./statement-runner";
 
-declare class Transaction {
-  constructor(
-    connectionPromise: PromiseLike<Connection>,
-    onClose: Function,
-    errorTransformer: Function,
-    bookmark?: any,
-    onBookmark?: Function
-  );
+declare interface Transaction extends StatementRunner {
+  commit(): Result;
 
-  run<T, Params extends { [index: string]: any }>(statement: any, parameters: Params): Result<T, Params>;
-  run<T>(statement: any): Result<T, {}>;
-  commit<T>(): Result<T, {}>;
-  rollback<T>(): Result<T, {}>;
-  _onError(): void;
+  rollback(): Result;
+
+  isOpen(): boolean;
 }
-
-declare function _runDiscardAll<T>(
-  msg: any,
-  connectionPromise: PromiseLike<Connection>,
-  observer: StreamObserver<T>
-): Result<T, {}>;
 
 export default Transaction;

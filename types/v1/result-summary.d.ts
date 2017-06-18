@@ -1,102 +1,95 @@
-import Integer, { int, isInt } from "./integer";
+/**
+ * Copyright (c) 2002-2017 "Neo Technology,","
+ * Network Engine for Objects in Lund AB [http://neotechnology.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-declare class ResultSummary {
-  statement: { text: string, parameters: { [index: string]: any } };
+import Integer from "./integer";
+
+declare interface ResultSummary {
+  statement: { text: string, parameters: { [key: string]: any } };
   statementType: string;
   counters: StatementStatistic;
-  //for backwards compatibility, remove in future version
-  updateStatistics: StatementStatistic;
   plan: Plan;
   profile: ProfiledPlan;
   notifications: Notification[];
   server: ServerInfo;
-  resultConsumedAfter: any | undefined;
-  resultAvailableAfter: any | undefined;
+  resultConsumedAfter: Integer;
+  resultAvailableAfter: Integer;
 
-  constructor(statement: string, parameters?: { [index: string]: any }, metadata?: { [index: string]: any })
-
-  protected _buildNotifications(notifications: any): Notification[];
   hasPlan(): boolean;
+
   hasProfile(): boolean;
 }
 
-declare class Plan {
-  operatorType: any;
-  identifiers: any;
-  arguments: any;
+declare interface Plan {
+  operatorType: string;
+  identifiers: string[];
+  arguments: { [key: string]: string };
   children: Plan[];
-  constructor(plan: Object)
 }
 
-declare class ProfiledPlan {
-  operatorType: any;
-  identifiers: any;
-  arguments: any;
-  dbhits: Integer;
-  rows: Integer;
-  children: Plan[];
-  constructor(plan: Object)
+declare interface ProfiledPlan {
+  operatorType: string;
+  identifiers: string[];
+  arguments: { [key: string]: string };
+  dbHits: number;
+  rows: number;
+  children: ProfiledPlan[];
 }
 
-interface Statistics {
-  nodesCreated?: Integer;
-  nodesDeleted?: Integer;
-  relationshipsCreated?: Integer;
-  relationshipsDeleted?: Integer;
-  propertiesSet?: Integer;
-  labelsAdded?: Integer;
-  labelsRemoved?: Integer;
-  indexesAdded?: Integer;
-  indexesRemoved?: Integer;
-  constraintsAdded?: Integer;
-  constraintsRemoved?: Integer;
-}
-
-declare class StatementStatistic {
-  protected _stats: Statistics;
-
-  constructor(statistics: Statistics);
-
+declare interface StatementStatistic {
   containsUpdates(): boolean;
 
-  nodesCreated(): Integer;
-  nodesDeleted(): Integer;
-  relationshipsCreated(): Integer;
-  relationshipsDeleted(): Integer;
-  propertiesSet(): Integer;
-  labelsAdded(): Integer;
-  labelsRemoved(): Integer;
-  indexesAdded(): Integer;
-  indexesRemoved(): Integer;
-  constraintsAdded(): Integer;
-  constraintsRemoved(): Integer;
+  nodesCreated(): number;
+
+  nodesDeleted(): number;
+
+  relationshipsCreated(): number;
+
+  relationshipsDeleted(): number;
+
+  propertiesSet(): number;
+
+  labelsAdded(): number;
+
+  labelsRemoved(): number;
+
+  indexesAdded(): number;
+
+  indexesRemoved(): number;
+
+  constraintsAdded(): number;
+
+  constraintsRemoved(): number;
 }
 
-declare interface NotificationPosition {
-  offset: Integer;
-  line: Integer;
-  column: Integer;
-}
+type NotificationPosition = { offset: number; line: number; column: number; }
 
-declare interface NotificationStructure {
-  code: any;
+declare interface Notification {
+  code: string;
   title: string;
   description: string;
   severity: string;
-  position: NotificationPosition;
+  position: NotificationPosition | {};
 }
 
-declare class Notification implements Partial<NotificationStructure> {
-  constructor(notification: NotificationStructure);
-
-  _constructPosition(pos: NotificationPosition): NotificationPosition;
-}
-
-declare class ServerInfo {
+declare interface ServerInfo {
   address: string;
   version: string;
-
-  constructor(serverMeta: { address: string, version: string });
 }
 
 declare const statementType: {
@@ -106,6 +99,6 @@ declare const statementType: {
   SCHEMA_WRITE: "s";
 };
 
-export { statementType }
+export {statementType}
 
 export default ResultSummary;

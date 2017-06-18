@@ -17,23 +17,14 @@
  * limitations under the License.
  */
 
-declare const SERVICE_UNAVAILABLE: string;
-declare const SESSION_EXPIRED: string;
-declare const PROTOCOL_ERROR: string;
+import Result from "./result";
 
-declare function newError(message: any, code?: string): Neo4jError;
+type Parameters = { [key: string]: any };
 
-declare class Neo4jError extends Error {
-  code: string;
-  message: string;
-
-  constructor(message: any, code: string);
+declare interface StatementRunner {
+  run(statement: string | { text: string, parameters?: Parameters }, parameters?: Parameters): Result;
 }
 
-export {
-  newError,
-  Neo4jError,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED,
-  PROTOCOL_ERROR
-}
+export {Parameters}
+
+export default StatementRunner;
