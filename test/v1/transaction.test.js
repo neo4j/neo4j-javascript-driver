@@ -233,7 +233,7 @@ describe('transaction', () => {
     }
 
     const tx = session.beginTransaction();
-    expect(session.lastBookmark()).not.toBeDefined();
+    expect(session.lastBookmark()).toBeNull();
     tx.run("CREATE (:TXNode1)").then(() => {
       tx.run("CREATE (:TXNode2)").then(() => {
         tx.commit().then(() => {
@@ -249,7 +249,7 @@ describe('transaction', () => {
       return;
     }
 
-    expect(session.lastBookmark()).not.toBeDefined();
+    expect(session.lastBookmark()).toBeNull();
     const tx1 = session.beginTransaction();
 
     tx1.run('CREATE ()').then(() => {
@@ -282,7 +282,7 @@ describe('transaction', () => {
       return;
     }
 
-    expect(session.lastBookmark()).not.toBeDefined();
+    expect(session.lastBookmark()).toBeNull();
     const tx1 = session.beginTransaction();
 
     tx1.run('CREATE ()').then(() => {

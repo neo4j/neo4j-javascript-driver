@@ -24,6 +24,7 @@ import {READ} from '../../src/v1/driver';
 import {SingleConnectionProvider} from '../../src/v1/internal/connection-providers';
 import FakeConnection from '../internal/fake-connection';
 import sharedNeo4j from '../internal/shared-neo4j';
+import _ from 'lodash';
 
 describe('session', () => {
 
@@ -434,9 +435,9 @@ describe('session', () => {
 
   it('should fail nicely for illegal bookmark', () => {
     expect(() => session.beginTransaction({})).toThrowError(TypeError);
+    expect(() => session.beginTransaction({foo: 'bar'})).toThrowError(TypeError);
     expect(() => session.beginTransaction(42)).toThrowError(TypeError);
-    expect(() => session.beginTransaction([])).toThrowError(TypeError);
-    expect(() => session.beginTransaction(['bookmark'])).toThrowError(TypeError);
+    expect(() => session.beginTransaction([42.0, 42.0])).toThrowError(TypeError);
   });
 
   it('should allow creation of a ' + neo4j.session.READ + ' session', done => {
@@ -943,6 +944,27 @@ describe('session', () => {
       });
   });
 
+  it('should send multiple bookmarks', done => {
+    if (!serverIs31OrLater(done)) {
+      return;
+    }
+
+    const nodeCount = 17;
+    const bookmarkPromises = _.range(nodeCount).map(() => runQueryAndGetBookmark(driver));
+
+    Promise.all(bookmarkPromises).then(bookmarks => {
+      expect(_.uniq(bookmarks).length > 1).toBeTruthy();
+      bookmarks.forEach(bookmark => expect(_.isString(bookmark)).toBeTruthy());
+
+      const session = driver.session(READ, bookmarks);
+      session.run('MATCH (n) RETURN count(n)').then(result => {
+        const count = result.records[0].get(0).toInt();
+        expect(count).toEqual(nodeCount);
+        session.close(() => done());
+      });
+    });
+  });
+
   function serverIs31OrLater(done) {
     // lazy way of checking the version number
     // if server has been set we know it is at least 3.1
@@ -1004,4 +1026,21 @@ describe('session', () => {
       });
     });
   }
+
+  function runQueryAndGetBookmark(driver) {
+    const session = driver.session();
+    const tx = session.beginTransaction();
+
+    return new Promise((resolve, reject) => {
+      tx.run('CREATE ()').then(() => {
+        tx.commit().then(() => {
+          const bookmark = session.lastBookmark();
+          session.close(() => {
+            resolve(bookmark);
+          });
+        }).catch(error => reject(error));
+      }).catch(error => reject(error));
+    });
+  }
+
 });

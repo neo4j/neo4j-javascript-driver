@@ -20,6 +20,7 @@ import StreamObserver from './internal/stream-observer';
 import Result from './result';
 import {assertString} from './internal/util';
 import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
+import Bookmark from './internal/bookmark';
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -31,27 +32,23 @@ class Transaction {
    * @constructor
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
-   * @param errorTransformer callback use to transform error
-   * @param bookmark optional bookmark
-   * @param onBookmark callback invoked when new bookmark is produced
+   * @param {function(error: Error): Error} errorTransformer callback use to transform error.
+   * @param {Bookmark} bookmark bookmark for transaction begin.
+   * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
    */
   constructor(connectionHolder, onClose, errorTransformer, bookmark, onBookmark) {
     this._connectionHolder = connectionHolder;
-    let streamObserver = new _TransactionStreamObserver(this);
-    let params = {};
-    if (bookmark) {
-      params = {bookmark: bookmark};
-    }
+    const streamObserver = new _TransactionStreamObserver(this);
 
     this._connectionHolder.getConnection(streamObserver).then(conn => {
-      conn.run('BEGIN', params, streamObserver);
+      conn.run('BEGIN', bookmark.asBeginTransactionParameters(), streamObserver);
       conn.pullAll(streamObserver);
     }).catch(error => streamObserver.onError(error));
 
     this._state = _states.ACTIVE;
     this._onClose = onClose;
     this._errorTransformer = errorTransformer;
-    this._onBookmark = onBookmark || (() => {});
+    this._onBookmark = onBookmark;
   }
 
   /**
@@ -149,7 +146,7 @@ class _TransactionStreamObserver extends StreamObserver {
 
   onCompleted(meta) {
     super.onCompleted(meta);
-    const bookmark = meta.bookmark;
+    const bookmark = new Bookmark(meta.bookmark);
     this._tx._onBookmark(bookmark);
   }
 }

@@ -23,6 +23,7 @@ import {connect} from './internal/connector';
 import StreamObserver from './internal/stream-observer';
 import {newError, SERVICE_UNAVAILABLE} from './error';
 import {DirectConnectionProvider} from './internal/connection-providers';
+import Bookmark from './internal/bookmark';
 
 const READ = 'READ', WRITE = 'WRITE';
 /**
@@ -115,13 +116,14 @@ class Driver {
    * made available for others to use.
    *
    * @param {string} [mode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
-   * @param {string} [bookmark=null] the initial reference to some previous transaction. Value is optional and
-   * absence indicates that that the bookmark does not exist or is unknown.
+   * @param {string|string[]} [bookmarkOrBookmarks=null] the initial reference or references to some previous
+   * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
    * @return {Session} new session.
    */
-  session(mode, bookmark) {
+  session(mode, bookmarkOrBookmarks) {
     const sessionMode = Driver._validateSessionMode(mode);
     const connectionProvider = this._getOrCreateConnectionProvider();
+    const bookmark = new Bookmark(bookmarkOrBookmarks);
     return this._createSession(sessionMode, connectionProvider, bookmark, this._config);
   }
 
