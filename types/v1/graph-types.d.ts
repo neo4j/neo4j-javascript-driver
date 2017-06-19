@@ -20,6 +20,10 @@
 import Integer from "./integer";
 
 declare class Node {
+  identity: Integer;
+  labels: string[];
+  properties: object;
+
   constructor(identity: Integer,
               labels: string[],
               properties: object)

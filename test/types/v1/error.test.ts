@@ -17,23 +17,14 @@
  * limitations under the License.
  */
 
-declare const SERVICE_UNAVAILABLE: string;
-declare const SESSION_EXPIRED: string;
-declare const PROTOCOL_ERROR: string;
+import {Neo4jError, newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "../../../types/v1/error";
 
-declare function newError(message: any, code?: string): Neo4jError;
+const serviceUnavailable: string = SERVICE_UNAVAILABLE;
+const sessionExpired: string = SESSION_EXPIRED;
+const protocolError: string = PROTOCOL_ERROR;
 
-declare class Neo4jError extends Error {
-  code: string;
-  message: string;
+const error1: Neo4jError = new Neo4jError("Message");
+const error2: Neo4jError = new Neo4jError("Message", "Code");
 
-  constructor(message: any, code?: string);
-}
-
-export {
-  newError,
-  Neo4jError,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED,
-  PROTOCOL_ERROR
-}
+const error3: Neo4jError = newError("Message");
+const error4: Neo4jError = newError("Message", "Code");
