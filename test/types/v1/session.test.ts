@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 
+import Session from "../../../types/v1/session";
 import Transaction from "../../../types/v1/transaction";
 import Record from "../../../types/v1/record";
 import Result, {StatementResult} from "../../../types/v1/result";
@@ -24,12 +25,34 @@ import ResultSummary from "../../../types/v1/result-summary";
 
 const dummy: any = null;
 
-const tx: Transaction = dummy;
+const session: Session = dummy;
 
-const isOpen: boolean = tx.isOpen();
-console.log(isOpen);
+const tx: Transaction = session.beginTransaction();
+const bookmarkNull: null = <null>session.lastBookmark();
+const bookmark: string = <string>session.lastBookmark();
 
-const result1: Result = tx.run("RETURN 1");
+const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
+  return 10;
+});
+
+const promise2: Promise<string> = session.readTransaction((tx: Transaction) => {
+  return Promise.resolve("42")
+});
+
+const promise3: Promise<number> = session.writeTransaction((tx: Transaction) => {
+  return 10;
+});
+
+const promise4: Promise<string> = session.writeTransaction((tx: Transaction) => {
+  return Promise.resolve("42")
+});
+
+const close1: void = session.close();
+const close2: void = session.close(() => {
+  console.log("Session closed");
+});
+
+const result1: Result = session.run("RETURN 1");
 result1.then((res: StatementResult) => {
   const records: Record[] = res.records;
   const summary: ResultSummary = res.summary;
@@ -39,7 +62,7 @@ result1.then((res: StatementResult) => {
   console.log(error);
 });
 
-const result2: Result = tx.run("RETURN 2");
+const result2: Result = session.run("RETURN 2");
 result2.subscribe({});
 result2.subscribe({
   onNext: (record: Record) => console.log(record)
@@ -54,7 +77,7 @@ result2.subscribe({
   onCompleted: (summary: ResultSummary) => console.log(summary)
 });
 
-const result3: Result = tx.run("RETURN $value", {value: "42"});
+const result3: Result = session.run("RETURN $value", {value: "42"});
 result3.then((res: StatementResult) => {
   const records: Record[] = res.records;
   const summary: ResultSummary = res.summary;
@@ -64,7 +87,7 @@ result3.then((res: StatementResult) => {
   console.log(error);
 });
 
-const result4: Result = tx.run("RETURN $value", {value: "42"});
+const result4: Result = session.run("RETURN $value", {value: "42"});
 result4.subscribe({});
 result4.subscribe({
   onNext: (record: Record) => console.log(record)
@@ -79,7 +102,7 @@ result4.subscribe({
   onCompleted: (summary: ResultSummary) => console.log(summary)
 });
 
-const result5: Result = tx.run({text: "RETURN 1"});
+const result5: Result = session.run({text: "RETURN 1"});
 result5.then((res: StatementResult) => {
   const records: Record[] = res.records;
   const summary: ResultSummary = res.summary;
@@ -89,7 +112,7 @@ result5.then((res: StatementResult) => {
   console.log(error);
 });
 
-const result6: Result = tx.run({text: "RETURN 1"});
+const result6: Result = session.run({text: "RETURN 1"});
 result6.subscribe({});
 result6.subscribe({
   onNext: (record: Record) => console.log(record)
@@ -104,7 +127,7 @@ result6.subscribe({
   onCompleted: (summary: ResultSummary) => console.log(summary)
 });
 
-const result7: Result = tx.run({text: "RETURN $value", parameters: {value: 42}});
+const result7: Result = session.run({text: "RETURN $value", parameters: {value: 42}});
 result7.then((res: StatementResult) => {
   const records: Record[] = res.records;
   const summary: ResultSummary = res.summary;
@@ -114,7 +137,7 @@ result7.then((res: StatementResult) => {
   console.log(error);
 });
 
-const result8: Result = tx.run({text: "RETURN $value", parameters: {value: 42}});
+const result8: Result = session.run({text: "RETURN $value", parameters: {value: 42}});
 result8.subscribe({});
 result8.subscribe({
   onNext: (record: Record) => console.log(record)
@@ -127,16 +150,4 @@ result8.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error),
   onCompleted: (summary: ResultSummary) => console.log(summary)
-});
-
-tx.commit().then((res: StatementResult) => {
-  console.log(res);
-}).catch((error: Error) => {
-  console.log(error);
-});
-
-tx.rollback().then((res: StatementResult) => {
-  console.log(res);
-}).catch((error: Error) => {
-  console.log(error);
 });

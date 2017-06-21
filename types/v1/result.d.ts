@@ -35,4 +35,5 @@ declare interface Result extends Promise<StatementResult> {
   subscribe(observer: Observer): void;
 }
 
+export {StatementResult, Observer};
 export default Result;

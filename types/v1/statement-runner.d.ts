@@ -22,7 +22,9 @@ import Result from "./result";
 type Parameters = { [key: string]: any };
 
 declare interface StatementRunner {
-  run(statement: string | { text: string, parameters?: Parameters }, parameters?: Parameters): Result;
+  run(statement: string, parameters?: Parameters): Result;
+
+  run(statement: { text: string, parameters?: Parameters }): Result;
 }
 
 export {Parameters}
