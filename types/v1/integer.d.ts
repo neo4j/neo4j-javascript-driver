@@ -122,7 +122,7 @@ declare function inSafeRange(val: Integer | number | string | { low: number, hig
 
 declare function toNumber(val: Integer | number | string | { low: number, high: number }): number;
 
-declare function toString(val: Integer | number | string | { low: number, high: number }, radix?: number): Integer;
+declare function toString(val: Integer | number | string | { low: number, high: number }, radix?: number): string;
 
 export {
   int,
