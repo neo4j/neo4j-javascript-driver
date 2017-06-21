@@ -99,6 +99,6 @@ declare const statementType: {
   SCHEMA_WRITE: "s";
 };
 
-export {statementType}
+export {statementType, Plan, ProfiledPlan, StatementStatistic, Notification, ServerInfo, NotificationPosition}
 
 export default ResultSummary;
