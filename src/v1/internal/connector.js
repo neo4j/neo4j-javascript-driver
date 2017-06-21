@@ -480,7 +480,6 @@ class Connection {
     const serverVersion = metadata ? metadata.server : null;
     if (!this.server.version) {
       this.server.version = serverVersion;
-
       const version = ServerVersion.fromString(serverVersion);
       if (version.compareTo(VERSION_3_2_0) < 0) {
         this._packer.disableByteArrays();
