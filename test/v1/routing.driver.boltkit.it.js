@@ -1072,10 +1072,10 @@ describe('routing driver', () => {
       const driver = newDriver('bolt+routing://127.0.0.1:9001');
 
       const session = driver.session();
-      const tx = session.beginTransaction('OldBookmark');
+      const tx = session.beginTransaction('neo4j:bookmark:v1:tx42');
       tx.run('CREATE (n {name:\'Bob\'})').then(() => {
         tx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('NewBookmark');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
           session.close();
           driver.close();
@@ -1093,11 +1093,11 @@ describe('routing driver', () => {
   });
 
   it('should send initial bookmark wihtout access mode', done => {
-    testWriteSessionWithAccessModeAndBookmark(null, 'OldBookmark', done);
+    testWriteSessionWithAccessModeAndBookmark(null, 'neo4j:bookmark:v1:tx42', done);
   });
 
   it('should use write session mode and initial bookmark', done => {
-    testWriteSessionWithAccessModeAndBookmark(WRITE, 'OldBookmark', done);
+    testWriteSessionWithAccessModeAndBookmark(WRITE, 'neo4j:bookmark:v1:tx42', done);
   });
 
   it('should use read session mode and initial bookmark', done => {
@@ -1113,7 +1113,7 @@ describe('routing driver', () => {
     kit.run(() => {
       const driver = newDriver('bolt+routing://127.0.0.1:9001');
 
-      const session = driver.session(READ, 'OldBookmark');
+      const session = driver.session(READ, 'neo4j:bookmark:v1:tx42');
       const tx = session.beginTransaction();
       tx.run('MATCH (n) RETURN n.name AS name').then(result => {
         const records = result.records;
@@ -1122,7 +1122,7 @@ describe('routing driver', () => {
         expect(records[1].get('name')).toEqual('Alice');
 
         tx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('NewBookmark');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
           session.close();
           driver.close();
@@ -1152,11 +1152,11 @@ describe('routing driver', () => {
     kit.run(() => {
       const driver = newDriver('bolt+routing://127.0.0.1:9001');
 
-      const session = driver.session(null, 'BookmarkA');
+      const session = driver.session(null, 'neo4j:bookmark:v1:tx42');
       const writeTx = session.beginTransaction();
       writeTx.run('CREATE (n {name:\'Bob\'})').then(() => {
         writeTx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('BookmarkB');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
           const readTx = session.beginTransaction();
           readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
@@ -1165,7 +1165,7 @@ describe('routing driver', () => {
             expect(records[0].get('name')).toEqual('Bob');
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('BookmarkC');
+              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242');
 
               session.close();
               driver.close();
@@ -1858,6 +1858,38 @@ describe('routing driver', () => {
     });
   });
 
+  it('should send multiple bookmarks', done => {
+    const kit = new boltkit.BoltKit();
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9010);
+    const writer = kit.start('./test/resources/boltkit/multiple_bookmarks.script', 9007);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+
+      const bookmarks = ['neo4j:bookmark:v1:tx5', 'neo4j:bookmark:v1:tx29', 'neo4j:bookmark:v1:tx94',
+        'neo4j:bookmark:v1:tx56', 'neo4j:bookmark:v1:tx16', 'neo4j:bookmark:v1:tx68'];
+      const session = driver.session(WRITE, bookmarks);
+      const tx = session.beginTransaction();
+
+      tx.run(`CREATE (n {name:'Bob'})`).then(() => {
+        tx.commit().then(() => {
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx95');
+
+          session.close();
+          driver.close();
+
+          router.exit(code1 => {
+            writer.exit(code2 => {
+              expect(code1).toEqual(0);
+              expect(code2).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
   function moveNextDateNow30SecondsForward() {
     const currentTime = Date.now();
     hijackNextDateNowCall(currentTime + 30 * 1000 + 1);
@@ -1880,7 +1912,7 @@ describe('routing driver', () => {
       const tx = session.beginTransaction();
       tx.run('CREATE (n {name:\'Bob\'})').then(() => {
         tx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('NewBookmark');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
           session.close();
           driver.close();

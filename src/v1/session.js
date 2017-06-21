@@ -24,6 +24,7 @@ import {assertString} from './internal/util';
 import ConnectionHolder from './internal/connection-holder';
 import Driver, {READ, WRITE} from './driver';
 import TransactionExecutor from './internal/transaction-executor';
+import Bookmark from './internal/bookmark';
 
 /**
   * A Session instance is used for handling the connection and
@@ -37,7 +38,7 @@ class Session {
    * @constructor
    * @param {string} mode the default access mode for this session.
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
-   * @param {string} [bookmark=undefined] - the initial bookmark for this session.
+   * @param {Bookmark} bookmark - the initial bookmark for this session.
    * @param {Object} [config={}] - this driver configuration.
    */
   constructor(mode, connectionProvider, bookmark, config) {
@@ -94,21 +95,17 @@ class Session {
    *
    * While a transaction is open the session cannot be used to run statements outside the transaction.
    *
-   * @param {string} bookmark - a reference to a previous transaction. DEPRECATED: This parameter is deprecated in
-   * favour of {@link Driver#session} that accepts an initial bookmark. Session will ensure that all nested
-   * transactions are chained with bookmarks to guarantee causal consistency.
+   * @param {string|string[]} [bookmarkOrBookmarks=null] - reference or references to some previous transactions.
+   * DEPRECATED: This parameter is deprecated in favour of {@link Driver#session} that accepts an initial bookmark.
+   * Session will ensure that all nested transactions are chained with bookmarks to guarantee causal consistency.
    * @returns {Transaction} - New Transaction
    */
-  beginTransaction(bookmark) {
-    return this._beginTransaction(this._mode, bookmark);
+  beginTransaction(bookmarkOrBookmarks) {
+    this._updateBookmark(new Bookmark(bookmarkOrBookmarks));
+    return this._beginTransaction(this._mode);
   }
 
-  _beginTransaction(accessMode, bookmark) {
-    if (bookmark) {
-      assertString(bookmark, 'Bookmark');
-      this._updateBookmark(bookmark);
-    }
-
+  _beginTransaction(accessMode) {
     if (this._hasTx) {
       throw newError('You cannot begin a transaction on a session with an open transaction; ' +
         'either run from within the transaction or use a different session.');
@@ -128,10 +125,10 @@ class Session {
   /**
    * Return the bookmark received following the last completed {@link Transaction}.
    *
-   * @return a reference to a previous transaction
+   * @return {string|null} a reference to a previous transaction
    */
   lastBookmark() {
-    return this._lastBookmark;
+    return this._lastBookmark.maxBookmarkAsString();
   }
 
   /**
@@ -170,13 +167,18 @@ class Session {
 
   _runTransaction(accessMode, transactionWork) {
     return this._transactionExecutor.execute(
-      () => this._beginTransaction(accessMode, this.lastBookmark()),
+      () => this._beginTransaction(accessMode),
       transactionWork
     );
   }
 
+  /**
+   * Update value of the last bookmark.
+   * @param {Bookmark} newBookmark the new bookmark.
+   * @private
+   */
   _updateBookmark(newBookmark) {
-    if (newBookmark) {
+    if (newBookmark && !newBookmark.isEmpty()) {
       this._lastBookmark = newBookmark;
     }
   }

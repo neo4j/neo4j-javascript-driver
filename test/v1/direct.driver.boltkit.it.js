@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import neo4j from '../../lib/v1';
-import {READ, WRITE} from '../../lib/v1/driver';
+import neo4j from '../../src/v1';
+import {READ, WRITE} from '../../src/v1/driver';
 import boltkit from './boltkit';
 import sharedNeo4j from '../internal/shared-neo4j';
 
@@ -62,7 +62,7 @@ describe('direct driver', () => {
 
     kit.run(() => {
       const driver = createDriver();
-      const session = driver.session(READ, 'OldBookmark');
+      const session = driver.session(READ, 'neo4j:bookmark:v1:tx42');
       const tx = session.beginTransaction();
       tx.run('MATCH (n) RETURN n.name AS name').then(result => {
         const records = result.records;
@@ -71,7 +71,7 @@ describe('direct driver', () => {
         expect(records[1].get('name')).toEqual('Alice');
 
         tx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('NewBookmark');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
           session.close(() => {
             driver.close();
@@ -96,14 +96,14 @@ describe('direct driver', () => {
 
     kit.run(() => {
       const driver = createDriver();
-      const session = driver.session(WRITE, 'OldBookmark');
+      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
       const tx = session.beginTransaction();
       tx.run('CREATE (n {name:\'Bob\'})').then(result => {
         const records = result.records;
         expect(records.length).toEqual(0);
 
         tx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('NewBookmark');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
           session.close(() => {
             driver.close();
@@ -128,14 +128,14 @@ describe('direct driver', () => {
 
     kit.run(() => {
       const driver = createDriver();
-      const session = driver.session(WRITE, 'BookmarkA');
+      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
       const writeTx = session.beginTransaction();
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
         const records = result.records;
         expect(records.length).toEqual(0);
 
         writeTx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('BookmarkB');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
           const readTx = session.beginTransaction();
           readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
@@ -144,7 +144,7 @@ describe('direct driver', () => {
             expect(records[0].get('name')).toEqual('Bob');
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('BookmarkC');
+              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242');
 
               session.close(() => {
                 driver.close();
@@ -171,23 +171,23 @@ describe('direct driver', () => {
 
     kit.run(() => {
       const driver = createDriver();
-      const session = driver.session(WRITE, 'BookmarkA');
+      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
       const writeTx = session.beginTransaction();
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
         const records = result.records;
         expect(records.length).toEqual(0);
 
         writeTx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('BookmarkB');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
-          const readTx = session.beginTransaction('BookmarkOverride');
+          const readTx = session.beginTransaction('neo4j:bookmark:v1:tx99');
           readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
             const records = result.records;
             expect(records.length).toEqual(1);
             expect(records[0].get('name')).toEqual('Bob');
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('BookmarkC');
+              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242');
 
               session.close(() => {
                 driver.close();
@@ -215,14 +215,14 @@ describe('direct driver', () => {
 
     kit.run(() => {
       const driver = createDriver();
-      const session = driver.session(WRITE, 'BookmarkA');
+      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
       const writeTx = session.beginTransaction();
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
         const records = result.records;
         expect(records.length).toEqual(0);
 
         writeTx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('BookmarkB');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
 
           const readTx = session.beginTransaction(null);
           readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
@@ -231,7 +231,7 @@ describe('direct driver', () => {
             expect(records[0].get('name')).toEqual('Bob');
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('BookmarkC');
+              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242');
 
               session.close(() => {
                 driver.close();

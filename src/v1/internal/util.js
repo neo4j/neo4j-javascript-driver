@@ -116,6 +116,7 @@ function trimAndVerify(string, name, url) {
 
 export {
   isEmptyObjectOrNull,
+  isString,
   assertString,
   parseScheme,
   parseUrl,
