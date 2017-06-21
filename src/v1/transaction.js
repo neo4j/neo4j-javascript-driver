@@ -43,8 +43,7 @@ class Transaction {
       params = {bookmark: bookmark};
     }
 
-    this._connectionHolder.getConnection().then(conn => {
-      streamObserver.resolveConnection(conn);
+    this._connectionHolder.getConnection(streamObserver).then(conn => {
       conn.run('BEGIN', params, streamObserver);
       conn.pullAll(streamObserver);
     }).catch(error => streamObserver.onError(error));
@@ -167,8 +166,7 @@ let _states = {
       return {result: _runPullAll("ROLLBACK", connectionHolder, observer), state: _states.ROLLED_BACK};
     },
     run: (connectionHolder, observer, statement, parameters) => {
-      connectionHolder.getConnection().then(conn => {
-        observer.resolveConnection(conn);
+      connectionHolder.getConnection(observer).then(conn => {
         conn.run(statement, parameters || {}, observer);
         conn.pullAll(observer);
         conn.sync();
@@ -246,13 +244,11 @@ let _states = {
 };
 
 function _runPullAll(msg, connectionHolder, observer) {
-  connectionHolder.getConnection().then(
-    conn => {
-      observer.resolveConnection(conn);
-      conn.run(msg, {}, observer);
-      conn.pullAll(observer);
-      conn.sync();
-    }).catch(error => observer.onError(error));
+  connectionHolder.getConnection(observer).then(conn => {
+    conn.run(msg, {}, observer);
+    conn.pullAll(observer);
+    conn.sync();
+  }).catch(error => observer.onError(error));
 
   // for commit & rollback we need result that uses real connection holder and notifies it when
   // connection is not needed and can be safely released to the pool

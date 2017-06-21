@@ -18,6 +18,7 @@
  */
 
 import {CombinedBuffer} from './buf';
+
 const observer = {
   instance: null,
   updateInstance: (instance) => {
@@ -54,6 +55,13 @@ class DummyChannel {
 
   toBuffer () {
     return new CombinedBuffer( this.written );
+  }
+
+  close(cb) {
+    this.written = [];
+    if (cb) {
+      return cb();
+    }
   }
 }
 

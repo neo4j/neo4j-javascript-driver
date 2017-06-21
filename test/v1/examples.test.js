@@ -108,6 +108,7 @@ describe('examples', () => {
     const session = driver.session();
     session.run('RETURN 1').then(() => {
       session.close();
+      driver.close();
     });
   });
 
@@ -128,6 +129,7 @@ describe('examples', () => {
     const session = driver.session();
     session.run('RETURN 1').then(() => {
       session.close();
+      driver.close();
     });
   });
 
@@ -152,6 +154,7 @@ describe('examples', () => {
     const session = driver.session();
     session.run('RETURN 1').then(() => {
       session.close();
+      driver.close();
     }).catch(error => {
     });
   });
@@ -172,6 +175,7 @@ describe('examples', () => {
     const session = driver.session();
     session.run('RETURN 1').then(() => {
       session.close();
+      driver.close();
     });
   });
 
@@ -193,6 +197,7 @@ describe('examples', () => {
     const session = driver.session();
     session.run('RETURN 1').then(() => {
       session.close();
+      driver.close();
     });
   });
 
@@ -202,6 +207,8 @@ describe('examples', () => {
     // tag::kerberos-auth[]
     const driver = neo4j.driver(uri, neo4j.auth.kerberos(ticket));
     // end::kerberos-auth[]
+
+    driver.close();
   });
 
   it('cypher error example', done => {
@@ -427,6 +434,7 @@ describe('examples', () => {
     });
 
     testResultPromise.then(loggedMsg => {
+      driver.close();
       expect(loggedMsg).toEqual('Created 2 employees');
       done();
     });
@@ -450,6 +458,7 @@ describe('examples', () => {
     // end::service-unavailable[]
 
     testResultPromise.then(loggedMsg => {
+      driver.close();
       expect(loggedMsg).toBe('Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE);
       done();
     });

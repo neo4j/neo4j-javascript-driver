@@ -796,10 +796,10 @@ describe('routing driver', () => {
               readServer.exit(readServerExitCode => {
 
                 expect(readServerInfo.address).toBe('127.0.0.1:9005');
-                expect(readServerInfo.version).toBe('TheReadServerV1');
+                expect(readServerInfo.version).toBe('Neo4j/8.8.8');
 
                 expect(writeServerInfo.address).toBe('127.0.0.1:9007');
-                expect(writeServerInfo.version).toBe('TheWriteServerV1');
+                expect(writeServerInfo.version).toBe('Neo4j/9.9.9');
 
                 expect(routingServerExitCode).toEqual(0);
                 expect(writeServerExitCode).toEqual(0);
@@ -852,10 +852,10 @@ describe('routing driver', () => {
                   readServer.exit(readServerExitCode => {
 
                     expect(readSummary.server.address).toBe('127.0.0.1:9005');
-                    expect(readSummary.server.version).toBe('TheReadServerV1');
+                    expect(readSummary.server.version).toBe('Neo4j/8.8.8');
 
                     expect(writeSummary.server.address).toBe('127.0.0.1:9007');
-                    expect(writeSummary.server.version).toBe('TheWriteServerV1');
+                    expect(writeSummary.server.version).toBe('Neo4j/9.9.9');
 
                     expect(routingServerExitCode).toEqual(0);
                     expect(writeServerExitCode).toEqual(0);

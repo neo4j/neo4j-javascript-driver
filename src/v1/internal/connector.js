@@ -27,6 +27,7 @@ import {newError} from './../error';
 import ChannelConfig from './ch-config';
 import {parseHost, parsePort} from './util';
 import StreamObserver from './stream-observer';
+import {ServerVersion, VERSION_3_2_0} from './server-version';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -472,8 +473,18 @@ class Connection {
       return this._packer.packable(value, (err) => this._handleFatalError(err));
   }
 
-  setServerVersion(version) {
-    this.server.version = version;
+  /**
+   * @protected
+   */
+  _markInitialized(metadata) {
+    const serverVersion = metadata ? metadata.server : null;
+    if (!this.server.version) {
+      this.server.version = serverVersion;
+      const version = ServerVersion.fromString(serverVersion);
+      if (version.compareTo(VERSION_3_2_0) < 0) {
+        this._packer.disableByteArrays();
+      }
+    }
   }
 }
 
@@ -486,11 +497,15 @@ class ConnectionState {
   constructor(connection) {
     this._connection = connection;
 
-    this._initialized = false;
-    this._initializationError = null;
+    this._initRequested = false;
+    this._initError = null;
 
-    this._resolvePromise = null;
-    this._rejectPromise = null;
+    this._resolveInitPromise = null;
+    this._rejectInitPromise = null;
+    this._initPromise = new Promise((resolve, reject) => {
+      this._resolveInitPromise = resolve;
+      this._rejectInitPromise = reject;
+    });
   }
 
   /**
@@ -507,11 +522,7 @@ class ConnectionState {
         }
       },
       onError: error => {
-        this._initializationError = error;
-        if (this._rejectPromise) {
-          this._rejectPromise(error);
-          this._rejectPromise = null;
-        }
+        this._processFailure(error);
 
         this._connection._updateCurrentObserver(); // make sure this same observer will not be called again
         try {
@@ -523,14 +534,9 @@ class ConnectionState {
         }
       },
       onCompleted: metaData => {
-        if (metaData && metaData.server) {
-          this._connection.setServerVersion(metaData.server);
-        }
-        this._initialized = true;
-        if (this._resolvePromise) {
-          this._resolvePromise(this._connection);
-          this._resolvePromise = null;
-        }
+        this._connection._markInitialized(metaData);
+        this._resolveInitPromise(this._connection);
+
         if (observer && observer.onCompleted) {
           observer.onCompleted(metaData);
         }
@@ -543,15 +549,28 @@ class ConnectionState {
    * @return {Promise<Connection>} the result of connection initialization.
    */
   initializationCompleted() {
-    if (this._initialized) {
-      return Promise.resolve(this._connection);
-    } else if (this._initializationError) {
-      return Promise.reject(this._initializationError);
+    this._initRequested = true;
+
+    if (this._initError) {
+      const error = this._initError;
+      this._initError = null; // to reject initPromise only once
+      this._rejectInitPromise(error);
+    }
+
+    return this._initPromise;
+  }
+
+  /**
+   * @private
+   */
+  _processFailure(error) {
+    if (this._initRequested) {
+      // someone is waiting for initialization to complete, reject the promise
+      this._rejectInitPromise(error);
     } else {
-      return new Promise((resolve, reject) => {
-        this._resolvePromise = resolve;
-        this._rejectPromise = reject;
-      });
+      // no one is waiting for initialization, memorize the error but do not reject the promise
+      // to avoid unnecessary unhandled promise rejection warnings
+      this._initError = error;
     }
   }
 }

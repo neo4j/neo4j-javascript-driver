@@ -49,10 +49,14 @@ export default class ConnectionHolder {
 
   /**
    * Get the current connection promise.
+   * @param {StreamObserver} streamObserver an observer for this connection.
    * @return {Promise<Connection>} promise resolved with the current connection.
    */
-  getConnection() {
-    return this._connectionPromise;
+  getConnection(streamObserver) {
+    return this._connectionPromise.then(connection => {
+      streamObserver.resolveConnection(connection);
+      return connection.initializationCompleted();
+    });
   }
 
   /**
@@ -117,7 +121,7 @@ class EmptyConnectionHolder extends ConnectionHolder {
     // nothing to initialize
   }
 
-  getConnection() {
+  getConnection(streamObserver) {
     return Promise.reject(newError('This connection holder does not serve connections'));
   }
 

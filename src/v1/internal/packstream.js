@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import utf8 from "./utf8";
-import Integer, {int, isInt} from "../integer";
-import {newError} from "./../error";
+import utf8 from './utf8';
+import Integer, {int, isInt} from '../integer';
+import {newError} from './../error';
 
 const TINY_STRING = 0x80;
 const TINY_LIST = 0x90;
@@ -38,6 +38,9 @@ const STRING_32 = 0xD2;
 const LIST_8 = 0xD4;
 const LIST_16 = 0xD5;
 const LIST_32 = 0xD6;
+const BYTES_8 = 0xCC;
+const BYTES_16 = 0xCD;
+const BYTES_32 = 0xCE;
 const MAP_8 = 0xD8;
 const MAP_16 = 0xD9;
 const MAP_32 = 0xDA;
@@ -74,6 +77,7 @@ class Structure {
 class Packer {
   constructor (channel) {
     this._ch = channel;
+    this._byteArraysSupported = true;
   }
 
   /**
@@ -95,6 +99,8 @@ class Packer {
       return () => this.packString(x, onError);
     } else if (isInt(x)) {
       return () => this.packInteger( x );
+    } else if (x instanceof Int8Array) {
+      return () => this.packBytes(x, onError);
     } else if (x instanceof Array) {
       return () => {
         this.packListHeader(x.length, onError);
@@ -225,6 +231,36 @@ class Packer {
     }
   }
 
+  packBytes(array, onError) {
+    if(this._byteArraysSupported) {
+      this.packBytesHeader(array.length, onError);
+      for (let i = 0; i < array.length; i++) {
+        this._ch.writeInt8(array[i]);
+      }
+    }else {
+      onError(newError("Byte arrays are not supported by the database this driver is connected to"));
+    }
+  }
+
+  packBytesHeader(size, onError) {
+    if (size < 0x100) {
+      this._ch.writeUInt8(BYTES_8);
+      this._ch.writeUInt8(size);
+    } else if (size < 0x10000) {
+      this._ch.writeUInt8(BYTES_16);
+      this._ch.writeUInt8((size / 256 >> 0) % 256);
+      this._ch.writeUInt8(size % 256);
+    } else if (size < 0x100000000) {
+      this._ch.writeUInt8(BYTES_32);
+      this._ch.writeUInt8((size / 16777216 >> 0) % 256);
+      this._ch.writeUInt8((size / 65536 >> 0) % 256);
+      this._ch.writeUInt8((size / 256 >> 0) % 256);
+      this._ch.writeUInt8(size % 256);
+    } else {
+      onError(newError('Byte arrays of size ' + size + ' are not supported'));
+    }
+  }
+
   packMapHeader (size, onError) {
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_MAP | size);
@@ -262,6 +298,10 @@ class Packer {
       onError(newError("Structures of size " + size + " are not supported"));
     }
   }
+
+  disableByteArrays() {
+    this._byteArraysSupported = false;
+  }
 }
 
 /**
@@ -276,46 +316,65 @@ class Unpacker {
     this.structMappers = {};
   }
 
-  unpackList (size, buffer) {
-    let value = [];
-    for(let i = 0; i < size; i++) {
-      value.push( this.unpack( buffer ) );
-    } 
-    return value;
-  }
+  unpack(buffer) {
+    const marker = buffer.readUInt8();
+    const markerHigh = marker & 0xF0;
+    const markerLow = marker & 0x0F;
 
-  unpackMap (size, buffer) {
-    let value = {};
-    for(let i = 0; i < size; i++) {
-      let key = this.unpack(buffer);
-      value[key] = this.unpack(buffer);
-    }
-    return value;
-  }
-
-  unpackStruct (size, buffer) {
-    let signature = buffer.readUInt8();
-    let mapper = this.structMappers[signature];
-    if( mapper ) {
-      return mapper( this, buffer );
-    } else {
-      let value = new Structure(signature, []);
-      for(let i = 0; i < size; i++) {
-        value.fields.push(this.unpack(buffer));
-      } 
-      return value;
-    }
-  }
-
-  unpack ( buffer ) {
-    let marker = buffer.readUInt8();
     if (marker == NULL) {
       return null;
-    } else if (marker == TRUE) {
+    }
+
+    const boolean = this._unpackBoolean(marker);
+    if (boolean !== null) {
+      return boolean;
+    }
+
+    const number = this._unpackNumber(marker, buffer);
+    if (number !== null) {
+      return number;
+    }
+
+    const string = this._unpackString(marker, markerHigh, markerLow, buffer);
+    if (string !== null) {
+      return string;
+    }
+
+    const list = this._unpackList(marker, markerHigh, markerLow, buffer);
+    if (list !== null) {
+      return list;
+    }
+
+    const byteArray = this._unpackByteArray(marker, buffer);
+    if (byteArray !== null) {
+      return byteArray;
+    }
+
+    const map = this._unpackMap(marker, markerHigh, markerLow, buffer);
+    if (map !== null) {
+      return map;
+    }
+
+    const struct = this._unpackStruct(marker, markerHigh, markerLow, buffer);
+    if (struct !== null) {
+      return struct;
+    }
+
+    throw newError('Unknown packed value with marker ' + marker.toString(16));
+  }
+
+  _unpackBoolean(marker) {
+    if (marker == TRUE) {
       return true;
     } else if (marker == FALSE) {
       return false;
-    } else if (marker == FLOAT_64) {
+    } else {
+      return null;
+    }
+  }
+
+  _unpackNumber(marker, buffer) {
+    if (marker == FLOAT_64) {
       return buffer.readFloat64();
     } else if (marker >= 0 && marker < 128) {
       return int(marker);
@@ -330,49 +389,122 @@ class Unpacker {
       return int(b);
     } else if (marker == INT_64) {
       let high = buffer.readInt32();
-      let low  = buffer.readInt32();
-      return new Integer( low, high );
-    } else if (marker == STRING_8) {
-      return utf8.decode( buffer, buffer.readUInt8());
-    } else if (marker == STRING_16) {
-      return utf8.decode( buffer, buffer.readUInt16() );
-    } else if (marker == STRING_32) {
-      return utf8.decode( buffer, buffer.readUInt32() );
-    } else if (marker == LIST_8) {
-      return this.unpackList(buffer.readUInt8(), buffer);
-    } else if (marker == LIST_16) {
-      return this.unpackList(buffer.readUInt16(), buffer);
-    } else if (marker == LIST_32) {
-      return this.unpackList(buffer.readUInt32(), buffer);
-    } else if (marker == MAP_8) {
-      return this.unpackMap(buffer.readUInt8(), buffer);
-    } else if (marker == MAP_16) {
-      return this.unpackMap(buffer.readUInt16(), buffer);
-    } else if (marker == MAP_32) {
-      return this.unpackMap(buffer.readUInt32(), buffer);
-    } else if (marker == STRUCT_8) {
-      return this.unpackStruct(buffer.readUInt8(), buffer);
-    } else if (marker == STRUCT_16) {
-      return this.unpackStruct(buffer.readUInt16(), buffer);
-    }
-    let markerHigh = marker & 0xF0;
-    let markerLow = marker & 0x0F;
-    if (markerHigh == 0x80) {
-      return utf8.decode( buffer, markerLow );
-    } else if (markerHigh == 0x90) {
-      return this.unpackList(markerLow, buffer);
-    } else if (markerHigh == 0xA0) {
-      return this.unpackMap(markerLow, buffer);
-    } else if (markerHigh == 0xB0) {
-      return this.unpackStruct(markerLow, buffer);
+      let low = buffer.readInt32();
+      return new Integer(low, high);
     } else {
-      throw newError("Unknown packed value with marker " + marker.toString(16));
+      return null;
     }
   }
+
+  _unpackString(marker, markerHigh, markerLow, buffer) {
+    if (markerHigh == TINY_STRING) {
+      return utf8.decode(buffer, markerLow);
+    } else if (marker == STRING_8) {
+      return utf8.decode(buffer, buffer.readUInt8());
+    } else if (marker == STRING_16) {
+      return utf8.decode(buffer, buffer.readUInt16());
+    } else if (marker == STRING_32) {
+      return utf8.decode(buffer, buffer.readUInt32());
+    } else {
+      return null;
+    }
+  }
+
+  _unpackList(marker, markerHigh, markerLow, buffer) {
+    if (markerHigh == TINY_LIST) {
+      return this._unpackListWithSize(markerLow, buffer);
+    } else if (marker == LIST_8) {
+      return this._unpackListWithSize(buffer.readUInt8(), buffer);
+    } else if (marker == LIST_16) {
+      return this._unpackListWithSize(buffer.readUInt16(), buffer);
+    } else if (marker == LIST_32) {
+      return this._unpackListWithSize(buffer.readUInt32(), buffer);
+    } else {
+      return null;
+    }
+  }
+
+  _unpackListWithSize(size, buffer) {
+    let value = [];
+    for (let i = 0; i < size; i++) {
+      value.push(this.unpack(buffer));
+    }
+    return value;
+  }
+
+  _unpackByteArray(marker, buffer) {
+    if (marker == BYTES_8) {
+      return this._unpackByteArrayWithSize(buffer.readUInt8(), buffer);
+    } else if (marker == BYTES_16) {
+      return this._unpackByteArrayWithSize(buffer.readUInt16(), buffer);
+    } else if (marker == BYTES_32) {
+      return this._unpackByteArrayWithSize(buffer.readUInt32(), buffer);
+    } else {
+      return null;
+    }
+  }
+
+  _unpackByteArrayWithSize(size, buffer) {
+    const value = new Int8Array(size);
+    for (let i = 0; i < size; i++) {
+      value[i] = buffer.readInt8();
+    }
+    return value;
+  }
+
+  _unpackMap(marker, markerHigh, markerLow, buffer) {
+    if (markerHigh == TINY_MAP) {
+      return this._unpackMapWithSize(markerLow, buffer);
+    } else if (marker == MAP_8) {
+      return this._unpackMapWithSize(buffer.readUInt8(), buffer);
+    } else if (marker == MAP_16) {
+      return this._unpackMapWithSize(buffer.readUInt16(), buffer);
+    } else if (marker == MAP_32) {
+      return this._unpackMapWithSize(buffer.readUInt32(), buffer);
+    } else {
+      return null;
+    }
+  }
+
+  _unpackMapWithSize(size, buffer) {
+    let value = {};
+    for (let i = 0; i < size; i++) {
+      let key = this.unpack(buffer);
+      value[key] = this.unpack(buffer);
+    }
+    return value;
+  }
+
+  _unpackStruct(marker, markerHigh, markerLow, buffer) {
+    if (markerHigh == TINY_STRUCT) {
+      return this._unpackStructWithSize(markerLow, buffer);
+    } else if (marker == STRUCT_8) {
+      return this._unpackStructWithSize(buffer.readUInt8(), buffer);
+    } else if (marker == STRUCT_16) {
+      return this._unpackStructWithSize(buffer.readUInt16(), buffer);
+    } else {
+      return null;
+    }
+  }
+
+  _unpackStructWithSize(size, buffer) {
+    let signature = buffer.readUInt8();
+    let mapper = this.structMappers[signature];
+    if (mapper) {
+      return mapper(this, buffer);
+    } else {
+      let value = new Structure(signature, []);
+      for (let i = 0; i < size; i++) {
+        value.fields.push(this.unpack(buffer));
+      }
+      return value;
+    }
+  }
+
 }
 
 export {
   Packer,
   Unpacker,
   Structure
-}
+};

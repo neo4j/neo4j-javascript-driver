@@ -217,12 +217,12 @@ describe('stress tests', () => {
   function verifyRecord(record) {
     const node = record.get(0);
 
-    if (!_.isEqual(['Person', 'Employee'], node.labels)) {
+    if (!arraysEqual(['Person', 'Employee'], node.labels)) {
       return new Error(`Unexpected labels in node: ${JSON.stringify(node)}`);
     }
 
     const propertyKeys = _.keys(node.properties);
-    if (!_.isEmpty(propertyKeys) && !_.isEqual(['name', 'salary'], propertyKeys)) {
+    if (!_.isEmpty(propertyKeys) && !arraysEqual(['name', 'salary'], propertyKeys)) {
       return new Error(`Unexpected property keys in node: ${JSON.stringify(node)}`);
     }
 
@@ -296,6 +296,10 @@ describe('stress tests', () => {
     }).catch(error => {
       console.log('Error clearing the database: ', error);
     });
+  }
+
+  function arraysEqual(array1, array2) {
+    return _.difference(array1, array2).length === 0;
   }
 
   class Context {

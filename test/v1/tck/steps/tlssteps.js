@@ -20,11 +20,14 @@ module.exports = function () {
   });
 
   this.Then(/^sessions should simply work$/, {timeout: CALLBACK_TIMEOUT},  function (callback) {
-    var session = this.driver1.session();
+    var self = this;
+    var session = self.driver1.session();
     session.run("RETURN 1").then(function (result) {
       session.close();
+      _closeDrivers(self.driver1, self.driver2);
       callback();
     }).catch(function (error) {
+      _closeDrivers(self.driver1, self.driver2);
       console.log(error);
     });
   });
@@ -57,11 +60,13 @@ module.exports = function () {
     var self = this;
     session.run("RETURN 1")
       .then(function(res) {
+        _closeDrivers(self.driver1, self.driver2);
         console.log(res);
       })
       .catch(function (error) {
         self.error = error;
         session.close();
+        _closeDrivers(self.driver1, self.driver2);
         callback();
       });
   });
@@ -76,6 +81,9 @@ module.exports = function () {
       "and the driver will update the file with the new certificate. You can configure which file the driver should use " +
       "to store this information by setting `knownHosts` to another path in your driver configuration - " +
       "and you can disable encryption there as well using `encrypted:\"ENCRYPTION_OFF\"`.";
+
+    _closeDrivers(this.driver1, this.driver2);
+
     if (this.error.message !== expected) {
       callback(new Error("Given and expected results does not match: " + this.error.message + " Expected " + expected));
     } else {
@@ -101,6 +109,7 @@ module.exports = function () {
       var session2 = self.driver2.session();
       session2.run("RETURN 1").then(function (result) {
         session2.close();
+        _closeDrivers(self.driver1, self.driver2);
         callback();
       });
     });
@@ -157,6 +166,9 @@ module.exports = function () {
       "`neo4j.v1.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This  is a security measure to protect " +
       "against man-in-the-middle attacks. If you are just trying  Neo4j out and are not concerned about encryption, " +
       "simply disable it using `encrypted=\"ENCRYPTION_OFF\"` in the driver options. Socket responded with: DEPTH_ZERO_SELF_SIGNED_CERT";
+
+    _closeDrivers(this.driver1, this.driver2);
+
     if (this.error.message !== expected) {
       callback(new Error("Given and expected results does not match: " + this.error.message + " Expected " + expected));
     } else {
@@ -170,5 +182,14 @@ module.exports = function () {
       knownHosts: hostFile,
       encrypted: "ENCRYPTION_ON"
     });
+  }
+
+  function _closeDrivers() {
+    for (var i = 0; i < arguments.length; i++) {
+      var driver = arguments[i];
+      if (driver) {
+        driver.close();
+      }
+    }
   }
 };

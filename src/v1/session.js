@@ -75,8 +75,7 @@ class Session {
     const connectionHolder = this._connectionHolderWithMode(this._mode);
     if (!this._hasTx) {
       connectionHolder.initializeConnection();
-      connectionHolder.getConnection().then(connection => {
-        streamObserver.resolveConnection(connection);
+      connectionHolder.getConnection(streamObserver).then(connection => {
         statementRunner(connection, streamObserver);
         connection.pullAll(streamObserver);
         connection.sync();

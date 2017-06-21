@@ -31,16 +31,19 @@ module.exports = function () {
   });
 
   this.Then(/^reading and writing to the database should be possible$/, function (callback) {
-    var session = this.driver.session();
-    session.run("CREATE (:label1)").then( function(  ) {
-        callback();
-    }).catch(function(err) {callback(new Error("Rejected Promise: " + err))});
+    var driver = this.driver;
+    var session = driver.session();
+    session.run('CREATE (:label1)').then(function () {
+      closeDriver(driver);
+      callback();
+    }).catch(function (err) {
+      closeDriver(driver);
+      callback(new Error('Rejected Promise: ' + err));
+    });
   });
 
   this.Given(/^a driver is configured with auth enabled and the wrong password is provided$/, function () {
-    if (this.driver) {
-      this.driver.close();
-    }
+    closeDriver(this.driver);
     this.driver = neo4j.driver("bolt://localhost", neo4j.auth.basic(sharedNeo4j.username, "wrong"));
     this.driver.session();
   });
@@ -49,14 +52,17 @@ module.exports = function () {
 
     var self = this;
     this.driver.onError = function (err) {
+      closeDriver(self.driver);
       self.err = err;
       callback();
     };
 
     var session = this.driver.session();
     session.run("CREATE (:label1)").then( function(  ) {
+      closeDriver(self.driver);
       callback(new Error("Should not be able to run session!"));
     }).catch( function(err) {
+      closeDriver(self.driver);
       callback();
     });
   });
@@ -76,4 +82,10 @@ module.exports = function () {
       throw new Error("Wrong error code. Expected: '" + expectedCode + "'. Got: '" + code + "'");
     }
   });
+
+  function closeDriver(driver) {
+    if (driver) {
+      driver.close();
+    }
+  }
 };
