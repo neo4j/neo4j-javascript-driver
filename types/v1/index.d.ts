@@ -26,6 +26,7 @@ import Record from "./record";
 import Session from "./session";
 import {AuthToken, Config, Driver, READ, WRITE} from "./driver";
 import Transaction from "./transaction";
+import {Parameters} from "./statement-runner";
 
 declare const auth: {
   basic: (username: string,
@@ -38,15 +39,15 @@ declare const auth: {
            credentials: string,
            realm: string,
            scheme: string,
-           parameters?: { [key: string]: string }) => AuthToken,
+           parameters?: Parameters) => AuthToken,
 };
 
 declare function driver(url: string,
-                        authToken: AuthToken,
+                        authToken?: AuthToken,
                         config?: Config): Driver;
 
 declare const types: {
-  Node: Node;
+  Node: typeof Node;
   Relationship: typeof Relationship;
   UnboundRelationship: typeof UnboundRelationship;
   PathSegment: typeof PathSegment;
