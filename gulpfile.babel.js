@@ -47,6 +47,7 @@ var os = require('os');
 var file = require('gulp-file');
 var semver = require('semver');
 var sharedNeo4j = require('./test/internal/shared-neo4j').default;
+var ts = require('gulp-typescript');
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
@@ -154,8 +155,8 @@ gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
       .pipe(install());
 });
 
-gulp.task('test', function(cb){
-  runSequence('test-nodejs', 'test-browser', 'run-tck', function (err) {
+gulp.task('test', function (cb) {
+  runSequence('run-ts-declaration-tests', 'test-nodejs', 'test-browser', 'run-tck', function (err) {
     if (err) {
       var exitCode = 2;
       console.log('[FAIL] test task failed - exiting with code ' + exitCode);
@@ -254,6 +255,29 @@ gulp.task('run-stress-tests', function () {
       includeStackTrace: true,
       verbose: true
     })).on('end', logActiveNodeHandles);
+});
+
+gulp.task('run-ts-declaration-tests', function () {
+  var failed = false;
+
+  return gulp.src(['test/types/**/*', 'types/**/*'], {base: '.'})
+    .pipe(ts({
+      module: 'es6',
+      target: 'es6',
+      noImplicitAny: true,
+      noImplicitReturns: true,
+      strictNullChecks: true,
+    }))
+    .on('error', function () {
+      failed = true;
+    })
+    .on('finish', function () {
+      if (failed) {
+        console.log('[ERROR] TypeScript declarations contain errors. Exiting...');
+        process.exit(1);
+      }
+    })
+    .pipe(gulp.dest('build/test/types'));
 });
 
 function logActiveNodeHandles() {

@@ -16,7 +16,7 @@
     "stop-neo4j": "gulp stop-neo4j",
     "run-stress-tests": "gulp run-stress-tests",
     "run-tck": "gulp run-tck",
-    "test-types": "tsc -p ./test/types/tsconfig.json",
+    "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version"
   },
@@ -49,6 +49,7 @@
     "gulp-jasmine-browser": "^0.2.3",
     "gulp-replace": "^0.5.4",
     "gulp-shell": "^0.4.3",
+    "gulp-typescript": "^3.1.7",
     "gulp-uglify": "^1.4.2",
     "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
