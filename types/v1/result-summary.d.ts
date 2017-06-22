@@ -77,7 +77,7 @@ declare interface StatementStatistic {
   constraintsRemoved(): number;
 }
 
-type NotificationPosition = { offset: number; line: number; column: number; }
+declare type NotificationPosition = { offset: number; line: number; column: number; }
 
 declare interface Notification {
   code: string;

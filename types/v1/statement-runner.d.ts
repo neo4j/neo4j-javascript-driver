@@ -19,7 +19,7 @@
 
 import Result from "./result";
 
-type Parameters = { [key: string]: any };
+declare type Parameters = { [key: string]: any };
 
 declare interface StatementRunner {
   run(statement: string, parameters?: Parameters): Result;

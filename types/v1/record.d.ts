@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-type Visitor = (value: any, key: string, record: Record) => void;
+declare type Visitor = (value: any, key: string, record: Record) => void;
 
 declare class Record {
   keys: string[];

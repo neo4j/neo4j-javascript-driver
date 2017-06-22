@@ -20,12 +20,12 @@
 import ResultSummary from "./result-summary";
 import Record from "./record";
 
-type StatementResult = {
+declare type StatementResult = {
   records: Record[];
   summary: ResultSummary;
 }
 
-type Observer = {
+declare type Observer = {
   onNext?(record: Record): void;
   onCompleted?(summary: ResultSummary): void;
   onError?(error: Error): void;

@@ -20,7 +20,7 @@
 import Session from "./session";
 import {Parameters} from "./statement-runner";
 
-interface AuthToken {
+declare interface AuthToken {
   scheme: string;
   principal: string;
   credentials: string;
@@ -28,15 +28,15 @@ interface AuthToken {
   parameters?: Parameters;
 }
 
-type EncryptionLevel = "ENCRYPTION_ON" | "ENCRYPTION_OFF";
-type TrustStrategy =
+declare type EncryptionLevel = "ENCRYPTION_ON" | "ENCRYPTION_OFF";
+declare type TrustStrategy =
   "TRUST_ALL_CERTIFICATES" |
   "TRUST_ON_FIRST_USE" |
   "TRUST_SIGNED_CERTIFICATES" |
   "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" |
   "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES";
 
-interface Config {
+declare interface Config {
   encrypted?: boolean | EncryptionLevel;
   trust?: TrustStrategy;
   trustedCertificates?: string[];
@@ -45,7 +45,7 @@ interface Config {
   maxTransactionRetryTime?: number;
 }
 
-type SessionMode = "READ" | "WRITE";
+declare type SessionMode = "READ" | "WRITE";
 
 declare const READ: SessionMode;
 declare const WRITE: SessionMode;
@@ -56,6 +56,6 @@ declare interface Driver {
   close(): void;
 }
 
-export {Driver, READ, WRITE, AuthToken, Config}
+export {Driver, READ, WRITE, AuthToken, Config, EncryptionLevel, TrustStrategy, SessionMode}
 
 export default Driver;

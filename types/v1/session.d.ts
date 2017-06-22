@@ -20,7 +20,7 @@
 import Transaction from "./transaction";
 import StatementRunner from "./statement-runner";
 
-type TransactionWork<T> = (tx: Transaction) => T | Promise<T>;
+declare type TransactionWork<T> = (tx: Transaction) => T | Promise<T>;
 
 declare interface Session extends StatementRunner {
   beginTransaction(): Transaction;

@@ -28,8 +28,7 @@ const dummy: any = null;
 const session: Session = dummy;
 
 const tx: Transaction = session.beginTransaction();
-const bookmarkNull: null = <null>session.lastBookmark();
-const bookmark: string = <string>session.lastBookmark();
+const bookmark: null | string = <null>session.lastBookmark();
 
 const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
   return 10;
