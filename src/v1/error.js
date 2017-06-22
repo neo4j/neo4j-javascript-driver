@@ -44,6 +44,7 @@ class Neo4jError extends Error {
     super( message );
     this.message = message;
     this.code = code;
+    this.name = "Neo4jError"
   }
 }
 
