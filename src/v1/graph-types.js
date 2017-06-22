@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import Integer from './integer';
+
 /**
  * Class for Node Type.
  */ 

@@ -16,10 +16,12 @@
     "stop-neo4j": "gulp stop-neo4j",
     "run-stress-tests": "gulp run-stress-tests",
     "run-tck": "gulp run-tck",
+    "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version"
   },
   "main": "lib/index.js",
+  "types": "types/index.d.ts",
   "devDependencies": {
     "async": "^2.4.0",
     "babel-core": "^6.17.0",
@@ -47,6 +49,7 @@
     "gulp-jasmine-browser": "^0.2.3",
     "gulp-replace": "^0.5.4",
     "gulp-shell": "^0.4.3",
+    "gulp-typescript": "^3.1.7",
     "gulp-uglify": "^1.4.2",
     "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
@@ -61,6 +64,7 @@
     "semver": "^5.3.0",
     "through2": "~2.0.0",
     "tmp": "0.0.31",
+    "typescript": "^2.3.4",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
   },
