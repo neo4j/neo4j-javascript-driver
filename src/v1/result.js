@@ -20,6 +20,12 @@
 import ResultSummary from './result-summary';
 import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
 
+const DEFAULT_ON_ERROR = error => {
+  console.log('Uncaught error when processing result: ' + error);
+};
+const DEFAULT_ON_COMPLETED = summary => {
+};
+
 /**
   * A stream of {@link Record} representing the result of a statement.
   * @access public
@@ -102,12 +108,12 @@ class Result {
    * @return
    */
   subscribe(observer) {
-    const onCompletedOriginal = observer.onCompleted;
     const self = this;
-    const onCompletedWrapper = (metadata) => {
 
+    const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED;
+    const onCompletedWrapper = (metadata) => {
       const additionalMeta = self._metaSupplier();
-      for(let key in additionalMeta) {
+      for (let key in additionalMeta) {
         if (additionalMeta.hasOwnProperty(key)) {
           metadata[key] = additionalMeta[key];
         }
@@ -122,10 +128,7 @@ class Result {
     };
     observer.onCompleted = onCompletedWrapper;
 
-    const onErrorOriginal = observer.onError || (error => {
-      console.log("Uncaught error when processing result: " + error);
-    });
-
+    const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR;
     const onErrorWrapper = error => {
       // notify connection holder that the used connection is not needed any more because error happened
       // and result can't bee consumed any further; call the original onError callback after that
