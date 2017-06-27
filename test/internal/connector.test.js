@@ -233,6 +233,7 @@ describe('connector', () => {
     expect(() => {
       throw error;
     }).toThrow(new Neo4jError(expectedMessage, expectedCode));
+    expect(error.name).toBe("Neo4jError");
   }
 
   function basicAuthToken() {
