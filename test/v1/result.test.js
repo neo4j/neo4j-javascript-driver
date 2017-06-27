@@ -60,4 +60,16 @@ describe('result stream', () => {
         done()
       });
   });
+
+  it('should handle missing onCompleted', done => {
+    session.run('RETURN 1').subscribe({
+      onNext: record => {
+        expect(record.get(0).toInt()).toEqual(1);
+        done();
+      },
+      onError: error => {
+        console.log(error);
+      }
+    });
+  });
 });

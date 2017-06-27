@@ -61,7 +61,7 @@ export default class ConnectionHolder {
 
   /**
    * Notify this holder that single party does not require current connection any more.
-   * @return {Promise<Connection>} promise resolved with the current connection.
+   * @return {Promise<Connection>} promise resolved with the current connection, never a rejected promise.
    */
   releaseConnection() {
     if (this._referenceCount === 0) {
