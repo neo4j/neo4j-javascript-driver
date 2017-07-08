@@ -150,7 +150,7 @@ readTxResultPromise.then(function (result) {
 
 // It is possible to execute write transactions that will benefit from automatic retries
 // on both single instance ('bolt' URI scheme) and Causal Cluster ('bolt+routing' URI scheme)
-var writeTxResultPromise = session.writeTransaction(function (transaction) {
+var writeTxResultPromise = session.transaction(function (transaction) {
   // used transaction will be committed automatically, no need for explicit commit/rollback
 
   var result = transaction.run('MERGE (alice:Person {name : \'Alice\' }) RETURN alice.name AS name');
