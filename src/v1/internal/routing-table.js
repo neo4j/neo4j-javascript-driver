@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import {int} from '../integer';
-import RoundRobinArray from './round-robin-array';
 import {READ, WRITE} from '../driver';
 
 const MIN_ROUTERS = 1;
@@ -25,9 +24,9 @@ const MIN_ROUTERS = 1;
 export default class RoutingTable {
 
   constructor(routers, readers, writers, expirationTime) {
-    this.routers = routers || new RoundRobinArray();
-    this.readers = readers || new RoundRobinArray();
-    this.writers = writers || new RoundRobinArray();
+    this.routers = routers || [];
+    this.readers = readers || [];
+    this.writers = writers || [];
     this.expirationTime = expirationTime || int(0);
   }
 
@@ -35,16 +34,17 @@ export default class RoutingTable {
     // Don't remove it from the set of routers, since that might mean we lose our ability to re-discover,
     // just remove it from the set of readers and writers, so that we don't use it for actual work without
     // performing discovery first.
-    this.readers.remove(address);
-    this.writers.remove(address);
+
+    this.readers = removeFromArray(this.readers, address);
+    this.writers = removeFromArray(this.writers, address);
   }
 
   forgetRouter(address) {
-    this.routers.remove(address);
+    this.routers = removeFromArray(this.routers, address);
   }
 
   forgetWriter(address) {
-    this.writers.remove(address);
+    this.writers = removeFromArray(this.writers, address);
   }
 
   serversDiff(otherRoutingTable) {
@@ -62,20 +62,30 @@ export default class RoutingTable {
    */
   isStaleFor(accessMode) {
     return this.expirationTime.lessThan(Date.now()) ||
-      this.routers.size() < MIN_ROUTERS ||
-      accessMode === READ && this.readers.isEmpty() ||
-      accessMode === WRITE && this.writers.isEmpty();
+      this.routers.length < MIN_ROUTERS ||
+      accessMode === READ && this.readers.length === 0 ||
+      accessMode === WRITE && this.writers.length === 0;
   }
 
   _allServers() {
-    return [...this.routers.toArray(), ...this.readers.toArray(), ...this.writers.toArray()];
+    return [...this.routers, ...this.readers, ...this.writers];
   }
 
   toString() {
     return `RoutingTable[` +
       `expirationTime=${this.expirationTime}, ` +
-      `routers=${this.routers}, ` +
-      `readers=${this.readers}, ` +
-      `writers=${this.writers}]`;
+      `routers=[${this.routers}], ` +
+      `readers=[${this.readers}], ` +
+      `writers=[${this.writers}]]`;
   }
+}
+
+/**
+ * Remove all occurrences of the element in the array.
+ * @param {Array} array the array to filter.
+ * @param {object} element the element to remove.
+ * @return {Array} new filtered array.
+ */
+function removeFromArray(array, element) {
+  return array.filter(item => item !== element);
 }

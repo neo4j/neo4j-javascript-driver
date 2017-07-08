@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import RoundRobinArray from './round-robin-array';
 import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE} from '../error';
 import Integer, {int} from '../integer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
@@ -81,20 +80,20 @@ export default class RoutingUtil {
     try {
       const servers = record.get('servers');
 
-      const routers = new RoundRobinArray();
-      const readers = new RoundRobinArray();
-      const writers = new RoundRobinArray();
+      let routers = [];
+      let readers = [];
+      let writers = [];
 
       servers.forEach(server => {
         const role = server['role'];
         const addresses = server['addresses'];
 
         if (role === 'ROUTE') {
-          routers.pushAll(addresses);
+          routers = parseArray(addresses);
         } else if (role === 'WRITE') {
-          writers.pushAll(addresses);
+          writers = parseArray(addresses);
         } else if (role === 'READ') {
-          readers.pushAll(addresses);
+          readers = parseArray(addresses);
         } else {
           throw newError('Unknown server role "' + role + '"', PROTOCOL_ERROR);
         }
@@ -125,4 +124,11 @@ export default class RoutingUtil {
       }
     });
   }
+}
+
+function parseArray(addresses) {
+  if (!Array.isArray(addresses)) {
+    throw new TypeError('Array expected but got: ' + addresses);
+  }
+  return Array.from(addresses);
 }

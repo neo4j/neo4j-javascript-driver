@@ -26,7 +26,7 @@ import FakeConnection from './fake-connection';
 
 const ROUTER_ADDRESS = 'bolt+routing://test.router.com';
 
-describe('get-servers-util', () => {
+describe('RoutingUtil', () => {
 
   let clock;
 
@@ -248,9 +248,9 @@ describe('get-servers-util', () => {
 
     const {routers, readers, writers} = parseServers(record);
 
-    expect(routers.toArray()).toEqual(routerAddresses);
-    expect(readers.toArray()).toEqual(readerAddresses);
-    expect(writers.toArray()).toEqual(writerAddresses);
+    expect(routers).toEqual(routerAddresses);
+    expect(readers).toEqual(readerAddresses);
+    expect(writers).toEqual(writerAddresses);
   }
 
   function callRoutingProcedure(session, routingContext) {

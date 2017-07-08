@@ -63,8 +63,8 @@ export default class Rediscovery {
     });
   }
 
-  static _assertNonEmpty(serversRoundRobinArray, serversName, routerAddress) {
-    if (serversRoundRobinArray.isEmpty()) {
+  static _assertNonEmpty(serverAddressesArray, serversName, routerAddress) {
+    if (serverAddressesArray.length === 0) {
       throw newError('Received no ' + serversName + ' from router ' + routerAddress, PROTOCOL_ERROR);
     }
   }

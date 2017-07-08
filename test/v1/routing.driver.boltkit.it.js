@@ -2029,15 +2029,15 @@ describe('routing driver', () => {
   }
 
   function assertHasRouters(driver, expectedRouters) {
-    expect(getRoutingTable(driver).routers.toArray()).toEqual(expectedRouters);
+    expect(getRoutingTable(driver).routers).toEqual(expectedRouters);
   }
 
   function assertHasReaders(driver, expectedReaders) {
-    expect(getRoutingTable(driver).readers.toArray()).toEqual(expectedReaders);
+    expect(getRoutingTable(driver).readers).toEqual(expectedReaders);
   }
 
   function assertHasWriters(driver, expectedWriters) {
-    expect(getRoutingTable(driver).writers.toArray()).toEqual(expectedWriters);
+    expect(getRoutingTable(driver).writers).toEqual(expectedWriters);
   }
 
   function setUpMemorizingRoutingTable(driver) {
