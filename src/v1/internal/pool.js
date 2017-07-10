@@ -70,11 +70,7 @@ class Pool {
   }
 
   purgeAll() {
-    for (let key in this._pools.keys) {
-      if (this._pools.hasOwnPropertykey) {
-        this.purge(key);
-      }
-    }
+    Object.keys(this._pools).forEach(key => this.purge(key));
   }
 
   has(key) {
@@ -84,7 +80,8 @@ class Pool {
   _release(key, resource) {
     let pool = this._pools[key];
     if (!pool) {
-      //key has been purged, don't put it back
+      // key has been purged, don't put it back, just destroy the resource
+      this._destroy(resource);
       return;
     }
     if( pool.length >= this._maxIdle || !this._validate(resource) ) {
@@ -96,4 +93,3 @@ class Pool {
 }
 
 export default Pool
-
