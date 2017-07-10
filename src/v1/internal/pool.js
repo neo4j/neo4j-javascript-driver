@@ -36,59 +36,117 @@ class Pool {
     this._validate = validate;
     this._maxIdle = maxIdle;
     this._pools = {};
+    this._activeResourceCounts = {};
     this._release = this._release.bind(this);
   }
 
+  /**
+   * Acquire and idle resource fom the pool or create a new one.
+   * @param {string} key the resource key.
+   * @return {object} resource that is ready to use.
+   */
   acquire(key) {
-    let resource;
     let pool = this._pools[key];
     if (!pool) {
       pool = [];
       this._pools[key] = pool;
     }
     while (pool.length) {
-      resource = pool.pop();
+      const resource = pool.pop();
 
       if (this._validate(resource)) {
+        // idle resource is valid and can be acquired
+        resourceAcquired(key, this._activeResourceCounts);
         return resource;
       } else {
         this._destroy(resource);
       }
     }
 
+    // there exist no idle valid resources, create a new one for acquisition
+    resourceAcquired(key, this._activeResourceCounts);
     return this._create(key, this._release);
   }
 
+  /**
+   * Destroy all idle resources for the given key.
+   * @param {string} key the resource key to purge.
+   */
   purge(key) {
-    let resource;
-    let pool = this._pools[key] || [];
+    const pool = this._pools[key] || [];
     while (pool.length) {
-      resource = pool.pop();
+      const resource = pool.pop();
       this._destroy(resource)
     }
     delete this._pools[key]
   }
 
+  /**
+   * Destroy all idle resources in this pool.
+   */
   purgeAll() {
     Object.keys(this._pools).forEach(key => this.purge(key));
   }
 
+  /**
+   * Check if this pool contains resources for the given key.
+   * @param {string} key the resource key to check.
+   * @return {boolean} <code>true</code> when pool contains entries for the given key, <code>false</code> otherwise.
+   */
   has(key) {
     return (key in this._pools);
   }
 
+  /**
+   * Get count of active (checked out of the pool) resources for the given key.
+   * @param {string} key the resource key to check.
+   * @return {number} count of resources acquired by clients.
+   */
+  activeResourceCount(key) {
+    return this._activeResourceCounts[key] || 0;
+  }
+
   _release(key, resource) {
-    let pool = this._pools[key];
-    if (!pool) {
+    const pool = this._pools[key];
+
+    if (pool) {
+      // there exist idle connections for the given key
+      if (pool.length >= this._maxIdle || !this._validate(resource)) {
+        this._destroy(resource);
+      } else {
+        pool.push(resource);
+      }
+    } else {
       // key has been purged, don't put it back, just destroy the resource
       this._destroy(resource);
-      return;
     }
-    if( pool.length >= this._maxIdle || !this._validate(resource) ) {
-      this._destroy(resource);
-    } else {
-      pool.push(resource);
-    }
+
+    resourceReleased(key, this._activeResourceCounts);
+  }
+}
+
+/**
+ * Increment active (checked out of the pool) resource counter.
+ * @param {string} key the resource group identifier (server address for connections).
+ * @param {Object.<string, number>} activeResourceCounts the object holding active counts per key.
+ */
+function resourceAcquired(key, activeResourceCounts) {
+  const currentCount = activeResourceCounts[key] || 0;
+  activeResourceCounts[key] = currentCount + 1;
+}
+
+/**
+ * Decrement active (checked out of the pool) resource counter.
+ * @param {string} key the resource group identifier (server address for connections).
+ * @param {Object.<string, number>} activeResourceCounts the object holding active counts per key.
+ */
+function resourceReleased(key, activeResourceCounts) {
+  const currentCount = activeResourceCounts[key] || 0;
+  const nextCount = currentCount - 1;
+  if (nextCount > 0) {
+    activeResourceCounts[key] = nextCount;
+  } else {
+    delete activeResourceCounts[key];
   }
 }
 
