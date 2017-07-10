@@ -747,13 +747,19 @@ describe('routing driver', () => {
       const session1 = driver.session(neo4j.session.WRITE);
       session1.run("CREATE (n {name:'Bob'})").then(() => {
         session1.close(() => {
-          const connections = Object.keys(driver._openSessions).length;
+          const openConnectionsCount = numberOfOpenConnections(driver);
           const session2 = driver.session(neo4j.session.WRITE);
           session2.run("CREATE ()").then(() => {
+            // driver should have same amount of open connections at this point;
+            // no new connections should be created, existing connections should be reused
+            expect(numberOfOpenConnections(driver)).toEqual(openConnectionsCount);
             driver.close();
+
+            // all connections should be closed when driver is closed
+            expect(numberOfOpenConnections(driver)).toEqual(0);
+
             seedServer.exit(code1 => {
               writeServer.exit(code2 => {
-                expect(connections).toEqual(Object.keys(driver._openSessions).length);
                 expect(code1).toEqual(0);
                 expect(code2).toEqual(0);
                 done();
@@ -2062,6 +2068,10 @@ describe('routing driver', () => {
 
   function joinStrings(array) {
     return '[' + array.map(s => '"' + s + '"').join(',') + ']';
+  }
+
+  function numberOfOpenConnections(driver) {
+    return Object.keys(driver._openSessions).length;
   }
 
   class MemorizingRoutingTable extends RoutingTable {
