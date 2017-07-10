@@ -17,53 +17,54 @@
  * limitations under the License.
  */
 
-var Pool = require('../../lib/v1/internal/pool').default;
+import Pool from '../../src/v1/internal/pool';
 
-describe('Pool', function() {
-  it('allocates if pool is empty', function() {
+describe('Pool', () => {
+
+  it('allocates if pool is empty', () => {
     // Given
-    var counter = 0;
-    var key = "bolt://localhost:7687";
-    var pool = new Pool( function (url, release) { return new Resource(url, counter++, release) } );
+    let counter = 0;
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool((url, release) => new Resource(url, counter++, release));
 
     // When
-    var r0 = pool.acquire(key);
-    var r1 = pool.acquire(key);
+    const r0 = pool.acquire(key);
+    const r1 = pool.acquire(key);
 
     // Then
     expect( r0.id ).toBe( 0 );
     expect( r1.id ).toBe( 1 );
   });
 
-  it('pools if resources are returned', function() {
+  it('pools if resources are returned', () => {
     // Given a pool that allocates
-    var counter = 0;
-    var key = "bolt://localhost:7687";
-    var pool = new Pool( function (url, release) { return new Resource(url, counter++, release) } );
+    let counter = 0;
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool((url, release) => new Resource(url, counter++, release));
 
     // When
-    var r0 = pool.acquire(key);
+    const r0 = pool.acquire(key);
     r0.close();
-    var r1 = pool.acquire(key);
+    const r1 = pool.acquire(key);
 
     // Then
     expect( r0.id ).toBe( 0 );
     expect( r1.id ).toBe( 0 );
   });
 
-  it('handles multiple keys', function() {
+  it('handles multiple keys', () => {
     // Given a pool that allocates
-    var counter = 0;
-    var key1 = "bolt://localhost:7687";
-    var key2 = "bolt://localhost:7688";
-    var pool = new Pool( function (url, release) { return new Resource(url, counter++, release) } );
+    let counter = 0;
+    const key1 = 'bolt://localhost:7687';
+    const key2 = 'bolt://localhost:7688';
+    const pool = new Pool((url, release) => new Resource(url, counter++, release));
 
     // When
-    var r0 = pool.acquire(key1);
-    var r1 = pool.acquire(key2);
+    const r0 = pool.acquire(key1);
+    const r1 = pool.acquire(key2);
     r0.close();
-    var r2 = pool.acquire(key1);
-    var r3 = pool.acquire(key2);
+    const r2 = pool.acquire(key1);
+    const r3 = pool.acquire(key2);
 
     // Then
     expect( r0.id ).toBe( 0 );
@@ -72,22 +73,24 @@ describe('Pool', function() {
     expect( r3.id ).toBe( 2 );
   });
 
-  it('frees if pool reaches max size', function() {
+  it('frees if pool reaches max size', () => {
     // Given a pool that tracks destroyed resources
-    var counter = 0,
-        destroyed = [];
-    var key = "bolt://localhost:7687";
-    var pool = new Pool(
-      function (url, release) { return new Resource(url, counter++, release) },
-      function (resource) { destroyed.push(resource); },
-      function (resource) { return true; },
+    let counter = 0;
+    let destroyed = [];
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool(
+      (url, release) => new Resource(url, counter++, release),
+      resource => {
+        destroyed.push(resource);
+      },
+      resource => true,
       2 // maxIdle
     );
 
     // When
-    var r0 = pool.acquire(key);
-    var r1 = pool.acquire(key);
-    var r2 = pool.acquire(key);
+    const r0 = pool.acquire(key);
+    const r1 = pool.acquire(key);
+    const r2 = pool.acquire(key);
     r0.close();
     r1.close();
     r2.close();
@@ -97,21 +100,23 @@ describe('Pool', function() {
     expect( destroyed[0].id ).toBe( r2.id );
   });
 
-  it('frees if validate returns false', function() {
+  it('frees if validate returns false', () => {
     // Given a pool that allocates
-    var counter = 0,
-      destroyed = [];
-    var key = "bolt://localhost:7687";
-    var pool = new Pool(
-      function (url, release) { return new Resource(url, counter++, release) },
-      function (resource) { destroyed.push(resource); },
-      function (resource) { return false; },
+    let counter = 0;
+    let destroyed = [];
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool(
+      (url, release) => new Resource(url, counter++, release),
+      resource => {
+        destroyed.push(resource);
+      },
+      resource => false,
       1000 // maxIdle
     );
 
     // When
-    var r0 = pool.acquire(key);
-    var r1 = pool.acquire(key);
+    const r0 = pool.acquire(key);
+    const r1 = pool.acquire(key);
     r0.close();
     r1.close();
 
@@ -122,18 +127,21 @@ describe('Pool', function() {
   });
 
 
-  it('purges keys', function() {
+  it('purges keys', () => {
     // Given a pool that allocates
-    var counter = 0;
-    var key1 = "bolt://localhost:7687";
-    var key2 = "bolt://localhost:7688";
-    var pool = new Pool( function (url, release) { return new Resource(url, counter++, release) },
-      function (res) {res.destroyed = true; return true}
+    let counter = 0;
+    const key1 = 'bolt://localhost:7687';
+    const key2 = 'bolt://localhost:7688';
+    const pool = new Pool((url, release) => new Resource(url, counter++, release),
+      res => {
+        res.destroyed = true;
+        return true;
+      }
     );
 
     // When
-    var r0 = pool.acquire(key1);
-    var r1 = pool.acquire(key2);
+    const r0 = pool.acquire(key1);
+    const r1 = pool.acquire(key2);
     r0.close();
     r1.close();
     expect(pool.has(key1)).toBe(true);
@@ -142,8 +150,8 @@ describe('Pool', function() {
     expect(pool.has(key1)).toBe(false);
     expect(pool.has(key2)).toBe(true);
 
-    var r2 = pool.acquire(key1);
-    var r3 = pool.acquire(key2);
+    const r2 = pool.acquire(key1);
+    const r3 = pool.acquire(key2);
 
     // Then
     expect( r0.id ).toBe( 0 );
@@ -154,8 +162,15 @@ describe('Pool', function() {
   });
 });
 
-function Resource( key, id, release) {
-  var self = this;
-  this.id = id;
-  this.close = function() { release(key, self); };
+class Resource {
+
+  constructor(key, id, release) {
+    this.id = id;
+    this.key = key;
+    this.release = release;
+  }
+
+  close() {
+    this.release(key, self);
+  }
 }
