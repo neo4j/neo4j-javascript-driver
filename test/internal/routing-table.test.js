@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import RoutingTable from '../../src/v1/internal/routing-table';
-import RoundRobinArray from '../../src/v1/internal/round-robin-array';
 import {int} from '../../src/v1/integer';
 import {READ, WRITE} from '../../src/v1/driver';
 
@@ -70,9 +69,9 @@ describe('routing-table', () => {
 
     table.forget(1);
 
-    expect(table.routers.toArray()).toEqual([1, 2]);
-    expect(table.readers.toArray()).toEqual([2]);
-    expect(table.writers.toArray()).toEqual([2]);
+    expect(table.routers).toEqual([1, 2]);
+    expect(table.readers).toEqual([2]);
+    expect(table.writers).toEqual([2]);
   });
 
   it('should forget single reader', () => {
@@ -80,9 +79,9 @@ describe('routing-table', () => {
 
     table.forget(42);
 
-    expect(table.routers.toArray()).toEqual([1, 2]);
-    expect(table.readers.toArray()).toEqual([]);
-    expect(table.writers.toArray()).toEqual([1, 2, 3]);
+    expect(table.routers).toEqual([1, 2]);
+    expect(table.readers).toEqual([]);
+    expect(table.writers).toEqual([1, 2, 3]);
   });
 
   it('should forget single writer', () => {
@@ -90,9 +89,9 @@ describe('routing-table', () => {
 
     table.forget(42);
 
-    expect(table.routers.toArray()).toEqual([1, 2]);
-    expect(table.readers.toArray()).toEqual([3, 4, 5]);
-    expect(table.writers.toArray()).toEqual([]);
+    expect(table.routers).toEqual([1, 2]);
+    expect(table.readers).toEqual([3, 4, 5]);
+    expect(table.writers).toEqual([]);
   });
 
   it('should forget router', () => {
@@ -100,9 +99,9 @@ describe('routing-table', () => {
 
     table.forgetRouter(1);
 
-    expect(table.routers.toArray()).toEqual([2]);
-    expect(table.readers.toArray()).toEqual([1, 3]);
-    expect(table.writers.toArray()).toEqual([4, 1]);
+    expect(table.routers).toEqual([2]);
+    expect(table.readers).toEqual([1, 3]);
+    expect(table.writers).toEqual([4, 1]);
   });
 
   it('should forget writer', () => {
@@ -110,9 +109,9 @@ describe('routing-table', () => {
 
     table.forgetWriter(1);
 
-    expect(table.routers.toArray()).toEqual([1, 2, 3]);
-    expect(table.readers.toArray()).toEqual([2, 1, 5]);
-    expect(table.writers.toArray()).toEqual([5]);
+    expect(table.routers).toEqual([1, 2, 3]);
+    expect(table.readers).toEqual([2, 1, 5]);
+    expect(table.writers).toEqual([5]);
   });
 
   it('should return all servers in diff when other table is empty', () => {
@@ -183,11 +182,8 @@ describe('routing-table', () => {
   }
 
   function createTable(routers, readers, writers, expirationTime) {
-    const routersArray = new RoundRobinArray(routers);
-    const readersArray = new RoundRobinArray(readers);
-    const writersArray = new RoundRobinArray(writers);
     const expiration = int(expirationTime);
-    return new RoutingTable(routersArray, readersArray, writersArray, expiration);
+    return new RoutingTable(routers, readers, writers, expiration);
   }
 
 });

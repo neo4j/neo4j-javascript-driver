@@ -20,12 +20,12 @@
 import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../error';
 import {READ, WRITE} from '../driver';
 import Session from '../session';
-import RoundRobinArray from './round-robin-array';
 import RoutingTable from './routing-table';
 import Rediscovery from './rediscovery';
 import hasFeature from './features';
 import {DnsHostNameResolver, DummyHostNameResolver} from './host-name-resolvers';
 import RoutingUtil from './routing-util';
+import RoundRobinLoadBalancingStrategy from './round-robin-load-balancing-strategy';
 
 class ConnectionProvider {
 
@@ -65,20 +65,23 @@ export class LoadBalancer extends ConnectionProvider {
   constructor(address, routingContext, connectionPool, driverOnErrorCallback) {
     super();
     this._seedRouter = address;
-    this._routingTable = new RoutingTable(new RoundRobinArray([this._seedRouter]));
+    this._routingTable = new RoutingTable([this._seedRouter]);
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext));
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
     this._hostNameResolver = LoadBalancer._createHostNameResolver();
+    this._loadBalancingStrategy = new RoundRobinLoadBalancingStrategy();
     this._useSeedRouter = false;
   }
 
   acquireConnection(accessMode) {
     const connectionPromise = this._freshRoutingTable(accessMode).then(routingTable => {
       if (accessMode === READ) {
-        return this._acquireConnectionToServer(routingTable.readers, 'read');
+        const address = this._loadBalancingStrategy.selectReader(routingTable.readers);
+        return this._acquireConnectionToServer(address, 'read');
       } else if (accessMode === WRITE) {
-        return this._acquireConnectionToServer(routingTable.writers, 'write');
+        const address = this._loadBalancingStrategy.selectWriter(routingTable.writers);
+        return this._acquireConnectionToServer(address, 'write');
       } else {
         throw newError('Illegal mode ' + accessMode);
       }
@@ -95,8 +98,7 @@ export class LoadBalancer extends ConnectionProvider {
     this._routingTable.forgetWriter(address);
   }
 
-  _acquireConnectionToServer(serversRoundRobinArray, serverName) {
-    const address = serversRoundRobinArray.next();
+  _acquireConnectionToServer(address, serverName) {
     if (!address) {
       return Promise.reject(newError(
         `Failed to obtain connection towards ${serverName} server. Known routing table is: ${this._routingTable}`,
@@ -115,7 +117,7 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   _refreshRoutingTable(currentRoutingTable) {
-    const knownRouters = currentRoutingTable.routers.toArray();
+    const knownRouters = currentRoutingTable.routers;
 
     if (this._useSeedRouter) {
       return this._fetchRoutingTableFromSeedRouterFallbackToKnownRouters(knownRouters, currentRoutingTable);
@@ -215,7 +217,7 @@ export class LoadBalancer extends ConnectionProvider {
         SERVICE_UNAVAILABLE);
     }
 
-    if (newRoutingTable.writers.isEmpty()) {
+    if (newRoutingTable.writers.length === 0) {
       // use seed router next time. this is important when cluster is partitioned. it tries to make sure driver
       // does not always get routing table without writers because it talks exclusively to a minority partition
       this._useSeedRouter = true;

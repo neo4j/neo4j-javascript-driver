@@ -233,7 +233,7 @@ describe('routing driver', () => {
     const seedServer = kit.start('./test/resources/boltkit/short_ttl.script', 9999);
     const nextRouter = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9003);
     const readServer1 = kit.start('./test/resources/boltkit/read_server.script', 9004);
-    const readServer2 = kit.start('./test/resources/boltkit/read_server.script', 9005);
+    const readServer2 = kit.start('./test/resources/boltkit/read_server.script', 9006);
 
     kit.run(() => {
       const driver = newDriver("bolt+routing://127.0.0.1:9999");
@@ -2029,15 +2029,15 @@ describe('routing driver', () => {
   }
 
   function assertHasRouters(driver, expectedRouters) {
-    expect(getRoutingTable(driver).routers.toArray()).toEqual(expectedRouters);
+    expect(getRoutingTable(driver).routers).toEqual(expectedRouters);
   }
 
   function assertHasReaders(driver, expectedReaders) {
-    expect(getRoutingTable(driver).readers.toArray()).toEqual(expectedReaders);
+    expect(getRoutingTable(driver).readers).toEqual(expectedReaders);
   }
 
   function assertHasWriters(driver, expectedWriters) {
-    expect(getRoutingTable(driver).writers.toArray()).toEqual(expectedWriters);
+    expect(getRoutingTable(driver).writers).toEqual(expectedWriters);
   }
 
   function setUpMemorizingRoutingTable(driver) {

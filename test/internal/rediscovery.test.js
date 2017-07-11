@@ -17,13 +17,12 @@
  * limitations under the License.
  */
 
-import Rediscovery from "../../src/v1/internal/rediscovery";
-import RoutingUtil from "../../src/v1/internal/routing-util";
-import {newError, PROTOCOL_ERROR} from "../../src/v1/error";
-import Record from "../../src/v1/record";
-import {int} from "../../src/v1/integer";
-import RoundRobinArray from "../../src/v1/internal/round-robin-array";
-import RoutingTable from "../../src/v1/internal/routing-table";
+import Rediscovery from '../../src/v1/internal/rediscovery';
+import RoutingUtil from '../../src/v1/internal/routing-util';
+import {newError, PROTOCOL_ERROR} from '../../src/v1/error';
+import Record from '../../src/v1/record';
+import {int} from '../../src/v1/integer';
+import RoutingTable from '../../src/v1/internal/routing-table';
 
 const ROUTER_ADDRESS = 'bolt+routing://test.router.com';
 
@@ -97,9 +96,9 @@ describe('rediscovery', () => {
       parseTtl: () => int(42),
       parseServers: () => {
         return {
-          routers: new RoundRobinArray(),
-          readers: new RoundRobinArray(['reader1']),
-          writers: new RoundRobinArray(['writer1'])
+          routers: [],
+          readers: ['reader1'],
+          writers: ['writer1']
         };
       }
     });
@@ -116,9 +115,9 @@ describe('rediscovery', () => {
       parseTtl: () => int(42),
       parseServers: () => {
         return {
-          routers: new RoundRobinArray(['router1']),
-          readers: new RoundRobinArray(),
-          writers: new RoundRobinArray(['writer1'])
+          routers: ['router1'],
+          readers: [],
+          writers: ['writer1']
         };
       }
     });
@@ -135,9 +134,9 @@ describe('rediscovery', () => {
       parseTtl: () => int(42),
       parseServers: () => {
         return {
-          routers: new RoundRobinArray(['router1']),
-          readers: new RoundRobinArray(['reader1']),
-          writers: new RoundRobinArray()
+          routers: ['router1'],
+          readers: ['reader1'],
+          writers: []
         };
       }
     });
@@ -167,9 +166,9 @@ describe('rediscovery', () => {
       parseTtl: () => expires,
       parseServers: () => {
         return {
-          routers: new RoundRobinArray(routerAddresses),
-          readers: new RoundRobinArray(readerAddresses),
-          writers: new RoundRobinArray(writerAddresses)
+          routers: routerAddresses,
+          readers: readerAddresses,
+          writers: writerAddresses
         };
       }
     });

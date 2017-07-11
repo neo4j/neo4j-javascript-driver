@@ -21,7 +21,6 @@ import {READ, WRITE} from '../../src/v1/driver';
 import Integer, {int} from '../../src/v1/integer';
 import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
 import RoutingTable from '../../src/v1/internal/routing-table';
-import RoundRobinArray from '../../src/v1/internal/round-robin-array';
 import {DirectConnectionProvider, LoadBalancer} from '../../src/v1/internal/connection-providers';
 import Pool from '../../src/v1/internal/pool';
 
@@ -1070,24 +1069,14 @@ function newLoadBalancerWithSeedRouter(seedRouter, seedRouterResolved,
                                        routerToRoutingTable = {},
                                        connectionPool = null) {
   const loadBalancer = new LoadBalancer(seedRouter, {}, connectionPool || newPool(), NO_OP_DRIVER_CALLBACK);
-  loadBalancer._routingTable = new RoutingTable(
-    new RoundRobinArray(routers),
-    new RoundRobinArray(readers),
-    new RoundRobinArray(writers),
-    expirationTime
-  );
+  loadBalancer._routingTable = new RoutingTable(routers, readers, writers, expirationTime);
   loadBalancer._rediscovery = new FakeRediscovery(routerToRoutingTable);
   loadBalancer._hostNameResolver = new FakeDnsResolver(seedRouterResolved);
   return loadBalancer;
 }
 
 function newRoutingTable(routers, readers, writers, expirationTime = Integer.MAX_VALUE) {
-  return new RoutingTable(
-    new RoundRobinArray(routers),
-    new RoundRobinArray(readers),
-    new RoundRobinArray(writers),
-    expirationTime
-  );
+  return new RoutingTable(routers, readers, writers, expirationTime);
 }
 
 function setupLoadBalancerToRememberRouters(loadBalancer, routersArray) {
@@ -1104,9 +1093,9 @@ function newPool() {
 }
 
 function expectRoutingTable(loadBalancer, routers, readers, writers) {
-  expect(loadBalancer._routingTable.routers.toArray()).toEqual(routers);
-  expect(loadBalancer._routingTable.readers.toArray()).toEqual(readers);
-  expect(loadBalancer._routingTable.writers.toArray()).toEqual(writers);
+  expect(loadBalancer._routingTable.routers).toEqual(routers);
+  expect(loadBalancer._routingTable.readers).toEqual(readers);
+  expect(loadBalancer._routingTable.writers).toEqual(writers);
 }
 
 function expectPoolToContain(pool, addresses) {

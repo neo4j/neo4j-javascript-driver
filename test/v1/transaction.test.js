@@ -75,7 +75,7 @@ describe('transaction', () => {
     }).catch(console.log);
   });
 
-    it('should handle interactive session', done => {
+  it('should handle interactive session', done => {
     const tx = session.beginTransaction();
     tx.run("RETURN 'foo' AS res").then(result => {
       tx.run("CREATE ({name: {param}})", {param: result.records[0].get('res')}).then(() => {
