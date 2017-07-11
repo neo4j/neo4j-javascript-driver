@@ -17,29 +17,9 @@
  * limitations under the License.
  */
 import RoundRobinArrayIndex from './round-robin-array-index';
+import LoadBalancingStrategy from './load-balancing-strategy';
 
-class LoadBalancingStrategy {
-
-  /**
-   * Select next most appropriate reader from the list of given readers.
-   * @param {string[]} knownReaders an array of currently known readers to select from.
-   * @return {string} most appropriate reader or <code>null</code> if given array is empty.
-   */
-  selectReader(knownReaders) {
-    throw new Error('Abstract function');
-  }
-
-  /**
-   * Select next most appropriate writer from the list of given writers.
-   * @param {string[]} knownWriters an array of currently known writers to select from.
-   * @return {string} most appropriate writer or <code>null</code> if given array is empty.
-   */
-  selectWriter(knownWriters) {
-    throw new Error('Abstract function');
-  }
-}
-
-export class RoundRobinLoadBalancingStrategy extends LoadBalancingStrategy {
+export default class RoundRobinLoadBalancingStrategy extends LoadBalancingStrategy {
 
   constructor() {
     super();

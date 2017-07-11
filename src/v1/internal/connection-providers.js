@@ -25,7 +25,7 @@ import Rediscovery from './rediscovery';
 import hasFeature from './features';
 import {DnsHostNameResolver, DummyHostNameResolver} from './host-name-resolvers';
 import RoutingUtil from './routing-util';
-import {RoundRobinLoadBalancingStrategy} from './load-balancing-strategies';
+import RoundRobinLoadBalancingStrategy from './round-robin-load-balancing-strategy';
 
 class ConnectionProvider {
 
