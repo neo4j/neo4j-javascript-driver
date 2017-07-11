@@ -21,6 +21,8 @@ import Session from './session';
 import {Driver} from './driver';
 import {newError, SESSION_EXPIRED} from './error';
 import {LoadBalancer} from './internal/connection-providers';
+import LeastConnectedLoadBalancingStrategy, {LEAST_CONNECTED_STRATEGY_NAME} from './internal/least-connected-load-balancing-strategy';
+import RoundRobinLoadBalancingStrategy, {ROUND_ROBIN_STRATEGY_NAME} from './internal/round-robin-load-balancing-strategy';
 
 /**
  * A driver that supports routing in a core-edge cluster.
@@ -34,7 +36,8 @@ class RoutingDriver extends Driver {
   }
 
   _createConnectionProvider(address, connectionPool, driverOnErrorCallback) {
-    return new LoadBalancer(address, this._routingContext, connectionPool, driverOnErrorCallback);
+    const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(this._config, connectionPool);
+    return new LoadBalancer(address, this._routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback);
   }
 
   _createSession(mode, connectionProvider, bookmark, config) {
@@ -79,6 +82,23 @@ class RoutingDriver extends Driver {
   static _isFailureToWrite(error) {
     return error.code === 'Neo.ClientError.Cluster.NotALeader' ||
       error.code === 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase';
+  }
+
+  /**
+   * Create new load balancing strategy based on the config.
+   * @param {object} config the user provided config.
+   * @param {Pool} connectionPool the connection pool for this driver.
+   * @return {LoadBalancingStrategy} new strategy.
+   */
+  static _createLoadBalancingStrategy(config, connectionPool) {
+    const configuredValue = config.loadBalancingStrategy;
+    if (!configuredValue || configuredValue === LEAST_CONNECTED_STRATEGY_NAME) {
+      return new LeastConnectedLoadBalancingStrategy(connectionPool);
+    } else if (configuredValue === ROUND_ROBIN_STRATEGY_NAME) {
+      return new RoundRobinLoadBalancingStrategy();
+    } else {
+      throw newError('Unknown load balancing strategy: ' + configuredValue);
+    }
   }
 }
 

@@ -42,9 +42,9 @@ class Driver {
    * @constructor
    * @param {string} url
    * @param {string} userAgent
-   * @param {Object} token
-   * @param {Object} config
-   * @access private
+   * @param {object} token
+   * @param {object} config
+   * @protected
    */
   constructor(url, userAgent, token = {}, config = {}) {
     this._url = url;

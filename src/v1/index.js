@@ -117,6 +117,12 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient errors with
  *       // exponential backoff using initial delay of 1 second. Default value is 30000 which is 30 seconds.
  *       maxTransactionRetryTime: 30000,
+ *
+ *       // Provide an alternative load balancing strategy for the routing driver to use.
+ *       // Driver uses "least_connected" by default.
+ *       // <b>Note:</b> We are experimenting with different strategies. This could be removed in the next minor
+ *       // version.
+ *       loadBalancingStrategy: "least_connected" | "round_robin",
  *     }
  *
  * @param {string} url The URL for the Neo4j database, for instance "bolt://localhost"
