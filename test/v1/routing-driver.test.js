@@ -25,18 +25,26 @@ import Pool from '../../src/v1/internal/pool';
 describe('RoutingDriver', () => {
 
   it('should create least connected when nothing configured', () => {
-    const strategy = RoutingDriver._createLoadBalancingStrategy({}, new Pool());
+    const strategy = createStrategy({});
     expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy();
   });
 
   it('should create least connected when it is configured', () => {
-    const strategy = RoutingDriver._createLoadBalancingStrategy({loadBalancingStrategy: 'least_connected'}, new Pool());
+    const strategy = createStrategy({loadBalancingStrategy: 'least_connected'});
     expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy();
   });
 
   it('should create round robin when it is configured', () => {
-    const strategy = RoutingDriver._createLoadBalancingStrategy({loadBalancingStrategy: 'round_robin'}, new Pool());
+    const strategy = createStrategy({loadBalancingStrategy: 'round_robin'});
     expect(strategy instanceof RoundRobinLoadBalancingStrategy).toBeTruthy();
   });
 
+  it('should fail when unknown strategy is configured', () => {
+    expect(() => createStrategy({loadBalancingStrategy: 'wrong'})).toThrow();
+  });
+
 });
+
+function createStrategy(config) {
+  return RoutingDriver._createLoadBalancingStrategy(config, new Pool());
+}
