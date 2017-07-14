@@ -36,6 +36,8 @@ declare type TrustStrategy =
   "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" |
   "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES";
 
+declare type LoadBalancingStrategy = "least_connected" | "round_robin";
+
 declare interface Config {
   encrypted?: boolean | EncryptionLevel;
   trust?: TrustStrategy;
@@ -43,6 +45,7 @@ declare interface Config {
   knownHosts?: string;
   connectionPoolSize?: number;
   maxTransactionRetryTime?: number;
+  loadBalancingStrategy?: LoadBalancingStrategy;
 }
 
 declare type SessionMode = "READ" | "WRITE";
@@ -56,6 +59,6 @@ declare interface Driver {
   close(): void;
 }
 
-export {Driver, READ, WRITE, AuthToken, Config, EncryptionLevel, TrustStrategy, SessionMode}
+export {Driver, READ, WRITE, AuthToken, Config, EncryptionLevel, TrustStrategy, LoadBalancingStrategy, SessionMode}
 
 export default Driver;

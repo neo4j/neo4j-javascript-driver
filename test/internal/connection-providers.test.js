@@ -23,6 +23,7 @@ import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
 import RoutingTable from '../../src/v1/internal/routing-table';
 import {DirectConnectionProvider, LoadBalancer} from '../../src/v1/internal/connection-providers';
 import Pool from '../../src/v1/internal/pool';
+import LeastConnectedLoadBalancingStrategy from '../../src/v1/internal/least-connected-load-balancing-strategy';
 
 const NO_OP_DRIVER_CALLBACK = () => {
 };
@@ -134,7 +135,9 @@ describe('LoadBalancer', () => {
   });
 
   it('initializes routing table with the given router', () => {
-    const loadBalancer = new LoadBalancer('server-ABC', {}, newPool(), NO_OP_DRIVER_CALLBACK);
+    const connectionPool = newPool();
+    const loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(connectionPool);
+    const loadBalancer = new LoadBalancer('server-ABC', {}, connectionPool, loadBalancingStrategy, NO_OP_DRIVER_CALLBACK);
 
     expectRoutingTable(loadBalancer,
       ['server-ABC'],
@@ -1068,7 +1071,9 @@ function newLoadBalancerWithSeedRouter(seedRouter, seedRouterResolved,
                                        expirationTime = Integer.MAX_VALUE,
                                        routerToRoutingTable = {},
                                        connectionPool = null) {
-  const loadBalancer = new LoadBalancer(seedRouter, {}, connectionPool || newPool(), NO_OP_DRIVER_CALLBACK);
+  const pool = connectionPool || newPool();
+  const loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(pool);
+  const loadBalancer = new LoadBalancer(seedRouter, {}, pool, loadBalancingStrategy, NO_OP_DRIVER_CALLBACK);
   loadBalancer._routingTable = new RoutingTable(routers, readers, writers, expirationTime);
   loadBalancer._rediscovery = new FakeRediscovery(routerToRoutingTable);
   loadBalancer._hostNameResolver = new FakeDnsResolver(seedRouterResolved);

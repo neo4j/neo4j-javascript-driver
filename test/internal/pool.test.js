@@ -255,6 +255,86 @@ describe('Pool', () => {
     expect(pool.has(existingKey)).toBeTruthy();
     expect(pool.has(absentKey)).toBeFalsy();
   });
+
+  it('reports zero active resources when empty', () => {
+    const pool = new Pool((url, release) => new Resource(url, 42, release));
+
+    expect(pool.activeResourceCount('bolt://localhost:1')).toEqual(0);
+    expect(pool.activeResourceCount('bolt://localhost:2')).toEqual(0);
+    expect(pool.activeResourceCount('bolt://localhost:3')).toEqual(0);
+  });
+
+  it('reports active resources', () => {
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool((url, release) => new Resource(url, 42, release));
+
+    expect(pool.acquire(key)).toBeDefined();
+    expect(pool.acquire(key)).toBeDefined();
+    expect(pool.acquire(key)).toBeDefined();
+
+    expect(pool.activeResourceCount(key)).toEqual(3);
+  });
+
+  it('reports active resources when they are created', () => {
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool((url, release) => new Resource(url, 42, release));
+
+    // three new resources are created
+    expect(pool.acquire(key)).toBeDefined();
+    expect(pool.acquire(key)).toBeDefined();
+    expect(pool.acquire(key)).toBeDefined();
+
+    expect(pool.activeResourceCount(key)).toEqual(3);
+  });
+
+  it('reports active resources when they are acquired', () => {
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool((url, release) => new Resource(url, 42, release));
+
+    // three new resources are created and returned to the pool
+    const r0 = pool.acquire(key);
+    const r1 = pool.acquire(key);
+    const r2 = pool.acquire(key);
+    r0.close();
+    r1.close();
+    r2.close();
+
+    // three idle resources are acquired from the pool
+    const r3 = pool.acquire(key);
+    const r4 = pool.acquire(key);
+    const r5 = pool.acquire(key);
+    expect(r3).toBe(r2);
+    expect(r4).toBe(r1);
+    expect(r5).toBe(r0);
+
+    expect(pool.activeResourceCount(key)).toEqual(3);
+  });
+
+  it('does not report resources that are returned to the pool', () => {
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool((url, release) => new Resource(url, 42, release));
+
+    const r0 = pool.acquire(key);
+    const r1 = pool.acquire(key);
+    const r2 = pool.acquire(key);
+    expect(pool.activeResourceCount(key)).toEqual(3);
+
+    r0.close();
+    expect(pool.activeResourceCount(key)).toEqual(2);
+
+    r1.close();
+    expect(pool.activeResourceCount(key)).toEqual(1);
+
+    r2.close();
+    expect(pool.activeResourceCount(key)).toEqual(0);
+
+    const r3 = pool.acquire(key);
+    expect(pool.activeResourceCount(key)).toEqual(1);
+
+    r3.close();
+    expect(pool.activeResourceCount(key)).toEqual(0);
+  });
+
 });
 
 class Resource {

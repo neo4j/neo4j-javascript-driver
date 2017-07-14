@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-
 /**
  * A facility to select most appropriate reader or writer among the given addresses for request processing.
  */

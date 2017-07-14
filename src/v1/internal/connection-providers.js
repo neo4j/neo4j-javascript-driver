@@ -25,7 +25,6 @@ import Rediscovery from './rediscovery';
 import hasFeature from './features';
 import {DnsHostNameResolver, DummyHostNameResolver} from './host-name-resolvers';
 import RoutingUtil from './routing-util';
-import RoundRobinLoadBalancingStrategy from './round-robin-load-balancing-strategy';
 
 class ConnectionProvider {
 
@@ -62,7 +61,7 @@ export class DirectConnectionProvider extends ConnectionProvider {
 
 export class LoadBalancer extends ConnectionProvider {
 
-  constructor(address, routingContext, connectionPool, driverOnErrorCallback) {
+  constructor(address, routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback) {
     super();
     this._seedRouter = address;
     this._routingTable = new RoutingTable([this._seedRouter]);
@@ -70,7 +69,7 @@ export class LoadBalancer extends ConnectionProvider {
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
     this._hostNameResolver = LoadBalancer._createHostNameResolver();
-    this._loadBalancingStrategy = new RoundRobinLoadBalancingStrategy();
+    this._loadBalancingStrategy = loadBalancingStrategy;
     this._useSeedRouter = false;
   }
 

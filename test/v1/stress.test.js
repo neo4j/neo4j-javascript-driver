@@ -21,6 +21,7 @@ import neo4j from '../../src/v1';
 import {READ, WRITE} from '../../src/v1/driver';
 import parallelLimit from 'async/parallelLimit';
 import _ from 'lodash';
+import {ServerVersion, VERSION_3_2_0} from '../../src/v1/internal/server-version';
 import sharedNeo4j from '../internal/shared-neo4j';
 
 describe('stress tests', () => {
@@ -78,8 +79,8 @@ describe('stress tests', () => {
         done.fail(error);
       }
 
-      verifyServers(context);
-      verifyNodeCount(context)
+      verifyServers(context)
+        .then(() => verifyNodeCount(context))
         .then(() => done())
         .catch(error => done.fail(error));
     });
@@ -245,13 +246,98 @@ describe('stress tests', () => {
 
   function verifyServers(context) {
     const routing = DATABASE_URI.indexOf('bolt+routing') === 0;
-    const seenServers = context.seenServers();
 
-    if (routing && seenServers.length <= 1) {
-      throw new Error(`Routing driver used too few servers: ${seenServers}`);
-    } else if (!routing && seenServers.length !== 1) {
-      throw new Error(`Direct driver used too many servers: ${seenServers}`);
+    if (routing) {
+      return verifyCausalClusterMembers(context);
     }
+    return verifySingleInstance(context);
+  }
+
+  function verifySingleInstance(context) {
+    return new Promise(resolve => {
+      const readServerAddresses = context.readServerAddresses();
+      const writeServerAddresses = context.writeServerAddresses();
+
+      expect(readServerAddresses.length).toEqual(1);
+      expect(writeServerAddresses.length).toEqual(1);
+      expect(readServerAddresses).toEqual(writeServerAddresses);
+
+      const address = readServerAddresses[0];
+      expect(context.readServersWithQueryCount[address]).toBeGreaterThan(1);
+      expect(context.writeServersWithQueryCount[address]).toBeGreaterThan(1);
+
+      resolve();
+    });
+  }
+
+  function verifyCausalClusterMembers(context) {
+    return fetchClusterAddresses(context).then(clusterAddresses => {
+      // before 3.2.0 only read replicas serve reads
+      const readsOnFollowersEnabled = context.serverVersion.compareTo(VERSION_3_2_0) >= 0;
+
+      if (readsOnFollowersEnabled) {
+        // expect all followers to serve more than zero read queries
+        assertAllAddressesServedReadQueries(clusterAddresses.followers, context.readServersWithQueryCount);
+      }
+
+      // expect all read replicas to serve more than zero read queries
+      assertAllAddressesServedReadQueries(clusterAddresses.readReplicas, context.readServersWithQueryCount);
+
+      if (readsOnFollowersEnabled) {
+        // expect all followers to serve same order of magnitude read queries
+        assertAllAddressesServedSimilarAmountOfReadQueries(clusterAddresses.followers, context.readServersWithQueryCount);
+      }
+
+      // expect all read replicas to serve same order of magnitude read queries
+      assertAllAddressesServedSimilarAmountOfReadQueries(clusterAddresses.readReplicas,
+        context.readServersWithQueryCount);
+    });
+  }
+
+  function fetchClusterAddresses(context) {
+    const session = context.driver.session();
+    return session.run('CALL dbms.cluster.overview()').then(result => {
+      session.close();
+      const records = result.records;
+
+      const followers = addressesWithRole(records, 'FOLLOWER');
+      const readReplicas = addressesWithRole(records, 'READ_REPLICA');
+
+      return new ClusterAddresses(followers, readReplicas);
+    });
+  }
+
+  function addressesWithRole(records, role) {
+    return _.uniq(records.filter(record => record.get('role') === role)
+      .map(record => record.get('addresses')[0].replace('bolt://', '')));
+  }
+
+  function assertAllAddressesServedReadQueries(addresses, readQueriesByServer) {
+    addresses.forEach(address => {
+      const queries = readQueriesByServer[address];
+      expect(queries).toBeGreaterThan(0);
+    });
+  }
+
+  function assertAllAddressesServedSimilarAmountOfReadQueries(addresses, readQueriesByServer) {
+    const expectedOrderOfMagnitude = orderOfMagnitude(readQueriesByServer[addresses[0]]);
+
+    addresses.forEach(address => {
+      const queries = readQueriesByServer[address];
+      const currentOrderOfMagnitude = orderOfMagnitude(queries);
+
+      expect(currentOrderOfMagnitude).not.toBeLessThan(expectedOrderOfMagnitude - 1);
+      expect(currentOrderOfMagnitude).not.toBeGreaterThan(expectedOrderOfMagnitude + 1);
+    });
+  }
+
+  function orderOfMagnitude(number) {
+    let result = 1;
+    while (number >= 10) {
+      number /= 10;
+      result++;
+    }
+    return result;
   }
 
   function randomParams() {
@@ -310,31 +396,55 @@ describe('stress tests', () => {
       this.createdNodesCount = 0;
       this._commandIdCouter = 0;
       this._loggingEnabled = loggingEnabled;
-      this._seenServers = new Set();
+      this.readServersWithQueryCount = {};
+      this.writeServersWithQueryCount = {};
+      this.serverVersion = null;
     }
 
     queryCompleted(result, accessMode, bookmark) {
+      const serverInfo = result.summary.server;
+
+      if (!this.serverVersion) {
+        this.serverVersion = ServerVersion.fromString(serverInfo.version);
+      }
+
+      const serverAddress = serverInfo.address;
       if (accessMode === WRITE) {
         this.createdNodesCount++;
+        this.writeServersWithQueryCount[serverAddress] = (this.writeServersWithQueryCount[serverAddress] || 0) + 1;
+      } else {
+        this.readServersWithQueryCount[serverAddress] = (this.readServersWithQueryCount[serverAddress] || 0) + 1;
       }
+
       if (bookmark) {
         this.bookmark = bookmark;
       }
-      this._seenServers.add(result.summary.server.address);
     }
 
     nextCommandId() {
       return this._commandIdCouter++;
     }
 
-    seenServers() {
-      return Array.from(this._seenServers);
+    readServerAddresses() {
+      return Object.keys(this.readServersWithQueryCount);
+    }
+
+    writeServerAddresses() {
+      return Object.keys(this.writeServersWithQueryCount);
     }
 
     log(commandId, message) {
       if (this._loggingEnabled) {
         console.log(`Command [${commandId}]: ${message}`);
       }
+    }
+  }
+
+  class ClusterAddresses {
+
+    constructor(followers, readReplicas) {
+      this.followers = followers;
+      this.readReplicas = readReplicas;
     }
   }
 

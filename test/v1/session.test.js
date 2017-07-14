@@ -965,6 +965,70 @@ describe('session', () => {
     });
   });
 
+  it('should acquire connection for transaction', done => {
+    expect(session.beginTransaction()).toBeDefined();
+
+    const otherSession1 = driver.session();
+    expect(otherSession1.beginTransaction()).toBeDefined();
+
+    const otherSession2 = driver.session();
+    expect(otherSession2.beginTransaction()).toBeDefined();
+
+    const otherSession3 = driver.session();
+    expect(otherSession3.beginTransaction()).toBeDefined();
+
+    expect(numberOfAcquiredConnectionsFromPool()).toEqual(4);
+
+    session.close(() => {
+      otherSession1.close(() => {
+        otherSession2.close(() => {
+          otherSession3.close(() => {
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  it('should acquire connection for query execution', done => {
+    session.run('RETURN 42 AS answer').subscribe({
+      onNext: record => {
+        expect(record.get('answer').toInt()).toEqual(42);
+        expect(numberOfAcquiredConnectionsFromPool()).toEqual(1);
+      },
+      onCompleted: () => {
+        session.close(() => {
+          done();
+        });
+      },
+      onError: error => {
+        console.log(error);
+      }
+    });
+  });
+
+  it('should acquire separate connections for transaction and query execution in different sessions', done => {
+    const otherSession = driver.session();
+    expect(otherSession.beginTransaction()).toBeDefined();
+
+    session.run('RETURN 42 AS answer').subscribe({
+      onNext: record => {
+        expect(record.get('answer').toInt()).toEqual(42);
+        expect(numberOfAcquiredConnectionsFromPool()).toEqual(2);
+      },
+      onCompleted: () => {
+        otherSession.close(() => {
+          session.close(() => {
+            done();
+          });
+        });
+      },
+      onError: error => {
+        console.log(error);
+      }
+    });
+  });
+
   function serverIs31OrLater(done) {
     // lazy way of checking the version number
     // if server has been set we know it is at least 3.1
@@ -1041,6 +1105,11 @@ describe('session', () => {
         }).catch(error => reject(error));
       }).catch(error => reject(error));
     });
+  }
+
+  function numberOfAcquiredConnectionsFromPool() {
+    const pool = driver._pool;
+    return pool.activeResourceCount('localhost');
   }
 
 });

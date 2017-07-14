@@ -21,6 +21,7 @@ import Driver, {
   AuthToken,
   Config,
   EncryptionLevel,
+  LoadBalancingStrategy,
   READ,
   SessionMode,
   TrustStrategy,
@@ -54,6 +55,8 @@ const trustedCertificates: undefined | string[] = config.trustedCertificates;
 const knownHosts: undefined | string = config.knownHosts;
 const connectionPoolSize: undefined | number = config.connectionPoolSize;
 const maxTransactionRetryTime: undefined | number = config.maxTransactionRetryTime;
+const loadBalancingStrategy1: undefined | LoadBalancingStrategy = config.loadBalancingStrategy;
+const loadBalancingStrategy2: undefined | string = config.loadBalancingStrategy;
 
 const sessionMode: SessionMode = dummy;
 const sessionModeStr: string = sessionMode;
