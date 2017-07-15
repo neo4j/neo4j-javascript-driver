@@ -114,22 +114,25 @@ declare class Integer {
   static MAX_SAFE_VALUE: Integer;
 }
 
-declare function int(value: Integer | number | string | { low: number, high: number }): Integer;
+declare module 'neo4j-driver/lib/v1/integer' {
 
-declare function isInt(obj: object): boolean;
+    function int(value: Integer | number | string | { low: number, high: number }): Integer;
 
-declare function inSafeRange(val: Integer | number | string | { low: number, high: number }): boolean;
+    function isInt(obj: object): boolean;
 
-declare function toNumber(val: Integer | number | string | { low: number, high: number }): number;
+    function inSafeRange(val: Integer | number | string | { low: number, high: number }): boolean;
 
-declare function toString(val: Integer | number | string | { low: number, high: number }, radix?: number): string;
+    function toNumber(val: Integer | number | string | { low: number, high: number }): number;
 
-export {
-  int,
-  isInt,
-  inSafeRange,
-  toNumber,
-  toString
+    function toString(val: Integer | number | string | { low: number, high: number }, radix?: number): string;
+
+    export {
+        int,
+        isInt,
+        inSafeRange,
+        toNumber,
+        toString
+    }
+
+    export default Integer;
 }
-
-export default Integer;
