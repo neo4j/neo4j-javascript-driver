@@ -31,7 +31,7 @@ import RoundRobinLoadBalancingStrategy, {ROUND_ROBIN_STRATEGY_NAME} from './inte
 class RoutingDriver extends Driver {
 
   constructor(url, routingContext, userAgent, token = {}, config = {}) {
-    super(url, userAgent, token, RoutingDriver._validateConfig(config));
+    super(url, userAgent, token, validateConfig(config));
     this._routingContext = routingContext;
   }
 
@@ -42,16 +42,18 @@ class RoutingDriver extends Driver {
 
   _createSession(mode, connectionProvider, bookmark, config) {
     return new RoutingSession(mode, connectionProvider, bookmark, config, (error, conn) => {
-      if (error.code === SESSION_EXPIRED) {
-        this._forgetConnection(conn);
+      if (!conn) {
+        // connection can be undefined if error happened before connection was acquired
         return error;
-      } else if (RoutingDriver._isFailureToWrite(error)) {
-        let url = 'UNKNOWN';
-        // connection is undefined if error happened before connection was acquired
-        if (conn) {
-          url = conn.url;
-          this._connectionProvider.forgetWriter(conn.url);
-        }
+      }
+
+      const url = conn.url;
+
+      if (error.code === SESSION_EXPIRED || isDatabaseUnavailable(error)) {
+        this._connectionProvider.forget(url);
+        return error;
+      } else if (isFailureToWrite(error)) {
+        this._connectionProvider.forgetWriter(url);
         return newError('No longer possible to write to server at ' + url, SESSION_EXPIRED);
       } else {
         return error;
@@ -65,30 +67,12 @@ class RoutingDriver extends Driver {
     return SESSION_EXPIRED;
   }
 
-  _forgetConnection(connection) {
-    // connection is undefined if error happened before connection was acquired
-    if (connection) {
-      this._connectionProvider.forget(connection.url);
-    }
-  }
-
-  static _validateConfig(config) {
-    if(config.trust === 'TRUST_ON_FIRST_USE') {
-      throw newError('The chosen trust mode is not compatible with a routing driver');
-    }
-    return config;
-  }
-
-  static _isFailureToWrite(error) {
-    return error.code === 'Neo.ClientError.Cluster.NotALeader' ||
-      error.code === 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase';
-  }
-
   /**
    * Create new load balancing strategy based on the config.
    * @param {object} config the user provided config.
    * @param {Pool} connectionPool the connection pool for this driver.
    * @return {LoadBalancingStrategy} new strategy.
+   * @private
    */
   static _createLoadBalancingStrategy(config, connectionPool) {
     const configuredValue = config.loadBalancingStrategy;
@@ -102,6 +86,34 @@ class RoutingDriver extends Driver {
   }
 }
 
+/**
+ * @private
+ */
+function validateConfig(config) {
+  if (config.trust === 'TRUST_ON_FIRST_USE') {
+    throw newError('The chosen trust mode is not compatible with a routing driver');
+  }
+  return config;
+}
+
+/**
+ * @private
+ */
+function isFailureToWrite(error) {
+  return error.code === 'Neo.ClientError.Cluster.NotALeader' ||
+    error.code === 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase';
+}
+
+/**
+ * @private
+ */
+function isDatabaseUnavailable(error) {
+  return error.code === 'Neo.TransientError.General.DatabaseUnavailable';
+}
+
+/**
+ * @private
+ */
 class RoutingSession extends Session {
   constructor(mode, connectionProvider, bookmark, config, onFailedConnection) {
     super(mode, connectionProvider, bookmark, config);
