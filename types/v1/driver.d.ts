@@ -57,6 +57,9 @@ declare interface Driver {
   session(mode?: SessionMode, bookmark?: string): Session;
 
   close(): void;
+  
+  onCompleted?: (message: any) => {}
+  onError?: (error: any) => {}
 }
 
 export {Driver, READ, WRITE, AuthToken, Config, EncryptionLevel, TrustStrategy, LoadBalancingStrategy, SessionMode}
