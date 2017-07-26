@@ -1896,6 +1896,52 @@ describe('routing driver', () => {
     });
   });
 
+  it('should forget writer on database unavailable error', done => {
+    testAddressPurgeOnDatabaseError(`CREATE (n {name:'Bob'})`, WRITE, done);
+  });
+
+  it('should forget reader on database unavailable error', done => {
+    testAddressPurgeOnDatabaseError(`RETURN 1`, READ, done);
+  });
+
+  function testAddressPurgeOnDatabaseError(query, accessMode, done) {
+    const kit = new boltkit.BoltKit();
+
+    const router = kit.start('./test/resources/boltkit/acquire_endpoints.script', 9010);
+
+    const serverPort = accessMode === READ ? 9005 : 9007;
+    const serverAddress = '127.0.0.1:' + serverPort;
+    const serverTemplateScript = './test/resources/boltkit/address_unavailable_template.script.mst';
+    const server = kit.startWithTemplate(serverTemplateScript, {query: query}, serverPort);
+
+    kit.run(() => {
+      const driver = newDriver('bolt+routing://127.0.0.1:9010');
+
+      const session = driver.session(accessMode);
+      session.run(query).catch(error => {
+        expect(error.message).toEqual('Database is busy doing store copy');
+        expect(error.code).toEqual('Neo.TransientError.General.DatabaseUnavailable');
+
+        expect(hasAddressInConnectionPool(driver, serverAddress)).toBeFalsy();
+        expect(hasRouterInRoutingTable(driver, serverAddress)).toBeFalsy();
+        expect(hasReaderInRoutingTable(driver, serverAddress)).toBeFalsy();
+        expect(hasWriterInRoutingTable(driver, serverAddress)).toBeFalsy();
+
+        session.close(() => {
+          driver.close();
+
+          router.exit(code1 => {
+            server.exit(code2 => {
+              expect(code1).toEqual(0);
+              expect(code2).toEqual(0);
+              done();
+            });
+          });
+        });
+      });
+    });
+  }
+
   function moveNextDateNow30SecondsForward() {
     const currentTime = Date.now();
     hijackNextDateNowCall(currentTime + 30 * 1000 + 1);
@@ -2026,6 +2072,18 @@ describe('routing driver', () => {
 
   function hasAddressInConnectionPool(driver, address) {
     return getConnectionPool(driver).has(address);
+  }
+
+  function hasRouterInRoutingTable(driver, expectedRouter) {
+    return getRoutingTable(driver).routers.indexOf(expectedRouter) > -1;
+  }
+
+  function hasReaderInRoutingTable(driver, expectedReader) {
+    return getRoutingTable(driver).readers.indexOf(expectedReader) > -1;
+  }
+
+  function hasWriterInRoutingTable(driver, expectedWriter) {
+    return getRoutingTable(driver).writers.indexOf(expectedWriter) > -1;
   }
 
   function assertHasRouters(driver, expectedRouters) {
