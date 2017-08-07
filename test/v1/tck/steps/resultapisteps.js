@@ -137,6 +137,11 @@ this.Then(/^the `Result Summary` `Notifications` has one notification with$/, fu
   if (Object.keys(givenNotification).length !== Object.keys(given).length) {
     throw Error("Keys do not match with expected. Got: " + Object.keys(givenNotification) + " Expected: " + Object.keys(given))
   }
+
+  // Do not compare notification positions. They differ by Neo4j database version
+  delete expected['position'];
+  delete given['position'];
+
   if (!util.compareValues(expected, given)) {
     throw Error("Summary notifications does not match. Expected: '" + util.printable(expected) + "' Given: '" + util.printable(givenNotification) + "'");
   }
