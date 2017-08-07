@@ -19,6 +19,7 @@
 
 import Session from "./session";
 import {Parameters} from "./statement-runner";
+import {Neo4jError} from "./error";
 
 declare interface AuthToken {
   scheme: string;
@@ -57,6 +58,9 @@ declare interface Driver {
   session(mode?: SessionMode, bookmark?: string): Session;
 
   close(): void;
+
+  onCompleted?: (metadata: { server: string }) => void;
+  onError?: (error: Neo4jError) => void;
 }
 
 export {Driver, READ, WRITE, AuthToken, Config, EncryptionLevel, TrustStrategy, LoadBalancingStrategy, SessionMode}
