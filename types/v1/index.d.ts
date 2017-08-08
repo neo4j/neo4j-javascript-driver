@@ -17,14 +17,21 @@
  * limitations under the License.
  */
 
-import {inSafeRange, int, isInt, toNumber, toString} from "./integer";
+import Integer, {inSafeRange, int, isInt, toNumber, toString} from "./integer";
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from "./graph-types";
 import {Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
-import Result from "./result";
-import ResultSummary from "./result-summary";
+import Result, {Observer, StatementResult} from "./result";
+import ResultSummary, {
+  Notification,
+  NotificationPosition,
+  Plan,
+  ProfiledPlan,
+  ServerInfo,
+  StatementStatistic
+} from "./result-summary";
 import Record from "./record";
 import Session from "./session";
-import {AuthToken, Config, Driver, READ, WRITE} from "./driver";
+import {AuthToken, Config, Driver, EncryptionLevel, READ, SessionMode, TrustStrategy, WRITE} from "./driver";
 import Transaction from "./transaction";
 import {Parameters} from "./statement-runner";
 
@@ -74,12 +81,20 @@ declare const integer: {
   inSafeRange: typeof inSafeRange;
 };
 
+/*
+ Both default and non-default exports declare all visible types so that they can be used in client code like this:
+
+ import neo4j from "neo4j-driver";
+ const driver: neo4j.Driver = neo4j.driver("bolt://localhost");
+ const session: neo4j.Session = driver.session();
+ ...
+*/
+
 declare const forExport: {
   driver: typeof driver;
   int: typeof int;
   isInt: typeof isInt;
   integer: typeof integer;
-  Neo4jError: typeof Neo4jError;
   auth: typeof auth;
   types: typeof types;
   session: typeof session;
@@ -87,6 +102,27 @@ declare const forExport: {
   Driver: Driver;
   AuthToken: AuthToken;
   Config: Config;
+  EncryptionLevel: EncryptionLevel;
+  TrustStrategy: TrustStrategy;
+  SessionMode: SessionMode;
+  Neo4jError: Neo4jError;
+  Node: Node;
+  Relationship: Relationship;
+  UnboundRelationship: UnboundRelationship;
+  PathSegment: PathSegment;
+  Path: Path;
+  Integer: Integer;
+  Record: Record;
+  Result: Result;
+  StatementResult: StatementResult;
+  Observer: Observer;
+  ResultSummary: ResultSummary;
+  Plan: Plan,
+  ProfiledPlan: ProfiledPlan,
+  StatementStatistic: StatementStatistic,
+  Notification: Notification,
+  ServerInfo: ServerInfo,
+  NotificationPosition: NotificationPosition,
   Session: Session;
   Transaction: Transaction;
 };
@@ -96,14 +132,36 @@ export {
   int,
   isInt,
   integer,
-  Neo4jError,
   auth,
   types,
   session,
   error,
+  Driver,
   AuthToken,
-  Session,
   Config,
+  EncryptionLevel,
+  TrustStrategy,
+  SessionMode,
+  Neo4jError,
+  Node,
+  Relationship,
+  UnboundRelationship,
+  PathSegment,
+  Path,
+  Integer,
+  Record,
+  Result,
+  StatementResult,
+  Observer,
+  ResultSummary,
+  Plan,
+  ProfiledPlan,
+  StatementStatistic,
+  Notification,
+  ServerInfo,
+  NotificationPosition,
+  Session,
+  Transaction
 }
 
 export default forExport;
