@@ -282,7 +282,7 @@ if (neo4j.integer.inSafeRange(aSmallInteger)) {
 }
 ```
 
-If you will be handling integers larger than that, you can should convert them to strings:
+If you will be handling integers larger than that, you should convert them to strings:
 
 ```javascript
 var aLargerInteger = neo4j.int("9223372036854775807");
