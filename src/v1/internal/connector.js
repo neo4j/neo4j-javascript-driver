@@ -174,6 +174,7 @@ class Connection {
      */
     this.url = url;
     this.server = {address: url};
+    this.creationTimestamp = Date.now();
     this._pendingObservers = [];
     this._currentObserver = undefined;
     this._ch = channel;

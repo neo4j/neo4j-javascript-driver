@@ -66,21 +66,3 @@ class SetTimeoutMock {
 }
 
 export const setTimeoutMock = new SetTimeoutMock();
-
-export function hijackNextDateNowCall(newValue) {
-  const originalDate = global.Date;
-  global.Date = new FakeDate(originalDate, newValue);
-}
-
-class FakeDate {
-
-  constructor(originalDate, nextNowValue) {
-    this._originalDate = originalDate;
-    this._nextNowValue = nextNowValue;
-  }
-
-  now() {
-    global.Date = this._originalDate;
-    return this._nextNowValue;
-  }
-}

@@ -19,7 +19,8 @@
 
 import TransactionExecutor from '../../src/v1/internal/transaction-executor';
 import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
-import {hijackNextDateNowCall, setTimeoutMock} from './timers-util';
+import {setTimeoutMock} from './timers-util';
+import lolex from 'lolex';
 
 const TRANSIENT_ERROR_1 = 'Neo.TransientError.Transaction.DeadlockDetected';
 const TRANSIENT_ERROR_2 = 'Neo.TransientError.Network.CommunicationError';
@@ -30,6 +31,7 @@ const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError';
 
 describe('TransactionExecutor', () => {
 
+  let clock;
   let fakeSetTimeout;
 
   beforeEach(() => {
@@ -37,6 +39,10 @@ describe('TransactionExecutor', () => {
   });
 
   afterEach(() => {
+    if (clock) {
+      clock.uninstall();
+      clock = null;
+    }
     fakeSetTimeout.uninstall();
   });
 
@@ -81,7 +87,9 @@ describe('TransactionExecutor', () => {
       expect(tx).toBeDefined();
       workInvocationCounter++;
       if (workInvocationCounter === 3) {
-        hijackNextDateNowCall(Date.now() + 30001); // move next `Date.now()` call forward by 30 seconds
+        const currentTime = Date.now();
+        clock = lolex.install();
+        clock.setSystemTime(currentTime + 30001); // move `Date.now()` call forward by 30 seconds
       }
       return realWork();
     });

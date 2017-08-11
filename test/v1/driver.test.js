@@ -19,18 +19,22 @@
 
 import neo4j from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
+import FakeConnection from '../internal/fake-connection';
+import lolex from 'lolex';
 
 describe('driver', () => {
 
+  let clock;
   let driver;
 
-  beforeEach(() => {
-    driver = null;
-  });
-
   afterEach(() => {
-    if(driver) {
+    if (clock) {
+      clock.uninstall();
+      clock = null;
+    }
+    if (driver) {
       driver.close();
+      driver = null;
     }
   });
 
@@ -195,6 +199,106 @@ describe('driver', () => {
     expect(() => neo4j.driver('bolt://localhost:7687/?policy=my_policy')).toThrow();
   });
 
+  it('should sanitize maxConnectionLifetime in the config', () => {
+    validateMaxConnectionLifetime({}, null);
+    validateMaxConnectionLifetime({maxConnectionLifetime: 42}, 42);
+    validateMaxConnectionLifetime({maxConnectionLifetime: 0}, null);
+    validateMaxConnectionLifetime({maxConnectionLifetime: '42'}, 42);
+    validateMaxConnectionLifetime({maxConnectionLifetime: '042'}, 42);
+    validateMaxConnectionLifetime({maxConnectionLifetime: -42}, null);
+  });
+
+  it('should treat closed connections as invalid', () => {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+
+    const connectionValid = driver._validateConnection(new FakeConnection().closed());
+
+    expect(connectionValid).toBeFalsy();
+  });
+
+  it('should treat not old open connections as valid', () => {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {maxConnectionLifetime: 10});
+
+    const connection = new FakeConnection().withCreationTimestamp(12);
+    clock = lolex.install();
+    clock.setSystemTime(20);
+    const connectionValid = driver._validateConnection(connection);
+
+    expect(connectionValid).toBeTruthy();
+  });
+
+  it('should treat old open connections as invalid', () => {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {maxConnectionLifetime: 10});
+
+    const connection = new FakeConnection().withCreationTimestamp(5);
+    clock = lolex.install();
+    clock.setSystemTime(20);
+    const connectionValid = driver._validateConnection(connection);
+
+    expect(connectionValid).toBeFalsy();
+  });
+
+  it('should discard closed connections', done => {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+
+    const session1 = driver.session();
+    session1.run('CREATE () RETURN 42').then(() => {
+      session1.close();
+
+      // one connection should be established
+      const connections1 = openConnectionFrom(driver);
+      expect(connections1.length).toEqual(1);
+
+      // close/break existing pooled connection
+      connections1.forEach(connection => connection.close());
+
+      const session2 = driver.session();
+      session2.run('RETURN 1').then(() => {
+        session2.close();
+
+        // existing connection should be disposed and new one should be created
+        const connections2 = openConnectionFrom(driver);
+        expect(connections2.length).toEqual(1);
+
+        expect(connections1[0]).not.toEqual(connections2[0]);
+
+        done();
+      });
+    });
+  });
+
+  it('should discard old connections', done => {
+    const maxLifetime = 100000;
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {maxConnectionLifetime: maxLifetime});
+
+    const session1 = driver.session();
+    session1.run('CREATE () RETURN 42').then(() => {
+      session1.close();
+
+      // one connection should be established
+      const connections1 = openConnectionFrom(driver);
+      expect(connections1.length).toEqual(1);
+
+      // make existing connection look very old by advancing the `Date.now()` value
+      const currentTime = Date.now();
+      clock = lolex.install();
+      clock.setSystemTime(currentTime + maxLifetime * 2);
+
+      const session2 = driver.session();
+      session2.run('RETURN 1').then(() => {
+        session2.close();
+
+        // old connection should be disposed and new one should be created
+        const connections2 = openConnectionFrom(driver);
+        expect(connections2.length).toEqual(1);
+
+        expect(connections1[0]).not.toEqual(connections2[0]);
+
+        done();
+      });
+    });
+  });
+
   const exposedTypes = [
     'Node',
     'Path',
@@ -223,6 +327,19 @@ describe('driver', () => {
 
   function wrongCredentials() {
     return neo4j.auth.basic('neo4j', 'who would use such a password');
+  }
+
+  function validateMaxConnectionLifetime(config, expectedValue) {
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, config);
+    try {
+      expect(driver._config.maxConnectionLifetime).toEqual(expectedValue);
+    } finally {
+      driver.close();
+    }
+  }
+
+  function openConnectionFrom(driver) {
+    return Array.from(Object.values(driver._openSessions));
   }
 
 });

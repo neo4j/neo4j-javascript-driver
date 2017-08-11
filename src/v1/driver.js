@@ -47,6 +47,8 @@ class Driver {
    * @protected
    */
   constructor(url, userAgent, token = {}, config = {}) {
+    sanitizeConfig(config);
+
     this._url = url;
     this._userAgent = userAgent;
     this._openSessions = {};
@@ -56,7 +58,7 @@ class Driver {
     this._pool = new Pool(
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
-      Driver._validateConnection.bind(this),
+      this._validateConnection.bind(this),
       config.connectionPoolSize
     );
 
@@ -90,8 +92,20 @@ class Driver {
    * @return {boolean} true if the connection is open
    * @access private
    **/
-  static _validateConnection(conn) {
-    return conn.isOpen();
+  _validateConnection(conn) {
+    if (!conn.isOpen()) {
+      return false;
+    }
+
+    const maxConnectionLifetime = this._config.maxConnectionLifetime;
+    if (maxConnectionLifetime) {
+      const lifetime = Date.now() - conn.creationTimestamp;
+      if (lifetime > maxConnectionLifetime) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
@@ -213,7 +227,22 @@ class _ConnectionStreamObserver extends StreamObserver {
   }
 }
 
-
+/**
+ * @private
+ */
+function sanitizeConfig(config) {
+  const maxConnectionLifetime = config.maxConnectionLifetime;
+  if (maxConnectionLifetime) {
+    const sanitizedMaxConnectionLifetime = parseInt(maxConnectionLifetime, 10);
+    if (sanitizedMaxConnectionLifetime && sanitizedMaxConnectionLifetime > 0) {
+      config.maxConnectionLifetime = sanitizedMaxConnectionLifetime;
+    } else {
+      config.maxConnectionLifetime = null;
+    }
+  } else {
+    config.maxConnectionLifetime = null;
+  }
+}
 
 export {Driver, READ, WRITE}
 

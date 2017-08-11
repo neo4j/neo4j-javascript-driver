@@ -25,18 +25,34 @@ import {alloc} from '../../src/v1/internal/buf';
 import {Neo4jError} from '../../src/v1/error';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion} from '../../src/v1/internal/server-version';
+import lolex from 'lolex';
 
 describe('connector', () => {
 
+  let clock;
   let connection;
 
   afterEach(done => {
+    if (clock) {
+      clock.uninstall();
+      clock = null;
+    }
+
     const usedConnection = connection;
     connection = null;
     if (usedConnection) {
       usedConnection.close();
     }
     done();
+  });
+
+  it('should have correct creation timestamp', () => {
+    clock = lolex.install();
+    clock.setSystemTime(424242);
+
+    connection = connect('bolt://localhost');
+
+    expect(connection.creationTimestamp).toEqual(424242);
   });
 
   it('should read/write basic messages', done => {
