@@ -22,10 +22,12 @@ import {READ, WRITE} from '../../src/v1/driver';
 import boltkit from './boltkit';
 import RoutingTable from '../../src/v1/internal/routing-table';
 import {SESSION_EXPIRED} from '../../src/v1/error';
-import {hijackNextDateNowCall} from '../internal/timers-util';
+import lolex from 'lolex';
 
 describe('routing driver', () => {
+
   let originalTimeout;
+  let clock;
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
@@ -1294,12 +1296,14 @@ describe('routing driver', () => {
         invocations++;
         if (invocations === 2) {
           // make retries stop after two invocations
-          moveNextDateNow30SecondsForward();
+          moveTime30SecondsForward();
         }
         return tx.run('MATCH (n) RETURN n.name');
       });
 
       resultPromise.catch(error => {
+        removeTimeMocking(); // uninstall lolex mocking to make test complete, boltkit uses timers
+
         expect(error.code).toEqual(SESSION_EXPIRED);
         expect(invocations).toEqual(2);
 
@@ -1340,12 +1344,14 @@ describe('routing driver', () => {
         invocations++;
         if (invocations === 2) {
           // make retries stop after two invocations
-          moveNextDateNow30SecondsForward();
+          moveTime30SecondsForward();
         }
         return tx.run('CREATE (n {name:\'Bob\'})');
       });
 
       resultPromise.catch(error => {
+        removeTimeMocking(); // uninstall lolex mocking to make test complete, boltkit uses timers
+
         expect(error.code).toEqual(SESSION_EXPIRED);
         expect(invocations).toEqual(2);
 
@@ -1942,9 +1948,17 @@ describe('routing driver', () => {
     });
   }
 
-  function moveNextDateNow30SecondsForward() {
+  function moveTime30SecondsForward() {
     const currentTime = Date.now();
-    hijackNextDateNowCall(currentTime + 30 * 1000 + 1);
+    clock = lolex.install();
+    clock.setSystemTime(currentTime + 30 * 1000 + 1);
+  }
+
+  function removeTimeMocking() {
+    if (clock) {
+      clock.uninstall();
+      clock = null;
+    }
   }
 
   function testWriteSessionWithAccessModeAndBookmark(accessMode, bookmark, done) {

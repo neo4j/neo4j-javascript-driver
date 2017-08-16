@@ -30,12 +30,11 @@ describe('RoutingUtil', () => {
 
   let clock;
 
-  beforeAll(() => {
-    clock = lolex.install();
-  });
-
-  afterAll(() => {
-    clock.uninstall();
+  afterEach(() => {
+    if (clock) {
+      clock.uninstall();
+      clock = null;
+    }
   });
 
   it('should return retrieved records when query succeeds', done => {
@@ -141,6 +140,8 @@ describe('RoutingUtil', () => {
   });
 
   it('should parse valid ttl', () => {
+    clock = lolex.install();
+
     testValidTtlParsing(100, 5);
     testValidTtlParsing(Date.now(), 3600); // 1 hour
     testValidTtlParsing(Date.now(), 86400); // 24 hours
@@ -152,6 +153,7 @@ describe('RoutingUtil', () => {
 
   it('should not overflow parsing huge ttl', () => {
     const record = newRecord({ttl: Integer.MAX_VALUE});
+    clock = lolex.install();
     clock.setSystemTime(42);
 
     const expirationTime = parseTtl(record);
@@ -161,6 +163,7 @@ describe('RoutingUtil', () => {
 
   it('should return valid value parsing negative ttl', () => {
     const record = newRecord({ttl: int(-42)});
+    clock = lolex.install();
     clock.setSystemTime(42);
 
     const expirationTime = parseTtl(record);

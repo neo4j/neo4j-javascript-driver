@@ -47,6 +47,7 @@ declare interface Config {
   connectionPoolSize?: number;
   maxTransactionRetryTime?: number;
   loadBalancingStrategy?: LoadBalancingStrategy;
+  maxConnectionLifetime?: number;
 }
 
 declare type SessionMode = "READ" | "WRITE";

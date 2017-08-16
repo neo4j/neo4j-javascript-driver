@@ -27,6 +27,9 @@
 export default class FakeConnection {
 
   constructor() {
+    this._open = true;
+    this.creationTimestamp = Date.now();
+
     this.resetInvoked = 0;
     this.resetAsyncInvoked = 0;
     this.syncInvoked = 0;
@@ -68,6 +71,10 @@ export default class FakeConnection {
     return this._initializationPromise;
   }
 
+  isOpen() {
+    return this._open;
+  }
+
   isReleasedOnceOnSessionClose() {
     return this.isReleasedOnSessionCloseTimes(1);
   }
@@ -101,6 +108,16 @@ export default class FakeConnection {
 
   withFailedInitialization(error) {
     this._initializationPromise = Promise.reject(error);
+    return this;
+  }
+
+  withCreationTimestamp(value) {
+    this.creationTimestamp = value;
+    return this;
+  }
+
+  closed() {
+    this._open = false;
     return this;
   }
 };
