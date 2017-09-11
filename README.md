@@ -286,7 +286,7 @@ If you will be handling integers larger than that, you should convert them to st
 
 ```javascript
 var aLargerInteger = neo4j.int("9223372036854775807");
-if (!neo4j.integer.inSafeRange(aSmallInteger)) {
+if (!neo4j.integer.inSafeRange(aLargerInteger)) {
     var integerAsString = aLargerInteger.toString();
 }
 ```
