@@ -209,6 +209,14 @@ describe('connector', () => {
     });
   });
 
+  it('should respect connection timeout', done => {
+    testConnectionTimeout(false, done);
+  });
+
+  it('should respect encrypted connection timeout', done => {
+    testConnectionTimeout(true, done);
+  });
+
   function packedHandshakeMessage() {
     const result = alloc(4);
     result.putInt32(0, 1);
@@ -242,6 +250,31 @@ describe('connector', () => {
       principal: sharedNeo4j.username,
       credentials: sharedNeo4j.password
     };
+  }
+
+  function testConnectionTimeout(encrypted, done) {
+    const boltUri = 'bolt://10.0.0.0'; // use non-routable IP address which never responds
+    connection = connect(boltUri, {encrypted: encrypted, connectionTimeout: 1000}, 'TestErrorCode');
+
+    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+      onNext: record => {
+        done.fail('Should not receive records: ' + record);
+      },
+      onCompleted: () => {
+        done.fail('Should not be able to INIT');
+      },
+      onError: error => {
+        expect(error.code).toEqual('TestErrorCode');
+
+        // in some environments non-routable address results in immediate 'connection refused' error and connect
+        // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
+        if (error.message.indexOf('Failed to establish connection') === 0) {
+          expect(error.message).toEqual('Failed to establish connection in 1000ms');
+        }
+
+        done();
+      }
+    });
   }
 
 });

@@ -20,38 +20,49 @@
 import hasFeature from './features';
 import {SERVICE_UNAVAILABLE} from '../error';
 
+const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 0; // turned off by default
+
 export default class ChannelConfig {
 
   constructor(host, port, driverConfig, connectionErrorCode) {
     this.host = host;
     this.port = port;
-    this.encrypted = ChannelConfig._extractEncrypted(driverConfig);
-    this.trust = ChannelConfig._extractTrust(driverConfig);
-    this.trustedCertificates = ChannelConfig._extractTrustedCertificates(driverConfig);
-    this.knownHostsPath = ChannelConfig._extractKnownHostsPath(driverConfig);
+    this.encrypted = extractEncrypted(driverConfig);
+    this.trust = extractTrust(driverConfig);
+    this.trustedCertificates = extractTrustedCertificates(driverConfig);
+    this.knownHostsPath = extractKnownHostsPath(driverConfig);
     this.connectionErrorCode = connectionErrorCode || SERVICE_UNAVAILABLE;
+    this.connectionTimeout = extractConnectionTimeout(driverConfig);
   }
+}
 
-  static _extractEncrypted(driverConfig) {
-    // check if encryption was configured by the user, use explicit null check because we permit boolean value
-    const encryptionConfigured = driverConfig.encrypted == null;
-    // default to using encryption if trust-all-certificates is available
-    return encryptionConfigured ? hasFeature('trust_all_certificates') : driverConfig.encrypted;
-  }
+function extractEncrypted(driverConfig) {
+  // check if encryption was configured by the user, use explicit null check because we permit boolean value
+  const encryptionConfigured = driverConfig.encrypted == null;
+  // default to using encryption if trust-all-certificates is available
+  return encryptionConfigured ? hasFeature('trust_all_certificates') : driverConfig.encrypted;
+}
 
-  static _extractTrust(driverConfig) {
-    if (driverConfig.trust) {
-      return driverConfig.trust;
-    }
-    // default to using TRUST_ALL_CERTIFICATES if it is available
-    return hasFeature('trust_all_certificates') ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
+function extractTrust(driverConfig) {
+  if (driverConfig.trust) {
+    return driverConfig.trust;
   }
+  // default to using TRUST_ALL_CERTIFICATES if it is available
+  return hasFeature('trust_all_certificates') ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
+}
 
-  static _extractTrustedCertificates(driverConfig) {
-    return driverConfig.trustedCertificates || [];
-  }
+function extractTrustedCertificates(driverConfig) {
+  return driverConfig.trustedCertificates || [];
+}
 
-  static _extractKnownHostsPath(driverConfig) {
-    return driverConfig.knownHosts || null;
+function extractKnownHostsPath(driverConfig) {
+  return driverConfig.knownHosts || null;
+}
+
+function extractConnectionTimeout(driverConfig) {
+  const configuredTimeout = parseInt(driverConfig.connectionTimeout, 10);
+  if (!configuredTimeout || configuredTimeout < 0) {
+    return DEFAULT_CONNECTION_TIMEOUT_MILLIS;
   }
-};
+  return configuredTimeout;
+}
