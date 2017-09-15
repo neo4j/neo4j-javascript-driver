@@ -37,9 +37,7 @@ class WebSocketChannel {
     this._pending = [];
     this._error = null;
     this._handleConnectionError = this._handleConnectionError.bind(this);
-    this._connectionErrorCode = config.connectionErrorCode;
-
-    this._encrypted = config.encrypted;
+    this._config = config;
 
     let scheme = "ws";
     //Allow boolean for backwards compatibility
@@ -67,6 +65,9 @@ class WebSocketChannel {
         }
     };
     this._ws.onopen = function() {
+      // Connected! Cancel connection timeout
+      clearTimeout(self._connectionTimeoutId);
+
       // Drain all pending messages
       let pending = self._pending;
       self._pending = null;
@@ -76,15 +77,28 @@ class WebSocketChannel {
     };
     this._ws.onmessage = (event) => {
       if( self.onmessage ) {
-        var b = new HeapBuffer( event.data );
+        const b = new HeapBuffer(event.data);
         self.onmessage( b );
       }
     };
 
     this._ws.onerror = this._handleConnectionError;
+
+    this._connectionTimeoutFired = false;
+    this._connectionTimeoutId = this._setupConnectionTimeout(config);
   }
 
   _handleConnectionError() {
+    if (this._connectionTimeoutFired) {
+      // timeout fired - not connected within configured time
+      this._error = newError(`Failed to establish connection in ${this._config.connectionTimeout}ms`, this._config.connectionErrorCode);
+
+      if (this.onerror) {
+        this.onerror(this._error);
+      }
+      return;
+    }
+
     // onerror triggers on websocket close as well.. don't get me started.
     if( this._open ) {
       // http://stackoverflow.com/questions/25779831/how-to-catch-websocket-connection-to-ws-xxxnn-failed-connection-closed-be
@@ -94,7 +108,7 @@ class WebSocketChannel {
         "the root cause of the failure. Common reasons include the database being " +
         "unavailable, using the wrong connection URL or temporary network problems. " +
         "If you have enabled encryption, ensure your browser is configured to trust the " +
-        "certificate Neo4j is configured to use. WebSocket `readyState` is: " + this._ws.readyState, this._connectionErrorCode );
+        'certificate Neo4j is configured to use. WebSocket `readyState` is: ' + this._ws.readyState, this._config.connectionErrorCode);
       if (this.onerror) {
         this.onerror(this._error);
       }
@@ -102,7 +116,7 @@ class WebSocketChannel {
   }
 
   isEncrypted() {
-    return this._encrypted;
+    return this._config.encrypted;
   }
 
   /**
@@ -129,6 +143,26 @@ class WebSocketChannel {
     this._open = false;
     this._ws.close();
     this._ws.onclose = cb;
+  }
+
+  /**
+   * Set connection timeout on the given WebSocket, if configured.
+   * @return {number} the timeout id or null.
+   * @private
+   */
+  _setupConnectionTimeout() {
+    const timeout = this._config.connectionTimeout;
+    if (timeout) {
+      const webSocket = this._ws;
+
+      return setTimeout(() => {
+        if (webSocket.readyState !== WebSocket.OPEN) {
+          this._connectionTimeoutFired = true;
+          webSocket.close();
+        }
+      }, timeout);
+    }
+    return null;
   }
 }
 

@@ -29,7 +29,7 @@ describe('transaction', () => {
   beforeEach(done => {
     // make jasmine timeout high enough to test unreachable bookmarks
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000;
 
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
     driver.onCompleted = meta => {
@@ -500,6 +500,14 @@ describe('transaction', () => {
     });
   });
 
+  it('should respect socket connection timeout', done => {
+    testConnectionTimeout(false, done);
+  });
+
+  it('should respect TLS socket connection timeout', done => {
+    testConnectionTimeout(true, done);
+  });
+
   function expectSyntaxError(error) {
     expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError');
   }
@@ -519,4 +527,32 @@ describe('transaction', () => {
     }
     return false;
   }
+
+  function testConnectionTimeout(encrypted, done) {
+    const boltUri = 'bolt://10.0.0.0'; // use non-routable IP address which never responds
+    const config = {encrypted: encrypted, connectionTimeout: 1000};
+
+    const localDriver = neo4j.driver(boltUri, sharedNeo4j.authToken, config);
+    const session = localDriver.session();
+    const tx = session.beginTransaction();
+    tx.run('RETURN 1').then(() => {
+      tx.rollback();
+      session.close();
+      done.fail('Query did not fail');
+    }).catch(error => {
+      tx.rollback();
+      session.close();
+
+      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+
+      // in some environments non-routable address results in immediate 'connection refused' error and connect
+      // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
+      if (error.message.indexOf('Failed to establish connection') === 0) {
+        expect(error.message).toEqual('Failed to establish connection in 1000ms');
+      }
+
+      done();
+    });
+  }
+
 });

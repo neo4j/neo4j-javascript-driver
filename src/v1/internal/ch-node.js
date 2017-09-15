@@ -320,6 +320,8 @@ class NodeChannel {
         self.write( pending[i] );
       }
     }, this._handleConnectionError);
+
+    this._setupConnectionTimeout(config, this._conn);
   }
 
   _handleConnectionError( err ) {
@@ -335,6 +337,30 @@ class NodeChannel {
       if( this.onerror ) {
         this.onerror(this._error);
       }
+  }
+
+  /**
+   * Setup connection timeout on the socket, if configured.
+   * @param {ChannelConfig} config - configuration of this channel.
+   * @param {object} socket - `net.Socket` or `tls.TLSSocket` object.
+   * @private
+   */
+  _setupConnectionTimeout(config, socket) {
+    const timeout = config.connectionTimeout;
+    if (timeout) {
+      socket.on('connect', () => {
+        // connected - clear connection timeout
+        socket.setTimeout(0);
+      });
+
+      socket.on('timeout', () => {
+        // timeout fired - not connected within configured time. cancel timeout and destroy socket
+        socket.setTimeout(0);
+        socket.destroy(newError(`Failed to establish connection in ${timeout}ms`, config.connectionErrorCode));
+      });
+
+      socket.setTimeout(timeout);
+    }
   }
 
   isEncrypted() {
