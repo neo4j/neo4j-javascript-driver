@@ -132,6 +132,11 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // <b>Note:</b> We are experimenting with different strategies. This could be removed in the next minor
  *       // version.
  *       loadBalancingStrategy: "least_connected" | "round_robin",
+ *
+ *       // Specify socket connection timeout in milliseconds. Non-numeric, negative and zero values are treated as an
+ *       // infinite timeout. Connection will be then bound by the timeout configured on the operating system level.
+ *       // Timeout value should be numeric and greater or equal to zero.
+ *       connectionTimeout: 5000, // 5 seconds
  *     }
  *
  * @param {string} url The URL for the Neo4j database, for instance "bolt://localhost"

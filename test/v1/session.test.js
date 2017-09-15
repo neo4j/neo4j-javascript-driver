@@ -1029,6 +1029,14 @@ describe('session', () => {
     });
   });
 
+  it('should respect connection timeout', done => {
+    testConnectionTimeout(false, done);
+  });
+
+  it('should respect encrypted connection timeout', done => {
+    testConnectionTimeout(true, done);
+  });
+
   function serverIs31OrLater(done) {
     // lazy way of checking the version number
     // if server has been set we know it is at least 3.1
@@ -1110,6 +1118,27 @@ describe('session', () => {
   function numberOfAcquiredConnectionsFromPool() {
     const pool = driver._pool;
     return pool.activeResourceCount('localhost');
+  }
+
+  function testConnectionTimeout(encrypted, done) {
+    const boltUri = 'bolt://10.0.0.0'; // use non-routable IP address which never responds
+    const config = {encrypted: encrypted, connectionTimeout: 1000};
+
+    const localDriver = neo4j.driver(boltUri, sharedNeo4j.authToken, config);
+    const session = localDriver.session();
+    session.run('RETURN 1').then(() => {
+      done.fail('Query did not fail');
+    }).catch(error => {
+      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+
+      // in some environments non-routable address results in immediate 'connection refused' error and connect
+      // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
+      if (error.message.indexOf('Failed to establish connection') === 0) {
+        expect(error.message).toEqual('Failed to establish connection in 1000ms');
+      }
+
+      done();
+    });
   }
 
 });
