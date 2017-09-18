@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {int, isInt} from './integer';
+import {isInt} from './integer';
 
 /**
   * A ResultSummary instance contains structured metadata for a {Result}.
@@ -31,19 +31,79 @@ class ResultSummary {
    * @param {Object} metadata - Statement metadata
    */
   constructor(statement, parameters, metadata) {
+    /**
+     * The statement and parameters this summary is for.
+     * @type {{text: string, parameters: Object}}
+     * @public
+     */
     this.statement = {text: statement, parameters};
+
+    /**
+     * The type of statement executed. Can be "r" for read-only statement, "rw" for read-write statement,
+     * "w" for write-only statement and "s" for schema-write statement.
+     * String constants are available in {@link statementType} object.
+     * @type {string}
+     * @public
+     */
     this.statementType = metadata.type;
-    let counters = new StatementStatistics(metadata.stats || {});
-    this.counters = counters;
+
+    /**
+     * Counters for operations the statement triggered.
+     * @type {StatementStatistics}
+     * @public
+     */
+    this.counters = new StatementStatistics(metadata.stats || {});
     //for backwards compatibility, remove in future version
-    this.updateStatistics = counters;
+    this.updateStatistics = this.counters;
+
+    /**
+     * This describes how the database will execute the statement.
+     * Statement plan for the executed statement if available, otherwise undefined.
+     * Will only be populated for queries that start with "EXPLAIN".
+     * @type {Plan}
+     */
     this.plan = metadata.plan || metadata.profile ? new Plan(metadata.plan || metadata.profile) : false;
+
+    /**
+     * This describes how the database did execute your statement. This will contain detailed information about what
+     * each step of the plan did. Profiled statement plan for the executed statement if available, otherwise undefined.
+     * Will only be populated for queries that start with "PROFILE".
+     * @type {ProfiledPlan}
+     * @public
+     */
     this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false;
+
+    /**
+     * An array of notifications that might arise when executing the statement. Notifications can be warnings about
+     * problematic statements or other valuable information that can be presented in a client. Unlike failures
+     * or errors, notifications do not affect the execution of a statement.
+     * @type {Array<Notification>}
+     * @public
+     */
     this.notifications = this._buildNotifications(metadata.notifications);
+
+    /**
+     * The basic information of the server where the result is obtained from.
+     * @type {ServerInfo}
+     * @public
+     */
     this.server = new ServerInfo(metadata.server);
+
+    /**
+     * The time it took the server to consume the result.
+     * @type {number}
+     * @public
+     */
     this.resultConsumedAfter = metadata.result_consumed_after;
+
+    /**
+     * The time it took the server to make the result available for consumption in milliseconds.
+     * @type {number}
+     * @public
+     */
     this.resultAvailableAfter = metadata.result_available_after;
   }
+
   _buildNotifications(notifications) {
     if(!notifications) {
       return [];

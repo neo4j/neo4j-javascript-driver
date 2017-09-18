@@ -27,9 +27,12 @@ const DEFAULT_ON_COMPLETED = summary => {
 };
 
 /**
-  * A stream of {@link Record} representing the result of a statement.
-  * @access public
-  */
+ * A stream of {@link Record} representing the result of a statement.
+ * Can be consumed eagerly as {@link Promise} resolved with {@link Array<Record>} records and {@link ResultSummary}
+ * summary, or rejected with error that contains {@link string} code and {@link string} message.
+ * Alternatively can be consumed lazily using {@link Result.subscribe()}.
+ * @access public
+ */
 class Result {
   /**
    * Inject the observer to be used.
@@ -77,8 +80,9 @@ class Result {
    * Waits for all results and calls the passed in function with the results.
    * Cannot be combined with the {@link #subscribe} function.
    *
-   * @param {function(result: {records:Array<Record>})} onFulfilled - Function to be called when finished.
-   * @param {function(error: {message:string, code:string})} onRejected - Function to be called upon errors.
+   * @param {function(result: {records:Array<Record>, summary: ResultSummary})} onFulfilled - function to be called
+   * when finished.
+   * @param {function(error: {message:string, code:string})} onRejected - function to be called upon errors.
    * @return {Promise} promise.
    */
   then(onFulfilled, onRejected) {
@@ -102,9 +106,9 @@ class Result {
    * of handling the results, and allows you to handle arbitrarily large results.
    *
    * @param {Object} observer - Observer object
-   * @param {function(record: Record)} observer.onNext - Handle records, one by one.
-   * @param {function(metadata: Object)} observer.onCompleted - Handle stream tail, the metadata.
-   * @param {function(error: {message:string, code:string})} observer.onError - Handle errors.
+   * @param {function(record: Record)} observer.onNext - handle records, one by one.
+   * @param {function(summary: ResultSummary)} observer.onCompleted - handle stream tail, the result summary.
+   * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return
    */
   subscribe(observer) {
