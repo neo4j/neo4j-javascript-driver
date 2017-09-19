@@ -53,7 +53,7 @@ class Transaction {
 
   /**
    * Run Cypher statement
-   * Could be called with a statement object i.e.: <code>{statement: "MATCH ...", parameters: {param: 1}}</code>
+   * Could be called with a statement object i.e.: <code>{text: "MATCH ...", parameters: {param: 1}}</code>
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
@@ -65,6 +65,9 @@ class Transaction {
       statement = statement.text;
     }
     assertString(statement, "Cypher statement");
+    if (statement.length == 0) {
+      throw new TypeError('Cypher statement is expected to be a non-empty string.');
+    }
 
     return this._state.run(this._connectionHolder,  new _TransactionStreamObserver(this), statement, parameters);
   }

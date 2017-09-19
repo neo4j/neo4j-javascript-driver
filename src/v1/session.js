@@ -53,7 +53,7 @@ class Session {
 
   /**
    * Run Cypher statement
-   * Could be called with a statement object i.e.: {statement: "MATCH ...", parameters: {param: 1}}
+   * Could be called with a statement object i.e.: {text: "MATCH ...", parameters: {param: 1}}
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
@@ -65,6 +65,9 @@ class Session {
       statement = statement.text;
     }
     assertString(statement, 'Cypher statement');
+    if (statement.length == 0) {
+      throw new TypeError('Cypher statement is expected to be a non-empty string.');
+    }
 
     return this._run(statement, parameters, (connection, streamObserver) =>
       connection.run(statement, parameters, streamObserver)
