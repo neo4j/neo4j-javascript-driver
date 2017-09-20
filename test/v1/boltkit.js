@@ -37,7 +37,7 @@ BoltKit.prototype.startWithTemplate = function (scriptTemplate, parameters, port
 BoltKit.prototype.start = function(script, port) {
   var spawn = childProcess.spawn, server, code = -1;
 
-  server = spawn('/usr/local/bin/boltstub', ['-v', port, script]);
+  server = spawn('boltstub', ['-v', port, script]);
   if (this.verbose) {
     server.stdout.on('data', (data) => {
       console.log(`${data}`);
