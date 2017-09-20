@@ -18,7 +18,7 @@
  */
 import StreamObserver from './internal/stream-observer';
 import Result from './result';
-import {assertString} from './internal/util';
+import {assertCypherStatement} from './internal/util';
 import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
 import Bookmark from './internal/bookmark';
 
@@ -64,10 +64,7 @@ class Transaction {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    assertString(statement, "Cypher statement");
-    if (statement.length == 0) {
-      throw new TypeError('Cypher statement is expected to be a non-empty string.');
-    }
+    assertCypherStatement(statement);
 
     return this._state.run(this._connectionHolder,  new _TransactionStreamObserver(this), statement, parameters);
   }

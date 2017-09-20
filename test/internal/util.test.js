@@ -19,7 +19,7 @@
 
 import * as util from '../../src/v1/internal/util';
 
-describe('util', () => {
+fdescribe('util', () => {
 
   it('should check empty objects', () => {
     expect(util.isEmptyObjectOrNull(null)).toBeTruthy();
@@ -53,6 +53,25 @@ describe('util', () => {
     verifyInvalidString(['1']);
     verifyInvalidString([1, '2']);
     verifyInvalidString(console.log);
+  });
+
+  it('should check cypher statements (non-empty strings)', () => {
+    verifyValidString(new String('foo'));
+    verifyValidString(String('foo'));
+    verifyValidString("foo");
+
+    verifyInvalidCypherStatement('');
+    verifyInvalidCypherStatement('\n');
+    verifyInvalidCypherStatement('\t');
+    verifyInvalidCypherStatement('\r');
+    verifyInvalidCypherStatement('   ');
+    verifyInvalidCypherStatement(' \n\r');
+    verifyInvalidCypherStatement({});
+    verifyInvalidCypherStatement({foo: 1});
+    verifyInvalidCypherStatement([]);
+    verifyInvalidCypherStatement(['1']);
+    verifyInvalidCypherStatement([1, '2']);
+    verifyInvalidCypherStatement(console.log);
   });
 
   it('should parse scheme', () => {
@@ -167,6 +186,14 @@ describe('util', () => {
 
   function verifyInvalidString(str) {
     expect(() => util.assertString(str, 'Test string')).toThrowError(TypeError);
+  }
+
+  function verifyValidCypherStatement(str) {
+    expect(util.assertCypherStatement(str)).toBe(str);
+  }
+
+  function verifyInvalidCypherStatement(str) {
+    expect(() => util.assertCypherStatement(str)).toThrowError(TypeError);
   }
 
   function verifyScheme(expectedScheme, url) {
