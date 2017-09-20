@@ -59,7 +59,11 @@ class Driver {
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
       this._validateConnection.bind(this),
-      config.connectionPoolSize
+      {
+        maxIdleSize: config.connectionPoolSize,
+        maxSize: config.maxConnectionPoolSize,
+        acquisitionTimeout: config.connectionAcquisitionTimeout
+      }
     );
 
     /**
@@ -231,17 +235,20 @@ class _ConnectionStreamObserver extends StreamObserver {
  * @private
  */
 function sanitizeConfig(config) {
-  const maxConnectionLifetime = config.maxConnectionLifetime;
-  if (maxConnectionLifetime) {
-    const sanitizedMaxConnectionLifetime = parseInt(maxConnectionLifetime, 10);
-    if (sanitizedMaxConnectionLifetime && sanitizedMaxConnectionLifetime > 0) {
-      config.maxConnectionLifetime = sanitizedMaxConnectionLifetime;
-    } else {
-      config.maxConnectionLifetime = null;
-    }
-  } else {
-    config.maxConnectionLifetime = null;
+  config.maxConnectionLifetime = sanitizeIntValue(config.maxConnectionLifetime);
+  config.maxConnectionPoolSize = sanitizeIntValue(config.maxConnectionPoolSize);
+  config.connectionAcquisitionTimeout = sanitizeIntValue(config.connectionAcquisitionTimeout, 60000);
+}
+
+function sanitizeIntValue(value, defaultValue=null) {
+  if (value) {
+      const sanitizedValue = parseInt(value, 10);
+      if (sanitizedValue && sanitizedValue > 0) {
+        return sanitizedValue;
+      }
   }
+
+  return defaultValue;
 }
 
 export {Driver, READ, WRITE}

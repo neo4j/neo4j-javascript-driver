@@ -17,6 +17,9 @@
  * limitations under the License.
  */
 
+import { newError } from "../error";
+import { promiseOrTimeout } from "./util";
+
 class Pool {
   /**
    * @param create  an allocation function that creates a new resource. It's given
@@ -30,12 +33,15 @@ class Pool {
    * @param maxIdle the max number of resources that are allowed idle in the pool at
    *                any time. If this threshold is exceeded, resources will be evicted.
    */
-  constructor(create, destroy=(()=>true), validate=(()=>true), maxIdle=50) {
+  constructor(create, destroy=(()=>true), validate=(()=>true), config={}) {
     this._create = create;
     this._destroy = destroy;
     this._validate = validate;
-    this._maxIdle = maxIdle;
+    this._maxIdleSize = config.maxIdleSize;
+    this._maxSize = config.maxSize;
+    this._acquisitionTimeout = config.acquisitionTimeout;
     this._pools = {};
+    this._acquireRequests = {};
     this._activeResourceCounts = {};
     this._release = this._release.bind(this);
   }
@@ -46,26 +52,35 @@ class Pool {
    * @return {object} resource that is ready to use.
    */
   acquire(key) {
-    let pool = this._pools[key];
-    if (!pool) {
-      pool = [];
-      this._pools[key] = pool;
-    }
-    while (pool.length) {
-      const resource = pool.pop();
+    let resource = this._acquire(key);
 
-      if (this._validate(resource)) {
-        // idle resource is valid and can be acquired
-        resourceAcquired(key, this._activeResourceCounts);
-        return resource;
-      } else {
-        this._destroy(resource);
-      }
+    if (resource) {
+      resourceAcquired(key, this._activeResourceCounts);
+
+      return Promise.resolve(resource);
     }
 
-    // there exist no idle valid resources, create a new one for acquisition
-    resourceAcquired(key, this._activeResourceCounts);
-    return this._create(key, this._release);
+    // We're out of resources and will try to acquire later on when an existing resource is released.
+    let allRequests = this._acquireRequests;
+    let requests = allRequests[key];
+    if (!requests) {
+      allRequests[key] = [];
+    }
+
+    let request;
+
+    return promiseOrTimeout(
+        this._acquisitionTimeout,
+        new Promise(
+          (resolve, reject) => {
+            request = new PendingRequest(resolve);
+
+            allRequests[key].push(request);
+          }
+        ), () => {
+          allRequests[key] = allRequests[key].filter(item => item !== request);
+        }
+    );
   }
 
   /**
@@ -106,12 +121,37 @@ class Pool {
     return this._activeResourceCounts[key] || 0;
   }
 
+  _acquire(key) {
+    let pool = this._pools[key];
+    if (!pool) {
+      pool = [];
+      this._pools[key] = pool;
+    }
+    while (pool.length) {
+      const resource = pool.pop();
+
+      if (this._validate(resource)) {
+        // idle resource is valid and can be acquired
+        return resource;
+      } else {
+        this._destroy(resource);
+      }
+    }
+
+    if (this._maxSize && this.activeResourceCount(key) >= this._maxSize) {
+      return null;
+    }
+
+    // there exist no idle valid resources, create a new one for acquisition
+    return this._create(key, this._release);
+  }
+
   _release(key, resource) {
     const pool = this._pools[key];
 
     if (pool) {
       // there exist idle connections for the given key
-      if (pool.length >= this._maxIdle || !this._validate(resource)) {
+      if (pool.length >= this._maxIdleSize || !this._validate(resource)) {
         this._destroy(resource);
       } else {
         pool.push(resource);
@@ -119,6 +159,23 @@ class Pool {
     } else {
       // key has been purged, don't put it back, just destroy the resource
       this._destroy(resource);
+    }
+
+    // check if there are any pending requests
+    let requests = this._acquireRequests[key];
+    if (requests) {
+      var pending = requests.shift();
+
+      if (pending) {
+        var resource = this._acquire(key);
+        if (resource) {
+          pending.resolve(resource);
+
+          return;
+        }
+      } else {
+        delete this._acquireRequests[key];
+      }
     }
 
     resourceReleased(key, this._activeResourceCounts);
@@ -143,11 +200,24 @@ function resourceAcquired(key, activeResourceCounts) {
 function resourceReleased(key, activeResourceCounts) {
   const currentCount = activeResourceCounts[key] || 0;
   const nextCount = currentCount - 1;
+
   if (nextCount > 0) {
     activeResourceCounts[key] = nextCount;
   } else {
     delete activeResourceCounts[key];
   }
+}
+
+class PendingRequest {
+
+  constructor(resolve) {
+    this._resolve = resolve;
+  }
+
+  resolve(resource) {
+    this._resolve(resource);
+  }
+
 }
 
 export default Pool

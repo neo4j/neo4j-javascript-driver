@@ -161,6 +161,30 @@ describe('util', () => {
     expect(() => util.parseRoutingContext('bolt+routing://localhost:7687/?key1=value1&key2=value2&key1=value2')).toThrow();
   });
 
+  it('should time out', () => {
+    expect(() => util.promiseOrTimeout(500, new Promise(), null)).toThrow();
+  });
+
+  it('should not time out', done => {
+    util.promiseOrTimeout(500, Promise.resolve(0), null).then((result) => {
+      expect(result).toEqual(0);
+      done();
+    })
+  });
+
+  it('should call clear action when timed out', done => {
+    let marker = 0;
+
+    let clearAction = () => {
+      marker = 1;
+    };
+
+    util.promiseOrTimeout(500, new Promise((resolve, reject) => { }), clearAction).catch((error) => {
+      expect(marker).toEqual(1);
+      done();
+    });
+  });
+
   function verifyValidString(str) {
     expect(util.assertString(str, 'Test string')).toBe(str);
   }
