@@ -58,6 +58,14 @@ function assertString(obj, objName) {
   return obj;
 }
 
+function assertCypherStatement(obj) {
+  assertString(obj, 'Cypher statement');
+  if (obj.trim().length == 0) {
+    throw new TypeError('Cypher statement is expected to be a non-empty string.');
+  }
+  return obj;
+}
+
 function isString(str) {
   return Object.prototype.toString.call(str) === '[object String]';
 }
@@ -118,6 +126,7 @@ export {
   isEmptyObjectOrNull,
   isString,
   assertString,
+  assertCypherStatement,
   parseScheme,
   parseUrl,
   parseHost,

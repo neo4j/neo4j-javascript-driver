@@ -20,7 +20,7 @@ import StreamObserver from './internal/stream-observer';
 import Result from './result';
 import Transaction from './transaction';
 import {newError} from './error';
-import {assertString} from './internal/util';
+import {assertCypherStatement} from './internal/util';
 import ConnectionHolder from './internal/connection-holder';
 import Driver, {READ, WRITE} from './driver';
 import TransactionExecutor from './internal/transaction-executor';
@@ -53,7 +53,7 @@ class Session {
 
   /**
    * Run Cypher statement
-   * Could be called with a statement object i.e.: {statement: "MATCH ...", parameters: {param: 1}}
+   * Could be called with a statement object i.e.: {text: "MATCH ...", parameters: {param: 1}}
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
@@ -64,7 +64,7 @@ class Session {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    assertString(statement, 'Cypher statement');
+    assertCypherStatement(statement);
 
     return this._run(statement, parameters, (connection, streamObserver) =>
       connection.run(statement, parameters, streamObserver)
