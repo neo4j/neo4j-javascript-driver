@@ -18,7 +18,7 @@
  */
 import StreamObserver from './internal/stream-observer';
 import Result from './result';
-import {assertString} from './internal/util';
+import {assertCypherStatement} from './internal/util';
 import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
 import Bookmark from './internal/bookmark';
 
@@ -53,7 +53,7 @@ class Transaction {
 
   /**
    * Run Cypher statement
-   * Could be called with a statement object i.e.: <code>{statement: "MATCH ...", parameters: {param: 1}}</code>
+   * Could be called with a statement object i.e.: <code>{text: "MATCH ...", parameters: {param: 1}}</code>
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
@@ -64,7 +64,7 @@ class Transaction {
       parameters = statement.parameters || {};
       statement = statement.text;
     }
-    assertString(statement, "Cypher statement");
+    assertCypherStatement(statement);
 
     return this._state.run(this._connectionHolder,  new _TransactionStreamObserver(this), statement, parameters);
   }
