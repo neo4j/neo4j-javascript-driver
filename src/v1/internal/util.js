@@ -117,8 +117,8 @@ function trimAndVerify(string, name, url) {
 }
 
 function promiseOrTimeout(timeout, otherPromise, onTimeout) {
-  let timeoutPromise = new Promise((resolve, reject) => {
-    let id = setTimeout(() => {
+  const timeoutPromise = new Promise((resolve, reject) => {
+    const id = setTimeout(() => {
       if (onTimeout && typeof onTimeout === 'function') {
         onTimeout();
       }

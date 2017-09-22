@@ -52,7 +52,7 @@ class Pool {
    * @return {object} resource that is ready to use.
    */
   acquire(key) {
-    let resource = this._acquire(key);
+    const resource = this._acquire(key);
 
     if (resource) {
       resourceAcquired(key, this._activeResourceCounts);
@@ -61,8 +61,8 @@ class Pool {
     }
 
     // We're out of resources and will try to acquire later on when an existing resource is released.
-    let allRequests = this._acquireRequests;
-    let requests = allRequests[key];
+    const allRequests = this._acquireRequests;
+    const requests = allRequests[key];
     if (!requests) {
       allRequests[key] = [];
     }
@@ -162,7 +162,7 @@ class Pool {
     }
 
     // check if there are any pending requests
-    let requests = this._acquireRequests[key];
+    const requests = this._acquireRequests[key];
     if (requests) {
       var pending = requests.shift();
 
