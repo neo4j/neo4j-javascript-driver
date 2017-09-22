@@ -2062,9 +2062,10 @@ describe('routing driver', () => {
 
     const originalAcquire = connectionPool.acquire.bind(connectionPool);
     const memorizingAcquire = (...args) => {
-      const connection = originalAcquire(...args);
-      acquiredConnections.push(connection);
-      return connection;
+      return originalAcquire(...args).then(connection => {
+        acquiredConnections.push(connection);
+        return connection;
+      });
     };
     connectionPool.acquire = memorizingAcquire;
 

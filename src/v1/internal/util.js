@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import { newError } from "../error";
+
 const ENCRYPTION_ON = "ENCRYPTION_ON";
 const ENCRYPTION_OFF = "ENCRYPTION_OFF";
 
@@ -122,6 +124,22 @@ function trimAndVerify(string, name, url) {
   return result;
 }
 
+function promiseOrTimeout(timeout, otherPromise, onTimeout) {
+  const timeoutPromise = new Promise((resolve, reject) => {
+    const id = setTimeout(() => {
+      if (onTimeout && typeof onTimeout === 'function') {
+        onTimeout();
+      }
+
+      reject(newError(`Operation timed out in ${timeout} ms.`));
+    }, timeout);
+
+    otherPromise.then(() => clearTimeout(id), () => clearTimeout(id));
+  });
+
+  return Promise.race([ otherPromise, timeoutPromise ]);
+}
+
 export {
   isEmptyObjectOrNull,
   isString,
@@ -132,6 +150,7 @@ export {
   parseHost,
   parsePort,
   parseRoutingContext,
+  promiseOrTimeout,
   ENCRYPTION_ON,
   ENCRYPTION_OFF
 }

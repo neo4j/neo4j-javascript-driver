@@ -112,6 +112,11 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // Connection will be destroyed if this threshold is exceeded.
  *       connectionPoolSize: 50,
  *
+ *       // The maximum total number of connections allowed to be managed by the connection pool, per host.
+ *       // This includes both in-use and idle connections. No maximum connection pool size is imposed
+ *       // by default.
+ *       maxConnectionPoolSize: 100,
+ *
  *       // The maximum allowed lifetime for a pooled connection in milliseconds. Pooled connections older than this
  *       // threshold will be closed and removed from the pool. Such discarding happens during connection acquisition
  *       // so that new session is never backed by an old connection. Setting this option to a low value will cause
@@ -120,6 +125,10 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // etc. can also limit maximum connection lifetime). No maximum lifetime limit is imposed by default. Zero
  *       // and negative values result in lifetime not being checked.
  *       maxConnectionLifetime: 30 * 60 * 1000, // 30 minutes
+ *
+ *       // The maximum amount of time to wait to acquire a connection from the pool (to either create a new
+ *       // connection or borrow an existing one.
+ *       connectionAcquisitionTimeout: 60000, // 1 minute
  *
  *       // Specify the maximum time in milliseconds transactions are allowed to retry via
  *       // {@link Session#readTransaction()} and {@link Session#writeTransaction()} functions. These functions

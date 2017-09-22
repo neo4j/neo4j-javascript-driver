@@ -53,8 +53,7 @@ export class DirectConnectionProvider extends ConnectionProvider {
   }
 
   acquireConnection(mode) {
-    const connection = this._connectionPool.acquire(this._address);
-    const connectionPromise = Promise.resolve(connection);
+    const connectionPromise = this._connectionPool.acquire(this._address);
     return this._withAdditionalOnErrorCallback(connectionPromise, this._driverOnErrorCallback);
   }
 }
@@ -193,19 +192,21 @@ export class LoadBalancer extends ConnectionProvider {
         }
 
         // try next router
-        const session = this._createSessionForRediscovery(currentRouter);
-        return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter);
+        return this._createSessionForRediscovery(currentRouter).then(session => {
+          return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter)
+        });
       });
     }, Promise.resolve(null));
   }
 
   _createSessionForRediscovery(routerAddress) {
-    const connection = this._connectionPool.acquire(routerAddress);
-    // initialized connection is required for routing procedure call
-    // server version needs to be known to decide which routing procedure to use
-    const initializedConnectionPromise = connection.initializationCompleted();
-    const connectionProvider = new SingleConnectionProvider(initializedConnectionPromise);
-    return new Session(READ, connectionProvider);
+    return this._connectionPool.acquire(routerAddress).then(connection => {
+      // initialized connection is required for routing procedure call
+      // server version needs to be known to decide which routing procedure to use
+      const initializedConnectionPromise = connection.initializationCompleted();
+      const connectionProvider = new SingleConnectionProvider(initializedConnectionPromise);
+      return new Session(READ, connectionProvider);
+    });
   }
 
   _applyRoutingTableIfPossible(newRoutingTable) {
