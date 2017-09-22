@@ -19,30 +19,28 @@
 
 import neo4j from '../../src/v1';
 import {READ, WRITE} from '../../src/v1/driver';
-import boltkit from './boltkit';
-import sharedNeo4j from '../internal/shared-neo4j';
+import boltStub from '../internal/bolt-stub';
 
-describe('direct driver', () => {
+describe('direct driver with stub server', () => {
 
   it('should run query', done => {
-    if (!boltkit.BoltKitSupport) {
+    if (!boltStub.supported) {
       done();
       return;
     }
 
     // Given
-    const kit = new boltkit.BoltKit();
-    const server = kit.start('./test/resources/boltkit/return_x.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/return_x.script', 9001);
 
-    kit.run(() => {
-      const driver = createDriver();
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
       // When
       const session = driver.session();
       // Then
       session.run('RETURN {x}', {'x': 1}).then(res => {
-          expect(res.records[0].get('x').toInt()).toEqual(1);
-          session.close();
-          driver.close();
+        expect(res.records[0].get('x').toInt()).toEqual(1);
+        session.close();
+        driver.close();
         server.exit(code => {
           expect(code).toEqual(0);
           done();
@@ -52,16 +50,15 @@ describe('direct driver', () => {
   });
 
   it('should send and receive bookmark for read transaction', done => {
-    if (!boltkit.BoltKitSupport) {
+    if (!boltStub.supported) {
       done();
       return;
     }
 
-    const kit = new boltkit.BoltKit();
-    const server = kit.start('./test/resources/boltkit/read_tx_with_bookmarks.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/read_tx_with_bookmarks.script', 9001);
 
-    kit.run(() => {
-      const driver = createDriver();
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
       const session = driver.session(READ, 'neo4j:bookmark:v1:tx42');
       const tx = session.beginTransaction();
       tx.run('MATCH (n) RETURN n.name AS name').then(result => {
@@ -86,16 +83,15 @@ describe('direct driver', () => {
   });
 
   it('should send and receive bookmark for write transaction', done => {
-    if (!boltkit.BoltKitSupport) {
+    if (!boltStub.supported) {
       done();
       return;
     }
 
-    const kit = new boltkit.BoltKit();
-    const server = kit.start('./test/resources/boltkit/write_tx_with_bookmarks.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/write_tx_with_bookmarks.script', 9001);
 
-    kit.run(() => {
-      const driver = createDriver();
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
       const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
       const tx = session.beginTransaction();
       tx.run('CREATE (n {name:\'Bob\'})').then(result => {
@@ -118,16 +114,15 @@ describe('direct driver', () => {
   });
 
   it('should send and receive bookmark between write and read transactions', done => {
-    if (!boltkit.BoltKitSupport) {
+    if (!boltStub.supported) {
       done();
       return;
     }
 
-    const kit = new boltkit.BoltKit();
-    const server = kit.start('./test/resources/boltkit/write_read_tx_with_bookmarks.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmarks.script', 9001);
 
-    kit.run(() => {
-      const driver = createDriver();
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
       const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
       const writeTx = session.beginTransaction();
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
@@ -161,16 +156,15 @@ describe('direct driver', () => {
   });
 
   it('should be possible to override bookmark', done => {
-    if (!boltkit.BoltKitSupport) {
+    if (!boltStub.supported) {
       done();
       return;
     }
 
-    const kit = new boltkit.BoltKit();
-    const server = kit.start('./test/resources/boltkit/write_read_tx_with_bookmark_override.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmark_override.script', 9001);
 
-    kit.run(() => {
-      const driver = createDriver();
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
       const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
       const writeTx = session.beginTransaction();
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
@@ -205,16 +199,15 @@ describe('direct driver', () => {
   });
 
   it('should not be possible to override bookmark with null', done => {
-    if (!boltkit.BoltKitSupport) {
+    if (!boltStub.supported) {
       done();
       return;
     }
 
-    const kit = new boltkit.BoltKit();
-    const server = kit.start('./test/resources/boltkit/write_read_tx_with_bookmarks.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmarks.script', 9001);
 
-    kit.run(() => {
-      const driver = createDriver();
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
       const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
       const writeTx = session.beginTransaction();
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
@@ -248,16 +241,15 @@ describe('direct driver', () => {
   });
 
   it('should throw service unavailable when server dies', done => {
-    if (!boltkit.BoltKitSupport) {
+    if (!boltStub.supported) {
       done();
       return;
     }
 
-    const kit = new boltkit.BoltKit();
-    const server = kit.start('./test/resources/boltkit/dead_read_server.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/dead_read_server.script', 9001);
 
-    kit.run(() => {
-      const driver = createDriver();
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
       const session = driver.session();
       session.run('MATCH (n) RETURN n.name').catch(error => {
         expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
@@ -272,11 +264,3 @@ describe('direct driver', () => {
   });
 
 });
-
-function createDriver() {
-  // BoltKit currently does not support encryption, create driver with encryption turned off
-  const config = {
-    encrypted: 'ENCRYPTION_OFF'
-  };
-  return neo4j.driver('bolt://localhost:9001', sharedNeo4j.authToken, config);
-}
