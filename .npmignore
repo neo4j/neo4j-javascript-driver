@@ -3,7 +3,6 @@ src/
 build/
 test/
 lib/browser/neo4j-web.test.js
-bower.json
 .gitignore
 esdoc.json
 gulpfile.js

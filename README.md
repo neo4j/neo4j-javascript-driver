@@ -16,8 +16,6 @@ Resources to get you started:
 Stable channel:
 ```shell
 npm install neo4j-driver
-// or
-bower install neo4j-driver
 ```
 
 Pre-release channel:
