@@ -170,14 +170,6 @@ gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
     })).on('end', logActiveNodeHandles);
 });
 
-gulp.task('test-boltkit', ['nodejs'], function () {
-  return gulp.src('test/**/*.boltkit.it.js')
-    .pipe(jasmine({
-      includeStackTrace: true,
-      verbose: true
-    })).on('end', logActiveNodeHandles);
-});
-
 gulp.task('test-browser', function (cb) {
   runSequence('all', 'run-browser-test', cb)
 });
