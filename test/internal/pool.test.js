@@ -18,6 +18,7 @@
  */
 
 import Pool from '../../src/v1/internal/pool';
+import PoolConfig from '../../src/v1/internal/pool-config';
 
 describe('Pool', () => {
 
@@ -114,9 +115,7 @@ describe('Pool', () => {
         destroyed.push(resource);
       },
       resource => true,
-      {
-        maxIdleSize: 2
-      }
+      new PoolConfig(2, 100, 60000)
     );
 
     // When
@@ -152,9 +151,7 @@ describe('Pool', () => {
         destroyed.push(resource);
       },
       resource => false,
-      {
-        maxIdleSize: 1000
-      }
+      new PoolConfig(1000, 1000, 60000)
     );
 
     // When
@@ -440,10 +437,7 @@ describe('Pool', () => {
         (url, release) => new Resource(url, counter++, release),
         resource => {},
         resource => true,
-        {
-          maxSize: 2,
-          acquisitionTimeout: 5000
-        }
+      new PoolConfig(2, 2, 5000)
     );
 
     const p0 = pool.acquire(key);
@@ -473,10 +467,7 @@ describe('Pool', () => {
         (url, release) => new Resource(url, counter++, release),
         resource => {},
         resource => true,
-        {
-          maxSize: 2,
-          acquisitionTimeout: 1000
-        }
+      new PoolConfig(2, 2, 1000)
     );
 
     const p0 = pool.acquire(key);

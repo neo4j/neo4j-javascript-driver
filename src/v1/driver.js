@@ -25,6 +25,7 @@ import {newError, SERVICE_UNAVAILABLE} from './error';
 import {DirectConnectionProvider} from './internal/connection-providers';
 import Bookmark from './internal/bookmark';
 import ConnectivityVerifier from './internal/connectivity-verifier';
+import PoolConfig from './internal/pool-config';
 
 const READ = 'READ', WRITE = 'WRITE';
 /**
@@ -60,11 +61,7 @@ class Driver {
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
       this._validateConnection.bind(this),
-      {
-        maxIdleSize: config.connectionPoolSize,
-        maxSize: config.maxConnectionPoolSize,
-        acquisitionTimeout: config.connectionAcquisitionTimeout
-      }
+      PoolConfig.fromDriverConfig(config)
     );
 
     /**
@@ -243,18 +240,17 @@ class _ConnectionStreamObserver extends StreamObserver {
 function sanitizeConfig(config) {
   config.maxConnectionLifetime = sanitizeIntValue(config.maxConnectionLifetime);
   config.maxConnectionPoolSize = sanitizeIntValue(config.maxConnectionPoolSize);
-  config.connectionAcquisitionTimeout = sanitizeIntValue(config.connectionAcquisitionTimeout, 60000);
+  config.connectionAcquisitionTimeout = sanitizeIntValue(config.connectionAcquisitionTimeout);
 }
 
-function sanitizeIntValue(value, defaultValue=null) {
+function sanitizeIntValue(value) {
   if (value) {
       const sanitizedValue = parseInt(value, 10);
       if (sanitizedValue && sanitizedValue > 0) {
         return sanitizedValue;
       }
   }
-
-  return defaultValue;
+  return null;
 }
 
 export {Driver, READ, WRITE}

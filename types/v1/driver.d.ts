@@ -45,7 +45,11 @@ declare interface Config {
   trust?: TrustStrategy;
   trustedCertificates?: string[];
   knownHosts?: string;
+  /**
+   * @deprecated use {@link maxConnectionPoolSize} instead.
+   */
   connectionPoolSize?: number;
+  maxConnectionPoolSize?: number;
   maxTransactionRetryTime?: number;
   loadBalancingStrategy?: LoadBalancingStrategy;
   maxConnectionLifetime?: number;

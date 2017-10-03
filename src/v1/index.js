@@ -90,7 +90,7 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // as trusted. In the web bundle, this list of trusted certificates is maintained
  *       // by the web browser. In NodeJS, you configure the list with the next config option.
  *       //
- *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES meand that you trust whatever certificates
+ *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES means that you trust whatever certificates
  *       // are in the default certificate chain of th
  *       trust: "TRUST_ALL_CERTIFICATES" | "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES" |
  *       "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" | "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES",
@@ -110,6 +110,7 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *
  *       // The max number of connections that are allowed idle in the pool at any time.
  *       // Connection will be destroyed if this threshold is exceeded.
+ *       // <b>Deprecated:</b> please use <code>maxConnectionPoolSize</code> instead.
  *       connectionPoolSize: 50,
  *
  *       // The maximum total number of connections allowed to be managed by the connection pool, per host.

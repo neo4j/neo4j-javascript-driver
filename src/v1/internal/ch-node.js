@@ -108,7 +108,7 @@ const TrustStrategy = {
    * @deprecated Since version 1.0. Will be deleted in a future version. {@link #TRUST_CUSTOM_CA_SIGNED_CERTIFICATES}.
    */
   TRUST_SIGNED_CERTIFICATES: function( config, onSuccess, onFailure ) {
-    console.log("`TRUST_SIGNED_CERTIFICATES` has been deprecated as option and will be removed in a future version of " +
+    console.warn('`TRUST_SIGNED_CERTIFICATES` has been deprecated as option and will be removed in a future version of ' +
       "the driver. Please use `TRUST_CUSTOM_CA_SIGNED_CERTIFICATES` instead.");
     return TrustStrategy.TRUST_CUSTOM_CA_SIGNED_CERTIFICATES(config, onSuccess, onFailure);
   },
@@ -172,7 +172,7 @@ const TrustStrategy = {
    * @deprecated in 1.1 in favour of {@link #TRUST_ALL_CERTIFICATES}. Will be deleted in a future version.
    */
   TRUST_ON_FIRST_USE : function( config, onSuccess, onFailure ) {
-      console.log("`TRUST_ON_FIRST_USE` has been deprecated as option and will be removed in a future version of " +
+    console.warn('`TRUST_ON_FIRST_USE` has been deprecated as option and will be removed in a future version of ' +
           "the driver. Please use `TRUST_ALL_CERTIFICATES` instead.");
 
     let tlsOpts = {
