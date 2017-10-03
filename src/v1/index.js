@@ -144,7 +144,7 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *
  *       // Specify socket connection timeout in milliseconds. Non-numeric, negative and zero values are treated as an
  *       // infinite timeout. Connection will be then bound by the timeout configured on the operating system level.
- *       // Timeout value should be numeric and greater or equal to zero.
+ *       // Timeout value should be numeric and greater or equal to zero. Default value is 5000 which is 5 seconds.
  *       connectionTimeout: 5000, // 5 seconds
  *     }
  *

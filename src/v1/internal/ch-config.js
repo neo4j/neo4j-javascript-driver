@@ -20,7 +20,7 @@
 import hasFeature from './features';
 import {SERVICE_UNAVAILABLE} from '../error';
 
-const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 0; // turned off by default
+const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 5000; // 5 seconds by default
 
 export default class ChannelConfig {
 
