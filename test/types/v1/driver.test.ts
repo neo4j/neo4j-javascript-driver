@@ -30,6 +30,7 @@ import Driver, {
 import {Parameters} from "../../../types/v1/statement-runner";
 import Session from "../../../types/v1/session";
 import {Neo4jError} from "../../../types/v1/error";
+import {ServerInfo} from "../../../types/v1/result-summary";
 
 const dummy: any = null;
 
@@ -87,11 +88,12 @@ session1.run("RETURN 1").then(result => {
 
 const close: void = driver.close();
 
-driver.onCompleted = (metadata: { server: string }) => {
-  console.log(metadata.server);
+driver.onCompleted = (serverInfo: ServerInfo) => {
+  console.log(serverInfo.version);
+  console.log(serverInfo.address);
 };
 
-driver.onCompleted({server: "Neo4j/3.2.0"});
+driver.onCompleted({version: "Neo4j/3.2.0", address: "localhost:7687"});
 
 driver.onError = (error: Neo4jError) => {
   console.log(error);

@@ -102,14 +102,9 @@ describe('examples', () => {
     // end::basic-auth[]
 
     driver.onCompleted = () => {
+      driver.close();
       done();
     };
-
-    const session = driver.session();
-    session.run('RETURN 1').then(() => {
-      session.close();
-      driver.close();
-    });
   });
 
   it('config max retry time example', done => {
@@ -123,14 +118,9 @@ describe('examples', () => {
     // end::config-max-retry-time[]
 
     driver.onCompleted = () => {
+      driver.close();
       done();
     };
-
-    const session = driver.session();
-    session.run('RETURN 1').then(() => {
-      session.close();
-      driver.close();
-    });
   });
 
   it('config trust example', done => {
@@ -144,19 +134,9 @@ describe('examples', () => {
     // end::config-trust[]
 
     driver.onCompleted = () => {
+      driver.close();
       done();
     };
-
-    driver.onError = error => {
-      console.log(error);
-    };
-
-    const session = driver.session();
-    session.run('RETURN 1').then(() => {
-      session.close();
-      driver.close();
-    }).catch(error => {
-    });
   });
 
   it('config unencrypted example', done => {
@@ -169,14 +149,9 @@ describe('examples', () => {
     // end::config-unencrypted[]
 
     driver.onCompleted = () => {
+      driver.close();
       done();
     };
-
-    const session = driver.session();
-    session.run('RETURN 1').then(() => {
-      session.close();
-      driver.close();
-    });
   });
 
   it('custom auth example', done => {
@@ -191,14 +166,9 @@ describe('examples', () => {
     // end::custom-auth[]
 
     driver.onCompleted = () => {
+      driver.close();
       done();
     };
-
-    const session = driver.session();
-    session.run('RETURN 1').then(() => {
-      session.close();
-      driver.close();
-    });
   });
 
   it('kerberos auth example', () => {
@@ -239,7 +209,7 @@ describe('examples', () => {
     // tag::driver-lifecycle[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
 
-    driver.onCompleted = metadata => {
+    driver.onCompleted = () => {
       console.log('Driver created');
     };
 

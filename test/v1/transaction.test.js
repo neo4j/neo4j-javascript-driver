@@ -18,12 +18,13 @@
  */
 import neo4j from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
+import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
 
 describe('transaction', () => {
 
   let driver;
   let session;
-  let server;
+  let serverVersion;
   let originalTimeout;
 
   beforeEach(done => {
@@ -32,12 +33,12 @@ describe('transaction', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000;
 
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
-    driver.onCompleted = meta => {
-      server = meta['server'];
-    };
     session = driver.session();
 
-    session.run("MATCH (n) DETACH DELETE n").then(done);
+    session.run('MATCH (n) DETACH DELETE n').then(result => {
+      serverVersion = ServerVersion.fromString(result.summary.server.version);
+      done();
+    });
   });
 
   afterEach(() => {
@@ -518,10 +519,7 @@ describe('transaction', () => {
   }
 
   function neo4jVersionOlderThan31(done) {
-    //lazy way of checking the version number
-    //if server has been set we know it is at least
-    //3.1 (todo actually parse the version string)
-    if (!server) {
+    if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
       done();
       return true;
     }

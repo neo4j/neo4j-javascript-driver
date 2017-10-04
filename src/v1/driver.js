@@ -24,6 +24,7 @@ import StreamObserver from './internal/stream-observer';
 import {newError, SERVICE_UNAVAILABLE} from './error';
 import {DirectConnectionProvider} from './internal/connection-providers';
 import Bookmark from './internal/bookmark';
+import ConnectivityVerifier from './internal/connectivity-verifier';
 
 const READ = 'READ', WRITE = 'WRITE';
 /**
@@ -72,6 +73,21 @@ class Driver {
      * @protected
      */
     this._connectionProvider = null;
+
+    this._onCompleted = null;
+  }
+
+  get onCompleted() {
+    return this._onCompleted;
+  }
+
+  set onCompleted(callback) {
+    this._onCompleted = callback;
+    if (this._onCompleted) {
+      const connectionProvider = this._getOrCreateConnectionProvider();
+      const connectivityVerifier = new ConnectivityVerifier(connectionProvider, this._onCompleted);
+      connectivityVerifier.verify();
+    }
   }
 
   /**
@@ -217,16 +233,6 @@ class _ConnectionStreamObserver extends StreamObserver {
         this._driver.onError(error);
       }
       this._hasFailed = true;
-    }
-  }
-
-  onCompleted(message) {
-    if (this._driver.onCompleted) {
-      this._driver.onCompleted(message);
-    }
-
-    if (this._observer && this._observer.onComplete) {
-      this._observer.onCompleted(message);
     }
   }
 }
