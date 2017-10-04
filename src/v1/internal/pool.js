@@ -36,7 +36,6 @@ class Pool {
     this._create = create;
     this._destroy = destroy;
     this._validate = validate;
-    this._maxIdleSize = config.maxIdleSize;
     this._maxSize = config.maxSize;
     this._acquisitionTimeout = config.acquisitionTimeout;
     this._pools = {};
@@ -150,7 +149,7 @@ class Pool {
 
     if (pool) {
       // there exist idle connections for the given key
-      if (pool.length >= this._maxIdleSize || !this._validate(resource)) {
+      if (!this._validate(resource)) {
         this._destroy(resource);
       } else {
         pool.push(resource);

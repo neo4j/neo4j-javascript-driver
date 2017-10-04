@@ -104,42 +104,6 @@ describe('Pool', () => {
     });
   });
 
-  it('frees if pool reaches max size', (done) => {
-    // Given a pool that tracks destroyed resources
-    let counter = 0;
-    let destroyed = [];
-    const key = 'bolt://localhost:7687';
-    const pool = new Pool(
-      (url, release) => new Resource(url, counter++, release),
-      resource => {
-        destroyed.push(resource);
-      },
-      resource => true,
-      new PoolConfig(2, 100, 60000)
-    );
-
-    // When
-    const p0 = pool.acquire(key);
-    const p1 = pool.acquire(key);
-    const p2 = pool.acquire(key);
-
-    // Then
-    Promise.all([ p0, p1, p2 ]).then(values => {
-      const r0 = values[0];
-      const r1 = values[1];
-      const r2 = values[2];
-
-      r0.close();
-      r1.close();
-      r2.close();
-
-      expect(destroyed.length).toBe(1);
-      expect(destroyed[0].id).toBe(r2.id);
-
-      done();
-    });
-  });
-
   it('frees if validate returns false', (done) => {
     // Given a pool that allocates
     let counter = 0;
@@ -151,7 +115,7 @@ describe('Pool', () => {
         destroyed.push(resource);
       },
       resource => false,
-      new PoolConfig(1000, 1000, 60000)
+      new PoolConfig(1000, 60000)
     );
 
     // When
@@ -437,7 +401,7 @@ describe('Pool', () => {
         (url, release) => new Resource(url, counter++, release),
         resource => {},
         resource => true,
-      new PoolConfig(2, 2, 5000)
+      new PoolConfig(2, 5000)
     );
 
     const p0 = pool.acquire(key);
@@ -467,7 +431,7 @@ describe('Pool', () => {
         (url, release) => new Resource(url, counter++, release),
         resource => {},
         resource => true,
-      new PoolConfig(2, 2, 1000)
+      new PoolConfig(2, 1000)
     );
 
     const p0 = pool.acquire(key);
