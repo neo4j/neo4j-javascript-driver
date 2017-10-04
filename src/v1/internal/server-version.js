@@ -91,10 +91,12 @@ function compareInts(x, y) {
   return (x < y) ? -1 : ((x === y) ? 0 : 1);
 }
 
+const VERSION_3_1_0 = new ServerVersion(3, 1, 0);
 const VERSION_3_2_0 = new ServerVersion(3, 2, 0);
 
 export {
   ServerVersion,
+  VERSION_3_1_0,
   VERSION_3_2_0
 };
 

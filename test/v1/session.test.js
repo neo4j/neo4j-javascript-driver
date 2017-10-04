@@ -25,24 +25,25 @@ import {SingleConnectionProvider} from '../../src/v1/internal/connection-provide
 import FakeConnection from '../internal/fake-connection';
 import sharedNeo4j from '../internal/shared-neo4j';
 import _ from 'lodash';
+import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
 
 describe('session', () => {
 
   let driver;
   let session;
-  let serverMetadata;
+  let serverVersion;
   let originalTimeout;
 
   beforeEach(done => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
-    driver.onCompleted = meta => {
-      serverMetadata = meta['server'];
-    };
     session = driver.session();
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
-    session.run('MATCH (n) DETACH DELETE n').then(done);
+    session.run('MATCH (n) DETACH DELETE n').then(result => {
+      serverVersion = ServerVersion.fromString(result.summary.server.version);
+      done();
+    });
   });
 
   afterEach(() => {
@@ -1039,9 +1040,7 @@ describe('session', () => {
   });
 
   function serverIs31OrLater(done) {
-    // lazy way of checking the version number
-    // if server has been set we know it is at least 3.1
-    if (!serverMetadata) {
+    if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
       done();
       return false;
     }
