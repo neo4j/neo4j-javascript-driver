@@ -110,4 +110,16 @@ describe('ChannelConfig', () => {
     expect(config.connectionErrorCode).toEqual(SERVICE_UNAVAILABLE);
   });
 
+  it('should have connection timeout by default', () => {
+    const config = new ChannelConfig('', 42, {}, '');
+
+    expect(config.connectionTimeout).toEqual(5000);
+  });
+
+  it('should respect configured connection timeout', () => {
+    const config = new ChannelConfig('', 42, {connectionTimeout: 424242}, '');
+
+    expect(config.connectionTimeout).toEqual(424242);
+  });
+
 });

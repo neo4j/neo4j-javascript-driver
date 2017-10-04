@@ -48,6 +48,7 @@ declare interface Config {
   maxTransactionRetryTime?: number;
   loadBalancingStrategy?: LoadBalancingStrategy;
   maxConnectionLifetime?: number;
+  connectionTimeout?: number;
 }
 
 declare type SessionMode = "READ" | "WRITE";
