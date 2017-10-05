@@ -17,27 +17,25 @@
  * limitations under the License.
  */
 
-import { newError } from "../error";
-import { promiseOrTimeout } from "./util";
+import {promiseOrTimeout} from './util';
+import PoolConfig from './pool-config';
 
 class Pool {
   /**
-   * @param create  an allocation function that creates a new resource. It's given
+   * @param {function} create  an allocation function that creates a new resource. It's given
    *                a single argument, a function that will return the resource to
    *                the pool if invoked, which is meant to be called on .dispose
    *                or .close or whatever mechanism the resource uses to finalize.
-   * @param destroy called with the resource when it is evicted from this pool
-   * @param validate called at various times (like when an instance is acquired and
+   * @param {function} destroy called with the resource when it is evicted from this pool
+   * @param {function} validate called at various times (like when an instance is acquired and
    *                 when it is returned). If this returns false, the resource will
    *                 be evicted
-   * @param maxIdle the max number of resources that are allowed idle in the pool at
-   *                any time. If this threshold is exceeded, resources will be evicted.
+   * @param {PoolConfig} config configuration for the new driver.
    */
-  constructor(create, destroy=(()=>true), validate=(()=>true), config={}) {
+  constructor(create, destroy = (() => true), validate = (() => true), config = PoolConfig.defaultConfig()) {
     this._create = create;
     this._destroy = destroy;
     this._validate = validate;
-    this._maxIdleSize = config.maxIdleSize;
     this._maxSize = config.maxSize;
     this._acquisitionTimeout = config.acquisitionTimeout;
     this._pools = {};
@@ -151,7 +149,7 @@ class Pool {
 
     if (pool) {
       // there exist idle connections for the given key
-      if (pool.length >= this._maxIdleSize || !this._validate(resource)) {
+      if (!this._validate(resource)) {
         this._destroy(resource);
       } else {
         pool.push(resource);
