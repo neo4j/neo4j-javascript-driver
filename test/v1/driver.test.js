@@ -21,6 +21,7 @@ import neo4j from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
 import FakeConnection from '../internal/fake-connection';
 import lolex from 'lolex';
+import {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from '../../src/v1/internal/pool-config';
 
 describe('driver', () => {
 
@@ -191,13 +192,10 @@ describe('driver', () => {
     expect(() => neo4j.driver('bolt://localhost:7687/?policy=my_policy')).toThrow();
   });
 
-  it('should sanitize maxConnectionLifetime in the config', () => {
-    validateMaxConnectionLifetime({}, null);
-    validateMaxConnectionLifetime({maxConnectionLifetime: 42}, 42);
-    validateMaxConnectionLifetime({maxConnectionLifetime: 0}, null);
-    validateMaxConnectionLifetime({maxConnectionLifetime: '42'}, 42);
-    validateMaxConnectionLifetime({maxConnectionLifetime: '042'}, 42);
-    validateMaxConnectionLifetime({maxConnectionLifetime: -42}, null);
+  it('should sanitize pool setting values in the config', () => {
+    testConfigSanitizing('maxConnectionLifetime', 60 * 60 * 1000);
+    testConfigSanitizing('maxConnectionPoolSize', DEFAULT_MAX_SIZE);
+    testConfigSanitizing('connectionAcquisitionTimeout', DEFAULT_ACQUISITION_TIMEOUT);
   });
 
   it('should treat closed connections as invalid', () => {
@@ -321,10 +319,19 @@ describe('driver', () => {
     return neo4j.auth.basic('neo4j', 'who would use such a password');
   }
 
-  function validateMaxConnectionLifetime(config, expectedValue) {
+  function testConfigSanitizing(configProperty, defaultValue) {
+    validateConfigSanitizing({}, defaultValue);
+    validateConfigSanitizing({[configProperty]: 42}, 42);
+    validateConfigSanitizing({[configProperty]: 0}, 0);
+    validateConfigSanitizing({[configProperty]: '42'}, 42);
+    validateConfigSanitizing({[configProperty]: '042'}, 42);
+    validateConfigSanitizing({[configProperty]: -42}, Number.MAX_SAFE_INTEGER);
+  }
+
+  function validateConfigSanitizing(config, configProperty, expectedValue) {
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, config);
     try {
-      expect(driver._config.maxConnectionLifetime).toEqual(expectedValue);
+      expect(driver._config[configProperty]).toEqual(expectedValue);
     } finally {
       driver.close();
     }

@@ -107,6 +107,38 @@ describe('examples', () => {
     };
   });
 
+  it('config connection pool example', done => {
+    // tag::config-connection-pool[]
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
+      {
+        maxConnectionLifetime: 30*60*60,
+        maxConnectionPoolSize: 50,
+        connectionAcquisitionTimeout: 2*60
+      }
+    );
+    // end::config-connection-pool[]
+
+    driver.onCompleted = () => {
+      driver.close();
+      done();
+    };
+  });
+
+  it('config load balancing example', done => {
+    // tag::config-load-balancing-strategy[]
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
+      {
+        loadBalancingStrategy: "least_connected"
+      }
+    );
+    // end::config-load-balancing-strategy[]
+
+    driver.onCompleted = () => {
+      driver.close();
+      done();
+    };
+  });
+
   it('config max retry time example', done => {
     // tag::config-max-retry-time[]
     const maxRetryTimeMs = 15 * 1000; // 15 seconds

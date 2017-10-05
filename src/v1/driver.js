@@ -25,7 +25,9 @@ import {newError, SERVICE_UNAVAILABLE} from './error';
 import {DirectConnectionProvider} from './internal/connection-providers';
 import Bookmark from './internal/bookmark';
 import ConnectivityVerifier from './internal/connectivity-verifier';
-import PoolConfig from './internal/pool-config';
+import PoolConfig, {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from './internal/pool-config';
+
+const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
 
 const READ = 'READ', WRITE = 'WRITE';
 /**
@@ -115,14 +117,8 @@ class Driver {
     }
 
     const maxConnectionLifetime = this._config.maxConnectionLifetime;
-    if (maxConnectionLifetime) {
-      const lifetime = Date.now() - conn.creationTimestamp;
-      if (lifetime > maxConnectionLifetime) {
-        return false;
-      }
-    }
-
-    return true;
+    const lifetime = Date.now() - conn.creationTimestamp;
+    return lifetime <= maxConnectionLifetime;
   }
 
   /**
@@ -238,19 +234,20 @@ class _ConnectionStreamObserver extends StreamObserver {
  * @private
  */
 function sanitizeConfig(config) {
-  config.maxConnectionLifetime = sanitizeIntValue(config.maxConnectionLifetime);
-  config.maxConnectionPoolSize = sanitizeIntValue(config.maxConnectionPoolSize);
-  config.connectionAcquisitionTimeout = sanitizeIntValue(config.connectionAcquisitionTimeout);
+  config.maxConnectionLifetime = sanitizeIntValue(config.maxConnectionLifetime, DEFAULT_MAX_CONNECTION_LIFETIME);
+  config.maxConnectionPoolSize = sanitizeIntValue(config.maxConnectionPoolSize, DEFAULT_MAX_SIZE);
+  config.connectionAcquisitionTimeout = sanitizeIntValue(config.connectionAcquisitionTimeout, DEFAULT_ACQUISITION_TIMEOUT);
 }
 
-function sanitizeIntValue(value) {
-  if (value) {
-      const sanitizedValue = parseInt(value, 10);
-      if (sanitizedValue && sanitizedValue > 0) {
-        return sanitizedValue;
-      }
+function sanitizeIntValue(rawValue, defaultWhenAbsent) {
+  const sanitizedValue = parseInt(rawValue, 10);
+  if (sanitizedValue > 0 || sanitizedValue === 0) {
+    return sanitizedValue;
+  } else if (sanitizedValue < 0) {
+    return Number.MAX_SAFE_INTEGER;
+  } else {
+    return defaultWhenAbsent;
   }
-  return null;
 }
 
 export {Driver, READ, WRITE}

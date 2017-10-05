@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-const DEFAULT_MAX_SIZE = 50;
-const DEFAULT_ACQUISITION_TIMEOUT = 60000;
+const DEFAULT_MAX_SIZE = 100;
+const DEFAULT_ACQUISITION_TIMEOUT = 60 * 1000; // 60 seconds
 
 export default class PoolConfig {
 
