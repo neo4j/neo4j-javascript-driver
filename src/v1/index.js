@@ -111,7 +111,7 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // The max number of connections that are allowed idle in the pool at any time.
  *       // Connection will be destroyed if this threshold is exceeded.
  *       // <b>Deprecated:</b> please use <code>maxConnectionPoolSize</code> instead.
- *       connectionPoolSize: 50,
+ *       connectionPoolSize: 100,
  *
  *       // The maximum total number of connections allowed to be managed by the connection pool, per host.
  *       // This includes both in-use and idle connections. No maximum connection pool size is imposed
@@ -125,7 +125,7 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // to a slightly smaller value than the one configured in network equipment (load balancer, proxy, firewall,
  *       // etc. can also limit maximum connection lifetime). No maximum lifetime limit is imposed by default. Zero
  *       // and negative values result in lifetime not being checked.
- *       maxConnectionLifetime: 30 * 60 * 1000, // 30 minutes
+ *       maxConnectionLifetime: 60 * 60 * 1000, // 1 hour
  *
  *       // The maximum amount of time to wait to acquire a connection from the pool (to either create a new
  *       // connection or borrow an existing one.

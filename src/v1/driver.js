@@ -238,19 +238,19 @@ class _ConnectionStreamObserver extends StreamObserver {
  * @private
  */
 function sanitizeConfig(config) {
-  config.maxConnectionLifetime = sanitizeIntValue(config.maxConnectionLifetime);
+  config.maxConnectionLifetime = sanitizeIntValue(config.maxConnectionLifetime, 60*60*1000);
   config.maxConnectionPoolSize = sanitizeIntValue(config.maxConnectionPoolSize);
   config.connectionAcquisitionTimeout = sanitizeIntValue(config.connectionAcquisitionTimeout);
 }
 
-function sanitizeIntValue(value) {
+function sanitizeIntValue(value, defaultValue=null) {
   if (value) {
       const sanitizedValue = parseInt(value, 10);
       if (sanitizedValue && sanitizedValue > 0) {
         return sanitizedValue;
       }
   }
-  return null;
+  return defaultValue;
 }
 
 export {Driver, READ, WRITE}
