@@ -138,7 +138,9 @@ class Result {
       // notify connection holder that the used connection is not needed any more because error happened
       // and result can't bee consumed any further; call the original onError callback after that
       self._connectionHolder.releaseConnection().then(() => {
-        error.stack = error.stack + '\n' + this._stack;
+        // Error.prototype.toString() concatenates error.name and error.message nicely
+        // then we add the rest of the stack trace
+        error.stack = error.toString() + '\n' + this._stack;
         onErrorOriginal.call(observer, error);
       });
     };
