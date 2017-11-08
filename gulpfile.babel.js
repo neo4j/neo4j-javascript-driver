@@ -44,6 +44,7 @@ var file = require('gulp-file');
 var semver = require('semver');
 var sharedNeo4j = require('./test/internal/shared-neo4j').default;
 var ts = require('gulp-typescript');
+var JasmineConsoleReporter = require('jasmine-console-reporter');
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
@@ -166,7 +167,7 @@ gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
   return gulp.src('test/**/*.test.js')
     .pipe(jasmine({
       includeStackTrace: true,
-      verbose: true
+      reporter: newJasmineConsoleReporter()
     })).on('end', logActiveNodeHandles);
 });
 
@@ -177,7 +178,7 @@ gulp.task('test-browser', function (cb) {
 gulp.task('run-browser-test', function(){
   return gulp.src('lib/browser/neo4j-web.test.js')
     .pipe(jasmineBrowser.specRunner({console: true}))
-    .pipe(jasmineBrowser.headless())
+    .pipe(jasmineBrowser.headless({reporter: newJasmineConsoleReporter()}))
 });
 
 gulp.task('watch', function () {
@@ -241,7 +242,7 @@ gulp.task('run-stress-tests', function () {
   return gulp.src('test/**/stress.test.js')
     .pipe(jasmine({
       includeStackTrace: true,
-      verbose: true
+      reporter: newJasmineConsoleReporter()
     })).on('end', logActiveNodeHandles);
 });
 
@@ -272,4 +273,14 @@ function logActiveNodeHandles() {
   if (enableActiveNodeHandlesLogging) {
     console.log('-- Active NodeJS handles START\n', process._getActiveHandles(), '\n-- Active NodeJS handles END');
   }
+}
+
+function newJasmineConsoleReporter() {
+  return new JasmineConsoleReporter({
+    colors: 1,
+    cleanStack: 1,
+    verbosity: 4,
+    listStyle: 'indent',
+    activity: false
+  });
 }
