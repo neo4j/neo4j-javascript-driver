@@ -72,4 +72,27 @@ describe('result stream', () => {
       }
     });
   });
+
+  it('should have a stack trace that contains code outside the driver calls', done => {
+    // Given
+    const fn_a = cb => fn_b(cb);
+    const fn_b = cb => fn_c(cb);
+    const fn_c = cb => session.run('RETURN 1/0 AS x').catch(cb);
+
+    // When
+    fn_a(err => {
+      const stack = err.stack;
+
+      // Then
+      const contains_fn_a = /at fn_a \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
+      const contains_fn_b = /at fn_b \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
+      const contains_fn_c = /at fn_c \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
+
+      expect(contains_fn_a).toBeTruthy();
+      expect(contains_fn_b).toBeTruthy();
+      expect(contains_fn_c).toBeTruthy();
+
+      done();
+    });
+  });
 });
