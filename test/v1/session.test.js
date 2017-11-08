@@ -38,7 +38,7 @@ describe('session', () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
     session = driver.session();
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
 
     session.run('MATCH (n) DETACH DELETE n').then(result => {
       serverVersion = ServerVersion.fromString(result.summary.server.version);
