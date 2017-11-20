@@ -48,7 +48,7 @@ We build a special browser version of the driver, which supports connecting to N
 This will make a global `neo4j` object available, where you can access the `v1` API at `neo4j.v1`:
 
 ```javascript
-var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
+var driver = neo4j.v1.driver("bolt://localhost", neo4j.v1.auth.basic("neo4j", "neo4j"));
 ```
 
 It is not required to explicitly close the driver on a web page. Web browser should gracefully close all open 
