@@ -74,6 +74,11 @@ describe('result stream', () => {
   });
 
   it('should have a stack trace that contains code outside the driver calls', done => {
+    if (!new Error('').stack) {
+      done();
+      return;
+    }
+
     // Given
     const fn_a = cb => fn_b(cb);
     const fn_b = cb => fn_c(cb);
