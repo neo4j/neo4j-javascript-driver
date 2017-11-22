@@ -23,6 +23,17 @@ import boltStub from '../internal/bolt-stub';
 
 describe('direct driver with stub server', () => {
 
+  let originalTimeout;
+
+  beforeAll(() => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+  });
+
+  afterAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+
   it('should run query', done => {
     if (!boltStub.supported) {
       done();
