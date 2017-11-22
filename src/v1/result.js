@@ -45,7 +45,7 @@ class Result {
    * @param {ConnectionHolder} connectionHolder - to be notified when result is either fully consumed or error happened.
    */
   constructor(streamObserver, statement, parameters, metaSupplier, connectionHolder) {
-    this._stack = (new Error('')).stack.substr(6); // we don't need the 'Error\n' part
+    this._stack = captureStacktrace();
     this._streamObserver = streamObserver;
     this._p = null;
     this._statement = statement;
@@ -138,9 +138,7 @@ class Result {
       // notify connection holder that the used connection is not needed any more because error happened
       // and result can't bee consumed any further; call the original onError callback after that
       self._connectionHolder.releaseConnection().then(() => {
-        // Error.prototype.toString() concatenates error.name and error.message nicely
-        // then we add the rest of the stack trace
-        error.stack = error.toString() + '\n' + this._stack;
+        replaceStacktrace(error, this._stack);
         onErrorOriginal.call(observer, error);
       });
     };
@@ -150,4 +148,20 @@ class Result {
   }
 }
 
-export default Result
+function captureStacktrace() {
+  const error = new Error('');
+  if (error.stack) {
+    return error.stack.substr(6); // we don't need the 'Error\n' part
+  }
+  return null;
+}
+
+function replaceStacktrace(error, newStack) {
+  if (newStack) {
+    // Error.prototype.toString() concatenates error.name and error.message nicely
+    // then we add the rest of the stack trace
+    error.stack = error.toString() + '\n' + newStack;
+  }
+}
+
+export default Result;
