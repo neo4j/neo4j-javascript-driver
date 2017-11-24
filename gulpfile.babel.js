@@ -177,7 +177,7 @@ gulp.task('test-browser', function (cb) {
 
 gulp.task('run-browser-test', function(cb){
   new karmaServer({
-    configFile: __dirname + '/test/browser/karma-chrome.conf.js',
+    configFile: __dirname + '/test/browser/karma-firefox.conf.js',
   }, cb).start();
 });
 
