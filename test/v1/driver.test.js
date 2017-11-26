@@ -65,7 +65,7 @@ describe('driver', () => {
 
     // When
     startNewTransaction(driver);
-  });
+  }, 10000);
 
   it('should handle wrong scheme', () => {
     expect(() => neo4j.driver("tank://localhost", sharedNeo4j.authToken))
