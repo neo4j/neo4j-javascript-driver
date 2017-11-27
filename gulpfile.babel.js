@@ -176,8 +176,24 @@ gulp.task('test-browser', function (cb) {
 });
 
 gulp.task('run-browser-test', function(cb){
+  runSequence('run-browser-test-firefox', cb);
+});
+
+gulp.task('run-browser-test-chrome', function(cb){
+  new karmaServer({
+    configFile: __dirname + '/test/browser/karma-chrome.conf.js',
+  }, cb).start();
+});
+
+gulp.task('run-browser-test-firefox', function(cb){
   new karmaServer({
     configFile: __dirname + '/test/browser/karma-firefox.conf.js',
+  }, cb).start();
+});
+
+gulp.task('run-browser-edge', function(cb){
+  new karmaServer({
+    configFile: __dirname + '/test/browser/karma-edge.conf.js',
   }, cb).start();
 });
 
