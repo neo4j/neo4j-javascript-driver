@@ -191,7 +191,7 @@ gulp.task('run-browser-test-firefox', function(cb){
   }, cb).start();
 });
 
-gulp.task('run-browser-edge', function(cb){
+gulp.task('run-browser-test-edge', function(cb){
   new karmaServer({
     configFile: __dirname + '/test/browser/karma-edge.conf.js',
   }, cb).start();
