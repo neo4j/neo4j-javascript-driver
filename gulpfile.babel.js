@@ -26,7 +26,6 @@ var uglify = require('gulp-uglify');
 var gutil = require('gulp-util');
 var download = require("gulp-download");
 var jasmine = require('gulp-jasmine');
-var jasmineBrowser = require('gulp-jasmine-browser');
 var babelify = require('babelify');
 var babel = require('gulp-babel');
 var watch = require('gulp-watch');
@@ -45,6 +44,7 @@ var semver = require('semver');
 var sharedNeo4j = require('./test/internal/shared-neo4j').default;
 var ts = require('gulp-typescript');
 var JasmineConsoleReporter = require('jasmine-console-reporter');
+var karmaServer = require('karma').Server;
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
@@ -175,10 +175,26 @@ gulp.task('test-browser', function (cb) {
   runSequence('all', 'run-browser-test', cb)
 });
 
-gulp.task('run-browser-test', function(){
-  return gulp.src('lib/browser/neo4j-web.test.js')
-    .pipe(jasmineBrowser.specRunner({console: true}))
-    .pipe(jasmineBrowser.headless({reporter: newJasmineConsoleReporter()}))
+gulp.task('run-browser-test', function(cb){
+  runSequence('run-browser-test-firefox', cb);
+});
+
+gulp.task('run-browser-test-chrome', function(cb){
+  new karmaServer({
+    configFile: __dirname + '/test/browser/karma-chrome.conf.js',
+  }, cb).start();
+});
+
+gulp.task('run-browser-test-firefox', function(cb){
+  new karmaServer({
+    configFile: __dirname + '/test/browser/karma-firefox.conf.js',
+  }, cb).start();
+});
+
+gulp.task('run-browser-test-edge', function(cb){
+  new karmaServer({
+    configFile: __dirname + '/test/browser/karma-edge.conf.js',
+  }, cb).start();
 });
 
 gulp.task('watch', function () {

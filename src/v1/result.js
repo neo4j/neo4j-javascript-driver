@@ -151,7 +151,7 @@ class Result {
 function captureStacktrace() {
   const error = new Error('');
   if (error.stack) {
-    return error.stack.substr(6); // we don't need the 'Error\n' part
+    return error.stack.replace(/^Error(\n\r)*/, ''); // we don't need the 'Error\n' part, if only it exists
   }
   return null;
 }

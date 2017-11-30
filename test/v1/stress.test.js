@@ -30,12 +30,12 @@ describe('stress tests', () => {
     fast: {
       commandsCount: 5000,
       parallelism: 8,
-      maxRunTimeMs: 180000 // 3 minutes
+      maxRunTimeMs: 10 * 60000 // 10 minutes
     },
     extended: {
       commandsCount: 2000000,
       parallelism: 16,
-      maxRunTimeMs: 3600000 // 60 minutes
+      maxRunTimeMs: 60 * 60000 // 60 minutes
     }
   };
 
@@ -50,17 +50,12 @@ describe('stress tests', () => {
   let driver;
 
   beforeEach(done => {
-    originalJasmineTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs;
-
     driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken);
 
     cleanupDb(driver).then(() => done());
   });
 
   afterEach(done => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalJasmineTimeout;
-
     cleanupDb(driver).then(() => {
       driver.close();
       done();
@@ -84,7 +79,7 @@ describe('stress tests', () => {
         .then(() => done())
         .catch(error => done.fail(error));
     });
-  });
+  }, TEST_MODE.maxRunTimeMs);
 
   function createCommands(context) {
     const uniqueCommands = createUniqueCommands(context);
