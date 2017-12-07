@@ -90,10 +90,13 @@ function asStringArray(value) {
     const result = [];
     for (let i = 0; i < value.length; i++) {
       const element = value[i];
-      if (!util.isString(element)) {
-        throw new TypeError(`Bookmark should be a string, given: '${element}'`);
+      // if it is undefined or null, ignore it
+      if (element !== undefined && element !== null) {
+        if (!util.isString(element)) {
+          throw new TypeError(`Bookmark should be a string, given: '${element}'`);
+        }
+        result.push(element);
       }
-      result.push(element);
     }
     return result;
   }
