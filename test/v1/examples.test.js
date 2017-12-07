@@ -556,14 +556,14 @@ describe('examples', () => {
     }
 
     // To collect the session bookmarks
-    let savedBookmarks = [];
+    const savedBookmarks = [];
 
     // Create the first person and employment relationship.
     const session1 = driver.session(neo4j.WRITE);
     const first = session1.writeTransaction(tx => addCompany(tx, 'Wayne Enterprises')).then(
-      ignore => session1.writeTransaction(tx => addPerson(tx, 'Alice'))).then(
-      ignore => session1.writeTransaction(tx => addEmployee(tx, 'Alice', 'Wayne Enterprises'))).then(
-      ignore => {
+      () => session1.writeTransaction(tx => addPerson(tx, 'Alice'))).then(
+      () => session1.writeTransaction(tx => addEmployee(tx, 'Alice', 'Wayne Enterprises'))).then(
+      () => {
         savedBookmarks.push(session1.lastBookmark());
 
         return session1.close();
@@ -572,9 +572,9 @@ describe('examples', () => {
     // Create the second person and employment relationship.
     const session2 = driver.session(neo4j.WRITE);
     const second = session2.writeTransaction(tx => addCompany(tx, 'LexCorp')).then(
-      ignore => session2.writeTransaction(tx => addPerson(tx, 'Bob'))).then(
-      ignore => session2.writeTransaction(tx => addEmployee(tx, 'Bob', 'LexCorp'))).then(
-      ignore => {
+      () => session2.writeTransaction(tx => addPerson(tx, 'Bob'))).then(
+      () => session2.writeTransaction(tx => addEmployee(tx, 'Bob', 'LexCorp'))).then(
+      () => {
         savedBookmarks.push(session2.lastBookmark());
 
         return session2.close();
@@ -585,14 +585,14 @@ describe('examples', () => {
       const session3 = driver.session(neo4j.WRITE, savedBookmarks);
 
       return session3.writeTransaction(tx => makeFriends(tx, 'Alice', 'Bob')).then(
-        ignore => session3.readTransaction(findFriendships).then(
-          ignore => session3.close()
+        () => session3.readTransaction(findFriendships).then(
+          () => session3.close()
         )
       );
     });
     // end::pass-bookmarks[]
 
-    last.then(ignore => {
+    last.then(() => {
       expect(friends.length).toBe(1);
       expect(friends[0].name1).toBe('Alice');
       expect(friends[0].name2).toBe('Bob');
