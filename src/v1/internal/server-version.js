@@ -20,6 +20,7 @@
 import {assertString} from './util';
 
 const SERVER_VERSION_REGEX = new RegExp('^(Neo4j/)?(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?$');
+const NEO4J_IN_DEV_VERSION_STRING = 'Neo4j/dev';
 
 class ServerVersion {
 
@@ -47,6 +48,10 @@ class ServerVersion {
     }
 
     assertString(versionStr, 'Neo4j version string');
+
+    if (versionStr.toLowerCase() === NEO4J_IN_DEV_VERSION_STRING.toLowerCase()) {
+      return VERSION_IN_DEV;
+    }
 
     const version = versionStr.match(SERVER_VERSION_REGEX);
     if (!version) {
@@ -80,7 +85,7 @@ class ServerVersion {
 }
 
 function parseIntStrict(str, name) {
-  const value = parseInt(str);
+  const value = parseInt(str, 10);
   if (!value && value !== 0) {
     throw new Error(`Unparsable number ${name}: '${str}'`);
   }
@@ -93,11 +98,13 @@ function compareInts(x, y) {
 
 const VERSION_3_1_0 = new ServerVersion(3, 1, 0);
 const VERSION_3_2_0 = new ServerVersion(3, 2, 0);
+const VERSION_IN_DEV = new ServerVersion(0, 0, 0);
 
 export {
   ServerVersion,
   VERSION_3_1_0,
-  VERSION_3_2_0
+  VERSION_3_2_0,
+  VERSION_IN_DEV
 };
 
 
