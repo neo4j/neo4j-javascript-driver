@@ -204,6 +204,47 @@ describe('util', () => {
     });
   });
 
+  it('should not trigger both promise and timeout', done => {
+    const timeout = 500;
+
+    let timeoutFired = false;
+    let result = null;
+    let error = null;
+
+    const resultPromise = util.promiseOrTimeout(
+      timeout,
+      new Promise(resolve => {
+        setTimeout(() => {
+          resolve(42);
+        }, timeout);
+      }),
+      () => {
+        timeoutFired = true;
+      }
+    );
+
+    resultPromise.then(r => {
+      result = r;
+    }).catch(e => {
+      error = e;
+    });
+
+    setTimeout(() => {
+      if (timeoutFired) {
+        // timeout fired - result should not be set, error should be set
+        expect(result).toBeNull();
+        expect(error).not.toBeNull();
+        expect(error.message).toEqual(`Operation timed out in ${timeout} ms.`);
+        done();
+      } else {
+        // timeout did not fire - result should be set, error should not be set
+        expect(result).toEqual(42);
+        expect(error).toBeNull();
+        done();
+      }
+    }, timeout * 2);
+  });
+
   function verifyValidString(str) {
     expect(util.assertString(str, 'Test string')).toBe(str);
   }
