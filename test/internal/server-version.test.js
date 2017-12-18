@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {ServerVersion, VERSION_3_2_0} from '../../src/v1/internal/server-version';
+import {ServerVersion, VERSION_3_2_0, VERSION_IN_DEV} from '../../src/v1/internal/server-version';
 
 describe('ServerVersion', () => {
 
@@ -74,6 +74,10 @@ describe('ServerVersion', () => {
     verifyVersion(parse('Neo4j/3.0-RC01'), 3, 0, 0);
     verifyVersion(parse('Neo4j/2.3-SNAPSHOT'), 2, 3, 0);
     verifyVersion(parse('Neo4j/2.2-M09'), 2, 2, 0);
+
+    verifyVersion(parse('Neo4j/dev'), 0, 0, 0);
+    verifyVersion(parse('Neo4j/DEV'), 0, 0, 0);
+    verifyVersion(parse('Neo4j/Dev'), 0, 0, 0);
   });
 
   it('should compare equal versions', () => {
@@ -103,6 +107,12 @@ describe('ServerVersion', () => {
     expect(new ServerVersion(1, 8, 2).compareTo(new ServerVersion(1, 8, 8))).toBeLessThan(0);
     expect(new ServerVersion(9, 9, 9).compareTo(new ServerVersion(9, 9, 0))).toBeGreaterThan(0);
     expect(new ServerVersion(3, 3, 3).compareTo(new ServerVersion(3, 3, 42))).toBeLessThan(0);
+  });
+
+  it('should compare dev version', () => {
+    expect(new ServerVersion(3, 1, 0).compareTo(VERSION_IN_DEV)).toBeGreaterThan(0);
+    expect(new ServerVersion(3, 3, 6).compareTo(VERSION_IN_DEV)).toBeGreaterThan(0);
+    expect(new ServerVersion(2, 3, 0).compareTo(VERSION_IN_DEV)).toBeGreaterThan(0);
   });
 
 });
