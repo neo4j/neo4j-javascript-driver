@@ -43,7 +43,7 @@ const rel2Props: object = rel2.properties;
 
 const pathSegment1: PathSegment = new PathSegment(node1, rel1, node1);
 const pathSegment1Start: Node = pathSegment1.start;
-const pathSegment1Rel: Relationship = pathSegment1.rel;
+const pathSegment1Rel: Relationship = pathSegment1.relationship;
 const pathSegment1End: Node = pathSegment1.end;
 
 const path1: Path = new Path(node1, node1, [pathSegment1]);

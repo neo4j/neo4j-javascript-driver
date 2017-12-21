@@ -63,7 +63,7 @@ declare class UnboundRelationship {
 
 declare class PathSegment {
   start: Node;
-  rel: Relationship;
+  relationship: Relationship;
   end: Node;
 
   constructor(start: Node,
