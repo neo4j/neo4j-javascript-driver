@@ -162,10 +162,10 @@ class Pool {
     // check if there are any pending requests
     const requests = this._acquireRequests[key];
     if (requests) {
-      var pending = requests.shift();
+      const pending = requests.shift();
 
       if (pending) {
-        var resource = this._acquire(key);
+        const resource = this._acquire(key);
         if (resource) {
           pending.resolve(resource);
 
