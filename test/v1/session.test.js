@@ -26,6 +26,7 @@ import FakeConnection from '../internal/fake-connection';
 import sharedNeo4j from '../internal/shared-neo4j';
 import _ from 'lodash';
 import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
+import {isString} from '../../src/v1/internal/util';
 
 describe('session', () => {
 
@@ -291,7 +292,7 @@ describe('session', () => {
         expect(sum.hasPlan()).toBe(true);
         expect(sum.hasProfile()).toBe(false);
         expect(sum.plan.operatorType).toBe('ProduceResults');
-        expect(sum.plan.arguments.runtime).toBe('INTERPRETED');
+        expect(isString(sum.plan.arguments.runtime)).toBeTruthy();
         expect(sum.plan.identifiers[0]).toBe('n');
         expect(sum.plan.children[0].operatorType).toBe('CreateNode');
         done();
@@ -310,7 +311,7 @@ describe('session', () => {
         expect(sum.hasPlan()).toBe(true); //When there's a profile, there's a plan
         expect(sum.hasProfile()).toBe(true);
         expect(sum.profile.operatorType).toBe('ProduceResults');
-        expect(['INTERPRETED', 'COMPILED']).toContain(sum.profile.arguments.runtime);
+        expect(isString(sum.profile.arguments.runtime)).toBeTruthy();
         expect(sum.profile.identifiers[0]).toBe('n');
         expect(sum.profile.children[0].operatorType).toBe('Filter');
         expect(sum.profile.rows).toBe(0);
