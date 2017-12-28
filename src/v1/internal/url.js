@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import ParsedUrl from 'url-parse';
+
 class Url {
 
   constructor(scheme, host, port, query) {
@@ -46,156 +48,54 @@ class Url {
   }
 }
 
-class UrlParser {
+function parse(url) {
+  const sanitized = sanitizeUrl(url);
+  const parsedUrl = new ParsedUrl(sanitized.url, {}, query => extractQuery(query, url));
 
-  parse(url) {
-    throw new Error('Abstract function');
-  }
+  const scheme = sanitized.schemeMissing ? null : extractScheme(parsedUrl.protocol);
+  const host = extractHost(parsedUrl.hostname);
+  const port = extractPort(parsedUrl.port);
+  const query = parsedUrl.query;
+
+  return new Url(scheme, host, port, query);
 }
 
-class NodeUrlParser extends UrlParser {
+function sanitizeUrl(url) {
+  url = url.trim();
 
-  constructor() {
-    super();
-    this._url = require('url');
+  if (url.indexOf('://') === -1) {
+    // url does not contain scheme, add dummy 'http://' to make parser work correctly
+    return {schemeMissing: true, url: `http://${url}`};
   }
 
-  static isAvailable() {
-    try {
-      const parseFunction = require('url').parse;
-      if (parseFunction && typeof parseFunction === 'function') {
-        return true;
-      }
-    } catch (e) {
-    }
-    return false;
-  }
-
-  parse(url) {
-    url = url.trim();
-
-    let schemeMissing = false;
-    if (url.indexOf('://') === -1) {
-      // url does not contain scheme, add dummy 'http://' to make parser work correctly
-      schemeMissing = true;
-      url = `http://${url}`;
-    }
-
-    const parsed = this._url.parse(url);
-
-    const scheme = schemeMissing ? null : NodeUrlParser.extractScheme(parsed);
-    const host = NodeUrlParser.extractHost(url, parsed);
-    const port = extractPort(parsed.port);
-    const query = extractQuery(parsed.search, url);
-
-    return new Url(scheme, host, port, query);
-  }
-
-  static extractScheme(parsedUrl) {
-    try {
-      const protocol = parsedUrl.protocol; // results in scheme with ':', like 'bolt:', 'http:'...
-      return protocol.substring(0, protocol.length - 1); // remove the trailing ':'
-    } catch (e) {
-      return null;
-    }
-  }
-
-  static extractHost(originalUrl, parsedUrl) {
-    const hostname = parsedUrl.hostname; // results in host name or IP address, square brackets removed for IPv6
-    const host = parsedUrl.host || ''; // results in hostname + port, like: 'localhost:7687', '[::1]:7687',...; includes square brackets for IPv6
-
-    if (!hostname) {
-      throw new Error(`Unable to parse host name in ${originalUrl}`);
-    }
-
-    if (!startsWith(hostname, '[') && startsWith(host, '[')) {
-      // looks like an IPv6 address, add square brackets to the host name
-      return `[${hostname}]`;
-    }
-    return hostname;
-  }
+  return {schemeMissing: false, url: url};
 }
 
-class BrowserUrlParser extends UrlParser {
-
-  constructor() {
-    super();
-  }
-
-  static isAvailable() {
-    return document && typeof document === 'object';
-  }
-
-
-  parse(url) {
-    const urlAndScheme = BrowserUrlParser.sanitizeUrlAndExtractScheme(url);
-
-    url = urlAndScheme.url;
-
-    const parsed = document.createElement('a');
-    parsed.href = url;
-
-    const scheme = urlAndScheme.scheme;
-    const host = BrowserUrlParser.extractHost(url, parsed);
-    const port = extractPort(parsed.port);
-    const query = extractQuery(parsed.search, url);
-
-    return new Url(scheme, host, port, query);
-  }
-
-  static sanitizeUrlAndExtractScheme(url) {
-    url = url.trim();
-
-    let schemeMissing = false;
-    if (url.indexOf('://') === -1) {
-      // url does not contain scheme, add dummy 'http://' to make parser work correctly
-      schemeMissing = true;
-      url = `http://${url}`;
+function extractScheme(scheme) {
+  if (scheme) {
+    scheme = scheme.trim();
+    if (scheme.charAt(scheme.length - 1) === ':') {
+      scheme = scheme.substring(0, scheme.length - 1);
     }
-
-    const schemeAndRestSplit = url.split('://');
-    if (schemeAndRestSplit.length !== 2) {
-      throw new Error(`Unable to extract scheme from ${url}`);
-    }
-
-    const splitScheme = schemeAndRestSplit[0];
-    const splitRest = schemeAndRestSplit[1];
-
-    if (!splitScheme) {
-      // url probably looks like '://localhost:7687', add dummy 'http://' to make parser work correctly
-      schemeMissing = true;
-      url = `http://${url}`;
-    } else if (splitScheme !== 'http') {
-      // parser does not seem to work with schemes other than 'http' and 'https', add dummy 'http'
-      url = `http://${splitRest}`;
-    }
-
-    const scheme = schemeMissing ? null : splitScheme;
-    return {scheme: scheme, url: url};
-  }
-
-  static extractHost(originalUrl, parsedUrl) {
-    const hostname = parsedUrl.hostname; // results in host name or IP address, IPv6 address always in square brackets
-    if (!hostname) {
-      throw new Error(`Unable to parse host name in ${originalUrl}`);
-    }
-    return hostname;
-  }
-}
-
-function extractPort(portString) {
-  try {
-    const port = parseInt(portString, 10);
-    if (port) {
-      return port;
-    }
-  } catch (e) {
+    return scheme;
   }
   return null;
 }
 
+function extractHost(host, url) {
+  if (!host) {
+    throw new Error(`Unable to extract host from ${url}`);
+  }
+  return host.trim();
+}
+
+function extractPort(portString) {
+  const port = parseInt(portString, 10);
+  return port ? port : null;
+}
+
 function extractQuery(queryString, url) {
-  const query = trimAndSanitizeQueryString(queryString);
+  const query = trimAndSanitizeQuery(queryString);
   const context = {};
 
   if (query) {
@@ -219,38 +119,22 @@ function extractQuery(queryString, url) {
   return context;
 }
 
-function trimAndSanitizeQueryString(queryString) {
-  if (queryString) {
-    queryString = queryString.trim();
-    if (startsWith(queryString, '?')) {
-      queryString = queryString.substring(1, queryString.length);
-    }
+function trimAndSanitizeQuery(query) {
+  query = (query || '').trim();
+  if (query && query.charAt(0) === '?') {
+    query = query.substring(1, query.length);
   }
-  return queryString;
+  return query;
 }
 
-function trimAndVerifyQueryElement(string, name, url) {
-  const result = string.trim();
-  if (!result) {
+function trimAndVerifyQueryElement(element, name, url) {
+  element = (element || '').trim();
+  if (!element) {
     throw new Error(`Illegal empty ${name} in URL query '${url}'`);
   }
-  return result;
+  return element;
 }
 
-function createParser() {
-  if (NodeUrlParser.isAvailable()) {
-    return new NodeUrlParser();
-  } else if (BrowserUrlParser.isAvailable()) {
-    return new BrowserUrlParser();
-  } else {
-    throw new Error('Unable to create a URL parser, neither NodeJS nor Browser version is available');
-  }
-}
-
-function startsWith(string, prefix) {
-  return string.lastIndexOf(prefix, 0) === 0;
-}
-
-const parser = createParser();
-
-export default parser;
+export default {
+  parse: parse
+};

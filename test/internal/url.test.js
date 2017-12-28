@@ -245,9 +245,9 @@ fdescribe('url', () => {
       port: 8888
     });
 
-    verifyUrl('some-neo4j-server.com:80', {
+    verifyUrl('some-neo4j-server.com:42', {
       host: 'some-neo4j-server.com',
-      port: 80
+      port: 42
     });
 
     verifyUrl('ec2-34-242-76-91.eu-west-1.compute.aws.com:62220', {
@@ -267,9 +267,9 @@ fdescribe('url', () => {
       port: 22000
     });
 
-    verifyUrl('172.10.5.1:80', {
+    verifyUrl('172.10.5.1:42', {
       host: '172.10.5.1',
-      port: 80
+      port: 42
     });
 
     verifyUrl('34.242.76.91:7687', {
@@ -383,10 +383,10 @@ fdescribe('url', () => {
       port: 8080
     });
 
-    verifyUrl('bolt://neo4j.com:80', {
+    verifyUrl('bolt://neo4j.com:42', {
       scheme: 'bolt',
       host: 'neo4j.com',
-      port: 80
+      port: 42
     });
 
     verifyUrl('bolt+routing://some-neo4j-server.com:12000', {
@@ -549,10 +549,10 @@ fdescribe('url', () => {
       query: {foo: 'bar', baz: 'qux'}
     });
 
-    verifyUrl('https://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:80?key1=value1&key2=value2', {
+    verifyUrl('https://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:42?key1=value1&key2=value2', {
       scheme: 'https',
       host: '[2a05:d018:270:f400:6d8c:d425:c5f:97f3]',
-      port: 80,
+      port: 42,
       query: {key1: 'value1', key2: 'value2'}
     });
   });
@@ -594,6 +594,17 @@ fdescribe('url', () => {
 
     expect(() => urlParser.parse('https://[ff0a::101]?key=')).toThrow();
     expect(() => urlParser.parse('https://[ff0a::101]:8080?key=')).toThrow();
+  });
+
+  it('should fail to parse URL with no query value', () => {
+    expect(() => urlParser.parse('bolt://localhost?key')).toThrow();
+    expect(() => urlParser.parse('bolt://localhost:8080?key')).toThrow();
+
+    expect(() => urlParser.parse('bolt+routing://10.10.127.5/?key')).toThrow();
+    expect(() => urlParser.parse('bolt+routing://10.10.127.5:8080/?key')).toThrow();
+
+    expect(() => urlParser.parse('https://[ff0a::101]?key')).toThrow();
+    expect(() => urlParser.parse('https://[ff0a::101]:8080?key')).toThrow();
   });
 
   function verifyUrl(urlString, expectedUrl) {
