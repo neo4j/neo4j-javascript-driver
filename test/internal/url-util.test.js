@@ -17,9 +17,10 @@
  * limitations under the License.
  */
 
-import urlParser from '../../src/v1/internal/url';
+import urlUtil from '../../src/v1/internal/url-util';
+import {DEFAULT_PORT} from '../../src/v1/internal/ch-config';
 
-fdescribe('url', () => {
+describe('url', () => {
 
   it('should parse URL with just host name', () => {
     verifyUrl('localhost', {
@@ -59,23 +60,28 @@ fdescribe('url', () => {
 
   it('should parse URL with just IPv6 address', () => {
     verifyUrl('[::1]', {
-      host: '[::1]'
+      host: '::1',
+      ipv6: true
     });
 
     verifyUrl('[ff02::2:ff00:0]', {
-      host: '[ff02::2:ff00:0]'
+      host: 'ff02::2:ff00:0',
+      ipv6: true
     });
 
     verifyUrl('[1afc:0:a33:85a3::ff2f]', {
-      host: '[1afc:0:a33:85a3::ff2f]'
+      host: '1afc:0:a33:85a3::ff2f',
+      ipv6: true
     });
 
     verifyUrl('[ff0a::101]', {
-      host: '[ff0a::101]'
+      host: 'ff0a::101',
+      ipv6: true
     });
 
     verifyUrl('[2a05:d018:270:f400:6d8c:d425:c5f:97f3]', {
-      host: '[2a05:d018:270:f400:6d8c:d425:c5f:97f3]'
+      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      ipv6: true
     });
   });
 
@@ -125,28 +131,33 @@ fdescribe('url', () => {
 
   it('should parse URL with IPv6 address and query', () => {
     verifyUrl('[::1]?key1=value1&key2=value2', {
-      host: '[::1]',
-      query: {key1: 'value1', key2: 'value2'}
+      host: '::1',
+      query: {key1: 'value1', key2: 'value2'},
+      ipv6: true
     });
 
     verifyUrl('[ff02::2:ff00:0]?key1=1&key2=2', {
-      host: '[ff02::2:ff00:0]',
-      query: {key1: '1', key2: '2'}
+      host: 'ff02::2:ff00:0',
+      query: {key1: '1', key2: '2'},
+      ipv6: true
     });
 
     verifyUrl('[1afc:0:a33:85a3::ff2f]/?a=value1&b=value2&c=value3', {
-      host: '[1afc:0:a33:85a3::ff2f]',
-      query: {a: 'value1', b: 'value2', c: 'value3'}
+      host: '1afc:0:a33:85a3::ff2f',
+      query: {a: 'value1', b: 'value2', c: 'value3'},
+      ipv6: true
     });
 
     verifyUrl('[ff0a::101]/?foo=1&bar=2&baz=3&qux=4', {
-      host: '[ff0a::101]',
-      query: {foo: '1', bar: '2', baz: '3', qux: '4'}
+      host: 'ff0a::101',
+      query: {foo: '1', bar: '2', baz: '3', qux: '4'},
+      ipv6: true
     });
 
     verifyUrl('[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa', {
-      host: '[2a05:d018:270:f400:6d8c:d425:c5f:97f3]',
-      query: {animal: 'apa'}
+      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      query: {animal: 'apa'},
+      ipv6: true
     });
   });
 
@@ -205,32 +216,37 @@ fdescribe('url', () => {
   it('should parse URL with scheme, IPv6 address and query', () => {
     verifyUrl('bolt+routing://[::1]?key1=value1&key2=value2', {
       scheme: 'bolt+routing',
-      host: '[::1]',
-      query: {key1: 'value1', key2: 'value2'}
+      host: '::1',
+      query: {key1: 'value1', key2: 'value2'},
+      ipv6: true
     });
 
     verifyUrl('http://[ff02::2:ff00:0]?key1=1&key2=2', {
       scheme: 'http',
-      host: '[ff02::2:ff00:0]',
-      query: {key1: '1', key2: '2'}
+      host: 'ff02::2:ff00:0',
+      query: {key1: '1', key2: '2'},
+      ipv6: true
     });
 
     verifyUrl('https://[1afc:0:a33:85a3::ff2f]/?a=value1&b=value2&c=value3', {
       scheme: 'https',
-      host: '[1afc:0:a33:85a3::ff2f]',
-      query: {a: 'value1', b: 'value2', c: 'value3'}
+      host: '1afc:0:a33:85a3::ff2f',
+      query: {a: 'value1', b: 'value2', c: 'value3'},
+      ipv6: true
     });
 
     verifyUrl('bolt://[ff0a::101]/?foo=1&bar=2&baz=3&qux=4', {
       scheme: 'bolt',
-      host: '[ff0a::101]',
-      query: {foo: '1', bar: '2', baz: '3', qux: '4'}
+      host: 'ff0a::101',
+      query: {foo: '1', bar: '2', baz: '3', qux: '4'},
+      ipv6: true
     });
 
     verifyUrl('bolt+routing://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa', {
       scheme: 'bolt+routing',
-      host: '[2a05:d018:270:f400:6d8c:d425:c5f:97f3]',
-      query: {animal: 'apa'}
+      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      query: {animal: 'apa'},
+      ipv6: true
     });
   });
 
@@ -280,28 +296,33 @@ fdescribe('url', () => {
 
   it('should parse URL with IPv6 address and port', () => {
     verifyUrl('[::1]:36000', {
-      host: '[::1]',
-      port: 36000
+      host: '::1',
+      port: 36000,
+      ipv6: true
     });
 
     verifyUrl('[ff02::2:ff00:0]:8080', {
-      host: '[ff02::2:ff00:0]',
-      port: 8080
+      host: 'ff02::2:ff00:0',
+      port: 8080,
+      ipv6: true
     });
 
     verifyUrl('[1afc:0:a33:85a3::ff2f]:7474', {
-      host: '[1afc:0:a33:85a3::ff2f]',
-      port: 7474
+      host: '1afc:0:a33:85a3::ff2f',
+      port: 7474,
+      ipv6: true
     });
 
     verifyUrl('[ff0a::101]:1000', {
-      host: '[ff0a::101]',
-      port: 1000
+      host: 'ff0a::101',
+      port: 1000,
+      ipv6: true
     });
 
     verifyUrl('[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:7475', {
-      host: '[2a05:d018:270:f400:6d8c:d425:c5f:97f3]',
-      port: 7475
+      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      port: 7475,
+      ipv6: true
     });
   });
 
@@ -352,27 +373,32 @@ fdescribe('url', () => {
   it('should parse URL with scheme and IPv6 address', () => {
     verifyUrl('https://[::1]', {
       scheme: 'https',
-      host: '[::1]'
+      host: '::1',
+      ipv6: true
     });
 
     verifyUrl('http://[ff02::2:ff00:0]', {
       scheme: 'http',
-      host: '[ff02::2:ff00:0]'
+      host: 'ff02::2:ff00:0',
+      ipv6: true
     });
 
     verifyUrl('bolt+routing://[1afc:0:a33:85a3::ff2f]', {
       scheme: 'bolt+routing',
-      host: '[1afc:0:a33:85a3::ff2f]'
+      host: '1afc:0:a33:85a3::ff2f',
+      ipv6: true
     });
 
     verifyUrl('bolt://[ff0a::101]', {
       scheme: 'bolt',
-      host: '[ff0a::101]'
+      host: 'ff0a::101',
+      ipv6: true
     });
 
     verifyUrl('bolt+routing://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]', {
       scheme: 'bolt+routing',
-      host: '[2a05:d018:270:f400:6d8c:d425:c5f:97f3]'
+      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      ipv6: true
     });
   });
 
@@ -431,32 +457,37 @@ fdescribe('url', () => {
   it('should parse URL with scheme, IPv6 address and port', () => {
     verifyUrl('http://[::1]:9123', {
       scheme: 'http',
-      host: '[::1]',
-      port: 9123
+      host: '::1',
+      port: 9123,
+      ipv6: true
     });
 
     verifyUrl('bolt://[ff02::2:ff00:0]:3831', {
       scheme: 'bolt',
-      host: '[ff02::2:ff00:0]',
-      port: 3831
+      host: 'ff02::2:ff00:0',
+      port: 3831,
+      ipv6: true
     });
 
     verifyUrl('bolt+routing://[1afc:0:a33:85a3::ff2f]:50505', {
       scheme: 'bolt+routing',
-      host: '[1afc:0:a33:85a3::ff2f]',
-      port: 50505
+      host: '1afc:0:a33:85a3::ff2f',
+      port: 50505,
+      ipv6: true
     });
 
     verifyUrl('ftp://[ff0a::101]:4242', {
       scheme: 'ftp',
-      host: '[ff0a::101]',
-      port: 4242
+      host: 'ff0a::101',
+      port: 4242,
+      ipv6: true
     });
 
     verifyUrl('wss://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:22', {
       scheme: 'wss',
-      host: '[2a05:d018:270:f400:6d8c:d425:c5f:97f3]',
-      port: 22
+      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      port: 22,
+      ipv6: true
     });
   });
 
@@ -523,92 +554,125 @@ fdescribe('url', () => {
   it('should parse URL with scheme, IPv6 address, port and query', () => {
     verifyUrl('https://[::1]:4217?key=value', {
       scheme: 'https',
-      host: '[::1]',
+      host: '::1',
       port: 4217,
-      query: {key: 'value'}
+      query: {key: 'value'},
+      ipv6: true
     });
 
     verifyUrl('bolt+routing://[ff02::2:ff00:0]:22/?animal1=apa&animal2=dog', {
       scheme: 'bolt+routing',
-      host: '[ff02::2:ff00:0]',
+      host: 'ff02::2:ff00:0',
       port: 22,
-      query: {animal1: 'apa', animal2: 'dog'}
+      query: {animal1: 'apa', animal2: 'dog'},
+      ipv6: true
     });
 
     verifyUrl('bolt://[1afc:0:a33:85a3::ff2f]:4242?a=1&b=2&c=3&d=4', {
       scheme: 'bolt',
-      host: '[1afc:0:a33:85a3::ff2f]',
+      host: '1afc:0:a33:85a3::ff2f',
       port: 4242,
-      query: {a: '1', b: '2', c: '3', d: '4'}
+      query: {a: '1', b: '2', c: '3', d: '4'},
+      ipv6: true
     });
 
     verifyUrl('wss://[ff0a::101]:24240?foo=bar&baz=qux', {
       scheme: 'wss',
-      host: '[ff0a::101]',
+      host: 'ff0a::101',
       port: 24240,
-      query: {foo: 'bar', baz: 'qux'}
+      query: {foo: 'bar', baz: 'qux'},
+      ipv6: true
     });
 
     verifyUrl('https://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:42?key1=value1&key2=value2', {
       scheme: 'https',
-      host: '[2a05:d018:270:f400:6d8c:d425:c5f:97f3]',
+      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
       port: 42,
-      query: {key1: 'value1', key2: 'value2'}
+      query: {key1: 'value1', key2: 'value2'},
+      ipv6: true
     });
   });
 
   it('should fail to parse URL without host', () => {
-    expect(() => urlParser.parse('http://')).toThrow();
-    expect(() => urlParser.parse('bolt://')).toThrow();
-    expect(() => urlParser.parse('bolt+routing://')).toThrow();
+    expect(() => parse('http://')).toThrow();
+    expect(() => parse('bolt://')).toThrow();
+    expect(() => parse('bolt+routing://')).toThrow();
   });
 
   it('should fail to parse URL with duplicated query parameters', () => {
-    expect(() => urlParser.parse('bolt://localhost/?key=value1&key=value2')).toThrow();
-    expect(() => urlParser.parse('bolt://localhost:8080/?key=value1&key=value2')).toThrow();
+    expect(() => parse('bolt://localhost/?key=value1&key=value2')).toThrow();
+    expect(() => parse('bolt://localhost:8080/?key=value1&key=value2')).toThrow();
 
-    expect(() => urlParser.parse('bolt+routing://10.10.127.5?key=value1&key=value2')).toThrow();
-    expect(() => urlParser.parse('bolt+routing://10.10.127.5:8080?key=value1&key=value2')).toThrow();
+    expect(() => parse('bolt+routing://10.10.127.5?key=value1&key=value2')).toThrow();
+    expect(() => parse('bolt+routing://10.10.127.5:8080?key=value1&key=value2')).toThrow();
 
-    expect(() => urlParser.parse('https://[ff0a::101]?key=value1&key=value2')).toThrow();
-    expect(() => urlParser.parse('https://[ff0a::101]:8080?key=value1&key=value2')).toThrow();
+    expect(() => parse('https://[ff0a::101]?key=value1&key=value2')).toThrow();
+    expect(() => parse('https://[ff0a::101]:8080?key=value1&key=value2')).toThrow();
   });
 
   it('should fail to parse URL with empty query key', () => {
-    expect(() => urlParser.parse('bolt://localhost?=value')).toThrow();
-    expect(() => urlParser.parse('bolt://localhost:8080?=value')).toThrow();
+    expect(() => parse('bolt://localhost?=value')).toThrow();
+    expect(() => parse('bolt://localhost:8080?=value')).toThrow();
 
-    expect(() => urlParser.parse('bolt+routing://10.10.127.5?=value')).toThrow();
-    expect(() => urlParser.parse('bolt+routing://10.10.127.5:8080?=value')).toThrow();
+    expect(() => parse('bolt+routing://10.10.127.5?=value')).toThrow();
+    expect(() => parse('bolt+routing://10.10.127.5:8080?=value')).toThrow();
 
-    expect(() => urlParser.parse('https://[ff0a::101]/?value=')).toThrow();
-    expect(() => urlParser.parse('https://[ff0a::101]:8080/?=value')).toThrow();
+    expect(() => parse('https://[ff0a::101]/?value=')).toThrow();
+    expect(() => parse('https://[ff0a::101]:8080/?=value')).toThrow();
   });
 
   it('should fail to parse URL with empty query value', () => {
-    expect(() => urlParser.parse('bolt://localhost?key=')).toThrow();
-    expect(() => urlParser.parse('bolt://localhost:8080?key=')).toThrow();
+    expect(() => parse('bolt://localhost?key=')).toThrow();
+    expect(() => parse('bolt://localhost:8080?key=')).toThrow();
 
-    expect(() => urlParser.parse('bolt+routing://10.10.127.5/?key=')).toThrow();
-    expect(() => urlParser.parse('bolt+routing://10.10.127.5:8080/?key=')).toThrow();
+    expect(() => parse('bolt+routing://10.10.127.5/?key=')).toThrow();
+    expect(() => parse('bolt+routing://10.10.127.5:8080/?key=')).toThrow();
 
-    expect(() => urlParser.parse('https://[ff0a::101]?key=')).toThrow();
-    expect(() => urlParser.parse('https://[ff0a::101]:8080?key=')).toThrow();
+    expect(() => parse('https://[ff0a::101]?key=')).toThrow();
+    expect(() => parse('https://[ff0a::101]:8080?key=')).toThrow();
   });
 
   it('should fail to parse URL with no query value', () => {
-    expect(() => urlParser.parse('bolt://localhost?key')).toThrow();
-    expect(() => urlParser.parse('bolt://localhost:8080?key')).toThrow();
+    expect(() => parse('bolt://localhost?key')).toThrow();
+    expect(() => parse('bolt://localhost:8080?key')).toThrow();
 
-    expect(() => urlParser.parse('bolt+routing://10.10.127.5/?key')).toThrow();
-    expect(() => urlParser.parse('bolt+routing://10.10.127.5:8080/?key')).toThrow();
+    expect(() => parse('bolt+routing://10.10.127.5/?key')).toThrow();
+    expect(() => parse('bolt+routing://10.10.127.5:8080/?key')).toThrow();
 
-    expect(() => urlParser.parse('https://[ff0a::101]?key')).toThrow();
-    expect(() => urlParser.parse('https://[ff0a::101]:8080?key')).toThrow();
+    expect(() => parse('https://[ff0a::101]?key')).toThrow();
+    expect(() => parse('https://[ff0a::101]:8080?key')).toThrow();
+  });
+
+  it('should fail to parse non-strings', () => {
+    expect(() => parse({})).toThrowError(TypeError);
+    expect(() => parse(['bolt://localhost:2020'])).toThrowError(TypeError);
+    expect(() => parse(() => 'bolt://localhost:8888')).toThrowError(TypeError);
+  });
+
+  it('should format IPv4 address', () => {
+    expect(urlUtil.formatIPv4Address('127.0.0.1', 4242)).toEqual('127.0.0.1:4242');
+    expect(urlUtil.formatIPv4Address('192.168.10.10', 8080)).toEqual('192.168.10.10:8080');
+    expect(urlUtil.formatIPv4Address('8.8.8.8', 80)).toEqual('8.8.8.8:80');
+  });
+
+  it('should format IPv6 address', () => {
+    expect(urlUtil.formatIPv6Address('::1', 1200)).toEqual('[::1]:1200');
+    expect(urlUtil.formatIPv6Address('ff0a::101', 8080)).toEqual('[ff0a::101]:8080');
+
+    expect(urlUtil.formatIPv6Address('[::1]', 42)).toEqual('[::1]:42');
+    expect(urlUtil.formatIPv6Address('[1afc:0:a33:85a3::ff2f]', 20201)).toEqual('[1afc:0:a33:85a3::ff2f]:20201');
+  });
+
+  it('should fail to format partially escaped IPv6 address', () => {
+    expect(() => urlUtil.formatIPv6Address('[::1', 1000)).toThrow();
+    expect(() => urlUtil.formatIPv6Address('::1]', 2000)).toThrow();
+
+    expect(() => urlUtil.formatIPv6Address('[1afc:0:a33:85a3::ff2f', 3000)).toThrow();
+    expect(() => urlUtil.formatIPv6Address('1afc:0:a33:85a3::ff2f]', 4000)).toThrow();
   });
 
   function verifyUrl(urlString, expectedUrl) {
-    const url = urlParser.parse(urlString);
+    const url = parse(urlString);
 
     if (expectedUrl.scheme) {
       expect(url.scheme).toEqual(expectedUrl.scheme);
@@ -622,17 +686,31 @@ fdescribe('url', () => {
 
     if (expectedUrl.port) {
       expect(url.port).toEqual(expectedUrl.port);
-      expect(url.hostAndPort).toEqual(`${expectedUrl.host}:${expectedUrl.port}`);
     } else {
-      expect(url.port).toBeNull();
-      expect(url.hostAndPort).toEqual(expectedUrl.host);
+      expect(url.port).toEqual(DEFAULT_PORT);
     }
+
+    verifyHostAndPort(url, expectedUrl);
 
     if (expectedUrl.query) {
       expect(url.query).toEqual(expectedUrl.query);
     } else {
       expect(url.query).toEqual({});
     }
+  }
+
+  function verifyHostAndPort(url, expectedUrl) {
+    const port = expectedUrl.port === 0 || expectedUrl.port ? expectedUrl.port : DEFAULT_PORT;
+
+    if (expectedUrl.ipv6) {
+      expect(url.hostAndPort).toEqual(`[${expectedUrl.host}]:${port}`);
+    } else {
+      expect(url.hostAndPort).toEqual(`${expectedUrl.host}:${port}`);
+    }
+  }
+
+  function parse(url) {
+    return urlUtil.parseBoltUrl(url);
   }
 
 });

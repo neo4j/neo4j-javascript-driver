@@ -564,7 +564,7 @@ describe('routing driver with stub server', () => {
       const session = driver.session();
       session.run("MATCH (n) RETURN n.name").catch(err => {
         expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
-        expect(err.message.indexOf('could not perform routing') > 0).toBeTruthy();
+        expect(err.message.indexOf('Make sure you are connecting to a causal cluster') > 0).toBeTruthy();
         assertHasRouters(driver, ['127.0.0.1:9001']);
         session.close();
         driver.close();

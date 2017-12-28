@@ -22,11 +22,18 @@ import {SERVICE_UNAVAILABLE} from '../error';
 
 const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 5000; // 5 seconds by default
 
+export const DEFAULT_PORT = 7687;
+
 export default class ChannelConfig {
 
-  constructor(host, port, driverConfig, connectionErrorCode) {
-    this.host = host;
-    this.port = port;
+  /**
+   * @constructor
+   * @param {Url} url the URL for the channel to connect to.
+   * @param {object} driverConfig the driver config provided by the user when driver is created.
+   * @param {string} connectionErrorCode the default error code to use on connection errors.
+   */
+  constructor(url, driverConfig, connectionErrorCode) {
+    this.url = url;
     this.encrypted = extractEncrypted(driverConfig);
     this.trust = extractTrust(driverConfig);
     this.trustedCertificates = extractTrustedCertificates(driverConfig);

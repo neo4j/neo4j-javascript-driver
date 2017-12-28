@@ -39,6 +39,13 @@ describe('driver', () => {
     }
   });
 
+  fit('apa', done => {
+    driver = neo4j.driver('bolt://[::1]', sharedNeo4j.authToken);
+    driver.session().run('return 1').then(result => console.log(result.records))
+      .catch(error => console.log(error))
+      .then(() => done());
+  });
+
   it('should expose sessions', () => {
     // Given
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
@@ -69,7 +76,7 @@ describe('driver', () => {
 
   it('should handle wrong scheme', () => {
     expect(() => neo4j.driver("tank://localhost", sharedNeo4j.authToken))
-      .toThrow(new Error("Unknown scheme: tank://"));
+      .toThrow(new Error('Unknown scheme: tank'));
   });
 
   it('should handle URL parameter string', () => {
@@ -158,7 +165,7 @@ describe('driver', () => {
 
     // Expect
     driver.onError = error => {
-      expect(error.message).toEqual('Server localhost could not perform routing. Make sure you are connecting to a causal cluster');
+      expect(error.message).toEqual(`Server at localhost:7687 can't perform routing. Make sure you are connecting to a causal cluster`);
       expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
       done();
     };

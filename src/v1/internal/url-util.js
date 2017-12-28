@@ -18,52 +18,64 @@
  */
 
 import ParsedUrl from 'url-parse';
+import {assertString} from './util';
+import {DEFAULT_PORT} from './ch-config';
 
-class Url {
+export class Url {
 
-  constructor(scheme, host, port, query) {
+  constructor(scheme, host, port, hostAndPort, query) {
     /**
      * Nullable scheme (protocol) of the URL.
+     * Example: 'bolt', 'bolt+routing', 'http', 'https', etc.
      * @type {string}
      */
     this.scheme = scheme;
 
     /**
-     * Nonnull host name or IP address. IPv6 always wrapped in square brackets.
+     * Nonnull host name or IP address. IPv6 not wrapped in square brackets.
+     * Example: 'neo4j.com', 'localhost', '127.0.0.1', '192.168.10.15', '::1', '2001:4860:4860::8844', etc.
      * @type {string}
      */
     this.host = host;
 
     /**
-     * Nullable number representing port.
+     * Nonnull number representing port. Default port {@link DEFAULT_PORT} value is used if given URL string
+     * does not contain port. Example: 7687, 12000, etc.
      * @type {number}
      */
     this.port = port;
 
     /**
-     * Nonnull host name or IP address plus port, separated by ':'.
+     * Nonnull host name or IP address plus port, separated by ':'. IPv6 wrapped in square brackets.
+     * Example: 'neo4j.com', 'neo4j.com:7687', '127.0.0.1', '127.0.0.1:8080', '[2001:4860:4860::8844]',
+     * '[2001:4860:4860::8844]:9090', etc.
      * @type {string}
      */
-    this.hostAndPort = port ? `${host}:${port}` : host;
+    this.hostAndPort = hostAndPort;
 
     /**
      * Nonnull object representing parsed query string key-value pairs. Duplicated keys not supported.
+     * Example: '{}', '{'key1': 'value1', 'key2': 'value2'}', etc.
      * @type {object}
      */
     this.query = query;
   }
 }
 
-function parse(url) {
+function parseBoltUrl(url) {
+  assertString(url, 'URL');
+
   const sanitized = sanitizeUrl(url);
   const parsedUrl = new ParsedUrl(sanitized.url, {}, query => extractQuery(query, url));
 
   const scheme = sanitized.schemeMissing ? null : extractScheme(parsedUrl.protocol);
-  const host = extractHost(parsedUrl.hostname);
+  const rawHost = extractHost(parsedUrl.hostname); // has square brackets for IPv6
+  const host = unescapeIPv6Address(rawHost); // no square brackets for IPv6
   const port = extractPort(parsedUrl.port);
+  const hostAndPort = port ? `${rawHost}:${port}` : rawHost;
   const query = parsedUrl.query;
 
-  return new Url(scheme, host, port, query);
+  return new Url(scheme, host, port, hostAndPort, query);
 }
 
 function sanitizeUrl(url) {
@@ -97,7 +109,7 @@ function extractHost(host, url) {
 
 function extractPort(portString) {
   const port = parseInt(portString, 10);
-  return port ? port : null;
+  return (port === 0 || port) ? port : DEFAULT_PORT;
 }
 
 function extractQuery(queryString, url) {
@@ -141,6 +153,43 @@ function trimAndVerifyQueryElement(element, name, url) {
   return element;
 }
 
+function escapeIPv6Address(address) {
+  const startsWithSquareBracket = address.charAt(0) === '[';
+  const endsWithSquareBracket = address.charAt(address.length - 1) === ']';
+
+  if (!startsWithSquareBracket && !endsWithSquareBracket) {
+    return `[${address}]`;
+  } else if (startsWithSquareBracket && endsWithSquareBracket) {
+    return address;
+  } else {
+    throw new Error(`Illegal IPv6 address ${address}`);
+  }
+}
+
+function unescapeIPv6Address(address) {
+  const startsWithSquareBracket = address.charAt(0) === '[';
+  const endsWithSquareBracket = address.charAt(address.length - 1) === ']';
+
+  if (!startsWithSquareBracket && !endsWithSquareBracket) {
+    return address;
+  } else if (startsWithSquareBracket && endsWithSquareBracket) {
+    return address.substring(1, address.length - 1);
+  } else {
+    throw new Error(`Illegal IPv6 address ${address}`);
+  }
+}
+
+function formatIPv4Address(address, port) {
+  return `${address}:${port}`;
+}
+
+function formatIPv6Address(address, port) {
+  const escapedAddress = escapeIPv6Address(address);
+  return `${escapedAddress}:${port}`;
+}
+
 export default {
-  parse: parse
+  parseBoltUrl: parseBoltUrl,
+  formatIPv4Address: formatIPv4Address,
+  formatIPv6Address: formatIPv6Address
 };

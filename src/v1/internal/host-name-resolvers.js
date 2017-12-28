@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {parseHost, parsePort} from './util';
+import urlUtil from './url-util';
 
 class HostNameResolver {
 
@@ -41,15 +41,14 @@ export class DnsHostNameResolver extends HostNameResolver {
   }
 
   resolve(seedRouter) {
-    const seedRouterHost = parseHost(seedRouter);
-    const seedRouterPort = parsePort(seedRouter);
+    const parsedAddress = urlUtil.parseBoltUrl(seedRouter);
 
     return new Promise((resolve) => {
-      this._dns.lookup(seedRouterHost, {all: true}, (error, addresses) => {
+      this._dns.lookup(parsedAddress.host, {all: true}, (error, addresses) => {
         if (error) {
           resolve(resolveToItself(seedRouter));
         } else {
-          const addressesWithPorts = addresses.map(address => addressWithPort(address, seedRouterPort));
+          const addressesWithPorts = addresses.map(address => addressWithPort(address, parsedAddress.port));
           resolve(addressesWithPorts);
         }
       });
@@ -63,8 +62,11 @@ function resolveToItself(address) {
 
 function addressWithPort(addressObject, port) {
   const address = addressObject.address;
-  if (port) {
-    return address + ':' + port;
+  const addressFamily = addressObject.family;
+
+  if (!port) {
+    return address;
   }
-  return address;
+
+  return addressFamily === 6 ? urlUtil.formatIPv6Address(address, port) : urlUtil.formatIPv4Address(address, port);
 }

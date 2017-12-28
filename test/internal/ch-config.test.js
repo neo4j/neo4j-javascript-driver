@@ -18,31 +18,26 @@
  */
 
 import ChannelConfig from '../../src/v1/internal/ch-config';
+import urlUtil from '../../src/v1/internal/url-util';
 import hasFeature from '../../src/v1/internal/features';
 import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
 
 describe('ChannelConfig', () => {
 
-  it('should respect given host', () => {
-    const host = 'neo4j.com';
+  it('should respect given Url', () => {
+    const url = urlUtil.parseBoltUrl('bolt://neo4j.com:4242');
 
-    const config = new ChannelConfig(host, 42, {}, '');
+    const config = new ChannelConfig(url, {}, '');
 
-    expect(config.host).toEqual(host);
-  });
-
-  it('should respect given port', () => {
-    const port = 4242;
-
-    const config = new ChannelConfig('', port, {}, '');
-
-    expect(config.port).toEqual(port);
+    expect(config.url.scheme).toEqual('bolt');
+    expect(config.url.host).toEqual('neo4j.com');
+    expect(config.url.port).toEqual(4242);
   });
 
   it('should respect given encrypted conf', () => {
     const encrypted = 'ENCRYPTION_ON';
 
-    const config = new ChannelConfig('', 42, {encrypted: encrypted}, '');
+    const config = new ChannelConfig(null, {encrypted: encrypted}, '');
 
     expect(config.encrypted).toEqual(encrypted);
   });
@@ -50,7 +45,7 @@ describe('ChannelConfig', () => {
   it('should respect given trust conf', () => {
     const trust = 'TRUST_ALL_CERTIFICATES';
 
-    const config = new ChannelConfig('', 42, {trust: trust}, '');
+    const config = new ChannelConfig(null, {trust: trust}, '');
 
     expect(config.trust).toEqual(trust);
   });
@@ -58,7 +53,7 @@ describe('ChannelConfig', () => {
   it('should respect given trusted certificates conf', () => {
     const trustedCertificates = ['./foo.pem', './bar.pem', './baz.pem'];
 
-    const config = new ChannelConfig('', 42, {trustedCertificates: trustedCertificates}, '');
+    const config = new ChannelConfig(null, {trustedCertificates: trustedCertificates}, '');
 
     expect(config.trustedCertificates).toEqual(trustedCertificates);
   });
@@ -66,7 +61,7 @@ describe('ChannelConfig', () => {
   it('should respect given known hosts', () => {
     const knownHostsPath = '~/.neo4j/known_hosts';
 
-    const config = new ChannelConfig('', 42, {knownHosts: knownHostsPath}, '');
+    const config = new ChannelConfig(null, {knownHosts: knownHostsPath}, '');
 
     expect(config.knownHostsPath).toEqual(knownHostsPath);
   });
@@ -74,50 +69,50 @@ describe('ChannelConfig', () => {
   it('should respect given connection error code', () => {
     const connectionErrorCode = 'ConnectionFailed';
 
-    const config = new ChannelConfig('', 42, {}, connectionErrorCode);
+    const config = new ChannelConfig(null, {}, connectionErrorCode);
 
     expect(config.connectionErrorCode).toEqual(connectionErrorCode);
   });
 
   it('should use encryption if available but not configured', () => {
-    const config = new ChannelConfig('', 42, {}, '');
+    const config = new ChannelConfig(null, {}, '');
 
     expect(config.encrypted).toEqual(hasFeature('trust_all_certificates'));
   });
 
   it('should use available trust conf when nothing configured', () => {
-    const config = new ChannelConfig('', 42, {}, '');
+    const config = new ChannelConfig(null, {}, '');
 
     const availableTrust = hasFeature('trust_all_certificates') ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
     expect(config.trust).toEqual(availableTrust);
   });
 
   it('should have no trusted certificates when not configured', () => {
-    const config = new ChannelConfig('', 42, {}, '');
+    const config = new ChannelConfig(null, {}, '');
 
     expect(config.trustedCertificates).toEqual([]);
   });
 
   it('should have null known hosts path when not configured', () => {
-    const config = new ChannelConfig('', 42, {}, '');
+    const config = new ChannelConfig(null, {}, '');
 
     expect(config.knownHostsPath).toBeNull();
   });
 
   it('should have service unavailable as default error code', () => {
-    const config = new ChannelConfig('', 42, {}, '');
+    const config = new ChannelConfig(null, {}, '');
 
     expect(config.connectionErrorCode).toEqual(SERVICE_UNAVAILABLE);
   });
 
   it('should have connection timeout by default', () => {
-    const config = new ChannelConfig('', 42, {}, '');
+    const config = new ChannelConfig(null, {}, '');
 
     expect(config.connectionTimeout).toEqual(5000);
   });
 
   it('should respect configured connection timeout', () => {
-    const config = new ChannelConfig('', 42, {connectionTimeout: 424242}, '');
+    const config = new ChannelConfig(null, {connectionTimeout: 424242}, '');
 
     expect(config.connectionTimeout).toEqual(424242);
   });

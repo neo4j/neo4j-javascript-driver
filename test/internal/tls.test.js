@@ -16,12 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var NodeChannel = require('../../lib/v1/internal/ch-node.js').default;
-var neo4j = require("../../lib/v1");
-var fs = require("fs");
-var path = require('path');
-var hasFeature = require("../../lib/v1/internal/features").default;
-var sharedNeo4j = require("../internal/shared-neo4j").default;
+
+import NodeChannel from '../../src/v1/internal/ch-node';
+import neo4j from '../../src/v1';
+import fs from 'fs';
+import path from 'path';
+import hasFeature from '../../src/v1/internal/features';
+import sharedNeo4j from '../internal/shared-neo4j';
 
 describe('trust-signed-certificates', function() {
 
@@ -51,7 +52,7 @@ describe('trust-signed-certificates', function() {
     });
   });
 
-  it('should accept known certificates', function(done) {
+  it('should accept known certificates', function (done) {
     // Assuming we only run this test on NodeJS with TOFU support
     if( !NodeChannel.available ) {
       done();

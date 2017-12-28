@@ -26,7 +26,8 @@ import Record from './record';
 import {Driver, READ, WRITE} from './driver';
 import RoutingDriver from './routing-driver';
 import VERSION from '../version';
-import {assertString, isEmptyObjectOrNull, parseRoutingContext, parseScheme, parseUrl} from './internal/util';
+import {assertString, isEmptyObjectOrNull} from './internal/util';
+import urlUtil from './internal/url-util';
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -165,17 +166,16 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  */
 function driver(url, authToken, config = {}) {
   assertString(url, 'Bolt URL');
-  const scheme = parseScheme(url);
-  const routingContext = parseRoutingContext(url);
-  if (scheme === 'bolt+routing://') {
-    return new RoutingDriver(parseUrl(url), routingContext, USER_AGENT, authToken, config);
-  } else if (scheme === 'bolt://') {
-    if (!isEmptyObjectOrNull(routingContext)) {
+  const parsedUrl = urlUtil.parseBoltUrl(url);
+  if (parsedUrl.scheme === 'bolt+routing') {
+    return new RoutingDriver(parsedUrl.hostAndPort, parsedUrl.query, USER_AGENT, authToken, config);
+  } else if (parsedUrl.scheme === 'bolt') {
+    if (!isEmptyObjectOrNull(parsedUrl.query)) {
       throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
     }
-    return new Driver(parseUrl(url), USER_AGENT, authToken, config);
+    return new Driver(parsedUrl.hostAndPort, USER_AGENT, authToken, config);
   } else {
-    throw new Error(`Unknown scheme: ${scheme}`);
+    throw new Error(`Unknown scheme: ${parsedUrl.scheme}`);
   }
 }
 
