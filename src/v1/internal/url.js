@@ -41,6 +41,12 @@ class Url {
     this.port = port;
 
     /**
+     * Nonnull host name or IP address plus port, separated by ':'.
+     * @type {string}
+     */
+    this.hostAndPort = port ? `${host}:${port}` : host;
+
+    /**
      * Nonnull object representing parsed query string key-value pairs. Duplicated keys not supported.
      * @type {object}
      */

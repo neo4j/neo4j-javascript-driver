@@ -622,8 +622,10 @@ fdescribe('url', () => {
 
     if (expectedUrl.port) {
       expect(url.port).toEqual(expectedUrl.port);
+      expect(url.hostAndPort).toEqual(`${expectedUrl.host}:${expectedUrl.port}`);
     } else {
       expect(url.port).toBeNull();
+      expect(url.hostAndPort).toEqual(expectedUrl.host);
     }
 
     if (expectedUrl.query) {
