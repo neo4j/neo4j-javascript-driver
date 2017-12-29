@@ -20,7 +20,7 @@
 import urlUtil from '../../src/v1/internal/url-util';
 import {DEFAULT_PORT} from '../../src/v1/internal/ch-config';
 
-describe('url', () => {
+describe('url-util', () => {
 
   it('should parse URL with just host name', () => {
     verifyUrl('localhost', {
