@@ -22,11 +22,22 @@ import sharedNeo4j from '../internal/shared-neo4j';
 import FakeConnection from '../internal/fake-connection';
 import lolex from 'lolex';
 import {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from '../../src/v1/internal/pool-config';
+import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
 
 describe('driver', () => {
 
   let clock;
   let driver;
+  let serverVersion;
+
+  beforeAll(done => {
+    const tmpDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+    ServerVersion.fromDriver(tmpDriver).then(version => {
+      tmpDriver.close();
+      serverVersion = version;
+      done();
+    });
+  });
 
   afterEach(() => {
     if (clock) {
@@ -37,13 +48,6 @@ describe('driver', () => {
       driver.close();
       driver = null;
     }
-  });
-
-  fit('apa', done => {
-    driver = neo4j.driver('bolt://[::1]', sharedNeo4j.authToken);
-    driver.session().run('return 1').then(result => console.log(result.records))
-      .catch(error => console.log(error))
-      .then(() => done());
   });
 
   it('should expose sessions', () => {
@@ -312,6 +316,30 @@ describe('driver', () => {
       expect(undefined === neo4j.types[type]).toBe(false);
     });
   });
+
+  it('should connect to IPv6 address without port', done => {
+    testIPv6Connection('bolt://[::1]', done);
+  });
+
+  it('should connect to IPv6 address wit port', done => {
+    testIPv6Connection('bolt://[::1]:7687', done);
+  });
+
+  function testIPv6Connection(url, done) {
+    if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
+      // IPv6 listen address only supported starting from neo4j 3.1, so let's ignore the rest
+      done();
+    }
+
+    driver = neo4j.driver('bolt://[::1]', sharedNeo4j.authToken);
+
+    const session = driver.session();
+    session.run('RETURN 42').then(result => {
+      expect(result.records[0].get(0).toNumber()).toEqual(42);
+      session.close();
+      done();
+    });
+  }
 
   /**
    * Starts new transaction to force new network connection.

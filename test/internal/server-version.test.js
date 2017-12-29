@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import neo4j from '../../src/v1';
+import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion, VERSION_3_2_0, VERSION_IN_DEV} from '../../src/v1/internal/server-version';
 
 describe('ServerVersion', () => {
@@ -78,6 +80,33 @@ describe('ServerVersion', () => {
     verifyVersion(parse('Neo4j/dev'), 0, 0, 0);
     verifyVersion(parse('Neo4j/DEV'), 0, 0, 0);
     verifyVersion(parse('Neo4j/Dev'), 0, 0, 0);
+  });
+
+  it('should fetch version using driver', done => {
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+    ServerVersion.fromDriver(driver).then(version => {
+      driver.close();
+      expect(version).not.toBeNull();
+      expect(version).toBeDefined();
+      expect(version instanceof ServerVersion).toBeTruthy();
+      done();
+    }).catch(error => {
+      driver.close();
+      done.fail(error);
+    });
+  });
+
+  it('should fail to fetch version using incorrect driver', done => {
+    const driver = neo4j.driver('bolt://localhost:4242', sharedNeo4j.authToken); // use wrong port
+    ServerVersion.fromDriver(driver).then(version => {
+      driver.close();
+      done.fail('Should not be able to fetch version: ' + JSON.stringify(version));
+    }).catch(error => {
+      expect(error).not.toBeNull();
+      expect(error).toBeDefined();
+      driver.close();
+      done();
+    });
   });
 
   it('should compare equal versions', () => {

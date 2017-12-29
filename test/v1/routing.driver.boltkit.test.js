@@ -38,7 +38,7 @@ describe('routing driver with stub server', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
-  it('should discover server', done => {
+  it('should discover servers', done => {
     if (!boltStub.supported) {
       done();
       return;
@@ -58,6 +58,33 @@ describe('routing driver with stub server', () => {
         assertHasRouters(driver, ["127.0.0.1:9001", "127.0.0.1:9002", "127.0.0.1:9003"]);
         assertHasReaders(driver, ["127.0.0.1:9002", "127.0.0.1:9003"]);
         assertHasWriters(driver, ["127.0.0.1:9001"]);
+
+        driver.close();
+        server.exit(code => {
+          expect(code).toEqual(0);
+          done();
+        });
+      });
+    });
+  });
+
+  it('should discover IPv6 servers', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const server = boltStub.start('./test/resources/boltstub/discover_ipv6_servers_and_read.script', 9001);
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001');
+      const session = driver.session(READ);
+      session.run('MATCH (n) RETURN n.name').then(() => {
+
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9001')).toBeTruthy();
+        assertHasReaders(driver, ['127.0.0.1:9001', '[::1]:9001']);
+        assertHasWriters(driver, ['[2001:db8:a0b:12f0::1]:9002', '[3731:54:65fe:2::a7]:9003']);
+        assertHasRouters(driver, ['[ff02::1]:9001', '[684D:1111:222:3333:4444:5555:6:77]:9002', '[::1]:9003']);
 
         driver.close();
         server.exit(code => {

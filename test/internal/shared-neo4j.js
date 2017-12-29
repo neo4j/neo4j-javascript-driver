@@ -64,7 +64,13 @@ class SupportedPlatform extends UnsupportedPlatform {
   }
 
   spawn(command, args) {
-    return this._childProcess.spawnSync(command, args);
+    const options = {
+      // ignore stdin, use default values for stdout and stderr
+      // otherwise spawned java process does not see IPv6 address of the local interface and Neo4j fails to start
+      // https://github.com/nodejs/node-v0.x-archive/issues/7406
+      stdio: ['ignore', null, null]
+    };
+    return this._childProcess.spawnSync(command, args, options);
   }
 
   listDir(path) {
@@ -94,6 +100,11 @@ const username = 'neo4j';
 const password = 'password';
 const authToken = neo4j.auth.basic(username, password);
 
+const additionalConfig = {
+  // tell neo4j to listen for IPv6 connections, only supported by 3.1+
+  'dbms.connectors.default_listen_address': '::'
+};
+
 const neoCtrlVersionParam = '-e';
 const defaultNeo4jVersion = '3.2.5';
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`;
@@ -113,6 +124,7 @@ function start(dir, givenNeoCtrlArgs) {
 
   if (boltKitCheckResult.successful) {
     const neo4jDir = installNeo4j(dir, givenNeoCtrlArgs);
+    configureNeo4j(neo4jDir);
     createDefaultUser(neo4jDir);
     startNeo4j(neo4jDir);
   } else {
@@ -156,6 +168,18 @@ function installNeo4j(dir, givenNeoCtrlArgs) {
     console.log('Installed Neo4j to: \'' + installedNeo4jDir + '\'');
     return installedNeo4jDir;
   }
+}
+
+function configureNeo4j(neo4jDir) {
+  console.log('Configuring Neo4j at: \'' + neo4jDir + '\' with ' + JSON.stringify(additionalConfig));
+
+  const configEntries = Object.keys(additionalConfig).map(key => `${key}=${additionalConfig[key]}`);
+  const configureResult = runCommand('neoctrl-configure', [neo4jDir, ...configEntries]);
+  if (!configureResult.successful) {
+    throw new Error('Unable to configure Neo4j.\n' + configureResult.fullOutput);
+  }
+
+  console.log('Configured Neo4j at: \'' + neo4jDir + '\'');
 }
 
 function createDefaultUser(neo4jDir) {
