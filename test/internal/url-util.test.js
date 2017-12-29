@@ -83,6 +83,11 @@ describe('url', () => {
       host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
       ipv6: true
     });
+
+    verifyUrl('[fe80::1%lo0]', {
+      host: 'fe80::1%lo0',
+      ipv6: true
+    });
   });
 
   it('should parse URL with host name and query', () => {
@@ -156,6 +161,12 @@ describe('url', () => {
 
     verifyUrl('[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa', {
       host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      query: {animal: 'apa'},
+      ipv6: true
+    });
+
+    verifyUrl('[fe80::1%lo0]?animal=apa', {
+      host: 'fe80::1%lo0',
       query: {animal: 'apa'},
       ipv6: true
     });
@@ -248,6 +259,13 @@ describe('url', () => {
       query: {animal: 'apa'},
       ipv6: true
     });
+
+    verifyUrl('bolt+routing://[fe80::1%lo0]?animal=apa', {
+      scheme: 'bolt+routing',
+      host: 'fe80::1%lo0',
+      query: {animal: 'apa'},
+      ipv6: true
+    });
   });
 
   it('should parse URL with host name and port', () => {
@@ -321,6 +339,12 @@ describe('url', () => {
 
     verifyUrl('[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:7475', {
       host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      port: 7475,
+      ipv6: true
+    });
+
+    verifyUrl('[fe80::1%lo0]:7475', {
+      host: 'fe80::1%lo0',
       port: 7475,
       ipv6: true
     });
@@ -398,6 +422,12 @@ describe('url', () => {
     verifyUrl('bolt+routing://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]', {
       scheme: 'bolt+routing',
       host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      ipv6: true
+    });
+
+    verifyUrl('bolt+routing://[fe80::1%lo0]', {
+      scheme: 'bolt+routing',
+      host: 'fe80::1%lo0',
       ipv6: true
     });
   });
@@ -486,6 +516,13 @@ describe('url', () => {
     verifyUrl('wss://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:22', {
       scheme: 'wss',
       host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      port: 22,
+      ipv6: true
+    });
+
+    verifyUrl('wss://[fe80::1%lo0]:22', {
+      scheme: 'wss',
+      host: 'fe80::1%lo0',
       port: 22,
       ipv6: true
     });
@@ -589,6 +626,14 @@ describe('url', () => {
       host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
       port: 42,
       query: {key1: 'value1', key2: 'value2'},
+      ipv6: true
+    });
+
+    verifyUrl('https://[fe80::1%lo0]:4242?key1=value1', {
+      scheme: 'https',
+      host: 'fe80::1%lo0',
+      port: 4242,
+      query: {key1: 'value1'},
       ipv6: true
     });
   });
