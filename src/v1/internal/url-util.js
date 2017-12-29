@@ -21,7 +21,7 @@ import ParsedUrl from 'url-parse';
 import {assertString} from './util';
 import {DEFAULT_PORT} from './ch-config';
 
-export class Url {
+class Url {
 
   constructor(scheme, host, port, hostAndPort, query) {
     /**
@@ -72,7 +72,7 @@ function parseBoltUrl(url) {
   const rawHost = extractHost(parsedUrl.hostname); // has square brackets for IPv6
   const host = unescapeIPv6Address(rawHost); // no square brackets for IPv6
   const port = extractPort(parsedUrl.port);
-  const hostAndPort = port ? `${rawHost}:${port}` : rawHost;
+  const hostAndPort = `${rawHost}:${port}`;
   const query = parsedUrl.query;
 
   return new Url(scheme, host, port, hostAndPort, query);

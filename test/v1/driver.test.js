@@ -321,7 +321,7 @@ describe('driver', () => {
     testIPv6Connection('bolt://[::1]', done);
   });
 
-  it('should connect to IPv6 address wit port', done => {
+  it('should connect to IPv6 address with port', done => {
     testIPv6Connection('bolt://[::1]:7687', done);
   });
 
@@ -331,7 +331,7 @@ describe('driver', () => {
       done();
     }
 
-    driver = neo4j.driver('bolt://[::1]', sharedNeo4j.authToken);
+    driver = neo4j.driver(url, sharedNeo4j.authToken);
 
     const session = driver.session();
     session.run('RETURN 42').then(result => {
