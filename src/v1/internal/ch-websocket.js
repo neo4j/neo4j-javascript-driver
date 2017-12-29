@@ -52,8 +52,8 @@ class WebSocketChannel {
         return;
       }
     }
-    this._url = scheme + '://' + config.url.hostAndPort;
-    this._ws = new WebSocket(this._url);
+
+    this._ws = createWebSocket(scheme, config.url);
     this._ws.binaryType = "arraybuffer";
 
     let self = this;
@@ -168,5 +168,56 @@ class WebSocketChannel {
 
 let available = typeof WebSocket !== 'undefined';
 let _websocketChannelModule = {channel: WebSocketChannel, available: available};
+
+function createWebSocket(scheme, parsedUrl) {
+  const url = scheme + '://' + parsedUrl.hostAndPort;
+
+  try {
+    return new WebSocket(url);
+  } catch (error) {
+    if (isIPv6AddressIssueOnWindows(error, parsedUrl)) {
+
+      // WebSocket in IE and Edge browsers on Windows do not support regular IPv6 address syntax because they contain ':'.
+      // It's an invalid character for UNC (https://en.wikipedia.org/wiki/IPv6_address#Literal_IPv6_addresses_in_UNC_path_names)
+      // and Windows requires IPv6 to be changes in the following way:
+      //   1) replace all ':' with '-'
+      //   2) replace '%' with 's' for link-local address
+      //   3) append '.ipv6-literal.net' suffix
+      // only then resulting string can be considered a valid IPv6 address. Yes, this is extremely weird!
+      // For more details see:
+      //   https://social.msdn.microsoft.com/Forums/ie/en-US/06cca73b-63c2-4bf9-899b-b229c50449ff/whether-ie10-websocket-support-ipv6?forum=iewebdevelopment
+      //   https://www.itdojo.com/ipv6-addresses-and-unc-path-names-overcoming-illegal/
+      // Creation of WebSocket with unconverted address results in SyntaxError without message or stacktrace.
+      // That is why here we "catch" SyntaxError and rewrite IPv6 address if needed.
+
+      const windowsFriendlyUrl = asWindowsFriendlyIPv6Address(scheme, parsedUrl);
+      return new WebSocket(windowsFriendlyUrl);
+    } else {
+      throw error;
+    }
+  }
+}
+
+function isIPv6AddressIssueOnWindows(error, parsedUrl) {
+  return error.name === 'SyntaxError' && isIPv6Address(parsedUrl);
+}
+
+function isIPv6Address(parsedUrl) {
+  const hostAndPort = parsedUrl.hostAndPort;
+  return hostAndPort.charAt(0) === '[' && hostAndPort.indexOf(']') !== -1;
+}
+
+function asWindowsFriendlyIPv6Address(scheme, parsedUrl) {
+  // replace all ':' with '-'
+  const hostWithoutColons = parsedUrl.host.replace(new RegExp(':', 'g'), '-');
+
+  // replace '%' with 's' for link-local IPv6 address like 'fe80::1%lo0'
+  const hostWithoutPercent = hostWithoutColons.replace('%', 's');
+
+  // append magic '.ipv6-literal.net' suffix
+  const ipv6Host = hostWithoutPercent + '.ipv6-literal.net';
+
+  return `${scheme}://${ipv6Host}:${parsedUrl.port}`;
+}
 
 export default _websocketChannelModule
