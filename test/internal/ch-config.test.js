@@ -117,4 +117,16 @@ describe('ChannelConfig', () => {
     expect(config.connectionTimeout).toEqual(424242);
   });
 
+  it('should respect disabled connection timeout with value zero', () => {
+    const config = new ChannelConfig(null, {connectionTimeout: 0}, '');
+
+    expect(config.connectionTimeout).toBeNull();
+  });
+
+  it('should respect disabled connection timeout with negative value', () => {
+    const config = new ChannelConfig(null, {connectionTimeout: -42}, '');
+
+    expect(config.connectionTimeout).toBeNull();
+  });
+
 });

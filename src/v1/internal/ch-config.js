@@ -68,8 +68,17 @@ function extractKnownHostsPath(driverConfig) {
 
 function extractConnectionTimeout(driverConfig) {
   const configuredTimeout = parseInt(driverConfig.connectionTimeout, 10);
-  if (!configuredTimeout || configuredTimeout < 0) {
+  if (configuredTimeout === 0) {
+    // timeout explicitly configured to 0
+    return null;
+  } else if (configuredTimeout && configuredTimeout < 0) {
+    // timeout explicitly configured to a negative value
+    return null;
+  } else if (!configuredTimeout) {
+    // timeout not configured, use default value
     return DEFAULT_CONNECTION_TIMEOUT_MILLIS;
+  } else {
+    // timeout configured, use the provided value
+    return configuredTimeout;
   }
-  return configuredTimeout;
 }
