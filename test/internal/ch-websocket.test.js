@@ -21,6 +21,7 @@ import wsChannel from '../../src/v1/internal/ch-websocket';
 import ChannelConfig from '../../src/v1/internal/ch-config';
 import urlUtil from '../../src/v1/internal/url-util';
 import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
+import {setTimeoutMock} from './timers-util';
 
 describe('WebSocketChannel', () => {
 
@@ -28,6 +29,7 @@ describe('WebSocketChannel', () => {
   const webSocketChannelAvailable = wsChannel.available;
 
   let OriginalWebSocket;
+  let webSocketChannel;
 
   beforeEach(() => {
     if (webSocketChannelAvailable) {
@@ -39,6 +41,9 @@ describe('WebSocketChannel', () => {
     if (webSocketChannelAvailable) {
       WebSocket = OriginalWebSocket;
     }
+    if (webSocketChannel) {
+      webSocketChannel.close();
+    }
   });
 
   it('should fallback to literal IPv6 when SyntaxError is thrown', () => {
@@ -47,6 +52,47 @@ describe('WebSocketChannel', () => {
 
   it('should fallback to literal link-local IPv6 when SyntaxError is thrown', () => {
     testFallbackToLiteralIPv6('bolt://[fe80::1%lo0]:8888', 'ws://fe80--1slo0.ipv6-literal.net:8888');
+  });
+
+  it('should clear connection timeout when closed', () => {
+    if (!webSocketChannelAvailable) {
+      return;
+    }
+
+    const fakeSetTimeout = setTimeoutMock.install();
+    try {
+      // do not execute setTimeout callbacks
+      fakeSetTimeout.pause();
+
+      let fakeWebSocketClosed = false;
+
+      // replace real WebSocket with a function that does nothing
+      WebSocket = () => {
+        return {
+          close: () => {
+            fakeWebSocketClosed = true;
+          }
+        };
+      };
+
+      const url = urlUtil.parseBoltUrl('bolt://localhost:7687');
+      const driverConfig = {connectionTimeout: 4242};
+      const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);
+
+      webSocketChannel = new WebSocketChannel(channelConfig);
+
+      expect(fakeWebSocketClosed).toBeFalsy();
+      expect(fakeSetTimeout.invocationDelays).toEqual([]);
+      expect(fakeSetTimeout.clearedTimeouts).toEqual([]);
+
+      webSocketChannel.close();
+
+      expect(fakeWebSocketClosed).toBeTruthy();
+      expect(fakeSetTimeout.invocationDelays).toEqual([]);
+      expect(fakeSetTimeout.clearedTimeouts).toEqual([0]); // cleared one timeout with id 0
+    } finally {
+      fakeSetTimeout.uninstall();
+    }
   });
 
   function testFallbackToLiteralIPv6(boltAddress, expectedWsAddress) {
@@ -59,14 +105,19 @@ describe('WebSocketChannel', () => {
       if (url.indexOf('[') !== -1) {
         throw new SyntaxError();
       }
-      return {url: url};
+      return {
+        url: url,
+        close: () => {
+        }
+      };
     };
 
     const url = urlUtil.parseBoltUrl(boltAddress);
     // disable connection timeout, so that WebSocketChannel does not set any timeouts
     const driverConfig = {connectionTimeout: 0};
     const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);
-    const webSocketChannel = new WebSocketChannel(channelConfig);
+
+    webSocketChannel = new WebSocketChannel(channelConfig);
 
     expect(webSocketChannel._ws.url).toEqual(expectedWsAddress);
   }

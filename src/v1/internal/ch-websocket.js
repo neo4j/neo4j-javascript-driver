@@ -65,8 +65,8 @@ class WebSocketChannel {
         }
     };
     this._ws.onopen = function() {
-      // Connected! Cancel connection timeout
-      clearTimeout(self._connectionTimeoutId);
+      // Connected! Cancel the connection timeout
+      self._clearConnectionTimeout();
 
       // Drain all pending messages
       let pending = self._pending;
@@ -85,7 +85,7 @@ class WebSocketChannel {
     this._ws.onerror = this._handleConnectionError;
 
     this._connectionTimeoutFired = false;
-    this._connectionTimeoutId = this._setupConnectionTimeout(config);
+    this._connectionTimeoutId = this._setupConnectionTimeout();
   }
 
   _handleConnectionError() {
@@ -141,6 +141,7 @@ class WebSocketChannel {
    */
   close ( cb = ( () => null )) {
     this._open = false;
+    this._clearConnectionTimeout();
     this._ws.close();
     this._ws.onclose = cb;
   }
@@ -163,6 +164,19 @@ class WebSocketChannel {
       }, timeout);
     }
     return null;
+  }
+
+  /**
+   * Remove active connection timeout, if any.
+   * @private
+   */
+  _clearConnectionTimeout() {
+    const timeoutId = this._connectionTimeoutId;
+    if (timeoutId || timeoutId === 0) {
+      this._connectionTimeoutFired = false;
+      this._connectionTimeoutId = null;
+      clearTimeout(timeoutId);
+    }
   }
 }
 
