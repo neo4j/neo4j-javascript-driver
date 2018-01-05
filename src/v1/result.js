@@ -28,9 +28,9 @@ const DEFAULT_ON_COMPLETED = summary => {
 
 /**
  * A stream of {@link Record} representing the result of a statement.
- * Can be consumed eagerly as {@link Promise} resolved with {@link Array<Record>} records and {@link ResultSummary}
+ * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
  * summary, or rejected with error that contains {@link string} code and {@link string} message.
- * Alternatively can be consumed lazily using {@link Result.subscribe()}.
+ * Alternatively can be consumed lazily using <code>Result.subscribe()</code> function.
  * @access public
  */
 class Result {
@@ -79,7 +79,7 @@ class Result {
 
   /**
    * Waits for all results and calls the passed in function with the results.
-   * Cannot be combined with the {@link #subscribe} function.
+   * Cannot be combined with the <code>Result.subscribe()</code> function.
    *
    * @param {function(result: {records:Array<Record>, summary: ResultSummary})} onFulfilled - function to be called
    * when finished.
@@ -94,7 +94,7 @@ class Result {
   /**
    * Catch errors when using promises.
    * Cannot be used with the subscribe function.
-   * @param {function(error: {message:string, code:string})} onRejected - Function to be called upon errors.
+   * @param {function(error: Neo4jError)} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
   catch(onRejected) {

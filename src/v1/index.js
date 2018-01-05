@@ -28,6 +28,14 @@ import RoutingDriver from './routing-driver';
 import VERSION from '../version';
 import {assertString, isEmptyObjectOrNull, parseRoutingContext, parseScheme, parseUrl} from './internal/util';
 
+/**
+ * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
+ * basic authentication token.
+ * @property {function(base64EncodedTicket: string)} kerberos the function to create a Kerberos authentication token.
+ * Accepts a single string argument - base64 encoded Kerberos ticket.
+ * @property {function(principal: string, credentials: string, realm: string, scheme: string, parameters: ?object)} custom
+ * the function to create a custom authentication token.
+ */
 const auth = {
   basic: (username, password, realm = undefined) => {
     if (realm) {
@@ -132,9 +140,10 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       connectionAcquisitionTimeout: 60000, // 1 minute
  *
  *       // Specify the maximum time in milliseconds transactions are allowed to retry via
- *       // {@link Session#readTransaction()} and {@link Session#writeTransaction()} functions. These functions
- *       // will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient errors with
- *       // exponential backoff using initial delay of 1 second. Default value is 30000 which is 30 seconds.
+ *       // <code>Session#readTransaction()</code> and <code>Session#writeTransaction()</code> functions.
+ *       // These functions will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient
+ *       // errors with exponential backoff using initial delay of 1 second.
+ *       // Default value is 30000 which is 30 seconds.
  *       maxTransactionRetryTime: 30000, // 30 seconds
  *
  *       // Provide an alternative load balancing strategy for the routing driver to use.
@@ -170,7 +179,10 @@ function driver(url, authToken, config = {}) {
   }
 }
 
-const types ={
+/**
+ * Object containing constructors for all graph types.
+ */
+const types = {
   Node,
   Relationship,
   UnboundRelationship,
@@ -179,23 +191,37 @@ const types ={
   Result,
   ResultSummary,
   Record
-  };
+};
 
+/**
+ * Object containing string constants representing session access modes.
+ */
 const session = {
   READ,
   WRITE
 };
+
+/**
+ * Object containing string constants representing predefined {@link Neo4jError} codes.
+ */
 const error = {
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED,
   PROTOCOL_ERROR
 };
+
+/**
+ * Object containing functions for work with {@link Integer} objects.
+ */
 const integer = {
   toNumber,
   toString,
   inSafeRange
 };
 
+/**
+ * @private
+ */
 const forExport = {
   driver,
   int,
@@ -218,5 +244,5 @@ export {
   types,
   session,
   error
-}
-export default forExport
+};
+export default forExport;
