@@ -21,14 +21,19 @@
 // uniform across the driver surface.
 
 /**
+ * Error code representing complete loss of service. Used by {@link Neo4jError#code}.
  * @type {string}
  */
 const SERVICE_UNAVAILABLE = 'ServiceUnavailable';
+
 /**
+ * Error code representing transient loss of service. Used by {@link Neo4jError#code}.
  * @type {string}
  */
 const SESSION_EXPIRED = 'SessionExpired';
+
 /**
+ * Error code representing serialization/deserialization issue in the Bolt protocol. Used by {@link Neo4jError#code}.
  * @type {string}
  */
 const PROTOCOL_ERROR = 'ProtocolError';

@@ -29,7 +29,20 @@ import PoolConfig, {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from './inter
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
 
-const READ = 'READ', WRITE = 'WRITE';
+/**
+ * Constant that represents read session access mode.
+ * Should be used like this: <code>driver.session(READ)</code>.
+ * @type {string}
+ */
+const READ = 'READ';
+
+/**
+ * Constant that represents write session access mode.
+ * Should be used like this: <code>driver.session(WRITE)</code>.
+ * @type {string}
+ */
+const WRITE = 'WRITE';
+
 /**
  * A driver maintains one or more {@link Session}s with a remote
  * Neo4j instance. Through the {@link Session}s you can send statements
@@ -76,10 +89,20 @@ class Driver {
     this._onCompleted = null;
   }
 
+  /**
+   * Get the installed connectivity verification callback.
+   * @return {null|function}
+   * @deprecated driver can be used directly once instantiated, use of this callback is not required.
+   */
   get onCompleted() {
     return this._onCompleted;
   }
 
+  /**
+   * Install a connectivity verification callback.
+   * @param {null|function} callback the new function to be notified about successful connection.
+   * @deprecated driver can be used directly once instantiated, use of this callback is not required.
+   */
   set onCompleted(callback) {
     this._onCompleted = callback;
     if (this._onCompleted) {
