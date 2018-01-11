@@ -1118,7 +1118,7 @@ describe('session', () => {
 
   function numberOfAcquiredConnectionsFromPool() {
     const pool = driver._pool;
-    return pool.activeResourceCount('localhost');
+    return pool.activeResourceCount('localhost:7687');
   }
 
   function testConnectionTimeout(encrypted, done) {

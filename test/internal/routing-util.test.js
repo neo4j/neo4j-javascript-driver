@@ -24,7 +24,7 @@ import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '..
 import lolex from 'lolex';
 import FakeConnection from './fake-connection';
 
-const ROUTER_ADDRESS = 'bolt+routing://test.router.com';
+const ROUTER_ADDRESS = 'test.router.com:4242';
 
 describe('RoutingUtil', () => {
 
@@ -78,8 +78,8 @@ describe('RoutingUtil', () => {
 
     callRoutingProcedure(session).catch(error => {
       expect(error.code).toBe(SERVICE_UNAVAILABLE);
-      expect(error.message).toBe('Server ' + ROUTER_ADDRESS + ' could not perform routing. ' +
-        'Make sure you are connecting to a causal cluster');
+      expect(error.message)
+        .toBe(`Server at ${ROUTER_ADDRESS} can't perform routing. Make sure you are connecting to a causal cluster`);
       done();
     });
   });

@@ -47,8 +47,9 @@ export default class RoutingUtil {
     }).catch(error => {
       if (error.code === PROCEDURE_NOT_FOUND_CODE) {
         // throw when getServers procedure not found because this is clearly a configuration issue
-        throw newError('Server ' + routerAddress + ' could not perform routing. ' +
-          'Make sure you are connecting to a causal cluster', SERVICE_UNAVAILABLE);
+        throw newError(
+          `Server at ${routerAddress} can't perform routing. Make sure you are connecting to a causal cluster`,
+          SERVICE_UNAVAILABLE);
       } else if (error.code === UNAUTHORIZED_CODE) {
         // auth error is a sign of a configuration issue, rediscovery should not proceed
         throw error;

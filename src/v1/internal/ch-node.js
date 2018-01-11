@@ -130,7 +130,7 @@ const TrustStrategy = {
       rejectUnauthorized: false
     };
 
-    let socket = tls.connect(config.port, config.host, tlsOpts, function () {
+    let socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
       if (!socket.authorized) {
         onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, add" +
           " the signing certificate, or the server certificate, to the list of certificates trusted by this driver" +
@@ -152,7 +152,7 @@ const TrustStrategy = {
       // a more helpful error to the user
       rejectUnauthorized: false
     };
-    let socket = tls.connect(config.port, config.host, tlsOpts, function () {
+    let socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
       if (!socket.authorized) {
         onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, use " +
           "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES and add" +
@@ -180,7 +180,7 @@ const TrustStrategy = {
       rejectUnauthorized: false
     };
 
-    let socket = tls.connect(config.port, config.host, tlsOpts, function () {
+    let socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
       var serverCert = socket.getPeerCertificate(/*raw=*/true);
 
       if( !serverCert.raw ) {
@@ -197,7 +197,7 @@ const TrustStrategy = {
 
       const serverFingerprint = require('crypto').createHash('sha512').update(serverCert.raw).digest("hex");
       const knownHostsPath = config.knownHostsPath || path.join(userHome(), ".neo4j", "known_hosts");
-      const serverId = config.host + ":" + config.port;
+      const serverId = config.url.hostAndPort;
 
       loadFingerprint(serverId, knownHostsPath, (knownFingerprint) => {
         if( knownFingerprint === serverFingerprint ) {
@@ -232,7 +232,7 @@ const TrustStrategy = {
     const tlsOpts = {
       rejectUnauthorized: false
     };
-    const socket = tls.connect(config.port, config.host, tlsOpts, function () {
+    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
       const certificate = socket.getPeerCertificate();
       if (isEmptyObjectOrNull(certificate)) {
         onFailure(newError("Secure connection was successful but server did not return any valid " +
@@ -259,7 +259,7 @@ const TrustStrategy = {
 function connect( config, onSuccess, onFailure=(()=>null) ) {
   //still allow boolean for backwards compatibility
   if (config.encrypted === false || config.encrypted === ENCRYPTION_OFF) {
-    var conn = net.connect(config.port, config.host, onSuccess);
+    var conn = net.connect(config.url.port, config.url.host, onSuccess);
     conn.on('error', onFailure);
     return conn;
   } else if( TrustStrategy[config.trust]) {
