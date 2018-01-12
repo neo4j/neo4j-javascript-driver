@@ -109,7 +109,7 @@ const additionalConfig = {
 };
 
 const neoCtrlVersionParam = '-e';
-const defaultNeo4jVersion = '3.2.5';
+const defaultNeo4jVersion = '3.2.9';
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`;
 
 function neo4jCertPath(dir) {
