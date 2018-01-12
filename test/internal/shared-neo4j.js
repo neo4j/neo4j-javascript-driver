@@ -102,7 +102,10 @@ const authToken = neo4j.auth.basic(username, password);
 
 const additionalConfig = {
   // tell neo4j to listen for IPv6 connections, only supported by 3.1+
-  'dbms.connectors.default_listen_address': '::'
+  'dbms.connectors.default_listen_address': '::',
+
+  // HTTP server should keep listening on default address and create a self-signed certificate with host 'localhost'
+  'dbms.connector.http.listen_address': 'localhost:7474'
 };
 
 const neoCtrlVersionParam = '-e';
