@@ -22,14 +22,6 @@ import {newError} from '../error';
 const ENCRYPTION_ON = "ENCRYPTION_ON";
 const ENCRYPTION_OFF = "ENCRYPTION_OFF";
 
-const URL_REGEX = new RegExp([
-  '([^/]+//)?',       // scheme
-  '(([^:/?#]*)',      // hostname
-  '(?::([0-9]+))?)',  // port (optional)
-  '([^?]*)?',         // everything else
-  '(\\?(.+))?'        // query
-].join(''));
-
 function isEmptyObjectOrNull(obj) {
   if (obj === null) {
     return true;
@@ -72,58 +64,6 @@ function isString(str) {
   return Object.prototype.toString.call(str) === '[object String]';
 }
 
-function parseScheme(url) {
-  assertString(url, 'URL');
-  const scheme = url.match(URL_REGEX)[1] || '';
-  return scheme.toLowerCase();
-}
-
-function parseUrl(url) {
-  assertString(url, 'URL');
-  return url.match(URL_REGEX)[2];
-}
-
-function parseHost(url) {
-  assertString(url, 'URL');
-  return url.match(URL_REGEX)[3];
-}
-
-function parsePort(url) {
-  assertString(url, 'URL');
-  return url.match(URL_REGEX)[4];
-}
-
-function parseRoutingContext(url) {
-  const query = url.match(URL_REGEX)[7] || '';
-  const context = {};
-  if (query) {
-    query.split('&').forEach(pair => {
-      const keyValue = pair.split('=');
-      if (keyValue.length !== 2) {
-        throw new Error('Invalid parameters: \'' + keyValue + '\' in URL \'' + url + '\'.');
-      }
-
-      const key = trimAndVerify(keyValue[0], 'key', url);
-      const value = trimAndVerify(keyValue[1], 'value', url);
-
-      if (context[key]) {
-        throw new Error(`Duplicated query parameters with key '${key}' in URL '${url}'`);
-      }
-
-      context[key] = value;
-    });
-  }
-  return context;
-}
-
-function trimAndVerify(string, name, url) {
-  const result = string.trim();
-  if (!result) {
-    throw new Error(`Illegal empty ${name} in URL query '${url}'`);
-  }
-  return result;
-}
-
 function promiseOrTimeout(timeout, otherPromise, onTimeout) {
   let resultPromise = null;
 
@@ -159,11 +99,6 @@ export {
   isString,
   assertString,
   assertCypherStatement,
-  parseScheme,
-  parseUrl,
-  parseHost,
-  parsePort,
-  parseRoutingContext,
   promiseOrTimeout,
   ENCRYPTION_ON,
   ENCRYPTION_OFF

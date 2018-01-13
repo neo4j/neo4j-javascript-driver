@@ -25,7 +25,7 @@ import {alloc} from './buf';
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
 import {newError} from './../error';
 import ChannelConfig from './ch-config';
-import {parseHost, parsePort} from './util';
+import urlUtil from './url-util';
 import StreamObserver from './stream-observer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
 
@@ -586,12 +586,9 @@ class ConnectionState {
  */
 function connect(url, config = {}, connectionErrorCode = null) {
   const Ch = config.channel || Channel;
-  const host = parseHost(url);
-  const port = parsePort(url) || 7687;
-  const completeUrl = host + ':' + port;
-  const channelConfig = new ChannelConfig(host, port, config, connectionErrorCode);
-
-  return new Connection( new Ch(channelConfig), completeUrl);
+  const parsedUrl = urlUtil.parseBoltUrl(url);
+  const channelConfig = new ChannelConfig(parsedUrl, config, connectionErrorCode);
+  return new Connection(new Ch(channelConfig), parsedUrl.hostAndPort);
 }
 
 export {

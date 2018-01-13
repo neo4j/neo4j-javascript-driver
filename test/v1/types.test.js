@@ -146,12 +146,10 @@ describe('byte arrays', () => {
   beforeAll(done => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
-    const session = driver.session();
-    session.run('RETURN 1').then(result => {
-      driver.close();
-      const serverVersion = ServerVersion.fromString(result.summary.server.version);
-      serverSupportsByteArrays = serverVersion.compareTo(VERSION_3_2_0) >= 0;
+    const tmpDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+    ServerVersion.fromDriver(tmpDriver).then(version => {
+      tmpDriver.close();
+      serverSupportsByteArrays = version.compareTo(VERSION_3_2_0) >= 0;
       done();
     });
   });

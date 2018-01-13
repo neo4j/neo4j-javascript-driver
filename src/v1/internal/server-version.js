@@ -37,8 +37,21 @@ class ServerVersion {
   }
 
   /**
+   * Fetch server version using the given driver.
+   * @param {Driver} driver the driver to use.
+   * @return {Promise<ServerVersion>} promise resolved with a {@link ServerVersion} object or rejected with error.
+   */
+  static fromDriver(driver) {
+    const session = driver.session();
+    return session.run('RETURN 1').then(result => {
+      session.close();
+      return ServerVersion.fromString(result.summary.server.version);
+    });
+  }
+
+  /**
    * Parse given string to a {@link ServerVersion} object.
-   * @param versionStr the string to parse.
+   * @param {string} versionStr the string to parse.
    * @return {ServerVersion} version for the given string.
    * @throws Error if given string can't be parsed.
    */

@@ -26,7 +26,8 @@ import Record from './record';
 import {Driver, READ, WRITE} from './driver';
 import RoutingDriver from './routing-driver';
 import VERSION from '../version';
-import {assertString, isEmptyObjectOrNull, parseRoutingContext, parseScheme, parseUrl} from './internal/util';
+import {assertString, isEmptyObjectOrNull} from './internal/util';
+import urlUtil from './internal/url-util';
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -152,9 +153,9 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // version.
  *       loadBalancingStrategy: "least_connected" | "round_robin",
  *
- *       // Specify socket connection timeout in milliseconds. Non-numeric, negative and zero values are treated as an
- *       // infinite timeout. Connection will be then bound by the timeout configured on the operating system level.
- *       // Timeout value should be numeric and greater or equal to zero. Default value is 5000 which is 5 seconds.
+ *       // Specify socket connection timeout in milliseconds. Numeric values are expected. Negative and zero values
+ *       // result in no timeout being applied. Connection establishment will be then bound by the timeout configured
+ *       // on the operating system level. Default value is 5000, which is 5 seconds.
  *       connectionTimeout: 5000, // 5 seconds
  *     }
  *
@@ -165,17 +166,16 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  */
 function driver(url, authToken, config = {}) {
   assertString(url, 'Bolt URL');
-  const scheme = parseScheme(url);
-  const routingContext = parseRoutingContext(url);
-  if (scheme === 'bolt+routing://') {
-    return new RoutingDriver(parseUrl(url), routingContext, USER_AGENT, authToken, config);
-  } else if (scheme === 'bolt://') {
-    if (!isEmptyObjectOrNull(routingContext)) {
+  const parsedUrl = urlUtil.parseBoltUrl(url);
+  if (parsedUrl.scheme === 'bolt+routing') {
+    return new RoutingDriver(parsedUrl.hostAndPort, parsedUrl.query, USER_AGENT, authToken, config);
+  } else if (parsedUrl.scheme === 'bolt') {
+    if (!isEmptyObjectOrNull(parsedUrl.query)) {
       throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
     }
-    return new Driver(parseUrl(url), USER_AGENT, authToken, config);
+    return new Driver(parsedUrl.hostAndPort, USER_AGENT, authToken, config);
   } else {
-    throw new Error(`Unknown scheme: ${scheme}`);
+    throw new Error(`Unknown scheme: ${parsedUrl.scheme}`);
   }
 }
 

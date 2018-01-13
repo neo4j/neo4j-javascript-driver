@@ -19,7 +19,7 @@
 
 import {DnsHostNameResolver, DummyHostNameResolver} from '../../src/v1/internal/host-name-resolvers';
 import hasFeature from '../../src/v1/internal/features';
-import {parseHost, parsePort, parseScheme} from '../../src/v1/internal/util';
+import urlUtil from '../../src/v1/internal/url-util';
 
 describe('DummyHostNameResolver', () => {
 
@@ -72,9 +72,10 @@ describe('DnsHostNameResolver', () => {
 
         addresses.forEach(address => {
           expectToBeDefined(address);
-          expect(parseScheme(address)).toEqual('');
-          expectToBeDefined(parseHost(address));
-          expect(parsePort(address)).not.toBeDefined();
+          const parsedUrl = urlUtil.parseBoltUrl(address);
+          expect(parsedUrl.scheme).toBeNull();
+          expectToBeDefined(parsedUrl.host);
+          expect(parsedUrl.port).toEqual(7687); // default port should be appended
         });
 
         done();
@@ -90,36 +91,47 @@ describe('DnsHostNameResolver', () => {
 
         addresses.forEach(address => {
           expectToBeDefined(address);
-          expect(parseScheme(address)).toEqual('');
-          expectToBeDefined(parseHost(address));
-          expect(parsePort(address)).toEqual('7474');
+          const parsedUrl = urlUtil.parseBoltUrl(address);
+          expect(parsedUrl.scheme).toBeNull();
+          expectToBeDefined(parsedUrl.host);
+          expect(parsedUrl.port).toEqual(7474);
         });
 
         done();
       });
     });
 
-    it('should resolve unresolvable address to itself', done => {
-      const seedRouter = '127.0.0.1'; // IP can't be resolved
-      const resolver = new DnsHostNameResolver();
-
-      resolver.resolve(seedRouter).then(addresses => {
-        expect(addresses.length).toEqual(1);
-        expect(addresses[0]).toEqual(seedRouter);
-        done();
-      });
+    it('should resolve IPv4 address to itself', done => {
+      const addressToResolve = '127.0.0.1';
+      const expectedResolvedAddress = '127.0.0.1:7687'; // includes default port
+      testIpAddressResolution(addressToResolve, expectedResolvedAddress, done);
     });
 
-    it('should resolve unresolvable address with port to itself', done => {
-      const seedRouter = '127.0.0.1:7474'; // IP can't be resolved
+    it('should resolve IPv4 address with port to itself', done => {
+      const address = '127.0.0.1:7474';
+      testIpAddressResolution(address, address, done);
+    });
+
+    it('should resolve IPv6 address to itself', done => {
+      const addressToResolve = '[2001:4860:4860::8888]';
+      const expectedResolvedAddress = '[2001:4860:4860::8888]:7687'; // includes default port
+      testIpAddressResolution(addressToResolve, expectedResolvedAddress, done);
+    });
+
+    it('should resolve IPv6 address with port to itself', done => {
+      const address = '[2001:4860:4860::8888]:7474';
+      testIpAddressResolution(address, address, done);
+    });
+
+    function testIpAddressResolution(address, expectedResolvedAddress, done) {
       const resolver = new DnsHostNameResolver();
 
-      resolver.resolve(seedRouter).then(addresses => {
+      resolver.resolve(address).then(addresses => {
         expect(addresses.length).toEqual(1);
-        expect(addresses[0]).toEqual(seedRouter);
+        expect(addresses[0]).toEqual(expectedResolvedAddress);
         done();
       });
-    });
+    }
 
   }
 });

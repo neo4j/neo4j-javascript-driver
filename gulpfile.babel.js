@@ -197,6 +197,12 @@ gulp.task('run-browser-test-edge', function(cb){
   }, cb).start();
 });
 
+gulp.task('run-browser-test-ie', function (cb) {
+  new karmaServer({
+    configFile: __dirname + '/test/browser/karma-ie.conf.js',
+  }, cb).start();
+});
+
 gulp.task('watch', function () {
   return watch('src/**/*.js', batch(function (events, done) {
       gulp.start('all', done);
