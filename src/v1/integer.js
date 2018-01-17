@@ -89,6 +89,21 @@ class Integer {
   toNumber(){ return this.high * TWO_PWR_32_DBL + (this.low >>> 0); }
 
   /**
+   * Converts the Integer to native number or -Infinity/+Infinity when it does not fit.
+   * @return {number}
+   * @package
+   */
+  toNumberOrInfinity() {
+    if (this.lessThan(Integer.MIN_SAFE_VALUE)) {
+      return Number.NEGATIVE_INFINITY;
+    } else if (this.greaterThan(Integer.MAX_SAFE_VALUE)) {
+      return Number.POSITIVE_INFINITY;
+    } else {
+      return this.toNumber();
+    }
+  }
+
+  /**
    * Converts the Integer to a string written in the specified radix.
    * @param {number=} radix Radix (2-36), defaults to 10
    * @returns {string}

@@ -19,6 +19,7 @@
 import utf8 from './utf8';
 import Integer, {int, isInt} from '../integer';
 import {newError} from './../error';
+import {Chunker} from './chunking';
 
 const TINY_STRING = 0x80;
 const TINY_LIST = 0x90;
@@ -75,9 +76,17 @@ class Structure {
   * @access private
   */
 class Packer {
-  constructor (channel) {
+
+  /**
+   * @constructor
+   * @param {Chunker} channel the chunker backed by a network channel.
+   * @param {boolean} useNativeNumbers if this packer should treat/convert all received numbers
+   * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
+   */
+  constructor(channel, useNativeNumbers = false) {
     this._ch = channel;
     this._byteArraysSupported = true;
+    this._useNativeNumbers = useNativeNumbers;
   }
 
   /**
@@ -98,7 +107,7 @@ class Packer {
     } else if (typeof(x) == "string") {
       return () => this.packString(x, onError);
     } else if (isInt(x)) {
-      return () => this.packInteger( x );
+      return this._packableInteger(x, onError);
     } else if (x instanceof Int8Array) {
       return () => this.packBytes(x, onError);
     } else if (x instanceof Array) {
@@ -138,6 +147,28 @@ class Packer {
         onError(newError("Cannot pack this value: " + x));
       }
       return () => undefined;
+    }
+  }
+
+  /**
+   * Creates a packable function out of the provided {@link Integer} value.
+   * @param {Integer} x the value to pack.
+   * @param {function} onError the callback for the case when value cannot be packed.
+   * @return {function}
+   * @private
+   */
+  _packableInteger(x, onError) {
+    if (this._useNativeNumbers) {
+      // pack Integer objects only when native numbers are not used, fail otherwise
+      // Integer can't represent special values like Number.NEGATIVE_INFINITY
+      // and should not be used at all when native numbers are enabled
+      if (onError) {
+        onError(newError(`Cannot pack Integer value ${x} (${JSON.stringify(x)}) when native numbers are enabled. ` +
+          `Please use native Number instead or disable native number support on the driver level.`));
+      }
+      return () => undefined;
+    } else {
+      return () => this.packInteger(x);
     }
   }
 
@@ -309,11 +340,18 @@ class Packer {
   * @access private
   */
 class Unpacker {
-  constructor () {
+
+  /**
+   * @constructor
+   * @param {boolean} useNativeNumbers if this unpacker should treat/convert all received numbers
+   * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
+   */
+  constructor(useNativeNumbers = false) {
     // Higher level layers can specify how to map structs to higher-level objects.
-    // If we recieve a struct that has a signature that does not have a mapper,
+    // If we receive a struct that has a signature that does not have a mapper,
     // we simply return a Structure object.
     this.structMappers = {};
+    this._useNativeNumbers = useNativeNumbers;
   }
 
   unpack(buffer) {
@@ -388,9 +426,10 @@ class Unpacker {
       let b = buffer.readInt32();
       return int(b);
     } else if (marker == INT_64) {
-      let high = buffer.readInt32();
-      let low = buffer.readInt32();
-      return new Integer(low, high);
+      const high = buffer.readInt32();
+      const low = buffer.readInt32();
+      const integer = new Integer(low, high);
+      return this._useNativeNumbers ? integer.toNumberOrInfinity() : integer;
     } else {
       return null;
     }

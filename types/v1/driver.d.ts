@@ -54,6 +54,7 @@ declare interface Config {
   loadBalancingStrategy?: LoadBalancingStrategy;
   maxConnectionLifetime?: number;
   connectionTimeout?: number;
+  useNativeNumbers?: boolean;
 }
 
 declare type SessionMode = "READ" | "WRITE";

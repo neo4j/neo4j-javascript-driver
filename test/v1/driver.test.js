@@ -325,6 +325,43 @@ describe('driver', () => {
     testIPv6Connection('bolt://[::1]:7687', done);
   });
 
+  const nativeNumbers = [
+    Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY,
+    Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER,
+    -0, 0,
+    -42, 42,
+    -999, 999,
+    -1000, 1000,
+    -9000000, 9000000,
+    Number.MIN_SAFE_INTEGER + 1, Number.MAX_SAFE_INTEGER - 1
+  ];
+
+  nativeNumbers.forEach(number => {
+
+    it(`should return native number ${number} when useNativeNumbers=true`, done => {
+      testNativeNumberInReturnedRecord(number, done);
+    });
+
+  });
+
+  it('should fail to pack Integer when useNativeNumbers=true', done => {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {useNativeNumbers: true});
+    const session = driver.session();
+
+    session.run('RETURN $number', {number: neo4j.int(42)})
+      .then(result => {
+        done.fail(`Was somehow able to pack Integer and received result ${JSON.stringify(result)}`);
+      })
+      .catch(error => {
+        const message = error.message;
+        if (message.indexOf('Cannot pack Integer value') === -1) {
+          done.fail(`Unexpected error message: ${message}`);
+        } else {
+          done();
+        }
+      });
+  });
+
   function testIPv6Connection(url, done) {
     if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
       // IPv6 listen address only supported starting from neo4j 3.1, so let's ignore the rest
@@ -337,6 +374,29 @@ describe('driver', () => {
     session.run('RETURN 42').then(result => {
       expect(result.records[0].get(0).toNumber()).toEqual(42);
       session.close();
+      done();
+    });
+  }
+
+  function testNativeNumberInReturnedRecord(number, done) {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {useNativeNumbers: true});
+
+    const session = driver.session();
+    session.run('RETURN $number AS n0, $number AS n1', {number: number}).then(result => {
+      session.close();
+
+      const records = result.records;
+      expect(records.length).toEqual(1);
+      const record = records[0];
+
+      expect(record.get('n0')).toEqual(number);
+      expect(record.get('n1')).toEqual(number);
+
+      expect(record.get(0)).toEqual(number);
+      expect(record.get(1)).toEqual(number);
+
+      expect(record.toObject()).toEqual({n0: number, n1: number});
+
       done();
     });
   }

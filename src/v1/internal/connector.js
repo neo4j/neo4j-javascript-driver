@@ -162,11 +162,12 @@ class Connection {
 
   /**
    * @constructor
-   * @param channel - channel with a 'write' function and a 'onmessage'
-   *                  callback property
-   * @param url - url to connect to
+   * @param {NodeChannel|WebSocketChannel} channel - channel with a 'write' function and a 'onmessage' callback property.
+   * @param {string} url - the hostname and port to connect to.
+   * @param {boolean} useNativeNumbers if this connection should treat/convert all received numbers
+   * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
    */
-  constructor (channel, url) {
+  constructor(channel, url, useNativeNumbers = false) {
     /**
      * An ordered queue of observers, each exchange response (zero or more
      * RECORD messages followed by a SUCCESS message) we recieve will be routed
@@ -180,8 +181,8 @@ class Connection {
     this._ch = channel;
     this._dechunker = new Dechunker();
     this._chunker = new Chunker( channel );
-    this._packer = new Packer( this._chunker );
-    this._unpacker = new Unpacker();
+    this._packer = new Packer(this._chunker, useNativeNumbers);
+    this._unpacker = new Unpacker(useNativeNumbers);
 
     this._isHandlingFailure = false;
     this._currentFailure = null;
@@ -588,7 +589,7 @@ function connect(url, config = {}, connectionErrorCode = null) {
   const Ch = config.channel || Channel;
   const parsedUrl = urlUtil.parseBoltUrl(url);
   const channelConfig = new ChannelConfig(parsedUrl, config, connectionErrorCode);
-  return new Connection(new Ch(channelConfig), parsedUrl.hostAndPort);
+  return new Connection(new Ch(channelConfig), parsedUrl.hostAndPort, config.useNativeNumbers);
 }
 
 export {

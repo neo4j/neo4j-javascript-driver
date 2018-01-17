@@ -59,6 +59,9 @@ const connectionPoolSize: undefined | number = config.connectionPoolSize;
 const maxTransactionRetryTime: undefined | number = config.maxTransactionRetryTime;
 const loadBalancingStrategy1: undefined | LoadBalancingStrategy = config.loadBalancingStrategy;
 const loadBalancingStrategy2: undefined | string = config.loadBalancingStrategy;
+const maxConnectionLifetime: undefined | number = config.maxConnectionLifetime;
+const connectionTimeout: undefined | number = config.connectionTimeout;
+const useNativeNumbers: undefined | boolean = config.useNativeNumbers;
 
 const sessionMode: SessionMode = dummy;
 const sessionModeStr: string = sessionMode;
