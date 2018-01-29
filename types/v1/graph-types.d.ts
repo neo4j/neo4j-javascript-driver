@@ -19,67 +19,67 @@
 
 import Integer from "./integer";
 
-declare class Node {
-  identity: Integer;
+declare class Node<T extends (Integer | number) = Integer> {
+  identity: T;
   labels: string[];
   properties: object;
 
-  constructor(identity: Integer,
+  constructor(identity: T,
               labels: string[],
               properties: object)
 
   toString(): string;
 }
 
-declare class Relationship {
-  identity: Integer;
-  start: Integer;
-  end: Integer;
+declare class Relationship<T extends (Integer | number) = Integer> {
+  identity: T;
+  start: T;
+  end: T;
   type: string;
   properties: object;
 
-  constructor(identity: Integer,
-              start: Integer,
-              end: Integer,
+  constructor(identity: T,
+              start: T,
+              end: T,
               type: string,
               properties: object);
 
   toString(): string;
 }
 
-declare class UnboundRelationship {
-  identity: Integer;
+declare class UnboundRelationship<T extends (Integer | number) = Integer> {
+  identity: T;
   type: string;
   properties: object;
 
-  constructor(identity: Integer,
+  constructor(identity: T,
               type: string,
               properties: object);
 
-  bind(start: Integer, end: Integer): Relationship;
+  bind(start: T, end: T): Relationship<T>;
 
   toString(): string;
 }
 
-declare class PathSegment {
-  start: Node;
-  relationship: Relationship;
-  end: Node;
+declare class PathSegment<T extends (Integer | number) = Integer> {
+  start: Node<T>;
+  relationship: Relationship<T>;
+  end: Node<T>;
 
-  constructor(start: Node,
-              rel: Relationship,
-              end: Node);
+  constructor(start: Node<T>,
+              rel: Relationship<T>,
+              end: Node<T>);
 }
 
-declare class Path {
-  start: Node;
-  end: Node;
-  segments: PathSegment[];
+declare class Path<T extends (Integer | number) = Integer> {
+  start: Node<T>;
+  end: Node<T>;
+  segments: PathSegment<T>[];
   length: number;
 
-  constructor(start: Node,
-              end: Node,
-              segments: PathSegment[]);
+  constructor(start: Node<T>,
+              end: Node<T>,
+              segments: PathSegment<T>[]);
 }
 
 export {
