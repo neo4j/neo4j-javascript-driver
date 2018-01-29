@@ -164,8 +164,7 @@ class Connection {
    * @constructor
    * @param {NodeChannel|WebSocketChannel} channel - channel with a 'write' function and a 'onmessage' callback property.
    * @param {string} url - the hostname and port to connect to.
-   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers
-   * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
+   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
    */
   constructor(channel, url, disableLosslessIntegers = false) {
     /**
@@ -181,7 +180,7 @@ class Connection {
     this._ch = channel;
     this._dechunker = new Dechunker();
     this._chunker = new Chunker( channel );
-    this._packer = new Packer(this._chunker, disableLosslessIntegers);
+    this._packer = new Packer(this._chunker);
     this._unpacker = new Unpacker(disableLosslessIntegers);
 
     this._isHandlingFailure = false;

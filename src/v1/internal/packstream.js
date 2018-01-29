@@ -80,13 +80,10 @@ class Packer {
   /**
    * @constructor
    * @param {Chunker} channel the chunker backed by a network channel.
-   * @param {boolean} disableLosslessIntegers if this packer should convert all received integers to native JS numbers
-   * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
    */
-  constructor(channel, disableLosslessIntegers = false) {
+  constructor(channel) {
     this._ch = channel;
     this._byteArraysSupported = true;
-    this._disableLosslessIntegers = disableLosslessIntegers;
   }
 
   /**
@@ -107,7 +104,7 @@ class Packer {
     } else if (typeof(x) == "string") {
       return () => this.packString(x, onError);
     } else if (isInt(x)) {
-      return this._packableInteger(x, onError);
+      return () => this.packInteger(x);
     } else if (x instanceof Int8Array) {
       return () => this.packBytes(x, onError);
     } else if (x instanceof Array) {
@@ -151,28 +148,6 @@ class Packer {
   }
 
   /**
-   * Creates a packable function out of the provided {@link Integer} value.
-   * @param {Integer} x the value to pack.
-   * @param {function} onError the callback for the case when value cannot be packed.
-   * @return {function}
-   * @private
-   */
-  _packableInteger(x, onError) {
-    if (this._disableLosslessIntegers) {
-      // pack Integer objects only when native numbers are not used, fail otherwise
-      // Integer can't represent special values like Number.NEGATIVE_INFINITY
-      // and should not be used at all when native numbers are enabled
-      if (onError) {
-        onError(newError(`Cannot pack Integer value ${x} (${JSON.stringify(x)}) when native numbers are enabled. ` +
-          `Please use native Number instead or disable native number support on the driver level.`));
-      }
-      return () => undefined;
-    } else {
-      return () => this.packInteger(x);
-    }
-  }
-
-  /**
    * Packs a struct
    * @param signature the signature of the struct
    * @param packableFields the fields of the struct, make sure you call `packable on all fields`
@@ -209,6 +184,7 @@ class Packer {
       this._ch.writeInt32(low);
     }
   }
+
   packFloat(x) {
     this._ch.writeUInt8(FLOAT_64);
     this._ch.writeFloat64(x);
@@ -343,8 +319,7 @@ class Unpacker {
 
   /**
    * @constructor
-   * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers
-   * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
+   * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
    */
   constructor(disableLosslessIntegers = false) {
     // Higher level layers can specify how to map structs to higher-level objects.
@@ -368,9 +343,12 @@ class Unpacker {
       return boolean;
     }
 
-    const number = this._unpackNumber(marker, buffer);
-    if (number !== null) {
-      return number;
+    const numberOrInteger = this._unpackNumberOrInteger(marker, buffer);
+    if (numberOrInteger !== null) {
+      if (this._disableLosslessIntegers && isInt(numberOrInteger)) {
+        return numberOrInteger.toNumberOrInfinity();
+      }
+      return numberOrInteger;
     }
 
     const string = this._unpackString(marker, markerHigh, markerLow, buffer);
@@ -411,7 +389,7 @@ class Unpacker {
     }
   }
 
-  _unpackNumber(marker, buffer) {
+  _unpackNumberOrInteger(marker, buffer) {
     if (marker == FLOAT_64) {
       return buffer.readFloat64();
     } else if (marker >= 0 && marker < 128) {
@@ -428,8 +406,7 @@ class Unpacker {
     } else if (marker == INT_64) {
       const high = buffer.readInt32();
       const low = buffer.readInt32();
-      const integer = new Integer(low, high);
-      return this._disableLosslessIntegers ? integer.toNumberOrInfinity() : integer;
+      return new Integer(low, high);
     } else {
       return null;
     }

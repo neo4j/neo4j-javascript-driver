@@ -339,27 +339,32 @@ describe('driver', () => {
   nativeNumbers.forEach(number => {
 
     it(`should return native number ${number} when disableLosslessIntegers=true`, done => {
-      testNativeNumberInReturnedRecord(number, done);
+      testNumberInReturnedRecord(number, number, done);
     });
 
   });
 
-  it('should fail to pack Integer when disableLosslessIntegers=true', done => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
-    const session = driver.session();
+  const integersWithNativeNumberEquivalent = [
+    [neo4j.int(0), 0],
+    [neo4j.int(42), 42],
+    [neo4j.int(-100), -100],
+    [neo4j.int(Number.MIN_SAFE_INTEGER), Number.MIN_SAFE_INTEGER],
+    [neo4j.int(Number.MAX_SAFE_INTEGER), Number.MAX_SAFE_INTEGER],
+    [neo4j.int('-9007199254740992'), Number.NEGATIVE_INFINITY], // Number.MIN_SAFE_INTEGER - 1
+    [neo4j.int('9007199254740992'), Number.POSITIVE_INFINITY], // Number.MAX_SAFE_INTEGER + 1
+    [neo4j.int('-9007199254749999'), Number.NEGATIVE_INFINITY], // Number.MIN_SAFE_INTEGER - 9007
+    [neo4j.int('9007199254749999'), Number.POSITIVE_INFINITY], // Number.MAX_SAFE_INTEGER + 9008
+  ];
 
-    session.run('RETURN $number', {number: neo4j.int(42)})
-      .then(result => {
-        done.fail(`Was somehow able to pack Integer and received result ${JSON.stringify(result)}`);
-      })
-      .catch(error => {
-        const message = error.message;
-        if (message.indexOf('Cannot pack Integer value') === -1) {
-          done.fail(`Unexpected error message: ${message}`);
-        } else {
-          done();
-        }
-      });
+  integersWithNativeNumberEquivalent.forEach(integerWithNativeNumber => {
+
+    const integer = integerWithNativeNumber[0];
+    const nativeNumber = integerWithNativeNumber[1];
+
+    it(`should send Integer ${integer.toString()} and return native number ${nativeNumber} when disableLosslessIntegers=true`, done => {
+      testNumberInReturnedRecord(integer, nativeNumber, done);
+    });
+
   });
 
   function testIPv6Connection(url, done) {
@@ -378,24 +383,24 @@ describe('driver', () => {
     });
   }
 
-  function testNativeNumberInReturnedRecord(number, done) {
+  function testNumberInReturnedRecord(inputNumber, expectedNumber, done) {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
 
     const session = driver.session();
-    session.run('RETURN $number AS n0, $number AS n1', {number: number}).then(result => {
+    session.run('RETURN $number AS n0, $number AS n1', {number: inputNumber}).then(result => {
       session.close();
 
       const records = result.records;
       expect(records.length).toEqual(1);
       const record = records[0];
 
-      expect(record.get('n0')).toEqual(number);
-      expect(record.get('n1')).toEqual(number);
+      expect(record.get('n0')).toEqual(expectedNumber);
+      expect(record.get('n1')).toEqual(expectedNumber);
 
-      expect(record.get(0)).toEqual(number);
-      expect(record.get(1)).toEqual(number);
+      expect(record.get(0)).toEqual(expectedNumber);
+      expect(record.get(1)).toEqual(expectedNumber);
 
-      expect(record.toObject()).toEqual({n0: number, n1: number});
+      expect(record.toObject()).toEqual({n0: expectedNumber, n1: expectedNumber});
 
       done();
     });
