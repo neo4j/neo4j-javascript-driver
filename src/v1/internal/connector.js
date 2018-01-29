@@ -164,10 +164,10 @@ class Connection {
    * @constructor
    * @param {NodeChannel|WebSocketChannel} channel - channel with a 'write' function and a 'onmessage' callback property.
    * @param {string} url - the hostname and port to connect to.
-   * @param {boolean} useNativeNumbers if this connection should treat/convert all received numbers
+   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers
    * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
    */
-  constructor(channel, url, useNativeNumbers = false) {
+  constructor(channel, url, disableLosslessIntegers = false) {
     /**
      * An ordered queue of observers, each exchange response (zero or more
      * RECORD messages followed by a SUCCESS message) we recieve will be routed
@@ -181,8 +181,8 @@ class Connection {
     this._ch = channel;
     this._dechunker = new Dechunker();
     this._chunker = new Chunker( channel );
-    this._packer = new Packer(this._chunker, useNativeNumbers);
-    this._unpacker = new Unpacker(useNativeNumbers);
+    this._packer = new Packer(this._chunker, disableLosslessIntegers);
+    this._unpacker = new Unpacker(disableLosslessIntegers);
 
     this._isHandlingFailure = false;
     this._currentFailure = null;
@@ -589,7 +589,7 @@ function connect(url, config = {}, connectionErrorCode = null) {
   const Ch = config.channel || Channel;
   const parsedUrl = urlUtil.parseBoltUrl(url);
   const channelConfig = new ChannelConfig(parsedUrl, config, connectionErrorCode);
-  return new Connection(new Ch(channelConfig), parsedUrl.hostAndPort, config.useNativeNumbers);
+  return new Connection(new Ch(channelConfig), parsedUrl.hostAndPort, config.disableLosslessIntegers);
 }
 
 export {

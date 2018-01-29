@@ -158,16 +158,17 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // on the operating system level. Default value is 5000, which is 5 seconds.
  *       connectionTimeout: 5000, // 5 seconds
  *
- *       // Make this driver always return and accept native JavaScript number for integer values, instead of the
+ *       // Make this driver always return native JavaScript numbers for integer values, instead of the
  *       // dedicated {@link Integer} class. Values that do not fit in native number bit range will be represented as
- *       // <code>Number.NEGATIVE_INFINITY</code> or <code>Number.POSITIVE_INFINITY</code>. Driver will fail to encode
- *       // {@link Integer} values passed as query parameters when this setting is set to <code>true</code>.
- *       // <b>Warning:</b> It is not safe to enable this setting when JavaScript applications are not the only ones
+ *       // <code>Number.NEGATIVE_INFINITY</code> or <code>Number.POSITIVE_INFINITY</code>.
+ *       // <b>Warning:</b> It is not always safe to enable this setting when JavaScript applications are not the only ones
  *       // interacting with the database. Stored numbers might in such case be not representable by native
- *       // {@link Number} type and thus driver will return lossy values. For example, this might happen when data was
+ *       // {@link Number} type and thus driver will return lossy values. This might also happen when data was
  *       // initially imported using neo4j import tool and contained numbers larger than
  *       // <code>Number.MAX_SAFE_INTEGER</code>. Driver will then return positive infinity, which is lossy.
- *       useNativeNumbers: false,
+ *       // Default value for this option is <code>false</code> because native JavaScript numbers might result
+ *       // in loss of precision in the general case.
+ *       disableLosslessIntegers: false,
  *     }
  *
  * @param {string} url The URL for the Neo4j database, for instance "bolt://localhost"

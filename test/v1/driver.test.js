@@ -338,14 +338,14 @@ describe('driver', () => {
 
   nativeNumbers.forEach(number => {
 
-    it(`should return native number ${number} when useNativeNumbers=true`, done => {
+    it(`should return native number ${number} when disableLosslessIntegers=true`, done => {
       testNativeNumberInReturnedRecord(number, done);
     });
 
   });
 
-  it('should fail to pack Integer when useNativeNumbers=true', done => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {useNativeNumbers: true});
+  it('should fail to pack Integer when disableLosslessIntegers=true', done => {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
     const session = driver.session();
 
     session.run('RETURN $number', {number: neo4j.int(42)})
@@ -379,7 +379,7 @@ describe('driver', () => {
   }
 
   function testNativeNumberInReturnedRecord(number, done) {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {useNativeNumbers: true});
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
 
     const session = driver.session();
     session.run('RETURN $number AS n0, $number AS n1', {number: number}).then(result => {

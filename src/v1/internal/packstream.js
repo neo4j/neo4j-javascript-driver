@@ -80,13 +80,13 @@ class Packer {
   /**
    * @constructor
    * @param {Chunker} channel the chunker backed by a network channel.
-   * @param {boolean} useNativeNumbers if this packer should treat/convert all received numbers
+   * @param {boolean} disableLosslessIntegers if this packer should convert all received integers to native JS numbers
    * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
    */
-  constructor(channel, useNativeNumbers = false) {
+  constructor(channel, disableLosslessIntegers = false) {
     this._ch = channel;
     this._byteArraysSupported = true;
-    this._useNativeNumbers = useNativeNumbers;
+    this._disableLosslessIntegers = disableLosslessIntegers;
   }
 
   /**
@@ -158,7 +158,7 @@ class Packer {
    * @private
    */
   _packableInteger(x, onError) {
-    if (this._useNativeNumbers) {
+    if (this._disableLosslessIntegers) {
       // pack Integer objects only when native numbers are not used, fail otherwise
       // Integer can't represent special values like Number.NEGATIVE_INFINITY
       // and should not be used at all when native numbers are enabled
@@ -343,15 +343,15 @@ class Unpacker {
 
   /**
    * @constructor
-   * @param {boolean} useNativeNumbers if this unpacker should treat/convert all received numbers
+   * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers
    * (including native {@link Number} type or our own {@link Integer}) as native {@link Number}.
    */
-  constructor(useNativeNumbers = false) {
+  constructor(disableLosslessIntegers = false) {
     // Higher level layers can specify how to map structs to higher-level objects.
     // If we receive a struct that has a signature that does not have a mapper,
     // we simply return a Structure object.
     this.structMappers = {};
-    this._useNativeNumbers = useNativeNumbers;
+    this._disableLosslessIntegers = disableLosslessIntegers;
   }
 
   unpack(buffer) {
@@ -429,7 +429,7 @@ class Unpacker {
       const high = buffer.readInt32();
       const low = buffer.readInt32();
       const integer = new Integer(low, high);
-      return this._useNativeNumbers ? integer.toNumberOrInfinity() : integer;
+      return this._disableLosslessIntegers ? integer.toNumberOrInfinity() : integer;
     } else {
       return null;
     }
