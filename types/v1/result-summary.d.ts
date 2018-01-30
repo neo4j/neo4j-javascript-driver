@@ -18,8 +18,9 @@
  */
 
 import Integer from "./integer";
+import {NumberOrInteger} from "./graph-types";
 
-declare interface ResultSummary<T extends (Integer | number) = Integer> {
+declare interface ResultSummary<T extends NumberOrInteger = Integer> {
   statement: { text: string, parameters: { [key: string]: any } };
   statementType: string;
   counters: StatementStatistic;

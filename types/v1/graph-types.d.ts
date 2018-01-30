@@ -19,7 +19,9 @@
 
 import Integer from "./integer";
 
-declare class Node<T extends (Integer | number) = Integer> {
+declare type NumberOrInteger = number | Integer;
+
+declare class Node<T extends NumberOrInteger = Integer> {
   identity: T;
   labels: string[];
   properties: object;
@@ -31,7 +33,7 @@ declare class Node<T extends (Integer | number) = Integer> {
   toString(): string;
 }
 
-declare class Relationship<T extends (Integer | number) = Integer> {
+declare class Relationship<T extends NumberOrInteger = Integer> {
   identity: T;
   start: T;
   end: T;
@@ -47,7 +49,7 @@ declare class Relationship<T extends (Integer | number) = Integer> {
   toString(): string;
 }
 
-declare class UnboundRelationship<T extends (Integer | number) = Integer> {
+declare class UnboundRelationship<T extends NumberOrInteger = Integer> {
   identity: T;
   type: string;
   properties: object;
@@ -61,7 +63,7 @@ declare class UnboundRelationship<T extends (Integer | number) = Integer> {
   toString(): string;
 }
 
-declare class PathSegment<T extends (Integer | number) = Integer> {
+declare class PathSegment<T extends NumberOrInteger = Integer> {
   start: Node<T>;
   relationship: Relationship<T>;
   end: Node<T>;
@@ -71,7 +73,7 @@ declare class PathSegment<T extends (Integer | number) = Integer> {
               end: Node<T>);
 }
 
-declare class Path<T extends (Integer | number) = Integer> {
+declare class Path<T extends NumberOrInteger = Integer> {
   start: Node<T>;
   end: Node<T>;
   segments: PathSegment<T>[];
@@ -87,5 +89,6 @@ export {
   Relationship,
   UnboundRelationship,
   Path,
-  PathSegment
+  PathSegment,
+  NumberOrInteger
 }
