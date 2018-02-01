@@ -17,7 +17,8 @@
     "run-tck": "gulp run-tck",
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "esdoc -c esdoc.json",
-    "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version"
+    "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version",
+    "browser": "gulp browser && gulp test-browser"
   },
   "main": "lib/index.js",
   "types": "types/index.d.ts",
@@ -70,6 +71,7 @@
   },
   "dependencies": {
     "babel-runtime": "^6.18.0",
-    "url-parse": "^1.2.0"
+    "url-parse": "^1.2.0",
+    "xhr": "^2.4.1"
   }
 }

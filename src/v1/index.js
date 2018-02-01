@@ -28,6 +28,7 @@ import RoutingDriver from './routing-driver';
 import VERSION from '../version';
 import {assertString, isEmptyObjectOrNull} from './internal/util';
 import urlUtil from './internal/url-util';
+import HttpDriver from './internal/http/http-driver';
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -186,6 +187,8 @@ function driver(url, authToken, config = {}) {
       throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
     }
     return new Driver(parsedUrl.hostAndPort, USER_AGENT, authToken, config);
+  } else if (parsedUrl.scheme === 'http') {
+    return new HttpDriver(parsedUrl, USER_AGENT, authToken, config);
   } else {
     throw new Error(`Unknown scheme: ${parsedUrl.scheme}`);
   }
