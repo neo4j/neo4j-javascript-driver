@@ -325,6 +325,48 @@ describe('driver', () => {
     testIPv6Connection('bolt://[::1]:7687', done);
   });
 
+  const nativeNumbers = [
+    Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY,
+    Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER,
+    -0, 0,
+    -42, 42,
+    -999, 999,
+    -1000, 1000,
+    -9000000, 9000000,
+    Number.MIN_SAFE_INTEGER + 1, Number.MAX_SAFE_INTEGER - 1
+  ];
+
+  nativeNumbers.forEach(number => {
+
+    it(`should return native number ${number} when disableLosslessIntegers=true`, done => {
+      testNumberInReturnedRecord(number, number, done);
+    });
+
+  });
+
+  const integersWithNativeNumberEquivalent = [
+    [neo4j.int(0), 0],
+    [neo4j.int(42), 42],
+    [neo4j.int(-100), -100],
+    [neo4j.int(Number.MIN_SAFE_INTEGER), Number.MIN_SAFE_INTEGER],
+    [neo4j.int(Number.MAX_SAFE_INTEGER), Number.MAX_SAFE_INTEGER],
+    [neo4j.int('-9007199254740992'), Number.NEGATIVE_INFINITY], // Number.MIN_SAFE_INTEGER - 1
+    [neo4j.int('9007199254740992'), Number.POSITIVE_INFINITY], // Number.MAX_SAFE_INTEGER + 1
+    [neo4j.int('-9007199254749999'), Number.NEGATIVE_INFINITY], // Number.MIN_SAFE_INTEGER - 9007
+    [neo4j.int('9007199254749999'), Number.POSITIVE_INFINITY], // Number.MAX_SAFE_INTEGER + 9008
+  ];
+
+  integersWithNativeNumberEquivalent.forEach(integerWithNativeNumber => {
+
+    const integer = integerWithNativeNumber[0];
+    const nativeNumber = integerWithNativeNumber[1];
+
+    it(`should send Integer ${integer.toString()} and return native number ${nativeNumber} when disableLosslessIntegers=true`, done => {
+      testNumberInReturnedRecord(integer, nativeNumber, done);
+    });
+
+  });
+
   function testIPv6Connection(url, done) {
     if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
       // IPv6 listen address only supported starting from neo4j 3.1, so let's ignore the rest
@@ -337,6 +379,29 @@ describe('driver', () => {
     session.run('RETURN 42').then(result => {
       expect(result.records[0].get(0).toNumber()).toEqual(42);
       session.close();
+      done();
+    });
+  }
+
+  function testNumberInReturnedRecord(inputNumber, expectedNumber, done) {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
+
+    const session = driver.session();
+    session.run('RETURN $number AS n0, $number AS n1', {number: inputNumber}).then(result => {
+      session.close();
+
+      const records = result.records;
+      expect(records.length).toEqual(1);
+      const record = records[0];
+
+      expect(record.get('n0')).toEqual(expectedNumber);
+      expect(record.get('n1')).toEqual(expectedNumber);
+
+      expect(record.get(0)).toEqual(expectedNumber);
+      expect(record.get(1)).toEqual(expectedNumber);
+
+      expect(record.toObject()).toEqual({n0: expectedNumber, n1: expectedNumber});
+
       done();
     });
   }

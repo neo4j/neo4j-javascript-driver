@@ -18,8 +18,9 @@
  */
 
 import Integer from "./integer";
+import {NumberOrInteger} from "./graph-types";
 
-declare interface ResultSummary {
+declare interface ResultSummary<T extends NumberOrInteger = Integer> {
   statement: { text: string, parameters: { [key: string]: any } };
   statementType: string;
   counters: StatementStatistic;
@@ -27,8 +28,8 @@ declare interface ResultSummary {
   profile: ProfiledPlan;
   notifications: Notification[];
   server: ServerInfo;
-  resultConsumedAfter: Integer;
-  resultAvailableAfter: Integer;
+  resultConsumedAfter: T;
+  resultAvailableAfter: T;
 
   hasPlan(): boolean;
 

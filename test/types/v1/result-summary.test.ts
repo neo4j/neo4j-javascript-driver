@@ -17,27 +17,20 @@
  * limitations under the License.
  */
 
-import ResultSummary, {
-  Notification,
-  NotificationPosition,
-  Plan,
-  ProfiledPlan,
-  ServerInfo,
-  StatementStatistic
-} from "../../../types/v1/result-summary";
+import ResultSummary, {Notification, NotificationPosition, Plan, ProfiledPlan, ServerInfo, StatementStatistic} from "../../../types/v1/result-summary";
 import Integer from "../../../types/v1/integer";
 
 const dummy: any = null;
 
-const sum: ResultSummary = dummy;
+const sum1: ResultSummary = dummy;
 
-const stmt = sum.statement;
+const stmt = sum1.statement;
 const stmtText: string = stmt.text;
 const stmtParams: object = stmt.parameters;
 
-const str: string = sum.statementType;
+const str: string = sum1.statementType;
 
-const counters: StatementStatistic = sum.counters;
+const counters: StatementStatistic = sum1.counters;
 
 const containsUpdates: boolean = counters.containsUpdates();
 const nodesCreated: number = counters.nodesCreated();
@@ -52,13 +45,13 @@ const indexesRemoved: number = counters.indexesRemoved();
 const constraintsAdded: number = counters.constraintsAdded();
 const constraintsRemoved: number = counters.constraintsRemoved();
 
-const plan: Plan = sum.plan;
+const plan: Plan = sum1.plan;
 const planOperatorType: string = plan.operatorType;
 const planIdentifiers: string[] = plan.identifiers;
 const planArguments: { [key: string]: string } = plan.arguments;
 const planChildren: Plan[] = plan.children;
 
-const profile: ProfiledPlan = sum.profile;
+const profile: ProfiledPlan = sum1.profile;
 const profileOperatorType: string = profile.operatorType;
 const profileIdentifiers: string[] = profile.identifiers;
 const profileArguments: { [key: string]: string } = profile.arguments;
@@ -66,7 +59,7 @@ const profileDbHits: number = profile.dbHits;
 const profileRows: number = profile.rows;
 const profileChildren: ProfiledPlan[] = profile.children;
 
-const notifications: Notification[] = sum.notifications;
+const notifications: Notification[] = sum1.notifications;
 const notification: Notification = notifications[0];
 const code: string = notification.code;
 const title: string = notification.title;
@@ -78,12 +71,20 @@ const offset: number = position2.offset;
 const line: number = position2.line;
 const column: number = position2.column;
 
-const server: ServerInfo = sum.server;
+const server: ServerInfo = sum1.server;
 const address: string = server.address;
 const version: string = server.version;
 
-const resultConsumedAfter: Integer = sum.resultConsumedAfter;
-const resultAvailableAfter: Integer = sum.resultAvailableAfter;
+const resultConsumedAfter1: Integer = sum1.resultConsumedAfter;
+const resultAvailableAfter1: Integer = sum1.resultAvailableAfter;
 
-const hasPlan: boolean = sum.hasPlan();
-const hasProfile: boolean = sum.hasProfile();
+const hasPlan: boolean = sum1.hasPlan();
+const hasProfile: boolean = sum1.hasProfile();
+
+const sum2: ResultSummary<number> = dummy;
+const resultConsumedAfter2: number = sum2.resultConsumedAfter;
+const resultAvailableAfter2: number = sum2.resultAvailableAfter;
+
+const sum3: ResultSummary<Integer> = dummy;
+const resultConsumedAfter3: Integer = sum3.resultConsumedAfter;
+const resultAvailableAfter3: Integer = sum3.resultAvailableAfter;

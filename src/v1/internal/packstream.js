@@ -19,6 +19,7 @@
 import utf8 from './utf8';
 import Integer, {int, isInt} from '../integer';
 import {newError} from './../error';
+import {Chunker} from './chunking';
 
 const TINY_STRING = 0x80;
 const TINY_LIST = 0x90;
@@ -75,7 +76,12 @@ class Structure {
   * @access private
   */
 class Packer {
-  constructor (channel) {
+
+  /**
+   * @constructor
+   * @param {Chunker} channel the chunker backed by a network channel.
+   */
+  constructor(channel) {
     this._ch = channel;
     this._byteArraysSupported = true;
   }
@@ -98,7 +104,7 @@ class Packer {
     } else if (typeof(x) == "string") {
       return () => this.packString(x, onError);
     } else if (isInt(x)) {
-      return () => this.packInteger( x );
+      return () => this.packInteger(x);
     } else if (x instanceof Int8Array) {
       return () => this.packBytes(x, onError);
     } else if (x instanceof Array) {
@@ -178,6 +184,7 @@ class Packer {
       this._ch.writeInt32(low);
     }
   }
+
   packFloat(x) {
     this._ch.writeUInt8(FLOAT_64);
     this._ch.writeFloat64(x);
@@ -309,11 +316,17 @@ class Packer {
   * @access private
   */
 class Unpacker {
-  constructor () {
+
+  /**
+   * @constructor
+   * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
+   */
+  constructor(disableLosslessIntegers = false) {
     // Higher level layers can specify how to map structs to higher-level objects.
-    // If we recieve a struct that has a signature that does not have a mapper,
+    // If we receive a struct that has a signature that does not have a mapper,
     // we simply return a Structure object.
     this.structMappers = {};
+    this._disableLosslessIntegers = disableLosslessIntegers;
   }
 
   unpack(buffer) {
@@ -330,9 +343,12 @@ class Unpacker {
       return boolean;
     }
 
-    const number = this._unpackNumber(marker, buffer);
-    if (number !== null) {
-      return number;
+    const numberOrInteger = this._unpackNumberOrInteger(marker, buffer);
+    if (numberOrInteger !== null) {
+      if (this._disableLosslessIntegers && isInt(numberOrInteger)) {
+        return numberOrInteger.toNumberOrInfinity();
+      }
+      return numberOrInteger;
     }
 
     const string = this._unpackString(marker, markerHigh, markerLow, buffer);
@@ -373,7 +389,7 @@ class Unpacker {
     }
   }
 
-  _unpackNumber(marker, buffer) {
+  _unpackNumberOrInteger(marker, buffer) {
     if (marker == FLOAT_64) {
       return buffer.readFloat64();
     } else if (marker >= 0 && marker < 128) {
@@ -388,8 +404,8 @@ class Unpacker {
       let b = buffer.readInt32();
       return int(b);
     } else if (marker == INT_64) {
-      let high = buffer.readInt32();
-      let low = buffer.readInt32();
+      const high = buffer.readInt32();
+      const low = buffer.readInt32();
       return new Integer(low, high);
     } else {
       return null;

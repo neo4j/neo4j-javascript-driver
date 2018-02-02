@@ -17,16 +17,7 @@
  * limitations under the License.
  */
 
-import Driver, {
-  AuthToken,
-  Config,
-  EncryptionLevel,
-  LoadBalancingStrategy,
-  READ,
-  SessionMode,
-  TrustStrategy,
-  WRITE
-} from "../../../types/v1/driver";
+import Driver, {AuthToken, Config, EncryptionLevel, LoadBalancingStrategy, READ, SessionMode, TrustStrategy, WRITE} from "../../../types/v1/driver";
 import {Parameters} from "../../../types/v1/statement-runner";
 import Session from "../../../types/v1/session";
 import {Neo4jError} from "../../../types/v1/error";
@@ -59,6 +50,9 @@ const connectionPoolSize: undefined | number = config.connectionPoolSize;
 const maxTransactionRetryTime: undefined | number = config.maxTransactionRetryTime;
 const loadBalancingStrategy1: undefined | LoadBalancingStrategy = config.loadBalancingStrategy;
 const loadBalancingStrategy2: undefined | string = config.loadBalancingStrategy;
+const maxConnectionLifetime: undefined | number = config.maxConnectionLifetime;
+const connectionTimeout: undefined | number = config.connectionTimeout;
+const disableLosslessIntegers: undefined | boolean = config.disableLosslessIntegers;
 
 const sessionMode: SessionMode = dummy;
 const sessionModeStr: string = sessionMode;
