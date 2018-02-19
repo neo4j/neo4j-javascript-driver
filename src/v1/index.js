@@ -179,7 +179,7 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  */
 function driver(url, authToken, config = {}) {
   assertString(url, 'Bolt URL');
-  const parsedUrl = urlUtil.parseBoltUrl(url);
+  const parsedUrl = urlUtil.parseDatabaseUrl(url);
   if (parsedUrl.scheme === 'bolt+routing') {
     return new RoutingDriver(parsedUrl.hostAndPort, parsedUrl.query, USER_AGENT, authToken, config);
   } else if (parsedUrl.scheme === 'bolt') {

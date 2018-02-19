@@ -25,7 +25,7 @@ import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
 describe('ChannelConfig', () => {
 
   it('should respect given Url', () => {
-    const url = urlUtil.parseBoltUrl('bolt://neo4j.com:4242');
+    const url = urlUtil.parseDatabaseUrl('bolt://neo4j.com:4242');
 
     const config = new ChannelConfig(url, {}, '');
 

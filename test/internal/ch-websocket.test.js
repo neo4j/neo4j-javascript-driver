@@ -75,7 +75,7 @@ describe('WebSocketChannel', () => {
         };
       };
 
-      const url = urlUtil.parseBoltUrl('bolt://localhost:7687');
+      const url = urlUtil.parseDatabaseUrl('bolt://localhost:7687');
       const driverConfig = {connectionTimeout: 4242};
       const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);
 
@@ -112,7 +112,7 @@ describe('WebSocketChannel', () => {
       };
     };
 
-    const url = urlUtil.parseBoltUrl(boltAddress);
+    const url = urlUtil.parseDatabaseUrl(boltAddress);
     // disable connection timeout, so that WebSocketChannel does not set any timeouts
     const driverConfig = {connectionTimeout: 0};
     const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);

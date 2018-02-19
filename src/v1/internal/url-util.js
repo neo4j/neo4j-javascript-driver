@@ -19,7 +19,10 @@
 
 import ParsedUrl from 'url-parse';
 import {assertString} from './util';
-import {DEFAULT_PORT} from './ch-config';
+
+const DEFAULT_BOLT_PORT = 7687;
+const DEFAULT_HTTP_PORT = 7474;
+const DEFAULT_HTTPS_PORT = 7473;
 
 class Url {
 
@@ -39,8 +42,8 @@ class Url {
     this.host = host;
 
     /**
-     * Nonnull number representing port. Default port {@link DEFAULT_PORT} value is used if given URL string
-     * does not contain port. Example: 7687, 12000, etc.
+     * Nonnull number representing port. Default port for the given scheme is used if given URL string
+     * does not contain port. Example: 7687 for bolt, 7474 for HTTP and 7473 for HTTPS.
      * @type {number}
      */
     this.port = port;
@@ -62,7 +65,7 @@ class Url {
   }
 }
 
-function parseBoltUrl(url) {
+function parseDatabaseUrl(url) {
   assertString(url, 'URL');
 
   const sanitized = sanitizeUrl(url);
@@ -71,7 +74,7 @@ function parseBoltUrl(url) {
   const scheme = sanitized.schemeMissing ? null : extractScheme(parsedUrl.protocol);
   const rawHost = extractHost(parsedUrl.hostname); // has square brackets for IPv6
   const host = unescapeIPv6Address(rawHost); // no square brackets for IPv6
-  const port = extractPort(parsedUrl.port);
+  const port = extractPort(parsedUrl.port, scheme);
   const hostAndPort = `${rawHost}:${port}`;
   const query = parsedUrl.query;
 
@@ -107,9 +110,9 @@ function extractHost(host, url) {
   return host.trim();
 }
 
-function extractPort(portString) {
+function extractPort(portString, scheme) {
   const port = parseInt(portString, 10);
-  return (port === 0 || port) ? port : DEFAULT_PORT;
+  return (port === 0 || port) ? port : defaultPortForScheme(scheme);
 }
 
 function extractQuery(queryString, url) {
@@ -188,8 +191,19 @@ function formatIPv6Address(address, port) {
   return `${escapedAddress}:${port}`;
 }
 
+function defaultPortForScheme(scheme) {
+  if (scheme === 'http') {
+    return DEFAULT_HTTP_PORT;
+  } else if (scheme === 'https') {
+    return DEFAULT_HTTPS_PORT;
+  } else {
+    return DEFAULT_BOLT_PORT;
+  }
+}
+
 export default {
-  parseBoltUrl: parseBoltUrl,
+  parseDatabaseUrl: parseDatabaseUrl,
+  defaultPortForScheme: defaultPortForScheme,
   formatIPv4Address: formatIPv4Address,
   formatIPv6Address: formatIPv6Address
 };

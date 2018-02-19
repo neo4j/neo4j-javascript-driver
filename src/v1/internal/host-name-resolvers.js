@@ -41,7 +41,7 @@ export class DnsHostNameResolver extends HostNameResolver {
   }
 
   resolve(seedRouter) {
-    const parsedAddress = urlUtil.parseBoltUrl(seedRouter);
+    const parsedAddress = urlUtil.parseDatabaseUrl(seedRouter);
 
     return new Promise((resolve) => {
       this._dns.lookup(parsedAddress.host, {all: true}, (error, addresses) => {

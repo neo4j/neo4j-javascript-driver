@@ -225,6 +225,21 @@ describe('http driver', () => {
     });
   });
 
+  it('should use default HTTP port', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    const driver = neo4j.driver('http://localhost', sharedNeo4j.authToken);
+    const session = driver.session();
+    session.run('RETURN 4242').then(result => {
+      expect(result.records[0].get(0)).toEqual(4242);
+      expect(result.summary.server.address).toEqual('localhost:7474');
+      done();
+    });
+  });
+
   function testSendAndReceiveWithReturnQuery(values, done) {
     const query = 'RETURN $value';
 

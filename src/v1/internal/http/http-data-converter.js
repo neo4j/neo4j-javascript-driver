@@ -71,10 +71,7 @@ export default class HttpDataConverter {
    * @return {object[][]} raw records from the response.
    */
   extractRawRecords(response) {
-
     const result = extractResult(response);
-
-
     if (result) {
       const data = result.data;
       if (data) {
@@ -153,8 +150,6 @@ function extractResult(response) {
 }
 
 function extractRawRecord(data) {
-
-
   const row = data.row;
 
   const nodesById = indexNodesById(data);
@@ -208,8 +203,6 @@ function indexRelationshipsById(data) {
 }
 
 function extractRawRecordElement(index, data, nodesById, relationshipsById) {
-
-
   const element = data.row ? data.row[index] : null;
   const elementMetadata = data.meta ? data.meta[index] : null;
 
