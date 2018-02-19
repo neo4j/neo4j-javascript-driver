@@ -187,7 +187,7 @@ function driver(url, authToken, config = {}) {
       throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
     }
     return new Driver(parsedUrl.hostAndPort, USER_AGENT, authToken, config);
-  } else if (parsedUrl.scheme === 'http') {
+  } else if (parsedUrl.scheme === 'http' || parsedUrl.scheme === 'https') {
     return new HttpDriver(parsedUrl, USER_AGENT, authToken, config);
   } else {
     throw new Error(`Unknown scheme: ${parsedUrl.scheme}`);
