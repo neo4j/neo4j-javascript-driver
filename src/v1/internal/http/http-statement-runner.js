@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import xhr from 'xhr';
 import StreamObserver from '../stream-observer';
 import Result from '../../result';
 import {EMPTY_CONNECTION_HOLDER} from '../connection-holder';
@@ -50,24 +49,26 @@ function createTransactionCommitUrl(url) {
 }
 
 function createHttpHeaders(authToken) {
-  const basicAuthToken = 'Basic ' + btoa(authToken.principal + ':' + authToken.credentials);
-  return {
-    'Accept': 'application/json; charset=UTF-8',
-    'Content-Type': 'application/json',
-    'Authorization': basicAuthToken
-  };
+  const headers = new Headers();
+  headers.append('Accept', 'application/json; charset=UTF-8');
+  headers.append('Content-Type', 'application/json');
+  headers.append('Authorization', 'Basic ' + btoa(authToken.principal + ':' + authToken.credentials));
+  return headers;
 }
 
 function sendPostRequest(statement, parameters, streamObserver, transactionCommitUrl, headers, converter) {
   try {
-    xhr.post(
-      transactionCommitUrl,
-      {
-        headers: headers,
-        body: createStatementJson(statement, parameters, converter)
-      },
-      (error, response) => processPostResponse(error, response, converter, streamObserver)
-    );
+    const options = {
+      method: 'POST',
+      headers: headers,
+      body: createStatementJson(statement, parameters, converter)
+    };
+
+    fetch(transactionCommitUrl, options)
+      .then(response => response.json())
+      .catch(error => processResponseError(error, converter, streamObserver))
+      .then(responseJson => processResponseJson(responseJson, converter, streamObserver));
+
   } catch (e) {
     streamObserver.onError(e);
   }
@@ -93,33 +94,36 @@ function createStatementJsonOrThrow(statement, parameters, converter) {
   });
 }
 
-function processPostResponse(error, response, converter, streamObserver) {
+function processResponseError(error, converter, streamObserver) {
+  const neo4jError = converter.convertNetworkError(error);
+  streamObserver.onError(neo4jError);
+}
+
+function processResponseJson(responseJson, converter, streamObserver) {
+  if (!responseJson) {
+    // request failed and there is no response
+    return;
+  }
+
   try {
-    processPostResponseOrThrow(error, response, converter, streamObserver);
+    processResponseJsonOrThrow(responseJson, converter, streamObserver);
   } catch (e) {
     streamObserver.onError(e);
   }
 }
 
-function processPostResponseOrThrow(error, response, converter, streamObserver) {
-  if (error) {
-    const neo4jError = converter.convertNetworkError(error);
+function processResponseJsonOrThrow(responseJson, converter, streamObserver) {
+  const neo4jError = converter.extractError(responseJson);
+  if (neo4jError) {
     streamObserver.onError(neo4jError);
   } else {
-    const responseJson = JSON.parse(response.body);
+    const recordMetadata = converter.extractRecordMetadata(responseJson);
+    streamObserver.onCompleted(recordMetadata);
 
-    const neo4jError = converter.extractError(responseJson);
-    if (neo4jError) {
-      streamObserver.onError(neo4jError);
-    } else {
-      const recordMetadata = converter.extractRecordMetadata(responseJson);
-      streamObserver.onCompleted(recordMetadata);
+    const rawRecords = converter.extractRawRecords(responseJson);
+    rawRecords.forEach(rawRecord => streamObserver.onNext(rawRecord));
 
-      const rawRecords = converter.extractRawRecords(responseJson);
-      rawRecords.forEach(rawRecord => streamObserver.onNext(rawRecord));
-
-      const statementMetadata = converter.extractStatementMetadata(responseJson);
-      streamObserver.onCompleted(statementMetadata);
-    }
+    const statementMetadata = converter.extractStatementMetadata(responseJson);
+    streamObserver.onCompleted(statementMetadata);
   }
 }
