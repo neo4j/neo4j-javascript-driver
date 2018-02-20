@@ -586,7 +586,7 @@ class ConnectionState {
  */
 function connect(url, config = {}, connectionErrorCode = null) {
   const Ch = config.channel || Channel;
-  const parsedUrl = urlUtil.parseBoltUrl(url);
+  const parsedUrl = urlUtil.parseDatabaseUrl(url);
   const channelConfig = new ChannelConfig(parsedUrl, config, connectionErrorCode);
   return new Connection(new Ch(channelConfig), parsedUrl.hostAndPort, config.disableLosslessIntegers);
 }

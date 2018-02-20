@@ -28,6 +28,7 @@ import RoutingDriver from './routing-driver';
 import VERSION from '../version';
 import {assertString, isEmptyObjectOrNull} from './internal/util';
 import urlUtil from './internal/url-util';
+import HttpDriver from './internal/http/http-driver';
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -178,7 +179,7 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  */
 function driver(url, authToken, config = {}) {
   assertString(url, 'Bolt URL');
-  const parsedUrl = urlUtil.parseBoltUrl(url);
+  const parsedUrl = urlUtil.parseDatabaseUrl(url);
   if (parsedUrl.scheme === 'bolt+routing') {
     return new RoutingDriver(parsedUrl.hostAndPort, parsedUrl.query, USER_AGENT, authToken, config);
   } else if (parsedUrl.scheme === 'bolt') {
@@ -186,6 +187,8 @@ function driver(url, authToken, config = {}) {
       throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
     }
     return new Driver(parsedUrl.hostAndPort, USER_AGENT, authToken, config);
+  } else if (parsedUrl.scheme === 'http' || parsedUrl.scheme === 'https') {
+    return new HttpDriver(parsedUrl, USER_AGENT, authToken, config);
   } else {
     throw new Error(`Unknown scheme: ${parsedUrl.scheme}`);
   }

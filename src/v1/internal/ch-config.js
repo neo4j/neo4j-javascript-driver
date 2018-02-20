@@ -22,8 +22,6 @@ import {SERVICE_UNAVAILABLE} from '../error';
 
 const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 5000; // 5 seconds by default
 
-export const DEFAULT_PORT = 7687;
-
 export default class ChannelConfig {
 
   /**

@@ -18,7 +18,6 @@
  */
 
 import urlUtil from '../../src/v1/internal/url-util';
-import {DEFAULT_PORT} from '../../src/v1/internal/ch-config';
 
 describe('url-util', () => {
 
@@ -716,6 +715,14 @@ describe('url-util', () => {
     expect(() => urlUtil.formatIPv6Address('1afc:0:a33:85a3::ff2f]', 4000)).toThrow();
   });
 
+  it('should use default ports when no port specified', () => {
+    expect(parse('bolt://localhost').port).toEqual(urlUtil.defaultPortForScheme('bolt'));
+    expect(parse('bolt+routing://localhost').port).toEqual(urlUtil.defaultPortForScheme('bolt'));
+
+    expect(parse('http://localhost').port).toEqual(urlUtil.defaultPortForScheme('http'));
+    expect(parse('https://localhost').port).toEqual(urlUtil.defaultPortForScheme('https'));
+  });
+
   function verifyUrl(urlString, expectedUrl) {
     const url = parse(urlString);
 
@@ -732,7 +739,7 @@ describe('url-util', () => {
     if (expectedUrl.port) {
       expect(url.port).toEqual(expectedUrl.port);
     } else {
-      expect(url.port).toEqual(DEFAULT_PORT);
+      expect(url.port).toEqual(urlUtil.defaultPortForScheme(expectedUrl.scheme));
     }
 
     verifyHostAndPort(url, expectedUrl);
@@ -745,7 +752,7 @@ describe('url-util', () => {
   }
 
   function verifyHostAndPort(url, expectedUrl) {
-    const port = expectedUrl.port === 0 || expectedUrl.port ? expectedUrl.port : DEFAULT_PORT;
+    const port = expectedUrl.port === 0 || expectedUrl.port ? expectedUrl.port : urlUtil.defaultPortForScheme(expectedUrl.scheme);
 
     if (expectedUrl.ipv6) {
       expect(url.hostAndPort).toEqual(`[${expectedUrl.host}]:${port}`);
@@ -755,7 +762,7 @@ describe('url-util', () => {
   }
 
   function parse(url) {
-    return urlUtil.parseBoltUrl(url);
+    return urlUtil.parseDatabaseUrl(url);
   }
 
 });

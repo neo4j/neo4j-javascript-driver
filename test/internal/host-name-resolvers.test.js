@@ -72,7 +72,7 @@ describe('DnsHostNameResolver', () => {
 
         addresses.forEach(address => {
           expectToBeDefined(address);
-          const parsedUrl = urlUtil.parseBoltUrl(address);
+          const parsedUrl = urlUtil.parseDatabaseUrl(address);
           expect(parsedUrl.scheme).toBeNull();
           expectToBeDefined(parsedUrl.host);
           expect(parsedUrl.port).toEqual(7687); // default port should be appended
@@ -91,7 +91,7 @@ describe('DnsHostNameResolver', () => {
 
         addresses.forEach(address => {
           expectToBeDefined(address);
-          const parsedUrl = urlUtil.parseBoltUrl(address);
+          const parsedUrl = urlUtil.parseDatabaseUrl(address);
           expect(parsedUrl.scheme).toBeNull();
           expectToBeDefined(parsedUrl.host);
           expect(parsedUrl.port).toEqual(7474);
