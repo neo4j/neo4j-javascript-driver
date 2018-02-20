@@ -21,6 +21,8 @@ import {isInt} from '../../integer';
 import {Node, Path, PathSegment, Relationship} from '../../graph-types';
 import {Neo4jError, SERVICE_UNAVAILABLE} from '../../error';
 
+const CREDENTIALS_EXPIRED_CODE = 'Neo.ClientError.Security.CredentialsExpired';
+
 export default class HttpDataConverter {
 
   encodeStatementParameters(parameters) {
@@ -46,7 +48,10 @@ export default class HttpDataConverter {
     if (errors) {
       const error = errors[0];
       if (error) {
-        const code = error.code;
+        // endpoint returns 'Neo.ClientError.Security.Forbidden' code and 'password_change' that points to another endpoint
+        // this is different from code returned via Bolt and less descriptive
+        // make code same as in Bolt, if password change is required
+        const code = response.password_change ? CREDENTIALS_EXPIRED_CODE : error.code;
         const message = error.message;
         return new Neo4jError(message, code);
       }
