@@ -17,8 +17,6 @@
  * limitations under the License.
  */
 
-import {newError} from '../error';
-
 const ENCRYPTION_ON = "ENCRYPTION_ON";
 const ENCRYPTION_OFF = "ENCRYPTION_OFF";
 
@@ -64,42 +62,11 @@ function isString(str) {
   return Object.prototype.toString.call(str) === '[object String]';
 }
 
-function promiseOrTimeout(timeout, otherPromise, onTimeout) {
-  let resultPromise = null;
-
-  const timeoutPromise = new Promise((resolve, reject) => {
-    const id = setTimeout(() => {
-      if (onTimeout && typeof onTimeout === 'function') {
-        onTimeout();
-      }
-
-      reject(newError(`Operation timed out in ${timeout} ms.`));
-    }, timeout);
-
-    // this "executor" function is executed immediately, even before the Promise constructor returns
-    // thus it's safe to initialize resultPromise variable here, where timeout id variable is accessible
-    resultPromise = otherPromise.then(result => {
-      clearTimeout(id);
-      return result;
-    }).catch(error => {
-      clearTimeout(id);
-      throw error;
-    });
-  });
-
-  if (resultPromise == null) {
-    throw new Error('Result promise not initialized');
-  }
-
-  return Promise.race([resultPromise, timeoutPromise]);
-}
-
 export {
   isEmptyObjectOrNull,
   isString,
   assertString,
   assertCypherStatement,
-  promiseOrTimeout,
   ENCRYPTION_ON,
   ENCRYPTION_OFF
 }
