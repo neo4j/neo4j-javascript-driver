@@ -419,7 +419,10 @@ describe('Pool', () => {
         done();
       });
 
-      setTimeout(() => r1.close(), 1000);
+      setTimeout(() => {
+        expectNumberOfAcquisitionRequests(pool, key, 1);
+        r1.close();
+      }, 1000);
     });
   });
 
@@ -445,7 +448,7 @@ describe('Pool', () => {
 
       pool.acquire(key).catch(error => {
         expect(error.message).toContain('timed out');
-
+        expectNumberOfAcquisitionRequests(pool, key, 0);
         done();
       });
     });
@@ -472,13 +475,63 @@ describe('Pool', () => {
 
       pool.acquire(key).then(r2 => {
         expect(r2.id).toEqual(2);
-
+        expectNoPendingAcquisitionRequests(pool);
         done();
       });
     });
   });
 
+  it('should work fine when resources released together with acquisition timeout', done => {
+    const acquisitionTimeout = 1000;
+    let counter = 0;
+
+    const key = 'bolt://localhost:7687';
+    const pool = new Pool(
+      (url, release) => new Resource(url, counter++, release),
+      resource => {
+      },
+      () => true,
+      new PoolConfig(2, acquisitionTimeout)
+    );
+
+    pool.acquire(key).then(resource1 => {
+      expect(resource1.id).toEqual(0);
+
+      pool.acquire(key).then(resource2 => {
+        expect(resource2.id).toEqual(1);
+
+        // try to release both resources around the time acquisition fails with timeout
+        // double-release used to cause deletion of acquire requests in the pool and failure of the timeout
+        // such background failure made this test fail, not the existing assertions
+        setTimeout(() => {
+          resource1.close();
+          resource2.close();
+        }, acquisitionTimeout);
+
+        pool.acquire(key).then(someResource => {
+          expect(someResource).toBeDefined();
+          expect(someResource).not.toBeNull();
+          expectNoPendingAcquisitionRequests(pool);
+          done(); // ok, promise got resolved before the timeout
+        }).catch(error => {
+          expect(error).toBeDefined();
+          expect(error).not.toBeNull();
+          expectNoPendingAcquisitionRequests(pool);
+          done(); // also ok, timeout fired before promise got resolved
+        });
+      });
+    });
+  });
+
 });
+
+function expectNoPendingAcquisitionRequests(pool) {
+  expect(pool._acquireRequests).toEqual({});
+}
+
+function expectNumberOfAcquisitionRequests(pool, key, expectedNumber) {
+  expect(pool._acquireRequests[key].length).toEqual(expectedNumber);
+}
 
 class Resource {
 

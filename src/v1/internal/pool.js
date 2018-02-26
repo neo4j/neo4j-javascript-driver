@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import {promiseOrTimeout} from './util';
 import PoolConfig from './pool-config';
+import {newError} from '../error';
 
 class Pool {
   /**
@@ -65,20 +65,17 @@ class Pool {
       allRequests[key] = [];
     }
 
-    let request;
+    return new Promise((resolve, reject) => {
+      let request;
 
-    return promiseOrTimeout(
-        this._acquisitionTimeout,
-        new Promise(
-          (resolve, reject) => {
-            request = new PendingRequest(resolve);
+      const timeoutId = setTimeout(() => {
+        allRequests[key] = allRequests[key].filter(item => item !== request);
+        reject(newError(`Connection acquisition timed out in ${this._acquisitionTimeout} ms.`));
+      }, this._acquisitionTimeout);
 
-            allRequests[key].push(request);
-          }
-        ), () => {
-          allRequests[key] = allRequests[key].filter(item => item !== request);
-        }
-    );
+      request = new PendingRequest(resolve, timeoutId);
+      allRequests[key].push(request);
+    });
   }
 
   /**
@@ -208,11 +205,13 @@ function resourceReleased(key, activeResourceCounts) {
 
 class PendingRequest {
 
-  constructor(resolve) {
+  constructor(resolve, timeoutId) {
     this._resolve = resolve;
+    this._timeoutId = timeoutId;
   }
 
   resolve(resource) {
+    clearTimeout(this._timeoutId);
     this._resolve(resource);
   }
 
