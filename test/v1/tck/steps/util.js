@@ -223,7 +223,7 @@ function printable(array) {
 function getType(val) {
   var labels = getLabels(val);
   if (labels.length > 1) {
-    throw new Error("Shuld be single type. Found many: " + labels)
+    throw new Error("Should be single type. Found many: " + labels)
   }
   if (labels.length === 0) {
     return [];
