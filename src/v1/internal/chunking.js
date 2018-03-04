@@ -172,7 +172,7 @@ class Dechunker {
     // no-op
   }
 
-  /** Called when a complete chunk header has been recieved */
+  /** Called when a complete chunk header has been received */
   _onHeader(header) {
     if (header == 0) {
       // Message boundary

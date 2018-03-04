@@ -103,7 +103,7 @@ class Connection {
   constructor(channel, url, disableLosslessIntegers = false) {
     /**
      * An ordered queue of observers, each exchange response (zero or more
-     * RECORD messages followed by a SUCCESS message) we recieve will be routed
+     * RECORD messages followed by a SUCCESS message) we receive will be routed
      * to the next pending observer.
      */
     this.url = url;
