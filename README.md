@@ -1,4 +1,4 @@
-# Neo4j Driver 1.6 for Javascript
+# Neo4j Driver 1.6 for JavaScript
 
 
 A database driver for Neo4j 3.0.0+.
@@ -265,7 +265,7 @@ While there is no need to grab admin right if you are running tests against an e
 
 ## A note on numbers and the Integer type
 The Neo4j type system includes 64-bit integer values.
-However, Javascript can only safely represent integers between `-(2`<sup>`53`</sup>` - 1)` and `(2`<sup>`53`</sup>` - 1)`.
+However, JavaScript can only safely represent integers between `-(2`<sup>`53`</sup>` - 1)` and `(2`<sup>`53`</sup>` - 1)`.
 In order to support the full Neo4j type system, the driver will not automatically convert to javascript integers.
 Any time the driver receives an integer value from Neo4j, it will be represented with an internal integer type by the driver.
 

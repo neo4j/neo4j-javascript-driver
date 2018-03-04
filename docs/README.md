@@ -1,4 +1,4 @@
-# Documentation for Neo4j Bolt Driver for Javascript
+# Documentation for Neo4j Bolt Driver for JavaScript
 The docs are generated with [esdoc](https://github.com/esdoc/esdoc), which is added 
 as a devDependency to this project.
 
