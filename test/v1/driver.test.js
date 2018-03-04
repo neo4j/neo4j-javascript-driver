@@ -64,7 +64,7 @@ describe('driver', () => {
 
   it('should handle connection errors', done => {
     // Given
-    driver = neo4j.driver("bolt://localhoste", sharedNeo4j.authToken);
+    driver = neo4j.driver("bolt://local-host", sharedNeo4j.authToken);
 
     // Expect
     driver.onError = error => {
