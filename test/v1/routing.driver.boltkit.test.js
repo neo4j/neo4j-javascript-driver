@@ -1100,7 +1100,7 @@ describe('routing driver with stub server', () => {
     });
   });
 
-  it('should send initial bookmark wihtout access mode', done => {
+  it('should send initial bookmark without access mode', done => {
     testWriteSessionWithAccessModeAndBookmark(null, 'neo4j:bookmark:v1:tx42', done);
   });
 
