@@ -271,14 +271,14 @@ class StatementStatistics {
   }
 
   /**
-   * @return {Number} - Number of contraints added.
+   * @return {Number} - Number of constraints added.
    */
   constraintsAdded() {
     return this._stats.constraintsAdded;
   }
 
   /**
-   * @return {Number} - Number of contraints removed.
+   * @return {Number} - Number of constraints removed.
    */
   constraintsRemoved() {
     return this._stats.constraintsRemoved;
