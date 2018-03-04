@@ -54,7 +54,7 @@ export default class LeastConnectedLoadBalancingStrategy extends LoadBalancingSt
       return null;
     }
 
-    // choose start index for iteration in round-rodin fashion
+    // choose start index for iteration in round-robin fashion
     const startIndex = roundRobinIndex.next(length);
     let index = startIndex;
 
