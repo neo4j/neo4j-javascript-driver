@@ -161,7 +161,21 @@ Explicit transactions API:
 ```javascript
 // run statement in a transaction
 var tx = session.beginTransaction();
+
 tx.run("MERGE (bob:Person {name : {nameParam} }) RETURN bob.name AS name", {nameParam: 'Bob'})
+  .subscribe({
+    onNext: function (record) {
+      console.log(record.get('name'));
+    },
+    onCompleted: function () {
+      session.close();
+    },
+    onError: function (error) {
+      console.log(error);
+    }
+  });
+  
+tx.run("MERGE (adam:Person {name : {nameParam} }) RETURN adam.name AS name", {nameParam: 'Adam'})
   .subscribe({
     onNext: function (record) {
       console.log(record.get('name'));
