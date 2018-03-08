@@ -16,68 +16,67 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-var alloc = require('../../lib/v1/internal/buf').alloc,
-    packstream = require("../../lib/v1/internal/packstream"),
-    Integer = require("../../lib/v1/integer").default,
-    Packer = packstream.Packer,
-    Unpacker = packstream.Unpacker,
-    Structure = packstream.Structure;
 
-describe('packstream', function() {
+import {alloc} from '../../src/v1/internal/buf';
+import {Packer, Structure, Unpacker} from '../../src/v1/internal/packstream';
+import {int} from '../../src/v1';
 
+describe('packstream', () => {
 
-  it('should pack integers', function() {
-    var n, i;
+  it('should pack integers', () => {
+    let n, i;
     // test small numbers
-    for(n = -999; n <= 999; n += 1) {
-      i = Integer.fromNumber(n);
-      expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+    for (n = -999; n <= 999; n += 1) {
+      i = int(n);
+      expect(packAndUnpack(i).toString()).toBe(i.toString());
     }
     // positive numbers
-    for(n = 16; n <= 16 ; n += 1) {
-      i = Integer.fromNumber(Math.pow(2, n));
-      expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+    for (n = 16; n <= 16; n += 1) {
+      i = int(Math.pow(2, n));
+      expect(packAndUnpack(i).toString()).toBe(i.toString());
     }
     // negative numbers
-    for(n = 0; n <= 63 ; n += 1) {
-      i = Integer.fromNumber(-Math.pow(2, n));
-      expect( packAndUnpack( i ).toString() ).toBe( i.toString() );
+    for (n = 0; n <= 63; n += 1) {
+      i = int(-Math.pow(2, n));
+      expect(packAndUnpack(i).toString()).toBe(i.toString());
     }
-  });
-  it('should pack strings', function() {
-    expect( packAndUnpack( "" ) ).toBe( "" );
-    expect( packAndUnpack( "abcdefg123567" ) ).toBe( "abcdefg123567" );
-    var str = Array(65536 + 1).join('a'); // 2 ^ 16 + 1
-    expect( packAndUnpack(str, str.length + 8)).toBe(str);
-  });
-  it('should pack structures', function() {
-    expect( packAndUnpack( new Structure(1, ["Hello, world!!!"] ) ).fields[0] )  
-     .toBe( "Hello, world!!!" );
-  });
-  it('should pack lists', function() {
-   var list = ['a', 'b'];
-   var roundtripped = packAndUnpack( list );
-   expect( roundtripped[0] ).toBe( list[0] );
-   expect( roundtripped[1] ).toBe( list[1] );
   });
 
-  it('should pack long lists', function() {
-    var listLength = 256;
-    var list = [];
-    for(var i = 0; i < listLength; i++) {
-      list.push(null)
+  it('should pack strings', () => {
+    expect(packAndUnpack('')).toBe('');
+    expect(packAndUnpack('abcdefg123567')).toBe('abcdefg123567');
+    const str = Array(65536 + 1).join('a'); // 2 ^ 16 + 1
+    expect(packAndUnpack(str, str.length + 8)).toBe(str);
+  });
+
+  it('should pack structures', () => {
+    expect(packAndUnpack(new Structure(1, ['Hello, world!!!'])).fields[0])
+      .toBe('Hello, world!!!');
+  });
+
+  it('should pack lists', () => {
+    const list = ['a', 'b'];
+    const unpacked = packAndUnpack(list);
+    expect(unpacked[0]).toBe(list[0]);
+    expect(unpacked[1]).toBe(list[1]);
+  });
+
+  it('should pack long lists', () => {
+    const listLength = 256;
+    const list = [];
+    for (let i = 0; i < listLength; i++) {
+      list.push(null);
     }
-    var roundtripped = packAndUnpack( list, 1400 );
-    expect( roundtripped[0] ).toBe( list[0] );
-    expect( roundtripped[1] ).toBe( list[1] );
+    const unpacked = packAndUnpack(list, 1400);
+    expect(unpacked[0]).toBe(list[0]);
+    expect(unpacked[1]).toBe(list[1]);
   });
 });
 
-function packAndUnpack( val, bufferSize ) {
+function packAndUnpack(val, bufferSize) {
   bufferSize = bufferSize || 128;
-  var buffer = alloc(bufferSize);
-  new Packer( buffer ).packable( val )();
+  const buffer = alloc(bufferSize);
+  new Packer(buffer).packable(val)();
   buffer.reset();
-  return new Unpacker().unpack( buffer );
+  return new Unpacker().unpack(buffer);
 }
