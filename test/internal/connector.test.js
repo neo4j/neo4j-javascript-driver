@@ -19,7 +19,7 @@
 
 import * as DummyChannel from '../../src/v1/internal/ch-dummy';
 import {connect, Connection} from '../../src/v1/internal/connector';
-import {Packer} from '../../src/v1/internal/packstream';
+import {Packer} from '../../src/v1/internal/packstream-v1';
 import {Chunker} from '../../src/v1/internal/chunking';
 import {alloc} from '../../src/v1/internal/buf';
 import {Neo4jError} from '../../src/v1/error';
@@ -94,13 +94,21 @@ describe('connector', () => {
   it('should use DummyChannel to read what gets written', done => {
     // Given
     const observer = DummyChannel.observer;
-    connection = connect("bolt://localhost", {channel: DummyChannel.channel});
+    connection = connect('bolt://localhost', {channel: DummyChannel.channel});
+
+    const boltMagicPreamble = '60 60 b0 17';
+    const protocolVersion2 = '00 00 00 02';
+    const protocolVersion1 = '00 00 00 01';
+    const noProtocolVersion = '00 00 00 00';
+    expect(observer.instance.toHex()).toBe(`${boltMagicPreamble} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion} ${noProtocolVersion} `);
+
+    observer.instance.clear();
 
     // When
-    connection.initialize("mydriver/0.0.0", basicAuthToken());
-    connection.run("RETURN 1", {});
+    connection.initialize('mydriver/0.0.0', basicAuthToken());
+    connection.run('RETURN 1', {});
     connection.sync();
-    expect(observer.instance.toHex()).toBe('60 60 b0 17 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 44 b2 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 a3 86 73 63 68 65 6d 65 85 62 61 73 69 63 89 70 72 69 6e 63 69 70 61 6c 85 6e 65 6f 34 6a 8b 63 72 65 64 65 6e 74 69 61 6c 73 88 70 61 73 73 77 6f 72 64 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ');
+    expect(observer.instance.toHex()).toBe('00 44 b2 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 a3 86 73 63 68 65 6d 65 85 62 61 73 69 63 89 70 72 69 6e 63 69 70 61 6c 85 6e 65 6f 34 6a 8b 63 72 65 64 65 6e 74 69 61 6c 73 88 70 61 73 73 77 6f 72 64 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ');
     done();
   });
 

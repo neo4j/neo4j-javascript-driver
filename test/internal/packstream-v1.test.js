@@ -18,10 +18,10 @@
  */
 
 import {alloc} from '../../src/v1/internal/buf';
-import {Packer, Structure, Unpacker} from '../../src/v1/internal/packstream';
+import {Packer, Structure, Unpacker} from '../../src/v1/internal/packstream-v1';
 import {int} from '../../src/v1';
 
-describe('packstream', () => {
+describe('packstream-v1', () => {
 
   it('should pack integers', () => {
     let n, i;
