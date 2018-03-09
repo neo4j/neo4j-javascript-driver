@@ -1,0 +1,43 @@
+/**
+ * Copyright (c) 2002-2018 "Neo Technology,"
+ * Network Engine for Objects in Lund AB [http://neotechnology.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {NumberOrInteger} from './graph-types';
+import Integer from "./integer";
+
+declare class Point2D<T extends NumberOrInteger = Integer> {
+  srid: T;
+  x: number;
+  y: number;
+
+  constructor(srid: T, x: number, y: number)
+}
+
+declare class Point3D<T extends NumberOrInteger = Integer> {
+  srid: T;
+  x: number;
+  y: number;
+  z: number;
+
+  constructor(srid: T, x: number, y: number, z: number)
+}
+
+export {
+  Point2D,
+  Point3D
+}

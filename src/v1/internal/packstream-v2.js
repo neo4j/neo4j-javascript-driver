@@ -18,6 +18,11 @@
  */
 
 import * as v1 from './packstream-v1';
+import {isPoint2D, isPoint3D, Point2D, Point3D} from '../spatial-types';
+import {int} from '../integer';
+
+const POINT_2D = 0x58;
+const POINT_3D = 0x59;
 
 export class Packer extends v1.Packer {
 
@@ -32,6 +37,16 @@ export class Packer extends v1.Packer {
   disableByteArrays() {
     throw new Error('Bolt V2 should always support byte arrays');
   }
+
+  packable(obj, onError) {
+    if (isPoint2D(obj)) {
+      return () => packPoint2D(obj, this, onError);
+    } else if (isPoint3D(obj)) {
+      return () => packPoint3D(obj, this, onError);
+    } else {
+      return super.packable(obj, onError);
+    }
+  }
 }
 
 export class Unpacker extends v1.Unpacker {
@@ -43,4 +58,51 @@ export class Unpacker extends v1.Unpacker {
   constructor(disableLosslessIntegers = false) {
     super(disableLosslessIntegers);
   }
+
+
+  _unpackUnknownStruct(signature, size, buffer) {
+    if (signature == POINT_2D) {
+      return unpackPoint2D(this, buffer);
+    } else if (signature == POINT_3D) {
+      return unpackPoint3D(this, buffer);
+    } else {
+      return super._unpackUnknownStruct(signature, size, buffer);
+    }
+  }
+}
+
+function packPoint2D(point, packer, onError) {
+  const packableStructFields = [
+    packer.packable(int(point.srid), onError),
+    packer.packable(point.x, onError),
+    packer.packable(point.y, onError)
+  ];
+  packer.packStruct(POINT_2D, packableStructFields, onError);
+}
+
+function packPoint3D(point, packer, onError) {
+  const packableStructFields = [
+    packer.packable(int(point.srid), onError),
+    packer.packable(point.x, onError),
+    packer.packable(point.y, onError),
+    packer.packable(point.z, onError)
+  ];
+  packer.packStruct(POINT_3D, packableStructFields, onError);
+}
+
+function unpackPoint2D(unpacker, buffer) {
+  return new Point2D(
+    unpacker.unpack(buffer), // srid
+    unpacker.unpack(buffer), // x
+    unpacker.unpack(buffer)  // y
+  );
+}
+
+function unpackPoint3D(unpacker, buffer) {
+  return new Point3D(
+    unpacker.unpack(buffer), // srid
+    unpacker.unpack(buffer), // x
+    unpacker.unpack(buffer), // y
+    unpacker.unpack(buffer)  // z
+  );
 }
