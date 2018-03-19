@@ -19,44 +19,19 @@
 
 import {int} from './integer';
 
-const POINT_2D_IDENTIFIER_PROPERTY = '__isPoint2D__';
-const POINT_3D_IDENTIFIER_PROPERTY = '__isPoint3D__';
+const POINT_IDENTIFIER_PROPERTY = '__isPoint__';
 
 /**
- * Represents a single two-dimensional point in a particular coordinate reference system.
+ * Represents a single two or three-dimensional point in a particular coordinate reference system.
  */
-export class Point2D {
+export class Point {
 
   /**
    * @constructor
    * @param {number|Integer} srid the coordinate reference system identifier.
    * @param {number} x the <code>x</code> coordinate of the point.
    * @param {number} y the <code>y</code> coordinate of the point.
-   */
-  constructor(srid, x, y) {
-    this.srid = int(srid);
-    this.x = x;
-    this.y = y;
-  }
-}
-
-Object.defineProperty(Point2D.prototype, POINT_2D_IDENTIFIER_PROPERTY, {
-  value: true,
-  enumerable: false,
-  configurable: false
-});
-
-/**
- * Represents a single tree-dimensional point in a particular coordinate reference system.
- */
-export class Point3D {
-
-  /**
-   * @constructor
-   * @param {number|Integer} srid the coordinate reference system identifier.
-   * @param {number} x the <code>x</code> coordinate of the point.
-   * @param {number} y the <code>y</code> coordinate of the point.
-   * @param {number} z the <code>z</code> coordinate of the point.
+   * @param {number|undefined} z the <code>y</code> coordinate of the point or <code>undefined</code> if point has 2 dimensions.
    */
   constructor(srid, x, y, z) {
     this.srid = int(srid);
@@ -66,30 +41,17 @@ export class Point3D {
   }
 }
 
-Object.defineProperty(Point3D.prototype, POINT_3D_IDENTIFIER_PROPERTY, {
+Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
   value: true,
   enumerable: false,
   configurable: false
 });
 
 /**
- * Test if given object is an instance of {@link Point2D} class.
+ * Test if given object is an instance of {@link Point} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link Point2D}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link Point}, <code>false</code> otherwise.
  */
-export function isPoint2D(obj) {
-  return hasProperty(obj, POINT_2D_IDENTIFIER_PROPERTY);
-}
-
-/**
- * Test if given object is an instance of {@link Point3D} class.
- * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link Point3D}, <code>false</code> otherwise.
- */
-export function isPoint3D(obj) {
-  return hasProperty(obj, POINT_3D_IDENTIFIER_PROPERTY);
-}
-
-function hasProperty(obj, name) {
-  return (obj && obj[name]) === true;
+export function isPoint(obj) {
+  return (obj && obj[POINT_IDENTIFIER_PROPERTY]) === true;
 }

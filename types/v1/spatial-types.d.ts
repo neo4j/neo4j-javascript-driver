@@ -20,24 +20,18 @@
 import {NumberOrInteger} from './graph-types';
 import Integer from "./integer";
 
-declare class Point2D<T extends NumberOrInteger = Integer> {
+declare class Point<T extends NumberOrInteger = Integer> {
   srid: T;
   x: number;
   y: number;
+  z: number | undefined;
 
-  constructor(srid: T, x: number, y: number)
+  constructor(srid: T, x: number, y: number, z?: number | undefined)
 }
 
-declare class Point3D<T extends NumberOrInteger = Integer> {
-  srid: T;
-  x: number;
-  y: number;
-  z: number;
-
-  constructor(srid: T, x: number, y: number, z: number)
-}
+declare function isPoint(obj: object): boolean;
 
 export {
-  Point2D,
-  Point3D
+  Point,
+  isPoint
 }

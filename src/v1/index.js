@@ -29,7 +29,7 @@ import VERSION from '../version';
 import {assertString, isEmptyObjectOrNull} from './internal/util';
 import urlUtil from './internal/url-util';
 import HttpDriver from './internal/http/http-driver';
-import {Point2D, Point3D} from './spatial-types';
+import {Point} from './spatial-types';
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -207,8 +207,7 @@ const types = {
   Result,
   ResultSummary,
   Record,
-  Point2D,
-  Point3D
+  Point
 };
 
 /**

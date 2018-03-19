@@ -18,7 +18,7 @@
  */
 
 import * as v1 from './packstream-v1';
-import {isPoint2D, isPoint3D, Point2D, Point3D} from '../spatial-types';
+import {isPoint, Point} from '../spatial-types';
 import {int} from '../integer';
 
 const POINT_2D = 0x58;
@@ -39,10 +39,8 @@ export class Packer extends v1.Packer {
   }
 
   packable(obj, onError) {
-    if (isPoint2D(obj)) {
-      return () => packPoint2D(obj, this, onError);
-    } else if (isPoint3D(obj)) {
-      return () => packPoint3D(obj, this, onError);
+    if (isPoint(obj)) {
+      return () => packPoint(obj, this, onError);
     } else {
       return super.packable(obj, onError);
     }
@@ -71,6 +69,15 @@ export class Unpacker extends v1.Unpacker {
   }
 }
 
+function packPoint(point, packer, onError) {
+  const is2DPoint = point.z === null || point.z === undefined;
+  if (is2DPoint) {
+    packPoint2D(point, packer, onError);
+  } else {
+    packPoint3D(point, packer, onError);
+  }
+}
+
 function packPoint2D(point, packer, onError) {
   const packableStructFields = [
     packer.packable(int(point.srid), onError),
@@ -91,15 +98,16 @@ function packPoint3D(point, packer, onError) {
 }
 
 function unpackPoint2D(unpacker, buffer) {
-  return new Point2D(
+  return new Point(
     unpacker.unpack(buffer), // srid
     unpacker.unpack(buffer), // x
-    unpacker.unpack(buffer)  // y
+    unpacker.unpack(buffer), // y
+    undefined                // z
   );
 }
 
 function unpackPoint3D(unpacker, buffer) {
-  return new Point3D(
+  return new Point(
     unpacker.unpack(buffer), // srid
     unpacker.unpack(buffer), // x
     unpacker.unpack(buffer), // y

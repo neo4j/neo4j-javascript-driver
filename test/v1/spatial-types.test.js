@@ -20,7 +20,7 @@
 import neo4j from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion, VERSION_3_4_0} from '../../src/v1/internal/server-version';
-import {isPoint2D, isPoint3D, Point2D, Point3D} from '../../src/v1/spatial-types';
+import {isPoint, Point} from '../../src/v1/spatial-types';
 
 const WGS_84_2D_CRS_CODE = neo4j.int(4326);
 const CARTESIAN_2D_CRS_CODE = neo4j.int(7203);
@@ -67,25 +67,27 @@ describe('spatial-types', () => {
 
   it('should receive 2D points', done => {
     testReceivingOfPoints(done, 'RETURN point({x: 169.99, y: 12.1718})', point => {
-      expect(isPoint2D(point)).toBeTruthy();
+      expect(isPoint(point)).toBeTruthy();
       expect(point.srid).toEqual(CARTESIAN_2D_CRS_CODE);
       expect(point.x).toEqual(169.99);
       expect(point.y).toEqual(12.1718);
+      expect(point.z).toBeUndefined();
     });
   });
 
   it('should receive 2D points with crs', done => {
     testReceivingOfPoints(done, `RETURN point({x: 2.3, y: 4.5, crs: 'WGS-84'})`, point => {
-      expect(isPoint2D(point)).toBeTruthy();
+      expect(isPoint(point)).toBeTruthy();
       expect(point.srid).toEqual(WGS_84_2D_CRS_CODE);
       expect(point.x).toEqual(2.3);
       expect(point.y).toEqual(4.5);
+      expect(point.z).toBeUndefined();
     });
   });
 
   it('should receive 3D points', done => {
     testReceivingOfPoints(done, 'RETURN point({x: -19.9, y: 45.99, z: 8.88})', point => {
-      expect(isPoint3D(point)).toBeTruthy();
+      expect(isPoint(point)).toBeTruthy();
       expect(point.srid).toEqual(CARTESIAN_3D_CRS_CODE);
       expect(point.x).toEqual(-19.9);
       expect(point.y).toEqual(45.99);
@@ -95,7 +97,7 @@ describe('spatial-types', () => {
 
   it('should receive 3D points with crs', done => {
     testReceivingOfPoints(done, `RETURN point({x: 34.76, y: 11.9, z: -99.01, crs: 'WGS-84-3D'})`, point => {
-      expect(isPoint3D(point)).toBeTruthy();
+      expect(isPoint(point)).toBeTruthy();
       expect(point.srid).toEqual(WGS_84_3D_CRS_CODE);
       expect(point.x).toEqual(34.76);
       expect(point.y).toEqual(11.9);
@@ -104,21 +106,21 @@ describe('spatial-types', () => {
   });
 
   it('should send and receive 2D point', done => {
-    testSendingAndReceivingOfPoints(done, new Point2D(CARTESIAN_2D_CRS_CODE, 19.101, -88.21));
+    testSendingAndReceivingOfPoints(done, new Point(CARTESIAN_2D_CRS_CODE, 19.101, -88.21));
   });
 
   it('should send and receive 3D point', done => {
-    testSendingAndReceivingOfPoints(done, new Point3D(WGS_84_3D_CRS_CODE, 1.22, 9.8, -6.65));
+    testSendingAndReceivingOfPoints(done, new Point(WGS_84_3D_CRS_CODE, 1.22, 9.8, -6.65));
   });
 
   it('should send and receive array of 2D points', done => {
     const arrayOfPoints = [
-      new Point2D(WGS_84_2D_CRS_CODE, 12.3, 11.2),
-      new Point2D(WGS_84_2D_CRS_CODE, 2.45, 91.302),
-      new Point2D(WGS_84_2D_CRS_CODE, 0.12, -99.9),
-      new Point2D(WGS_84_2D_CRS_CODE, 93.75, 123.213),
-      new Point2D(WGS_84_2D_CRS_CODE, 111.13, -90.1),
-      new Point2D(WGS_84_2D_CRS_CODE, 43.99, -1)
+      new Point(WGS_84_2D_CRS_CODE, 12.3, 11.2),
+      new Point(WGS_84_2D_CRS_CODE, 2.45, 91.302),
+      new Point(WGS_84_2D_CRS_CODE, 0.12, -99.9),
+      new Point(WGS_84_2D_CRS_CODE, 93.75, 123.213),
+      new Point(WGS_84_2D_CRS_CODE, 111.13, -90.1),
+      new Point(WGS_84_2D_CRS_CODE, 43.99, -1)
     ];
 
     testSendingAndReceivingOfPoints(done, arrayOfPoints);
@@ -126,11 +128,11 @@ describe('spatial-types', () => {
 
   it('should send and receive array of 3D points', done => {
     const arrayOfPoints = [
-      new Point3D(CARTESIAN_3D_CRS_CODE, 83.38, 123.9, -19),
-      new Point3D(CARTESIAN_3D_CRS_CODE, 31, 39.1, -19.19),
-      new Point3D(CARTESIAN_3D_CRS_CODE, 0.845, -0.74, 3.48),
-      new Point3D(CARTESIAN_3D_CRS_CODE, 123.33, 93.3, 96.96),
-      new Point3D(CARTESIAN_3D_CRS_CODE, -54.9, 13.7893, -90.9)
+      new Point(CARTESIAN_3D_CRS_CODE, 83.38, 123.9, -19),
+      new Point(CARTESIAN_3D_CRS_CODE, 31, 39.1, -19.19),
+      new Point(CARTESIAN_3D_CRS_CODE, 0.845, -0.74, 3.48),
+      new Point(CARTESIAN_3D_CRS_CODE, 123.33, 93.3, 96.96),
+      new Point(CARTESIAN_3D_CRS_CODE, -54.9, 13.7893, -90.9)
     ];
 
     testSendingAndReceivingOfPoints(done, arrayOfPoints);
