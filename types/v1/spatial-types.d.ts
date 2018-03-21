@@ -24,9 +24,9 @@ declare class Point<T extends NumberOrInteger = Integer> {
   srid: T;
   x: number;
   y: number;
-  z: number | undefined;
+  z?: number;
 
-  constructor(srid: T, x: number, y: number, z?: number | undefined)
+  constructor(srid: T, x: number, y: number, z?: number)
 }
 
 declare function isPoint(obj: object): boolean;

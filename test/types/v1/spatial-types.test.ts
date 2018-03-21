@@ -34,13 +34,13 @@ const point3: Point = new Point(int(1), 2, 3, 4);
 const srid3: Integer = point3.srid;
 const x3: number = point3.x;
 const y3: number = point3.y;
-const z3: number = point3.z;
+const z3: number | undefined = point3.z;
 
 const point4: Point<number> = new Point(1, 2, 3, 4);
 const srid4: number = point4.srid;
 const x4: number = point4.x;
 const y4: number = point4.y;
-const z4: number = point4.z;
+const z4: number | undefined = point4.z;
 
 const isPoint1: boolean = isPoint(point1);
-const isPoint2: boolean = isPoint(null);
+const isPoint2: boolean = isPoint({});
