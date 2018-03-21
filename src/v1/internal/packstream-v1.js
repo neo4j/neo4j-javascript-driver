@@ -18,8 +18,9 @@
  */
 import utf8 from './utf8';
 import Integer, {int, isInt} from '../integer';
-import {newError} from './../error';
+import {newError, PROTOCOL_ERROR} from './../error';
 import {Chunker} from './chunking';
+import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
 
 const TINY_STRING = 0x80;
 const TINY_LIST = 0x90;
@@ -47,6 +48,18 @@ const MAP_16 = 0xD9;
 const MAP_32 = 0xDA;
 const STRUCT_8 = 0xDC;
 const STRUCT_16 = 0xDD;
+
+const NODE = 0x4E;
+const NODE_STRUCT_SIZE = 3;
+
+const RELATIONSHIP = 0x52;
+const RELATIONSHIP_STRUCT_SIZE = 5;
+
+const UNBOUND_RELATIONSHIP = 0x72;
+const UNBOUND_RELATIONSHIP_STRUCT_SIZE = 3;
+
+const PATH = 0x50;
+const PATH_STRUCT_SIZE = 3;
 
 /**
   * A Structure have a signature and fields.
@@ -322,10 +335,6 @@ class Unpacker {
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
    */
   constructor(disableLosslessIntegers = false) {
-    // Higher level layers can specify how to map structs to higher-level objects.
-    // If we receive a struct that has a signature that does not have a mapper,
-    // we simply return a Structure object.
-    this.structMappers = {};
     this._disableLosslessIntegers = disableLosslessIntegers;
   }
 
@@ -503,20 +512,104 @@ class Unpacker {
     }
   }
 
-  _unpackStructWithSize(size, buffer) {
-    let signature = buffer.readUInt8();
-    let mapper = this.structMappers[signature];
-    if (mapper) {
-      return mapper(this, buffer);
+  _unpackStructWithSize(structSize, buffer) {
+    const signature = buffer.readUInt8();
+    if (signature == NODE) {
+      return this._unpackNode(structSize, buffer);
+    } else if (signature == RELATIONSHIP) {
+      return this._unpackRelationship(structSize, buffer);
+    } else if (signature == UNBOUND_RELATIONSHIP) {
+      return this._unpackUnboundRelationship(structSize, buffer);
+    } else if (signature == PATH) {
+      return this._unpackPath(structSize, buffer);
     } else {
-      let value = new Structure(signature, []);
-      for (let i = 0; i < size; i++) {
-        value.fields.push(this.unpack(buffer));
-      }
-      return value;
+      return this._unpackUnknownStruct(signature, structSize, buffer);
     }
   }
 
+  _unpackNode(structSize, buffer) {
+    this._verifyStructSize('Node', NODE_STRUCT_SIZE, structSize);
+
+    return new Node(
+      this.unpack(buffer), // Identity
+      this.unpack(buffer), // Labels
+      this.unpack(buffer)  // Properties
+    );
+  }
+
+  _unpackRelationship(structSize, buffer) {
+    this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structSize);
+
+    return new Relationship(
+      this.unpack(buffer), // Identity
+      this.unpack(buffer), // Start Node Identity
+      this.unpack(buffer), // End Node Identity
+      this.unpack(buffer), // Type
+      this.unpack(buffer)  // Properties
+    );
+  }
+
+  _unpackUnboundRelationship(structSize, buffer) {
+    this._verifyStructSize('UnboundRelationship', UNBOUND_RELATIONSHIP_STRUCT_SIZE, structSize);
+
+    return new UnboundRelationship(
+      this.unpack(buffer), // Identity
+      this.unpack(buffer), // Type
+      this.unpack(buffer)  // Properties
+    );
+  }
+
+  _unpackPath(structSize, buffer) {
+    this._verifyStructSize('Path', PATH_STRUCT_SIZE, structSize);
+
+    const nodes = this.unpack(buffer);
+    const rels = this.unpack(buffer);
+    const sequence = this.unpack(buffer);
+
+    const segments = [];
+    let prevNode = nodes[0];
+
+    for (let i = 0; i < sequence.length; i += 2) {
+      const nextNode = nodes[sequence[i + 1]];
+      let relIndex = sequence[i];
+      let rel;
+
+      if (relIndex > 0) {
+        rel = rels[relIndex - 1];
+        if (rel instanceof UnboundRelationship) {
+          // To avoid duplication, relationships in a path do not contain
+          // information about their start and end nodes, that's instead
+          // inferred from the path sequence. This is us inferring (and,
+          // for performance reasons remembering) the start/end of a rel.
+          rels[relIndex - 1] = rel = rel.bind(prevNode.identity, nextNode.identity);
+        }
+      } else {
+        rel = rels[-relIndex - 1];
+        if (rel instanceof UnboundRelationship) {
+          // See above
+          rels[-relIndex - 1] = rel = rel.bind(nextNode.identity, prevNode.identity);
+        }
+      }
+      // Done hydrating one path segment.
+      segments.push(new PathSegment(prevNode, rel, nextNode));
+      prevNode = nextNode;
+    }
+    return new Path(nodes[0], nodes[nodes.length - 1], segments);
+  }
+
+  _unpackUnknownStruct(signature, structSize, buffer) {
+    const result = new Structure(signature, []);
+    for (let i = 0; i < structSize; i++) {
+      result.fields.push(this.unpack(buffer));
+    }
+    return result;
+  }
+
+  _verifyStructSize(structName, expectedSize, actualSize) {
+    if (expectedSize !== actualSize) {
+      throw newError(`Wrong struct size for ${structName}, expected ${expectedSize} but was ${actualSize}`, PROTOCOL_ERROR);
+    }
+  }
 }
 
 export {

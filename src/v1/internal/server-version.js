@@ -111,12 +111,14 @@ function compareInts(x, y) {
 
 const VERSION_3_1_0 = new ServerVersion(3, 1, 0);
 const VERSION_3_2_0 = new ServerVersion(3, 2, 0);
+const VERSION_3_4_0 = new ServerVersion(3, 4, 0);
 const VERSION_IN_DEV = new ServerVersion(0, 0, 0);
 
 export {
   ServerVersion,
   VERSION_3_1_0,
   VERSION_3_2_0,
+  VERSION_3_4_0,
   VERSION_IN_DEV
 };
 

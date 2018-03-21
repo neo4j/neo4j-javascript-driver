@@ -58,10 +58,14 @@ class DummyChannel {
   }
 
   close(cb) {
-    this.written = [];
+    this.clear();
     if (cb) {
       return cb();
     }
+  }
+
+  clear() {
+    this.written = [];
   }
 }
 
