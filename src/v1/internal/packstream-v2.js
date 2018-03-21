@@ -22,7 +22,10 @@ import {isPoint, Point} from '../spatial-types';
 import {int} from '../integer';
 
 const POINT_2D = 0x58;
+const POINT_2D_STRUCT_SIZE = 3;
+
 const POINT_3D = 0x59;
+const POINT_3D_STRUCT_SIZE = 4;
 
 export class Packer extends v1.Packer {
 
@@ -58,13 +61,13 @@ export class Unpacker extends v1.Unpacker {
   }
 
 
-  _unpackUnknownStruct(signature, size, buffer) {
+  _unpackUnknownStruct(signature, structSize, buffer) {
     if (signature == POINT_2D) {
-      return unpackPoint2D(this, buffer);
+      return unpackPoint2D(this, structSize, buffer);
     } else if (signature == POINT_3D) {
-      return unpackPoint3D(this, buffer);
+      return unpackPoint3D(this, structSize, buffer);
     } else {
-      return super._unpackUnknownStruct(signature, size, buffer);
+      return super._unpackUnknownStruct(signature, structSize, buffer);
     }
   }
 }
@@ -97,7 +100,9 @@ function packPoint3D(point, packer, onError) {
   packer.packStruct(POINT_3D, packableStructFields, onError);
 }
 
-function unpackPoint2D(unpacker, buffer) {
+function unpackPoint2D(unpacker, structSize, buffer) {
+  unpacker._verifyStructSize('Point2D', POINT_2D_STRUCT_SIZE, structSize);
+
   return new Point(
     unpacker.unpack(buffer), // srid
     unpacker.unpack(buffer), // x
@@ -106,7 +111,9 @@ function unpackPoint2D(unpacker, buffer) {
   );
 }
 
-function unpackPoint3D(unpacker, buffer) {
+function unpackPoint3D(unpacker, structSize, buffer) {
+  unpacker._verifyStructSize('Point3D', POINT_3D_STRUCT_SIZE, structSize);
+
   return new Point(
     unpacker.unpack(buffer), // srid
     unpacker.unpack(buffer), // x

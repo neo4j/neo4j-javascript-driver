@@ -18,7 +18,7 @@
  */
 import utf8 from './utf8';
 import Integer, {int, isInt} from '../integer';
-import {newError} from './../error';
+import {newError, PROTOCOL_ERROR} from './../error';
 import {Chunker} from './chunking';
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from '../graph-types';
 
@@ -50,9 +50,16 @@ const STRUCT_8 = 0xDC;
 const STRUCT_16 = 0xDD;
 
 const NODE = 0x4E;
+const NODE_STRUCT_SIZE = 3;
+
 const RELATIONSHIP = 0x52;
+const RELATIONSHIP_STRUCT_SIZE = 5;
+
 const UNBOUND_RELATIONSHIP = 0x72;
+const UNBOUND_RELATIONSHIP_STRUCT_SIZE = 3;
+
 const PATH = 0x50;
+const PATH_STRUCT_SIZE = 3;
 
 /**
   * A Structure have a signature and fields.
@@ -505,22 +512,24 @@ class Unpacker {
     }
   }
 
-  _unpackStructWithSize(size, buffer) {
+  _unpackStructWithSize(structSize, buffer) {
     const signature = buffer.readUInt8();
     if (signature == NODE) {
-      return this._unpackNode(buffer);
+      return this._unpackNode(structSize, buffer);
     } else if (signature == RELATIONSHIP) {
-      return this._unpackRelationship(buffer);
+      return this._unpackRelationship(structSize, buffer);
     } else if (signature == UNBOUND_RELATIONSHIP) {
-      return this._unpackUnboundRelationship(buffer);
+      return this._unpackUnboundRelationship(structSize, buffer);
     } else if (signature == PATH) {
-      return this._unpackPath(buffer);
+      return this._unpackPath(structSize, buffer);
     } else {
-      return this._unpackUnknownStruct(signature, size, buffer);
+      return this._unpackUnknownStruct(signature, structSize, buffer);
     }
   }
 
-  _unpackNode(buffer) {
+  _unpackNode(structSize, buffer) {
+    this._verifyStructSize('Node', NODE_STRUCT_SIZE, structSize);
+
     return new Node(
       this.unpack(buffer), // Identity
       this.unpack(buffer), // Labels
@@ -528,7 +537,9 @@ class Unpacker {
     );
   }
 
-  _unpackRelationship(buffer) {
+  _unpackRelationship(structSize, buffer) {
+    this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structSize);
+
     return new Relationship(
       this.unpack(buffer), // Identity
       this.unpack(buffer), // Start Node Identity
@@ -538,7 +549,9 @@ class Unpacker {
     );
   }
 
-  _unpackUnboundRelationship(buffer) {
+  _unpackUnboundRelationship(structSize, buffer) {
+    this._verifyStructSize('UnboundRelationship', UNBOUND_RELATIONSHIP_STRUCT_SIZE, structSize);
+
     return new UnboundRelationship(
       this.unpack(buffer), // Identity
       this.unpack(buffer), // Type
@@ -546,7 +559,9 @@ class Unpacker {
     );
   }
 
-  _unpackPath(buffer) {
+  _unpackPath(structSize, buffer) {
+    this._verifyStructSize('Path', PATH_STRUCT_SIZE, structSize);
+
     const nodes = this.unpack(buffer);
     const rels = this.unpack(buffer);
     const sequence = this.unpack(buffer);
@@ -582,14 +597,19 @@ class Unpacker {
     return new Path(nodes[0], nodes[nodes.length - 1], segments);
   }
 
-  _unpackUnknownStruct(signature, size, buffer) {
+  _unpackUnknownStruct(signature, structSize, buffer) {
     const result = new Structure(signature, []);
-    for (let i = 0; i < size; i++) {
+    for (let i = 0; i < structSize; i++) {
       result.fields.push(this.unpack(buffer));
     }
     return result;
   }
 
+  _verifyStructSize(structName, expectedSize, actualSize) {
+    if (expectedSize !== actualSize) {
+      throw newError(`Wrong struct size for ${structName}, expected ${expectedSize} but was ${actualSize}`, PROTOCOL_ERROR);
+    }
+  }
 }
 
 export {
