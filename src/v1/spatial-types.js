@@ -23,6 +23,7 @@ const POINT_IDENTIFIER_PROPERTY = '__isPoint__';
 
 /**
  * Represents a single two or three-dimensional point in a particular coordinate reference system.
+ * Created <code>Point</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
 export class Point {
 
@@ -31,13 +32,14 @@ export class Point {
    * @param {number|Integer} srid the coordinate reference system identifier.
    * @param {number} x the <code>x</code> coordinate of the point.
    * @param {number} y the <code>y</code> coordinate of the point.
-   * @param {number|undefined} z the <code>y</code> coordinate of the point or <code>undefined</code> if point has 2 dimensions.
+   * @param {number} [z=undefined] the <code>y</code> coordinate of the point or <code>undefined</code> if point has 2 dimensions.
    */
   constructor(srid, x, y, z) {
     this.srid = int(srid);
     this.x = x;
     this.y = y;
     this.z = z;
+    Object.freeze(this);
   }
 }
 

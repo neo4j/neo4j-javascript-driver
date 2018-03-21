@@ -65,6 +65,34 @@ describe('spatial-types', () => {
     }
   });
 
+  it('should expose frozen immutable points', () => {
+    const point = new Point(CARTESIAN_2D_CRS_CODE, 1.2, 3.4);
+
+    expect(Object.isFrozen(point)).toBeTruthy();
+
+    expect(point.srid).toEqual(CARTESIAN_2D_CRS_CODE);
+    expect(point.x).toEqual(1.2);
+    expect(point.y).toEqual(3.4);
+    expect(point.z).toBeUndefined();
+
+    try {
+      point.x = 5.6;
+    } catch (e) {
+    }
+    try {
+      point.y = 7.8;
+    } catch (e) {
+    }
+    try {
+      point.z = 9.0;
+    } catch (e) {
+    }
+
+    expect(point.x).toEqual(1.2);
+    expect(point.y).toEqual(3.4);
+    expect(point.z).toBeUndefined();
+  });
+
   it('should receive 2D points', done => {
     testReceivingOfPoints(done, 'RETURN point({x: 169.99, y: 12.1718})', point => {
       expect(isPoint(point)).toBeTruthy();
