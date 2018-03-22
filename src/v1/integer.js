@@ -238,7 +238,9 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  notEquals(other) { !this.equals(/* validates */ other); }
+  notEquals(other) {
+    return !this.equals(/* validates */ other);
+  }
 
   /**
    * Tests if this Integer's value is less than the specified's.
