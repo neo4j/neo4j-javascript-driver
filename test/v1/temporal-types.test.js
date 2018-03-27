@@ -342,6 +342,50 @@ describe('temporal-types', () => {
     testSendAndReceiveRandomTemporalValues(valueGenerator, done);
   });
 
+  it('should convert Duration to ISO string', () => {
+    expect(duration(13, 62, 3, 999111999).toString()).toEqual('P13M62DT3.999111999S');
+    expect(duration(0, 0, 0, 0).toString()).toEqual('P0M0DT0.000000000S');
+    expect(duration(-1, -2, 10, 10).toString()).toEqual('P-1M-2DT10.000000010S');
+  });
+
+  it('should convert LocalTime to ISO string', () => {
+    expect(localTime(12, 19, 39, 111222333).toString()).toEqual('12:19:39.111222333');
+    expect(localTime(3, 59, 2, 17).toString()).toEqual('03:59:02.000000017');
+    expect(localTime(0, 0, 0, 0).toString()).toEqual('00:00:00.000000000');
+  });
+
+  it('should convert Time to ISO string', () => {
+    expect(time(11, 45, 22, 333222111, 9015).toString()).toEqual('11:45:22.333222111+02:30:15');
+    expect(time(23, 2, 1, 10, 0).toString()).toEqual('23:02:01.000000010Z');
+    expect(time(0, 12, 59, 0, -40500).toString()).toEqual('00:12:59.000000000-11:15');
+    expect(time(21, 59, 0, 123, -25200).toString()).toEqual('21:59:00.000000123-07:00');
+  });
+
+  it('should convert Date to ISO string', () => {
+    expect(date(2015, 10, 12).toString()).toEqual('2015-10-12');
+    expect(date(881, 1, 1).toString()).toEqual('0881-01-01');
+    expect(date(-999, 12, 24).toString()).toEqual('-0999-12-24');
+    expect(date(-9, 1, 1).toString()).toEqual('-0009-01-01');
+  });
+
+  it('should convert LocalDateTime to ISO string', () => {
+    expect(localDateTime(1992, 11, 8, 9, 42, 17, 22).toString()).toEqual('1992-11-08T09:42:17.000000022');
+    expect(localDateTime(-10, 7, 15, 8, 15, 33, 500).toString()).toEqual('-0010-07-15T08:15:33.000000500');
+    expect(localDateTime(0, 0, 0, 0, 0, 0, 1).toString()).toEqual('0000-00-00T00:00:00.000000001');
+  });
+
+  it('should convert DateTime with time zone offset to ISO string', () => {
+    expect(dateTimeWithZoneOffset(2025, 9, 17, 23, 22, 21, 999888, 37800).toString()).toEqual('2025-09-17T23:22:21.000999888+10:30');
+    expect(dateTimeWithZoneOffset(1, 2, 3, 4, 5, 6, 7, -49376).toString()).toEqual('0001-02-03T04:05:06.000000007-13:42:56');
+    expect(dateTimeWithZoneOffset(-3, 3, 9, 9, 33, 27, 999000, 15300).toString()).toEqual('-0003-03-09T09:33:27.000999000+04:15');
+  });
+
+  it('should convert DateTime with time zone id to ISO-like string', () => {
+    expect(dateTimeWithZoneId(1949, 10, 7, 6, 10, 15, 15000000, 'Europe/Zaporozhye').toString()).toEqual('1949-10-07T06:10:15.015000000[Europe/Zaporozhye]');
+    expect(dateTimeWithZoneId(-30455, 5, 5, 12, 24, 10, 123, 'Asia/Yangon').toString()).toEqual('-30455-05-05T12:24:10.000000123[Asia/Yangon]');
+    expect(dateTimeWithZoneId(248, 12, 30, 23, 59, 59, 3, 'CET').toString()).toEqual('0248-12-30T23:59:59.000000003[CET]');
+  });
+
   function testSendAndReceiveRandomTemporalValues(valueGenerator, done) {
     const asyncFunction = (index, callback) => {
       const next = () => callback();

@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import {dateToIsoString, durationToIsoString, timeToIsoString, timeZoneOffsetToIsoString} from './internal/temporal-util';
+
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,
   enumerable: false,
@@ -51,6 +53,10 @@ export class CypherDuration {
     this.nanoseconds = nanoseconds;
     Object.freeze(this);
   }
+
+  toString() {
+    return durationToIsoString(this.months, this.days, this.seconds, this.nanoseconds);
+  }
 }
 
 Object.defineProperty(CypherDuration.prototype, CYPHER_DURATION_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
@@ -84,6 +90,10 @@ export class CypherLocalTime {
     this.nanosecond = nanosecond;
     Object.freeze(this);
   }
+
+  toString() {
+    return timeToIsoString(this.hour, this.minute, this.second, this.nanosecond);
+  }
 }
 
 Object.defineProperty(CypherLocalTime.prototype, CYPHER_LOCAL_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
@@ -112,6 +122,10 @@ export class CypherTime {
     this.localTime = localTime;
     this.offsetSeconds = offsetSeconds;
     Object.freeze(this);
+  }
+
+  toString() {
+    return this.localTime.toString() + timeZoneOffsetToIsoString(this.offsetSeconds);
   }
 }
 
@@ -144,6 +158,10 @@ export class CypherDate {
     this.day = day;
     Object.freeze(this);
   }
+
+  toString() {
+    return dateToIsoString(this.year, this.month, this.day);
+  }
 }
 
 Object.defineProperty(CypherDate.prototype, CYPHER_DATE_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
@@ -172,6 +190,10 @@ export class CypherLocalDateTime {
     this.localDate = localDate;
     this.localTime = localTime;
     Object.freeze(this);
+  }
+
+  toString() {
+    return `${this.localDate.toString()}T${this.localTime.toString()}`;
   }
 }
 
@@ -202,6 +224,10 @@ export class CypherDateTimeWithZoneOffset {
     this.offsetSeconds = offsetSeconds;
     Object.freeze(this);
   }
+
+  toString() {
+    return this.localDateTime.toString() + timeZoneOffsetToIsoString(this.offsetSeconds);
+  }
 }
 
 Object.defineProperty(CypherDateTimeWithZoneOffset.prototype, CYPHER_DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
@@ -230,6 +256,10 @@ export class CypherDateTimeWithZoneId {
     this.localDateTime = localDateTime;
     this.zoneId = zoneId;
     Object.freeze(this);
+  }
+
+  toString() {
+    return `${this.localDateTime.toString()}[${this.zoneId}]`;
   }
 }
 

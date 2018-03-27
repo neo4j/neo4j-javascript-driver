@@ -170,6 +170,86 @@ export function epochDayToCypherDate(epochDay) {
 }
 
 /**
+ * Format given duration to an ISO 8601 string.
+ * @param {Integer|number} months the number of months.
+ * @param {Integer|number} days the number of days.
+ * @param {Integer|number} seconds the number of seconds.
+ * @param {Integer|number} nanoseconds the number of nanoseconds.
+ * @return {string} ISO string that represents given duration.
+ */
+export function durationToIsoString(months, days, seconds, nanoseconds) {
+  const monthsString = formatNumber(months);
+  const daysString = formatNumber(days);
+  const secondsString = formatNumber(seconds);
+  const nanosecondsString = formatNumber(nanoseconds, 9);
+  return `P${monthsString}M${daysString}DT${secondsString}.${nanosecondsString}S`;
+}
+
+/**
+ * Formats given time to an ISO 8601 string.
+ * @param {Integer|number} hour the hour value.
+ * @param {Integer|number} minute the minute value.
+ * @param {Integer|number} second the second value.
+ * @param {Integer|number} nanosecond the nanosecond value.
+ * @return {string} ISO string that represents given time.
+ */
+export function timeToIsoString(hour, minute, second, nanosecond) {
+  const hourString = formatNumber(hour, 2);
+  const minuteString = formatNumber(minute, 2);
+  const secondString = formatNumber(second, 2);
+  const nanosecondString = formatNumber(nanosecond, 9);
+  return `${hourString}:${minuteString}:${secondString}.${nanosecondString}`;
+}
+
+/**
+ * Formats given time zone offset in seconds to string representation like '±HH:MM', '±HH:MM:SS' or 'Z' for UTC.
+ * @param {Integer|number} offsetSeconds the offset in seconds.
+ * @return {string} ISO string that represents given offset.
+ */
+export function timeZoneOffsetToIsoString(offsetSeconds) {
+  offsetSeconds = int(offsetSeconds);
+  if (offsetSeconds.equals(0)) {
+    return 'Z';
+  }
+
+  const isNegative = offsetSeconds.isNegative();
+  if (isNegative) {
+    offsetSeconds = offsetSeconds.multiply(-1);
+  }
+  const signPrefix = isNegative ? '-' : '+';
+
+  const hours = formatNumber(offsetSeconds.div(SECONDS_PER_HOUR), 2);
+  const minutes = formatNumber(offsetSeconds.div(SECONDS_PER_MINUTE).modulo(MINUTES_PER_HOUR), 2);
+  let secondsValue = offsetSeconds.modulo(SECONDS_PER_MINUTE);
+  const seconds = secondsValue.equals(0) ? null : formatNumber(secondsValue, 2);
+
+  return seconds ? `${signPrefix}${hours}:${minutes}:${seconds}` : `${signPrefix}${hours}:${minutes}`;
+}
+
+/**
+ * Formats given date to an ISO 8601 string.
+ * @param {Integer|number} year the date year.
+ * @param {Integer|number} month the date month.
+ * @param {Integer|number} day the date day.
+ * @return {string} ISO string that represents given date.
+ */
+export function dateToIsoString(year, month, day) {
+  year = int(year);
+  const isNegative = year.isNegative();
+  if (isNegative) {
+    year = year.multiply(-1);
+  }
+  let yearString = year.toString().padStart(4, '0');
+  if (isNegative) {
+    yearString = '-' + yearString;
+  }
+
+  const monthString = formatNumber(month, 2);
+  const dayString = formatNumber(day, 2);
+  return `${yearString}-${monthString}-${dayString}`;
+}
+
+/**
  * Converts given cypher local time into a single integer representing this same time in seconds of the day. Nanoseconds are skipped.
  * @param {CypherLocalTime} localTime the time to convert.
  * @return {Integer} seconds representing the given local time.
@@ -230,4 +310,14 @@ function floorMod(x, y) {
   y = int(y);
 
   return x.subtract(floorDiv(x, y).multiply(y));
+}
+
+/**
+ * @param {Integer|number} num the number to format.
+ * @param {number} [stringLength=undefined] the string length to left-pad to.
+ * @return {string} formatted and possibly left-padded number as string.
+ */
+function formatNumber(num, stringLength = undefined) {
+  const result = int(num).toString();
+  return stringLength ? result.padStart(stringLength, '0') : result;
 }
