@@ -17,21 +17,11 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
-import {int} from '../../src/v1/integer';
+import neo4j from '../../src';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion, VERSION_3_4_0} from '../../src/v1/internal/server-version';
 import timesSeries from 'async/timesSeries';
 import _ from 'lodash';
-import {
-  CypherDate,
-  CypherDateTimeWithZoneId,
-  CypherDateTimeWithZoneOffset,
-  CypherDuration,
-  CypherLocalDateTime,
-  CypherLocalTime,
-  CypherTime
-} from '../../src/v1/temporal-types';
 
 const RANDOM_VALUES_TO_TEST = 2000;
 const MAX_NANO_OF_SECOND = 999999999;
@@ -443,25 +433,25 @@ describe('temporal-types', () => {
   }
 
   function randomDateTimeWithZoneOffset() {
-    return new CypherDateTimeWithZoneOffset(
+    return new neo4j.CypherDateTimeWithZoneOffset(
       randomLocalDateTime(),
       randomZoneOffsetSeconds()
     );
   }
 
   function randomDateTimeWithZoneId() {
-    return new CypherDateTimeWithZoneId(
+    return new neo4j.CypherDateTimeWithZoneId(
       randomLocalDateTime(),
       randomZoneId()
     );
   }
 
   function randomLocalDateTime() {
-    return new CypherLocalDateTime(randomDate(), randomLocalTime());
+    return new neo4j.CypherLocalDateTime(randomDate(), randomLocalTime());
   }
 
   function randomDate() {
-    return new CypherDate(
+    return new neo4j.CypherDate(
       randomInt(MIN_YEAR, MAX_YEAR),
       randomInt(1, 12),
       randomInt(1, 28)
@@ -469,14 +459,14 @@ describe('temporal-types', () => {
   }
 
   function randomTime() {
-    return new CypherTime(
+    return new neo4j.CypherTime(
       randomLocalTime(),
       randomZoneOffsetSeconds(),
     );
   }
 
   function randomLocalTime() {
-    return new CypherLocalTime(
+    return new neo4j.CypherLocalTime(
       randomInt(0, 23),
       randomInt(0, 59),
       randomInt(0, 59),
@@ -485,7 +475,7 @@ describe('temporal-types', () => {
   }
 
   function randomZoneOffsetSeconds() {
-    const randomOffsetWithSeconds = int(randomInt(MIN_TIME_ZONE_OFFSET, MAX_TIME_ZONE_OFFSET));
+    const randomOffsetWithSeconds = neo4j.int(randomInt(MIN_TIME_ZONE_OFFSET, MAX_TIME_ZONE_OFFSET));
     return randomOffsetWithSeconds.div(SECONDS_PER_MINUTE).multiply(SECONDS_PER_MINUTE); // truncate seconds
   }
 
@@ -494,34 +484,34 @@ describe('temporal-types', () => {
   }
 
   function duration(months, days, seconds, nanoseconds) {
-    return new CypherDuration(int(months), int(days), int(seconds), int(nanoseconds));
+    return new neo4j.CypherDuration(neo4j.int(months), neo4j.int(days), neo4j.int(seconds), neo4j.int(nanoseconds));
   }
 
   function localTime(hour, minute, second, nanosecond) {
-    return new CypherLocalTime(int(hour), int(minute), int(second), int(nanosecond));
+    return new neo4j.CypherLocalTime(neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond));
   }
 
   function time(hour, minute, second, nanosecond, offsetSeconds) {
-    return new CypherTime(localTime(hour, minute, second, nanosecond), int(offsetSeconds));
+    return new neo4j.CypherTime(localTime(hour, minute, second, nanosecond), neo4j.int(offsetSeconds));
   }
 
   function date(year, month, day) {
-    return new CypherDate(int(year), int(month), int(day));
+    return new neo4j.CypherDate(neo4j.int(year), neo4j.int(month), neo4j.int(day));
   }
 
   function localDateTime(year, month, day, hour, minute, second, nanosecond) {
-    return new CypherLocalDateTime(date(year, month, day), localTime(hour, minute, second, nanosecond));
+    return new neo4j.CypherLocalDateTime(date(year, month, day), localTime(hour, minute, second, nanosecond));
   }
 
   function dateTimeWithZoneOffset(year, month, day, hour, minute, second, nanosecond, offsetSeconds) {
-    return new CypherDateTimeWithZoneOffset(localDateTime(year, month, day, hour, minute, second, nanosecond), int(offsetSeconds));
+    return new neo4j.CypherDateTimeWithZoneOffset(localDateTime(year, month, day, hour, minute, second, nanosecond), neo4j.int(offsetSeconds));
   }
 
   function dateTimeWithZoneId(year, month, day, hour, minute, second, nanosecond, zoneId) {
-    return new CypherDateTimeWithZoneId(localDateTime(year, month, day, hour, minute, second, nanosecond), zoneId);
+    return new neo4j.CypherDateTimeWithZoneId(localDateTime(year, month, day, hour, minute, second, nanosecond), zoneId);
   }
 
   function randomInt(lower, upper) {
-    return int(_.random(lower, upper));
+    return neo4j.int(_.random(lower, upper));
   }
 });
