@@ -220,10 +220,10 @@ function unpackDuration(unpacker, structSize, buffer) {
 }
 
 function packLocalTime(value, packer, onError) {
-  const totalNanos = cypherLocalTimeToNanoOfDay(value);
+  const nanoOfDay = cypherLocalTimeToNanoOfDay(value);
 
   const packableStructFields = [
-    packer.packable(totalNanos, onError)
+    packer.packable(nanoOfDay, onError)
   ];
   packer.packStruct(LOCAL_TIME, packableStructFields, onError);
 }
@@ -242,11 +242,11 @@ function unpackLocalTime(unpacker, structSize, buffer) {
  * @param {function} onError the error callback.
  */
 function packTime(value, packer, onError) {
-  const totalNanos = cypherLocalTimeToNanoOfDay(value.localTime);
+  const nanoOfDay = cypherLocalTimeToNanoOfDay(value.localTime);
   const offsetSeconds = int(value.offsetSeconds);
 
   const packableStructFields = [
-    packer.packable(totalNanos, onError),
+    packer.packable(nanoOfDay, onError),
     packer.packable(offsetSeconds, onError)
   ];
   packer.packStruct(TIME, packableStructFields, onError);
