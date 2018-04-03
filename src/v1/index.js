@@ -29,7 +29,23 @@ import VERSION from '../version';
 import {assertString, isEmptyObjectOrNull} from './internal/util';
 import urlUtil from './internal/url-util';
 import HttpDriver from './internal/http/http-driver';
-import {Point} from './spatial-types';
+import {isPoint, Point} from './spatial-types';
+import {
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  isDate,
+  isDateTimeWithZoneId,
+  isDateTimeWithZoneOffset,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
+} from './temporal-types';
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -196,7 +212,7 @@ function driver(url, authToken, config = {}) {
 }
 
 /**
- * Object containing constructors for all graph types.
+ * Object containing constructors for all neo4j types.
  */
 const types = {
   Node,
@@ -207,7 +223,14 @@ const types = {
   Result,
   ResultSummary,
   Record,
-  Point
+  Point,
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  LocalDateTime,
+  LocalTime,
+  Time
 };
 
 /**
@@ -248,7 +271,23 @@ const forExport = {
   auth,
   types,
   session,
-  error
+  error,
+  Point,
+  isPoint,
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  LocalDateTime,
+  LocalTime,
+  Time,
+  isDuration,
+  isLocalTime,
+  isTime,
+  isDate,
+  isLocalDateTime,
+  isDateTimeWithZoneOffset,
+  isDateTimeWithZoneId
 };
 
 export {
@@ -260,6 +299,22 @@ export {
   auth,
   types,
   session,
-  error
+  error,
+  Point,
+  isPoint,
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  LocalDateTime,
+  LocalTime,
+  Time,
+  isDuration,
+  isLocalTime,
+  isTime,
+  isDate,
+  isLocalDateTime,
+  isDateTimeWithZoneOffset,
+  isDateTimeWithZoneId
 };
 export default forExport;

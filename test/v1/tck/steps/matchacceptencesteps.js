@@ -155,9 +155,6 @@ module.exports = function () {
     var segment;
     for (var i = 0; i < segments.length; i++) {
       segment = segments[i];
-      if (startid.notEquals(segment.start.identity)) {
-        throw new Error("Path segment does not make sense")
-      }
       var relationship = segment.relationship;
       var endId = neo4j.int(segment.end.identity.toString());
       relationship.identity = neo4j.int(0);

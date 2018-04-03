@@ -19,16 +19,26 @@
 
 import Integer, {inSafeRange, int, isInt, toNumber, toString} from "./integer";
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from "./graph-types";
+import {isPoint, Point} from "./spatial-types";
+import {
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  isDate,
+  isDateTimeWithZoneId,
+  isDateTimeWithZoneOffset,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
+} from "./temporal-types";
 import {Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
 import Result, {Observer, StatementResult} from "./result";
-import ResultSummary, {
-  Notification,
-  NotificationPosition,
-  Plan,
-  ProfiledPlan,
-  ServerInfo,
-  StatementStatistic
-} from "./result-summary";
+import ResultSummary, {Notification, NotificationPosition, Plan, ProfiledPlan, ServerInfo, StatementStatistic} from "./result-summary";
 import Record from "./record";
 import Session from "./session";
 import {AuthToken, Config, Driver, EncryptionLevel, READ, SessionMode, TrustStrategy, WRITE} from "./driver";
@@ -54,14 +64,22 @@ declare function driver(url: string,
                         config?: Config): Driver;
 
 declare const types: {
-  Node: typeof Node;
-  Relationship: typeof Relationship;
-  UnboundRelationship: typeof UnboundRelationship;
-  PathSegment: typeof PathSegment;
-  Path: typeof Path;
+  Node: Node;
+  Relationship: Relationship;
+  UnboundRelationship: UnboundRelationship;
+  PathSegment: PathSegment;
+  Path: Path;
   Result: Result;
   ResultSummary: ResultSummary;
-  Record: typeof Record;
+  Record: Record;
+  Point: Point;
+  Duration: Duration;
+  LocalTime: LocalTime;
+  Time: Time;
+  Date: Date;
+  LocalDateTime: LocalDateTime;
+  DateTimeWithZoneOffset: DateTimeWithZoneOffset;
+  DateTimeWithZoneId: DateTimeWithZoneId;
 };
 
 declare const session: {
@@ -125,6 +143,22 @@ declare const forExport: {
   NotificationPosition: NotificationPosition,
   Session: Session;
   Transaction: Transaction;
+  Point: Point;
+  isPoint: typeof isPoint;
+  Duration: Duration;
+  LocalTime: LocalTime;
+  Time: Time;
+  Date: Date;
+  LocalDateTime: LocalDateTime;
+  DateTimeWithZoneOffset: DateTimeWithZoneOffset;
+  DateTimeWithZoneId: DateTimeWithZoneId;
+  isDuration: typeof isDuration;
+  isLocalTime: typeof isLocalTime;
+  isTime: typeof isTime;
+  isDate: typeof isDate;
+  isLocalDateTime: typeof isLocalDateTime;
+  isDateTimeWithZoneOffset: typeof isDateTimeWithZoneOffset;
+  isDateTimeWithZoneId: typeof isDateTimeWithZoneId;
 };
 
 export {
@@ -161,7 +195,23 @@ export {
   ServerInfo,
   NotificationPosition,
   Session,
-  Transaction
+  Transaction,
+  Point,
+  isPoint,
+  Duration,
+  LocalTime,
+  Time,
+  Date,
+  LocalDateTime,
+  DateTimeWithZoneOffset,
+  DateTimeWithZoneId,
+  isDuration,
+  isLocalTime,
+  isTime,
+  isDate,
+  isLocalDateTime,
+  isDateTimeWithZoneOffset,
+  isDateTimeWithZoneId
 }
 
 export default forExport;
