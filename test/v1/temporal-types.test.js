@@ -433,25 +433,25 @@ describe('temporal-types', () => {
   }
 
   function randomDateTimeWithZoneOffset() {
-    return new neo4j.CypherDateTimeWithZoneOffset(
+    return new neo4j.DateTimeWithZoneOffset(
       randomLocalDateTime(),
       randomZoneOffsetSeconds()
     );
   }
 
   function randomDateTimeWithZoneId() {
-    return new neo4j.CypherDateTimeWithZoneId(
+    return new neo4j.DateTimeWithZoneId(
       randomLocalDateTime(),
       randomZoneId()
     );
   }
 
   function randomLocalDateTime() {
-    return new neo4j.CypherLocalDateTime(randomDate(), randomLocalTime());
+    return new neo4j.LocalDateTime(randomDate(), randomLocalTime());
   }
 
   function randomDate() {
-    return new neo4j.CypherDate(
+    return new neo4j.Date(
       randomInt(MIN_YEAR, MAX_YEAR),
       randomInt(1, 12),
       randomInt(1, 28)
@@ -459,14 +459,14 @@ describe('temporal-types', () => {
   }
 
   function randomTime() {
-    return new neo4j.CypherTime(
+    return new neo4j.Time(
       randomLocalTime(),
       randomZoneOffsetSeconds(),
     );
   }
 
   function randomLocalTime() {
-    return new neo4j.CypherLocalTime(
+    return new neo4j.LocalTime(
       randomInt(0, 23),
       randomInt(0, 59),
       randomInt(0, 59),
@@ -484,31 +484,31 @@ describe('temporal-types', () => {
   }
 
   function duration(months, days, seconds, nanoseconds) {
-    return new neo4j.CypherDuration(neo4j.int(months), neo4j.int(days), neo4j.int(seconds), neo4j.int(nanoseconds));
+    return new neo4j.Duration(neo4j.int(months), neo4j.int(days), neo4j.int(seconds), neo4j.int(nanoseconds));
   }
 
   function localTime(hour, minute, second, nanosecond) {
-    return new neo4j.CypherLocalTime(neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond));
+    return new neo4j.LocalTime(neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond));
   }
 
   function time(hour, minute, second, nanosecond, offsetSeconds) {
-    return new neo4j.CypherTime(localTime(hour, minute, second, nanosecond), neo4j.int(offsetSeconds));
+    return new neo4j.Time(localTime(hour, minute, second, nanosecond), neo4j.int(offsetSeconds));
   }
 
   function date(year, month, day) {
-    return new neo4j.CypherDate(neo4j.int(year), neo4j.int(month), neo4j.int(day));
+    return new neo4j.Date(neo4j.int(year), neo4j.int(month), neo4j.int(day));
   }
 
   function localDateTime(year, month, day, hour, minute, second, nanosecond) {
-    return new neo4j.CypherLocalDateTime(date(year, month, day), localTime(hour, minute, second, nanosecond));
+    return new neo4j.LocalDateTime(date(year, month, day), localTime(hour, minute, second, nanosecond));
   }
 
   function dateTimeWithZoneOffset(year, month, day, hour, minute, second, nanosecond, offsetSeconds) {
-    return new neo4j.CypherDateTimeWithZoneOffset(localDateTime(year, month, day, hour, minute, second, nanosecond), neo4j.int(offsetSeconds));
+    return new neo4j.DateTimeWithZoneOffset(localDateTime(year, month, day, hour, minute, second, nanosecond), neo4j.int(offsetSeconds));
   }
 
   function dateTimeWithZoneId(year, month, day, hour, minute, second, nanosecond, zoneId) {
-    return new neo4j.CypherDateTimeWithZoneId(localDateTime(year, month, day, hour, minute, second, nanosecond), zoneId);
+    return new neo4j.DateTimeWithZoneId(localDateTime(year, month, day, hour, minute, second, nanosecond), zoneId);
   }
 
   function randomInt(lower, upper) {

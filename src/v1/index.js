@@ -31,20 +31,20 @@ import urlUtil from './internal/url-util';
 import HttpDriver from './internal/http/http-driver';
 import {isPoint, Point} from './spatial-types';
 import {
-  CypherDate,
-  CypherDateTimeWithZoneId,
-  CypherDateTimeWithZoneOffset,
-  CypherDuration,
-  CypherLocalDateTime,
-  CypherLocalTime,
-  CypherTime,
-  isCypherDate,
-  isCypherDateTimeWithZoneId,
-  isCypherDateTimeWithZoneOffset,
-  isCypherDuration,
-  isCypherLocalDateTime,
-  isCypherLocalTime,
-  isCypherTime
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  isDate,
+  isDateTimeWithZoneId,
+  isDateTimeWithZoneOffset,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
 } from './temporal-types';
 
 /**
@@ -224,13 +224,13 @@ const types = {
   ResultSummary,
   Record,
   Point,
-  CypherDate,
-  CypherDateTimeWithZoneId,
-  CypherDateTimeWithZoneOffset,
-  CypherDuration,
-  CypherLocalDateTime,
-  CypherLocalTime,
-  CypherTime
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  LocalDateTime,
+  LocalTime,
+  Time
 };
 
 /**
@@ -274,20 +274,20 @@ const forExport = {
   error,
   Point,
   isPoint,
-  CypherDate,
-  CypherDateTimeWithZoneId,
-  CypherDateTimeWithZoneOffset,
-  CypherDuration,
-  CypherLocalDateTime,
-  CypherLocalTime,
-  CypherTime,
-  isCypherDuration,
-  isCypherLocalTime,
-  isCypherTime,
-  isCypherDate,
-  isCypherLocalDateTime,
-  isCypherDateTimeWithZoneOffset,
-  isCypherDateTimeWithZoneId
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  LocalDateTime,
+  LocalTime,
+  Time,
+  isDuration,
+  isLocalTime,
+  isTime,
+  isDate,
+  isLocalDateTime,
+  isDateTimeWithZoneOffset,
+  isDateTimeWithZoneId
 };
 
 export {
@@ -302,19 +302,19 @@ export {
   error,
   Point,
   isPoint,
-  CypherDate,
-  CypherDateTimeWithZoneId,
-  CypherDateTimeWithZoneOffset,
-  CypherDuration,
-  CypherLocalDateTime,
-  CypherLocalTime,
-  CypherTime,
-  isCypherDuration,
-  isCypherLocalTime,
-  isCypherTime,
-  isCypherDate,
-  isCypherLocalDateTime,
-  isCypherDateTimeWithZoneOffset,
-  isCypherDateTimeWithZoneId
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  LocalDateTime,
+  LocalTime,
+  Time,
+  isDuration,
+  isLocalTime,
+  isTime,
+  isDate,
+  isLocalDateTime,
+  isDateTimeWithZoneOffset,
+  isDateTimeWithZoneId
 };
 export default forExport;

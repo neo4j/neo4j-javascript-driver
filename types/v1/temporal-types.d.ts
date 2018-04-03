@@ -20,7 +20,7 @@
 import {NumberOrInteger} from './graph-types';
 import Integer from "./integer";
 
-declare class CypherDuration<T extends NumberOrInteger = Integer> {
+declare class Duration<T extends NumberOrInteger = Integer> {
   months: T;
   days: T;
   seconds: T;
@@ -29,7 +29,7 @@ declare class CypherDuration<T extends NumberOrInteger = Integer> {
   constructor(months: T, days: T, seconds: T, nanoseconds: T)
 }
 
-declare class CypherLocalTime<T extends NumberOrInteger = Integer> {
+declare class LocalTime<T extends NumberOrInteger = Integer> {
   hour: T;
   minute: T;
   second: T;
@@ -38,15 +38,15 @@ declare class CypherLocalTime<T extends NumberOrInteger = Integer> {
   constructor(hour: T, minute: T, second: T, nanosecond: T);
 }
 
-declare class CypherTime<T extends NumberOrInteger = Integer> {
+declare class Time<T extends NumberOrInteger = Integer> {
 
-  localTime: CypherLocalTime<T>;
+  localTime: LocalTime<T>;
   offsetSeconds: T;
 
-  constructor(localTime: CypherLocalTime<T>, offsetSeconds: T);
+  constructor(localTime: LocalTime<T>, offsetSeconds: T);
 }
 
-declare class CypherDate<T extends NumberOrInteger = Integer> {
+declare class Date<T extends NumberOrInteger = Integer> {
 
   year: T;
   month: T;
@@ -55,57 +55,57 @@ declare class CypherDate<T extends NumberOrInteger = Integer> {
   constructor(year: T, month: T, day: T);
 }
 
-declare class CypherLocalDateTime<T extends NumberOrInteger = Integer> {
+declare class LocalDateTime<T extends NumberOrInteger = Integer> {
 
-  localDate: CypherDate<T>;
-  localTime: CypherLocalTime<T>;
+  localDate: Date<T>;
+  localTime: LocalTime<T>;
 
-  constructor(localDate: CypherDate<T>, localTime: CypherLocalTime<T>);
+  constructor(localDate: Date<T>, localTime: LocalTime<T>);
 }
 
-declare class CypherDateTimeWithZoneOffset<T extends NumberOrInteger = Integer> {
+declare class DateTimeWithZoneOffset<T extends NumberOrInteger = Integer> {
 
-  localDateTime: CypherLocalDateTime<T>;
+  localDateTime: LocalDateTime<T>;
   offsetSeconds: T;
 
-  constructor(localDateTime: CypherLocalDateTime<T>, offsetSeconds: T);
+  constructor(localDateTime: LocalDateTime<T>, offsetSeconds: T);
 }
 
-declare class CypherDateTimeWithZoneId<T extends NumberOrInteger = Integer> {
+declare class DateTimeWithZoneId<T extends NumberOrInteger = Integer> {
 
-  localDateTime: CypherLocalDateTime<T>;
+  localDateTime: LocalDateTime<T>;
   zoneId: string;
 
-  constructor(localDateTime: CypherLocalDateTime<T>, zoneId: string);
+  constructor(localDateTime: LocalDateTime<T>, zoneId: string);
 }
 
-declare function isCypherDuration(obj: object): boolean;
+declare function isDuration(obj: object): boolean;
 
-declare function isCypherLocalTime(obj: object): boolean;
+declare function isLocalTime(obj: object): boolean;
 
-declare function isCypherTime(obj: object): boolean;
+declare function isTime(obj: object): boolean;
 
-declare function isCypherDate(obj: object): boolean;
+declare function isDate(obj: object): boolean;
 
-declare function isCypherLocalDateTime(obj: object): boolean;
+declare function isLocalDateTime(obj: object): boolean;
 
-declare function isCypherDateTimeWithZoneOffset(obj: object): boolean;
+declare function isDateTimeWithZoneOffset(obj: object): boolean;
 
-declare function isCypherDateTimeWithZoneId(obj: object): boolean;
+declare function isDateTimeWithZoneId(obj: object): boolean;
 
 export {
-  CypherDuration,
-  CypherLocalTime,
-  CypherTime,
-  CypherDate,
-  CypherLocalDateTime,
-  CypherDateTimeWithZoneOffset,
-  CypherDateTimeWithZoneId,
-  isCypherDuration,
-  isCypherLocalTime,
-  isCypherTime,
-  isCypherDate,
-  isCypherLocalDateTime,
-  isCypherDateTimeWithZoneOffset,
-  isCypherDateTimeWithZoneId
+  Duration,
+  LocalTime,
+  Time,
+  Date,
+  LocalDateTime,
+  DateTimeWithZoneOffset,
+  DateTimeWithZoneId,
+  isDuration,
+  isLocalTime,
+  isTime,
+  isDate,
+  isLocalDateTime,
+  isDateTimeWithZoneOffset,
+  isDateTimeWithZoneId
 }

@@ -20,27 +20,27 @@
 import * as v1 from './packstream-v1';
 import {isPoint, Point} from '../spatial-types';
 import {
-  CypherDate,
-  CypherDateTimeWithZoneId,
-  CypherDateTimeWithZoneOffset,
-  CypherDuration,
-  CypherTime,
-  isCypherDate,
-  isCypherDateTimeWithZoneId,
-  isCypherDateTimeWithZoneOffset,
-  isCypherDuration,
-  isCypherLocalDateTime,
-  isCypherLocalTime,
-  isCypherTime
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  Time,
+  isDate,
+  isDateTimeWithZoneId,
+  isDateTimeWithZoneOffset,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime
 } from '../temporal-types';
 import {int} from '../integer';
 import {
-  cypherDateToEpochDay,
-  cypherLocalDateTimeToEpochSecond,
-  cypherLocalTimeToNanoOfDay,
-  epochDayToCypherDate,
-  epochSecondAndNanoToCypherLocalDateTime,
-  nanoOfDayToCypherLocalTime
+  dateToEpochDay,
+  localDateTimeToEpochSecond,
+  localTimeToNanoOfDay,
+  epochDayToDate,
+  epochSecondAndNanoToLocalDateTime,
+  nanoOfDayToLocalTime
 } from '../internal/temporal-util';
 
 const POINT_2D = 0x58;
@@ -87,19 +87,19 @@ export class Packer extends v1.Packer {
   packable(obj, onError) {
     if (isPoint(obj)) {
       return () => packPoint(obj, this, onError);
-    } else if (isCypherDuration(obj)) {
+    } else if (isDuration(obj)) {
       return () => packDuration(obj, this, onError);
-    } else if (isCypherLocalTime(obj)) {
+    } else if (isLocalTime(obj)) {
       return () => packLocalTime(obj, this, onError);
-    } else if (isCypherTime(obj)) {
+    } else if (isTime(obj)) {
       return () => packTime(obj, this, onError);
-    } else if (isCypherDate(obj)) {
+    } else if (isDate(obj)) {
       return () => packDate(obj, this, onError);
-    } else if (isCypherLocalDateTime(obj)) {
+    } else if (isLocalDateTime(obj)) {
       return () => packLocalDateTime(obj, this, onError);
-    } else if (isCypherDateTimeWithZoneOffset(obj)) {
+    } else if (isDateTimeWithZoneOffset(obj)) {
       return () => packDateTimeWithZoneOffset(obj, this, onError);
-    } else if (isCypherDateTimeWithZoneId(obj)) {
+    } else if (isDateTimeWithZoneId(obj)) {
       return () => packDateTimeWithZoneId(obj, this, onError);
     } else {
       return super.packable(obj, onError);
@@ -216,11 +216,11 @@ function unpackDuration(unpacker, structSize, buffer) {
   const seconds = unpacker.unpack(buffer);
   const nanoseconds = unpacker.unpack(buffer);
 
-  return new CypherDuration(months, days, seconds, nanoseconds);
+  return new Duration(months, days, seconds, nanoseconds);
 }
 
 function packLocalTime(value, packer, onError) {
-  const nanoOfDay = cypherLocalTimeToNanoOfDay(value);
+  const nanoOfDay = localTimeToNanoOfDay(value);
 
   const packableStructFields = [
     packer.packable(nanoOfDay, onError)
@@ -232,17 +232,17 @@ function unpackLocalTime(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('LocalTime', LOCAL_TIME_STRUCT_SIZE, structSize);
 
   const nanoOfDay = unpacker.unpack(buffer);
-  return nanoOfDayToCypherLocalTime(nanoOfDay);
+  return nanoOfDayToLocalTime(nanoOfDay);
 }
 
 /**
- * Pack given cypher time.
- * @param {CypherTime} value the time value to pack.
+ * Pack given time.
+ * @param {Time} value the time value to pack.
  * @param {Packer} packer the packer to use.
  * @param {function} onError the error callback.
  */
 function packTime(value, packer, onError) {
-  const nanoOfDay = cypherLocalTimeToNanoOfDay(value.localTime);
+  const nanoOfDay = localTimeToNanoOfDay(value.localTime);
   const offsetSeconds = int(value.offsetSeconds);
 
   const packableStructFields = [
@@ -253,11 +253,11 @@ function packTime(value, packer, onError) {
 }
 
 /**
- * Unpack cypher time value using the given unpacker.
+ * Unpack time value using the given unpacker.
  * @param {Unpacker} unpacker the unpacker to use.
  * @param {number} structSize the retrieved struct size.
  * @param {BaseBuffer} buffer the buffer to unpack from.
- * @return {CypherTime} the unpacked cypher time value.
+ * @return {Time} the unpacked time value.
  */
 function unpackTime(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('Time', TIME_STRUCT_SIZE, structSize);
@@ -265,18 +265,18 @@ function unpackTime(unpacker, structSize, buffer) {
   const nanoOfDay = unpacker.unpack(buffer);
   const offsetSeconds = unpacker.unpack(buffer);
 
-  const localTime = nanoOfDayToCypherLocalTime(nanoOfDay);
-  return new CypherTime(localTime, offsetSeconds);
+  const localTime = nanoOfDayToLocalTime(nanoOfDay);
+  return new Time(localTime, offsetSeconds);
 }
 
 /**
- * Pack given cypher date.
- * @param {CypherDate} value the date value to pack.
+ * Pack given neo4j date.
+ * @param {Date} value the date value to pack.
  * @param {Packer} packer the packer to use.
  * @param {function} onError the error callback.
  */
 function packDate(value, packer, onError) {
-  const epochDay = cypherDateToEpochDay(value);
+  const epochDay = dateToEpochDay(value);
 
   const packableStructFields = [
     packer.packable(epochDay, onError)
@@ -285,27 +285,27 @@ function packDate(value, packer, onError) {
 }
 
 /**
- * Unpack cypher date value using the given unpacker.
+ * Unpack neo4j date value using the given unpacker.
  * @param {Unpacker} unpacker the unpacker to use.
  * @param {number} structSize the retrieved struct size.
  * @param {BaseBuffer} buffer the buffer to unpack from.
- * @return {CypherDate} the unpacked cypher date value.
+ * @return {Date} the unpacked neo4j date value.
  */
 function unpackDate(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('Date', DATE_STRUCT_SIZE, structSize);
 
   const epochDay = unpacker.unpack(buffer);
-  return epochDayToCypherDate(epochDay);
+  return epochDayToDate(epochDay);
 }
 
 /**
- * Pack given cypher local date time.
- * @param {CypherLocalDateTime} value the local date time value to pack.
+ * Pack given local date time.
+ * @param {LocalDateTime} value the local date time value to pack.
  * @param {Packer} packer the packer to use.
  * @param {function} onError the error callback.
  */
 function packLocalDateTime(value, packer, onError) {
-  const epochSecond = cypherLocalDateTimeToEpochSecond(value);
+  const epochSecond = localDateTimeToEpochSecond(value);
   const nano = int(value.localTime.nanosecond);
 
   const packableStructFields = [
@@ -316,11 +316,11 @@ function packLocalDateTime(value, packer, onError) {
 }
 
 /**
- * Unpack cypher local date time value using the given unpacker.
+ * Unpack local date time value using the given unpacker.
  * @param {Unpacker} unpacker the unpacker to use.
  * @param {number} structSize the retrieved struct size.
  * @param {BaseBuffer} buffer the buffer to unpack from.
- * @return {CypherLocalDateTime} the unpacked cypher local date time value.
+ * @return {LocalDateTime} the unpacked local date time value.
  */
 function unpackLocalDateTime(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('LocalDateTime', LOCAL_DATE_TIME_STRUCT_SIZE, structSize);
@@ -328,17 +328,17 @@ function unpackLocalDateTime(unpacker, structSize, buffer) {
   const epochSecond = unpacker.unpack(buffer);
   const nano = unpacker.unpack(buffer);
 
-  return epochSecondAndNanoToCypherLocalDateTime(epochSecond, nano);
+  return epochSecondAndNanoToLocalDateTime(epochSecond, nano);
 }
 
 /**
- * Pack given cypher date time with zone offset.
- * @param {CypherDateTimeWithZoneOffset} value the date time value to pack.
+ * Pack given date time with zone offset.
+ * @param {DateTimeWithZoneOffset} value the date time value to pack.
  * @param {Packer} packer the packer to use.
  * @param {function} onError the error callback.
  */
 function packDateTimeWithZoneOffset(value, packer, onError) {
-  const epochSecond = cypherLocalDateTimeToEpochSecond(value.localDateTime);
+  const epochSecond = localDateTimeToEpochSecond(value.localDateTime);
   const nano = int(value.localDateTime.localTime.nanosecond);
   const offsetSeconds = int(value.offsetSeconds);
 
@@ -351,11 +351,11 @@ function packDateTimeWithZoneOffset(value, packer, onError) {
 }
 
 /**
- * Unpack cypher date time with zone offset value using the given unpacker.
+ * Unpack date time with zone offset value using the given unpacker.
  * @param {Unpacker} unpacker the unpacker to use.
  * @param {number} structSize the retrieved struct size.
  * @param {BaseBuffer} buffer the buffer to unpack from.
- * @return {CypherDateTimeWithZoneOffset} the unpacked cypher date time with zone offset value.
+ * @return {DateTimeWithZoneOffset} the unpacked date time with zone offset value.
  */
 function unpackDateTimeWithZoneOffset(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('DateTimeWithZoneOffset', DATE_TIME_WITH_ZONE_OFFSET_STRUCT_SIZE, structSize);
@@ -364,18 +364,18 @@ function unpackDateTimeWithZoneOffset(unpacker, structSize, buffer) {
   const nano = unpacker.unpack(buffer);
   const offsetSeconds = unpacker.unpack(buffer);
 
-  const localDateTime = epochSecondAndNanoToCypherLocalDateTime(epochSecond, nano);
-  return new CypherDateTimeWithZoneOffset(localDateTime, offsetSeconds);
+  const localDateTime = epochSecondAndNanoToLocalDateTime(epochSecond, nano);
+  return new DateTimeWithZoneOffset(localDateTime, offsetSeconds);
 }
 
 /**
- * Pack given cypher date time with zone id.
- * @param {CypherDateTimeWithZoneId} value the date time value to pack.
+ * Pack given date time with zone id.
+ * @param {DateTimeWithZoneId} value the date time value to pack.
  * @param {Packer} packer the packer to use.
  * @param {function} onError the error callback.
  */
 function packDateTimeWithZoneId(value, packer, onError) {
-  const epochSecond = cypherLocalDateTimeToEpochSecond(value.localDateTime);
+  const epochSecond = localDateTimeToEpochSecond(value.localDateTime);
   const nano = int(value.localDateTime.localTime.nanosecond);
   const zoneId = value.zoneId;
 
@@ -388,11 +388,11 @@ function packDateTimeWithZoneId(value, packer, onError) {
 }
 
 /**
- * Unpack cypher date time with zone id value using the given unpacker.
+ * Unpack date time with zone id value using the given unpacker.
  * @param {Unpacker} unpacker the unpacker to use.
  * @param {number} structSize the retrieved struct size.
  * @param {BaseBuffer} buffer the buffer to unpack from.
- * @return {CypherDateTimeWithZoneId} the unpacked cypher date time with zone id value.
+ * @return {DateTimeWithZoneId} the unpacked date time with zone id value.
  */
 function unpackDateTimeWithZoneId(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('DateTimeWithZoneId', DATE_TIME_WITH_ZONE_ID_STRUCT_SIZE, structSize);
@@ -401,6 +401,6 @@ function unpackDateTimeWithZoneId(unpacker, structSize, buffer) {
   const nano = unpacker.unpack(buffer);
   const zoneId = unpacker.unpack(buffer);
 
-  const localDateTime = epochSecondAndNanoToCypherLocalDateTime(epochSecond, nano);
-  return new CypherDateTimeWithZoneId(localDateTime, zoneId);
+  const localDateTime = epochSecondAndNanoToLocalDateTime(epochSecond, nano);
+  return new DateTimeWithZoneId(localDateTime, zoneId);
 }

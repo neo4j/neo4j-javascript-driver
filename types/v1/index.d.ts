@@ -21,20 +21,20 @@ import Integer, {inSafeRange, int, isInt, toNumber, toString} from "./integer";
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from "./graph-types";
 import {isPoint, Point} from "./spatial-types";
 import {
-  CypherDate,
-  CypherDateTimeWithZoneId,
-  CypherDateTimeWithZoneOffset,
-  CypherDuration,
-  CypherLocalDateTime,
-  CypherLocalTime,
-  CypherTime,
-  isCypherDate,
-  isCypherDateTimeWithZoneId,
-  isCypherDateTimeWithZoneOffset,
-  isCypherDuration,
-  isCypherLocalDateTime,
-  isCypherLocalTime,
-  isCypherTime
+  Date,
+  DateTimeWithZoneId,
+  DateTimeWithZoneOffset,
+  Duration,
+  isDate,
+  isDateTimeWithZoneId,
+  isDateTimeWithZoneOffset,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
 } from "./temporal-types";
 import {Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
 import Result, {Observer, StatementResult} from "./result";
@@ -73,13 +73,13 @@ declare const types: {
   ResultSummary: ResultSummary;
   Record: Record;
   Point: Point;
-  CypherDuration: CypherDuration;
-  CypherLocalTime: CypherLocalTime;
-  CypherTime: CypherTime;
-  CypherDate: CypherDate;
-  CypherLocalDateTime: CypherLocalDateTime;
-  CypherDateTimeWithZoneOffset: CypherDateTimeWithZoneOffset;
-  CypherDateTimeWithZoneId: CypherDateTimeWithZoneId;
+  Duration: Duration;
+  LocalTime: LocalTime;
+  Time: Time;
+  Date: Date;
+  LocalDateTime: LocalDateTime;
+  DateTimeWithZoneOffset: DateTimeWithZoneOffset;
+  DateTimeWithZoneId: DateTimeWithZoneId;
 };
 
 declare const session: {
@@ -145,20 +145,20 @@ declare const forExport: {
   Transaction: Transaction;
   Point: Point;
   isPoint: typeof isPoint;
-  CypherDuration: CypherDuration;
-  CypherLocalTime: CypherLocalTime;
-  CypherTime: CypherTime;
-  CypherDate: CypherDate;
-  CypherLocalDateTime: CypherLocalDateTime;
-  CypherDateTimeWithZoneOffset: CypherDateTimeWithZoneOffset;
-  CypherDateTimeWithZoneId: CypherDateTimeWithZoneId;
-  isCypherDuration: typeof isCypherDuration;
-  isCypherLocalTime: typeof isCypherLocalTime;
-  isCypherTime: typeof isCypherTime;
-  isCypherDate: typeof isCypherDate;
-  isCypherLocalDateTime: typeof isCypherLocalDateTime;
-  isCypherDateTimeWithZoneOffset: typeof isCypherDateTimeWithZoneOffset;
-  isCypherDateTimeWithZoneId: typeof isCypherDateTimeWithZoneId;
+  Duration: Duration;
+  LocalTime: LocalTime;
+  Time: Time;
+  Date: Date;
+  LocalDateTime: LocalDateTime;
+  DateTimeWithZoneOffset: DateTimeWithZoneOffset;
+  DateTimeWithZoneId: DateTimeWithZoneId;
+  isDuration: typeof isDuration;
+  isLocalTime: typeof isLocalTime;
+  isTime: typeof isTime;
+  isDate: typeof isDate;
+  isLocalDateTime: typeof isLocalDateTime;
+  isDateTimeWithZoneOffset: typeof isDateTimeWithZoneOffset;
+  isDateTimeWithZoneId: typeof isDateTimeWithZoneId;
 };
 
 export {
@@ -198,20 +198,20 @@ export {
   Transaction,
   Point,
   isPoint,
-  CypherDuration,
-  CypherLocalTime,
-  CypherTime,
-  CypherDate,
-  CypherLocalDateTime,
-  CypherDateTimeWithZoneOffset,
-  CypherDateTimeWithZoneId,
-  isCypherDuration,
-  isCypherLocalTime,
-  isCypherTime,
-  isCypherDate,
-  isCypherLocalDateTime,
-  isCypherDateTimeWithZoneOffset,
-  isCypherDateTimeWithZoneId
+  Duration,
+  LocalTime,
+  Time,
+  Date,
+  LocalDateTime,
+  DateTimeWithZoneOffset,
+  DateTimeWithZoneId,
+  isDuration,
+  isLocalTime,
+  isTime,
+  isDate,
+  isLocalDateTime,
+  isDateTimeWithZoneOffset,
+  isDateTimeWithZoneId
 }
 
 export default forExport;

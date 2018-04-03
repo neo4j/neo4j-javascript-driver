@@ -18,7 +18,7 @@
  */
 
 import {int} from '../integer';
-import {CypherDate, CypherLocalDateTime, CypherLocalTime} from '../temporal-types';
+import {Date, LocalDateTime, LocalTime} from '../temporal-types';
 
 /*
   Code in this util should be compatible with code in the database that uses JSR-310 java.time APIs.
@@ -42,11 +42,11 @@ const DAYS_PER_400_YEAR_CYCLE = 146097;
 const SECONDS_PER_DAY = 86400;
 
 /**
- * Converts given cypher local time into a single integer representing this same time in nanoseconds of the day.
- * @param {CypherLocalTime} localTime the time to convert.
+ * Converts given local time into a single integer representing this same time in nanoseconds of the day.
+ * @param {LocalTime} localTime the time to convert.
  * @return {Integer} nanoseconds representing the given local time.
  */
-export function cypherLocalTimeToNanoOfDay(localTime) {
+export function localTimeToNanoOfDay(localTime) {
   const hour = int(localTime.hour);
   const minute = int(localTime.minute);
   const second = int(localTime.second);
@@ -59,11 +59,11 @@ export function cypherLocalTimeToNanoOfDay(localTime) {
 }
 
 /**
- * Converts nanoseconds of the day into cypher local time.
+ * Converts nanoseconds of the day into local time.
  * @param {Integer|number|string} nanoOfDay the nanoseconds of the day to convert.
- * @return {CypherLocalTime} the local time representing given nanoseconds of the day.
+ * @return {LocalTime} the local time representing given nanoseconds of the day.
  */
-export function nanoOfDayToCypherLocalTime(nanoOfDay) {
+export function nanoOfDayToLocalTime(nanoOfDay) {
   nanoOfDay = int(nanoOfDay);
 
   const hour = nanoOfDay.div(NANOS_PER_HOUR);
@@ -75,45 +75,45 @@ export function nanoOfDayToCypherLocalTime(nanoOfDay) {
   const second = nanoOfDay.div(NANOS_PER_SECOND);
   const nanosecond = nanoOfDay.subtract(second.multiply(NANOS_PER_SECOND));
 
-  return new CypherLocalTime(hour, minute, second, nanosecond);
+  return new LocalTime(hour, minute, second, nanosecond);
 }
 
 /**
- * Converts given cypher local date time into a single integer representing this same time in epoch seconds UTC.
- * @param {CypherLocalDateTime} localDateTime the local date time value to convert.
+ * Converts given local date time into a single integer representing this same time in epoch seconds UTC.
+ * @param {LocalDateTime} localDateTime the local date time value to convert.
  * @return {Integer} epoch second in UTC representing the given local date time.
  */
-export function cypherLocalDateTimeToEpochSecond(localDateTime) {
+export function localDateTimeToEpochSecond(localDateTime) {
   const localDate = localDateTime.localDate;
   const localTime = localDateTime.localTime;
 
-  const epochDay = cypherDateToEpochDay(localDate);
-  const localTimeSeconds = cypherLocalTimeToSecondOfDay(localTime);
+  const epochDay = dateToEpochDay(localDate);
+  const localTimeSeconds = localTimeToSecondOfDay(localTime);
   return epochDay.multiply(SECONDS_PER_DAY).add(localTimeSeconds);
 }
 
 /**
- * Converts given epoch second and nanosecond adjustment into a cypher local date time object.
+ * Converts given epoch second and nanosecond adjustment into a local date time object.
  * @param {Integer|number|string} epochSecond the epoch second to use.
  * @param {Integer|number|string} nano the nanosecond to use.
- * @return {CypherLocalDateTime} the local date time representing given epoch second and nano.
+ * @return {LocalDateTime} the local date time representing given epoch second and nano.
  */
-export function epochSecondAndNanoToCypherLocalDateTime(epochSecond, nano) {
+export function epochSecondAndNanoToLocalDateTime(epochSecond, nano) {
   const epochDay = floorDiv(epochSecond, SECONDS_PER_DAY);
   const secondsOfDay = floorMod(epochSecond, SECONDS_PER_DAY);
   const nanoOfDay = secondsOfDay.multiply(NANOS_PER_SECOND).add(nano);
 
-  const localDate = epochDayToCypherDate(epochDay);
-  const localTime = nanoOfDayToCypherLocalTime(nanoOfDay);
-  return new CypherLocalDateTime(localDate, localTime);
+  const localDate = epochDayToDate(epochDay);
+  const localTime = nanoOfDayToLocalTime(nanoOfDay);
+  return new LocalDateTime(localDate, localTime);
 }
 
 /**
- * Converts given cypher local date into a single integer representing it's epoch day.
- * @param {CypherDate} date the date to convert.
+ * Converts given local date into a single integer representing it's epoch day.
+ * @param {Date} date the date to convert.
  * @return {Integer} epoch day representing the given date.
  */
-export function cypherDateToEpochDay(date) {
+export function dateToEpochDay(date) {
   const year = int(date.year);
   const month = int(date.month);
   const day = int(date.day);
@@ -138,11 +138,11 @@ export function cypherDateToEpochDay(date) {
 }
 
 /**
- * Converts given epoch day to a cypher local date.
+ * Converts given epoch day to a local date.
  * @param {Integer|number|string} epochDay the epoch day to convert.
- * @return {CypherDate} the date representing the epoch day in years, months and days.
+ * @return {Date} the date representing the epoch day in years, months and days.
  */
-export function epochDayToCypherDate(epochDay) {
+export function epochDayToDate(epochDay) {
   epochDay = int(epochDay);
 
   let zeroDay = epochDay.add(DAYS_0000_TO_1970).subtract(60);
@@ -166,7 +166,7 @@ export function epochDayToCypherDate(epochDay) {
   const day = marchDayOfYear.subtract(marchMonth.multiply(306).add(5).div(10)).add(1);
   year = year.add(marchMonth.div(10));
 
-  return new CypherDate(year, month, day);
+  return new Date(year, month, day);
 }
 
 /**
@@ -250,11 +250,11 @@ export function dateToIsoString(year, month, day) {
 }
 
 /**
- * Converts given cypher local time into a single integer representing this same time in seconds of the day. Nanoseconds are skipped.
- * @param {CypherLocalTime} localTime the time to convert.
+ * Converts given local time into a single integer representing this same time in seconds of the day. Nanoseconds are skipped.
+ * @param {LocalTime} localTime the time to convert.
  * @return {Integer} seconds representing the given local time.
  */
-function cypherLocalTimeToSecondOfDay(localTime) {
+function localTimeToSecondOfDay(localTime) {
   const hour = int(localTime.hour);
   const minute = int(localTime.minute);
   const second = int(localTime.second);

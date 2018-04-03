@@ -25,19 +25,19 @@ const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   configurable: false
 };
 
-const CYPHER_DURATION_IDENTIFIER_PROPERTY = '__isCypherDuration__';
-const CYPHER_LOCAL_TIME_IDENTIFIER_PROPERTY = '__isCypherLocalTime__';
-const CYPHER_TIME_IDENTIFIER_PROPERTY = '__isCypherTime__';
-const CYPHER_DATE_IDENTIFIER_PROPERTY = '__isCypherDate__';
-const CYPHER_LOCAL_DATE_TIME_IDENTIFIER_PROPERTY = '__isCypherLocalDateTime__';
-const CYPHER_DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY = '__isCypherDateTimeWithZoneOffset__';
-const CYPHER_DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY = '__isCypherDateTimeWithZoneId__';
+const DURATION_IDENTIFIER_PROPERTY = '__isDuration__';
+const LOCAL_TIME_IDENTIFIER_PROPERTY = '__isLocalTime__';
+const TIME_IDENTIFIER_PROPERTY = '__isTime__';
+const DATE_IDENTIFIER_PROPERTY = '__isDate__';
+const LOCAL_DATE_TIME_IDENTIFIER_PROPERTY = '__isLocalDateTime__';
+const DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY = '__isDateTimeWithZoneOffset__';
+const DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY = '__isDateTimeWithZoneId__';
 
 /**
  * Represents an ISO 8601 duration. Contains both date-based values (years, months, days) and time-based values (seconds, nanoseconds).
- * Created <code>CypherDuration</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created <code>Duration</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
-export class CypherDuration {
+export class Duration {
 
   /**
    * @constructor
@@ -59,22 +59,22 @@ export class CypherDuration {
   }
 }
 
-Object.defineProperty(CypherDuration.prototype, CYPHER_DURATION_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
+Object.defineProperty(Duration.prototype, DURATION_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
 
 /**
- * Test if given object is an instance of {@link CypherDuration} class.
+ * Test if given object is an instance of {@link Duration} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link CypherDuration}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link Duration}, <code>false</code> otherwise.
  */
-export function isCypherDuration(obj) {
-  return hasIdentifierProperty(obj, CYPHER_DURATION_IDENTIFIER_PROPERTY);
+export function isDuration(obj) {
+  return hasIdentifierProperty(obj, DURATION_IDENTIFIER_PROPERTY);
 }
 
 /**
  * Represents an instant capturing the time of day, but not the date, nor the timezone.
- * Created <code>CypherLocalTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created <code>LocalTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
-export class CypherLocalTime {
+export class LocalTime {
 
   /**
    * @constructor
@@ -96,26 +96,26 @@ export class CypherLocalTime {
   }
 }
 
-Object.defineProperty(CypherLocalTime.prototype, CYPHER_LOCAL_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
+Object.defineProperty(LocalTime.prototype, LOCAL_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
 
 /**
- * Test if given object is an instance of {@link CypherLocalTime} class.
+ * Test if given object is an instance of {@link LocalTime} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link CypherLocalTime}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link LocalTime}, <code>false</code> otherwise.
  */
-export function isCypherLocalTime(obj) {
-  return hasIdentifierProperty(obj, CYPHER_LOCAL_TIME_IDENTIFIER_PROPERTY);
+export function isLocalTime(obj) {
+  return hasIdentifierProperty(obj, LOCAL_TIME_IDENTIFIER_PROPERTY);
 }
 
 /**
  * Represents an instant capturing the time of day, and the timezone offset in seconds, but not the date.
- * Created <code>CypherTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created <code>Time</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
-export class CypherTime {
+export class Time {
 
   /**
    * @constructor
-   * @param {CypherLocalTime} localTime the local time for the new time with offset.
+   * @param {LocalTime} localTime the local time for the new time with offset.
    * @param {Integer|number} offsetSeconds the time zone offset in seconds.
    */
   constructor(localTime, offsetSeconds) {
@@ -129,22 +129,22 @@ export class CypherTime {
   }
 }
 
-Object.defineProperty(CypherTime.prototype, CYPHER_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
+Object.defineProperty(Time.prototype, TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
 
 /**
- * Test if given object is an instance of {@link CypherTime} class.
+ * Test if given object is an instance of {@link Time} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link CypherTime}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link Time}, <code>false</code> otherwise.
  */
-export function isCypherTime(obj) {
-  return hasIdentifierProperty(obj, CYPHER_TIME_IDENTIFIER_PROPERTY);
+export function isTime(obj) {
+  return hasIdentifierProperty(obj, TIME_IDENTIFIER_PROPERTY);
 }
 
 /**
  * Represents an instant capturing the date, but not the time, nor the timezone.
- * Created <code>CypherDate</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created <code>Date</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
-export class CypherDate {
+export class Date {
 
   /**
    * @constructor
@@ -164,27 +164,27 @@ export class CypherDate {
   }
 }
 
-Object.defineProperty(CypherDate.prototype, CYPHER_DATE_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
+Object.defineProperty(Date.prototype, DATE_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
 
 /**
- * Test if given object is an instance of {@link CypherDate} class.
+ * Test if given object is an instance of {@link Date} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link CypherDate}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link Date}, <code>false</code> otherwise.
  */
-export function isCypherDate(obj) {
-  return hasIdentifierProperty(obj, CYPHER_DATE_IDENTIFIER_PROPERTY);
+export function isDate(obj) {
+  return hasIdentifierProperty(obj, DATE_IDENTIFIER_PROPERTY);
 }
 
 /**
  * Represents an instant capturing the date and the time, but not the timezone.
- * Created <code>CypherLocalDateTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created <code>LocalDateTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
-export class CypherLocalDateTime {
+export class LocalDateTime {
 
   /**
    * @constructor
-   * @param {CypherDate} localDate the local date part for the new local date-time.
-   * @param {CypherLocalTime} localTime the local time part for the new local date-time.
+   * @param {Date} localDate the local date part for the new local date-time.
+   * @param {LocalTime} localTime the local time part for the new local date-time.
    */
   constructor(localDate, localTime) {
     this.localDate = localDate;
@@ -197,26 +197,26 @@ export class CypherLocalDateTime {
   }
 }
 
-Object.defineProperty(CypherLocalDateTime.prototype, CYPHER_LOCAL_DATE_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
+Object.defineProperty(LocalDateTime.prototype, LOCAL_DATE_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
 
 /**
- * Test if given object is an instance of {@link CypherLocalDateTime} class.
+ * Test if given object is an instance of {@link LocalDateTime} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link CypherLocalDateTime}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link LocalDateTime}, <code>false</code> otherwise.
  */
-export function isCypherLocalDateTime(obj) {
-  return hasIdentifierProperty(obj, CYPHER_LOCAL_DATE_TIME_IDENTIFIER_PROPERTY);
+export function isLocalDateTime(obj) {
+  return hasIdentifierProperty(obj, LOCAL_DATE_TIME_IDENTIFIER_PROPERTY);
 }
 
 /**
  * Represents an instant capturing the date, the time and the timezone identifier.
- * Created <code>CypherDateTimeWithZoneOffset</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created <code>DateTimeWithZoneOffset</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
-export class CypherDateTimeWithZoneOffset {
+export class DateTimeWithZoneOffset {
 
   /**
    * @constructor
-   * @param {CypherLocalDateTime} localDateTime the local date-time part for the new timezone-aware date-time.
+   * @param {LocalDateTime} localDateTime the local date-time part for the new timezone-aware date-time.
    * @param {Integer|number} offsetSeconds the timezone offset in seconds for the new timezone-aware date-time.
    */
   constructor(localDateTime, offsetSeconds) {
@@ -230,26 +230,26 @@ export class CypherDateTimeWithZoneOffset {
   }
 }
 
-Object.defineProperty(CypherDateTimeWithZoneOffset.prototype, CYPHER_DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
+Object.defineProperty(DateTimeWithZoneOffset.prototype, DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
 
 /**
- * Test if given object is an instance of {@link CypherDateTimeWithZoneOffset} class.
+ * Test if given object is an instance of {@link DateTimeWithZoneOffset} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link CypherDateTimeWithZoneOffset}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link DateTimeWithZoneOffset}, <code>false</code> otherwise.
  */
-export function isCypherDateTimeWithZoneOffset(obj) {
-  return hasIdentifierProperty(obj, CYPHER_DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY);
+export function isDateTimeWithZoneOffset(obj) {
+  return hasIdentifierProperty(obj, DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY);
 }
 
 /**
  * Represents an instant capturing the date, the time and the timezone identifier.
- * Created <code>CypherDateTimeWithZoneId</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created <code>DateTimeWithZoneId</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
-export class CypherDateTimeWithZoneId {
+export class DateTimeWithZoneId {
 
   /**
    * @constructor
-   * @param {CypherLocalDateTime} localDateTime the local date-time part for the new timezone-aware date-time.
+   * @param {LocalDateTime} localDateTime the local date-time part for the new timezone-aware date-time.
    * @param {string} zoneId the timezone identifier for the new timezone-aware date-time.
    */
   constructor(localDateTime, zoneId) {
@@ -263,15 +263,15 @@ export class CypherDateTimeWithZoneId {
   }
 }
 
-Object.defineProperty(CypherDateTimeWithZoneId.prototype, CYPHER_DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
+Object.defineProperty(DateTimeWithZoneId.prototype, DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
 
 /**
- * Test if given object is an instance of {@link CypherDateTimeWithZoneId} class.
+ * Test if given object is an instance of {@link DateTimeWithZoneId} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link CypherDateTimeWithZoneId}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link DateTimeWithZoneId}, <code>false</code> otherwise.
  */
-export function isCypherDateTimeWithZoneId(obj) {
-  return hasIdentifierProperty(obj, CYPHER_DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY);
+export function isDateTimeWithZoneId(obj) {
+  return hasIdentifierProperty(obj, DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY);
 }
 
 function hasIdentifierProperty(obj, property) {
