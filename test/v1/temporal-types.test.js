@@ -32,13 +32,7 @@ const MIN_TIME_ZONE_OFFSET = -MAX_TIME_ZONE_OFFSET;
 const SECONDS_PER_MINUTE = 60;
 const MIN_ZONE_ID = 'Etc/GMT+12';
 const MAX_ZONE_ID = 'Etc/GMT-14';
-const ZONE_IDS = ['Europe/Zaporozhye', 'America/Argentina/Mendoza', 'Etc/GMT-12', 'Asia/Jayapura', 'Pacific/Auckland', 'America/Argentina/Rio_Gallegos',
-  'America/Tegucigalpa', 'Europe/Skopje', 'Africa/Lome', 'America/Eirunepe', 'Pacific/Port_Moresby', 'America/Merida', 'Asia/Qyzylorda', 'Hongkong',
-  'America/Paramaribo', 'Pacific/Wallis', 'Antarctica/Mawson', 'America/Metlakatla', 'Indian/Reunion', 'Asia/Chungking', 'Canada/Central', 'Etc/GMT-6',
-  'UCT', 'America/Belem', 'Europe/Belgrade', 'Singapore', 'Israel', 'Europe/London', 'America/Yellowknife', 'Europe/Uzhgorod', 'Etc/GMT+7',
-  'America/Indiana/Winamac', 'Asia/Kuala_Lumpur', 'America/Cuiaba', 'Europe/Sofia', 'Asia/Kuching', 'Australia/Lord_Howe', 'America/Porto_Acre',
-  'America/Indiana/Indianapolis', 'Africa/Windhoek', 'Atlantic/Cape_Verde', 'Asia/Kuwait', 'America/Barbados', 'Egypt', 'GB-Eire', 'Antarctica/South_Pole',
-  'America/Kentucky/Louisville', 'Asia/Yangon', 'CET', 'Etc/GMT+11', 'Asia/Dubai', 'Europe/Stockholm'];
+const ZONE_IDS = ['Europe/Zaporozhye', 'Europe/London', 'UTC', 'Africa/Cairo'];
 
 describe('temporal-types', () => {
 
@@ -434,16 +428,20 @@ describe('temporal-types', () => {
 
   function randomDateTimeWithZoneOffset() {
     return new neo4j.DateTimeWithZoneOffset(
-      randomLocalDateTime(),
+      randomDstSafeLocalDateTime(),
       randomZoneOffsetSeconds()
     );
   }
 
   function randomDateTimeWithZoneId() {
     return new neo4j.DateTimeWithZoneId(
-      randomLocalDateTime(),
+      randomDstSafeLocalDateTime(),
       randomZoneId()
     );
+  }
+
+  function randomDstSafeLocalDateTime() {
+    return new neo4j.LocalDateTime(randomDate(), randomDstSafeLocalTime());
   }
 
   function randomLocalDateTime() {
@@ -468,6 +466,15 @@ describe('temporal-types', () => {
   function randomLocalTime() {
     return new neo4j.LocalTime(
       randomInt(0, 23),
+      randomInt(0, 59),
+      randomInt(0, 59),
+      randomInt(0, MAX_NANO_OF_SECOND)
+    );
+  }
+
+  function randomDstSafeLocalTime() {
+    return new neo4j.LocalTime(
+      randomInt(4, 23), // do not generate hours in range where DST adjustment happens
       randomInt(0, 59),
       randomInt(0, 59),
       randomInt(0, MAX_NANO_OF_SECOND)
