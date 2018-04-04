@@ -21,7 +21,7 @@
     "browser": "gulp browser && gulp test-browser"
   },
   "main": "lib/index.js",
-  "unpkg": "lib/browser/neo4j-web.min.js",
+  "unpkg": "lib/browser/neo4j-web.js",
   "types": "types/index.d.ts",
   "devDependencies": {
     "async": "^2.4.0",
