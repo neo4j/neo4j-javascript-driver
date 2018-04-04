@@ -40,9 +40,22 @@ otherwise application shutdown might hang or it might exit with a non-zero exit 
 ## Include in web browser
 
 We build a special browser version of the driver, which supports connecting to Neo4j over WebSockets.
+It can be included in an HTML page using one of the following tags:
 
 ```html
+<!-- Direct reference -->
 <script src="lib/browser/neo4j-web.min.js"></script>
+
+<!-- unpkg CDN non-minified -->
+<script src="https://unpkg.com/neo4j-driver"></script>
+<!-- unpkg CDN minified for production use, version X.Y.Z -->
+<script src="https://unpkg.com/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.min.js"></script>
+
+<!-- jsDelivr CDN non-minified -->
+<script src="https://cdn.jsdelivr.net/npm/neo4j-driver"></script>
+<!-- jsDelivr CDN minified for production use, version X.Y.Z -->
+<script src="https://cdn.jsdelivr.net/npm/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.min.js"></script>
+
 ```
 
 This will make a global `neo4j` object available, where you can access the `v1` API at `neo4j.v1`:
