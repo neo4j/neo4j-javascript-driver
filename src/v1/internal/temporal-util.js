@@ -239,7 +239,7 @@ export function dateToIsoString(year, month, day) {
   if (isNegative) {
     year = year.multiply(-1);
   }
-  let yearString = year.toString().padStart(4, '0');
+  let yearString = formatNumber(year, 4);
   if (isNegative) {
     yearString = '-' + yearString;
   }
@@ -318,6 +318,12 @@ function floorMod(x, y) {
  * @return {string} formatted and possibly left-padded number as string.
  */
 function formatNumber(num, stringLength = undefined) {
-  const result = int(num).toString();
-  return stringLength ? result.padStart(stringLength, '0') : result;
+  num = int(num);
+  const isNegative = num.isNegative();
+  if (isNegative) {
+    num = num.multiply(-1);
+  }
+  const numString = num.toString();
+  const paddedNumString = stringLength ? numString.padStart(stringLength, '0') : numString;
+  return isNegative ? '-' + paddedNumString : paddedNumString;
 }
