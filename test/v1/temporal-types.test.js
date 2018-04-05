@@ -24,6 +24,8 @@ import timesSeries from 'async/timesSeries';
 import _ from 'lodash';
 
 const RANDOM_VALUES_TO_TEST = 2000;
+const MIN_TEMPORAL_ARRAY_LENGTH = 20;
+const MAX_TEMPORAL_ARRAY_LENGTH = 1000;
 const MAX_NANO_OF_SECOND = 999999999;
 const MAX_YEAR = 999999999;
 const MIN_YEAR = -MAX_YEAR;
@@ -91,17 +93,15 @@ describe('temporal-types', () => {
       return;
     }
 
-    const valueGenerator = () => {
-      const sign = _.sample([true, false]) ? 1 : -1; // duration can be negative
-      return duration(
-        sign * _.random(0, Number.MAX_SAFE_INTEGER),
-        sign * _.random(0, Number.MAX_SAFE_INTEGER),
-        sign * _.random(0, Number.MAX_SAFE_INTEGER),
-        sign * _.random(0, MAX_NANO_OF_SECOND),
-      );
-    };
+    testSendAndReceiveRandomTemporalValues(() => randomDuration(), done);
+  });
 
-    testSendAndReceiveRandomTemporalValues(valueGenerator, done);
+  it('should send and receive array of Duration', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    testSendAndReceiveArrayOfRandomTemporalValues(() => randomDuration(), done);
   });
 
   it('should receive LocalTime', done => {
@@ -136,9 +136,15 @@ describe('temporal-types', () => {
       return;
     }
 
-    const valueGenerator = () => randomLocalTime();
+    testSendAndReceiveRandomTemporalValues(() => randomLocalTime(), done);
+  });
 
-    testSendAndReceiveRandomTemporalValues(valueGenerator, done);
+  it('should send and receive array of LocalTime', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    testSendAndReceiveArrayOfRandomTemporalValues(() => randomLocalTime(), done);
   });
 
   it('should receive Time', done => {
@@ -173,9 +179,15 @@ describe('temporal-types', () => {
       return;
     }
 
-    const valueGenerator = () => randomTime();
+    testSendAndReceiveRandomTemporalValues(() => randomTime(), done);
+  });
 
-    testSendAndReceiveRandomTemporalValues(valueGenerator, done);
+  it('should send and receive array of Time', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    testSendAndReceiveArrayOfRandomTemporalValues(() => randomTime(), done);
   });
 
   it('should receive Date', done => {
@@ -210,9 +222,15 @@ describe('temporal-types', () => {
       return;
     }
 
-    const valueGenerator = () => randomDate();
+    testSendAndReceiveRandomTemporalValues(() => randomDate(), done);
+  });
 
-    testSendAndReceiveRandomTemporalValues(valueGenerator, done);
+  it('should send and receive array of Date', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    testSendAndReceiveArrayOfRandomTemporalValues(() => randomDate(), done);
   });
 
   it('should receive LocalDateTime', done => {
@@ -247,9 +265,15 @@ describe('temporal-types', () => {
       return;
     }
 
-    const valueGenerator = () => randomLocalDateTime();
+    testSendAndReceiveRandomTemporalValues(() => randomLocalDateTime(), done);
+  });
 
-    testSendAndReceiveRandomTemporalValues(valueGenerator, done);
+  it('should send and receive random LocalDateTime', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    testSendAndReceiveArrayOfRandomTemporalValues(() => randomLocalDateTime(), done);
   });
 
   it('should receive DateTimeWithZoneOffset', done => {
@@ -284,9 +308,15 @@ describe('temporal-types', () => {
       return;
     }
 
-    const valueGenerator = () => randomDateTimeWithZoneOffset();
+    testSendAndReceiveRandomTemporalValues(() => randomDateTimeWithZoneOffset(), done);
+  });
 
-    testSendAndReceiveRandomTemporalValues(valueGenerator, done);
+  it('should send and receive array of DateTimeWithZoneOffset', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    testSendAndReceiveArrayOfRandomTemporalValues(() => randomDateTimeWithZoneOffset(), done);
   });
 
   it('should receive DateTimeWithZoneId', done => {
@@ -321,9 +351,15 @@ describe('temporal-types', () => {
       return;
     }
 
-    const valueGenerator = () => randomDateTimeWithZoneId();
+    testSendAndReceiveRandomTemporalValues(() => randomDateTimeWithZoneId(), done);
+  });
 
-    testSendAndReceiveRandomTemporalValues(valueGenerator, done);
+  it('should send and receive array of DateTimeWithZoneId', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    testSendAndReceiveArrayOfRandomTemporalValues(() => randomDateTimeWithZoneId(), done);
   });
 
   it('should convert Duration to ISO string', () => {
@@ -436,6 +472,15 @@ describe('temporal-types', () => {
     timesSeries(RANDOM_VALUES_TO_TEST, asyncFunction, doneFunction);
   }
 
+  function testSendAndReceiveArrayOfRandomTemporalValues(valueGenerator, done) {
+    const arrayLength = _.random(MIN_TEMPORAL_ARRAY_LENGTH, MAX_TEMPORAL_ARRAY_LENGTH);
+    const values = _.range(arrayLength).map(() => valueGenerator());
+
+    console.log('Generated: ' + values);
+
+    testSendReceiveTemporalValue(values, done);
+  }
+
   function testReceiveTemporalValue(query, expectedValue, done) {
     session.run(query).then(result => {
       const records = result.records;
@@ -472,6 +517,16 @@ describe('temporal-types', () => {
       return true;
     }
     return false;
+  }
+
+  function randomDuration() {
+    const sign = _.sample([true, false]) ? 1 : -1; // duration can be negative
+    return duration(
+      sign * _.random(0, Number.MAX_SAFE_INTEGER),
+      sign * _.random(0, Number.MAX_SAFE_INTEGER),
+      sign * _.random(0, Number.MAX_SAFE_INTEGER),
+      sign * _.random(0, MAX_NANO_OF_SECOND),
+    );
   }
 
   function randomDateTimeWithZoneOffset() {
