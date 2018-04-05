@@ -21,62 +21,84 @@ import {NumberOrInteger} from './graph-types';
 import Integer from "./integer";
 
 declare class Duration<T extends NumberOrInteger = Integer> {
-  months: T;
-  days: T;
-  seconds: T;
-  nanoseconds: T;
+
+  readonly months: T;
+  readonly days: T;
+  readonly seconds: T;
+  readonly nanoseconds: T;
 
   constructor(months: T, days: T, seconds: T, nanoseconds: T)
 }
 
 declare class LocalTime<T extends NumberOrInteger = Integer> {
-  hour: T;
-  minute: T;
-  second: T;
-  nanosecond: T;
+
+  readonly hour: T;
+  readonly minute: T;
+  readonly second: T;
+  readonly nanosecond: T;
 
   constructor(hour: T, minute: T, second: T, nanosecond: T);
 }
 
 declare class Time<T extends NumberOrInteger = Integer> {
 
-  localTime: LocalTime<T>;
-  offsetSeconds: T;
+  readonly hour: T;
+  readonly minute: T;
+  readonly second: T;
+  readonly nanosecond: T;
+  readonly offsetSeconds: T;
 
-  constructor(localTime: LocalTime<T>, offsetSeconds: T);
+  constructor(hour: T, minute: T, second: T, nanosecond: T, offsetSeconds: T);
 }
 
 declare class Date<T extends NumberOrInteger = Integer> {
 
-  year: T;
-  month: T;
-  day: T;
+  readonly year: T;
+  readonly month: T;
+  readonly day: T;
 
   constructor(year: T, month: T, day: T);
 }
 
 declare class LocalDateTime<T extends NumberOrInteger = Integer> {
 
-  localDate: Date<T>;
-  localTime: LocalTime<T>;
+  readonly year: T;
+  readonly month: T;
+  readonly day: T;
+  readonly hour: T;
+  readonly minute: T;
+  readonly second: T;
+  readonly nanosecond: T;
 
-  constructor(localDate: Date<T>, localTime: LocalTime<T>);
+  constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T);
 }
 
 declare class DateTimeWithZoneOffset<T extends NumberOrInteger = Integer> {
 
-  localDateTime: LocalDateTime<T>;
-  offsetSeconds: T;
+  readonly year: T;
+  readonly month: T;
+  readonly day: T;
+  readonly hour: T;
+  readonly minute: T;
+  readonly second: T;
+  readonly nanosecond: T;
+  readonly offsetSeconds: T;
 
-  constructor(localDateTime: LocalDateTime<T>, offsetSeconds: T);
+  constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T, offsetSeconds: T);
 }
 
 declare class DateTimeWithZoneId<T extends NumberOrInteger = Integer> {
 
-  localDateTime: LocalDateTime<T>;
-  zoneId: string;
+  readonly year: T;
+  readonly month: T;
+  readonly day: T;
+  readonly hour: T;
+  readonly minute: T;
+  readonly second: T;
+  readonly nanosecond: T;
+  readonly zoneId: string;
 
-  constructor(localDateTime: LocalDateTime<T>, zoneId: string);
+  constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T, zoneId: string);
 }
 
 declare function isDuration(obj: object): boolean;

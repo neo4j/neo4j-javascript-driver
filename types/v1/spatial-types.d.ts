@@ -21,10 +21,11 @@ import {NumberOrInteger} from './graph-types';
 import Integer from "./integer";
 
 declare class Point<T extends NumberOrInteger = Integer> {
-  srid: T;
-  x: number;
-  y: number;
-  z?: number;
+
+  readonly srid: T;
+  readonly x: number;
+  readonly y: number;
+  readonly z?: number;
 
   constructor(srid: T, x: number, y: number, z?: number)
 }

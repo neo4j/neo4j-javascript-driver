@@ -370,6 +370,54 @@ describe('temporal-types', () => {
     expect(dateTimeWithZoneId(248, 12, 30, 23, 59, 59, 3, 'CET').toString()).toEqual('0248-12-30T23:59:59.000000003[CET]');
   });
 
+  it('should expose local time components in time', () => {
+    const offsetTime = time(22, 12, 58, 999111222, 42);
+
+    expect(offsetTime.hour).toEqual(neo4j.int(22));
+    expect(offsetTime.minute).toEqual(neo4j.int(12));
+    expect(offsetTime.second).toEqual(neo4j.int(58));
+    expect(offsetTime.nanosecond).toEqual(neo4j.int(999111222));
+  });
+
+  it('should expose local date and time components in local date-time', () => {
+    const dateTime = localDateTime(2025, 9, 18, 23, 22, 21, 2020);
+
+    expect(dateTime.year).toEqual(neo4j.int(2025));
+    expect(dateTime.month).toEqual(neo4j.int(9));
+    expect(dateTime.day).toEqual(neo4j.int(18));
+
+    expect(dateTime.hour).toEqual(neo4j.int(23));
+    expect(dateTime.minute).toEqual(neo4j.int(22));
+    expect(dateTime.second).toEqual(neo4j.int(21));
+    expect(dateTime.nanosecond).toEqual(neo4j.int(2020));
+  });
+
+  it('should expose local date-time components in date-time with zone offset', () => {
+    const zonedDateTime = dateTimeWithZoneOffset(1799, 5, 19, 18, 37, 59, 875387, 3600);
+
+    expect(zonedDateTime.year).toEqual(neo4j.int(1799));
+    expect(zonedDateTime.month).toEqual(neo4j.int(5));
+    expect(zonedDateTime.day).toEqual(neo4j.int(19));
+
+    expect(zonedDateTime.hour).toEqual(neo4j.int(18));
+    expect(zonedDateTime.minute).toEqual(neo4j.int(37));
+    expect(zonedDateTime.second).toEqual(neo4j.int(59));
+    expect(zonedDateTime.nanosecond).toEqual(neo4j.int(875387));
+  });
+
+  it('should expose local date-time components in date-time with zone ID', () => {
+    const zonedDateTime = dateTimeWithZoneId(2356, 7, 29, 23, 32, 11, 9346458, 3600, randomZoneId());
+
+    expect(zonedDateTime.year).toEqual(neo4j.int(2356));
+    expect(zonedDateTime.month).toEqual(neo4j.int(7));
+    expect(zonedDateTime.day).toEqual(neo4j.int(29));
+
+    expect(zonedDateTime.hour).toEqual(neo4j.int(23));
+    expect(zonedDateTime.minute).toEqual(neo4j.int(32));
+    expect(zonedDateTime.second).toEqual(neo4j.int(11));
+    expect(zonedDateTime.nanosecond).toEqual(neo4j.int(9346458));
+  });
+
   function testSendAndReceiveRandomTemporalValues(valueGenerator, done) {
     const asyncFunction = (index, callback) => {
       const next = () => callback();
@@ -427,25 +475,27 @@ describe('temporal-types', () => {
   }
 
   function randomDateTimeWithZoneOffset() {
-    return new neo4j.DateTimeWithZoneOffset(
-      randomDstSafeLocalDateTime(),
-      randomZoneOffsetSeconds()
-    );
+    const dateTime = randomDstSafeLocalDateTime();
+    return new neo4j.DateTimeWithZoneOffset(dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second, dateTime.nanosecond,
+      randomZoneOffsetSeconds());
   }
 
   function randomDateTimeWithZoneId() {
-    return new neo4j.DateTimeWithZoneId(
-      randomDstSafeLocalDateTime(),
-      randomZoneId()
-    );
+    const dateTime = randomDstSafeLocalDateTime();
+    return new neo4j.DateTimeWithZoneId(dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second, dateTime.nanosecond,
+      randomZoneId());
   }
 
   function randomDstSafeLocalDateTime() {
-    return new neo4j.LocalDateTime(randomDate(), randomDstSafeLocalTime());
+    const date = randomDate();
+    const time = randomDstSafeLocalTime();
+    return new neo4j.LocalDateTime(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nanosecond);
   }
 
   function randomLocalDateTime() {
-    return new neo4j.LocalDateTime(randomDate(), randomLocalTime());
+    const date = randomDate();
+    const time = randomLocalTime();
+    return new neo4j.LocalDateTime(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nanosecond);
   }
 
   function randomDate() {
@@ -457,10 +507,8 @@ describe('temporal-types', () => {
   }
 
   function randomTime() {
-    return new neo4j.Time(
-      randomLocalTime(),
-      randomZoneOffsetSeconds(),
-    );
+    const localTime = randomLocalTime();
+    return new neo4j.Time(localTime.hour, localTime.minute, localTime.second, localTime.nanosecond, randomZoneOffsetSeconds());
   }
 
   function randomLocalTime() {
@@ -499,7 +547,7 @@ describe('temporal-types', () => {
   }
 
   function time(hour, minute, second, nanosecond, offsetSeconds) {
-    return new neo4j.Time(localTime(hour, minute, second, nanosecond), neo4j.int(offsetSeconds));
+    return new neo4j.Time(neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), neo4j.int(offsetSeconds));
   }
 
   function date(year, month, day) {
@@ -507,15 +555,18 @@ describe('temporal-types', () => {
   }
 
   function localDateTime(year, month, day, hour, minute, second, nanosecond) {
-    return new neo4j.LocalDateTime(date(year, month, day), localTime(hour, minute, second, nanosecond));
+    return new neo4j.LocalDateTime(neo4j.int(year), neo4j.int(month), neo4j.int(day),
+      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond));
   }
 
   function dateTimeWithZoneOffset(year, month, day, hour, minute, second, nanosecond, offsetSeconds) {
-    return new neo4j.DateTimeWithZoneOffset(localDateTime(year, month, day, hour, minute, second, nanosecond), neo4j.int(offsetSeconds));
+    return new neo4j.DateTimeWithZoneOffset(neo4j.int(year), neo4j.int(month), neo4j.int(day),
+      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), neo4j.int(offsetSeconds));
   }
 
   function dateTimeWithZoneId(year, month, day, hour, minute, second, nanosecond, zoneId) {
-    return new neo4j.DateTimeWithZoneId(localDateTime(year, month, day, hour, minute, second, nanosecond), zoneId);
+    return new neo4j.DateTimeWithZoneId(neo4j.int(year), neo4j.int(month), neo4j.int(day),
+      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), zoneId);
   }
 
   function randomInt(lower, upper) {

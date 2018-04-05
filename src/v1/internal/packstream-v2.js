@@ -24,22 +24,22 @@ import {
   DateTimeWithZoneId,
   DateTimeWithZoneOffset,
   Duration,
-  Time,
   isDate,
   isDateTimeWithZoneId,
   isDateTimeWithZoneOffset,
   isDuration,
   isLocalDateTime,
   isLocalTime,
-  isTime
+  isTime,
+  Time
 } from '../temporal-types';
 import {int} from '../integer';
 import {
   dateToEpochDay,
-  localDateTimeToEpochSecond,
-  localTimeToNanoOfDay,
   epochDayToDate,
   epochSecondAndNanoToLocalDateTime,
+  localDateTimeToEpochSecond,
+  localTimeToNanoOfDay,
   nanoOfDayToLocalTime
 } from '../internal/temporal-util';
 
@@ -143,6 +143,12 @@ export class Unpacker extends v1.Unpacker {
   }
 }
 
+/**
+ * Pack given 2D or 3D point.
+ * @param {Point} point the point value to pack.
+ * @param {Packer} packer the packer to use.
+ * @param {function} onError the error callback.
+ */
 function packPoint(point, packer, onError) {
   const is2DPoint = point.z === null || point.z === undefined;
   if (is2DPoint) {
@@ -152,6 +158,12 @@ function packPoint(point, packer, onError) {
   }
 }
 
+/**
+ * Pack given 2D point.
+ * @param {Point} point the point value to pack.
+ * @param {Packer} packer the packer to use.
+ * @param {function} onError the error callback.
+ */
 function packPoint2D(point, packer, onError) {
   const packableStructFields = [
     packer.packable(int(point.srid), onError),
@@ -161,6 +173,12 @@ function packPoint2D(point, packer, onError) {
   packer.packStruct(POINT_2D, packableStructFields, onError);
 }
 
+/**
+ * Pack given 3D point.
+ * @param {Point} point the point value to pack.
+ * @param {Packer} packer the packer to use.
+ * @param {function} onError the error callback.
+ */
 function packPoint3D(point, packer, onError) {
   const packableStructFields = [
     packer.packable(int(point.srid), onError),
@@ -171,6 +189,13 @@ function packPoint3D(point, packer, onError) {
   packer.packStruct(POINT_3D, packableStructFields, onError);
 }
 
+/**
+ * Unpack 2D point value using the given unpacker.
+ * @param {Unpacker} unpacker the unpacker to use.
+ * @param {number} structSize the retrieved struct size.
+ * @param {BaseBuffer} buffer the buffer to unpack from.
+ * @return {Point} the unpacked 2D point value.
+ */
 function unpackPoint2D(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('Point2D', POINT_2D_STRUCT_SIZE, structSize);
 
@@ -182,6 +207,13 @@ function unpackPoint2D(unpacker, structSize, buffer) {
   );
 }
 
+/**
+ * Unpack 3D point value using the given unpacker.
+ * @param {Unpacker} unpacker the unpacker to use.
+ * @param {number} structSize the retrieved struct size.
+ * @param {BaseBuffer} buffer the buffer to unpack from.
+ * @return {Point} the unpacked 3D point value.
+ */
 function unpackPoint3D(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('Point3D', POINT_3D_STRUCT_SIZE, structSize);
 
@@ -193,6 +225,12 @@ function unpackPoint3D(unpacker, structSize, buffer) {
   );
 }
 
+/**
+ * Pack given duration.
+ * @param {Duration} value the duration value to pack.
+ * @param {Packer} packer the packer to use.
+ * @param {function} onError the error callback.
+ */
 function packDuration(value, packer, onError) {
   const months = int(value.months);
   const days = int(value.days);
@@ -208,6 +246,13 @@ function packDuration(value, packer, onError) {
   packer.packStruct(DURATION, packableStructFields, onError);
 }
 
+/**
+ * Unpack duration value using the given unpacker.
+ * @param {Unpacker} unpacker the unpacker to use.
+ * @param {number} structSize the retrieved struct size.
+ * @param {BaseBuffer} buffer the buffer to unpack from.
+ * @return {Duration} the unpacked duration value.
+ */
 function unpackDuration(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('Duration', DURATION_STRUCT_SIZE, structSize);
 
@@ -219,8 +264,14 @@ function unpackDuration(unpacker, structSize, buffer) {
   return new Duration(months, days, seconds, nanoseconds);
 }
 
+/**
+ * Pack given local time.
+ * @param {LocalTime} value the local time value to pack.
+ * @param {Packer} packer the packer to use.
+ * @param {function} onError the error callback.
+ */
 function packLocalTime(value, packer, onError) {
-  const nanoOfDay = localTimeToNanoOfDay(value);
+  const nanoOfDay = localTimeToNanoOfDay(value.hour, value.minute, value.second, value.nanosecond);
 
   const packableStructFields = [
     packer.packable(nanoOfDay, onError)
@@ -228,6 +279,13 @@ function packLocalTime(value, packer, onError) {
   packer.packStruct(LOCAL_TIME, packableStructFields, onError);
 }
 
+/**
+ * Unpack local time value using the given unpacker.
+ * @param {Unpacker} unpacker the unpacker to use.
+ * @param {number} structSize the retrieved struct size.
+ * @param {BaseBuffer} buffer the buffer to unpack from.
+ * @return {LocalTime} the unpacked local time value.
+ */
 function unpackLocalTime(unpacker, structSize, buffer) {
   unpacker._verifyStructSize('LocalTime', LOCAL_TIME_STRUCT_SIZE, structSize);
 
@@ -242,7 +300,7 @@ function unpackLocalTime(unpacker, structSize, buffer) {
  * @param {function} onError the error callback.
  */
 function packTime(value, packer, onError) {
-  const nanoOfDay = localTimeToNanoOfDay(value.localTime);
+  const nanoOfDay = localTimeToNanoOfDay(value.hour, value.minute, value.second, value.nanosecond);
   const offsetSeconds = int(value.offsetSeconds);
 
   const packableStructFields = [
@@ -266,7 +324,7 @@ function unpackTime(unpacker, structSize, buffer) {
   const offsetSeconds = unpacker.unpack(buffer);
 
   const localTime = nanoOfDayToLocalTime(nanoOfDay);
-  return new Time(localTime, offsetSeconds);
+  return new Time(localTime.hour, localTime.minute, localTime.second, localTime.nanosecond, offsetSeconds);
 }
 
 /**
@@ -276,7 +334,7 @@ function unpackTime(unpacker, structSize, buffer) {
  * @param {function} onError the error callback.
  */
 function packDate(value, packer, onError) {
-  const epochDay = dateToEpochDay(value);
+  const epochDay = dateToEpochDay(value.year, value.month, value.day);
 
   const packableStructFields = [
     packer.packable(epochDay, onError)
@@ -305,8 +363,8 @@ function unpackDate(unpacker, structSize, buffer) {
  * @param {function} onError the error callback.
  */
 function packLocalDateTime(value, packer, onError) {
-  const epochSecond = localDateTimeToEpochSecond(value);
-  const nano = int(value.localTime.nanosecond);
+  const epochSecond = localDateTimeToEpochSecond(value.year, value.month, value.day, value.hour, value.minute, value.second, value.nanosecond);
+  const nano = int(value.nanosecond);
 
   const packableStructFields = [
     packer.packable(epochSecond, onError),
@@ -338,8 +396,8 @@ function unpackLocalDateTime(unpacker, structSize, buffer) {
  * @param {function} onError the error callback.
  */
 function packDateTimeWithZoneOffset(value, packer, onError) {
-  const epochSecond = localDateTimeToEpochSecond(value.localDateTime);
-  const nano = int(value.localDateTime.localTime.nanosecond);
+  const epochSecond = localDateTimeToEpochSecond(value.year, value.month, value.day, value.hour, value.minute, value.second, value.nanosecond);
+  const nano = int(value.nanosecond);
   const offsetSeconds = int(value.offsetSeconds);
 
   const packableStructFields = [
@@ -365,7 +423,8 @@ function unpackDateTimeWithZoneOffset(unpacker, structSize, buffer) {
   const offsetSeconds = unpacker.unpack(buffer);
 
   const localDateTime = epochSecondAndNanoToLocalDateTime(epochSecond, nano);
-  return new DateTimeWithZoneOffset(localDateTime, offsetSeconds);
+  return new DateTimeWithZoneOffset(localDateTime.year, localDateTime.month, localDateTime.day, localDateTime.hour,
+    localDateTime.minute, localDateTime.second, localDateTime.nanosecond, offsetSeconds);
 }
 
 /**
@@ -375,8 +434,8 @@ function unpackDateTimeWithZoneOffset(unpacker, structSize, buffer) {
  * @param {function} onError the error callback.
  */
 function packDateTimeWithZoneId(value, packer, onError) {
-  const epochSecond = localDateTimeToEpochSecond(value.localDateTime);
-  const nano = int(value.localDateTime.localTime.nanosecond);
+  const epochSecond = localDateTimeToEpochSecond(value.year, value.month, value.day, value.hour, value.minute, value.second, value.nanosecond);
+  const nano = int(value.nanosecond);
   const zoneId = value.zoneId;
 
   const packableStructFields = [
@@ -402,5 +461,6 @@ function unpackDateTimeWithZoneId(unpacker, structSize, buffer) {
   const zoneId = unpacker.unpack(buffer);
 
   const localDateTime = epochSecondAndNanoToLocalDateTime(epochSecond, nano);
-  return new DateTimeWithZoneId(localDateTime, zoneId);
+  return new DateTimeWithZoneId(localDateTime.year, localDateTime.month, localDateTime.day, localDateTime.hour,
+    localDateTime.minute, localDateTime.second, localDateTime.nanosecond, zoneId);
 }

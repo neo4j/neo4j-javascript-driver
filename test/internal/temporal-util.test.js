@@ -78,11 +78,11 @@ describe('temporal-util', () => {
   });
 
   it('should convert cypher date to epoch day', () => {
-    expect(util.dateToEpochDay(date(-13, 12, 31))).toEqual(int(-723912));
-    expect(util.dateToEpochDay(date(9, 9, 9))).toEqual(int(-715989));
-    expect(util.dateToEpochDay(date(2015, 2, 17))).toEqual(int(16483));
-    expect(util.dateToEpochDay(date(2189, 7, 19))).toEqual(int(80188));
-    expect(util.dateToEpochDay(date(19999, 9, 28))).toEqual(int(6585227));
+    expect(util.dateToEpochDay(-13, 12, 31)).toEqual(int(-723912));
+    expect(util.dateToEpochDay(9, 9, 9)).toEqual(int(-715989));
+    expect(util.dateToEpochDay(2015, 2, 17)).toEqual(int(16483));
+    expect(util.dateToEpochDay(2189, 7, 19)).toEqual(int(80188));
+    expect(util.dateToEpochDay(19999, 9, 28)).toEqual(int(6585227));
   });
 
   it('should convert epoch second with nano to cypher local date-time', () => {
@@ -94,11 +94,11 @@ describe('temporal-util', () => {
   });
 
   it('should convert cypher local date-time to epoch second', () => {
-    expect(util.localDateTimeToEpochSecond(localDateTime(1990, 9, 12, 18, 59, 37, 999))).toEqual(int(653165977));
-    expect(util.localDateTimeToEpochSecond(localDateTime(-18, 12, 31, 23, 59, 59, 12345))).toEqual(int(-62703676801));
-    expect(util.localDateTimeToEpochSecond(localDateTime(1970, 2, 1, 0, 0, 0, 1))).toEqual(int(2678400));
-    expect(util.localDateTimeToEpochSecond(localDateTime(99111, 8, 21, 6, 32, 17, 1794673))).toEqual(int(3065493882737));
-    expect(util.localDateTimeToEpochSecond(localDateTime(783, 12, 12, 20, 19, 59, 999999111))).toEqual(int(-37428234001));
+    expect(util.localDateTimeToEpochSecond(1990, 9, 12, 18, 59, 37, 999)).toEqual(int(653165977));
+    expect(util.localDateTimeToEpochSecond(-18, 12, 31, 23, 59, 59, 12345)).toEqual(int(-62703676801));
+    expect(util.localDateTimeToEpochSecond(1970, 2, 1, 0, 0, 0, 1)).toEqual(int(2678400));
+    expect(util.localDateTimeToEpochSecond(99111, 8, 21, 6, 32, 17, 1794673)).toEqual(int(3065493882737));
+    expect(util.localDateTimeToEpochSecond(783, 12, 12, 20, 19, 59, 999999111)).toEqual(int(-37428234001));
   });
 
   it('should convert nanosecond of the day to cypher local time', () => {
@@ -110,11 +110,11 @@ describe('temporal-util', () => {
   });
 
   it('should convert cypher local time to nanosecond of the day', () => {
-    expect(util.localTimeToNanoOfDay(localTime(18, 54, 39, 12399))).toEqual(int(68079000012399));
-    expect(util.localTimeToNanoOfDay(localTime(0, 0, 0, 0))).toEqual(int(0));
-    expect(util.localTimeToNanoOfDay(localTime(0, 0, 0, 1))).toEqual(int(1));
-    expect(util.localTimeToNanoOfDay(localTime(23, 59, 59, 999999999))).toEqual(int(86399999999999));
-    expect(util.localTimeToNanoOfDay(localTime(12, 51, 17, 808080))).toEqual(int(46277000808080));
+    expect(util.localTimeToNanoOfDay(18, 54, 39, 12399)).toEqual(int(68079000012399));
+    expect(util.localTimeToNanoOfDay(0, 0, 0, 0)).toEqual(int(0));
+    expect(util.localTimeToNanoOfDay(0, 0, 0, 1)).toEqual(int(1));
+    expect(util.localTimeToNanoOfDay(23, 59, 59, 999999999)).toEqual(int(86399999999999));
+    expect(util.localTimeToNanoOfDay(12, 51, 17, 808080)).toEqual(int(46277000808080));
   });
 
 });
@@ -128,5 +128,5 @@ function localTime(hour, minute, second, nanosecond) {
 }
 
 function localDateTime(year, month, day, hour, minute, second, nanosecond) {
-  return new LocalDateTime(date(year, month, day), localTime(hour, minute, second, nanosecond));
+  return new LocalDateTime(int(year), int(month), int(day), int(hour), int(minute), int(second), int(nanosecond));
 }

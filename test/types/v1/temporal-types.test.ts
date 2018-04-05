@@ -19,6 +19,7 @@
 
 import {
   Date,
+  DateTimeWithZoneId,
   DateTimeWithZoneOffset,
   Duration,
   isDate,
@@ -58,13 +59,19 @@ const localTime2Minute1: number = localTime2.minute;
 const localTime2Second1: number = localTime2.second;
 const localTime2Nanosecond1: number = localTime2.nanosecond;
 
-const time1: Time = new Time(localTime1, int(1));
-const localTime3: LocalTime = time1.localTime;
+const time1: Time = new Time(int(1), int(1), int(1), int(1), int(1));
 const offset1: Integer = time1.offsetSeconds;
+const hour1: Integer = time1.hour;
+const minute1: Integer = time1.minute;
+const second1: Integer = time1.second;
+const nanosecond1: Integer = time1.nanosecond;
 
-const time2: Time<number> = new Time(localTime2, 1);
-const localTime4: LocalTime<number> = time2.localTime;
+const time2: Time<number> = new Time(1, 1, 1, 1, 1);
 const offset2: number = time2.offsetSeconds;
+const hour2: number = time2.hour;
+const minute2: number = time2.minute;
+const second2: number = time2.second;
+const nanosecond2: number = time2.nanosecond;
 
 const date1: Date = new Date(int(1), int(1), int(1));
 const date1Year1: Integer = date1.year;
@@ -76,21 +83,63 @@ const date2Year1: number = date2.year;
 const date2Month1: number = date2.month;
 const date2Day1: number = date2.day;
 
-const localDateTime1: LocalDateTime = new LocalDateTime(date1, localTime1);
-const date3: Date = localDateTime1.localDate;
-const localTime5: LocalTime = localDateTime1.localTime;
+const localDateTime1: LocalDateTime = new LocalDateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1));
+const year1: Integer = localDateTime1.year;
+const month1: Integer = localDateTime1.month;
+const day1: Integer = localDateTime1.day;
+const hour3: Integer = localDateTime1.hour;
+const minute3: Integer = localDateTime1.minute;
+const second3: Integer = localDateTime1.second;
+const nanosecond3: Integer = localDateTime1.nanosecond;
 
-const localDateTime2: LocalDateTime<number> = new LocalDateTime(date2, localTime2);
-const date4: Date<number> = localDateTime2.localDate;
-const localTime6: LocalTime<number> = localDateTime2.localTime;
+const localDateTime2: LocalDateTime<number> = new LocalDateTime(1, 1, 1, 1, 1, 1, 1);
+const year2: number = localDateTime2.year;
+const month2: number = localDateTime2.month;
+const day2: number = localDateTime2.day;
+const hour4: number = localDateTime2.hour;
+const minute4: number = localDateTime2.minute;
+const second4: number = localDateTime2.second;
+const nanosecond4: number = localDateTime2.nanosecond;
 
-const dateTime1: DateTimeWithZoneOffset = new DateTimeWithZoneOffset(localDateTime1, int(1));
-const localDateTime3: LocalDateTime = dateTime1.localDateTime;
+const dateTime1: DateTimeWithZoneOffset = new DateTimeWithZoneOffset(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1));
 const offset3: Integer = dateTime1.offsetSeconds;
+const year3: Integer = dateTime1.year;
+const month3: Integer = dateTime1.month;
+const day3: Integer = dateTime1.day;
+const hour5: Integer = dateTime1.hour;
+const minute5: Integer = dateTime1.minute;
+const second5: Integer = dateTime1.second;
+const nanosecond5: Integer = dateTime1.nanosecond;
 
-const dateTime2: DateTimeWithZoneOffset<number> = new DateTimeWithZoneOffset(localDateTime2, 1);
-const localDateTime4: LocalDateTime<number> = dateTime2.localDateTime;
+const dateTime2: DateTimeWithZoneOffset<number> = new DateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, 1, 1);
 const offset4: number = dateTime2.offsetSeconds;
+const year4: number = dateTime2.year;
+const month4: number = dateTime2.month;
+const day4: number = dateTime2.day;
+const hour6: number = dateTime2.hour;
+const minute6: number = dateTime2.minute;
+const second6: number = dateTime2.second;
+const nanosecond6: number = dateTime2.nanosecond;
+
+const dateTime3: DateTimeWithZoneId = new DateTimeWithZoneId(int(1), int(1), int(1), int(1), int(1), int(1), int(1), "UTC");
+const zoneId1: string = dateTime3.zoneId;
+const year5: Integer = dateTime3.year;
+const month5: Integer = dateTime3.month;
+const day5: Integer = dateTime3.day;
+const hour7: Integer = dateTime3.hour;
+const minute7: Integer = dateTime3.minute;
+const second7: Integer = dateTime3.second;
+const nanosecond7: Integer = dateTime3.nanosecond;
+
+const dateTime4: DateTimeWithZoneId<number> = new DateTimeWithZoneId(1, 1, 1, 1, 1, 1, 1, "UTC");
+const zoneId2: string = dateTime4.zoneId;
+const year6: number = dateTime4.year;
+const month6: number = dateTime4.month;
+const day6: number = dateTime4.day;
+const hour8: number = dateTime4.hour;
+const minute8: number = dateTime4.minute;
+const second8: number = dateTime4.second;
+const nanosecond8: number = dateTime4.nanosecond;
 
 const isDurationValue: boolean = isDuration(duration1);
 const isLocalTimeValue: boolean = isLocalTime(localTime1);
@@ -98,4 +147,4 @@ const isTimeValue: boolean = isTime(time1);
 const isDateValue: boolean = isDate(date1);
 const isLocalDateTimeValue: boolean = isLocalDateTime(localDateTime1);
 const isDateTimeWithZoneOffsetValue: boolean = isDateTimeWithZoneOffset(dateTime1);
-const isDateTimeWithZoneIdValue: boolean = isDateTimeWithZoneId(dateTime2);
+const isDateTimeWithZoneIdValue: boolean = isDateTimeWithZoneId(dateTime3);
