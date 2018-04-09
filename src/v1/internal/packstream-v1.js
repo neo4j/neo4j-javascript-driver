@@ -127,6 +127,8 @@ class Packer {
           this.packable(x[i] === undefined ? null : x[i], onError)();
         }
       }
+    } else if (isIterable(x)) {
+      return this.packableIterable(x, onError);
     } else if (x instanceof Structure) {
       var packableFields = [];
       for (var i = 0; i < x.fields.length; i++) {
@@ -157,6 +159,16 @@ class Packer {
         onError(newError("Cannot pack this value: " + x));
       }
       return () => undefined;
+    }
+  }
+
+  packableIterable(iterable, onError) {
+    try {
+      const array = Array.from(iterable);
+      return this.packable(array, onError);
+    } catch (e) {
+      // handle errors from iterable to array conversion
+      onError(newError(`Cannot pack given iterable, ${e.message}: ${iterable}`));
     }
   }
 
@@ -610,6 +622,13 @@ class Unpacker {
       throw newError(`Wrong struct size for ${structName}, expected ${expectedSize} but was ${actualSize}`, PROTOCOL_ERROR);
     }
   }
+}
+
+function isIterable(obj) {
+  if (obj == null) {
+    return false;
+  }
+  return typeof obj[Symbol.iterator] === 'function';
 }
 
 export {

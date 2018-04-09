@@ -1040,6 +1040,38 @@ describe('session', () => {
     testConnectionTimeout(true, done);
   });
 
+  it('should convert iterable to array', done => {
+    const iterable = {};
+    iterable[Symbol.iterator] = function* () {
+      yield '111';
+      yield '222';
+      yield '333';
+    };
+
+    session.run('RETURN $array', {array: iterable}).then(result => {
+      const records = result.records;
+      expect(records.length).toEqual(1);
+      const received = records[0].get(0);
+      expect(received).toEqual(['111', '222', '333']);
+      done();
+    }).catch(error => {
+      done.fail(error);
+    });
+  });
+
+  it('should fail to convert illegal iterable to array', done => {
+    const iterable = {};
+    iterable[Symbol.iterator] = function () {
+    };
+
+    session.run('RETURN $array', {array: iterable}).then(result => {
+      done.fail('Failre expected but query returned ' + JSON.stringify(result.records[0].get(0)));
+    }).catch(error => {
+      expect(error.message.indexOf('Cannot pack given iterable')).not.toBeLessThan(0);
+      done();
+    });
+  });
+
   function serverIs31OrLater(done) {
     if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
       done();
