@@ -115,17 +115,23 @@ export class Time {
 
   /**
    * @constructor
-   * @param {LocalTime} localTime the local time for the new time with offset.
+   * @param {Integer|number} hour the hour for the new local time.
+   * @param {Integer|number} minute the minute for the new local time.
+   * @param {Integer|number} second the second for the new local time.
+   * @param {Integer|number} nanosecond the nanosecond for the new local time.
    * @param {Integer|number} offsetSeconds the time zone offset in seconds.
    */
-  constructor(localTime, offsetSeconds) {
-    this.localTime = localTime;
+  constructor(hour, minute, second, nanosecond, offsetSeconds) {
+    this.hour = hour;
+    this.minute = minute;
+    this.second = second;
+    this.nanosecond = nanosecond;
     this.offsetSeconds = offsetSeconds;
     Object.freeze(this);
   }
 
   toString() {
-    return this.localTime.toString() + timeZoneOffsetToIsoString(this.offsetSeconds);
+    return timeToIsoString(this.hour, this.minute, this.second, this.nanosecond) + timeZoneOffsetToIsoString(this.offsetSeconds);
   }
 }
 
@@ -183,17 +189,27 @@ export class LocalDateTime {
 
   /**
    * @constructor
-   * @param {Date} localDate the local date part for the new local date-time.
-   * @param {LocalTime} localTime the local time part for the new local date-time.
+   * @param {Integer|number} year the year for the new local date.
+   * @param {Integer|number} month the month for the new local date.
+   * @param {Integer|number} day the day for the new local date.
+   * @param {Integer|number} hour the hour for the new local time.
+   * @param {Integer|number} minute the minute for the new local time.
+   * @param {Integer|number} second the second for the new local time.
+   * @param {Integer|number} nanosecond the nanosecond for the new local time.
    */
-  constructor(localDate, localTime) {
-    this.localDate = localDate;
-    this.localTime = localTime;
+  constructor(year, month, day, hour, minute, second, nanosecond) {
+    this.year = year;
+    this.month = month;
+    this.day = day;
+    this.hour = hour;
+    this.minute = minute;
+    this.second = second;
+    this.nanosecond = nanosecond;
     Object.freeze(this);
   }
 
   toString() {
-    return `${this.localDate.toString()}T${this.localTime.toString()}`;
+    return localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond);
   }
 }
 
@@ -216,17 +232,30 @@ export class DateTimeWithZoneOffset {
 
   /**
    * @constructor
-   * @param {LocalDateTime} localDateTime the local date-time part for the new timezone-aware date-time.
+   * @param {Integer|number} year the year for the new local date.
+   * @param {Integer|number} month the month for the new local date.
+   * @param {Integer|number} day the day for the new local date.
+   * @param {Integer|number} hour the hour for the new local time.
+   * @param {Integer|number} minute the minute for the new local time.
+   * @param {Integer|number} second the second for the new local time.
+   * @param {Integer|number} nanosecond the nanosecond for the new local time.
    * @param {Integer|number} offsetSeconds the timezone offset in seconds for the new timezone-aware date-time.
    */
-  constructor(localDateTime, offsetSeconds) {
-    this.localDateTime = localDateTime;
+  constructor(year, month, day, hour, minute, second, nanosecond, offsetSeconds) {
+    this.year = year;
+    this.month = month;
+    this.day = day;
+    this.hour = hour;
+    this.minute = minute;
+    this.second = second;
+    this.nanosecond = nanosecond;
     this.offsetSeconds = offsetSeconds;
     Object.freeze(this);
   }
 
   toString() {
-    return this.localDateTime.toString() + timeZoneOffsetToIsoString(this.offsetSeconds);
+    return localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond) +
+      timeZoneOffsetToIsoString(this.offsetSeconds);
   }
 }
 
@@ -249,17 +278,29 @@ export class DateTimeWithZoneId {
 
   /**
    * @constructor
-   * @param {LocalDateTime} localDateTime the local date-time part for the new timezone-aware date-time.
+   * @param {Integer|number} year the year for the new local date.
+   * @param {Integer|number} month the month for the new local date.
+   * @param {Integer|number} day the day for the new local date.
+   * @param {Integer|number} hour the hour for the new local time.
+   * @param {Integer|number} minute the minute for the new local time.
+   * @param {Integer|number} second the second for the new local time.
+   * @param {Integer|number} nanosecond the nanosecond for the new local time.
    * @param {string} zoneId the timezone identifier for the new timezone-aware date-time.
    */
-  constructor(localDateTime, zoneId) {
-    this.localDateTime = localDateTime;
+  constructor(year, month, day, hour, minute, second, nanosecond, zoneId) {
+    this.year = year;
+    this.month = month;
+    this.day = day;
+    this.hour = hour;
+    this.minute = minute;
+    this.second = second;
+    this.nanosecond = nanosecond;
     this.zoneId = zoneId;
     Object.freeze(this);
   }
 
   toString() {
-    return `${this.localDateTime.toString()}[${this.zoneId}]`;
+    return localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond) + `[${this.zoneId}]`;
   }
 }
 
@@ -276,4 +317,8 @@ export function isDateTimeWithZoneId(obj) {
 
 function hasIdentifierProperty(obj, property) {
   return (obj && obj[property]) === true;
+}
+
+function localDateTimeToString(year, month, day, hour, minute, second, nanosecond) {
+  return dateToIsoString(year, month, day) + 'T' + timeToIsoString(hour, minute, second, nanosecond);
 }

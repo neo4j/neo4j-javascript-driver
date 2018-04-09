@@ -43,14 +43,17 @@ const SECONDS_PER_DAY = 86400;
 
 /**
  * Converts given local time into a single integer representing this same time in nanoseconds of the day.
- * @param {LocalTime} localTime the time to convert.
+ * @param {Integer|number|string} hour the hour of the local time to convert.
+ * @param {Integer|number|string} minute the minute of the local time to convert.
+ * @param {Integer|number|string} second the second of the local time to convert.
+ * @param {Integer|number|string} nanosecond the nanosecond of the local time to convert.
  * @return {Integer} nanoseconds representing the given local time.
  */
-export function localTimeToNanoOfDay(localTime) {
-  const hour = int(localTime.hour);
-  const minute = int(localTime.minute);
-  const second = int(localTime.second);
-  const nanosecond = int(localTime.nanosecond);
+export function localTimeToNanoOfDay(hour, minute, second, nanosecond) {
+  hour = int(hour);
+  minute = int(minute);
+  second = int(second);
+  nanosecond = int(nanosecond);
 
   let totalNanos = hour.multiply(NANOS_PER_HOUR);
   totalNanos = totalNanos.add(minute.multiply(NANOS_PER_MINUTE));
@@ -80,15 +83,18 @@ export function nanoOfDayToLocalTime(nanoOfDay) {
 
 /**
  * Converts given local date time into a single integer representing this same time in epoch seconds UTC.
- * @param {LocalDateTime} localDateTime the local date time value to convert.
+ * @param {Integer|number|string} year the year of the local date-time to convert.
+ * @param {Integer|number|string} month the month of the local date-time to convert.
+ * @param {Integer|number|string} day the day of the local date-time to convert.
+ * @param {Integer|number|string} hour the hour of the local date-time to convert.
+ * @param {Integer|number|string} minute the minute of the local date-time to convert.
+ * @param {Integer|number|string} second the second of the local date-time to convert.
+ * @param {Integer|number|string} nanosecond the nanosecond of the local date-time to convert.
  * @return {Integer} epoch second in UTC representing the given local date time.
  */
-export function localDateTimeToEpochSecond(localDateTime) {
-  const localDate = localDateTime.localDate;
-  const localTime = localDateTime.localTime;
-
-  const epochDay = dateToEpochDay(localDate);
-  const localTimeSeconds = localTimeToSecondOfDay(localTime);
+export function localDateTimeToEpochSecond(year, month, day, hour, minute, second, nanosecond) {
+  const epochDay = dateToEpochDay(year, month, day);
+  const localTimeSeconds = localTimeToSecondOfDay(hour, minute, second);
   return epochDay.multiply(SECONDS_PER_DAY).add(localTimeSeconds);
 }
 
@@ -105,18 +111,20 @@ export function epochSecondAndNanoToLocalDateTime(epochSecond, nano) {
 
   const localDate = epochDayToDate(epochDay);
   const localTime = nanoOfDayToLocalTime(nanoOfDay);
-  return new LocalDateTime(localDate, localTime);
+  return new LocalDateTime(localDate.year, localDate.month, localDate.day, localTime.hour, localTime.minute, localTime.second, localTime.nanosecond);
 }
 
 /**
  * Converts given local date into a single integer representing it's epoch day.
- * @param {Date} date the date to convert.
+ * @param {Integer|number|string} year the year of the local date to convert.
+ * @param {Integer|number|string} month the month of the local date to convert.
+ * @param {Integer|number|string} day the day of the local date to convert.
  * @return {Integer} epoch day representing the given date.
  */
-export function dateToEpochDay(date) {
-  const year = int(date.year);
-  const month = int(date.month);
-  const day = int(date.day);
+export function dateToEpochDay(year, month, day) {
+  year = int(year);
+  month = int(month);
+  day = int(day);
 
   let epochDay = year.multiply(365);
 
@@ -171,10 +179,10 @@ export function epochDayToDate(epochDay) {
 
 /**
  * Format given duration to an ISO 8601 string.
- * @param {Integer|number} months the number of months.
- * @param {Integer|number} days the number of days.
- * @param {Integer|number} seconds the number of seconds.
- * @param {Integer|number} nanoseconds the number of nanoseconds.
+ * @param {Integer|number|string} months the number of months.
+ * @param {Integer|number|string} days the number of days.
+ * @param {Integer|number|string} seconds the number of seconds.
+ * @param {Integer|number|string} nanoseconds the number of nanoseconds.
  * @return {string} ISO string that represents given duration.
  */
 export function durationToIsoString(months, days, seconds, nanoseconds) {
@@ -187,10 +195,10 @@ export function durationToIsoString(months, days, seconds, nanoseconds) {
 
 /**
  * Formats given time to an ISO 8601 string.
- * @param {Integer|number} hour the hour value.
- * @param {Integer|number} minute the minute value.
- * @param {Integer|number} second the second value.
- * @param {Integer|number} nanosecond the nanosecond value.
+ * @param {Integer|number|string} hour the hour value.
+ * @param {Integer|number|string} minute the minute value.
+ * @param {Integer|number|string} second the second value.
+ * @param {Integer|number|string} nanosecond the nanosecond value.
  * @return {string} ISO string that represents given time.
  */
 export function timeToIsoString(hour, minute, second, nanosecond) {
@@ -203,7 +211,7 @@ export function timeToIsoString(hour, minute, second, nanosecond) {
 
 /**
  * Formats given time zone offset in seconds to string representation like '±HH:MM', '±HH:MM:SS' or 'Z' for UTC.
- * @param {Integer|number} offsetSeconds the offset in seconds.
+ * @param {Integer|number|string} offsetSeconds the offset in seconds.
  * @return {string} ISO string that represents given offset.
  */
 export function timeZoneOffsetToIsoString(offsetSeconds) {
@@ -228,9 +236,9 @@ export function timeZoneOffsetToIsoString(offsetSeconds) {
 
 /**
  * Formats given date to an ISO 8601 string.
- * @param {Integer|number} year the date year.
- * @param {Integer|number} month the date month.
- * @param {Integer|number} day the date day.
+ * @param {Integer|number|string} year the date year.
+ * @param {Integer|number|string} month the date month.
+ * @param {Integer|number|string} day the date day.
  * @return {string} ISO string that represents given date.
  */
 export function dateToIsoString(year, month, day) {
@@ -239,7 +247,7 @@ export function dateToIsoString(year, month, day) {
   if (isNegative) {
     year = year.multiply(-1);
   }
-  let yearString = year.toString().padStart(4, '0');
+  let yearString = formatNumber(year, 4);
   if (isNegative) {
     yearString = '-' + yearString;
   }
@@ -251,19 +259,20 @@ export function dateToIsoString(year, month, day) {
 
 /**
  * Converts given local time into a single integer representing this same time in seconds of the day. Nanoseconds are skipped.
- * @param {LocalTime} localTime the time to convert.
+ * @param {Integer|number|string} hour the hour of the local time.
+ * @param {Integer|number|string} minute the minute of the local time.
+ * @param {Integer|number|string} second the second of the local time.
  * @return {Integer} seconds representing the given local time.
  */
-function localTimeToSecondOfDay(localTime) {
-  const hour = int(localTime.hour);
-  const minute = int(localTime.minute);
-  const second = int(localTime.second);
+function localTimeToSecondOfDay(hour, minute, second) {
+  hour = int(hour);
+  minute = int(minute);
+  second = int(second);
 
   let totalSeconds = hour.multiply(SECONDS_PER_HOUR);
   totalSeconds = totalSeconds.add(minute.multiply(SECONDS_PER_MINUTE));
   return totalSeconds.add(second);
 }
-
 
 /**
  * Check if given year is a leap year. Uses algorithm described here {@link https://en.wikipedia.org/wiki/Leap_year#Algorithm}.
@@ -313,11 +322,17 @@ function floorMod(x, y) {
 }
 
 /**
- * @param {Integer|number} num the number to format.
+ * @param {Integer|number|string} num the number to format.
  * @param {number} [stringLength=undefined] the string length to left-pad to.
  * @return {string} formatted and possibly left-padded number as string.
  */
 function formatNumber(num, stringLength = undefined) {
-  const result = int(num).toString();
-  return stringLength ? result.padStart(stringLength, '0') : result;
+  num = int(num);
+  const isNegative = num.isNegative();
+  if (isNegative) {
+    num = num.multiply(-1);
+  }
+  const numString = num.toString();
+  const paddedNumString = stringLength ? numString.padStart(stringLength, '0') : numString;
+  return isNegative ? '-' + paddedNumString : paddedNumString;
 }
