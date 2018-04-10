@@ -38,7 +38,7 @@
           "enable": true
         },
         "brand": {
-          "title": "Neo4j Bolt  Driver for Javascript",
+          "title": "Neo4j Bolt Driver 1.6 for Javascript",
           "repository": "https://github.com/neo4j/neo4j-javascript-driver"
         }
       }
