@@ -20,21 +20,28 @@
 // This module defines a cross-platform UTF-8 encoder and decoder that works
 // with the Buffer API defined in buf.js
 
-import {alloc, NodeBuffer, HeapBuffer, CombinedBuffer} from "./buf";
+import {alloc, CombinedBuffer, HeapBuffer, NodeBuffer} from './buf';
 import {StringDecoder} from 'string_decoder';
 import {newError} from './../error';
+
 let platformObj = {};
 
 
 try {
   // This will throw an exception is 'buffer' is not available
   require.resolve("buffer");
-  let decoder = new StringDecoder('utf8');
-  let node = require("buffer");
+  const decoder = new StringDecoder('utf8');
+  const node = require('buffer');
+
+  // use static factory function present in newer NodeJS versions to create a buffer containing the given string
+  // or fallback to the old, potentially deprecated constructor
+  const newNodeJSBuffer = typeof node.Buffer.from === 'function'
+    ? str => node.Buffer.from(str, 'utf8')
+    : str => new node.Buffer(str, 'utf8');
 
   platformObj = {
     "encode": function (str) {
-      return new NodeBuffer(new node.Buffer(str, "UTF-8"));
+      return new NodeBuffer(newNodeJSBuffer(str));
     },
     "decode": function (buffer, length) {
       if (buffer instanceof NodeBuffer) {
