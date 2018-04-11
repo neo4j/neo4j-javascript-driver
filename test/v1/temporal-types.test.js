@@ -40,6 +40,7 @@ describe('temporal-types', () => {
 
   let originalTimeout;
   let driver;
+  let driverWithNativeNumbers;
   let session;
   let serverVersion;
 
@@ -48,6 +49,8 @@ describe('temporal-types', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000;
 
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+    driverWithNativeNumbers = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
+
     ServerVersion.fromDriver(driver).then(version => {
       serverVersion = version;
       done();
@@ -60,6 +63,11 @@ describe('temporal-types', () => {
     if (driver) {
       driver.close();
       driver = null;
+    }
+
+    if (driverWithNativeNumbers) {
+      driverWithNativeNumbers.close();
+      driverWithNativeNumbers = null;
     }
   });
 
@@ -96,6 +104,15 @@ describe('temporal-types', () => {
     testSendAndReceiveRandomTemporalValues(() => randomDuration(), done);
   });
 
+  it('should send and receive Duration when disableLosslessIntegers=true', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+    session = driverWithNativeNumbers.session();
+
+    testSendReceiveTemporalValue(new neo4j.Duration(4, 15, 931, 99953), done);
+  });
+
   it('should send and receive array of Duration', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
@@ -129,6 +146,15 @@ describe('temporal-types', () => {
 
     const minLocalTime = localTime(0, 0, 0, 0);
     testSendReceiveTemporalValue(minLocalTime, done);
+  });
+
+  it('should send and receive LocalTime when disableLosslessIntegers=true', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+    session = driverWithNativeNumbers.session();
+
+    testSendReceiveTemporalValue(new neo4j.LocalTime(12, 32, 56, 12345), done);
   });
 
   it('should send and receive random LocalTime', done => {
@@ -174,6 +200,15 @@ describe('temporal-types', () => {
     testSendReceiveTemporalValue(minTime, done);
   });
 
+  it('should send and receive Time when disableLosslessIntegers=true', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+    session = driverWithNativeNumbers.session();
+
+    testSendReceiveTemporalValue(new neo4j.Time(22, 19, 32, 18381, MAX_TIME_ZONE_OFFSET), done);
+  });
+
   it('should send and receive random Time', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
@@ -215,6 +250,15 @@ describe('temporal-types', () => {
 
     const minDate = date(MIN_YEAR, 1, 1);
     testSendReceiveTemporalValue(minDate, done);
+  });
+
+  it('should send and receive Date when disableLosslessIntegers=true', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+    session = driverWithNativeNumbers.session();
+
+    testSendReceiveTemporalValue(new neo4j.Date(1923, 8, 14), done);
   });
 
   it('should send and receive random Date', done => {
@@ -260,6 +304,15 @@ describe('temporal-types', () => {
     testSendReceiveTemporalValue(minLocalDateTime, done);
   });
 
+  it('should send and receive LocalDateTime when disableLosslessIntegers=true', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+    session = driverWithNativeNumbers.session();
+
+    testSendReceiveTemporalValue(new neo4j.LocalDateTime(2045, 9, 1, 11, 25, 25, 911), done);
+  });
+
   it('should send and receive random LocalDateTime', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
@@ -303,6 +356,15 @@ describe('temporal-types', () => {
     testSendReceiveTemporalValue(minDateTime, done);
   });
 
+  it('should send and receive DateTimeWithZoneOffset when disableLosslessIntegers=true', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+    session = driverWithNativeNumbers.session();
+
+    testSendReceiveTemporalValue(new neo4j.DateTimeWithZoneOffset(2022, 2, 7, 17, 15, 59, 12399, MAX_TIME_ZONE_OFFSET), done);
+  });
+
   it('should send and receive random DateTimeWithZoneOffset', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
@@ -344,6 +406,15 @@ describe('temporal-types', () => {
 
     const minDateTime = dateTimeWithZoneId(MIN_YEAR, 1, 1, 0, 0, 0, 0, MIN_ZONE_ID);
     testSendReceiveTemporalValue(minDateTime, done);
+  });
+
+  it('should send and receive DateTimeWithZoneId when disableLosslessIntegers=true', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+    session = driverWithNativeNumbers.session();
+
+    testSendReceiveTemporalValue(new neo4j.DateTimeWithZoneId(2011, 11, 25, 23, 59, 59, 192378, 'Europe/Stockholm'), done);
   });
 
   it('should send and receive random DateTimeWithZoneId', done => {
@@ -475,9 +546,6 @@ describe('temporal-types', () => {
   function testSendAndReceiveArrayOfRandomTemporalValues(valueGenerator, done) {
     const arrayLength = _.random(MIN_TEMPORAL_ARRAY_LENGTH, MAX_TEMPORAL_ARRAY_LENGTH);
     const values = _.range(arrayLength).map(() => valueGenerator());
-
-    console.log('Generated: ' + values);
-
     testSendReceiveTemporalValue(values, done);
   }
 
