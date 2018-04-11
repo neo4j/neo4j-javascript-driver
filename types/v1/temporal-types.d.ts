@@ -46,9 +46,9 @@ declare class Time<T extends NumberOrInteger = Integer> {
   readonly minute: T;
   readonly second: T;
   readonly nanosecond: T;
-  readonly offsetSeconds: T;
+  readonly timeZoneOffsetSeconds: T;
 
-  constructor(hour: T, minute: T, second: T, nanosecond: T, offsetSeconds: T);
+  constructor(hour: T, minute: T, second: T, nanosecond: T, timeZoneOffsetSeconds: T);
 }
 
 declare class Date<T extends NumberOrInteger = Integer> {
@@ -73,7 +73,7 @@ declare class LocalDateTime<T extends NumberOrInteger = Integer> {
   constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T);
 }
 
-declare class DateTimeWithZoneOffset<T extends NumberOrInteger = Integer> {
+declare class DateTime<T extends NumberOrInteger = Integer> {
 
   readonly year: T;
   readonly month: T;
@@ -82,23 +82,10 @@ declare class DateTimeWithZoneOffset<T extends NumberOrInteger = Integer> {
   readonly minute: T;
   readonly second: T;
   readonly nanosecond: T;
-  readonly offsetSeconds: T;
+  readonly timeZoneOffsetSeconds?: T;
+  readonly timeZoneId?: string;
 
-  constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T, offsetSeconds: T);
-}
-
-declare class DateTimeWithZoneId<T extends NumberOrInteger = Integer> {
-
-  readonly year: T;
-  readonly month: T;
-  readonly day: T;
-  readonly hour: T;
-  readonly minute: T;
-  readonly second: T;
-  readonly nanosecond: T;
-  readonly zoneId: string;
-
-  constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T, zoneId: string);
+  constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T, timeZoneOffsetSeconds?: T, timeZoneId?: string);
 }
 
 declare function isDuration(obj: object): boolean;
@@ -111,9 +98,7 @@ declare function isDate(obj: object): boolean;
 
 declare function isLocalDateTime(obj: object): boolean;
 
-declare function isDateTimeWithZoneOffset(obj: object): boolean;
-
-declare function isDateTimeWithZoneId(obj: object): boolean;
+declare function isDateTime(obj: object): boolean;
 
 export {
   Duration,
@@ -121,13 +106,11 @@ export {
   Time,
   Date,
   LocalDateTime,
-  DateTimeWithZoneOffset,
-  DateTimeWithZoneId,
+  DateTime,
   isDuration,
   isLocalTime,
   isTime,
   isDate,
   isLocalDateTime,
-  isDateTimeWithZoneOffset,
-  isDateTimeWithZoneId
+  isDateTime
 }

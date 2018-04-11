@@ -19,12 +19,10 @@
 
 import {
   Date,
-  DateTimeWithZoneId,
-  DateTimeWithZoneOffset,
+  DateTime,
   Duration,
   isDate,
-  isDateTimeWithZoneId,
-  isDateTimeWithZoneOffset,
+  isDateTime,
   isDuration,
   isLocalDateTime,
   isLocalTime,
@@ -60,14 +58,14 @@ const localTime2Second1: number = localTime2.second;
 const localTime2Nanosecond1: number = localTime2.nanosecond;
 
 const time1: Time = new Time(int(1), int(1), int(1), int(1), int(1));
-const offset1: Integer = time1.offsetSeconds;
+const offset1: Integer = time1.timeZoneOffsetSeconds;
 const hour1: Integer = time1.hour;
 const minute1: Integer = time1.minute;
 const second1: Integer = time1.second;
 const nanosecond1: Integer = time1.nanosecond;
 
 const time2: Time<number> = new Time(1, 1, 1, 1, 1);
-const offset2: number = time2.offsetSeconds;
+const offset2: number = time2.timeZoneOffsetSeconds;
 const hour2: number = time2.hour;
 const minute2: number = time2.minute;
 const second2: number = time2.second;
@@ -101,8 +99,9 @@ const minute4: number = localDateTime2.minute;
 const second4: number = localDateTime2.second;
 const nanosecond4: number = localDateTime2.nanosecond;
 
-const dateTime1: DateTimeWithZoneOffset = new DateTimeWithZoneOffset(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1));
-const offset3: Integer = dateTime1.offsetSeconds;
+const dateTime1: DateTime = new DateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1), int(1), undefined);
+const zoneId1: string | undefined = dateTime1.timeZoneId;
+const offset3: Integer | undefined = dateTime1.timeZoneOffsetSeconds;
 const year3: Integer = dateTime1.year;
 const month3: Integer = dateTime1.month;
 const day3: Integer = dateTime1.day;
@@ -111,8 +110,9 @@ const minute5: Integer = dateTime1.minute;
 const second5: Integer = dateTime1.second;
 const nanosecond5: Integer = dateTime1.nanosecond;
 
-const dateTime2: DateTimeWithZoneOffset<number> = new DateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, 1, 1);
-const offset4: number = dateTime2.offsetSeconds;
+const dateTime2: DateTime<number> = new DateTime(1, 1, 1, 1, 1, 1, 1, 1, undefined);
+const zoneId2: string | undefined = dateTime2.timeZoneId;
+const offset4: number | undefined = dateTime2.timeZoneOffsetSeconds;
 const year4: number = dateTime2.year;
 const month4: number = dateTime2.month;
 const day4: number = dateTime2.day;
@@ -121,8 +121,9 @@ const minute6: number = dateTime2.minute;
 const second6: number = dateTime2.second;
 const nanosecond6: number = dateTime2.nanosecond;
 
-const dateTime3: DateTimeWithZoneId = new DateTimeWithZoneId(int(1), int(1), int(1), int(1), int(1), int(1), int(1), "UTC");
-const zoneId1: string = dateTime3.zoneId;
+const dateTime3: DateTime = new DateTime(int(1), int(1), int(1), int(1), int(1), int(1), int(1), undefined, "UTC");
+const zoneId3: string | undefined = dateTime3.timeZoneId;
+const offset5: Integer | undefined = dateTime3.timeZoneOffsetSeconds;
 const year5: Integer = dateTime3.year;
 const month5: Integer = dateTime3.month;
 const day5: Integer = dateTime3.day;
@@ -131,8 +132,9 @@ const minute7: Integer = dateTime3.minute;
 const second7: Integer = dateTime3.second;
 const nanosecond7: Integer = dateTime3.nanosecond;
 
-const dateTime4: DateTimeWithZoneId<number> = new DateTimeWithZoneId(1, 1, 1, 1, 1, 1, 1, "UTC");
-const zoneId2: string = dateTime4.zoneId;
+const dateTime4: DateTime<number> = new DateTime(1, 1, 1, 1, 1, 1, 1, undefined, "UTC");
+const zoneId4: string | undefined = dateTime4.timeZoneId;
+const offset6: number | undefined = dateTime4.timeZoneOffsetSeconds;
 const year6: number = dateTime4.year;
 const month6: number = dateTime4.month;
 const day6: number = dateTime4.day;
@@ -146,5 +148,4 @@ const isLocalTimeValue: boolean = isLocalTime(localTime1);
 const isTimeValue: boolean = isTime(time1);
 const isDateValue: boolean = isDate(date1);
 const isLocalDateTimeValue: boolean = isLocalDateTime(localDateTime1);
-const isDateTimeWithZoneOffsetValue: boolean = isDateTimeWithZoneOffset(dateTime1);
-const isDateTimeWithZoneIdValue: boolean = isDateTimeWithZoneId(dateTime3);
+const isDateTimeValue: boolean = isDateTime(dateTime1);

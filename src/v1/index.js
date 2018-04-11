@@ -30,22 +30,7 @@ import {assertString, isEmptyObjectOrNull} from './internal/util';
 import urlUtil from './internal/url-util';
 import HttpDriver from './internal/http/http-driver';
 import {isPoint, Point} from './spatial-types';
-import {
-  Date,
-  DateTimeWithZoneId,
-  DateTimeWithZoneOffset,
-  Duration,
-  isDate,
-  isDateTimeWithZoneId,
-  isDateTimeWithZoneOffset,
-  isDuration,
-  isLocalDateTime,
-  isLocalTime,
-  isTime,
-  LocalDateTime,
-  LocalTime,
-  Time
-} from './temporal-types';
+import {Date, DateTime, Duration, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime, LocalDateTime, LocalTime, Time} from './temporal-types';
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -225,8 +210,7 @@ const types = {
   Record,
   Point,
   Date,
-  DateTimeWithZoneId,
-  DateTimeWithZoneOffset,
+  DateTime,
   Duration,
   LocalDateTime,
   LocalTime,
@@ -275,8 +259,7 @@ const forExport = {
   Point,
   isPoint,
   Date,
-  DateTimeWithZoneId,
-  DateTimeWithZoneOffset,
+  DateTime,
   Duration,
   LocalDateTime,
   LocalTime,
@@ -286,8 +269,7 @@ const forExport = {
   isTime,
   isDate,
   isLocalDateTime,
-  isDateTimeWithZoneOffset,
-  isDateTimeWithZoneId
+  isDateTime
 };
 
 export {
@@ -303,8 +285,7 @@ export {
   Point,
   isPoint,
   Date,
-  DateTimeWithZoneId,
-  DateTimeWithZoneOffset,
+  DateTime,
   Duration,
   LocalDateTime,
   LocalTime,
@@ -314,7 +295,6 @@ export {
   isTime,
   isDate,
   isLocalDateTime,
-  isDateTimeWithZoneOffset,
-  isDateTimeWithZoneId
+  isDateTime
 };
 export default forExport;
