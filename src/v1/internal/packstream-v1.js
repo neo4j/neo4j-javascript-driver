@@ -400,6 +400,15 @@ class Unpacker {
     throw newError('Unknown packed value with marker ' + marker.toString(16));
   }
 
+  unpackInteger(buffer) {
+    const marker = buffer.readUInt8();
+    const result = this._unpackInteger(marker, buffer);
+    if (result == null) {
+      throw newError('Unable to unpack integer value with marker ' + marker.toString(16));
+    }
+    return result;
+  }
+
   _unpackBoolean(marker) {
     if (marker == TRUE) {
       return true;
@@ -413,7 +422,13 @@ class Unpacker {
   _unpackNumberOrInteger(marker, buffer) {
     if (marker == FLOAT_64) {
       return buffer.readFloat64();
-    } else if (marker >= 0 && marker < 128) {
+    } else {
+      return this._unpackInteger(marker, buffer);
+    }
+  }
+
+  _unpackInteger(marker, buffer) {
+    if (marker >= 0 && marker < 128) {
       return int(marker);
     } else if (marker >= 240 && marker < 256) {
       return int(marker - 256);

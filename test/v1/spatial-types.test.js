@@ -21,6 +21,7 @@ import neo4j from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion, VERSION_3_4_0} from '../../src/v1/internal/server-version';
 import {isPoint, Point} from '../../src/v1/spatial-types';
+import _ from 'lodash';
 
 const WGS_84_2D_CRS_CODE = neo4j.int(4326);
 const CARTESIAN_2D_CRS_CODE = neo4j.int(7203);
@@ -31,11 +32,13 @@ const CARTESIAN_3D_CRS_CODE = neo4j.int(9157);
 describe('spatial-types', () => {
 
   let driver;
+  let driverWithNativeNumbers;
   let session;
   let serverVersion;
 
   beforeAll(done => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
+    driverWithNativeNumbers = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
     ServerVersion.fromDriver(driver).then(version => {
       serverVersion = version;
       done();
@@ -46,6 +49,11 @@ describe('spatial-types', () => {
     if (driver) {
       driver.close();
       driver = null;
+    }
+
+    if (driverWithNativeNumbers) {
+      driverWithNativeNumbers.close();
+      driverWithNativeNumbers = null;
     }
   });
 
@@ -164,6 +172,22 @@ describe('spatial-types', () => {
     ];
 
     testSendingAndReceivingOfPoints(done, arrayOfPoints);
+  });
+
+  it('should receive point with number srid when disableLosslessIntegers=true', done => {
+    session = driverWithNativeNumbers.session();
+
+    testReceivingOfPoints(done, 'RETURN point({x: 42.231, y: 176.938123})', point => {
+      expect(isPoint(point)).toBeTruthy();
+      expect(_.isNumber(point.srid)).toBeTruthy();
+      expect(point.srid).toEqual(CARTESIAN_2D_CRS_CODE.toNumber());
+    });
+  });
+
+  it('should send and receive point with number srid when disableLosslessIntegers=true', done => {
+    session = driverWithNativeNumbers.session();
+
+    testSendingAndReceivingOfPoints(done, new Point(CARTESIAN_3D_CRS_CODE.toNumber(), 12.87, 13.89, 14.901));
   });
 
   function testReceivingOfPoints(done, query, pointChecker) {

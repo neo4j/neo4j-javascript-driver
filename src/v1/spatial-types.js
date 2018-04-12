@@ -17,8 +17,6 @@
  * limitations under the License.
  */
 
-import {int} from './integer';
-
 const POINT_IDENTIFIER_PROPERTY = '__isPoint__';
 
 /**
@@ -29,13 +27,13 @@ export class Point {
 
   /**
    * @constructor
-   * @param {number|Integer} srid the coordinate reference system identifier.
+   * @param {Integer|number} srid the coordinate reference system identifier.
    * @param {number} x the <code>x</code> coordinate of the point.
    * @param {number} y the <code>y</code> coordinate of the point.
    * @param {number} [z=undefined] the <code>y</code> coordinate of the point or <code>undefined</code> if point has 2 dimensions.
    */
   constructor(srid, x, y, z) {
-    this.srid = int(srid);
+    this.srid = srid;
     this.x = x;
     this.y = y;
     this.z = z;
