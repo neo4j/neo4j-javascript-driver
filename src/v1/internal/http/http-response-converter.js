@@ -19,23 +19,14 @@
 
 import {isInt} from '../../integer';
 import {Node, Path, PathSegment, Relationship} from '../../graph-types';
-import {Neo4jError, SERVICE_UNAVAILABLE} from '../../error';
+import {Neo4jError} from '../../error';
 
 const CREDENTIALS_EXPIRED_CODE = 'Neo.ClientError.Security.CredentialsExpired';
 
-export default class HttpDataConverter {
+export default class HttpResponseConverter {
 
   encodeStatementParameters(parameters) {
     return encodeQueryParameters(parameters);
-  }
-
-  /**
-   * Convert network error to a {@link Neo4jError}.
-   * @param {object} error the error to convert.
-   * @return {Neo4jError} new driver friendly error.
-   */
-  convertNetworkError(error) {
-    return new Neo4jError(error.message, SERVICE_UNAVAILABLE);
   }
 
   /**
@@ -57,6 +48,25 @@ export default class HttpDataConverter {
       }
     }
     return null;
+  }
+
+  /**
+   * Extracts transaction id from the db/data/transaction endpoint response.
+   * @param {object} response the response.
+   * @return {number} the transaction id.
+   */
+  extractTransactionId(response) {
+    const commitUrl = response.commit;
+    if (commitUrl) {
+      // extract id 42 from commit url like 'http://localhost:7474/db/data/transaction/42/commit'
+      const url = commitUrl.replace('/commit', '');
+      const transactionIdString = url.substring(url.lastIndexOf('/') + 1);
+      const transactionId = parseInt(transactionIdString, 10);
+      if (transactionId || transactionId === 0) {
+        return transactionId;
+      }
+    }
+    throw new Neo4jError(`Unable to extract transaction id from the response JSON: ${JSON.stringify(response)}`);
   }
 
   /**

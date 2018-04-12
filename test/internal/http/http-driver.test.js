@@ -17,21 +17,24 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
-import sharedNeo4j from '../internal/shared-neo4j';
-import testUtils from './test-utils';
+import neo4j from '../../../src/v1';
+import sharedNeo4j from '../../internal/shared-neo4j';
+import testUtils from '.././test-utils';
+import {ServerVersion, VERSION_3_1_0} from '../../../src/v1/internal/server-version';
 
 describe('http driver', () => {
 
   let boltDriver;
   let httpDriver;
+  let serverVersion;
 
   beforeEach(done => {
     boltDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
     httpDriver = neo4j.driver('http://localhost:7474', sharedNeo4j.authToken);
 
     const session = boltDriver.session();
-    session.run('MATCH (n) DETACH DELETE n').then(() => {
+    session.run('MATCH (n) DETACH DELETE n').then(result => {
+      serverVersion = ServerVersion.fromString(result.summary.server.version);
       session.close(() => {
         done();
       });
@@ -240,6 +243,36 @@ describe('http driver', () => {
     });
   });
 
+  it('should terminate query waiting on a lock when session is closed', done => {
+    if (testUtils.isServer() || !databaseSupportsTransactionTerminationInLocks()) {
+      done();
+      return;
+    }
+
+    const boltSession = boltDriver.session();
+    boltSession.run(`CREATE (:Node {name: 'foo'})`).then(() => {
+      const boltTx = boltSession.beginTransaction();
+      boltTx.run(`MATCH (n:Node {name: 'foo'}) SET n.name = 'bar'`).then(() => {
+        // node should now be locked
+
+        const httpSession = httpDriver.session();
+        httpSession.run(`MATCH (n:Node {name: 'foo'}) SET n.name = 'baz'`).then(() => {
+          boltSession.close(() => done.fail('HTTP query was successful but failure expected'));
+        }).catch(error => {
+          expect(error.name).toEqual('Neo4jError');
+          expect(error.code).toEqual('Neo.DatabaseError.Statement.ExecutionFailed');
+          expect(error.message.indexOf('transaction has been terminated')).not.toBeLessThan(0);
+          boltSession.close(() => done());
+        });
+
+        setTimeout(() => {
+          httpSession.close();
+        }, 2000);
+
+      });
+    });
+  }, 20000);
+
   function testSendAndReceiveWithReturnQuery(values, done) {
     const query = 'RETURN $value';
 
@@ -302,6 +335,10 @@ describe('http driver', () => {
       queries.forEach(query => tx.run(query));
       return null;
     });
+  }
+
+  function databaseSupportsTransactionTerminationInLocks() {
+    return serverVersion.compareTo(VERSION_3_1_0) >= 0;
   }
 
 });

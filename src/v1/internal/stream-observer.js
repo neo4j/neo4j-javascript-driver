@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Record from "../record";
+import Record from '../record';
 
 /**
  * Handles a RUN/PULL_ALL, or RUN/DISCARD_ALL requests, maps the responses
@@ -147,6 +147,10 @@ class StreamObserver {
       observer.onCompleted( this._tail );
     }
     this._observer = observer;
+  }
+
+  hasFailed() {
+    return this._hasFailed;
   }
 }
 
