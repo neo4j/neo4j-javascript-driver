@@ -75,7 +75,7 @@ module.exports = function () {
     var expectedCode = 'Neo.ClientError.Security.Unauthorized';
 
     if (message.indexOf(expectedStartOfMessage) != 0) {
-      throw new Error("Wrong error messsage. Expected: '" + expectedStartOfMessage + "'. Got: '" + message + "'");
+      throw new Error("Wrong error message. Expected: '" + expectedStartOfMessage + "'. Got: '" + message + "'");
     }
 
     if (code.indexOf(expectedCode) != 0) {

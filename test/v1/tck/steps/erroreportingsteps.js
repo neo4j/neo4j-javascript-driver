@@ -38,7 +38,7 @@ module.exports = function () {
   this.Then(/^it throws a `ClientException`$/, function (table) {
     var expected = table.rows()[0][0];
     if (!this.error) {
-      throw new Error("Exepcted an error but got none.")
+      throw new Error("Expected an error but got none.")
     }
     if (this.error.message.indexOf(expected) != 0) {
       if (!(expected == "Unsupported URI scheme:" || expected == "Unable to connect to" ))

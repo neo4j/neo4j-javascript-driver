@@ -314,14 +314,14 @@ class BaseBuffer
   }
 
   /**
-   * Get remaning
+   * Get remaining
    */
   remaining () {
     return this.length - this.position;
   }
 
   /**
-   * Has remaning
+   * Has remaining
    */
   hasRemaining () {
     return this.remaining() > 0;

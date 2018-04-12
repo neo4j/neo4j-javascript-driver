@@ -972,11 +972,11 @@ describe('routing driver with stub server', () => {
   });
 
   it('should throw protocol error when multiple records', done => {
-    testForProtocolError('./test/resources/boltstub/unparseable_ttl_get_servers.script', done);
+    testForProtocolError('./test/resources/boltstub/unparsable_ttl_get_servers.script', done);
   });
 
   it('should throw protocol error on unparsable record', done => {
-    testForProtocolError('./test/resources/boltstub/unparseable_servers_get_servers.script', done);
+    testForProtocolError('./test/resources/boltstub/unparsable_servers_get_servers.script', done);
   });
 
   it('should throw protocol error when no routers', done => {
@@ -1100,7 +1100,7 @@ describe('routing driver with stub server', () => {
     });
   });
 
-  it('should send initial bookmark wihtout access mode', done => {
+  it('should send initial bookmark without access mode', done => {
     testWriteSessionWithAccessModeAndBookmark(null, 'neo4j:bookmark:v1:tx42', done);
   });
 

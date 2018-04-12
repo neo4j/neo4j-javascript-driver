@@ -80,7 +80,7 @@ let NO_OP_OBSERVER = {
 };
 
 /**
- * A connection manages sending and recieving messages over a channel. A
+ * A connection manages sending and receiving messages over a channel. A
  * connector is very closely tied to the Bolt protocol, it implements the
  * same message structure with very little frills. This means Connectors are
  * naturally tied to a specific version of the protocol, and we expect
@@ -103,7 +103,7 @@ class Connection {
   constructor(channel, url, disableLosslessIntegers = false) {
     /**
      * An ordered queue of observers, each exchange response (zero or more
-     * RECORD messages followed by a SUCCESS message) we recieve will be routed
+     * RECORD messages followed by a SUCCESS message) we receive will be routed
      * to the next pending observer.
      */
     this.url = url;
