@@ -511,7 +511,7 @@ class CombinedBuffer extends BaseBuffer {
  */
 class NodeBuffer extends BaseBuffer {
   constructor(arg) {
-    let buffer = arg instanceof _node.Buffer ? arg : new _node.Buffer(arg);
+    const buffer = arg instanceof _node.Buffer ? arg : newNodeJSBuffer(arg);
     super(buffer.length);
     this._buffer = buffer;
   }
@@ -556,6 +556,16 @@ class NodeBuffer extends BaseBuffer {
 
   getSlice ( start, length ) {
     return new NodeBuffer( this._buffer.slice( start, start + length ) );
+  }
+}
+
+function newNodeJSBuffer(arg) {
+  if (typeof arg === 'number' && typeof _node.Buffer.alloc === 'function') {
+    // use static factory function present in newer NodeJS versions to allocate new buffer with specified size
+    return _node.Buffer.alloc(arg);
+  } else {
+    // fallback to the old, potentially deprecated constructor
+    return new _node.Buffer(arg);
   }
 }
 
