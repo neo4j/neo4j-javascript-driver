@@ -329,7 +329,7 @@ describe('temporal-types', () => {
     testSendAndReceiveArrayOfRandomTemporalValues(() => randomLocalDateTime(), done);
   });
 
-  it('should receive DateTimeWithZoneOffset', done => {
+  it('should receive DateTime with time zone offset', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -338,7 +338,7 @@ describe('temporal-types', () => {
     testReceiveTemporalValue('RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "+05:00"})', expectedValue, done);
   });
 
-  it('should send and receive max DateTimeWithZoneOffset', done => {
+  it('should send and receive max DateTime with zone offset', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -347,7 +347,7 @@ describe('temporal-types', () => {
     testSendReceiveTemporalValue(maxDateTime, done);
   });
 
-  it('should send and receive min DateTimeWithZoneOffset', done => {
+  it('should send and receive min DateTime with zone offset', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -356,16 +356,16 @@ describe('temporal-types', () => {
     testSendReceiveTemporalValue(minDateTime, done);
   });
 
-  it('should send and receive DateTimeWithZoneOffset when disableLosslessIntegers=true', done => {
+  it('should send and receive DateTime with zone offset when disableLosslessIntegers=true', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
     session = driverWithNativeNumbers.session();
 
-    testSendReceiveTemporalValue(new neo4j.DateTimeWithZoneOffset(2022, 2, 7, 17, 15, 59, 12399, MAX_TIME_ZONE_OFFSET), done);
+    testSendReceiveTemporalValue(new neo4j.DateTime(2022, 2, 7, 17, 15, 59, 12399, MAX_TIME_ZONE_OFFSET, null), done);
   });
 
-  it('should send and receive random DateTimeWithZoneOffset', done => {
+  it('should send and receive random DateTime with zone offset', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -373,7 +373,7 @@ describe('temporal-types', () => {
     testSendAndReceiveRandomTemporalValues(() => randomDateTimeWithZoneOffset(), done);
   });
 
-  it('should send and receive array of DateTimeWithZoneOffset', done => {
+  it('should send and receive array of DateTime with zone offset', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -381,7 +381,7 @@ describe('temporal-types', () => {
     testSendAndReceiveArrayOfRandomTemporalValues(() => randomDateTimeWithZoneOffset(), done);
   });
 
-  it('should receive DateTimeWithZoneId', done => {
+  it('should receive DateTime with zone id', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -390,7 +390,7 @@ describe('temporal-types', () => {
     testReceiveTemporalValue('RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "Europe/Stockholm"})', expectedValue, done);
   });
 
-  it('should send and receive max DateTimeWithZoneId', done => {
+  it('should send and receive max DateTime with zone id', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -399,7 +399,7 @@ describe('temporal-types', () => {
     testSendReceiveTemporalValue(maxDateTime, done);
   });
 
-  it('should send and receive min DateTimeWithZoneId', done => {
+  it('should send and receive min DateTime with zone id', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -408,16 +408,16 @@ describe('temporal-types', () => {
     testSendReceiveTemporalValue(minDateTime, done);
   });
 
-  it('should send and receive DateTimeWithZoneId when disableLosslessIntegers=true', done => {
+  it('should send and receive DateTime with zone id when disableLosslessIntegers=true', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
     session = driverWithNativeNumbers.session();
 
-    testSendReceiveTemporalValue(new neo4j.DateTimeWithZoneId(2011, 11, 25, 23, 59, 59, 192378, 'Europe/Stockholm'), done);
+    testSendReceiveTemporalValue(new neo4j.DateTime(2011, 11, 25, 23, 59, 59, 192378, null, 'Europe/Stockholm'), done);
   });
 
-  it('should send and receive random DateTimeWithZoneId', done => {
+  it('should send and receive random DateTime with zone id', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -425,7 +425,7 @@ describe('temporal-types', () => {
     testSendAndReceiveRandomTemporalValues(() => randomDateTimeWithZoneId(), done);
   });
 
-  it('should send and receive array of DateTimeWithZoneId', done => {
+  it('should send and receive array of DateTime with zone id', done => {
     if (neo4jDoesNotSupportTemporalTypes(done)) {
       return;
     }
@@ -599,14 +599,14 @@ describe('temporal-types', () => {
 
   function randomDateTimeWithZoneOffset() {
     const dateTime = randomDstSafeLocalDateTime();
-    return new neo4j.DateTimeWithZoneOffset(dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second, dateTime.nanosecond,
-      randomZoneOffsetSeconds());
+    return new neo4j.DateTime(dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second, dateTime.nanosecond,
+      randomZoneOffsetSeconds(), null);
   }
 
   function randomDateTimeWithZoneId() {
     const dateTime = randomDstSafeLocalDateTime();
-    return new neo4j.DateTimeWithZoneId(dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second, dateTime.nanosecond,
-      randomZoneId());
+    return new neo4j.DateTime(dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second, dateTime.nanosecond,
+      null, randomZoneId());
   }
 
   function randomDstSafeLocalDateTime() {
@@ -683,13 +683,13 @@ describe('temporal-types', () => {
   }
 
   function dateTimeWithZoneOffset(year, month, day, hour, minute, second, nanosecond, offsetSeconds) {
-    return new neo4j.DateTimeWithZoneOffset(neo4j.int(year), neo4j.int(month), neo4j.int(day),
-      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), neo4j.int(offsetSeconds));
+    return new neo4j.DateTime(neo4j.int(year), neo4j.int(month), neo4j.int(day),
+      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), neo4j.int(offsetSeconds), null);
   }
 
   function dateTimeWithZoneId(year, month, day, hour, minute, second, nanosecond, zoneId) {
-    return new neo4j.DateTimeWithZoneId(neo4j.int(year), neo4j.int(month), neo4j.int(day),
-      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), zoneId);
+    return new neo4j.DateTime(neo4j.int(year), neo4j.int(month), neo4j.int(day),
+      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), null, zoneId);
   }
 
   function randomInt(lower, upper) {

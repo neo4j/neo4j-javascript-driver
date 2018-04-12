@@ -20,22 +20,7 @@
 import Integer, {inSafeRange, int, isInt, toNumber, toString} from "./integer";
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from "./graph-types";
 import {isPoint, Point} from "./spatial-types";
-import {
-  Date,
-  DateTimeWithZoneId,
-  DateTimeWithZoneOffset,
-  Duration,
-  isDate,
-  isDateTimeWithZoneId,
-  isDateTimeWithZoneOffset,
-  isDuration,
-  isLocalDateTime,
-  isLocalTime,
-  isTime,
-  LocalDateTime,
-  LocalTime,
-  Time
-} from "./temporal-types";
+import {Date, DateTime, Duration, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime, LocalDateTime, LocalTime, Time} from "./temporal-types";
 import {Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "./error";
 import Result, {Observer, StatementResult} from "./result";
 import ResultSummary, {Notification, NotificationPosition, Plan, ProfiledPlan, ServerInfo, StatementStatistic} from "./result-summary";
@@ -78,8 +63,7 @@ declare const types: {
   Time: Time;
   Date: Date;
   LocalDateTime: LocalDateTime;
-  DateTimeWithZoneOffset: DateTimeWithZoneOffset;
-  DateTimeWithZoneId: DateTimeWithZoneId;
+  DateTime: DateTime;
 };
 
 declare const session: {
@@ -150,15 +134,13 @@ declare const forExport: {
   Time: Time;
   Date: Date;
   LocalDateTime: LocalDateTime;
-  DateTimeWithZoneOffset: DateTimeWithZoneOffset;
-  DateTimeWithZoneId: DateTimeWithZoneId;
+  DateTime: DateTime;
   isDuration: typeof isDuration;
   isLocalTime: typeof isLocalTime;
   isTime: typeof isTime;
   isDate: typeof isDate;
   isLocalDateTime: typeof isLocalDateTime;
-  isDateTimeWithZoneOffset: typeof isDateTimeWithZoneOffset;
-  isDateTimeWithZoneId: typeof isDateTimeWithZoneId;
+  isDateTime: typeof isDateTime;
 };
 
 export {
@@ -203,15 +185,13 @@ export {
   Time,
   Date,
   LocalDateTime,
-  DateTimeWithZoneOffset,
-  DateTimeWithZoneId,
+  DateTime,
   isDuration,
   isLocalTime,
   isTime,
   isDate,
   isLocalDateTime,
-  isDateTimeWithZoneOffset,
-  isDateTimeWithZoneId
+  isDateTime
 }
 
 export default forExport;

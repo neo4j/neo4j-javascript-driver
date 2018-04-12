@@ -18,6 +18,7 @@
  */
 
 import {dateToIsoString, durationToIsoString, timeToIsoString, timeZoneOffsetToIsoString} from './internal/temporal-util';
+import {newError} from './error';
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,
@@ -30,8 +31,7 @@ const LOCAL_TIME_IDENTIFIER_PROPERTY = '__isLocalTime__';
 const TIME_IDENTIFIER_PROPERTY = '__isTime__';
 const DATE_IDENTIFIER_PROPERTY = '__isDate__';
 const LOCAL_DATE_TIME_IDENTIFIER_PROPERTY = '__isLocalDateTime__';
-const DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY = '__isDateTimeWithZoneOffset__';
-const DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY = '__isDateTimeWithZoneId__';
+const DATE_TIME_IDENTIFIER_PROPERTY = '__isDateTime__';
 
 /**
  * Represents an ISO 8601 duration. Contains both date-based values (years, months, days) and time-based values (seconds, nanoseconds).
@@ -119,19 +119,19 @@ export class Time {
    * @param {Integer|number} minute the minute for the new local time.
    * @param {Integer|number} second the second for the new local time.
    * @param {Integer|number} nanosecond the nanosecond for the new local time.
-   * @param {Integer|number} offsetSeconds the time zone offset in seconds.
+   * @param {Integer|number} timeZoneOffsetSeconds the time zone offset in seconds.
    */
-  constructor(hour, minute, second, nanosecond, offsetSeconds) {
+  constructor(hour, minute, second, nanosecond, timeZoneOffsetSeconds) {
     this.hour = hour;
     this.minute = minute;
     this.second = second;
     this.nanosecond = nanosecond;
-    this.offsetSeconds = offsetSeconds;
+    this.timeZoneOffsetSeconds = timeZoneOffsetSeconds;
     Object.freeze(this);
   }
 
   toString() {
-    return timeToIsoString(this.hour, this.minute, this.second, this.nanosecond) + timeZoneOffsetToIsoString(this.offsetSeconds);
+    return timeToIsoString(this.hour, this.minute, this.second, this.nanosecond) + timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds);
   }
 }
 
@@ -226,22 +226,23 @@ export function isLocalDateTime(obj) {
 
 /**
  * Represents an instant capturing the date, the time and the timezone identifier.
- * Created <code>DateTimeWithZoneOffset</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created <code>DateTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
  */
-export class DateTimeWithZoneOffset {
+export class DateTime {
 
   /**
    * @constructor
-   * @param {Integer|number} year the year for the new local date.
-   * @param {Integer|number} month the month for the new local date.
-   * @param {Integer|number} day the day for the new local date.
-   * @param {Integer|number} hour the hour for the new local time.
-   * @param {Integer|number} minute the minute for the new local time.
-   * @param {Integer|number} second the second for the new local time.
-   * @param {Integer|number} nanosecond the nanosecond for the new local time.
-   * @param {Integer|number} offsetSeconds the timezone offset in seconds for the new timezone-aware date-time.
+   * @param {Integer|number} year the year for the new date-time.
+   * @param {Integer|number} month the month for the new date-time.
+   * @param {Integer|number} day the day for the new date-time.
+   * @param {Integer|number} hour the hour for the new date-time.
+   * @param {Integer|number} minute the minute for the new date-time.
+   * @param {Integer|number} second the second for the new date-time.
+   * @param {Integer|number} nanosecond the nanosecond for the new date-time.
+   * @param {Integer|number|null} timeZoneOffsetSeconds the total time zone offset in seconds for the new date-time. Either this argument or <code>timeZoneId</code> should be defined.
+   * @param {string|null} timeZoneId the time zone id for the new date-time. Either this argument or <code>timeZoneOffsetSeconds</code> should be defined.
    */
-  constructor(year, month, day, hour, minute, second, nanosecond, offsetSeconds) {
+  constructor(year, month, day, hour, minute, second, nanosecond, timeZoneOffsetSeconds, timeZoneId) {
     this.year = year;
     this.month = month;
     this.day = day;
@@ -249,70 +250,30 @@ export class DateTimeWithZoneOffset {
     this.minute = minute;
     this.second = second;
     this.nanosecond = nanosecond;
-    this.offsetSeconds = offsetSeconds;
+
+    const [offset, id] = verifyTimeZoneArguments(timeZoneOffsetSeconds, timeZoneId);
+    this.timeZoneOffsetSeconds = offset;
+    this.timeZoneId = id;
+
     Object.freeze(this);
   }
 
   toString() {
-    return localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond) +
-      timeZoneOffsetToIsoString(this.offsetSeconds);
+    const localDateTimeStr = localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond);
+    const timeZoneStr = this.timeZoneId ? `[${this.timeZoneId}]` : timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds);
+    return localDateTimeStr + timeZoneStr;
   }
 }
 
-Object.defineProperty(DateTimeWithZoneOffset.prototype, DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
+Object.defineProperty(DateTime.prototype, DATE_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
 
 /**
- * Test if given object is an instance of {@link DateTimeWithZoneOffset} class.
+ * Test if given object is an instance of {@link DateTime} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link DateTimeWithZoneOffset}, <code>false</code> otherwise.
+ * @return {boolean} <code>true</code> if given object is a {@link DateTime}, <code>false</code> otherwise.
  */
-export function isDateTimeWithZoneOffset(obj) {
-  return hasIdentifierProperty(obj, DATE_TIME_WITH_ZONE_OFFSET_IDENTIFIER_PROPERTY);
-}
-
-/**
- * Represents an instant capturing the date, the time and the timezone identifier.
- * Created <code>DateTimeWithZoneId</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
- */
-export class DateTimeWithZoneId {
-
-  /**
-   * @constructor
-   * @param {Integer|number} year the year for the new local date.
-   * @param {Integer|number} month the month for the new local date.
-   * @param {Integer|number} day the day for the new local date.
-   * @param {Integer|number} hour the hour for the new local time.
-   * @param {Integer|number} minute the minute for the new local time.
-   * @param {Integer|number} second the second for the new local time.
-   * @param {Integer|number} nanosecond the nanosecond for the new local time.
-   * @param {string} zoneId the timezone identifier for the new timezone-aware date-time.
-   */
-  constructor(year, month, day, hour, minute, second, nanosecond, zoneId) {
-    this.year = year;
-    this.month = month;
-    this.day = day;
-    this.hour = hour;
-    this.minute = minute;
-    this.second = second;
-    this.nanosecond = nanosecond;
-    this.zoneId = zoneId;
-    Object.freeze(this);
-  }
-
-  toString() {
-    return localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond) + `[${this.zoneId}]`;
-  }
-}
-
-Object.defineProperty(DateTimeWithZoneId.prototype, DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES);
-
-/**
- * Test if given object is an instance of {@link DateTimeWithZoneId} class.
- * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link DateTimeWithZoneId}, <code>false</code> otherwise.
- */
-export function isDateTimeWithZoneId(obj) {
-  return hasIdentifierProperty(obj, DATE_TIME_WITH_ZONE_ID_IDENTIFIER_PROPERTY);
+export function isDateTime(obj) {
+  return hasIdentifierProperty(obj, DATE_TIME_IDENTIFIER_PROPERTY);
 }
 
 function hasIdentifierProperty(obj, property) {
@@ -321,4 +282,19 @@ function hasIdentifierProperty(obj, property) {
 
 function localDateTimeToString(year, month, day, hour, minute, second, nanosecond) {
   return dateToIsoString(year, month, day) + 'T' + timeToIsoString(hour, minute, second, nanosecond);
+}
+
+function verifyTimeZoneArguments(timeZoneOffsetSeconds, timeZoneId) {
+  const offsetDefined = timeZoneOffsetSeconds || timeZoneOffsetSeconds === 0;
+  const idDefined = timeZoneId && timeZoneId !== '';
+
+  if (offsetDefined && !idDefined) {
+    return [timeZoneOffsetSeconds, null];
+  } else if (!offsetDefined && idDefined) {
+    return [null, timeZoneId];
+  } else if (offsetDefined && idDefined) {
+    throw newError(`Unable to create DateTime with both time zone offset and id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`);
+  } else {
+    throw newError(`Unable to create DateTime without either time zone offset or id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`);
+  }
 }
