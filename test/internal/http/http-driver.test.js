@@ -20,7 +20,7 @@
 import neo4j from '../../../src/v1';
 import sharedNeo4j from '../../internal/shared-neo4j';
 import testUtils from '.././test-utils';
-import {ServerVersion, VERSION_3_1_0} from '../../../src/v1/internal/server-version';
+import {ServerVersion, VERSION_3_1_0, VERSION_3_4_0} from '../../../src/v1/internal/server-version';
 
 describe('http driver', () => {
 
@@ -366,7 +366,7 @@ describe('http driver', () => {
   });
 
   it('should receive points', done => {
-    if (testUtils.isServer()) {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
       done();
       return;
     }
@@ -380,7 +380,7 @@ describe('http driver', () => {
   });
 
   it('should receive date', done => {
-    if (testUtils.isServer()) {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
       done();
       return;
     }
@@ -392,7 +392,7 @@ describe('http driver', () => {
   });
 
   it('should receive date-time with time zone id', done => {
-    if (testUtils.isServer()) {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
       done();
       return;
     }
@@ -404,7 +404,7 @@ describe('http driver', () => {
   });
 
   it('should receive date-time with time zone name', done => {
-    if (testUtils.isServer()) {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
       done();
       return;
     }
@@ -416,7 +416,7 @@ describe('http driver', () => {
   });
 
   it('should receive duration', done => {
-    if (testUtils.isServer()) {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
       done();
       return;
     }
@@ -428,7 +428,7 @@ describe('http driver', () => {
   });
 
   it('should receive local date-time', done => {
-    if (testUtils.isServer()) {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
       done();
       return;
     }
@@ -440,7 +440,7 @@ describe('http driver', () => {
   });
 
   it('should receive local time', done => {
-    if (testUtils.isServer()) {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
       done();
       return;
     }
@@ -452,7 +452,7 @@ describe('http driver', () => {
   });
 
   it('should receive time', done => {
-    if (testUtils.isServer()) {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
       done();
       return;
     }
@@ -552,6 +552,10 @@ describe('http driver', () => {
 
   function databaseSupportsTransactionTerminationInLocks() {
     return serverVersion.compareTo(VERSION_3_1_0) >= 0;
+  }
+
+  function databaseSupportsSpatialAndTemporalTypes() {
+    return serverVersion.compareTo(VERSION_3_4_0) >= 0;
   }
 
 });
