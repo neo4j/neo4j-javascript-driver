@@ -274,48 +274,103 @@ describe('http driver', () => {
   }, 20000);
 
   it('should fail to pass node as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Node(neo4j.int(1), ['Person'], {name: 'Bob'}), done);
   });
 
   it('should fail to pass relationship as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Relationship(neo4j.int(1), neo4j.int(2), neo4j.int(3), 'KNOWS', {since: 42}), done);
   });
 
   it('should fail to pass path as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     const node1 = new neo4j.types.Node(neo4j.int(1), ['Person'], {name: 'Alice'});
     const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], {name: 'Bob'});
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Path(node1, node2, []), done);
   });
 
   it('should fail to pass point as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Point(neo4j.int(42), 1, 2, 3), done);
   });
 
   it('should fail to pass date as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Date(2000, 10, 12), done);
   });
 
   it('should fail to pass date-time as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.DateTime(2000, 10, 12, 12, 12, 0, 0, 0, null), done);
   });
 
   it('should fail to pass duration as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Duration(1, 1, 1, 1), done);
   });
 
   it('should fail to pass local date-time as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalDateTime(2000, 10, 12, 10, 10, 10), done);
   });
 
   it('should fail to pass local time as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalTime(12, 12, 12, 0), done);
   });
 
   it('should fail to pass time as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Time(12, 12, 12, 0, 0), done);
   });
 
   it('should receive points', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testReceivingOfResults([
       'RETURN point({x: 42.341, y: 125.0})',
       'RETURN point({x: 13.2, y: 22.2, z: 33.3})',
@@ -325,6 +380,11 @@ describe('http driver', () => {
   });
 
   it('should receive date', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testReceiveSingleValueWithHttpDriver(
       'RETURN date({year: 2019, month: 9, day: 28})',
       '2019-09-28',
@@ -332,6 +392,11 @@ describe('http driver', () => {
   });
 
   it('should receive date-time with time zone id', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testReceiveSingleValueWithHttpDriver(
       'RETURN datetime({year: 1976, month: 11, day: 1, hour: 19, minute: 20, second: 55, nanosecond: 999111, timezone: "UTC"})',
       '1976-11-01T19:20:55.000999111Z[UTC]',
@@ -339,6 +404,11 @@ describe('http driver', () => {
   });
 
   it('should receive date-time with time zone name', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testReceiveSingleValueWithHttpDriver(
       'RETURN datetime({year: 2012, month: 12, day: 12, hour: 1, minute: 9, second: 2, nanosecond: 123, timezone: "-08:30"})',
       '2012-12-12T01:09:02.000000123-08:30',
@@ -346,6 +416,11 @@ describe('http driver', () => {
   });
 
   it('should receive duration', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testReceiveSingleValueWithHttpDriver(
       'RETURN duration({months: 3, days: 35, seconds: 19, nanoseconds: 937139})',
       'P3M35DT19.000937139S',
@@ -353,6 +428,11 @@ describe('http driver', () => {
   });
 
   it('should receive local date-time', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testReceiveSingleValueWithHttpDriver(
       'RETURN localdatetime({year: 2032, month: 5, day: 17, hour: 13, minute: 56, second: 51, nanosecond: 999888111})',
       '2032-05-17T13:56:51.999888111',
@@ -360,6 +440,11 @@ describe('http driver', () => {
   });
 
   it('should receive local time', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testReceiveSingleValueWithHttpDriver(
       'RETURN localtime({hour: 17, minute: 2, second: 21, nanosecond: 123456789})',
       '17:02:21.123456789',
@@ -367,6 +452,11 @@ describe('http driver', () => {
   });
 
   it('should receive time', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
     testReceiveSingleValueWithHttpDriver(
       'RETURN time({hour: 21, minute: 19, second: 1, nanosecond: 111, timezone: "+03:15"})',
       '21:19:01.000000111+03:15',
