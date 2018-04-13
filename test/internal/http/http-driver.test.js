@@ -324,6 +324,65 @@ describe('http driver', () => {
     ], done);
   });
 
+  it('should receive date', done => {
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN date({year: 2019, month: 9, day: 28})',
+      '2019-09-28',
+      done);
+  });
+
+  it('should receive date-time with time zone id', done => {
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN datetime({year: 1976, month: 11, day: 1, hour: 19, minute: 20, second: 55, nanosecond: 999111, timezone: "UTC"})',
+      '1976-11-01T19:20:55.000999111Z[UTC]',
+      done);
+  });
+
+  it('should receive date-time with time zone name', done => {
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN datetime({year: 2012, month: 12, day: 12, hour: 1, minute: 9, second: 2, nanosecond: 123, timezone: "-08:30"})',
+      '2012-12-12T01:09:02.000000123-08:30',
+      done);
+  });
+
+  it('should receive duration', done => {
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN duration({months: 3, days: 35, seconds: 19, nanoseconds: 937139})',
+      'P3M35DT19.000937139S',
+      done);
+  });
+
+  it('should receive local date-time', done => {
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN localdatetime({year: 2032, month: 5, day: 17, hour: 13, minute: 56, second: 51, nanosecond: 999888111})',
+      '2032-05-17T13:56:51.999888111',
+      done);
+  });
+
+  it('should receive local time', done => {
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN localtime({hour: 17, minute: 2, second: 21, nanosecond: 123456789})',
+      '17:02:21.123456789',
+      done);
+  });
+
+  it('should receive time', done => {
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN time({hour: 21, minute: 19, second: 1, nanosecond: 111, timezone: "+03:15"})',
+      '21:19:01.000000111+03:15',
+      done);
+  });
+
+  function testReceiveSingleValueWithHttpDriver(query, expectedValue, done) {
+    runQueryAndGetResults(query, {}, httpDriver).then(results => {
+      const receivedValue = results[0][0];
+      expect(expectedValue).toEqual(receivedValue);
+      done();
+    }).catch(error => {
+      done.fail(error);
+    });
+  }
+
   function testSendAndReceiveWithReturnQuery(values, done) {
     const query = 'RETURN $value';
 
