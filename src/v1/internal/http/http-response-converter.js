@@ -21,6 +21,7 @@ import {isInt} from '../../integer';
 import {Node, Path, PathSegment, Relationship} from '../../graph-types';
 import {Neo4jError, PROTOCOL_ERROR} from '../../error';
 import {isPoint, Point} from '../../spatial-types';
+import {isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime} from '../../temporal-types';
 
 const CREDENTIALS_EXPIRED_CODE = 'Neo.ClientError.Security.CredentialsExpired';
 
@@ -145,6 +146,18 @@ function encodeQueryParameter(value) {
     throw new Neo4jError('It is not allowed to pass paths in query parameters', PROTOCOL_ERROR);
   } else if (isPoint(value)) {
     throw newUnsupportedParameterError('points');
+  } else if (isDate(value)) {
+    throw newUnsupportedParameterError('dates');
+  } else if (isDateTime(value)) {
+    throw newUnsupportedParameterError('date-time');
+  } else if (isDuration(value)) {
+    throw newUnsupportedParameterError('durations');
+  } else if (isLocalDateTime(value)) {
+    throw newUnsupportedParameterError('local date-time');
+  } else if (isLocalTime(value)) {
+    throw newUnsupportedParameterError('local time');
+  } else if (isTime(value)) {
+    throw newUnsupportedParameterError('time');
   } else if (isInt(value)) {
     return value.toNumber();
   } else if (Array.isArray(value)) {

@@ -287,12 +287,40 @@ describe('http driver', () => {
     testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Path(node1, node2, []), done);
   });
 
+  it('should fail to pass point as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Point(neo4j.int(42), 1, 2, 3), done);
+  });
+
+  it('should fail to pass date as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Date(2000, 10, 12), done);
+  });
+
+  it('should fail to pass date-time as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.DateTime(2000, 10, 12, 12, 12, 0, 0, 0, null), done);
+  });
+
+  it('should fail to pass duration as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Duration(1, 1, 1, 1), done);
+  });
+
+  it('should fail to pass local date-time as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalDateTime(2000, 10, 12, 10, 10, 10), done);
+  });
+
+  it('should fail to pass local time as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalTime(12, 12, 12, 0), done);
+  });
+
+  it('should fail to pass time as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Time(12, 12, 12, 0, 0), done);
+  });
+
   it('should receive points', done => {
     testReceivingOfResults([
       'RETURN point({x: 42.341, y: 125.0})',
       'RETURN point({x: 13.2, y: 22.2, z: 33.3})',
       'RETURN point({x: 92.3, y: 71.2, z: 2.12345, crs: "wgs-84-3d"})',
-      'RETURN point({longitude: 56.7, latitude: 12.78})',
+      'RETURN point({longitude: 56.7, latitude: 12.78})'
     ], done);
   });
 
