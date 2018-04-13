@@ -273,6 +273,29 @@ describe('http driver', () => {
     });
   }, 20000);
 
+  it('should fail to pass node as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Node(neo4j.int(1), ['Person'], {name: 'Bob'}), done);
+  });
+
+  it('should fail to pass relationship as a query parameter', done => {
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Relationship(neo4j.int(1), neo4j.int(2), neo4j.int(3), 'KNOWS', {since: 42}), done);
+  });
+
+  it('should fail to pass path as a query parameter', done => {
+    const node1 = new neo4j.types.Node(neo4j.int(1), ['Person'], {name: 'Alice'});
+    const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], {name: 'Bob'});
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Path(node1, node2, []), done);
+  });
+
+  it('should receive points', done => {
+    testReceivingOfResults([
+      'RETURN point({x: 42.341, y: 125.0})',
+      'RETURN point({x: 13.2, y: 22.2, z: 33.3})',
+      'RETURN point({x: 92.3, y: 71.2, z: 2.12345, crs: "wgs-84-3d"})',
+      'RETURN point({longitude: 56.7, latitude: 12.78})',
+    ], done);
+  });
+
   function testSendAndReceiveWithReturnQuery(values, done) {
     const query = 'RETURN $value';
 
@@ -334,6 +357,19 @@ describe('http driver', () => {
     return session.writeTransaction(tx => {
       queries.forEach(query => tx.run(query));
       return null;
+    });
+  }
+
+  function testUnsupportedQueryParameterWithHttpDriver(value, done) {
+    const session = httpDriver.session();
+    session.run('RETURN $value', {value: value}).then(() => {
+      done.fail('Should not be possible to send ' + value);
+    }).catch(error => {
+      expect(error.name).toEqual('Neo4jError');
+      expect(error.code).toEqual(neo4j.error.PROTOCOL_ERROR);
+      session.close(() => {
+        done();
+      });
     });
   }
 
