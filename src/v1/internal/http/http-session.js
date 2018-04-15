@@ -27,11 +27,13 @@ import Result from '../../result';
 
 export default class HttpSession extends Session {
 
-  constructor(url, authToken, config) {
+  constructor(url, authToken, config, sessionTracker) {
     super(WRITE, null, null, config);
     this._ongoingTransactionIds = [];
     this._serverInfoSupplier = createServerInfoSupplier(url);
     this._requestRunner = new HttpRequestRunner(url, authToken);
+    this._sessionTracker = sessionTracker;
+    this._sessionTracker.sessionOpened(this);
   }
 
   run(statement, parameters = {}) {
@@ -79,7 +81,11 @@ export default class HttpSession extends Session {
       rollbackTransactionSilently(transactionId, this._requestRunner)
     );
 
-    Promise.all(rollbackAllOngoingTransactions).then(() => callback());
+    Promise.all(rollbackAllOngoingTransactions)
+      .then(() => {
+        this._sessionTracker.sessionClosed(this);
+        callback();
+      });
   }
 }
 

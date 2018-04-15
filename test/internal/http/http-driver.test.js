@@ -463,6 +463,28 @@ describe('http driver', () => {
       done);
   });
 
+  it('should close all open sessions when closed', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    const session1 = withFakeClose(httpDriver.session());
+    const session2 = withFakeClose(httpDriver.session());
+    const session3 = withFakeClose(httpDriver.session());
+
+    expect(session1.closed).toBeFalsy();
+    expect(session2.closed).toBeFalsy();
+    expect(session3.closed).toBeFalsy();
+
+    httpDriver.close().then(() => {
+      expect(session1.closed).toBeTruthy();
+      expect(session2.closed).toBeTruthy();
+      expect(session3.closed).toBeTruthy();
+      done();
+    });
+  });
+
   function testReceiveSingleValueWithHttpDriver(query, expectedValue, done) {
     runQueryAndGetResults(query, {}, httpDriver).then(results => {
       const receivedValue = results[0][0];
@@ -556,6 +578,16 @@ describe('http driver', () => {
 
   function databaseSupportsSpatialAndTemporalTypes() {
     return serverVersion.compareTo(VERSION_3_4_0) >= 0;
+  }
+
+  function withFakeClose(httpSession) {
+    httpSession.closed = false;
+    const originalClose = httpSession.close.bind(httpSession);
+    httpSession.close = callback => {
+      httpSession.closed = true;
+      originalClose(callback);
+    };
+    return httpSession;
   }
 
 });

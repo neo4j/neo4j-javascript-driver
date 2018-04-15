@@ -19,30 +19,20 @@
 
 import Driver from '../../driver';
 import HttpSession from './http-session';
+import HttpSessionTracker from './http-session-tracker';
 
 export default class HttpDriver extends Driver {
 
   constructor(url, userAgent, token, config) {
     super(url, userAgent, token, config);
-    this._sessionIdGenerator = 0;
-    this._openSessions = {};
+    this._sessionTracker = new HttpSessionTracker();
   }
 
   session() {
-    const id = this._sessionIdGenerator;
-    this._sessionIdGenerator++;
-    const session = new HttpSession(this._url, this._token, this._config);
-    this._openSessions[id] = session;
-    return session;
+    return new HttpSession(this._url, this._token, this._config, this._sessionTracker);
   }
 
   close() {
-    Object.keys(this._openSessions).forEach(id => {
-      const session = this._openSessions[id];
-      if (session) {
-        session.close();
-      }
-      delete this._openSessions[id];
-    });
+    return this._sessionTracker.close();
   }
 }
