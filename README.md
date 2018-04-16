@@ -181,7 +181,7 @@ tx.run("MERGE (bob:Person {name : {nameParam} }) RETURN bob.name AS name", {name
       console.log(record.get('name'));
     },
     onCompleted: function () {
-      session.close();
+      console.log('First query completed');
     },
     onError: function (error) {
       console.log(error);
@@ -194,7 +194,7 @@ tx.run("MERGE (adam:Person {name : {nameParam} }) RETURN adam.name AS name", {na
       console.log(record.get('name'));
     },
     onCompleted: function () {
-      session.close();
+      console.log('Second query completed');
     },
     onError: function (error) {
       console.log(error);
@@ -208,7 +208,8 @@ if (success) {
   tx.commit()
     .subscribe({
       onCompleted: function () {
-        // this transaction is now committed 
+        // this transaction is now committed and session can be closed
+        session.close();
       },
       onError: function (error) {
         console.log(error);
