@@ -20,7 +20,7 @@ import StreamObserver from './internal/stream-observer';
 import Result from './result';
 import Transaction from './transaction';
 import {newError} from './error';
-import {assertCypherStatement} from './internal/util';
+import {validateStatementAndParameters} from './internal/util';
 import ConnectionHolder from './internal/connection-holder';
 import Driver, {READ, WRITE} from './driver';
 import TransactionExecutor from './internal/transaction-executor';
@@ -60,14 +60,10 @@ class Session {
    * @return {Result} - New Result
    */
   run(statement, parameters = {}) {
-    if (typeof statement === 'object' && statement.text) {
-      parameters = statement.parameters || {};
-      statement = statement.text;
-    }
-    assertCypherStatement(statement);
+    const {query, params} = validateStatementAndParameters(statement, parameters);
 
-    return this._run(statement, parameters, (connection, streamObserver) =>
-      connection.run(statement, parameters, streamObserver)
+    return this._run(query, params, (connection, streamObserver) =>
+      connection.run(query, params, streamObserver)
     );
   }
 

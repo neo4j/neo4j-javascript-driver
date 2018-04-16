@@ -509,6 +509,16 @@ describe('transaction', () => {
     testConnectionTimeout(true, done);
   });
 
+  it('should fail for invalid query parameters', done => {
+    const tx = session.beginTransaction();
+
+    expect(() => tx.run('RETURN $value', 'Hello')).toThrowError(TypeError);
+    expect(() => tx.run('RETURN $value', 12345)).toThrowError(TypeError);
+    expect(() => tx.run('RETURN $value', () => 'Hello')).toThrowError(TypeError);
+
+    tx.rollback().then(() => done());
+  });
+
   function expectSyntaxError(error) {
     expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError');
   }

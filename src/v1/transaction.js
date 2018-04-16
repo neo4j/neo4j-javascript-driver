@@ -18,7 +18,7 @@
  */
 import StreamObserver from './internal/stream-observer';
 import Result from './result';
-import {assertCypherStatement} from './internal/util';
+import {validateStatementAndParameters} from './internal/util';
 import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
 import Bookmark from './internal/bookmark';
 
@@ -60,13 +60,9 @@ class Transaction {
    * @return {Result} New Result
    */
   run(statement, parameters) {
-    if(typeof statement === 'object' && statement.text) {
-      parameters = statement.parameters || {};
-      statement = statement.text;
-    }
-    assertCypherStatement(statement);
+    const {query, params} = validateStatementAndParameters(statement, parameters);
 
-    return this._state.run(this._connectionHolder,  new _TransactionStreamObserver(this), statement, parameters);
+    return this._state.run(this._connectionHolder, new _TransactionStreamObserver(this), query, params);
   }
 
   /**

@@ -1072,6 +1072,26 @@ describe('session', () => {
     });
   });
 
+  it('should fail for invalid query parameters', () => {
+    expect(() => session.run('RETURN $value', '42')).toThrowError(TypeError);
+    expect(() => session.run('RETURN $value', 42)).toThrowError(TypeError);
+    expect(() => session.run('RETURN $value', () => 42)).toThrowError(TypeError);
+  });
+
+  it('should fail to pass node as a query parameter', done => {
+    testUnsupportedQueryParameter(new neo4j.types.Node(neo4j.int(1), ['Person'], {name: 'Bob'}), done);
+  });
+
+  it('should fail to pass relationship as a query parameter', done => {
+    testUnsupportedQueryParameter(new neo4j.types.Relationship(neo4j.int(1), neo4j.int(2), neo4j.int(3), 'KNOWS', {since: 42}), done);
+  });
+
+  it('should fail to pass path as a query parameter', done => {
+    const node1 = new neo4j.types.Node(neo4j.int(1), ['Person'], {name: 'Alice'});
+    const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], {name: 'Bob'});
+    testUnsupportedQueryParameter(new neo4j.types.Path(node1, node2, []), done);
+  });
+
   function serverIs31OrLater(done) {
     if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
       done();
@@ -1172,6 +1192,16 @@ describe('session', () => {
         expect(error.message).toEqual('Failed to establish connection in 1000ms');
       }
 
+      done();
+    });
+  }
+
+  function testUnsupportedQueryParameter(value, done) {
+    session.run('RETURN $value', {value: value}).then(() => {
+      done.fail(`Should not be possible to send ${value.constructor.name} ${value} as a query parameter`);
+    }).catch(error => {
+      expect(error.name).toEqual('Neo4jError');
+      expect(error.code).toEqual(neo4j.error.PROTOCOL_ERROR);
       done();
     });
   }

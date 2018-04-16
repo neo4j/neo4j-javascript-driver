@@ -19,7 +19,7 @@
 
 import {WRITE} from '../../driver';
 import Session from '../../session';
-import {assertCypherStatement} from '../util';
+import {validateStatementAndParameters} from '../util';
 import {Neo4jError} from '../../error';
 import HttpRequestRunner from './http-request-runner';
 import {EMPTY_CONNECTION_HOLDER} from '../connection-holder';
@@ -37,15 +37,11 @@ export default class HttpSession extends Session {
   }
 
   run(statement, parameters = {}) {
-    if (typeof statement === 'object' && statement.text) {
-      parameters = statement.parameters || {};
-      statement = statement.text;
-    }
-    assertCypherStatement(statement);
+    const {query, params} = validateStatementAndParameters(statement, parameters);
 
     return this._requestRunner.beginTransaction().then(transactionId => {
       this._ongoingTransactionIds.push(transactionId);
-      const queryPromise = this._requestRunner.runQuery(transactionId, statement, parameters);
+      const queryPromise = this._requestRunner.runQuery(transactionId, query, params);
 
       return queryPromise.then(streamObserver => {
         if (streamObserver.hasFailed()) {
@@ -55,7 +51,7 @@ export default class HttpSession extends Session {
         }
       }).then(streamObserver => {
         this._ongoingTransactionIds = this._ongoingTransactionIds.filter(id => id !== transactionId);
-        return new Result(streamObserver, statement, parameters, this._serverInfoSupplier, EMPTY_CONNECTION_HOLDER);
+        return new Result(streamObserver, query, params, this._serverInfoSupplier, EMPTY_CONNECTION_HOLDER);
       });
     });
   }
