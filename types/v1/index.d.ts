@@ -83,6 +83,19 @@ declare const integer: {
   inSafeRange: typeof inSafeRange;
 };
 
+declare const spatial: {
+  isPoint: typeof isPoint;
+};
+
+declare const temporal: {
+  isDuration: typeof isDuration;
+  isLocalTime: typeof isLocalTime;
+  isTime: typeof isTime;
+  isDate: typeof isDate;
+  isLocalDateTime: typeof isLocalDateTime;
+  isDateTime: typeof isDateTime;
+};
+
 /*
  Both default and non-default exports declare all visible types so that they can be used in client code like this:
 
@@ -101,6 +114,8 @@ declare const forExport: {
   types: typeof types;
   session: typeof session;
   error: typeof error;
+  spatial: typeof spatial;
+  temporal: typeof temporal;
   Driver: Driver;
   AuthToken: AuthToken;
   Config: Config;
@@ -152,6 +167,8 @@ export {
   types,
   session,
   error,
+  spatial,
+  temporal,
   Driver,
   AuthToken,
   Config,
