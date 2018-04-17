@@ -39,6 +39,16 @@ export class Point {
     this.z = z;
     Object.freeze(this);
   }
+
+  toString() {
+    return this.z || this.z === 0
+      ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(this.x)}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
+      : `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(this.x)}, y=${formatAsFloat(this.y)}}`;
+  }
+}
+
+function formatAsFloat(number) {
+  return Number.isInteger(number) ? number + '.0' : number.toString();
 }
 
 Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
