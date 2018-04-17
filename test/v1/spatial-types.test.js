@@ -190,6 +190,26 @@ describe('spatial-types', () => {
     testSendingAndReceivingOfPoints(done, new Point(CARTESIAN_3D_CRS_CODE.toNumber(), 12.87, 13.89, 14.901));
   });
 
+  it('should convert points to string', () => {
+    const point1 = new Point(CARTESIAN_3D_CRS_CODE, 19.24, 100.29, 20.22222);
+    expect(point1.toString()).toEqual('Point{srid=9157, x=19.24, y=100.29, z=20.22222}');
+
+    const point2 = new Point(WGS_84_2D_CRS_CODE, 1.00005, 2.00006);
+    expect(point2.toString()).toEqual('Point{srid=4326, x=1.00005, y=2.00006}');
+
+    const point3 = new Point(WGS_84_3D_CRS_CODE, 1.111, 2.222, 0.0);
+    expect(point3.toString()).toEqual('Point{srid=4979, x=1.111, y=2.222, z=0.0}');
+
+    const point4 = new Point(CARTESIAN_2D_CRS_CODE, 78.15, 92.2, null);
+    expect(point4.toString()).toEqual('Point{srid=7203, x=78.15, y=92.2}');
+
+    const point5 = new Point(WGS_84_2D_CRS_CODE, 123.9, 64.5, undefined);
+    expect(point5.toString()).toEqual('Point{srid=4326, x=123.9, y=64.5}');
+
+    const point6 = new Point(CARTESIAN_2D_CRS_CODE, 23.9378123, 67.3891, Number.NaN);
+    expect(point6.toString()).toEqual('Point{srid=7203, x=23.9378123, y=67.3891}');
+  });
+
   function testReceivingOfPoints(done, query, pointChecker) {
     if (neo4jDoesNotSupportPoints(done)) {
       return;
