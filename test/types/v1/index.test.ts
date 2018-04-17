@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import v1, {auth, AuthToken, Config, driver, error, session} from "../../../types/v1/index";
+import v1, {auth, AuthToken, Config, driver, error, session, spatial, temporal} from "../../../types/v1/index";
 
 import Driver from "../../../types/v1/driver";
 
@@ -63,3 +63,10 @@ const serviceUnavailable2: string = v1.error.SERVICE_UNAVAILABLE;
 const sessionExpired2: string = v1.error.SESSION_EXPIRED;
 const protocolError2: string = v1.error.PROTOCOL_ERROR;
 
+const isNeo4jPoint: boolean = spatial.isPoint({});
+const isNeo4jDate: boolean = temporal.isDate({});
+const isNeo4jDateTime: boolean = temporal.isDateTime({});
+const isNeo4jDuration: boolean = temporal.isDuration({});
+const isNeo4jLocalDateTime: boolean = temporal.isLocalDateTime({});
+const isNeo4jLocalTime: boolean = temporal.isLocalTime({});
+const isNeo4jTime: boolean = temporal.isTime({});

@@ -235,7 +235,7 @@ const error = {
 };
 
 /**
- * Object containing functions for work with {@link Integer} objects.
+ * Object containing functions to work with {@link Integer} objects.
  */
 const integer = {
   toNumber,
@@ -244,26 +244,16 @@ const integer = {
 };
 
 /**
- * @private
+ * Object containing functions to work with spatial types, like {@link Point}.
  */
-const forExport = {
-  driver,
-  int,
-  isInt,
-  integer,
-  Neo4jError,
-  auth,
-  types,
-  session,
-  error,
-  Point,
-  isPoint,
-  Date,
-  DateTime,
-  Duration,
-  LocalDateTime,
-  LocalTime,
-  Time,
+const spatial = {
+  isPoint
+};
+
+/**
+ * Object containing functions to work with temporal types, like {@link Time} or {@link Duration}.
+ */
+const temporal = {
   isDuration,
   isLocalTime,
   isTime,
@@ -272,29 +262,49 @@ const forExport = {
   isDateTime
 };
 
-export {
+
+/**
+ * @private
+ */
+const forExport = {
   driver,
   int,
   isInt,
+  isPoint,
+  isDuration,
+  isLocalTime,
+  isTime,
+  isDate,
+  isLocalDateTime,
+  isDateTime,
   integer,
   Neo4jError,
   auth,
   types,
   session,
   error,
-  Point,
+  spatial,
+  temporal
+};
+
+export {
+  driver,
+  int,
+  isInt,
   isPoint,
-  Date,
-  DateTime,
-  Duration,
-  LocalDateTime,
-  LocalTime,
-  Time,
   isDuration,
   isLocalTime,
   isTime,
   isDate,
   isLocalDateTime,
-  isDateTime
+  isDateTime,
+  integer,
+  Neo4jError,
+  auth,
+  types,
+  session,
+  error,
+  spatial,
+  temporal
 };
 export default forExport;

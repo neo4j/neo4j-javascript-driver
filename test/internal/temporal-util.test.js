@@ -19,8 +19,7 @@
 
 import {int} from '../../src/v1/integer';
 import * as util from '../../src/v1/internal/temporal-util';
-import {Date} from '../../src/v1/temporal-types';
-import {LocalDateTime, LocalTime} from '../../src/v1';
+import {types} from '../../src/v1';
 
 describe('temporal-util', () => {
 
@@ -120,13 +119,13 @@ describe('temporal-util', () => {
 });
 
 function date(year, month, day) {
-  return new Date(int(year), int(month), int(day));
+  return new types.Date(int(year), int(month), int(day));
 }
 
 function localTime(hour, minute, second, nanosecond) {
-  return new LocalTime(int(hour), int(minute), int(second), int(nanosecond));
+  return new types.LocalTime(int(hour), int(minute), int(second), int(nanosecond));
 }
 
 function localDateTime(year, month, day, hour, minute, second, nanosecond) {
-  return new LocalDateTime(int(year), int(month), int(day), int(hour), int(minute), int(second), int(nanosecond));
+  return new types.LocalDateTime(int(year), int(month), int(day), int(hour), int(minute), int(second), int(nanosecond));
 }
