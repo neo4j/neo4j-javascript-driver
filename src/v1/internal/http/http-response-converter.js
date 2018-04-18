@@ -19,23 +19,16 @@
 
 import {isInt} from '../../integer';
 import {Node, Path, PathSegment, Relationship} from '../../graph-types';
-import {Neo4jError, SERVICE_UNAVAILABLE} from '../../error';
+import {Neo4jError, PROTOCOL_ERROR} from '../../error';
+import {isPoint, Point} from '../../spatial-types';
+import {isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime} from '../../temporal-types';
 
 const CREDENTIALS_EXPIRED_CODE = 'Neo.ClientError.Security.CredentialsExpired';
 
-export default class HttpDataConverter {
+export default class HttpResponseConverter {
 
   encodeStatementParameters(parameters) {
     return encodeQueryParameters(parameters);
-  }
-
-  /**
-   * Convert network error to a {@link Neo4jError}.
-   * @param {object} error the error to convert.
-   * @return {Neo4jError} new driver friendly error.
-   */
-  convertNetworkError(error) {
-    return new Neo4jError(error.message, SERVICE_UNAVAILABLE);
   }
 
   /**
@@ -57,6 +50,25 @@ export default class HttpDataConverter {
       }
     }
     return null;
+  }
+
+  /**
+   * Extracts transaction id from the db/data/transaction endpoint response.
+   * @param {object} response the response.
+   * @return {number} the transaction id.
+   */
+  extractTransactionId(response) {
+    const commitUrl = response.commit;
+    if (commitUrl) {
+      // extract id 42 from commit url like 'http://localhost:7474/db/data/transaction/42/commit'
+      const url = commitUrl.replace('/commit', '');
+      const transactionIdString = url.substring(url.lastIndexOf('/') + 1);
+      const transactionId = parseInt(transactionIdString, 10);
+      if (transactionId || transactionId === 0) {
+        return transactionId;
+      }
+    }
+    throw new Neo4jError(`Unable to extract transaction id from the response JSON: ${JSON.stringify(response)}`);
   }
 
   /**
@@ -127,11 +139,25 @@ function encodeQueryParameters(parameters) {
 
 function encodeQueryParameter(value) {
   if (value instanceof Node) {
-    throw new Neo4jError('It is not allowed to pass nodes in query parameters');
+    throw new Neo4jError('It is not allowed to pass nodes in query parameters', PROTOCOL_ERROR);
   } else if (value instanceof Relationship) {
-    throw new Neo4jError('It is not allowed to pass relationships in query parameters');
+    throw new Neo4jError('It is not allowed to pass relationships in query parameters', PROTOCOL_ERROR);
   } else if (value instanceof Path) {
-    throw new Neo4jError('It is not allowed to pass paths in query parameters');
+    throw new Neo4jError('It is not allowed to pass paths in query parameters', PROTOCOL_ERROR);
+  } else if (isPoint(value)) {
+    throw newUnsupportedParameterError('points');
+  } else if (isDate(value)) {
+    throw newUnsupportedParameterError('dates');
+  } else if (isDateTime(value)) {
+    throw newUnsupportedParameterError('date-time');
+  } else if (isDuration(value)) {
+    throw newUnsupportedParameterError('durations');
+  } else if (isLocalDateTime(value)) {
+    throw newUnsupportedParameterError('local date-time');
+  } else if (isLocalTime(value)) {
+    throw newUnsupportedParameterError('local time');
+  } else if (isTime(value)) {
+    throw newUnsupportedParameterError('time');
   } else if (isInt(value)) {
     return value.toNumber();
   } else if (Array.isArray(value)) {
@@ -141,6 +167,11 @@ function encodeQueryParameter(value) {
   } else {
     return value;
   }
+}
+
+function newUnsupportedParameterError(name) {
+  return new Neo4jError(`It is not allowed to pass ${name} in query parameters when using HTTP endpoint. ` +
+    `Please consider using Cypher functions to create ${name} so that query parameters are plain objects.`, PROTOCOL_ERROR);
 }
 
 function extractResult(response) {
@@ -212,23 +243,25 @@ function extractRawRecordElement(index, data, nodesById, relationshipsById) {
   const elementMetadata = data.meta ? data.meta[index] : null;
 
   if (elementMetadata) {
-    // element is either a Node, Relationship or Path
-    return convertComplexValue(elementMetadata, nodesById, relationshipsById);
+    // element is either a graph, spatial or temporal type
+    return convertComplexValue(element, elementMetadata, nodesById, relationshipsById);
   } else {
     // element is a primitive, like number, string, array or object
     return convertPrimitiveValue(element);
   }
 }
 
-function convertComplexValue(elementMetadata, nodesById, relationshipsById) {
+function convertComplexValue(element, elementMetadata, nodesById, relationshipsById) {
   if (isNodeMetadata(elementMetadata)) {
     return nodesById[elementMetadata.id];
   } else if (isRelationshipMetadata(elementMetadata)) {
     return relationshipsById[elementMetadata.id];
   } else if (isPathMetadata(elementMetadata)) {
     return convertPath(elementMetadata, nodesById, relationshipsById);
+  } else if (isPointMetadata(elementMetadata)) {
+    return convertPoint(element);
   } else {
-    return null;
+    return element;
   }
 }
 
@@ -285,6 +318,42 @@ function createPath(pathSegments) {
   return new Path(pathStartNode, pathEndNode, pathSegments);
 }
 
+function convertPoint(element) {
+  const type = element.type;
+  if (type !== 'Point') {
+    throw new Neo4jError(`Unexpected Point type received: ${JSON.stringify(element)}`);
+  }
+
+  const coordinates = element.coordinates;
+  if (!Array.isArray(coordinates) && (coordinates.length !== 2 || coordinates.length !== 3)) {
+    throw new Neo4jError(`Unexpected Point coordinates received: ${JSON.stringify(element)}`);
+  }
+
+  const srid = convertCrsToId(element);
+
+  return new Point(srid, ...coordinates);
+}
+
+function convertCrsToId(element) {
+  const crs = element.crs;
+  if (!crs || !crs.name) {
+    throw new Neo4jError(`Unexpected Point crs received: ${JSON.stringify(element)}`);
+  }
+  const name = crs.name.toLowerCase();
+
+  if (name === 'wgs-84') {
+    return 4326;
+  } else if (name === 'wgs-84-3d') {
+    return 4979;
+  } else if (name === 'cartesian') {
+    return 7203;
+  } else if (name === 'cartesian-3d') {
+    return 9157;
+  } else {
+    throw new Neo4jError(`Unexpected Point crs received: ${JSON.stringify(element)}`);
+  }
+}
+
 function convertPrimitiveValue(element) {
   if (element == null || element === undefined) {
     return null;
@@ -307,11 +376,19 @@ function convertNumber(value) {
 }
 
 function isNodeMetadata(metadata) {
-  return !Array.isArray(metadata) && typeof metadata === 'object' && metadata.type === 'node';
+  return isMetadataForType('node', metadata);
 }
 
 function isRelationshipMetadata(metadata) {
-  return !Array.isArray(metadata) && typeof metadata === 'object' && metadata.type === 'relationship';
+  return isMetadataForType('relationship', metadata);
+}
+
+function isPointMetadata(metadata) {
+  return isMetadataForType('point', metadata);
+}
+
+function isMetadataForType(name, metadata) {
+  return !Array.isArray(metadata) && typeof metadata === 'object' && metadata.type === name;
 }
 
 function isPathMetadata(metadata) {

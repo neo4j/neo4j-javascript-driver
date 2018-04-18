@@ -17,21 +17,24 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
-import sharedNeo4j from '../internal/shared-neo4j';
-import testUtils from './test-utils';
+import neo4j from '../../../src/v1';
+import sharedNeo4j from '../../internal/shared-neo4j';
+import testUtils from '.././test-utils';
+import {ServerVersion, VERSION_3_1_0, VERSION_3_4_0} from '../../../src/v1/internal/server-version';
 
 describe('http driver', () => {
 
   let boltDriver;
   let httpDriver;
+  let serverVersion;
 
   beforeEach(done => {
     boltDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
     httpDriver = neo4j.driver('http://localhost:7474', sharedNeo4j.authToken);
 
     const session = boltDriver.session();
-    session.run('MATCH (n) DETACH DELETE n').then(() => {
+    session.run('MATCH (n) DETACH DELETE n').then(result => {
+      serverVersion = ServerVersion.fromString(result.summary.server.version);
       session.close(() => {
         done();
       });
@@ -240,6 +243,258 @@ describe('http driver', () => {
     });
   });
 
+  it('should terminate query waiting on a lock when session is closed', done => {
+    if (testUtils.isServer() || !databaseSupportsTransactionTerminationInLocks()) {
+      done();
+      return;
+    }
+
+    const boltSession = boltDriver.session();
+    boltSession.run(`CREATE (:Node {name: 'foo'})`).then(() => {
+      const boltTx = boltSession.beginTransaction();
+      boltTx.run(`MATCH (n:Node {name: 'foo'}) SET n.name = 'bar'`).then(() => {
+        // node should now be locked
+
+        const httpSession = httpDriver.session();
+        httpSession.run(`MATCH (n:Node {name: 'foo'}) SET n.name = 'baz'`).then(() => {
+          boltSession.close(() => done.fail('HTTP query was successful but failure expected'));
+        }).catch(error => {
+          expect(error.name).toEqual('Neo4jError');
+          expect(error.code).toEqual('Neo.DatabaseError.Statement.ExecutionFailed');
+          expect(error.message.indexOf('transaction has been terminated')).not.toBeLessThan(0);
+          boltSession.close(() => done());
+        });
+
+        setTimeout(() => {
+          httpSession.close();
+        }, 2000);
+
+      });
+    });
+  }, 20000);
+
+  it('should fail to pass node as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Node(neo4j.int(1), ['Person'], {name: 'Bob'}), done);
+  });
+
+  it('should fail to pass relationship as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Relationship(neo4j.int(1), neo4j.int(2), neo4j.int(3), 'KNOWS', {since: 42}), done);
+  });
+
+  it('should fail to pass path as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    const node1 = new neo4j.types.Node(neo4j.int(1), ['Person'], {name: 'Alice'});
+    const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], {name: 'Bob'});
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Path(node1, node2, []), done);
+  });
+
+  it('should fail to pass point as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Point(neo4j.int(42), 1, 2, 3), done);
+  });
+
+  it('should fail to pass date as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Date(2000, 10, 12), done);
+  });
+
+  it('should fail to pass date-time as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.DateTime(2000, 10, 12, 12, 12, 0, 0, 0, null), done);
+  });
+
+  it('should fail to pass duration as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Duration(1, 1, 1, 1), done);
+  });
+
+  it('should fail to pass local date-time as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalDateTime(2000, 10, 12, 10, 10, 10), done);
+  });
+
+  it('should fail to pass local time as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalTime(12, 12, 12, 0), done);
+  });
+
+  it('should fail to pass time as a query parameter', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Time(12, 12, 12, 0, 0), done);
+  });
+
+  it('should receive points', done => {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
+      done();
+      return;
+    }
+
+    testReceivingOfResults([
+      'RETURN point({x: 42.341, y: 125.0})',
+      'RETURN point({x: 13.2, y: 22.2, z: 33.3})',
+      'RETURN point({x: 92.3, y: 71.2, z: 2.12345, crs: "wgs-84-3d"})',
+      'RETURN point({longitude: 56.7, latitude: 12.78})'
+    ], done);
+  });
+
+  it('should receive date', done => {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
+      done();
+      return;
+    }
+
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN date({year: 2019, month: 9, day: 28})',
+      '2019-09-28',
+      done);
+  });
+
+  it('should receive date-time with time zone id', done => {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
+      done();
+      return;
+    }
+
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN datetime({year: 1976, month: 11, day: 1, hour: 19, minute: 20, second: 55, nanosecond: 999111, timezone: "UTC"})',
+      '1976-11-01T19:20:55.000999111Z[UTC]',
+      done);
+  });
+
+  it('should receive date-time with time zone name', done => {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
+      done();
+      return;
+    }
+
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN datetime({year: 2012, month: 12, day: 12, hour: 1, minute: 9, second: 2, nanosecond: 123, timezone: "-08:30"})',
+      '2012-12-12T01:09:02.000000123-08:30',
+      done);
+  });
+
+  it('should receive duration', done => {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
+      done();
+      return;
+    }
+
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN duration({months: 3, days: 35, seconds: 19, nanoseconds: 937139})',
+      'P3M35DT19.000937139S',
+      done);
+  });
+
+  it('should receive local date-time', done => {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
+      done();
+      return;
+    }
+
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN localdatetime({year: 2032, month: 5, day: 17, hour: 13, minute: 56, second: 51, nanosecond: 999888111})',
+      '2032-05-17T13:56:51.999888111',
+      done);
+  });
+
+  it('should receive local time', done => {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
+      done();
+      return;
+    }
+
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN localtime({hour: 17, minute: 2, second: 21, nanosecond: 123456789})',
+      '17:02:21.123456789',
+      done);
+  });
+
+  it('should receive time', done => {
+    if (testUtils.isServer() || !databaseSupportsSpatialAndTemporalTypes()) {
+      done();
+      return;
+    }
+
+    testReceiveSingleValueWithHttpDriver(
+      'RETURN time({hour: 21, minute: 19, second: 1, nanosecond: 111, timezone: "+03:15"})',
+      '21:19:01.000000111+03:15',
+      done);
+  });
+
+  it('should close all open sessions when closed', done => {
+    if (testUtils.isServer()) {
+      done();
+      return;
+    }
+
+    const session1 = withFakeClose(httpDriver.session());
+    const session2 = withFakeClose(httpDriver.session());
+    const session3 = withFakeClose(httpDriver.session());
+
+    expect(session1.closed).toBeFalsy();
+    expect(session2.closed).toBeFalsy();
+    expect(session3.closed).toBeFalsy();
+
+    httpDriver.close().then(() => {
+      expect(session1.closed).toBeTruthy();
+      expect(session2.closed).toBeTruthy();
+      expect(session3.closed).toBeTruthy();
+      done();
+    });
+  });
+
+  function testReceiveSingleValueWithHttpDriver(query, expectedValue, done) {
+    runQueryAndGetResults(query, {}, httpDriver).then(results => {
+      const receivedValue = results[0][0];
+      expect(expectedValue).toEqual(receivedValue);
+      done();
+    }).catch(error => {
+      done.fail(error);
+    });
+  }
+
   function testSendAndReceiveWithReturnQuery(values, done) {
     const query = 'RETURN $value';
 
@@ -302,6 +557,37 @@ describe('http driver', () => {
       queries.forEach(query => tx.run(query));
       return null;
     });
+  }
+
+  function testUnsupportedQueryParameterWithHttpDriver(value, done) {
+    const session = httpDriver.session();
+    session.run('RETURN $value', {value: value}).then(() => {
+      done.fail('Should not be possible to send ' + value);
+    }).catch(error => {
+      expect(error.name).toEqual('Neo4jError');
+      expect(error.code).toEqual(neo4j.error.PROTOCOL_ERROR);
+      session.close(() => {
+        done();
+      });
+    });
+  }
+
+  function databaseSupportsTransactionTerminationInLocks() {
+    return serverVersion.compareTo(VERSION_3_1_0) >= 0;
+  }
+
+  function databaseSupportsSpatialAndTemporalTypes() {
+    return serverVersion.compareTo(VERSION_3_4_0) >= 0;
+  }
+
+  function withFakeClose(httpSession) {
+    httpSession.closed = false;
+    const originalClose = httpSession.close.bind(httpSession);
+    httpSession.close = callback => {
+      httpSession.closed = true;
+      originalClose(callback);
+    };
+    return httpSession;
   }
 
 });

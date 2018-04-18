@@ -21,13 +21,19 @@ import {WRITE} from '../../driver';
 import Session from '../../session';
 import {assertCypherStatement} from '../util';
 import {Neo4jError} from '../../error';
-import HttpStatementRunner from './http-statement-runner';
+import HttpRequestRunner from './http-request-runner';
+import {EMPTY_CONNECTION_HOLDER} from '../connection-holder';
+import Result from '../../result';
 
 export default class HttpSession extends Session {
 
-  constructor(url, authToken, config) {
+  constructor(url, authToken, config, sessionTracker) {
     super(WRITE, null, null, config);
-    this._statementRunner = new HttpStatementRunner(url, authToken);
+    this._ongoingTransactionIds = [];
+    this._serverInfoSupplier = createServerInfoSupplier(url);
+    this._requestRunner = new HttpRequestRunner(url, authToken);
+    this._sessionTracker = sessionTracker;
+    this._sessionTracker.sessionOpened(this);
   }
 
   run(statement, parameters = {}) {
@@ -37,7 +43,21 @@ export default class HttpSession extends Session {
     }
     assertCypherStatement(statement);
 
-    return this._statementRunner.run(statement, parameters);
+    return this._requestRunner.beginTransaction().then(transactionId => {
+      this._ongoingTransactionIds.push(transactionId);
+      const queryPromise = this._requestRunner.runQuery(transactionId, statement, parameters);
+
+      return queryPromise.then(streamObserver => {
+        if (streamObserver.hasFailed()) {
+          return rollbackTransactionAfterQueryFailure(transactionId, streamObserver, this._requestRunner);
+        } else {
+          return commitTransactionAfterQuerySuccess(transactionId, streamObserver, this._requestRunner);
+        }
+      }).then(streamObserver => {
+        this._ongoingTransactionIds = this._ongoingTransactionIds.filter(id => id !== transactionId);
+        return new Result(streamObserver, statement, parameters, this._serverInfoSupplier, EMPTY_CONNECTION_HOLDER);
+      });
+    });
   }
 
   beginTransaction() {
@@ -57,8 +77,40 @@ export default class HttpSession extends Session {
   }
 
   close(callback = (() => null)) {
-    callback();
+    const rollbackAllOngoingTransactions = this._ongoingTransactionIds.map(transactionId =>
+      rollbackTransactionSilently(transactionId, this._requestRunner)
+    );
+
+    Promise.all(rollbackAllOngoingTransactions)
+      .then(() => {
+        this._sessionTracker.sessionClosed(this);
+        callback();
+      });
   }
+}
+
+function rollbackTransactionAfterQueryFailure(transactionId, streamObserver, requestRunner) {
+  return rollbackTransactionSilently(transactionId, requestRunner).then(() => streamObserver);
+}
+
+function commitTransactionAfterQuerySuccess(transactionId, streamObserver, requestRunner) {
+  return requestRunner.commitTransaction(transactionId).catch(error => {
+    streamObserver.onError(error);
+  }).then(() => {
+    return streamObserver;
+  });
+}
+
+function rollbackTransactionSilently(transactionId, requestRunner) {
+  return requestRunner.rollbackTransaction(transactionId).catch(error => {
+    // ignore all rollback errors
+  });
+}
+
+function createServerInfoSupplier(url) {
+  return () => {
+    return {server: {address: url.hostAndPort}};
+  };
 }
 
 function throwTransactionsNotSupported() {
