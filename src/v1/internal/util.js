@@ -39,7 +39,7 @@ function isEmptyObjectOrNull(obj) {
 }
 
 function isObject(obj) {
-  return typeof obj === 'object' && !Array.isArray(obj) && Boolean(obj);
+  return typeof obj === 'object' && !Array.isArray(obj) && obj !== null;
 }
 
 /**
@@ -79,7 +79,7 @@ function assertCypherStatement(obj) {
 }
 
 function assertQueryParameters(obj) {
-  if (!isObject(obj) && Boolean(obj)) {
+  if (!isObject(obj)) {
     // objects created with `Object.create(null)` do not have a constructor property
     const constructor = obj.constructor ? ' ' + obj.constructor.name : '';
     throw new TypeError(`Query parameters are expected to either be undefined/null or an object, given:${constructor} ${obj}`);
