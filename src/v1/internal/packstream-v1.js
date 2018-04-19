@@ -129,6 +129,12 @@ class Packer {
       }
     } else if (isIterable(x)) {
       return this.packableIterable(x, onError);
+    } else if (x instanceof Node) {
+      return this._nonPackableValue(`It is not allowed to pass nodes in query parameters, given: ${x}`, onError);
+    } else if (x instanceof Relationship) {
+      return this._nonPackableValue(`It is not allowed to pass relationships in query parameters, given: ${x}`, onError);
+    } else if (x instanceof Path) {
+      return this._nonPackableValue(`It is not allowed to pass paths in query parameters, given: ${x}`, onError);
     } else if (x instanceof Structure) {
       var packableFields = [];
       for (var i = 0; i < x.fields.length; i++) {
@@ -155,10 +161,7 @@ class Packer {
         }
       };
     } else {
-      if (onError) {
-        onError(newError("Cannot pack this value: " + x));
-      }
-      return () => undefined;
+      return this._nonPackableValue(`Unable to pack the given value: ${x}`, onError);
     }
   }
 
@@ -333,6 +336,13 @@ class Packer {
 
   disableByteArrays() {
     this._byteArraysSupported = false;
+  }
+
+  _nonPackableValue(message, onError) {
+    if (onError) {
+      onError(newError(message, PROTOCOL_ERROR));
+    }
+    return () => undefined;
   }
 }
 

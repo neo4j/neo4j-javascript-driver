@@ -24,13 +24,12 @@ describe('util', () => {
   it('should check empty objects', () => {
     expect(util.isEmptyObjectOrNull(null)).toBeTruthy();
     expect(util.isEmptyObjectOrNull({})).toBeTruthy();
-    expect(util.isEmptyObjectOrNull([])).toBeTruthy();
+
+    expect(util.isEmptyObjectOrNull([])).toBeFalsy();
 
     const func = () => {
       return 42;
     };
-    expect(util.isEmptyObjectOrNull(func)).toBeTruthy();
-    func.foo = 'bar';
     expect(util.isEmptyObjectOrNull(func)).toBeFalsy();
 
     expect(util.isEmptyObjectOrNull()).toBeFalsy();
@@ -74,6 +73,26 @@ describe('util', () => {
     verifyInvalidCypherStatement(console.log);
   });
 
+  it('should check valid query parameters', () => {
+    verifyValidQueryParameters(null);
+    verifyValidQueryParameters(undefined);
+    verifyValidQueryParameters({});
+    verifyValidQueryParameters({a: 1, b: 2, c: 3});
+    verifyValidQueryParameters({foo: 'bar', baz: 'qux'});
+  });
+
+  it('should check invalid query parameters', () => {
+    verifyInvalidQueryParameters('parameter');
+    verifyInvalidQueryParameters(123);
+    verifyInvalidQueryParameters([]);
+    verifyInvalidQueryParameters([1, 2, 3]);
+    verifyInvalidQueryParameters([null]);
+    verifyInvalidQueryParameters(['1', '2', '3']);
+    verifyInvalidQueryParameters(() => [1, 2, 3]);
+    verifyInvalidQueryParameters(() => '');
+    verifyInvalidQueryParameters(() => null);
+  });
+
   function verifyValidString(str) {
     expect(util.assertString(str, 'Test string')).toBe(str);
   }
@@ -83,7 +102,15 @@ describe('util', () => {
   }
 
   function verifyInvalidCypherStatement(str) {
-    expect(() => util.assertCypherStatement(str)).toThrowError(TypeError);
+    expect(() => util.validateStatementAndParameters(str, {})).toThrowError(TypeError);
+  }
+
+  function verifyValidQueryParameters(obj) {
+    expect(() => util.validateStatementAndParameters('RETURN 1', obj)).not.toThrow();
+  }
+
+  function verifyInvalidQueryParameters(obj) {
+    expect(() => util.validateStatementAndParameters('RETURN 1', obj)).toThrowError(TypeError);
   }
 
 });

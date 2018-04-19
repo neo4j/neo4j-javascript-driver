@@ -39,8 +39,29 @@ function isEmptyObjectOrNull(obj) {
 }
 
 function isObject(obj) {
-  const type = typeof obj;
-  return type === 'function' || type === 'object' && Boolean(obj);
+  return typeof obj === 'object' && !Array.isArray(obj) && obj !== null;
+}
+
+/**
+ * Check and normalize given statement and parameters.
+ * @param {string|{text: string, parameters: object}} statement the statement to check.
+ * @param {object} parameters
+ * @return {{query: string, params: object}} the normalized query with parameters.
+ * @throws TypeError when either given query or parameters are invalid.
+ */
+function validateStatementAndParameters(statement, parameters) {
+  let query = statement;
+  let params = parameters || {};
+
+  if (typeof statement === 'object' && statement.text) {
+    query = statement.text;
+    params = statement.parameters || {};
+  }
+
+  assertCypherStatement(query);
+  assertQueryParameters(params);
+
+  return {query, params};
 }
 
 function assertString(obj, objName) {
@@ -52,10 +73,17 @@ function assertString(obj, objName) {
 
 function assertCypherStatement(obj) {
   assertString(obj, 'Cypher statement');
-  if (obj.trim().length == 0) {
+  if (obj.trim().length === 0) {
     throw new TypeError('Cypher statement is expected to be a non-empty string.');
   }
-  return obj;
+}
+
+function assertQueryParameters(obj) {
+  if (!isObject(obj)) {
+    // objects created with `Object.create(null)` do not have a constructor property
+    const constructor = obj.constructor ? ' ' + obj.constructor.name : '';
+    throw new TypeError(`Query parameters are expected to either be undefined/null or an object, given:${constructor} ${obj}`);
+  }
 }
 
 function isString(str) {
@@ -66,7 +94,7 @@ export {
   isEmptyObjectOrNull,
   isString,
   assertString,
-  assertCypherStatement,
+  validateStatementAndParameters,
   ENCRYPTION_ON,
   ENCRYPTION_OFF
 }
