@@ -166,7 +166,9 @@ describe('http driver', () => {
         `MATCH p=((:Person2)-[:KNOWS]-(:Person1)) RETURN p`,
         `MATCH p=((:Person3)-[:KNOWS]-(:Person4)-[:LIKES]-(:Person5)) RETURN p`,
         `MATCH p=((:Person3)-[*]-(:Person6)) RETURN p`,
-        `MATCH p=(()-[*]-()) RETURN p`,
+        `MATCH p=((:Person1)-[*]-()) RETURN p`,
+        `MATCH p=((:Person3)-[*]-()) RETURN p`,
+        `MATCH p=((:Person6)-[*]-()) RETURN p`
       ], done);
     });
   });
@@ -501,28 +503,29 @@ describe('http driver', () => {
     const boltResultsPromise = Promise.all(values.map(value => runQueryAndGetResults(query, {value: value}, boltDriver)));
     const httpResultsPromise = Promise.all(values.map(value => runQueryAndGetResults(query, {value: value}, httpDriver)));
 
-    assertResultsAreEqual(boltResultsPromise, httpResultsPromise, values.length, done);
+    assertResultsAreEqual(boltResultsPromise, httpResultsPromise, values, done);
   }
 
   function testReceivingOfResults(queries, done) {
     const boltResultsPromise = Promise.all(queries.map(query => runQueryAndGetResults(query, {}, boltDriver)));
     const httpResultsPromise = Promise.all(queries.map(query => runQueryAndGetResults(query, {}, httpDriver)));
 
-    assertResultsAreEqual(boltResultsPromise, httpResultsPromise, queries.length, done);
+    assertResultsAreEqual(boltResultsPromise, httpResultsPromise, queries, done);
   }
 
-  function assertResultsAreEqual(boltResultsPromise, httpResultsPromise, expectedLength, done) {
+  function assertResultsAreEqual(boltResultsPromise, httpResultsPromise, testInputs, done) {
     Promise.all([boltResultsPromise, httpResultsPromise]).then(results => {
       const boltResults = results[0];
       const httpResults = results[1];
 
-      expect(boltResults.length).toEqual(expectedLength);
-      expect(httpResults.length).toEqual(expectedLength);
+      expect(boltResults.length).toEqual(testInputs.length);
+      expect(httpResults.length).toEqual(testInputs.length);
 
-      for (let i = 0; i < expectedLength; i++) {
+      for (let i = 0; i < testInputs.length; i++) {
+        const testInput = testInputs[i];
         const boltResultRow = boltResults[i];
         const httpResultRow = httpResults[i];
-        expect(boltResultRow).toEqual(httpResultRow);
+        expect(boltResultRow).toEqual(httpResultRow, 'Failed for: ' + JSON.stringify(testInput));
       }
 
       done();
