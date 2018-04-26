@@ -52,7 +52,8 @@ describe('temporal-util', () => {
   });
 
   it('should convert time to ISO string', () => {
-    expect(util.timeToIsoString(8, 9, 1, 0)).toEqual('08:09:01.000000000');
+    expect(util.timeToIsoString(8, 9, 1, 0)).toEqual('08:09:01');
+    expect(util.timeToIsoString(1, 23, 45, 600000000)).toEqual('01:23:45.600000000');
     expect(util.timeToIsoString(int(2), int(4), int(6), int(7))).toEqual('02:04:06.000000007');
     expect(util.timeToIsoString(22, 19, 7, 999)).toEqual('22:19:07.000000999');
     expect(util.timeToIsoString(int(17), int(2), int(59), int(909090))).toEqual('17:02:59.000909090');
@@ -61,7 +62,7 @@ describe('temporal-util', () => {
   });
 
   it('should convert duration to ISO string', () => {
-    expect(util.durationToIsoString(0, 0, 0, 0)).toEqual('P0M0DT0.000000000S');
+    expect(util.durationToIsoString(0, 0, 0, 0)).toEqual('P0M0DT0S');
     expect(util.durationToIsoString(0, 0, 0, 123)).toEqual('P0M0DT0.000000123S');
     expect(util.durationToIsoString(11, 99, 100, 99901)).toEqual('P11M99DT100.000099901S');
     expect(util.durationToIsoString(int(3), int(9191), int(17), int(123456789))).toEqual('P3M9191DT17.123456789S');

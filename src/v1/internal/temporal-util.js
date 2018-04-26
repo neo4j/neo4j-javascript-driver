@@ -189,8 +189,8 @@ export function durationToIsoString(months, days, seconds, nanoseconds) {
   const monthsString = formatNumber(months);
   const daysString = formatNumber(days);
   const secondsString = formatNumber(seconds);
-  const nanosecondsString = formatNumber(nanoseconds, 9);
-  return `P${monthsString}M${daysString}DT${secondsString}.${nanosecondsString}S`;
+  const nanosecondsString = formatNanoseconds(nanoseconds);
+  return `P${monthsString}M${daysString}DT${secondsString}${nanosecondsString}S`;
 }
 
 /**
@@ -205,8 +205,8 @@ export function timeToIsoString(hour, minute, second, nanosecond) {
   const hourString = formatNumber(hour, 2);
   const minuteString = formatNumber(minute, 2);
   const secondString = formatNumber(second, 2);
-  const nanosecondString = formatNumber(nanosecond, 9);
-  return `${hourString}:${minuteString}:${secondString}.${nanosecondString}`;
+  const nanosecondString = formatNanoseconds(nanosecond);
+  return `${hourString}:${minuteString}:${secondString}${nanosecondString}`;
 }
 
 /**
@@ -319,6 +319,15 @@ function floorMod(x, y) {
   y = int(y);
 
   return x.subtract(floorDiv(x, y).multiply(y));
+}
+
+/**
+ * @param {Integer|number|string} value the number of nanoseconds to format.
+ * @return {string} formatted and possibly left-padded nanoseconds part as string.
+ */
+function formatNanoseconds(value) {
+  value = int(value);
+  return value.equals(0) ? '' : '.' + formatNumber(value, 9);
 }
 
 /**
