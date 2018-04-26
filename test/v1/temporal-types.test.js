@@ -435,20 +435,20 @@ describe('temporal-types', () => {
 
   it('should convert Duration to ISO string', () => {
     expect(duration(13, 62, 3, 999111999).toString()).toEqual('P13M62DT3.999111999S');
-    expect(duration(0, 0, 0, 0).toString()).toEqual('P0M0DT0.000000000S');
+    expect(duration(0, 0, 0, 0).toString()).toEqual('P0M0DT0S');
     expect(duration(-1, -2, 10, 10).toString()).toEqual('P-1M-2DT10.000000010S');
   });
 
   it('should convert LocalTime to ISO string', () => {
     expect(localTime(12, 19, 39, 111222333).toString()).toEqual('12:19:39.111222333');
     expect(localTime(3, 59, 2, 17).toString()).toEqual('03:59:02.000000017');
-    expect(localTime(0, 0, 0, 0).toString()).toEqual('00:00:00.000000000');
+    expect(localTime(0, 0, 0, 0).toString()).toEqual('00:00:00');
   });
 
   it('should convert Time to ISO string', () => {
     expect(time(11, 45, 22, 333222111, 9015).toString()).toEqual('11:45:22.333222111+02:30:15');
     expect(time(23, 2, 1, 10, 0).toString()).toEqual('23:02:01.000000010Z');
-    expect(time(0, 12, 59, 0, -40500).toString()).toEqual('00:12:59.000000000-11:15');
+    expect(time(0, 12, 59, 0, -40500).toString()).toEqual('00:12:59-11:15');
     expect(time(21, 59, 0, 123, -25200).toString()).toEqual('21:59:00.000000123-07:00');
   });
 
