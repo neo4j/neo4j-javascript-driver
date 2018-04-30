@@ -1123,7 +1123,7 @@ describe('session', () => {
 
   function idleConnectionCount(driver) {
     const connectionProvider = driver._connectionProvider;
-    const address = connectionProvider._address;
+    const address = connectionProvider._hostPort;
     const connectionPool = connectionProvider._connectionPool;
     const idleConnections = connectionPool._pools[address];
     return idleConnections.length;

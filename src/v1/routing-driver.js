@@ -24,19 +24,19 @@ import LeastConnectedLoadBalancingStrategy, {LEAST_CONNECTED_STRATEGY_NAME} from
 import RoundRobinLoadBalancingStrategy, {ROUND_ROBIN_STRATEGY_NAME} from './internal/round-robin-load-balancing-strategy';
 
 /**
- * A driver that supports routing in a core-edge cluster.
+ * A driver that supports routing in a causal cluster.
  * @private
  */
 class RoutingDriver extends Driver {
 
-  constructor(url, routingContext, userAgent, token = {}, config = {}) {
-    super(url, userAgent, token, validateConfig(config));
+  constructor(hostPort, routingContext, userAgent, token = {}, config = {}) {
+    super(hostPort, userAgent, token, validateConfig(config));
     this._routingContext = routingContext;
   }
 
-  _createConnectionProvider(address, connectionPool, driverOnErrorCallback) {
+  _createConnectionProvider(hostPort, connectionPool, driverOnErrorCallback) {
     const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(this._config, connectionPool);
-    return new LoadBalancer(address, this._routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback);
+    return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback);
   }
 
   _createSession(mode, connectionProvider, bookmark, config) {
@@ -46,14 +46,14 @@ class RoutingDriver extends Driver {
         return error;
       }
 
-      const url = conn.url;
+      const hostPort = conn.hostPort;
 
       if (error.code === SESSION_EXPIRED || isDatabaseUnavailable(error)) {
-        this._connectionProvider.forget(url);
+        this._connectionProvider.forget(hostPort);
         return error;
       } else if (isFailureToWrite(error)) {
-        this._connectionProvider.forgetWriter(url);
-        return newError('No longer possible to write to server at ' + url, SESSION_EXPIRED);
+        this._connectionProvider.forgetWriter(hostPort);
+        return newError('No longer possible to write to server at ' + hostPort, SESSION_EXPIRED);
       } else {
         return error;
       }

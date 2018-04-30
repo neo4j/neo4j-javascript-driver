@@ -22,13 +22,13 @@ import HttpSessionTracker from './http-session-tracker';
 
 export default class HttpDriver extends Driver {
 
-  constructor(url, userAgent, token, config) {
-    super(url, userAgent, token, config);
+  constructor(hostPort, userAgent, token, config) {
+    super(hostPort, userAgent, token, config);
     this._sessionTracker = new HttpSessionTracker();
   }
 
   session() {
-    return new HttpSession(this._url, this._token, this._config, this._sessionTracker);
+    return new HttpSession(this._hostPort, this._token, this._config, this._sessionTracker);
   }
 
   close() {

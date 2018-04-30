@@ -96,17 +96,17 @@ class Connection {
   /**
    * @constructor
    * @param {NodeChannel|WebSocketChannel} channel - channel with a 'write' function and a 'onmessage' callback property.
-   * @param {string} url - the hostname and port to connect to.
+   * @param {string} hostPort - the hostname and port to connect to.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
    */
-  constructor(channel, url, disableLosslessIntegers = false) {
+  constructor(channel, hostPort, disableLosslessIntegers = false) {
     /**
      * An ordered queue of observers, each exchange response (zero or more
      * RECORD messages followed by a SUCCESS message) we receive will be routed
      * to the next pending observer.
      */
-    this.url = url;
-    this.server = {address: url};
+    this.hostPort = hostPort;
+    this.server = {address: hostPort};
     this.creationTimestamp = Date.now();
     this._disableLosslessIntegers = disableLosslessIntegers;
     this._pendingObservers = [];
@@ -516,18 +516,18 @@ class ConnectionState {
 }
 
 /**
- * Crete new connection to the provided url.
+ * Crete new connection to the provided address.
  * @access private
- * @param {string} url - 'neo4j'-prefixed URL to Neo4j Bolt endpoint
+ * @param {string} hostPort - the Bolt endpoint to connect to
  * @param {object} config - this driver configuration
  * @param {string=null} connectionErrorCode - error code for errors raised on connection errors
  * @return {Connection} - New connection
  */
-function connect(url, config = {}, connectionErrorCode = null) {
+function connect(hostPort, config = {}, connectionErrorCode = null) {
   const Ch = config.channel || Channel;
-  const parsedUrl = urlUtil.parseDatabaseUrl(url);
-  const channelConfig = new ChannelConfig(parsedUrl, config, connectionErrorCode);
-  return new Connection(new Ch(channelConfig), parsedUrl.hostAndPort, config.disableLosslessIntegers);
+  const parsedAddress = urlUtil.parseDatabaseUrl(hostPort);
+  const channelConfig = new ChannelConfig(parsedAddress, config, connectionErrorCode);
+  return new Connection(new Ch(channelConfig), parsedAddress.hostAndPort, config.disableLosslessIntegers);
 }
 
 export {
