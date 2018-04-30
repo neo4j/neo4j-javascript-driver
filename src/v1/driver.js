@@ -57,16 +57,16 @@ class Driver {
   /**
    * You should not be calling this directly, instead use {@link driver}.
    * @constructor
-   * @param {string} url
+   * @param {string} hostPort
    * @param {string} userAgent
    * @param {object} token
    * @param {object} config
    * @protected
    */
-  constructor(url, userAgent, token = {}, config = {}) {
+  constructor(hostPort, userAgent, token = {}, config = {}) {
     sanitizeConfig(config);
 
-    this._url = url;
+    this._hostPort = hostPort;
     this._userAgent = userAgent;
     this._openSessions = {};
     this._sessionIdGenerator = 0;
@@ -117,13 +117,13 @@ class Driver {
    * @return {Connection} new connector-api session instance, a low level session API.
    * @access private
    */
-  _createConnection(url, release) {
+  _createConnection(hostPort, release) {
     let sessionId = this._sessionIdGenerator++;
-    let conn = connect(url, this._config, this._connectionErrorCode());
+    let conn = connect(hostPort, this._config, this._connectionErrorCode());
     let streamObserver = new _ConnectionStreamObserver(this, conn);
     conn.initialize(this._userAgent, this._token, streamObserver);
     conn._id = sessionId;
-    conn._release = () => release(url, conn);
+    conn._release = () => release(hostPort, conn);
 
     this._openSessions[sessionId] = conn;
     return conn;
@@ -186,8 +186,8 @@ class Driver {
   }
 
   // Extension point
-  _createConnectionProvider(address, connectionPool, driverOnErrorCallback) {
-    return new DirectConnectionProvider(address, connectionPool, driverOnErrorCallback);
+  _createConnectionProvider(hostPort, connectionPool, driverOnErrorCallback) {
+    return new DirectConnectionProvider(hostPort, connectionPool, driverOnErrorCallback);
   }
 
   // Extension point
@@ -204,7 +204,7 @@ class Driver {
   _getOrCreateConnectionProvider() {
     if (!this._connectionProvider) {
       const driverOnErrorCallback = this._driverOnErrorCallback.bind(this);
-      this._connectionProvider = this._createConnectionProvider(this._url, this._pool, driverOnErrorCallback);
+      this._connectionProvider = this._createConnectionProvider(this._hostPort, this._pool, driverOnErrorCallback);
     }
     return this._connectionProvider;
   }

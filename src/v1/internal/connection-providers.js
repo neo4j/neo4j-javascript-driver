@@ -45,24 +45,24 @@ class ConnectionProvider {
 
 export class DirectConnectionProvider extends ConnectionProvider {
 
-  constructor(address, connectionPool, driverOnErrorCallback) {
+  constructor(hostPort, connectionPool, driverOnErrorCallback) {
     super();
-    this._address = address;
+    this._hostPort = hostPort;
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
   }
 
   acquireConnection(mode) {
-    const connectionPromise = this._connectionPool.acquire(this._address);
+    const connectionPromise = this._connectionPool.acquire(this._hostPort);
     return this._withAdditionalOnErrorCallback(connectionPromise, this._driverOnErrorCallback);
   }
 }
 
 export class LoadBalancer extends ConnectionProvider {
 
-  constructor(address, routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback) {
+  constructor(hostPort, routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback) {
     super();
-    this._seedRouter = address;
+    this._seedRouter = hostPort;
     this._routingTable = new RoutingTable([this._seedRouter]);
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext));
     this._connectionPool = connectionPool;
