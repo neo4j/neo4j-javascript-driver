@@ -23,6 +23,7 @@ import FakeConnection from '../internal/fake-connection';
 import lolex from 'lolex';
 import {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from '../../src/v1/internal/pool-config';
 import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
+import testUtils from '../internal/test-utils';
 
 describe('driver', () => {
 
@@ -77,6 +78,28 @@ describe('driver', () => {
     // When
     startNewTransaction(driver);
   }, 10000);
+
+  it('should fail with correct error message when connecting to port 80', done => {
+    if (testUtils.isClient()) {
+      // good error message is not available in browser
+      done();
+      return;
+    }
+
+    driver = neo4j.driver('bolt://localhost:80', sharedNeo4j.authToken);
+
+    driver.session().run('RETURN 1').then(result => {
+      done.fail('Should not be able to connect. Result: ' + JSON.stringify(result));
+    }).catch(error => {
+      const doesNotContainAddress = error.message.indexOf(':80') < 0;
+      if (doesNotContainAddress) {
+        done.fail(`Expected to contain ':80' but was: ${error.message}`);
+      } else {
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+        done();
+      }
+    });
+  });
 
   it('should handle wrong scheme', () => {
     expect(() => neo4j.driver("tank://localhost", sharedNeo4j.authToken))

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import ParsedUrl from 'url-parse';
+import {parse as uriJsParse} from 'uri-js';
 import {assertString} from './util';
 
 const DEFAULT_BOLT_PORT = 7687;
@@ -69,14 +69,14 @@ function parseDatabaseUrl(url) {
   assertString(url, 'URL');
 
   const sanitized = sanitizeUrl(url);
-  const parsedUrl = new ParsedUrl(sanitized.url, {}, query => extractQuery(query, url));
+  const parsedUrl = uriJsParse(sanitized.url);
 
-  const scheme = sanitized.schemeMissing ? null : extractScheme(parsedUrl.protocol);
-  const rawHost = extractHost(parsedUrl.hostname); // has square brackets for IPv6
-  const host = unescapeIPv6Address(rawHost); // no square brackets for IPv6
+  const scheme = sanitized.schemeMissing ? null : extractScheme(parsedUrl.scheme);
+  const host = extractHost(parsedUrl.host); // no square brackets for IPv6
+  const formattedHost = formatHost(host); // has square brackets for IPv6
   const port = extractPort(parsedUrl.port, scheme);
-  const hostAndPort = `${rawHost}:${port}`;
-  const query = parsedUrl.query;
+  const hostAndPort = `${formattedHost}:${port}`;
+  const query = extractQuery(parsedUrl.query, url);
 
   return new Url(scheme, host, port, hostAndPort, query);
 }
@@ -85,8 +85,8 @@ function sanitizeUrl(url) {
   url = url.trim();
 
   if (url.indexOf('://') === -1) {
-    // url does not contain scheme, add dummy 'http://' to make parser work correctly
-    return {schemeMissing: true, url: `http://${url}`};
+    // url does not contain scheme, add dummy 'none://' to make parser work correctly
+    return {schemeMissing: true, url: `none://${url}`};
   }
 
   return {schemeMissing: false, url: url};
@@ -169,17 +169,12 @@ function escapeIPv6Address(address) {
   }
 }
 
-function unescapeIPv6Address(address) {
-  const startsWithSquareBracket = address.charAt(0) === '[';
-  const endsWithSquareBracket = address.charAt(address.length - 1) === ']';
-
-  if (!startsWithSquareBracket && !endsWithSquareBracket) {
-    return address;
-  } else if (startsWithSquareBracket && endsWithSquareBracket) {
-    return address.substring(1, address.length - 1);
-  } else {
-    throw new Error(`Illegal IPv6 address ${address}`);
+function formatHost(host) {
+  if (!host) {
+    throw new Error(`Illegal host ${host}`);
   }
+  const isIPv6Address = host.indexOf(':') >= 0;
+  return isIPv6Address ? escapeIPv6Address(host) : host;
 }
 
 function formatIPv4Address(address, port) {
