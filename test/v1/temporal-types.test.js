@@ -524,6 +524,33 @@ describe('temporal-types', () => {
     expect(zonedDateTime.nanosecond).toEqual(neo4j.int(9346458));
   });
 
+  it('should format duration to string', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    testDurationToString([
+      {duration: duration(0, 0, 1, 0), expectedString: 'P0M0DT1S'},
+      {duration: duration(0, 0, -1, 0), expectedString: 'P0M0DT-1S'},
+
+      {duration: duration(0, 0, 0, 5), expectedString: 'P0M0DT0.000000005S'},
+      {duration: duration(0, 0, 0, -5), expectedString: 'P0M0DT-0.000000005S'},
+      {duration: duration(0, 0, 0, 999999999), expectedString: 'P0M0DT0.999999999S'},
+      {duration: duration(0, 0, 0, -999999999), expectedString: 'P0M0DT-0.999999999S'},
+
+      {duration: duration(0, 0, 1, 5), expectedString: 'P0M0DT1.000000005S'},
+      {duration: duration(0, 0, -1, -5), expectedString: 'P0M0DT-1.000000005S'},
+      {duration: duration(0, 0, 1, -5), expectedString: 'P0M0DT0.999999995S'},
+      {duration: duration(0, 0, -1, 5), expectedString: 'P0M0DT-0.999999995S'},
+      {duration: duration(0, 0, 1, 999999999), expectedString: 'P0M0DT1.999999999S'},
+      {duration: duration(0, 0, -1, -999999999), expectedString: 'P0M0DT-1.999999999S'},
+      {duration: duration(0, 0, 1, -999999999), expectedString: 'P0M0DT0.000000001S'},
+      {duration: duration(0, 0, -1, 999999999), expectedString: 'P0M0DT-0.000000001S'},
+
+      {duration: duration(0, 0, -78036, -143000000), expectedString: 'P0M0DT-78036.143000000S'}
+    ], done);
+  });
+
   function testSendAndReceiveRandomTemporalValues(valueGenerator, done) {
     const asyncFunction = (index, callback) => {
       const next = () => callback();
@@ -572,6 +599,22 @@ describe('temporal-types', () => {
       expect(receivedValue).toEqual(value);
 
       session.close();
+      done();
+    }).catch(error => {
+      done.fail(error);
+    });
+  }
+
+  function testDurationToString(values, done) {
+    const durations = values.map(value => value.duration);
+    const expectedDurationStrings = values.map(value => value.expectedString);
+
+    session.run('UNWIND $durations AS d RETURN d', {durations: durations}).then(result => {
+      const receivedDurationStrings = result.records
+        .map(record => record.get(0))
+        .map(duration => duration.toString());
+
+      expect(expectedDurationStrings).toEqual(receivedDurationStrings);
       done();
     }).catch(error => {
       done.fail(error);
