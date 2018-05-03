@@ -522,6 +522,40 @@ describe('Pool', () => {
     });
   });
 
+  it('should resolve pending acquisition request when single invalid resource returned', done => {
+    const key = 'bolt://localhost:7687';
+    const acquisitionTimeout = 1000;
+    let counter = 0;
+
+    const pool = new Pool(
+      (url, release) => new Resource(url, counter++, release),
+      resource => {
+      },
+      resourceValidOnlyOnceValidationFunction,
+      new PoolConfig(1, acquisitionTimeout)
+    );
+
+    pool.acquire(key).then(resource1 => {
+      expect(resource1.id).toEqual(0);
+      expect(pool.activeResourceCount(key)).toEqual(1);
+
+      // release the resource before the acquisition timeout, it should be treated as invalid
+      setTimeout(() => {
+        expectNumberOfAcquisitionRequests(pool, key, 1);
+        resource1.close();
+      }, acquisitionTimeout / 2);
+
+      pool.acquire(key).then(resource2 => {
+        expect(resource2.id).toEqual(1);
+        expectNoPendingAcquisitionRequests(pool);
+        expect(pool.activeResourceCount(key)).toEqual(1);
+        done();
+      }).catch(error => {
+        done.fail(error);
+      });
+    });
+  });
+
   it('should work fine when invalid resources released and acquisition attempt pending', done => {
     const key = 'bolt://localhost:7687';
     const acquisitionTimeout = 1000;
