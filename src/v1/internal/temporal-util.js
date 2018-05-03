@@ -187,9 +187,8 @@ export function epochDayToDate(epochDay) {
 export function durationToIsoString(months, days, seconds, nanoseconds) {
   const monthsString = formatNumber(months);
   const daysString = formatNumber(days);
-  const secondsString = formatNumber(seconds);
-  const nanosecondsString = formatNanoseconds(nanoseconds);
-  return `P${monthsString}M${daysString}DT${secondsString}${nanosecondsString}S`;
+  const secondsAndNanosecondsString = formatSecondsAndNanosecondsForDuration(seconds, nanoseconds);
+  return `P${monthsString}M${daysString}DT${secondsAndNanosecondsString}S`;
 }
 
 /**
@@ -204,7 +203,7 @@ export function timeToIsoString(hour, minute, second, nanosecond) {
   const hourString = formatNumber(hour, 2);
   const minuteString = formatNumber(minute, 2);
   const secondString = formatNumber(second, 2);
-  const nanosecondString = formatNanoseconds(nanosecond);
+  const nanosecondString = formatNanosecond(nanosecond);
   return `${hourString}:${minuteString}:${secondString}${nanosecondString}`;
 }
 
@@ -321,10 +320,29 @@ function floorMod(x, y) {
 }
 
 /**
+ * @param {Integer|number|string} seconds the number of seconds to format.
+ * @param {Integer|number|string} nanoseconds the number of nanoseconds to format.
+ * @return {string} formatted value.
+ */
+function formatSecondsAndNanosecondsForDuration(seconds, nanoseconds) {
+  seconds = int(seconds);
+  nanoseconds = int(nanoseconds);
+
+  const signString = seconds.isNegative() || nanoseconds.isNegative() ? '-' : '';
+  seconds = seconds.isNegative() ? seconds.negate() : seconds;
+  nanoseconds = nanoseconds.isNegative() ? nanoseconds.negate() : nanoseconds;
+
+  const secondsString = formatNumber(seconds);
+  const nanosecondsString = formatNanosecond(nanoseconds);
+
+  return signString + secondsString + nanosecondsString;
+}
+
+/**
  * @param {Integer|number|string} value the number of nanoseconds to format.
  * @return {string} formatted and possibly left-padded nanoseconds part as string.
  */
-function formatNanoseconds(value) {
+function formatNanosecond(value) {
   value = int(value);
   return value.equals(0) ? '' : '.' + formatNumber(value, 9);
 }
@@ -338,7 +356,7 @@ function formatNumber(num, stringLength = undefined) {
   num = int(num);
   const isNegative = num.isNegative();
   if (isNegative) {
-    num = num.multiply(-1);
+    num = num.negate();
   }
   const numString = num.toString();
   const paddedNumString = stringLength ? numString.padStart(stringLength, '0') : numString;
