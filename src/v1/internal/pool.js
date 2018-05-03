@@ -158,13 +158,16 @@ class Pool {
     // check if there are any pending requests
     const requests = this._acquireRequests[key];
     if (requests) {
-      const pending = requests.shift();
+      const pending = requests[0];
 
       if (pending) {
         const resource = this._acquire(key);
         if (resource) {
-          pending.resolve(resource);
+          // managed to acquire a valid resource from the pool to satisfy the pending acquire request
+          requests.shift(); // forget the pending request
+          pending.resolve(resource); // resolve the pending request with the acquired resource
 
+          // return early to not decrement the number of released resources
           return;
         }
       } else {

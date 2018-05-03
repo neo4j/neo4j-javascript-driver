@@ -522,14 +522,70 @@ describe('Pool', () => {
     });
   });
 
+  it('should work fine when invalid resources released and acquisition attempt pending', done => {
+    const key = 'bolt://localhost:7687';
+    const acquisitionTimeout = 1000;
+    let counter = 0;
+
+    const pool = new Pool(
+      (url, release) => new Resource(url, counter++, release),
+      resource => {
+      },
+      resourceValidOnlyOnceValidationFunction,
+      new PoolConfig(2, acquisitionTimeout)
+    );
+
+    pool.acquire(key).then(resource1 => {
+      expect(resource1.id).toEqual(0);
+      expect(pool.activeResourceCount(key)).toEqual(1);
+
+      pool.acquire(key).then(resource2 => {
+        expect(resource2.id).toEqual(1);
+        expect(pool.activeResourceCount(key)).toEqual(2);
+
+        // release both resources before the acquisition timeout, they should be treated as invalid
+        setTimeout(() => {
+          expectNumberOfAcquisitionRequests(pool, key, 1);
+          resource1.close();
+          resource2.close();
+        }, acquisitionTimeout / 2);
+
+        pool.acquire(key).then(resource3 => {
+          expect(resource3.id).toEqual(2);
+          expectNoPendingAcquisitionRequests(pool);
+          expect(pool.activeResourceCount(key)).toEqual(1);
+          done();
+        }).catch(error => {
+          done.fail(error);
+        });
+      });
+    });
+  });
+
 });
 
 function expectNoPendingAcquisitionRequests(pool) {
-  expect(pool._acquireRequests).toEqual({});
+  const acquireRequests = pool._acquireRequests;
+  Object.values(acquireRequests).forEach(requests => {
+    if (Array.isArray(requests) && requests.length === 0) {
+      requests = undefined;
+    }
+    expect(requests).not.toBeDefined();
+  });
 }
 
 function expectNumberOfAcquisitionRequests(pool, key, expectedNumber) {
   expect(pool._acquireRequests[key].length).toEqual(expectedNumber);
+}
+
+function resourceValidOnlyOnceValidationFunction(resource) {
+  // all resources are valid only once
+  if (resource.validatedOnce) {
+    return false;
+  } else {
+    resource.validatedOnce = true;
+    return true;
+  }
 }
 
 class Resource {
