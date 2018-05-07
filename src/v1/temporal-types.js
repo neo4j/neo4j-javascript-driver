@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {dateToIsoString, durationToIsoString, timeToIsoString, timeZoneOffsetToIsoString} from './internal/temporal-util';
+import * as util from './internal/temporal-util';
 import {newError} from './error';
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
@@ -48,13 +48,13 @@ export class Duration {
   constructor(months, days, seconds, nanoseconds) {
     this.months = months;
     this.days = days;
-    this.seconds = seconds;
-    this.nanoseconds = nanoseconds;
+    this.seconds = util.normalizeSecondsForDuration(seconds, nanoseconds);
+    this.nanoseconds = util.normalizeNanosecondsForDuration(nanoseconds);
     Object.freeze(this);
   }
 
   toString() {
-    return durationToIsoString(this.months, this.days, this.seconds, this.nanoseconds);
+    return util.durationToIsoString(this.months, this.days, this.seconds, this.nanoseconds);
   }
 }
 
@@ -91,7 +91,7 @@ export class LocalTime {
   }
 
   toString() {
-    return timeToIsoString(this.hour, this.minute, this.second, this.nanosecond);
+    return util.timeToIsoString(this.hour, this.minute, this.second, this.nanosecond);
   }
 }
 
@@ -130,7 +130,7 @@ export class Time {
   }
 
   toString() {
-    return timeToIsoString(this.hour, this.minute, this.second, this.nanosecond) + timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds);
+    return util.timeToIsoString(this.hour, this.minute, this.second, this.nanosecond) + util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds);
   }
 }
 
@@ -165,7 +165,7 @@ export class Date {
   }
 
   toString() {
-    return dateToIsoString(this.year, this.month, this.day);
+    return util.dateToIsoString(this.year, this.month, this.day);
   }
 }
 
@@ -259,7 +259,7 @@ export class DateTime {
 
   toString() {
     const localDateTimeStr = localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond);
-    const timeZoneStr = this.timeZoneId ? `[${this.timeZoneId}]` : timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds);
+    const timeZoneStr = this.timeZoneId ? `[${this.timeZoneId}]` : util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds);
     return localDateTimeStr + timeZoneStr;
   }
 }
@@ -280,7 +280,7 @@ function hasIdentifierProperty(obj, property) {
 }
 
 function localDateTimeToString(year, month, day, hour, minute, second, nanosecond) {
-  return dateToIsoString(year, month, day) + 'T' + timeToIsoString(hour, minute, second, nanosecond);
+  return util.dateToIsoString(year, month, day) + 'T' + util.timeToIsoString(hour, minute, second, nanosecond);
 }
 
 function verifyTimeZoneArguments(timeZoneOffsetSeconds, timeZoneId) {

@@ -530,6 +530,10 @@ describe('temporal-types', () => {
     }
 
     testDurationToString([
+      {duration: duration(0, 0, 0, 0), expectedString: 'P0M0DT0S'},
+
+      {duration: duration(0, 0, 42, 0), expectedString: 'P0M0DT42S'},
+      {duration: duration(0, 0, -42, 0), expectedString: 'P0M0DT-42S'},
       {duration: duration(0, 0, 1, 0), expectedString: 'P0M0DT1S'},
       {duration: duration(0, 0, -1, 0), expectedString: 'P0M0DT-1S'},
 
@@ -547,8 +551,49 @@ describe('temporal-types', () => {
       {duration: duration(0, 0, 1, -999999999), expectedString: 'P0M0DT0.000000001S'},
       {duration: duration(0, 0, -1, 999999999), expectedString: 'P0M0DT-0.000000001S'},
 
-      {duration: duration(0, 0, -78036, -143000000), expectedString: 'P0M0DT-78036.143000000S'}
+      {duration: duration(0, 0, 28, 9), expectedString: 'P0M0DT28.000000009S'},
+      {duration: duration(0, 0, -28, 9), expectedString: 'P0M0DT-27.999999991S'},
+      {duration: duration(0, 0, 28, -9), expectedString: 'P0M0DT27.999999991S'},
+      {duration: duration(0, 0, -28, -9), expectedString: 'P0M0DT-28.000000009S'},
+
+      {duration: duration(0, 0, -78036, -143000000), expectedString: 'P0M0DT-78036.143000000S'},
+
+      {duration: duration(0, 0, 0, 1000000000), expectedString: 'P0M0DT1S'},
+      {duration: duration(0, 0, 0, -1000000000), expectedString: 'P0M0DT-1S'},
+      {duration: duration(0, 0, 0, 1000000007), expectedString: 'P0M0DT1.000000007S'},
+      {duration: duration(0, 0, 0, -1000000007), expectedString: 'P0M0DT-1.000000007S'},
+
+      {duration: duration(0, 0, 40, 2123456789), expectedString: 'P0M0DT42.123456789S'},
+      {duration: duration(0, 0, -40, 2123456789), expectedString: 'P0M0DT-37.876543211S'},
+      {duration: duration(0, 0, 40, -2123456789), expectedString: 'P0M0DT37.876543211S'},
+      {duration: duration(0, 0, -40, -2123456789), expectedString: 'P0M0DT-42.123456789S'}
     ], done);
+  });
+
+  it('should normalize created duration', () => {
+    const duration1 = duration(0, 0, 1, 1000000000);
+    expect(duration1.seconds).toEqual(neo4j.int(2));
+    expect(duration1.nanoseconds).toEqual(neo4j.int(0));
+
+    const duration2 = duration(0, 0, 42, 1000000001);
+    expect(duration2.seconds).toEqual(neo4j.int(43));
+    expect(duration2.nanoseconds).toEqual(neo4j.int(1));
+
+    const duration3 = duration(0, 0, 42, 42999111222);
+    expect(duration3.seconds).toEqual(neo4j.int(84));
+    expect(duration3.nanoseconds).toEqual(neo4j.int(999111222));
+
+    const duration4 = duration(0, 0, 1, -1000000000);
+    expect(duration4.seconds).toEqual(neo4j.int(0));
+    expect(duration4.nanoseconds).toEqual(neo4j.int(0));
+
+    const duration5 = duration(0, 0, 1, -1000000001);
+    expect(duration5.seconds).toEqual(neo4j.int(-1));
+    expect(duration5.nanoseconds).toEqual(neo4j.int(999999999));
+
+    const duration6 = duration(0, 0, 40, -12123456999);
+    expect(duration6.seconds).toEqual(neo4j.int(27));
+    expect(duration6.nanoseconds).toEqual(neo4j.int(876543001));
   });
 
   function testSendAndReceiveRandomTemporalValues(valueGenerator, done) {
@@ -635,7 +680,7 @@ describe('temporal-types', () => {
       sign * _.random(0, Number.MAX_SAFE_INTEGER),
       sign * _.random(0, Number.MAX_SAFE_INTEGER),
       sign * _.random(0, Number.MAX_SAFE_INTEGER),
-      sign * _.random(0, MAX_NANO_OF_SECOND),
+      _.random(0, MAX_NANO_OF_SECOND),
     );
   }
 
