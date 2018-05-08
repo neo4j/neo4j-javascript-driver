@@ -154,25 +154,25 @@ class Pool {
       // key has been purged, don't put it back, just destroy the resource
       this._destroy(resource);
     }
+    resourceReleased(key, this._activeResourceCounts);
 
     // check if there are any pending requests
     const requests = this._acquireRequests[key];
     if (requests) {
-      const pending = requests.shift();
+      const pending = requests[0];
 
       if (pending) {
         const resource = this._acquire(key);
         if (resource) {
-          pending.resolve(resource);
-
-          return;
+          // managed to acquire a valid resource from the pool to satisfy the pending acquire request
+          resourceAcquired(key, this._activeResourceCounts); // increment the active counter
+          requests.shift(); // forget the pending request
+          pending.resolve(resource); // resolve the pending request with the acquired resource
         }
       } else {
         delete this._acquireRequests[key];
       }
     }
-
-    resourceReleased(key, this._activeResourceCounts);
   }
 }
 
