@@ -40,6 +40,14 @@ const DAYS_0000_TO_1970 = 719528;
 const DAYS_PER_400_YEAR_CYCLE = 146097;
 const SECONDS_PER_DAY = 86400;
 
+export function normalizeSecondsForDuration(seconds, nanoseconds) {
+  return int(seconds).add(floorDiv(nanoseconds, NANOS_PER_SECOND));
+}
+
+export function normalizeNanosecondsForDuration(nanoseconds) {
+  return floorMod(nanoseconds, NANOS_PER_SECOND);
+}
+
 /**
  * Converts given local time into a single integer representing this same time in nanoseconds of the day.
  * @param {Integer|number|string} hour the hour of the local time to convert.
@@ -328,14 +336,30 @@ function formatSecondsAndNanosecondsForDuration(seconds, nanoseconds) {
   seconds = int(seconds);
   nanoseconds = int(nanoseconds);
 
-  const signString = seconds.isNegative() || nanoseconds.isNegative() ? '-' : '';
-  seconds = seconds.isNegative() ? seconds.negate() : seconds;
-  nanoseconds = nanoseconds.isNegative() ? nanoseconds.negate() : nanoseconds;
+  let secondsString;
+  let nanosecondsString;
 
-  const secondsString = formatNumber(seconds);
-  const nanosecondsString = formatNanosecond(nanoseconds);
+  const secondsNegative = seconds.isNegative();
+  const nanosecondsGreaterThanZero = nanoseconds.greaterThan(0);
+  if (secondsNegative && nanosecondsGreaterThanZero) {
+    if (seconds.equals(-1)) {
+      secondsString = '-0';
+    } else {
+      secondsString = seconds.add(1).toString();
+    }
+  } else {
+    secondsString = seconds.toString();
+  }
 
-  return signString + secondsString + nanosecondsString;
+  if (nanosecondsGreaterThanZero) {
+    if (secondsNegative) {
+      nanosecondsString = formatNanosecond(nanoseconds.negate().add(2 * NANOS_PER_SECOND).modulo(NANOS_PER_SECOND));
+    } else {
+      nanosecondsString = formatNanosecond(nanoseconds.add(NANOS_PER_SECOND).modulo(NANOS_PER_SECOND));
+    }
+  }
+
+  return nanosecondsString ? secondsString + nanosecondsString : secondsString;
 }
 
 /**

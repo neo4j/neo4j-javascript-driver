@@ -22,6 +22,58 @@ import {types} from '../../src/v1';
 
 describe('temporal-util', () => {
 
+  it('should normalize seconds for duration', () => {
+    expect(util.normalizeSecondsForDuration(1, 0)).toEqual(int(1));
+    expect(util.normalizeSecondsForDuration(3, 0)).toEqual(int(3));
+    expect(util.normalizeSecondsForDuration(424242, 0)).toEqual(int(424242));
+
+    expect(util.normalizeSecondsForDuration(-1, 0)).toEqual(int(-1));
+    expect(util.normalizeSecondsForDuration(-9, 0)).toEqual(int(-9));
+    expect(util.normalizeSecondsForDuration(-42, 0)).toEqual(int(-42));
+
+    expect(util.normalizeSecondsForDuration(1, 19)).toEqual(int(1));
+    expect(util.normalizeSecondsForDuration(42, 42)).toEqual(int(42));
+    expect(util.normalizeSecondsForDuration(12345, 6789)).toEqual(int(12345));
+
+    expect(util.normalizeSecondsForDuration(-1, 42)).toEqual(int(-1));
+    expect(util.normalizeSecondsForDuration(-42, 4242)).toEqual(int(-42));
+    expect(util.normalizeSecondsForDuration(-123, 999)).toEqual(int(-123));
+
+    expect(util.normalizeSecondsForDuration(1, 1000000000)).toEqual(int(2));
+    expect(util.normalizeSecondsForDuration(40, 2000000001)).toEqual(int(42));
+    expect(util.normalizeSecondsForDuration(583, 7999999999)).toEqual(int(590));
+
+    expect(util.normalizeSecondsForDuration(1, -1000000000)).toEqual(int(0));
+    expect(util.normalizeSecondsForDuration(1, -5000000000)).toEqual(int(-4));
+    expect(util.normalizeSecondsForDuration(85, -42000000123)).toEqual(int(42));
+
+    expect(util.normalizeSecondsForDuration(-19, -1000000000)).toEqual(int(-20));
+    expect(util.normalizeSecondsForDuration(-19, -11123456789)).toEqual(int(-31));
+    expect(util.normalizeSecondsForDuration(-42, -2000000001)).toEqual(int(-45));
+  });
+
+  it('should normalize nanoseconds for duration', () => {
+    expect(util.normalizeNanosecondsForDuration(0)).toEqual(int(0));
+
+    expect(util.normalizeNanosecondsForDuration(1)).toEqual(int(1));
+    expect(util.normalizeNanosecondsForDuration(42)).toEqual(int(42));
+    expect(util.normalizeNanosecondsForDuration(123456789)).toEqual(int(123456789));
+    expect(util.normalizeNanosecondsForDuration(999999999)).toEqual(int(999999999));
+
+    expect(util.normalizeNanosecondsForDuration(1000000000)).toEqual(int(0));
+    expect(util.normalizeNanosecondsForDuration(1000000001)).toEqual(int(1));
+    expect(util.normalizeNanosecondsForDuration(1000000042)).toEqual(int(42));
+    expect(util.normalizeNanosecondsForDuration(1123456789)).toEqual(int(123456789));
+    expect(util.normalizeNanosecondsForDuration(42999999999)).toEqual(int(999999999));
+
+    expect(util.normalizeNanosecondsForDuration(-1)).toEqual(int(999999999));
+    expect(util.normalizeNanosecondsForDuration(-3)).toEqual(int(999999997));
+    expect(util.normalizeNanosecondsForDuration(-100)).toEqual(int(999999900));
+    expect(util.normalizeNanosecondsForDuration(-999999999)).toEqual(int(1));
+    expect(util.normalizeNanosecondsForDuration(-1999999999)).toEqual(int(1));
+    expect(util.normalizeNanosecondsForDuration(-1123456789)).toEqual(int(876543211));
+  });
+
   it('should convert date to ISO string', () => {
     expect(util.dateToIsoString(90, 2, 5)).toEqual('0090-02-05');
     expect(util.dateToIsoString(int(1), 1, int(1))).toEqual('0001-01-01');
@@ -65,7 +117,7 @@ describe('temporal-util', () => {
     expect(util.durationToIsoString(0, 0, 0, 123)).toEqual('P0M0DT0.000000123S');
     expect(util.durationToIsoString(11, 99, 100, 99901)).toEqual('P11M99DT100.000099901S');
     expect(util.durationToIsoString(int(3), int(9191), int(17), int(123456789))).toEqual('P3M9191DT17.123456789S');
-    expect(util.durationToIsoString(-5, 2, -13, 123)).toEqual('P-5M2DT-13.000000123S');
+    expect(util.durationToIsoString(-5, 2, -13, 123)).toEqual('P-5M2DT-12.999999877S');
   });
 
   it('should convert epoch day to cypher date', () => {
