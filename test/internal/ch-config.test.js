@@ -76,7 +76,11 @@ describe('ChannelConfig', () => {
   it('should use encryption if available but not configured', () => {
     const config = new ChannelConfig(null, {}, '');
 
-    expect(config.encrypted).toEqual(hasFeature('trust_all_certificates'));
+    if (hasFeature('trust_all_certificates')) {
+      expect(config.encrypted).toBeTruthy();
+    } else {
+      expect(config.encrypted).toBeFalsy();
+    }
   });
 
   it('should use available trust conf when nothing configured', () => {

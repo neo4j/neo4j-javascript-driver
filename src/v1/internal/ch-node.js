@@ -297,7 +297,6 @@ class NodeChannel {
     this._handleConnectionTerminated = this._handleConnectionTerminated.bind(this);
     this._connectionErrorCode = config.connectionErrorCode;
 
-    this._encrypted = config.encrypted;
     this._conn = connect(config, () => {
       if(!self._open) {
         return;
@@ -360,10 +359,6 @@ class NodeChannel {
 
       socket.setTimeout(timeout);
     }
-  }
-
-  isEncrypted() {
-    return this._encrypted;
   }
 
   /**

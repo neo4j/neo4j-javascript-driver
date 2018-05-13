@@ -42,9 +42,12 @@ export default class ChannelConfig {
 
 function extractEncrypted(driverConfig) {
   // check if encryption was configured by the user, use explicit null check because we permit boolean value
-  const encryptionConfigured = driverConfig.encrypted == null;
+  const encryptionNotConfigured = driverConfig.encrypted == null;
   // default to using encryption if trust-all-certificates is available
-  return encryptionConfigured ? hasFeature('trust_all_certificates') : driverConfig.encrypted;
+  if (encryptionNotConfigured && hasFeature('trust_all_certificates')) {
+    return true;
+  }
+  return driverConfig.encrypted;
 }
 
 function extractTrust(driverConfig) {
