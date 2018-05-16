@@ -1,4 +1,4 @@
-# Neo4j Driver 1.6 for JavaScript
+# Neo4j Driver for JavaScript
 
 
 A database driver for Neo4j 3.0.0+.
