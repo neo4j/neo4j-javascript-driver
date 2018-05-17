@@ -30,11 +30,16 @@ describe('WebSocketChannel', () => {
 
   let OriginalWebSocket;
   let webSocketChannel;
+  let originalConsoleWarn;
 
   beforeEach(() => {
     if (webSocketChannelAvailable) {
       OriginalWebSocket = WebSocket;
     }
+    originalConsoleWarn = console.warn;
+    console.warn = () => {
+      // mute by default
+    };
   });
 
   afterEach(() => {
@@ -44,6 +49,7 @@ describe('WebSocketChannel', () => {
     if (webSocketChannel) {
       webSocketChannel.close();
     }
+    console.warn = originalConsoleWarn;
   });
 
   it('should fallback to literal IPv6 when SyntaxError is thrown', () => {
@@ -143,6 +149,16 @@ describe('WebSocketChannel', () => {
     expect(channel._error.name).toEqual('Neo4jError');
   });
 
+  it('should generate a warning when encryption turned on for HTTP web page', () => {
+    testWarningInMixedEnvironment(true, 'http');
+    testWarningInMixedEnvironment(ENCRYPTION_ON, 'http');
+  });
+
+  it('should generate a warning when encryption turned off for HTTPS web page', () => {
+    testWarningInMixedEnvironment(false, 'https');
+    testWarningInMixedEnvironment(ENCRYPTION_OFF, 'https');
+  });
+
   function testFallbackToLiteralIPv6(boltAddress, expectedWsAddress) {
     if (!webSocketChannelAvailable) {
       return;
@@ -191,6 +207,34 @@ describe('WebSocketChannel', () => {
     const channel = new WebSocketChannel(channelConfig, protocolSupplier);
 
     expect(channel._ws.url).toEqual(expectedScheme + '://localhost:8989');
+  }
+
+  function testWarningInMixedEnvironment(encrypted, scheme) {
+    if (!webSocketChannelAvailable) {
+      return;
+    }
+
+    // replace real WebSocket with a function that memorizes the url
+    WebSocket = url => {
+      return {
+        url: url,
+        close: () => {
+        }
+      };
+    };
+
+    // replace console.warn with a function that memorizes the message
+    const warnMessages = [];
+    console.warn = message => warnMessages.push(message);
+
+    const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989');
+    const config = new ChannelConfig(url, {encrypted: encrypted}, SERVICE_UNAVAILABLE);
+    const protocolSupplier = () => scheme + ':';
+
+    const channel = new WebSocketChannel(config, protocolSupplier);
+
+    expect(channel).toBeDefined();
+    expect(warnMessages.length).toEqual(1);
   }
 
 });

@@ -228,21 +228,23 @@ function asWindowsFriendlyIPv6Address(scheme, parsedUrl) {
  * @return {{scheme: string|null, error: Neo4jError|null}} object containing either scheme or error.
  */
 function determineWebSocketScheme(config, protocolSupplier) {
-  const encrypted = config.encrypted;
+  const encryptionOn = isEncryptionExplicitlyTurnedOn(config);
+  const encryptionOff = isEncryptionExplicitlyTurnedOff(config);
   const trust = config.trust;
+  const secureProtocol = isProtocolSecure(protocolSupplier);
+  verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol);
 
-  if (encrypted === false || encrypted === ENCRYPTION_OFF) {
+  if (encryptionOff) {
     // encryption explicitly turned off in the config
     return {scheme: 'ws', error: null};
   }
 
-  const protocol = typeof protocolSupplier === 'function' ? protocolSupplier() : '';
-  if (protocol && protocol.toLowerCase().indexOf('https') >= 0) {
+  if (secureProtocol) {
     // driver is used in a secure https web page, use 'wss'
     return {scheme: 'wss', error: null};
   }
 
-  if (encrypted === true || encrypted === ENCRYPTION_ON) {
+  if (encryptionOn) {
     // encryption explicitly requested in the config
     if (!trust || trust === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
       // trust strategy not specified or the only supported strategy is specified
@@ -258,6 +260,45 @@ function determineWebSocketScheme(config, protocolSupplier) {
 
   // default to unencrypted web socket
   return {scheme: 'ws', error: null};
+}
+
+/**
+ * @param {ChannelConfig} config - configuration for the channel.
+ * @return {boolean} <code>true</code> if encryption enabled in the config, <code>false</code> otherwise.
+ */
+function isEncryptionExplicitlyTurnedOn(config) {
+  return config.encrypted === true || config.encrypted === ENCRYPTION_ON;
+}
+
+/**
+ * @param {ChannelConfig} config - configuration for the channel.
+ * @return {boolean} <code>true</code> if encryption disabled in the config, <code>false</code> otherwise.
+ */
+function isEncryptionExplicitlyTurnedOff(config) {
+  return config.encrypted === false || config.encrypted === ENCRYPTION_OFF;
+}
+
+/**
+ * @param {function(): string} protocolSupplier - function that detects protocol of the web page.
+ * @return {boolean} <code>true</code> if protocol returned by the given function is secure, <code>false</code> otherwise.
+ */
+function isProtocolSecure(protocolSupplier) {
+  const protocol = typeof protocolSupplier === 'function' ? protocolSupplier() : '';
+  return protocol && protocol.toLowerCase().indexOf('https') >= 0;
+}
+
+function verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol) {
+  if (encryptionOn && !secureProtocol) {
+    // encryption explicitly turned on for a driver used on a HTTP web page
+    console.warn('Neo4j driver is configured to use secure WebSocket on a HTTP web page. ' +
+      'WebSockets might not work in a mixed content environment. ' +
+      'Please consider configuring driver to not use encryption.');
+  } else if (encryptionOff && secureProtocol) {
+    // encryption explicitly turned off for a driver used on a HTTPS web page
+    console.warn('Neo4j driver is configured to use insecure WebSocket on a HTTPS web page. ' +
+      'WebSockets might not work in a mixed content environment. ' +
+      'Please consider configuring driver to use encryption.');
+  }
 }
 
 function detectWebPageProtocol() {
