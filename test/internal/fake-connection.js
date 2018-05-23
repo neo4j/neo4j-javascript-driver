@@ -31,7 +31,6 @@ export default class FakeConnection {
     this.creationTimestamp = Date.now();
 
     this.resetInvoked = 0;
-    this.resetAsyncInvoked = 0;
     this.syncInvoked = 0;
     this.releaseInvoked = 0;
     this.initializationInvoked = 0;
@@ -54,10 +53,6 @@ export default class FakeConnection {
     this.resetInvoked++;
   }
 
-  resetAsync() {
-    this.resetAsyncInvoked++;
-  }
-
   sync() {
     this.syncInvoked++;
   }
@@ -75,17 +70,6 @@ export default class FakeConnection {
     return this._open;
   }
 
-  isReleasedOnceOnSessionClose() {
-    return this.isReleasedOnSessionCloseTimes(1);
-  }
-
-  isReleasedOnSessionCloseTimes(times) {
-    return this.resetAsyncInvoked === times &&
-      this.resetInvoked === 0 &&
-      this.syncInvoked === times &&
-      this.releaseInvoked === times;
-  }
-
   isNeverReleased() {
     return this.isReleasedTimes(0);
   }
@@ -95,8 +79,7 @@ export default class FakeConnection {
   }
 
   isReleasedTimes(times) {
-    return this.resetAsyncInvoked === 0 &&
-      this.resetInvoked === times &&
+    return this.resetInvoked === times &&
       this.syncInvoked === times &&
       this.releaseInvoked === times;
   }

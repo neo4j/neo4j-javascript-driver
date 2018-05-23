@@ -70,8 +70,7 @@ export default class ConnectionHolder {
 
     this._referenceCount--;
     if (this._referenceCount === 0) {
-      // release a connection without muting ACK_FAILURE, this is the last action on this connection
-      return this._releaseConnection(true);
+      return this._releaseConnection();
     }
     return this._connectionPromise;
   }
@@ -85,9 +84,7 @@ export default class ConnectionHolder {
       return this._connectionPromise;
     }
     this._referenceCount = 0;
-    // release a connection and mute ACK_FAILURE, this might be called concurrently with other
-    // operations and thus should ignore failure handling
-    return this._releaseConnection(false);
+    return this._releaseConnection();
   }
 
   /**
@@ -97,14 +94,10 @@ export default class ConnectionHolder {
    * @return {Promise} - promise resolved then connection is returned to the pool.
    * @private
    */
-  _releaseConnection(sync) {
+  _releaseConnection() {
     this._connectionPromise = this._connectionPromise.then(connection => {
       if (connection) {
-        if(sync) {
-          connection.reset();
-        } else {
-          connection.resetAsync();
-        }
+        connection.reset();
         connection.sync();
         connection._release();
       }
