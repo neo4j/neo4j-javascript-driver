@@ -313,7 +313,7 @@ describe('session', () => {
         expect(sum.profile.operatorType).toBe('ProduceResults');
         expect(isString(sum.profile.arguments.runtime)).toBeTruthy();
         expect(sum.profile.identifiers[0]).toBe('n');
-        expect(sum.profile.children[0].operatorType).toBe('Filter');
+        expect(sum.profile.children[0].operatorType).toBeDefined();
         expect(sum.profile.rows).toBe(0);
         //expect(sum.profile.dbHits).toBeGreaterThan(0);
         done();
