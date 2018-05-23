@@ -398,10 +398,6 @@ class Connection {
     return !this._isBroken && this._ch._open;
   }
 
-  isEncrypted() {
-    return this._ch.isEncrypted();
-  }
-
   /**
    * Call close on the channel.
    * @param {function} cb - Function to call on close.
