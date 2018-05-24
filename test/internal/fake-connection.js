@@ -53,6 +53,11 @@ export default class FakeConnection {
     this.resetInvoked++;
   }
 
+  resetAndFlush() {
+    this.resetInvoked++;
+    return Promise.resolve();
+  }
+
   sync() {
     this.syncInvoked++;
   }
@@ -79,9 +84,7 @@ export default class FakeConnection {
   }
 
   isReleasedTimes(times) {
-    return this.resetInvoked === times &&
-      this.syncInvoked === times &&
-      this.releaseInvoked === times;
+    return this.resetInvoked === times && this.releaseInvoked === times;
   }
 
   withServerVersion(version) {

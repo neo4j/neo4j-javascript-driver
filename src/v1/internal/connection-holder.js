@@ -97,12 +97,13 @@ export default class ConnectionHolder {
   _releaseConnection() {
     this._connectionPromise = this._connectionPromise.then(connection => {
       if (connection) {
-        connection.reset();
-        connection.sync();
-        connection._release();
+        return connection.resetAndFlush()
+          .catch(ignoreError)
+          .then(() => connection._release());
+      } else {
+        return Promise.resolve();
       }
-    }).catch(ignoredError => {
-    });
+    }).catch(ignoreError);
 
     return this._connectionPromise;
   }
@@ -125,6 +126,9 @@ class EmptyConnectionHolder extends ConnectionHolder {
   close() {
     return Promise.resolve();
   }
+}
+
+function ignoreError(error) {
 }
 
 /**
