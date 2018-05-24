@@ -274,4 +274,34 @@ describe('direct driver with stub server', () => {
     });
   });
 
+  it('should close connection when RESET fails', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const server = boltStub.start('./test/resources/boltstub/reset_error.script', 9001);
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
+      const session = driver.session();
+
+      session.run('RETURN 42 AS answer').then(result => {
+        const records = result.records;
+        expect(records.length).toEqual(1);
+        expect(records[0].get(0).toNumber()).toEqual(42);
+        session.close(() => {
+
+          expect(driver._pool._pools['127.0.0.1:9001'].length).toEqual(0);
+          driver.close();
+          server.exit(code => {
+            expect(code).toEqual(0);
+            done();
+          });
+
+        });
+      }).catch(error => done.fail(error));
+    });
+  });
+
 });
