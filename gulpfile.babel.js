@@ -67,7 +67,7 @@ gulp.task('build-browser', function () {
     standalone: 'neo4j',
     packageCache: {}
   }).transform(babelify.configure({
-    presets: ['es2015', 'stage-3'], ignore: /external/
+    presets: ['env'], ignore: /external/
   })).bundle();
 
   // Un-minified browser package
@@ -104,7 +104,7 @@ gulp.task('build-browser-test', function(){
           cache: {},
           debug: true
         }).transform(babelify.configure({
-          presets: ['es2015', 'stage-3'], plugins: ['transform-runtime'], ignore: /external/
+        presets: ['env'], plugins: ['transform-runtime'], ignore: /external/
         }))
         .bundle(function(err, res){
           cb();
@@ -121,7 +121,7 @@ gulp.task('build-browser-test', function(){
 
 var buildNode = function(options) {
   return gulp.src(options.src)
-    .pipe(babel({presets: ['es2015', 'stage-3'], plugins: ['transform-runtime'], ignore: ['src/external/**/*.js']}))
+    .pipe(babel({presets: ['env'], plugins: ['transform-runtime'], ignore: ['src/external/**/*.js']}))
     .pipe(gulp.dest(options.dest))
 };
 
