@@ -11,6 +11,7 @@ try
 	else
 	{
 		$env:NEOCTRL_ARGS="$args"
+		Write-Host "$args"
 		npm run start-neo4j
 	}
 
