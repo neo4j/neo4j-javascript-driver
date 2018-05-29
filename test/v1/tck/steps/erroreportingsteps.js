@@ -65,16 +65,15 @@ module.exports = function () {
   this.When(/^I set up a driver to an incorrect port$/, function (callback) {
     var self = this;
     var driver = neo4j.driver("bolt://localhost:7777", neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password));
-    driver.onSuccess = function () {
-      driver.close();
-    };
-    driver.onError = function (error) {
-      driver.close();
-      self.error = error;
-      callback();
-    };
-    driver.session().beginTransaction();
-    setTimeout(callback, 1000);
+    var session = driver.session();
+    session.run('RETURN 1')
+      .catch(error => {
+        self.error = error;
+      })
+      .then(() => {
+        driver.close();
+        callback();
+      });
   });
 
   this.When(/^I set up a driver with wrong scheme$/, function (callback) {
