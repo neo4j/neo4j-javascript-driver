@@ -11,12 +11,11 @@ try
 	else
 	{
 		$env:NEOCTRL_ARGS="$args"
-		Write-Host "$args"
 		npm run start-neo4j
 	}
 
 	npm test
-	if(-Not ($?)) #failed to execute npm test
+	if($LastExitCode -ne 0) #failed to execute npm test without error
 	{
 		$ErrorFound = $True
 	}
