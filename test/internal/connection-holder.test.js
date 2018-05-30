@@ -168,7 +168,7 @@ describe('ConnectionHolder', () => {
     connectionHolder.initializeConnection();
 
     connectionHolder.close().then(() => {
-      expect(connection.isReleasedOnceOnSessionClose()).toBeTruthy();
+      expect(connection.isReleasedOnce()).toBeTruthy();
       done();
     });
   });
@@ -201,11 +201,11 @@ describe('ConnectionHolder', () => {
     connectionHolder.initializeConnection();
 
     connectionHolder.close().then(() => {
-      expect(connection1.isReleasedOnceOnSessionClose()).toBeTruthy();
+      expect(connection1.isReleasedOnce()).toBeTruthy();
 
       connectionHolder.initializeConnection();
       connectionHolder.close().then(() => {
-        expect(connection2.isReleasedOnceOnSessionClose()).toBeTruthy();
+        expect(connection2.isReleasedOnce()).toBeTruthy();
         done();
       });
     });
