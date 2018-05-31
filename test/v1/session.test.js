@@ -77,13 +77,13 @@ describe('session', () => {
     const session = newSessionWithConnection(connection);
 
     session.close(() => {
-      expect(connection.isReleasedOnceOnSessionClose()).toBeTruthy();
+      expect(connection.isReleasedOnce()).toBeTruthy();
 
       session.close(() => {
-        expect(connection.isReleasedOnceOnSessionClose()).toBeTruthy();
+        expect(connection.isReleasedOnce()).toBeTruthy();
 
         session.close(() => {
-          expect(connection.isReleasedOnceOnSessionClose()).toBeTruthy();
+          expect(connection.isReleasedOnce()).toBeTruthy();
           done();
         });
       });

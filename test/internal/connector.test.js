@@ -22,10 +22,15 @@ import {connect, Connection} from '../../src/v1/internal/connector';
 import {Packer} from '../../src/v1/internal/packstream-v1';
 import {Chunker} from '../../src/v1/internal/chunking';
 import {alloc} from '../../src/v1/internal/buf';
-import {Neo4jError} from '../../src/v1/error';
+import {Neo4jError, newError} from '../../src/v1/error';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion} from '../../src/v1/internal/server-version';
 import lolex from 'lolex';
+
+const ILLEGAL_MESSAGE = {signature: 42, fields: []};
+const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};
+const FAILURE_MESSAGE = {signature: 0x7F, fields: [newError('Hello')]};
+const RECORD_MESSAGE = {signature: 0x71, fields: [{value: 'Hello'}]};
 
 describe('connector', () => {
 
@@ -241,6 +246,104 @@ describe('connector', () => {
     testConnectionTimeout(true, done);
   });
 
+  it('should not queue INIT observer when broken', () => {
+    testQueueingOfObserversWithBrokenConnection(connection => connection.initialize('Hello', {}, {}));
+  });
+
+  it('should not queue RUN observer when broken', () => {
+    testQueueingOfObserversWithBrokenConnection(connection => connection.run('RETURN 1', {}, {}));
+  });
+
+  it('should not queue PULL_ALL observer when broken', () => {
+    testQueueingOfObserversWithBrokenConnection(connection => connection.pullAll({}));
+  });
+
+  it('should not queue DISCARD_ALL observer when broken', () => {
+    testQueueingOfObserversWithBrokenConnection(connection => connection.discardAll({}));
+  });
+
+  it('should not queue RESET observer when broken', () => {
+    const resetAction = connection => connection.resetAndFlush().catch(ignore => {
+    });
+
+    testQueueingOfObserversWithBrokenConnection(resetAction);
+  });
+
+  it('should not queue ACK_FAILURE observer when broken', () => {
+    testQueueingOfObserversWithBrokenConnection(connection => connection._ackFailureIfNeeded());
+  });
+
+  it('should reset and flush when SUCCESS received', done => {
+    connection = connect('bolt://localhost');
+
+    connection.resetAndFlush().then(() => {
+      expect(connection.isOpen()).toBeTruthy();
+      done();
+    }).catch(error => done.fail(error));
+
+    connection._handleMessage(SUCCESS_MESSAGE);
+  });
+
+  it('should fail to reset and flush when FAILURE received', done => {
+    connection = connect('bolt://localhost');
+
+    connection.resetAndFlush()
+      .then(() => done.fail('Should fail'))
+      .catch(error => {
+        expect(error.message).toEqual('Received FAILURE as a response for RESET: Neo4jError: Hello');
+        expect(connection._isBroken).toBeTruthy();
+        expect(connection.isOpen()).toBeFalsy();
+        done();
+      });
+
+    connection._handleMessage(FAILURE_MESSAGE);
+  });
+
+  it('should fail to reset and flush when RECORD received', done => {
+    connection = connect('bolt://localhost');
+
+    connection.resetAndFlush()
+      .then(() => done.fail('Should fail'))
+      .catch(error => {
+        expect(error.message).toEqual('Received RECORD as a response for RESET: {"value":"Hello"}');
+        expect(connection._isBroken).toBeTruthy();
+        expect(connection.isOpen()).toBeFalsy();
+        done();
+      });
+
+    connection._handleMessage(RECORD_MESSAGE);
+  });
+
+  it('should ACK_FAILURE when SUCCESS received', () => {
+    connection = connect('bolt://localhost');
+
+    connection._currentFailure = newError('Hello');
+    connection._ackFailureIfNeeded();
+
+    connection._handleMessage(SUCCESS_MESSAGE);
+    expect(connection._currentFailure).toBeNull();
+  });
+
+  it('should fail the connection when ACK_FAILURE receives FAILURE', () => {
+    connection = connect('bolt://localhost');
+
+    connection._ackFailureIfNeeded();
+
+    connection._handleMessage(FAILURE_MESSAGE);
+    expect(connection._isBroken).toBeTruthy();
+    expect(connection.isOpen()).toBeFalsy();
+  });
+
+  it('should fail the connection when ACK_FAILURE receives RECORD', () => {
+    connection = connect('bolt://localhost');
+
+    connection._ackFailureIfNeeded();
+
+    connection._handleMessage(RECORD_MESSAGE);
+    expect(connection._isBroken).toBeTruthy();
+    expect(connection.isOpen()).toBeFalsy();
+  });
+
   function packedHandshakeMessage() {
     const result = alloc(4);
     result.putInt32(0, 1);
@@ -299,6 +402,17 @@ describe('connector', () => {
         done();
       }
     });
+  }
+
+  function testQueueingOfObserversWithBrokenConnection(connectionAction) {
+    connection = connect('bolt://localhost');
+
+    connection._handleMessage(ILLEGAL_MESSAGE);
+    expect(connection.isOpen()).toBeFalsy();
+
+    expect(connection._pendingObservers.length).toEqual(0);
+    connectionAction(connection);
+    expect(connection._pendingObservers.length).toEqual(0);
   }
 
 });
