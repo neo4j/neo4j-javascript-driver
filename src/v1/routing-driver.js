@@ -35,9 +35,13 @@ class RoutingDriver extends Driver {
     this._routingContext = routingContext;
   }
 
+  _afterConstruction() {
+    this._log.info(`Routing driver ${this._id} created for server address ${this._hostPort}`);
+  }
+
   _createConnectionProvider(hostPort, connectionPool, driverOnErrorCallback) {
     const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(this._config, connectionPool);
-    return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback);
+    return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback, this._log);
   }
 
   _createSession(mode, connectionProvider, bookmark, config) {
@@ -50,9 +54,11 @@ class RoutingDriver extends Driver {
       const hostPort = conn.hostPort;
 
       if (error.code === SESSION_EXPIRED || isDatabaseUnavailable(error)) {
+        this._log.warn(`Routing driver ${this._id} will forget ${hostPort} because of an error ${error.code} '${error.message}'`);
         this._connectionProvider.forget(hostPort);
         return error;
       } else if (isFailureToWrite(error)) {
+        this._log.warn(`Routing driver ${this._id} will forget writer ${hostPort} because of an error ${error.code} '${error.message}'`);
         this._connectionProvider.forgetWriter(hostPort);
         return newError('No longer possible to write to server at ' + hostPort, SESSION_EXPIRED);
       } else {

@@ -461,7 +461,7 @@ describe('driver', () => {
   }
 
   function openConnectionFrom(driver) {
-    return Array.from(Object.values(driver._openSessions));
+    return Array.from(Object.values(driver._openConnections));
   }
 
 });
