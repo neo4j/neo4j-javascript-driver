@@ -238,11 +238,17 @@ class Driver {
   close() {
     this._log.info(`Driver ${this._id} closing`);
 
-    for (let connectionId in this._openConnections) {
-      if (this._openConnections.hasOwnProperty(connectionId)) {
-        this._openConnections[connectionId].close();
-      }
+    try {
+      // purge all idle connections in the connection pool
       this._pool.purgeAll();
+    } finally {
+      // then close all connections driver has ever created
+      // it is needed to close connections that are active right now and are acquired from the pool
+      for (let connectionId in this._openConnections) {
+        if (this._openConnections.hasOwnProperty(connectionId)) {
+          this._openConnections[connectionId].close();
+        }
+      }
     }
   }
 }
