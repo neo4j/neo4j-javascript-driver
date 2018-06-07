@@ -123,14 +123,8 @@ const TrustStrategy = {
       return;
     }
 
-    let tlsOpts = {
-      ca: config.trustedCertificates.map((f) => fs.readFileSync(f)),
-      // Because we manually check for this in the connect callback, to give
-      // a more helpful error to the user
-      rejectUnauthorized: false
-    };
-
-    let socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
+    const tlsOpts = newTlsOptions(config.url.host, config.trustedCertificates.map((f) => fs.readFileSync(f)));
+    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
       if (!socket.authorized) {
         onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, add" +
           " the signing certificate, or the server certificate, to the list of certificates trusted by this driver" +
@@ -146,13 +140,8 @@ const TrustStrategy = {
     return socket;
   },
   TRUST_SYSTEM_CA_SIGNED_CERTIFICATES : function( config, onSuccess, onFailure ) {
-
-    let tlsOpts = {
-      // Because we manually check for this in the connect callback, to give
-      // a more helpful error to the user
-      rejectUnauthorized: false
-    };
-    let socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
+    const tlsOpts = newTlsOptions(config.url.host);
+    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
       if (!socket.authorized) {
         onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, use " +
           "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES and add" +
@@ -175,13 +164,9 @@ const TrustStrategy = {
     console.warn('`TRUST_ON_FIRST_USE` has been deprecated as option and will be removed in a future version of ' +
           "the driver. Please use `TRUST_ALL_CERTIFICATES` instead.");
 
-    let tlsOpts = {
-      // Because we manually verify the certificate against known_hosts
-      rejectUnauthorized: false
-    };
-
-    let socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
-      var serverCert = socket.getPeerCertificate(/*raw=*/true);
+    const tlsOpts = newTlsOptions(config.url.host);
+    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
+      const serverCert = socket.getPeerCertificate(/*raw=*/true);
 
       if( !serverCert.raw ) {
         // If `raw` is not available, we're on an old version of NodeJS, and
@@ -229,9 +214,7 @@ const TrustStrategy = {
   },
 
   TRUST_ALL_CERTIFICATES: function (config, onSuccess, onFailure) {
-    const tlsOpts = {
-      rejectUnauthorized: false
-    };
+    const tlsOpts = newTlsOptions(config.url.host);
     const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
       const certificate = socket.getPeerCertificate();
       if (isEmptyObjectOrNull(certificate)) {
@@ -273,6 +256,20 @@ function connect( config, onSuccess, onFailure=(()=>null) ) {
       "the driver does not verify that the peer it is connected to is really Neo4j, it " +
       "is very easy for an attacker to bypass the encryption by pretending to be Neo4j."));
   }
+}
+
+/**
+ * Create a new configuration options object for the {@code tls.connect()} call.
+ * @param {string} hostname the target hostname.
+ * @param {string|undefined} ca an optional CA.
+ * @return {object} a new options object.
+ */
+function newTlsOptions(hostname, ca = undefined) {
+  return {
+    rejectUnauthorized: false, // we manually check for this in the connect callback, to give a more helpful error to the user
+    servername: hostname, // server name for the SNI (Server Name Indication) TLS extension
+    ca: ca, // optional CA useful for TRUST_CUSTOM_CA_SIGNED_CERTIFICATES trust mode
+  };
 }
 
 /**
