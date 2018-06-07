@@ -33,29 +33,34 @@ describe('Logger', () => {
     console.log = originalConsoleLog;
   });
 
-  it('should create NoOpLogger when not configured', () => {
-    const log = Logger.create({logger: null});
+  it('should create no-op logger when not configured', () => {
+    const log = Logger.create({logging: null});
 
     log.error('Error! This should be a no-op');
     log.warn('Warn! This should be a no-op');
     log.info('Info! This should be a no-op');
     log.debug('Debug! This should be a no-op');
 
-    expect(log.constructor.name).toEqual('NoOpLogger');
-    expect(log.isEnabled()).toBeFalsy();
+    expect(log.isErrorEnabled()).toBeFalsy();
+    expect(log.isWarnEnabled()).toBeFalsy();
+    expect(log.isInfoEnabled()).toBeFalsy();
+    expect(log.isDebugEnabled()).toBeFalsy();
   });
 
   it('should create Logger when configured', () => {
     const logged = [];
-    const log = Logger.create({logger: (level, message) => logged.push({level, message})});
+    const log = memorizingLogger(logged);
 
     log.error('Error! One');
     log.warn('Warn! Two');
     log.info('Info! Three');
     log.debug('Debug! Four');
 
-    expect(log.constructor.name).toEqual('Logger');
-    expect(log.isEnabled()).toBeTruthy();
+    expect(log.isErrorEnabled()).toBeTruthy();
+    expect(log.isWarnEnabled()).toBeTruthy();
+    expect(log.isInfoEnabled()).toBeTruthy();
+    expect(log.isDebugEnabled()).toBeTruthy();
+
     expect(logged).toEqual([
       {level: 'error', message: 'Error! One'},
       {level: 'warn', message: 'Warn! Two'},
@@ -64,11 +69,24 @@ describe('Logger', () => {
     ]);
   });
 
+  it('should log according to the configured log level', () => {
+    const logged = [];
+    const log = memorizingLogger(logged, 'warn');
+
+    log.error('Error! One');
+    log.warn('Warn! Two');
+    log.info('Info! Three');
+    log.debug('Debug! Four');
+
+    expect(logged).toEqual([
+      {level: 'error', message: 'Error! One'},
+      {level: 'warn', message: 'Warn! Two'}
+    ]);
+  });
+
   it('should log when logger configured in the driver', done => {
     const logged = [];
-    const config = {
-      logger: (level, message) => logged.push({level, message})
-    };
+    const config = memorizingLoggerConfig(logged);
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, config);
 
     const session = driver.session();
@@ -96,13 +114,10 @@ describe('Logger', () => {
       });
   });
 
-  it('should log to console when configured in the driver', done => {
+  it('should log debug to console when configured in the driver', done => {
     const logged = [];
     console.log = message => logged.push(message);
-    const config = {
-      logger: neo4j.logger.console
-    };
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, config);
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {logging: neo4j.logging.console('debug')});
 
     const session = driver.session();
     session.run('RETURN 123456789')
@@ -110,8 +125,39 @@ describe('Logger', () => {
         expect(logged.length).toBeGreaterThan(0);
 
         // the executed statement should've been logged
-        const statementLogged = logged.find(log => log.indexOf('RETURN 123456789') !== -1);
+        const statementLogged = logged.find(log => log.indexOf('DEBUG') !== -1 && log.indexOf('RETURN 123456789') !== -1);
         expect(statementLogged).toBeTruthy();
+
+        // driver creation should've been logged because it is on info level
+        const driverCreationLogged = logged.find(log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1);
+        expect(driverCreationLogged).toBeTruthy();
+      })
+      .catch(error => {
+        done.fail(error);
+      })
+      .then(() => {
+        driver.close();
+        done();
+      });
+  });
+
+  it('should log info to console when configured in the driver', done => {
+    const logged = [];
+    console.log = message => logged.push(message);
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {logging: neo4j.logging.console()}); // info is the default level
+
+    const session = driver.session();
+    session.run('RETURN 123456789')
+      .then(() => {
+        expect(logged.length).toBeGreaterThan(0);
+
+        // the executed statement should not be logged because it is in debug level
+        const statementLogged = logged.find(log => log.indexOf('RETURN 123456789') !== -1);
+        expect(statementLogged).toBeFalsy();
+
+        // driver creation should've been logged because it is on info level
+        const driverCreationLogged = logged.find(log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1);
+        expect(driverCreationLogged).toBeTruthy();
       })
       .catch(error => {
         done.fail(error);
@@ -123,3 +169,16 @@ describe('Logger', () => {
   });
 
 });
+
+function memorizingLogger(logged, level = 'debug') {
+  return Logger.create(memorizingLoggerConfig(logged, level));
+}
+
+function memorizingLoggerConfig(logged, level = 'debug') {
+  return {
+    logging: {
+      level: level,
+      logger: (level, message) => logged.push({level, message})
+    }
+  };
+}

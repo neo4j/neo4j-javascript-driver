@@ -16,12 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {newError} from '../error';
 
-const level = {
-  ERROR: 'error',
-  WARN: 'warn',
-  INFO: 'info',
-  DEBUG: 'debug'
+const ERROR = 'error';
+const WARN = 'warn';
+const INFO = 'info';
+const DEBUG = 'debug';
+
+const DEFAULT_LEVEL = INFO;
+
+const levels = {
+  [ERROR]: 0,
+  [WARN]: 1,
+  [INFO]: 2,
+  [DEBUG]: 3
 };
 
 /**
@@ -31,9 +39,11 @@ class Logger {
 
   /**
    * @constructor
-   * @param {function(level: string, message: string)} loggerFunction the function to delegate to.
+   * @param {string} level the enabled logging level.
+   * @param {function(level: string, message: string)} loggerFunction the function to write the log level and message.
    */
-  constructor(loggerFunction) {
+  constructor(level, loggerFunction) {
+    this._level = level;
     this._loggerFunction = loggerFunction;
   }
 
@@ -43,14 +53,17 @@ class Logger {
    * @return {Logger} a new logger instance or a no-op logger when not configured.
    */
   static create(driverConfig) {
-    if (driverConfig && driverConfig.logger && typeof driverConfig.logger === 'function') {
-      return new Logger(driverConfig.logger);
+    if (driverConfig && driverConfig.logging) {
+      const loggingConfig = driverConfig.logging;
+      const level = extractConfiguredLevel(loggingConfig);
+      const loggerFunction = extractConfiguredLogger(loggingConfig);
+      return new Logger(level, loggerFunction);
     }
     return this.noOp();
   }
 
   /**
-   * Get the no-op logger implementation.
+   * Create a no-op logger implementation.
    * @return {Logger} the no-op logger implementation.
    */
   static noOp() {
@@ -58,11 +71,11 @@ class Logger {
   }
 
   /**
-   * Check if logger is enabled, i.e. it is not a no-op implementation.
-   * @return {boolean} <code>true</code> when logger is not a no-op, <code>false</code> otherwise.
+   * Check if error logging is enabled, i.e. it is not a no-op implementation.
+   * @return {boolean} <code>true</code> when enabled, <code>false</code> otherwise.
    */
-  isEnabled() {
-    return true;
+  isErrorEnabled() {
+    return isLevelEnabled(this._level, ERROR);
   }
 
   /**
@@ -70,7 +83,17 @@ class Logger {
    * @param {string} message the message to log.
    */
   error(message) {
-    this._loggerFunction(level.ERROR, message);
+    if (this.isErrorEnabled()) {
+      this._loggerFunction(ERROR, message);
+    }
+  }
+
+  /**
+   * Check if warn logging is enabled, i.e. it is not a no-op implementation.
+   * @return {boolean} <code>true</code> when enabled, <code>false</code> otherwise.
+   */
+  isWarnEnabled() {
+    return isLevelEnabled(this._level, WARN);
   }
 
   /**
@@ -78,7 +101,17 @@ class Logger {
    * @param {string} message the message to log.
    */
   warn(message) {
-    this._loggerFunction(level.WARN, message);
+    if (this.isWarnEnabled()) {
+      this._loggerFunction(WARN, message);
+    }
+  }
+
+  /**
+   * Check if info logging is enabled, i.e. it is not a no-op implementation.
+   * @return {boolean} <code>true</code> when enabled, <code>false</code> otherwise.
+   */
+  isInfoEnabled() {
+    return isLevelEnabled(this._level, INFO);
   }
 
   /**
@@ -86,7 +119,17 @@ class Logger {
    * @param {string} message the message to log.
    */
   info(message) {
-    this._loggerFunction(level.INFO, message);
+    if (this.isInfoEnabled()) {
+      this._loggerFunction(INFO, message);
+    }
+  }
+
+  /**
+   * Check if debug logging is enabled, i.e. it is not a no-op implementation.
+   * @return {boolean} <code>true</code> when enabled, <code>false</code> otherwise.
+   */
+  isDebugEnabled() {
+    return isLevelEnabled(this._level, DEBUG);
   }
 
   /**
@@ -94,33 +137,89 @@ class Logger {
    * @param {string} message the message to log.
    */
   debug(message) {
-    this._loggerFunction(level.DEBUG, message);
+    if (this.isDebugEnabled()) {
+      this._loggerFunction(DEBUG, message);
+    }
   }
 }
 
 class NoOpLogger extends Logger {
 
   constructor() {
-    super(null);
+    super(null, null);
   }
 
-  isEnabled() {
+  isErrorEnabled() {
     return false;
   }
 
-  error() {
+  error(message) {
   }
 
-  warn() {
+  isWarnEnabled() {
+    return false;
   }
 
-  info() {
+  warn(message) {
   }
 
-  debug() {
+  isInfoEnabled() {
+    return false;
+  }
+
+  info(message) {
+  }
+
+  isDebugEnabled() {
+    return false;
+  }
+
+  debug(message) {
   }
 }
 
 const noOpLogger = new NoOpLogger();
+
+/**
+ * Check if the given logging level is enabled.
+ * @param {string} configuredLevel the configured level.
+ * @param {string} targetLevel the level to check.
+ * @return {boolean} value of <code>true</code> when enabled, <code>false</code> otherwise.
+ */
+function isLevelEnabled(configuredLevel, targetLevel) {
+  return levels[configuredLevel] >= levels[targetLevel];
+}
+
+/**
+ * Extract the configured logging level from the driver's logging configuration.
+ * @param {object} loggingConfig the logging configuration.
+ * @return {string} the configured log level or default when none configured.
+ */
+function extractConfiguredLevel(loggingConfig) {
+  if (loggingConfig && loggingConfig.level) {
+    const configuredLevel = loggingConfig.level;
+    const value = levels[configuredLevel];
+    if (!value && value !== 0) {
+      throw newError(`Illegal logging level: ${configuredLevel}. Supported levels are: ${Object.keys(levels)}`);
+    }
+    return configuredLevel;
+  }
+  return DEFAULT_LEVEL;
+}
+
+/**
+ * Extract the configured logger function from the driver's logging configuration.
+ * @param {object} loggingConfig the logging configuration.
+ * @return {function(level: string, message: string)} the configured logging function.
+ */
+function extractConfiguredLogger(loggingConfig) {
+  if (loggingConfig && loggingConfig.logger) {
+    const configuredLogger = loggingConfig.logger;
+    if (configuredLogger && typeof configuredLogger === 'function') {
+      return configuredLogger;
+    }
+  }
+  throw newError(`Illegal logger function: ${loggingConfig.logger}`);
+}
 
 export default Logger;

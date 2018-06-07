@@ -145,7 +145,7 @@ class Connection {
       this._handleMessage(this._unpacker.unpack(buf));
     };
 
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} created towards ${hostPort}`);
     }
 
@@ -168,7 +168,7 @@ class Connection {
    * @private
    */
   _initializeProtocol(version, buffer) {
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} negotiated protocol version ${version}`);
     }
 
@@ -196,7 +196,7 @@ class Connection {
     this._isBroken = true;
     this._error = err;
 
-    if (this._log.isEnabled()) {
+    if (this._log.isErrorEnabled()) {
       this._log.error(`${this} experienced a fatal error ${JSON.stringify(err)}`);
     }
 
@@ -222,13 +222,13 @@ class Connection {
 
     switch( msg.signature ) {
       case RECORD:
-        if (this._log.isEnabled()) {
+        if (this._log.isDebugEnabled()) {
           this._log.debug(`${this} S: RECORD ${JSON.stringify(msg)}`);
         }
         this._currentObserver.onNext( payload );
         break;
       case SUCCESS:
-        if (this._log.isEnabled()) {
+        if (this._log.isDebugEnabled()) {
           this._log.debug(`${this} S: SUCCESS ${JSON.stringify(msg)}`);
         }
         try {
@@ -238,7 +238,7 @@ class Connection {
         }
         break;
       case FAILURE:
-        if (this._log.isEnabled()) {
+        if (this._log.isDebugEnabled()) {
           this._log.debug(`${this} S: FAILURE ${JSON.stringify(msg)}`);
         }
         try {
@@ -251,7 +251,7 @@ class Connection {
         }
         break;
       case IGNORED:
-        if (this._log.isEnabled()) {
+        if (this._log.isDebugEnabled()) {
           this._log.debug(`${this} S: IGNORED ${JSON.stringify(msg)}`);
         }
         try {
@@ -270,7 +270,7 @@ class Connection {
 
   /** Queue an INIT-message to be sent to the database */
   initialize( clientName, token, observer ) {
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} C: INIT ${clientName} ${JSON.stringify(token)}`);
     }
     const initObserver = this._state.wrap(observer);
@@ -285,7 +285,7 @@ class Connection {
 
   /** Queue a RUN-message to be sent to the database */
   run( statement, params, observer ) {
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} C: RUN ${statement} ${JSON.stringify(params)}`);
     }
     const queued = this._queueObserver(observer);
@@ -298,7 +298,7 @@ class Connection {
 
   /** Queue a PULL_ALL-message to be sent to the database */
   pullAll( observer ) {
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} C: PULL_ALL`);
     }
     const queued = this._queueObserver(observer);
@@ -310,7 +310,7 @@ class Connection {
 
   /** Queue a DISCARD_ALL-message to be sent to the database */
   discardAll( observer ) {
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} C: DISCARD_ALL`);
     }
     const queued = this._queueObserver(observer);
@@ -326,7 +326,7 @@ class Connection {
    * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
    */
   resetAndFlush() {
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} C: RESET`);
     }
     this._ackFailureMuted = true;
@@ -365,7 +365,7 @@ class Connection {
       return;
     }
 
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} C: ACK_FAILURE`);
     }
 
@@ -448,7 +448,7 @@ class Connection {
    * @param {function} cb - Function to call on close.
    */
   close(cb) {
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} closing`);
     }
     this._ch.close(cb);

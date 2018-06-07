@@ -58,7 +58,7 @@ class Pool {
 
     if (resource) {
       resourceAcquired(key, this._activeResourceCounts);
-      if (this._log.isEnabled()) {
+      if (this._log.isDebugEnabled()) {
         this._log.debug(`${resource} acquired from the pool`);
       }
       return Promise.resolve(resource);
@@ -153,19 +153,19 @@ class Pool {
     if (pool) {
       // there exist idle connections for the given key
       if (!this._validate(resource)) {
-        if (this._log.isEnabled()) {
+        if (this._log.isDebugEnabled()) {
           this._log.debug(`${resource} destroyed and can't be released to the pool ${key} because it is not functional`);
         }
         this._destroy(resource);
       } else {
-        if (this._log.isEnabled()) {
+        if (this._log.isDebugEnabled()) {
           this._log.debug(`${resource} released to the pool ${key}`);
         }
         pool.push(resource);
       }
     } else {
       // key has been purged, don't put it back, just destroy the resource
-      if (this._log.isEnabled()) {
+      if (this._log.isDebugEnabled()) {
         this._log.debug(`${resource} destroyed and can't be released to the pool ${key} because pool has been purged`);
       }
       this._destroy(resource);
@@ -228,7 +228,7 @@ class PendingRequest {
 
   resolve(resource) {
     clearTimeout(this._timeoutId);
-    if (this._log.isEnabled()) {
+    if (this._log.isDebugEnabled()) {
       this._log.debug(`${resource} acquired from the pool`);
     }
     this._resolve(resource);
