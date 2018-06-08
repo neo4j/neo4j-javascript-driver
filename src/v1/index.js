@@ -69,6 +69,20 @@ const auth = {
 const USER_AGENT = "neo4j-javascript/" + VERSION;
 
 /**
+ * Object containing predefined logging configurations. These are expected to be used as values of the driver config's <code>logging</code> property.
+ * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to <code>console.log</code> with
+ * timestamp, level and message. It takes an optional <code>level</code> parameter which represents the maximum log level to be logged. Default value is 'info'.
+ */
+const logging = {
+  console: level => {
+    return {
+      level: level,
+      logger: (level, message) => console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
+    };
+  }
+};
+
+/**
  * Construct a new Neo4j Driver. This is your main entry point for this
  * library.
  *
@@ -172,6 +186,22 @@ const USER_AGENT = "neo4j-javascript/" + VERSION;
  *       // Default value for this option is <code>false</code> because native JavaScript numbers might result
  *       // in loss of precision in the general case.
  *       disableLosslessIntegers: false,
+ *
+ *       // Specify the logging configuration for the driver. Object should have two properties <code>level</code> and <code>logger</code>.
+ *       //
+ *       // Property <code>level</code> represents the logging level which should be one of: 'error', 'warn', 'info' or 'debug'. This property is optional and
+ *       // its default value is 'info'. Levels have priorities: 'error': 0, 'warn': 1, 'info': 2, 'debug': 3. Enabling a certain level also enables all
+ *       // levels with lower priority. For example: 'error', 'warn' and 'info' will be logged when 'info' level is configured.
+ *       //
+ *       // Property <code>logger</code> represents the logging function which will be invoked for every log call with an acceptable level. The function should
+ *       // take two string arguments <code>level</code> and <code>message</code>. The function should not execute any blocking or long-running operations
+ *       // because it is often executed on a hot path.
+ *       //
+ *       // No logging is done by default. See <code>neo4j.logging</code> object that contains predefined logging implementations.
+ *       logging: {
+ *         level: 'info',
+ *         logger: (level, message) => console.log(level + ' ' + message)
+ *       },
  *     }
  *
  * @param {string} url The URL for the Neo4j database, for instance "bolt://localhost"
@@ -280,6 +310,7 @@ const forExport = {
   integer,
   Neo4jError,
   auth,
+  logging,
   types,
   session,
   error,
@@ -301,6 +332,7 @@ export {
   integer,
   Neo4jError,
   auth,
+  logging,
   types,
   session,
   error,

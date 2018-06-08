@@ -19,6 +19,7 @@
 
 import PoolConfig from './pool-config';
 import {newError} from '../error';
+import Logger from './logger';
 
 class Pool {
   /**
@@ -31,8 +32,10 @@ class Pool {
    *                 when it is returned). If this returns false, the resource will
    *                 be evicted
    * @param {PoolConfig} config configuration for the new driver.
+   * @param {Logger} log the driver logger.
    */
-  constructor(create, destroy = (() => true), validate = (() => true), config = PoolConfig.defaultConfig()) {
+  constructor(create, destroy = (() => true), validate = (() => true), config = PoolConfig.defaultConfig(),
+              log = Logger.noOp()) {
     this._create = create;
     this._destroy = destroy;
     this._validate = validate;
@@ -42,6 +45,7 @@ class Pool {
     this._acquireRequests = {};
     this._activeResourceCounts = {};
     this._release = this._release.bind(this);
+    this._log = log;
   }
 
   /**
@@ -54,7 +58,9 @@ class Pool {
 
     if (resource) {
       resourceAcquired(key, this._activeResourceCounts);
-
+      if (this._log.isDebugEnabled()) {
+        this._log.debug(`${resource} acquired from the pool`);
+      }
       return Promise.resolve(resource);
     }
 
@@ -73,7 +79,7 @@ class Pool {
         reject(newError(`Connection acquisition timed out in ${this._acquisitionTimeout} ms.`));
       }, this._acquisitionTimeout);
 
-      request = new PendingRequest(resolve, timeoutId);
+      request = new PendingRequest(resolve, timeoutId, this._log);
       allRequests[key].push(request);
     });
   }
@@ -147,12 +153,21 @@ class Pool {
     if (pool) {
       // there exist idle connections for the given key
       if (!this._validate(resource)) {
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${resource} destroyed and can't be released to the pool ${key} because it is not functional`);
+        }
         this._destroy(resource);
       } else {
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${resource} released to the pool ${key}`);
+        }
         pool.push(resource);
       }
     } else {
       // key has been purged, don't put it back, just destroy the resource
+      if (this._log.isDebugEnabled()) {
+        this._log.debug(`${resource} destroyed and can't be released to the pool ${key} because pool has been purged`);
+      }
       this._destroy(resource);
     }
     resourceReleased(key, this._activeResourceCounts);
@@ -205,13 +220,17 @@ function resourceReleased(key, activeResourceCounts) {
 
 class PendingRequest {
 
-  constructor(resolve, timeoutId) {
+  constructor(resolve, timeoutId, log) {
     this._resolve = resolve;
     this._timeoutId = timeoutId;
+    this._log = log;
   }
 
   resolve(resource) {
     clearTimeout(this._timeoutId);
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${resource} acquired from the pool`);
+    }
     this._resolve(resource);
   }
 

@@ -74,6 +74,7 @@ export default class RoutingTable {
   toString() {
     return `RoutingTable[` +
       `expirationTime=${this.expirationTime}, ` +
+      `currentTime=${Date.now()}, ` +
       `routers=[${this.routers}], ` +
       `readers=[${this.readers}], ` +
       `writers=[${this.writers}]]`;

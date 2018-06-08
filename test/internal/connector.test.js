@@ -26,6 +26,7 @@ import {Neo4jError, newError} from '../../src/v1/error';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion} from '../../src/v1/internal/server-version';
 import lolex from 'lolex';
+import Logger from '../../src/v1/internal/logger';
 
 const ILLEGAL_MESSAGE = {signature: 42, fields: []};
 const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};
@@ -140,7 +141,7 @@ describe('connector', () => {
 
   it('should convert failure messages to errors', done => {
     const channel = new DummyChannel.channel;
-    connection = new Connection(channel, 'bolt://localhost');
+    connection = new Connection(channel, 'bolt://localhost', Logger.noOp());
 
     const errorCode = 'Neo.ClientError.Schema.ConstraintValidationFailed';
     const errorMessage = 'Node 0 already exists with label User and property "email"=[john@doe.com]';

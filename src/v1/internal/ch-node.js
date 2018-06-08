@@ -369,7 +369,6 @@ class NodeChannel {
     if( this._pending !== null ) {
       this._pending.push( buffer );
     } else if( buffer instanceof NodeBuffer ) {
-      // console.log( "[Conn#"+this.id+"] SEND: ", buffer.toString() );
       this._conn.write( buffer._buffer );
     } else {
       throw newError( "Don't know how to write: " + buffer );

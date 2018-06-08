@@ -60,7 +60,7 @@ export class DirectConnectionProvider extends ConnectionProvider {
 
 export class LoadBalancer extends ConnectionProvider {
 
-  constructor(hostPort, routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback) {
+  constructor(hostPort, routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback, log) {
     super();
     this._seedRouter = hostPort;
     this._routingTable = new RoutingTable([this._seedRouter]);
@@ -69,6 +69,7 @@ export class LoadBalancer extends ConnectionProvider {
     this._driverOnErrorCallback = driverOnErrorCallback;
     this._hostNameResolver = LoadBalancer._createHostNameResolver();
     this._loadBalancingStrategy = loadBalancingStrategy;
+    this._log = log;
     this._useSeedRouter = false;
   }
 
@@ -111,6 +112,7 @@ export class LoadBalancer extends ConnectionProvider {
     if (!currentRoutingTable.isStaleFor(accessMode)) {
       return Promise.resolve(currentRoutingTable);
     }
+    this._log.info(`Routing table is stale for ${accessMode}: ${currentRoutingTable}`);
     return this._refreshRoutingTable(currentRoutingTable);
   }
 
@@ -235,6 +237,7 @@ export class LoadBalancer extends ConnectionProvider {
 
     // make this driver instance aware of the new table
     this._routingTable = newRoutingTable;
+    this._log.info(`Updated routing table ${newRoutingTable}`);
   }
 
   static _forgetRouter(routingTable, routersArray, routerIndex) {

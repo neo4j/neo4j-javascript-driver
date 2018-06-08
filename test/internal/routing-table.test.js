@@ -169,8 +169,14 @@ describe('routing-table', () => {
   });
 
   it('should have correct toString', () => {
-    const table = createTable([1, 2], [3, 4], [5, 6], 42);
-    expect(table.toString()).toEqual('RoutingTable[expirationTime=42, routers=[1,2], readers=[3,4], writers=[5,6]]');
+    const originalDateNow = Date.now;
+    try {
+      Date.now = () => 4242;
+      const table = createTable([1, 2], [3, 4], [5, 6], 42);
+      expect(table.toString()).toEqual('RoutingTable[expirationTime=42, currentTime=4242, routers=[1,2], readers=[3,4], writers=[5,6]]');
+    } finally {
+      Date.now = originalDateNow;
+    }
   });
 
   function expired() {
