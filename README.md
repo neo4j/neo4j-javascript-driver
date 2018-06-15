@@ -306,3 +306,14 @@ if (!neo4j.integer.inSafeRange(aLargerInteger)) {
 }
 ```
 
+### Enable native numbers
+
+Starting from 1.6 version of the driver it is possible to configure it to only return native numbers instead of custom `Integer` objects.
+The configuration option affects all integers returned by the driver. **Enabling this option can result in a loss of precision and incorrect numeric
+values being returned if the database contains integer numbers outside of the range** `[Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]`.
+To enable potentially lossy integer values use the driver's configuration object:
+
+```javascript
+var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"), {disableLosslessIntegers: true});
+```
+
