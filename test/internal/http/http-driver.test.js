@@ -346,7 +346,7 @@ describe('http driver', () => {
       return;
     }
 
-    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalDateTime(2000, 10, 12, 10, 10, 10), done);
+    testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalDateTime(2000, 10, 12, 10, 10, 10, 10), done);
   });
 
   it('should fail to pass local time as a query parameter', done => {
