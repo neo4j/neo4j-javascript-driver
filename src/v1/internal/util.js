@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import {isInt} from '../integer';
+
 const ENCRYPTION_ON = "ENCRYPTION_ON";
 const ENCRYPTION_OFF = "ENCRYPTION_OFF";
 
@@ -71,6 +73,20 @@ function assertString(obj, objName) {
   return obj;
 }
 
+function assertNumber(obj, objName) {
+  if (typeof obj !== 'number') {
+    throw new TypeError(objName + ' expected to be a number but was: ' + JSON.stringify(obj));
+  }
+  return obj;
+}
+
+function assertNumberOrInteger(obj, objName) {
+  if (typeof obj !== 'number' && !isInt(obj)) {
+    throw new TypeError(objName + ' expected to be either a number or an Integer object but was: ' + JSON.stringify(obj));
+  }
+  return obj;
+}
+
 function assertCypherStatement(obj) {
   assertString(obj, 'Cypher statement');
   if (obj.trim().length === 0) {
@@ -94,6 +110,8 @@ export {
   isEmptyObjectOrNull,
   isString,
   assertString,
+  assertNumber,
+  assertNumberOrInteger,
   validateStatementAndParameters,
   ENCRYPTION_ON,
   ENCRYPTION_OFF

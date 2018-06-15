@@ -513,7 +513,7 @@ describe('temporal-types', () => {
   });
 
   it('should expose local date-time components in date-time with zone ID', () => {
-    const zonedDateTime = dateTimeWithZoneId(2356, 7, 29, 23, 32, 11, 9346458, 3600, randomZoneId());
+    const zonedDateTime = dateTimeWithZoneId(2356, 7, 29, 23, 32, 11, 9346458, randomZoneId());
 
     expect(zonedDateTime.year).toEqual(neo4j.int(2356));
     expect(zonedDateTime.month).toEqual(neo4j.int(7));
@@ -595,6 +595,67 @@ describe('temporal-types', () => {
     const duration6 = duration(0, 0, 40, -12123456999);
     expect(duration6.seconds).toEqual(neo4j.int(27));
     expect(duration6.nanoseconds).toEqual(neo4j.int(876543001));
+  });
+
+  it('should validate types of constructor arguments for Duration', () => {
+    expect(() => new neo4j.types.Duration('1', 2, 3, 4)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Duration(1, '2', 3, 4)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Duration(1, 2, [3], 4)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Duration(1, 2, 3, {value: 4})).toThrowError(TypeError);
+    expect(() => new neo4j.types.Duration({months: 1, days: 2, seconds: 3, nanoseconds: 4})).toThrowError(TypeError);
+  });
+
+  it('should validate types of constructor arguments for LocalTime', () => {
+    expect(() => new neo4j.types.LocalTime('1', 2, 3, 4)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalTime(1, '2', 3, 4)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalTime(1, 2, [3], 4)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalTime(1, 2, 3, {value: 4})).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalTime({hour: 1, minute: 2, seconds: 3, nanosecond: 4})).toThrowError(TypeError);
+  });
+
+  it('should validate types of constructor arguments for Time', () => {
+    expect(() => new neo4j.types.Time('1', 2, 3, 4, 5)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Time(1, '2', 3, 4, 5)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Time(1, 2, [3], 4, 5)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Time(1, 2, 3, {value: 4}, 5)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Time(1, 2, 3, 4, () => 5)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Time({hour: 1, minute: 2, seconds: 3, nanosecond: 4, timeZoneOffsetSeconds: 5})).toThrowError(TypeError);
+  });
+
+  it('should validate types of constructor arguments for Date', () => {
+    expect(() => new neo4j.types.Date('1', 2, 3)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Date(1, [2], 3)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Date(1, 2, () => 3)).toThrowError(TypeError);
+    expect(() => new neo4j.types.Date({year: 1, month: 2, day: 3})).toThrowError(TypeError);
+  });
+
+  it('should validate types of constructor arguments for LocalDateTime', () => {
+    expect(() => new neo4j.types.LocalDateTime('1', 2, 3, 4, 5, 6, 7)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalDateTime(1, '2', 3, 4, 5, 6, 7)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalDateTime(1, 2, [3], 4, 5, 6, 7)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalDateTime(1, 2, 3, [4], 5, 6, 7)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalDateTime(1, 2, 3, 4, () => 5, 6, 7)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalDateTime(1, 2, 3, 4, 5, () => 6, 7)).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalDateTime(1, 2, 3, 4, 5, 6, {value: 7})).toThrowError(TypeError);
+    expect(() => new neo4j.types.LocalDateTime({year: 1, month: 2, day: 3, hour: 4, minute: 5, second: 6, nanosecond: 7})).toThrowError(TypeError);
+  });
+
+  it('should validate types of constructor arguments for DateTime', () => {
+    expect(() => new neo4j.types.DateTime('1', 2, 3, 4, 5, 6, 7, 8)).toThrowError(TypeError);
+    expect(() => new neo4j.types.DateTime(1, '2', 3, 4, 5, 6, 7, 8)).toThrowError(TypeError);
+    expect(() => new neo4j.types.DateTime(1, 2, [3], 4, 5, 6, 7, 8)).toThrowError(TypeError);
+    expect(() => new neo4j.types.DateTime(1, 2, 3, [4], 5, 6, 7, 8)).toThrowError(TypeError);
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, () => 5, 6, 7, 8)).toThrowError(TypeError);
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, () => 6, 7, 8)).toThrowError(TypeError);
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, {value: 7}, 8)).toThrowError(TypeError);
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, {value: 8})).toThrowError(TypeError);
+
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, {timeZoneId: 'UK'})).toThrowError(TypeError);
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, ['UK'])).toThrowError(TypeError);
+
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7)).toThrow();
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, null)).toThrow();
+    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, 8, 'UK')).toThrow();
   });
 
   function testSendAndReceiveRandomTemporalValues(valueGenerator, done) {
