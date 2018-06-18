@@ -2143,7 +2143,7 @@ describe('routing driver with stub server', () => {
   }
 
   function numberOfOpenConnections(driver) {
-    return Object.keys(driver._openSessions).length;
+    return Object.keys(driver._openConnections).length;
   }
 
   class MemorizingRoutingTable extends RoutingTable {

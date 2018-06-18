@@ -1,4 +1,4 @@
-# Neo4j Driver 1.6 for JavaScript
+# Neo4j Driver for JavaScript
 
 
 A database driver for Neo4j 3.0.0+.
@@ -232,7 +232,7 @@ Subscriber API allows following combinations of `onNext`, `onCompleted` and `onE
 ## Building
 
     npm install
-    npm build
+    npm run build
 
 This produces browser-compatible standalone files under `lib/browser` and a Node.js module version under `lib/`.
 See files under `examples/` on how to use.

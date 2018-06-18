@@ -30,8 +30,9 @@ class WebSocketChannel {
   /**
    * Create new instance
    * @param {ChannelConfig} config - configuration for this channel.
+   * @param {function(): string} protocolSupplier - function that detects protocol of the web page. Should only be used in tests.
    */
-  constructor(config) {
+  constructor(config, protocolSupplier = detectWebPageProtocol) {
 
     this._open = true;
     this._pending = [];
@@ -39,18 +40,10 @@ class WebSocketChannel {
     this._handleConnectionError = this._handleConnectionError.bind(this);
     this._config = config;
 
-    let scheme = "ws";
-    //Allow boolean for backwards compatibility
-    if (config.encrypted === true || config.encrypted === ENCRYPTION_ON) {
-      if ((!config.trust) || config.trust === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
-        scheme = "wss";
-      } else {
-        this._error = newError("The browser version of this driver only supports one trust " +
-          'strategy, \'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES\'. ' + config.trust + ' is not supported. Please ' +
-          "either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting " +
-          "`encrypted:\"" + ENCRYPTION_OFF + "\"` in the driver configuration.");
-        return;
-      }
+    const {scheme, error} = determineWebSocketScheme(config, protocolSupplier);
+    if (error) {
+      this._error = error;
+      return;
     }
 
     this._ws = createWebSocket(scheme, config.url);
@@ -113,10 +106,6 @@ class WebSocketChannel {
         this.onerror(this._error);
       }
     }
-  }
-
-  isEncrypted() {
-    return this._config.encrypted;
   }
 
   /**
@@ -232,6 +221,89 @@ function asWindowsFriendlyIPv6Address(scheme, parsedUrl) {
   const ipv6Host = hostWithoutPercent + '.ipv6-literal.net';
 
   return `${scheme}://${ipv6Host}:${parsedUrl.port}`;
+}
+
+/**
+ * @param {ChannelConfig} config - configuration for the channel.
+ * @param {function(): string} protocolSupplier - function that detects protocol of the web page.
+ * @return {{scheme: string|null, error: Neo4jError|null}} object containing either scheme or error.
+ */
+function determineWebSocketScheme(config, protocolSupplier) {
+  const encryptionOn = isEncryptionExplicitlyTurnedOn(config);
+  const encryptionOff = isEncryptionExplicitlyTurnedOff(config);
+  const trust = config.trust;
+  const secureProtocol = isProtocolSecure(protocolSupplier);
+  verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol);
+
+  if (encryptionOff) {
+    // encryption explicitly turned off in the config
+    return {scheme: 'ws', error: null};
+  }
+
+  if (secureProtocol) {
+    // driver is used in a secure https web page, use 'wss'
+    return {scheme: 'wss', error: null};
+  }
+
+  if (encryptionOn) {
+    // encryption explicitly requested in the config
+    if (!trust || trust === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
+      // trust strategy not specified or the only supported strategy is specified
+      return {scheme: 'wss', error: null};
+    } else {
+      const error = newError('The browser version of this driver only supports one trust ' +
+        'strategy, \'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES\'. ' + trust + ' is not supported. Please ' +
+        'either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting ' +
+        '`encrypted:"' + ENCRYPTION_OFF + '"` in the driver configuration.');
+      return {scheme: null, error: error};
+    }
+  }
+
+  // default to unencrypted web socket
+  return {scheme: 'ws', error: null};
+}
+
+/**
+ * @param {ChannelConfig} config - configuration for the channel.
+ * @return {boolean} <code>true</code> if encryption enabled in the config, <code>false</code> otherwise.
+ */
+function isEncryptionExplicitlyTurnedOn(config) {
+  return config.encrypted === true || config.encrypted === ENCRYPTION_ON;
+}
+
+/**
+ * @param {ChannelConfig} config - configuration for the channel.
+ * @return {boolean} <code>true</code> if encryption disabled in the config, <code>false</code> otherwise.
+ */
+function isEncryptionExplicitlyTurnedOff(config) {
+  return config.encrypted === false || config.encrypted === ENCRYPTION_OFF;
+}
+
+/**
+ * @param {function(): string} protocolSupplier - function that detects protocol of the web page.
+ * @return {boolean} <code>true</code> if protocol returned by the given function is secure, <code>false</code> otherwise.
+ */
+function isProtocolSecure(protocolSupplier) {
+  const protocol = typeof protocolSupplier === 'function' ? protocolSupplier() : '';
+  return protocol && protocol.toLowerCase().indexOf('https') >= 0;
+}
+
+function verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol) {
+  if (encryptionOn && !secureProtocol) {
+    // encryption explicitly turned on for a driver used on a HTTP web page
+    console.warn('Neo4j driver is configured to use secure WebSocket on a HTTP web page. ' +
+      'WebSockets might not work in a mixed content environment. ' +
+      'Please consider configuring driver to not use encryption.');
+  } else if (encryptionOff && secureProtocol) {
+    // encryption explicitly turned off for a driver used on a HTTPS web page
+    console.warn('Neo4j driver is configured to use insecure WebSocket on a HTTPS web page. ' +
+      'WebSockets might not work in a mixed content environment. ' +
+      'Please consider configuring driver to use encryption.');
+  }
+}
+
+function detectWebPageProtocol() {
+  return window && window.location ? window.location.protocol : null;
 }
 
 export default _websocketChannelModule

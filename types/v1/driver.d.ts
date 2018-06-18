@@ -40,6 +40,13 @@ declare type TrustStrategy =
 
 declare type LoadBalancingStrategy = "least_connected" | "round_robin";
 
+declare type LogLevel = "error" | "warn" | "info" | "debug";
+
+declare interface LoggingConfig {
+  level?: LogLevel;
+  logger: (level: LogLevel, message: string) => void;
+}
+
 declare interface Config {
   encrypted?: boolean | EncryptionLevel;
   trust?: TrustStrategy;
@@ -55,6 +62,7 @@ declare interface Config {
   maxConnectionLifetime?: number;
   connectionTimeout?: number;
   disableLosslessIntegers?: boolean;
+  logging?: LoggingConfig;
 }
 
 declare type SessionMode = "READ" | "WRITE";

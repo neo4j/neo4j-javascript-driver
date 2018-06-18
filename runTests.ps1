@@ -15,7 +15,7 @@ try
 	}
 
 	npm test
-	if(-Not ($?)) #failed to execute npm test
+	if($LastExitCode -ne 0) #failed to execute npm test without error
 	{
 		$ErrorFound = $True
 	}

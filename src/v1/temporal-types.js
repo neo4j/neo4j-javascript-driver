@@ -18,6 +18,7 @@
  */
 
 import * as util from './internal/temporal-util';
+import {assertNumberOrInteger, assertString} from './internal/util';
 import {newError} from './error';
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
@@ -47,8 +48,10 @@ export class Duration {
    * @param {Integer|number} nanoseconds the number of nanoseconds for the new duration.
    */
   constructor(months, days, seconds, nanoseconds) {
-    this.months = months;
-    this.days = days;
+    this.months = assertNumberOrInteger(months, 'Months');
+    this.days = assertNumberOrInteger(days, 'Days');
+    assertNumberOrInteger(seconds, 'Seconds');
+    assertNumberOrInteger(nanoseconds, 'Nanoseconds');
     this.seconds = util.normalizeSecondsForDuration(seconds, nanoseconds);
     this.nanoseconds = util.normalizeNanosecondsForDuration(nanoseconds);
     Object.freeze(this);
@@ -84,10 +87,10 @@ export class LocalTime {
    * @param {Integer|number} nanosecond the nanosecond for the new local time.
    */
   constructor(hour, minute, second, nanosecond) {
-    this.hour = hour;
-    this.minute = minute;
-    this.second = second;
-    this.nanosecond = nanosecond;
+    this.hour = assertNumberOrInteger(hour, 'Hour');
+    this.minute = assertNumberOrInteger(minute, 'Minute');
+    this.second = assertNumberOrInteger(second, 'Second');
+    this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
     Object.freeze(this);
   }
 
@@ -122,11 +125,11 @@ export class Time {
    * @param {Integer|number} timeZoneOffsetSeconds the time zone offset in seconds.
    */
   constructor(hour, minute, second, nanosecond, timeZoneOffsetSeconds) {
-    this.hour = hour;
-    this.minute = minute;
-    this.second = second;
-    this.nanosecond = nanosecond;
-    this.timeZoneOffsetSeconds = timeZoneOffsetSeconds;
+    this.hour = assertNumberOrInteger(hour, 'Hour');
+    this.minute = assertNumberOrInteger(minute, 'Minute');
+    this.second = assertNumberOrInteger(second, 'Second');
+    this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
+    this.timeZoneOffsetSeconds = assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds');
     Object.freeze(this);
   }
 
@@ -159,9 +162,9 @@ export class Date {
    * @param {Integer|number} day the day for the new local date.
    */
   constructor(year, month, day) {
-    this.year = year;
-    this.month = month;
-    this.day = day;
+    this.year = assertNumberOrInteger(year, 'Year');
+    this.month = assertNumberOrInteger(month, 'Month');
+    this.day = assertNumberOrInteger(day, 'Day');
     Object.freeze(this);
   }
 
@@ -198,13 +201,13 @@ export class LocalDateTime {
    * @param {Integer|number} nanosecond the nanosecond for the new local time.
    */
   constructor(year, month, day, hour, minute, second, nanosecond) {
-    this.year = year;
-    this.month = month;
-    this.day = day;
-    this.hour = hour;
-    this.minute = minute;
-    this.second = second;
-    this.nanosecond = nanosecond;
+    this.year = assertNumberOrInteger(year, 'Year');
+    this.month = assertNumberOrInteger(month, 'Month');
+    this.day = assertNumberOrInteger(day, 'Day');
+    this.hour = assertNumberOrInteger(hour, 'Hour');
+    this.minute = assertNumberOrInteger(minute, 'Minute');
+    this.second = assertNumberOrInteger(second, 'Second');
+    this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
     Object.freeze(this);
   }
 
@@ -243,13 +246,13 @@ export class DateTime {
    * @param {string|null} timeZoneId the time zone id for the new date-time. Either this argument or <code>timeZoneOffsetSeconds</code> should be defined.
    */
   constructor(year, month, day, hour, minute, second, nanosecond, timeZoneOffsetSeconds, timeZoneId) {
-    this.year = year;
-    this.month = month;
-    this.day = day;
-    this.hour = hour;
-    this.minute = minute;
-    this.second = second;
-    this.nanosecond = nanosecond;
+    this.year = assertNumberOrInteger(year, 'Year');
+    this.month = assertNumberOrInteger(month, 'Month');
+    this.day = assertNumberOrInteger(day, 'Day');
+    this.hour = assertNumberOrInteger(hour, 'Hour');
+    this.minute = assertNumberOrInteger(minute, 'Minute');
+    this.second = assertNumberOrInteger(second, 'Second');
+    this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
 
     const [offset, id] = verifyTimeZoneArguments(timeZoneOffsetSeconds, timeZoneId);
     this.timeZoneOffsetSeconds = offset;
@@ -289,8 +292,10 @@ function verifyTimeZoneArguments(timeZoneOffsetSeconds, timeZoneId) {
   const idDefined = timeZoneId && timeZoneId !== '';
 
   if (offsetDefined && !idDefined) {
+    assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds');
     return [timeZoneOffsetSeconds, null];
   } else if (!offsetDefined && idDefined) {
+    assertString(timeZoneId, 'Time zone ID');
     return [null, timeZoneId];
   } else if (offsetDefined && idDefined) {
     throw newError(`Unable to create DateTime with both time zone offset and id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`);

@@ -27,6 +27,7 @@ import ChannelConfig from './ch-config';
 import urlUtil from './url-util';
 import StreamObserver from './stream-observer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
+import Logger from './logger';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -54,22 +55,7 @@ IGNORED = 0x7E,         // 0111 1110 // IGNORED <metadata>
 FAILURE = 0x7F,         // 0111 1111 // FAILURE <metadata>
 
 //sent before version negotiation
-MAGIC_PREAMBLE = 0x6060B017,
-DEBUG = false;
-
-/**
- * Very rudimentary log handling, should probably be replaced by something proper at some point.
- * @param actor the part that sent the message, 'S' for server and 'C' for client
- * @param msg the bolt message
- */
-function log(actor, msg) {
-  if (DEBUG) {
-    for(var i = 2; i < arguments.length; i++) {
-      msg += " " + JSON.stringify(arguments[i]);
-    }
-    console.log(actor + ":" + msg);
-  }
-}
+MAGIC_PREAMBLE = 0x6060B017;
 
 function NO_OP(){}
 
@@ -78,6 +64,8 @@ let NO_OP_OBSERVER = {
   onCompleted : NO_OP,
   onError : NO_OP
 };
+
+let idGenerator = 0;
 
 /**
  * A connection manages sending and receiving messages over a channel. A
@@ -98,14 +86,11 @@ class Connection {
    * @constructor
    * @param {NodeChannel|WebSocketChannel} channel - channel with a 'write' function and a 'onmessage' callback property.
    * @param {string} hostPort - the hostname and port to connect to.
+   * @param {Logger} log - the configured logger.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
    */
-  constructor(channel, hostPort, disableLosslessIntegers = false) {
-    /**
-     * An ordered queue of observers, each exchange response (zero or more
-     * RECORD messages followed by a SUCCESS message) we receive will be routed
-     * to the next pending observer.
-     */
+  constructor(channel, hostPort, log, disableLosslessIntegers = false) {
+    this.id = idGenerator++;
     this.hostPort = hostPort;
     this.server = {address: hostPort};
     this.creationTimestamp = Date.now();
@@ -115,6 +100,7 @@ class Connection {
     this._ch = channel;
     this._dechunker = new Dechunker();
     this._chunker = new Chunker( channel );
+    this._log = log;
 
     // initially assume that database supports latest Bolt version, create latest packer and unpacker
     this._packer = packStreamUtil.createLatestPacker(this._chunker);
@@ -159,6 +145,10 @@ class Connection {
       this._handleMessage(this._unpacker.unpack(buf));
     };
 
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} created towards ${hostPort}`);
+    }
+
     let handshake = alloc( 5 * 4 );
     //magic preamble
     handshake.writeInt32( MAGIC_PREAMBLE );
@@ -178,6 +168,10 @@ class Connection {
    * @private
    */
   _initializeProtocol(version, buffer) {
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} negotiated protocol version ${version}`);
+    }
+
     // re-create packer and unpacker because version might be lower than we initially assumed
     this._packer = packStreamUtil.createPackerForProtocolVersion(version, this._chunker);
     this._unpacker = packStreamUtil.createUnpackerForProtocolVersion(version, this._disableLosslessIntegers);
@@ -201,6 +195,11 @@ class Connection {
   _handleFatalError( err ) {
     this._isBroken = true;
     this._error = err;
+
+    if (this._log.isErrorEnabled()) {
+      this._log.error(`${this} experienced a fatal error ${JSON.stringify(err)}`);
+    }
+
     if( this._currentObserver && this._currentObserver.onError ) {
       this._currentObserver.onError(err);
     }
@@ -223,11 +222,15 @@ class Connection {
 
     switch( msg.signature ) {
       case RECORD:
-        log("S", "RECORD", msg);
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${this} S: RECORD ${JSON.stringify(msg)}`);
+        }
         this._currentObserver.onNext( payload );
         break;
       case SUCCESS:
-        log("S", "SUCCESS", msg);
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${this} S: SUCCESS ${JSON.stringify(msg)}`);
+        }
         try {
           this._currentObserver.onCompleted( payload );
         } finally {
@@ -235,7 +238,9 @@ class Connection {
         }
         break;
       case FAILURE:
-        log("S", "FAILURE", msg);
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${this} S: FAILURE ${JSON.stringify(msg)}`);
+        }
         try {
           this._currentFailure = newError(payload.message, payload.code);
           this._currentObserver.onError( this._currentFailure );
@@ -246,7 +251,9 @@ class Connection {
         }
         break;
       case IGNORED:
-        log("S", "IGNORED", msg);
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${this} S: IGNORED ${JSON.stringify(msg)}`);
+        }
         try {
           if (this._currentFailure && this._currentObserver.onError)
             this._currentObserver.onError(this._currentFailure);
@@ -263,7 +270,9 @@ class Connection {
 
   /** Queue an INIT-message to be sent to the database */
   initialize( clientName, token, observer ) {
-    log("C", "INIT", clientName, token);
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} C: INIT ${clientName} ${JSON.stringify(token)}`);
+    }
     const initObserver = this._state.wrap(observer);
     const queued = this._queueObserver(initObserver);
     if (queued) {
@@ -276,7 +285,9 @@ class Connection {
 
   /** Queue a RUN-message to be sent to the database */
   run( statement, params, observer ) {
-    log("C", "RUN", statement, params);
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} C: RUN ${statement} ${JSON.stringify(params)}`);
+    }
     const queued = this._queueObserver(observer);
     if (queued) {
       this._packer.packStruct(RUN, [this._packable(statement), this._packable(params)],
@@ -287,7 +298,9 @@ class Connection {
 
   /** Queue a PULL_ALL-message to be sent to the database */
   pullAll( observer ) {
-    log("C", "PULL_ALL");
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} C: PULL_ALL`);
+    }
     const queued = this._queueObserver(observer);
     if (queued) {
       this._packer.packStruct(PULL_ALL, [], (err) => this._handleFatalError(err));
@@ -297,7 +310,9 @@ class Connection {
 
   /** Queue a DISCARD_ALL-message to be sent to the database */
   discardAll( observer ) {
-    log("C", "DISCARD_ALL");
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} C: DISCARD_ALL`);
+    }
     const queued = this._queueObserver(observer);
     if (queued) {
       this._packer.packStruct(DISCARD_ALL, [], (err) => this._handleFatalError(err));
@@ -311,7 +326,9 @@ class Connection {
    * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
    */
   resetAndFlush() {
-    log('C', 'RESET');
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} C: RESET`);
+    }
     this._ackFailureMuted = true;
 
     return new Promise((resolve, reject) => {
@@ -348,7 +365,9 @@ class Connection {
       return;
     }
 
-    log('C', 'ACK_FAILURE');
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} C: ACK_FAILURE`);
+    }
 
     const observer = {
       onNext: record => {
@@ -424,16 +443,19 @@ class Connection {
     return !this._isBroken && this._ch._open;
   }
 
-  isEncrypted() {
-    return this._ch.isEncrypted();
-  }
-
   /**
    * Call close on the channel.
    * @param {function} cb - Function to call on close.
    */
   close(cb) {
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} closing`);
+    }
     this._ch.close(cb);
+  }
+
+  toString() {
+    return `Connection ${this.id}`;
   }
 
   _packable(value) {
@@ -557,13 +579,14 @@ class ConnectionState {
  * @param {string} hostPort - the Bolt endpoint to connect to
  * @param {object} config - this driver configuration
  * @param {string=null} connectionErrorCode - error code for errors raised on connection errors
+ * @param {Logger} log - configured logger
  * @return {Connection} - New connection
  */
-function connect(hostPort, config = {}, connectionErrorCode = null) {
+function connect(hostPort, config = {}, connectionErrorCode = null, log = Logger.noOp()) {
   const Ch = config.channel || Channel;
   const parsedAddress = urlUtil.parseDatabaseUrl(hostPort);
   const channelConfig = new ChannelConfig(parsedAddress, config, connectionErrorCode);
-  return new Connection(new Ch(channelConfig), parsedAddress.hostAndPort, config.disableLosslessIntegers);
+  return new Connection(new Ch(channelConfig), parsedAddress.hostAndPort, log, config.disableLosslessIntegers);
 }
 
 export {

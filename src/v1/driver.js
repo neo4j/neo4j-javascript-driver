@@ -26,6 +26,7 @@ import {DirectConnectionProvider} from './internal/connection-providers';
 import Bookmark from './internal/bookmark';
 import ConnectivityVerifier from './internal/connectivity-verifier';
 import PoolConfig, {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from './internal/pool-config';
+import Logger from './internal/logger';
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
 
@@ -42,6 +43,8 @@ const READ = 'READ';
  * @type {string}
  */
 const WRITE = 'WRITE';
+
+let idGenerator = 0;
 
 /**
  * A driver maintains one or more {@link Session}s with a remote
@@ -66,17 +69,19 @@ class Driver {
   constructor(hostPort, userAgent, token = {}, config = {}) {
     sanitizeConfig(config);
 
+    this._id = idGenerator++;
     this._hostPort = hostPort;
     this._userAgent = userAgent;
-    this._openSessions = {};
-    this._sessionIdGenerator = 0;
+    this._openConnections = {};
     this._token = token;
     this._config = config;
+    this._log = Logger.create(config);
     this._pool = new Pool(
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
       this._validateConnection.bind(this),
-      PoolConfig.fromDriverConfig(config)
+      PoolConfig.fromDriverConfig(config),
+      this._log
     );
 
     /**
@@ -87,6 +92,15 @@ class Driver {
     this._connectionProvider = null;
 
     this._onCompleted = null;
+
+    this._afterConstruction();
+  }
+
+  /**
+   * @protected
+   */
+  _afterConstruction() {
+    this._log.info(`Direct driver ${this._id} created for server address ${this._hostPort}`);
   }
 
   /**
@@ -118,14 +132,12 @@ class Driver {
    * @access private
    */
   _createConnection(hostPort, release) {
-    let sessionId = this._sessionIdGenerator++;
-    let conn = connect(hostPort, this._config, this._connectionErrorCode());
+    let conn = connect(hostPort, this._config, this._connectionErrorCode(), this._log);
     let streamObserver = new _ConnectionStreamObserver(this, conn);
     conn.initialize(this._userAgent, this._token, streamObserver);
-    conn._id = sessionId;
     conn._release = () => release(hostPort, conn);
 
-    this._openSessions[sessionId] = conn;
+    this._openConnections[conn.id] = conn;
     return conn;
   }
 
@@ -145,12 +157,12 @@ class Driver {
   }
 
   /**
-   * Dispose of a live session, closing any associated resources.
-   * @return {Session} new session.
+   * Dispose of a connection.
+   * @return {Connection} the connection to dispose.
    * @access private
    */
   _destroyConnection(conn) {
-    delete this._openSessions[conn._id];
+    delete this._openConnections[conn.id];
     conn.close();
   }
 
@@ -224,11 +236,19 @@ class Driver {
    * @return undefined
    */
   close() {
-    for (let sessionId in this._openSessions) {
-      if (this._openSessions.hasOwnProperty(sessionId)) {
-        this._openSessions[sessionId].close();
-      }
+    this._log.info(`Driver ${this._id} closing`);
+
+    try {
+      // purge all idle connections in the connection pool
       this._pool.purgeAll();
+    } finally {
+      // then close all connections driver has ever created
+      // it is needed to close connections that are active right now and are acquired from the pool
+      for (let connectionId in this._openConnections) {
+        if (this._openConnections.hasOwnProperty(connectionId)) {
+          this._openConnections[connectionId].close();
+        }
+      }
     }
   }
 }
