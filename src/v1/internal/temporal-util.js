@@ -383,7 +383,13 @@ function formatNumber(num, stringLength = undefined) {
   if (isNegative) {
     num = num.negate();
   }
-  const numString = num.toString();
-  const paddedNumString = stringLength ? numString.padStart(stringLength, '0') : numString;
-  return isNegative ? '-' + paddedNumString : paddedNumString;
+
+  let numString = num.toString();
+  if (stringLength) {
+    // left pad the string with zeroes
+    while (numString.length < stringLength) {
+      numString = '0' + numString;
+    }
+  }
+  return isNegative ? '-' + numString : numString;
 }
