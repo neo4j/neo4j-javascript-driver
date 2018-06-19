@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {int} from '../integer';
+import {int, isInt} from '../integer';
 import {Date, LocalDateTime, LocalTime} from '../temporal-types';
 
 /*
@@ -35,6 +35,7 @@ const MINUTES_PER_HOUR = 60;
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
 const NANOS_PER_SECOND = 1000000000;
+const NANOS_PER_MILLISECOND = 1000000;
 const NANOS_PER_MINUTE = NANOS_PER_SECOND * SECONDS_PER_MINUTE;
 const NANOS_PER_HOUR = NANOS_PER_MINUTE * MINUTES_PER_HOUR;
 const DAYS_0000_TO_1970 = 719528;
@@ -262,6 +263,27 @@ export function dateToIsoString(year, month, day) {
   const monthString = formatNumber(month, 2);
   const dayString = formatNumber(day, 2);
   return `${yearString}-${monthString}-${dayString}`;
+}
+
+/**
+ * Get the total number of nanoseconds from the milliseconds of the given standard JavaScript date and optional nanosecond part.
+ * @param {global.Date} standardDate the standard JavaScript date.
+ * @param {Integer|number|undefined} nanoseconds the optional number of nanoseconds.
+ * @return {Integer|number} the total amount of nanoseconds.
+ */
+export function totalNanoseconds(standardDate, nanoseconds) {
+  nanoseconds = (nanoseconds || 0);
+  const nanosFromMillis = standardDate.getMilliseconds() * NANOS_PER_MILLISECOND;
+  return isInt(nanoseconds) ? nanoseconds.add(nanosFromMillis) : nanoseconds + nanosFromMillis;
+}
+
+/**
+ * Get the total number of nanoseconds from the given standard JavaScript date.
+ * @param {global.Date} standardDate the standard JavaScript date.
+ * @return {number} the total amount of nanoseconds.
+ */
+export function timeZoneOffsetInSeconds(standardDate) {
+  return standardDate.getTimezoneOffset() * SECONDS_PER_MINUTE;
 }
 
 /**

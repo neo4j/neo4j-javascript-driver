@@ -19,6 +19,7 @@
 
 import Integer from "./integer";
 
+declare type StandardDate = Date;
 declare type NumberOrInteger = number | Integer;
 
 declare class Node<T extends NumberOrInteger = Integer> {
@@ -90,5 +91,6 @@ export {
   UnboundRelationship,
   Path,
   PathSegment,
-  NumberOrInteger
+  NumberOrInteger,
+  StandardDate
 }

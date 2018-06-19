@@ -169,6 +169,32 @@ describe('temporal-util', () => {
     expect(util.localTimeToNanoOfDay(12, 51, 17, 808080)).toEqual(int(46277000808080));
   });
 
+  it('should get total nanoseconds from standard date', () => {
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0))).toEqual(0);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 1))).toEqual(1000000);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 23))).toEqual(23000000);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999))).toEqual(999000000);
+
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), 0)).toEqual(0);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), 1)).toEqual(1);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), 999)).toEqual(999);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 1), 999)).toEqual(1000999);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999), 111)).toEqual(999000111);
+
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), int(0))).toEqual(int(0));
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), int(1))).toEqual(int(1));
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), int(999))).toEqual(int(999));
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 1), int(999))).toEqual(int(1000999));
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999), int(111))).toEqual(int(999000111));
+  });
+
+  it('should get timezone offset in seconds from standard date', () => {
+    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(0))).toEqual(0);
+    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(2))).toEqual(120);
+    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(10))).toEqual(600);
+    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(101))).toEqual(6060);
+  });
+
 });
 
 function date(year, month, day) {
@@ -181,4 +207,10 @@ function localTime(hour, minute, second, nanosecond) {
 
 function localDateTime(year, month, day, hour, minute, second, nanosecond) {
   return new types.LocalDateTime(int(year), int(month), int(day), int(hour), int(minute), int(second), int(nanosecond));
+}
+
+function fakeStandardDateWithOffset(offsetMinutes) {
+  const date = new Date();
+  date.getTimezoneOffset = () => offsetMinutes;
+  return date;
 }

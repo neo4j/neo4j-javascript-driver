@@ -135,6 +135,23 @@ describe('util', () => {
     verifyInvalidNumberOrInteger({value: 42});
   });
 
+  it('should check dates', () => {
+    verifyValidDate(new Date());
+    verifyValidDate(new Date(0));
+    verifyValidDate(new Date(-1));
+    verifyValidDate(new Date(2000, 10, 10));
+    verifyValidDate(new Date(2000, 10, 10, 10, 10, 10, 10));
+
+    verifyInvalidDate(new Date('not a valid date'));
+    verifyInvalidDate(new Date({}));
+    verifyInvalidDate(new Date([]));
+
+    verifyInvalidDate({});
+    verifyInvalidDate([]);
+    verifyInvalidDate('2007-04-05T12:30-02:00');
+    verifyInvalidDate(2019);
+  });
+
   function verifyValidString(str) {
     expect(util.assertString(str, 'Test string')).toBe(str);
   }
@@ -169,6 +186,14 @@ describe('util', () => {
 
   function verifyInvalidQueryParameters(obj) {
     expect(() => util.validateStatementAndParameters('RETURN 1', obj)).toThrowError(TypeError);
+  }
+
+  function verifyValidDate(obj) {
+    expect(util.assertValidDate(obj, 'Test date')).toBe(obj);
+  }
+
+  function verifyInvalidDate(obj) {
+    expect(() => util.assertValidDate(obj, 'Test date')).toThrowError(TypeError);
   }
 
 });

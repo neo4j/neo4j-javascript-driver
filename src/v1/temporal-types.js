@@ -18,7 +18,7 @@
  */
 
 import * as util from './internal/temporal-util';
-import {assertNumberOrInteger, assertString} from './internal/util';
+import {assertNumberOrInteger, assertString, assertValidDate} from './internal/util';
 import {newError} from './error';
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
@@ -94,6 +94,23 @@ export class LocalTime {
     Object.freeze(this);
   }
 
+  /**
+   * Create a local time object from the given standard JavaScript <code>Date</code> and optional nanoseconds.
+   * Year, month, day and time zone offset components of the given date are ignored.
+   * @param {global.Date} standardDate the standard JavaScript date to convert.
+   * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
+   * @return {LocalTime} new local time.
+   */
+  static fromStandardDate(standardDate, nanosecond) {
+    verifyStandardDateAndNanos(standardDate, nanosecond);
+
+    return new LocalTime(
+      standardDate.getHours(),
+      standardDate.getMinutes(),
+      standardDate.getSeconds(),
+      util.totalNanoseconds(standardDate, nanosecond));
+  }
+
   toString() {
     return util.timeToIsoString(this.hour, this.minute, this.second, this.nanosecond);
   }
@@ -133,6 +150,24 @@ export class Time {
     Object.freeze(this);
   }
 
+  /**
+   * Create a time object from the given standard JavaScript <code>Date</code> and optional nanoseconds.
+   * Year, month and day components of the given date are ignored.
+   * @param {global.Date} standardDate the standard JavaScript date to convert.
+   * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
+   * @return {Time} new time.
+   */
+  static fromStandardDate(standardDate, nanosecond) {
+    verifyStandardDateAndNanos(standardDate, nanosecond);
+
+    return new Time(
+      standardDate.getHours(),
+      standardDate.getMinutes(),
+      standardDate.getSeconds(),
+      util.totalNanoseconds(standardDate, nanosecond),
+      util.timeZoneOffsetInSeconds(standardDate));
+  }
+
   toString() {
     return util.timeToIsoString(this.hour, this.minute, this.second, this.nanosecond) + util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds);
   }
@@ -166,6 +201,21 @@ export class Date {
     this.month = assertNumberOrInteger(month, 'Month');
     this.day = assertNumberOrInteger(day, 'Day');
     Object.freeze(this);
+  }
+
+  /**
+   * Create a date object from the given standard JavaScript <code>Date</code>.
+   * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
+   * @param {global.Date} standardDate the standard JavaScript date to convert.
+   * @return {Date} new date.
+   */
+  static fromStandardDate(standardDate) {
+    verifyStandardDateAndNanos(standardDate, null);
+
+    return new Date(
+      standardDate.getFullYear(),
+      standardDate.getMonth(),
+      standardDate.getDate());
   }
 
   toString() {
@@ -209,6 +259,26 @@ export class LocalDateTime {
     this.second = assertNumberOrInteger(second, 'Second');
     this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
     Object.freeze(this);
+  }
+
+  /**
+   * Create a local date-time object from the given standard JavaScript <code>Date</code> and optional nanoseconds.
+   * Time zone offset component of the given date is ignored.
+   * @param {global.Date} standardDate the standard JavaScript date to convert.
+   * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
+   * @return {LocalDateTime} new local date-time.
+   */
+  static fromStandardDate(standardDate, nanosecond) {
+    verifyStandardDateAndNanos(standardDate, nanosecond);
+
+    return new LocalDateTime(
+      standardDate.getFullYear(),
+      standardDate.getMonth(),
+      standardDate.getDate(),
+      standardDate.getHours(),
+      standardDate.getMinutes(),
+      standardDate.getSeconds(),
+      util.totalNanoseconds(standardDate, nanosecond));
   }
 
   toString() {
@@ -261,6 +331,27 @@ export class DateTime {
     Object.freeze(this);
   }
 
+  /**
+   * Create a date-time object from the given standard JavaScript <code>Date</code> and optional nanoseconds.
+   * @param {global.Date} standardDate the standard JavaScript date to convert.
+   * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
+   * @return {DateTime} new date-time.
+   */
+  static fromStandardDate(standardDate, nanosecond) {
+    verifyStandardDateAndNanos(standardDate, nanosecond);
+
+    return new DateTime(
+      standardDate.getFullYear(),
+      standardDate.getMonth(),
+      standardDate.getDate(),
+      standardDate.getHours(),
+      standardDate.getMinutes(),
+      standardDate.getSeconds(),
+      util.totalNanoseconds(standardDate, nanosecond),
+      util.timeZoneOffsetInSeconds(standardDate),
+      null /* no time zone id */);
+  }
+
   toString() {
     const localDateTimeStr = localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond);
     const timeZoneStr = this.timeZoneId ? `[${this.timeZoneId}]` : util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds);
@@ -301,5 +392,12 @@ function verifyTimeZoneArguments(timeZoneOffsetSeconds, timeZoneId) {
     throw newError(`Unable to create DateTime with both time zone offset and id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`);
   } else {
     throw newError(`Unable to create DateTime without either time zone offset or id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`);
+  }
+}
+
+function verifyStandardDateAndNanos(standardDate, nanosecond) {
+  assertValidDate(standardDate, 'Standard date');
+  if (nanosecond !== null && nanosecond !== undefined) {
+    assertNumberOrInteger(nanosecond, 'Nanosecond');
   }
 }
