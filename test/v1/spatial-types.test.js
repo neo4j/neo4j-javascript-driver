@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
+import neo4j, {int} from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion, VERSION_3_4_0} from '../../src/v1/internal/server-version';
 import {isPoint, Point} from '../../src/v1/spatial-types';
@@ -208,6 +208,35 @@ describe('spatial-types', () => {
 
     const point6 = new Point(CARTESIAN_2D_CRS_CODE, 23.9378123, 67.3891, Number.NaN);
     expect(point6.toString()).toEqual('Point{srid=7203, x=23.9378123, y=67.3891}');
+  });
+
+  it('should validate types of constructor arguments for Point', () => {
+    expect(() => new Point('1', 2, 3)).toThrowError(TypeError);
+    expect(() => new Point(1, '2', 3)).toThrowError(TypeError);
+    expect(() => new Point(1, 2, '3')).toThrowError(TypeError);
+    expect(() => new Point(1, 2, '3')).toThrowError(TypeError);
+
+    expect(() => new Point('1', 2, 3, null)).toThrowError(TypeError);
+    expect(() => new Point(1, '2', 3, null)).toThrowError(TypeError);
+    expect(() => new Point(1, 2, '3', null)).toThrowError(TypeError);
+    expect(() => new Point(1, 2, '3', null)).toThrowError(TypeError);
+
+    expect(() => new Point('1', 2, 3, 4)).toThrowError(TypeError);
+    expect(() => new Point(1, '2', 3, 4)).toThrowError(TypeError);
+    expect(() => new Point(1, 2, '3', 4)).toThrowError(TypeError);
+    expect(() => new Point(1, 2, '3', 4)).toThrowError(TypeError);
+
+    expect(() => new Point(1, int(2), 3, 4)).toThrowError(TypeError);
+    expect(() => new Point(1, 2, int(3), 4)).toThrowError(TypeError);
+    expect(() => new Point(1, 2, 3, int(4))).toThrowError(TypeError);
+
+    expect(new Point(1, 2, 3, 4)).toBeDefined();
+
+    expect(new Point(int(1), 2, 3, undefined)).toBeDefined();
+    expect(new Point(1, 2, 3, undefined)).toBeDefined();
+
+    expect(new Point(1, 2, 3, null)).toBeDefined();
+    expect(new Point(int(1), 2, 3, null)).toBeDefined();
   });
 
   function testReceivingOfPoints(done, query, pointChecker) {
