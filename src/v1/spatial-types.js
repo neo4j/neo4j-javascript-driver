@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {assertNumber, assertNumberOrInteger} from './internal/util';
 
 const POINT_IDENTIFIER_PROPERTY = '__isPoint__';
 
@@ -33,10 +34,10 @@ export class Point {
    * @param {number} [z=undefined] the <code>y</code> coordinate of the point or <code>undefined</code> if point has 2 dimensions.
    */
   constructor(srid, x, y, z) {
-    this.srid = srid;
-    this.x = x;
-    this.y = y;
-    this.z = z;
+    this.srid = assertNumberOrInteger(srid, 'SRID');
+    this.x = assertNumber(x, 'X coordinate');
+    this.y = assertNumber(y, 'Y coordinate');
+    this.z = (z === null || z === undefined) ? z : assertNumber(z, 'Z coordinate');
     Object.freeze(this);
   }
 
