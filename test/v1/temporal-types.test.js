@@ -728,6 +728,8 @@ describe('temporal-types', () => {
     testStandardDateToNeo4jDateConversion(new Date(1351, 4, 7));
     testStandardDateToNeo4jDateConversion(new Date(3841, 1, 19));
     testStandardDateToNeo4jDateConversion(new Date(2222, 3, 29));
+
+    testStandardDateToNeo4jDateConversion(new Date(1567, 0, 29));
   });
 
   it('should fail to convert invalid standard Date to neo4j Date', () => {
@@ -753,6 +755,9 @@ describe('temporal-types', () => {
     testStandardDateToLocalDateTimeConversion(new Date(1922, 1, 22, 23, 23, 45, 123), 456789);
 
     testStandardDateToLocalDateTimeConversion(new Date(1999, 1, 1, 10, 10, 10), neo4j.int(999));
+
+    testStandardDateToLocalDateTimeConversion(new Date(2192, 0, 17, 20, 30, 40));
+    testStandardDateToLocalDateTimeConversion(new Date(2239, 0, 9, 1, 2, 3), 4);
   });
 
   it('should fail to convert invalid standard Date to neo4j LocalDateTime', () => {
@@ -782,6 +787,9 @@ describe('temporal-types', () => {
 
     testStandardDateToDateTimeConversion(new Date(1922, 1, 22, 23, 23, 45, 123), 456789);
     testStandardDateToDateTimeConversion(new Date(1999, 1, 1, 10, 10, 10), neo4j.int(999));
+
+    testStandardDateToDateTimeConversion(new Date(1899, 0, 7, 7, 7, 7, 7));
+    testStandardDateToDateTimeConversion(new Date(2005, 0, 1, 2, 3, 4, 5), 100);
   });
 
   it('should fail to convert invalid standard Date to neo4j DateTime', () => {
@@ -798,6 +806,45 @@ describe('temporal-types', () => {
     expect(() => DateTime.fromStandardDate(new Date(), '1')).toThrowError(TypeError);
     expect(() => DateTime.fromStandardDate(new Date(), {nanosecond: 1})).toThrowError(TypeError);
     expect(() => DateTime.fromStandardDate(new Date(), [1])).toThrowError(TypeError);
+  });
+
+  it('should send and receive neo4j Date created from standard Date with zero month', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    // return numbers and not integers to simplify the equality comparison
+    session = driverWithNativeNumbers.session();
+
+    const standardDate = new Date(2000, 0, 1);
+    const neo4jDate = neo4j.types.Date.fromStandardDate(standardDate);
+    testSendReceiveTemporalValue(neo4jDate, done);
+  });
+
+  it('should send and receive neo4j LocalDateTime created from standard Date with zero month', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    // return numbers and not integers to simplify the equality comparison
+    session = driverWithNativeNumbers.session();
+
+    const standardDate = new Date(2121, 0, 7, 10, 20, 30, 40);
+    const neo4jLocalDateTime = neo4j.types.LocalDateTime.fromStandardDate(standardDate);
+    testSendReceiveTemporalValue(neo4jLocalDateTime, done);
+  });
+
+  it('should send and receive neo4j DateTime created from standard Date with zero month', done => {
+    if (neo4jDoesNotSupportTemporalTypes(done)) {
+      return;
+    }
+
+    // return numbers and not integers to simplify the equality comparison
+    session = driverWithNativeNumbers.session();
+
+    const standardDate = new Date(1756, 0, 29, 23, 15, 59, 12);
+    const neo4jDateTime = neo4j.types.DateTime.fromStandardDate(standardDate);
+    testSendReceiveTemporalValue(neo4jDateTime, done);
   });
 
   function testSendAndReceiveRandomTemporalValues(valueGenerator, done) {
@@ -1002,20 +1049,20 @@ describe('temporal-types', () => {
 
   function testStandardDateToNeo4jDateConversion(date) {
     const converted = neo4j.types.Date.fromStandardDate(date);
-    const expected = new neo4j.types.Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const expected = new neo4j.types.Date(date.getFullYear(), date.getMonth() + 1, date.getDate());
     expect(converted).toEqual(expected);
   }
 
   function testStandardDateToLocalDateTimeConversion(date, nanosecond) {
     const converted = neo4j.types.LocalDateTime.fromStandardDate(date, nanosecond);
-    const expected = new neo4j.types.LocalDateTime(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(),
-      totalNanoseconds(date, nanosecond));
+    const expected = new neo4j.types.LocalDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(),
+      date.getSeconds(), totalNanoseconds(date, nanosecond));
     expect(converted).toEqual(expected);
   }
 
   function testStandardDateToDateTimeConversion(date, nanosecond) {
     const converted = neo4j.types.DateTime.fromStandardDate(date, nanosecond);
-    const expected = new neo4j.types.DateTime(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(),
+    const expected = new neo4j.types.DateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(),
       totalNanoseconds(date, nanosecond), date.getTimezoneOffset() * 60);
     expect(converted).toEqual(expected);
   }

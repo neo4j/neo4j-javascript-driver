@@ -214,7 +214,7 @@ export class Date {
 
     return new Date(
       standardDate.getFullYear(),
-      standardDate.getMonth(),
+      standardDate.getMonth() + 1,
       standardDate.getDate());
   }
 
@@ -273,7 +273,7 @@ export class LocalDateTime {
 
     return new LocalDateTime(
       standardDate.getFullYear(),
-      standardDate.getMonth(),
+      standardDate.getMonth() + 1,
       standardDate.getDate(),
       standardDate.getHours(),
       standardDate.getMinutes(),
@@ -342,7 +342,7 @@ export class DateTime {
 
     return new DateTime(
       standardDate.getFullYear(),
-      standardDate.getMonth(),
+      standardDate.getMonth() + 1,
       standardDate.getDate(),
       standardDate.getHours(),
       standardDate.getMinutes(),
