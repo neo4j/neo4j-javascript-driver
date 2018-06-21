@@ -278,9 +278,9 @@ export function totalNanoseconds(standardDate, nanoseconds) {
 }
 
 /**
- * Get the total number of nanoseconds from the given standard JavaScript date.
+ * Get the time zone offset in seconds from the given standard JavaScript date.
  * @param {global.Date} standardDate the standard JavaScript date.
- * @return {number} the total amount of nanoseconds.
+ * @return {number} the time zone offset in seconds.
  */
 export function timeZoneOffsetInSeconds(standardDate) {
   return standardDate.getTimezoneOffset() * SECONDS_PER_MINUTE;
