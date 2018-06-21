@@ -463,7 +463,7 @@ describe('temporal-types', () => {
   it('should convert LocalDateTime to ISO string', () => {
     expect(localDateTime(1992, 11, 8, 9, 42, 17, 22).toString()).toEqual('1992-11-08T09:42:17.000000022');
     expect(localDateTime(-10, 7, 15, 8, 15, 33, 500).toString()).toEqual('-0010-07-15T08:15:33.000000500');
-    expect(localDateTime(0, 0, 0, 0, 0, 0, 1).toString()).toEqual('0000-00-00T00:00:00.000000001');
+    expect(localDateTime(0, 1, 1, 0, 0, 0, 1).toString()).toEqual('0000-01-01T00:00:00.000000001');
   });
 
   it('should convert DateTime with time zone offset to ISO string', () => {
@@ -845,6 +845,73 @@ describe('temporal-types', () => {
     const standardDate = new Date(1756, 0, 29, 23, 15, 59, 12);
     const neo4jDateTime = neo4j.types.DateTime.fromStandardDate(standardDate);
     testSendReceiveTemporalValue(neo4jDateTime, done);
+  });
+
+  it('should fail to create LocalTime with out of range values', () => {
+    expect(() => localTime(999, 1, 1, 1)).toThrow();
+    expect(() => localTime(1, 999, 1, 1)).toThrow();
+    expect(() => localTime(1, 1, 999, 1)).toThrow();
+    expect(() => localTime(1, 1, 1, -999)).toThrow();
+    expect(() => localTime(1, 1, 1, 1000000000)).toThrow();
+  });
+
+  it('should fail to create Time with out of range values', () => {
+    expect(() => time(999, 1, 1, 1, 1)).toThrow();
+    expect(() => time(1, 999, 1, 1, 1)).toThrow();
+    expect(() => time(1, 1, 999, 1, 1)).toThrow();
+    expect(() => time(1, 1, 1, -999, 1)).toThrow();
+    expect(() => time(1, 1, 1, 1000000000, 1)).toThrow();
+  });
+
+  it('should fail to create Date with out of range values', () => {
+    expect(() => date(1000000000, 1, 1)).toThrow();
+    expect(() => date(1, 0, 1)).toThrow();
+    expect(() => date(1, 13, 1)).toThrow();
+    expect(() => date(1, 1, 0)).toThrow();
+    expect(() => date(1, 1, -1)).toThrow();
+    expect(() => date(1, 1, 33)).toThrow();
+  });
+
+  it('should fail to create LocalDateTime with out of range values', () => {
+    expect(() => localDateTime(1000000000, 1, 1, 1, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 0, 1, 1, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 13, 1, 1, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, -1, 1, 1, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 0, 1, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, -1, 1, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 33, 1, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, -1, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 24, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 42, 1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 1, -1, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 1, 60, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 1, 999, 1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 1, 1, -1, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 1, 1, 60, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 1, 1, 99, 1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 1, 1, 1, -1)).toThrow();
+    expect(() => localDateTime(1, 1, 1, 1, 1, 1, 1000000000)).toThrow();
+  });
+
+  it('should fail to create DateTime with out of range values', () => {
+    expect(() => dateTimeWithZoneOffset(1000000000, 1, 1, 1, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 0, 1, 1, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 13, 1, 1, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, -1, 1, 1, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 0, 1, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, -1, 1, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 33, 1, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, -1, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 24, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 42, 1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, -1, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 60, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 999, 1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, -1, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 60, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 99, 1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, -1, 0)).toThrow();
+    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, 1000000000, 0)).toThrow();
   });
 
   function testSendAndReceiveRandomTemporalValues(valueGenerator, done) {

@@ -19,6 +19,8 @@
 
 import {int, isInt} from '../integer';
 import {Date, LocalDateTime, LocalTime} from '../temporal-types';
+import {assertNumberOrInteger} from './util';
+import {newError} from '../error';
 
 /*
   Code in this util should be compatible with code in the database that uses JSR-310 java.time APIs.
@@ -30,6 +32,36 @@ import {Date, LocalDateTime, LocalTime} from '../temporal-types';
   Please consult either ThreeTen or js-joda (https://github.com/js-joda/js-joda) when working with the
   conversion functions.
  */
+
+class ValueRange {
+
+  constructor(min, max) {
+    this._minNumber = min;
+    this._maxNumber = max;
+    this._minInteger = int(min);
+    this._maxInteger = int(max);
+  }
+
+  contains(value) {
+    if (isInt(value)) {
+      return value.greaterThanOrEqual(this._minInteger) && value.lessThanOrEqual(this._maxInteger);
+    } else {
+      return value >= this._minNumber && value <= this._maxNumber;
+    }
+  }
+
+  toString() {
+    return `[${this._minNumber}, ${this._maxNumber}]`;
+  }
+}
+
+const YEAR_RANGE = new ValueRange(-999999999, 999999999);
+const MONTH_OF_YEAR_RANGE = new ValueRange(1, 12);
+const DAY_OF_MONTH_RANGE = new ValueRange(1, 31);
+const HOUR_OF_DAY_RANGE = new ValueRange(0, 23);
+const MINUTE_OF_HOUR_RANGE = new ValueRange(0, 59);
+const SECOND_OF_MINUTE_RANGE = new ValueRange(0, 59);
+const NANOSECOND_OF_SECOND_RANGE = new ValueRange(0, 999999999);
 
 const MINUTES_PER_HOUR = 60;
 const SECONDS_PER_MINUTE = 60;
@@ -284,6 +316,84 @@ export function totalNanoseconds(standardDate, nanoseconds) {
  */
 export function timeZoneOffsetInSeconds(standardDate) {
   return standardDate.getTimezoneOffset() * SECONDS_PER_MINUTE;
+}
+
+/**
+ * Assert that the year value is valid.
+ * @param {Integer|number} year the value to check.
+ * @return {Integer|number} the value of the year if it is valid. Exception is thrown otherwise.
+ */
+export function assertValidYear(year) {
+  return assertValidTemporalValue(year, YEAR_RANGE, 'Year');
+}
+
+/**
+ * Assert that the month value is valid.
+ * @param {Integer|number} month the value to check.
+ * @return {Integer|number} the value of the month if it is valid. Exception is thrown otherwise.
+ */
+export function assertValidMonth(month) {
+  return assertValidTemporalValue(month, MONTH_OF_YEAR_RANGE, 'Month');
+}
+
+/**
+ * Assert that the day value is valid.
+ * @param {Integer|number} day the value to check.
+ * @return {Integer|number} the value of the day if it is valid. Exception is thrown otherwise.
+ */
+export function assertValidDay(day) {
+  return assertValidTemporalValue(day, DAY_OF_MONTH_RANGE, 'Day');
+}
+
+/**
+ * Assert that the hour value is valid.
+ * @param {Integer|number} hour the value to check.
+ * @return {Integer|number} the value of the hour if it is valid. Exception is thrown otherwise.
+ */
+export function assertValidHour(hour) {
+  return assertValidTemporalValue(hour, HOUR_OF_DAY_RANGE, 'Hour');
+}
+
+/**
+ * Assert that the minute value is valid.
+ * @param {Integer|number} minute the value to check.
+ * @return {Integer|number} the value of the minute if it is valid. Exception is thrown otherwise.
+ */
+export function assertValidMinute(minute) {
+  return assertValidTemporalValue(minute, MINUTE_OF_HOUR_RANGE, 'Minute');
+}
+
+/**
+ * Assert that the second value is valid.
+ * @param {Integer|number} second the value to check.
+ * @return {Integer|number} the value of the second if it is valid. Exception is thrown otherwise.
+ */
+export function assertValidSecond(second) {
+  return assertValidTemporalValue(second, SECOND_OF_MINUTE_RANGE, 'Second');
+}
+
+/**
+ * Assert that the nanosecond value is valid.
+ * @param {Integer|number} nanosecond the value to check.
+ * @return {Integer|number} the value of the nanosecond if it is valid. Exception is thrown otherwise.
+ */
+export function assertValidNanosecond(nanosecond) {
+  return assertValidTemporalValue(nanosecond, NANOSECOND_OF_SECOND_RANGE, 'Nanosecond');
+}
+
+/**
+ * Check if the given value is of expected type and is in the expected range.
+ * @param {Integer|number} value the value to check.
+ * @param {ValueRange} range the range.
+ * @param {string} name the name of the value.
+ * @return {Integer|number} the value if valid. Exception is thrown otherwise.
+ */
+function assertValidTemporalValue(value, range, name) {
+  assertNumberOrInteger(value, name);
+  if (!range.contains(value)) {
+    throw newError(`${name} is expected to be in range ${range} but was: ${value}`);
+  }
+  return value;
 }
 
 /**

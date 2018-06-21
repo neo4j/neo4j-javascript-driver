@@ -87,10 +87,10 @@ export class LocalTime {
    * @param {Integer|number} nanosecond the nanosecond for the new local time.
    */
   constructor(hour, minute, second, nanosecond) {
-    this.hour = assertNumberOrInteger(hour, 'Hour');
-    this.minute = assertNumberOrInteger(minute, 'Minute');
-    this.second = assertNumberOrInteger(second, 'Second');
-    this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
+    this.hour = util.assertValidHour(hour);
+    this.minute = util.assertValidMinute(minute);
+    this.second = util.assertValidSecond(second);
+    this.nanosecond = util.assertValidNanosecond(nanosecond);
     Object.freeze(this);
   }
 
@@ -142,10 +142,10 @@ export class Time {
    * @param {Integer|number} timeZoneOffsetSeconds the time zone offset in seconds.
    */
   constructor(hour, minute, second, nanosecond, timeZoneOffsetSeconds) {
-    this.hour = assertNumberOrInteger(hour, 'Hour');
-    this.minute = assertNumberOrInteger(minute, 'Minute');
-    this.second = assertNumberOrInteger(second, 'Second');
-    this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
+    this.hour = util.assertValidHour(hour);
+    this.minute = util.assertValidMinute(minute);
+    this.second = util.assertValidSecond(second);
+    this.nanosecond = util.assertValidNanosecond(nanosecond);
     this.timeZoneOffsetSeconds = assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds');
     Object.freeze(this);
   }
@@ -197,9 +197,9 @@ export class Date {
    * @param {Integer|number} day the day for the new local date.
    */
   constructor(year, month, day) {
-    this.year = assertNumberOrInteger(year, 'Year');
-    this.month = assertNumberOrInteger(month, 'Month');
-    this.day = assertNumberOrInteger(day, 'Day');
+    this.year = util.assertValidYear(year);
+    this.month = util.assertValidMonth(month);
+    this.day = util.assertValidDay(day);
     Object.freeze(this);
   }
 
@@ -251,13 +251,13 @@ export class LocalDateTime {
    * @param {Integer|number} nanosecond the nanosecond for the new local time.
    */
   constructor(year, month, day, hour, minute, second, nanosecond) {
-    this.year = assertNumberOrInteger(year, 'Year');
-    this.month = assertNumberOrInteger(month, 'Month');
-    this.day = assertNumberOrInteger(day, 'Day');
-    this.hour = assertNumberOrInteger(hour, 'Hour');
-    this.minute = assertNumberOrInteger(minute, 'Minute');
-    this.second = assertNumberOrInteger(second, 'Second');
-    this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
+    this.year = util.assertValidYear(year);
+    this.month = util.assertValidMonth(month);
+    this.day = util.assertValidDay(day);
+    this.hour = util.assertValidHour(hour);
+    this.minute = util.assertValidMinute(minute);
+    this.second = util.assertValidSecond(second);
+    this.nanosecond = util.assertValidNanosecond(nanosecond);
     Object.freeze(this);
   }
 
@@ -316,13 +316,13 @@ export class DateTime {
    * @param {string|null} timeZoneId the time zone id for the new date-time. Either this argument or <code>timeZoneOffsetSeconds</code> should be defined.
    */
   constructor(year, month, day, hour, minute, second, nanosecond, timeZoneOffsetSeconds, timeZoneId) {
-    this.year = assertNumberOrInteger(year, 'Year');
-    this.month = assertNumberOrInteger(month, 'Month');
-    this.day = assertNumberOrInteger(day, 'Day');
-    this.hour = assertNumberOrInteger(hour, 'Hour');
-    this.minute = assertNumberOrInteger(minute, 'Minute');
-    this.second = assertNumberOrInteger(second, 'Second');
-    this.nanosecond = assertNumberOrInteger(nanosecond, 'Nanosecond');
+    this.year = util.assertValidYear(year);
+    this.month = util.assertValidMonth(month);
+    this.day = util.assertValidDay(day);
+    this.hour = util.assertValidHour(hour);
+    this.minute = util.assertValidMinute(minute);
+    this.second = util.assertValidSecond(second);
+    this.nanosecond = util.assertValidNanosecond(nanosecond);
 
     const [offset, id] = verifyTimeZoneArguments(timeZoneOffsetSeconds, timeZoneId);
     this.timeZoneOffsetSeconds = offset;
