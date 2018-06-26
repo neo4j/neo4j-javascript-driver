@@ -33,7 +33,7 @@ describe('stress tests', () => {
       maxRunTimeMs: 10 * 60000 // 10 minutes
     },
     extended: {
-      commandsCount: 2000000,
+      commandsCount: 1000000,
       parallelism: 16,
       maxRunTimeMs: 60 * 60000 // 60 minutes
     }
