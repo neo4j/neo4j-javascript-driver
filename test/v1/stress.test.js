@@ -46,9 +46,13 @@ describe('stress tests', () => {
   const DATABASE_URI = fromEnvOrDefault('STRESS_TEST_DATABASE_URI', 'bolt://localhost');
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false);
 
+  let originalTimeout;
   let driver;
 
   beforeEach(done => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs;
+
     const config = {logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')};
     driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken, config);
 
@@ -56,6 +60,8 @@ describe('stress tests', () => {
   });
 
   afterEach(done => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+
     cleanupDb(driver).then(() => {
       driver.close();
       done();
@@ -82,7 +88,7 @@ describe('stress tests', () => {
         .then(() => done())
         .catch(error => done.fail(error));
     });
-  }, TEST_MODE.maxRunTimeMs);
+  });
 
   function createCommands(context) {
     const uniqueCommands = createUniqueCommands(context);
