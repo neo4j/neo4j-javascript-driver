@@ -46,11 +46,11 @@ describe('stress tests', () => {
   const DATABASE_URI = fromEnvOrDefault('STRESS_TEST_DATABASE_URI', 'bolt://localhost');
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false);
 
-  let originalJasmineTimeout;
   let driver;
 
   beforeEach(done => {
-    driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken);
+    const config = {logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')};
+    driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken, config);
 
     cleanupDb(driver).then(() => done());
   });
