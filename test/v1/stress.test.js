@@ -70,6 +70,9 @@ describe('stress tests', () => {
     parallelLimit(commands, TEST_MODE.parallelism, error => {
       console.timeEnd('Basic-stress-test');
 
+      console.log('Read statistics: ', context.readServersWithQueryCount);
+      console.log('Write statistics: ', context.writeServersWithQueryCount);
+
       if (error) {
         done.fail(error);
       }
