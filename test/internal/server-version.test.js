@@ -77,9 +77,10 @@ describe('ServerVersion', () => {
     verifyVersion(parse('Neo4j/2.3-SNAPSHOT'), 2, 3, 0);
     verifyVersion(parse('Neo4j/2.2-M09'), 2, 2, 0);
 
-    verifyVersion(parse('Neo4j/dev'), 0, 0, 0);
-    verifyVersion(parse('Neo4j/DEV'), 0, 0, 0);
-    verifyVersion(parse('Neo4j/Dev'), 0, 0, 0);
+    let maxVer = Number.MAX_SAFE_INTEGER;
+    verifyVersion(parse('Neo4j/dev'), maxVer, maxVer, maxVer);
+    verifyVersion(parse('Neo4j/DEV'), maxVer, maxVer, maxVer);
+    verifyVersion(parse('Neo4j/Dev'), maxVer, maxVer, maxVer);
   });
 
   it('should fetch version using driver', done => {
@@ -139,9 +140,9 @@ describe('ServerVersion', () => {
   });
 
   it('should compare dev version', () => {
-    expect(new ServerVersion(3, 1, 0).compareTo(VERSION_IN_DEV)).toBeGreaterThan(0);
-    expect(new ServerVersion(3, 3, 6).compareTo(VERSION_IN_DEV)).toBeGreaterThan(0);
-    expect(new ServerVersion(2, 3, 0).compareTo(VERSION_IN_DEV)).toBeGreaterThan(0);
+    expect(new ServerVersion(3, 1, 0).compareTo(VERSION_IN_DEV)).toBeLessThan(0);
+    expect(new ServerVersion(3, 3, 6).compareTo(VERSION_IN_DEV)).toBeLessThan(0);
+    expect(new ServerVersion(2, 3, 0).compareTo(VERSION_IN_DEV)).toBeLessThan(0);
   });
 
 });
