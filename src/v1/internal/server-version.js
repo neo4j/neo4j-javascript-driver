@@ -112,7 +112,8 @@ function compareInts(x, y) {
 const VERSION_3_1_0 = new ServerVersion(3, 1, 0);
 const VERSION_3_2_0 = new ServerVersion(3, 2, 0);
 const VERSION_3_4_0 = new ServerVersion(3, 4, 0);
-const VERSION_IN_DEV = new ServerVersion(0, 0, 0);
+const maxVer = Number.MAX_SAFE_INTEGER;
+const VERSION_IN_DEV = new ServerVersion(maxVer, maxVer, maxVer);
 
 export {
   ServerVersion,
