@@ -169,6 +169,154 @@ describe('temporal-util', () => {
     expect(util.localTimeToNanoOfDay(12, 51, 17, 808080)).toEqual(int(46277000808080));
   });
 
+  it('should get total nanoseconds from standard date', () => {
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0))).toEqual(0);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 1))).toEqual(1000000);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 23))).toEqual(23000000);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999))).toEqual(999000000);
+
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), 0)).toEqual(0);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), 1)).toEqual(1);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), 999)).toEqual(999);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 1), 999)).toEqual(1000999);
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999), 111)).toEqual(999000111);
+
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), int(0))).toEqual(int(0));
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), int(1))).toEqual(int(1));
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), int(999))).toEqual(int(999));
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 1), int(999))).toEqual(int(1000999));
+    expect(util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999), int(111))).toEqual(int(999000111));
+  });
+
+  it('should get timezone offset in seconds from standard date', () => {
+    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(0))).toEqual(0);
+    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(2))).toEqual(120);
+    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(10))).toEqual(600);
+    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(101))).toEqual(6060);
+  });
+
+  it('should verify year', () => {
+    expect(util.assertValidYear(-1)).toEqual(-1);
+    expect(util.assertValidYear(-2010)).toEqual(-2010);
+    expect(util.assertValidYear(int(-42))).toEqual(int(-42));
+    expect(util.assertValidYear(int(-2019))).toEqual(int(-2019));
+
+    expect(util.assertValidYear(0)).toEqual(0);
+    expect(util.assertValidYear(1)).toEqual(1);
+    expect(util.assertValidYear(int(2015))).toEqual(int(2015));
+    expect(util.assertValidYear(int(99999))).toEqual(int(99999));
+
+    expect(() => util.assertValidYear(1000000000)).toThrow();
+    expect(() => util.assertValidYear(1999999999)).toThrow();
+    expect(() => util.assertValidYear(int(2000000000))).toThrow();
+    expect(() => util.assertValidYear(int(3999999999))).toThrow();
+
+    expect(() => util.assertValidYear(-1000000001)).toThrow();
+    expect(() => util.assertValidYear(-1888888888)).toThrow();
+    expect(() => util.assertValidYear(int(-2000000001))).toThrow();
+    expect(() => util.assertValidYear(int(-3888888888))).toThrow();
+  });
+
+  it('should verify month', () => {
+    for (let i = 1; i <= 12; i++) {
+      expect(util.assertValidMonth(i)).toEqual(i);
+      expect(util.assertValidMonth(int(i))).toEqual(int(i));
+    }
+
+    expect(() => util.assertValidMonth(0)).toThrow();
+    expect(() => util.assertValidMonth(int(0))).toThrow();
+    expect(() => util.assertValidMonth(-1)).toThrow();
+    expect(() => util.assertValidMonth(int(-1))).toThrow();
+    expect(() => util.assertValidMonth(-42)).toThrow();
+    expect(() => util.assertValidMonth(int(-42))).toThrow();
+    expect(() => util.assertValidMonth(13)).toThrow();
+    expect(() => util.assertValidMonth(int(13))).toThrow();
+    expect(() => util.assertValidMonth(42)).toThrow();
+    expect(() => util.assertValidMonth(int(42))).toThrow();
+  });
+
+  it('should verify day', () => {
+    for (let i = 1; i <= 31; i++) {
+      expect(util.assertValidDay(i)).toEqual(i);
+      expect(util.assertValidDay(int(i))).toEqual(int(i));
+    }
+
+    expect(() => util.assertValidDay(0)).toThrow();
+    expect(() => util.assertValidDay(int(0))).toThrow();
+    expect(() => util.assertValidDay(-1)).toThrow();
+    expect(() => util.assertValidDay(int(-1))).toThrow();
+    expect(() => util.assertValidDay(-42)).toThrow();
+    expect(() => util.assertValidDay(int(-42))).toThrow();
+    expect(() => util.assertValidDay(42)).toThrow();
+    expect(() => util.assertValidDay(int(42))).toThrow();
+  });
+
+  it('should verify hour', () => {
+    for (let i = 0; i <= 23; i++) {
+      expect(util.assertValidHour(i)).toEqual(i);
+      expect(util.assertValidHour(int(i))).toEqual(int(i));
+    }
+
+    expect(() => util.assertValidHour(-1)).toThrow();
+    expect(() => util.assertValidHour(int(-1))).toThrow();
+    expect(() => util.assertValidHour(-42)).toThrow();
+    expect(() => util.assertValidHour(int(-42))).toThrow();
+    expect(() => util.assertValidHour(24)).toThrow();
+    expect(() => util.assertValidHour(int(24))).toThrow();
+    expect(() => util.assertValidHour(42)).toThrow();
+    expect(() => util.assertValidHour(int(42))).toThrow();
+  });
+
+  it('should verify minute', () => {
+    for (let i = 0; i <= 59; i++) {
+      expect(util.assertValidMinute(i)).toEqual(i);
+      expect(util.assertValidMinute(int(i))).toEqual(int(i));
+    }
+
+    expect(() => util.assertValidMinute(-1)).toThrow();
+    expect(() => util.assertValidMinute(int(-1))).toThrow();
+    expect(() => util.assertValidMinute(-42)).toThrow();
+    expect(() => util.assertValidMinute(int(-42))).toThrow();
+    expect(() => util.assertValidMinute(60)).toThrow();
+    expect(() => util.assertValidMinute(int(60))).toThrow();
+    expect(() => util.assertValidMinute(91023)).toThrow();
+    expect(() => util.assertValidMinute(int(1234))).toThrow();
+  });
+
+  it('should verify second', () => {
+    for (let i = 0; i <= 59; i++) {
+      expect(util.assertValidSecond(i)).toEqual(i);
+      expect(util.assertValidSecond(int(i))).toEqual(int(i));
+    }
+
+    expect(() => util.assertValidSecond(-1)).toThrow();
+    expect(() => util.assertValidSecond(int(-1))).toThrow();
+    expect(() => util.assertValidSecond(-42)).toThrow();
+    expect(() => util.assertValidSecond(int(-42))).toThrow();
+    expect(() => util.assertValidSecond(60)).toThrow();
+    expect(() => util.assertValidSecond(int(60))).toThrow();
+    expect(() => util.assertValidSecond(123)).toThrow();
+    expect(() => util.assertValidSecond(int(321))).toThrow();
+  });
+
+  it('should verify nanosecond', () => {
+    expect(util.assertValidNanosecond(0)).toEqual(0);
+    expect(util.assertValidNanosecond(1)).toEqual(1);
+    expect(util.assertValidNanosecond(42)).toEqual(42);
+    expect(util.assertValidNanosecond(999)).toEqual(999);
+    expect(util.assertValidNanosecond(123456789)).toEqual(123456789);
+    expect(util.assertValidNanosecond(999999999)).toEqual(999999999);
+
+    expect(() => util.assertValidNanosecond(-1)).toThrow();
+    expect(() => util.assertValidNanosecond(int(-1))).toThrow();
+    expect(() => util.assertValidNanosecond(-42)).toThrow();
+    expect(() => util.assertValidNanosecond(int(-42))).toThrow();
+    expect(() => util.assertValidNanosecond(1000000000)).toThrow();
+    expect(() => util.assertValidNanosecond(int(1000000000))).toThrow();
+    expect(() => util.assertValidNanosecond(1999999999)).toThrow();
+    expect(() => util.assertValidNanosecond(int(1222222222))).toThrow();
+  });
+
 });
 
 function date(year, month, day) {
@@ -181,4 +329,10 @@ function localTime(hour, minute, second, nanosecond) {
 
 function localDateTime(year, month, day, hour, minute, second, nanosecond) {
   return new types.LocalDateTime(int(year), int(month), int(day), int(hour), int(minute), int(second), int(nanosecond));
+}
+
+function fakeStandardDateWithOffset(offsetMinutes) {
+  const date = new Date();
+  date.getTimezoneOffset = () => offsetMinutes;
+  return date;
 }

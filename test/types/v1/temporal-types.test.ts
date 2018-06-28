@@ -32,6 +32,7 @@ import {
   Time
 } from "../../../types/v1/temporal-types";
 import Integer, {int} from "../../../types/v1/integer";
+import {StandardDate} from "../../../types/v1/graph-types";
 
 const duration1: Duration = new Duration(int(1), int(1), int(1), int(1));
 const months1: Integer = duration1.months;
@@ -149,3 +150,15 @@ const isTimeValue: boolean = isTime(time1);
 const isDateValue: boolean = isDate(date1);
 const isLocalDateTimeValue: boolean = isLocalDateTime(localDateTime1);
 const isDateTimeValue: boolean = isDateTime(dateTime1);
+
+const dummy: any = null;
+const standardDate: StandardDate = dummy;
+const localTime3: LocalTime<number> = LocalTime.fromStandardDate(standardDate);
+const localTime4: LocalTime<number> = LocalTime.fromStandardDate(standardDate, 42);
+const time3: Time<number> = Time.fromStandardDate(standardDate);
+const time4: Time<number> = Time.fromStandardDate(standardDate, 42);
+const date3: Date<number> = Date.fromStandardDate(standardDate);
+const localDateTime3: LocalDateTime<number> = LocalDateTime.fromStandardDate(standardDate);
+const localDateTime4: LocalDateTime<number> = LocalDateTime.fromStandardDate(standardDate, 42);
+const dateTime5: DateTime<number> = DateTime.fromStandardDate(standardDate);
+const dateTime6: DateTime<number> = DateTime.fromStandardDate(standardDate, 42);

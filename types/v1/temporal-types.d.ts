@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {NumberOrInteger} from './graph-types';
+import {NumberOrInteger, StandardDate} from './graph-types';
 import Integer from "./integer";
 
 declare class Duration<T extends NumberOrInteger = Integer> {
@@ -38,6 +38,8 @@ declare class LocalTime<T extends NumberOrInteger = Integer> {
   readonly nanosecond: T;
 
   constructor(hour: T, minute: T, second: T, nanosecond: T);
+
+  static fromStandardDate(standardDate: StandardDate, nanosecond?: number): LocalTime<number>;
 }
 
 declare class Time<T extends NumberOrInteger = Integer> {
@@ -49,6 +51,8 @@ declare class Time<T extends NumberOrInteger = Integer> {
   readonly timeZoneOffsetSeconds: T;
 
   constructor(hour: T, minute: T, second: T, nanosecond: T, timeZoneOffsetSeconds: T);
+
+  static fromStandardDate(standardDate: StandardDate, nanosecond?: number): Time<number>;
 }
 
 declare class Date<T extends NumberOrInteger = Integer> {
@@ -58,6 +62,8 @@ declare class Date<T extends NumberOrInteger = Integer> {
   readonly day: T;
 
   constructor(year: T, month: T, day: T);
+
+  static fromStandardDate(standardDate: StandardDate): Date<number>;
 }
 
 declare class LocalDateTime<T extends NumberOrInteger = Integer> {
@@ -71,6 +77,8 @@ declare class LocalDateTime<T extends NumberOrInteger = Integer> {
   readonly nanosecond: T;
 
   constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T);
+
+  static fromStandardDate(standardDate: StandardDate, nanosecond?: number): LocalDateTime<number>;
 }
 
 declare class DateTime<T extends NumberOrInteger = Integer> {
@@ -86,6 +94,8 @@ declare class DateTime<T extends NumberOrInteger = Integer> {
   readonly timeZoneId?: string;
 
   constructor(year: T, month: T, day: T, hour: T, minute: T, second: T, nanosecond: T, timeZoneOffsetSeconds?: T, timeZoneId?: string);
+
+  static fromStandardDate(standardDate: StandardDate, nanosecond?: number): DateTime<number>;
 }
 
 declare function isDuration(obj: object): boolean;

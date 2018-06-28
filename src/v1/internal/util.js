@@ -87,6 +87,16 @@ function assertNumberOrInteger(obj, objName) {
   return obj;
 }
 
+function assertValidDate(obj, objName) {
+  if (Object.prototype.toString.call(obj) !== '[object Date]') {
+    throw new TypeError(objName + ' expected to be a standard JavaScript Date but was: ' + JSON.stringify(obj));
+  }
+  if (Number.isNaN(obj.getTime())) {
+    throw new TypeError(objName + ' expected to be valid JavaScript Date but its time was NaN: ' + JSON.stringify(obj));
+  }
+  return obj;
+}
+
 function assertCypherStatement(obj) {
   assertString(obj, 'Cypher statement');
   if (obj.trim().length === 0) {
@@ -112,6 +122,7 @@ export {
   assertString,
   assertNumber,
   assertNumberOrInteger,
+  assertValidDate,
   validateStatementAndParameters,
   ENCRYPTION_ON,
   ENCRYPTION_OFF
