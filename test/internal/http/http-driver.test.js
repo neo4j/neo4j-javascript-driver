@@ -24,11 +24,15 @@ import {ServerVersion, VERSION_3_1_0, VERSION_3_4_0} from '../../../src/v1/inter
 
 describe('http driver', () => {
 
+  let originalTimeout;
   let boltDriver;
   let httpDriver;
   let serverVersion;
 
   beforeEach(done => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+
     boltDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {disableLosslessIntegers: true});
     httpDriver = neo4j.driver('http://localhost:7474', sharedNeo4j.authToken);
 
@@ -42,6 +46,8 @@ describe('http driver', () => {
   });
 
   afterEach(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+
     if (boltDriver) {
       boltDriver.close();
       boltDriver = null;
