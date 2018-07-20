@@ -76,37 +76,62 @@ export default class TransactionExecutor {
   }
 
   _executeTransactionInsidePromise(transactionCreator, transactionWork, resolve, reject) {
+    let tx;
     try {
-      const tx = transactionCreator();
-      const transactionWorkResult = transactionWork(tx);
+      tx = transactionCreator();
+    } catch (error) {
+      // failed to create a transaction
+      reject(error);
+      return;
+    }
 
+    const resultPromise = this._safeExecuteTransactionWork(tx, transactionWork);
+
+    resultPromise
+      .then(result => this._handleTransactionWorkSuccess(result, tx, resolve, reject))
+      .catch(error => this._handleTransactionWorkFailure(error, tx, reject));
+  }
+
+  _safeExecuteTransactionWork(tx, transactionWork) {
+    try {
+      const result = transactionWork(tx);
       // user defined callback is supposed to return a promise, but it might not; so to protect against an
       // incorrect API usage we wrap the returned value with a resolved promise; this is effectively a
       // validation step without type checks
-      const resultPromise = Promise.resolve(transactionWorkResult);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 
-      resultPromise.then(result => {
-        if (tx.isOpen()) {
-          // transaction work returned resolved promise and transaction has not been committed/rolled back
-          // try to commit the transaction
-          tx.commit().then(() => {
-            // transaction was committed, return result to the user
-            resolve(result);
-          }).catch(error => {
-            // transaction failed to commit, propagate the failure
-            reject(error);
-          });
-        } else {
-          // transaction work returned resolved promise and transaction is already committed/rolled back
-          // return the result returned by given transaction work
-          resolve(result);
-        }
+  _handleTransactionWorkSuccess(result, tx, resolve, reject) {
+    if (tx.isOpen()) {
+      // transaction work returned resolved promise and transaction has not been committed/rolled back
+      // try to commit the transaction
+      tx.commit().then(() => {
+        // transaction was committed, return result to the user
+        resolve(result);
       }).catch(error => {
-        // transaction work returned rejected promise, propagate the failure
+        // transaction failed to commit, propagate the failure
         reject(error);
       });
+    } else {
+      // transaction work returned resolved promise and transaction is already committed/rolled back
+      // return the result returned by given transaction work
+      resolve(result);
+    }
+  }
 
-    } catch (error) {
+  _handleTransactionWorkFailure(error, tx, reject) {
+    if (tx.isOpen()) {
+      // transaction work failed and the transaction is still open, roll it back and propagate the failure
+      tx.rollback()
+        .catch(ignore => {
+          // ignore the rollback error
+        })
+        .then(() => reject(error)); // propagate the original error we got from the transaction work
+    } else {
+      // transaction is already rolled back, propagate the error
       reject(error);
     }
   }
