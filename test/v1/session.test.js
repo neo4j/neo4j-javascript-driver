@@ -27,6 +27,7 @@ import sharedNeo4j from '../internal/shared-neo4j';
 import _ from 'lodash';
 import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
 import {isString} from '../../src/v1/internal/util';
+import {newError, PROTOCOL_ERROR, SESSION_EXPIRED} from '../../src/v1/error';
 
 describe('session', () => {
 
@@ -1091,6 +1092,75 @@ describe('session', () => {
     const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], {name: 'Bob'});
     testUnsupportedQueryParameter(new neo4j.types.Path(node1, node2, []), done);
   });
+
+  it('should retry transaction until success when function throws', done => {
+    testTransactionRetryUntilSuccess(() => {
+      throw newError('Error that can be retried', SESSION_EXPIRED);
+    }, done);
+  });
+
+  it('should retry transaction until success when function returns rejected promise', done => {
+    testTransactionRetryUntilSuccess(() => Promise.reject(newError('Error that can be retried', SESSION_EXPIRED)), done);
+  });
+
+  it('should not retry transaction when function throws fatal error', done => {
+    testTransactionRetryOnFatalError(() => {
+      throw newError('Error that is fatal', PROTOCOL_ERROR);
+    }, done);
+  });
+
+  it('should not retry transaction when function returns promise rejected with fatal error', done => {
+    testTransactionRetryOnFatalError(() => Promise.reject(newError('Error that is fatal', 'ReallyFatalErrorCode')), done);
+  });
+
+  function testTransactionRetryUntilSuccess(failureResponseFunction, done) {
+    const session = driver.session();
+
+    const failures = 3;
+    const usedTransactions = [];
+
+    const resultPromise = session.writeTransaction(tx => {
+      usedTransactions.push(tx);
+      if (usedTransactions.length < failures) {
+        return failureResponseFunction();
+      } else {
+        return tx.run('RETURN "424242"');
+      }
+    });
+
+    resultPromise.then(result => {
+      expect(result.records[0].get(0)).toEqual('424242');
+      expect(usedTransactions.length).toEqual(3);
+      usedTransactions.forEach(tx => expect(tx.isOpen()).toBeFalsy());
+      session.close();
+      done();
+    }).catch(error => {
+      done.fail(error);
+    });
+  }
+
+  function testTransactionRetryOnFatalError(failureResponseFunction, done) {
+    const session = driver.session();
+
+    const usedTransactions = [];
+
+    const resultPromise = session.writeTransaction(tx => {
+      usedTransactions.push(tx);
+      return failureResponseFunction();
+    });
+
+    resultPromise.then(result => {
+      session.close();
+      done.fail('Retries should not succeed: ' + JSON.stringify(result));
+    }).catch(error => {
+      session.close();
+      expect(error).toBeDefined();
+      expect(error).not.toBeNull();
+      expect(usedTransactions.length).toEqual(1);
+      expect(usedTransactions[0].isOpen()).toBeFalsy();
+      done();
+    });
+  }
 
   function serverIs31OrLater(done) {
     if (serverVersion.compareTo(VERSION_3_1_0) < 0) {

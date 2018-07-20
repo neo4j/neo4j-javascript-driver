@@ -46,16 +46,21 @@ describe('stress tests', () => {
   const DATABASE_URI = fromEnvOrDefault('STRESS_TEST_DATABASE_URI', 'bolt://localhost');
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false);
 
-  let originalJasmineTimeout;
+  let originalTimeout;
   let driver;
 
   beforeEach(done => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs;
+
     driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken);
 
     cleanupDb(driver).then(() => done());
   });
 
   afterEach(done => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+
     cleanupDb(driver).then(() => {
       driver.close();
       done();
@@ -79,7 +84,7 @@ describe('stress tests', () => {
         .then(() => done())
         .catch(error => done.fail(error));
     });
-  }, TEST_MODE.maxRunTimeMs);
+  });
 
   function createCommands(context) {
     const uniqueCommands = createUniqueCommands(context);
@@ -100,11 +105,15 @@ describe('stress tests', () => {
       readQueryCommand(context),
       readQueryWithBookmarkCommand(context),
       readQueryInTxCommand(context),
+      readQueryInTxFunctionCommand(context),
       readQueryInTxWithBookmarkCommand(context),
+      readQueryInTxFunctionWithBookmarkCommand(context),
       writeQueryCommand(context),
       writeQueryWithBookmarkCommand(context),
       writeQueryInTxCommand(context),
-      writeQueryInTxWithBookmarkCommand(context)
+      writeQueryInTxFunctionCommand(context),
+      writeQueryInTxWithBookmarkCommand(context),
+      writeQueryInTxFunctionWithBookmarkCommand(context)
     ];
   }
 
@@ -120,8 +129,16 @@ describe('stress tests', () => {
     return queryInTxCommand(context, READ_QUERY, () => noParams(), READ, false);
   }
 
+  function readQueryInTxFunctionCommand(context) {
+    return queryInTxFunctionCommand(context, READ_QUERY, () => noParams(), READ, false);
+  }
+
   function readQueryInTxWithBookmarkCommand(context) {
     return queryInTxCommand(context, READ_QUERY, () => noParams(), READ, true);
+  }
+
+  function readQueryInTxFunctionWithBookmarkCommand(context) {
+    return queryInTxFunctionCommand(context, READ_QUERY, () => noParams(), READ, true);
   }
 
   function writeQueryCommand(context) {
@@ -136,8 +153,16 @@ describe('stress tests', () => {
     return queryInTxCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false);
   }
 
+  function writeQueryInTxFunctionCommand(context) {
+    return queryInTxFunctionCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false);
+  }
+
   function writeQueryInTxWithBookmarkCommand(context) {
     return queryInTxCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true);
+  }
+
+  function writeQueryInTxFunctionWithBookmarkCommand(context) {
+    return queryInTxFunctionCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true);
   }
 
   function queryCommand(context, query, paramsSupplier, accessMode, useBookmark) {
@@ -158,6 +183,36 @@ describe('stress tests', () => {
         });
       }).catch(error => {
         context.log(commandId, `Query failed with error ${JSON.stringify(error)}`);
+        callback(error);
+      });
+    };
+  }
+
+  function queryInTxFunctionCommand(context, query, paramsSupplier, accessMode, useBookmark) {
+    return callback => {
+      const commandId = context.nextCommandId();
+      const params = paramsSupplier();
+      const session = newSession(context, accessMode, useBookmark);
+
+      context.log(commandId, `About to run ${accessMode} query in TX function`);
+
+      let resultPromise;
+      if (accessMode === READ) {
+        resultPromise = session.readTransaction(tx => tx.run(query, params));
+      } else {
+        resultPromise = session.writeTransaction(tx => tx.run(query, params));
+      }
+
+      resultPromise.then(result => {
+        context.queryCompleted(result, accessMode, session.lastBookmark());
+        context.log(commandId, `Transaction function executed successfully`);
+
+        session.close(() => {
+          const possibleError = verifyQueryResult(result);
+          callback(possibleError);
+        });
+      }).catch(error => {
+        context.log(commandId, `Transaction function failed with error ${JSON.stringify(error)}`);
         callback(error);
       });
     };
