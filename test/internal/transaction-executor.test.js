@@ -80,13 +80,13 @@ describe('TransactionExecutor', () => {
 
   it('should stop retrying when time expires', done => {
     const executor = new TransactionExecutor();
-    let workInvocationCounter = 0;
+    const usedTransactions = [];
     const realWork = transactionWork([SERVICE_UNAVAILABLE, SESSION_EXPIRED, TRANSIENT_ERROR_1, TRANSIENT_ERROR_2], 42);
 
     const result = executor.execute(transactionCreator(), tx => {
       expect(tx).toBeDefined();
-      workInvocationCounter++;
-      if (workInvocationCounter === 3) {
+      usedTransactions.push(tx);
+      if (usedTransactions.length === 3) {
         const currentTime = Date.now();
         clock = lolex.install();
         clock.setSystemTime(currentTime + 30001); // move `Date.now()` call forward by 30 seconds
@@ -95,7 +95,8 @@ describe('TransactionExecutor', () => {
     });
 
     result.catch(error => {
-      expect(workInvocationCounter).toEqual(3);
+      expect(usedTransactions.length).toEqual(3);
+      expectAllTransactionsToBeClosed(usedTransactions);
       expect(error.code).toEqual(TRANSIENT_ERROR_1);
       done();
     });
@@ -152,6 +153,14 @@ describe('TransactionExecutor', () => {
     );
   });
 
+  it('should retry when transaction work throws and rollback fails', done => {
+    testRetryWhenTransactionWorkThrowsAndRollbackFails(
+      [SERVICE_UNAVAILABLE, TRANSIENT_ERROR_2, SESSION_EXPIRED, SESSION_EXPIRED],
+      [SESSION_EXPIRED, TRANSIENT_ERROR_1],
+      done
+    );
+  });
+
   it('should cancel in-flight timeouts when closed', done => {
     const executor = new TransactionExecutor();
     // do not execute setTimeout callbacks
@@ -190,16 +199,16 @@ describe('TransactionExecutor', () => {
   function testRetryWhenTransactionCreatorFails(errorCodes, done) {
     const executor = new TransactionExecutor();
     const transactionCreator = throwingTransactionCreator(errorCodes, new FakeTransaction());
-    let workInvocationCounter = 0;
+    const usedTransactions = [];
 
     const result = executor.execute(transactionCreator, tx => {
       expect(tx).toBeDefined();
-      workInvocationCounter++;
+      usedTransactions.push(tx);
       return Promise.resolve(42);
     });
 
     result.then(value => {
-      expect(workInvocationCounter).toEqual(1);
+      expect(usedTransactions.length).toEqual(1);
       expect(value).toEqual(42);
       verifyRetryDelays(fakeSetTimeout, errorCodes.length);
       done();
@@ -208,18 +217,19 @@ describe('TransactionExecutor', () => {
 
   function testRetryWhenTransactionWorkReturnsRejectedPromise(errorCodes, done) {
     const executor = new TransactionExecutor();
-    let workInvocationCounter = 0;
+    const usedTransactions = [];
     const realWork = transactionWork(errorCodes, 42);
 
     const result = executor.execute(transactionCreator(), tx => {
       expect(tx).toBeDefined();
-      workInvocationCounter++;
+      usedTransactions.push(tx);
       return realWork();
     });
 
     result.then(value => {
       // work should have failed 'failures.length' times and succeeded 1 time
-      expect(workInvocationCounter).toEqual(errorCodes.length + 1);
+      expect(usedTransactions.length).toEqual(errorCodes.length + 1);
+      expectAllTransactionsToBeClosed(usedTransactions);
       expect(value).toEqual(42);
       verifyRetryDelays(fakeSetTimeout, errorCodes.length);
       done();
@@ -228,18 +238,19 @@ describe('TransactionExecutor', () => {
 
   function testRetryWhenTransactionCommitReturnsRejectedPromise(errorCodes, done) {
     const executor = new TransactionExecutor();
-    let workInvocationCounter = 0;
+    const usedTransactions = [];
     const realWork = () => Promise.resolve(4242);
 
     const result = executor.execute(transactionCreator(errorCodes), tx => {
       expect(tx).toBeDefined();
-      workInvocationCounter++;
+      usedTransactions.push(tx);
       return realWork();
     });
 
     result.then(value => {
       // work should have failed 'failures.length' times and succeeded 1 time
-      expect(workInvocationCounter).toEqual(errorCodes.length + 1);
+      expect(usedTransactions.length).toEqual(errorCodes.length + 1);
+      expectAllTransactionsToBeClosed(usedTransactions);
       expect(value).toEqual(4242);
       verifyRetryDelays(fakeSetTimeout, errorCodes.length);
       done();
@@ -248,37 +259,60 @@ describe('TransactionExecutor', () => {
 
   function testRetryWhenTransactionWorkThrows(errorCodes, done) {
     const executor = new TransactionExecutor();
-    let workInvocationCounter = 0;
+    const usedTransactions = [];
     const realWork = throwingTransactionWork(errorCodes, 42);
 
     const result = executor.execute(transactionCreator(), tx => {
       expect(tx).toBeDefined();
-      workInvocationCounter++;
+      usedTransactions.push(tx);
       return realWork();
     });
 
     result.then(value => {
       // work should have failed 'failures.length' times and succeeded 1 time
-      expect(workInvocationCounter).toEqual(errorCodes.length + 1);
+      expect(usedTransactions.length).toEqual(errorCodes.length + 1);
+      expectAllTransactionsToBeClosed(usedTransactions);
       expect(value).toEqual(42);
       verifyRetryDelays(fakeSetTimeout, errorCodes.length);
       done();
     });
   }
 
+  function testRetryWhenTransactionWorkThrowsAndRollbackFails(txWorkErrorCodes, rollbackErrorCodes, done) {
+    const executor = new TransactionExecutor();
+    const usedTransactions = [];
+    const realWork = throwingTransactionWork(txWorkErrorCodes, 424242);
+
+    const result = executor.execute(transactionCreator([], rollbackErrorCodes), tx => {
+      expect(tx).toBeDefined();
+      usedTransactions.push(tx);
+      return realWork();
+    });
+
+    result.then(value => {
+      // work should have failed 'failures.length' times and succeeded 1 time
+      expect(usedTransactions.length).toEqual(txWorkErrorCodes.length + 1);
+      expectAllTransactionsToBeClosed(usedTransactions);
+      expect(value).toEqual(424242);
+      verifyRetryDelays(fakeSetTimeout, txWorkErrorCodes.length);
+      done();
+    });
+  }
+
   function testNoRetryOnUnknownError(errorCodes, expectedWorkInvocationCount, done) {
     const executor = new TransactionExecutor();
-    let workInvocationCounter = 0;
+    const usedTransactions = [];
     const realWork = transactionWork(errorCodes, 42);
 
     const result = executor.execute(transactionCreator(), tx => {
       expect(tx).toBeDefined();
-      workInvocationCounter++;
+      usedTransactions.push(tx);
       return realWork();
     });
 
     result.catch(error => {
-      expect(workInvocationCounter).toEqual(expectedWorkInvocationCount);
+      expect(usedTransactions.length).toEqual(expectedWorkInvocationCount);
+      expectAllTransactionsToBeClosed(usedTransactions);
       if (errorCodes.length === 1) {
         expect(error.code).toEqual(errorCodes[0]);
       } else {
@@ -290,9 +324,10 @@ describe('TransactionExecutor', () => {
 
 });
 
-function transactionCreator(commitErrorCodes) {
-  const remainingErrorCodes = (commitErrorCodes || []).slice().reverse();
-  return () => new FakeTransaction(remainingErrorCodes.pop());
+function transactionCreator(commitErrorCodes, rollbackErrorCodes) {
+  const remainingCommitErrorCodes = (commitErrorCodes || []).slice().reverse();
+  const remainingRollbackErrorCodes = (rollbackErrorCodes || []).slice().reverse();
+  return () => new FakeTransaction(remainingCommitErrorCodes.pop(), remainingRollbackErrorCodes.pop());
 }
 
 function throwingTransactionCreator(errorCodes, result) {
@@ -348,19 +383,34 @@ function verifyRetryDelays(fakeSetTimeout, expectedInvocationCount) {
   });
 }
 
+function expectAllTransactionsToBeClosed(transactions) {
+  transactions.forEach(tx => expect(tx.isOpen()).toBeFalsy());
+}
+
 class FakeTransaction {
 
-  constructor(commitErrorCode) {
+  constructor(commitErrorCode, rollbackErrorCode) {
     this._commitErrorCode = commitErrorCode;
+    this._rollbackErrorCode = rollbackErrorCode;
+    this._open = true;
   }
 
   isOpen() {
-    return true;
+    return this._open;
   }
 
   commit() {
+    this._open = false;
     if (this._commitErrorCode) {
       return Promise.reject(error(this._commitErrorCode));
+    }
+    return Promise.resolve();
+  }
+
+  rollback() {
+    this._open = false;
+    if (this._rollbackErrorCode) {
+      return Promise.reject(error(this._rollbackErrorCode));
     }
     return Promise.resolve();
   }
