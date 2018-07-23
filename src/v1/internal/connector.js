@@ -271,7 +271,7 @@ class Connection {
   /** Queue an INIT-message to be sent to the database */
   initialize( clientName, token, observer ) {
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} C: INIT ${clientName} ${JSON.stringify(token)}`);
+      this._log.debug(`${this} C: INIT ${clientName} {...}`);
     }
     const initObserver = this._state.wrap(observer);
     const queued = this._queueObserver(initObserver);
