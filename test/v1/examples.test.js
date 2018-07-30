@@ -111,9 +111,9 @@ describe('examples', () => {
     // tag::config-connection-pool[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
       {
-        maxConnectionLifetime: 30*60*60,
+        maxConnectionLifetime: 3 * 60 * 60 * 1000, // 3 hours
         maxConnectionPoolSize: 50,
-        connectionAcquisitionTimeout: 2*60
+        connectionAcquisitionTimeout: 2 * 60 * 1000 // 120 seconds
       }
     );
     // end::config-connection-pool[]
