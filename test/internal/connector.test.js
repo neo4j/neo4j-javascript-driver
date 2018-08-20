@@ -270,10 +270,6 @@ describe('connector', () => {
     testQueueingOfObserversWithBrokenConnection(resetAction);
   });
 
-  it('should not queue ACK_FAILURE observer when broken', () => {
-    testQueueingOfObserversWithBrokenConnection(connection => connection._ackFailureIfNeeded());
-  });
-
   it('should reset and flush when SUCCESS received', done => {
     connection = connect('bolt://localhost');
 
@@ -315,34 +311,14 @@ describe('connector', () => {
     connection._handleMessage(RECORD_MESSAGE);
   });
 
-  it('should ACK_FAILURE when SUCCESS received', () => {
+  it('should acknowledge failure with RESET when SUCCESS received', () => {
     connection = connect('bolt://localhost');
 
     connection._currentFailure = newError('Hello');
-    connection._ackFailureIfNeeded();
+    connection._resetOnFailure();
 
     connection._handleMessage(SUCCESS_MESSAGE);
     expect(connection._currentFailure).toBeNull();
-  });
-
-  it('should fail the connection when ACK_FAILURE receives FAILURE', () => {
-    connection = connect('bolt://localhost');
-
-    connection._ackFailureIfNeeded();
-
-    connection._handleMessage(FAILURE_MESSAGE);
-    expect(connection._isBroken).toBeTruthy();
-    expect(connection.isOpen()).toBeFalsy();
-  });
-
-  it('should fail the connection when ACK_FAILURE receives RECORD', () => {
-    connection = connect('bolt://localhost');
-
-    connection._ackFailureIfNeeded();
-
-    connection._handleMessage(RECORD_MESSAGE);
-    expect(connection._isBroken).toBeTruthy();
-    expect(connection.isOpen()).toBeFalsy();
   });
 
   function packedHandshakeMessage() {

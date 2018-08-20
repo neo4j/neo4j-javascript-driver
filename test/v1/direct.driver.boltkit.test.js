@@ -304,4 +304,33 @@ describe('direct driver with stub server', () => {
     });
   });
 
+  it('should send RESET on error', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const server = boltStub.start('./test/resources/boltstub/query_with_error.script', 9001);
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
+      const session = driver.session();
+
+      session.run('RETURN 10 / 0').then(result => {
+        done.fail('Should fail but received a result: ' + JSON.stringify(result));
+      }).catch(error => {
+        expect(error.code).toEqual('Neo.ClientError.Statement.ArithmeticError');
+        expect(error.message).toEqual('/ by zero');
+
+        session.close(() => {
+          driver.close();
+          server.exit(code => {
+            expect(code).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
+
 });
