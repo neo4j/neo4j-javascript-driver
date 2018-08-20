@@ -75,7 +75,7 @@ class Session {
       connectionHolder.getConnection(streamObserver).then(connection => {
         statementRunner(connection, streamObserver);
         connection.pullAll(streamObserver);
-        connection.sync();
+        connection.flush();
       }).catch(error => streamObserver.onError(error));
     } else {
       streamObserver.onError(newError('Statements cannot be run directly on a ' +

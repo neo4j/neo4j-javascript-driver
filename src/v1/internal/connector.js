@@ -278,7 +278,7 @@ class Connection {
       this._packer.packStruct(INIT, [this._packable(clientName), this._packable(token)],
         (err) => this._handleFatalError(err));
       this._chunker.messageBoundary();
-      this.sync();
+      this.flush();
     }
   }
 
@@ -321,7 +321,7 @@ class Connection {
 
   /**
    * Send a RESET-message to the database. Mutes failure handling.
-   * Message is immediately flushed to the network. Separate {@link Connection#sync()} call is not required.
+   * Message is immediately flushed to the network. Separate {@link Connection#flush()} call is not required.
    * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
    */
   resetAndFlush() {
@@ -371,7 +371,7 @@ class Connection {
     if (queued) {
       this._packer.packStruct(RESET, [], err => this._handleFatalError(err));
       this._chunker.messageBoundary();
-      this.sync();
+      this.flush();
     }
   }
 
@@ -412,10 +412,9 @@ class Connection {
   }
 
   /**
-   * Synchronize - flush all queued outgoing messages and route their responses
-   * to their respective handlers.
+   * Flush all queued outgoing messages.
    */
-  sync() {
+  flush() {
     this._chunker.flush();
   }
 
