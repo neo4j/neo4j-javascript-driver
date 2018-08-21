@@ -17,34 +17,37 @@
  * limitations under the License.
  */
 
-import packStreamUtil from '../../src/v1/internal/packstream-util';
 import * as v1 from '../../src/v1/internal/packstream-v1';
 import * as v2 from '../../src/v1/internal/packstream-v2';
+import ProtocolHandshaker from '../../src/v1/internal/protocol-handshaker';
+import Logger from '../../src/v1/internal/logger';
 
-describe('packstream-util', () => {
+describe('ProtocolHandshaker', () => {
+
+  const protocolHandshaker = new ProtocolHandshaker(null, false, Logger.noOp());
 
   it('should create packer of the specified version', () => {
-    const packer1 = packStreamUtil.createPackerForProtocolVersion(1, null);
+    const packer1 = protocolHandshaker._createPackerForProtocolVersion(1);
     expect(packer1 instanceof v1.Packer).toBeTruthy();
 
-    const packer2 = packStreamUtil.createPackerForProtocolVersion(2, null);
+    const packer2 = protocolHandshaker._createPackerForProtocolVersion(2);
     expect(packer2 instanceof v2.Packer).toBeTruthy();
   });
 
   it('should create unpacker of the specified version', () => {
-    const unpacker1 = packStreamUtil.createUnpackerForProtocolVersion(1, null);
+    const unpacker1 = protocolHandshaker._createUnpackerForProtocolVersion(1);
     expect(unpacker1 instanceof v1.Unpacker).toBeTruthy();
 
-    const unpacker2 = packStreamUtil.createUnpackerForProtocolVersion(2, null);
+    const unpacker2 = protocolHandshaker._createUnpackerForProtocolVersion(2);
     expect(unpacker2 instanceof v2.Unpacker).toBeTruthy();
   });
 
   it('should fail to create packer for unknown version', () => {
-    expect(() => packStreamUtil.createPackerForProtocolVersion(42, null)).toThrow();
+    expect(() => protocolHandshaker._createPackerForProtocolVersion(42)).toThrow();
   });
 
   it('should fail to create unpacker for unknown version', () => {
-    expect(() => packStreamUtil.createUnpackerForProtocolVersion(42, null)).toThrow();
+    expect(() => protocolHandshaker._createUnpackerForProtocolVersion(42)).toThrow();
   });
 
 });

@@ -20,14 +20,13 @@
 import WebSocketChannel from './ch-websocket';
 import NodeChannel from './ch-node';
 import {Chunker, Dechunker} from './chunking';
-import packStreamUtil from './packstream-util';
-import {alloc} from './buf';
 import {newError, PROTOCOL_ERROR} from './../error';
 import ChannelConfig from './ch-config';
 import urlUtil from './url-util';
 import StreamObserver from './stream-observer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
 import Logger from './logger';
+import ProtocolHandshaker from './protocol-handshaker';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -41,21 +40,17 @@ else {
 }
 
 
-let
 // Signature bytes for each message type
-INIT = 0x01,            // 0000 0001 // INIT <user_agent>
-ACK_FAILURE = 0x0E,     // 0000 1110 // ACK_FAILURE - unused
-RESET = 0x0F,           // 0000 1111 // RESET
-RUN = 0x10,             // 0001 0000 // RUN <statement> <parameters>
-DISCARD_ALL = 0x2F,     // 0010 1111 // DISCARD *
-PULL_ALL = 0x3F,        // 0011 1111 // PULL *
-SUCCESS = 0x70,         // 0111 0000 // SUCCESS <metadata>
-RECORD = 0x71,          // 0111 0001 // RECORD <value>
-IGNORED = 0x7E,         // 0111 1110 // IGNORED <metadata>
-FAILURE = 0x7F,         // 0111 1111 // FAILURE <metadata>
-
-//sent before version negotiation
-MAGIC_PREAMBLE = 0x6060B017;
+const INIT = 0x01;            // 0000 0001 // INIT <user_agent>
+const ACK_FAILURE = 0x0E;     // 0000 1110 // ACK_FAILURE - unused
+const RESET = 0x0F;           // 0000 1111 // RESET
+const RUN = 0x10;             // 0001 0000 // RUN <statement> <parameters>
+const DISCARD_ALL = 0x2F;     // 0010 1111 // DISCARD *
+const PULL_ALL = 0x3F;        // 0011 1111 // PULL *
+const SUCCESS = 0x70;         // 0111 0000 // SUCCESS <metadata>
+const RECORD = 0x71;          // 0111 0001 // RECORD <value>
+const IGNORED = 0x7E;         // 0111 1110 // IGNORED <metadata>
+const FAILURE = 0x7F;         // 0111 1111 // FAILURE <metadata>
 
 function NO_OP(){}
 
@@ -102,9 +97,11 @@ class Connection {
     this._chunker = new Chunker( channel );
     this._log = log;
 
+    const protocolHandshaker = new ProtocolHandshaker(this._ch, this._chunker, this._disableLosslessIntegers, this._log);
+
     // initially assume that database supports latest Bolt version, create latest packer and unpacker
-    this._packer = packStreamUtil.createLatestPacker(this._chunker);
-    this._unpacker = packStreamUtil.createLatestUnpacker(disableLosslessIntegers);
+    this._packer = protocolHandshaker.createLatestPacker();
+    this._unpacker = protocolHandshaker.createLatestUnpacker();
 
     this._currentFailure = null;
 
@@ -116,17 +113,7 @@ class Connection {
     // TODO: Using `onmessage` and `onerror` came from the WebSocket API,
     // it reads poorly and has several annoying drawbacks. Swap to having
     // Channel extend EventEmitter instead, then we can use `on('data',..)`
-    this._ch.onmessage = (buf) => {
-      const proposed = buf.readInt32();
-      if (proposed == 1 || proposed == 2) {
-        this._initializeProtocol(proposed, buf);
-      } else if (proposed == 1213486160) {//server responded 1213486160 == 0x48545450 == "HTTP"
-        this._handleFatalError(newError('Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
-          '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'));
-      } else {
-        this._handleFatalError(newError('Unknown Bolt protocol version: ' + proposed));
-      }
-    };
+    this._ch.onmessage = buffer => this._initializeProtocol(buffer, protocolHandshaker);
 
     // Listen to connection errors. Important note though;
     // In some cases we will get a channel that is already broken (for instance,
@@ -148,38 +135,31 @@ class Connection {
       this._log.debug(`${this} created towards ${hostPort}`);
     }
 
-    let handshake = alloc( 5 * 4 );
-    //magic preamble
-    handshake.writeInt32( MAGIC_PREAMBLE );
-    //proposed versions
-    handshake.writeInt32( 2 );
-    handshake.writeInt32( 1 );
-    handshake.writeInt32( 0 );
-    handshake.writeInt32( 0 );
-    handshake.reset();
-    this._ch.write( handshake );
+    protocolHandshaker.writeHandshakeRequest();
   }
 
   /**
    * Complete protocol initialization.
-   * @param {number} version the selected protocol version.
    * @param {BaseBuffer} buffer the handshake response buffer.
+   * @param {ProtocolHandshaker} protocolHandshaker the handshaker utility.
    * @private
    */
-  _initializeProtocol(version, buffer) {
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} negotiated protocol version ${version}`);
-    }
+  _initializeProtocol(buffer, protocolHandshaker) {
+    try {
+      const {packer, unpacker} = protocolHandshaker.readHandshakeResponse(buffer);
 
-    // re-create packer and unpacker because version might be lower than we initially assumed
-    this._packer = packStreamUtil.createPackerForProtocolVersion(version, this._chunker);
-    this._unpacker = packStreamUtil.createUnpackerForProtocolVersion(version, this._disableLosslessIntegers);
+      // re-assign packer and unpacker because version might be lower than we initially assumed
+      this._packer = packer;
+      this._unpacker = unpacker;
 
-    // Ok, protocol running. Simply forward all messages to the dechunker
-    this._ch.onmessage = buf => this._dechunker.write(buf);
+      // Ok, protocol running. Simply forward all messages to the dechunker
+      this._ch.onmessage = buf => this._dechunker.write(buf);
 
-    if (buffer.hasRemaining()) {
-      this._dechunker.write(buffer.readSlice(buffer.remaining()));
+      if (buffer.hasRemaining()) {
+        this._dechunker.write(buffer.readSlice(buffer.remaining()));
+      }
+    } catch (e) {
+      this._handleFatalError(e);
     }
   }
 
