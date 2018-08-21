@@ -44,7 +44,7 @@ else {
 let
 // Signature bytes for each message type
 INIT = 0x01,            // 0000 0001 // INIT <user_agent>
-ACK_FAILURE = 0x0E,     // 0000 1110 // ACK_FAILURE
+ACK_FAILURE = 0x0E,     // 0000 1110 // ACK_FAILURE - unused
 RESET = 0x0F,           // 0000 1111 // RESET
 RUN = 0x10,             // 0001 0000 // RUN <statement> <parameters>
 DISCARD_ALL = 0x2F,     // 0010 1111 // DISCARD *
@@ -106,7 +106,6 @@ class Connection {
     this._packer = packStreamUtil.createLatestPacker(this._chunker);
     this._unpacker = packStreamUtil.createLatestUnpacker(disableLosslessIntegers);
 
-    this._ackFailureMuted = false;
     this._currentFailure = null;
 
     this._state = new ConnectionState(this);
@@ -247,7 +246,7 @@ class Connection {
         } finally {
           this._updateCurrentObserver();
           // Things are now broken. Pending observers will get FAILURE messages routed until we are done handling this failure.
-          this._ackFailureIfNeeded();
+          this._resetOnFailure();
         }
         break;
       case IGNORED:
@@ -279,7 +278,7 @@ class Connection {
       this._packer.packStruct(INIT, [this._packable(clientName), this._packable(token)],
         (err) => this._handleFatalError(err));
       this._chunker.messageBoundary();
-      this.sync();
+      this.flush();
     }
   }
 
@@ -322,17 +321,12 @@ class Connection {
 
   /**
    * Send a RESET-message to the database. Mutes failure handling.
-   * Message is immediately flushed to the network. Separate {@link Connection#sync()} call is not required.
+   * Message is immediately flushed to the network. Separate {@link Connection#flush()} call is not required.
    * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
    */
   resetAndFlush() {
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} C: RESET`);
-    }
-    this._ackFailureMuted = true;
-
     return new Promise((resolve, reject) => {
-      const observer = {
+      this._reset({
         onNext: record => {
           const neo4jError = this._handleProtocolError('Received RECORD as a response for RESET: ' + JSON.stringify(record));
           reject(neo4jError);
@@ -347,50 +341,37 @@ class Connection {
           }
         },
         onCompleted: () => {
-          this._ackFailureMuted = false;
           resolve();
         }
-      };
-      const queued = this._queueObserver(observer);
-      if (queued) {
-        this._packer.packStruct(RESET, [], err => this._handleFatalError(err));
-        this._chunker.messageBoundary();
-        this.sync();
-      }
+      });
     });
   }
 
-  _ackFailureIfNeeded() {
-    if (this._ackFailureMuted) {
-      return;
-    }
-
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} C: ACK_FAILURE`);
-    }
-
-    const observer = {
+  _resetOnFailure() {
+    this._reset({
       onNext: record => {
-        this._handleProtocolError('Received RECORD as a response for ACK_FAILURE: ' + JSON.stringify(record));
+        this._handleProtocolError('Received RECORD as a response for RESET: ' + JSON.stringify(record));
       },
-      onError: error => {
-        if (!this._isBroken && !this._ackFailureMuted) {
-          // not handling a fatal error and RESET did not cause the given error - looks like a protocol violation
-          this._handleProtocolError('Received FAILURE as a response for ACK_FAILURE: ' + error);
-        } else {
-          this._currentFailure = null;
-        }
+      // clear the current failure when response for RESET is received
+      onError: () => {
+        this._currentFailure = null;
       },
       onCompleted: () => {
         this._currentFailure = null;
       }
-    };
+    });
+  }
+
+  _reset(observer) {
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} C: RESET`);
+    }
 
     const queued = this._queueObserver(observer);
     if (queued) {
-      this._packer.packStruct(ACK_FAILURE, [], err => this._handleFatalError(err));
+      this._packer.packStruct(RESET, [], err => this._handleFatalError(err));
       this._chunker.messageBoundary();
-      this.sync();
+      this.flush();
     }
   }
 
@@ -431,10 +412,9 @@ class Connection {
   }
 
   /**
-   * Synchronize - flush all queued outgoing messages and route their responses
-   * to their respective handlers.
+   * Flush all queued outgoing messages.
    */
-  sync() {
+  flush() {
     this._chunker.flush();
   }
 
@@ -477,7 +457,6 @@ class Connection {
   }
 
   _handleProtocolError(message) {
-    this._ackFailureMuted = false;
     this._currentFailure = null;
     this._updateCurrentObserver();
     const error = newError(message, PROTOCOL_ERROR);

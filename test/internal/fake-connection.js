@@ -31,7 +31,7 @@ export default class FakeConnection {
     this.creationTimestamp = Date.now();
 
     this.resetInvoked = 0;
-    this.syncInvoked = 0;
+    this.flushInvoked = 0;
     this.releaseInvoked = 0;
     this.initializationInvoked = 0;
     this.seenStatements = [];
@@ -58,8 +58,8 @@ export default class FakeConnection {
     return Promise.resolve();
   }
 
-  sync() {
-    this.syncInvoked++;
+  flush() {
+    this.flushInvoked++;
   }
 
   _release() {

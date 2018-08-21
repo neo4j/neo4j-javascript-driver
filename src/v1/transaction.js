@@ -162,7 +162,7 @@ let _states = {
       connectionHolder.getConnection(observer).then(conn => {
         conn.run(statement, parameters || {}, observer);
         conn.pullAll(observer);
-        conn.sync();
+        conn.flush();
       }).catch(error => observer.onError(error));
 
       return _newRunResult(observer, statement, parameters, () => observer.serverMetadata());
@@ -240,7 +240,7 @@ function _runPullAll(msg, connectionHolder, observer) {
   connectionHolder.getConnection(observer).then(conn => {
     conn.run(msg, {}, observer);
     conn.pullAll(observer);
-    conn.sync();
+    conn.flush();
   }).catch(error => observer.onError(error));
 
   // for commit & rollback we need result that uses real connection holder and notifies it when
