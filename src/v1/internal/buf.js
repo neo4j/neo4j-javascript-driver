@@ -578,11 +578,10 @@ try {
 } catch(e) {}
 
 /**
- * Allocate a new buffer using whatever mechanism is most sensible for the
- * current platform
+ * Allocate a new buffer using whatever mechanism is most sensible for the current platform.
  * @access private
  * @param {Integer} size
- * @return new buffer
+ * @return {BaseBuffer} new buffer
  */
 function alloc (size) {
   return new _DefaultBuffer(size);

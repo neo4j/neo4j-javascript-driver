@@ -27,6 +27,8 @@ import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion} from '../../src/v1/internal/server-version';
 import lolex from 'lolex';
 import Logger from '../../src/v1/internal/logger';
+import StreamObserver from '../../src/v1/internal/stream-observer';
+import RequestMessage from '../../src/v1/internal/request-message';
 
 const ILLEGAL_MESSAGE = {signature: 42, fields: []};
 const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};
@@ -66,15 +68,13 @@ describe('connector', () => {
     connection = connect("bolt://localhost");
 
     // When
-    connection.initialize("mydriver/0.0.0", basicAuthToken(), {
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken(), {
       onCompleted: msg => {
         expect(msg).not.toBeNull();
         done();
       },
       onError: console.log
     });
-    connection.flush();
-
   });
 
   it('should retrieve stream', done => {
@@ -83,9 +83,7 @@ describe('connector', () => {
 
     // When
     const records = [];
-    connection.initialize("mydriver/0.0.0", basicAuthToken());
-    connection.run("RETURN 1.0", {});
-    connection.pullAll({
+    const pullAllObserver = {
       onNext: record => {
         records.push(record);
       },
@@ -93,8 +91,11 @@ describe('connector', () => {
         expect(records[0][0]).toBe(1);
         done();
       }
-    });
-    connection.flush();
+    };
+
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken());
+    connection.write(RequestMessage.run('RETURN 1.0', {}), {}, false);
+    connection.write(RequestMessage.pullAll(), pullAllObserver, true);
   });
 
   it('should use DummyChannel to read what gets written', done => {
@@ -111,9 +112,8 @@ describe('connector', () => {
     observer.instance.clear();
 
     // When
-    connection.initialize('mydriver/0.0.0', basicAuthToken());
-    connection.run('RETURN 1', {});
-    connection.flush();
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken());
+    connection.write(RequestMessage.run('RETURN 1', {}), {}, true);
     expect(observer.instance.toHex()).toBe('00 44 b2 01 8e 6d 79 64 72 69 76 65 72 2f 30 2e 30 2e 30 a3 86 73 63 68 65 6d 65 85 62 61 73 69 63 89 70 72 69 6e 63 69 70 61 6c 85 6e 65 6f 34 6a 8b 63 72 65 64 65 6e 74 69 61 6c 73 88 70 61 73 73 77 6f 72 64 00 00 00 0c b2 10 88 52 45 54 55 52 4e 20 31 a0 00 00 ');
     done();
   });
@@ -123,7 +123,7 @@ describe('connector', () => {
     connection = connect("bolt://localhost:7474", {encrypted: false});
 
     // When
-    connection.initialize("mydriver/0.0.0", basicAuthToken(), {
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken(), {
       onCompleted: msg => {
       },
       onError: err => {
@@ -135,8 +135,6 @@ describe('connector', () => {
         done();
       }
     });
-    connection.flush();
-
   });
 
   it('should convert failure messages to errors', done => {
@@ -165,7 +163,7 @@ describe('connector', () => {
       done();
     });
 
-    connection.initialize('mydriver/0.0.0', basicAuthToken());
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken());
   });
 
   it('should notify when connection initialization fails', done => {
@@ -176,13 +174,13 @@ describe('connector', () => {
       done();
     });
 
-    connection.initialize('mydriver/0.0.0', basicAuthToken());
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken());
   });
 
   it('should notify provided observer when connection initialization completes', done => {
     connection = connect('bolt://localhost');
 
-    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken(), {
       onCompleted: metaData => {
         expect(connection.isOpen()).toBeTruthy();
         expect(metaData).toBeDefined();
@@ -194,7 +192,7 @@ describe('connector', () => {
   it('should notify provided observer when connection initialization fails', done => {
     connection = connect('bolt://localhost:7474'); // wrong port
 
-    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken(), {
       onError: error => {
         expect(connection.isOpen()).toBeFalsy();
         expect(error).toBeDefined();
@@ -212,21 +210,22 @@ describe('connector', () => {
       done();
     });
 
-    connection.initialize('mydriver/0.0.0', basicAuthToken());
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken());
   });
 
   it('should fail all new observers after initialization error', done => {
     connection = connect('bolt://localhost:7474'); // wrong port
 
-    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken(), {
       onError: initialError => {
         expect(initialError).toBeDefined();
 
-        connection.run('RETURN 1', {}, {
+        const streamObserver = new StreamObserver();
+        streamObserver.subscribe({
           onError: error1 => {
             expect(error1).toEqual(initialError);
 
-            connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+            connection.protocol().initialize('mydriver/0.0.0', basicAuthToken(), {
               onError: error2 => {
                 expect(error2).toEqual(initialError);
 
@@ -235,6 +234,8 @@ describe('connector', () => {
             });
           }
         });
+
+        connection.protocol().run('RETURN 1', {}, streamObserver);
       },
     });
   });
@@ -248,19 +249,11 @@ describe('connector', () => {
   });
 
   it('should not queue INIT observer when broken', () => {
-    testQueueingOfObserversWithBrokenConnection(connection => connection.initialize('Hello', {}, {}));
+    testQueueingOfObserversWithBrokenConnection(connection => connection.protocol().initialize('Hello', {}, {}));
   });
 
   it('should not queue RUN observer when broken', () => {
-    testQueueingOfObserversWithBrokenConnection(connection => connection.run('RETURN 1', {}, {}));
-  });
-
-  it('should not queue PULL_ALL observer when broken', () => {
-    testQueueingOfObserversWithBrokenConnection(connection => connection.pullAll({}));
-  });
-
-  it('should not queue DISCARD_ALL observer when broken', () => {
-    testQueueingOfObserversWithBrokenConnection(connection => connection.discardAll({}));
+    testQueueingOfObserversWithBrokenConnection(connection => connection.protocol().run('RETURN 1', {}, {}));
   });
 
   it('should not queue RESET observer when broken', () => {
@@ -360,7 +353,7 @@ describe('connector', () => {
     const boltUri = 'bolt://10.0.0.0'; // use non-routable IP address which never responds
     connection = connect(boltUri, {encrypted: encrypted, connectionTimeout: 1000}, 'TestErrorCode');
 
-    connection.initialize('mydriver/0.0.0', basicAuthToken(), {
+    connection.protocol().initialize('mydriver/0.0.0', basicAuthToken(), {
       onNext: record => {
         done.fail('Should not receive records: ' + record);
       },

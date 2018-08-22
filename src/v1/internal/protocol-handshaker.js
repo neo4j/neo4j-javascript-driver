@@ -21,6 +21,7 @@ import {alloc} from './buf';
 import {newError} from '../error';
 import * as v1 from './packstream-v1';
 import * as v2 from './packstream-v2';
+import BoltProtocol from './bolt-protocol';
 
 const HTTP_MAGIC_PREAMBLE = 1213486160; // == 0x48545450 == "HTTP"
 const BOLT_MAGIC_PREAMBLE = 0x6060B017;
@@ -30,30 +31,40 @@ const UNPACKER_CONSTRUCTORS_BY_VERSION = [null, v1.Unpacker, v2.Unpacker];
 
 export default class ProtocolHandshaker {
 
-  constructor(channel, chunker, disableLosslessIntegers, log) {
+  constructor(connection, channel, chunker, disableLosslessIntegers, log) {
+    this._connection = connection;
     this._channel = channel;
     this._chunker = chunker;
     this._disableLosslessIntegers = disableLosslessIntegers;
     this._log = log;
   }
 
-  createLatestPacker() {
-    return this._createPackerForProtocolVersion(PACKER_CONSTRUCTORS_BY_VERSION.length - 1);
+  /**
+   * Create the newest bolt protocol.
+   * @return {BoltProtocol} the protocol.
+   */
+  createLatestProtocol() {
+    return this._createProtocolWithVersion(PACKER_CONSTRUCTORS_BY_VERSION.length - 1);
   }
 
-  createLatestUnpacker() {
-    return this._createUnpackerForProtocolVersion(UNPACKER_CONSTRUCTORS_BY_VERSION.length - 1);
-  }
-
+  /**
+   * Write a Bolt handshake into the underlying network channel.
+   */
   writeHandshakeRequest() {
     this._channel.write(newHandshakeBuffer());
   }
 
+  /**
+   * Read and interpret the Bolt handshake response from the given buffer.
+   * @param {BaseBuffer} buffer byte buffer containing the handshake response.
+   * @return {BoltProtocol} bolt protocol corresponding to the version suggested by the database.
+   * @throws {Neo4jError} when bolt protocol can't be instantiated.
+   */
   readHandshakeResponse(buffer) {
     const proposedVersion = buffer.readInt32();
 
     if (proposedVersion === 1 || proposedVersion === 2) {
-      return this._createPackerAndUnpackerForProtocolVersion(proposedVersion);
+      return this._createProtocolWithVersion(proposedVersion);
     } else if (proposedVersion === HTTP_MAGIC_PREAMBLE) {
       throw newError('Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
         '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)');
@@ -62,15 +73,24 @@ export default class ProtocolHandshaker {
     }
   }
 
-  _createPackerAndUnpackerForProtocolVersion(version) {
+  /**
+   * @return {BoltProtocol}
+   * @private
+   */
+  _createProtocolWithVersion(version) {
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} negotiated protocol version ${version}`);
     }
     const packer = this._createPackerForProtocolVersion(version);
     const unpacker = this._createUnpackerForProtocolVersion(version);
-    return {packer, unpacker};
+    return new BoltProtocol(this._connection, packer, unpacker);
   }
 
+  /**
+   * @param {number} version
+   * @return {Packer}
+   * @private
+   */
   _createPackerForProtocolVersion(version) {
     const packerConstructor = PACKER_CONSTRUCTORS_BY_VERSION[version];
     if (!packerConstructor) {
@@ -79,6 +99,11 @@ export default class ProtocolHandshaker {
     return new packerConstructor(this._chunker);
   }
 
+  /**
+   * @param {number} version
+   * @return {Unpacker}
+   * @private
+   */
   _createUnpackerForProtocolVersion(version) {
     const unpackerConstructor = UNPACKER_CONSTRUCTORS_BY_VERSION[version];
     if (!unpackerConstructor) {
@@ -88,6 +113,10 @@ export default class ProtocolHandshaker {
   }
 }
 
+/**
+ * @return {BaseBuffer}
+ * @private
+ */
 function newHandshakeBuffer() {
   const handshakeBuffer = alloc(5 * 4);
 

@@ -132,9 +132,9 @@ class Driver {
    * @access private
    */
   _createConnection(hostPort, release) {
-    let conn = connect(hostPort, this._config, this._connectionErrorCode(), this._log);
-    let streamObserver = new _ConnectionStreamObserver(this, conn);
-    conn.initialize(this._userAgent, this._token, streamObserver);
+    const conn = connect(hostPort, this._config, this._connectionErrorCode(), this._log);
+    const streamObserver = new _ConnectionStreamObserver(this, conn);
+    conn.protocol().initialize(this._userAgent, this._token, streamObserver);
     conn._release = () => release(hostPort, conn);
 
     this._openConnections[conn.id] = conn;

@@ -63,7 +63,7 @@ class Session {
     const {query, params} = validateStatementAndParameters(statement, parameters);
 
     return this._run(query, params, (connection, streamObserver) =>
-      connection.run(query, params, streamObserver)
+      connection.protocol().run(query, params, streamObserver)
     );
   }
 
@@ -72,11 +72,9 @@ class Session {
     const connectionHolder = this._connectionHolderWithMode(this._mode);
     if (!this._hasTx) {
       connectionHolder.initializeConnection();
-      connectionHolder.getConnection(streamObserver).then(connection => {
-        statementRunner(connection, streamObserver);
-        connection.pullAll(streamObserver);
-        connection.flush();
-      }).catch(error => streamObserver.onError(error));
+      connectionHolder.getConnection(streamObserver)
+        .then(connection => statementRunner(connection, streamObserver))
+        .catch(error => streamObserver.onError(error));
     } else {
       streamObserver.onError(newError('Statements cannot be run directly on a ' +
         'session with an open transaction; either run from within the ' +

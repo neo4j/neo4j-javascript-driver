@@ -117,12 +117,18 @@ export default class RoutingUtil {
       const serverVersionString = connection.server.version;
       const serverVersion = ServerVersion.fromString(serverVersionString);
 
+      let query;
+      let params;
+
       if (serverVersion.compareTo(VERSION_3_2_0) >= 0) {
-        const params = {[GET_ROUTING_TABLE_PARAM]: this._routingContext};
-        connection.run(CALL_GET_ROUTING_TABLE, params, streamObserver);
+        query = CALL_GET_ROUTING_TABLE;
+        params = {[GET_ROUTING_TABLE_PARAM]: this._routingContext};
       } else {
-        connection.run(CALL_GET_SERVERS, {}, streamObserver);
+        query = CALL_GET_SERVERS;
+        params = {};
       }
+
+      connection.protocol().run(query, params, streamObserver);
     });
   }
 }

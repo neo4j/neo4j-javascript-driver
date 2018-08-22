@@ -27,6 +27,7 @@ import StreamObserver from './stream-observer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
 import Logger from './logger';
 import ProtocolHandshaker from './protocol-handshaker';
+import RequestMessage from './request-message';
 
 let Channel;
 if( NodeChannel.available ) {
@@ -40,13 +41,7 @@ else {
 }
 
 
-// Signature bytes for each message type
-const INIT = 0x01;            // 0000 0001 // INIT <user_agent>
-const ACK_FAILURE = 0x0E;     // 0000 1110 // ACK_FAILURE - unused
-const RESET = 0x0F;           // 0000 1111 // RESET
-const RUN = 0x10;             // 0001 0000 // RUN <statement> <parameters>
-const DISCARD_ALL = 0x2F;     // 0010 1111 // DISCARD *
-const PULL_ALL = 0x3F;        // 0011 1111 // PULL *
+// Signature bytes for each response message type
 const SUCCESS = 0x70;         // 0111 0000 // SUCCESS <metadata>
 const RECORD = 0x71;          // 0111 0001 // RECORD <value>
 const IGNORED = 0x7E;         // 0111 1110 // IGNORED <metadata>
@@ -97,11 +92,9 @@ class Connection {
     this._chunker = new Chunker( channel );
     this._log = log;
 
-    const protocolHandshaker = new ProtocolHandshaker(this._ch, this._chunker, this._disableLosslessIntegers, this._log);
-
+    const protocolHandshaker = new ProtocolHandshaker(this, channel, this._chunker, this._disableLosslessIntegers, this._log);
     // initially assume that database supports latest Bolt version, create latest packer and unpacker
-    this._packer = protocolHandshaker.createLatestPacker();
-    this._unpacker = protocolHandshaker.createLatestUnpacker();
+    this._protocol = protocolHandshaker.createLatestProtocol();
 
     this._currentFailure = null;
 
@@ -128,7 +121,7 @@ class Connection {
     }
 
     this._dechunker.onmessage = (buf) => {
-      this._handleMessage(this._unpacker.unpack(buf));
+      this._handleMessage(this._protocol.unpacker().unpack(buf));
     };
 
     if (this._log.isDebugEnabled()) {
@@ -139,6 +132,45 @@ class Connection {
   }
 
   /**
+   * Get the Bolt protocol for the connection.
+   * @return {BoltProtocol} the protocol.
+   */
+  protocol() {
+    return this._protocol;
+  }
+
+  /**
+   * Write a message to the network channel.
+   * @param {RequestMessage} message the message to write.
+   * @param {StreamObserver} observer the response observer.
+   * @param {boolean} flush <code>true</code> if flush should happen after the message is written to the buffer.
+   */
+  write(message, observer, flush) {
+    if (message.isInitializationMessage) {
+      observer = this._state.wrap(observer);
+    }
+
+    const queued = this._queueObserver(observer);
+
+    if (queued) {
+      if (this._log.isDebugEnabled()) {
+        this._log.debug(`${this} C: ${message}`);
+      }
+
+      this._protocol.packer().packStruct(
+        message.signature,
+        message.fields.map(field => this._packable(field)),
+        err => this._handleFatalError(err));
+
+      this._chunker.messageBoundary();
+
+      if (flush) {
+        this._chunker.flush();
+      }
+    }
+  }
+
+  /**
    * Complete protocol initialization.
    * @param {BaseBuffer} buffer the handshake response buffer.
    * @param {ProtocolHandshaker} protocolHandshaker the handshaker utility.
@@ -146,11 +178,8 @@ class Connection {
    */
   _initializeProtocol(buffer, protocolHandshaker) {
     try {
-      const {packer, unpacker} = protocolHandshaker.readHandshakeResponse(buffer);
-
-      // re-assign packer and unpacker because version might be lower than we initially assumed
-      this._packer = packer;
-      this._unpacker = unpacker;
+      // re-assign the protocol because version might be lower than we initially assumed
+      this._protocol = protocolHandshaker.readHandshakeResponse(buffer);
 
       // Ok, protocol running. Simply forward all messages to the dechunker
       this._ch.onmessage = buf => this._dechunker.write(buf);
@@ -247,66 +276,13 @@ class Connection {
     }
   }
 
-  /** Queue an INIT-message to be sent to the database */
-  initialize( clientName, token, observer ) {
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} C: INIT ${clientName} {...}`);
-    }
-    const initObserver = this._state.wrap(observer);
-    const queued = this._queueObserver(initObserver);
-    if (queued) {
-      this._packer.packStruct(INIT, [this._packable(clientName), this._packable(token)],
-        (err) => this._handleFatalError(err));
-      this._chunker.messageBoundary();
-      this.flush();
-    }
-  }
-
-  /** Queue a RUN-message to be sent to the database */
-  run( statement, params, observer ) {
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} C: RUN ${statement} ${JSON.stringify(params)}`);
-    }
-    const queued = this._queueObserver(observer);
-    if (queued) {
-      this._packer.packStruct(RUN, [this._packable(statement), this._packable(params)],
-        (err) => this._handleFatalError(err));
-      this._chunker.messageBoundary();
-    }
-  }
-
-  /** Queue a PULL_ALL-message to be sent to the database */
-  pullAll( observer ) {
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} C: PULL_ALL`);
-    }
-    const queued = this._queueObserver(observer);
-    if (queued) {
-      this._packer.packStruct(PULL_ALL, [], (err) => this._handleFatalError(err));
-      this._chunker.messageBoundary();
-    }
-  }
-
-  /** Queue a DISCARD_ALL-message to be sent to the database */
-  discardAll( observer ) {
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} C: DISCARD_ALL`);
-    }
-    const queued = this._queueObserver(observer);
-    if (queued) {
-      this._packer.packStruct(DISCARD_ALL, [], (err) => this._handleFatalError(err));
-      this._chunker.messageBoundary();
-    }
-  }
-
   /**
-   * Send a RESET-message to the database. Mutes failure handling.
-   * Message is immediately flushed to the network. Separate {@link Connection#flush()} call is not required.
+   * Send a RESET-message to the database. Message is immediately flushed to the network.
    * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
    */
   resetAndFlush() {
     return new Promise((resolve, reject) => {
-      this._reset({
+      this._protocol.reset({
         onNext: record => {
           const neo4jError = this._handleProtocolError('Received RECORD as a response for RESET: ' + JSON.stringify(record));
           reject(neo4jError);
@@ -328,7 +304,7 @@ class Connection {
   }
 
   _resetOnFailure() {
-    this._reset({
+    this._protocol.reset({
       onNext: record => {
         this._handleProtocolError('Received RECORD as a response for RESET: ' + JSON.stringify(record));
       },
@@ -340,19 +316,6 @@ class Connection {
         this._currentFailure = null;
       }
     });
-  }
-
-  _reset(observer) {
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} C: RESET`);
-    }
-
-    const queued = this._queueObserver(observer);
-    if (queued) {
-      this._packer.packStruct(RESET, [], err => this._handleFatalError(err));
-      this._chunker.messageBoundary();
-      this.flush();
-    }
   }
 
   _queueObserver(observer) {
@@ -376,7 +339,7 @@ class Connection {
 
   /**
    * Get promise resolved when connection initialization succeed or rejected when it fails.
-   * Connection is initialized using {@link initialize} function.
+   * Connection is initialized using {@link BoltProtocol#initialize()} function.
    * @return {Promise<Connection>} the result of connection initialization.
    */
   initializationCompleted() {
@@ -389,13 +352,6 @@ class Connection {
    */
   _updateCurrentObserver() {
     this._currentObserver = this._pendingObservers.shift();
-  }
-
-  /**
-   * Flush all queued outgoing messages.
-   */
-  flush() {
-    this._chunker.flush();
   }
 
   /** Check if this connection is in working condition */
@@ -419,7 +375,7 @@ class Connection {
   }
 
   _packable(value) {
-      return this._packer.packable(value, (err) => this._handleFatalError(err));
+    return this._protocol.packer().packable(value, (err) => this._handleFatalError(err));
   }
 
   /**
@@ -431,7 +387,7 @@ class Connection {
       this.server.version = serverVersion;
       const version = ServerVersion.fromString(serverVersion);
       if (version.compareTo(VERSION_3_2_0) < 0) {
-        this._packer.disableByteArrays();
+        this._protocol.packer().disableByteArrays();
       }
     }
   }

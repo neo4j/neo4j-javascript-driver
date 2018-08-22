@@ -17,37 +17,83 @@
  * limitations under the License.
  */
 
-import * as v1 from '../../src/v1/internal/packstream-v1';
-import * as v2 from '../../src/v1/internal/packstream-v2';
 import ProtocolHandshaker from '../../src/v1/internal/protocol-handshaker';
 import Logger from '../../src/v1/internal/logger';
+import BoltProtocol from '../../src/v1/internal/bolt-protocol';
+import {alloc} from '../../src/v1/internal/buf';
 
 describe('ProtocolHandshaker', () => {
 
-  const protocolHandshaker = new ProtocolHandshaker(null, false, Logger.noOp());
+  it('should create latest protocol', () => {
+    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
 
-  it('should create packer of the specified version', () => {
-    const packer1 = protocolHandshaker._createPackerForProtocolVersion(1);
-    expect(packer1 instanceof v1.Packer).toBeTruthy();
+    const protocol = handshaker.createLatestProtocol();
 
-    const packer2 = protocolHandshaker._createPackerForProtocolVersion(2);
-    expect(packer2 instanceof v2.Packer).toBeTruthy();
+    expect(protocol).toBeDefined();
+    expect(protocol).not.toBeNull();
+    expect(protocol instanceof BoltProtocol).toBeTruthy();
   });
 
-  it('should create unpacker of the specified version', () => {
-    const unpacker1 = protocolHandshaker._createUnpackerForProtocolVersion(1);
-    expect(unpacker1 instanceof v1.Unpacker).toBeTruthy();
+  it('should write handshake request', () => {
+    const writtenBuffers = [];
+    const fakeChannel = {
+      write: buffer => writtenBuffers.push(buffer)
+    };
 
-    const unpacker2 = protocolHandshaker._createUnpackerForProtocolVersion(2);
-    expect(unpacker2 instanceof v2.Unpacker).toBeTruthy();
+    const handshaker = new ProtocolHandshaker(null, fakeChannel, null, false, Logger.noOp());
+
+    handshaker.writeHandshakeRequest();
+
+    expect(writtenBuffers.length).toEqual(1);
+
+    const boltMagicPreamble = '60 60 b0 17';
+    const protocolVersion2 = '00 00 00 02';
+    const protocolVersion1 = '00 00 00 01';
+    const noProtocolVersion = '00 00 00 00';
+
+    expect(writtenBuffers[0].toHex()).toEqual(`${boltMagicPreamble} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion} ${noProtocolVersion} `);
   });
 
-  it('should fail to create packer for unknown version', () => {
-    expect(() => protocolHandshaker._createPackerForProtocolVersion(42)).toThrow();
+  it('should read handshake response containing valid protocol version', () => {
+    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
+
+    // buffer with Bolt V1
+    const buffer = handshakeResponse(1);
+
+    const protocol = handshaker.readHandshakeResponse(buffer);
+
+    expect(protocol).toBeDefined();
+    expect(protocol).not.toBeNull();
+    expect(protocol instanceof BoltProtocol).toBeTruthy();
   });
 
-  it('should fail to create unpacker for unknown version', () => {
-    expect(() => protocolHandshaker._createUnpackerForProtocolVersion(42)).toThrow();
+  it('should read handshake response containing invalid protocol version', () => {
+    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
+
+    // buffer with Bolt V42 which is invalid
+    const buffer = handshakeResponse(42);
+
+    expect(() => handshaker.readHandshakeResponse(buffer)).toThrow();
+  });
+
+  it('should read handshake response containing HTTP as the protocol version', () => {
+    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
+
+    // buffer with HTTP magic int
+    const buffer = handshakeResponse(1213486160);
+
+    expect(() => handshaker.readHandshakeResponse(buffer)).toThrow();
   });
 
 });
+
+/**
+ * @param {number} version
+ * @return {BaseBuffer}
+ */
+function handshakeResponse(version) {
+  const buffer = alloc(4);
+  buffer.writeInt32(version);
+  buffer.reset();
+  return buffer;
+}
