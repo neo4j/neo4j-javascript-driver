@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import BoltProtocol from '../../src/v1/internal/bolt-protocol-v1';
+import BoltProtocolV1 from '../../src/v1/internal/bolt-protocol-v1';
 import RequestMessage from '../../src/v1/internal/request-message';
 import Bookmark from '../../src/v1/internal/bookmark';
 
@@ -42,11 +42,11 @@ class MessageRecorder {
   }
 }
 
-describe('BoltProtocol', () => {
+describe('BoltProtocolV1', () => {
 
   it('should initialize the connection', () => {
     const recorder = new MessageRecorder();
-    const protocol = new BoltProtocol(recorder, null, null);
+    const protocol = new BoltProtocolV1(recorder, null, false);
 
     const clientName = 'js-driver/1.2.3';
     const authToken = {username: 'neo4j', password: 'secret'};
@@ -62,7 +62,7 @@ describe('BoltProtocol', () => {
 
   it('should run a statement', () => {
     const recorder = new MessageRecorder();
-    const protocol = new BoltProtocol(recorder, null, null);
+    const protocol = new BoltProtocolV1(recorder, null, false);
 
     const statement = 'RETURN $x, $y';
     const parameters = {x: 'x', y: 'y'};
@@ -81,7 +81,7 @@ describe('BoltProtocol', () => {
 
   it('should reset the connection', () => {
     const recorder = new MessageRecorder();
-    const protocol = new BoltProtocol(recorder, null, null);
+    const protocol = new BoltProtocolV1(recorder, null, false);
 
     const observer = {};
 
@@ -95,7 +95,7 @@ describe('BoltProtocol', () => {
 
   it('should begin a transaction', () => {
     const recorder = new MessageRecorder();
-    const protocol = new BoltProtocol(recorder, null, null);
+    const protocol = new BoltProtocolV1(recorder, null, false);
 
     const bookmark = new Bookmark('neo4j:bookmark:v1:tx42');
     const observer = {};
@@ -113,7 +113,7 @@ describe('BoltProtocol', () => {
 
   it('should commit a transaction', () => {
     const recorder = new MessageRecorder();
-    const protocol = new BoltProtocol(recorder, null, null);
+    const protocol = new BoltProtocolV1(recorder, null, false);
 
     const observer = {};
 
@@ -130,7 +130,7 @@ describe('BoltProtocol', () => {
 
   it('should rollback a transaction', () => {
     const recorder = new MessageRecorder();
-    const protocol = new BoltProtocol(recorder, null, null);
+    const protocol = new BoltProtocolV1(recorder, null, false);
 
     const observer = {};
 

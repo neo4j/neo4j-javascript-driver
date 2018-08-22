@@ -17,19 +17,20 @@
  * limitations under the License.
  */
 import RequestMessage from './request-message';
+import * as v1 from './packstream-v1';
 
 export default class BoltProtocol {
 
   /**
    * @constructor
    * @param {Connection} connection the connection.
-   * @param {Packer} packer the packer.
-   * @param {Unpacker} unpacker the unpacker.
+   * @param {Chunker} chunker the chunker.
+   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
    */
-  constructor(connection, packer, unpacker) {
+  constructor(connection, chunker, disableLosslessIntegers) {
     this._connection = connection;
-    this._packer = packer;
-    this._unpacker = unpacker;
+    this._packer = this._createPacker(chunker);
+    this._unpacker = this._createUnpacker(disableLosslessIntegers);
   }
 
   /**
@@ -109,5 +110,13 @@ export default class BoltProtocol {
   reset(observer) {
     const message = RequestMessage.reset();
     this._connection.write(message, observer, true);
+  }
+
+  _createPacker(chunker) {
+    return new v1.Packer(chunker);
+  }
+
+  _createUnpacker(disableLosslessIntegers) {
+    return new v1.Unpacker(disableLosslessIntegers);
   }
 }

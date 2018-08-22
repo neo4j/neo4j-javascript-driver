@@ -19,18 +19,24 @@
 
 import {alloc} from './buf';
 import {newError} from '../error';
-import * as v1 from './packstream-v1';
-import * as v2 from './packstream-v2';
-import BoltProtocol from './bolt-protocol-v1';
+import BoltProtocolV1 from './bolt-protocol-v1';
+import BoltProtocolV2 from './bolt-protocol-v2';
 
 const HTTP_MAGIC_PREAMBLE = 1213486160; // == 0x48545450 == "HTTP"
 const BOLT_MAGIC_PREAMBLE = 0x6060B017;
 
-const PACKER_CONSTRUCTORS_BY_VERSION = [null, v1.Packer, v2.Packer];
-const UNPACKER_CONSTRUCTORS_BY_VERSION = [null, v1.Unpacker, v2.Unpacker];
+const LATEST_PROTOCOL_VERSION = 2;
 
 export default class ProtocolHandshaker {
 
+  /**
+   * @constructor
+   * @param {Connection} connection the connection owning this protocol.
+   * @param {NodeChannel|WebSocketChannel} channel the network channel.
+   * @param {Chunker} chunker the message chunker.
+   * @param {boolean} disableLosslessIntegers flag to use native JS numbers.
+   * @param {Logger} log the logger.
+   */
   constructor(connection, channel, chunker, disableLosslessIntegers, log) {
     this._connection = connection;
     this._channel = channel;
@@ -44,7 +50,7 @@ export default class ProtocolHandshaker {
    * @return {BoltProtocol} the protocol.
    */
   createLatestProtocol() {
-    return this._createProtocolWithVersion(PACKER_CONSTRUCTORS_BY_VERSION.length - 1);
+    return this._createProtocolWithVersion(LATEST_PROTOCOL_VERSION);
   }
 
   /**
@@ -62,15 +68,10 @@ export default class ProtocolHandshaker {
    */
   readHandshakeResponse(buffer) {
     const proposedVersion = buffer.readInt32();
-
-    if (proposedVersion === 1 || proposedVersion === 2) {
-      return this._createProtocolWithVersion(proposedVersion);
-    } else if (proposedVersion === HTTP_MAGIC_PREAMBLE) {
-      throw newError('Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
-        '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)');
-    } else {
-      throw newError('Unknown Bolt protocol version: ' + proposedVersion);
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} negotiated protocol version ${proposedVersion}`);
     }
+    return this._createProtocolWithVersion(proposedVersion);
   }
 
   /**
@@ -78,38 +79,16 @@ export default class ProtocolHandshaker {
    * @private
    */
   _createProtocolWithVersion(version) {
-    if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} negotiated protocol version ${version}`);
+    if (version === 1) {
+      return new BoltProtocolV1(this._connection, this._chunker, this._disableLosslessIntegers);
+    } else if (version === 2) {
+      return new BoltProtocolV2(this._connection, this._chunker, this._disableLosslessIntegers);
+    } else if (version === HTTP_MAGIC_PREAMBLE) {
+      throw newError('Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
+        '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)');
+    } else {
+      throw newError('Unknown Bolt protocol version: ' + version);
     }
-    const packer = this._createPackerForProtocolVersion(version);
-    const unpacker = this._createUnpackerForProtocolVersion(version);
-    return new BoltProtocol(this._connection, packer, unpacker);
-  }
-
-  /**
-   * @param {number} version
-   * @return {Packer}
-   * @private
-   */
-  _createPackerForProtocolVersion(version) {
-    const packerConstructor = PACKER_CONSTRUCTORS_BY_VERSION[version];
-    if (!packerConstructor) {
-      throw new Error(`Packer can't be created for protocol version ${version}`);
-    }
-    return new packerConstructor(this._chunker);
-  }
-
-  /**
-   * @param {number} version
-   * @return {Unpacker}
-   * @private
-   */
-  _createUnpackerForProtocolVersion(version) {
-    const unpackerConstructor = UNPACKER_CONSTRUCTORS_BY_VERSION[version];
-    if (!unpackerConstructor) {
-      throw new Error(`Unpacker can't be created for protocol version ${version}`);
-    }
-    return new unpackerConstructor(this._disableLosslessIntegers);
   }
 }
 
