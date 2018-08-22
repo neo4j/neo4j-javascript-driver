@@ -41,7 +41,7 @@ class Transaction {
     const streamObserver = new _TransactionStreamObserver(this);
 
     this._connectionHolder.getConnection(streamObserver)
-      .then(conn => conn.protocol().run('BEGIN', bookmark.asBeginTransactionParameters(), streamObserver))
+      .then(conn => conn.protocol().beginTransaction(bookmark, streamObserver))
       .catch(error => streamObserver.onError(error));
 
     this._state = _states.ACTIVE;
@@ -151,11 +151,16 @@ let _states = {
   //The transaction is running with no explicit success or failure marked
   ACTIVE: {
     commit: (connectionHolder, observer) => {
-      return {result: _runPullAll("COMMIT", connectionHolder, observer),
-        state: _states.SUCCEEDED}
+      return {
+        result: finishTransaction(true, connectionHolder, observer),
+        state: _states.SUCCEEDED
+      };
     },
     rollback: (connectionHolder, observer) => {
-      return {result: _runPullAll("ROLLBACK", connectionHolder, observer), state: _states.ROLLED_BACK};
+      return {
+        result: finishTransaction(false, connectionHolder, observer),
+        state: _states.ROLLED_BACK
+      };
     },
     run: (connectionHolder, observer, statement, parameters) => {
       connectionHolder.getConnection(observer)
@@ -233,14 +238,20 @@ let _states = {
   }
 };
 
-function _runPullAll(msg, connectionHolder, observer) {
+function finishTransaction(commit, connectionHolder, observer) {
   connectionHolder.getConnection(observer)
-    .then(conn => conn.protocol().run(msg, {}, observer))
+    .then(connection => {
+      if (commit) {
+        return connection.protocol().commitTransaction(observer);
+      } else {
+        return connection.protocol().rollbackTransaction(observer);
+      }
+    })
     .catch(error => observer.onError(error));
 
   // for commit & rollback we need result that uses real connection holder and notifies it when
   // connection is not needed and can be safely released to the pool
-  return new Result(observer, msg, {}, emptyMetadataSupplier, connectionHolder);
+  return new Result(observer, '', {}, emptyMetadataSupplier, connectionHolder);
 }
 
 /**

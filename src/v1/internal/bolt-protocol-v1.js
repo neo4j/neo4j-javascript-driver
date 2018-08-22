@@ -60,6 +60,35 @@ export default class BoltProtocol {
   }
 
   /**
+   * Begin an explicit transaction.
+   * @param {Bookmark} bookmark the bookmark.
+   * @param {StreamObserver} observer the response observer.
+   */
+  beginTransaction(bookmark, observer) {
+    const runMessage = RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters());
+    const pullAllMessage = RequestMessage.pullAll();
+
+    this._connection.write(runMessage, observer, false);
+    this._connection.write(pullAllMessage, observer, false);
+  }
+
+  /**
+   * Commit the explicit transaction.
+   * @param {StreamObserver} observer the response observer.
+   */
+  commitTransaction(observer) {
+    this.run('COMMIT', {}, observer);
+  }
+
+  /**
+   * Rollback the explicit transaction.
+   * @param {StreamObserver} observer the response observer.
+   */
+  rollbackTransaction(observer) {
+    this.run('ROLLBACK', {}, observer);
+  }
+
+  /**
    * Send a Cypher statement through the underlying connection.
    * @param {string} statement the cypher statement.
    * @param {object} parameters the statement parameters.

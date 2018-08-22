@@ -17,8 +17,9 @@
  * limitations under the License.
  */
 
-import BoltProtocol from '../../src/v1/internal/bolt-protocol';
+import BoltProtocol from '../../src/v1/internal/bolt-protocol-v1';
 import RequestMessage from '../../src/v1/internal/request-message';
+import Bookmark from '../../src/v1/internal/bookmark';
 
 class MessageRecorder {
 
@@ -55,8 +56,8 @@ describe('BoltProtocol', () => {
 
     recorder.verifyMessageCount(1);
     verifyMessage(RequestMessage.init(clientName, authToken), recorder.messages[0]);
-    expect(recorder.observers[0]).toBe(observer);
-    expect(recorder.flushes[0]).toBeTruthy();
+    expect(recorder.observers).toEqual([observer]);
+    expect(recorder.flushes).toEqual([true]);
   });
 
   it('should run a statement', () => {
@@ -74,11 +75,8 @@ describe('BoltProtocol', () => {
     verifyMessage(RequestMessage.run(statement, parameters), recorder.messages[0]);
     verifyMessage(RequestMessage.pullAll(), recorder.messages[1]);
 
-    expect(recorder.observers[0]).toBe(observer);
-    expect(recorder.observers[1]).toBe(observer);
-
-    expect(recorder.flushes[0]).toBeFalsy();
-    expect(recorder.flushes[1]).toBeTruthy();
+    expect(recorder.observers).toEqual([observer, observer]);
+    expect(recorder.flushes).toEqual([false, true]);
   });
 
   it('should reset the connection', () => {
@@ -91,8 +89,60 @@ describe('BoltProtocol', () => {
 
     recorder.verifyMessageCount(1);
     verifyMessage(RequestMessage.reset(), recorder.messages[0]);
-    expect(recorder.observers[0]).toBe(observer);
-    expect(recorder.flushes[0]).toBeTruthy();
+    expect(recorder.observers).toEqual([observer]);
+    expect(recorder.flushes).toEqual([true]);
+  });
+
+  it('should begin a transaction', () => {
+    const recorder = new MessageRecorder();
+    const protocol = new BoltProtocol(recorder, null, null);
+
+    const bookmark = new Bookmark('neo4j:bookmark:v1:tx42');
+    const observer = {};
+
+    protocol.beginTransaction(bookmark, observer);
+
+    recorder.verifyMessageCount(2);
+
+    verifyMessage(RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters()), recorder.messages[0]);
+    verifyMessage(RequestMessage.pullAll(), recorder.messages[1]);
+
+    expect(recorder.observers).toEqual([observer, observer]);
+    expect(recorder.flushes).toEqual([false, false]);
+  });
+
+  it('should commit a transaction', () => {
+    const recorder = new MessageRecorder();
+    const protocol = new BoltProtocol(recorder, null, null);
+
+    const observer = {};
+
+    protocol.commitTransaction(observer);
+
+    recorder.verifyMessageCount(2);
+
+    verifyMessage(RequestMessage.run('COMMIT', {}), recorder.messages[0]);
+    verifyMessage(RequestMessage.pullAll(), recorder.messages[1]);
+
+    expect(recorder.observers).toEqual([observer, observer]);
+    expect(recorder.flushes).toEqual([false, true]);
+  });
+
+  it('should rollback a transaction', () => {
+    const recorder = new MessageRecorder();
+    const protocol = new BoltProtocol(recorder, null, null);
+
+    const observer = {};
+
+    protocol.rollbackTransaction(observer);
+
+    recorder.verifyMessageCount(2);
+
+    verifyMessage(RequestMessage.run('ROLLBACK', {}), recorder.messages[0]);
+    verifyMessage(RequestMessage.pullAll(), recorder.messages[1]);
+
+    expect(recorder.observers).toEqual([observer, observer]);
+    expect(recorder.flushes).toEqual([false, true]);
   });
 
 });

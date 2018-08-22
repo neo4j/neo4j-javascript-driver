@@ -19,7 +19,7 @@
 
 import ProtocolHandshaker from '../../src/v1/internal/protocol-handshaker';
 import Logger from '../../src/v1/internal/logger';
-import BoltProtocol from '../../src/v1/internal/bolt-protocol';
+import BoltProtocol from '../../src/v1/internal/bolt-protocol-v1';
 import {alloc} from '../../src/v1/internal/buf';
 
 describe('ProtocolHandshaker', () => {

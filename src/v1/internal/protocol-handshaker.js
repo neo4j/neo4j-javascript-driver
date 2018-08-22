@@ -21,7 +21,7 @@ import {alloc} from './buf';
 import {newError} from '../error';
 import * as v1 from './packstream-v1';
 import * as v2 from './packstream-v2';
-import BoltProtocol from './bolt-protocol';
+import BoltProtocol from './bolt-protocol-v1';
 
 const HTTP_MAGIC_PREAMBLE = 1213486160; // == 0x48545450 == "HTTP"
 const BOLT_MAGIC_PREAMBLE = 0x6060B017;
