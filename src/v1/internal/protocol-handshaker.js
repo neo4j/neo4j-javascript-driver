@@ -69,7 +69,7 @@ export default class ProtocolHandshaker {
   readHandshakeResponse(buffer) {
     const proposedVersion = buffer.readInt32();
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} negotiated protocol version ${proposedVersion}`);
+      this._log.debug(`${this._connection} negotiated protocol version ${proposedVersion}`);
     }
     return this._createProtocolWithVersion(proposedVersion);
   }
