@@ -31,7 +31,6 @@ export default class FakeConnection {
     this.creationTimestamp = Date.now();
 
     this.resetInvoked = 0;
-    this.flushInvoked = 0;
     this.releaseInvoked = 0;
     this.initializationInvoked = 0;
     this.seenStatements = [];
@@ -41,25 +40,19 @@ export default class FakeConnection {
     this._initializationPromise = Promise.resolve(this);
   }
 
-  run(statement, parameters) {
-    this.seenStatements.push(statement);
-    this.seenParameters.push(parameters);
-  }
-
-  discardAll() {
-  }
-
-  reset() {
-    this.resetInvoked++;
+  protocol() {
+    // return fake protocol object that simply records seen statements and parameters
+    return {
+      run: (statement, parameters) => {
+        this.seenStatements.push(statement);
+        this.seenParameters.push(parameters);
+      }
+    };
   }
 
   resetAndFlush() {
     this.resetInvoked++;
     return Promise.resolve();
-  }
-
-  flush() {
-    this.flushInvoked++;
   }
 
   _release() {

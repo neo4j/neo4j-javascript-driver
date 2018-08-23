@@ -105,7 +105,10 @@ const additionalConfig = {
   'dbms.connectors.default_listen_address': '::',
 
   // HTTP server should keep listening on default address and create a self-signed certificate with host 'localhost'
-  'dbms.connector.http.listen_address': 'localhost:7474'
+  'dbms.connector.http.listen_address': 'localhost:7474',
+
+  // shorten the default time to wait for the bookmark from 30 to 5 seconds
+  'dbms.transaction.bookmark_ready_timeout': '5s'
 };
 
 const neoCtrlVersionParam = '-e';

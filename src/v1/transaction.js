@@ -40,10 +40,9 @@ class Transaction {
     this._connectionHolder = connectionHolder;
     const streamObserver = new _TransactionStreamObserver(this);
 
-    this._connectionHolder.getConnection(streamObserver).then(conn => {
-      conn.run('BEGIN', bookmark.asBeginTransactionParameters(), streamObserver);
-      conn.pullAll(streamObserver);
-    }).catch(error => streamObserver.onError(error));
+    this._connectionHolder.getConnection(streamObserver)
+      .then(conn => conn.protocol().beginTransaction(bookmark, streamObserver))
+      .catch(error => streamObserver.onError(error));
 
     this._state = _states.ACTIVE;
     this._onClose = onClose;
@@ -104,21 +103,14 @@ class Transaction {
   }
 
   _onError() {
-    if (this.isOpen()) {
-      // attempt to rollback, useful when Transaction#run() failed
-      return this.rollback().catch(ignoredError => {
-        // ignore all errors because it is best effort and transaction might already be rolled back
-      }).then(() => {
-        // after rollback attempt change this transaction's state to FAILED
-        this._state = _states.FAILED;
-      });
-    } else {
-      // error happened in in-active transaction, just to the cleanup and change state to FAILED
-      this._state = _states.FAILED;
-      this._onClose();
-      // no async actions needed - return resolved promise
-      return Promise.resolve();
-    }
+    // error will be "acknowledged" by sending a RESET message
+    // database will then forget about this transaction and cleanup all corresponding resources
+    // it is thus safe to move this transaction to a FAILED state and disallow any further interactions with it
+    this._state = _states.FAILED;
+    this._onClose();
+
+    // release connection back to the pool
+    return this._connectionHolder.releaseConnection();
   }
 }
 
@@ -127,15 +119,12 @@ class _TransactionStreamObserver extends StreamObserver {
   constructor(tx) {
     super(tx._errorTransformer || ((err) => {return err}));
     this._tx = tx;
-    //this is to to avoid multiple calls to onError caused by IGNORED
-    this._hasFailed = false;
   }
 
   onError(error) {
     if (!this._hasFailed) {
       this._tx._onError().then(() => {
         super.onError(error);
-        this._hasFailed = true;
       });
     }
   }
@@ -152,18 +141,21 @@ let _states = {
   //The transaction is running with no explicit success or failure marked
   ACTIVE: {
     commit: (connectionHolder, observer) => {
-      return {result: _runPullAll("COMMIT", connectionHolder, observer),
-        state: _states.SUCCEEDED}
+      return {
+        result: finishTransaction(true, connectionHolder, observer),
+        state: _states.SUCCEEDED
+      };
     },
     rollback: (connectionHolder, observer) => {
-      return {result: _runPullAll("ROLLBACK", connectionHolder, observer), state: _states.ROLLED_BACK};
+      return {
+        result: finishTransaction(false, connectionHolder, observer),
+        state: _states.ROLLED_BACK
+      };
     },
     run: (connectionHolder, observer, statement, parameters) => {
-      connectionHolder.getConnection(observer).then(conn => {
-        conn.run(statement, parameters || {}, observer);
-        conn.pullAll(observer);
-        conn.flush();
-      }).catch(error => observer.onError(error));
+      connectionHolder.getConnection(observer)
+        .then(conn => conn.protocol().run(statement, parameters || {}, observer))
+        .catch(error => observer.onError(error));
 
       return _newRunResult(observer, statement, parameters, () => observer.serverMetadata());
     }
@@ -236,16 +228,20 @@ let _states = {
   }
 };
 
-function _runPullAll(msg, connectionHolder, observer) {
-  connectionHolder.getConnection(observer).then(conn => {
-    conn.run(msg, {}, observer);
-    conn.pullAll(observer);
-    conn.flush();
-  }).catch(error => observer.onError(error));
+function finishTransaction(commit, connectionHolder, observer) {
+  connectionHolder.getConnection(observer)
+    .then(connection => {
+      if (commit) {
+        return connection.protocol().commitTransaction(observer);
+      } else {
+        return connection.protocol().rollbackTransaction(observer);
+      }
+    })
+    .catch(error => observer.onError(error));
 
   // for commit & rollback we need result that uses real connection holder and notifies it when
   // connection is not needed and can be safely released to the pool
-  return new Result(observer, msg, {}, emptyMetadataSupplier, connectionHolder);
+  return new Result(observer, commit ? 'COMMIT' : 'ROLLBACK', {}, emptyMetadataSupplier, connectionHolder);
 }
 
 /**

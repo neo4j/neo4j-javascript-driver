@@ -142,6 +142,19 @@ describe('StreamObserver', () => {
     expect(receivedMetaData).toEqual({metaDataField1: 'value1', metaDataField2: 'value2'});
   });
 
+  it('invokes error transformer only once on error', () => {
+    const errors = [];
+    const streamObserver = new StreamObserver(error => errors.push(error));
+
+    const error1 = new Error('Hello');
+    const error2 = new Error('World');
+
+    streamObserver.onError(error1);
+    streamObserver.onError(error2);
+
+    expect(errors).toEqual([error1]);
+  });
+
 });
 
 function newStreamObserver() {
