@@ -54,35 +54,35 @@ describe('ProtocolHandshaker', () => {
     expect(writtenBuffers[0].toHex()).toEqual(`${boltMagicPreamble} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion} ${noProtocolVersion} `);
   });
 
-  it('should read handshake response containing valid protocol version', () => {
+  it('should create protocol with valid version', () => {
     const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
 
     // buffer with Bolt V1
     const buffer = handshakeResponse(1);
 
-    const protocol = handshaker.readHandshakeResponse(buffer);
+    const protocol = handshaker.createNegotiatedProtocol(buffer);
 
     expect(protocol).toBeDefined();
     expect(protocol).not.toBeNull();
     expect(protocol instanceof BoltProtocol).toBeTruthy();
   });
 
-  it('should read handshake response containing invalid protocol version', () => {
+  it('should fail to create protocol from invalid version', () => {
     const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
 
     // buffer with Bolt V42 which is invalid
     const buffer = handshakeResponse(42);
 
-    expect(() => handshaker.readHandshakeResponse(buffer)).toThrow();
+    expect(() => handshaker.createNegotiatedProtocol(buffer)).toThrow();
   });
 
-  it('should read handshake response containing HTTP as the protocol version', () => {
+  it('should fail to create protocol from HTTP as invalid version', () => {
     const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
 
     // buffer with HTTP magic int
     const buffer = handshakeResponse(1213486160);
 
-    expect(() => handshaker.readHandshakeResponse(buffer)).toThrow();
+    expect(() => handshaker.createNegotiatedProtocol(buffer)).toThrow();
   });
 
 });

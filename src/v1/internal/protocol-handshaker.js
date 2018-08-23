@@ -61,17 +61,17 @@ export default class ProtocolHandshaker {
   }
 
   /**
-   * Read and interpret the Bolt handshake response from the given buffer.
+   * Read the given handshake response and create the negotiated bolt protocol.
    * @param {BaseBuffer} buffer byte buffer containing the handshake response.
    * @return {BoltProtocol} bolt protocol corresponding to the version suggested by the database.
    * @throws {Neo4jError} when bolt protocol can't be instantiated.
    */
-  readHandshakeResponse(buffer) {
-    const proposedVersion = buffer.readInt32();
+  createNegotiatedProtocol(buffer) {
+    const negotiatedVersion = buffer.readInt32();
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this._connection} negotiated protocol version ${proposedVersion}`);
+      this._log.debug(`${this._connection} negotiated protocol version ${negotiatedVersion}`);
     }
-    return this._createProtocolWithVersion(proposedVersion);
+    return this._createProtocolWithVersion(negotiatedVersion);
   }
 
   /**

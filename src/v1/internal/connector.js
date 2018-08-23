@@ -179,7 +179,7 @@ class Connection {
   _initializeProtocol(buffer, protocolHandshaker) {
     try {
       // re-assign the protocol because version might be lower than we initially assumed
-      this._protocol = protocolHandshaker.readHandshakeResponse(buffer);
+      this._protocol = protocolHandshaker.createNegotiatedProtocol(buffer);
 
       // Ok, protocol running. Simply forward all messages to the dechunker
       this._ch.onmessage = buf => this._dechunker.write(buf);

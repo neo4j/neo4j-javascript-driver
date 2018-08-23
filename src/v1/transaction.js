@@ -241,7 +241,7 @@ function finishTransaction(commit, connectionHolder, observer) {
 
   // for commit & rollback we need result that uses real connection holder and notifies it when
   // connection is not needed and can be safely released to the pool
-  return new Result(observer, '', {}, emptyMetadataSupplier, connectionHolder);
+  return new Result(observer, commit ? 'COMMIT' : 'ROLLBACK', {}, emptyMetadataSupplier, connectionHolder);
 }
 
 /**
