@@ -110,11 +110,13 @@ class StreamObserver {
    * @param {Object} error - An error object
    */
   onError(error) {
-    const transformedError = this._errorTransformer(error, this._conn);
     if(this._hasFailed) {
       return;
     }
     this._hasFailed = true;
+
+    const transformedError = this._errorTransformer(error, this._conn);
+
     if( this._observer ) {
       if( this._observer.onError ) {
         this._observer.onError( transformedError );

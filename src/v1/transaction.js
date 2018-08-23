@@ -103,21 +103,14 @@ class Transaction {
   }
 
   _onError() {
-    if (this.isOpen()) {
-      // attempt to rollback, useful when Transaction#run() failed
-      return this.rollback().catch(ignoredError => {
-        // ignore all errors because it is best effort and transaction might already be rolled back
-      }).then(() => {
-        // after rollback attempt change this transaction's state to FAILED
-        this._state = _states.FAILED;
-      });
-    } else {
-      // error happened in in-active transaction, just to the cleanup and change state to FAILED
-      this._state = _states.FAILED;
-      this._onClose();
-      // no async actions needed - return resolved promise
-      return Promise.resolve();
-    }
+    // error will be "acknowledged" by sending a RESET message
+    // database will then forget about this transaction and cleanup all corresponding resources
+    // it is thus safe to move this transaction to a FAILED state and disallow any further interactions with it
+    this._state = _states.FAILED;
+    this._onClose();
+
+    // release connection back to the pool
+    return this._connectionHolder.releaseConnection();
   }
 }
 
@@ -126,15 +119,12 @@ class _TransactionStreamObserver extends StreamObserver {
   constructor(tx) {
     super(tx._errorTransformer || ((err) => {return err}));
     this._tx = tx;
-    //this is to to avoid multiple calls to onError caused by IGNORED
-    this._hasFailed = false;
   }
 
   onError(error) {
     if (!this._hasFailed) {
       this._tx._onError().then(() => {
         super.onError(error);
-        this._hasFailed = true;
       });
     }
   }
