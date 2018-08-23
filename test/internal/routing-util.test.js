@@ -100,7 +100,7 @@ describe('RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection);
 
     callRoutingProcedure(session, {}).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable({context})']);
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable($context)']);
       expect(connection.seenParameters).toEqual([{context: {}}]);
       done();
     });
@@ -111,7 +111,7 @@ describe('RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection);
 
     callRoutingProcedure(session, {key1: 'value1', key2: 'value2'}).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable({context})']);
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable($context)']);
       expect(connection.seenParameters).toEqual([{context: {key1: 'value1', key2: 'value2'}}]);
       done();
     });
@@ -122,7 +122,7 @@ describe('RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection);
 
     callRoutingProcedure(session, {}).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable({context})']);
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable($context)']);
       expect(connection.seenParameters).toEqual([{context: {}}]);
       done();
     });
@@ -133,7 +133,7 @@ describe('RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection);
 
     callRoutingProcedure(session, {key1: 'foo', key2: 'bar'}).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable({context})']);
+      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable($context)']);
       expect(connection.seenParameters).toEqual([{context: {key1: 'foo', key2: 'bar'}}]);
       done();
     });

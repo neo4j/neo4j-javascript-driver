@@ -22,8 +22,7 @@ import Integer, {int} from '../integer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
 
 const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers';
-const GET_ROUTING_TABLE_PARAM = 'context';
-const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable({' + GET_ROUTING_TABLE_PARAM + '})';
+const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable($context)';
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound';
 const UNAUTHORIZED_CODE = 'Neo.ClientError.Security.Unauthorized';
 
@@ -122,7 +121,7 @@ export default class RoutingUtil {
 
       if (serverVersion.compareTo(VERSION_3_2_0) >= 0) {
         query = CALL_GET_ROUTING_TABLE;
-        params = {[GET_ROUTING_TABLE_PARAM]: this._routingContext};
+        params = {context: this._routingContext};
       } else {
         query = CALL_GET_SERVERS;
         params = {};
