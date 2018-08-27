@@ -68,7 +68,7 @@ class Session {
   }
 
   _run(statement, parameters, statementRunner) {
-    const streamObserver = new StreamObserver(this._onRunFailure());
+    const streamObserver = new StreamObserver();
     const connectionHolder = this._connectionHolderWithMode(this._mode);
     if (!this._hasTx) {
       connectionHolder.initializeConnection();
@@ -110,10 +110,8 @@ class Session {
     connectionHolder.initializeConnection();
     this._hasTx = true;
 
-    return new Transaction(connectionHolder, () => {
-        this._hasTx = false;
-      },
-      this._onRunFailure(), this._lastBookmark, this._updateBookmark.bind(this));
+    const onTxClose = () => this._hasTx = false;
+    return new Transaction(connectionHolder, onTxClose.bind(this), this._lastBookmark, this._updateBookmark.bind(this));
   }
 
   /**
@@ -194,11 +192,6 @@ class Session {
     } else {
       callback();
     }
-  }
-
-  //Can be overridden to add error callback on RUN
-  _onRunFailure() {
-    return (err) => {return err};
   }
 
   _connectionHolderWithMode(mode) {

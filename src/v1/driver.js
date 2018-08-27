@@ -19,7 +19,7 @@
 
 import Session from './session';
 import Pool from './internal/pool';
-import {connect} from './internal/connector';
+import Connection from './internal/connection';
 import StreamObserver from './internal/stream-observer';
 import {newError, SERVICE_UNAVAILABLE} from './error';
 import {DirectConnectionProvider} from './internal/connection-providers';
@@ -27,6 +27,7 @@ import Bookmark from './internal/bookmark';
 import ConnectivityVerifier from './internal/connectivity-verifier';
 import PoolConfig, {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from './internal/pool-config';
 import Logger from './internal/logger';
+import ConnectionErrorHandler from './internal/connection-error-handler';
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
 
@@ -62,18 +63,18 @@ class Driver {
    * @constructor
    * @param {string} hostPort
    * @param {string} userAgent
-   * @param {object} token
+   * @param {object} authToken
    * @param {object} config
    * @protected
    */
-  constructor(hostPort, userAgent, token = {}, config = {}) {
+  constructor(hostPort, userAgent, authToken = {}, config = {}) {
     sanitizeConfig(config);
 
     this._id = idGenerator++;
     this._hostPort = hostPort;
     this._userAgent = userAgent;
     this._openConnections = {};
-    this._token = token;
+    this._authToken = authToken;
     this._config = config;
     this._log = Logger.create(config);
     this._pool = new Pool(
@@ -127,18 +128,24 @@ class Driver {
   }
 
   /**
-   * Create a new connection instance.
-   * @return {Connection} new connector-api session instance, a low level session API.
+   * Create a new connection and initialize it.
+   * @return {Promise<Connection>} promise resolved with a new connection or rejected when failed to connect.
    * @access private
    */
   _createConnection(hostPort, release) {
-    const conn = connect(hostPort, this._config, this._connectionErrorCode(), this._log);
-    const streamObserver = new _ConnectionStreamObserver(this, conn);
-    conn.protocol().initialize(this._userAgent, this._token, streamObserver);
-    conn._release = () => release(hostPort, conn);
+    const connection = Connection.create(hostPort, this._config, this._createConnectionErrorHandler(), this._log);
+    connection._release = () => release(hostPort, connection);
+    this._openConnections[connection.id] = connection;
 
-    this._openConnections[conn.id] = conn;
-    return conn;
+    return connection.connect(this._userAgent, this._authToken)
+      .catch(error => {
+        if (this.onError) {
+          // notify Driver.onError callback about connection initialization errors
+          this.onError(error);
+        }
+        // propagate the error because connection failed to connect / initialize
+        throw error;
+      });
   }
 
   /**
@@ -186,7 +193,7 @@ class Driver {
     const sessionMode = Driver._validateSessionMode(mode);
     const connectionProvider = this._getOrCreateConnectionProvider();
     const bookmark = new Bookmark(bookmarkOrBookmarks);
-    return this._createSession(sessionMode, connectionProvider, bookmark, this._config);
+    return new Session(sessionMode, connectionProvider, bookmark, this._config);
   }
 
   static _validateSessionMode(rawMode) {
@@ -203,14 +210,8 @@ class Driver {
   }
 
   // Extension point
-  _createSession(mode, connectionProvider, bookmark, config) {
-    return new Session(mode, connectionProvider, bookmark, config);
-  }
-
-  // Extension point
-  _connectionErrorCode() {
-    // connection errors might result in different error codes depending on the driver
-    return SERVICE_UNAVAILABLE;
+  _createConnectionErrorHandler() {
+    return new ConnectionErrorHandler(SERVICE_UNAVAILABLE);
   }
 
   _getOrCreateConnectionProvider() {

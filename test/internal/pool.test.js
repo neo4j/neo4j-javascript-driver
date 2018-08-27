@@ -26,7 +26,7 @@ describe('Pool', () => {
     // Given
     let counter = 0;
     const key = 'bolt://localhost:7687';
-    const pool = new Pool((url, release) => new Resource(url, counter++, release));
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)));
 
     // When
     const p0 = pool.acquire(key);
@@ -49,7 +49,7 @@ describe('Pool', () => {
     // Given a pool that allocates
     let counter = 0;
     const key = 'bolt://localhost:7687';
-    const pool = new Pool((url, release) => new Resource(url, counter++, release));
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)));
 
     // When
     const p0 = pool.acquire(key).then(r0 => {
@@ -76,7 +76,7 @@ describe('Pool', () => {
     let counter = 0;
     const key1 = 'bolt://localhost:7687';
     const key2 = 'bolt://localhost:7688';
-    const pool = new Pool((url, release) => new Resource(url, counter++, release));
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)));
 
     // When
     const p0 = pool.acquire(key1);
@@ -110,7 +110,7 @@ describe('Pool', () => {
     let destroyed = [];
     const key = 'bolt://localhost:7687';
     const pool = new Pool(
-      (url, release) => new Resource(url, counter++, release),
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
       resource => {
         destroyed.push(resource);
       },
@@ -144,7 +144,7 @@ describe('Pool', () => {
     let counter = 0;
     const key1 = 'bolt://localhost:7687';
     const key2 = 'bolt://localhost:7688';
-    const pool = new Pool((url, release) => new Resource(url, counter++, release),
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)),
       res => {
         res.destroyed = true;
         return true;
@@ -189,7 +189,7 @@ describe('Pool', () => {
   it('destroys resource when key was purged', (done) => {
     let counter = 0;
     const key = 'bolt://localhost:7687';
-    const pool = new Pool((url, release) => new Resource(url, counter++, release),
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)),
       res => {
         res.destroyed = true;
         return true;
@@ -220,7 +220,7 @@ describe('Pool', () => {
     const key2 = 'bolt://localhost:7688';
     const key3 = 'bolt://localhost:7689';
 
-    const pool = new Pool((url, release) => new Resource(url, counter++, release),
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)),
       res => {
         res.destroyed = true;
         return true;
@@ -251,7 +251,7 @@ describe('Pool', () => {
     let validated = false;
     let counter = 0;
     const key = 'bolt://localhost:7687';
-    const pool = new Pool((url, release) => new Resource(url, counter++, release),
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)),
       res => {
         res.destroyed = true;
         return true;
@@ -286,7 +286,7 @@ describe('Pool', () => {
     const existingKey = 'bolt://localhost:7687';
     const absentKey = 'bolt://localhost:7688';
 
-    const pool = new Pool((url, release) => new Resource(url, 42, release));
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)));
 
     const p0 = pool.acquire(existingKey);
     const p1 = pool.acquire(existingKey);
@@ -300,7 +300,7 @@ describe('Pool', () => {
   });
 
   it('reports zero active resources when empty', () => {
-    const pool = new Pool((url, release) => new Resource(url, 42, release));
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)));
 
     expect(pool.activeResourceCount('bolt://localhost:1')).toEqual(0);
     expect(pool.activeResourceCount('bolt://localhost:2')).toEqual(0);
@@ -309,7 +309,7 @@ describe('Pool', () => {
 
   it('reports active resources', (done) => {
     const key = 'bolt://localhost:7687';
-    const pool = new Pool((url, release) => new Resource(url, 42, release));
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)));
 
     const p0 = pool.acquire(key);
     const p1 = pool.acquire(key);
@@ -326,7 +326,7 @@ describe('Pool', () => {
 
   it('reports active resources when they are acquired', (done) => {
     const key = 'bolt://localhost:7687';
-    const pool = new Pool((url, release) => new Resource(url, 42, release));
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)));
 
     // three new resources are created and returned to the pool
     const p0 = pool.acquire(key);
@@ -359,7 +359,7 @@ describe('Pool', () => {
 
   it('does not report resources that are returned to the pool', (done) => {
     const key = 'bolt://localhost:7687';
-    const pool = new Pool((url, release) => new Resource(url, 42, release));
+    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)));
 
     const p0 = pool.acquire(key);
     const p1 = pool.acquire(key);
@@ -398,7 +398,7 @@ describe('Pool', () => {
 
     const key = 'bolt://localhost:7687';
     const pool = new Pool(
-        (url, release) => new Resource(url, counter++, release),
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
         resource => {},
         resource => true,
       new PoolConfig(2, 5000)
@@ -431,7 +431,7 @@ describe('Pool', () => {
 
     const key = 'bolt://localhost:7687';
     const pool = new Pool(
-        (url, release) => new Resource(url, counter++, release),
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
         resource => {},
         resource => true,
       new PoolConfig(2, 1000)
@@ -459,7 +459,7 @@ describe('Pool', () => {
 
     const key = 'bolt://localhost:7687';
     const pool = new Pool(
-        (url, release) => new Resource(url, counter++, release),
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
         resource => {},
         resource => true
     );
@@ -487,7 +487,7 @@ describe('Pool', () => {
 
     const key = 'bolt://localhost:7687';
     const pool = new Pool(
-      (url, release) => new Resource(url, counter++, release),
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
       resource => {
       },
       () => true,
@@ -529,7 +529,7 @@ describe('Pool', () => {
     let counter = 0;
 
     const pool = new Pool(
-      (url, release) => new Resource(url, counter++, release),
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
       resource => {
       },
       resourceValidOnlyOnceValidationFunction,
@@ -563,7 +563,7 @@ describe('Pool', () => {
     let counter = 0;
 
     const pool = new Pool(
-      (url, release) => new Resource(url, counter++, release),
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
       resource => {
       },
       resourceValidOnlyOnceValidationFunction,

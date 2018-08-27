@@ -971,23 +971,24 @@ describe('session', () => {
   });
 
   it('should acquire connection for transaction', done => {
-    expect(session.beginTransaction()).toBeDefined();
+    expect(numberOfAcquiredConnectionsFromPool()).toEqual(0);
 
-    const otherSession1 = driver.session();
-    expect(otherSession1.beginTransaction()).toBeDefined();
+    session.beginTransaction().run('RETURN 1.0').then(result => {
+      expect(result.records[0].get(0)).toEqual(1);
+      expect(numberOfAcquiredConnectionsFromPool()).toEqual(1);
 
-    const otherSession2 = driver.session();
-    expect(otherSession2.beginTransaction()).toBeDefined();
+      driver.session().beginTransaction().run('RETURN 2.0').then(result => {
+        expect(result.records[0].get(0)).toEqual(2);
+        expect(numberOfAcquiredConnectionsFromPool()).toEqual(2);
 
-    const otherSession3 = driver.session();
-    expect(otherSession3.beginTransaction()).toBeDefined();
+        driver.session().beginTransaction().run('RETURN 3.0').then(result => {
+          expect(result.records[0].get(0)).toEqual(3);
+          expect(numberOfAcquiredConnectionsFromPool()).toEqual(3);
 
-    expect(numberOfAcquiredConnectionsFromPool()).toEqual(4);
+          driver.session().beginTransaction().run('RETURN 4.0').then(result => {
+            expect(result.records[0].get(0)).toEqual(4);
+            expect(numberOfAcquiredConnectionsFromPool()).toEqual(4);
 
-    session.close(() => {
-      otherSession1.close(() => {
-        otherSession2.close(() => {
-          otherSession3.close(() => {
             done();
           });
         });

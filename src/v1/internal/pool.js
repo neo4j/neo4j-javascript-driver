@@ -22,8 +22,9 @@ import {newError} from '../error';
 import Logger from './logger';
 
 class Pool {
+
   /**
-   * @param {function} create  an allocation function that creates a new resource. It's given
+   * @param {function(function): Promise<object>} create  an allocation function that creates a promise with a new resource. It's given
    *                a single argument, a function that will return the resource to
    *                the pool if invoked, which is meant to be called on .dispose
    *                or .close or whatever mechanism the resource uses to finalize.
@@ -54,33 +55,46 @@ class Pool {
    * @return {object} resource that is ready to use.
    */
   acquire(key) {
-    const resource = this._acquire(key);
-
-    if (resource) {
-      resourceAcquired(key, this._activeResourceCounts);
-      if (this._log.isDebugEnabled()) {
-        this._log.debug(`${resource} acquired from the pool`);
+    return this._acquire(key).then(resource => {
+      if (resource) {
+        resourceAcquired(key, this._activeResourceCounts);
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${resource} acquired from the pool`);
+        }
+        return resource;
       }
-      return Promise.resolve(resource);
-    }
 
-    // We're out of resources and will try to acquire later on when an existing resource is released.
-    const allRequests = this._acquireRequests;
-    const requests = allRequests[key];
-    if (!requests) {
-      allRequests[key] = [];
-    }
+      // We're out of resources and will try to acquire later on when an existing resource is released.
+      const allRequests = this._acquireRequests;
+      const requests = allRequests[key];
+      if (!requests) {
+        allRequests[key] = [];
+      }
 
-    return new Promise((resolve, reject) => {
-      let request;
+      return new Promise((resolve, reject) => {
+        let request;
 
-      const timeoutId = setTimeout(() => {
-        allRequests[key] = allRequests[key].filter(item => item !== request);
-        reject(newError(`Connection acquisition timed out in ${this._acquisitionTimeout} ms.`));
-      }, this._acquisitionTimeout);
+        const timeoutId = setTimeout(() => {
+          // acquisition timeout fired
 
-      request = new PendingRequest(resolve, timeoutId, this._log);
-      allRequests[key].push(request);
+          // remove request from the queue of pending requests, if it's still there
+          // request might've been taken out by the release operation
+          const pendingRequests = allRequests[key];
+          if (pendingRequests) {
+            allRequests[key] = pendingRequests.filter(item => item !== request);
+          }
+
+          if (request.isCompleted()) {
+            // request already resolved/rejected by the release operation; nothing to do
+          } else {
+            // request is still pending and needs to be failed
+            request.reject(newError(`Connection acquisition timed out in ${this._acquisitionTimeout} ms.`));
+          }
+        }, this._acquisitionTimeout);
+
+        request = new PendingRequest(resolve, reject, timeoutId, this._log);
+        allRequests[key].push(request);
+      });
     });
   }
 
@@ -133,14 +147,14 @@ class Pool {
 
       if (this._validate(resource)) {
         // idle resource is valid and can be acquired
-        return resource;
+        return Promise.resolve(resource);
       } else {
         this._destroy(resource);
       }
     }
 
     if (this._maxSize && this.activeResourceCount(key) >= this._maxSize) {
-      return null;
+      return Promise.resolve(null);
     }
 
     // there exist no idle valid resources, create a new one for acquisition
@@ -172,19 +186,37 @@ class Pool {
     }
     resourceReleased(key, this._activeResourceCounts);
 
-    // check if there are any pending requests
+    this._processPendingAcquireRequests(key);
+  }
+
+  _processPendingAcquireRequests(key) {
     const requests = this._acquireRequests[key];
     if (requests) {
-      const pending = requests[0];
+      const pendingRequest = requests.shift(); // pop a pending acquire request
 
-      if (pending) {
-        const resource = this._acquire(key);
-        if (resource) {
-          // managed to acquire a valid resource from the pool to satisfy the pending acquire request
-          resourceAcquired(key, this._activeResourceCounts); // increment the active counter
-          requests.shift(); // forget the pending request
-          pending.resolve(resource); // resolve the pending request with the acquired resource
-        }
+      if (pendingRequest) {
+        this._acquire(key)
+          .catch(error => {
+            // failed to acquire/create a new connection to resolve the pending acquire request
+            // propagate the error by failing the pending request
+            pendingRequest.reject(error);
+            return null;
+          })
+          .then(resource => {
+            if (resource) {
+              // managed to acquire a valid resource from the pool
+
+              if (pendingRequest.isCompleted()) {
+                // request has been completed, most likely failed by a timeout
+                // return the acquired resource back to the pool
+                this._release(key, resource);
+              } else {
+                // request is still pending and can be resolved with the newly acquired resource
+                resourceAcquired(key, this._activeResourceCounts); // increment the active counter
+                pendingRequest.resolve(resource); // resolve the pending request with the acquired resource
+              }
+            }
+          });
       } else {
         delete this._acquireRequests[key];
       }
@@ -220,13 +252,24 @@ function resourceReleased(key, activeResourceCounts) {
 
 class PendingRequest {
 
-  constructor(resolve, timeoutId, log) {
+  constructor(resolve, reject, timeoutId, log) {
     this._resolve = resolve;
+    this._reject = reject;
     this._timeoutId = timeoutId;
     this._log = log;
+    this._completed = false;
+  }
+
+  isCompleted() {
+    return this._completed;
   }
 
   resolve(resource) {
+    if (this._completed) {
+      return;
+    }
+    this._completed = true;
+
     clearTimeout(this._timeoutId);
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${resource} acquired from the pool`);
@@ -234,6 +277,15 @@ class PendingRequest {
     this._resolve(resource);
   }
 
+  reject(error) {
+    if (this._completed) {
+      return;
+    }
+    this._completed = true;
+
+    clearTimeout(this._timeoutId);
+    this._reject(error);
+  }
 }
 
 export default Pool

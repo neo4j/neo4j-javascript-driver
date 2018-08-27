@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 
-import Session from './session';
 import {Driver} from './driver';
 import {newError, SESSION_EXPIRED} from './error';
 import {LoadBalancer} from './internal/connection-providers';
 import LeastConnectedLoadBalancingStrategy, {LEAST_CONNECTED_STRATEGY_NAME} from './internal/least-connected-load-balancing-strategy';
 import RoundRobinLoadBalancingStrategy, {ROUND_ROBIN_STRATEGY_NAME} from './internal/round-robin-load-balancing-strategy';
+import ConnectionErrorHandler from './internal/connection-error-handler';
 
 /**
  * A driver that supports routing in a causal cluster.
@@ -44,33 +44,24 @@ class RoutingDriver extends Driver {
     return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback, this._log);
   }
 
-  _createSession(mode, connectionProvider, bookmark, config) {
-    return new RoutingSession(mode, connectionProvider, bookmark, config, (error, conn) => {
-      if (!conn) {
-        // connection can be undefined if error happened before connection was acquired
-        return error;
-      }
-
-      const hostPort = conn.hostPort;
-
-      if (error.code === SESSION_EXPIRED || isDatabaseUnavailable(error)) {
-        this._log.warn(`Routing driver ${this._id} will forget ${hostPort} because of an error ${error.code} '${error.message}'`);
-        this._connectionProvider.forget(hostPort);
-        return error;
-      } else if (isFailureToWrite(error)) {
-        this._log.warn(`Routing driver ${this._id} will forget writer ${hostPort} because of an error ${error.code} '${error.message}'`);
-        this._connectionProvider.forgetWriter(hostPort);
-        return newError('No longer possible to write to server at ' + hostPort, SESSION_EXPIRED);
-      } else {
-        return error;
-      }
-    });
-  }
-
-  _connectionErrorCode() {
+  _createConnectionErrorHandler() {
     // connection errors mean SERVICE_UNAVAILABLE for direct driver but for routing driver they should only
     // result in SESSION_EXPIRED because there might still exist other servers capable of serving the request
-    return SESSION_EXPIRED;
+    return new ConnectionErrorHandler(SESSION_EXPIRED,
+      (error, hostPort) => this._handleUnavailability(error, hostPort),
+      (error, hostPort) => this._handleWriteFailure(error, hostPort));
+  }
+
+  _handleUnavailability(error, hostPort) {
+    this._log.warn(`Routing driver ${this._id} will forget ${hostPort} because of an error ${error.code} '${error.message}'`);
+    this._connectionProvider.forget(hostPort);
+    return error;
+  }
+
+  _handleWriteFailure(error, hostPort) {
+    this._log.warn(`Routing driver ${this._id} will forget writer ${hostPort} because of an error ${error.code} '${error.message}'`);
+    this._connectionProvider.forgetWriter(hostPort);
+    return newError('No longer possible to write to server at ' + hostPort, SESSION_EXPIRED);
   }
 
   /**
@@ -100,35 +91,6 @@ function validateConfig(config) {
     throw newError('The chosen trust mode is not compatible with a routing driver');
   }
   return config;
-}
-
-/**
- * @private
- */
-function isFailureToWrite(error) {
-  return error.code === 'Neo.ClientError.Cluster.NotALeader' ||
-    error.code === 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase';
-}
-
-/**
- * @private
- */
-function isDatabaseUnavailable(error) {
-  return error.code === 'Neo.TransientError.General.DatabaseUnavailable';
-}
-
-/**
- * @private
- */
-class RoutingSession extends Session {
-  constructor(mode, connectionProvider, bookmark, config, onFailedConnection) {
-    super(mode, connectionProvider, bookmark, config);
-    this._onFailedConnection = onFailedConnection;
-  }
-
-  _onRunFailure() {
-    return this._onFailedConnection;
-  }
 }
 
 export default RoutingDriver

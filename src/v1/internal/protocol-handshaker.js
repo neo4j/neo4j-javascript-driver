@@ -25,8 +25,6 @@ import BoltProtocolV2 from './bolt-protocol-v2';
 const HTTP_MAGIC_PREAMBLE = 1213486160; // == 0x48545450 == "HTTP"
 const BOLT_MAGIC_PREAMBLE = 0x6060B017;
 
-const LATEST_PROTOCOL_VERSION = 2;
-
 export default class ProtocolHandshaker {
 
   /**
@@ -43,14 +41,6 @@ export default class ProtocolHandshaker {
     this._chunker = chunker;
     this._disableLosslessIntegers = disableLosslessIntegers;
     this._log = log;
-  }
-
-  /**
-   * Create the newest bolt protocol.
-   * @return {BoltProtocol} the protocol.
-   */
-  createLatestProtocol() {
-    return this._createProtocolWithVersion(LATEST_PROTOCOL_VERSION);
   }
 
   /**

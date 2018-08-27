@@ -1095,7 +1095,7 @@ function setupLoadBalancerToRememberRouters(loadBalancer, routersArray) {
 }
 
 function newPool() {
-  return new Pool(FakeConnection.create);
+  return new Pool((address, release) => Promise.resolve(new FakeConnection(address, release)));
 }
 
 function expectRoutingTable(loadBalancer, routers, readers, writers) {
@@ -1121,14 +1121,6 @@ class FakeConnection {
   constructor(address, release) {
     this.address = address;
     this.release = release;
-  }
-
-  static create(address, release) {
-    return new FakeConnection(address, release);
-  }
-
-  initializationCompleted() {
-    return Promise.resolve(this);
   }
 }
 

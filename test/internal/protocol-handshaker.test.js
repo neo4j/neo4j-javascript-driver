@@ -24,16 +24,6 @@ import {alloc} from '../../src/v1/internal/buf';
 
 describe('ProtocolHandshaker', () => {
 
-  it('should create latest protocol', () => {
-    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
-
-    const protocol = handshaker.createLatestProtocol();
-
-    expect(protocol).toBeDefined();
-    expect(protocol).not.toBeNull();
-    expect(protocol instanceof BoltProtocol).toBeTruthy();
-  });
-
   it('should write handshake request', () => {
     const writtenBuffers = [];
     const fakeChannel = {

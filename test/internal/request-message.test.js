@@ -29,7 +29,6 @@ describe('RequestMessage', () => {
 
     expect(message.signature).toEqual(0x01);
     expect(message.fields).toEqual([clientName, authToken]);
-    expect(message.isInitializationMessage).toBeTruthy();
     expect(message.toString()).toEqual(`INIT ${clientName} {...}`);
   });
 
@@ -41,7 +40,6 @@ describe('RequestMessage', () => {
 
     expect(message.signature).toEqual(0x10);
     expect(message.fields).toEqual([statement, parameters]);
-    expect(message.isInitializationMessage).toBeFalsy();
     expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)}`);
   });
 
@@ -50,7 +48,6 @@ describe('RequestMessage', () => {
 
     expect(message.signature).toEqual(0x3F);
     expect(message.fields).toEqual([]);
-    expect(message.isInitializationMessage).toBeFalsy();
     expect(message.toString()).toEqual('PULL_ALL');
   });
 
@@ -59,7 +56,6 @@ describe('RequestMessage', () => {
 
     expect(message.signature).toEqual(0x0F);
     expect(message.fields).toEqual([]);
-    expect(message.isInitializationMessage).toBeFalsy();
     expect(message.toString()).toEqual('RESET');
   });
 });

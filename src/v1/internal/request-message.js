@@ -27,10 +27,9 @@ const PULL_ALL = 0x3F;        // 0011 1111 // PULL *
 
 export default class RequestMessage {
 
-  constructor(signature, fields, isInitializationMessage, toString) {
+  constructor(signature, fields, toString) {
     this.signature = signature;
     this.fields = fields;
-    this.isInitializationMessage = isInitializationMessage;
     this.toString = toString;
   }
 
@@ -41,7 +40,7 @@ export default class RequestMessage {
    * @return {RequestMessage} new INIT message.
    */
   static init(clientName, authToken) {
-    return new RequestMessage(INIT, [clientName, authToken], true, () => `INIT ${clientName} {...}`);
+    return new RequestMessage(INIT, [clientName, authToken], () => `INIT ${clientName} {...}`);
   }
 
   /**
@@ -51,7 +50,7 @@ export default class RequestMessage {
    * @return {RequestMessage} new RUN message.
    */
   static run(statement, parameters) {
-    return new RequestMessage(RUN, [statement, parameters], false, () => `RUN ${statement} ${JSON.stringify(parameters)}`);
+    return new RequestMessage(RUN, [statement, parameters], () => `RUN ${statement} ${JSON.stringify(parameters)}`);
   }
 
   /**
@@ -72,5 +71,5 @@ export default class RequestMessage {
 }
 
 // constants for messages that never change
-const PULL_ALL_MESSAGE = new RequestMessage(PULL_ALL, [], false, () => 'PULL_ALL');
-const RESET_MESSAGE = new RequestMessage(RESET, [], false, () => 'RESET');
+const PULL_ALL_MESSAGE = new RequestMessage(PULL_ALL, [], () => 'PULL_ALL');
+const RESET_MESSAGE = new RequestMessage(RESET, [], () => 'RESET');
