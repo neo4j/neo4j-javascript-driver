@@ -55,7 +55,7 @@ export default class ConnectionHolder {
   getConnection(streamObserver) {
     return this._connectionPromise.then(connection => {
       streamObserver.resolveConnection(connection);
-      return connection.initializationCompleted();
+      return connection;
     });
   }
 

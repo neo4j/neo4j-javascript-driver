@@ -32,11 +32,10 @@ class Transaction {
    * @constructor
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
-   * @param {function(error: Error): Error} errorTransformer callback use to transform error.
    * @param {Bookmark} bookmark bookmark for transaction begin.
    * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
    */
-  constructor(connectionHolder, onClose, errorTransformer, bookmark, onBookmark) {
+  constructor(connectionHolder, onClose, bookmark, onBookmark) {
     this._connectionHolder = connectionHolder;
     const streamObserver = new _TransactionStreamObserver(this);
 
@@ -46,7 +45,6 @@ class Transaction {
 
     this._state = _states.ACTIVE;
     this._onClose = onClose;
-    this._errorTransformer = errorTransformer;
     this._onBookmark = onBookmark;
   }
 
@@ -117,7 +115,7 @@ class Transaction {
 /** Internal stream observer used for transactional results*/
 class _TransactionStreamObserver extends StreamObserver {
   constructor(tx) {
-    super(tx._errorTransformer || ((err) => {return err}));
+    super();
     this._tx = tx;
   }
 

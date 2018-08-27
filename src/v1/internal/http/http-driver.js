@@ -29,7 +29,7 @@ export default class HttpDriver extends Driver {
   }
 
   session() {
-    return new HttpSession(this._hostPort, this._token, this._config, this._sessionTracker);
+    return new HttpSession(this._hostPort, this._authToken, this._config, this._sessionTracker);
   }
 
   close() {

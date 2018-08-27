@@ -150,5 +150,4 @@ describe('BoltProtocolV1', () => {
 function verifyMessage(expected, actual) {
   expect(actual.signature).toEqual(expected.signature);
   expect(actual.fields).toEqual(expected.fields);
-  expect(actual.isInitializationMessage).toEqual(expected.isInitializationMessage);
 }

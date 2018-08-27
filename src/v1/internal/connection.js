@@ -49,7 +49,7 @@ const FAILURE = 0x7F;         // 0111 1111 // FAILURE <metadata>
 
 function NO_OP(){}
 
-let NO_OP_OBSERVER = {
+const NO_OP_OBSERVER = {
   onNext : NO_OP,
   onCompleted : NO_OP,
   onError : NO_OP
@@ -57,33 +57,22 @@ let NO_OP_OBSERVER = {
 
 let idGenerator = 0;
 
-/**
- * A connection manages sending and receiving messages over a channel. A
- * connector is very closely tied to the Bolt protocol, it implements the
- * same message structure with very little frills. This means Connectors are
- * naturally tied to a specific version of the protocol, and we expect
- * another layer will be needed to support multiple versions.
- *
- * The connector tries to batch outbound messages by requiring its users
- * to call 'sync' when messages need to be sent, and it routes response
- * messages back to the originators of the requests that created those
- * response messages.
- * @access private
- */
-class Connection {
+export default class Connection {
 
   /**
    * @constructor
    * @param {NodeChannel|WebSocketChannel} channel - channel with a 'write' function and a 'onmessage' callback property.
+   * @param {ConnectionErrorHandler} errorHandler the error handler.
    * @param {string} hostPort - the hostname and port to connect to.
    * @param {Logger} log - the configured logger.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
    */
-  constructor(channel, hostPort, log, disableLosslessIntegers = false) {
+  constructor(channel, errorHandler, hostPort, log, disableLosslessIntegers = false) {
     this.id = idGenerator++;
     this.hostPort = hostPort;
     this.server = {address: hostPort};
     this.creationTimestamp = Date.now();
+    this._errorHandler = errorHandler;
     this._disableLosslessIntegers = disableLosslessIntegers;
     this._pendingObservers = [];
     this._currentObserver = undefined;
@@ -92,43 +81,107 @@ class Connection {
     this._chunker = new Chunker( channel );
     this._log = log;
 
-    const protocolHandshaker = new ProtocolHandshaker(this, channel, this._chunker, this._disableLosslessIntegers, this._log);
-    // initially assume that database supports latest Bolt version, create latest packer and unpacker
-    this._protocol = protocolHandshaker.createLatestProtocol();
+    // bolt protocol is initially not initialized
+    this._protocol = null;
 
+    // error extracted from a FAILURE message
     this._currentFailure = null;
 
-    this._state = new ConnectionState(this);
-
-    // Set to true on fatal errors, to get this out of session pool.
+    // Set to true on fatal errors, to get this out of connection pool.
     this._isBroken = false;
-
-    // TODO: Using `onmessage` and `onerror` came from the WebSocket API,
-    // it reads poorly and has several annoying drawbacks. Swap to having
-    // Channel extend EventEmitter instead, then we can use `on('data',..)`
-    this._ch.onmessage = buffer => this._initializeProtocol(buffer, protocolHandshaker);
-
-    // Listen to connection errors. Important note though;
-    // In some cases we will get a channel that is already broken (for instance,
-    // if the user passes invalid configuration options). In this case, onerror
-    // will have "already triggered" before we add out listener here. So the line
-    // below also checks that the channel is not already failed. This could be nicely
-    // encapsulated into Channel if we used `on('error', ..)` rather than `onerror=..`
-    // as outlined in the comment about `onmessage` further up in this file.
-    this._ch.onerror = this._handleFatalError.bind(this);
-    if( this._ch._error ) {
-      this._handleFatalError(this._ch._error);
-    }
-
-    this._dechunker.onmessage = (buf) => {
-      this._handleMessage(this._protocol.unpacker().unpack(buf));
-    };
 
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} created towards ${hostPort}`);
     }
+  }
 
-    protocolHandshaker.writeHandshakeRequest();
+  /**
+   * Crete new connection to the provided address. Returned connection is not connected.
+   * @param {string} url - the Bolt endpoint to connect to.
+   * @param {object} config - this driver configuration.
+   * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
+   * @param {Logger} log - configured logger.
+   * @return {Connection} - new connection.
+   */
+  static create(url, config, errorHandler, log) {
+    const Ch = config.channel || Channel;
+    const parsedAddress = urlUtil.parseDatabaseUrl(url);
+    const channelConfig = new ChannelConfig(parsedAddress, config, errorHandler.errorCode());
+    return new Connection(new Ch(channelConfig), errorHandler, parsedAddress.hostAndPort, log, config.disableLosslessIntegers);
+  }
+
+  /**
+   * Connect to the target address, negotiate Bolt protocol and send initialization message.
+   * @param {string} userAgent the user agent for this driver.
+   * @param {object} authToken the object containing auth information.
+   * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
+   */
+  connect(userAgent, authToken) {
+    return this._negotiateProtocol().then(() => this._initialize(userAgent, authToken));
+  }
+
+  /**
+   * Execute Bolt protocol handshake to initialize the protocol version.
+   * @return {Promise<Connection>} promise resolved with the current connection if handshake is successful. Rejected promise otherwise.
+   */
+  _negotiateProtocol() {
+    const protocolHandshaker = new ProtocolHandshaker(this, this._ch, this._chunker, this._disableLosslessIntegers, this._log);
+
+    return new Promise((resolve, reject) => {
+
+      const handshakeErrorHandler = error => {
+        this._handleFatalError(error);
+        reject(error);
+      };
+
+      this._ch.onerror = handshakeErrorHandler.bind(this);
+      if (this._ch._error) {
+        // channel is already broken
+        handshakeErrorHandler(this._ch._error);
+      }
+
+      this._ch.onmessage = buffer => {
+        try {
+          // read the response buffer and initialize the protocol
+          this._protocol = protocolHandshaker.createNegotiatedProtocol(buffer);
+
+          // reset the error handler to just handle errors and forget about the handshake promise
+          this._ch.onerror = this._handleFatalError.bind(this);
+
+          // Ok, protocol running. Simply forward all messages to the dechunker
+          this._ch.onmessage = buf => this._dechunker.write(buf);
+
+          // setup dechunker to dechunk messages and forward them to the message handler
+          this._dechunker.onmessage = (buf) => {
+            this._handleMessage(this._protocol.unpacker().unpack(buf));
+          };
+          // forward all pending bytes to the dechunker
+          if (buffer.hasRemaining()) {
+            this._dechunker.write(buffer.readSlice(buffer.remaining()));
+          }
+
+          resolve(this);
+        } catch (e) {
+          this._handleFatalError(e);
+          reject(e);
+        }
+      };
+
+      protocolHandshaker.writeHandshakeRequest();
+    });
+  }
+
+  /**
+   * Perform protocol-specific initialization which includes authentication.
+   * @param {string} userAgent the user agent for this driver.
+   * @param {object} authToken the object containing auth information.
+   * @return {Promise<Connection>} promise resolved with the current connection if initialization is successful. Rejected promise otherwise.
+   */
+  _initialize(userAgent, authToken) {
+    return new Promise((resolve, reject) => {
+      const observer = new InitializationObserver(this, resolve, reject);
+      this._protocol.initialize(userAgent, authToken, observer);
+    });
   }
 
   /**
@@ -146,10 +199,6 @@ class Connection {
    * @param {boolean} flush <code>true</code> if flush should happen after the message is written to the buffer.
    */
   write(message, observer, flush) {
-    if (message.isInitializationMessage) {
-      observer = this._state.wrap(observer);
-    }
-
     const queued = this._queueObserver(observer);
 
     if (queued) {
@@ -171,50 +220,28 @@ class Connection {
   }
 
   /**
-   * Complete protocol initialization.
-   * @param {BaseBuffer} buffer the handshake response buffer.
-   * @param {ProtocolHandshaker} protocolHandshaker the handshaker utility.
-   * @private
-   */
-  _initializeProtocol(buffer, protocolHandshaker) {
-    try {
-      // re-assign the protocol because version might be lower than we initially assumed
-      this._protocol = protocolHandshaker.createNegotiatedProtocol(buffer);
-
-      // Ok, protocol running. Simply forward all messages to the dechunker
-      this._ch.onmessage = buf => this._dechunker.write(buf);
-
-      if (buffer.hasRemaining()) {
-        this._dechunker.write(buffer.readSlice(buffer.remaining()));
-      }
-    } catch (e) {
-      this._handleFatalError(e);
-    }
-  }
-
-  /**
    * "Fatal" means the connection is dead. Only call this if something
    * happens that cannot be recovered from. This will lead to all subscribers
    * failing, and the connection getting ejected from the session pool.
    *
-   * @param err an error object, forwarded to all current and future subscribers
+   * @param error an error object, forwarded to all current and future subscribers
    * @protected
    */
-  _handleFatalError( err ) {
+  _handleFatalError(error) {
     this._isBroken = true;
-    this._error = err;
+    this._error = this._errorHandler.handleAndTransformError(error, this.hostPort);
 
     if (this._log.isErrorEnabled()) {
-      this._log.error(`${this} experienced a fatal error ${JSON.stringify(err)}`);
+      this._log.error(`${this} experienced a fatal error ${JSON.stringify(this._error)}`);
     }
 
-    if( this._currentObserver && this._currentObserver.onError ) {
-      this._currentObserver.onError(err);
+    if (this._currentObserver && this._currentObserver.onError) {
+      this._currentObserver.onError(this._error);
     }
-    while( this._pendingObservers.length > 0 ) {
+    while (this._pendingObservers.length > 0) {
       let observer = this._pendingObservers.shift();
-      if( observer && observer.onError ) {
-        observer.onError(err);
+      if (observer && observer.onError) {
+        observer.onError(this._error);
       }
     }
   }
@@ -250,7 +277,8 @@ class Connection {
           this._log.debug(`${this} S: FAILURE ${JSON.stringify(msg)}`);
         }
         try {
-          this._currentFailure = newError(payload.message, payload.code);
+          const error = newError(payload.message, payload.code);
+          this._currentFailure = this._errorHandler.handleAndTransformError(error, this.hostPort);
           this._currentObserver.onError( this._currentFailure );
         } finally {
           this._updateCurrentObserver();
@@ -337,15 +365,6 @@ class Connection {
     return true;
   }
 
-  /**
-   * Get promise resolved when connection initialization succeed or rejected when it fails.
-   * Connection is initialized using {@link BoltProtocol#initialize()} function.
-   * @return {Promise<Connection>} the result of connection initialization.
-   */
-  initializationCompleted() {
-    return this._state.initializationCompleted();
-  }
-
   /*
    * Pop next pending observer form the list of observers and make it current observer.
    * @protected
@@ -378,20 +397,6 @@ class Connection {
     return this._protocol.packer().packable(value, (err) => this._handleFatalError(err));
   }
 
-  /**
-   * @protected
-   */
-  _markInitialized(metadata) {
-    const serverVersion = metadata ? metadata.server : null;
-    if (!this.server.version) {
-      this.server.version = serverVersion;
-      const version = ServerVersion.fromString(serverVersion);
-      if (version.compareTo(VERSION_3_2_0) < 0) {
-        this._protocol.packer().disableByteArrays();
-      }
-    }
-  }
-
   _handleProtocolError(message) {
     this._currentFailure = null;
     this._updateCurrentObserver();
@@ -401,110 +406,36 @@ class Connection {
   }
 }
 
-class ConnectionState {
+class InitializationObserver {
 
-  /**
-   * @constructor
-   * @param {Connection} connection the connection to track state for.
-   */
-  constructor(connection) {
+  constructor(connection, onSuccess, onError) {
     this._connection = connection;
-
-    this._initRequested = false;
-    this._initError = null;
-
-    this._resolveInitPromise = null;
-    this._rejectInitPromise = null;
-    this._initPromise = new Promise((resolve, reject) => {
-      this._resolveInitPromise = resolve;
-      this._rejectInitPromise = reject;
-    });
+    this._onSuccess = onSuccess;
+    this._onError = onError;
   }
 
-  /**
-   * Wrap the given observer to track connection's initialization state. Connection is closed by the server if
-   * processing of INIT message fails so returned observer will handle initialization failure as a fatal error.
-   * @param {StreamObserver} observer the observer used for INIT message.
-   * @return {StreamObserver} updated observer.
-   */
-  wrap(observer) {
-    return {
-      onNext: record => {
-        if (observer && observer.onNext) {
-          observer.onNext(record);
-        }
-      },
-      onError: error => {
-        this._processFailure(error);
+  onNext(record) {
+    this.onError(newError('Received RECORD when initializing ' + JSON.stringify(record)));
+  }
 
-        this._connection._updateCurrentObserver(); // make sure this same observer will not be called again
-        try {
-          if (observer && observer.onError) {
-            observer.onError(error);
-          }
-        } finally {
-          this._connection._handleFatalError(error);
-        }
-      },
-      onCompleted: metaData => {
-        this._connection._markInitialized(metaData);
-        this._resolveInitPromise(this._connection);
+  onError(error) {
+    this._connection._updateCurrentObserver(); // make sure this exact observer will not be called again
+    this._connection._handleFatalError(error); // initialization errors are fatal
 
-        if (observer && observer.onCompleted) {
-          observer.onCompleted(metaData);
-        }
+    this._onError(error);
+  }
+
+  onCompleted(metadata) {
+    // read server version from the response metadata
+    const serverVersion = metadata ? metadata.server : null;
+    if (!this._connection.server.version) {
+      this._connection.server.version = serverVersion;
+      const version = ServerVersion.fromString(serverVersion);
+      if (version.compareTo(VERSION_3_2_0) < 0) {
+        this._connection.protocol().packer().disableByteArrays();
       }
-    };
-  }
-
-  /**
-   * Get promise resolved when connection initialization succeed or rejected when it fails.
-   * @return {Promise<Connection>} the result of connection initialization.
-   */
-  initializationCompleted() {
-    this._initRequested = true;
-
-    if (this._initError) {
-      const error = this._initError;
-      this._initError = null; // to reject initPromise only once
-      this._rejectInitPromise(error);
     }
 
-    return this._initPromise;
-  }
-
-  /**
-   * @private
-   */
-  _processFailure(error) {
-    if (this._initRequested) {
-      // someone is waiting for initialization to complete, reject the promise
-      this._rejectInitPromise(error);
-    } else {
-      // no one is waiting for initialization, memorize the error but do not reject the promise
-      // to avoid unnecessary unhandled promise rejection warnings
-      this._initError = error;
-    }
+    this._onSuccess(this._connection);
   }
 }
-
-/**
- * Crete new connection to the provided address.
- * @access private
- * @param {string} hostPort - the Bolt endpoint to connect to
- * @param {object} config - this driver configuration
- * @param {string=null} connectionErrorCode - error code for errors raised on connection errors
- * @param {Logger} log - configured logger
- * @return {Connection} - New connection
- */
-function connect(hostPort, config = {}, connectionErrorCode = null, log = Logger.noOp()) {
-  const Ch = config.channel || Channel;
-  const parsedAddress = urlUtil.parseDatabaseUrl(hostPort);
-  const channelConfig = new ChannelConfig(parsedAddress, config, connectionErrorCode);
-  return new Connection(new Ch(channelConfig), parsedAddress.hostAndPort, log, config.disableLosslessIntegers);
-}
-
-export {
-  connect,
-  Connection
-};

@@ -32,12 +32,9 @@ export default class FakeConnection {
 
     this.resetInvoked = 0;
     this.releaseInvoked = 0;
-    this.initializationInvoked = 0;
     this.seenStatements = [];
     this.seenParameters = [];
     this.server = {};
-
-    this._initializationPromise = Promise.resolve(this);
   }
 
   protocol() {
@@ -59,11 +56,6 @@ export default class FakeConnection {
     this.releaseInvoked++;
   }
 
-  initializationCompleted() {
-    this.initializationInvoked++;
-    return this._initializationPromise;
-  }
-
   isOpen() {
     return this._open;
   }
@@ -82,11 +74,6 @@ export default class FakeConnection {
 
   withServerVersion(version) {
     this.server.version = version;
-    return this;
-  }
-
-  withFailedInitialization(error) {
-    this._initializationPromise = Promise.reject(error);
     return this;
   }
 

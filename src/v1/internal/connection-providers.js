@@ -26,6 +26,8 @@ import hasFeature from './features';
 import {DnsHostNameResolver, DummyHostNameResolver} from './host-name-resolvers';
 import RoutingUtil from './routing-util';
 
+const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized';
+
 class ConnectionProvider {
 
   acquireConnection(mode) {
@@ -195,20 +197,32 @@ export class LoadBalancer extends ConnectionProvider {
 
         // try next router
         return this._createSessionForRediscovery(currentRouter).then(session => {
-          return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter)
+          if (session) {
+            return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter);
+          } else {
+            // unable to acquire connection and create session towards the current router
+            // return null to signal that the next router should be tried
+            return null;
+          }
         });
       });
     }, Promise.resolve(null));
   }
 
   _createSessionForRediscovery(routerAddress) {
-    return this._connectionPool.acquire(routerAddress).then(connection => {
-      // initialized connection is required for routing procedure call
-      // server version needs to be known to decide which routing procedure to use
-      const initializedConnectionPromise = connection.initializationCompleted();
-      const connectionProvider = new SingleConnectionProvider(initializedConnectionPromise);
-      return new Session(READ, connectionProvider);
-    });
+    return this._connectionPool.acquire(routerAddress)
+      .then(connection => {
+        const connectionProvider = new SingleConnectionProvider(connection);
+        return new Session(READ, connectionProvider);
+      })
+      .catch(error => {
+        // unable to acquire connection towards the given router
+        if (error && error.code === UNAUTHORIZED_ERROR_CODE) {
+          // auth error is a sign of a configuration issue, rediscovery should not proceed
+          throw error;
+        }
+        return null;
+      });
   }
 
   _applyRoutingTableIfPossible(newRoutingTable) {
@@ -257,14 +271,14 @@ export class LoadBalancer extends ConnectionProvider {
 
 export class SingleConnectionProvider extends ConnectionProvider {
 
-  constructor(connectionPromise) {
+  constructor(connection) {
     super();
-    this._connectionPromise = connectionPromise;
+    this._connection = connection;
   }
 
   acquireConnection(mode) {
-    const connectionPromise = this._connectionPromise;
-    this._connectionPromise = null;
-    return connectionPromise;
+    const connection = this._connection;
+    this._connection = null;
+    return Promise.resolve(connection);
   }
 }

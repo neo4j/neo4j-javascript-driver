@@ -65,7 +65,6 @@ describe('ConnectionHolder', () => {
 
     connectionHolder.getConnection(new StreamObserver()).then(conn => {
       expect(conn).toBe(connection);
-      verifyConnectionInitialized(conn);
       done();
     });
   });
@@ -79,24 +78,22 @@ describe('ConnectionHolder', () => {
     connectionHolder.initializeConnection();
 
     connectionHolder.getConnection(streamObserver).then(conn => {
-      verifyConnectionInitialized(conn);
       verifyConnection(streamObserver, 'Neo4j/9.9.9');
       done();
     });
   });
 
-  it('should make stream observer aware about connection when initialization fails', done => {
-    const connection = new FakeConnection().withServerVersion('Neo4j/7.7.7').withFailedInitialization(new Error('Oh!'));
-    const connectionProvider = newSingleConnectionProvider(connection);
+  it('should propagate connection acquisition failure', done => {
+    const errorMessage = 'Failed to acquire or initialize the connection';
+    const connectionPromise = Promise.reject(new Error(errorMessage));
+    const connectionProvider = newSingleConnectionProvider(connectionPromise);
     const connectionHolder = new ConnectionHolder(READ, connectionProvider);
     const streamObserver = new StreamObserver();
 
     connectionHolder.initializeConnection();
 
     connectionHolder.getConnection(streamObserver).catch(error => {
-      expect(error.message).toEqual('Oh!');
-      verifyConnectionInitialized(connection);
-      verifyConnection(streamObserver, 'Neo4j/7.7.7');
+      expect(error.message).toEqual(errorMessage);
       done();
     });
   });
@@ -227,10 +224,6 @@ class RecordingConnectionProvider extends SingleConnectionProvider {
 
 function newSingleConnectionProvider(connection) {
   return new SingleConnectionProvider(Promise.resolve(connection));
-}
-
-function verifyConnectionInitialized(connection) {
-  expect(connection.initializationInvoked).toEqual(1);
 }
 
 function verifyConnection(streamObserver, expectedServerVersion) {
