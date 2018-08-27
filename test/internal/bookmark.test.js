@@ -118,4 +118,15 @@ describe('Bookmark', () => {
     });
   });
 
+  it('should expose bookmark values', () => {
+    expect(new Bookmark(undefined).values()).toEqual([]);
+    expect(new Bookmark(null).values()).toEqual([]);
+
+    const bookmarkString = 'neo4j:bookmark:v1:tx123';
+    expect(new Bookmark(bookmarkString).values()).toEqual([bookmarkString]);
+
+    const bookmarkStrings = ['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx2', 'neo4j:bookmark:v1:tx3'];
+    expect(new Bookmark(bookmarkStrings).values()).toEqual(bookmarkStrings);
+  });
+
 });

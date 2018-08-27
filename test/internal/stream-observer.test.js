@@ -158,6 +158,20 @@ describe('StreamObserver', () => {
     expect(errors).toEqual([error1]);
   });
 
+  it('should be able to handle a single response', done => {
+    const streamObserver = new StreamObserver();
+    streamObserver.prepareToHandleSingleResponse();
+
+    streamObserver.subscribe({
+      onCompleted: metadata => {
+        expect(metadata.key).toEqual(42);
+        done();
+      }
+    });
+
+    streamObserver.onCompleted({key: 42});
+  });
+
 });
 
 function newStreamObserver() {

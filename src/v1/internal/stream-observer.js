@@ -100,6 +100,20 @@ class StreamObserver {
   }
 
   /**
+   * Stream observer defaults to handling responses for two messages: RUN + PULL_ALL or RUN + DISCARD_ALL.
+   * Response for RUN initializes statement keys. Response for PULL_ALL / DISCARD_ALL exposes the result stream.
+   *
+   * However, some operations can be represented as a single message which receives full metadata in a single response.
+   * For example, operations to begin, commit and rollback an explicit transaction use two messages in Bolt V1 but a single message in Bolt V3.
+   * Messages are `RUN "BEGIN" {}` + `PULL_ALL` in Bolt V1 and `BEGIN` in Bolt V3.
+   *
+   * This function prepares the observer to only handle a single response message.
+   */
+  prepareToHandleSingleResponse() {
+    this._fieldKeys = [];
+  }
+
+  /**
    * Will be called on errors.
    * If user-provided observer is present, pass the error
    * to it's onError method, otherwise set instance variable _error.

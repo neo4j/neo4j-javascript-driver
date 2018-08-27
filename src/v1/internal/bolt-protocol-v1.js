@@ -50,6 +50,15 @@ export default class BoltProtocol {
   }
 
   /**
+   * Transform metadata received in SUCCESS message before it is passed to the handler.
+   * @param {object} metadata the received metadata.
+   * @return {object} transformed metadata.
+   */
+  transformMetadata(metadata) {
+    return metadata;
+  }
+
+  /**
    * Perform initialization and authentication of the underlying connection.
    * @param {string} clientName the client name.
    * @param {object} authToken the authentication token.
