@@ -53,6 +53,14 @@ export default class Bookmark {
   }
 
   /**
+   * Get all bookmark values as an array.
+   * @return {string[]} all values.
+   */
+  values() {
+    return this._values;
+  }
+
+  /**
    * Get this bookmark as an object for begin transaction call.
    * @return {object} the value of this bookmark as object.
    */

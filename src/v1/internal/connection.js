@@ -267,7 +267,8 @@ export default class Connection {
           this._log.debug(`${this} S: SUCCESS ${JSON.stringify(msg)}`);
         }
         try {
-          this._currentObserver.onCompleted( payload );
+          const metadata = this._protocol.transformMetadata(payload);
+          this._currentObserver.onCompleted(metadata);
         } finally {
           this._updateCurrentObserver();
         }

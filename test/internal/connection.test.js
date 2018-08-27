@@ -28,7 +28,6 @@ import {ServerVersion} from '../../src/v1/internal/server-version';
 import lolex from 'lolex';
 import Logger from '../../src/v1/internal/logger';
 import StreamObserver from '../../src/v1/internal/stream-observer';
-import RequestMessage from '../../src/v1/internal/request-message';
 import ConnectionErrorHandler from '../../src/v1/internal/connection-error-handler';
 import testUtils from '../internal/test-utils';
 
@@ -88,16 +87,17 @@ describe('Connection', () => {
         records.push(record);
       },
       onCompleted: () => {
-        expect(records[0][0]).toBe(1);
+        expect(records[0].get(0)).toBe(1);
         done();
       }
     };
+    const streamObserver = new StreamObserver();
+    streamObserver.subscribe(pullAllObserver);
 
-    connection._negotiateProtocol().then(() => {
-      connection.protocol().initialize('mydriver/0.0.0', basicAuthToken());
-      connection.write(RequestMessage.run('RETURN 1.0', {}), {}, false);
-      connection.write(RequestMessage.pullAll(), pullAllObserver, true);
-    });
+    connection.connect('mydriver/0.0.0', basicAuthToken())
+      .then(() => {
+        connection.protocol().run('RETURN 1.0', {}, streamObserver);
+      });
   });
 
   it('should write protocol handshake', () => {
@@ -107,10 +107,11 @@ describe('Connection', () => {
     connection._negotiateProtocol();
 
     const boltMagicPreamble = '60 60 b0 17';
+    const protocolVersion3 = '00 00 00 03';
     const protocolVersion2 = '00 00 00 02';
     const protocolVersion1 = '00 00 00 01';
     const noProtocolVersion = '00 00 00 00';
-    expect(observer.instance.toHex()).toBe(`${boltMagicPreamble} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion} ${noProtocolVersion} `);
+    expect(observer.instance.toHex()).toBe(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion} `);
   });
 
   it('should provide error message when connecting to http-port', done => {

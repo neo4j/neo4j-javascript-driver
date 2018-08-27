@@ -44,6 +44,15 @@ class MessageRecorder {
 
 describe('BoltProtocolV1', () => {
 
+  it('should not change metadata', () => {
+    const metadata = {result_available_after: 1, result_consumed_after: 2, t_first: 3, t_last: 4};
+    const protocol = new BoltProtocolV1(new MessageRecorder(), null, false);
+
+    const transformedMetadata = protocol.transformMetadata(metadata);
+
+    expect(transformedMetadata).toEqual({result_available_after: 1, result_consumed_after: 2, t_first: 3, t_last: 4});
+  });
+
   it('should initialize the connection', () => {
     const recorder = new MessageRecorder();
     const protocol = new BoltProtocolV1(recorder, null, false);
