@@ -32,20 +32,21 @@ class Transaction {
    * @constructor
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
-   * @param {Bookmark} bookmark bookmark for transaction begin.
    * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
    */
-  constructor(connectionHolder, onClose, bookmark, onBookmark) {
+  constructor(connectionHolder, onClose, onBookmark) {
     this._connectionHolder = connectionHolder;
+    this._state = _states.ACTIVE;
+    this._onClose = onClose;
+    this._onBookmark = onBookmark;
+  }
+
+  _begin(bookmark) {
     const streamObserver = new _TransactionStreamObserver(this);
 
     this._connectionHolder.getConnection(streamObserver)
       .then(conn => conn.protocol().beginTransaction(bookmark, streamObserver))
       .catch(error => streamObserver.onError(error));
-
-    this._state = _states.ACTIVE;
-    this._onClose = onClose;
-    this._onBookmark = onBookmark;
   }
 
   /**

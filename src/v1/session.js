@@ -110,8 +110,13 @@ class Session {
     connectionHolder.initializeConnection();
     this._hasTx = true;
 
-    const onTxClose = () => this._hasTx = false;
-    return new Transaction(connectionHolder, onTxClose.bind(this), this._lastBookmark, this._updateBookmark.bind(this));
+    const tx = new Transaction(connectionHolder, this._transactionClosed.bind(this), this._updateBookmark.bind(this));
+    tx._begin(this._lastBookmark);
+    return tx;
+  }
+
+  _transactionClosed() {
+    this._hasTx = false;
   }
 
   /**
