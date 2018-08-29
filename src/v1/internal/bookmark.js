@@ -36,6 +36,10 @@ export default class Bookmark {
     this._maxValue = maxBookmark(this._values);
   }
 
+  static empty() {
+    return EMPTY_BOOKMARK;
+  }
+
   /**
    * Check if the given bookmark is meaningful and can be send to the database.
    * @return {boolean} returns <code>true</code> bookmark has a value, <code>false</code> otherwise.
@@ -79,6 +83,8 @@ export default class Bookmark {
     };
   }
 }
+
+const EMPTY_BOOKMARK = new Bookmark(null);
 
 /**
  * Converts given value to an array.

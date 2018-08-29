@@ -30,6 +30,8 @@ import Logger from '../../src/v1/internal/logger';
 import StreamObserver from '../../src/v1/internal/stream-observer';
 import ConnectionErrorHandler from '../../src/v1/internal/connection-error-handler';
 import testUtils from '../internal/test-utils';
+import Bookmark from '../../src/v1/internal/bookmark';
+import TxConfig from '../../src/v1/internal/tx-config';
 
 const ILLEGAL_MESSAGE = {signature: 42, fields: []};
 const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};
@@ -96,7 +98,7 @@ describe('Connection', () => {
 
     connection.connect('mydriver/0.0.0', basicAuthToken())
       .then(() => {
-        connection.protocol().run('RETURN 1.0', {}, streamObserver);
+        connection.protocol().run('RETURN 1.0', {}, Bookmark.empty(), TxConfig.empty(), streamObserver);
       });
   });
 
@@ -219,7 +221,8 @@ describe('Connection', () => {
   });
 
   it('should not queue RUN observer when broken', done => {
-    testQueueingOfObserversWithBrokenConnection(connection => connection.protocol().run('RETURN 1', {}, {}), done);
+    testQueueingOfObserversWithBrokenConnection(connection =>
+      connection.protocol().run('RETURN 1', {}, Bookmark.empty(), TxConfig.empty(), {}), done);
   });
 
   it('should not queue RESET observer when broken', done => {

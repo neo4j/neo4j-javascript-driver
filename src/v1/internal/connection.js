@@ -225,7 +225,6 @@ export default class Connection {
    * failing, and the connection getting ejected from the session pool.
    *
    * @param error an error object, forwarded to all current and future subscribers
-   * @protected
    */
   _handleFatalError(error) {
     this._isBroken = true;

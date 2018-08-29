@@ -88,10 +88,11 @@ export default class RequestMessage {
   /**
    * Create a new BEGIN message.
    * @param {Bookmark} bookmark the bookmark.
+   * @param {TxConfig} txConfig the configuration.
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin(bookmark) {
-    const metadata = {bookmarks: bookmark.values()};
+  static begin(bookmark, txConfig) {
+    const metadata = buildTxMetadata(bookmark, txConfig);
     return new RequestMessage(BEGIN, [metadata], () => `BEGIN ${JSON.stringify(metadata)}`);
   }
 
@@ -115,13 +116,35 @@ export default class RequestMessage {
    * Create a new RUN message with additional metadata.
    * @param {string} statement the cypher statement.
    * @param {object} parameters the statement parameters.
-   * @param {object} metadata the additional metadata.
+   * @param {Bookmark} bookmark the bookmark.
+   * @param {TxConfig} txConfig the configuration.
    * @return {RequestMessage} new RUN message with additional metadata.
    */
-  static runWithMetadata(statement, parameters, metadata) {
+  static runWithMetadata(statement, parameters, bookmark, txConfig) {
+    const metadata = buildTxMetadata(bookmark, txConfig);
     return new RequestMessage(RUN, [statement, parameters, metadata],
       () => `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(metadata)}`);
   }
+}
+
+/**
+ * Create an object that represent transaction metadata.
+ * @param {Bookmark} bookmark the bookmark.
+ * @param {TxConfig} txConfig the configuration.
+ * @return {object} a metadata object.
+ */
+function buildTxMetadata(bookmark, txConfig) {
+  const metadata = {};
+  if (!bookmark.isEmpty()) {
+    metadata['bookmarks'] = bookmark.values();
+  }
+  if (txConfig.timeout) {
+    metadata['tx_timeout'] = txConfig.timeout;
+  }
+  if (txConfig.metadata) {
+    metadata['tx_metadata'] = txConfig.metadata;
+  }
+  return metadata;
 }
 
 // constants for messages that never change

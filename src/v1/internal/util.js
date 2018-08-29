@@ -66,6 +66,13 @@ function validateStatementAndParameters(statement, parameters) {
   return {query, params};
 }
 
+function assertObject(obj, objName) {
+  if (!isObject(obj)) {
+    throw new TypeError(objName + ' expected to be an object but was: ' + JSON.stringify(obj));
+  }
+  return obj;
+}
+
 function assertString(obj, objName) {
   if (!isString(obj)) {
     throw new TypeError(objName + ' expected to be string but was: ' + JSON.stringify(obj));
@@ -118,7 +125,9 @@ function isString(str) {
 
 export {
   isEmptyObjectOrNull,
+  isObject,
   isString,
+  assertObject,
   assertString,
   assertNumber,
   assertNumberOrInteger,

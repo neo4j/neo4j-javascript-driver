@@ -439,10 +439,10 @@ describe('session', () => {
   });
 
   it('should fail nicely for illegal bookmark', () => {
-    expect(() => session.beginTransaction({})).toThrowError(TypeError);
-    expect(() => session.beginTransaction({foo: 'bar'})).toThrowError(TypeError);
+    expect(() => session.beginTransaction(42)).toThrowError(TypeError);
     expect(() => session.beginTransaction(42)).toThrowError(TypeError);
     expect(() => session.beginTransaction([42.0, 42.0])).toThrowError(TypeError);
+    expect(() => session.beginTransaction(() => ['bookmark:1', 'bookmark:2', 'bookmark:3'])).toThrowError(TypeError);
   });
 
   it('should allow creation of a ' + neo4j.session.READ + ' session', done => {

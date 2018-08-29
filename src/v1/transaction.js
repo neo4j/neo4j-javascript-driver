@@ -21,6 +21,7 @@ import Result from './result';
 import {validateStatementAndParameters} from './internal/util';
 import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
 import Bookmark from './internal/bookmark';
+import TxConfig from './internal/tx-config';
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -41,11 +42,11 @@ class Transaction {
     this._onBookmark = onBookmark;
   }
 
-  _begin(bookmark) {
+  _begin(bookmark, txConfig) {
     const streamObserver = new _TransactionStreamObserver(this);
 
     this._connectionHolder.getConnection(streamObserver)
-      .then(conn => conn.protocol().beginTransaction(bookmark, streamObserver))
+      .then(conn => conn.protocol().beginTransaction(bookmark, txConfig, streamObserver))
       .catch(error => streamObserver.onError(error));
   }
 
@@ -152,8 +153,12 @@ let _states = {
       };
     },
     run: (connectionHolder, observer, statement, parameters) => {
+      // RUN in explicit transaction can't contain bookmarks and transaction configuration
+      const bookmark = Bookmark.empty();
+      const txConfig = TxConfig.empty();
+
       connectionHolder.getConnection(observer)
-        .then(conn => conn.protocol().run(statement, parameters || {}, observer))
+        .then(conn => conn.protocol().run(statement, parameters, bookmark, txConfig, observer))
         .catch(error => observer.onError(error));
 
       return _newRunResult(observer, statement, parameters, () => observer.serverMetadata());

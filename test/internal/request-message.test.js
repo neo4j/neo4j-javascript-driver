@@ -18,18 +18,21 @@
  */
 
 import RequestMessage from '../../src/v1/internal/request-message';
+import Bookmark from '../../src/v1/internal/bookmark';
+import TxConfig from '../../src/v1/internal/tx-config';
+import {int} from '../../src/v1';
 
 describe('RequestMessage', () => {
 
   it('should create INIT message', () => {
-    const clientName = 'my-driver/1.0.2';
+    const userAgent = 'my-driver/1.0.2';
     const authToken = {username: 'neo4j', password: 'secret'};
 
-    const message = RequestMessage.init(clientName, authToken);
+    const message = RequestMessage.init(userAgent, authToken);
 
     expect(message.signature).toEqual(0x01);
-    expect(message.fields).toEqual([clientName, authToken]);
-    expect(message.toString()).toEqual(`INIT ${clientName} {...}`);
+    expect(message.fields).toEqual([userAgent, authToken]);
+    expect(message.toString()).toEqual(`INIT ${userAgent} {...}`);
   });
 
   it('should create RUN message', () => {
@@ -58,4 +61,58 @@ describe('RequestMessage', () => {
     expect(message.fields).toEqual([]);
     expect(message.toString()).toEqual('RESET');
   });
+
+  it('should create HELLO message', () => {
+    const userAgent = 'my-driver/1.0.2';
+    const authToken = {username: 'neo4j', password: 'secret'};
+
+    const message = RequestMessage.hello(userAgent, authToken);
+
+    expect(message.signature).toEqual(0x01);
+    expect(message.fields).toEqual([{user_agent: userAgent, username: 'neo4j', password: 'secret'}]);
+    expect(message.toString()).toEqual(`HELLO {user_agent: '${userAgent}', ...}`);
+  });
+
+  it('should create BEGIN message', () => {
+    const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10']);
+    const txConfig = new TxConfig({timeout: 42, metadata: {key: 42}});
+
+    const message = RequestMessage.begin(bookmark, txConfig);
+
+    expect(message.signature).toEqual(0x11);
+    const expectedMetadata = {bookmarks: bookmark.values(), tx_timeout: int(42), tx_metadata: {key: 42}};
+    expect(message.fields).toEqual([expectedMetadata]);
+    expect(message.toString()).toEqual(`BEGIN ${JSON.stringify(expectedMetadata)}`);
+  });
+
+  it('should create COMMIT message', () => {
+    const message = RequestMessage.commit();
+
+    expect(message.signature).toEqual(0x12);
+    expect(message.fields).toEqual([]);
+    expect(message.toString()).toEqual('COMMIT');
+  });
+
+  it('should create ROLLBACK message', () => {
+    const message = RequestMessage.rollback();
+
+    expect(message.signature).toEqual(0x13);
+    expect(message.fields).toEqual([]);
+    expect(message.toString()).toEqual('ROLLBACK');
+  });
+
+  it('should create RUN with metadata message', () => {
+    const statement = 'RETURN $x';
+    const parameters = {x: 42};
+    const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10', 'neo4j:bookmark:v1:tx100']);
+    const txConfig = new TxConfig({timeout: 999, metadata: {a: 'a', b: 'b'}});
+
+    const message = RequestMessage.runWithMetadata(statement, parameters, bookmark, txConfig);
+
+    expect(message.signature).toEqual(0x10);
+    const expectedMetadata = {bookmarks: bookmark.values(), tx_timeout: int(999), tx_metadata: {a: 'a', b: 'b'}};
+    expect(message.fields).toEqual([statement, parameters, expectedMetadata]);
+    expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(expectedMetadata)}`);
+  });
+
 });

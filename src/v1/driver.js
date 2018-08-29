@@ -192,7 +192,7 @@ class Driver {
   session(mode, bookmarkOrBookmarks) {
     const sessionMode = Driver._validateSessionMode(mode);
     const connectionProvider = this._getOrCreateConnectionProvider();
-    const bookmark = new Bookmark(bookmarkOrBookmarks);
+    const bookmark = bookmarkOrBookmarks ? new Bookmark(bookmarkOrBookmarks) : Bookmark.empty();
     return new Session(sessionMode, connectionProvider, bookmark, this._config);
   }
 

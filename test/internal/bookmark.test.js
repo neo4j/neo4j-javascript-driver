@@ -129,4 +129,10 @@ describe('Bookmark', () => {
     expect(new Bookmark(bookmarkStrings).values()).toEqual(bookmarkStrings);
   });
 
+  it('should expose empty bookmark value', () => {
+    const bookmark = Bookmark.empty();
+    expect(bookmark).toBeDefined();
+    expect(bookmark.isEmpty()).toBeTruthy();
+  });
+
 });

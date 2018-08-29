@@ -47,9 +47,9 @@ export default class BoltProtocol extends BoltProtocolV2 {
     this._connection.write(message, observer, true);
   }
 
-  beginTransaction(bookmark, observer) {
+  beginTransaction(bookmark, txConfig, observer) {
     prepareToHandleSingleResponse(observer);
-    const message = RequestMessage.begin(bookmark);
+    const message = RequestMessage.begin(bookmark, txConfig);
     this._connection.write(message, observer, true);
   }
 
@@ -65,9 +65,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
     this._connection.write(message, observer, true);
   }
 
-  run(statement, parameters, observer) {
-    const metadata = {};
-    const runMessage = RequestMessage.runWithMetadata(statement, parameters, metadata);
+  run(statement, parameters, bookmark, txConfig, observer) {
+    const runMessage = RequestMessage.runWithMetadata(statement, parameters, bookmark, txConfig);
     const pullAllMessage = RequestMessage.pullAll();
 
     this._connection.write(runMessage, observer, false);

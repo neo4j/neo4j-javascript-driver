@@ -25,13 +25,32 @@ import ConnectionHolder from './internal/connection-holder';
 import Driver, {READ, WRITE} from './driver';
 import TransactionExecutor from './internal/transaction-executor';
 import Bookmark from './internal/bookmark';
+import TxConfig from './internal/tx-config';
+
+// Typedef for JSDoc. Declares TransactionConfig type and makes it possible to use in in method-level docs.
+/**
+ * Configuration object containing settings for explicit and auto-commit transactions.
+ * <p>
+ * Configuration is supported for:
+ * <ul>
+ *   <li>queries executed in auto-commit transactions using {@link Session#run}</li>
+ *   <li>transactions started by transaction functions using {@link Session#readTransaction} and {@link Session#writeTransaction}</li>
+ *   <li>explicit transactions using {@link Session#beginTransaction}</li>
+ * </ul>
+ * @typedef {object} TransactionConfig
+ * @property {number} timeout - the transaction timeout in **milliseconds**. Transactions that execute longer than the configured timeout will
+ * be terminated by the database. This functionality allows to limit query/transaction execution time. Specified timeout overrides the default timeout
+ * configured in the database using `dbms.transaction.timeout` setting. Value should not represent a duration of zero or negative duration.
+ * @property {object} metadata - the transaction metadata. Specified metadata will be attached to the executing transaction and visible in the output of
+ * `dbms.listQueries` and `dbms.listTransactions` procedures. It will also get logged to the `query.log`. This functionality makes it easier to tag
+ * transactions and is equivalent to `dbms.setTXMetaData` procedure.
+ */
 
 /**
-  * A Session instance is used for handling the connection and
-  * sending statements through the connection.
-  * @access public
-  */
-
+ * A Session instance is used for handling the connection and
+ * sending statements through the connection.
+ * @access public
+ */
 class Session {
 
   /**
@@ -57,13 +76,15 @@ class Session {
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
+   * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @return {Result} - New Result
    */
-  run(statement, parameters = {}) {
+  run(statement, parameters, transactionConfig) {
     const {query, params} = validateStatementAndParameters(statement, parameters);
+    const autoCommitTxConfig = transactionConfig ? new TxConfig(transactionConfig) : TxConfig.empty();
 
     return this._run(query, params, (connection, streamObserver) =>
-      connection.protocol().run(query, params, streamObserver)
+      connection.protocol().run(query, params, this._lastBookmark, autoCommitTxConfig, streamObserver)
     );
   }
 
@@ -89,17 +110,29 @@ class Session {
    *
    * While a transaction is open the session cannot be used to run statements outside the transaction.
    *
-   * @param {string|string[]} [bookmarkOrBookmarks=null] - reference or references to some previous transactions.
-   * DEPRECATED: This parameter is deprecated in favour of {@link Driver#session} that accepts an initial bookmark.
-   * Session will ensure that all nested transactions are chained with bookmarks to guarantee causal consistency.
+   * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @returns {Transaction} - New Transaction
    */
-  beginTransaction(bookmarkOrBookmarks) {
-    this._updateBookmark(new Bookmark(bookmarkOrBookmarks));
-    return this._beginTransaction(this._mode);
+  beginTransaction(transactionConfig) {
+    // this function needs to support bookmarks parameter for backwards compatibility
+    // parameter was of type {string|string[]} and represented either a single or multiple bookmarks
+    // that's why we need to check parameter type and decide how to interpret the value
+    const arg = transactionConfig;
+
+    let txConfig = TxConfig.empty();
+    if (typeof arg === 'string' || arg instanceof String || Array.isArray(arg)) {
+      // argument looks like a single or multiple bookmarks
+      // bookmarks in this function are deprecated but need to be supported for backwards compatibility
+      this._updateBookmark(new Bookmark(arg));
+    } else if (arg) {
+      // argument is probably a transaction configuration
+      txConfig = new TxConfig(arg);
+    }
+
+    return this._beginTransaction(this._mode, txConfig);
   }
 
-  _beginTransaction(accessMode) {
+  _beginTransaction(accessMode, txConfig) {
     if (this._hasTx) {
       throw newError('You cannot begin a transaction on a session with an open transaction; ' +
         'either run from within the transaction or use a different session.');
@@ -111,7 +144,7 @@ class Session {
     this._hasTx = true;
 
     const tx = new Transaction(connectionHolder, this._transactionClosed.bind(this), this._updateBookmark.bind(this));
-    tx._begin(this._lastBookmark);
+    tx._begin(this._lastBookmark, txConfig);
     return tx;
   }
 
@@ -138,11 +171,13 @@ class Session {
    *
    * @param {function(tx: Transaction): Promise} transactionWork - callback that executes operations against
    * a given {@link Transaction}.
+   * @param {TransactionConfig} [transactionConfig] - configuration for all transactions started to execute the unit of work.
    * @return {Promise} resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
-  readTransaction(transactionWork) {
-    return this._runTransaction(READ, transactionWork);
+  readTransaction(transactionWork, transactionConfig) {
+    const config = new TxConfig(transactionConfig);
+    return this._runTransaction(READ, config, transactionWork);
   }
 
   /**
@@ -155,16 +190,18 @@ class Session {
    *
    * @param {function(tx: Transaction): Promise} transactionWork - callback that executes operations against
    * a given {@link Transaction}.
+   * @param {TransactionConfig} [transactionConfig] - configuration for all transactions started to execute the unit of work.
    * @return {Promise} resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
-  writeTransaction(transactionWork) {
-    return this._runTransaction(WRITE, transactionWork);
+  writeTransaction(transactionWork, transactionConfig) {
+    const config = new TxConfig(transactionConfig);
+    return this._runTransaction(WRITE, config, transactionWork);
   }
 
-  _runTransaction(accessMode, transactionWork) {
+  _runTransaction(accessMode, transactionConfig, transactionWork) {
     return this._transactionExecutor.execute(
-      () => this._beginTransaction(accessMode),
+      () => this._beginTransaction(accessMode, transactionConfig),
       transactionWork
     );
   }
