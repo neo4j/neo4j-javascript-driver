@@ -18,20 +18,33 @@
  */
 
 import Transaction from "./transaction";
-import StatementRunner from "./statement-runner";
+import StatementRunner, {Parameters} from "./statement-runner";
+import Result from "./result";
+import {NumberOrInteger} from "./graph-types";
 
 declare type TransactionWork<T> = (tx: Transaction) => T | Promise<T>;
 
+declare interface TransactionConfig {
+  timeout?: NumberOrInteger;
+  metadata?: object;
+}
+
 declare interface Session extends StatementRunner {
-  beginTransaction(): Transaction;
+  run(statement: string, parameters?: Parameters, config?: TransactionConfig): Result;
+
+  beginTransaction(config?: TransactionConfig): Transaction;
 
   lastBookmark(): string | null;
 
-  readTransaction<T>(work: TransactionWork<T>): Promise<T>;
+  readTransaction<T>(work: TransactionWork<T>, config?: TransactionConfig): Promise<T>;
 
-  writeTransaction<T>(work: TransactionWork<T>): Promise<T>;
+  writeTransaction<T>(work: TransactionWork<T>, config?: TransactionConfig): Promise<T>;
 
   close(callback?: () => void): void;
+}
+
+export {
+  TransactionConfig
 }
 
 export default Session;

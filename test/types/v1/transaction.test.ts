@@ -79,56 +79,6 @@ result4.subscribe({
   onCompleted: (summary: ResultSummary) => console.log(summary)
 });
 
-const result5: Result = tx.run({text: "RETURN 1"});
-result5.then((res: StatementResult) => {
-  const records: Record[] = res.records;
-  const summary: ResultSummary = res.summary;
-  console.log(records);
-  console.log(summary);
-}).catch((error: Error) => {
-  console.log(error);
-});
-
-const result6: Result = tx.run({text: "RETURN 1"});
-result6.subscribe({});
-result6.subscribe({
-  onNext: (record: Record) => console.log(record)
-});
-result6.subscribe({
-  onNext: (record: Record) => console.log(record),
-  onError: (error: Error) => console.log(error)
-});
-result6.subscribe({
-  onNext: (record: Record) => console.log(record),
-  onError: (error: Error) => console.log(error),
-  onCompleted: (summary: ResultSummary) => console.log(summary)
-});
-
-const result7: Result = tx.run({text: "RETURN $value", parameters: {value: 42}});
-result7.then((res: StatementResult) => {
-  const records: Record[] = res.records;
-  const summary: ResultSummary = res.summary;
-  console.log(records);
-  console.log(summary);
-}).catch((error: Error) => {
-  console.log(error);
-});
-
-const result8: Result = tx.run({text: "RETURN $value", parameters: {value: 42}});
-result8.subscribe({});
-result8.subscribe({
-  onNext: (record: Record) => console.log(record)
-});
-result8.subscribe({
-  onNext: (record: Record) => console.log(record),
-  onError: (error: Error) => console.log(error)
-});
-result8.subscribe({
-  onNext: (record: Record) => console.log(record),
-  onError: (error: Error) => console.log(error),
-  onCompleted: (summary: ResultSummary) => console.log(summary)
-});
-
 tx.commit().then((res: StatementResult) => {
   console.log(res);
 }).catch((error: Error) => {

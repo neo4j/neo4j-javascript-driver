@@ -23,8 +23,6 @@ declare type Parameters = { [key: string]: any };
 
 declare interface StatementRunner {
   run(statement: string, parameters?: Parameters): Result;
-
-  run(statement: { text: string, parameters?: Parameters }): Result;
 }
 
 export {Parameters}
