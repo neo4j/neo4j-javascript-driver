@@ -152,6 +152,26 @@ describe('util', () => {
     verifyInvalidDate(2019);
   });
 
+  it('should check objects', () => {
+    expect(util.isObject(42)).toBeFalsy();
+    expect(util.isObject([])).toBeFalsy();
+    expect(util.isObject(() => 'Hello')).toBeFalsy();
+    expect(util.isObject('string')).toBeFalsy();
+
+    expect(util.isObject({})).toBeTruthy();
+    expect(util.isObject({key1: 1, key2: '2'})).toBeTruthy();
+  });
+
+  it('should assert on objects', () => {
+    expect(() => util.assertObject(42, '')).toThrowError(TypeError);
+    expect(() => util.assertObject([], '')).toThrowError(TypeError);
+    expect(() => util.assertObject(() => 'Hello', '')).toThrowError(TypeError);
+    expect(() => util.assertObject('string', '')).toThrowError(TypeError);
+
+    expect(() => util.assertObject({}, '')).not.toThrow();
+    expect(() => util.assertObject({key1: 1, key2: '2'}, '')).not.toThrow();
+  });
+
   function verifyValidString(str) {
     expect(util.assertString(str, 'Test string')).toBe(str);
   }

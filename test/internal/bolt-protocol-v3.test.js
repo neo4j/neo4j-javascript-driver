@@ -17,14 +17,17 @@
  * limitations under the License.
  */
 
-import Result from "./result";
+import BoltProtocolV3 from '../../src/v1/internal/bolt-protocol-v3';
 
-declare type Parameters = { [key: string]: any };
+describe('BoltProtocolV3', () => {
 
-declare interface StatementRunner {
-  run(statement: string, parameters?: Parameters): Result;
-}
+  it('should update metadata', () => {
+    const metadata = {t_first: 1, t_last: 2, db_hits: 3, some_other_key: 4};
+    const protocol = new BoltProtocolV3(null, null, false);
 
-export {Parameters}
+    const transformedMetadata = protocol.transformMetadata(metadata);
 
-export default StatementRunner;
+    expect(transformedMetadata).toEqual({result_available_after: 1, result_consumed_after: 2, db_hits: 3, some_other_key: 4});
+  });
+
+});

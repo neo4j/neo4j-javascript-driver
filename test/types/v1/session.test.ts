@@ -17,17 +17,27 @@
  * limitations under the License.
  */
 
-import Session from "../../../types/v1/session";
+import Session, {TransactionConfig} from "../../../types/v1/session";
 import Transaction from "../../../types/v1/transaction";
 import Record from "../../../types/v1/record";
 import Result, {StatementResult} from "../../../types/v1/result";
 import ResultSummary from "../../../types/v1/result-summary";
+import Integer from "../../../types/v1/integer";
 
 const dummy: any = null;
+const intValue: Integer = Integer.fromInt(42);
 
 const session: Session = dummy;
 
-const tx: Transaction = session.beginTransaction();
+const txConfig1: TransactionConfig = {};
+const txConfig2: TransactionConfig = {timeout: 5000};
+const txConfig3: TransactionConfig = {timeout: intValue};
+const txConfig4: TransactionConfig = {metadata: {}};
+const txConfig5: TransactionConfig = {metadata: {key1: 'value1', key2: 5, key3: {a: 'a', b: 'b'}, key4: [1, 2, 3]}};
+const txConfig6: TransactionConfig = {timeout: 2000, metadata: {key1: 'value1', key2: 2}};
+const txConfig7: TransactionConfig = {timeout: intValue, metadata: {key1: 'value1', key2: 2}};
+
+const tx1: Transaction = session.beginTransaction();
 const bookmark: null | string = <null>session.lastBookmark();
 
 const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
@@ -101,7 +111,7 @@ result4.subscribe({
   onCompleted: (summary: ResultSummary) => console.log(summary)
 });
 
-const result5: Result = session.run({text: "RETURN 1"});
+const result5: Result = session.run("RETURN $value", {value: "42"}, txConfig1);
 result5.then((res: StatementResult) => {
   const records: Record[] = res.records;
   const summary: ResultSummary = res.summary;
@@ -111,7 +121,7 @@ result5.then((res: StatementResult) => {
   console.log(error);
 });
 
-const result6: Result = session.run({text: "RETURN 1"});
+const result6: Result = session.run("RETURN $value", {value: "42"}, txConfig2);
 result6.subscribe({});
 result6.subscribe({
   onNext: (record: Record) => console.log(record)
@@ -126,27 +136,6 @@ result6.subscribe({
   onCompleted: (summary: ResultSummary) => console.log(summary)
 });
 
-const result7: Result = session.run({text: "RETURN $value", parameters: {value: 42}});
-result7.then((res: StatementResult) => {
-  const records: Record[] = res.records;
-  const summary: ResultSummary = res.summary;
-  console.log(records);
-  console.log(summary);
-}).catch((error: Error) => {
-  console.log(error);
-});
-
-const result8: Result = session.run({text: "RETURN $value", parameters: {value: 42}});
-result8.subscribe({});
-result8.subscribe({
-  onNext: (record: Record) => console.log(record)
-});
-result8.subscribe({
-  onNext: (record: Record) => console.log(record),
-  onError: (error: Error) => console.log(error)
-});
-result8.subscribe({
-  onNext: (record: Record) => console.log(record),
-  onError: (error: Error) => console.log(error),
-  onCompleted: (summary: ResultSummary) => console.log(summary)
-});
+const tx2: Transaction = session.beginTransaction(txConfig2);
+const promise5: Promise<string> = session.readTransaction((tx: Transaction) => "", txConfig3);
+const promise6: Promise<number> = session.writeTransaction((tx: Transaction) => 42, txConfig4);

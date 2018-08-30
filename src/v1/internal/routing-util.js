@@ -20,6 +20,8 @@
 import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE} from '../error';
 import Integer, {int} from '../integer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
+import Bookmark from './bookmark';
+import TxConfig from './tx-config';
 
 const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers';
 const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable($context)';
@@ -123,7 +125,7 @@ export default class RoutingUtil {
         params = {};
       }
 
-      connection.protocol().run(query, params, streamObserver);
+      connection.protocol().run(query, params, Bookmark.empty(), TxConfig.empty(), streamObserver);
     });
   }
 }

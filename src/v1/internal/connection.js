@@ -225,7 +225,6 @@ export default class Connection {
    * failing, and the connection getting ejected from the session pool.
    *
    * @param error an error object, forwarded to all current and future subscribers
-   * @protected
    */
   _handleFatalError(error) {
     this._isBroken = true;
@@ -267,7 +266,8 @@ export default class Connection {
           this._log.debug(`${this} S: SUCCESS ${JSON.stringify(msg)}`);
         }
         try {
-          this._currentObserver.onCompleted( payload );
+          const metadata = this._protocol.transformMetadata(payload);
+          this._currentObserver.onCompleted(metadata);
         } finally {
           this._updateCurrentObserver();
         }

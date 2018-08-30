@@ -20,6 +20,7 @@
 import BoltProtocolV1 from '../../src/v1/internal/bolt-protocol-v1';
 import RequestMessage from '../../src/v1/internal/request-message';
 import Bookmark from '../../src/v1/internal/bookmark';
+import TxConfig from '../../src/v1/internal/tx-config';
 
 class MessageRecorder {
 
@@ -43,6 +44,15 @@ class MessageRecorder {
 }
 
 describe('BoltProtocolV1', () => {
+
+  it('should not change metadata', () => {
+    const metadata = {result_available_after: 1, result_consumed_after: 2, t_first: 3, t_last: 4};
+    const protocol = new BoltProtocolV1(new MessageRecorder(), null, false);
+
+    const transformedMetadata = protocol.transformMetadata(metadata);
+
+    expect(transformedMetadata).toEqual({result_available_after: 1, result_consumed_after: 2, t_first: 3, t_last: 4});
+  });
 
   it('should initialize the connection', () => {
     const recorder = new MessageRecorder();
@@ -68,7 +78,7 @@ describe('BoltProtocolV1', () => {
     const parameters = {x: 'x', y: 'y'};
     const observer = {};
 
-    protocol.run(statement, parameters, observer);
+    protocol.run(statement, parameters, Bookmark.empty(), TxConfig.empty(), observer);
 
     recorder.verifyMessageCount(2);
 
@@ -100,7 +110,7 @@ describe('BoltProtocolV1', () => {
     const bookmark = new Bookmark('neo4j:bookmark:v1:tx42');
     const observer = {};
 
-    protocol.beginTransaction(bookmark, observer);
+    protocol.beginTransaction(bookmark, TxConfig.empty(), observer);
 
     recorder.verifyMessageCount(2);
 

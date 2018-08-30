@@ -21,6 +21,7 @@ import Result from './result';
 import {validateStatementAndParameters} from './internal/util';
 import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
 import Bookmark from './internal/bookmark';
+import TxConfig from './internal/tx-config';
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -32,20 +33,21 @@ class Transaction {
    * @constructor
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
-   * @param {Bookmark} bookmark bookmark for transaction begin.
    * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
    */
-  constructor(connectionHolder, onClose, bookmark, onBookmark) {
+  constructor(connectionHolder, onClose, onBookmark) {
     this._connectionHolder = connectionHolder;
-    const streamObserver = new _TransactionStreamObserver(this);
-
-    this._connectionHolder.getConnection(streamObserver)
-      .then(conn => conn.protocol().beginTransaction(bookmark, streamObserver))
-      .catch(error => streamObserver.onError(error));
-
     this._state = _states.ACTIVE;
     this._onClose = onClose;
     this._onBookmark = onBookmark;
+  }
+
+  _begin(bookmark, txConfig) {
+    const streamObserver = new _TransactionStreamObserver(this);
+
+    this._connectionHolder.getConnection(streamObserver)
+      .then(conn => conn.protocol().beginTransaction(bookmark, txConfig, streamObserver))
+      .catch(error => streamObserver.onError(error));
   }
 
   /**
@@ -151,8 +153,12 @@ let _states = {
       };
     },
     run: (connectionHolder, observer, statement, parameters) => {
+      // RUN in explicit transaction can't contain bookmarks and transaction configuration
+      const bookmark = Bookmark.empty();
+      const txConfig = TxConfig.empty();
+
       connectionHolder.getConnection(observer)
-        .then(conn => conn.protocol().run(statement, parameters || {}, observer))
+        .then(conn => conn.protocol().run(statement, parameters, bookmark, txConfig, observer))
         .catch(error => observer.onError(error));
 
       return _newRunResult(observer, statement, parameters, () => observer.serverMetadata());
