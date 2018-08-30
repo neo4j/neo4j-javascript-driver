@@ -35,8 +35,6 @@ import {newError} from './error';
  * @param {number} low The low (signed) 32 bits of the long
  * @param {number} high The high (signed) 32 bits of the long
  * @constructor
- *
- * @deprecated This class will be removed or made internal in a future version of the driver.
  */
 class Integer {
   constructor(low, high) {
