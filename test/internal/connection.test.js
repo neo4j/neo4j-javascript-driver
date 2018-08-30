@@ -113,7 +113,7 @@ describe('Connection', () => {
     const protocolVersion2 = '00 00 00 02';
     const protocolVersion1 = '00 00 00 01';
     const noProtocolVersion = '00 00 00 00';
-    expect(observer.instance.toHex()).toBe(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion} `);
+    expect(observer.instance.toHex()).toBe(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`);
   });
 
   it('should provide error message when connecting to http-port', done => {

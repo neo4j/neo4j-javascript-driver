@@ -22,7 +22,7 @@ import {CombinedBuffer} from './buf';
 const observer = {
   instance: null,
   updateInstance: (instance) => {
-    observer.instance = instance
+    observer.instance = instance;
   }
 };
 
@@ -40,21 +40,24 @@ class DummyChannel {
     return false;
   }
 
-  write( buf ) {
+  write(buf) {
     this.written.push(buf);
     observer.updateInstance(this);
   }
 
   toHex() {
-    var out = "";
-    for( var i=0; i<this.written.length; i++ ) {
+    let out = '';
+    for (let i = 0; i < this.written.length; i++) {
       out += this.written[i].toHex();
+      if (i !== this.written.length - 1) {
+        out += ' ';
+      }
     }
     return out;
   }
 
-  toBuffer () {
-    return new CombinedBuffer( this.written );
+  toBuffer() {
+    return new CombinedBuffer(this.written);
   }
 
   close(cb) {
@@ -71,4 +74,4 @@ class DummyChannel {
 
 const channel = DummyChannel;
 
-export { channel, observer }
+export {channel, observer};

@@ -346,15 +346,17 @@ class BaseBuffer
    * Get string representation of buffer.
    * @return {string} Buffer as a string
    */
-  toHex () {
-    // TODO something like StringBuilder?
-    let out = "";
+  toHex() {
+    let out = '';
     for (let i = 0; i < this.length; i++) {
       let hexByte = this.getUInt8(i).toString(16);
-      if( hexByte.length == 1 ) {
-        hexByte = "0" + hexByte;
+      if (hexByte.length == 1) {
+        hexByte = '0' + hexByte;
       }
-      out += hexByte + " "
+      out += hexByte;
+      if (i !== this.length - 1) {
+        out += ' ';
+      }
     }
     return out;
   }

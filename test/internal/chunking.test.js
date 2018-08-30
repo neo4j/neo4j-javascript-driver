@@ -35,7 +35,7 @@ describe('Chunker', function() {
     chunker.flush();
 
     // Then
-    expect( ch.toHex() ).toBe("00 08 00 00 00 01 00 00 00 02 ");
+    expect(ch.toHex()).toBe('00 08 00 00 00 01 00 00 00 02');
   });
   it('should chunk blobs larger than the output buffer', function() {
     // Given
@@ -47,7 +47,7 @@ describe('Chunker', function() {
     chunker.flush();
 
     // Then
-    expect( ch.toHex() ).toBe("00 02 01 02 00 02 03 04 00 02 05 06 ");
+    expect(ch.toHex()).toBe('00 02 01 02 00 02 03 04 00 02 05 06');
   });
   it('should include message boundaries', function() {
     // Given
@@ -61,7 +61,7 @@ describe('Chunker', function() {
     chunker.flush();
 
     // Then
-    expect( ch.toHex() ).toBe("00 04 00 00 00 01 00 00 00 04 00 00 00 02 ");
+    expect(ch.toHex()).toBe('00 04 00 00 00 01 00 00 00 04 00 00 00 02');
   });
 });
 
@@ -83,7 +83,7 @@ describe('Dechunker', function() {
 
     // Then
     expect( messages.length ).toBe( 1 );
-    expect( messages[0].toHex() ).toBe( "00 01 00 02 00 03 " );
+    expect(messages[0].toHex()).toBe('00 01 00 02 00 03');
   });
 
   it('should handle message split at any point', function() {
@@ -117,7 +117,7 @@ describe('Dechunker', function() {
 
       // Then, the output should be correct
       expect( messages.length ).toBe( 1 );
-      expect( messages[0].toHex() ).toBe( "01 00 02 00 00 00 03 04 00 00 00 05 " );
+      expect(messages[0].toHex()).toBe('01 00 02 00 00 00 03 04 00 00 00 05');
     };
   });
 });

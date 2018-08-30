@@ -42,7 +42,7 @@ describe('ProtocolHandshaker', () => {
     const protocolVersion1 = '00 00 00 01';
     const noProtocolVersion = '00 00 00 00';
 
-    expect(writtenBuffers[0].toHex()).toEqual(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion} `);
+    expect(writtenBuffers[0].toHex()).toEqual(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`);
   });
 
   it('should create protocol with valid version', () => {

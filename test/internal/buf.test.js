@@ -37,7 +37,7 @@ describe('buffers', () => {
 
     // Then
     expect(str).toContain('( position=4 )\n  01 08 0f 7f');
-    expect(hex).toBe('01 08 0f 7f ');
+    expect(hex).toBe('01 08 0f 7f');
   });
 
   it('should read and write 8-bit unsigned integers', () => {
@@ -139,7 +139,7 @@ describe('buffers', () => {
     // When
     const hex = b.toHex();
     // Then
-    expect(hex).toBe('92 81 61 81 62 ');
+    expect(hex).toBe('92 81 61 81 62');
   });
 
   it('should decode list correctly', () => {
