@@ -20,7 +20,7 @@
 import {isInt} from './integer';
 
 /**
-  * A ResultSummary instance contains structured metadata for a {Result}.
+ * A ResultSummary instance contains structured metadata for a {@link Result}.
   * @access public
   */
 class ResultSummary {

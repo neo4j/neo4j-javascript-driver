@@ -265,7 +265,7 @@ function determineWebSocketScheme(config, protocolSupplier) {
 
 /**
  * @param {ChannelConfig} config - configuration for the channel.
- * @return {boolean} <code>true</code> if encryption enabled in the config, <code>false</code> otherwise.
+ * @return {boolean} `true` if encryption enabled in the config, `false` otherwise.
  */
 function isEncryptionExplicitlyTurnedOn(config) {
   return config.encrypted === true || config.encrypted === ENCRYPTION_ON;
@@ -273,7 +273,7 @@ function isEncryptionExplicitlyTurnedOn(config) {
 
 /**
  * @param {ChannelConfig} config - configuration for the channel.
- * @return {boolean} <code>true</code> if encryption disabled in the config, <code>false</code> otherwise.
+ * @return {boolean} `true` if encryption disabled in the config, `false` otherwise.
  */
 function isEncryptionExplicitlyTurnedOff(config) {
   return config.encrypted === false || config.encrypted === ENCRYPTION_OFF;
@@ -281,7 +281,7 @@ function isEncryptionExplicitlyTurnedOff(config) {
 
 /**
  * @param {function(): string} protocolSupplier - function that detects protocol of the web page.
- * @return {boolean} <code>true</code> if protocol returned by the given function is secure, <code>false</code> otherwise.
+ * @return {boolean} `true` if protocol returned by the given function is secure, `false` otherwise.
  */
 function isProtocolSecure(protocolSupplier) {
   const protocol = typeof protocolSupplier === 'function' ? protocolSupplier() : '';

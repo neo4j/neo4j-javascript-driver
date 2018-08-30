@@ -196,7 +196,7 @@ export default class Connection {
    * Write a message to the network channel.
    * @param {RequestMessage} message the message to write.
    * @param {StreamObserver} observer the response observer.
-   * @param {boolean} flush <code>true</code> if flush should happen after the message is written to the buffer.
+   * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
    */
   write(message, observer, flush) {
     const queued = this._queueObserver(observer);

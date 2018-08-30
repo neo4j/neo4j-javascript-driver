@@ -33,14 +33,14 @@ const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
 
 /**
  * Constant that represents read session access mode.
- * Should be used like this: <code>driver.session(READ)</code>.
+ * Should be used like this: `driver.session(neo4j.session.READ)`.
  * @type {string}
  */
 const READ = 'READ';
 
 /**
  * Constant that represents write session access mode.
- * Should be used like this: <code>driver.session(WRITE)</code>.
+ * Should be used like this: `driver.session(neo4j.session.WRITE)`.
  * @type {string}
  */
 const WRITE = 'WRITE';

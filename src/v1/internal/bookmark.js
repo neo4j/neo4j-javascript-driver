@@ -42,7 +42,7 @@ export default class Bookmark {
 
   /**
    * Check if the given bookmark is meaningful and can be send to the database.
-   * @return {boolean} returns <code>true</code> bookmark has a value, <code>false</code> otherwise.
+   * @return {boolean} returns `true` bookmark has a value, `false` otherwise.
    */
   isEmpty() {
     return this._maxValue === null;
@@ -50,7 +50,7 @@ export default class Bookmark {
 
   /**
    * Get maximum value of this bookmark as string.
-   * @return {string|null} the maximum value or <code>null</code> if it is not defined.
+   * @return {string|null} the maximum value or `null` if it is not defined.
    */
   maxBookmarkAsString() {
     return this._maxValue;

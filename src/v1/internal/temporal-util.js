@@ -27,7 +27,7 @@ import {newError} from '../error';
 
   It is based on a library called ThreeTen (https://github.com/ThreeTen/threetenbp) which was derived
   from JSR-310 reference implementation previously hosted on GitHub. Code uses `Integer` type everywhere
-  to correctly handle large integer values that are greater than <code>Number.MAX_SAFE_INTEGER</code>.
+  to correctly handle large integer values that are greater than `Number.MAX_SAFE_INTEGER`.
 
   Please consult either ThreeTen or js-joda (https://github.com/js-joda/js-joda) when working with the
   conversion functions.
@@ -416,7 +416,7 @@ function localTimeToSecondOfDay(hour, minute, second) {
 /**
  * Check if given year is a leap year. Uses algorithm described here {@link https://en.wikipedia.org/wiki/Leap_year#Algorithm}.
  * @param {Integer|number|string} year the year to check. Will be converted to {@link Integer} for all calculations.
- * @return {boolean} <code>true</code> if given year is a leap year, <code>false</code> otherwise.
+ * @return {boolean} `true` if given year is a leap year, `false` otherwise.
  */
 function isLeapYear(year) {
   year = int(year);

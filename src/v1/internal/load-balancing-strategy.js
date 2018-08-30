@@ -25,7 +25,7 @@ export default class LoadBalancingStrategy {
   /**
    * Select next most appropriate reader from the list of given readers.
    * @param {string[]} knownReaders an array of currently known readers to select from.
-   * @return {string} most appropriate reader or <code>null</code> if given array is empty.
+   * @return {string} most appropriate reader or `null` if given array is empty.
    */
   selectReader(knownReaders) {
     throw new Error('Abstract function');
@@ -34,7 +34,7 @@ export default class LoadBalancingStrategy {
   /**
    * Select next most appropriate writer from the list of given writers.
    * @param {string[]} knownWriters an array of currently known writers to select from.
-   * @return {string} most appropriate writer or <code>null</code> if given array is empty.
+   * @return {string} most appropriate writer or `null` if given array is empty.
    */
   selectWriter(knownWriters) {
     throw new Error('Abstract function');

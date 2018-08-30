@@ -72,7 +72,7 @@ class Logger {
 
   /**
    * Check if error logging is enabled, i.e. it is not a no-op implementation.
-   * @return {boolean} <code>true</code> when enabled, <code>false</code> otherwise.
+   * @return {boolean} `true` when enabled, `false` otherwise.
    */
   isErrorEnabled() {
     return isLevelEnabled(this._level, ERROR);
@@ -90,7 +90,7 @@ class Logger {
 
   /**
    * Check if warn logging is enabled, i.e. it is not a no-op implementation.
-   * @return {boolean} <code>true</code> when enabled, <code>false</code> otherwise.
+   * @return {boolean} `true` when enabled, `false` otherwise.
    */
   isWarnEnabled() {
     return isLevelEnabled(this._level, WARN);
@@ -108,7 +108,7 @@ class Logger {
 
   /**
    * Check if info logging is enabled, i.e. it is not a no-op implementation.
-   * @return {boolean} <code>true</code> when enabled, <code>false</code> otherwise.
+   * @return {boolean} `true` when enabled, `false` otherwise.
    */
   isInfoEnabled() {
     return isLevelEnabled(this._level, INFO);
@@ -126,7 +126,7 @@ class Logger {
 
   /**
    * Check if debug logging is enabled, i.e. it is not a no-op implementation.
-   * @return {boolean} <code>true</code> when enabled, <code>false</code> otherwise.
+   * @return {boolean} `true` when enabled, `false` otherwise.
    */
   isDebugEnabled() {
     return isLevelEnabled(this._level, DEBUG);
@@ -184,7 +184,7 @@ const noOpLogger = new NoOpLogger();
  * Check if the given logging level is enabled.
  * @param {string} configuredLevel the configured level.
  * @param {string} targetLevel the level to check.
- * @return {boolean} value of <code>true</code> when enabled, <code>false</code> otherwise.
+ * @return {boolean} value of `true` when enabled, `false` otherwise.
  */
 function isLevelEnabled(configuredLevel, targetLevel) {
   return levels[configuredLevel] >= levels[targetLevel];

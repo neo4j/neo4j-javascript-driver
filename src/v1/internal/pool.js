@@ -121,7 +121,7 @@ class Pool {
   /**
    * Check if this pool contains resources for the given key.
    * @param {string} key the resource key to check.
-   * @return {boolean} <code>true</code> when pool contains entries for the given key, <code>false</code> otherwise.
+   * @return {boolean} `true` when pool contains entries for the given key, <code>false</code> otherwise.
    */
   has(key) {
     return (key in this._pools);

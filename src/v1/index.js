@@ -69,9 +69,9 @@ const auth = {
 const USER_AGENT = "neo4j-javascript/" + VERSION;
 
 /**
- * Object containing predefined logging configurations. These are expected to be used as values of the driver config's <code>logging</code> property.
- * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to <code>console.log</code> with
- * timestamp, level and message. It takes an optional <code>level</code> parameter which represents the maximum log level to be logged. Default value is 'info'.
+ * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
+ * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to `console.log` with
+ * timestamp, level and message. It takes an optional `level` parameter which represents the maximum log level to be logged. Default value is 'info'.
  */
 const logging = {
   console: level => {
@@ -136,7 +136,7 @@ const logging = {
  *
  *       // The max number of connections that are allowed idle in the pool at any time.
  *       // Connection will be destroyed if this threshold is exceeded.
- *       // <b>Deprecated:</b> please use <code>maxConnectionPoolSize</code> instead.
+ *       // **Deprecated:** please use `maxConnectionPoolSize` instead.
  *       connectionPoolSize: 100,
  *
  *       // The maximum total number of connections allowed to be managed by the connection pool, per host.
@@ -158,7 +158,7 @@ const logging = {
  *       connectionAcquisitionTimeout: 60000, // 1 minute
  *
  *       // Specify the maximum time in milliseconds transactions are allowed to retry via
- *       // <code>Session#readTransaction()</code> and <code>Session#writeTransaction()</code> functions.
+ *       // `Session#readTransaction()` and `Session#writeTransaction()` functions.
  *       // These functions will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient
  *       // errors with exponential backoff using initial delay of 1 second.
  *       // Default value is 30000 which is 30 seconds.
@@ -166,7 +166,7 @@ const logging = {
  *
  *       // Provide an alternative load balancing strategy for the routing driver to use.
  *       // Driver uses "least_connected" by default.
- *       // <b>Note:</b> We are experimenting with different strategies. This could be removed in the next minor
+ *       // **Note:** We are experimenting with different strategies. This could be removed in the next minor
  *       // version.
  *       loadBalancingStrategy: "least_connected" | "round_robin",
  *
@@ -177,27 +177,27 @@ const logging = {
  *
  *       // Make this driver always return native JavaScript numbers for integer values, instead of the
  *       // dedicated {@link Integer} class. Values that do not fit in native number bit range will be represented as
- *       // <code>Number.NEGATIVE_INFINITY</code> or <code>Number.POSITIVE_INFINITY</code>.
- *       // <b>Warning:</b> It is not always safe to enable this setting when JavaScript applications are not the only ones
+ *       // `Number.NEGATIVE_INFINITY` or `Number.POSITIVE_INFINITY`.
+ *       // **Warning:** ResultSummary It is not always safe to enable this setting when JavaScript applications are not the only ones
  *       // interacting with the database. Stored numbers might in such case be not representable by native
  *       // {@link Number} type and thus driver will return lossy values. This might also happen when data was
  *       // initially imported using neo4j import tool and contained numbers larger than
- *       // <code>Number.MAX_SAFE_INTEGER</code>. Driver will then return positive infinity, which is lossy.
- *       // Default value for this option is <code>false</code> because native JavaScript numbers might result
+ *       // `Number.MAX_SAFE_INTEGER`. Driver will then return positive infinity, which is lossy.
+ *       // Default value for this option is `false` because native JavaScript numbers might result
  *       // in loss of precision in the general case.
  *       disableLosslessIntegers: false,
  *
- *       // Specify the logging configuration for the driver. Object should have two properties <code>level</code> and <code>logger</code>.
+ *       // Specify the logging configuration for the driver. Object should have two properties `level` and `logger`.
  *       //
- *       // Property <code>level</code> represents the logging level which should be one of: 'error', 'warn', 'info' or 'debug'. This property is optional and
+ *       // Property `level` represents the logging level which should be one of: 'error', 'warn', 'info' or 'debug'. This property is optional and
  *       // its default value is 'info'. Levels have priorities: 'error': 0, 'warn': 1, 'info': 2, 'debug': 3. Enabling a certain level also enables all
  *       // levels with lower priority. For example: 'error', 'warn' and 'info' will be logged when 'info' level is configured.
  *       //
- *       // Property <code>logger</code> represents the logging function which will be invoked for every log call with an acceptable level. The function should
- *       // take two string arguments <code>level</code> and <code>message</code>. The function should not execute any blocking or long-running operations
+ *       // Property `logger` represents the logging function which will be invoked for every log call with an acceptable level. The function should
+ *       // take two string arguments `level` and `message`. The function should not execute any blocking or long-running operations
  *       // because it is often executed on a hot path.
  *       //
- *       // No logging is done by default. See <code>neo4j.logging</code> object that contains predefined logging implementations.
+ *       // No logging is done by default. See `neo4j.logging` object that contains predefined logging implementations.
  *       logging: {
  *         level: 'info',
  *         logger: (level, message) => console.log(level + ' ' + message)

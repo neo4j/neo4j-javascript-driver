@@ -30,7 +30,7 @@ const DEFAULT_ON_COMPLETED = summary => {
  * A stream of {@link Record} representing the result of a statement.
  * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
  * summary, or rejected with error that contains {@link string} code and {@link string} message.
- * Alternatively can be consumed lazily using <code>Result.subscribe()</code> function.
+ * Alternatively can be consumed lazily using {@link Result#subscribe} function.
  * @access public
  */
 class Result {
@@ -79,7 +79,7 @@ class Result {
 
   /**
    * Waits for all results and calls the passed in function with the results.
-   * Cannot be combined with the <code>Result.subscribe()</code> function.
+   * Cannot be combined with the {@link Result#subscribe} function.
    *
    * @param {function(result: {records:Array<Record>, summary: ResultSummary})} onFulfilled - function to be called
    * when finished.

@@ -72,7 +72,7 @@ class Session {
 
   /**
    * Run Cypher statement
-   * Could be called with a statement object i.e.: {text: "MATCH ...", parameters: {param: 1}}
+   * Could be called with a statement object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
@@ -167,7 +167,7 @@ class Session {
    * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
-   * <code>maxTransactionRetryTime</code> property in milliseconds.
+   * `maxTransactionRetryTime` property in milliseconds.
    *
    * @param {function(tx: Transaction): Promise} transactionWork - callback that executes operations against
    * a given {@link Transaction}.
@@ -186,7 +186,7 @@ class Session {
    * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
-   * <code>maxTransactionRetryTime</code> property in milliseconds.
+   * `maxTransactionRetryTime` property in milliseconds.
    *
    * @param {function(tx: Transaction): Promise} transactionWork - callback that executes operations against
    * a given {@link Transaction}.

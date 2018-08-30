@@ -36,7 +36,7 @@ const DATE_TIME_IDENTIFIER_PROPERTY = '__isDateTime__';
 
 /**
  * Represents an ISO 8601 duration. Contains both date-based values (years, months, days) and time-based values (seconds, nanoseconds).
- * Created <code>Duration</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created `Duration` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class Duration {
 
@@ -67,7 +67,7 @@ Object.defineProperty(Duration.prototype, DURATION_IDENTIFIER_PROPERTY, IDENTIFI
 /**
  * Test if given object is an instance of {@link Duration} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link Duration}, <code>false</code> otherwise.
+ * @return {boolean} `true` if given object is a {@link Duration}, `false` otherwise.
  */
 export function isDuration(obj) {
   return hasIdentifierProperty(obj, DURATION_IDENTIFIER_PROPERTY);
@@ -75,7 +75,7 @@ export function isDuration(obj) {
 
 /**
  * Represents an instant capturing the time of day, but not the date, nor the timezone.
- * Created <code>LocalTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created `LocalTime` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class LocalTime {
 
@@ -95,7 +95,7 @@ export class LocalTime {
   }
 
   /**
-   * Create a local time object from the given standard JavaScript <code>Date</code> and optional nanoseconds.
+   * Create a local time object from the given standard JavaScript `Date` and optional nanoseconds.
    * Year, month, day and time zone offset components of the given date are ignored.
    * @param {global.Date} standardDate the standard JavaScript date to convert.
    * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
@@ -121,7 +121,7 @@ Object.defineProperty(LocalTime.prototype, LOCAL_TIME_IDENTIFIER_PROPERTY, IDENT
 /**
  * Test if given object is an instance of {@link LocalTime} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link LocalTime}, <code>false</code> otherwise.
+ * @return {boolean} `true` if given object is a {@link LocalTime}, `false` otherwise.
  */
 export function isLocalTime(obj) {
   return hasIdentifierProperty(obj, LOCAL_TIME_IDENTIFIER_PROPERTY);
@@ -129,7 +129,7 @@ export function isLocalTime(obj) {
 
 /**
  * Represents an instant capturing the time of day, and the timezone offset in seconds, but not the date.
- * Created <code>Time</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created `Time` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class Time {
 
@@ -151,7 +151,7 @@ export class Time {
   }
 
   /**
-   * Create a time object from the given standard JavaScript <code>Date</code> and optional nanoseconds.
+   * Create a time object from the given standard JavaScript `Date` and optional nanoseconds.
    * Year, month and day components of the given date are ignored.
    * @param {global.Date} standardDate the standard JavaScript date to convert.
    * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
@@ -178,7 +178,7 @@ Object.defineProperty(Time.prototype, TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPE
 /**
  * Test if given object is an instance of {@link Time} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link Time}, <code>false</code> otherwise.
+ * @return {boolean} `true` if given object is a {@link Time}, `false` otherwise.
  */
 export function isTime(obj) {
   return hasIdentifierProperty(obj, TIME_IDENTIFIER_PROPERTY);
@@ -186,7 +186,7 @@ export function isTime(obj) {
 
 /**
  * Represents an instant capturing the date, but not the time, nor the timezone.
- * Created <code>Date</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created `Date` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class Date {
 
@@ -204,7 +204,7 @@ export class Date {
   }
 
   /**
-   * Create a date object from the given standard JavaScript <code>Date</code>.
+   * Create a date object from the given standard JavaScript `Date`.
    * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
    * @param {global.Date} standardDate the standard JavaScript date to convert.
    * @return {Date} new date.
@@ -228,7 +228,7 @@ Object.defineProperty(Date.prototype, DATE_IDENTIFIER_PROPERTY, IDENTIFIER_PROPE
 /**
  * Test if given object is an instance of {@link Date} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link Date}, <code>false</code> otherwise.
+ * @return {boolean} `true` if given object is a {@link Date}, `false` otherwise.
  */
 export function isDate(obj) {
   return hasIdentifierProperty(obj, DATE_IDENTIFIER_PROPERTY);
@@ -236,7 +236,7 @@ export function isDate(obj) {
 
 /**
  * Represents an instant capturing the date and the time, but not the timezone.
- * Created <code>LocalDateTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created `LocalDateTime` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class LocalDateTime {
 
@@ -262,7 +262,7 @@ export class LocalDateTime {
   }
 
   /**
-   * Create a local date-time object from the given standard JavaScript <code>Date</code> and optional nanoseconds.
+   * Create a local date-time object from the given standard JavaScript `Date` and optional nanoseconds.
    * Time zone offset component of the given date is ignored.
    * @param {global.Date} standardDate the standard JavaScript date to convert.
    * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
@@ -291,7 +291,7 @@ Object.defineProperty(LocalDateTime.prototype, LOCAL_DATE_TIME_IDENTIFIER_PROPER
 /**
  * Test if given object is an instance of {@link LocalDateTime} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link LocalDateTime}, <code>false</code> otherwise.
+ * @return {boolean} `true` if given object is a {@link LocalDateTime}, `false` otherwise.
  */
 export function isLocalDateTime(obj) {
   return hasIdentifierProperty(obj, LOCAL_DATE_TIME_IDENTIFIER_PROPERTY);
@@ -299,7 +299,7 @@ export function isLocalDateTime(obj) {
 
 /**
  * Represents an instant capturing the date, the time and the timezone identifier.
- * Created <code>DateTime</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created `DateTime` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class DateTime {
 
@@ -312,8 +312,8 @@ export class DateTime {
    * @param {Integer|number} minute the minute for the new date-time.
    * @param {Integer|number} second the second for the new date-time.
    * @param {Integer|number} nanosecond the nanosecond for the new date-time.
-   * @param {Integer|number|null} timeZoneOffsetSeconds the total time zone offset in seconds for the new date-time. Either this argument or <code>timeZoneId</code> should be defined.
-   * @param {string|null} timeZoneId the time zone id for the new date-time. Either this argument or <code>timeZoneOffsetSeconds</code> should be defined.
+   * @param {Integer|number|null} timeZoneOffsetSeconds the total time zone offset in seconds for the new date-time. Either this argument or `timeZoneId` should be defined.
+   * @param {string|null} timeZoneId the time zone id for the new date-time. Either this argument or `timeZoneOffsetSeconds` should be defined.
    */
   constructor(year, month, day, hour, minute, second, nanosecond, timeZoneOffsetSeconds, timeZoneId) {
     this.year = util.assertValidYear(year);
@@ -332,7 +332,7 @@ export class DateTime {
   }
 
   /**
-   * Create a date-time object from the given standard JavaScript <code>Date</code> and optional nanoseconds.
+   * Create a date-time object from the given standard JavaScript `Date` and optional nanoseconds.
    * @param {global.Date} standardDate the standard JavaScript date to convert.
    * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
    * @return {DateTime} new date-time.
@@ -364,7 +364,7 @@ Object.defineProperty(DateTime.prototype, DATE_TIME_IDENTIFIER_PROPERTY, IDENTIF
 /**
  * Test if given object is an instance of {@link DateTime} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link DateTime}, <code>false</code> otherwise.
+ * @return {boolean} `true` if given object is a {@link DateTime}, `false` otherwise.
  */
 export function isDateTime(obj) {
   return hasIdentifierProperty(obj, DATE_TIME_IDENTIFIER_PROPERTY);

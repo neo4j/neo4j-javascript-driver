@@ -26,9 +26,9 @@ import {newError} from './error';
 /**
  * Constructs a 64 bit two's-complement integer, given its low and high 32 bit values as *signed* integers.
  * See exported functions for more convenient ways of operating integers.
- * Use <code>int()</code> function to create new integers, <code>isInt()</code> to check if given object is integer,
- * <code>inSafeRange()</code> to check if it is safe to convert given value to native number,
- * <code>toNumber()</code> and <code>toString()</code> to convert given integer to number or string respectively.
+ * Use `int()` function to create new integers, `isInt()` to check if given object is integer,
+ * `inSafeRange()` to check if it is safe to convert given value to native number,
+ * `toNumber()` and `toString()` to convert given integer to number or string respectively.
  * @access public
  * @exports Integer
  * @class A Integer class for representing a 64 bit two's-complement integer value.

@@ -22,16 +22,16 @@ const POINT_IDENTIFIER_PROPERTY = '__isPoint__';
 
 /**
  * Represents a single two or three-dimensional point in a particular coordinate reference system.
- * Created <code>Point</code> objects are frozen with {@link Object#freeze()} in constructor and thus immutable.
+ * Created `Point` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class Point {
 
   /**
    * @constructor
    * @param {Integer|number} srid the coordinate reference system identifier.
-   * @param {number} x the <code>x</code> coordinate of the point.
-   * @param {number} y the <code>y</code> coordinate of the point.
-   * @param {number} [z=undefined] the <code>y</code> coordinate of the point or <code>undefined</code> if point has 2 dimensions.
+   * @param {number} x the `x` coordinate of the point.
+   * @param {number} y the `y` coordinate of the point.
+   * @param {number} [z=undefined] the `y` coordinate of the point or `undefined` if point has 2 dimensions.
    */
   constructor(srid, x, y, z) {
     this.srid = assertNumberOrInteger(srid, 'SRID');
@@ -61,7 +61,7 @@ Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
 /**
  * Test if given object is an instance of {@link Point} class.
  * @param {object} obj the object to test.
- * @return {boolean} <code>true</code> if given object is a {@link Point}, <code>false</code> otherwise.
+ * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
  */
 export function isPoint(obj) {
   return (obj && obj[POINT_IDENTIFIER_PROPERTY]) === true;

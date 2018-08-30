@@ -57,8 +57,7 @@ export default class RoutingTable {
   /**
    * Check if this routing table is fresh to perform the required operation.
    * @param {string} accessMode the type of operation. Allowed values are {@link READ} and {@link WRITE}.
-   * @return {boolean} <code>true</code> when this table contains servers to serve the required operation,
-   * <code>false</code> otherwise.
+   * @return {boolean} `true` when this table contains servers to serve the required operation, `false` otherwise.
    */
   isStaleFor(accessMode) {
     return this.expirationTime.lessThan(Date.now()) ||

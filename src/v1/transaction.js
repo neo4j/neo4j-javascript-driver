@@ -52,7 +52,7 @@ class Transaction {
 
   /**
    * Run Cypher statement
-   * Could be called with a statement object i.e.: <code>{text: "MATCH ...", parameters: {param: 1}}</code>
+   * Could be called with a statement object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
@@ -96,7 +96,7 @@ class Transaction {
 
   /**
    * Check if this transaction is active, which means commit and rollback did not happen.
-   * @return {boolean} <code>true</code> when not committed and not rolled back, <code>false</code> otherwise.
+   * @return {boolean} `true` when not committed and not rolled back, `false` otherwise.
    */
   isOpen() {
     return this._state == _states.ACTIVE;
