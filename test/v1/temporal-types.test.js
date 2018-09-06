@@ -27,6 +27,13 @@ import _ from 'lodash';
 const RANDOM_VALUES_TO_TEST = 2000;
 const MIN_TEMPORAL_ARRAY_LENGTH = 20;
 const MAX_TEMPORAL_ARRAY_LENGTH = 1000;
+/**
+ * Duration in neo4j is limited to `Long.MAX_VALUE` when converted to seconds.
+ * This bound should be used for all components of duration, except nanoseconds.
+ * It's a fairly random large value that allows created duration to not overflow.
+ * @type {number}
+ */
+const MAX_DURATION_COMPONENT = 3000000000000;
 const MAX_NANO_OF_SECOND = 999999999;
 const MAX_YEAR = 999999999;
 const MIN_YEAR = -MAX_YEAR;
@@ -993,11 +1000,11 @@ describe('temporal-types', () => {
   }
 
   function randomDuration() {
-    const sign = _.sample([true, false]) ? 1 : -1; // duration can be negative
+    const sign = _.sample([-1, 1]); // duration can be negative
     return duration(
-      sign * _.random(0, Number.MAX_SAFE_INTEGER),
-      sign * _.random(0, Number.MAX_SAFE_INTEGER),
-      sign * _.random(0, Number.MAX_SAFE_INTEGER),
+      sign * _.random(0, MAX_DURATION_COMPONENT),
+      sign * _.random(0, MAX_DURATION_COMPONENT),
+      sign * _.random(0, MAX_DURATION_COMPONENT),
       _.random(0, MAX_NANO_OF_SECOND),
     );
   }
