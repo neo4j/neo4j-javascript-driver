@@ -256,6 +256,117 @@ describe('Bolt V3 API', () => {
       expect(() => session.writeTransaction(tx => tx.run('RETURN 1'), {metadata: invalidValue})).toThrow());
   });
 
+  it('should use bookmarks for auto commit transactions', done => {
+    if (!databaseSupportsBoltV3()) {
+      done();
+      return;
+    }
+
+    const initialBookmark = session.lastBookmark();
+
+    session.run('CREATE ()').then(() => {
+      const bookmark1 = session.lastBookmark();
+      expect(bookmark1).not.toBeNull();
+      expect(bookmark1).toBeDefined();
+      expect(bookmark1).not.toEqual(initialBookmark);
+
+      session.run('CREATE ()').then(() => {
+        const bookmark2 = session.lastBookmark();
+        expect(bookmark2).not.toBeNull();
+        expect(bookmark2).toBeDefined();
+        expect(bookmark2).not.toEqual(initialBookmark);
+        expect(bookmark2).not.toEqual(bookmark1);
+
+        session.run('CREATE ()').then(() => {
+          const bookmark3 = session.lastBookmark();
+          expect(bookmark3).not.toBeNull();
+          expect(bookmark3).toBeDefined();
+          expect(bookmark3).not.toEqual(initialBookmark);
+          expect(bookmark3).not.toEqual(bookmark1);
+          expect(bookmark3).not.toEqual(bookmark2);
+
+          done();
+        });
+      });
+    });
+  });
+
+  it('should use bookmarks for auto commit and explicit transactions', done => {
+    if (!databaseSupportsBoltV3()) {
+      done();
+      return;
+    }
+
+    const initialBookmark = session.lastBookmark();
+
+    const tx1 = session.beginTransaction();
+    tx1.run('CREATE ()').then(() => {
+      tx1.commit().then(() => {
+        const bookmark1 = session.lastBookmark();
+        expect(bookmark1).not.toBeNull();
+        expect(bookmark1).toBeDefined();
+        expect(bookmark1).not.toEqual(initialBookmark);
+
+        session.run('CREATE ()').then(() => {
+          const bookmark2 = session.lastBookmark();
+          expect(bookmark2).not.toBeNull();
+          expect(bookmark2).toBeDefined();
+          expect(bookmark2).not.toEqual(initialBookmark);
+          expect(bookmark2).not.toEqual(bookmark1);
+
+          const tx2 = session.beginTransaction();
+          tx2.run('CREATE ()').then(() => {
+            tx2.commit().then(() => {
+              const bookmark3 = session.lastBookmark();
+              expect(bookmark3).not.toBeNull();
+              expect(bookmark3).toBeDefined();
+              expect(bookmark3).not.toEqual(initialBookmark);
+              expect(bookmark3).not.toEqual(bookmark1);
+              expect(bookmark3).not.toEqual(bookmark2);
+
+              done();
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('should use bookmarks for auto commit transactions and transaction functions', done => {
+    if (!databaseSupportsBoltV3()) {
+      done();
+      return;
+    }
+
+    const initialBookmark = session.lastBookmark();
+
+    session.writeTransaction(tx => tx.run('CREATE ()')).then(() => {
+      const bookmark1 = session.lastBookmark();
+      expect(bookmark1).not.toBeNull();
+      expect(bookmark1).toBeDefined();
+      expect(bookmark1).not.toEqual(initialBookmark);
+
+      session.run('CREATE ()').then(() => {
+        const bookmark2 = session.lastBookmark();
+        expect(bookmark2).not.toBeNull();
+        expect(bookmark2).toBeDefined();
+        expect(bookmark2).not.toEqual(initialBookmark);
+        expect(bookmark2).not.toEqual(bookmark1);
+
+        session.writeTransaction(tx => tx.run('CREATE ()')).then(() => {
+          const bookmark3 = session.lastBookmark();
+          expect(bookmark3).not.toBeNull();
+          expect(bookmark3).toBeDefined();
+          expect(bookmark3).not.toEqual(initialBookmark);
+          expect(bookmark3).not.toEqual(bookmark1);
+          expect(bookmark3).not.toEqual(bookmark2);
+
+          done();
+        });
+      });
+    });
+  });
+
   function testTransactionMetadataWithTransactionFunctions(read, done) {
     if (!databaseSupportsBoltV3()) {
       done();

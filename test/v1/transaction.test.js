@@ -233,8 +233,11 @@ describe('transaction', () => {
       return;
     }
 
-    const tx = session.beginTransaction();
+    // new session without initial bookmark
+    session = driver.session();
     expect(session.lastBookmark()).toBeNull();
+
+    const tx = session.beginTransaction();
     tx.run("CREATE (:TXNode1)").then(() => {
       tx.run("CREATE (:TXNode2)").then(() => {
         tx.commit().then(() => {
@@ -250,9 +253,11 @@ describe('transaction', () => {
       return;
     }
 
+    // new session without initial bookmark
+    session = driver.session();
     expect(session.lastBookmark()).toBeNull();
-    const tx1 = session.beginTransaction();
 
+    const tx1 = session.beginTransaction();
     tx1.run('CREATE ()').then(() => {
       tx1.commit().then(() => {
         expectValidLastBookmark(session);
@@ -283,7 +288,10 @@ describe('transaction', () => {
       return;
     }
 
+    // new session without initial bookmark
+    session = driver.session();
     expect(session.lastBookmark()).toBeNull();
+
     const tx1 = session.beginTransaction();
 
     tx1.run('CREATE ()').then(() => {

@@ -89,7 +89,7 @@ class Session {
   }
 
   _run(statement, parameters, statementRunner) {
-    const streamObserver = new StreamObserver();
+    const streamObserver = new SessionStreamObserver(this);
     const connectionHolder = this._connectionHolderWithMode(this._mode);
     if (!this._hasTx) {
       connectionHolder.initializeConnection();
@@ -209,7 +209,6 @@ class Session {
   /**
    * Update value of the last bookmark.
    * @param {Bookmark} newBookmark the new bookmark.
-   * @private
    */
   _updateBookmark(newBookmark) {
     if (newBookmark && !newBookmark.isEmpty()) {
@@ -244,6 +243,23 @@ class Session {
     } else {
       throw newError('Unknown access mode: ' + mode);
     }
+  }
+}
+
+/**
+ * @private
+ */
+class SessionStreamObserver extends StreamObserver {
+
+  constructor(session) {
+    super();
+    this._session = session;
+  }
+
+  onCompleted(meta) {
+    super.onCompleted(meta);
+    const bookmark = new Bookmark(meta.bookmark);
+    this._session._updateBookmark(bookmark);
   }
 }
 

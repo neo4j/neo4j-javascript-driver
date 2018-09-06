@@ -583,7 +583,9 @@ describe('session', () => {
       return;
     }
 
-    const bookmarkBefore = session.lastBookmark();
+    // new session without initial bookmark
+    session = driver.session();
+    expect(session.lastBookmark()).toBeNull();
 
     const tx = session.beginTransaction();
     tx.run('RETURN 42 as answer').then(result => {
@@ -592,11 +594,7 @@ describe('session', () => {
       expect(records[0].get('answer').toNumber()).toEqual(42);
 
       tx.commit().then(() => {
-        const bookmarkAfter = session.lastBookmark();
-        expect(bookmarkAfter).toBeDefined();
-        expect(bookmarkAfter).not.toBeNull();
-        expect(bookmarkAfter).not.toEqual(bookmarkBefore);
-
+        verifyBookmark(session.lastBookmark());
         done();
       });
     });
@@ -631,12 +629,10 @@ describe('session', () => {
     tx.run('CREATE ()').then(() => {
       tx.commit().then(() => {
         const bookmarkBefore = session.lastBookmark();
-        expect(bookmarkBefore).toBeDefined();
-        expect(bookmarkBefore).not.toBeNull();
+        verifyBookmark(bookmarkBefore);
 
         session.run('CREATE ()').then(() => {
-          const bookmarkAfter = session.lastBookmark();
-          expect(bookmarkAfter).toEqual(bookmarkBefore);
+          verifyBookmark(session.lastBookmark());
           done();
         });
       });
@@ -648,17 +644,16 @@ describe('session', () => {
       return;
     }
 
-    const bookmarkBefore = session.lastBookmark();
+    // new session without initial bookmark
+    session = driver.session();
+    expect(session.lastBookmark()).toBeNull();
+
     const resultPromise = session.readTransaction(tx => tx.run('RETURN 42 AS answer'));
 
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1);
       expect(result.records[0].get('answer').toNumber()).toEqual(42);
-
-      const bookmarkAfter = session.lastBookmark();
-      verifyBookmark(bookmarkAfter);
-      expect(bookmarkAfter).not.toEqual(bookmarkBefore);
-
+      verifyBookmark(session.lastBookmark());
       done();
     });
   });
