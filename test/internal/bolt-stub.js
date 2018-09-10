@@ -111,12 +111,10 @@ class StubServer {
   }
 }
 
-function newDriver(url) {
+function newDriver(url, config = {}) {
   // boltstub currently does not support encryption, create driver with encryption turned off
-  const config = {
-    encrypted: 'ENCRYPTION_OFF'
-  };
-  return neo4j.driver(url, sharedNeo4j.authToken, config);
+  const newConfig = Object.assign({encrypted: 'ENCRYPTION_OFF'}, config);
+  return neo4j.driver(url, sharedNeo4j.authToken, newConfig);
 }
 
 const supportedStub = SupportedBoltStub.create();

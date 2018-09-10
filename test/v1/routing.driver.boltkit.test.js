@@ -21,7 +21,7 @@ import neo4j from '../../src/v1';
 import {READ, WRITE} from '../../src/v1/driver';
 import boltStub from '../internal/bolt-stub';
 import RoutingTable from '../../src/v1/internal/routing-table';
-import {SESSION_EXPIRED} from '../../src/v1/error';
+import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
 import lolex from 'lolex';
 
 describe('routing driver with stub server', () => {
@@ -1915,6 +1915,89 @@ describe('routing driver with stub server', () => {
     testAddressPurgeOnDatabaseError(`RETURN 1`, READ, done);
   });
 
+  it('should use resolver function that returns array during first discovery', done => {
+    testResolverFunctionDuringFirstDiscovery(['127.0.0.1:9010'], done);
+  });
+
+  it('should use resolver function that returns promise during first discovery', done => {
+    testResolverFunctionDuringFirstDiscovery(Promise.resolve(['127.0.0.1:9010']), done);
+  });
+
+  it('should fail first discovery when configured resolver function throws', done => {
+    const failureFunction = () => {
+      throw new Error('Broken resolver');
+    };
+    testResolverFunctionFailureDuringFirstDiscovery(failureFunction, null, 'Broken resolver', done);
+  });
+
+  it('should fail first discovery when configured resolver function returns no addresses', done => {
+    const failureFunction = () => {
+      return [];
+    };
+    testResolverFunctionFailureDuringFirstDiscovery(failureFunction, SERVICE_UNAVAILABLE, 'No routing servers available', done);
+  });
+
+  it('should fail first discovery when configured resolver function returns a string instead of array of addresses', done => {
+    const failureFunction = () => {
+      return 'Hello';
+    };
+    testResolverFunctionFailureDuringFirstDiscovery(failureFunction, null, 'Configured resolver function should either return an array of addresses', done);
+  });
+
+  it('should use resolver function during rediscovery when existing routers fail', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const router1 = boltStub.start('./test/resources/boltstub/get_routing_table.script', 9001);
+    const router2 = boltStub.start('./test/resources/boltstub/acquire_endpoints.script', 9042);
+    const reader = boltStub.start('./test/resources/boltstub/read_server.script', 9005);
+
+    boltStub.run(() => {
+      const resolverFunction = address => {
+        if (address === '127.0.0.1:9001') {
+          return ['127.0.0.1:9010', '127.0.0.1:9011', '127.0.0.1:9042'];
+        }
+        throw new Error(`Unexpected address ${address}`);
+      };
+
+      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001', {resolver: resolverFunction});
+
+      const session = driver.session(READ);
+      // run a query that should trigger discovery against 9001 and then read from it
+      session.run('MATCH (n) RETURN n.name AS name')
+        .then(result => {
+          expect(result.records.map(record => record.get(0))).toEqual(['Alice', 'Bob', 'Eve']);
+
+          // 9001 should now exit and read transaction should fail to read from all existing readers
+          // it should then rediscover using addresses from resolver, only 9042 of them works and can respond with table containing reader 9005
+          session.readTransaction(tx => tx.run('MATCH (n) RETURN n.name'))
+            .then(result => {
+              expect(result.records.map(record => record.get(0))).toEqual(['Bob', 'Alice', 'Tina']);
+
+              assertHasRouters(driver, ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003']);
+              assertHasReaders(driver, ['127.0.0.1:9005', '127.0.0.1:9006']);
+              assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008']);
+
+              session.close(() => {
+                driver.close();
+                router1.exit(code1 => {
+                  router2.exit(code2 => {
+                    reader.exit(code3 => {
+                      expect(code1).toEqual(0);
+                      expect(code2).toEqual(0);
+                      expect(code3).toEqual(0);
+                      done();
+                    });
+                  });
+                });
+              });
+            }).catch(done.fail);
+        }).catch(done.fail);
+    });
+  });
+
   function testAddressPurgeOnDatabaseError(query, accessMode, done) {
     if (!boltStub.supported) {
       done();
@@ -2144,6 +2227,74 @@ describe('routing driver with stub server', () => {
 
   function numberOfOpenConnections(driver) {
     return Object.keys(driver._openConnections).length;
+  }
+
+  function testResolverFunctionDuringFirstDiscovery(resolutionResult, done) {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const router = boltStub.start('./test/resources/boltstub/acquire_endpoints.script', 9010);
+    const reader = boltStub.start('./test/resources/boltstub/read_server.script', 9005);
+
+    boltStub.run(() => {
+      const resolverFunction = address => {
+        if (address === 'neo4j.com:7687') {
+          return resolutionResult;
+        }
+        throw new Error(`Unexpected address ${address}`);
+      };
+
+      const driver = boltStub.newDriver('bolt+routing://neo4j.com', {resolver: resolverFunction});
+
+      const session = driver.session(READ);
+      session.run('MATCH (n) RETURN n.name')
+        .then(result => {
+          expect(result.records.map(record => record.get(0))).toEqual(['Bob', 'Alice', 'Tina']);
+          session.close(() => {
+            driver.close();
+
+            router.exit(code1 => {
+              reader.exit(code2 => {
+                expect(code1).toEqual(0);
+                expect(code2).toEqual(0);
+                done();
+              });
+            });
+          });
+        })
+        .catch(done.fail);
+    });
+  }
+
+  function testResolverFunctionFailureDuringFirstDiscovery(failureFunction, expectedCode, expectedMessage, done) {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const resolverFunction = address => {
+      if (address === 'neo4j.com:8989') {
+        return failureFunction();
+      }
+      throw new Error('Unexpected address');
+    };
+
+    const driver = boltStub.newDriver('bolt+routing://neo4j.com:8989', {resolver: resolverFunction});
+    const session = driver.session();
+
+    session.run('RETURN 1')
+      .then(result => done.fail(result))
+      .catch(error => {
+        if (expectedCode) {
+          expect(error.code).toEqual(expectedCode);
+        }
+        if (expectedMessage) {
+          expect(error.message.indexOf(expectedMessage)).toBeGreaterThan(-1);
+        }
+        done();
+      });
   }
 
   class MemorizingRoutingTable extends RoutingTable {
