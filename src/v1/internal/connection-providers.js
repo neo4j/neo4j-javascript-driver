@@ -62,15 +62,15 @@ export class DirectConnectionProvider extends ConnectionProvider {
 
 export class LoadBalancer extends ConnectionProvider {
 
-  constructor(hostPort, routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback, log) {
+  constructor(hostPort, routingContext, connectionPool, loadBalancingStrategy, hostNameResolver, driverOnErrorCallback, log) {
     super();
     this._seedRouter = hostPort;
     this._routingTable = new RoutingTable([this._seedRouter]);
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext));
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
-    this._hostNameResolver = LoadBalancer._createHostNameResolver();
     this._loadBalancingStrategy = loadBalancingStrategy;
+    this._hostNameResolver = hostNameResolver;
     this._log = log;
     this._useSeedRouter = false;
   }
@@ -175,7 +175,8 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   _fetchRoutingTableUsingSeedRouter(seenRouters, seedRouter) {
-    return this._hostNameResolver.resolve(seedRouter).then(resolvedRouterAddresses => {
+    const resolvedAddresses = this._hostNameResolver.resolve(seedRouter);
+    return resolvedAddresses.then(resolvedRouterAddresses => {
       // filter out all addresses that we've already tried
       const newAddresses = resolvedRouterAddresses.filter(address => seenRouters.indexOf(address) < 0);
       return this._fetchRoutingTable(newAddresses, null);

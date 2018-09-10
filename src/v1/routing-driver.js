@@ -23,6 +23,8 @@ import {LoadBalancer} from './internal/connection-providers';
 import LeastConnectedLoadBalancingStrategy, {LEAST_CONNECTED_STRATEGY_NAME} from './internal/least-connected-load-balancing-strategy';
 import RoundRobinLoadBalancingStrategy, {ROUND_ROBIN_STRATEGY_NAME} from './internal/round-robin-load-balancing-strategy';
 import ConnectionErrorHandler from './internal/connection-error-handler';
+import hasFeature from './internal/features';
+import {ConfiguredHostNameResolver, DnsHostNameResolver, DummyHostNameResolver} from './internal/host-name-resolvers';
 
 /**
  * A driver that supports routing in a causal cluster.
@@ -41,7 +43,8 @@ class RoutingDriver extends Driver {
 
   _createConnectionProvider(hostPort, connectionPool, driverOnErrorCallback) {
     const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(this._config, connectionPool);
-    return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, driverOnErrorCallback, this._log);
+    const resolver = createHostNameResolver(this._config);
+    return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, resolver, driverOnErrorCallback, this._log);
   }
 
   _createConnectionErrorHandler() {
@@ -85,12 +88,31 @@ class RoutingDriver extends Driver {
 
 /**
  * @private
+ * @returns {HostNameResolver} new resolver.
+ */
+function createHostNameResolver(config) {
+  if (config.resolver) {
+    return new ConfiguredHostNameResolver(config.resolver);
+  }
+  if (hasFeature('dns_lookup')) {
+    return new DnsHostNameResolver();
+  }
+  return new DummyHostNameResolver();
+}
+
+/**
+ * @private
+ * @returns {object} the given config.
  */
 function validateConfig(config) {
   if (config.trust === 'TRUST_ON_FIRST_USE') {
     throw newError('The chosen trust mode is not compatible with a routing driver');
   }
+  const resolver = config.resolver;
+  if (resolver && typeof resolver !== 'function') {
+    throw new TypeError(`Configured resolver should be a function. Got: ${resolver}`);
+  }
   return config;
 }
 
-export default RoutingDriver
+export default RoutingDriver;

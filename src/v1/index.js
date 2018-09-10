@@ -202,6 +202,20 @@ const logging = {
  *         level: 'info',
  *         logger: (level, message) => console.log(level + ' ' + message)
  *       },
+ *
+ *       // Specify a custom server address resolver function used by the routing driver to resolve the initial address used to create the driver.
+ *       // Such resolution happens:
+ *       //  * during the very first rediscovery when driver is created
+ *       //  * when all the known routers from the current routing table have failed and driver needs to fallback to the initial address
+ *       //
+ *       // In NodeJS environment driver defaults to performing a DNS resolution of the initial address using 'dns' module.
+ *       // In browser environment driver uses the initial address as-is.
+ *       // Value should be a function that takes a single string argument - the initial address. It should return an array of new addresses.
+ *       // Address is a string of shape '<host>:<port>'. Provided function can return either a Promise resolved with an array of addresses
+ *       // or array of addresses directly.
+ *       resolver: function(address) {
+ *         return ['127.0.0.1:8888', 'fallback.db.com:7687'];
+ *       },
  *     }
  *
  * @param {string} url The URL for the Neo4j database, for instance "bolt://localhost"

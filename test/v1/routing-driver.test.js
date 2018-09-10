@@ -21,6 +21,7 @@ import RoundRobinLoadBalancingStrategy from '../../src/v1/internal/round-robin-l
 import LeastConnectedLoadBalancingStrategy from '../../src/v1/internal/least-connected-load-balancing-strategy';
 import RoutingDriver from '../../src/v1/routing-driver';
 import Pool from '../../src/v1/internal/pool';
+import neo4j from '../../src/v1';
 
 describe('RoutingDriver', () => {
 
@@ -41,6 +42,12 @@ describe('RoutingDriver', () => {
 
   it('should fail when unknown strategy is configured', () => {
     expect(() => createStrategy({loadBalancingStrategy: 'wrong'})).toThrow();
+  });
+
+  it('should fail when configured resolver is of illegal type', () => {
+    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: 'string instead of a function'})).toThrowError(TypeError);
+    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: []})).toThrowError(TypeError);
+    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: {}})).toThrowError(TypeError);
   });
 
 });
