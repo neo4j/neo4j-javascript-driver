@@ -177,9 +177,7 @@ let _states = {
       return {result: _newDummyResult(observer, "COMMIT", {}), state: _states.FAILED};
     },
     rollback: (connectionHolder, observer) => {
-      observer.onError({error:
-      "Cannot rollback transaction, because previous statements in the " +
-      "transaction has failed and the transaction has already been rolled back."});
+      observer.markCompleted();
       return {result: _newDummyResult(observer, "ROLLBACK", {}), state: _states.FAILED};
     },
     run: (connectionHolder, observer, statement, parameters) => {

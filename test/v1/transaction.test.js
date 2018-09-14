@@ -527,6 +527,19 @@ describe('transaction', () => {
     tx.rollback().then(() => done());
   });
 
+  it('should allow rollback after failure', done => {
+    const tx = session.beginTransaction();
+    tx.run('WRONG QUERY')
+      .then(() => done.fail('Expected to fail'))
+      .catch(error => {
+        expectSyntaxError(error);
+
+        tx.rollback()
+          .catch(error => done.fail(error))
+          .then(() => done());
+      });
+  });
+
   function expectSyntaxError(error) {
     expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError');
   }

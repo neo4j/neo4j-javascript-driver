@@ -172,6 +172,18 @@ describe('StreamObserver', () => {
     streamObserver.onCompleted({key: 42});
   });
 
+  it('should mark as completed', done => {
+    const streamObserver = new StreamObserver();
+    streamObserver.markCompleted();
+
+    streamObserver.subscribe({
+      onCompleted: metadata => {
+        expect(metadata).toEqual({});
+        done();
+      }
+    });
+  });
+
 });
 
 function newStreamObserver() {

@@ -114,7 +114,7 @@ describe('session', () => {
     const session = driver.session();
     const tx = session.beginTransaction();
     tx.run('INVALID QUERY').catch(() => {
-      tx.rollback().catch(() => {
+      tx.rollback().then(() => {
         session.close(() => {
           driver.close();
           done();
