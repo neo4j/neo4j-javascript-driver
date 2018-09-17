@@ -115,4 +115,11 @@ describe('RequestMessage', () => {
     expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(expectedMetadata)}`);
   });
 
+  it('should create GOODBYE message', () => {
+    const message = RequestMessage.goodbye();
+
+    expect(message.signature).toEqual(0x02);
+    expect(message.fields).toEqual([]);
+    expect(message.toString()).toEqual('GOODBYE');
+  });
 });

@@ -47,6 +47,11 @@ export default class BoltProtocol extends BoltProtocolV2 {
     this._connection.write(message, observer, true);
   }
 
+  prepareToClose(observer) {
+    const message = RequestMessage.goodbye();
+    this._connection.write(message, observer, true);
+  }
+
   beginTransaction(bookmark, txConfig, observer) {
     prepareToHandleSingleResponse(observer);
     const message = RequestMessage.begin(bookmark, txConfig);

@@ -26,6 +26,7 @@ const DISCARD_ALL = 0x2F;     // 0010 1111 // DISCARD_ALL - unused
 const PULL_ALL = 0x3F;        // 0011 1111 // PULL_ALL
 
 const HELLO = 0x01;           // 0000 0001 // HELLO <metadata>
+const GOODBYE = 0x02;         // 0000 0010 // GOODBYE
 const BEGIN = 0x11;           // 0001 0001 // BEGIN <metadata>
 const COMMIT = 0x12;          // 0001 0010 // COMMIT
 const ROLLBACK = 0x13;        // 0001 0011 // ROLLBACK
@@ -125,6 +126,14 @@ export default class RequestMessage {
     return new RequestMessage(RUN, [statement, parameters, metadata],
       () => `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(metadata)}`);
   }
+
+  /**
+   * Get a GOODBYE message.
+   * @return {RequestMessage} the GOODBYE message.
+   */
+  static goodbye() {
+    return GOODBYE_MESSAGE;
+  }
 }
 
 /**
@@ -152,3 +161,4 @@ const PULL_ALL_MESSAGE = new RequestMessage(PULL_ALL, [], () => 'PULL_ALL');
 const RESET_MESSAGE = new RequestMessage(RESET, [], () => 'RESET');
 const COMMIT_MESSAGE = new RequestMessage(COMMIT, [], () => 'COMMIT');
 const ROLLBACK_MESSAGE = new RequestMessage(ROLLBACK, [], () => 'ROLLBACK');
+const GOODBYE_MESSAGE = new RequestMessage(GOODBYE, [], () => 'GOODBYE');
