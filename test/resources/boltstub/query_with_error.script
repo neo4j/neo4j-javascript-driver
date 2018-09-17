@@ -6,6 +6,6 @@ C: PULL_ALL
 S: FAILURE {"code": "Neo.ClientError.Statement.ArithmeticError", "message": "/ by zero"}
 S: IGNORED
 C: RESET
-S: SUCCESS
+S: SUCCESS {}
 C: RESET
-S: SUCCESS
+S: SUCCESS {}
