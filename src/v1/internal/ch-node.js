@@ -20,6 +20,8 @@ import net from 'net';
 import tls from 'tls';
 import fs from 'fs';
 import path from 'path';
+import readline from 'readline';
+import crypto from 'crypto';
 import {EOL} from 'os';
 import {NodeBuffer} from './buf';
 import {ENCRYPTION_OFF, isEmptyObjectOrNull} from './util';
@@ -61,7 +63,7 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
     return cb(null)
   }
   let found = false;
-  require('readline').createInterface({
+  readline.createInterface({
     input: fs.createReadStream(knownHostsPath)
   }).on('line', (line)  => {
     if( !found && line.startsWith( serverId )) {
@@ -180,7 +182,7 @@ const TrustStrategy = {
         return;
       }
 
-      const serverFingerprint = require('crypto').createHash('sha512').update(serverCert.raw).digest("hex");
+      const serverFingerprint = crypto.createHash('sha512').update(serverCert.raw).digest('hex');
       const knownHostsPath = config.knownHostsPath || path.join(userHome(), ".neo4j", "known_hosts");
       const serverId = config.url.hostAndPort;
 
