@@ -70,7 +70,7 @@ try {
 } catch (e) {
 
   // Not on NodeJS, add shim for WebAPI TextEncoder/TextDecoder
-  var textEncoding = require('../../external/text-encoding/index');
+  var textEncoding = require('text-encoding');
   let encoder = new textEncoding.TextEncoder("utf-8");
   let decoder = new textEncoding.TextDecoder("utf-8");
 
