@@ -23,7 +23,7 @@ import {LoadBalancer} from './internal/connection-providers';
 import LeastConnectedLoadBalancingStrategy, {LEAST_CONNECTED_STRATEGY_NAME} from './internal/least-connected-load-balancing-strategy';
 import RoundRobinLoadBalancingStrategy, {ROUND_ROBIN_STRATEGY_NAME} from './internal/round-robin-load-balancing-strategy';
 import ConnectionErrorHandler from './internal/connection-error-handler';
-import hasFeature from './internal/features';
+import Platform from './internal/platform';
 import {ConfiguredHostNameResolver, DnsHostNameResolver, DummyHostNameResolver} from './internal/host-name-resolvers';
 
 /**
@@ -94,7 +94,7 @@ function createHostNameResolver(config) {
   if (config.resolver) {
     return new ConfiguredHostNameResolver(config.resolver);
   }
-  if (hasFeature('dns_lookup')) {
+  if (Platform.dnsLookupAvailable()) {
     return new DnsHostNameResolver();
   }
   return new DummyHostNameResolver();

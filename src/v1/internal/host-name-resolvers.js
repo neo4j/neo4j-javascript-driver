@@ -18,6 +18,7 @@
  */
 
 import urlUtil from './url-util';
+import nodeDns from 'dns';
 
 class HostNameResolver {
 
@@ -54,16 +55,11 @@ export class ConfiguredHostNameResolver extends HostNameResolver {
 
 export class DnsHostNameResolver extends HostNameResolver {
 
-  constructor() {
-    super();
-    this._dns = require('dns');
-  }
-
   resolve(seedRouter) {
     const parsedAddress = urlUtil.parseDatabaseUrl(seedRouter);
 
     return new Promise((resolve) => {
-      this._dns.lookup(parsedAddress.host, {all: true}, (error, addresses) => {
+      nodeDns.lookup(parsedAddress.host, {all: true}, (error, addresses) => {
         if (error) {
           resolve(resolveToItself(seedRouter));
         } else {

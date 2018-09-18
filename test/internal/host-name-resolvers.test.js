@@ -18,7 +18,7 @@
  */
 
 import {DnsHostNameResolver, DummyHostNameResolver} from '../../src/v1/internal/host-name-resolvers';
-import hasFeature from '../../src/v1/internal/features';
+import Platform from '../../src/v1/internal/platform';
 import urlUtil from '../../src/v1/internal/url-util';
 
 describe('DummyHostNameResolver', () => {
@@ -49,7 +49,7 @@ describe('DummyHostNameResolver', () => {
 
 describe('DnsHostNameResolver', () => {
 
-  if (hasFeature('dns_lookup')) {
+  if (Platform.dnsLookupAvailable()) {
 
     let originalTimeout;
 
@@ -122,19 +122,18 @@ describe('DnsHostNameResolver', () => {
       const address = '[2001:4860:4860::8888]:7474';
       testIpAddressResolution(address, address, done);
     });
-
-    function testIpAddressResolution(address, expectedResolvedAddress, done) {
-      const resolver = new DnsHostNameResolver();
-
-      resolver.resolve(address).then(addresses => {
-        expect(addresses.length).toEqual(1);
-        expect(addresses[0]).toEqual(expectedResolvedAddress);
-        done();
-      });
-    }
-
   }
 });
+
+function testIpAddressResolution(address, expectedResolvedAddress, done) {
+  const resolver = new DnsHostNameResolver();
+
+  resolver.resolve(address).then(addresses => {
+    expect(addresses.length).toEqual(1);
+    expect(addresses[0]).toEqual(expectedResolvedAddress);
+    done();
+  });
+}
 
 function expectToBeDefined(value) {
   expect(value).toBeDefined();

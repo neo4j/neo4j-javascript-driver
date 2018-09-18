@@ -23,15 +23,15 @@
 import {alloc, CombinedBuffer, HeapBuffer, NodeBuffer} from './buf';
 import {StringDecoder} from 'string_decoder';
 import {newError} from './../error';
+import textEncoding from 'text-encoding';
+import Platform from './platform';
+import node from 'buffer';
 
 let platformObj = {};
 
+if (Platform.nodeBufferAvailable()) {
 
-try {
-  // This will throw an exception is 'buffer' is not available
-  require.resolve("buffer");
   const decoder = new StringDecoder('utf8');
-  const node = require('buffer');
 
   // use static factory function present in newer NodeJS versions to create a buffer containing the given string
   // or fallback to the old, potentially deprecated constructor
@@ -67,10 +67,8 @@ try {
     }
   }
 
-} catch (e) {
+} else {
 
-  // Not on NodeJS, add shim for WebAPI TextEncoder/TextDecoder
-  var textEncoding = require('text-encoding');
   let encoder = new textEncoding.TextEncoder("utf-8");
   let decoder = new textEncoding.TextDecoder("utf-8");
 
@@ -83,7 +81,7 @@ try {
         return decoder.decode(buffer.readView(Math.min(length, buffer.length - buffer.position)));
       }
       else {
-        // Decoding combined buffer is complicated. For simplicity, for now, 
+        // Decoding combined buffer is complicated. For simplicity, for now,
         // we simply copy the combined buffer into a regular buffer and decode that.
         var tmpBuf = alloc(length);
         for (var i = 0; i < length; i++) {
@@ -94,6 +92,7 @@ try {
       }
     }
   }
+
 }
 
 let streamDecodeCombinedBuffer = (combinedBuffers, length, decodeFn, endFn) => {

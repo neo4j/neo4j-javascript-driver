@@ -16,13 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-/** This module defines a common API for dealing with binary data that
-  * works for both browsers (via ArrayBuffer/DataView) and for NodeJS
-  *(via Buffer API).
-  */
 
-let _node = require("buffer");
+import Platform from './platform';
+import node from 'buffer';
+
+/**
+ * This module defines a common API for dealing with binary data that
+ * works for both browsers (via ArrayBuffer/DataView) and for NodeJS
+ *(via Buffer API).
+ */
+
 /**
   * Common base with default implementation for most buffer methods.
   * Buffers are stateful - they track a current "position", this helps greatly
@@ -513,7 +516,7 @@ class CombinedBuffer extends BaseBuffer {
  */
 class NodeBuffer extends BaseBuffer {
   constructor(arg) {
-    const buffer = arg instanceof _node.Buffer ? arg : newNodeJSBuffer(arg);
+    const buffer = newNodeJSBuffer(arg);
     super(buffer.length);
     this._buffer = buffer;
   }
@@ -562,22 +565,18 @@ class NodeBuffer extends BaseBuffer {
 }
 
 function newNodeJSBuffer(arg) {
-  if (typeof arg === 'number' && typeof _node.Buffer.alloc === 'function') {
+  if (arg instanceof node.Buffer) {
+    return arg;
+  } else if (typeof arg === 'number' && typeof node.Buffer.alloc === 'function') {
     // use static factory function present in newer NodeJS versions to allocate new buffer with specified size
-    return _node.Buffer.alloc(arg);
+    return node.Buffer.alloc(arg);
   } else {
     // fallback to the old, potentially deprecated constructor
-    return new _node.Buffer(arg);
+    return new node.Buffer(arg);
   }
 }
 
-// Use HeapBuffer by default, unless Buffer API is available, see below
-let _DefaultBuffer = HeapBuffer;
-try {
-  // This will throw an exception if we're not running on NodeJS or equivalent
-  require.resolve("buffer");
-  _DefaultBuffer = NodeBuffer;
-} catch(e) {}
+const _DefaultBuffer = Platform.nodeBufferAvailable() ? NodeBuffer : HeapBuffer;
 
 /**
  * Allocate a new buffer using whatever mechanism is most sensible for the current platform.

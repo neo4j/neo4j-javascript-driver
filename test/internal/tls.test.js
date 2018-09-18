@@ -21,7 +21,7 @@ import NodeChannel from '../../src/v1/internal/ch-node';
 import neo4j from '../../src/v1';
 import fs from 'fs';
 import path from 'path';
-import hasFeature from '../../src/v1/internal/features';
+import Platform from '../../src/v1/internal/platform';
 import sharedNeo4j from '../internal/shared-neo4j';
 
 describe('trust-signed-certificates', function() {
@@ -101,7 +101,7 @@ describe('trust-all-certificates', function () {
   var driver;
   it('should work with default certificate', function (done) {
     // Assuming we only run this test on NodeJS with TAC support
-    if (!hasFeature("trust_all_certificates")) {
+    if (!Platform.trustAllCertificatesAvailable()) {
       done();
       return;
     }
@@ -221,7 +221,7 @@ describe('trust-on-first-use', function() {
   });
   it("should create known_hosts file including full path if it doesn't exist", function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
-    if( !hasFeature("trust_on_first_use") ) {
+    if (!Platform.trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -260,7 +260,7 @@ describe('trust-on-first-use', function() {
   it('should not throw an error if the host file contains two host duplicates', function(done) {
     'use strict';
     // Assuming we only run this test on NodeJS with TOFU support
-    if( !hasFeature("trust_on_first_use") ) {
+    if (!Platform.trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -299,7 +299,7 @@ describe('trust-on-first-use', function() {
 
   it('should accept previously un-seen hosts', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
-    if( !hasFeature("trust_on_first_use") ) {
+    if (!Platform.trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -327,7 +327,7 @@ describe('trust-on-first-use', function() {
 
   it('should not duplicate fingerprint entries', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
-    if( !hasFeature("trust_on_first_use") ) {
+    if (!Platform.trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -381,7 +381,7 @@ describe('trust-on-first-use', function() {
 
   it('should should give helpful error if database cert does not match stored certificate', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
-    if( !hasFeature("trust_on_first_use") ) {
+    if (!Platform.trustOnFirstUseAvailable()) {
       done();
       return;
     }

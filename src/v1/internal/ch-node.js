@@ -26,6 +26,7 @@ import {EOL} from 'os';
 import {NodeBuffer} from './buf';
 import {ENCRYPTION_OFF, isEmptyObjectOrNull} from './util';
 import {newError} from './../error';
+import Platform from './platform';
 
 let _CONNECTION_IDGEN = 0;
 
@@ -392,13 +393,9 @@ class NodeChannel {
     }
   }
 }
-let _nodeChannelModule = {channel: NodeChannel, available: true};
 
-try {
-  // Only define this module if 'net' is available
-  require.resolve("net");
-} catch(e) {
-  _nodeChannelModule = { available : false };
-}
+const _nodeChannelModule = Platform.nodeSocketAvailable()
+  ? {channel: NodeChannel, available: true}
+  : {available: false};
 
-export default _nodeChannelModule
+export default _nodeChannelModule;

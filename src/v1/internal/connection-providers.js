@@ -22,8 +22,6 @@ import {READ, WRITE} from '../driver';
 import Session from '../session';
 import RoutingTable from './routing-table';
 import Rediscovery from './rediscovery';
-import hasFeature from './features';
-import {DnsHostNameResolver, DummyHostNameResolver} from './host-name-resolvers';
 import RoutingUtil from './routing-util';
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized';
@@ -260,13 +258,6 @@ export class LoadBalancer extends ConnectionProvider {
     if (routingTable && address) {
       routingTable.forgetRouter(address);
     }
-  }
-
-  static _createHostNameResolver() {
-    if (hasFeature('dns_lookup')) {
-      return new DnsHostNameResolver();
-    }
-    return new DummyHostNameResolver();
   }
 }
 

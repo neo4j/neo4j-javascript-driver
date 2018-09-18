@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import hasFeature from './features';
+import Platform from './platform';
 import {SERVICE_UNAVAILABLE} from '../error';
 
 const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 5000; // 5 seconds by default
@@ -45,7 +45,7 @@ function extractEncrypted(driverConfig) {
   // check if encryption was configured by the user, use explicit null check because we permit boolean value
   const encryptionNotConfigured = driverConfig.encrypted == null;
   // default to using encryption if trust-all-certificates is available
-  if (encryptionNotConfigured && hasFeature('trust_all_certificates')) {
+  if (encryptionNotConfigured && Platform.trustAllCertificatesAvailable()) {
     return true;
   }
   return driverConfig.encrypted;
@@ -56,7 +56,7 @@ function extractTrust(driverConfig) {
     return driverConfig.trust;
   }
   // default to using TRUST_ALL_CERTIFICATES if it is available
-  return hasFeature('trust_all_certificates') ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
+  return Platform.trustAllCertificatesAvailable() ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
 }
 
 function extractTrustedCertificates(driverConfig) {

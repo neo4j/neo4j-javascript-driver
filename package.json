@@ -21,6 +21,14 @@
     "browser": "gulp browser && gulp test-browser"
   },
   "main": "lib/index.js",
+  "browser": {
+    "dns": false,
+    "buffer": false,
+    "net": false,
+    "readline": false,
+    "crypto": false,
+    "tls": false
+  },
   "unpkg": "lib/browser/neo4j-web.js",
   "jsdelivr": "lib/browser/neo4j-web.js",
   "types": "types/index.d.ts",
