@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import * as DummyChannel from '../../src/v1/internal/ch-dummy';
+import * as DummyChannel from './ch-dummy';
 import Connection from '../../src/v1/internal/connection';
 import {Packer} from '../../src/v1/internal/packstream-v1';
 import {Chunker} from '../../src/v1/internal/chunking';

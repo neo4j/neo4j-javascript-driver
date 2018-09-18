@@ -17,22 +17,22 @@
  * limitations under the License.
  */
 
-var Record = require("../../lib/v1/record").default;
-var Neo4jError = require("../../lib/v1/error").Neo4jError;
+import Record from '../../src/v1/record';
+import {Neo4jError} from '../../src/v1/error';
 
+describe('Record', () => {
 
-describe('Record', function() {
-  it('should allow getting fields by name', function() {
+  it('should allow getting fields by name', () => {
     // Given
-    var record = new Record( ["name"], ["Bob"] );
+    const record = new Record(['name'], ['Bob']);
 
     // When & Then
     expect(record.get("name")).toEqual("Bob");
   });
 
-  it('should allow checking if fields exist', function() {
+  it('should allow checking if fields exist', () => {
     // Given
-    var record = new Record( ["name"], ["Bob"] );
+    const record = new Record(['name'], ['Bob']);
 
     // When & Then
     expect(record.has("name")).toEqual(true);
@@ -41,12 +41,12 @@ describe('Record', function() {
     expect(record.has(1)).toEqual(false);
   });
 
-  it('should transform Record into Object', function() {
+  it('should transform Record into Object', () => {
     // Given
-    var record = new Record( ["name", "age", "nested"], ["Bob", 20.5, {test: true}] );
+    const record = new Record(['name', 'age', 'nested'], ['Bob', 20.5, {test: true}]);
 
     // When
-    var obj = record.toObject();
+    const obj = record.toObject();
 
     // Then
     expect(obj.name).toEqual("Bob");
@@ -54,47 +54,51 @@ describe('Record', function() {
     expect(obj.nested.test).toEqual(true);
   });
 
-  it('should give helpful error on no such key', function() {
+  it('should give helpful error on no such key', () => {
     // Given
-    var record = new Record( ["name"], ["Bob"] );
+    const record = new Record(['name'], ['Bob']);
 
     // When & Then
-    expect( function() { record.get("age") }).toThrow(new Neo4jError(
+    expect(() => {
+      record.get('age');
+    }).toThrow(new Neo4jError(
       "This record has no field with key 'age', available key are: [name]."));
   });
 
-  it('should allow getting fields by index', function() {
+  it('should allow getting fields by index', () => {
     // Given
-    var record = new Record( ["name"], ["Bob"] );
+    const record = new Record(['name'], ['Bob']);
 
     // When & Then
     expect(record.get(0)).toEqual("Bob");
   });
 
-  it('should give helpful error on no such index', function() {
+  it('should give helpful error on no such index', () => {
     // Given
-    var record = new Record( ["name"], ["Bob"] );
+    const record = new Record(['name'], ['Bob']);
 
     // When & Then
-    expect( function() { record.get(1) }).toThrow(new Neo4jError(
+    expect(() => {
+      record.get(1);
+    }).toThrow(new Neo4jError(
       "This record has no field with index '1'. Remember that indexes start at `0`, " +
       "and make sure your statement returns records in the shape you meant it to."));
   });
 
-  it('should have length', function() {
+  it('should have length', () => {
     // When & Then
     expect( new Record( [], []).length ).toBe(0);
     expect( new Record( ["name"], ["Bob"]).length ).toBe(1);
     expect( new Record( ["name", "age"], ["Bob", 45]).length ).toBe(2);
   });
 
-  it('should allow forEach through the record', function() {
+  it('should allow forEach through the record', () => {
     // Given
-    var record = new Record( ["name", "age"], ["Bob", 45] );
-    var result = [];
+    const record = new Record(['name', 'age'], ['Bob', 45]);
+    const result = [];
 
     // When
-    record.forEach( function( value, key, record ) {
+    record.forEach((value, key, record) => {
       result.push( [value, key, record] );
     });
 

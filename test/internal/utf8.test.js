@@ -16,92 +16,93 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-var utf8 = require('../../lib/v1/internal/utf8').default;
-var buffers = require('../../lib/v1/internal/buf');
 
-describe('utf8', function() {
-  it('should have a nice clean buffer position after serializing', function() {
+import {alloc, CombinedBuffer} from '../../src/v1/internal/buf';
+import utf8 from '../../src/v1/internal/utf8';
+
+describe('utf8', () => {
+
+  it('should have a nice clean buffer position after serializing', () => {
     // When
-    var buffer = utf8.encode("hello, world!");
+    const buffer = utf8.encode('hello, world!');
 
     // Then
     expect( buffer.position ).toBe( 0 );
   });
 
-  it('should respect position of single buffer', function() {
+  it('should respect position of single buffer', () => {
     // When
-    var buffer = utf8.encode("hello, world!");
+    const buffer = utf8.encode('hello, world!');
     buffer.readInt8();
-    var decoded = utf8.decode(buffer, buffer.length - 1);
+    const decoded = utf8.decode(buffer, buffer.length - 1);
     // Then
     expect( decoded ).toBe( "ello, world!" );
     expect(buffer.position).toEqual(13)
   });
 
 
-  it('should be able to decode substring', function() {
+  it('should be able to decode substring', () => {
     // When
-    var buffer = utf8.encode("hello, world!");
+    const buffer = utf8.encode('hello, world!');
     buffer.readInt8();
-    var decoded = utf8.decode(buffer, 3);
+    const decoded = utf8.decode(buffer, 3);
     // Then
     expect( decoded ).toBe( "ell" );
     expect(buffer.position).toEqual(4)
   });
 
-  it('should read/write utf8', function() {
+  it('should read/write utf8', () => {
     expect( packAndUnpack( "" ) ).toBe( "" );
     expect( packAndUnpack( "åäö123" ) ).toBe( "åäö123"  );
   });
 
-  it('should decode utf8 from a complete combined buffer', function() {
+  it('should decode utf8 from a complete combined buffer', () => {
     // Given
-    var msg = "asåfqwer";
-    var buf = utf8.encode(msg);
-    var bufa = buf.readSlice(3);
-    var bufb = buf.readSlice(3);
-    var bufc = buf.readSlice(3);
-    var combined = new buffers.CombinedBuffer( [bufa, bufb, bufc] );
+    const msg = 'asåfqwer';
+    const buf = utf8.encode(msg);
+    const bufa = buf.readSlice(3);
+    const bufb = buf.readSlice(3);
+    const bufc = buf.readSlice(3);
+    const combined = new CombinedBuffer([bufa, bufb, bufc]);
 
     // When
-    var decoded = utf8.decode(combined, combined.length);
+    const decoded = utf8.decode(combined, combined.length);
 
     // Then
     expect(decoded).toBe(msg);
   });
 
-  it('should decode utf8 from part of a combined buffer', function() {
+  it('should decode utf8 from part of a combined buffer', () => {
     // Given
-    var msg = "asåfq";
-    var expectMsg = msg.substring(0, msg.length-1);
-    var buf = utf8.encode(msg);
-    var bufa = buf.readSlice(3);
-    var bufb = buf.readSlice(3);
-    var unrelatedData = buffers.alloc(3);
-    var combined = new buffers.CombinedBuffer( [bufa, bufb, unrelatedData] );
+    const msg = 'asåfq';
+    const expectMsg = msg.substring(0, msg.length - 1);
+    const buf = utf8.encode(msg);
+    const bufa = buf.readSlice(3);
+    const bufb = buf.readSlice(3);
+    const unrelatedData = alloc(3);
+    const combined = new CombinedBuffer([bufa, bufb, unrelatedData]);
 
     // When 
     // We read all but the unrelatedData and the last character of bufb
-    var decoded = utf8.decode(combined, combined.length - 1 - unrelatedData.length );
+    const decoded = utf8.decode(combined, combined.length - 1 - unrelatedData.length);
 
     // Then
     expect(decoded).toBe(expectMsg);
   });
 
-  it('should respect the position in the combined buffer', function() {
+  it('should respect the position in the combined buffer', () => {
     // Given
-    var msg = "abcdefgh";
-    var buf = utf8.encode(msg);
-    var bufa = buf.readSlice(4);
-    var bufb = buf.readSlice(4);
-    var combined = new buffers.CombinedBuffer( [bufa, bufb] );
+    const msg = 'abcdefgh';
+    const buf = utf8.encode(msg);
+    const bufa = buf.readSlice(4);
+    const bufb = buf.readSlice(4);
+    const combined = new CombinedBuffer([bufa, bufb]);
     //move position forward
     combined.readInt8();
     combined.readInt8();
 
     // When
-    var decoded = utf8.decode(combined, combined.length - 2);
+    const decoded = utf8.decode(combined, combined.length - 2);
 
 
     // Then
@@ -109,14 +110,14 @@ describe('utf8', function() {
     expect(combined.position).toBe(8)
   });
 
-  it('should be able to decode a substring in a combined buffer across buffers', function() {
+  it('should be able to decode a substring in a combined buffer across buffers', () => {
     // Given
-    var msg = "abcdefghijkl";
-    var buf = utf8.encode(msg);
-    var bufa = buf.readSlice(4);
-    var bufb = buf.readSlice(4);
-    var bufc = buf.readSlice(4);
-    var combined = new buffers.CombinedBuffer( [bufa, bufb, bufc] );
+    const msg = 'abcdefghijkl';
+    const buf = utf8.encode(msg);
+    const bufa = buf.readSlice(4);
+    const bufb = buf.readSlice(4);
+    const bufc = buf.readSlice(4);
+    const combined = new CombinedBuffer([bufa, bufb, bufc]);
     //move position forward
     combined.readInt8();
     combined.readInt8();
@@ -125,21 +126,21 @@ describe('utf8', function() {
     combined.readInt8();
 
     // When
-    var decoded = utf8.decode(combined, 4);
+    const decoded = utf8.decode(combined, 4);
 
     // Then
     expect(decoded).toBe("fghi");
     expect(combined.position).toBe(9)
   });
 
-  it('should be able to decode a substring in a combined within buffer', function() {
+  it('should be able to decode a substring in a combined within buffer', () => {
     // Given
-    var msg = "abcdefghijkl";
-    var buf = utf8.encode(msg);
-    var bufa = buf.readSlice(4);
-    var bufb = buf.readSlice(4);
-    var bufc = buf.readSlice(4);
-    var combined = new buffers.CombinedBuffer( [bufa, bufb, bufc] );
+    const msg = 'abcdefghijkl';
+    const buf = utf8.encode(msg);
+    const bufa = buf.readSlice(4);
+    const bufb = buf.readSlice(4);
+    const bufc = buf.readSlice(4);
+    const combined = new CombinedBuffer([bufa, bufb, bufc]);
     //move position forward
     combined.readInt8();
     combined.readInt8();
@@ -148,7 +149,7 @@ describe('utf8', function() {
     combined.readInt8();
 
     // When
-    var decoded = utf8.decode(combined, 2);
+    const decoded = utf8.decode(combined, 2);
 
     // Then
     expect(decoded).toBe("fg");
@@ -157,6 +158,6 @@ describe('utf8', function() {
 });
 
 function packAndUnpack( str ) {
-  var buffer = utf8.encode( str );
+  const buffer = utf8.encode(str);
   return utf8.decode( buffer, buffer.length );
 }

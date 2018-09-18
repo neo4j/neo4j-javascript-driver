@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {CombinedBuffer} from './buf';
+import {CombinedBuffer} from '../../src/v1/internal/buf';
 
 const observer = {
   instance: null,
