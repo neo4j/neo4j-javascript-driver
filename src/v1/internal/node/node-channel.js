@@ -23,10 +23,10 @@ import path from 'path';
 import readline from 'readline';
 import crypto from 'crypto';
 import {EOL} from 'os';
-import {NodeBuffer} from './buf';
-import {ENCRYPTION_OFF, isEmptyObjectOrNull} from './util';
-import {newError} from './../error';
-import Platform from './platform';
+import NodeBuffer from './node-buf';
+import {ENCRYPTION_OFF, ENCRYPTION_ON, isEmptyObjectOrNull} from '../util';
+import {newError} from '../../error';
+import Feature from '../feature';
 
 let _CONNECTION_IDGEN = 0;
 
@@ -243,12 +243,11 @@ const TrustStrategy = {
  * @return {*} socket connection.
  */
 function connect( config, onSuccess, onFailure=(()=>null) ) {
-  //still allow boolean for backwards compatibility
-  if (config.encrypted === false || config.encrypted === ENCRYPTION_OFF) {
+  if (!isEncrypted(config)) {
     var conn = net.connect(config.url.port, config.url.host, onSuccess);
     conn.on('error', onFailure);
     return conn;
-  } else if( TrustStrategy[config.trust]) {
+  } else if (TrustStrategy[trustStrategyName(config)]) {
     return TrustStrategy[config.trust](config, onSuccess, onFailure);
   } else {
     onFailure(newError("Unknown trust strategy: " + config.trust + ". Please use either " +
@@ -259,6 +258,23 @@ function connect( config, onSuccess, onFailure=(()=>null) ) {
       "the driver does not verify that the peer it is connected to is really Neo4j, it " +
       "is very easy for an attacker to bypass the encryption by pretending to be Neo4j."));
   }
+}
+
+function isEncrypted(config) {
+  const encryptionNotConfigured = config.encrypted == null || config.encrypted === undefined;
+  if (encryptionNotConfigured && Feature.trustAllCertificatesAvailable()) {
+    // default to using encryption if trust-all-certificates is available
+    return true;
+  }
+  return config.encrypted === true || config.encrypted === ENCRYPTION_ON;
+}
+
+function trustStrategyName(config) {
+  if (config.trust) {
+    return config.trust;
+  }
+  // default to using TRUST_ALL_CERTIFICATES if it is available
+  return Feature.trustAllCertificatesAvailable() ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
 }
 
 /**
@@ -280,7 +296,7 @@ function newTlsOptions(hostname, ca = undefined) {
  * as transport.
  * @access private
  */
-class NodeChannel {
+export default class NodeChannel {
 
   /**
    * Create new instance
@@ -393,9 +409,3 @@ class NodeChannel {
     }
   }
 }
-
-const _nodeChannelModule = Platform.nodeSocketAvailable()
-  ? {channel: NodeChannel, available: true}
-  : {available: false};
-
-export default _nodeChannelModule;

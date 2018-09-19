@@ -17,10 +17,11 @@
  * limitations under the License.
  */
 
-import Feature from './feature';
-import nodeCodec from './node/node-utf8';
-import browserCodec from './browser/browser-utf8';
+import {HostNameResolver} from '../host-name-resolver';
 
-const exportObject = Feature.nodeBufferAvailable() ? nodeCodec : browserCodec;
+export default class BrowserHostNameResolver extends HostNameResolver {
 
-export default exportObject;
+  resolve(address) {
+    return this._resolveToItself(address);
+  }
+}

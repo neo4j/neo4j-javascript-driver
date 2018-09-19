@@ -1,0 +1,60 @@
+/**
+ * Copyright (c) 2002-2018 "Neo4j,"
+ * Neo4j Sweden AB [http://neo4j.com]
+ *
+ * This file is part of Neo4j.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import Feature from './feature';
+import NodeHostNameResolver from './node/node-host-name-resolver';
+import BrowserHostNameResolver from './browser/browser-host-name-resolver';
+
+export class HostNameResolver {
+
+  resolve() {
+    throw new Error('Abstract function');
+  }
+
+  /**
+   * @protected
+   */
+  _resolveToItself(address) {
+    return Promise.resolve([address]);
+  }
+}
+
+export class ConfiguredHostNameResolver extends HostNameResolver {
+
+  constructor(resolverFunction) {
+    super();
+    this._resolverFunction = resolverFunction;
+  }
+
+  resolve(seedRouter) {
+    return new Promise(resolve => resolve(this._resolverFunction(seedRouter)))
+      .then(resolved => {
+        if (!Array.isArray(resolved)) {
+          throw new TypeError(`Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.` +
+            `Each address is '<host>:<port>'. Got: ${resolved}`);
+        }
+        return resolved;
+      });
+  }
+}
+
+const DefaultHostNameResolver = Feature.dnsLookupAvailable() ? NodeHostNameResolver : BrowserHostNameResolver;
+
+export {
+  DefaultHostNameResolver
+};

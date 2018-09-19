@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import NodeChannel from '../../src/v1/internal/ch-node';
+import NodeChannel from '../../src/v1/internal/node/node-channel';
 import neo4j from '../../src/v1';
 import fs from 'fs';
 import path from 'path';
-import Platform from '../../src/v1/internal/platform';
+import Feature from '../../src/v1/internal/feature';
 import sharedNeo4j from '../internal/shared-neo4j';
 
 describe('trust-signed-certificates', function() {
@@ -101,7 +101,7 @@ describe('trust-all-certificates', function () {
   var driver;
   it('should work with default certificate', function (done) {
     // Assuming we only run this test on NodeJS with TAC support
-    if (!Platform.trustAllCertificatesAvailable()) {
+    if (!Feature.trustAllCertificatesAvailable()) {
       done();
       return;
     }
@@ -221,7 +221,7 @@ describe('trust-on-first-use', function() {
   });
   it("should create known_hosts file including full path if it doesn't exist", function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
-    if (!Platform.trustOnFirstUseAvailable()) {
+    if (!trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -260,7 +260,7 @@ describe('trust-on-first-use', function() {
   it('should not throw an error if the host file contains two host duplicates', function(done) {
     'use strict';
     // Assuming we only run this test on NodeJS with TOFU support
-    if (!Platform.trustOnFirstUseAvailable()) {
+    if (!trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -299,7 +299,7 @@ describe('trust-on-first-use', function() {
 
   it('should accept previously un-seen hosts', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
-    if (!Platform.trustOnFirstUseAvailable()) {
+    if (!trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -327,7 +327,7 @@ describe('trust-on-first-use', function() {
 
   it('should not duplicate fingerprint entries', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
-    if (!Platform.trustOnFirstUseAvailable()) {
+    if (!trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -381,7 +381,7 @@ describe('trust-on-first-use', function() {
 
   it('should should give helpful error if database cert does not match stored certificate', function(done) {
     // Assuming we only run this test on NodeJS with TOFU support
-    if (!Platform.trustOnFirstUseAvailable()) {
+    if (!trustOnFirstUseAvailable()) {
       done();
       return;
     }
@@ -423,4 +423,18 @@ function unMuteConsoleLog(originalLog) {
 
 function neo4jCertPath() {
   return sharedNeo4j.neo4jCertPath(path.join('build', 'neo4j'));
+}
+
+function trustOnFirstUseAvailable() {
+  try {
+    // We are verifying that we have a version of getPeerCertificate
+    // that supports reading the whole certificate, eg this commit:
+    // https://github.com/nodejs/node/commit/345c40b6
+    require.resolve('tls');
+    const getPeerCertificateFunction = require('tls').TLSSocket.prototype.getPeerCertificate;
+    const numberOfParameters = getPeerCertificateFunction.length;
+    return numberOfParameters >= 1;
+  } catch (e) {
+    return false;
+  }
 }

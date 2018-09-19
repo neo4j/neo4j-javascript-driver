@@ -17,43 +17,11 @@
  * limitations under the License.
  */
 
-import urlUtil from './url-util';
+import {HostNameResolver} from '../host-name-resolver';
+import urlUtil from '../url-util';
 import nodeDns from 'dns';
 
-class HostNameResolver {
-
-  resolve() {
-    throw new Error('Abstract function');
-  }
-}
-
-export class DummyHostNameResolver extends HostNameResolver {
-
-  resolve(seedRouter) {
-    return resolveToItself(seedRouter);
-  }
-}
-
-export class ConfiguredHostNameResolver extends HostNameResolver {
-
-  constructor(resolverFunction) {
-    super();
-    this._resolverFunction = resolverFunction;
-  }
-
-  resolve(seedRouter) {
-    return new Promise(resolve => resolve(this._resolverFunction(seedRouter)))
-      .then(resolved => {
-        if (!Array.isArray(resolved)) {
-          throw new TypeError(`Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.` +
-            `Each address is '<host>:<port>'. Got: ${resolved}`);
-        }
-        return resolved;
-      });
-  }
-}
-
-export class DnsHostNameResolver extends HostNameResolver {
+export default class NodeHostNameResolver extends HostNameResolver {
 
   resolve(seedRouter) {
     const parsedAddress = urlUtil.parseDatabaseUrl(seedRouter);
@@ -61,7 +29,7 @@ export class DnsHostNameResolver extends HostNameResolver {
     return new Promise((resolve) => {
       nodeDns.lookup(parsedAddress.host, {all: true}, (error, addresses) => {
         if (error) {
-          resolve(resolveToItself(seedRouter));
+          resolve(this._resolveToItself(seedRouter));
         } else {
           const addressesWithPorts = addresses.map(address => addressWithPort(address, parsedAddress.port));
           resolve(addressesWithPorts);
@@ -69,10 +37,6 @@ export class DnsHostNameResolver extends HostNameResolver {
       });
     });
   }
-}
-
-function resolveToItself(address) {
-  return Promise.resolve([address]);
 }
 
 function addressWithPort(addressObject, port) {

@@ -17,15 +17,15 @@
  * limitations under the License.
  */
 
-import {HeapBuffer} from './buf';
-import {newError} from './../error';
-import {ENCRYPTION_OFF, ENCRYPTION_ON} from './util';
+import HeapBuffer from './browser-buf';
+import {newError} from '../../error';
+import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../util';
 
 /**
  * Create a new WebSocketChannel to be used in web browsers.
  * @access private
  */
-class WebSocketChannel {
+export default class WebSocketChannel {
 
   /**
    * Create new instance
@@ -169,9 +169,6 @@ class WebSocketChannel {
   }
 }
 
-let available = typeof WebSocket !== 'undefined';
-let _websocketChannelModule = {channel: WebSocketChannel, available: available};
-
 function createWebSocket(scheme, parsedUrl) {
   const url = scheme + '://' + parsedUrl.hostAndPort;
 
@@ -305,5 +302,3 @@ function verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol) {
 function detectWebPageProtocol() {
   return window && window.location ? window.location.protocol : null;
 }
-
-export default _websocketChannelModule

@@ -25,7 +25,7 @@ import {DirectConnectionProvider, LoadBalancer} from '../../src/v1/internal/conn
 import Pool from '../../src/v1/internal/pool';
 import LeastConnectedLoadBalancingStrategy from '../../src/v1/internal/least-connected-load-balancing-strategy';
 import Logger from '../../src/v1/internal/logger';
-import {DummyHostNameResolver} from '../../src/v1/internal/host-name-resolvers';
+import {DummyHostNameResolver} from '../../src/v1/internal/host-name-resolver';
 
 const NO_OP_DRIVER_CALLBACK = () => {
 };

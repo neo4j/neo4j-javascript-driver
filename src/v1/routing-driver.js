@@ -23,8 +23,7 @@ import {LoadBalancer} from './internal/connection-providers';
 import LeastConnectedLoadBalancingStrategy, {LEAST_CONNECTED_STRATEGY_NAME} from './internal/least-connected-load-balancing-strategy';
 import RoundRobinLoadBalancingStrategy, {ROUND_ROBIN_STRATEGY_NAME} from './internal/round-robin-load-balancing-strategy';
 import ConnectionErrorHandler from './internal/connection-error-handler';
-import Platform from './internal/platform';
-import {ConfiguredHostNameResolver, DnsHostNameResolver, DummyHostNameResolver} from './internal/host-name-resolvers';
+import {ConfiguredHostNameResolver, DefaultHostNameResolver} from './internal/host-name-resolver';
 
 /**
  * A driver that supports routing in a causal cluster.
@@ -94,10 +93,7 @@ function createHostNameResolver(config) {
   if (config.resolver) {
     return new ConfiguredHostNameResolver(config.resolver);
   }
-  if (Platform.dnsLookupAvailable()) {
-    return new DnsHostNameResolver();
-  }
-  return new DummyHostNameResolver();
+  return new DefaultHostNameResolver();
 }
 
 /**

@@ -19,30 +19,12 @@
 
 import {isEmptyObjectOrNull} from './util';
 
-let _trustOnFirstUseAvailable = null;
 let _trustAllCertificatesAvailable = null;
 let _dnsLookupAvailable = null;
 let _nodeSocketAvailable = null;
 let _nodeBufferAvailable = null;
 
-export default class Platform {
-
-  static trustOnFirstUseAvailable() {
-    if (_trustOnFirstUseAvailable == null) {
-      try {
-        // We are verifying that we have a version of getPeerCertificate
-        // that supports reading the whole certificate, eg this commit:
-        // https://github.com/nodejs/node/commit/345c40b6
-        require.resolve('tls');
-        const getPeerCertificateFunction = require('tls').TLSSocket.prototype.getPeerCertificate;
-        const numberOfParameters = getPeerCertificateFunction.length;
-        _trustOnFirstUseAvailable = numberOfParameters >= 1;
-      } catch (e) {
-        _trustOnFirstUseAvailable = false;
-      }
-    }
-    return _trustOnFirstUseAvailable;
-  }
+export default class Feature {
 
   static trustAllCertificatesAvailable() {
     if (_trustAllCertificatesAvailable == null) {

@@ -22,6 +22,7 @@
   },
   "main": "lib/index.js",
   "browser": {
+    "./lib/v1/internal/utf8.js": "./lib/v1/internal/browser/browser-utf8.js",
     "dns": false,
     "buffer": false,
     "net": false,

@@ -16,11 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import Feature from './feature';
-import nodeCodec from './node/node-utf8';
-import browserCodec from './browser/browser-utf8';
+import NodeChannel from './node/node-channel';
+import WebSocketChannel from './browser/browser-channel';
 
-const exportObject = Feature.nodeBufferAvailable() ? nodeCodec : browserCodec;
+const Channel = Feature.nodeSocketAvailable() ? NodeChannel : WebSocketChannel;
 
-export default exportObject;
+export default Channel;

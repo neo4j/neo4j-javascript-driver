@@ -17,8 +17,9 @@
  * limitations under the License.
  */
 
-import Platform from './platform';
-import node from 'buffer';
+import Feature from './feature';
+import NodeBuffer from './node/node-buf';
+import HeapBuffer from './browser/browser-buf';
 
 /**
  * This module defines a common API for dealing with binary data that
@@ -366,66 +367,6 @@ class BaseBuffer
 }
 
 /**
- * Basic buffer implementation that should work in most any modern JS env.
- * @access private
- */
-class HeapBuffer extends BaseBuffer {
-  constructor (arg) {
-    let buffer = arg instanceof ArrayBuffer ? arg : new ArrayBuffer(arg)
-    super(buffer.byteLength );
-    this._buffer = buffer;
-    this._view = new DataView( this._buffer );
-  }
-
-  putUInt8 ( position, val ) {
-    this._view.setUint8(position, val);
-  }
-
-  getUInt8 ( position ) {
-    return this._view.getUint8(position);
-  }
-
-  putInt8 ( position, val ) {
-    this._view.setInt8(position, val);
-  }
-
-  getInt8 ( position ) {
-    return this._view.getInt8(position);
-  }
-
-  getFloat64 ( position ) {
-    return this._view.getFloat64(position);
-  }
-
-  putFloat64 ( position, val ) {
-    this._view.setFloat64( position, val );
-  }
-
-  getSlice ( start, length ) {
-    if( this._buffer.slice ) {
-      return new HeapBuffer( this._buffer.slice( start, start + length ) );
-    } else {
-      // Some platforms (eg. phantomjs) don't support slice, so fall back to a copy
-      // We do this rather than return a SliceBuffer, because sliceBuffer cannot
-      // be passed to native network write ops etc - we need ArrayBuffer for that
-      let copy = new HeapBuffer(length);
-      for (var i = 0; i < length; i++) {
-        copy.putUInt8( i, this.getUInt8( i + start ) );
-      }
-      return copy;
-    }
-  }
-
-  /** 
-   * Specific to HeapBuffer, this gets a DataView from the
-   * current position and of the specified length. 
-   */
-  readView ( length ) {
-    return new DataView( this._buffer, this._updatePos(length), length );
-  }
-}
-
-/**
  * Represents a view as slice of another buffer.
  * @access private
  */
@@ -510,73 +451,7 @@ class CombinedBuffer extends BaseBuffer {
   }
 }
 
-/**
- * Buffer used in a Node.js environment
- * @access private
- */
-class NodeBuffer extends BaseBuffer {
-  constructor(arg) {
-    const buffer = newNodeJSBuffer(arg);
-    super(buffer.length);
-    this._buffer = buffer;
-  }
-
-  getUInt8 (position) {
-    return this._buffer.readUInt8( position );
-  }
-
-  getInt8 (position) {
-    return this._buffer.readInt8( position );
-  }
-
-  getFloat64 (position) {
-    return this._buffer.readDoubleBE(position);
-  }
-
-  putUInt8 (position, val) {
-    this._buffer.writeUInt8( val, position );
-  }
-
-  putInt8 (position, val) {
-    this._buffer.writeInt8( val, position );
-  }
-
-  putFloat64 ( position, val ) {
-    this._buffer.writeDoubleBE( val, position );
-  }
-
-  putBytes ( position, val ) {
-    if( val instanceof NodeBuffer ) {
-      let bytesToCopy = Math.min( val.length - val.position, this.length - position );
-      val._buffer.copy(
-        this._buffer,
-        position,
-        val.position,
-        val.position + bytesToCopy );
-      val.position += bytesToCopy;
-    } else {
-      super.putBytes(position, val);
-    }
-  };
-
-  getSlice ( start, length ) {
-    return new NodeBuffer( this._buffer.slice( start, start + length ) );
-  }
-}
-
-function newNodeJSBuffer(arg) {
-  if (arg instanceof node.Buffer) {
-    return arg;
-  } else if (typeof arg === 'number' && typeof node.Buffer.alloc === 'function') {
-    // use static factory function present in newer NodeJS versions to allocate new buffer with specified size
-    return node.Buffer.alloc(arg);
-  } else {
-    // fallback to the old, potentially deprecated constructor
-    return new node.Buffer(arg);
-  }
-}
-
-const _DefaultBuffer = Platform.nodeBufferAvailable() ? NodeBuffer : HeapBuffer;
+const DefaultBuffer = Feature.nodeBufferAvailable() ? NodeBuffer : HeapBuffer;
 
 /**
  * Allocate a new buffer using whatever mechanism is most sensible for the current platform.
@@ -585,14 +460,12 @@ const _DefaultBuffer = Platform.nodeBufferAvailable() ? NodeBuffer : HeapBuffer;
  * @return {BaseBuffer} new buffer
  */
 function alloc (size) {
-  return new _DefaultBuffer(size);
+  return new DefaultBuffer(size);
 }
 
 export {
   BaseBuffer,
-  HeapBuffer,
   SliceBuffer,
   CombinedBuffer,
-  NodeBuffer,
   alloc
 }

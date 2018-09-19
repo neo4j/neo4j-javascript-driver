@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import {DnsHostNameResolver, DummyHostNameResolver} from '../../src/v1/internal/host-name-resolvers';
-import Platform from '../../src/v1/internal/platform';
+import {DnsHostNameResolver, DummyHostNameResolver} from '../../src/v1/internal/host-name-resolver';
+import Feature from '../../src/v1/internal/feature';
 import urlUtil from '../../src/v1/internal/url-util';
 
 describe('DummyHostNameResolver', () => {
@@ -49,7 +49,7 @@ describe('DummyHostNameResolver', () => {
 
 describe('DnsHostNameResolver', () => {
 
-  if (Platform.dnsLookupAvailable()) {
+  if (Feature.dnsLookupAvailable()) {
 
     let originalTimeout;
 

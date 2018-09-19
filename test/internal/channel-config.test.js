@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import ChannelConfig from '../../src/v1/internal/ch-config';
+import ChannelConfig from '../../src/v1/internal/channel-config';
 import urlUtil from '../../src/v1/internal/url-util';
-import Platform from '../../src/v1/internal/platform';
+import Feature from '../../src/v1/internal/feature';
 import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
 
 describe('ChannelConfig', () => {
@@ -77,7 +77,7 @@ describe('ChannelConfig', () => {
   it('should use encryption if available but not configured', () => {
     const config = new ChannelConfig(null, {}, '');
 
-    if (Platform.trustAllCertificatesAvailable()) {
+    if (Feature.trustAllCertificatesAvailable()) {
       expect(config.encrypted).toBeTruthy();
     } else {
       expect(config.encrypted).toBeFalsy();
@@ -87,7 +87,7 @@ describe('ChannelConfig', () => {
   it('should use available trust conf when nothing configured', () => {
     const config = new ChannelConfig(null, {}, '');
 
-    const availableTrust = Platform.trustAllCertificatesAvailable() ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
+    const availableTrust = Feature.trustAllCertificatesAvailable() ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
     expect(config.trust).toEqual(availableTrust);
   });
 

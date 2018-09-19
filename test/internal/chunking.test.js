@@ -19,7 +19,7 @@
 
 import {Chunker, Dechunker} from '../../src/v1/internal/chunking';
 import {alloc} from '../../src/v1/internal/buf';
-import {channel} from './ch-dummy';
+import {channel} from './dummy-channel';
 
 const DummyChannel = channel;
 
