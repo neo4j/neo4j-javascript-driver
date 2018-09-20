@@ -20,6 +20,7 @@
 import ChannelConfig from '../../src/v1/internal/channel-config';
 import urlUtil from '../../src/v1/internal/url-util';
 import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
+import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../src/v1/internal/util';
 
 describe('ChannelConfig', () => {
 
@@ -125,6 +126,37 @@ describe('ChannelConfig', () => {
     const config = new ChannelConfig(null, {connectionTimeout: -42}, '');
 
     expect(config.connectionTimeout).toBeNull();
+  });
+
+  it('should validate value of "encrypted" property', () => {
+    expect(new ChannelConfig(null, {encrypted: null}, '').encrypted).toBeNull();
+    expect(new ChannelConfig(null, {encrypted: undefined}, '').encrypted).toBeUndefined();
+    expect(new ChannelConfig(null, {encrypted: true}, '').encrypted).toBeTruthy();
+    expect(new ChannelConfig(null, {encrypted: false}, '').encrypted).toBeFalsy();
+    expect(new ChannelConfig(null, {encrypted: ENCRYPTION_ON}, '').encrypted).toEqual(ENCRYPTION_ON);
+    expect(new ChannelConfig(null, {encrypted: ENCRYPTION_OFF}, '').encrypted).toEqual(ENCRYPTION_OFF);
+
+    expect(() => new ChannelConfig(null, {encrypted: []}, '')).toThrow();
+    expect(() => new ChannelConfig(null, {encrypted: {}}, '')).toThrow();
+    expect(() => new ChannelConfig(null, {encrypted: () => 'Hello'}, '')).toThrow();
+    expect(() => new ChannelConfig(null, {encrypted: 42}, '')).toThrow();
+    expect(() => new ChannelConfig(null, {encrypted: 'Hello'}, '')).toThrow();
+  });
+
+  it('should validate value of "trust" property', () => {
+    expect(new ChannelConfig(null, {trust: null}, '').trust).toBeNull();
+    expect(new ChannelConfig(null, {trust: undefined}, '').trust).toBeUndefined();
+    expect(new ChannelConfig(null, {trust: 'TRUST_ALL_CERTIFICATES'}, '').trust).toEqual('TRUST_ALL_CERTIFICATES');
+    expect(new ChannelConfig(null, {trust: 'TRUST_ON_FIRST_USE'}, '').trust).toEqual('TRUST_ON_FIRST_USE');
+    expect(new ChannelConfig(null, {trust: 'TRUST_SIGNED_CERTIFICATES'}, '').trust).toEqual('TRUST_SIGNED_CERTIFICATES');
+    expect(new ChannelConfig(null, {trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'}, '').trust).toEqual('TRUST_CUSTOM_CA_SIGNED_CERTIFICATES');
+    expect(new ChannelConfig(null, {trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'}, '').trust).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES');
+
+    expect(() => new ChannelConfig(null, {trust: []}, '')).toThrow();
+    expect(() => new ChannelConfig(null, {trust: {}}, '')).toThrow();
+    expect(() => new ChannelConfig(null, {trust: () => 'Trust'}, '')).toThrow();
+    expect(() => new ChannelConfig(null, {trust: 42}, '')).toThrow();
+    expect(() => new ChannelConfig(null, {trust: 'SOME_WRONG_TRUST_STRATEGY'}, '')).toThrow();
   });
 
 });
