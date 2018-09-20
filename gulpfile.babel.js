@@ -38,7 +38,6 @@ var path = require('path');
 var minimist = require('minimist');
 var cucumber = require('gulp-cucumber');
 var install = require("gulp-install");
-var os = require('os');
 var file = require('gulp-file');
 var semver = require('semver');
 var sharedNeo4j = require('./test/internal/shared-neo4j').default;
@@ -138,13 +137,14 @@ gulp.task('all', function(cb){
 
 // prepares directory for package.test.js
 gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
-  var testDir = path.join(os.tmpdir(), 'sandbox');
+  var testDir = path.join('build', 'sandbox');
   fs.emptyDirSync(testDir);
 
   var packageJsonContent = JSON.stringify({
-      "dependencies":{
-          "neo4j-driver" : __dirname
-      }
+    'private': true,
+    'dependencies': {
+      'neo4j-driver': __dirname
+    }
   });
 
   return file('package.json', packageJsonContent, {src:true})

@@ -72,7 +72,8 @@
     "tmp": "0.0.31",
     "typescript": "^2.3.4",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "webpack": "^4.19.1"
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",
