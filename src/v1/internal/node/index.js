@@ -22,6 +22,17 @@ import NodeChannel from './node-channel';
 import NodeHostNameResolver from './node-host-name-resolver';
 import utf8Codec from './node-utf8';
 
+/*
+
+This module exports a set of components to be used in NodeJS environment.
+They are not compatible with browser environment.
+All files that require environment-dependent APIs should import this file by default.
+Imports/requires are replaced at build time with `browser/index.js` when building a browser bundle.
+
+NOTE: exports in this module should have exactly the same names/structure as exports in `browser/index.js`.
+
+ */
+
 export const alloc = arg => new NodeBuffer(arg);
 export const Channel = NodeChannel;
 export const HostNameResolver = NodeHostNameResolver;
