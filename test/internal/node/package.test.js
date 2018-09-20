@@ -20,8 +20,7 @@
 var path = require('path');
 var fs = require('fs');
 var webpack = require('webpack');
-var sharedNeo4j = require('../../test/internal/shared-neo4j').default;
-var testUtils = require('../../test/internal/test-utils').default;
+var sharedNeo4j = require('../shared-neo4j').default;
 
 describe('Package', function () {
 
@@ -34,11 +33,6 @@ describe('Package', function () {
   });
 
   it('should work in NodeJS', function (done) {
-    if (testUtils.isClient()) {
-      done();
-      return;
-    }
-
     var neo4j;
 
     try {
@@ -60,11 +54,6 @@ describe('Package', function () {
   });
 
   it('should work with Webpack', function (done) {
-    if (testUtils.isClient()) {
-      done();
-      return;
-    }
-
     // test project structure:
     // build/sandbox/
     // ├── dist
@@ -111,7 +100,7 @@ describe('Package', function () {
 });
 
 function sandboxPath() {
-  var parts = [__dirname, '..', '..', 'build', 'sandbox'];
+  var parts = [__dirname, '..', '..', '..', 'build', 'sandbox'];
   for (var i = 0; i < arguments.length; i++) {
     parts.push(arguments[i]);
   }
