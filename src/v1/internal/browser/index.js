@@ -17,11 +17,12 @@
  * limitations under the License.
  */
 
-import BaseHostNameResolver from '../resolver/base-host-name-resolver';
+import HeapBuffer from './browser-buf';
+import WebSocketChannel from './browser-channel';
+import BrowserHosNameResolver from './browser-host-name-resolver';
+import utf8Codec from './browser-utf8';
 
-export default class BrowserHostNameResolver extends BaseHostNameResolver {
-
-  resolve(address) {
-    return this._resolveToItself(address);
-  }
-}
+export const alloc = arg => new HeapBuffer(arg);
+export const Channel = WebSocketChannel;
+export const HostNameResolver = BrowserHosNameResolver;
+export const utf8 = utf8Codec;

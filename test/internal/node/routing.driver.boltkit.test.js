@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
-import {READ, WRITE} from '../../src/v1/driver';
-import boltStub from '../internal/bolt-stub';
-import RoutingTable from '../../src/v1/internal/routing-table';
-import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
+import neo4j from '../../../src/v1';
+import {READ, WRITE} from '../../../src/v1/driver';
+import boltStub from '../bolt-stub';
+import RoutingTable from '../../../src/v1/internal/routing-table';
+import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../../src/v1/error';
 import lolex from 'lolex';
 
 describe('routing driver with stub server', () => {

@@ -17,10 +17,13 @@
  * limitations under the License.
  */
 
-import {CombinedBuffer} from '../buf';
+import CombinedBuffer from '../buf/combined-buf';
 import NodeBuffer from '../node/node-buf';
 import {newError} from '../../error';
 import node from 'buffer';
+import {StringDecoder} from 'string_decoder';
+
+const decoder = new StringDecoder('utf8');
 
 function encode(str) {
   return new NodeBuffer(newNodeJSBuffer(str));

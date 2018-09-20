@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Channel from './channel';
+import {Channel} from './node';
 import {Chunker, Dechunker} from './chunking';
 import {newError, PROTOCOL_ERROR} from './../error';
 import ChannelConfig from './channel-config';

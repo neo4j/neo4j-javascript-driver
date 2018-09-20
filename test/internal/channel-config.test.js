@@ -19,7 +19,6 @@
 
 import ChannelConfig from '../../src/v1/internal/channel-config';
 import urlUtil from '../../src/v1/internal/url-util';
-import Feature from '../../src/v1/internal/feature';
 import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
 
 describe('ChannelConfig', () => {
@@ -74,21 +73,16 @@ describe('ChannelConfig', () => {
     expect(config.connectionErrorCode).toEqual(connectionErrorCode);
   });
 
-  it('should use encryption if available but not configured', () => {
+  it('should expose encryption when nothing configured', () => {
     const config = new ChannelConfig(null, {}, '');
 
-    if (Feature.trustAllCertificatesAvailable()) {
-      expect(config.encrypted).toBeTruthy();
-    } else {
-      expect(config.encrypted).toBeFalsy();
-    }
+    expect(config.encrypted).toBeUndefined();
   });
 
-  it('should use available trust conf when nothing configured', () => {
+  it('should expose trust when nothing configured', () => {
     const config = new ChannelConfig(null, {}, '');
 
-    const availableTrust = Feature.trustAllCertificatesAvailable() ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
-    expect(config.trust).toEqual(availableTrust);
+    expect(config.trust).toBeUndefined();
   });
 
   it('should have no trusted certificates when not configured', () => {

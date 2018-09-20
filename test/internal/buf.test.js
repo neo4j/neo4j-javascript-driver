@@ -18,8 +18,8 @@
  */
 
 import {Unpacker} from '../../src/v1/internal/packstream-v1';
-import utf8 from '../../src/v1/internal/utf8';
-import {alloc, CombinedBuffer} from '../../src/v1/internal/buf';
+import CombinedBuffer from '../../src/v1/internal/buf/combined-buf';
+import {alloc, utf8} from '../../src/v1/internal/node';
 
 describe('buffers', () => {
 

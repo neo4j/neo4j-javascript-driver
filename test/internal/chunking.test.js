@@ -18,10 +18,8 @@
  */
 
 import {Chunker, Dechunker} from '../../src/v1/internal/chunking';
-import {alloc} from '../../src/v1/internal/buf';
-import {channel} from './dummy-channel';
-
-const DummyChannel = channel;
+import {alloc} from '../../src/v1/internal/node';
+import DummyChannel from './dummy-channel';
 
 describe('Chunker', () => {
 

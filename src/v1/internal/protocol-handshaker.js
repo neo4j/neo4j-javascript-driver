@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {alloc} from './buf';
+import {alloc} from './node';
 import {newError} from '../error';
 import BoltProtocolV1 from './bolt-protocol-v1';
 import BoltProtocolV2 from './bolt-protocol-v2';
@@ -31,7 +31,7 @@ export default class ProtocolHandshaker {
   /**
    * @constructor
    * @param {Connection} connection the connection owning this protocol.
-   * @param {NodeChannel|WebSocketChannel} channel the network channel.
+   * @param {Channel} channel the network channel.
    * @param {Chunker} chunker the message chunker.
    * @param {boolean} disableLosslessIntegers flag to use native JS numbers.
    * @param {Logger} log the logger.

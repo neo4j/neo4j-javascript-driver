@@ -17,27 +17,29 @@
  * limitations under the License.
  */
 
-import NodeChannel from '../../src/v1/internal/node/node-channel';
-import neo4j from '../../src/v1';
+import neo4j from '../../../src/v1';
 import fs from 'fs';
 import path from 'path';
-import Feature from '../../src/v1/internal/feature';
-import sharedNeo4j from '../internal/shared-neo4j';
+import Feature from '../../../src/v1/internal/feature';
+import sharedNeo4j from '../shared-neo4j';
 
-describe('trust-signed-certificates', function() {
+describe('trust-signed-certificates', () => {
 
-  var driver;
-  var log;
-  beforeEach(function() {
+  let driver;
+  let log;
+
+  beforeEach(() => {
     log = muteConsoleLog();
   });
-  it('should reject unknown certificates', function(done) {
-    // Assuming we only run this test on NodeJS
-    if( !NodeChannel.available ) {
-      done();
-      return;
-    }
 
+  afterEach(() => {
+    if (driver) {
+      driver.close();
+    }
+    unMuteConsoleLog(log);
+  });
+
+  it('should reject unknown certificates', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
@@ -46,19 +48,13 @@ describe('trust-signed-certificates', function() {
     });
 
     // When
-    driver.session().run( "RETURN 1").catch( function(err) {
+    driver.session().run('RETURN 1').catch(err => {
       expect( err.message ).toContain( "Server certificate is not trusted" );
       done();
     });
   });
 
-  it('should accept known certificates', function (done) {
-    // Assuming we only run this test on NodeJS with TOFU support
-    if( !NodeChannel.available ) {
-      done();
-      return;
-    }
-
+  it('should accept known certificates', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
@@ -70,13 +66,7 @@ describe('trust-signed-certificates', function() {
     driver.session().run( "RETURN 1").then( done );
   });
 
-  it('should handle multiple certificates', function(done) {
-    // Assuming we only run this test on NodeJS with TOFU support
-    if( !NodeChannel.available ) {
-      done();
-      return;
-    }
-
+  it('should handle multiple certificates', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
@@ -87,19 +77,19 @@ describe('trust-signed-certificates', function() {
     // When
     driver.session().run( "RETURN 1").then( done );
   });
-
-  afterEach(function(){
-    if( driver ) {
-      driver.close();
-    }
-    unMuteConsoleLog(log);
-  });
 });
 
-describe('trust-all-certificates', function () {
+describe('trust-all-certificates', () => {
 
-  var driver;
-  it('should work with default certificate', function (done) {
+  let driver;
+
+  afterEach(() => {
+    if (driver) {
+      driver.close();
+    }
+  });
+
+  it('should work with default certificate', done => {
     // Assuming we only run this test on NodeJS with TAC support
     if (!Feature.trustAllCertificatesAvailable()) {
       done();
@@ -113,29 +103,24 @@ describe('trust-all-certificates', function () {
     });
 
     // When
-    driver.session().run("RETURN 1").then(function (result) {
+    driver.session().run('RETURN 1').then(result => {
       expect(result.records[0].get(0).toNumber()).toBe(1);
       done();
     });
   });
+});
 
-  afterEach(function () {
+describe('trust-custom-ca-signed-certificates', () => {
+
+  let driver;
+
+  afterEach(() => {
     if (driver) {
       driver.close();
     }
   });
-});
 
-describe('trust-custom-ca-signed-certificates', function() {
-
-  var driver;
-  it('should reject unknown certificates', function(done) {
-    // Assuming we only run this test on NodeJS
-    if( !NodeChannel.available ) {
-      done();
-      return;
-    }
-
+  it('should reject unknown certificates', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
@@ -144,19 +129,13 @@ describe('trust-custom-ca-signed-certificates', function() {
     });
 
     // When
-    driver.session().run( "RETURN 1").catch( function(err) {
+    driver.session().run('RETURN 1').catch(err => {
       expect( err.message ).toContain( "Server certificate is not trusted" );
       done();
     });
   });
 
-  it('should accept known certificates', function(done) {
-    // Assuming we only run this test on NodeJS with TOFU support
-    if( !NodeChannel.available ) {
-      done();
-      return;
-    }
-
+  it('should accept known certificates', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
@@ -167,25 +146,19 @@ describe('trust-custom-ca-signed-certificates', function() {
     // When
     driver.session().run( "RETURN 1").then( done );
   });
+});
 
-  afterEach(function(){
-    if( driver ) {
+describe('trust-system-ca-signed-certificates', () => {
+
+  let driver;
+
+  afterEach(() => {
+    if (driver) {
       driver.close();
     }
   });
-});
 
-describe('trust-system-ca-signed-certificates', function() {
-
-  var driver;
-
-  it('should reject unknown certificates', function(done) {
-    // Assuming we only run this test on NodeJS
-    if( !NodeChannel.available ) {
-      done();
-      return;
-    }
-
+  it('should reject unknown certificates', done => {
     // Given
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: true,
@@ -193,33 +166,30 @@ describe('trust-system-ca-signed-certificates', function() {
     });
 
     // When
-    driver.session().run( "RETURN 1").catch( function(err) {
+    driver.session().run('RETURN 1').catch(err => {
       expect( err.message ).toContain( "Server certificate is not trusted" );
       done();
     });
   });
-
-  afterEach(function () {
-    if (driver) {
-      driver.close();
-    }
-  });
 });
 
-describe('trust-on-first-use', function() {
+describe('trust-on-first-use', () => {
 
-  var driver;
-  var log;
-  beforeEach(function() {
+  let driver;
+  let log;
+
+  beforeEach(() => {
     log = muteConsoleLog();
   });
-  afterEach(function(){
+
+  afterEach(() => {
     unMuteConsoleLog(log);
     if( driver ) {
       driver.close();
     }
   });
-  it("should create known_hosts file including full path if it doesn't exist", function(done) {
+
+  it('should create known_hosts file including full path if it doesn\'t exist', done => {
     // Assuming we only run this test on NodeJS with TOFU support
     if (!trustOnFirstUseAvailable()) {
       done();
@@ -228,8 +198,8 @@ describe('trust-on-first-use', function() {
 
     // Given
     // Non existing directory
-    var knownHostsDir = path.join("build", "hosts");
-    var knownHostsPath = path.join(knownHostsDir, "known_hosts");
+    const knownHostsDir = path.join('build', 'hosts');
+    const knownHostsPath = path.join(knownHostsDir, 'known_hosts');
     try {
       fs.unlinkSync(knownHostsPath);
     } catch (_) { }
@@ -244,12 +214,14 @@ describe('trust-on-first-use', function() {
     });
 
     // When
-    driver.session().run( "RETURN 1").then( function() {
+    driver.session().run('RETURN 1').then(() => {
       // Then we get to here.
       // And then the known_hosts file should have been created
-      expect( function() { fs.accessSync(knownHostsPath) }).not.toThrow()
+      expect(() => {
+        fs.accessSync(knownHostsPath);
+      }).not.toThrow();
       done();
-    }).catch( function(){
+    }).catch(() => {
       // Just here to gracefully exit test on failure so we don't get timeouts
       // when done() isn't called.
       expect( 'this' ).toBe( 'to never happen' );
@@ -257,8 +229,7 @@ describe('trust-on-first-use', function() {
     });
   });
 
-  it('should not throw an error if the host file contains two host duplicates', function(done) {
-    'use strict';
+  it('should not throw an error if the host file contains two host duplicates', done => {
     // Assuming we only run this test on NodeJS with TOFU support
     if (!trustOnFirstUseAvailable()) {
       done();
@@ -266,7 +237,7 @@ describe('trust-on-first-use', function() {
     }
 
     // Given
-    var knownHostsPath = "build/known_hosts";
+    const knownHostsPath = 'build/known_hosts';
     if( fs.existsSync(knownHostsPath) ) {
       fs.unlinkSync(knownHostsPath);
     }
@@ -282,14 +253,14 @@ describe('trust-on-first-use', function() {
     expect(session.beginTransaction()).toBeDefined();
 
     // duplicate the same serverId twice
-    setTimeout(function() {
-      var text = fs.readFileSync(knownHostsPath, 'utf8');
+    setTimeout(() => {
+      const text = fs.readFileSync(knownHostsPath, 'utf8');
       fs.writeFileSync(knownHostsPath, text + text);
     }, 1000);
 
     // When
-    setTimeout(function() {
-      driver.session().run("RETURN true AS a").then( function(data) {
+    setTimeout(() => {
+      driver.session().run('RETURN true AS a').then(data => {
         // Then we get to here.
         expect( data.records[0].get('a') ).toBe( true );
         done();
@@ -297,7 +268,7 @@ describe('trust-on-first-use', function() {
     }, 2000);
   });
 
-  it('should accept previously un-seen hosts', function(done) {
+  it('should accept previously un-seen hosts', done => {
     // Assuming we only run this test on NodeJS with TOFU support
     if (!trustOnFirstUseAvailable()) {
       done();
@@ -305,7 +276,7 @@ describe('trust-on-first-use', function() {
     }
 
     // Given
-    var knownHostsPath = "build/known_hosts";
+    const knownHostsPath = 'build/known_hosts';
     if( fs.existsSync(knownHostsPath) ) {
       fs.unlinkSync(knownHostsPath);
     }
@@ -317,7 +288,7 @@ describe('trust-on-first-use', function() {
     });
 
     // When
-    driver.session().run( "RETURN 1").then( function() {
+    driver.session().run('RETURN 1').then(() => {
       // Then we get to here.
       // And then the known_hosts file should have correct contents
       expect( fs.readFileSync(knownHostsPath, 'utf8') ).toContain( "localhost:7687" );
@@ -325,7 +296,7 @@ describe('trust-on-first-use', function() {
     });
   });
 
-  it('should not duplicate fingerprint entries', function(done) {
+  it('should not duplicate fingerprint entries', done => {
     // Assuming we only run this test on NodeJS with TOFU support
     if (!trustOnFirstUseAvailable()) {
       done();
@@ -333,7 +304,7 @@ describe('trust-on-first-use', function() {
     }
 
     // Given
-    var knownHostsPath = "build/known_hosts";
+    const knownHostsPath = 'build/known_hosts';
     if( fs.existsSync(knownHostsPath) ) {
       fs.unlinkSync(knownHostsPath);
     }
@@ -350,36 +321,30 @@ describe('trust-on-first-use', function() {
     driver.session();
 
     // Then
-    setTimeout(function() {
-      var lines = {};
+    setTimeout(() => {
+      const lines = {};
       fs.readFileSync(knownHostsPath, 'utf8')
           .split('\n')
-          .filter(function(line) {
-            return !! (line.trim());
-          })
-          .forEach(function(line) {
+        .filter(line => !!(line.trim()))
+        .forEach(line => {
             if (!lines[line]) {
               lines[line] = 0;
             }
             lines[line]++;
           });
 
-      var duplicatedLines = Object
-          .keys(lines)
-          .map(function(line) {
-            return lines[line];
-          })
-          .filter(function(count) {
-            return count > 1;
-          })
-          .length;
+      const duplicatedLines = Object
+        .keys(lines)
+        .map(line => lines[line])
+        .filter(count => count > 1)
+        .length;
 
       expect( duplicatedLines ).toBe( 0 );
       done();
     }, 1000);
   });
 
-  it('should should give helpful error if database cert does not match stored certificate', function(done) {
+  it('should should give helpful error if database cert does not match stored certificate', done => {
     // Assuming we only run this test on NodeJS with TOFU support
     if (!trustOnFirstUseAvailable()) {
       done();
@@ -387,7 +352,7 @@ describe('trust-on-first-use', function() {
     }
 
     // Given
-    var knownHostsPath = "test/resources/random_known_hosts";
+    const knownHostsPath = 'test/resources/random_known_hosts';
 
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
@@ -396,17 +361,11 @@ describe('trust-on-first-use', function() {
     });
 
     // When
-    driver.session().run( "RETURN 1").catch( function(error) {
+    driver.session().run('RETURN 1').catch(error => {
       expect(error.message).toContain("Database encryption certificate has changed, " +
         "and no longer matches the certificate stored for localhost:7687");
       done();
     });
-  });
-
-  afterEach(function(){
-    if( driver ) {
-      driver.close();
-    }
   });
 });
 

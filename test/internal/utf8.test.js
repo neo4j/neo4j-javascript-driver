@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import {alloc, CombinedBuffer} from '../../src/v1/internal/buf';
-import utf8 from '../../src/v1/internal/utf8';
+import CombinedBuffer from '../../src/v1/internal/buf/combined-buf';
+import {alloc, utf8} from '../../src/v1/internal/node';
 
 describe('utf8', () => {
 

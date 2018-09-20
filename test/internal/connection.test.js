@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import * as DummyChannel from './dummy-channel';
+import DummyChannel from './dummy-channel';
 import Connection from '../../src/v1/internal/connection';
 import {Packer} from '../../src/v1/internal/packstream-v1';
 import {Chunker} from '../../src/v1/internal/chunking';
-import {alloc} from '../../src/v1/internal/buf';
+import {alloc} from '../../src/v1/internal/node';
 import {Neo4jError, newError, SERVICE_UNAVAILABLE} from '../../src/v1/error';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion} from '../../src/v1/internal/server-version';
@@ -104,8 +104,8 @@ describe('Connection', () => {
   });
 
   it('should write protocol handshake', () => {
-    const observer = DummyChannel.observer;
-    connection = createConnection('bolt://localhost', {channel: DummyChannel.channel});
+    const channel = new DummyChannel();
+    connection = new Connection(channel, new ConnectionErrorHandler(SERVICE_UNAVAILABLE), 'localhost:7687', Logger.noOp());
 
     connection._negotiateProtocol();
 
@@ -114,7 +114,7 @@ describe('Connection', () => {
     const protocolVersion2 = '00 00 00 02';
     const protocolVersion1 = '00 00 00 01';
     const noProtocolVersion = '00 00 00 00';
-    expect(observer.instance.toHex()).toBe(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`);
+    expect(channel.toHex()).toBe(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`);
   });
 
   it('should provide error message when connecting to http-port', done => {
@@ -135,7 +135,7 @@ describe('Connection', () => {
   });
 
   it('should convert failure messages to errors', done => {
-    const channel = new DummyChannel.channel;
+    const channel = new DummyChannel();
     connection = new Connection(channel, new ConnectionErrorHandler(SERVICE_UNAVAILABLE), 'localhost:7687', Logger.noOp());
 
     connection._negotiateProtocol();
@@ -378,7 +378,7 @@ describe('Connection', () => {
   }
 
   function packedFailureMessage(code, message) {
-    const channel = new DummyChannel.channel;
+    const channel = new DummyChannel();
     const chunker = new Chunker(channel);
     const packer = new Packer(chunker);
     packer.packStruct(0x7F, [packer.packable({code: code, message: message})]);

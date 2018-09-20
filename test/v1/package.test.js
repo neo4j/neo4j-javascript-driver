@@ -19,8 +19,8 @@
 
 var path = require('path');
 var os = require('os');
-var NodeChannel = require('../../lib/v1/internal/ch-node').default;
 var sharedNeo4j = require('../../test/internal/shared-neo4j').default;
+var testUtils = require('../../test/internal/test-utils').default;
 
 describe('Package', function() {
   var driverGlobal = {close: function() {}};
@@ -31,7 +31,7 @@ describe('Package', function() {
   it('should work', function(done){
     var neo4jReq;
     // Assuming we only run this test on NodeJS
-    if( !NodeChannel.available ) {
+    if (testUtils.isClient()) {
       done();
       return;
     }

@@ -17,10 +17,12 @@
  * limitations under the License.
  */
 
-import Feature from './feature';
-import nodeCodec from './node/node-utf8';
-import browserCodec from './browser/browser-utf8';
+import NodeBuffer from './node-buf';
+import NodeChannel from './node-channel';
+import NodeHostNameResolver from './node-host-name-resolver';
+import utf8Codec from './node-utf8';
 
-const exportObject = Feature.nodeBufferAvailable() ? nodeCodec : browserCodec;
-
-export default exportObject;
+export const alloc = arg => new NodeBuffer(arg);
+export const Channel = NodeChannel;
+export const HostNameResolver = NodeHostNameResolver;
+export const utf8 = utf8Codec;

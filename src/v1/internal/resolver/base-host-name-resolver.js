@@ -16,10 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Feature from './feature';
-import NodeChannel from './node/node-channel';
-import WebSocketChannel from './browser/browser-channel';
 
-const Channel = Feature.nodeSocketAvailable() ? NodeChannel : WebSocketChannel;
+export default class BaseHostNameResolver {
 
-export default Channel;
+  resolve() {
+    throw new Error('Abstract function');
+  }
+
+  /**
+   * @protected
+   */
+  _resolveToItself(address) {
+    return Promise.resolve([address]);
+  }
+}

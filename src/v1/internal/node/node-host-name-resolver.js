@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import {HostNameResolver} from '../host-name-resolver';
+import BaseHostNameResolver from '../resolver/base-host-name-resolver';
 import urlUtil from '../url-util';
 import nodeDns from 'dns';
 
-export default class NodeHostNameResolver extends HostNameResolver {
+export default class NodeHostNameResolver extends BaseHostNameResolver {
 
   resolve(seedRouter) {
     const parsedAddress = urlUtil.parseDatabaseUrl(seedRouter);

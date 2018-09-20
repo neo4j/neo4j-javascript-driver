@@ -17,12 +17,7 @@
  * limitations under the License.
  */
 
-import {isEmptyObjectOrNull} from './util';
-
 let _trustAllCertificatesAvailable = null;
-let _dnsLookupAvailable = null;
-let _nodeSocketAvailable = null;
-let _nodeBufferAvailable = null;
 
 export default class Feature {
 
@@ -37,44 +32,5 @@ export default class Feature {
       }
     }
     return _trustAllCertificatesAvailable;
-  }
-
-  static dnsLookupAvailable() {
-    if (_dnsLookupAvailable == null) {
-      try {
-        require.resolve('dns');
-        const lookupFunction = require('dns').lookup;
-        _dnsLookupAvailable = lookupFunction && typeof lookupFunction === 'function';
-      } catch (e) {
-        _dnsLookupAvailable = false;
-      }
-    }
-    return _dnsLookupAvailable;
-  }
-
-  static nodeSocketAvailable() {
-    if (_nodeSocketAvailable == null) {
-      try {
-        require.resolve('net');
-        const netModule = require('net');
-        _nodeSocketAvailable = !isEmptyObjectOrNull(netModule);
-      } catch (e) {
-        _nodeSocketAvailable = false;
-      }
-    }
-    return _nodeSocketAvailable;
-  }
-
-  static nodeBufferAvailable() {
-    if (_nodeBufferAvailable == null) {
-      try {
-        require.resolve('buffer');
-        const bufferModule = require('buffer');
-        _nodeBufferAvailable = !isEmptyObjectOrNull(bufferModule);
-      } catch (e) {
-        _nodeBufferAvailable = false;
-      }
-    }
-    return _nodeBufferAvailable;
   }
 }

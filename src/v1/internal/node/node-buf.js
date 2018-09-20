@@ -18,7 +18,7 @@
  */
 
 import node from 'buffer';
-import {BaseBuffer} from '../buf';
+import BaseBuffer from '../buf/base-buf';
 
 export default class NodeBuffer extends BaseBuffer {
 

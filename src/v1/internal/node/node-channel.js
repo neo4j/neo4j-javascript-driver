@@ -243,12 +243,13 @@ const TrustStrategy = {
  * @return {*} socket connection.
  */
 function connect( config, onSuccess, onFailure=(()=>null) ) {
+  const trustStrategy = trustStrategyName(config);
   if (!isEncrypted(config)) {
     var conn = net.connect(config.url.port, config.url.host, onSuccess);
     conn.on('error', onFailure);
     return conn;
-  } else if (TrustStrategy[trustStrategyName(config)]) {
-    return TrustStrategy[config.trust](config, onSuccess, onFailure);
+  } else if (TrustStrategy[trustStrategy]) {
+    return TrustStrategy[trustStrategy](config, onSuccess, onFailure);
   } else {
     onFailure(newError("Unknown trust strategy: " + config.trust + ". Please use either " +
       "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' or trust:'TRUST_ALL_CERTIFICATES' in your driver " +
@@ -306,7 +307,6 @@ export default class NodeChannel {
     let self = this;
 
     this.id = _CONNECTION_IDGEN++;
-    this.available = true;
     this._pending = [];
     this._open = true;
     this._error = null;

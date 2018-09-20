@@ -16,25 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Feature from './feature';
-import NodeHostNameResolver from './node/node-host-name-resolver';
-import BrowserHostNameResolver from './browser/browser-host-name-resolver';
 
-export class HostNameResolver {
+import BaseHostNameResolver from './base-host-name-resolver';
 
-  resolve() {
-    throw new Error('Abstract function');
-  }
-
-  /**
-   * @protected
-   */
-  _resolveToItself(address) {
-    return Promise.resolve([address]);
-  }
-}
-
-export class ConfiguredHostNameResolver extends HostNameResolver {
+export default class ConfiguredHostNameResolver extends BaseHostNameResolver {
 
   constructor(resolverFunction) {
     super();
@@ -52,9 +37,3 @@ export class ConfiguredHostNameResolver extends HostNameResolver {
       });
   }
 }
-
-const DefaultHostNameResolver = Feature.dnsLookupAvailable() ? NodeHostNameResolver : BrowserHostNameResolver;
-
-export {
-  DefaultHostNameResolver
-};

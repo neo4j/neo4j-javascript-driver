@@ -45,6 +45,7 @@ var sharedNeo4j = require('./test/internal/shared-neo4j').default;
 var ts = require('gulp-typescript');
 var JasmineConsoleReporter = require('jasmine-console-reporter');
 var karmaServer = require('karma').Server;
+var transformTools = require('browserify-transform-tools');
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
@@ -66,9 +67,9 @@ gulp.task('build-browser', function () {
     cache: {},
     standalone: 'neo4j',
     packageCache: {}
-  }).transform(babelify.configure({
-    presets: ['env'], ignore: /external/
-  })).bundle();
+  }).transform(babelify.configure({presets: ['env'], ignore: /external/}))
+    .transform(browserifyTransformNodeToBrowserRequire())
+    .bundle();
 
   // Un-minified browser package
   appBundler
@@ -87,7 +88,7 @@ gulp.task('build-browser', function () {
 gulp.task('build-browser-test', function(){
   var browserOutput = 'lib/browser/';
   var testFiles = [];
-  return gulp.src('./test/**/*.test.js')
+  return gulp.src(['./test/**/*.test.js', '!./test/**/node/*.js'])
     .pipe( through.obj( function( file, enc, cb ) {
       if(file.path.indexOf('examples.test.js') < 0) {
         testFiles.push( file.path );
@@ -106,6 +107,7 @@ gulp.task('build-browser-test', function(){
         }).transform(babelify.configure({
         presets: ['env'], plugins: ['transform-runtime'], ignore: /external/
         }))
+        .transform(browserifyTransformNodeToBrowserRequire())
         .bundle(function(err, res){
           cb();
         })
@@ -164,7 +166,7 @@ gulp.task('test', function (cb) {
 });
 
 gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
-  return gulp.src('test/**/*.test.js')
+  return gulp.src(['./test/**/*.test.js', '!./test/**/browser/*.js'])
     .pipe(jasmine({
       includeStackTrace: true,
       reporter: newJasmineConsoleReporter()
@@ -305,4 +307,22 @@ function newJasmineConsoleReporter() {
     listStyle: 'indent',
     activity: false
   });
+}
+
+function browserifyTransformNodeToBrowserRequire() {
+  var nodeRequire = '/node';
+  var browserRequire = '/browser';
+
+  return transformTools.makeRequireTransform('bodeToBrowserRequireTransform',
+    {evaluateArguments: true},
+    function (args, opts, cb) {
+      var requireArg = args[0];
+      var endsWithNodeRequire = requireArg.slice(-nodeRequire.length) === nodeRequire;
+      if (endsWithNodeRequire) {
+        var newRequireArg = requireArg.replace(nodeRequire, browserRequire);
+        return cb(null, 'require(\'' + newRequireArg + '\')');
+      } else {
+        return cb();
+      }
+    });
 }
