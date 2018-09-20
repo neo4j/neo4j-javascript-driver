@@ -67,7 +67,7 @@ gulp.task('build-browser', function () {
     cache: {},
     standalone: 'neo4j',
     packageCache: {}
-  }).transform(babelify.configure({presets: ['env'], ignore: /external/}))
+  }).transform(babelifyTransform())
     .transform(browserifyTransformNodeToBrowserRequire())
     .bundle();
 
@@ -100,20 +100,18 @@ gulp.task('build-browser-test', function(){
       cb();
     }))
     .pipe( through.obj( function( testFiles, enc, cb) {
-      browserify({
+        browserify({
           entries: testFiles,
           cache: {},
           debug: true
-        }).transform(babelify.configure({
-        presets: ['env'], plugins: ['transform-runtime'], ignore: /external/
-        }))
-        .transform(browserifyTransformNodeToBrowserRequire())
-        .bundle(function(err, res){
-          cb();
-        })
-        .on('error', gutil.log)
-        .pipe(source('neo4j-web.test.js'))
-        .pipe(gulp.dest(browserOutput))
+        }).transform(babelifyTransform())
+          .transform(browserifyTransformNodeToBrowserRequire())
+          .bundle(function () {
+            cb();
+          })
+          .on('error', gutil.log)
+          .pipe(source('neo4j-web.test.js'))
+          .pipe(gulp.dest(browserOutput));
     },
     function(cb) {
       cb()
@@ -123,7 +121,7 @@ gulp.task('build-browser-test', function(){
 
 var buildNode = function(options) {
   return gulp.src(options.src)
-    .pipe(babel({presets: ['env'], plugins: ['transform-runtime'], ignore: ['src/external/**/*.js']}))
+    .pipe(babel(babelConfig()))
     .pipe(gulp.dest(options.dest))
 };
 
@@ -307,6 +305,16 @@ function newJasmineConsoleReporter() {
     listStyle: 'indent',
     activity: false
   });
+}
+
+function babelifyTransform() {
+  return babelify.configure(babelConfig());
+}
+
+function babelConfig() {
+  return {
+    presets: ['env'], plugins: ['transform-runtime']
+  };
 }
 
 function browserifyTransformNodeToBrowserRequire() {
