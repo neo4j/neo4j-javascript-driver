@@ -2,9 +2,9 @@ docs/
 src/
 build/
 test/
-lib/browser/neo4j-web.test.js
 .gitignore
 esdoc.json
-gulpfile.js
+gulpfile.babel.js
 runTests.sh
 runTests.ps1
+node_modules/

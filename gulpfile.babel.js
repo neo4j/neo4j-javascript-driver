@@ -86,7 +86,7 @@ gulp.task('build-browser', function () {
 });
 
 gulp.task('build-browser-test', function(){
-  var browserOutput = 'lib/browser/';
+  var browserOutput = 'build/browser/';
   var testFiles = [];
   return gulp.src(['./test/**/*.test.js', '!./test/**/node/*.js'])
     .pipe( through.obj( function( file, enc, cb ) {
