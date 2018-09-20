@@ -114,6 +114,14 @@ class StreamObserver {
   }
 
   /**
+   * Mark this observer as if it has completed with no metadata.
+   */
+  markCompleted() {
+    this._fieldKeys = [];
+    this._tail = {};
+  }
+
+  /**
    * Will be called on errors.
    * If user-provided observer is present, pass the error
    * to it's onError method, otherwise set instance variable _error.
