@@ -26,7 +26,6 @@ import {EOL} from 'os';
 import NodeBuffer from './node-buf';
 import {ENCRYPTION_OFF, ENCRYPTION_ON, isEmptyObjectOrNull} from '../util';
 import {newError} from '../../error';
-import Feature from '../feature';
 
 let _CONNECTION_IDGEN = 0;
 
@@ -263,7 +262,7 @@ function connect( config, onSuccess, onFailure=(()=>null) ) {
 
 function isEncrypted(config) {
   const encryptionNotConfigured = config.encrypted == null || config.encrypted === undefined;
-  if (encryptionNotConfigured && Feature.trustAllCertificatesAvailable()) {
+  if (encryptionNotConfigured) {
     // default to using encryption if trust-all-certificates is available
     return true;
   }
@@ -274,8 +273,7 @@ function trustStrategyName(config) {
   if (config.trust) {
     return config.trust;
   }
-  // default to using TRUST_ALL_CERTIFICATES if it is available
-  return Feature.trustAllCertificatesAvailable() ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
+  return 'TRUST_ALL_CERTIFICATES';
 }
 
 /**

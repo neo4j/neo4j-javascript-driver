@@ -20,7 +20,6 @@
 import neo4j from '../../../src/v1';
 import fs from 'fs';
 import path from 'path';
-import Feature from '../../../src/v1/internal/feature';
 import sharedNeo4j from '../shared-neo4j';
 
 describe('trust-signed-certificates', () => {
@@ -90,12 +89,6 @@ describe('trust-all-certificates', () => {
   });
 
   it('should work with default certificate', done => {
-    // Assuming we only run this test on NodeJS with TAC support
-    if (!Feature.trustAllCertificatesAvailable()) {
-      done();
-      return;
-    }
-
     // Given
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
       encrypted: "ENCRYPTION_ON",
