@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
-import {READ, WRITE} from '../../src/v1/driver';
-import boltStub from '../internal/bolt-stub';
+import neo4j from '../../../src/v1';
+import {READ, WRITE} from '../../../src/v1/driver';
+import boltStub from '../bolt-stub';
 
 describe('direct driver with stub server', () => {
 
