@@ -72,6 +72,10 @@ export default class BoltProtocol {
     this._connection.write(message, observer, true);
   }
 
+  prepareToClose(observer) {
+    // no need to notify the database in this protocol version
+  }
+
   /**
    * Begin an explicit transaction.
    * @param {Bookmark} bookmark the bookmark.

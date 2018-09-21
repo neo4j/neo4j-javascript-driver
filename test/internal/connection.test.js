@@ -32,6 +32,7 @@ import ConnectionErrorHandler from '../../src/v1/internal/connection-error-handl
 import testUtils from '../internal/test-utils';
 import Bookmark from '../../src/v1/internal/bookmark';
 import TxConfig from '../../src/v1/internal/tx-config';
+import boltStub from '../internal/bolt-stub';
 
 const ILLEGAL_MESSAGE = {signature: 42, fields: []};
 const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};
@@ -344,6 +345,29 @@ describe('Connection', () => {
     });
 
     connection._handleFatalError(newError('Hello', SERVICE_UNAVAILABLE));
+  });
+
+  it('should send hello and goodbye messages', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const server = boltStub.start('./test/resources/boltstub/hello_goodbye.script', 9001);
+
+    boltStub.run(() => {
+      connection = createConnection('bolt://127.0.0.1:9001', {encrypted: false});
+      connection.connect('single-connection/1.2.3', basicAuthToken())
+        .then(() => {
+          connection.close(() => {
+            server.exit(code => {
+              expect(code).toEqual(0);
+              done();
+            });
+          });
+        })
+        .catch(error => done.fail(error));
+    });
   });
 
   function packedHandshakeMessage() {

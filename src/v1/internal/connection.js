@@ -382,11 +382,23 @@ export default class Connection {
    * Call close on the channel.
    * @param {function} cb - Function to call on close.
    */
-  close(cb) {
+  close(cb = (() => null)) {
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} closing`);
     }
-    this._ch.close(cb);
+
+    if (this._protocol) {
+      // protocol has been initialized
+      // use it to notify the database about the upcoming close of the connection
+      this._protocol.prepareToClose(NO_OP_OBSERVER);
+    }
+
+    this._ch.close(() => {
+      if (this._log.isDebugEnabled()) {
+        this._log.debug(`${this} closed`);
+      }
+      cb();
+    });
   }
 
   toString() {
