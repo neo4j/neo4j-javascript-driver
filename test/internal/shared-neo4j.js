@@ -111,7 +111,10 @@ const additionalConfig = {
   'dbms.transaction.bookmark_ready_timeout': '5s',
 
   // enable GC logging
-  'dbms.logs.gc.enabled': true
+  'dbms.logs.gc.enabled': true,
+
+  // enable query logging
+  'dbms.logs.query.enabled': true
 };
 
 const neoCtrlVersionParam = '-e';
