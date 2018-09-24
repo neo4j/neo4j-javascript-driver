@@ -367,6 +367,27 @@ describe('Connection', () => {
       }).catch(done.fail);
   });
 
+  it('should not prepare broken connection to close', done => {
+    connection = createConnection('bolt://localhost');
+
+    connection.connect('my-connection/9.9.9', basicAuthToken())
+      .then(() => {
+        expect(connection._protocol).toBeDefined();
+        expect(connection._protocol).not.toBeNull();
+
+        // make connection seem broken
+        connection._isBroken = true;
+        expect(connection.isOpen()).toBeFalsy();
+
+        connection._protocol.prepareToClose = () => {
+          throw new Error('Not supposed to be called');
+        };
+
+        connection.close(() => done());
+      })
+      .catch(error => done.fail(error));
+  });
+
   function packedHandshakeMessage() {
     const result = alloc(4);
     result.putInt32(0, 1);

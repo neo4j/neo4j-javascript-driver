@@ -387,9 +387,9 @@ export default class Connection {
       this._log.debug(`${this} closing`);
     }
 
-    if (this._protocol) {
-      // protocol has been initialized
-      // use it to notify the database about the upcoming close of the connection
+    if (this._protocol && this.isOpen()) {
+      // protocol has been initialized and this connection is healthy
+      // notify the database about the upcoming close of the connection
       this._protocol.prepareToClose(NO_OP_OBSERVER);
     }
 
