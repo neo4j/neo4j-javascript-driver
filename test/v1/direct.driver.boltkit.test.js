@@ -332,34 +332,4 @@ describe('direct driver with stub server', () => {
       });
     });
   });
-
-  it('should send goodbye message when closed', done => {
-    if (!boltStub.supported) {
-      done();
-      return;
-    }
-
-    const server = boltStub.start('./test/resources/boltstub/hello_run_goodbye.script', 9001);
-
-    boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session();
-
-      session.run('MATCH (n) RETURN n.name')
-        .then(result => {
-          const names = result.records.map(record => record.get('n.name'));
-          expect(names).toEqual(['Foo', 'Bar']);
-
-          session.close(() => {
-            driver.close();
-            server.exit(code => {
-              expect(code).toEqual(0);
-              done();
-            });
-          });
-        })
-        .catch(error => done.fail(error));
-    });
-  });
-
 });

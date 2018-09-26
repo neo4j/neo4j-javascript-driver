@@ -1,6 +1,0 @@
-!: BOLT 3
-
-C: HELLO {"credentials": "password", "scheme": "basic", "user_agent": "single-connection/1.2.3", "principal": "neo4j"}
-S: SUCCESS {"server": "Neo4j/9.9.9"}
-C: GOODBYE
-S: <EXIT>
