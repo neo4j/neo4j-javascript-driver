@@ -944,25 +944,29 @@ describe('session', () => {
       });
   });
 
-  it('should send multiple bookmarks', done => {
-    if (!serverIs31OrLater(done)) {
+  it('should send multiple bookmarks', async () => {
+    if (!serverIs31OrLater()) {
       return;
     }
 
     const nodeCount = 17;
-    const bookmarkPromises = _.range(nodeCount).map(() => runQueryAndGetBookmark(driver));
+    const bookmarks = [];
+    for (let i = 0; i < nodeCount; i++) {
+      const bookmark = await runQueryAndGetBookmark(driver);
+      bookmarks.push(bookmark);
+    }
 
-    Promise.all(bookmarkPromises).then(bookmarks => {
-      expect(_.uniq(bookmarks).length > 1).toBeTruthy();
-      bookmarks.forEach(bookmark => expect(_.isString(bookmark)).toBeTruthy());
+    expect(_.uniq(bookmarks).length).toEqual(nodeCount);
+    bookmarks.forEach(bookmark => expect(_.isString(bookmark)).toBeTruthy());
 
-      const session = driver.session(READ, bookmarks);
-      session.run('MATCH (n) RETURN count(n)').then(result => {
-        const count = result.records[0].get(0).toInt();
-        expect(count).toEqual(nodeCount);
-        session.close(() => done());
-      });
-    });
+    const session = driver.session(READ, bookmarks);
+    try {
+      const result = await session.run('MATCH (n) RETURN count(n)');
+      const count = result.records[0].get(0).toInt();
+      expect(count).toEqual(nodeCount);
+    } finally {
+      session.close();
+    }
   });
 
   it('should acquire connection for transaction', done => {
@@ -1161,7 +1165,9 @@ describe('session', () => {
 
   function serverIs31OrLater(done) {
     if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
-      done();
+      if (done && typeof done === 'function') {
+        done();
+      }
       return false;
     }
     return true;
