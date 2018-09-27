@@ -300,5 +300,5 @@ function verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol) {
 }
 
 function detectWebPageProtocol() {
-  return window && window.location ? window.location.protocol : null;
+  return typeof window != 'undefined' && window.location ? window.location.protocol : null;
 }
