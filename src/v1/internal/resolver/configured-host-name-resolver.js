@@ -16,28 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-module.exports = function(config) {
-  config.set({
-    frameworks: ['jasmine'],
-    basePath: '../../',
-    files: ['build/browser/neo4j-web.test.js'],
-    reporters: ['spec'],
-    port: 9876,  // karma web server port
-    colors: true,
-    logLevel: config.LOG_DEBUG,
-    browsers: ['FirefoxHeadless'],
-    autoWatch: false,
-    singleRun: true,
-    concurrency: 1,
-    browserNoActivityTimeout: 30 * 60 * 1000,
-    customLaunchers: {
-      FirefoxHeadless: {
-        base: 'Firefox',
-        flags: [ '-headless' ],
-        prefs: {
-          'network.websocket.max-connections': 256 // as in Chrome
+
+import BaseHostNameResolver from './base-host-name-resolver';
+
+export default class ConfiguredHostNameResolver extends BaseHostNameResolver {
+
+  constructor(resolverFunction) {
+    super();
+    this._resolverFunction = resolverFunction;
+  }
+
+  resolve(seedRouter) {
+    return new Promise(resolve => resolve(this._resolverFunction(seedRouter)))
+      .then(resolved => {
+        if (!Array.isArray(resolved)) {
+          throw new TypeError(`Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.` +
+            `Each address is '<host>:<port>'. Got: ${resolved}`);
         }
-      },
-    },
-  })
-};
+        return resolved;
+      });
+  }
+}

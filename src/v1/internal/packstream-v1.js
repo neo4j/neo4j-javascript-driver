@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import utf8 from './utf8';
+import {utf8} from './node';
 import Integer, {int, isInt} from '../integer';
 import {newError, PROTOCOL_ERROR} from './../error';
 import {Chunker} from './chunking';

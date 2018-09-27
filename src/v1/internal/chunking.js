@@ -17,7 +17,9 @@
  * limitations under the License.
  */
 
-import {alloc, BaseBuffer, CombinedBuffer} from './buf';
+import BaseBuffer from './buf/base-buf';
+import {alloc} from './node';
+import CombinedBuffer from './buf/combined-buf';
 
 let
   _CHUNK_HEADER_SIZE = 2,

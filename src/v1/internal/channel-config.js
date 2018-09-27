@@ -17,10 +17,15 @@
  * limitations under the License.
  */
 
-import hasFeature from './features';
-import {SERVICE_UNAVAILABLE} from '../error';
+import {newError, SERVICE_UNAVAILABLE} from '../error';
+import {ENCRYPTION_OFF, ENCRYPTION_ON} from './util';
 
 const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 5000; // 5 seconds by default
+
+const ALLOWED_VALUES_ENCRYPTED = [null, undefined, true, false, ENCRYPTION_ON, ENCRYPTION_OFF];
+
+const ALLOWED_VALUES_TRUST = [null, undefined, 'TRUST_ALL_CERTIFICATES', 'TRUST_ON_FIRST_USE',
+  'TRUST_SIGNED_CERTIFICATES', 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES', 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'];
 
 export default class ChannelConfig {
 
@@ -42,21 +47,19 @@ export default class ChannelConfig {
 }
 
 function extractEncrypted(driverConfig) {
-  // check if encryption was configured by the user, use explicit null check because we permit boolean value
-  const encryptionNotConfigured = driverConfig.encrypted == null;
-  // default to using encryption if trust-all-certificates is available
-  if (encryptionNotConfigured && hasFeature('trust_all_certificates')) {
-    return true;
+  const value = driverConfig.encrypted;
+  if (ALLOWED_VALUES_ENCRYPTED.indexOf(value) === -1) {
+    throw newError(`Illegal value of the encrypted setting ${value}. Expected one of ${ALLOWED_VALUES_ENCRYPTED}`);
   }
-  return driverConfig.encrypted;
+  return value;
 }
 
 function extractTrust(driverConfig) {
-  if (driverConfig.trust) {
-    return driverConfig.trust;
+  const value = driverConfig.trust;
+  if (ALLOWED_VALUES_TRUST.indexOf(value) === -1) {
+    throw newError(`Illegal value of the trust setting ${value}. Expected one of ${ALLOWED_VALUES_TRUST}`);
   }
-  // default to using TRUST_ALL_CERTIFICATES if it is available
-  return hasFeature('trust_all_certificates') ? 'TRUST_ALL_CERTIFICATES' : 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES';
+  return value;
 }
 
 function extractTrustedCertificates(driverConfig) {

@@ -16,28 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-module.exports = function(config) {
-  config.set({
-    frameworks: ['jasmine'],
-    basePath: '../../',
-    files: ['build/browser/neo4j-web.test.js'],
-    reporters: ['spec'],
-    port: 9876,  // karma web server port
-    colors: true,
-    logLevel: config.LOG_DEBUG,
-    browsers: ['FirefoxHeadless'],
-    autoWatch: false,
-    singleRun: true,
-    concurrency: 1,
-    browserNoActivityTimeout: 30 * 60 * 1000,
-    customLaunchers: {
-      FirefoxHeadless: {
-        base: 'Firefox',
-        flags: [ '-headless' ],
-        prefs: {
-          'network.websocket.max-connections': 256 // as in Chrome
-        }
-      },
-    },
-  })
-};
+
+export default class BaseHostNameResolver {
+
+  resolve() {
+    throw new Error('Abstract function');
+  }
+
+  /**
+   * @protected
+   */
+  _resolveToItself(address) {
+    return Promise.resolve([address]);
+  }
+}

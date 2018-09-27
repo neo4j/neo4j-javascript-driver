@@ -17,29 +17,16 @@
  * limitations under the License.
  */
 
-import WebSocketChannel from './ch-websocket';
-import NodeChannel from './ch-node';
+import {Channel} from './node';
 import {Chunker, Dechunker} from './chunking';
 import {newError, PROTOCOL_ERROR} from './../error';
-import ChannelConfig from './ch-config';
+import ChannelConfig from './channel-config';
 import urlUtil from './url-util';
 import StreamObserver from './stream-observer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
 import Logger from './logger';
 import ProtocolHandshaker from './protocol-handshaker';
 import RequestMessage from './request-message';
-
-let Channel;
-if( NodeChannel.available ) {
-  Channel = NodeChannel.channel;
-}
-else if( WebSocketChannel.available ) {
-    Channel = WebSocketChannel.channel;
-}
-else {
-    throw newError("Fatal: No compatible transport available. Need to run on a platform with the WebSocket API.");
-}
-
 
 // Signature bytes for each response message type
 const SUCCESS = 0x70;         // 0111 0000 // SUCCESS <metadata>
@@ -61,7 +48,7 @@ export default class Connection {
 
   /**
    * @constructor
-   * @param {NodeChannel|WebSocketChannel} channel - channel with a 'write' function and a 'onmessage' callback property.
+   * @param {Channel} channel - channel with a 'write' function and a 'onmessage' callback property.
    * @param {ConnectionErrorHandler} errorHandler the error handler.
    * @param {string} hostPort - the hostname and port to connect to.
    * @param {Logger} log - the configured logger.
@@ -104,10 +91,9 @@ export default class Connection {
    * @return {Connection} - new connection.
    */
   static create(url, config, errorHandler, log) {
-    const Ch = config.channel || Channel;
     const parsedAddress = urlUtil.parseDatabaseUrl(url);
     const channelConfig = new ChannelConfig(parsedAddress, config, errorHandler.errorCode());
-    return new Connection(new Ch(channelConfig), errorHandler, parsedAddress.hostAndPort, log, config.disableLosslessIntegers);
+    return new Connection(new Channel(channelConfig), errorHandler, parsedAddress.hostAndPort, log, config.disableLosslessIntegers);
   }
 
   /**

@@ -21,6 +21,9 @@
     "browser": "gulp browser && gulp test-browser"
   },
   "main": "lib/index.js",
+  "browser": {
+    "./lib/v1/internal/node/index.js": "./lib/v1/internal/browser/index.js"
+  },
   "unpkg": "lib/browser/neo4j-web.js",
   "jsdelivr": "lib/browser/neo4j-web.js",
   "types": "types/index.d.ts",
@@ -32,6 +35,7 @@
     "babel-register": "^6.26.0",
     "babelify": "^7.3.0",
     "browserify": "^13.3.0",
+    "browserify-transform-tools": "^1.7.0",
     "esdoc": "^1.0.4",
     "esdoc-importpath-plugin": "^1.0.1",
     "esdoc-standard-plugin": "^1.0.0",
@@ -68,10 +72,12 @@
     "tmp": "0.0.31",
     "typescript": "^2.3.4",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "webpack": "^4.19.1"
   },
   "dependencies": {
     "babel-runtime": "^6.26.0",
+    "text-encoding": "^0.6.4",
     "uri-js": "^4.2.1"
   }
 }

@@ -17,16 +17,9 @@
  * limitations under the License.
  */
 
-import {CombinedBuffer} from './buf';
+import CombinedBuffer from '../../src/v1/internal/buf/combined-buf';
 
-const observer = {
-  instance: null,
-  updateInstance: (instance) => {
-    observer.instance = instance;
-  }
-};
-
-class DummyChannel {
+export default class DummyChannel {
 
   /**
    * @constructor
@@ -42,7 +35,6 @@ class DummyChannel {
 
   write(buf) {
     this.written.push(buf);
-    observer.updateInstance(this);
   }
 
   toHex() {
@@ -71,7 +63,3 @@ class DummyChannel {
     this.written = [];
   }
 }
-
-const channel = DummyChannel;
-
-export {channel, observer};

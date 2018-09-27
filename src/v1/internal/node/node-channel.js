@@ -20,10 +20,12 @@ import net from 'net';
 import tls from 'tls';
 import fs from 'fs';
 import path from 'path';
+import readline from 'readline';
+import crypto from 'crypto';
 import {EOL} from 'os';
-import {NodeBuffer} from './buf';
-import {ENCRYPTION_OFF, isEmptyObjectOrNull} from './util';
-import {newError} from './../error';
+import NodeBuffer from './node-buf';
+import {ENCRYPTION_OFF, ENCRYPTION_ON, isEmptyObjectOrNull} from '../util';
+import {newError} from '../../error';
 
 let _CONNECTION_IDGEN = 0;
 
@@ -61,7 +63,7 @@ function loadFingerprint( serverId, knownHostsPath, cb ) {
     return cb(null)
   }
   let found = false;
-  require('readline').createInterface({
+  readline.createInterface({
     input: fs.createReadStream(knownHostsPath)
   }).on('line', (line)  => {
     if( !found && line.startsWith( serverId )) {
@@ -180,7 +182,7 @@ const TrustStrategy = {
         return;
       }
 
-      const serverFingerprint = require('crypto').createHash('sha512').update(serverCert.raw).digest("hex");
+      const serverFingerprint = crypto.createHash('sha512').update(serverCert.raw).digest('hex');
       const knownHostsPath = config.knownHostsPath || path.join(userHome(), ".neo4j", "known_hosts");
       const serverId = config.url.hostAndPort;
 
@@ -240,13 +242,13 @@ const TrustStrategy = {
  * @return {*} socket connection.
  */
 function connect( config, onSuccess, onFailure=(()=>null) ) {
-  //still allow boolean for backwards compatibility
-  if (config.encrypted === false || config.encrypted === ENCRYPTION_OFF) {
+  const trustStrategy = trustStrategyName(config);
+  if (!isEncrypted(config)) {
     var conn = net.connect(config.url.port, config.url.host, onSuccess);
     conn.on('error', onFailure);
     return conn;
-  } else if( TrustStrategy[config.trust]) {
-    return TrustStrategy[config.trust](config, onSuccess, onFailure);
+  } else if (TrustStrategy[trustStrategy]) {
+    return TrustStrategy[trustStrategy](config, onSuccess, onFailure);
   } else {
     onFailure(newError("Unknown trust strategy: " + config.trust + ". Please use either " +
       "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' or trust:'TRUST_ALL_CERTIFICATES' in your driver " +
@@ -256,6 +258,22 @@ function connect( config, onSuccess, onFailure=(()=>null) ) {
       "the driver does not verify that the peer it is connected to is really Neo4j, it " +
       "is very easy for an attacker to bypass the encryption by pretending to be Neo4j."));
   }
+}
+
+function isEncrypted(config) {
+  const encryptionNotConfigured = config.encrypted == null || config.encrypted === undefined;
+  if (encryptionNotConfigured) {
+    // default to using encryption if trust-all-certificates is available
+    return true;
+  }
+  return config.encrypted === true || config.encrypted === ENCRYPTION_ON;
+}
+
+function trustStrategyName(config) {
+  if (config.trust) {
+    return config.trust;
+  }
+  return 'TRUST_ALL_CERTIFICATES';
 }
 
 /**
@@ -277,7 +295,7 @@ function newTlsOptions(hostname, ca = undefined) {
  * as transport.
  * @access private
  */
-class NodeChannel {
+export default class NodeChannel {
 
   /**
    * Create new instance
@@ -287,7 +305,6 @@ class NodeChannel {
     let self = this;
 
     this.id = _CONNECTION_IDGEN++;
-    this.available = true;
     this._pending = [];
     this._open = true;
     this._error = null;
@@ -390,13 +407,3 @@ class NodeChannel {
     }
   }
 }
-let _nodeChannelModule = {channel: NodeChannel, available: true};
-
-try {
-  // Only define this module if 'net' is available
-  require.resolve("net");
-} catch(e) {
-  _nodeChannelModule = { available : false };
-}
-
-export default _nodeChannelModule

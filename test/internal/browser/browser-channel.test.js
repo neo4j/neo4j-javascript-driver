@@ -17,26 +17,21 @@
  * limitations under the License.
  */
 
-import wsChannel from '../../src/v1/internal/ch-websocket';
-import ChannelConfig from '../../src/v1/internal/ch-config';
-import urlUtil from '../../src/v1/internal/url-util';
-import {Neo4jError, SERVICE_UNAVAILABLE} from '../../src/v1/error';
-import {setTimeoutMock} from './timers-util';
-import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../src/v1/internal/util';
+import WebSocketChannel from '../../../src/v1/internal/browser/browser-channel';
+import ChannelConfig from '../../../src/v1/internal/channel-config';
+import urlUtil from '../../../src/v1/internal/url-util';
+import {Neo4jError, SERVICE_UNAVAILABLE} from '../../../src/v1/error';
+import {setTimeoutMock} from '../timers-util';
+import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../../src/v1/internal/util';
 
 describe('WebSocketChannel', () => {
-
-  const WebSocketChannel = wsChannel.channel;
-  const webSocketChannelAvailable = wsChannel.available;
 
   let OriginalWebSocket;
   let webSocketChannel;
   let originalConsoleWarn;
 
   beforeEach(() => {
-    if (webSocketChannelAvailable) {
-      OriginalWebSocket = WebSocket;
-    }
+    OriginalWebSocket = WebSocket;
     originalConsoleWarn = console.warn;
     console.warn = () => {
       // mute by default
@@ -44,9 +39,7 @@ describe('WebSocketChannel', () => {
   });
 
   afterEach(() => {
-    if (webSocketChannelAvailable) {
-      WebSocket = OriginalWebSocket;
-    }
+    WebSocket = OriginalWebSocket;
     if (webSocketChannel) {
       webSocketChannel.close();
     }
@@ -62,10 +55,6 @@ describe('WebSocketChannel', () => {
   });
 
   it('should clear connection timeout when closed', () => {
-    if (!webSocketChannelAvailable) {
-      return;
-    }
-
     const fakeSetTimeout = setTimeoutMock.install();
     try {
       // do not execute setTimeout callbacks
@@ -127,10 +116,6 @@ describe('WebSocketChannel', () => {
   });
 
   it('should fail when encryption configured with unsupported trust strategy', () => {
-    if (!webSocketChannelAvailable) {
-      return;
-    }
-
     const protocolSupplier = () => 'http:';
 
     WebSocket = () => {
@@ -161,10 +146,6 @@ describe('WebSocketChannel', () => {
   });
 
   function testFallbackToLiteralIPv6(boltAddress, expectedWsAddress) {
-    if (!webSocketChannelAvailable) {
-      return;
-    }
-
     // replace real WebSocket with a function that throws when IPv6 address is used
     WebSocket = url => {
       if (url.indexOf('[') !== -1) {
@@ -188,10 +169,6 @@ describe('WebSocketChannel', () => {
   }
 
   function testWebSocketScheme(windowLocationProtocol, driverConfig, expectedScheme) {
-    if (!webSocketChannelAvailable) {
-      return;
-    }
-
     const protocolSupplier = () => windowLocationProtocol;
 
     // replace real WebSocket with a function that memorizes the url
@@ -211,10 +188,6 @@ describe('WebSocketChannel', () => {
   }
 
   function testWarningInMixedEnvironment(encrypted, scheme) {
-    if (!webSocketChannelAvailable) {
-      return;
-    }
-
     // replace real WebSocket with a function that memorizes the url
     WebSocket = url => {
       return {

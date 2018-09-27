@@ -38,13 +38,13 @@ var path = require('path');
 var minimist = require('minimist');
 var cucumber = require('gulp-cucumber');
 var install = require("gulp-install");
-var os = require('os');
 var file = require('gulp-file');
 var semver = require('semver');
 var sharedNeo4j = require('./test/internal/shared-neo4j').default;
 var ts = require('gulp-typescript');
 var JasmineConsoleReporter = require('jasmine-console-reporter');
 var karmaServer = require('karma').Server;
+var transformTools = require('browserify-transform-tools');
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
@@ -66,9 +66,9 @@ gulp.task('build-browser', function () {
     cache: {},
     standalone: 'neo4j',
     packageCache: {}
-  }).transform(babelify.configure({
-    presets: ['env'], ignore: /external/
-  })).bundle();
+  }).transform(babelifyTransform())
+    .transform(browserifyTransformNodeToBrowserRequire())
+    .bundle();
 
   // Un-minified browser package
   appBundler
@@ -85,9 +85,9 @@ gulp.task('build-browser', function () {
 });
 
 gulp.task('build-browser-test', function(){
-  var browserOutput = 'lib/browser/';
+  var browserOutput = 'build/browser/';
   var testFiles = [];
-  return gulp.src('./test/**/*.test.js')
+  return gulp.src(['./test/**/*.test.js', '!./test/**/node/*.js'])
     .pipe( through.obj( function( file, enc, cb ) {
       if(file.path.indexOf('examples.test.js') < 0) {
         testFiles.push( file.path );
@@ -99,19 +99,18 @@ gulp.task('build-browser-test', function(){
       cb();
     }))
     .pipe( through.obj( function( testFiles, enc, cb) {
-      browserify({
+        browserify({
           entries: testFiles,
           cache: {},
           debug: true
-        }).transform(babelify.configure({
-        presets: ['env'], plugins: ['transform-runtime'], ignore: /external/
-        }))
-        .bundle(function(err, res){
-          cb();
-        })
-        .on('error', gutil.log)
-        .pipe(source('neo4j-web.test.js'))
-        .pipe(gulp.dest(browserOutput))
+        }).transform(babelifyTransform())
+          .transform(browserifyTransformNodeToBrowserRequire())
+          .bundle(function () {
+            cb();
+          })
+          .on('error', gutil.log)
+          .pipe(source('neo4j-web.test.js'))
+          .pipe(gulp.dest(browserOutput));
     },
     function(cb) {
       cb()
@@ -121,7 +120,7 @@ gulp.task('build-browser-test', function(){
 
 var buildNode = function(options) {
   return gulp.src(options.src)
-    .pipe(babel({presets: ['env'], plugins: ['transform-runtime'], ignore: ['src/external/**/*.js']}))
+    .pipe(babel(babelConfig()))
     .pipe(gulp.dest(options.dest))
 };
 
@@ -138,13 +137,14 @@ gulp.task('all', function(cb){
 
 // prepares directory for package.test.js
 gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
-  var testDir = path.join(os.tmpdir(), 'sandbox');
+  var testDir = path.join('build', 'sandbox');
   fs.emptyDirSync(testDir);
 
   var packageJsonContent = JSON.stringify({
-      "dependencies":{
-          "neo4j-driver" : __dirname
-      }
+    'private': true,
+    'dependencies': {
+      'neo4j-driver': __dirname
+    }
   });
 
   return file('package.json', packageJsonContent, {src:true})
@@ -164,7 +164,7 @@ gulp.task('test', function (cb) {
 });
 
 gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
-  return gulp.src('test/**/*.test.js')
+  return gulp.src(['./test/**/*.test.js', '!./test/**/browser/*.js'])
     .pipe(jasmine({
       includeStackTrace: true,
       reporter: newJasmineConsoleReporter()
@@ -305,4 +305,32 @@ function newJasmineConsoleReporter() {
     listStyle: 'indent',
     activity: false
   });
+}
+
+function babelifyTransform() {
+  return babelify.configure(babelConfig());
+}
+
+function babelConfig() {
+  return {
+    presets: ['env'], plugins: ['transform-runtime']
+  };
+}
+
+function browserifyTransformNodeToBrowserRequire() {
+  var nodeRequire = '/node';
+  var browserRequire = '/browser';
+
+  return transformTools.makeRequireTransform('bodeToBrowserRequireTransform',
+    {evaluateArguments: true},
+    function (args, opts, cb) {
+      var requireArg = args[0];
+      var endsWithNodeRequire = requireArg.slice(-nodeRequire.length) === nodeRequire;
+      if (endsWithNodeRequire) {
+        var newRequireArg = requireArg.replace(nodeRequire, browserRequire);
+        return cb(null, 'require(\'' + newRequireArg + '\')');
+      } else {
+        return cb();
+      }
+    });
 }
