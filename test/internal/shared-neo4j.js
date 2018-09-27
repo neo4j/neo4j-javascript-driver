@@ -108,7 +108,13 @@ const additionalConfig = {
   'dbms.connector.http.listen_address': 'localhost:7474',
 
   // shorten the default time to wait for the bookmark from 30 to 5 seconds
-  'dbms.transaction.bookmark_ready_timeout': '5s'
+  'dbms.transaction.bookmark_ready_timeout': '5s',
+
+  // enable GC logging
+  'dbms.logs.gc.enabled': true,
+
+  // enable query logging
+  'dbms.logs.query.enabled': true
 };
 
 const neoCtrlVersionParam = '-e';
