@@ -24,7 +24,7 @@ import {Chunker} from '../../src/v1/internal/chunking';
 import {alloc} from '../../src/v1/internal/node';
 import {Neo4jError, newError, SERVICE_UNAVAILABLE} from '../../src/v1/error';
 import sharedNeo4j from '../internal/shared-neo4j';
-import {ServerVersion} from '../../src/v1/internal/server-version';
+import {ServerVersion, VERSION_3_5_0} from '../../src/v1/internal/server-version';
 import lolex from 'lolex';
 import Logger from '../../src/v1/internal/logger';
 import StreamObserver from '../../src/v1/internal/stream-observer';
@@ -32,7 +32,6 @@ import ConnectionErrorHandler from '../../src/v1/internal/connection-error-handl
 import testUtils from '../internal/test-utils';
 import Bookmark from '../../src/v1/internal/bookmark';
 import TxConfig from '../../src/v1/internal/tx-config';
-import boltStub from '../internal/bolt-stub';
 
 const ILLEGAL_MESSAGE = {signature: 42, fields: []};
 const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};
@@ -347,27 +346,46 @@ describe('Connection', () => {
     connection._handleFatalError(newError('Hello', SERVICE_UNAVAILABLE));
   });
 
-  it('should send hello and goodbye messages', done => {
-    if (!boltStub.supported) {
-      done();
-      return;
-    }
+  it('should send INIT/HELLO and GOODBYE messages', done => {
+    const messages = [];
+    connection = createConnection('bolt://localhost');
+    recordWrittenMessages(connection, messages);
 
-    const server = boltStub.start('./test/resources/boltstub/hello_goodbye.script', 9001);
+    connection.connect('mydriver/0.0.0', basicAuthToken())
+      .then(() => {
+        expect(connection.isOpen()).toBeTruthy();
+        connection.close(() => {
+          expect(messages.length).toBeGreaterThan(0);
+          expect(messages[0].signature).toEqual(0x01); // first message is either INIT or HELLO
 
-    boltStub.run(() => {
-      connection = createConnection('bolt://127.0.0.1:9001', {encrypted: false});
-      connection.connect('single-connection/1.2.3', basicAuthToken())
-        .then(() => {
-          connection.close(() => {
-            server.exit(code => {
-              expect(code).toEqual(0);
-              done();
-            });
-          });
-        })
-        .catch(error => done.fail(error));
-    });
+          const serverVersion = ServerVersion.fromString(connection.server.version);
+          if (serverVersion.compareTo(VERSION_3_5_0) >= 0) {
+            expect(messages[messages.length - 1].signature).toEqual(0x02); // last message is GOODBYE in V3
+          }
+          done();
+        });
+      }).catch(done.fail);
+  });
+
+  it('should not prepare broken connection to close', done => {
+    connection = createConnection('bolt://localhost');
+
+    connection.connect('my-connection/9.9.9', basicAuthToken())
+      .then(() => {
+        expect(connection._protocol).toBeDefined();
+        expect(connection._protocol).not.toBeNull();
+
+        // make connection seem broken
+        connection._isBroken = true;
+        expect(connection.isOpen()).toBeFalsy();
+
+        connection._protocol.prepareToClose = () => {
+          throw new Error('Not supposed to be called');
+        };
+
+        connection.close(() => done());
+      })
+      .catch(error => done.fail(error));
   });
 
   function packedHandshakeMessage() {
@@ -444,6 +462,14 @@ describe('Connection', () => {
    */
   function createConnection(url, config, errorCode = null) {
     return Connection.create(url, config || {}, new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE), Logger.noOp());
+  }
+
+  function recordWrittenMessages(connection, messages) {
+    const originalWrite = connection.write.bind(connection);
+    connection.write = (message, observer, flush) => {
+      messages.push(message);
+      originalWrite(message, observer, flush);
+    };
   }
 
 });

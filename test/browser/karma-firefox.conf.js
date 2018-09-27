@@ -34,6 +34,9 @@ module.exports = function(config) {
       FirefoxHeadless: {
         base: 'Firefox',
         flags: [ '-headless' ],
+        prefs: {
+          'network.websocket.max-connections': 256 // as in Chrome
+        }
       },
     },
   })
