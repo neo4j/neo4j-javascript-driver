@@ -186,6 +186,28 @@ describe('examples', () => {
     };
   });
 
+  it('config custom resolver example', done => {
+    // tag::config-custom-resolver[]
+    function createDriver(virtualUri, user, password, addresses) {
+      return neo4j.driver(virtualUri, neo4j.auth.basic(user, password), {
+        resolver: (address) => addresses,
+      });
+    }
+
+    function addPerson(name) {
+      const driver = createDriver("bolt+routing://x.acme.com", user, password, ['a.acme.com:7575', 'b.acme.com:7676', 'c.acme.com:8787']);
+      const session = driver.session(neo4j.WRITE);
+
+      session.run('CREATE (n:Person { name: $name })', {name: name}).then(() => {
+        session.close();
+        driver.close();
+      });
+    }
+    // tag::config-custom-resolver[]
+
+    done();
+  });
+
   it('custom auth example', done => {
     const principal = user;
     const credentials = password;
