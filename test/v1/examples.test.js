@@ -203,7 +203,7 @@ describe('examples', () => {
         driver.close();
       });
     }
-    // tag::config-custom-resolver[]
+    // end::config-custom-resolver[]
 
     done();
   });
