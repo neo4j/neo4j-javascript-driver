@@ -1,0 +1,12 @@
+!: BOLT 3
+!: AUTO RESET
+
+C: HELLO {"credentials": "password", "scheme": "basic", "user_agent": "neo4j-javascript/0.0.0-dev", "principal": "neo4j"}
+S: SUCCESS {"server": "Neo4j/9.9.9", "connection_id": "bolt-123456789"}
+C: RUN "MATCH (n) RETURN n.name" {} {}
+   PULL_ALL
+S: SUCCESS {"fields": ["n.name"]}
+   RECORD ["Foo"]
+   RECORD ["Bar"]
+   SUCCESS {}
+S: <EXIT>

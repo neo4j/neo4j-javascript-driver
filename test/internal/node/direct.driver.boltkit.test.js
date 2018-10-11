@@ -332,4 +332,44 @@ describe('direct driver with stub server', () => {
       });
     });
   });
+
+  it('should include database connection id in logs', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const server = boltStub.start('./test/resources/boltstub/hello_run_exit.script', 9001);
+
+    boltStub.run(() => {
+      const messages = [];
+      const logging = {
+        level: 'debug',
+        logger: (level, message) => messages.push(message)
+      };
+
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {logging: logging});
+      const session = driver.session();
+
+      session.run('MATCH (n) RETURN n.name').then(result => {
+        const names = result.records.map(record => record.get(0));
+        expect(names).toEqual(['Foo', 'Bar']);
+        session.close(() => {
+          driver.close();
+          server.exit(code => {
+            expect(code).toEqual(0);
+
+            // logged messages should contain connection_id supplied by the database
+            const containsDbConnectionIdMessage = messages.find(message => message.match(/Connection \[[0-9]+]\[bolt-123456789]/));
+            if (!containsDbConnectionIdMessage) {
+              console.log(messages);
+            }
+            expect(containsDbConnectionIdMessage).toBeTruthy();
+
+            done();
+          });
+        });
+      }).catch(error => done.fail(error));
+    });
+  });
 });

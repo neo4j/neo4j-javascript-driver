@@ -68,6 +68,9 @@ export default class Connection {
     this._chunker = new Chunker( channel );
     this._log = log;
 
+    // connection from the database, returned in response for HELLO message and might not be available
+    this._dbConnectionId = null;
+
     // bolt protocol is initially not initialized
     this._protocol = null;
 
@@ -388,7 +391,8 @@ export default class Connection {
   }
 
   toString() {
-    return `Connection ${this.id}`;
+    const dbConnectionId = this._dbConnectionId || '';
+    return `Connection [${this.id}][${dbConnectionId}]`;
   }
 
   _packable(value) {
@@ -424,13 +428,21 @@ class InitializationObserver {
   }
 
   onCompleted(metadata) {
-    // read server version from the response metadata
-    const serverVersion = metadata ? metadata.server : null;
-    if (!this._connection.server.version) {
-      this._connection.server.version = serverVersion;
-      const version = ServerVersion.fromString(serverVersion);
-      if (version.compareTo(VERSION_3_2_0) < 0) {
-        this._connection.protocol().packer().disableByteArrays();
+    if (metadata) {
+      // read server version from the response metadata, if it is available
+      const serverVersion = metadata.server;
+      if (!this._connection.server.version) {
+        this._connection.server.version = serverVersion;
+        const version = ServerVersion.fromString(serverVersion);
+        if (version.compareTo(VERSION_3_2_0) < 0) {
+          this._connection.protocol().packer().disableByteArrays();
+        }
+      }
+
+      // read database connection id from the response metadata, if it is available
+      const dbConnectionId = metadata.connection_id;
+      if (!this._connection._dbConnectionId) {
+        this._connection._dbConnectionId = dbConnectionId;
       }
     }
 
