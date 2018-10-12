@@ -49,7 +49,7 @@ var transformTools = require('browserify-transform-tools');
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
  */
-var enableActiveNodeHandlesLogging = true;
+var enableActiveNodeHandlesLogging = false;
 
 gulp.task('default', ["test"]);
 
