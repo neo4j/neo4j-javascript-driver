@@ -124,6 +124,21 @@ describe('examples', () => {
     };
   });
 
+  it('config connection timeout example', done => {
+    // tag::config-connection-timeout[]
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
+      {
+        connectionTimeout: 20 * 1000, // 20 seconds
+      }
+    );
+    // end::config-connection-timeout[]
+
+    driver.onCompleted = () => {
+      driver.close();
+      done();
+    };
+  });
+
   it('config load balancing example', done => {
     // tag::config-load-balancing-strategy[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),

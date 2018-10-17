@@ -92,8 +92,13 @@ describe('Bolt V3 API', () => {
             session.run('MATCH (n:Node) SET n.prop = $newValue', {newValue: 2}, {timeout: 1})
               .then(() => done.fail('Failure expected'))
               .catch(error => {
-                expect(error.code.indexOf('TransientError')).toBeGreaterThan(0);
-                expect(error.message.indexOf('transaction has been terminated')).toBeGreaterThan(0);
+                const hasExpectedCode = error.code.indexOf('TransientError') !== -1;
+                const hasExpectedMessage = error.message.indexOf('transaction has been terminated') !== -1;
+                if (!hasExpectedCode || !hasExpectedMessage) {
+                  console.log(`Unexpected error with code ${error.code}`, error);
+                }
+                expect(hasExpectedCode).toBeTruthy();
+                expect(hasExpectedMessage).toBeTruthy();
 
                 tx.rollback()
                   .then(() => otherSession.close())
