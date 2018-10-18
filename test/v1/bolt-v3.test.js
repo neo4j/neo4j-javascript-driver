@@ -92,13 +92,7 @@ describe('Bolt V3 API', () => {
             session.run('MATCH (n:Node) SET n.prop = $newValue', {newValue: 2}, {timeout: 1})
               .then(() => done.fail('Failure expected'))
               .catch(error => {
-                const hasExpectedCode = error.code.indexOf('TransientError') !== -1;
-                const hasExpectedMessage = error.message.indexOf('transaction has been terminated') !== -1;
-                if (!hasExpectedCode || !hasExpectedMessage) {
-                  console.log(`Unexpected error with code ${error.code}`, error);
-                }
-                expect(hasExpectedCode).toBeTruthy();
-                expect(hasExpectedMessage).toBeTruthy();
+                expectTransactionTerminatedError(error);
 
                 tx.rollback()
                   .then(() => otherSession.close())
@@ -185,8 +179,7 @@ describe('Bolt V3 API', () => {
             tx.run('MATCH (n:Node) SET n.prop = $newValue', {newValue: 2})
               .then(() => done.fail('Failure expected'))
               .catch(error => {
-                expect(error.code.indexOf('TransientError')).toBeGreaterThan(0);
-                expect(error.message.indexOf('transaction has been terminated')).toBeGreaterThan(0);
+                expectTransactionTerminatedError(error);
 
                 otherTx.rollback()
                   .then(() => otherSession.close())
@@ -465,6 +458,14 @@ describe('Bolt V3 API', () => {
 
   function expectBoltV3NotSupportedError(error) {
     expect(error.message.indexOf('Driver is connected to the database that does not support transaction configuration')).toBeGreaterThan(-1);
+  }
+
+  function expectTransactionTerminatedError(error) {
+    const hasExpectedMessage = error.message.toLowerCase().indexOf('transaction has been terminated') > -1;
+    if (!hasExpectedMessage) {
+      console.log(`Unexpected error with code: ${error.code}`, error);
+    }
+    expect(hasExpectedMessage).toBeTruthy();
   }
 
   function databaseSupportsBoltV3() {
