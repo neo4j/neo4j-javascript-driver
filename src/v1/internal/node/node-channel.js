@@ -139,7 +139,7 @@ const TrustStrategy = {
       }
     });
     socket.on('error', onFailure);
-    return socket;
+    return configureSocket(socket);
   },
   TRUST_SYSTEM_CA_SIGNED_CERTIFICATES : function( config, onSuccess, onFailure ) {
     const tlsOpts = newTlsOptions(config.url.host);
@@ -157,7 +157,7 @@ const TrustStrategy = {
       }
     });
     socket.on('error', onFailure);
-    return socket;
+    return configureSocket(socket);
   },
   /**
    * @deprecated in 1.1 in favour of {@link #TRUST_ALL_CERTIFICATES}. Will be deleted in a future version.
@@ -212,7 +212,7 @@ const TrustStrategy = {
       });
     });
     socket.on('error', onFailure);
-    return socket;
+    return configureSocket(socket);
   },
 
   TRUST_ALL_CERTIFICATES: function (config, onSuccess, onFailure) {
@@ -230,7 +230,7 @@ const TrustStrategy = {
       }
     });
     socket.on('error', onFailure);
-    return socket;
+    return configureSocket(socket);
   }
 };
 
@@ -244,9 +244,9 @@ const TrustStrategy = {
 function connect( config, onSuccess, onFailure=(()=>null) ) {
   const trustStrategy = trustStrategyName(config);
   if (!isEncrypted(config)) {
-    var conn = net.connect(config.url.port, config.url.host, onSuccess);
-    conn.on('error', onFailure);
-    return conn;
+    const socket = net.connect(config.url.port, config.url.host, onSuccess);
+    socket.on('error', onFailure);
+    return configureSocket(socket);
   } else if (TrustStrategy[trustStrategy]) {
     return TrustStrategy[trustStrategy](config, onSuccess, onFailure);
   } else {
@@ -288,6 +288,16 @@ function newTlsOptions(hostname, ca = undefined) {
     servername: hostname, // server name for the SNI (Server Name Indication) TLS extension
     ca: ca, // optional CA useful for TRUST_CUSTOM_CA_SIGNED_CERTIFICATES trust mode
   };
+}
+
+/**
+ * Update socket options for the newly created socket. Accepts either `net.Socket` or its subclass `tls.TLSSocket`.
+ * @param {net.Socket} socket the socket to configure.
+ * @return {net.Socket} the given socket.
+ */
+function configureSocket(socket) {
+  socket.setKeepAlive(true);
+  return socket;
 }
 
 /**
