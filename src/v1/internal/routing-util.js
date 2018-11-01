@@ -63,7 +63,7 @@ export default class RoutingUtil {
   parseTtl(record, routerAddress) {
     try {
       const now = int(Date.now());
-      const expires = record.get('ttl').multiply(1000).add(now);
+      const expires = int(record.get('ttl')).multiply(1000).add(now);
       // if the server uses a really big expire time like Long.MAX_VALUE this may have overflowed
       if (expires.lessThan(now)) {
         return Integer.MAX_VALUE;
@@ -71,7 +71,7 @@ export default class RoutingUtil {
       return expires;
     } catch (error) {
       throw newError(
-        'Unable to parse TTL entry from router ' + routerAddress + ' from record:\n' + JSON.stringify(record),
+        `Unable to parse TTL entry from router ${routerAddress} from record:\n${JSON.stringify(record)}\nError message: ${error.message}`,
         PROTOCOL_ERROR);
     }
   }
@@ -104,9 +104,9 @@ export default class RoutingUtil {
         readers: readers,
         writers: writers
       }
-    } catch (ignore) {
+    } catch (error) {
       throw newError(
-        'Unable to parse servers entry from router ' + routerAddress + ' from record:\n' + JSON.stringify(record),
+        `Unable to parse servers entry from router ${routerAddress} from record:\n${JSON.stringify(record)}\nError message: ${error.message}`,
         PROTOCOL_ERROR);
     }
   }
