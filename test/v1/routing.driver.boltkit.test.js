@@ -1915,6 +1915,34 @@ describe('routing driver with stub server', () => {
     testAddressPurgeOnDatabaseError(`RETURN 1`, READ, done);
   });
 
+  it('should rediscover using older getServers procedure when server is old', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+
+    const router = boltStub.start('./test/resources/boltstub/acquire_endpoints_old_routing_procedure.script', 9001);
+    const reader = boltStub.start('./test/resources/boltstub/read_server.script', 9005);
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001');
+
+      const session = driver.session(READ);
+      session.run('MATCH (n) RETURN n.name').then(result => {
+        expect(result.records.map(record => record.get(0))).toEqual(['Bob', 'Alice', 'Tina']);
+        session.close();
+        driver.close();
+        router.exit(code1 => {
+          reader.exit(code2 => {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      }).catch(done.fail);
+    });
+  });
+
   function testAddressPurgeOnDatabaseError(query, accessMode, done) {
     if (!boltStub.supported) {
       done();
