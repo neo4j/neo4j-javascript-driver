@@ -238,12 +238,18 @@ describe('RoutingUtil', () => {
   });
 
   function testValidTtlParsing(currentTime, ttlSeconds) {
-    const record = newRecord({ttl: int(ttlSeconds)});
     clock.setSystemTime(currentTime);
+    const expectedExpirationTime = currentTime + ttlSeconds * 1000;
 
-    const expirationTime = parseTtl(record).toNumber();
+    // verify parsing when TTL is an Integer
+    const record1 = newRecord({ttl: int(ttlSeconds)});
+    const expirationTime1 = parseTtl(record1).toNumber();
+    expect(expirationTime1).toEqual(expectedExpirationTime);
 
-    expect(expirationTime).toEqual(currentTime + ttlSeconds * 1000);
+    // verify parsing when TTL is a JavaScript Number, this can happen when driver is configured with {disableLosslessIntegers: true}
+    const record2 = newRecord({ttl: ttlSeconds});
+    const expirationTime2 = parseTtl(record2).toNumber();
+    expect(expirationTime2).toEqual(expectedExpirationTime);
   }
 
   function testValidServersParsing(routerAddresses, readerAddresses, writerAddresses) {
