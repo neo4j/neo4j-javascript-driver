@@ -49,21 +49,21 @@ declare function driver(url: string,
                         config?: Config): Driver;
 
 declare const types: {
-  Node: Node;
-  Relationship: Relationship;
-  UnboundRelationship: UnboundRelationship;
-  PathSegment: PathSegment;
-  Path: Path;
+  Node: typeof Node;
+  Relationship: typeof Relationship;
+  UnboundRelationship: typeof UnboundRelationship;
+  PathSegment: typeof PathSegment;
+  Path: typeof Path;
   Result: Result;
   ResultSummary: ResultSummary;
-  Record: Record;
-  Point: Point;
-  Duration: Duration;
-  LocalTime: LocalTime;
-  Time: Time;
-  Date: Date;
-  LocalDateTime: LocalDateTime;
-  DateTime: DateTime;
+  Record: typeof Record;
+  Point: typeof Point;
+  Duration: typeof Duration;
+  LocalTime: typeof LocalTime;
+  Time: typeof Time;
+  Date: typeof Date;
+  LocalDateTime: typeof LocalDateTime;
+  DateTime: typeof DateTime;
 };
 
 declare const session: {
