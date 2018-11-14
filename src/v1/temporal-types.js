@@ -139,7 +139,8 @@ export class Time {
    * @param {Integer|number} minute the minute for the new local time.
    * @param {Integer|number} second the second for the new local time.
    * @param {Integer|number} nanosecond the nanosecond for the new local time.
-   * @param {Integer|number} timeZoneOffsetSeconds the time zone offset in seconds.
+   * @param {Integer|number} timeZoneOffsetSeconds the time zone offset in seconds. Value represents the difference, in seconds, from UTC to local time.
+   * This is different from standard JavaScript `Date.getTimezoneOffset()` which is the difference, in minutes, from local time to UTC.
    */
   constructor(hour, minute, second, nanosecond, timeZoneOffsetSeconds) {
     this.hour = util.assertValidHour(hour);
@@ -312,7 +313,9 @@ export class DateTime {
    * @param {Integer|number} minute the minute for the new date-time.
    * @param {Integer|number} second the second for the new date-time.
    * @param {Integer|number} nanosecond the nanosecond for the new date-time.
-   * @param {Integer|number|null} timeZoneOffsetSeconds the total time zone offset in seconds for the new date-time. Either this argument or `timeZoneId` should be defined.
+   * @param {Integer|number} timeZoneOffsetSeconds the time zone offset in seconds. Either this argument or `timeZoneId` should be defined.
+   * Value represents the difference, in seconds, from UTC to local time.
+   * This is different from standard JavaScript `Date.getTimezoneOffset()` which is the difference, in minutes, from local time to UTC.
    * @param {string|null} timeZoneId the time zone id for the new date-time. Either this argument or `timeZoneOffsetSeconds` should be defined.
    */
   constructor(year, month, day, hour, minute, second, nanosecond, timeZoneOffsetSeconds, timeZoneId) {

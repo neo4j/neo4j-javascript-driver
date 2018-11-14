@@ -20,6 +20,7 @@
 import {int} from '../../src/v1/integer';
 import * as util from '../../src/v1/internal/temporal-util';
 import {types} from '../../src/v1';
+import testUtils from './test-utils';
 
 describe('temporal-util', () => {
 
@@ -189,10 +190,12 @@ describe('temporal-util', () => {
   });
 
   it('should get timezone offset in seconds from standard date', () => {
-    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(0))).toEqual(0);
-    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(2))).toEqual(120);
-    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(10))).toEqual(600);
-    expect(util.timeZoneOffsetInSeconds(fakeStandardDateWithOffset(101))).toEqual(6060);
+    expect(util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(0))).toBe(0);
+    expect(util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(2))).toBe(-120);
+    expect(util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(10))).toBe(-600);
+    expect(util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(101))).toBe(-6060);
+    expect(util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(-180))).toBe(10800);
+    expect(util.timeZoneOffsetInSeconds(testUtils.fakeStandardDateWithOffset(-600))).toBe(36000);
   });
 
   it('should verify year', () => {
@@ -329,10 +332,4 @@ function localTime(hour, minute, second, nanosecond) {
 
 function localDateTime(year, month, day, hour, minute, second, nanosecond) {
   return new types.LocalDateTime(int(year), int(month), int(day), int(hour), int(minute), int(second), int(nanosecond));
-}
-
-function fakeStandardDateWithOffset(offsetMinutes) {
-  const date = new Date();
-  date.getTimezoneOffset = () => offsetMinutes;
-  return date;
 }
