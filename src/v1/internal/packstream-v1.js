@@ -112,6 +112,8 @@ class Packer {
       return () => this._ch.writeUInt8( TRUE );
     } else if (x === false) {
       return () => this._ch.writeUInt8( FALSE );
+    } else if (Number.isInteger(x)) {
+      return () => this.packInteger(Integer.fromInt(x))
     } else if (typeof(x) == "number") {
       return () => this.packFloat(x);
     } else if (typeof(x) == "string") {
