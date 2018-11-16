@@ -311,11 +311,22 @@ export function totalNanoseconds(standardDate, nanoseconds) {
 
 /**
  * Get the time zone offset in seconds from the given standard JavaScript date.
+ *
+ * <b>Implementation note:</b>
+ * Time zone offset returned by the standard JavaScript date is the difference, in minutes, from local time to UTC.
+ * So positive value means offset is behind UTC and negative value means it is ahead.
+ * For Neo4j temporal types, like `Time` or `DateTime` offset is in seconds and represents difference from UTC to local time.
+ * This is different from standard JavaScript dates and that's why implementation negates the returned value.
+ *
  * @param {global.Date} standardDate the standard JavaScript date.
  * @return {number} the time zone offset in seconds.
  */
 export function timeZoneOffsetInSeconds(standardDate) {
-  return standardDate.getTimezoneOffset() * SECONDS_PER_MINUTE;
+  let offsetInMinutes = standardDate.getTimezoneOffset();
+  if (offsetInMinutes === 0) {
+    return 0;
+  }
+  return -1 * offsetInMinutes * SECONDS_PER_MINUTE;
 }
 
 /**

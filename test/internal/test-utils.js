@@ -24,7 +24,14 @@ function isServer() {
   return !isClient();
 }
 
+function fakeStandardDateWithOffset(offsetMinutes) {
+  const date = new Date();
+  date.getTimezoneOffset = () => offsetMinutes;
+  return date;
+}
+
 export default {
   isClient,
   isServer,
+  fakeStandardDateWithOffset
 };

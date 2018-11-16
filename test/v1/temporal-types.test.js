@@ -19,10 +19,11 @@
 
 import neo4j from '../../src';
 import sharedNeo4j from '../internal/shared-neo4j';
-import {totalNanoseconds} from '../../src/v1/internal/temporal-util';
+import {timeZoneOffsetInSeconds, totalNanoseconds} from '../../src/v1/internal/temporal-util';
 import {ServerVersion, VERSION_3_4_0} from '../../src/v1/internal/server-version';
 import timesSeries from 'async/timesSeries';
 import _ from 'lodash';
+import testUtils from '../internal/test-utils';
 
 const RANDOM_VALUES_TO_TEST = 2000;
 const MIN_TEMPORAL_ARRAY_LENGTH = 20;
@@ -921,6 +922,50 @@ describe('temporal-types', () => {
     expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, 1000000000, 0)).toThrow();
   });
 
+  it('should convert standard Date with offset to neo4j Time', () => {
+    const standardDate1 = testUtils.fakeStandardDateWithOffset(0);
+    const neo4jTime1 = neo4j.types.Time.fromStandardDate(standardDate1);
+    verifyTimeZoneOffset(neo4jTime1, 0, 'Z');
+
+    const standardDate2 = testUtils.fakeStandardDateWithOffset(-600);
+    const neo4jTime2 = neo4j.types.Time.fromStandardDate(standardDate2);
+    verifyTimeZoneOffset(neo4jTime2, 600 * 60, '+10:00');
+
+    const standardDate3 = testUtils.fakeStandardDateWithOffset(480);
+    const neo4jTime3 = neo4j.types.Time.fromStandardDate(standardDate3);
+    verifyTimeZoneOffset(neo4jTime3, -1 * 480 * 60, '-08:00');
+
+    const standardDate4 = testUtils.fakeStandardDateWithOffset(-180);
+    const neo4jTime4 = neo4j.types.Time.fromStandardDate(standardDate4);
+    verifyTimeZoneOffset(neo4jTime4, 180 * 60, '+03:00');
+
+    const standardDate5 = testUtils.fakeStandardDateWithOffset(150);
+    const neo4jTime5 = neo4j.types.Time.fromStandardDate(standardDate5);
+    verifyTimeZoneOffset(neo4jTime5, -1 * 150 * 60, '-02:30');
+  });
+
+  it('should convert standard Date with offset to neo4j DateTime', () => {
+    const standardDate1 = testUtils.fakeStandardDateWithOffset(0);
+    const neo4jDateTime1 = neo4j.types.DateTime.fromStandardDate(standardDate1);
+    verifyTimeZoneOffset(neo4jDateTime1, 0, 'Z');
+
+    const standardDate2 = testUtils.fakeStandardDateWithOffset(-600);
+    const neo4jDateTime2 = neo4j.types.DateTime.fromStandardDate(standardDate2);
+    verifyTimeZoneOffset(neo4jDateTime2, 600 * 60, '+10:00');
+
+    const standardDate3 = testUtils.fakeStandardDateWithOffset(480);
+    const neo4jDateTime3 = neo4j.types.DateTime.fromStandardDate(standardDate3);
+    verifyTimeZoneOffset(neo4jDateTime3, -1 * 480 * 60, '-08:00');
+
+    const standardDate4 = testUtils.fakeStandardDateWithOffset(-180);
+    const neo4jDateTime4 = neo4j.types.DateTime.fromStandardDate(standardDate4);
+    verifyTimeZoneOffset(neo4jDateTime4, 180 * 60, '+03:00');
+
+    const standardDate5 = testUtils.fakeStandardDateWithOffset(150);
+    const neo4jDateTime5 = neo4j.types.DateTime.fromStandardDate(standardDate5);
+    verifyTimeZoneOffset(neo4jDateTime5, -1 * 150 * 60, '-02:30');
+  });
+
   function testSendAndReceiveRandomTemporalValues(valueGenerator, done) {
     const asyncFunction = (index, callback) => {
       const next = () => callback();
@@ -1117,7 +1162,7 @@ describe('temporal-types', () => {
   function testStandardDateToTimeConversion(date, nanosecond) {
     const converted = neo4j.types.Time.fromStandardDate(date, nanosecond);
     const expected = new neo4j.types.Time(date.getHours(), date.getMinutes(), date.getSeconds(), totalNanoseconds(date, nanosecond),
-      date.getTimezoneOffset() * 60);
+      timeZoneOffsetInSeconds(date));
     expect(converted).toEqual(expected);
   }
 
@@ -1137,7 +1182,14 @@ describe('temporal-types', () => {
   function testStandardDateToDateTimeConversion(date, nanosecond) {
     const converted = neo4j.types.DateTime.fromStandardDate(date, nanosecond);
     const expected = new neo4j.types.DateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(),
-      totalNanoseconds(date, nanosecond), date.getTimezoneOffset() * 60);
+      totalNanoseconds(date, nanosecond), timeZoneOffsetInSeconds(date));
     expect(converted).toEqual(expected);
+  }
+
+  function verifyTimeZoneOffset(temporal, expectedValue, expectedStringValue) {
+    expect(temporal.timeZoneOffsetSeconds).toEqual(expectedValue);
+    const isoString = temporal.toString();
+    // assert ISO string ends with the expected suffix
+    expect(isoString.indexOf(expectedStringValue, isoString.length - expectedStringValue.length)).toBeGreaterThan(0);
   }
 });
