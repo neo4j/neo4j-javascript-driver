@@ -49,14 +49,14 @@ declare function driver(url: string,
                         config?: Config): Driver;
 
 declare const types: {
-  Node: typeof Node;
-  Relationship: typeof Relationship;
-  UnboundRelationship: typeof UnboundRelationship;
-  PathSegment: typeof PathSegment;
-  Path: typeof Path;
+  Node: Node;
+  Relationship: Relationship;
+  UnboundRelationship: UnboundRelationship;
+  PathSegment: PathSegment;
+  Path: Path;
   Result: Result;
   ResultSummary: ResultSummary;
-  Record: typeof Record;
+  Record: Record;
   Point: typeof Point;
   Duration: typeof Duration;
   LocalTime: typeof LocalTime;

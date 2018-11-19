@@ -79,18 +79,12 @@ const protocolError: string = neo4j.error.PROTOCOL_ERROR;
 const error1: neo4j.Neo4jError = new neo4j.Neo4jError("Error message");
 const error2: neo4j.Neo4jError = new neo4j.Neo4jError("Error message", "Error code");
 
-const node: neo4j.Node = new neo4j.types.Node(int1, [], {});
-const relationship: neo4j.Relationship = new neo4j.types.Relationship(int1, int1, int1, "", {});
-const unboundRelationship: neo4j.UnboundRelationship = new neo4j.types.UnboundRelationship(int1, "", {});
-const pathSegment: neo4j.PathSegment = new neo4j.types.PathSegment(node, relationship, node);
-const path: neo4j.Path = new neo4j.types.Path(node, node, []);
 const result: neo4j.Result = readSession.run("");
 
 result.then(value => {
   const resultSummary: neo4j.ResultSummary = value.summary;
 });
 
-const record: neo4j.Record = new neo4j.types.Record([], [], {});
 const point: neo4j.Point = new neo4j.types.Point(int1, 1, 2, 3);
 const duration: neo4j.Duration = new neo4j.types.Duration(int1, int1, int1, int1);
 const localTime: neo4j.LocalTime = new neo4j.types.LocalTime(int1, int1, int1, int1);
