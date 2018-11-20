@@ -57,13 +57,13 @@ declare const types: {
   Result: Result;
   ResultSummary: ResultSummary;
   Record: Record;
-  Point: Point;
-  Duration: Duration;
-  LocalTime: LocalTime;
-  Time: Time;
-  Date: Date;
-  LocalDateTime: LocalDateTime;
-  DateTime: DateTime;
+  Point: typeof Point;
+  Duration: typeof Duration;
+  LocalTime: typeof LocalTime;
+  Time: typeof Time;
+  Date: typeof Date;
+  LocalDateTime: typeof LocalDateTime;
+  DateTime: typeof DateTime;
 };
 
 declare const session: {
