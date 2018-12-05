@@ -65,4 +65,9 @@ describe('Integer', () => {
     expect(Integer.MAX_SAFE_VALUE.add(999).toNumberOrInfinity()).toEqual(Number.POSITIVE_INFINITY);
   });
 
+  it('type is exported', () => {
+    expect(neo4j.types.Integer).toBeDefined();
+    expect(neo4j.int(1) instanceof neo4j.types.Integer).toBeTruthy();
+  });
+
 });
