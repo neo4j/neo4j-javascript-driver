@@ -16,7 +16,7 @@ To help us understand your issue, please specify important details, primarily:
 - Neo4j version: Community/Enterprise X.Y.Z
 - Neo4j Mode: Single instance/HA cluster with X members/Casual cluster with X core Y read-replica
 - Driver version: X lanaguage driver X.Y.Z (If you use some other library that wraps around this driver, you might want to raise an issue there first)
-- Operating system: (for example Windows 95/Ubuntu 16.04 on AWS)
+- Operating system: (for example Windows 95/Ubuntu 16.10 on AWS)
 - **Steps to reproduce**
 - Expected behavior
 - Actual behavior
@@ -28,20 +28,20 @@ Always check the server logs too to see if there is any stacktrace related to th
 
 I got connection reset by peer errors.
 
-**Neo4j Version:** 3.4.10  
+**Neo4j Version:** 3.4.10 Community  
 **Neo4j Mode**: Single instance  
 **Driver version**: JS driver 1.7.1  
-**Operating System:** Ubuntu 15.10 on AWS  
+**Operating System:** Ubuntu 16.10 on AWS  
 
 ### Steps to reproduce
-1. Start a server on AWS
-2. Run some query with the driver
+1. Start Neo4j on a AWS instance
+2. Run a query with the driver
 3. Put the driver idle for 2h
 4. Run another query
 ### Expected behavior
-The query shall run successfully
+The second query shall run successfully
 ### Actual behavior
-The client failed to run the query with an `connection reset by peer` stacktrace.  
-*attach the stachtrace*  
-Meanwhile, on the server log I found this stacktrace that happens at the same time when the driver failed.  
+The client failed to run the second query with a `connection reset by peer` stacktrace.  
+*attach the stacktrace*  
+Meanwhile, in the server log, I found this stacktrace that happened at the same time when the driver failed.  
 *attach the stacktrace*  
