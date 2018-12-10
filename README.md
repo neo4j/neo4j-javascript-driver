@@ -229,6 +229,9 @@ Subscriber API allows following combinations of `onNext`, `onCompleted` and `onE
  couple `onNext` invocations because records are streamed lazily by the database. `onCompleted` will not be invoked 
  in this case
 
+## Parallelization
+In a single session, multiple queries will be executed serially. In order to parallelize queries, multiple sessions are required.
+
 ## Building
 
     npm install
