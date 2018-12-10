@@ -49,6 +49,8 @@ import TxConfig from './internal/tx-config';
 /**
  * A Session instance is used for handling the connection and
  * sending statements through the connection.
+ * In a single session, multiple queries will be executed serially.
+ * In order to execute parallel queries, multiple sessions are required.
  * @access public
  */
 class Session {
