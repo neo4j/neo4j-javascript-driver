@@ -16,9 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import neo4j from '../../src/v1';
+import neo4j, {Neo4jError} from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
+import {newError} from "../../src/v1/error";
 
 describe('transaction', () => {
 
@@ -404,10 +405,6 @@ describe('transaction', () => {
   });
 
   it('should expose server info on successful query', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     const statement = 'RETURN 1';
 
     const tx = session.beginTransaction();
@@ -421,10 +418,6 @@ describe('transaction', () => {
   });
 
   it('should expose server info on successful query using observer', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     // Given
     const statement = 'RETURN 1';
 
@@ -547,14 +540,6 @@ describe('transaction', () => {
   function expectValidLastBookmark(session) {
     expect(session.lastBookmark()).toBeDefined();
     expect(session.lastBookmark()).not.toBeNull();
-  }
-
-  function neo4jVersionOlderThan31(done) {
-    if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
-      done();
-      return true;
-    }
-    return false;
   }
 
   function testConnectionTimeout(encrypted, done) {

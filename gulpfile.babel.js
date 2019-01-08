@@ -36,7 +36,6 @@ var fs = require("fs-extra");
 var runSequence = require('run-sequence');
 var path = require('path');
 var minimist = require('minimist');
-var cucumber = require('gulp-cucumber');
 var install = require("gulp-install");
 var file = require('gulp-file');
 var semver = require('semver');
@@ -153,7 +152,7 @@ gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
 });
 
 gulp.task('test', function (cb) {
-  runSequence('run-ts-declaration-tests', 'test-nodejs', 'test-browser', 'run-tck', function (err) {
+  runSequence('run-ts-declaration-tests', 'test-nodejs', 'test-browser', function (err) {
     if (err) {
       var exitCode = 2;
       console.log('[FAIL] test task failed - exiting with code ' + exitCode);
@@ -211,23 +210,6 @@ gulp.task('watch', function () {
 
 gulp.task('watch-n-test', ['test-nodejs'], function () {
   return gulp.watch(['src/**/*.js', "test/**/*.js"], ['test-nodejs'] );
-});
-
-var featureFiles   = 'https://s3-eu-west-1.amazonaws.com/remoting.neotechnology.com/driver-compliance/tck.tar.gz';
-var featureHome    = './build/tck';
-
-gulp.task('download-tck', function() {
-  return download(featureFiles)
-        .pipe(decompress({strip: 1}))
-        .pipe(gulp.dest(featureHome));
-});
-
-gulp.task('run-tck', ['download-tck', 'nodejs'], function() {
-    return gulp.src(featureHome + "/*").pipe(cucumber({
-        'steps': 'test/v1/tck/steps/*.js',
-        'format': 'progress',
-        'tags' : ['~@fixed_session_pool', '~@db', '~@equality', '~@streaming_and_cursor_navigation']
-    })).on('end', logActiveNodeHandles);
 });
 
 /** Set the project version, controls package.json and version.js */
