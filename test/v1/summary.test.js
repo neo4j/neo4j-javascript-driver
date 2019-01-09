@@ -35,7 +35,7 @@ describe('result summary', () => {
     driver.close();
   });
 
-  fit('should get result summary', done => {
+  it('should get result summary', done => {
     // When & Then
     session.run("CREATE (p:Person { Name: 'Test'})").then(result => {
       var summary = result.summary;
@@ -65,4 +65,74 @@ describe('result summary', () => {
       done();
     });
   });
+
+  it('should get plan from summary', done => {
+    session.run("EXPLAIN MATCH (n) RETURN 1").then(result => {
+      var summary = result.summary;
+      expect(summary.plan).toBeDefined();
+      expect(summary.profile).toBe(false);
+
+      var plan = summary.plan;
+      expect(plan.arguments).toBeDefined();
+      expect(plan.children).toBeDefined();
+      expect(plan.identifiers).toBeDefined();
+      expect(plan.operatorType).toBeDefined();
+      done();
+    });
+  });
+
+  it('should get profile from summary', done => {
+    session.run("PROFILE RETURN 1").then(result => {
+      var summary = result.summary;
+      expect(summary.plan).toBeDefined();
+      expect(summary.profile).toBeDefined();
+
+      var profile = summary.profile;
+      var plan = summary.plan;
+
+      verifyPlansAreEqual(profile, plan);
+
+      expect(profile.dbHits).toBe(0);
+      expect(profile.rows).toBe(1);
+
+      done();
+    });
+  });
+
+  it('should get notifications from summary', done => {
+    session.run("EXPLAIN MATCH (n), (m) RETURN n, m").then(result => {
+      var summary = result.summary;
+      expect(summary.notifications).toBeDefined();
+      expect(summary.notifications.length).toBe(1);
+      var notification = summary.notifications[0];
+
+      expect(notification.code).toBeDefined();
+      expect(notification.title).toBeDefined();
+      expect(notification.description).toBeDefined();
+      expect(notification.severity).toBeDefined();
+      expect(notification.position).toBeDefined();
+
+      done();
+    });
+  });
+
+  function verifyPlansAreEqual(plan1, plan2) {
+    expect(plan1.arguments).toBe(plan2.arguments);
+    expect(plan1.identifiers).toBe(plan2.identifiers);
+    expect(plan1.operatorType).toBe(plan2.operatorType);
+
+    if (!plan1.children || !plan2.children )
+    {
+      expect(plan1.children).toBeUndefined();
+      expect(plan2.children).toBeUndefined();
+    }
+    else
+    {
+      expect(plan1.children).toBeDefined();
+      expect(plan2.children).toBeDefined();
+
+      // recursively calling the same method to verify they are equal
+      verifyPlansAreEqual(plan1.children, plan2.children);
+    }
+  }
 });

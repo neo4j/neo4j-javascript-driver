@@ -351,7 +351,7 @@ describe('session', () => {
     session.beginTransaction();
 
     // Then
-    expect(session.beginTransaction).toThrowError(
+    expect(()=>session.beginTransaction()).toThrowError(
       /You cannot begin a transaction on a session with an open transaction/);
   });
 
@@ -895,10 +895,6 @@ describe('session', () => {
   });
 
   it('should send multiple bookmarks', async () => {
-    if (!serverIs31OrLater()) {
-      return;
-    }
-
     const nodeCount = 17;
     const bookmarks = [];
     for (let i = 0; i < nodeCount; i++) {
