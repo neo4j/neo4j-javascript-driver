@@ -38,7 +38,7 @@ describe('result summary', () => {
   it('should get result summary', done => {
     // When & Then
     session.run("CREATE (p:Person { Name: 'Test'})").then(result => {
-      var summary = result.summary;
+      let summary = result.summary;
 
       expect(summary.statement.text).toBe("CREATE (p:Person { Name: 'Test'})");
       expect(summary.statement.parameters).toEqual({});
@@ -50,7 +50,7 @@ describe('result summary', () => {
       expect(summary.resultConsumedAfter).toBeDefined();
       expect(summary.resultAvailableAfter).toBeDefined();
 
-      var counters = summary.counters;
+      let counters = summary.counters;
       expect(counters.nodesCreated()).toBe(1);
       expect(counters.nodesDeleted()).toBe(0);
       expect(counters.relationshipsCreated()).toBe(0);
@@ -68,11 +68,11 @@ describe('result summary', () => {
 
   it('should get plan from summary', done => {
     session.run("EXPLAIN MATCH (n) RETURN 1").then(result => {
-      var summary = result.summary;
+      let summary = result.summary;
       expect(summary.plan).toBeDefined();
       expect(summary.profile).toBe(false);
 
-      var plan = summary.plan;
+      let plan = summary.plan;
       expect(plan.arguments).toBeDefined();
       expect(plan.children).toBeDefined();
       expect(plan.identifiers).toBeDefined();
@@ -83,14 +83,14 @@ describe('result summary', () => {
 
   it('should get profile from summary', done => {
     session.run("PROFILE RETURN 1").then(result => {
-      var summary = result.summary;
+      let summary = result.summary;
       expect(summary.plan).toBeDefined();
       expect(summary.profile).toBeDefined();
 
-      var profile = summary.profile;
-      var plan = summary.plan;
+      let profile = summary.profile;
+      let plan = summary.plan;
 
-      verifyPlansAreEqual(profile, plan);
+      verifyProfileAndPlanAreEqual(profile, plan);
 
       expect(profile.dbHits).toBe(0);
       expect(profile.rows).toBe(1);
@@ -101,10 +101,10 @@ describe('result summary', () => {
 
   it('should get notifications from summary', done => {
     session.run("EXPLAIN MATCH (n), (m) RETURN n, m").then(result => {
-      var summary = result.summary;
+      let summary = result.summary;
       expect(summary.notifications).toBeDefined();
       expect(summary.notifications.length).toBe(1);
-      var notification = summary.notifications[0];
+      let notification = summary.notifications[0];
 
       expect(notification.code).toBeDefined();
       expect(notification.title).toBeDefined();
@@ -116,23 +116,23 @@ describe('result summary', () => {
     });
   });
 
-  function verifyPlansAreEqual(plan1, plan2) {
-    expect(plan1.arguments).toBe(plan2.arguments);
-    expect(plan1.identifiers).toBe(plan2.identifiers);
-    expect(plan1.operatorType).toBe(plan2.operatorType);
+  function verifyProfileAndPlanAreEqual(profile, plan) {
+    expect(profile.arguments).toBe(plan.arguments);
+    expect(profile.identifiers).toBe(plan.identifiers);
+    expect(profile.operatorType).toBe(plan.operatorType);
 
-    if (!plan1.children || !plan2.children )
+    if (!profile.children || !plan.children )
     {
-      expect(plan1.children).toBeUndefined();
-      expect(plan2.children).toBeUndefined();
+      expect(profile.children).toBeUndefined();
+      expect(plan.children).toBeUndefined();
     }
     else
     {
-      expect(plan1.children).toBeDefined();
-      expect(plan2.children).toBeDefined();
+      expect(profile.children).toBeDefined();
+      expect(plan.children).toBeDefined();
 
       // recursively calling the same method to verify they are equal
-      verifyPlansAreEqual(plan1.children, plan2.children);
+      verifyProfileAndPlanAreEqual(profile.children, plan.children);
     }
   }
 });
