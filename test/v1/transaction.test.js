@@ -16,9 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import neo4j from '../../src/v1';
+import neo4j, {Neo4jError} from '../../src/v1';
 import sharedNeo4j from '../internal/shared-neo4j';
 import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
+import {newError} from "../../src/v1/error";
 
 describe('transaction', () => {
 
@@ -62,10 +63,7 @@ describe('transaction', () => {
     }).catch(console.log);
   });
 
-  it('should populate resultAvailableAfter for transaction#run when using 3.1 and onwards', done => {
-    if (neo4jVersionOlderThan31(done)) {
-        return;
-    }
+  it('should populate resultAvailableAfter for transaction#run', done => {
     const tx = session.beginTransaction();
     tx.run("CREATE (:TXNode1)").then(result => {
       tx.commit().then(() => {
@@ -229,10 +227,6 @@ describe('transaction', () => {
   });
 
   it('should provide bookmark on commit', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     // new session without initial bookmark
     session = driver.session();
     expect(session.lastBookmark()).toBeNull();
@@ -249,10 +243,6 @@ describe('transaction', () => {
   });
 
   it('should have bookmark when tx is rolled back', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     // new session without initial bookmark
     session = driver.session();
     expect(session.lastBookmark()).toBeNull();
@@ -284,10 +274,6 @@ describe('transaction', () => {
   });
 
   it('should have no bookmark when tx fails', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     // new session without initial bookmark
     session = driver.session();
     expect(session.lastBookmark()).toBeNull();
@@ -319,10 +305,6 @@ describe('transaction', () => {
   });
 
   it('should fail for invalid bookmark', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     const invalidBookmark = 'hi, this is an invalid bookmark';
     const tx = session.beginTransaction(invalidBookmark);
     tx.run('RETURN 1').catch(error => {
@@ -332,10 +314,6 @@ describe('transaction', () => {
   });
 
   it('should fail to run query for unreachable bookmark', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     const tx1 = session.beginTransaction();
     tx1.run('CREATE ()').then(result => {
       expect(result.summary.counters.nodesCreated()).toBe(1);
@@ -404,10 +382,6 @@ describe('transaction', () => {
   });
 
   it('should expose server info on successful query', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     const statement = 'RETURN 1';
 
     const tx = session.beginTransaction();
@@ -421,10 +395,6 @@ describe('transaction', () => {
   });
 
   it('should expose server info on successful query using observer', done => {
-    if (neo4jVersionOlderThan31(done)) {
-      return;
-    }
-
     // Given
     const statement = 'RETURN 1';
 
@@ -547,14 +517,6 @@ describe('transaction', () => {
   function expectValidLastBookmark(session) {
     expect(session.lastBookmark()).toBeDefined();
     expect(session.lastBookmark()).not.toBeNull();
-  }
-
-  function neo4jVersionOlderThan31(done) {
-    if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
-      done();
-      return true;
-    }
-    return false;
   }
 
   function testConnectionTimeout(encrypted, done) {

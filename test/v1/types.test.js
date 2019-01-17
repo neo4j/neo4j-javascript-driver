@@ -22,6 +22,10 @@ import sharedNeo4j from '../internal/shared-neo4j';
 import _ from 'lodash';
 import {ServerVersion, VERSION_3_2_0} from '../../src/v1/internal/server-version';
 
+describe('null value', () => {
+  it('should support null', testValue(null));
+});
+
 describe('floating point values', () => {
   it('should support float 1.0 ', testValue(1));
   it('should support float 0.0 ', testValue(0.0));
@@ -48,6 +52,7 @@ describe('string values', () => {
   it('should support empty string ', testValue(''));
   it('should support simple string ', testValue('abcdefghijklmnopqrstuvwxyz'));
   it('should support awesome string ', testValue('All makt åt Tengil, vår befriare.'));
+  it('should support long string', testValue('*'.repeat(10000)))
 });
 
 describe('list values', () => {
@@ -58,12 +63,24 @@ describe('list values', () => {
   it('should support string lists ', testValue(['', 'hello!']));
   it('should support list lists ', testValue([[], [1, 2, 3]]));
   it('should support map lists ', testValue([{}, {a: 12}]));
+  it('should support long list', testValue(Array.from({length: 1000}, (v, i) => i)))
 });
 
 describe('map values', () => {
   it('should support empty maps ', testValue({}));
   it('should support basic maps ', testValue({a: 1, b: {}, c: [], d: {e: 1}}));
   it('should support sparse maps ', testValue({foo: undefined, bar: null}, {bar: null}));
+
+  function longMap() {
+    const map = {};
+    for (let i = 0; i < 1000; i ++ )
+    {
+      map["key"+i]=i;
+    }
+    return map;
+  }
+
+  it('should support long maps', testValue(longMap()))
 });
 
 describe('node values', () => {

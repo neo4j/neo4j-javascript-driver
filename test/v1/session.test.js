@@ -234,10 +234,6 @@ describe('session', () => {
   });
 
   it('should expose server info on successful query', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
-
     // Given
     const statement = 'RETURN 1';
 
@@ -252,11 +248,7 @@ describe('session', () => {
       });
   });
 
-  it('should expose execution time information when using 3.1 and onwards', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
-
+  it('should expose execution time information', done => {
     // Given
     const statement = 'UNWIND range(1,10000) AS n RETURN n AS number';
     // When & Then
@@ -359,7 +351,8 @@ describe('session', () => {
     session.beginTransaction();
 
     // Then
-    expect(session.beginTransaction).toThrow();
+    expect(()=>session.beginTransaction()).toThrowError(
+      /You cannot begin a transaction on a session with an open transaction/);
   });
 
   it('should return lots of data', done => {
@@ -579,9 +572,6 @@ describe('session', () => {
   });
 
   it('should update last bookmark after every read tx commit', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
 
     // new session without initial bookmark
     session = driver.session();
@@ -601,9 +591,6 @@ describe('session', () => {
   });
 
   it('should update last bookmark after every write tx commit', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
 
     const bookmarkBefore = session.lastBookmark();
 
@@ -621,9 +608,6 @@ describe('session', () => {
   });
 
   it('should not lose last bookmark after run', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
 
     const tx = session.beginTransaction();
     tx.run('CREATE ()').then(() => {
@@ -640,10 +624,6 @@ describe('session', () => {
   });
 
   it('should commit read transaction', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
-
     // new session without initial bookmark
     session = driver.session();
     expect(session.lastBookmark()).toBeNull();
@@ -659,10 +639,6 @@ describe('session', () => {
   });
 
   it('should commit write transaction', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
-
     const bookmarkBefore = session.lastBookmark();
     const resultPromise = session.writeTransaction(tx => tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer'));
 
@@ -683,10 +659,6 @@ describe('session', () => {
   });
 
   it('should not commit already committed read transaction', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
-
     const resultPromise = session.readTransaction(tx => {
       return new Promise((resolve, reject) => {
         tx.run('RETURN 42 AS answer').then(result => {
@@ -712,10 +684,6 @@ describe('session', () => {
   });
 
   it('should not commit already committed write transaction', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
-
     const resultPromise = session.readTransaction(tx => {
       return new Promise((resolve, reject) => {
         tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer').then(result => {
@@ -745,9 +713,6 @@ describe('session', () => {
   });
 
   it('should not commit rolled back read transaction', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
 
     const bookmarkBefore = session.lastBookmark();
     const resultPromise = session.readTransaction(tx => {
@@ -770,9 +735,6 @@ describe('session', () => {
   });
 
   it('should not commit rolled back write transaction', done => {
-    if (!serverIs31OrLater(done)) {
-      return;
-    }
 
     const bookmarkBefore = session.lastBookmark();
     const resultPromise = session.readTransaction(tx => {
@@ -799,10 +761,6 @@ describe('session', () => {
   });
 
   it('should interrupt query waiting on a lock when closed', done => {
-    if (!serverIs31OrLater(done)) {
-      // locks are transaction termination aware by default only in 3.1+
-      return;
-    }
 
     session.run('CREATE ()').then(() => {
       session.close(() => {
@@ -836,10 +794,6 @@ describe('session', () => {
   });
 
   it('should interrupt transaction waiting on a lock when closed', done => {
-    if (!serverIs31OrLater(done)) {
-      // locks are transaction termination aware by default only in 3.1+
-      return;
-    }
 
     session.run('CREATE ()').then(() => {
       session.close(() => {
@@ -874,10 +828,6 @@ describe('session', () => {
   });
 
   it('should interrupt transaction function waiting on a lock when closed', done => {
-    if (!serverIs31OrLater(done)) {
-      // locks are transaction termination aware by default only in 3.1+
-      return;
-    }
 
     session.run('CREATE ()').then(() => {
       session.close(() => {
@@ -945,10 +895,6 @@ describe('session', () => {
   });
 
   it('should send multiple bookmarks', async () => {
-    if (!serverIs31OrLater()) {
-      return;
-    }
-
     const nodeCount = 17;
     const bookmarks = [];
     for (let i = 0; i < nodeCount; i++) {
@@ -1161,16 +1107,6 @@ describe('session', () => {
       expect(usedTransactions[0].isOpen()).toBeFalsy();
       done();
     });
-  }
-
-  function serverIs31OrLater(done) {
-    if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
-      if (done && typeof done === 'function') {
-        done();
-      }
-      return false;
-    }
-    return true;
   }
 
   function countNodes(label, propertyKey, propertyValue) {
