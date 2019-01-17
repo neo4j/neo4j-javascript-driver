@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {inSafeRange, int, isInt, toNumber, toString} from './integer';
+import Integer, {inSafeRange, int, isInt, toNumber, toString} from './integer';
 import {Node, Path, PathSegment, Relationship, UnboundRelationship} from './graph-types';
 import {Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from './error';
 import Result from './result';
@@ -258,7 +258,8 @@ const types = {
   Duration,
   LocalDateTime,
   LocalTime,
-  Time
+  Time,
+  Integer
 };
 
 /**
