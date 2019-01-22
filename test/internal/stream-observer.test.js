@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import StreamObserver from '../../src/v1/internal/stream-observer';
+import StreamObserver from '../../src/internal/stream-observer';
 import FakeConnection from './fake-connection';
 
 const NO_OP = () => {

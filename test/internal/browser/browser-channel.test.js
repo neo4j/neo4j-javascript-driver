@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 
-import WebSocketChannel from '../../../src/v1/internal/browser/browser-channel';
-import ChannelConfig from '../../../src/v1/internal/channel-config';
-import urlUtil from '../../../src/v1/internal/url-util';
-import {Neo4jError, SERVICE_UNAVAILABLE} from '../../../src/v1/error';
+import WebSocketChannel from '../../../src/internal/browser/browser-channel';
+import ChannelConfig from '../../../src/internal/channel-config';
+import urlUtil from '../../../src/internal/url-util';
+import {Neo4jError, SERVICE_UNAVAILABLE} from '../../../src/error';
 import {setTimeoutMock} from '../timers-util';
-import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../../src/v1/internal/util';
+import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../../src/internal/util';
 
 describe('WebSocketChannel', () => {
 

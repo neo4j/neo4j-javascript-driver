@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-import ChannelConfig from '../../src/v1/internal/channel-config';
-import urlUtil from '../../src/v1/internal/url-util';
-import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
-import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../src/v1/internal/util';
+import ChannelConfig from '../../src/internal/channel-config';
+import urlUtil from '../../src/internal/url-util';
+import {SERVICE_UNAVAILABLE} from '../../src/error';
+import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../src/internal/util';
 
 describe('ChannelConfig', () => {
 

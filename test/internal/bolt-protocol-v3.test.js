@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import BoltProtocolV3 from '../../src/v1/internal/bolt-protocol-v3';
+import BoltProtocolV3 from '../../src/internal/bolt-protocol-v3';
 
 describe('BoltProtocolV3', () => {
 

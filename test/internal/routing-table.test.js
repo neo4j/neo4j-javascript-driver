@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoutingTable from '../../src/v1/internal/routing-table';
-import {int} from '../../src/v1/integer';
-import {READ, WRITE} from '../../src/v1/driver';
+import RoutingTable from '../../src/internal/routing-table';
+import {int} from '../../src/integer';
+import {READ, WRITE} from '../../src/driver';
 
 describe('routing-table', () => {
 

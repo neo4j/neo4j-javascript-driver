@@ -36,7 +36,7 @@ describe('Package', function () {
     var neo4j;
 
     try {
-      neo4j = require(sandboxPath('node_modules', 'neo4j-driver', 'lib')).v1;
+      neo4j = require(sandboxPath('node_modules', 'neo4j-driver', 'lib'));
     } catch (e) {
       done.fail('Could not load sandbox package', e);
     }

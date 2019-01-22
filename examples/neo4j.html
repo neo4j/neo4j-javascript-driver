@@ -131,9 +131,9 @@
     </div>
 
     <script>
-    var authToken = neo4j.v1.auth.basic("neo4j", "neo4j");
+    var authToken = neo4j.auth.basic("neo4j", "neo4j");
     console.log(authToken);
-    var driver = neo4j.v1.driver("bolt://localhost", authToken, {
+    var driver = neo4j.driver("bolt://localhost", authToken, {
         encrypted:false
     });
     var session = driver.session();

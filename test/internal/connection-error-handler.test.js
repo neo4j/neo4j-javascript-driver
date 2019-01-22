@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import ConnectionErrorHandler from '../../src/v1/internal/connection-error-handler';
-import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
+import ConnectionErrorHandler from '../../src/internal/connection-error-handler';
+import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/error';
 
 describe('ConnectionErrorHandler', () => {
 

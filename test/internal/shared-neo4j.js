@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
+import neo4j from '../../src';
 
 class UnsupportedPlatform {
 

@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TxConfig from '../../src/v1/internal/tx-config';
-import {int} from '../../src/v1';
+import TxConfig from '../../src/internal/tx-config';
+import {int} from '../../src';
 
 describe('TxConfig', () => {
 

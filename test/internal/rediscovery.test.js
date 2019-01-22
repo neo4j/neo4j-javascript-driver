@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 
-import Rediscovery from '../../src/v1/internal/rediscovery';
-import RoutingUtil from '../../src/v1/internal/routing-util';
-import {newError, PROTOCOL_ERROR} from '../../src/v1/error';
-import Record from '../../src/v1/record';
-import {int} from '../../src/v1/integer';
-import RoutingTable from '../../src/v1/internal/routing-table';
+import Rediscovery from '../../src/internal/rediscovery';
+import RoutingUtil from '../../src/internal/routing-util';
+import {newError, PROTOCOL_ERROR} from '../../src/error';
+import Record from '../../src/record';
+import {int} from '../../src/integer';
+import RoutingTable from '../../src/internal/routing-table';
 
 const ROUTER_ADDRESS = 'bolt+routing://test.router.com';
 

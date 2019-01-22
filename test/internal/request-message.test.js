@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import RequestMessage from '../../src/v1/internal/request-message';
-import Bookmark from '../../src/v1/internal/bookmark';
-import TxConfig from '../../src/v1/internal/tx-config';
-import {int} from '../../src/v1';
-import {READ, WRITE} from "../../src/v1/driver";
+import RequestMessage from '../../src/internal/request-message';
+import Bookmark from '../../src/internal/bookmark';
+import TxConfig from '../../src/internal/tx-config';
+import {int} from '../../src';
+import {READ, WRITE} from "../../src/driver";
 
 describe('RequestMessage', () => {
 

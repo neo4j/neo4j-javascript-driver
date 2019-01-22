@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-import RoutingUtil from '../../src/v1/internal/routing-util';
-import Record from '../../src/v1/record';
-import Integer, {int} from '../../src/v1/integer';
-import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
+import RoutingUtil from '../../src/internal/routing-util';
+import Record from '../../src/record';
+import Integer, {int} from '../../src/integer';
+import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/error';
 import lolex from 'lolex';
 import FakeConnection from './fake-connection';
 

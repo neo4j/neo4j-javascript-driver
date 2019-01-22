@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import TransactionExecutor from '../../src/v1/internal/transaction-executor';
-import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
+import TransactionExecutor from '../../src/internal/transaction-executor';
+import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/error';
 import {setTimeoutMock} from './timers-util';
 import lolex from 'lolex';
 

@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import {alloc} from '../../src/v1/internal/node';
-import {Packer, Structure, Unpacker} from '../../src/v1/internal/packstream-v1';
-import {int} from '../../src/v1';
+import {alloc} from '../../src/internal/node';
+import {Packer, Structure, Unpacker} from '../../src/internal/packstream-v1';
+import {int} from '../../src';
 
 describe('packstream-v1', () => {
 

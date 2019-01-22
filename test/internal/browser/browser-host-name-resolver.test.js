@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import BrowserHostNameResolver from '../../../src/v1/internal/browser/browser-host-name-resolver';
+import BrowserHostNameResolver from '../../../src/internal/browser/browser-host-name-resolver';
 
 describe('BrowserHostNameResolver', () => {
 

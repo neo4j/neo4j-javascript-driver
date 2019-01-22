@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import ConnectionHolder, {EMPTY_CONNECTION_HOLDER} from '../../src/v1/internal/connection-holder';
-import {SingleConnectionProvider} from '../../src/v1/internal/connection-providers';
-import {READ} from '../../src/v1/driver';
+import ConnectionHolder, {EMPTY_CONNECTION_HOLDER} from '../../src/internal/connection-holder';
+import {SingleConnectionProvider} from '../../src/internal/connection-providers';
+import {READ} from '../../src/driver';
 import FakeConnection from './fake-connection';
-import StreamObserver from '../../src/v1/internal/stream-observer';
+import StreamObserver from '../../src/internal/stream-observer';
 
 describe('EmptyConnectionHolder', () => {
 

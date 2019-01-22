@@ -18,21 +18,21 @@
  */
 
 import DummyChannel from './dummy-channel';
-import Connection from '../../src/v1/internal/connection';
-import {Packer} from '../../src/v1/internal/packstream-v1';
-import {Chunker} from '../../src/v1/internal/chunking';
-import {alloc} from '../../src/v1/internal/node';
-import {Neo4jError, newError, SERVICE_UNAVAILABLE} from '../../src/v1/error';
+import Connection from '../../src/internal/connection';
+import {Packer} from '../../src/internal/packstream-v1';
+import {Chunker} from '../../src/internal/chunking';
+import {alloc} from '../../src/internal/node';
+import {Neo4jError, newError, SERVICE_UNAVAILABLE} from '../../src/error';
 import sharedNeo4j from '../internal/shared-neo4j';
-import {ServerVersion, VERSION_3_5_0} from '../../src/v1/internal/server-version';
+import {ServerVersion, VERSION_3_5_0} from '../../src/internal/server-version';
 import lolex from 'lolex';
-import Logger from '../../src/v1/internal/logger';
-import StreamObserver from '../../src/v1/internal/stream-observer';
-import ConnectionErrorHandler from '../../src/v1/internal/connection-error-handler';
+import Logger from '../../src/internal/logger';
+import StreamObserver from '../../src/internal/stream-observer';
+import ConnectionErrorHandler from '../../src/internal/connection-error-handler';
 import testUtils from '../internal/test-utils';
-import Bookmark from '../../src/v1/internal/bookmark';
-import TxConfig from '../../src/v1/internal/tx-config';
-import {WRITE} from "../../src/v1/driver";
+import Bookmark from '../../src/internal/bookmark';
+import TxConfig from '../../src/internal/tx-config';
+import {WRITE} from "../../src/driver";
 
 const ILLEGAL_MESSAGE = {signature: 42, fields: []};
 const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};

@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import LeastConnectedLoadBalancingStrategy from '../../src/v1/internal/least-connected-load-balancing-strategy';
-import Pool from '../../src/v1/internal/pool';
+import LeastConnectedLoadBalancingStrategy from '../../src/internal/least-connected-load-balancing-strategy';
+import Pool from '../../src/internal/pool';
 
 describe('LeastConnectedLoadBalancingStrategy', () => {
 

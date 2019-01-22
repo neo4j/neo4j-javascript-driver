@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-import neo4j from '../../../src/v1';
+import neo4j from '../../../src';
 import sharedNeo4j from '../../internal/shared-neo4j';
 import testUtils from '.././test-utils';
-import {ServerVersion, VERSION_3_1_0, VERSION_3_4_0} from '../../../src/v1/internal/server-version';
+import {ServerVersion, VERSION_3_1_0, VERSION_3_4_0} from '../../../src/internal/server-version';
 
 describe('http driver', () => {
 

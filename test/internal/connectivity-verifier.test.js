@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import ConnectivityVerifier from '../../src/v1/internal/connectivity-verifier';
-import {SingleConnectionProvider} from '../../src/v1/internal/connection-providers';
+import ConnectivityVerifier from '../../src/internal/connectivity-verifier';
+import {SingleConnectionProvider} from '../../src/internal/connection-providers';
 import FakeConnection from './fake-connection';
 
 describe('ConnectivityVerifier', () => {

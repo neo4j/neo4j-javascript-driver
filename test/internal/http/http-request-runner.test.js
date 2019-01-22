@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-import HttpRequestRunner from '../../../src/v1/internal/http/http-request-runner';
-import neo4j from '../../../src/v1';
+import HttpRequestRunner from '../../../src/internal/http/http-request-runner';
+import neo4j from '../../../src';
 import sharedNeo4j from '../../internal/shared-neo4j';
-import urlUtil from '../../../src/v1/internal/url-util';
+import urlUtil from '../../../src/internal/url-util';
 import testUtils from '.././test-utils';
 import _ from 'lodash';
 

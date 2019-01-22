@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-import ProtocolHandshaker from '../../src/v1/internal/protocol-handshaker';
-import Logger from '../../src/v1/internal/logger';
-import BoltProtocol from '../../src/v1/internal/bolt-protocol-v1';
-import {alloc} from '../../src/v1/internal/node';
+import ProtocolHandshaker from '../../src/internal/protocol-handshaker';
+import Logger from '../../src/internal/logger';
+import BoltProtocol from '../../src/internal/bolt-protocol-v1';
+import {alloc} from '../../src/internal/node';
 
 describe('ProtocolHandshaker', () => {
 
