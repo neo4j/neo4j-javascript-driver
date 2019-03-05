@@ -21,6 +21,7 @@ import * as v1 from './packstream-v1';
 import {newError} from '../error';
 import Bookmark from './bookmark';
 import TxConfig from './tx-config';
+import {ACCESS_MODE_WRITE} from "./constants";
 
 export default class BoltProtocol {
 
@@ -80,9 +81,10 @@ export default class BoltProtocol {
    * Begin an explicit transaction.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
+   * @param {string} mode the access mode.
    * @param {StreamObserver} observer the response observer.
    */
-  beginTransaction(bookmark, txConfig, observer) {
+  beginTransaction(bookmark, txConfig, mode, observer) {
     assertTxConfigIsEmpty(txConfig, this._connection, observer);
 
     const runMessage = RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters());
@@ -97,7 +99,9 @@ export default class BoltProtocol {
    * @param {StreamObserver} observer the response observer.
    */
   commitTransaction(observer) {
-    this.run('COMMIT', {}, Bookmark.empty(), TxConfig.empty(), observer);
+    // WRITE access mode is used as a place holder here, it has
+    // no effect on behaviour for Bolt V1 & V2
+    this.run('COMMIT', {}, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, observer);
   }
 
   /**
@@ -105,7 +109,9 @@ export default class BoltProtocol {
    * @param {StreamObserver} observer the response observer.
    */
   rollbackTransaction(observer) {
-    this.run('ROLLBACK', {}, Bookmark.empty(), TxConfig.empty(), observer);
+    // WRITE access mode is used as a place holder here, it has
+    // no effect on behaviour for Bolt V1 & V2
+    this.run('ROLLBACK', {}, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, observer);
   }
 
   /**
@@ -114,10 +120,11 @@ export default class BoltProtocol {
    * @param {object} parameters the statement parameters.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the auto-commit transaction configuration.
+   * @param {string} mode the access mode.
    * @param {StreamObserver} observer the response observer.
    */
-  run(statement, parameters, bookmark, txConfig, observer) {
-    // bookmark is ignored in this version of the protocol
+  run(statement, parameters, bookmark, txConfig, mode, observer) {
+    // bookmark and mode are ignored in this versioon of the protocol
     assertTxConfigIsEmpty(txConfig, this._connection, observer);
 
     const runMessage = RequestMessage.run(statement, parameters);

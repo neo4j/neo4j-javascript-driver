@@ -28,6 +28,7 @@ import ConnectivityVerifier from './internal/connectivity-verifier';
 import PoolConfig, {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from './internal/pool-config';
 import Logger from './internal/logger';
 import ConnectionErrorHandler from './internal/connection-error-handler';
+import {ACCESS_MODE_READ, ACCESS_MODE_WRITE} from './internal/constants';
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
 
@@ -36,14 +37,14 @@ const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
  * Should be used like this: `driver.session(neo4j.session.READ)`.
  * @type {string}
  */
-const READ = 'READ';
+const READ = ACCESS_MODE_READ;
 
 /**
  * Constant that represents write session access mode.
  * Should be used like this: `driver.session(neo4j.session.WRITE)`.
  * @type {string}
  */
-const WRITE = 'WRITE';
+const WRITE = ACCESS_MODE_WRITE;
 
 let idGenerator = 0;
 
@@ -198,7 +199,7 @@ class Driver {
 
   static _validateSessionMode(rawMode) {
     const mode = rawMode || WRITE;
-    if (mode !== READ && mode !== WRITE) {
+    if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
       throw newError('Illegal session mode ' + mode);
     }
     return mode;
