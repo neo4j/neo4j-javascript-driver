@@ -46,7 +46,7 @@ class Transaction {
     const streamObserver = new _TransactionStreamObserver(this);
 
     this._connectionHolder.getConnection(streamObserver)
-      .then(conn => conn.protocol().beginTransaction(bookmark, txConfig, streamObserver))
+      .then(conn => conn.protocol().beginTransaction(bookmark, txConfig, this._connectionHolder.mode(), streamObserver))
       .catch(error => streamObserver.onError(error));
   }
 
@@ -158,7 +158,7 @@ let _states = {
       const txConfig = TxConfig.empty();
 
       connectionHolder.getConnection(observer)
-        .then(conn => conn.protocol().run(statement, parameters, bookmark, txConfig, observer))
+        .then(conn => conn.protocol().run(statement, parameters, bookmark, txConfig, connectionHolder.mode(), observer))
         .catch(error => observer.onError(error));
 
       return _newRunResult(observer, statement, parameters, () => observer.serverMetadata());

@@ -2006,6 +2006,124 @@ describe('routing driver with stub server', () => {
     testDiscoveryAndReadQueryInAutoCommitTx('./test/resources/boltstub/acquire_endpoints.script', {disableLosslessIntegers: true}, done);
   });
 
+  it('should send read access mode on statement metadata', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+    // Given
+    const seedServer = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3.script', 9001);
+    const readServer = boltStub.start('./test/resources/boltstub/read_server_v3_read.script', 9005);
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001');
+      // When
+      const session = driver.session(neo4j.session.READ);
+      session.run("MATCH (n) RETURN n.name").then(res => {
+        session.close();
+
+        // Then
+        expect(res.records[0].get('n.name')).toEqual('Bob');
+        expect(res.records[1].get('n.name')).toEqual('Alice');
+        expect(res.records[2].get('n.name')).toEqual('Tina');
+        driver.close();
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  })
+
+  it('should send read access mode on statement metadata with read transaction', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+    // Given
+    const seedServer = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3.script', 9001);
+    const readServer = boltStub.start('./test/resources/boltstub/read_server_v3_read_tx.script', 9005);
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001');
+      // When
+      const session = driver.session(neo4j.session.READ);
+      session.readTransaction(tx => tx.run("MATCH (n) RETURN n.name")).then(res => {
+        session.close();
+
+        // Then
+        expect(res.records[0].get('n.name')).toEqual('Bob');
+        expect(res.records[1].get('n.name')).toEqual('Alice');
+        expect(res.records[2].get('n.name')).toEqual('Tina');
+        driver.close();
+        seedServer.exit(code1 => {
+          readServer.exit(code2 => {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  })
+
+  it('should not send write access mode on statement metadata', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+    // Given
+    const seedServer = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3.script', 9001);
+    const writeServer = boltStub.start('./test/resources/boltstub/write_server_v3_write.script', 9007);
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001');
+      // When
+      const session = driver.session(neo4j.session.WRITE);
+      session.run("CREATE (n {name:'Bob'})").then(res => {
+        session.close();
+        driver.close();
+        seedServer.exit(code1 => {
+          writeServer.exit(code2 => {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  })
+
+  it('should not send write access mode on statement metadata with write transaction', done => {
+    if (!boltStub.supported) {
+      done();
+      return;
+    }
+    // Given
+    const seedServer = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3.script', 9001);
+    const writeServer = boltStub.start('./test/resources/boltstub/write_server_v3_write_tx.script', 9007);
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001');
+      // When
+      const session = driver.session(neo4j.session.WRITE);
+      session.writeTransaction(tx => tx.run("CREATE (n {name:'Bob'})")).then(res => {
+        session.close();
+        driver.close();
+        seedServer.exit(code1 => {
+          writeServer.exit(code2 => {
+            expect(code1).toEqual(0);
+            expect(code2).toEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  })
+
   function testAddressPurgeOnDatabaseError(query, accessMode, done) {
     if (!boltStub.supported) {
       done();
