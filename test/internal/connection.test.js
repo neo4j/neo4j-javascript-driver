@@ -32,6 +32,7 @@ import ConnectionErrorHandler from '../../src/v1/internal/connection-error-handl
 import testUtils from '../internal/test-utils';
 import Bookmark from '../../src/v1/internal/bookmark';
 import TxConfig from '../../src/v1/internal/tx-config';
+import {WRITE} from "../../src/v1/driver";
 
 const ILLEGAL_MESSAGE = {signature: 42, fields: []};
 const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};
@@ -98,7 +99,7 @@ describe('Connection', () => {
 
     connection.connect('mydriver/0.0.0', basicAuthToken())
       .then(() => {
-        connection.protocol().run('RETURN 1.0', {}, Bookmark.empty(), TxConfig.empty(), streamObserver);
+        connection.protocol().run('RETURN 1.0', {}, Bookmark.empty(), TxConfig.empty(), WRITE, streamObserver);
       });
   });
 

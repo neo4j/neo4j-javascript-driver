@@ -21,6 +21,7 @@ import BoltProtocolV1 from '../../src/v1/internal/bolt-protocol-v1';
 import RequestMessage from '../../src/v1/internal/request-message';
 import Bookmark from '../../src/v1/internal/bookmark';
 import TxConfig from '../../src/v1/internal/tx-config';
+import {WRITE} from "../../src/v1/driver";
 
 class MessageRecorder {
 
@@ -78,7 +79,7 @@ describe('BoltProtocolV1', () => {
     const parameters = {x: 'x', y: 'y'};
     const observer = {};
 
-    protocol.run(statement, parameters, Bookmark.empty(), TxConfig.empty(), observer);
+    protocol.run(statement, parameters, Bookmark.empty(), TxConfig.empty(), WRITE, observer);
 
     recorder.verifyMessageCount(2);
 
@@ -110,7 +111,7 @@ describe('BoltProtocolV1', () => {
     const bookmark = new Bookmark('neo4j:bookmark:v1:tx42');
     const observer = {};
 
-    protocol.beginTransaction(bookmark, TxConfig.empty(), observer);
+    protocol.beginTransaction(bookmark, TxConfig.empty(), WRITE, observer);
 
     recorder.verifyMessageCount(2);
 

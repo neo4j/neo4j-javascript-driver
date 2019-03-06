@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import {ACCESS_MODE_READ} from './constants';
+
 // Signature bytes for each request message type
 const INIT = 0x01;            // 0000 0001 // INIT <user_agent> <authentication_token>
 const ACK_FAILURE = 0x0E;     // 0000 1110 // ACK_FAILURE - unused
@@ -30,6 +32,8 @@ const GOODBYE = 0x02;         // 0000 0010 // GOODBYE
 const BEGIN = 0x11;           // 0001 0001 // BEGIN <metadata>
 const COMMIT = 0x12;          // 0001 0010 // COMMIT
 const ROLLBACK = 0x13;        // 0001 0011 // ROLLBACK
+
+const READ_MODE = "r";
 
 export default class RequestMessage {
 
@@ -90,10 +94,11 @@ export default class RequestMessage {
    * Create a new BEGIN message.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
+   * @param {string} mode the access mode.
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin(bookmark, txConfig) {
-    const metadata = buildTxMetadata(bookmark, txConfig);
+  static begin(bookmark, txConfig, mode) {
+    const metadata = buildTxMetadata(bookmark, txConfig, mode);
     return new RequestMessage(BEGIN, [metadata], () => `BEGIN ${JSON.stringify(metadata)}`);
   }
 
@@ -119,10 +124,11 @@ export default class RequestMessage {
    * @param {object} parameters the statement parameters.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
+   * @param {string} mode the access mode.
    * @return {RequestMessage} new RUN message with additional metadata.
    */
-  static runWithMetadata(statement, parameters, bookmark, txConfig) {
-    const metadata = buildTxMetadata(bookmark, txConfig);
+  static runWithMetadata(statement, parameters, bookmark, txConfig, mode) {
+    const metadata = buildTxMetadata(bookmark, txConfig, mode);
     return new RequestMessage(RUN, [statement, parameters, metadata],
       () => `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(metadata)}`);
   }
@@ -140,9 +146,10 @@ export default class RequestMessage {
  * Create an object that represent transaction metadata.
  * @param {Bookmark} bookmark the bookmark.
  * @param {TxConfig} txConfig the configuration.
+ * @param {string} mode the access mode.
  * @return {object} a metadata object.
  */
-function buildTxMetadata(bookmark, txConfig) {
+function buildTxMetadata(bookmark, txConfig, mode) {
   const metadata = {};
   if (!bookmark.isEmpty()) {
     metadata['bookmarks'] = bookmark.values();
@@ -152,6 +159,9 @@ function buildTxMetadata(bookmark, txConfig) {
   }
   if (txConfig.metadata) {
     metadata['tx_metadata'] = txConfig.metadata;
+  }
+  if (mode === ACCESS_MODE_READ) {
+    metadata['mode'] = READ_MODE;
   }
   return metadata;
 }

@@ -21,6 +21,7 @@ import RequestMessage from '../../src/v1/internal/request-message';
 import Bookmark from '../../src/v1/internal/bookmark';
 import TxConfig from '../../src/v1/internal/tx-config';
 import {int} from '../../src/v1';
+import {READ, WRITE} from "../../src/v1/driver";
 
 describe('RequestMessage', () => {
 
@@ -74,15 +75,21 @@ describe('RequestMessage', () => {
   });
 
   it('should create BEGIN message', () => {
-    const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10']);
-    const txConfig = new TxConfig({timeout: 42, metadata: {key: 42}});
+    [READ, WRITE].forEach(mode => {
+      const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10']);
+      const txConfig = new TxConfig({timeout: 42, metadata: {key: 42}});
 
-    const message = RequestMessage.begin(bookmark, txConfig);
+      const message = RequestMessage.begin(bookmark, txConfig, mode);
 
-    expect(message.signature).toEqual(0x11);
-    const expectedMetadata = {bookmarks: bookmark.values(), tx_timeout: int(42), tx_metadata: {key: 42}};
-    expect(message.fields).toEqual([expectedMetadata]);
-    expect(message.toString()).toEqual(`BEGIN ${JSON.stringify(expectedMetadata)}`);
+      const expectedMetadata = {bookmarks: bookmark.values(), tx_timeout: int(42), tx_metadata: {key: 42}};
+      if (mode === READ) {
+        expectedMetadata.mode = "r";
+      }
+
+      expect(message.signature).toEqual(0x11);
+      expect(message.fields).toEqual([expectedMetadata]);
+      expect(message.toString()).toEqual(`BEGIN ${JSON.stringify(expectedMetadata)}`);
+    });
   });
 
   it('should create COMMIT message', () => {
@@ -102,17 +109,23 @@ describe('RequestMessage', () => {
   });
 
   it('should create RUN with metadata message', () => {
-    const statement = 'RETURN $x';
-    const parameters = {x: 42};
-    const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10', 'neo4j:bookmark:v1:tx100']);
-    const txConfig = new TxConfig({timeout: 999, metadata: {a: 'a', b: 'b'}});
+    [READ, WRITE].forEach(mode => {
+      const statement = 'RETURN $x';
+      const parameters = {x: 42};
+      const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10', 'neo4j:bookmark:v1:tx100']);
+      const txConfig = new TxConfig({timeout: 999, metadata: {a: 'a', b: 'b'}});
 
-    const message = RequestMessage.runWithMetadata(statement, parameters, bookmark, txConfig);
+      const message = RequestMessage.runWithMetadata(statement, parameters, bookmark, txConfig, mode);
 
-    expect(message.signature).toEqual(0x10);
-    const expectedMetadata = {bookmarks: bookmark.values(), tx_timeout: int(999), tx_metadata: {a: 'a', b: 'b'}};
-    expect(message.fields).toEqual([statement, parameters, expectedMetadata]);
-    expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(expectedMetadata)}`);
+      const expectedMetadata = {bookmarks: bookmark.values(), tx_timeout: int(999), tx_metadata: {a: 'a', b: 'b'}};
+      if (mode === READ) {
+        expectedMetadata.mode = "r";
+      }
+
+      expect(message.signature).toEqual(0x10);
+      expect(message.fields).toEqual([statement, parameters, expectedMetadata]);
+      expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(expectedMetadata)}`);
+    });
   });
 
   it('should create GOODBYE message', () => {

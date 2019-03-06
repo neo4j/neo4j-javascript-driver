@@ -28,6 +28,7 @@ import ConnectivityVerifier from './internal/connectivity-verifier';
 import PoolConfig, {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from './internal/pool-config';
 import Logger from './internal/logger';
 import ConnectionErrorHandler from './internal/connection-error-handler';
+import {ACCESS_MODE_READ, ACCESS_MODE_WRITE} from './internal/constants';
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
 
@@ -36,14 +37,14 @@ const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
  * Should be used like this: `driver.session(neo4j.session.READ)`.
  * @type {string}
  */
-const READ = 'READ';
+const READ = ACCESS_MODE_READ;
 
 /**
  * Constant that represents write session access mode.
  * Should be used like this: `driver.session(neo4j.session.WRITE)`.
  * @type {string}
  */
-const WRITE = 'WRITE';
+const WRITE = ACCESS_MODE_WRITE;
 
 let idGenerator = 0;
 
@@ -174,15 +175,15 @@ class Driver {
   }
 
   /**
-   * Acquire a session to communicate with the database. The driver maintains
-   * a pool of sessions, so calling this method is normally cheap because you
-   * will be pulling a session out of the common pool.
+   * Acquire a session to communicate with the database. The session will
+   * borrow connections from the underlying connection pool as required and
+   * should be considered lightweight and disposable.
    *
    * This comes with some responsibility - make sure you always call
    * {@link close} when you are done using a session, and likewise,
    * make sure you don't close your session before you are done using it. Once
-   * it is returned to the pool, the session will be reset to a clean state and
-   * made available for others to use.
+   * it is closed, the underlying connection will be released to the connection
+   * pool and made available for others to use.
    *
    * @param {string} [mode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
    * @param {string|string[]} [bookmarkOrBookmarks=null] the initial reference or references to some previous
@@ -198,7 +199,7 @@ class Driver {
 
   static _validateSessionMode(rawMode) {
     const mode = rawMode || WRITE;
-    if (mode !== READ && mode !== WRITE) {
+    if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
       throw newError('Illegal session mode ' + mode);
     }
     return mode;

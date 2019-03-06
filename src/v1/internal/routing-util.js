@@ -22,6 +22,7 @@ import Integer, {int} from '../integer';
 import {ServerVersion, VERSION_3_2_0} from './server-version';
 import Bookmark from './bookmark';
 import TxConfig from './tx-config';
+import {ACCESS_MODE_WRITE} from "./constants";
 
 const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers';
 const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable($context)';
@@ -125,7 +126,7 @@ export default class RoutingUtil {
         params = {};
       }
 
-      connection.protocol().run(query, params, Bookmark.empty(), TxConfig.empty(), streamObserver);
+      connection.protocol().run(query, params, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, streamObserver);
     });
   }
 }

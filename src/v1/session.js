@@ -22,7 +22,8 @@ import Transaction from './transaction';
 import {newError} from './error';
 import {validateStatementAndParameters} from './internal/util';
 import ConnectionHolder from './internal/connection-holder';
-import Driver, {READ, WRITE} from './driver';
+import Driver from './driver';
+import {ACCESS_MODE_READ, ACCESS_MODE_WRITE} from './internal/constants';
 import TransactionExecutor from './internal/transaction-executor';
 import Bookmark from './internal/bookmark';
 import TxConfig from './internal/tx-config';
@@ -64,8 +65,8 @@ class Session {
    */
   constructor(mode, connectionProvider, bookmark, config) {
     this._mode = mode;
-    this._readConnectionHolder = new ConnectionHolder(READ, connectionProvider);
-    this._writeConnectionHolder = new ConnectionHolder(WRITE, connectionProvider);
+    this._readConnectionHolder = new ConnectionHolder(ACCESS_MODE_READ, connectionProvider);
+    this._writeConnectionHolder = new ConnectionHolder(ACCESS_MODE_WRITE, connectionProvider);
     this._open = true;
     this._hasTx = false;
     this._lastBookmark = bookmark;
@@ -86,7 +87,7 @@ class Session {
     const autoCommitTxConfig = transactionConfig ? new TxConfig(transactionConfig) : TxConfig.empty();
 
     return this._run(query, params, (connection, streamObserver) =>
-      connection.protocol().run(query, params, this._lastBookmark, autoCommitTxConfig, streamObserver)
+      connection.protocol().run(query, params, this._lastBookmark, autoCommitTxConfig, this._mode, streamObserver)
     );
   }
 
@@ -179,7 +180,7 @@ class Session {
    */
   readTransaction(transactionWork, transactionConfig) {
     const config = new TxConfig(transactionConfig);
-    return this._runTransaction(READ, config, transactionWork);
+    return this._runTransaction(ACCESS_MODE_READ, config, transactionWork);
   }
 
   /**
@@ -198,7 +199,7 @@ class Session {
    */
   writeTransaction(transactionWork, transactionConfig) {
     const config = new TxConfig(transactionConfig);
-    return this._runTransaction(WRITE, config, transactionWork);
+    return this._runTransaction(ACCESS_MODE_WRITE, config, transactionWork);
   }
 
   _runTransaction(accessMode, transactionConfig, transactionWork) {
@@ -238,9 +239,9 @@ class Session {
   }
 
   _connectionHolderWithMode(mode) {
-    if (mode === READ) {
+    if (mode === ACCESS_MODE_READ) {
       return this._readConnectionHolder;
-    } else if (mode === WRITE) {
+    } else if (mode === ACCESS_MODE_WRITE) {
       return this._writeConnectionHolder;
     } else {
       throw newError('Unknown access mode: ' + mode);

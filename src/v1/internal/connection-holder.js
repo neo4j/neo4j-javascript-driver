@@ -37,6 +37,14 @@ export default class ConnectionHolder {
   }
 
   /**
+   * Returns the assigned access mode.
+   * @returns {string} access mode
+   */
+  mode() {
+    return this._mode;
+  }
+
+  /**
    * Make this holder initialize new connection if none exists already.
    * @return {undefined}
    */
