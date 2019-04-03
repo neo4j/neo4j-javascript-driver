@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import RoundRobinLoadBalancingStrategy from '../src/internal/round-robin-load-balancing-strategy';
 import LeastConnectedLoadBalancingStrategy from '../src/internal/least-connected-load-balancing-strategy';
 import RoutingDriver from '../src/routing-driver';
 import Pool from '../src/internal/pool';
@@ -25,23 +24,9 @@ import neo4j from '../src';
 
 describe('RoutingDriver', () => {
 
-  it('should create least connected when nothing configured', () => {
+  it('should create least connected', () => {
     const strategy = createStrategy({});
     expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy();
-  });
-
-  it('should create least connected when it is configured', () => {
-    const strategy = createStrategy({loadBalancingStrategy: 'least_connected'});
-    expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy();
-  });
-
-  it('should create round robin when it is configured', () => {
-    const strategy = createStrategy({loadBalancingStrategy: 'round_robin'});
-    expect(strategy instanceof RoundRobinLoadBalancingStrategy).toBeTruthy();
-  });
-
-  it('should fail when unknown strategy is configured', () => {
-    expect(() => createStrategy({loadBalancingStrategy: 'wrong'})).toThrow();
   });
 
   it('should fail when configured resolver is of illegal type', () => {

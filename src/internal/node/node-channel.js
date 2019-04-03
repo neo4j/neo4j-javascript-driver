@@ -106,14 +106,6 @@ function storeFingerprint( serverId, knownHostsPath, fingerprint, cb ) {
 }
 
 const TrustStrategy = {
-  /**
-   * @deprecated Since version 1.0. Will be deleted in a future version. {@link #TRUST_CUSTOM_CA_SIGNED_CERTIFICATES}.
-   */
-  TRUST_SIGNED_CERTIFICATES: function( config, onSuccess, onFailure ) {
-    console.warn('`TRUST_SIGNED_CERTIFICATES` has been deprecated as option and will be removed in a future version of ' +
-      "the driver. Please use `TRUST_CUSTOM_CA_SIGNED_CERTIFICATES` instead.");
-    return TrustStrategy.TRUST_CUSTOM_CA_SIGNED_CERTIFICATES(config, onSuccess, onFailure);
-  },
   TRUST_CUSTOM_CA_SIGNED_CERTIFICATES : function( config, onSuccess, onFailure ) {
     if( !config.trustedCertificates || config.trustedCertificates.length === 0 ) {
       onFailure(newError("You are using TRUST_CUSTOM_CA_SIGNED_CERTIFICATES as the method " +
@@ -159,62 +151,6 @@ const TrustStrategy = {
     socket.on('error', onFailure);
     return configureSocket(socket);
   },
-  /**
-   * @deprecated in 1.1 in favour of {@link #TRUST_ALL_CERTIFICATES}. Will be deleted in a future version.
-   */
-  TRUST_ON_FIRST_USE : function( config, onSuccess, onFailure ) {
-    console.warn('`TRUST_ON_FIRST_USE` has been deprecated as option and will be removed in a future version of ' +
-          "the driver. Please use `TRUST_ALL_CERTIFICATES` instead.");
-
-    const tlsOpts = newTlsOptions(config.url.host);
-    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
-      const serverCert = socket.getPeerCertificate(/*raw=*/true);
-
-      if( !serverCert.raw ) {
-        // If `raw` is not available, we're on an old version of NodeJS, and
-        // the raw cert cannot be accessed (or, at least I couldn't find a way to)
-        // therefore, we can't generate a SHA512 fingerprint, meaning we can't
-        // do TOFU, and the safe approach is to fail.
-        onFailure(newError("You are using a version of NodeJS that does not " +
-          "support trust-on-first use encryption. You can either upgrade NodeJS to " +
-          "a newer version, use `trust:TRUST_CUSTOM_CA_SIGNED_CERTIFICATES` in your driver " +
-          "config instead, or disable encryption using `encrypted:\"" + ENCRYPTION_OFF+ "\"`."));
-        return;
-      }
-
-      const serverFingerprint = crypto.createHash('sha512').update(serverCert.raw).digest('hex');
-      const knownHostsPath = config.knownHostsPath || path.join(userHome(), ".neo4j", "known_hosts");
-      const serverId = config.url.hostAndPort;
-
-      loadFingerprint(serverId, knownHostsPath, (knownFingerprint) => {
-        if( knownFingerprint === serverFingerprint ) {
-          onSuccess();
-        } else if( knownFingerprint == null ) {
-          storeFingerprint( serverId, knownHostsPath, serverFingerprint, (err) => {
-            if (err) {
-              return onFailure(err);
-            }
-            return onSuccess();
-          });
-        } else {
-          onFailure(newError("Database encryption certificate has changed, and no longer " +
-            "matches the certificate stored for " + serverId + " in `" + knownHostsPath +
-            "`. As a security precaution, this driver will not automatically trust the new " +
-            "certificate, because doing so would allow an attacker to pretend to be the Neo4j " +
-            "instance we want to connect to. The certificate provided by the server looks like: " +
-            serverCert + ". If you trust that this certificate is valid, simply remove the line " +
-            "starting with " + serverId + " in `" + knownHostsPath + "`, and the driver will " +
-            "update the file with the new certificate. You can configure which file the driver " +
-            "should use to store this information by setting `knownHosts` to another path in " +
-            "your driver configuration - and you can disable encryption there as well using " +
-            "`encrypted:\"" + ENCRYPTION_OFF + "\"`."))
-        }
-      });
-    });
-    socket.on('error', onFailure);
-    return configureSocket(socket);
-  },
-
   TRUST_ALL_CERTIFICATES: function (config, onSuccess, onFailure) {
     const tlsOpts = newTlsOptions(config.url.host);
     const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {

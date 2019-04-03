@@ -66,17 +66,6 @@ describe('PoolConfig', () => {
     expect(config.acquisitionTimeout).toEqual(4242);
   });
 
-  it('should convert from driver config with both connectionPoolSize and maxConnectionPoolSize', () => {
-    const driverConfig = {
-      connectionPoolSize: 42,
-      maxConnectionPoolSize: 4242
-    };
-    const config = PoolConfig.fromDriverConfig(driverConfig);
-
-    expect(config.maxSize).toEqual(4242);
-    expect(config.acquisitionTimeout).toEqual(DEFAULT_ACQUISITION_TIMEOUT);
-  });
-
   it('should convert from driver config without connectionPoolSize and maxConnectionPoolSize', () => {
     const driverConfig = {
       connectionAcquisitionTimeout: 42
@@ -85,16 +74,6 @@ describe('PoolConfig', () => {
 
     expect(config.maxSize).toEqual(DEFAULT_MAX_SIZE);
     expect(config.acquisitionTimeout).toEqual(42);
-  });
-
-  it('should convert from driver config with only connectionPoolSize', () => {
-    const driverConfig = {
-      connectionPoolSize: 42
-    };
-    const config = PoolConfig.fromDriverConfig(driverConfig);
-
-    expect(config.maxSize).toEqual(42);
-    expect(config.acquisitionTimeout).toEqual(DEFAULT_ACQUISITION_TIMEOUT);
   });
 
   it('should convert from driver config with only maxConnectionPoolSize', () => {

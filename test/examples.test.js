@@ -137,21 +137,6 @@ describe('examples', () => {
     };
   });
 
-  it('config load balancing example', done => {
-    // tag::config-load-balancing-strategy[]
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
-      {
-        loadBalancingStrategy: "least_connected"
-      }
-    );
-    // end::config-load-balancing-strategy[]
-
-    driver.onCompleted = () => {
-      driver.close();
-      done();
-    };
-  });
-
   it('config max retry time example', done => {
     // tag::config-max-retry-time[]
     const maxRetryTimeMs = 15 * 1000; // 15 seconds

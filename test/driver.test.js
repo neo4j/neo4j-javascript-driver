@@ -216,17 +216,6 @@ describe('driver', () => {
     routingDriver.close();
   });
 
-  it('should fail when TRUST_ON_FIRST_USE is used with routing', () => {
-    const createRoutingDriverWithTOFU = () => {
-      driver = neo4j.driver('bolt+routing://localhost', sharedNeo4j.username, {
-        encrypted: "ENCRYPTION_ON",
-          trust: 'TRUST_ON_FIRST_USE'
-      });
-    };
-
-    expect(createRoutingDriverWithTOFU).toThrow();
-  });
-
   it('should fail when bolt:// scheme used with routing params', () => {
     expect(() => neo4j.driver('bolt://localhost:7687/?policy=my_policy')).toThrow();
   });

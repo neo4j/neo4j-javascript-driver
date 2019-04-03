@@ -126,7 +126,7 @@ describe('WebSocketChannel', () => {
     };
 
     const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989');
-    const driverConfig = {encrypted: true, trust: 'TRUST_ON_FIRST_USE'};
+    const driverConfig = {encrypted: true, trust: 'TRUST_ALL_CERTIFICATES'};
     const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);
 
     const channel = new WebSocketChannel(channelConfig, protocolSupplier);
