@@ -21,6 +21,7 @@ import BoltProtocolV1 from '../../src/internal/bolt-protocol-v1';
 import RequestMessage from '../../src/internal/request-message';
 import Bookmark from '../../src/internal/bookmark';
 import TxConfig from '../../src/internal/tx-config';
+import {WRITE} from "../../src/driver";
 
 class MessageRecorder {
 
