@@ -79,12 +79,10 @@ session1.run("RETURN 1").then(result => {
 
 const close: void = driver.close();
 
-driver.onCompleted = (serverInfo: ServerInfo) => {
+driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
   console.log(serverInfo.version);
   console.log(serverInfo.address);
-};
-
-driver.onCompleted({version: "Neo4j/3.2.0", address: "localhost:7687"});
+});
 
 driver.onError = (error: Neo4jError) => {
   console.log(error);

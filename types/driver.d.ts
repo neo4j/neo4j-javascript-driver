@@ -66,7 +66,8 @@ declare interface Driver {
 
   close(): void;
 
-  onCompleted?: (serverInfo: ServerInfo) => void;
+  verifyConnectivity(): Promise<ServerInfo>;
+
   onError?: (error: Neo4jError) => void;
 }
 

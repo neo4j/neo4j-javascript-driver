@@ -99,10 +99,10 @@ describe('examples', () => {
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
     // end::basic-auth[]
 
-    driver.onCompleted = () => {
+    driver.verifyConnectivity().then(() => {
       driver.close();
       done();
-    };
+    });
   });
 
   it('config connection pool example', done => {
@@ -116,10 +116,10 @@ describe('examples', () => {
     );
     // end::config-connection-pool[]
 
-    driver.onCompleted = () => {
+    driver.verifyConnectivity().then(() => {
       driver.close();
       done();
-    };
+    });
   });
 
   it('config connection timeout example', done => {
@@ -131,10 +131,10 @@ describe('examples', () => {
     );
     // end::config-connection-timeout[]
 
-    driver.onCompleted = () => {
+    driver.verifyConnectivity().then(() => {
       driver.close();
       done();
-    };
+    });
   });
 
   it('config max retry time example', done => {
@@ -147,10 +147,10 @@ describe('examples', () => {
     );
     // end::config-max-retry-time[]
 
-    driver.onCompleted = () => {
+    driver.verifyConnectivity().then(() => {
       driver.close();
       done();
-    };
+    });
   });
 
   it('config trust example', done => {
@@ -163,10 +163,10 @@ describe('examples', () => {
     );
     // end::config-trust[]
 
-    driver.onCompleted = () => {
+    driver.verifyConnectivity().then(() => {
       driver.close();
       done();
-    };
+    });
   });
 
   it('config unencrypted example', done => {
@@ -178,10 +178,10 @@ describe('examples', () => {
     );
     // end::config-unencrypted[]
 
-    driver.onCompleted = () => {
+    driver.verifyConnectivity().then(() => {
       driver.close();
       done();
-    };
+    });
   });
 
   it('config custom resolver example', done => {
@@ -217,10 +217,10 @@ describe('examples', () => {
     const driver = neo4j.driver(uri, neo4j.auth.custom(principal, credentials, realm, scheme, parameters));
     // end::custom-auth[]
 
-    driver.onCompleted = () => {
+    driver.verifyConnectivity().then(() => {
       driver.close();
       done();
-    };
+    });
   });
 
   it('kerberos auth example', () => {
@@ -261,9 +261,9 @@ describe('examples', () => {
     // tag::driver-lifecycle[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
 
-    driver.onCompleted = () => {
+    driver.verifyConnectivity().then(() => {
       console.log('Driver created');
-    };
+    });
 
     driver.onError = error => {
       console.log(error);

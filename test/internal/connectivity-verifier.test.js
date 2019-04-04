@@ -26,12 +26,11 @@ describe('ConnectivityVerifier', () => {
   it('should call success callback when able to acquire and release a connection', done => {
     const connectionPromise = Promise.resolve(new FakeConnection());
     const connectionProvider = new SingleConnectionProvider(connectionPromise);
+    const verifier = new ConnectivityVerifier(connectionProvider)
 
-    const verifier = new ConnectivityVerifier(connectionProvider, () => {
+    verifier.verify().then(() => {
       done();
     });
-
-    verifier.verify();
   });
 
 });
