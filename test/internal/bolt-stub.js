@@ -18,7 +18,7 @@
  */
 
 import sharedNeo4j from './shared-neo4j';
-import neo4j from '../../src/v1/index';
+import neo4j from '../../src';
 
 class UnsupportedBoltStub {
 

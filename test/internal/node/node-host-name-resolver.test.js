@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import NodeHostNameResolver from '../../../src/v1/internal/node/node-host-name-resolver';
-import urlUtil from '../../../src/v1/internal/url-util';
+import NodeHostNameResolver from '../../../src/internal/node/node-host-name-resolver';
+import urlUtil from '../../../src/internal/url-util';
 
 describe('NodeHostNameResolver', () => {
 

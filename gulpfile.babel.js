@@ -181,25 +181,37 @@ gulp.task('run-browser-test', function(cb){
 gulp.task('run-browser-test-chrome', function(cb){
   new karmaServer({
     configFile: __dirname + '/test/browser/karma-chrome.conf.js',
-  }, cb).start();
+    singleRun: true,
+  }, function (exitCode) {
+    exitCode ? process.exit(exitCode) : cb();
+  }).start();
 });
 
 gulp.task('run-browser-test-firefox', function(cb){
   new karmaServer({
     configFile: __dirname + '/test/browser/karma-firefox.conf.js',
-  }, cb).start();
+    singleRun: true,
+  }, function (exitCode) {
+    exitCode ? process.exit(exitCode) : cb();
+  }).start();
 });
 
 gulp.task('run-browser-test-edge', function(cb){
   new karmaServer({
     configFile: __dirname + '/test/browser/karma-edge.conf.js',
-  }, cb).start();
+    singleRun: true,
+  }, function (exitCode) {
+    exitCode ? process.exit(exitCode) : cb();
+  }).start();
 });
 
 gulp.task('run-browser-test-ie', function (cb) {
   new karmaServer({
     configFile: __dirname + '/test/browser/karma-ie.conf.js',
-  }, cb).start();
+    singleRun: true,
+  }, function (exitCode) {
+    exitCode ? process.exit(exitCode) : cb();
+  }).start();
 });
 
 gulp.task('watch', function () {

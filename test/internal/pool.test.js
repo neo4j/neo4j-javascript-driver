@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import Pool from '../../src/v1/internal/pool';
-import PoolConfig from '../../src/v1/internal/pool-config';
+import Pool from '../../src/internal/pool';
+import PoolConfig from '../../src/internal/pool-config';
 
 describe('Pool', () => {
 

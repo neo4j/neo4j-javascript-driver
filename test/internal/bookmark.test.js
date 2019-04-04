@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Bookmark from '../../src/v1/internal/bookmark';
+import Bookmark from '../../src/internal/bookmark';
 
 describe('Bookmark', () => {
 

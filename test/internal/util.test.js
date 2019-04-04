@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import * as util from '../../src/v1/internal/util';
-import {int} from '../../src/v1';
+import * as util from '../../src/internal/util';
+import {int} from '../../src';
 
 describe('util', () => {
 

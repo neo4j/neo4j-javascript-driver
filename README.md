@@ -27,7 +27,7 @@ Please note that `@next` only points to pre-releases that are not suitable for p
 To get the latest stable release omit `@next` part altogether or use `@latest` instead.
 
 ```javascript
-var neo4j = require('neo4j-driver').v1;
+var neo4j = require('neo4j-driver');
 ```
 Driver instance should be closed when Node.js application exits:
 
@@ -58,11 +58,13 @@ It can be included in an HTML page using one of the following tags:
 
 ```
 
-This will make a global `neo4j` object available, where you can access the `v1` API at `neo4j.v1`:
+This will make a global `neo4j` object available, where you can access the driver API at `neo4j`*:
 
 ```javascript
-var driver = neo4j.v1.driver("bolt://localhost", neo4j.v1.auth.basic("neo4j", "neo4j"));
+var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "neo4j"));
 ```
+
+\* Since 2.0, driver API is moved from `neo4j.v1` to `neo4j`.
 
 It is not required to explicitly close the driver on a web page. Web browser should gracefully close all open 
 WebSockets when the page is unloaded. However, driver instance should be explicitly closed when it's lifetime
@@ -278,7 +280,7 @@ Number written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
-var neo4j = require('neo4j-driver').v1;
+var neo4j = require('neo4j-driver');
 
 session.run("CREATE (n {age: {myIntParam}})", {myIntParam: neo4j.int(22)});
 ```

@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import {int} from '../../src/v1/integer';
-import * as util from '../../src/v1/internal/temporal-util';
-import {types} from '../../src/v1';
+import {int} from '../../src/integer';
+import * as util from '../../src/internal/temporal-util';
+import {types} from '../../src';
 import testUtils from './test-utils';
 
 describe('temporal-util', () => {

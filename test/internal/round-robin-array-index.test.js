@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoundRobinArrayIndex from '../../src/v1/internal/round-robin-array-index';
+import RoundRobinArrayIndex from '../../src/internal/round-robin-array-index';
 
 describe('RoundRobinArrayIndex', () => {
 

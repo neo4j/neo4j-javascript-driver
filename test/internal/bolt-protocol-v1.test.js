@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import BoltProtocolV1 from '../../src/v1/internal/bolt-protocol-v1';
-import RequestMessage from '../../src/v1/internal/request-message';
-import Bookmark from '../../src/v1/internal/bookmark';
-import TxConfig from '../../src/v1/internal/tx-config';
-import {WRITE} from "../../src/v1/driver";
+import BoltProtocolV1 from '../../src/internal/bolt-protocol-v1';
+import RequestMessage from '../../src/internal/request-message';
+import Bookmark from '../../src/internal/bookmark';
+import TxConfig from '../../src/internal/tx-config';
+import {WRITE} from "../../src/driver";
 
 class MessageRecorder {
 

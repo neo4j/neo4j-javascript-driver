@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import urlUtil from '../../src/v1/internal/url-util';
+import urlUtil from '../../src/internal/url-util';
 
 describe('url-util', () => {
 

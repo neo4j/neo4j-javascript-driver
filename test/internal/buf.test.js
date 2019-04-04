@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import {Unpacker} from '../../src/v1/internal/packstream-v1';
-import CombinedBuffer from '../../src/v1/internal/buf/combined-buf';
-import {alloc, utf8} from '../../src/v1/internal/node';
+import {Unpacker} from '../../src/internal/packstream-v1';
+import CombinedBuffer from '../../src/internal/buf/combined-buf';
+import {alloc, utf8} from '../../src/internal/node';
 
 describe('buffers', () => {
 

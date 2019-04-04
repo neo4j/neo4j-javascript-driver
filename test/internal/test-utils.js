@@ -30,8 +30,31 @@ function fakeStandardDateWithOffset(offsetMinutes) {
   return date;
 }
 
+const matchers = {
+  toBeElementOf: function (util, customEqualityTesters) {
+    return {
+      compare: function(actual, expected) {
+        if (expected === undefined) {
+          expected = [];
+        }
+
+        let result = {};
+
+        result.pass = util.contains(expected, actual);
+        if (result.pass) {
+          result.message = `Expected '${actual}' to be an element of '[${expected}]'`;
+        } else {
+          result.message = `Expected '${actual}' to be an element of '[${expected}]', but it wasn't`;
+        }
+        return result;
+      }
+    }
+  }
+};
+
 export default {
   isClient,
   isServer,
-  fakeStandardDateWithOffset
+  fakeStandardDateWithOffset,
+  matchers
 };

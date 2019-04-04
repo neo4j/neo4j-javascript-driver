@@ -17,78 +17,37 @@
  * limitations under the License.
  */
 
-import neo4j from "../../types/index";
+import {auth, AuthToken, Config, driver, error, session, spatial, temporal} from "../../types/index";
 
-const driver1: neo4j.Driver = neo4j.driver("bolt+routing://localhost");
-const driver2: neo4j.Driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("neo4j", "password"));
+import Driver from "../../types/driver";
 
-const sessionModeRead: string = neo4j.session.READ;
-const sessionModeWrite: string = neo4j.session.WRITE;
+const dummy: any = null;
 
-const readSession = driver1.session(neo4j.session.READ);
-const writeSession = driver1.session(neo4j.session.WRITE);
+const config: Config = dummy;
 
-const int1: neo4j.Integer = neo4j.int(42);
-const int2: neo4j.Integer = neo4j.int("42");
-const int3: neo4j.Integer = neo4j.int(neo4j.int(42));
-const int4: neo4j.Integer = neo4j.int({low: 1, high: 1});
+const basicAuthToken1: AuthToken = auth.basic("neo4j", "password");
+const basicAuthToken2: AuthToken = auth.basic("neo4j", "password", "realm");
 
-const isInt1: boolean = neo4j.isInt({});
-const isInt2: boolean = neo4j.isInt(neo4j.int("42"));
+const kerberosAuthToken1: AuthToken = auth.kerberos("base64EncodedTicket");
 
-const toNumber1: number = neo4j.integer.toNumber(1);
-const toNumber2: number = neo4j.integer.toNumber("1");
-const toNumber3: number = neo4j.integer.toNumber({high: 0, low: 0});
-const toNumber4: number = neo4j.integer.toNumber(int1);
+const customAuthToken1: AuthToken = auth.custom("neo4j", "password", "realm", "scheme");
+const customAuthToken2: AuthToken = auth.custom("neo4j", "password", "realm", "scheme", {"key": "value"});
 
-const toString1: string = neo4j.integer.toString(1);
-const toString2: string = neo4j.integer.toString("1");
-const toString3: string = neo4j.integer.toString({high: 0, low: 0});
-const toString4: string = neo4j.integer.toString(int1);
+const driver1: Driver = driver("bolt://localhost:7687");
+const driver2: Driver = driver("bolt://localhost:7687", basicAuthToken1);
+const driver3: Driver = driver("bolt://localhost:7687", basicAuthToken1, config);
 
-const inSafeRange1: boolean = neo4j.integer.inSafeRange(1);
-const inSafeRange2: boolean = neo4j.integer.inSafeRange("1");
-const inSafeRange3: boolean = neo4j.integer.inSafeRange({high: 0, low: 0});
-const inSafeRange4: boolean = neo4j.integer.inSafeRange(int1);
+const readMode1: string = session.READ;
+const writeMode1: string = session.WRITE;
 
-const isPoint1: boolean = neo4j.spatial.isPoint({});
-const isPoint2: boolean = neo4j.isPoint({});
+const serviceUnavailable1: string = error.SERVICE_UNAVAILABLE;
+const sessionExpired1: string = error.SESSION_EXPIRED;
+const protocolError1: string = error.PROTOCOL_ERROR;
 
-const isDuration1: boolean = neo4j.temporal.isDuration({});
-const isDuration2: boolean = neo4j.isDuration({});
-
-const isLocalTime1: boolean = neo4j.temporal.isLocalTime({});
-const isLocalTime2: boolean = neo4j.isLocalTime({});
-
-const isTime1: boolean = neo4j.temporal.isTime({});
-const isTime2: boolean = neo4j.isTime({});
-
-const isDate1: boolean = neo4j.temporal.isDate({});
-const isDate2: boolean = neo4j.isDate({});
-
-const isLocalDateTime1: boolean = neo4j.temporal.isLocalDateTime({});
-const isLocalDateTime2: boolean = neo4j.isLocalDateTime({});
-
-const isDateTime1: boolean = neo4j.temporal.isDateTime({});
-const isDateTime2: boolean = neo4j.isDateTime({});
-
-const serviceUnavailable: string = neo4j.error.SERVICE_UNAVAILABLE;
-const sessionExpired: string = neo4j.error.SESSION_EXPIRED;
-const protocolError: string = neo4j.error.PROTOCOL_ERROR;
-
-const error1: neo4j.Neo4jError = new neo4j.Neo4jError("Error message");
-const error2: neo4j.Neo4jError = new neo4j.Neo4jError("Error message", "Error code");
-
-const result: neo4j.Result = readSession.run("");
-
-result.then(value => {
-  const resultSummary: neo4j.ResultSummary = value.summary;
-});
-
-const point: neo4j.Point = new neo4j.types.Point(int1, 1, 2, 3);
-const duration: neo4j.Duration = new neo4j.types.Duration(int1, int1, int1, int1);
-const localTime: neo4j.LocalTime = new neo4j.types.LocalTime(int1, int1, int1, int1);
-const time: neo4j.Time = new neo4j.types.Time(int1, int1, int1, int1, int1);
-const date: neo4j.Date = new neo4j.types.Date(int1, int1, int1);
-const localDateTime: neo4j.LocalDateTime = new neo4j.types.LocalDateTime(int1, int1, int1, int1, int1, int1, int1);
-const dateTime: neo4j.DateTime = new neo4j.types.DateTime(int1, int1, int1, int1, int1, int1, int1, int1);
+const isNeo4jPoint: boolean = spatial.isPoint({});
+const isNeo4jDate: boolean = temporal.isDate({});
+const isNeo4jDateTime: boolean = temporal.isDateTime({});
+const isNeo4jDuration: boolean = temporal.isDuration({});
+const isNeo4jLocalDateTime: boolean = temporal.isLocalDateTime({});
+const isNeo4jLocalTime: boolean = temporal.isLocalTime({});
+const isNeo4jTime: boolean = temporal.isTime({});

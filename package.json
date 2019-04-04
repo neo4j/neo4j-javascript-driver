@@ -21,7 +21,7 @@
   },
   "main": "lib/index.js",
   "browser": {
-    "./lib/v1/internal/node/index.js": "./lib/v1/internal/browser/index.js"
+    "./lib/internal/node/index.js": "./lib/internal/browser/index.js"
   },
   "unpkg": "lib/browser/neo4j-web.js",
   "jsdelivr": "lib/browser/neo4j-web.js",

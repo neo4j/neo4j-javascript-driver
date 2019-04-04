@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 import sharedNeo4j from '../../internal/shared-neo4j';
-import urlUtil from '../../../src/v1/internal/url-util';
+import urlUtil from '../../../src/internal/url-util';
 import testUtil from '../test-utils';
-import HttpSession from '../../../src/v1/internal/http/http-session';
-import HttpSessionTracker from '../../../src/v1/internal/http/http-session-tracker';
+import HttpSession from '../../../src/internal/http/http-session';
+import HttpSessionTracker from '../../../src/internal/http/http-session-tracker';
 
 describe('http session', () => {
 

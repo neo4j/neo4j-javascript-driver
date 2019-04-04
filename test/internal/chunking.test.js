@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import {Chunker, Dechunker} from '../../src/v1/internal/chunking';
-import {alloc} from '../../src/v1/internal/node';
+import {Chunker, Dechunker} from '../../src/internal/chunking';
+import {alloc} from '../../src/internal/node';
 import DummyChannel from './dummy-channel';
 
 describe('Chunker', () => {

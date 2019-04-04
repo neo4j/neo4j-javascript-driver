@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
+import neo4j from '../../src';
 import sharedNeo4j from '../internal/shared-neo4j';
-import {ServerVersion, VERSION_3_2_0, VERSION_IN_DEV} from '../../src/v1/internal/server-version';
+import {ServerVersion, VERSION_3_2_0, VERSION_IN_DEV} from '../../src/internal/server-version';
 
 describe('ServerVersion', () => {
 

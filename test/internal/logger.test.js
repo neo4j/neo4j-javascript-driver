@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
+import neo4j from '../../src';
 import sharedNeo4j from '../../test/internal/shared-neo4j';
-import Logger from '../../src/v1/internal/logger';
+import Logger from '../../src/internal/logger';
 
 describe('Logger', () => {
 

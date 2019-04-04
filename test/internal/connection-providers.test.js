@@ -17,15 +17,15 @@
  * limitations under the License.
  */
 
-import {READ, WRITE} from '../../src/v1/driver';
-import Integer, {int} from '../../src/v1/integer';
-import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
-import RoutingTable from '../../src/v1/internal/routing-table';
-import {DirectConnectionProvider, LoadBalancer} from '../../src/v1/internal/connection-providers';
-import Pool from '../../src/v1/internal/pool';
-import LeastConnectedLoadBalancingStrategy from '../../src/v1/internal/least-connected-load-balancing-strategy';
-import Logger from '../../src/v1/internal/logger';
-import SimpleHostNameResolver from '../../src/v1/internal/browser/browser-host-name-resolver';
+import {READ, WRITE} from '../../src/driver';
+import Integer, {int} from '../../src/integer';
+import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/error';
+import RoutingTable from '../../src/internal/routing-table';
+import {DirectConnectionProvider, LoadBalancer} from '../../src/internal/connection-providers';
+import Pool from '../../src/internal/pool';
+import LeastConnectedLoadBalancingStrategy from '../../src/internal/least-connected-load-balancing-strategy';
+import Logger from '../../src/internal/logger';
+import SimpleHostNameResolver from '../../src/internal/browser/browser-host-name-resolver';
 
 const NO_OP_DRIVER_CALLBACK = () => {
 };
