@@ -30,6 +30,8 @@ describe('http driver', () => {
   let serverVersion;
 
   beforeEach(async () => {
+    jasmine.addMatchers(testUtils.matchers);
+
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
 
@@ -253,7 +255,7 @@ describe('http driver', () => {
       } catch (error) {
         failed = true;
         expect(error.name).toEqual('Neo4jError');
-        expect(error.code).toEqual('Neo.DatabaseError.Statement.ExecutionFailed');
+        expect(error.code).toBeElementOf(['Neo.DatabaseError.Statement.ExecutionFailed', 'Neo.TransientError.Transaction.LockClientStopped']);
         expect(error.message.indexOf('transaction has been terminated')).not.toBeLessThan(0);
       }
 
