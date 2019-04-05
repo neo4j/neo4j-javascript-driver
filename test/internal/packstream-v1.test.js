@@ -17,66 +17,65 @@
  * limitations under the License.
  */
 
-import {alloc} from '../../src/internal/node';
-import {Packer, Structure, Unpacker} from '../../src/internal/packstream-v1';
-import {int} from '../../src';
+import { alloc } from '../../src/internal/node'
+import { Packer, Structure, Unpacker } from '../../src/internal/packstream-v1'
+import { int } from '../../src'
 
 describe('packstream-v1', () => {
-
   it('should pack integers', () => {
-    let n, i;
+    let n, i
     // test small numbers
     for (n = -999; n <= 999; n += 1) {
-      i = int(n);
-      expect(packAndUnpack(i).toString()).toBe(i.toString());
+      i = int(n)
+      expect(packAndUnpack(i).toString()).toBe(i.toString())
     }
     // positive numbers
     for (n = 16; n <= 16; n += 1) {
-      i = int(Math.pow(2, n));
-      expect(packAndUnpack(i).toString()).toBe(i.toString());
+      i = int(Math.pow(2, n))
+      expect(packAndUnpack(i).toString()).toBe(i.toString())
     }
     // negative numbers
     for (n = 0; n <= 63; n += 1) {
-      i = int(-Math.pow(2, n));
-      expect(packAndUnpack(i).toString()).toBe(i.toString());
+      i = int(-Math.pow(2, n))
+      expect(packAndUnpack(i).toString()).toBe(i.toString())
     }
-  });
+  })
 
   it('should pack strings', () => {
-    expect(packAndUnpack('')).toBe('');
-    expect(packAndUnpack('abcdefg123567')).toBe('abcdefg123567');
-    const str = Array(65536 + 1).join('a'); // 2 ^ 16 + 1
-    expect(packAndUnpack(str, str.length + 8)).toBe(str);
-  });
+    expect(packAndUnpack('')).toBe('')
+    expect(packAndUnpack('abcdefg123567')).toBe('abcdefg123567')
+    const str = Array(65536 + 1).join('a') // 2 ^ 16 + 1
+    expect(packAndUnpack(str, str.length + 8)).toBe(str)
+  })
 
   it('should pack structures', () => {
     expect(packAndUnpack(new Structure(1, ['Hello, world!!!'])).fields[0])
-      .toBe('Hello, world!!!');
-  });
+      .toBe('Hello, world!!!')
+  })
 
   it('should pack lists', () => {
-    const list = ['a', 'b'];
-    const unpacked = packAndUnpack(list);
-    expect(unpacked[0]).toBe(list[0]);
-    expect(unpacked[1]).toBe(list[1]);
-  });
+    const list = ['a', 'b']
+    const unpacked = packAndUnpack(list)
+    expect(unpacked[0]).toBe(list[0])
+    expect(unpacked[1]).toBe(list[1])
+  })
 
   it('should pack long lists', () => {
-    const listLength = 256;
-    const list = [];
+    const listLength = 256
+    const list = []
     for (let i = 0; i < listLength; i++) {
-      list.push(null);
+      list.push(null)
     }
-    const unpacked = packAndUnpack(list, 1400);
-    expect(unpacked[0]).toBe(list[0]);
-    expect(unpacked[1]).toBe(list[1]);
-  });
-});
+    const unpacked = packAndUnpack(list, 1400)
+    expect(unpacked[0]).toBe(list[0])
+    expect(unpacked[1]).toBe(list[1])
+  })
+})
 
-function packAndUnpack(val, bufferSize) {
-  bufferSize = bufferSize || 128;
-  const buffer = alloc(bufferSize);
-  new Packer(buffer).packable(val)();
-  buffer.reset();
-  return new Unpacker().unpack(buffer);
+function packAndUnpack (val, bufferSize) {
+  bufferSize = bufferSize || 128
+  const buffer = alloc(bufferSize)
+  new Packer(buffer).packable(val)()
+  buffer.reset()
+  return new Unpacker().unpack(buffer)
 }

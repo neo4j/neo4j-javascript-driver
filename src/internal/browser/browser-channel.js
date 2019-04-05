@@ -17,93 +17,91 @@
  * limitations under the License.
  */
 
-import HeapBuffer from './browser-buf';
-import {newError} from '../../error';
-import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../util';
+import HeapBuffer from './browser-buf'
+import { newError } from '../../error'
+import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../util'
 
 /**
  * Create a new WebSocketChannel to be used in web browsers.
  * @access private
  */
 export default class WebSocketChannel {
-
   /**
    * Create new instance
    * @param {ChannelConfig} config - configuration for this channel.
    * @param {function(): string} protocolSupplier - function that detects protocol of the web page. Should only be used in tests.
    */
-  constructor(config, protocolSupplier = detectWebPageProtocol) {
+  constructor (config, protocolSupplier = detectWebPageProtocol) {
+    this._open = true
+    this._pending = []
+    this._error = null
+    this._handleConnectionError = this._handleConnectionError.bind(this)
+    this._config = config
 
-    this._open = true;
-    this._pending = [];
-    this._error = null;
-    this._handleConnectionError = this._handleConnectionError.bind(this);
-    this._config = config;
-
-    const {scheme, error} = determineWebSocketScheme(config, protocolSupplier);
+    const { scheme, error } = determineWebSocketScheme(config, protocolSupplier)
     if (error) {
-      this._error = error;
-      return;
+      this._error = error
+      return
     }
 
-    this._ws = createWebSocket(scheme, config.url);
-    this._ws.binaryType = "arraybuffer";
+    this._ws = createWebSocket(scheme, config.url)
+    this._ws.binaryType = 'arraybuffer'
 
-    let self = this;
-    //All connection errors are not sent to the error handler
-    //we must also check for dirty close calls
-    this._ws.onclose = function(e) {
-        if (!e.wasClean) {
-          self._handleConnectionError();
-        }
-    };
-    this._ws.onopen = function() {
+    let self = this
+    // All connection errors are not sent to the error handler
+    // we must also check for dirty close calls
+    this._ws.onclose = function (e) {
+      if (!e.wasClean) {
+        self._handleConnectionError()
+      }
+    }
+    this._ws.onopen = function () {
       // Connected! Cancel the connection timeout
-      self._clearConnectionTimeout();
+      self._clearConnectionTimeout()
 
       // Drain all pending messages
-      let pending = self._pending;
-      self._pending = null;
+      let pending = self._pending
+      self._pending = null
       for (let i = 0; i < pending.length; i++) {
-        self.write( pending[i] );
+        self.write(pending[i])
       }
-    };
+    }
     this._ws.onmessage = (event) => {
-      if( self.onmessage ) {
-        const b = new HeapBuffer(event.data);
-        self.onmessage( b );
+      if (self.onmessage) {
+        const b = new HeapBuffer(event.data)
+        self.onmessage(b)
       }
-    };
+    }
 
-    this._ws.onerror = this._handleConnectionError;
+    this._ws.onerror = this._handleConnectionError
 
-    this._connectionTimeoutFired = false;
-    this._connectionTimeoutId = this._setupConnectionTimeout();
+    this._connectionTimeoutFired = false
+    this._connectionTimeoutId = this._setupConnectionTimeout()
   }
 
-  _handleConnectionError() {
+  _handleConnectionError () {
     if (this._connectionTimeoutFired) {
       // timeout fired - not connected within configured time
-      this._error = newError(`Failed to establish connection in ${this._config.connectionTimeout}ms`, this._config.connectionErrorCode);
+      this._error = newError(`Failed to establish connection in ${this._config.connectionTimeout}ms`, this._config.connectionErrorCode)
 
       if (this.onerror) {
-        this.onerror(this._error);
+        this.onerror(this._error)
       }
-      return;
+      return
     }
 
     // onerror triggers on websocket close as well.. don't get me started.
-    if( this._open ) {
+    if (this._open) {
       // http://stackoverflow.com/questions/25779831/how-to-catch-websocket-connection-to-ws-xxxnn-failed-connection-closed-be
-      this._error = newError( "WebSocket connection failure. Due to security " +
-        "constraints in your web browser, the reason for the failure is not available " +
-        "to this Neo4j Driver. Please use your browsers development console to determine " +
-        "the root cause of the failure. Common reasons include the database being " +
-        "unavailable, using the wrong connection URL or temporary network problems. " +
-        "If you have enabled encryption, ensure your browser is configured to trust the " +
-        'certificate Neo4j is configured to use. WebSocket `readyState` is: ' + this._ws.readyState, this._config.connectionErrorCode);
+      this._error = newError('WebSocket connection failure. Due to security ' +
+        'constraints in your web browser, the reason for the failure is not available ' +
+        'to this Neo4j Driver. Please use your browsers development console to determine ' +
+        'the root cause of the failure. Common reasons include the database being ' +
+        'unavailable, using the wrong connection URL or temporary network problems. ' +
+        'If you have enabled encryption, ensure your browser is configured to trust the ' +
+        'certificate Neo4j is configured to use. WebSocket `readyState` is: ' + this._ws.readyState, this._config.connectionErrorCode)
       if (this.onerror) {
-        this.onerror(this._error);
+        this.onerror(this._error)
       }
     }
   }
@@ -112,15 +110,15 @@ export default class WebSocketChannel {
    * Write the passed in buffer to connection
    * @param {HeapBuffer} buffer - Buffer to write
    */
-  write ( buffer ) {
+  write (buffer) {
     // If there is a pending queue, push this on that queue. This means
     // we are not yet connected, so we queue things locally.
-    if( this._pending !== null ) {
-      this._pending.push( buffer );
-    } else if( buffer instanceof HeapBuffer ) {
-      this._ws.send( buffer._buffer );
+    if (this._pending !== null) {
+      this._pending.push(buffer)
+    } else if (buffer instanceof HeapBuffer) {
+      this._ws.send(buffer._buffer)
     } else {
-      throw newError( "Don't know how to send buffer: " + buffer );
+      throw newError("Don't know how to send buffer: " + buffer)
     }
   }
 
@@ -128,11 +126,11 @@ export default class WebSocketChannel {
    * Close the connection
    * @param {function} cb - Function to call on close.
    */
-  close ( cb = ( () => null )) {
-    this._open = false;
-    this._clearConnectionTimeout();
-    this._ws.close();
-    this._ws.onclose = cb;
+  close (cb = (() => null)) {
+    this._open = false
+    this._clearConnectionTimeout()
+    this._ws.close()
+    this._ws.onclose = cb
   }
 
   /**
@@ -140,43 +138,42 @@ export default class WebSocketChannel {
    * @return {number} the timeout id or null.
    * @private
    */
-  _setupConnectionTimeout() {
-    const timeout = this._config.connectionTimeout;
+  _setupConnectionTimeout () {
+    const timeout = this._config.connectionTimeout
     if (timeout) {
-      const webSocket = this._ws;
+      const webSocket = this._ws
 
       return setTimeout(() => {
         if (webSocket.readyState !== WebSocket.OPEN) {
-          this._connectionTimeoutFired = true;
-          webSocket.close();
+          this._connectionTimeoutFired = true
+          webSocket.close()
         }
-      }, timeout);
+      }, timeout)
     }
-    return null;
+    return null
   }
 
   /**
    * Remove active connection timeout, if any.
    * @private
    */
-  _clearConnectionTimeout() {
-    const timeoutId = this._connectionTimeoutId;
+  _clearConnectionTimeout () {
+    const timeoutId = this._connectionTimeoutId
     if (timeoutId || timeoutId === 0) {
-      this._connectionTimeoutFired = false;
-      this._connectionTimeoutId = null;
-      clearTimeout(timeoutId);
+      this._connectionTimeoutFired = false
+      this._connectionTimeoutId = null
+      clearTimeout(timeoutId)
     }
   }
 }
 
-function createWebSocket(scheme, parsedUrl) {
-  const url = scheme + '://' + parsedUrl.hostAndPort;
+function createWebSocket (scheme, parsedUrl) {
+  const url = scheme + '://' + parsedUrl.hostAndPort
 
   try {
-    return new WebSocket(url);
+    return new WebSocket(url)
   } catch (error) {
     if (isIPv6AddressIssueOnWindows(error, parsedUrl)) {
-
       // WebSocket in IE and Edge browsers on Windows do not support regular IPv6 address syntax because they contain ':'.
       // It's an invalid character for UNC (https://en.wikipedia.org/wiki/IPv6_address#Literal_IPv6_addresses_in_UNC_path_names)
       // and Windows requires IPv6 to be changes in the following way:
@@ -190,34 +187,34 @@ function createWebSocket(scheme, parsedUrl) {
       // Creation of WebSocket with unconverted address results in SyntaxError without message or stacktrace.
       // That is why here we "catch" SyntaxError and rewrite IPv6 address if needed.
 
-      const windowsFriendlyUrl = asWindowsFriendlyIPv6Address(scheme, parsedUrl);
-      return new WebSocket(windowsFriendlyUrl);
+      const windowsFriendlyUrl = asWindowsFriendlyIPv6Address(scheme, parsedUrl)
+      return new WebSocket(windowsFriendlyUrl)
     } else {
-      throw error;
+      throw error
     }
   }
 }
 
-function isIPv6AddressIssueOnWindows(error, parsedUrl) {
-  return error.name === 'SyntaxError' && isIPv6Address(parsedUrl);
+function isIPv6AddressIssueOnWindows (error, parsedUrl) {
+  return error.name === 'SyntaxError' && isIPv6Address(parsedUrl)
 }
 
-function isIPv6Address(parsedUrl) {
-  const hostAndPort = parsedUrl.hostAndPort;
-  return hostAndPort.charAt(0) === '[' && hostAndPort.indexOf(']') !== -1;
+function isIPv6Address (parsedUrl) {
+  const hostAndPort = parsedUrl.hostAndPort
+  return hostAndPort.charAt(0) === '[' && hostAndPort.indexOf(']') !== -1
 }
 
-function asWindowsFriendlyIPv6Address(scheme, parsedUrl) {
+function asWindowsFriendlyIPv6Address (scheme, parsedUrl) {
   // replace all ':' with '-'
-  const hostWithoutColons = parsedUrl.host.replace(new RegExp(':', 'g'), '-');
+  const hostWithoutColons = parsedUrl.host.replace(new RegExp(':', 'g'), '-')
 
   // replace '%' with 's' for link-local IPv6 address like 'fe80::1%lo0'
-  const hostWithoutPercent = hostWithoutColons.replace('%', 's');
+  const hostWithoutPercent = hostWithoutColons.replace('%', 's')
 
   // append magic '.ipv6-literal.net' suffix
-  const ipv6Host = hostWithoutPercent + '.ipv6-literal.net';
+  const ipv6Host = hostWithoutPercent + '.ipv6-literal.net'
 
-  return `${scheme}://${ipv6Host}:${parsedUrl.port}`;
+  return `${scheme}://${ipv6Host}:${parsedUrl.port}`
 }
 
 /**
@@ -225,80 +222,80 @@ function asWindowsFriendlyIPv6Address(scheme, parsedUrl) {
  * @param {function(): string} protocolSupplier - function that detects protocol of the web page.
  * @return {{scheme: string|null, error: Neo4jError|null}} object containing either scheme or error.
  */
-function determineWebSocketScheme(config, protocolSupplier) {
-  const encryptionOn = isEncryptionExplicitlyTurnedOn(config);
-  const encryptionOff = isEncryptionExplicitlyTurnedOff(config);
-  const trust = config.trust;
-  const secureProtocol = isProtocolSecure(protocolSupplier);
-  verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol);
+function determineWebSocketScheme (config, protocolSupplier) {
+  const encryptionOn = isEncryptionExplicitlyTurnedOn(config)
+  const encryptionOff = isEncryptionExplicitlyTurnedOff(config)
+  const trust = config.trust
+  const secureProtocol = isProtocolSecure(protocolSupplier)
+  verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol)
 
   if (encryptionOff) {
     // encryption explicitly turned off in the config
-    return {scheme: 'ws', error: null};
+    return { scheme: 'ws', error: null }
   }
 
   if (secureProtocol) {
     // driver is used in a secure https web page, use 'wss'
-    return {scheme: 'wss', error: null};
+    return { scheme: 'wss', error: null }
   }
 
   if (encryptionOn) {
     // encryption explicitly requested in the config
     if (!trust || trust === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
       // trust strategy not specified or the only supported strategy is specified
-      return {scheme: 'wss', error: null};
+      return { scheme: 'wss', error: null }
     } else {
       const error = newError('The browser version of this driver only supports one trust ' +
         'strategy, \'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES\'. ' + trust + ' is not supported. Please ' +
         'either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting ' +
-        '`encrypted:"' + ENCRYPTION_OFF + '"` in the driver configuration.');
-      return {scheme: null, error: error};
+        '`encrypted:"' + ENCRYPTION_OFF + '"` in the driver configuration.')
+      return { scheme: null, error: error }
     }
   }
 
   // default to unencrypted web socket
-  return {scheme: 'ws', error: null};
+  return { scheme: 'ws', error: null }
 }
 
 /**
  * @param {ChannelConfig} config - configuration for the channel.
  * @return {boolean} `true` if encryption enabled in the config, `false` otherwise.
  */
-function isEncryptionExplicitlyTurnedOn(config) {
-  return config.encrypted === true || config.encrypted === ENCRYPTION_ON;
+function isEncryptionExplicitlyTurnedOn (config) {
+  return config.encrypted === true || config.encrypted === ENCRYPTION_ON
 }
 
 /**
  * @param {ChannelConfig} config - configuration for the channel.
  * @return {boolean} `true` if encryption disabled in the config, `false` otherwise.
  */
-function isEncryptionExplicitlyTurnedOff(config) {
-  return config.encrypted === false || config.encrypted === ENCRYPTION_OFF;
+function isEncryptionExplicitlyTurnedOff (config) {
+  return config.encrypted === false || config.encrypted === ENCRYPTION_OFF
 }
 
 /**
  * @param {function(): string} protocolSupplier - function that detects protocol of the web page.
  * @return {boolean} `true` if protocol returned by the given function is secure, `false` otherwise.
  */
-function isProtocolSecure(protocolSupplier) {
-  const protocol = typeof protocolSupplier === 'function' ? protocolSupplier() : '';
-  return protocol && protocol.toLowerCase().indexOf('https') >= 0;
+function isProtocolSecure (protocolSupplier) {
+  const protocol = typeof protocolSupplier === 'function' ? protocolSupplier() : ''
+  return protocol && protocol.toLowerCase().indexOf('https') >= 0
 }
 
-function verifyEncryptionSettings(encryptionOn, encryptionOff, secureProtocol) {
+function verifyEncryptionSettings (encryptionOn, encryptionOff, secureProtocol) {
   if (encryptionOn && !secureProtocol) {
     // encryption explicitly turned on for a driver used on a HTTP web page
     console.warn('Neo4j driver is configured to use secure WebSocket on a HTTP web page. ' +
       'WebSockets might not work in a mixed content environment. ' +
-      'Please consider configuring driver to not use encryption.');
+      'Please consider configuring driver to not use encryption.')
   } else if (encryptionOff && secureProtocol) {
     // encryption explicitly turned off for a driver used on a HTTPS web page
     console.warn('Neo4j driver is configured to use insecure WebSocket on a HTTPS web page. ' +
       'WebSockets might not work in a mixed content environment. ' +
-      'Please consider configuring driver to use encryption.');
+      'Please consider configuring driver to use encryption.')
   }
 }
 
-function detectWebPageProtocol() {
-  return typeof window != 'undefined' && window.location ? window.location.protocol : null;
+function detectWebPageProtocol () {
+  return typeof window !== 'undefined' && window.location ? window.location.protocol : null
 }

@@ -16,27 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import sharedNeo4j from '../../internal/shared-neo4j';
-import urlUtil from '../../../src/internal/url-util';
-import testUtil from '../test-utils';
-import HttpSession from '../../../src/internal/http/http-session';
-import HttpSessionTracker from '../../../src/internal/http/http-session-tracker';
+import sharedNeo4j from '../../internal/shared-neo4j'
+import urlUtil from '../../../src/internal/url-util'
+import testUtil from '../test-utils'
+import HttpSession from '../../../src/internal/http/http-session'
+import HttpSessionTracker from '../../../src/internal/http/http-session-tracker'
 
 describe('http session', () => {
-
   it('should fail for invalid query parameters', done => {
     if (testUtil.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const session = new HttpSession(urlUtil.parseDatabaseUrl('http://localhost:7474'), sharedNeo4j.authToken, {}, new HttpSessionTracker());
+    const session = new HttpSession(urlUtil.parseDatabaseUrl('http://localhost:7474'), sharedNeo4j.authToken, {}, new HttpSessionTracker())
 
-    expect(() => session.run('RETURN $value', [1, 2, 3])).toThrowError(TypeError);
-    expect(() => session.run('RETURN $value', '123')).toThrowError(TypeError);
-    expect(() => session.run('RETURN $value', () => [123])).toThrowError(TypeError);
+    expect(() => session.run('RETURN $value', [1, 2, 3])).toThrowError(TypeError)
+    expect(() => session.run('RETURN $value', '123')).toThrowError(TypeError)
+    expect(() => session.run('RETURN $value', () => [123])).toThrowError(TypeError)
 
-    session.close(() => done());
-  });
-
-});
+    session.close(() => done())
+  })
+})

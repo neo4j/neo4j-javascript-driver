@@ -17,29 +17,28 @@
  * limitations under the License.
  */
 
-import ConnectionHolder from './connection-holder';
-import {READ} from '../driver';
-import StreamObserver from './stream-observer';
+import ConnectionHolder from './connection-holder'
+import { READ } from '../driver'
+import StreamObserver from './stream-observer'
 
 /**
  * Verifies connectivity using the given connection provider.
  */
 export default class ConnectivityVerifier {
-
   /**
    * @constructor
    * @param {ConnectionProvider} connectionProvider the provider to obtain connections from.
    */
-  constructor(connectionProvider) {
-    this._connectionProvider = connectionProvider;
+  constructor (connectionProvider) {
+    this._connectionProvider = connectionProvider
   }
 
   /**
    * Try to obtain a working connection from the connection provider.
    * @returns {Promise<object>} promise resolved with server info or rejected with error.
    */
-  verify() {
-    return acquireAndReleaseDummyConnection(this._connectionProvider);
+  verify () {
+    return acquireAndReleaseDummyConnection(this._connectionProvider)
   }
 }
 
@@ -48,21 +47,21 @@ export default class ConnectivityVerifier {
  * @param {ConnectionProvider} connectionProvider the provider to obtain connections from.
  * @return {Promise<object>} promise resolved with server info or rejected with error.
  */
-function acquireAndReleaseDummyConnection(connectionProvider) {
-  const connectionHolder = new ConnectionHolder(READ, connectionProvider);
-  connectionHolder.initializeConnection();
-  const dummyObserver = new StreamObserver();
-  const connectionPromise = connectionHolder.getConnection(dummyObserver);
+function acquireAndReleaseDummyConnection (connectionProvider) {
+  const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+  connectionHolder.initializeConnection()
+  const dummyObserver = new StreamObserver()
+  const connectionPromise = connectionHolder.getConnection(dummyObserver)
 
   return connectionPromise.then(connection => {
     // able to establish a connection
-    return connectionHolder.close().then(() => connection.server);
+    return connectionHolder.close().then(() => connection.server)
   }).catch(error => {
     // failed to establish a connection
     return connectionHolder.close().catch(ignoredError => {
       // ignore connection release error
     }).then(() => {
-      return Promise.reject(error);
-    });
-  });
+      return Promise.reject(error)
+    })
+  })
 }

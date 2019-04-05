@@ -17,30 +17,28 @@
  * limitations under the License.
  */
 
-import BrowserHostNameResolver from '../../../src/internal/browser/browser-host-name-resolver';
+import BrowserHostNameResolver from '../../../src/internal/browser/browser-host-name-resolver'
 
 describe('BrowserHostNameResolver', () => {
-
   it('should resolve given address to itself', done => {
-    const seedRouter = 'localhost';
-    const resolver = new BrowserHostNameResolver();
+    const seedRouter = 'localhost'
+    const resolver = new BrowserHostNameResolver()
 
     resolver.resolve(seedRouter).then(addresses => {
-      expect(addresses.length).toEqual(1);
-      expect(addresses[0]).toEqual(seedRouter);
-      done();
-    });
-  });
+      expect(addresses.length).toEqual(1)
+      expect(addresses[0]).toEqual(seedRouter)
+      done()
+    })
+  })
 
   it('should resolve given address with port to itself', done => {
-    const seedRouter = 'localhost:7474';
-    const resolver = new BrowserHostNameResolver();
+    const seedRouter = 'localhost:7474'
+    const resolver = new BrowserHostNameResolver()
 
     resolver.resolve(seedRouter).then(addresses => {
-      expect(addresses.length).toEqual(1);
-      expect(addresses[0]).toEqual(seedRouter);
-      done();
-    });
-  });
-
-});
+      expect(addresses.length).toEqual(1)
+      expect(addresses[0]).toEqual(seedRouter)
+      done()
+    })
+  })
+})

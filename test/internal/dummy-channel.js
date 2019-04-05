@@ -17,49 +17,48 @@
  * limitations under the License.
  */
 
-import CombinedBuffer from '../../src/internal/buf/combined-buf';
+import CombinedBuffer from '../../src/internal/buf/combined-buf'
 
 export default class DummyChannel {
-
   /**
    * @constructor
    * @param {ChannelConfig} config - configuration for the new channel.
    */
-  constructor(config) {
-    this.written = [];
+  constructor (config) {
+    this.written = []
   }
 
-  isEncrypted() {
-    return false;
+  isEncrypted () {
+    return false
   }
 
-  write(buf) {
-    this.written.push(buf);
+  write (buf) {
+    this.written.push(buf)
   }
 
-  toHex() {
-    let out = '';
+  toHex () {
+    let out = ''
     for (let i = 0; i < this.written.length; i++) {
-      out += this.written[i].toHex();
+      out += this.written[i].toHex()
       if (i !== this.written.length - 1) {
-        out += ' ';
+        out += ' '
       }
     }
-    return out;
+    return out
   }
 
-  toBuffer() {
-    return new CombinedBuffer(this.written);
+  toBuffer () {
+    return new CombinedBuffer(this.written)
   }
 
-  close(cb) {
-    this.clear();
+  close (cb) {
+    this.clear()
     if (cb) {
-      return cb();
+      return cb()
     }
   }
 
-  clear() {
-    this.written = [];
+  clear () {
+    this.written = []
   }
 }

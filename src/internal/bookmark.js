@@ -17,60 +17,59 @@
  * limitations under the License.
  */
 
-import * as util from './util';
+import * as util from './util'
 
-const BOOKMARK_KEY = 'bookmark';
-const BOOKMARKS_KEY = 'bookmarks';
-const BOOKMARK_PREFIX = 'neo4j:bookmark:v1:tx';
+const BOOKMARK_KEY = 'bookmark'
+const BOOKMARKS_KEY = 'bookmarks'
+const BOOKMARK_PREFIX = 'neo4j:bookmark:v1:tx'
 
-const UNKNOWN_BOOKMARK_VALUE = -1;
+const UNKNOWN_BOOKMARK_VALUE = -1
 
 export default class Bookmark {
-
   /**
    * @constructor
    * @param {string|string[]} values single bookmark as string or multiple bookmarks as a string array.
    */
-  constructor(values) {
-    this._values = asStringArray(values);
-    this._maxValue = maxBookmark(this._values);
+  constructor (values) {
+    this._values = asStringArray(values)
+    this._maxValue = maxBookmark(this._values)
   }
 
-  static empty() {
-    return EMPTY_BOOKMARK;
+  static empty () {
+    return EMPTY_BOOKMARK
   }
 
   /**
    * Check if the given bookmark is meaningful and can be send to the database.
    * @return {boolean} returns `true` bookmark has a value, `false` otherwise.
    */
-  isEmpty() {
-    return this._maxValue === null;
+  isEmpty () {
+    return this._maxValue === null
   }
 
   /**
    * Get maximum value of this bookmark as string.
    * @return {string|null} the maximum value or `null` if it is not defined.
    */
-  maxBookmarkAsString() {
-    return this._maxValue;
+  maxBookmarkAsString () {
+    return this._maxValue
   }
 
   /**
    * Get all bookmark values as an array.
    * @return {string[]} all values.
    */
-  values() {
-    return this._values;
+  values () {
+    return this._values
   }
 
   /**
    * Get this bookmark as an object for begin transaction call.
    * @return {object} the value of this bookmark as object.
    */
-  asBeginTransactionParameters() {
+  asBeginTransactionParameters () {
     if (this.isEmpty()) {
-      return {};
+      return {}
     }
 
     // Driver sends {bookmark: "max", bookmarks: ["one", "two", "max"]} instead of simple
@@ -80,42 +79,42 @@ export default class Bookmark {
     return {
       [BOOKMARK_KEY]: this._maxValue,
       [BOOKMARKS_KEY]: this._values
-    };
+    }
   }
 }
 
-const EMPTY_BOOKMARK = new Bookmark(null);
+const EMPTY_BOOKMARK = new Bookmark(null)
 
 /**
  * Converts given value to an array.
  * @param {string|string[]} [value=undefined] argument to convert.
  * @return {string[]} value converted to an array.
  */
-function asStringArray(value) {
+function asStringArray (value) {
   if (!value) {
-    return [];
+    return []
   }
 
   if (util.isString(value)) {
-    return [value];
+    return [value]
   }
 
   if (Array.isArray(value)) {
-    const result = [];
+    const result = []
     for (let i = 0; i < value.length; i++) {
-      const element = value[i];
+      const element = value[i]
       // if it is undefined or null, ignore it
       if (element !== undefined && element !== null) {
         if (!util.isString(element)) {
-          throw new TypeError(`Bookmark should be a string, given: '${element}'`);
+          throw new TypeError(`Bookmark should be a string, given: '${element}'`)
         }
-        result.push(element);
+        result.push(element)
       }
     }
-    return result;
+    return result
   }
 
-  throw new TypeError(`Bookmark should either be a string or a string array, given: '${value}'`);
+  throw new TypeError(`Bookmark should either be a string or a string array, given: '${value}'`)
 }
 
 /**
@@ -123,25 +122,25 @@ function asStringArray(value) {
  * @param {string[]} bookmarks array of bookmarks.
  * @return {string|null} latest bookmark value.
  */
-function maxBookmark(bookmarks) {
+function maxBookmark (bookmarks) {
   if (!bookmarks || bookmarks.length === 0) {
-    return null;
+    return null
   }
 
-  let maxBookmark = bookmarks[0];
-  let maxValue = bookmarkValue(maxBookmark);
+  let maxBookmark = bookmarks[0]
+  let maxValue = bookmarkValue(maxBookmark)
 
   for (let i = 1; i < bookmarks.length; i++) {
-    const bookmark = bookmarks[i];
-    const value = bookmarkValue(bookmark);
+    const bookmark = bookmarks[i]
+    const value = bookmarkValue(bookmark)
 
     if (value > maxValue) {
-      maxBookmark = bookmark;
-      maxValue = value;
+      maxBookmark = bookmark
+      maxValue = value
     }
   }
 
-  return maxBookmark;
+  return maxBookmark
 }
 
 /**
@@ -149,10 +148,10 @@ function maxBookmark(bookmarks) {
  * @param {string} bookmark argument to get numeric value for.
  * @return {number} value of the bookmark.
  */
-function bookmarkValue(bookmark) {
+function bookmarkValue (bookmark) {
   if (bookmark && bookmark.indexOf(BOOKMARK_PREFIX) === 0) {
-    const result = parseInt(bookmark.substring(BOOKMARK_PREFIX.length));
-    return result ? result : UNKNOWN_BOOKMARK_VALUE;
+    const result = parseInt(bookmark.substring(BOOKMARK_PREFIX.length))
+    return result || UNKNOWN_BOOKMARK_VALUE
   }
-  return UNKNOWN_BOOKMARK_VALUE;
+  return UNKNOWN_BOOKMARK_VALUE
 }

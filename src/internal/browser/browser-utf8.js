@@ -17,31 +17,31 @@
  * limitations under the License.
  */
 
-import HeapBuffer from './browser-buf';
-import textEncoding from 'text-encoding';
+import HeapBuffer from './browser-buf'
+import textEncoding from 'text-encoding'
 
-const encoder = new textEncoding.TextEncoder('utf-8');
-const decoder = new textEncoding.TextDecoder('utf-8');
+const encoder = new textEncoding.TextEncoder('utf-8')
+const decoder = new textEncoding.TextDecoder('utf-8')
 
-function encode(str) {
-  return new HeapBuffer(encoder.encode(str).buffer);
+function encode (str) {
+  return new HeapBuffer(encoder.encode(str).buffer)
 }
 
-function decode(buffer, length) {
+function decode (buffer, length) {
   if (buffer instanceof HeapBuffer) {
-    return decoder.decode(buffer.readView(Math.min(length, buffer.length - buffer.position)));
+    return decoder.decode(buffer.readView(Math.min(length, buffer.length - buffer.position)))
   } else {
     // Copy the given buffer into a regular buffer and decode that
-    const tmpBuf = new HeapBuffer(length);
+    const tmpBuf = new HeapBuffer(length)
     for (let i = 0; i < length; i++) {
-      tmpBuf.writeUInt8(buffer.readUInt8());
+      tmpBuf.writeUInt8(buffer.readUInt8())
     }
-    tmpBuf.reset();
-    return decoder.decode(tmpBuf.readView(length));
+    tmpBuf.reset()
+    return decoder.decode(tmpBuf.readView(length))
   }
 }
 
 export default {
   encode,
   decode
-};
+}

@@ -17,95 +17,94 @@
  * limitations under the License.
  */
 
-import NodeHostNameResolver from '../../../src/internal/node/node-host-name-resolver';
-import urlUtil from '../../../src/internal/url-util';
+import NodeHostNameResolver from '../../../src/internal/node/node-host-name-resolver'
+import urlUtil from '../../../src/internal/url-util'
 
 describe('NodeHostNameResolver', () => {
-
-  let originalTimeout;
+  let originalTimeout
 
   beforeEach(() => {
     // it sometimes takes couple seconds to perform dns lookup, increase the async test timeout
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-  });
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
+  })
 
   afterEach(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-  });
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
+  })
 
   it('should resolve address', done => {
-    const seedRouter = 'neo4j.com';
-    const resolver = new NodeHostNameResolver();
+    const seedRouter = 'neo4j.com'
+    const resolver = new NodeHostNameResolver()
 
     resolver.resolve(seedRouter).then(addresses => {
-      expect(addresses.length).toBeGreaterThan(0);
+      expect(addresses.length).toBeGreaterThan(0)
 
       addresses.forEach(address => {
-        expectToBeDefined(address);
-        const parsedUrl = urlUtil.parseDatabaseUrl(address);
-        expect(parsedUrl.scheme).toBeNull();
-        expectToBeDefined(parsedUrl.host);
-        expect(parsedUrl.port).toEqual(7687); // default port should be appended
-      });
+        expectToBeDefined(address)
+        const parsedUrl = urlUtil.parseDatabaseUrl(address)
+        expect(parsedUrl.scheme).toBeNull()
+        expectToBeDefined(parsedUrl.host)
+        expect(parsedUrl.port).toEqual(7687) // default port should be appended
+      })
 
-      done();
-    });
-  });
+      done()
+    })
+  })
 
   it('should resolve address with port', done => {
-    const seedRouter = 'neo4j.com:7474';
-    const resolver = new NodeHostNameResolver();
+    const seedRouter = 'neo4j.com:7474'
+    const resolver = new NodeHostNameResolver()
 
     resolver.resolve(seedRouter).then(addresses => {
-      expect(addresses.length).toBeGreaterThan(0);
+      expect(addresses.length).toBeGreaterThan(0)
 
       addresses.forEach(address => {
-        expectToBeDefined(address);
-        const parsedUrl = urlUtil.parseDatabaseUrl(address);
-        expect(parsedUrl.scheme).toBeNull();
-        expectToBeDefined(parsedUrl.host);
-        expect(parsedUrl.port).toEqual(7474);
-      });
+        expectToBeDefined(address)
+        const parsedUrl = urlUtil.parseDatabaseUrl(address)
+        expect(parsedUrl.scheme).toBeNull()
+        expectToBeDefined(parsedUrl.host)
+        expect(parsedUrl.port).toEqual(7474)
+      })
 
-      done();
-    });
-  });
+      done()
+    })
+  })
 
   it('should resolve IPv4 address to itself', done => {
-    const addressToResolve = '127.0.0.1';
-    const expectedResolvedAddress = '127.0.0.1:7687'; // includes default port
-    testIpAddressResolution(addressToResolve, expectedResolvedAddress, done);
-  });
+    const addressToResolve = '127.0.0.1'
+    const expectedResolvedAddress = '127.0.0.1:7687' // includes default port
+    testIpAddressResolution(addressToResolve, expectedResolvedAddress, done)
+  })
 
   it('should resolve IPv4 address with port to itself', done => {
-    const address = '127.0.0.1:7474';
-    testIpAddressResolution(address, address, done);
-  });
+    const address = '127.0.0.1:7474'
+    testIpAddressResolution(address, address, done)
+  })
 
   it('should resolve IPv6 address to itself', done => {
-    const addressToResolve = '[2001:4860:4860::8888]';
-    const expectedResolvedAddress = '[2001:4860:4860::8888]:7687'; // includes default port
-    testIpAddressResolution(addressToResolve, expectedResolvedAddress, done);
-  });
+    const addressToResolve = '[2001:4860:4860::8888]'
+    const expectedResolvedAddress = '[2001:4860:4860::8888]:7687' // includes default port
+    testIpAddressResolution(addressToResolve, expectedResolvedAddress, done)
+  })
 
   it('should resolve IPv6 address with port to itself', done => {
-    const address = '[2001:4860:4860::8888]:7474';
-    testIpAddressResolution(address, address, done);
-  });
-});
+    const address = '[2001:4860:4860::8888]:7474'
+    testIpAddressResolution(address, address, done)
+  })
+})
 
-function testIpAddressResolution(address, expectedResolvedAddress, done) {
-  const resolver = new NodeHostNameResolver();
+function testIpAddressResolution (address, expectedResolvedAddress, done) {
+  const resolver = new NodeHostNameResolver()
 
   resolver.resolve(address).then(addresses => {
-    expect(addresses.length).toEqual(1);
-    expect(addresses[0]).toEqual(expectedResolvedAddress);
-    done();
-  });
+    expect(addresses.length).toEqual(1)
+    expect(addresses[0]).toEqual(expectedResolvedAddress)
+    done()
+  })
 }
 
-function expectToBeDefined(value) {
-  expect(value).toBeDefined();
-  expect(value).not.toBeNull();
+function expectToBeDefined (value) {
+  expect(value).toBeDefined()
+  expect(value).not.toBeNull()
 }

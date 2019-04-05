@@ -17,53 +17,52 @@
  * limitations under the License.
  */
 
-import {Driver} from './driver';
-import {newError, SESSION_EXPIRED} from './error';
-import {LoadBalancer} from './internal/connection-providers';
-import LeastConnectedLoadBalancingStrategy, {LEAST_CONNECTED_STRATEGY_NAME} from './internal/least-connected-load-balancing-strategy';
-import ConnectionErrorHandler from './internal/connection-error-handler';
-import ConfiguredHostNameResolver from './internal/resolver/configured-host-name-resolver';
-import {HostNameResolver} from './internal/node';
+import { Driver } from './driver'
+import { newError, SESSION_EXPIRED } from './error'
+import { LoadBalancer } from './internal/connection-providers'
+import LeastConnectedLoadBalancingStrategy from './internal/least-connected-load-balancing-strategy'
+import ConnectionErrorHandler from './internal/connection-error-handler'
+import ConfiguredHostNameResolver from './internal/resolver/configured-host-name-resolver'
+import { HostNameResolver } from './internal/node'
 
 /**
  * A driver that supports routing in a causal cluster.
  * @private
  */
 class RoutingDriver extends Driver {
-
-  constructor(hostPort, routingContext, userAgent, token = {}, config = {}) {
-    super(hostPort, userAgent, token, validateConfig(config));
-    this._routingContext = routingContext;
+  constructor (hostPort, routingContext, userAgent, token = {}, config = {}) {
+    super(hostPort, userAgent, token, validateConfig(config))
+    this._routingContext = routingContext
   }
 
-  _afterConstruction() {
-    this._log.info(`Routing driver ${this._id} created for server address ${this._hostPort}`);
+  _afterConstruction () {
+    this._log.info(`Routing driver ${this._id} created for server address ${this._hostPort}`)
   }
 
-  _createConnectionProvider(hostPort, connectionPool, driverOnErrorCallback) {
-    const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(this._config, connectionPool);
-    const resolver = createHostNameResolver(this._config);
-    return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, resolver, driverOnErrorCallback, this._log);
+  _createConnectionProvider (hostPort, connectionPool, driverOnErrorCallback) {
+    const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(this._config, connectionPool)
+    const resolver = createHostNameResolver(this._config)
+    return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, resolver, driverOnErrorCallback, this._log)
   }
 
-  _createConnectionErrorHandler() {
+  _createConnectionErrorHandler () {
     // connection errors mean SERVICE_UNAVAILABLE for direct driver but for routing driver they should only
     // result in SESSION_EXPIRED because there might still exist other servers capable of serving the request
     return new ConnectionErrorHandler(SESSION_EXPIRED,
       (error, hostPort) => this._handleUnavailability(error, hostPort),
-      (error, hostPort) => this._handleWriteFailure(error, hostPort));
+      (error, hostPort) => this._handleWriteFailure(error, hostPort))
   }
 
-  _handleUnavailability(error, hostPort) {
-    this._log.warn(`Routing driver ${this._id} will forget ${hostPort} because of an error ${error.code} '${error.message}'`);
-    this._connectionProvider.forget(hostPort);
-    return error;
+  _handleUnavailability (error, hostPort) {
+    this._log.warn(`Routing driver ${this._id} will forget ${hostPort} because of an error ${error.code} '${error.message}'`)
+    this._connectionProvider.forget(hostPort)
+    return error
   }
 
-  _handleWriteFailure(error, hostPort) {
-    this._log.warn(`Routing driver ${this._id} will forget writer ${hostPort} because of an error ${error.code} '${error.message}'`);
-    this._connectionProvider.forgetWriter(hostPort);
-    return newError('No longer possible to write to server at ' + hostPort, SESSION_EXPIRED);
+  _handleWriteFailure (error, hostPort) {
+    this._log.warn(`Routing driver ${this._id} will forget writer ${hostPort} because of an error ${error.code} '${error.message}'`)
+    this._connectionProvider.forgetWriter(hostPort)
+    return newError('No longer possible to write to server at ' + hostPort, SESSION_EXPIRED)
   }
 
   /**
@@ -73,8 +72,8 @@ class RoutingDriver extends Driver {
    * @return {LoadBalancingStrategy} new strategy.
    * @private
    */
-  static _createLoadBalancingStrategy(config, connectionPool) {
-    return new LeastConnectedLoadBalancingStrategy(connectionPool);
+  static _createLoadBalancingStrategy (config, connectionPool) {
+    return new LeastConnectedLoadBalancingStrategy(connectionPool)
   }
 }
 
@@ -82,23 +81,23 @@ class RoutingDriver extends Driver {
  * @private
  * @returns {HostNameResolver} new resolver.
  */
-function createHostNameResolver(config) {
+function createHostNameResolver (config) {
   if (config.resolver) {
-    return new ConfiguredHostNameResolver(config.resolver);
+    return new ConfiguredHostNameResolver(config.resolver)
   }
-  return new HostNameResolver();
+  return new HostNameResolver()
 }
 
 /**
  * @private
  * @returns {object} the given config.
  */
-function validateConfig(config) {
-  const resolver = config.resolver;
+function validateConfig (config) {
+  const resolver = config.resolver
   if (resolver && typeof resolver !== 'function') {
-    throw new TypeError(`Configured resolver should be a function. Got: ${resolver}`);
+    throw new TypeError(`Configured resolver should be a function. Got: ${resolver}`)
   }
-  return config;
+  return config
 }
 
-export default RoutingDriver;
+export default RoutingDriver

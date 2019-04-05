@@ -17,17 +17,16 @@
  * limitations under the License.
  */
 
-import {alloc} from './node';
-import {newError} from '../error';
-import BoltProtocolV1 from './bolt-protocol-v1';
-import BoltProtocolV2 from './bolt-protocol-v2';
-import BoltProtocolV3 from './bolt-protocol-v3';
+import { alloc } from './node'
+import { newError } from '../error'
+import BoltProtocolV1 from './bolt-protocol-v1'
+import BoltProtocolV2 from './bolt-protocol-v2'
+import BoltProtocolV3 from './bolt-protocol-v3'
 
-const HTTP_MAGIC_PREAMBLE = 1213486160; // == 0x48545450 == "HTTP"
-const BOLT_MAGIC_PREAMBLE = 0x6060B017;
+const HTTP_MAGIC_PREAMBLE = 1213486160 // == 0x48545450 == "HTTP"
+const BOLT_MAGIC_PREAMBLE = 0x6060B017
 
 export default class ProtocolHandshaker {
-
   /**
    * @constructor
    * @param {Connection} connection the connection owning this protocol.
@@ -36,19 +35,19 @@ export default class ProtocolHandshaker {
    * @param {boolean} disableLosslessIntegers flag to use native JS numbers.
    * @param {Logger} log the logger.
    */
-  constructor(connection, channel, chunker, disableLosslessIntegers, log) {
-    this._connection = connection;
-    this._channel = channel;
-    this._chunker = chunker;
-    this._disableLosslessIntegers = disableLosslessIntegers;
-    this._log = log;
+  constructor (connection, channel, chunker, disableLosslessIntegers, log) {
+    this._connection = connection
+    this._channel = channel
+    this._chunker = chunker
+    this._disableLosslessIntegers = disableLosslessIntegers
+    this._log = log
   }
 
   /**
    * Write a Bolt handshake into the underlying network channel.
    */
-  writeHandshakeRequest() {
-    this._channel.write(newHandshakeBuffer());
+  writeHandshakeRequest () {
+    this._channel.write(newHandshakeBuffer())
   }
 
   /**
@@ -57,31 +56,31 @@ export default class ProtocolHandshaker {
    * @return {BoltProtocol} bolt protocol corresponding to the version suggested by the database.
    * @throws {Neo4jError} when bolt protocol can't be instantiated.
    */
-  createNegotiatedProtocol(buffer) {
-    const negotiatedVersion = buffer.readInt32();
+  createNegotiatedProtocol (buffer) {
+    const negotiatedVersion = buffer.readInt32()
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this._connection} negotiated protocol version ${negotiatedVersion}`);
+      this._log.debug(`${this._connection} negotiated protocol version ${negotiatedVersion}`)
     }
-    return this._createProtocolWithVersion(negotiatedVersion);
+    return this._createProtocolWithVersion(negotiatedVersion)
   }
 
   /**
    * @return {BoltProtocol}
    * @private
    */
-  _createProtocolWithVersion(version) {
+  _createProtocolWithVersion (version) {
     switch (version) {
       case 1:
-        return new BoltProtocolV1(this._connection, this._chunker, this._disableLosslessIntegers);
+        return new BoltProtocolV1(this._connection, this._chunker, this._disableLosslessIntegers)
       case 2:
-        return new BoltProtocolV2(this._connection, this._chunker, this._disableLosslessIntegers);
+        return new BoltProtocolV2(this._connection, this._chunker, this._disableLosslessIntegers)
       case 3:
-        return new BoltProtocolV3(this._connection, this._chunker, this._disableLosslessIntegers);
+        return new BoltProtocolV3(this._connection, this._chunker, this._disableLosslessIntegers)
       case HTTP_MAGIC_PREAMBLE:
         throw newError('Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
-          '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)');
+          '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)')
       default:
-        throw newError('Unknown Bolt protocol version: ' + version);
+        throw newError('Unknown Bolt protocol version: ' + version)
     }
   }
 }
@@ -90,20 +89,20 @@ export default class ProtocolHandshaker {
  * @return {BaseBuffer}
  * @private
  */
-function newHandshakeBuffer() {
-  const handshakeBuffer = alloc(5 * 4);
+function newHandshakeBuffer () {
+  const handshakeBuffer = alloc(5 * 4)
 
-  //magic preamble
-  handshakeBuffer.writeInt32(BOLT_MAGIC_PREAMBLE);
+  // magic preamble
+  handshakeBuffer.writeInt32(BOLT_MAGIC_PREAMBLE)
 
-  //proposed versions
-  handshakeBuffer.writeInt32(3);
-  handshakeBuffer.writeInt32(2);
-  handshakeBuffer.writeInt32(1);
-  handshakeBuffer.writeInt32(0);
+  // proposed versions
+  handshakeBuffer.writeInt32(3)
+  handshakeBuffer.writeInt32(2)
+  handshakeBuffer.writeInt32(1)
+  handshakeBuffer.writeInt32(0)
 
   // reset the reader position
-  handshakeBuffer.reset();
+  handshakeBuffer.reset()
 
-  return handshakeBuffer;
+  return handshakeBuffer
 }

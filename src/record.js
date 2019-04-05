@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 
-import {newError} from './error';
+import { newError } from './error'
 
-function generateFieldLookup( keys ) {
-  let lookup = {};
-  keys.forEach( (name, idx) => { lookup[name] = idx; });
-  return lookup;
+function generateFieldLookup (keys) {
+  let lookup = {}
+  keys.forEach((name, idx) => { lookup[name] = idx })
+  return lookup
 }
 
 /**
@@ -55,11 +55,11 @@ class Record {
    *                            field names to values. If this is null, one will be
    *                            generated.
    */
-  constructor(keys, fields, fieldLookup=null ) {
-    this.keys = keys;
-    this.length = keys.length;
-    this._fields = fields;
-    this._fieldLookup = fieldLookup || generateFieldLookup( keys );
+  constructor (keys, fields, fieldLookup = null) {
+    this.keys = keys
+    this.length = keys.length
+    this._fields = fields
+    this._fieldLookup = fieldLookup || generateFieldLookup(keys)
   }
 
   /**
@@ -69,9 +69,9 @@ class Record {
    *
    * @param {function(value: Object, key: string, record: Record)} visitor the function to apply to each field.
    */
-  forEach( visitor ) {
-    for(let i=0;i<this.keys.length;i++) {
-      visitor( this._fields[i], this.keys[i], this );
+  forEach (visitor) {
+    for (let i = 0; i < this.keys.length; i++) {
+      visitor(this._fields[i], this.keys[i], this)
     }
   }
 
@@ -80,13 +80,13 @@ class Record {
    *
    * @returns {Object}
    */
-  toObject() {
-    const object = {};
+  toObject () {
+    const object = {}
     this.forEach((value, key) => {
       object[key] = value
-    });
+    })
 
-    return object;
+    return object
   }
 
   /**
@@ -95,23 +95,23 @@ class Record {
    * @param {string|Number} key Field key, or the index of the field.
    * @returns {*}
    */
-  get( key ) {
-    let index;
-    if( !(typeof key === "number") ) {
-      index = this._fieldLookup[key];
-      if( index === undefined ) {
-        throw newError("This record has no field with key '"+key+"', available key are: [" + this.keys + "].");
+  get (key) {
+    let index
+    if (!(typeof key === 'number')) {
+      index = this._fieldLookup[key]
+      if (index === undefined) {
+        throw newError("This record has no field with key '" + key + "', available key are: [" + this.keys + '].')
       }
     } else {
-      index = key;
+      index = key
     }
 
-    if( index > this._fields.length - 1 || index < 0 ) {
-      throw newError("This record has no field with index '"+index+"'. Remember that indexes start at `0`, " +
-        "and make sure your statement returns records in the shape you meant it to.");
+    if (index > this._fields.length - 1 || index < 0) {
+      throw newError("This record has no field with index '" + index + "'. Remember that indexes start at `0`, " +
+        'and make sure your statement returns records in the shape you meant it to.')
     }
 
-    return this._fields[index];
+    return this._fields[index]
   }
 
   /**
@@ -120,14 +120,14 @@ class Record {
    * @param {string|Number} key Field key, or the index of the field.
    * @returns {boolean}
    */
-  has( key ) {
+  has (key) {
     // if key is a number, we check if it is in the _fields array
-    if( typeof key === "number" ) {
-      return ( key >= 0 && key < this._fields.length );
+    if (typeof key === 'number') {
+      return (key >= 0 && key < this._fields.length)
     }
 
     // if it's not a number, we check _fieldLookup dictionary directly
-    return this._fieldLookup[key] !== undefined;
+    return this._fieldLookup[key] !== undefined
   }
 }
 

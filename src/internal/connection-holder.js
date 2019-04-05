@@ -17,42 +17,41 @@
  * limitations under the License.
  */
 
-import {newError} from '../error';
+import { newError } from '../error'
 
 /**
  * Utility to lazily initialize connections and return them back to the pool when unused.
  */
 export default class ConnectionHolder {
-
   /**
    * @constructor
    * @param {string} mode - the access mode for new connection holder.
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
    */
-  constructor(mode, connectionProvider) {
-    this._mode = mode;
-    this._connectionProvider = connectionProvider;
-    this._referenceCount = 0;
-    this._connectionPromise = Promise.resolve(null);
+  constructor (mode, connectionProvider) {
+    this._mode = mode
+    this._connectionProvider = connectionProvider
+    this._referenceCount = 0
+    this._connectionPromise = Promise.resolve(null)
   }
 
   /**
    * Returns the assigned access mode.
    * @returns {string} access mode
    */
-  mode() {
-    return this._mode;
+  mode () {
+    return this._mode
   }
 
   /**
    * Make this holder initialize new connection if none exists already.
    * @return {undefined}
    */
-  initializeConnection() {
+  initializeConnection () {
     if (this._referenceCount === 0) {
-      this._connectionPromise = this._connectionProvider.acquireConnection(this._mode);
+      this._connectionPromise = this._connectionProvider.acquireConnection(this._mode)
     }
-    this._referenceCount++;
+    this._referenceCount++
   }
 
   /**
@@ -60,39 +59,39 @@ export default class ConnectionHolder {
    * @param {StreamObserver} streamObserver an observer for this connection.
    * @return {Promise<Connection>} promise resolved with the current connection.
    */
-  getConnection(streamObserver) {
+  getConnection (streamObserver) {
     return this._connectionPromise.then(connection => {
-      streamObserver.resolveConnection(connection);
-      return connection;
-    });
+      streamObserver.resolveConnection(connection)
+      return connection
+    })
   }
 
   /**
    * Notify this holder that single party does not require current connection any more.
    * @return {Promise<Connection>} promise resolved with the current connection, never a rejected promise.
    */
-  releaseConnection() {
+  releaseConnection () {
     if (this._referenceCount === 0) {
-      return this._connectionPromise;
+      return this._connectionPromise
     }
 
-    this._referenceCount--;
+    this._referenceCount--
     if (this._referenceCount === 0) {
-      return this._releaseConnection();
+      return this._releaseConnection()
     }
-    return this._connectionPromise;
+    return this._connectionPromise
   }
 
   /**
    * Closes this holder and releases current connection (if any) despite any existing users.
    * @return {Promise<Connection>} promise resolved when current connection is released to the pool.
    */
-  close() {
+  close () {
     if (this._referenceCount === 0) {
-      return this._connectionPromise;
+      return this._connectionPromise
     }
-    this._referenceCount = 0;
-    return this._releaseConnection();
+    this._referenceCount = 0
+    return this._releaseConnection()
   }
 
   /**
@@ -102,45 +101,45 @@ export default class ConnectionHolder {
    * @return {Promise} - promise resolved then connection is returned to the pool.
    * @private
    */
-  _releaseConnection() {
+  _releaseConnection () {
     this._connectionPromise = this._connectionPromise.then(connection => {
       if (connection) {
         return connection.resetAndFlush()
           .catch(ignoreError)
-          .then(() => connection._release());
+          .then(() => connection._release())
       } else {
-        return Promise.resolve();
+        return Promise.resolve()
       }
-    }).catch(ignoreError);
+    }).catch(ignoreError)
 
-    return this._connectionPromise;
+    return this._connectionPromise
   }
 }
 
 class EmptyConnectionHolder extends ConnectionHolder {
-
-  initializeConnection() {
+  initializeConnection () {
     // nothing to initialize
   }
 
-  getConnection(streamObserver) {
-    return Promise.reject(newError('This connection holder does not serve connections'));
+  getConnection (streamObserver) {
+    return Promise.reject(newError('This connection holder does not serve connections'))
   }
 
-  releaseConnection() {
-    return Promise.resolve();
+  releaseConnection () {
+    return Promise.resolve()
   }
 
-  close() {
-    return Promise.resolve();
+  close () {
+    return Promise.resolve()
   }
 }
 
-function ignoreError(error) {
+// eslint-disable-next-line handle-callback-err
+function ignoreError (error) {
 }
 
 /**
  * Connection holder that does not manage any connections.
  * @type {ConnectionHolder}
  */
-export const EMPTY_CONNECTION_HOLDER = new EmptyConnectionHolder();
+export const EMPTY_CONNECTION_HOLDER = new EmptyConnectionHolder()

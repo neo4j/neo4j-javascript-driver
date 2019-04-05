@@ -16,41 +16,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RequestMessage from './request-message';
-import * as v1 from './packstream-v1';
-import {newError} from '../error';
-import Bookmark from './bookmark';
-import TxConfig from './tx-config';
-import {ACCESS_MODE_WRITE} from "./constants";
+import RequestMessage from './request-message'
+import * as v1 from './packstream-v1'
+import { newError } from '../error'
+import Bookmark from './bookmark'
+import TxConfig from './tx-config'
+import { ACCESS_MODE_WRITE } from './constants'
 
 export default class BoltProtocol {
-
   /**
    * @constructor
    * @param {Connection} connection the connection.
    * @param {Chunker} chunker the chunker.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
    */
-  constructor(connection, chunker, disableLosslessIntegers) {
-    this._connection = connection;
-    this._packer = this._createPacker(chunker);
-    this._unpacker = this._createUnpacker(disableLosslessIntegers);
+  constructor (connection, chunker, disableLosslessIntegers) {
+    this._connection = connection
+    this._packer = this._createPacker(chunker)
+    this._unpacker = this._createUnpacker(disableLosslessIntegers)
   }
 
   /**
    * Get the packer.
    * @return {Packer} the protocol's packer.
    */
-  packer() {
-    return this._packer;
+  packer () {
+    return this._packer
   }
 
   /**
    * Get the unpacker.
    * @return {Unpacker} the protocol's unpacker.
    */
-  unpacker() {
-    return this._unpacker;
+  unpacker () {
+    return this._unpacker
   }
 
   /**
@@ -58,8 +57,8 @@ export default class BoltProtocol {
    * @param {object} metadata the received metadata.
    * @return {object} transformed metadata.
    */
-  transformMetadata(metadata) {
-    return metadata;
+  transformMetadata (metadata) {
+    return metadata
   }
 
   /**
@@ -68,12 +67,12 @@ export default class BoltProtocol {
    * @param {object} authToken the authentication token.
    * @param {StreamObserver} observer the response observer.
    */
-  initialize(clientName, authToken, observer) {
-    const message = RequestMessage.init(clientName, authToken);
-    this._connection.write(message, observer, true);
+  initialize (clientName, authToken, observer) {
+    const message = RequestMessage.init(clientName, authToken)
+    this._connection.write(message, observer, true)
   }
 
-  prepareToClose(observer) {
+  prepareToClose (observer) {
     // no need to notify the database in this protocol version
   }
 
@@ -84,34 +83,34 @@ export default class BoltProtocol {
    * @param {string} mode the access mode.
    * @param {StreamObserver} observer the response observer.
    */
-  beginTransaction(bookmark, txConfig, mode, observer) {
-    assertTxConfigIsEmpty(txConfig, this._connection, observer);
+  beginTransaction (bookmark, txConfig, mode, observer) {
+    assertTxConfigIsEmpty(txConfig, this._connection, observer)
 
-    const runMessage = RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters());
-    const pullAllMessage = RequestMessage.pullAll();
+    const runMessage = RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters())
+    const pullAllMessage = RequestMessage.pullAll()
 
-    this._connection.write(runMessage, observer, false);
-    this._connection.write(pullAllMessage, observer, false);
+    this._connection.write(runMessage, observer, false)
+    this._connection.write(pullAllMessage, observer, false)
   }
 
   /**
    * Commit the explicit transaction.
    * @param {StreamObserver} observer the response observer.
    */
-  commitTransaction(observer) {
+  commitTransaction (observer) {
     // WRITE access mode is used as a place holder here, it has
     // no effect on behaviour for Bolt V1 & V2
-    this.run('COMMIT', {}, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, observer);
+    this.run('COMMIT', {}, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, observer)
   }
 
   /**
    * Rollback the explicit transaction.
    * @param {StreamObserver} observer the response observer.
    */
-  rollbackTransaction(observer) {
+  rollbackTransaction (observer) {
     // WRITE access mode is used as a place holder here, it has
     // no effect on behaviour for Bolt V1 & V2
-    this.run('ROLLBACK', {}, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, observer);
+    this.run('ROLLBACK', {}, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, observer)
   }
 
   /**
@@ -123,32 +122,32 @@ export default class BoltProtocol {
    * @param {string} mode the access mode.
    * @param {StreamObserver} observer the response observer.
    */
-  run(statement, parameters, bookmark, txConfig, mode, observer) {
+  run (statement, parameters, bookmark, txConfig, mode, observer) {
     // bookmark and mode are ignored in this versioon of the protocol
-    assertTxConfigIsEmpty(txConfig, this._connection, observer);
+    assertTxConfigIsEmpty(txConfig, this._connection, observer)
 
-    const runMessage = RequestMessage.run(statement, parameters);
-    const pullAllMessage = RequestMessage.pullAll();
+    const runMessage = RequestMessage.run(statement, parameters)
+    const pullAllMessage = RequestMessage.pullAll()
 
-    this._connection.write(runMessage, observer, false);
-    this._connection.write(pullAllMessage, observer, true);
+    this._connection.write(runMessage, observer, false)
+    this._connection.write(pullAllMessage, observer, true)
   }
 
   /**
    * Send a RESET through the underlying connection.
    * @param {StreamObserver} observer the response observer.
    */
-  reset(observer) {
-    const message = RequestMessage.reset();
-    this._connection.write(message, observer, true);
+  reset (observer) {
+    const message = RequestMessage.reset()
+    this._connection.write(message, observer, true)
   }
 
-  _createPacker(chunker) {
-    return new v1.Packer(chunker);
+  _createPacker (chunker) {
+    return new v1.Packer(chunker)
   }
 
-  _createUnpacker(disableLosslessIntegers) {
-    return new v1.Unpacker(disableLosslessIntegers);
+  _createUnpacker (disableLosslessIntegers) {
+    return new v1.Unpacker(disableLosslessIntegers)
   }
 }
 
@@ -157,14 +156,14 @@ export default class BoltProtocol {
  * @param {Connection} connection the connection.
  * @param {StreamObserver} observer the response observer.
  */
-function assertTxConfigIsEmpty(txConfig, connection, observer) {
+function assertTxConfigIsEmpty (txConfig, connection, observer) {
   if (!txConfig.isEmpty()) {
     const error = newError('Driver is connected to the database that does not support transaction configuration. ' +
-      'Please upgrade to neo4j 3.5.0 or later in order to use this functionality');
+      'Please upgrade to neo4j 3.5.0 or later in order to use this functionality')
 
     // unsupported API was used, consider this a fatal error for the current connection
-    connection._handleFatalError(error);
-    observer.onError(error);
-    throw error;
+    connection._handleFatalError(error)
+    observer.onError(error)
+    throw error
   }
 }

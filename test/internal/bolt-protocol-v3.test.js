@@ -17,17 +17,15 @@
  * limitations under the License.
  */
 
-import BoltProtocolV3 from '../../src/internal/bolt-protocol-v3';
+import BoltProtocolV3 from '../../src/internal/bolt-protocol-v3'
 
 describe('BoltProtocolV3', () => {
-
   it('should update metadata', () => {
-    const metadata = {t_first: 1, t_last: 2, db_hits: 3, some_other_key: 4};
-    const protocol = new BoltProtocolV3(null, null, false);
+    const metadata = { t_first: 1, t_last: 2, db_hits: 3, some_other_key: 4 }
+    const protocol = new BoltProtocolV3(null, null, false)
 
-    const transformedMetadata = protocol.transformMetadata(metadata);
+    const transformedMetadata = protocol.transformMetadata(metadata)
 
-    expect(transformedMetadata).toEqual({result_available_after: 1, result_consumed_after: 2, db_hits: 3, some_other_key: 4});
-  });
-
-});
+    expect(transformedMetadata).toEqual({ result_available_after: 1, result_consumed_after: 2, db_hits: 3, some_other_key: 4 })
+  })
+})

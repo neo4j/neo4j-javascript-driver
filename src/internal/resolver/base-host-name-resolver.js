@@ -18,15 +18,14 @@
  */
 
 export default class BaseHostNameResolver {
-
-  resolve() {
-    throw new Error('Abstract function');
+  resolve () {
+    throw new Error('Abstract function')
   }
 
   /**
    * @protected
    */
-  _resolveToItself(address) {
-    return Promise.resolve([address]);
+  _resolveToItself (address) {
+    return Promise.resolve([address])
   }
 }

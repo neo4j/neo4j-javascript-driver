@@ -17,23 +17,22 @@
  * limitations under the License.
  */
 
-import BaseHostNameResolver from './base-host-name-resolver';
+import BaseHostNameResolver from './base-host-name-resolver'
 
 export default class ConfiguredHostNameResolver extends BaseHostNameResolver {
-
-  constructor(resolverFunction) {
-    super();
-    this._resolverFunction = resolverFunction;
+  constructor (resolverFunction) {
+    super()
+    this._resolverFunction = resolverFunction
   }
 
-  resolve(seedRouter) {
+  resolve (seedRouter) {
     return new Promise(resolve => resolve(this._resolverFunction(seedRouter)))
       .then(resolved => {
         if (!Array.isArray(resolved)) {
           throw new TypeError(`Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.` +
-            `Each address is '<host>:<port>'. Got: ${resolved}`);
+            `Each address is '<host>:<port>'. Got: ${resolved}`)
         }
-        return resolved;
-      });
+        return resolved
+      })
   }
 }

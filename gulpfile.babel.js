@@ -17,48 +17,46 @@
  * limitations under the License.
  */
 
-var browserify = require('browserify');
-var source = require('vinyl-source-stream');
-var buffer = require('vinyl-buffer');
-var gulp = require('gulp');
-var through = require('through2');
-var uglify = require('gulp-uglify');
-var gutil = require('gulp-util');
-var download = require("gulp-download");
-var jasmine = require('gulp-jasmine');
-var babelify = require('babelify');
-var babel = require('gulp-babel');
-var watch = require('gulp-watch');
-var batch = require('gulp-batch');
-var replace = require('gulp-replace');
-var decompress = require('gulp-decompress');
-var fs = require("fs-extra");
-var runSequence = require('run-sequence');
-var path = require('path');
-var minimist = require('minimist');
-var install = require("gulp-install");
-var file = require('gulp-file');
-var semver = require('semver');
-var sharedNeo4j = require('./test/internal/shared-neo4j').default;
-var ts = require('gulp-typescript');
-var JasmineConsoleReporter = require('jasmine-console-reporter');
-var karmaServer = require('karma').Server;
-var transformTools = require('browserify-transform-tools');
+var browserify = require('browserify')
+var source = require('vinyl-source-stream')
+var buffer = require('vinyl-buffer')
+var gulp = require('gulp')
+var through = require('through2')
+var uglify = require('gulp-uglify')
+var gutil = require('gulp-util')
+var jasmine = require('gulp-jasmine')
+var babelify = require('babelify')
+var babel = require('gulp-babel')
+var watch = require('gulp-watch')
+var batch = require('gulp-batch')
+var replace = require('gulp-replace')
+var fs = require('fs-extra')
+var runSequence = require('run-sequence')
+var path = require('path')
+var minimist = require('minimist')
+var install = require('gulp-install')
+var file = require('gulp-file')
+var semver = require('semver')
+var sharedNeo4j = require('./test/internal/shared-neo4j').default
+var ts = require('gulp-typescript')
+var JasmineConsoleReporter = require('jasmine-console-reporter')
+var karma = require('karma')
+var transformTools = require('browserify-transform-tools')
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
  */
-var enableActiveNodeHandlesLogging = false;
+var enableActiveNodeHandlesLogging = false
 
-gulp.task('default', ["test"]);
+gulp.task('default', ['test'])
 
-gulp.task('browser', function(cb){
-  runSequence('build-browser-test', 'build-browser', cb);
-});
+gulp.task('browser', function (cb) {
+  runSequence('build-browser-test', 'build-browser', cb)
+})
 
 /** Build all-in-one files for use in the browser */
 gulp.task('build-browser', function () {
-  var browserOutput = 'lib/browser';
+  var browserOutput = 'lib/browser'
   // Our app bundler
   var appBundler = browserify({
     entries: ['src/index.js'],
@@ -67,264 +65,251 @@ gulp.task('build-browser', function () {
     packageCache: {}
   }).transform(babelifyTransform())
     .transform(browserifyTransformNodeToBrowserRequire())
-    .bundle();
+    .bundle()
 
   // Un-minified browser package
   appBundler
     .on('error', gutil.log)
     .pipe(source('neo4j-web.js'))
-    .pipe(gulp.dest(browserOutput));
+    .pipe(gulp.dest(browserOutput))
 
   return appBundler
     .on('error', gutil.log)
     .pipe(source('neo4j-web.min.js'))
     .pipe(buffer())
     .pipe(uglify())
-    .pipe(gulp.dest(browserOutput));
-});
+    .pipe(gulp.dest(browserOutput))
+})
 
-gulp.task('build-browser-test', function(){
-  var browserOutput = 'build/browser/';
-  var testFiles = [];
+gulp.task('build-browser-test', function () {
+  var browserOutput = 'build/browser/'
+  var testFiles = []
   return gulp.src(['./test/**/*.test.js', '!./test/**/node/*.js'])
-    .pipe( through.obj( function( file, enc, cb ) {
-      if(file.path.indexOf('examples.test.js') < 0) {
-        testFiles.push( file.path );
+    .pipe(through.obj(function (file, enc, cb) {
+      if (file.path.indexOf('examples.test.js') < 0) {
+        testFiles.push(file.path)
       }
-      cb();
-    }, function(cb) {
+      cb()
+    }, function (cb) {
       // At end-of-stream, push the list of files to the next step
-      this.push( testFiles );
-      cb();
+      this.push(testFiles)
+      cb()
     }))
-    .pipe( through.obj( function( testFiles, enc, cb) {
-        browserify({
-          entries: testFiles,
-          cache: {},
-          debug: true
-        }).transform(babelifyTransform())
-          .transform(browserifyTransformNodeToBrowserRequire())
-          .bundle(function () {
-            cb();
-          })
-          .on('error', gutil.log)
-          .pipe(source('neo4j-web.test.js'))
-          .pipe(gulp.dest(browserOutput));
+    .pipe(through.obj(function (testFiles, enc, cb) {
+      browserify({
+        entries: testFiles,
+        cache: {},
+        debug: true
+      }).transform(babelifyTransform())
+        .transform(browserifyTransformNodeToBrowserRequire())
+        .bundle(function () {
+          cb()
+        })
+        .on('error', gutil.log)
+        .pipe(source('neo4j-web.test.js'))
+        .pipe(gulp.dest(browserOutput))
     },
-    function(cb) {
+    function (cb) {
       cb()
     }
-    ));
-});
+    ))
+})
 
-var buildNode = function(options) {
+var buildNode = function (options) {
   return gulp.src(options.src)
     .pipe(babel(babelConfig()))
     .pipe(gulp.dest(options.dest))
-};
+}
 
-gulp.task('nodejs', function(){
+gulp.task('nodejs', function () {
   return buildNode({
     src: 'src/**/*.js',
     dest: 'lib'
-    });
-});
+  })
+})
 
-gulp.task('all', function(cb){
-  runSequence('nodejs', 'browser', cb);
-});
+gulp.task('all', function (cb) {
+  runSequence('nodejs', 'browser', cb)
+})
 
 // prepares directory for package.test.js
-gulp.task('install-driver-into-sandbox', ['nodejs'], function(){
-  var testDir = path.join('build', 'sandbox');
-  fs.emptyDirSync(testDir);
+gulp.task('install-driver-into-sandbox', ['nodejs'], function () {
+  var testDir = path.join('build', 'sandbox')
+  fs.emptyDirSync(testDir)
 
   var packageJsonContent = JSON.stringify({
     'private': true,
     'dependencies': {
       'neo4j-driver': __dirname
     }
-  });
+  })
 
-  return file('package.json', packageJsonContent, {src:true})
-      .pipe(gulp.dest(testDir))
-      .pipe(install());
-});
+  return file('package.json', packageJsonContent, { src: true })
+    .pipe(gulp.dest(testDir))
+    .pipe(install())
+})
 
 gulp.task('test', function (cb) {
   runSequence('run-ts-declaration-tests', 'test-nodejs', 'test-browser', function (err) {
     if (err) {
-      var exitCode = 2;
-      console.log('[FAIL] test task failed - exiting with code ' + exitCode);
-      return process.exit(exitCode);
+      var exitCode = 2
+      console.log('[FAIL] test task failed - exiting with code ' + exitCode)
+      return process.exit(exitCode)
     }
-    return cb();
-  });
-});
+    return cb()
+  })
+})
 
 gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
   return gulp.src(['./test/**/*.test.js', '!./test/**/browser/*.js'])
     .pipe(jasmine({
       includeStackTrace: true,
       reporter: newJasmineConsoleReporter()
-    })).on('end', logActiveNodeHandles);
-});
+    })).on('end', logActiveNodeHandles)
+})
 
 gulp.task('test-browser', function (cb) {
   runSequence('all', 'run-browser-test', cb)
-});
+})
 
-gulp.task('run-browser-test', function(cb){
-  runSequence('run-browser-test-firefox', cb);
-});
+gulp.task('run-browser-test', function (cb) {
+  runSequence('run-browser-test-firefox', cb)
+})
 
-gulp.task('run-browser-test-chrome', function(cb){
-  new karmaServer({
-    configFile: __dirname + '/test/browser/karma-chrome.conf.js',
-    singleRun: true,
-  }, function (exitCode) {
-    exitCode ? process.exit(exitCode) : cb();
-  }).start();
-});
+gulp.task('run-browser-test-chrome', function (cb) {
+  runKarma('chrome', cb)
+})
 
-gulp.task('run-browser-test-firefox', function(cb){
-  new karmaServer({
-    configFile: __dirname + '/test/browser/karma-firefox.conf.js',
-    singleRun: true,
-  }, function (exitCode) {
-    exitCode ? process.exit(exitCode) : cb();
-  }).start();
-});
+gulp.task('run-browser-test-firefox', function (cb) {
+  runKarma('firefox', cb)
+})
 
-gulp.task('run-browser-test-edge', function(cb){
-  new karmaServer({
-    configFile: __dirname + '/test/browser/karma-edge.conf.js',
-    singleRun: true,
-  }, function (exitCode) {
-    exitCode ? process.exit(exitCode) : cb();
-  }).start();
-});
+gulp.task('run-browser-test-edge', function (cb) {
+  runKarma('edge', cb)
+})
 
 gulp.task('run-browser-test-ie', function (cb) {
-  new karmaServer({
-    configFile: __dirname + '/test/browser/karma-ie.conf.js',
-    singleRun: true,
-  }, function (exitCode) {
-    exitCode ? process.exit(exitCode) : cb();
-  }).start();
-});
+  runKarma('ie', cb)
+})
 
 gulp.task('watch', function () {
   return watch('src/**/*.js', batch(function (events, done) {
-      gulp.start('all', done);
-  }));
-});
+    gulp.start('all', done)
+  }))
+})
 
 gulp.task('watch-n-test', ['test-nodejs'], function () {
-  return gulp.watch(['src/**/*.js', "test/**/*.js"], ['test-nodejs'] );
-});
+  return gulp.watch(['src/**/*.js', 'test/**/*.js'], ['test-nodejs'])
+})
 
 /** Set the project version, controls package.json and version.js */
-gulp.task('set', function() {
+gulp.task('set', function () {
   // Get the --version arg from command line
-  var version = minimist(process.argv.slice(2), { string: 'version' }).version;
+  var version = minimist(process.argv.slice(2), { string: 'version' }).version
 
   if (!semver.valid(version)) {
-      throw 'Invalid version "' + version + '"';
+    throw new Error(`Invalid version "${version}"`)
   }
 
   // Change the version in relevant files
-  var versionFile = path.join('src', 'version.js');
-  return gulp.src([versionFile], {base: "./"})
-      .pipe(replace('0.0.0-dev', version))
-      .pipe(gulp.dest('./'));
+  var versionFile = path.join('src', 'version.js')
+  return gulp.src([versionFile], { base: './' })
+    .pipe(replace('0.0.0-dev', version))
+    .pipe(gulp.dest('./'))
+})
 
-});
-
-
-var neo4jHome = path.resolve('./build/neo4j');
+var neo4jHome = path.resolve('./build/neo4j')
 
 gulp.task('start-neo4j', function (done) {
-  sharedNeo4j.start(neo4jHome, process.env.NEOCTRL_ARGS);
-  done();
-});
+  sharedNeo4j.start(neo4jHome, process.env.NEOCTRL_ARGS)
+  done()
+})
 
 gulp.task('stop-neo4j', function (done) {
-  sharedNeo4j.stop(neo4jHome);
-  done();
-});
+  sharedNeo4j.stop(neo4jHome)
+  done()
+})
 
 gulp.task('run-stress-tests', function () {
   return gulp.src('test/**/stress.test.js')
     .pipe(jasmine({
       includeStackTrace: true,
       reporter: newJasmineConsoleReporter()
-    })).on('end', logActiveNodeHandles);
-});
+    })).on('end', logActiveNodeHandles)
+})
 
 gulp.task('run-ts-declaration-tests', function () {
-  var failed = false;
+  var failed = false
 
-  return gulp.src(['test/types/**/*', 'types/**/*'], {base: '.'})
+  return gulp.src(['test/types/**/*', 'types/**/*'], { base: '.' })
     .pipe(ts({
       module: 'es6',
       target: 'es6',
       noImplicitAny: true,
       noImplicitReturns: true,
-      strictNullChecks: true,
+      strictNullChecks: true
     }))
     .on('error', function () {
-      failed = true;
+      failed = true
     })
     .on('finish', function () {
       if (failed) {
-        console.log('[ERROR] TypeScript declarations contain errors. Exiting...');
-        process.exit(1);
+        console.log('[ERROR] TypeScript declarations contain errors. Exiting...')
+        process.exit(1)
       }
     })
-    .pipe(gulp.dest('build/test/types'));
-});
+    .pipe(gulp.dest('build/test/types'))
+})
 
-function logActiveNodeHandles() {
+function logActiveNodeHandles () {
   if (enableActiveNodeHandlesLogging) {
-    console.log('-- Active NodeJS handles START\n', process._getActiveHandles(), '\n-- Active NodeJS handles END');
+    console.log('-- Active NodeJS handles START\n', process._getActiveHandles(), '\n-- Active NodeJS handles END')
   }
 }
 
-function newJasmineConsoleReporter() {
+function newJasmineConsoleReporter () {
   return new JasmineConsoleReporter({
     colors: 1,
     cleanStack: 1,
     verbosity: 4,
     listStyle: 'indent',
     activity: false
-  });
+  })
 }
 
-function babelifyTransform() {
-  return babelify.configure(babelConfig());
+function babelifyTransform () {
+  return babelify.configure(babelConfig())
 }
 
-function babelConfig() {
+function babelConfig () {
   return {
     presets: ['env'], plugins: ['transform-runtime']
-  };
+  }
 }
 
-function browserifyTransformNodeToBrowserRequire() {
-  var nodeRequire = '/node';
-  var browserRequire = '/browser';
+function browserifyTransformNodeToBrowserRequire () {
+  var nodeRequire = '/node'
+  var browserRequire = '/browser'
 
   return transformTools.makeRequireTransform('bodeToBrowserRequireTransform',
-    {evaluateArguments: true},
+    { evaluateArguments: true },
     function (args, opts, cb) {
-      var requireArg = args[0];
-      var endsWithNodeRequire = requireArg.slice(-nodeRequire.length) === nodeRequire;
+      var requireArg = args[0]
+      var endsWithNodeRequire = requireArg.slice(-nodeRequire.length) === nodeRequire
       if (endsWithNodeRequire) {
-        var newRequireArg = requireArg.replace(nodeRequire, browserRequire);
-        return cb(null, 'require(\'' + newRequireArg + '\')');
+        var newRequireArg = requireArg.replace(nodeRequire, browserRequire)
+        return cb(null, 'require(\'' + newRequireArg + '\')')
       } else {
-        return cb();
+        return cb()
       }
-    });
+    })
+}
+
+function runKarma (browser, cb) {
+  new karma.Server({
+    configFile: path.join(__dirname, `/test/browser/karma-${browser}.conf.js`),
+    singleRun: true
+  }, function (exitCode) {
+    exitCode ? process.exit(exitCode) : cb()
+  }).start()
 }

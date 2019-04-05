@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import {isInt} from './integer';
+import { isInt } from './integer'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.
@@ -30,13 +30,13 @@ class ResultSummary {
    * @param {Object} parameters - Parameters for the statement
    * @param {Object} metadata - Statement metadata
    */
-  constructor(statement, parameters, metadata) {
+  constructor (statement, parameters, metadata) {
     /**
      * The statement and parameters this summary is for.
      * @type {{text: string, parameters: Object}}
      * @public
      */
-    this.statement = {text: statement, parameters};
+    this.statement = { text: statement, parameters }
 
     /**
      * The type of statement executed. Can be "r" for read-only statement, "rw" for read-write statement,
@@ -45,16 +45,16 @@ class ResultSummary {
      * @type {string}
      * @public
      */
-    this.statementType = metadata.type;
+    this.statementType = metadata.type
 
     /**
      * Counters for operations the statement triggered.
      * @type {StatementStatistics}
      * @public
      */
-    this.counters = new StatementStatistics(metadata.stats || {});
-    //for backwards compatibility, remove in future version
-    this.updateStatistics = this.counters;
+    this.counters = new StatementStatistics(metadata.stats || {})
+    // for backwards compatibility, remove in future version
+    this.updateStatistics = this.counters
 
     /**
      * This describes how the database will execute the statement.
@@ -62,7 +62,7 @@ class ResultSummary {
      * Will only be populated for queries that start with "EXPLAIN".
      * @type {Plan}
      */
-    this.plan = metadata.plan || metadata.profile ? new Plan(metadata.plan || metadata.profile) : false;
+    this.plan = metadata.plan || metadata.profile ? new Plan(metadata.plan || metadata.profile) : false
 
     /**
      * This describes how the database did execute your statement. This will contain detailed information about what
@@ -71,7 +71,7 @@ class ResultSummary {
      * @type {ProfiledPlan}
      * @public
      */
-    this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false;
+    this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false
 
     /**
      * An array of notifications that might arise when executing the statement. Notifications can be warnings about
@@ -80,42 +80,42 @@ class ResultSummary {
      * @type {Array<Notification>}
      * @public
      */
-    this.notifications = this._buildNotifications(metadata.notifications);
+    this.notifications = this._buildNotifications(metadata.notifications)
 
     /**
      * The basic information of the server where the result is obtained from.
      * @type {ServerInfo}
      * @public
      */
-    this.server = new ServerInfo(metadata.server);
+    this.server = new ServerInfo(metadata.server)
 
     /**
      * The time it took the server to consume the result.
      * @type {number}
      * @public
      */
-    this.resultConsumedAfter = metadata.result_consumed_after;
+    this.resultConsumedAfter = metadata.result_consumed_after
 
     /**
      * The time it took the server to make the result available for consumption in milliseconds.
      * @type {number}
      * @public
      */
-    this.resultAvailableAfter = metadata.result_available_after;
+    this.resultAvailableAfter = metadata.result_available_after
   }
 
-  _buildNotifications(notifications) {
-    if(!notifications) {
-      return [];
+  _buildNotifications (notifications) {
+    if (!notifications) {
+      return []
     }
-    return notifications.map(function(n) { return new Notification(n) });
+    return notifications.map(function (n) { return new Notification(n) })
   }
 
   /**
    * Check if the result summary has a plan
    * @return {boolean}
    */
-  hasPlan() {
+  hasPlan () {
     return this.plan instanceof Plan
   }
 
@@ -123,7 +123,7 @@ class ResultSummary {
    * Check if the result summary has a profile
    * @return {boolean}
    */
-  hasProfile() {
+  hasProfile () {
     return this.profile instanceof ProfiledPlan
   }
 }
@@ -138,11 +138,11 @@ class Plan {
    * @constructor
    * @param {Object} plan - Object with plan data
    */
-  constructor(plan) {
-    this.operatorType = plan.operatorType;
-    this.identifiers = plan.identifiers;
-    this.arguments = plan.args;
-    this.children = plan.children ? plan.children.map((child) => new Plan(child)) : [];
+  constructor (plan) {
+    this.operatorType = plan.operatorType
+    this.identifiers = plan.identifiers
+    this.arguments = plan.args
+    this.children = plan.children ? plan.children.map((child) => new Plan(child)) : []
   }
 }
 
@@ -156,13 +156,13 @@ class ProfiledPlan {
    * @constructor
    * @param {Object} profile - Object with profile data
    */
-  constructor(profile) {
-    this.operatorType = profile.operatorType;
-    this.identifiers = profile.identifiers;
-    this.arguments = profile.args;
-    this.dbHits = profile.args.DbHits.toInt();
-    this.rows = profile.args.Rows.toInt();
-    this.children = profile.children ? profile.children.map((child) => new ProfiledPlan(child)) : [];
+  constructor (profile) {
+    this.operatorType = profile.operatorType
+    this.identifiers = profile.identifiers
+    this.arguments = profile.args
+    this.dbHits = profile.args.DbHits.toInt()
+    this.rows = profile.args.Rows.toInt()
+    this.children = profile.children ? profile.children.map((child) => new ProfiledPlan(child)) : []
   }
 }
 
@@ -176,7 +176,7 @@ class StatementStatistics {
    * @constructor
    * @param {Object} statistics - Result statistics
    */
-  constructor(statistics) {
+  constructor (statistics) {
     this._stats = {
       nodesCreated: 0,
       nodesDeleted: 0,
@@ -189,99 +189,99 @@ class StatementStatistics {
       indexesRemoved: 0,
       constraintsAdded: 0,
       constraintsRemoved: 0
-    };
+    }
     Object.keys(statistics).forEach((index) => {
-      //To camelCase
-      this._stats[index.replace(/(\-\w)/g, (m) => m[1].toUpperCase())] =
-        isInt(statistics[index]) ? statistics[index].toInt() : statistics[index];
-    });
+      // To camelCase
+      this._stats[index.replace(/(-\w)/g, (m) => m[1].toUpperCase())] =
+        isInt(statistics[index]) ? statistics[index].toInt() : statistics[index]
+    })
   }
 
   /**
    * Did the database get updated?
    * @return {boolean}
    */
-  containsUpdates() {
+  containsUpdates () {
     return Object.keys(this._stats).reduce((last, current) => {
-      return last + this._stats[current];
-    }, 0) > 0;
+      return last + this._stats[current]
+    }, 0) > 0
   }
 
   /**
    * @return {Number} - Number of nodes created.
    */
-  nodesCreated() {
-    return this._stats.nodesCreated;
+  nodesCreated () {
+    return this._stats.nodesCreated
   }
 
   /**
    * @return {Number} - Number of nodes deleted.
    */
-  nodesDeleted() {
-    return this._stats.nodesDeleted;
+  nodesDeleted () {
+    return this._stats.nodesDeleted
   }
 
   /**
    * @return {Number} - Number of relationships created.
    */
-  relationshipsCreated() {
-    return this._stats.relationshipsCreated;
+  relationshipsCreated () {
+    return this._stats.relationshipsCreated
   }
 
   /**
    * @return {Number} - Number of nodes deleted.
    */
-  relationshipsDeleted() {
-    return this._stats.relationshipsDeleted;
+  relationshipsDeleted () {
+    return this._stats.relationshipsDeleted
   }
 
   /**
    * @return {Number} - Number of properties set.
    */
-  propertiesSet() {
-    return this._stats.propertiesSet;
+  propertiesSet () {
+    return this._stats.propertiesSet
   }
 
   /**
    * @return {Number} - Number of labels added.
    */
-  labelsAdded() {
-    return this._stats.labelsAdded;
+  labelsAdded () {
+    return this._stats.labelsAdded
   }
 
   /**
    * @return {Number} - Number of labels removed.
    */
-  labelsRemoved() {
-    return this._stats.labelsRemoved;
+  labelsRemoved () {
+    return this._stats.labelsRemoved
   }
 
   /**
    * @return {Number} - Number of indexes added.
    */
-  indexesAdded() {
-    return this._stats.indexesAdded;
+  indexesAdded () {
+    return this._stats.indexesAdded
   }
 
   /**
    * @return {Number} - Number of indexes removed.
    */
-  indexesRemoved() {
-    return this._stats.indexesRemoved;
+  indexesRemoved () {
+    return this._stats.indexesRemoved
   }
 
   /**
    * @return {Number} - Number of constraints added.
    */
-  constraintsAdded() {
-    return this._stats.constraintsAdded;
+  constraintsAdded () {
+    return this._stats.constraintsAdded
   }
 
   /**
    * @return {Number} - Number of constraints removed.
    */
-  constraintsRemoved() {
-    return this._stats.constraintsRemoved;
+  constraintsRemoved () {
+    return this._stats.constraintsRemoved
   }
 }
 
@@ -295,17 +295,17 @@ class Notification {
    * @constructor
    * @param {Object} notification - Object with notification data
    */
-  constructor(notification) {
-    this.code = notification.code;
-    this.title = notification.title;
-    this.description = notification.description;
-    this.severity = notification.severity;
-    this.position = Notification._constructPosition(notification.position);
+  constructor (notification) {
+    this.code = notification.code
+    this.title = notification.title
+    this.description = notification.description
+    this.severity = notification.severity
+    this.position = Notification._constructPosition(notification.position)
   }
 
-  static _constructPosition(pos) {
-    if(!pos) {
-      return {};
+  static _constructPosition (pos) {
+    if (!pos) {
+      return {}
     }
     return {
       offset: pos.offset.toInt(),
@@ -325,10 +325,10 @@ class ServerInfo {
    * @constructor
    * @param {Object} serverMeta - Object with serverMeta data
    */
-  constructor(serverMeta) {
+  constructor (serverMeta) {
     if (serverMeta) {
-      this.address = serverMeta.address;
-      this.version = serverMeta.version;
+      this.address = serverMeta.address
+      this.version = serverMeta.version
     }
   }
 }
@@ -338,7 +338,7 @@ const statementType = {
   READ_WRITE: 'rw',
   WRITE_ONLY: 'w',
   SCHEMA_WRITE: 's'
-};
+}
 
 export {
   statementType

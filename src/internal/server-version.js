@@ -17,23 +17,22 @@
  * limitations under the License.
  */
 
-import {assertString} from './util';
+import { assertString } from './util'
 
-const SERVER_VERSION_REGEX = new RegExp('^(Neo4j/)?(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?$');
-const NEO4J_IN_DEV_VERSION_STRING = 'Neo4j/dev';
+const SERVER_VERSION_REGEX = new RegExp('^(Neo4j/)?(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?$')
+const NEO4J_IN_DEV_VERSION_STRING = 'Neo4j/dev'
 
 class ServerVersion {
-
   /**
    * @constructor
    * @param {number} major the major version number.
    * @param {number} minor the minor version number.
    * @param {number} patch the patch version number.
    */
-  constructor(major, minor, patch) {
-    this.major = major;
-    this.minor = minor;
-    this.patch = patch;
+  constructor (major, minor, patch) {
+    this.major = major
+    this.minor = minor
+    this.patch = patch
   }
 
   /**
@@ -41,12 +40,12 @@ class ServerVersion {
    * @param {Driver} driver the driver to use.
    * @return {Promise<ServerVersion>} promise resolved with a {@link ServerVersion} object or rejected with error.
    */
-  static fromDriver(driver) {
-    const session = driver.session();
+  static fromDriver (driver) {
+    const session = driver.session()
     return session.run('RETURN 1').then(result => {
-      session.close();
-      return ServerVersion.fromString(result.summary.server.version);
-    });
+      session.close()
+      return ServerVersion.fromString(result.summary.server.version)
+    })
   }
 
   /**
@@ -55,27 +54,27 @@ class ServerVersion {
    * @return {ServerVersion} version for the given string.
    * @throws Error if given string can't be parsed.
    */
-  static fromString(versionStr) {
+  static fromString (versionStr) {
     if (!versionStr) {
-      return new ServerVersion(3, 0, 0);
+      return new ServerVersion(3, 0, 0)
     }
 
-    assertString(versionStr, 'Neo4j version string');
+    assertString(versionStr, 'Neo4j version string')
 
     if (versionStr.toLowerCase() === NEO4J_IN_DEV_VERSION_STRING.toLowerCase()) {
-      return VERSION_IN_DEV;
+      return VERSION_IN_DEV
     }
 
-    const version = versionStr.match(SERVER_VERSION_REGEX);
+    const version = versionStr.match(SERVER_VERSION_REGEX)
     if (!version) {
-      throw new Error(`Unparsable Neo4j version: ${versionStr}`);
+      throw new Error(`Unparsable Neo4j version: ${versionStr}`)
     }
 
-    const major = parseIntStrict(version[2]);
-    const minor = parseIntStrict(version[3]);
-    const patch = parseIntStrict(version[4] || 0);
+    const major = parseIntStrict(version[2])
+    const minor = parseIntStrict(version[3])
+    const patch = parseIntStrict(version[4] || 0)
 
-    return new ServerVersion(major, minor, patch);
+    return new ServerVersion(major, minor, patch)
   }
 
   /**
@@ -85,37 +84,37 @@ class ServerVersion {
    * was released earlier than the given one and value greater then 0 when this version was released after
    * than the given one.
    */
-  compareTo(other) {
-    let result = compareInts(this.major, other.major);
+  compareTo (other) {
+    let result = compareInts(this.major, other.major)
     if (result === 0) {
-      result = compareInts(this.minor, other.minor);
+      result = compareInts(this.minor, other.minor)
       if (result === 0) {
-        result = compareInts(this.patch, other.patch);
+        result = compareInts(this.patch, other.patch)
       }
     }
-    return result;
+    return result
   }
 }
 
-function parseIntStrict(str, name) {
-  const value = parseInt(str, 10);
+function parseIntStrict (str, name) {
+  const value = parseInt(str, 10)
   if (!value && value !== 0) {
-    throw new Error(`Unparsable number ${name}: '${str}'`);
+    throw new Error(`Unparsable number ${name}: '${str}'`)
   }
-  return value;
+  return value
 }
 
-function compareInts(x, y) {
-  return (x < y) ? -1 : ((x === y) ? 0 : 1);
+function compareInts (x, y) {
+  return (x < y) ? -1 : ((x === y) ? 0 : 1)
 }
 
-const VERSION_3_1_0 = new ServerVersion(3, 1, 0);
-const VERSION_3_2_0 = new ServerVersion(3, 2, 0);
-const VERSION_3_4_0 = new ServerVersion(3, 4, 0);
-const VERSION_3_5_0 = new ServerVersion(3, 5, 0);
-const VERSION_4_0_0 = new ServerVersion(4, 0, 0);
-const maxVer = Number.MAX_SAFE_INTEGER;
-const VERSION_IN_DEV = new ServerVersion(maxVer, maxVer, maxVer);
+const VERSION_3_1_0 = new ServerVersion(3, 1, 0)
+const VERSION_3_2_0 = new ServerVersion(3, 2, 0)
+const VERSION_3_4_0 = new ServerVersion(3, 4, 0)
+const VERSION_3_5_0 = new ServerVersion(3, 5, 0)
+const VERSION_4_0_0 = new ServerVersion(4, 0, 0)
+const maxVer = Number.MAX_SAFE_INTEGER
+const VERSION_IN_DEV = new ServerVersion(maxVer, maxVer, maxVer)
 
 export {
   ServerVersion,
@@ -125,8 +124,4 @@ export {
   VERSION_3_5_0,
   VERSION_4_0_0,
   VERSION_IN_DEV
-};
-
-
-
-
+}

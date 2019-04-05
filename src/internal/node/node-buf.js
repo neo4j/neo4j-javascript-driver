@@ -17,68 +17,68 @@
  * limitations under the License.
  */
 
-import node from 'buffer';
-import BaseBuffer from '../buf/base-buf';
+import node from 'buffer'
+import BaseBuffer from '../buf/base-buf'
 
 export default class NodeBuffer extends BaseBuffer {
-
-  constructor(arg) {
-    const buffer = newNodeJSBuffer(arg);
-    super(buffer.length);
-    this._buffer = buffer;
+  constructor (arg) {
+    const buffer = newNodeJSBuffer(arg)
+    super(buffer.length)
+    this._buffer = buffer
   }
 
-  getUInt8(position) {
-    return this._buffer.readUInt8(position);
+  getUInt8 (position) {
+    return this._buffer.readUInt8(position)
   }
 
-  getInt8(position) {
-    return this._buffer.readInt8(position);
+  getInt8 (position) {
+    return this._buffer.readInt8(position)
   }
 
-  getFloat64(position) {
-    return this._buffer.readDoubleBE(position);
+  getFloat64 (position) {
+    return this._buffer.readDoubleBE(position)
   }
 
-  putUInt8(position, val) {
-    this._buffer.writeUInt8(val, position);
+  putUInt8 (position, val) {
+    this._buffer.writeUInt8(val, position)
   }
 
-  putInt8(position, val) {
-    this._buffer.writeInt8(val, position);
+  putInt8 (position, val) {
+    this._buffer.writeInt8(val, position)
   }
 
-  putFloat64(position, val) {
-    this._buffer.writeDoubleBE(val, position);
+  putFloat64 (position, val) {
+    this._buffer.writeDoubleBE(val, position)
   }
 
-  putBytes(position, val) {
+  putBytes (position, val) {
     if (val instanceof NodeBuffer) {
-      const bytesToCopy = Math.min(val.length - val.position, this.length - position);
+      const bytesToCopy = Math.min(val.length - val.position, this.length - position)
       val._buffer.copy(
         this._buffer,
         position,
         val.position,
-        val.position + bytesToCopy);
-      val.position += bytesToCopy;
+        val.position + bytesToCopy)
+      val.position += bytesToCopy
     } else {
-      super.putBytes(position, val);
+      super.putBytes(position, val)
     }
   };
 
-  getSlice(start, length) {
-    return new NodeBuffer(this._buffer.slice(start, start + length));
+  getSlice (start, length) {
+    return new NodeBuffer(this._buffer.slice(start, start + length))
   }
 }
 
-function newNodeJSBuffer(arg) {
+function newNodeJSBuffer (arg) {
   if (arg instanceof node.Buffer) {
-    return arg;
+    return arg
   } else if (typeof arg === 'number' && typeof node.Buffer.alloc === 'function') {
     // use static factory function present in newer NodeJS versions to allocate new buffer with specified size
-    return node.Buffer.alloc(arg);
+    return node.Buffer.alloc(arg)
   } else {
     // fallback to the old, potentially deprecated constructor
-    return new node.Buffer(arg);
+    // eslint-disable-next-line node/no-deprecated-api
+    return new node.Buffer(arg)
   }
 }

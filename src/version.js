@@ -24,4 +24,4 @@
 // This is set up this way to keep the version in the code in
 // sync with the npm package version, and to allow the build
 // system to control version names at packaging time.
-export default "0.0.0-dev";
+export default '0.0.0-dev'

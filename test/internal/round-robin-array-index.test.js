@@ -16,54 +16,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoundRobinArrayIndex from '../../src/internal/round-robin-array-index';
+import RoundRobinArrayIndex from '../../src/internal/round-robin-array-index'
 
 describe('RoundRobinArrayIndex', () => {
-
   it('should return -1 for empty array', () => {
-    const arrayLength = 0;
-    const index = new RoundRobinArrayIndex();
+    const arrayLength = 0
+    const index = new RoundRobinArrayIndex()
 
-    expect(index.next(arrayLength)).toEqual(-1);
-  });
+    expect(index.next(arrayLength)).toEqual(-1)
+  })
 
   it('should always return 0 for single element array', () => {
-    const arrayLength = 1;
-    const index = new RoundRobinArrayIndex();
+    const arrayLength = 1
+    const index = new RoundRobinArrayIndex()
 
-    expect(index.next(arrayLength)).toEqual(0);
-    expect(index.next(arrayLength)).toEqual(0);
-    expect(index.next(arrayLength)).toEqual(0);
-  });
+    expect(index.next(arrayLength)).toEqual(0)
+    expect(index.next(arrayLength)).toEqual(0)
+    expect(index.next(arrayLength)).toEqual(0)
+  })
 
   it('should round robin for multi element array', () => {
-    const arrayLength = 5;
-    const index = new RoundRobinArrayIndex();
+    const arrayLength = 5
+    const index = new RoundRobinArrayIndex()
 
-    expect(index.next(arrayLength)).toEqual(0);
-    expect(index.next(arrayLength)).toEqual(1);
-    expect(index.next(arrayLength)).toEqual(2);
-    expect(index.next(arrayLength)).toEqual(3);
-    expect(index.next(arrayLength)).toEqual(4);
-    expect(index.next(arrayLength)).toEqual(0);
-    expect(index.next(arrayLength)).toEqual(1);
-    expect(index.next(arrayLength)).toEqual(2);
-    expect(index.next(arrayLength)).toEqual(3);
-    expect(index.next(arrayLength)).toEqual(4);
-  });
+    expect(index.next(arrayLength)).toEqual(0)
+    expect(index.next(arrayLength)).toEqual(1)
+    expect(index.next(arrayLength)).toEqual(2)
+    expect(index.next(arrayLength)).toEqual(3)
+    expect(index.next(arrayLength)).toEqual(4)
+    expect(index.next(arrayLength)).toEqual(0)
+    expect(index.next(arrayLength)).toEqual(1)
+    expect(index.next(arrayLength)).toEqual(2)
+    expect(index.next(arrayLength)).toEqual(3)
+    expect(index.next(arrayLength)).toEqual(4)
+  })
 
   it('should move back to zero when overflow', () => {
-    const arrayLength = 5;
-    const index = new RoundRobinArrayIndex(Number.MAX_SAFE_INTEGER - 2);
+    const arrayLength = 5
+    const index = new RoundRobinArrayIndex(Number.MAX_SAFE_INTEGER - 2)
 
-    expect(index.next(arrayLength)).toEqual(4);
-    expect(index.next(arrayLength)).toEqual(0);
-    expect(index.next(arrayLength)).toEqual(0);
-    expect(index.next(arrayLength)).toEqual(1);
-    expect(index.next(arrayLength)).toEqual(2);
-    expect(index.next(arrayLength)).toEqual(3);
-    expect(index.next(arrayLength)).toEqual(4);
-    expect(index.next(arrayLength)).toEqual(0);
-  });
-
-});
+    expect(index.next(arrayLength)).toEqual(4)
+    expect(index.next(arrayLength)).toEqual(0)
+    expect(index.next(arrayLength)).toEqual(0)
+    expect(index.next(arrayLength)).toEqual(1)
+    expect(index.next(arrayLength)).toEqual(2)
+    expect(index.next(arrayLength)).toEqual(3)
+    expect(index.next(arrayLength)).toEqual(4)
+    expect(index.next(arrayLength)).toEqual(0)
+  })
+})

@@ -16,180 +16,178 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoutingTable from '../../src/internal/routing-table';
-import {int} from '../../src/integer';
-import {READ, WRITE} from '../../src/driver';
+import RoutingTable from '../../src/internal/routing-table'
+import { int } from '../../src/integer'
+import { READ, WRITE } from '../../src/driver'
 
 describe('routing-table', () => {
-
   it('should not be stale when has routers, readers, writers and future expiration date', () => {
-    const table = createTable([1, 2], [3, 4], [5, 6], notExpired());
-    expect(table.isStaleFor(READ)).toBeFalsy();
-    expect(table.isStaleFor(WRITE)).toBeFalsy();
-  });
+    const table = createTable([1, 2], [3, 4], [5, 6], notExpired())
+    expect(table.isStaleFor(READ)).toBeFalsy()
+    expect(table.isStaleFor(WRITE)).toBeFalsy()
+  })
 
   it('should be stale when expiration date in the past', () => {
-    const table = createTable([1, 2], [1, 2], [1, 2], expired());
-    expect(table.isStaleFor(READ)).toBeTruthy();
-    expect(table.isStaleFor(WRITE)).toBeTruthy();
-  });
+    const table = createTable([1, 2], [1, 2], [1, 2], expired())
+    expect(table.isStaleFor(READ)).toBeTruthy()
+    expect(table.isStaleFor(WRITE)).toBeTruthy()
+  })
 
   it('should not be stale when has single router', () => {
-    const table = createTable([1], [2, 3], [4, 5], notExpired());
-    expect(table.isStaleFor(READ)).toBeFalsy();
-    expect(table.isStaleFor(WRITE)).toBeFalsy();
-  });
+    const table = createTable([1], [2, 3], [4, 5], notExpired())
+    expect(table.isStaleFor(READ)).toBeFalsy()
+    expect(table.isStaleFor(WRITE)).toBeFalsy()
+  })
 
   it('should be stale for reads but not writes when no readers', () => {
-    const table = createTable([1, 2], [], [3, 4], notExpired());
-    expect(table.isStaleFor(READ)).toBeTruthy();
-    expect(table.isStaleFor(WRITE)).toBeFalsy();
-  });
+    const table = createTable([1, 2], [], [3, 4], notExpired())
+    expect(table.isStaleFor(READ)).toBeTruthy()
+    expect(table.isStaleFor(WRITE)).toBeFalsy()
+  })
 
   it('should be stale for writes but not reads when no writers', () => {
-    const table = createTable([1, 2], [3, 4], [], notExpired());
-    expect(table.isStaleFor(READ)).toBeFalsy();
-    expect(table.isStaleFor(WRITE)).toBeTruthy();
-  });
+    const table = createTable([1, 2], [3, 4], [], notExpired())
+    expect(table.isStaleFor(READ)).toBeFalsy()
+    expect(table.isStaleFor(WRITE)).toBeTruthy()
+  })
 
   it('should not be stale with single reader', () => {
-    const table = createTable([1, 2], [3], [4, 5], notExpired());
-    expect(table.isStaleFor(READ)).toBeFalsy();
-    expect(table.isStaleFor(WRITE)).toBeFalsy();
-  });
+    const table = createTable([1, 2], [3], [4, 5], notExpired())
+    expect(table.isStaleFor(READ)).toBeFalsy()
+    expect(table.isStaleFor(WRITE)).toBeFalsy()
+  })
 
   it('should not be stale with single writer', () => {
-    const table = createTable([1, 2], [3, 4], [5], notExpired());
-    expect(table.isStaleFor(READ)).toBeFalsy();
-    expect(table.isStaleFor(WRITE)).toBeFalsy();
-  });
+    const table = createTable([1, 2], [3, 4], [5], notExpired())
+    expect(table.isStaleFor(READ)).toBeFalsy()
+    expect(table.isStaleFor(WRITE)).toBeFalsy()
+  })
 
   it('should forget reader, writer but not router', () => {
-    const table = createTable([1, 2], [1, 2], [1, 2], notExpired());
+    const table = createTable([1, 2], [1, 2], [1, 2], notExpired())
 
-    table.forget(1);
+    table.forget(1)
 
-    expect(table.routers).toEqual([1, 2]);
-    expect(table.readers).toEqual([2]);
-    expect(table.writers).toEqual([2]);
-  });
+    expect(table.routers).toEqual([1, 2])
+    expect(table.readers).toEqual([2])
+    expect(table.writers).toEqual([2])
+  })
 
   it('should forget single reader', () => {
-    const table = createTable([1, 2], [42], [1, 2, 3], notExpired());
+    const table = createTable([1, 2], [42], [1, 2, 3], notExpired())
 
-    table.forget(42);
+    table.forget(42)
 
-    expect(table.routers).toEqual([1, 2]);
-    expect(table.readers).toEqual([]);
-    expect(table.writers).toEqual([1, 2, 3]);
-  });
+    expect(table.routers).toEqual([1, 2])
+    expect(table.readers).toEqual([])
+    expect(table.writers).toEqual([1, 2, 3])
+  })
 
   it('should forget single writer', () => {
-    const table = createTable([1, 2], [3, 4, 5], [42], notExpired());
+    const table = createTable([1, 2], [3, 4, 5], [42], notExpired())
 
-    table.forget(42);
+    table.forget(42)
 
-    expect(table.routers).toEqual([1, 2]);
-    expect(table.readers).toEqual([3, 4, 5]);
-    expect(table.writers).toEqual([]);
-  });
+    expect(table.routers).toEqual([1, 2])
+    expect(table.readers).toEqual([3, 4, 5])
+    expect(table.writers).toEqual([])
+  })
 
   it('should forget router', () => {
-    const table = createTable([1, 2], [1, 3], [4, 1], notExpired());
+    const table = createTable([1, 2], [1, 3], [4, 1], notExpired())
 
-    table.forgetRouter(1);
+    table.forgetRouter(1)
 
-    expect(table.routers).toEqual([2]);
-    expect(table.readers).toEqual([1, 3]);
-    expect(table.writers).toEqual([4, 1]);
-  });
+    expect(table.routers).toEqual([2])
+    expect(table.readers).toEqual([1, 3])
+    expect(table.writers).toEqual([4, 1])
+  })
 
   it('should forget writer', () => {
-    const table = createTable([1, 2, 3], [2, 1, 5], [5, 1], notExpired());
+    const table = createTable([1, 2, 3], [2, 1, 5], [5, 1], notExpired())
 
-    table.forgetWriter(1);
+    table.forgetWriter(1)
 
-    expect(table.routers).toEqual([1, 2, 3]);
-    expect(table.readers).toEqual([2, 1, 5]);
-    expect(table.writers).toEqual([5]);
-  });
+    expect(table.routers).toEqual([1, 2, 3])
+    expect(table.readers).toEqual([2, 1, 5])
+    expect(table.writers).toEqual([5])
+  })
 
   it('should return all servers in diff when other table is empty', () => {
-    const oldTable = createTable([1, 2], [3, 4], [5, 6], notExpired());
-    const newTable = createTable([], [], [], notExpired());
+    const oldTable = createTable([1, 2], [3, 4], [5, 6], notExpired())
+    const newTable = createTable([], [], [], notExpired())
 
-    const servers = oldTable.serversDiff(newTable);
+    const servers = oldTable.serversDiff(newTable)
 
-    expect(servers).toEqual([1, 2, 3, 4, 5, 6]);
-  });
+    expect(servers).toEqual([1, 2, 3, 4, 5, 6])
+  })
 
   it('should no servers in diff when this table is empty', () => {
-    const oldTable = createTable([], [], [], notExpired());
-    const newTable = createTable([1, 2], [3, 4], [5, 6], notExpired());
+    const oldTable = createTable([], [], [], notExpired())
+    const newTable = createTable([1, 2], [3, 4], [5, 6], notExpired())
 
-    const servers = oldTable.serversDiff(newTable);
+    const servers = oldTable.serversDiff(newTable)
 
-    expect(servers).toEqual([]);
-  });
+    expect(servers).toEqual([])
+  })
 
   it('should include different routers in servers diff', () => {
-    const oldTable = createTable([1, 7, 2, 42], [3, 4], [5, 6], notExpired());
-    const newTable = createTable([1, 2], [3, 4], [5, 6], notExpired());
+    const oldTable = createTable([1, 7, 2, 42], [3, 4], [5, 6], notExpired())
+    const newTable = createTable([1, 2], [3, 4], [5, 6], notExpired())
 
-    const servers = oldTable.serversDiff(newTable);
+    const servers = oldTable.serversDiff(newTable)
 
-    expect(servers).toEqual([7, 42]);
-  });
+    expect(servers).toEqual([7, 42])
+  })
 
   it('should include different readers in servers diff', () => {
-    const oldTable = createTable([1, 2], [3, 7, 4, 42], [5, 6], notExpired());
-    const newTable = createTable([1, 2], [3, 4], [5, 6], notExpired());
+    const oldTable = createTable([1, 2], [3, 7, 4, 42], [5, 6], notExpired())
+    const newTable = createTable([1, 2], [3, 4], [5, 6], notExpired())
 
-    const servers = oldTable.serversDiff(newTable);
+    const servers = oldTable.serversDiff(newTable)
 
-    expect(servers).toEqual([7, 42]);
-  });
+    expect(servers).toEqual([7, 42])
+  })
 
   it('should include different writers in servers diff', () => {
-    const oldTable = createTable([1, 2], [3, 4], [5, 7, 6, 42], notExpired());
-    const newTable = createTable([1, 2], [3, 4], [5, 6], notExpired());
+    const oldTable = createTable([1, 2], [3, 4], [5, 7, 6, 42], notExpired())
+    const newTable = createTable([1, 2], [3, 4], [5, 6], notExpired())
 
-    const servers = oldTable.serversDiff(newTable);
+    const servers = oldTable.serversDiff(newTable)
 
-    expect(servers).toEqual([7, 42]);
-  });
+    expect(servers).toEqual([7, 42])
+  })
 
   it('should include different servers in diff', () => {
-    const oldTable = createTable([1, 2, 11], [22, 3, 33, 4], [5, 44, 6], notExpired());
-    const newTable = createTable([1], [2, 3, 4, 6], [5], notExpired());
+    const oldTable = createTable([1, 2, 11], [22, 3, 33, 4], [5, 44, 6], notExpired())
+    const newTable = createTable([1], [2, 3, 4, 6], [5], notExpired())
 
-    const servers = oldTable.serversDiff(newTable);
+    const servers = oldTable.serversDiff(newTable)
 
-    expect(servers).toEqual([11, 22, 33, 44]);
-  });
+    expect(servers).toEqual([11, 22, 33, 44])
+  })
 
   it('should have correct toString', () => {
-    const originalDateNow = Date.now;
+    const originalDateNow = Date.now
     try {
-      Date.now = () => 4242;
-      const table = createTable([1, 2], [3, 4], [5, 6], 42);
-      expect(table.toString()).toEqual('RoutingTable[expirationTime=42, currentTime=4242, routers=[1,2], readers=[3,4], writers=[5,6]]');
+      Date.now = () => 4242
+      const table = createTable([1, 2], [3, 4], [5, 6], 42)
+      expect(table.toString()).toEqual('RoutingTable[expirationTime=42, currentTime=4242, routers=[1,2], readers=[3,4], writers=[5,6]]')
     } finally {
-      Date.now = originalDateNow;
+      Date.now = originalDateNow
     }
-  });
+  })
 
-  function expired() {
-    return Date.now() - 3600; // expired an hour ago
+  function expired () {
+    return Date.now() - 3600 // expired an hour ago
   }
 
-  function notExpired() {
-    return Date.now() + 3600; // will expire in an hour
+  function notExpired () {
+    return Date.now() + 3600 // will expire in an hour
   }
 
-  function createTable(routers, readers, writers, expirationTime) {
-    const expiration = int(expirationTime);
-    return new RoutingTable(routers, readers, writers, expiration);
+  function createTable (routers, readers, writers, expirationTime) {
+    const expiration = int(expirationTime)
+    return new RoutingTable(routers, readers, writers, expiration)
   }
-
-});
+})

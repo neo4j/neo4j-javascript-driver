@@ -17,359 +17,355 @@
  * limitations under the License.
  */
 
-import neo4j from '../../../src';
-import {READ, WRITE} from '../../../src/driver';
-import boltStub from '../bolt-stub';
+import neo4j from '../../../src'
+import { READ, WRITE } from '../../../src/driver'
+import boltStub from '../bolt-stub'
 
 describe('direct driver with stub server', () => {
-
-  let originalTimeout;
+  let originalTimeout
 
   beforeAll(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
-  });
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
+  })
 
   afterAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-  });
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
+  })
 
   it('should run query', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
     // Given
-    const server = boltStub.start('./test/resources/boltstub/return_x.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/return_x.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
       // When
-      const session = driver.session();
+      const session = driver.session()
       // Then
-      session.run('RETURN {x}', {'x': 1}).then(res => {
-        expect(res.records[0].get('x').toInt()).toEqual(1);
-        session.close();
-        driver.close();
+      session.run('RETURN {x}', { 'x': 1 }).then(res => {
+        expect(res.records[0].get('x').toInt()).toEqual(1)
+        session.close()
+        driver.close()
         server.exit(code => {
-          expect(code).toEqual(0);
-          done();
-        });
-      });
-    });
-  });
+          expect(code).toEqual(0)
+          done()
+        })
+      })
+    })
+  })
 
   it('should send and receive bookmark for read transaction', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/read_tx_with_bookmarks.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/read_tx_with_bookmarks.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session(READ, 'neo4j:bookmark:v1:tx42');
-      const tx = session.beginTransaction();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session(READ, 'neo4j:bookmark:v1:tx42')
+      const tx = session.beginTransaction()
       tx.run('MATCH (n) RETURN n.name AS name').then(result => {
-        const records = result.records;
-        expect(records.length).toEqual(2);
-        expect(records[0].get('name')).toEqual('Bob');
-        expect(records[1].get('name')).toEqual('Alice');
+        const records = result.records
+        expect(records.length).toEqual(2)
+        expect(records[0].get('name')).toEqual('Bob')
+        expect(records[1].get('name')).toEqual('Alice')
 
         tx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
 
           session.close(() => {
-            driver.close();
+            driver.close()
             server.exit(code => {
-              expect(code).toEqual(0);
-              done();
-            });
-          });
-        });
-      });
-    });
-  });
+              expect(code).toEqual(0)
+              done()
+            })
+          })
+        })
+      })
+    })
+  })
 
   it('should send and receive bookmark for write transaction', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/write_tx_with_bookmarks.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/write_tx_with_bookmarks.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
-      const tx = session.beginTransaction();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
+      const tx = session.beginTransaction()
       tx.run('CREATE (n {name:\'Bob\'})').then(result => {
-        const records = result.records;
-        expect(records.length).toEqual(0);
+        const records = result.records
+        expect(records.length).toEqual(0)
 
         tx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
 
           session.close(() => {
-            driver.close();
+            driver.close()
             server.exit(code => {
-              expect(code).toEqual(0);
-              done();
-            });
-          });
-        });
-      });
-    });
-  });
+              expect(code).toEqual(0)
+              done()
+            })
+          })
+        })
+      })
+    })
+  })
 
   it('should send and receive bookmark between write and read transactions', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmarks.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmarks.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
-      const writeTx = session.beginTransaction();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
+      const writeTx = session.beginTransaction()
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
-        const records = result.records;
-        expect(records.length).toEqual(0);
+        const records = result.records
+        expect(records.length).toEqual(0)
 
         writeTx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
 
-          const readTx = session.beginTransaction();
+          const readTx = session.beginTransaction()
           readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
-            const records = result.records;
-            expect(records.length).toEqual(1);
-            expect(records[0].get('name')).toEqual('Bob');
+            const records = result.records
+            expect(records.length).toEqual(1)
+            expect(records[0].get('name')).toEqual('Bob')
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242');
+              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
 
               session.close(() => {
-                driver.close();
+                driver.close()
                 server.exit(code => {
-                  expect(code).toEqual(0);
-                  done();
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  });
+                  expect(code).toEqual(0)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
 
   it('should be possible to override bookmark', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmark_override.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmark_override.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
-      const writeTx = session.beginTransaction();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
+      const writeTx = session.beginTransaction()
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
-        const records = result.records;
-        expect(records.length).toEqual(0);
+        const records = result.records
+        expect(records.length).toEqual(0)
 
         writeTx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
 
-          const readTx = session.beginTransaction('neo4j:bookmark:v1:tx99');
+          const readTx = session.beginTransaction('neo4j:bookmark:v1:tx99')
           readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
-            const records = result.records;
-            expect(records.length).toEqual(1);
-            expect(records[0].get('name')).toEqual('Bob');
+            const records = result.records
+            expect(records.length).toEqual(1)
+            expect(records[0].get('name')).toEqual('Bob')
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242');
+              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
 
               session.close(() => {
-                driver.close();
+                driver.close()
                 server.exit(code => {
-                  expect(code).toEqual(0);
-                  done();
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-
-  });
+                  expect(code).toEqual(0)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
 
   it('should not be possible to override bookmark with null', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmarks.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmarks.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42');
-      const writeTx = session.beginTransaction();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
+      const writeTx = session.beginTransaction()
       writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
-        const records = result.records;
-        expect(records.length).toEqual(0);
+        const records = result.records
+        expect(records.length).toEqual(0)
 
         writeTx.commit().then(() => {
-          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242');
+          expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
 
-          const readTx = session.beginTransaction(null);
+          const readTx = session.beginTransaction(null)
           readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
-            const records = result.records;
-            expect(records.length).toEqual(1);
-            expect(records[0].get('name')).toEqual('Bob');
+            const records = result.records
+            expect(records.length).toEqual(1)
+            expect(records[0].get('name')).toEqual('Bob')
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242');
+              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
 
               session.close(() => {
-                driver.close();
+                driver.close()
                 server.exit(code => {
-                  expect(code).toEqual(0);
-                  done();
-                });
-              });
-            });
-          });
-        });
-      });
-    });
-  });
+                  expect(code).toEqual(0)
+                  done()
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  })
 
   it('should throw service unavailable when server dies', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/dead_read_server.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/dead_read_server.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session()
       session.run('MATCH (n) RETURN n.name').catch(error => {
-        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 
-        driver.close();
+        driver.close()
         server.exit(code => {
-          expect(code).toEqual(0);
-          done();
-        });
-      });
-    });
-  });
+          expect(code).toEqual(0)
+          done()
+        })
+      })
+    })
+  })
 
   it('should close connection when RESET fails', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/reset_error.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/reset_error.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session()
 
       session.run('RETURN 42 AS answer').then(result => {
-        const records = result.records;
-        expect(records.length).toEqual(1);
-        expect(records[0].get(0).toNumber()).toEqual(42);
+        const records = result.records
+        expect(records.length).toEqual(1)
+        expect(records[0].get(0).toNumber()).toEqual(42)
         session.close(() => {
-
-          expect(driver._pool._pools['127.0.0.1:9001'].length).toEqual(0);
-          driver.close();
+          expect(driver._pool._pools['127.0.0.1:9001'].length).toEqual(0)
+          driver.close()
           server.exit(code => {
-            expect(code).toEqual(0);
-            done();
-          });
-
-        });
-      }).catch(error => done.fail(error));
-    });
-  });
+            expect(code).toEqual(0)
+            done()
+          })
+        })
+      }).catch(error => done.fail(error))
+    })
+  })
 
   it('should send RESET on error', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/query_with_error.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/query_with_error.script', 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001');
-      const session = driver.session();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session()
 
       session.run('RETURN 10 / 0').then(result => {
-        done.fail('Should fail but received a result: ' + JSON.stringify(result));
+        done.fail('Should fail but received a result: ' + JSON.stringify(result))
       }).catch(error => {
-        expect(error.code).toEqual('Neo.ClientError.Statement.ArithmeticError');
-        expect(error.message).toEqual('/ by zero');
+        expect(error.code).toEqual('Neo.ClientError.Statement.ArithmeticError')
+        expect(error.message).toEqual('/ by zero')
 
         session.close(() => {
-          driver.close();
+          driver.close()
           server.exit(code => {
-            expect(code).toEqual(0);
-            done();
-          });
-        });
-      });
-    });
-  });
+            expect(code).toEqual(0)
+            done()
+          })
+        })
+      })
+    })
+  })
 
   it('should include database connection id in logs', done => {
     if (!boltStub.supported) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/hello_run_exit.script', 9001);
+    const server = boltStub.start('./test/resources/boltstub/hello_run_exit.script', 9001)
 
     boltStub.run(() => {
-      const messages = [];
+      const messages = []
       const logging = {
         level: 'debug',
         logger: (level, message) => messages.push(message)
-      };
+      }
 
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {logging: logging});
-      const session = driver.session();
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001', { logging: logging })
+      const session = driver.session()
 
       session.run('MATCH (n) RETURN n.name').then(result => {
-        const names = result.records.map(record => record.get(0));
-        expect(names).toEqual(['Foo', 'Bar']);
+        const names = result.records.map(record => record.get(0))
+        expect(names).toEqual(['Foo', 'Bar'])
         session.close(() => {
-          driver.close();
+          driver.close()
           server.exit(code => {
-            expect(code).toEqual(0);
+            expect(code).toEqual(0)
 
             // logged messages should contain connection_id supplied by the database
-            const containsDbConnectionIdMessage = messages.find(message => message.match(/Connection \[[0-9]+]\[bolt-123456789]/));
+            const containsDbConnectionIdMessage = messages.find(message => message.match(/Connection \[[0-9]+]\[bolt-123456789]/))
             if (!containsDbConnectionIdMessage) {
-              console.log(messages);
+              console.log(messages)
             }
-            expect(containsDbConnectionIdMessage).toBeTruthy();
+            expect(containsDbConnectionIdMessage).toBeTruthy()
 
-            done();
-          });
-        });
-      }).catch(error => done.fail(error));
-    });
-  });
-});
+            done()
+          })
+        })
+      }).catch(error => done.fail(error))
+    })
+  })
+})

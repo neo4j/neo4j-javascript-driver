@@ -17,122 +17,120 @@
  * limitations under the License.
  */
 
-import {Chunker, Dechunker} from '../../src/internal/chunking';
-import {alloc} from '../../src/internal/node';
-import DummyChannel from './dummy-channel';
+import { Chunker, Dechunker } from '../../src/internal/chunking'
+import { alloc } from '../../src/internal/node'
+import DummyChannel from './dummy-channel'
 
 describe('Chunker', () => {
-
   it('should chunk simple data', () => {
     // Given
-    const ch = new DummyChannel();
-    const chunker = new Chunker(ch);
+    const ch = new DummyChannel()
+    const chunker = new Chunker(ch)
 
     // When
-    chunker.writeInt32(1);
-    chunker.writeInt32(2);
-    chunker.flush();
+    chunker.writeInt32(1)
+    chunker.writeInt32(2)
+    chunker.flush()
 
     // Then
-    expect(ch.toHex()).toBe('00 08 00 00 00 01 00 00 00 02');
-  });
+    expect(ch.toHex()).toBe('00 08 00 00 00 01 00 00 00 02')
+  })
 
   it('should chunk blobs larger than the output buffer', () => {
     // Given
-    const ch = new DummyChannel();
-    const chunker = new Chunker(ch, 4);
+    const ch = new DummyChannel()
+    const chunker = new Chunker(ch, 4)
 
     // When
-    chunker.writeBytes(bytes( 1,2,3,4,5,6 ));
-    chunker.flush();
+    chunker.writeBytes(bytes(1, 2, 3, 4, 5, 6))
+    chunker.flush()
 
     // Then
-    expect(ch.toHex()).toBe('00 02 01 02 00 02 03 04 00 02 05 06');
-  });
+    expect(ch.toHex()).toBe('00 02 01 02 00 02 03 04 00 02 05 06')
+  })
 
   it('should include message boundaries', () => {
     // Given
-    const ch = new DummyChannel();
-    const chunker = new Chunker(ch);
+    const ch = new DummyChannel()
+    const chunker = new Chunker(ch)
 
     // When
-    chunker.writeInt32(1);
-    chunker.messageBoundary();
-    chunker.writeInt32(2);
-    chunker.flush();
+    chunker.writeInt32(1)
+    chunker.messageBoundary()
+    chunker.writeInt32(2)
+    chunker.flush()
 
     // Then
-    expect(ch.toHex()).toBe('00 04 00 00 00 01 00 00 00 04 00 00 00 02');
-  });
-});
+    expect(ch.toHex()).toBe('00 04 00 00 00 01 00 00 00 04 00 00 00 02')
+  })
+})
 
 describe('Dechunker', () => {
-
   it('should unchunk a simple message', () => {
     // Given
-    const messages = [];
-    const dechunker = new Dechunker();
-    const chunker = new Chunker(dechunker);
+    const messages = []
+    const dechunker = new Dechunker()
+    const chunker = new Chunker(dechunker)
     dechunker.onmessage = buffer => {
-      messages.push(buffer);
-    };
+      messages.push(buffer)
+    }
 
     // When
-    chunker.writeInt16(1);
-    chunker.writeInt16(2);
-    chunker.flush();
-    chunker.writeInt16(3);
-    chunker.messageBoundary();
-    chunker.flush();
+    chunker.writeInt16(1)
+    chunker.writeInt16(2)
+    chunker.flush()
+    chunker.writeInt16(3)
+    chunker.messageBoundary()
+    chunker.flush()
 
     // Then
-    expect( messages.length ).toBe( 1 );
-    expect(messages[0].toHex()).toBe('00 01 00 02 00 03');
-  });
+    expect(messages.length).toBe(1)
+    expect(messages[0].toHex()).toBe('00 01 00 02 00 03')
+  })
 
   it('should handle message split at any point', () => {
     // Given
-    const ch = new DummyChannel();
-    const chunker = new Chunker(ch);
+    const ch = new DummyChannel()
+    const chunker = new Chunker(ch)
 
     // And given the following message
-    chunker.writeInt8(1);
-    chunker.writeInt16(2);
-    chunker.writeInt32(3);
-    chunker.writeUInt8(4);
-    chunker.writeUInt32(5);
-    chunker.messageBoundary();
-    chunker.flush();
+    chunker.writeInt8(1)
+    chunker.writeInt16(2)
+    chunker.writeInt32(3)
+    chunker.writeUInt8(4)
+    chunker.writeUInt32(5)
+    chunker.messageBoundary()
+    chunker.flush()
 
-    const chunked = ch.toBuffer();
+    const chunked = ch.toBuffer()
 
     // When I try splitting this chunked data at every possible position
     // into two separate buffers, and send those to the dechunker
     for (let i = 1; i < chunked.length; i++) {
-      const slice1 = chunked.getSlice(0, i);
-      const slice2 = chunked.getSlice(i, chunked.length - i);
+      const slice1 = chunked.getSlice(0, i)
+      const slice2 = chunked.getSlice(i, chunked.length - i)
 
       // Dechunk the slices
-      const messages = [];
-      const dechunker = new Dechunker();
+      const messages = []
+      const dechunker = new Dechunker()
       dechunker.onmessage = buffer => {
-        messages.push(buffer);
-      };
-      dechunker.write( slice1 );
-      dechunker.write( slice2 );
+        messages.push(buffer)
+      }
+      dechunker.write(slice1)
+      dechunker.write(slice2)
 
       // Then, the output should be correct
-      expect( messages.length ).toBe( 1 );
-      expect(messages[0].toHex()).toBe('01 00 02 00 00 00 03 04 00 00 00 05');
+      expect(messages.length).toBe(1)
+      expect(messages[0].toHex()).toBe('01 00 02 00 00 00 03 04 00 00 00 05')
     }
-  });
-});
+  })
+})
 
-function bytes() {
-  const b = alloc(arguments.length);
+function bytes () {
+  const b = alloc(arguments.length)
   for (let i = 0; i < arguments.length; i++) {
-    b.writeUInt8( arguments[i] );
+    b.writeUInt8(arguments[i])
   }
-  b.position = 0;
-  return b;
+  b.position = 0
+  return b
 }

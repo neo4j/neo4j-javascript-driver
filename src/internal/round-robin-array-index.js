@@ -18,13 +18,12 @@
  */
 
 export default class RoundRobinArrayIndex {
-
   /**
    * @constructor
    * @param {number} [initialOffset=0] the initial offset for round robin.
    */
-  constructor(initialOffset) {
-    this._offset = initialOffset || 0;
+  constructor (initialOffset) {
+    this._offset = initialOffset || 0
   }
 
   /**
@@ -32,17 +31,17 @@ export default class RoundRobinArrayIndex {
    * @param {number} arrayLength the array length.
    * @return {number} index in the array.
    */
-  next(arrayLength) {
+  next (arrayLength) {
     if (arrayLength === 0) {
-      return -1;
+      return -1
     }
 
-    const nextOffset = this._offset;
-    this._offset += 1;
+    const nextOffset = this._offset
+    this._offset += 1
     if (this._offset === Number.MAX_SAFE_INTEGER) {
-      this._offset = 0;
+      this._offset = 0
     }
 
-    return nextOffset % arrayLength;
+    return nextOffset % arrayLength
   }
 }
