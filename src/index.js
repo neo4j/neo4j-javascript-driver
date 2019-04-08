@@ -103,13 +103,6 @@ const logging = {
  *       // TRUST_ALL_CERTIFICATES is the default choice for NodeJS deployments. It only requires
  *       // new host to provide a certificate and does no verification of the provided certificate.
  *       //
- *       // TRUST_ON_FIRST_USE is available for modern NodeJS deployments, and works
- *       // similarly to how `ssl` works - the first time we connect to a new host,
- *       // we remember the certificate they use. If the certificate ever changes, we
- *       // assume it is an attempt to hijack the connection and require manual intervention.
- *       // This means that by default, connections "just work" while still giving you
- *       // good encrypted protection.
- *       //
  *       // TRUST_CUSTOM_CA_SIGNED_CERTIFICATES is the classic approach to trust verification -
  *       // whenever we establish an encrypted connection, we ensure the host is using
  *       // an encryption certificate that is in, or is signed by, a certificate listed
@@ -117,27 +110,15 @@ const logging = {
  *       // by the web browser. In NodeJS, you configure the list with the next config option.
  *       //
  *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES means that you trust whatever certificates
- *       // are in the default certificate chain of th
- *       trust: "TRUST_ALL_CERTIFICATES" | "TRUST_ON_FIRST_USE" | "TRUST_SIGNED_CERTIFICATES" |
- *       "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" | "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES",
+ *       // are in the default certificate chain of the underlying system.
+ *       trust: "TRUST_ALL_CERTIFICATES" | "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" |
+ *       "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES",
  *
  *       // List of one or more paths to trusted encryption certificates. This only
  *       // works in the NodeJS bundle, and only matters if you use "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES".
  *       // The certificate files should be in regular X.509 PEM format.
  *       // For instance, ['./trusted.pem']
  *       trustedCertificates: [],
- *
- *       // Path to a file where the driver saves hosts it has seen in the past, this is
- *       // very similar to the ssl tool's known_hosts file. Each time we connect to a
- *       // new host, a hash of their certificate is stored along with the domain name and
- *       // port, and this is then used to verify the host certificate does not change.
- *       // This setting has no effect unless TRUST_ON_FIRST_USE is enabled.
- *       knownHosts:"~/.neo4j/known_hosts",
- *
- *       // The max number of connections that are allowed idle in the pool at any time.
- *       // Connection will be destroyed if this threshold is exceeded.
- *       // **Deprecated:** please use `maxConnectionPoolSize` instead.
- *       connectionPoolSize: 100,
  *
  *       // The maximum total number of connections allowed to be managed by the connection pool, per host.
  *       // This includes both in-use and idle connections. No maximum connection pool size is imposed
@@ -163,12 +144,6 @@ const logging = {
  *       // errors with exponential backoff using initial delay of 1 second.
  *       // Default value is 30000 which is 30 seconds.
  *       maxTransactionRetryTime: 30000, // 30 seconds
- *
- *       // Provide an alternative load balancing strategy for the routing driver to use.
- *       // Driver uses "least_connected" by default.
- *       // **Note:** We are experimenting with different strategies. This could be removed in the next minor
- *       // version.
- *       loadBalancingStrategy: "least_connected" | "round_robin",
  *
  *       // Specify socket connection timeout in milliseconds. Numeric values are expected. Negative and zero values
  *       // result in no timeout being applied. Connection establishment will be then bound by the timeout configured

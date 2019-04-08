@@ -33,12 +33,8 @@ declare interface AuthToken {
 declare type EncryptionLevel = "ENCRYPTION_ON" | "ENCRYPTION_OFF";
 declare type TrustStrategy =
   "TRUST_ALL_CERTIFICATES" |
-  "TRUST_ON_FIRST_USE" |
-  "TRUST_SIGNED_CERTIFICATES" |
   "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" |
   "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES";
-
-declare type LoadBalancingStrategy = "least_connected" | "round_robin";
 
 declare type LogLevel = "error" | "warn" | "info" | "debug";
 
@@ -52,13 +48,8 @@ declare interface Config {
   trust?: TrustStrategy;
   trustedCertificates?: string[];
   knownHosts?: string;
-  /**
-   * @deprecated use {@link maxConnectionPoolSize} instead.
-   */
-  connectionPoolSize?: number;
   maxConnectionPoolSize?: number;
   maxTransactionRetryTime?: number;
-  loadBalancingStrategy?: LoadBalancingStrategy;
   maxConnectionLifetime?: number;
   connectionTimeout?: number;
   disableLosslessIntegers?: boolean;
@@ -75,10 +66,11 @@ declare interface Driver {
 
   close(): void;
 
-  onCompleted?: (serverInfo: ServerInfo) => void;
+  verifyConnectivity(): Promise<ServerInfo>;
+
   onError?: (error: Neo4jError) => void;
 }
 
-export {Driver, READ, WRITE, AuthToken, Config, EncryptionLevel, TrustStrategy, LoadBalancingStrategy, SessionMode}
+export {Driver, READ, WRITE, AuthToken, Config, EncryptionLevel, TrustStrategy, SessionMode}
 
 export default Driver;

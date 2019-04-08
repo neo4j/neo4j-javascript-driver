@@ -29,20 +29,17 @@ export default class ConnectivityVerifier {
   /**
    * @constructor
    * @param {ConnectionProvider} connectionProvider the provider to obtain connections from.
-   * @param {function} successCallback a callback to invoke when verification succeeds.
    */
-  constructor(connectionProvider, successCallback) {
+  constructor(connectionProvider) {
     this._connectionProvider = connectionProvider;
-    this._successCallback = successCallback;
   }
 
+  /**
+   * Try to obtain a working connection from the connection provider.
+   * @returns {Promise<object>} promise resolved with server info or rejected with error.
+   */
   verify() {
-    acquireAndReleaseDummyConnection(this._connectionProvider).then(serverInfo => {
-      if (this._successCallback) {
-        this._successCallback(serverInfo);
-      }
-    }).catch(ignoredError => {
-    });
+    return acquireAndReleaseDummyConnection(this._connectionProvider);
   }
 }
 

@@ -93,8 +93,6 @@ class Driver {
      */
     this._connectionProvider = null;
 
-    this._onCompleted = null;
-
     this._afterConstruction();
   }
 
@@ -106,26 +104,13 @@ class Driver {
   }
 
   /**
-   * Get the installed connectivity verification callback.
-   * @return {null|function}
-   * @deprecated driver can be used directly once instantiated, use of this callback is not required.
+   * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
+   * @returns {Promise<object>} promise resolved with server info or rejected with error.
    */
-  get onCompleted() {
-    return this._onCompleted;
-  }
-
-  /**
-   * Install a connectivity verification callback.
-   * @param {null|function} callback the new function to be notified about successful connection.
-   * @deprecated driver can be used directly once instantiated, use of this callback is not required.
-   */
-  set onCompleted(callback) {
-    this._onCompleted = callback;
-    if (this._onCompleted) {
-      const connectionProvider = this._getOrCreateConnectionProvider();
-      const connectivityVerifier = new ConnectivityVerifier(connectionProvider, this._onCompleted);
-      connectivityVerifier.verify();
-    }
+  verifyConnectivity() {
+    const connectionProvider = this._getOrCreateConnectionProvider();
+    const connectivityVerifier = new ConnectivityVerifier(connectionProvider);
+    return connectivityVerifier.verify();
   }
 
   /**

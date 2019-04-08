@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Driver, {AuthToken, Config, EncryptionLevel, LoadBalancingStrategy, READ, SessionMode, TrustStrategy, WRITE} from "../../types/driver";
+import Driver, {AuthToken, Config, EncryptionLevel, READ, SessionMode, TrustStrategy, WRITE} from "../../types/driver";
 import {Parameters} from "../../types/statement-runner";
 import Session from "../../types/session";
 import {Neo4jError} from "../../types/error";
@@ -46,10 +46,7 @@ const encrypted: undefined | boolean | EncryptionLevel = config.encrypted;
 const trust: undefined | TrustStrategy = config.trust;
 const trustedCertificates: undefined | string[] = config.trustedCertificates;
 const knownHosts: undefined | string = config.knownHosts;
-const connectionPoolSize: undefined | number = config.connectionPoolSize;
 const maxTransactionRetryTime: undefined | number = config.maxTransactionRetryTime;
-const loadBalancingStrategy1: undefined | LoadBalancingStrategy = config.loadBalancingStrategy;
-const loadBalancingStrategy2: undefined | string = config.loadBalancingStrategy;
 const maxConnectionLifetime: undefined | number = config.maxConnectionLifetime;
 const connectionTimeout: undefined | number = config.connectionTimeout;
 const disableLosslessIntegers: undefined | boolean = config.disableLosslessIntegers;
@@ -82,12 +79,10 @@ session1.run("RETURN 1").then(result => {
 
 const close: void = driver.close();
 
-driver.onCompleted = (serverInfo: ServerInfo) => {
+driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
   console.log(serverInfo.version);
   console.log(serverInfo.address);
-};
-
-driver.onCompleted({version: "Neo4j/3.2.0", address: "localhost:7687"});
+});
 
 driver.onError = (error: Neo4jError) => {
   console.log(error);

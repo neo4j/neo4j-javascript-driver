@@ -21,7 +21,6 @@ import {Driver} from './driver';
 import {newError, SESSION_EXPIRED} from './error';
 import {LoadBalancer} from './internal/connection-providers';
 import LeastConnectedLoadBalancingStrategy, {LEAST_CONNECTED_STRATEGY_NAME} from './internal/least-connected-load-balancing-strategy';
-import RoundRobinLoadBalancingStrategy, {ROUND_ROBIN_STRATEGY_NAME} from './internal/round-robin-load-balancing-strategy';
 import ConnectionErrorHandler from './internal/connection-error-handler';
 import ConfiguredHostNameResolver from './internal/resolver/configured-host-name-resolver';
 import {HostNameResolver} from './internal/node';
@@ -75,14 +74,7 @@ class RoutingDriver extends Driver {
    * @private
    */
   static _createLoadBalancingStrategy(config, connectionPool) {
-    const configuredValue = config.loadBalancingStrategy;
-    if (!configuredValue || configuredValue === LEAST_CONNECTED_STRATEGY_NAME) {
-      return new LeastConnectedLoadBalancingStrategy(connectionPool);
-    } else if (configuredValue === ROUND_ROBIN_STRATEGY_NAME) {
-      return new RoundRobinLoadBalancingStrategy();
-    } else {
-      throw newError('Unknown load balancing strategy: ' + configuredValue);
-    }
+    return new LeastConnectedLoadBalancingStrategy(connectionPool);
   }
 }
 
@@ -102,9 +94,6 @@ function createHostNameResolver(config) {
  * @returns {object} the given config.
  */
 function validateConfig(config) {
-  if (config.trust === 'TRUST_ON_FIRST_USE') {
-    throw newError('The chosen trust mode is not compatible with a routing driver');
-  }
   const resolver = config.resolver;
   if (resolver && typeof resolver !== 'function') {
     throw new TypeError(`Configured resolver should be a function. Got: ${resolver}`);

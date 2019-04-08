@@ -147,8 +147,6 @@ describe('ChannelConfig', () => {
     expect(new ChannelConfig(null, {trust: null}, '').trust).toBeNull();
     expect(new ChannelConfig(null, {trust: undefined}, '').trust).toBeUndefined();
     expect(new ChannelConfig(null, {trust: 'TRUST_ALL_CERTIFICATES'}, '').trust).toEqual('TRUST_ALL_CERTIFICATES');
-    expect(new ChannelConfig(null, {trust: 'TRUST_ON_FIRST_USE'}, '').trust).toEqual('TRUST_ON_FIRST_USE');
-    expect(new ChannelConfig(null, {trust: 'TRUST_SIGNED_CERTIFICATES'}, '').trust).toEqual('TRUST_SIGNED_CERTIFICATES');
     expect(new ChannelConfig(null, {trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'}, '').trust).toEqual('TRUST_CUSTOM_CA_SIGNED_CERTIFICATES');
     expect(new ChannelConfig(null, {trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'}, '').trust).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES');
 

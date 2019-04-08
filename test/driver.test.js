@@ -147,10 +147,10 @@ describe('driver', () => {
     driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken);
 
     // Expect
-    driver.onCompleted = server => {
+    driver.verifyConnectivity().then(server => {
       expect(server.address).toBeDefined();
       done();
-    };
+    });
   });
 
   it('should be possible to pass a realm with basic auth tokens', done => {
@@ -158,10 +158,10 @@ describe('driver', () => {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password, "native"));
 
     // Expect
-    driver.onCompleted = server => {
+    driver.verifyConnectivity().then(server => {
       expect(server.address).toBeDefined();
       done();
-    };
+    });
   });
 
   it('should be possible to create custom auth tokens', done => {
@@ -169,10 +169,10 @@ describe('driver', () => {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.custom(sharedNeo4j.username, sharedNeo4j.password, "native", "basic"));
 
     // Expect
-    driver.onCompleted = server => {
+    driver.verifyConnectivity().then(server => {
       expect(server.address).toBeDefined();
       done();
-    };
+    });
   });
 
   it('should be possible to create custom auth tokens with additional parameters', done => {
@@ -180,10 +180,10 @@ describe('driver', () => {
     driver = neo4j.driver("bolt://localhost", neo4j.auth.custom(sharedNeo4j.username, sharedNeo4j.password, "native", "basic", {secret: 42}));
 
     // Expect
-    driver.onCompleted = server => {
+    driver.verifyConnectivity().then(server => {
       expect(server.address).toBeDefined();
       done();
-    };
+    });
   });
 
   it('should fail nicely when connecting with routing to standalone server', done => {
@@ -214,17 +214,6 @@ describe('driver', () => {
     const routingDriver = neo4j.driver("bolt+routing://localhost");
     expect(routingDriver._userAgent).toBe("neo4j-javascript/0.0.0-dev");
     routingDriver.close();
-  });
-
-  it('should fail when TRUST_ON_FIRST_USE is used with routing', () => {
-    const createRoutingDriverWithTOFU = () => {
-      driver = neo4j.driver('bolt+routing://localhost', sharedNeo4j.username, {
-        encrypted: "ENCRYPTION_ON",
-          trust: 'TRUST_ON_FIRST_USE'
-      });
-    };
-
-    expect(createRoutingDriverWithTOFU).toThrow();
   });
 
   it('should fail when bolt:// scheme used with routing params', () => {

@@ -32,22 +32,8 @@ export default class PoolConfig {
   }
 
   static fromDriverConfig(config) {
-    const maxIdleSizeConfigured = isConfigured(config.connectionPoolSize);
     const maxSizeConfigured = isConfigured(config.maxConnectionPoolSize);
-
-    let maxSize;
-
-    if (maxSizeConfigured) {
-      // correct size setting is set - use it's value
-      maxSize = config.maxConnectionPoolSize;
-    } else if (maxIdleSizeConfigured) {
-      // deprecated size setting is set - use it's value
-      console.warn('WARNING: neo4j-driver setting "connectionPoolSize" is deprecated, please use "maxConnectionPoolSize" instead');
-      maxSize = config.connectionPoolSize;
-    } else {
-      maxSize = DEFAULT_MAX_SIZE;
-    }
-
+    const maxSize = maxSizeConfigured ? config.maxConnectionPoolSize : DEFAULT_MAX_SIZE;
     const acquisitionTimeoutConfigured = isConfigured(config.connectionAcquisitionTimeout);
     const acquisitionTimeout = acquisitionTimeoutConfigured ? config.connectionAcquisitionTimeout : DEFAULT_ACQUISITION_TIMEOUT;
 
