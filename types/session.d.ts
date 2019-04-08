@@ -17,34 +17,42 @@
  * limitations under the License.
  */
 
-import Transaction from "./transaction";
-import StatementRunner, {Parameters} from "./statement-runner";
-import Result from "./result";
-import {NumberOrInteger} from "./graph-types";
+import Transaction from './transaction'
+import StatementRunner, { Parameters } from './statement-runner'
+import Result from './result'
+import { NumberOrInteger } from './graph-types'
 
-declare type TransactionWork<T> = (tx: Transaction) => T | Promise<T>;
+declare type TransactionWork<T> = (tx: Transaction) => T | Promise<T>
 
 declare interface TransactionConfig {
-  timeout?: NumberOrInteger;
-  metadata?: object;
+  timeout?: NumberOrInteger
+  metadata?: object
 }
 
 declare interface Session extends StatementRunner {
-  run(statement: string, parameters?: Parameters, config?: TransactionConfig): Result;
+  run(
+    statement: string,
+    parameters?: Parameters,
+    config?: TransactionConfig
+  ): Result
 
-  beginTransaction(config?: TransactionConfig): Transaction;
+  beginTransaction(config?: TransactionConfig): Transaction
 
-  lastBookmark(): string | null;
+  lastBookmark(): string | null
 
-  readTransaction<T>(work: TransactionWork<T>, config?: TransactionConfig): Promise<T>;
+  readTransaction<T>(
+    work: TransactionWork<T>,
+    config?: TransactionConfig
+  ): Promise<T>
 
-  writeTransaction<T>(work: TransactionWork<T>, config?: TransactionConfig): Promise<T>;
+  writeTransaction<T>(
+    work: TransactionWork<T>,
+    config?: TransactionConfig
+  ): Promise<T>
 
-  close(callback?: () => void): void;
+  close(callback?: () => void): void
 }
 
-export {
-  TransactionConfig
-}
+export { TransactionConfig }
 
-export default Session;
+export default Session

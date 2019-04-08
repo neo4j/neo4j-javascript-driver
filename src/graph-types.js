@@ -17,11 +17,9 @@
  * limitations under the License.
  */
 
-import Integer from './integer';
-
 /**
  * Class for Node Type.
- */ 
+ */
 class Node {
   /**
    * @constructor
@@ -29,34 +27,34 @@ class Node {
    * @param {Array<string>} labels - Array for all labels
    * @param {Object} properties - Map with node properties
    */
-  constructor(identity, labels, properties) {
-    this.identity = identity;
-    this.labels = labels;
-    this.properties = properties;
+  constructor (identity, labels, properties) {
+    this.identity = identity
+    this.labels = labels
+    this.properties = properties
   }
 
-  toString() {
-    let s = "(" + this.identity;
+  toString () {
+    let s = '(' + this.identity
     for (let i = 0; i < this.labels.length; i++) {
-      s += ":" + this.labels[i];
+      s += ':' + this.labels[i]
     }
-    let keys = Object.keys(this.properties);
+    let keys = Object.keys(this.properties)
     if (keys.length > 0) {
-      s += " {";
-      for(let i = 0; i < keys.length; i++) {
-        if (i > 0) s += ",";
-        s += keys[i] + ":" + JSON.stringify(this.properties[keys[i]]);
+      s += ' {'
+      for (let i = 0; i < keys.length; i++) {
+        if (i > 0) s += ','
+        s += keys[i] + ':' + JSON.stringify(this.properties[keys[i]])
       }
-      s += "}";
+      s += '}'
     }
-    s += ")";
-    return s;
+    s += ')'
+    return s
   }
 }
 
 /**
  * Class for Relationship Type.
- */ 
+ */
 class Relationship {
   /**
    * @constructor
@@ -66,34 +64,34 @@ class Relationship {
    * @param {string} type - Relationship type
    * @param {Object} properties - Map with relationship properties
    */
-  constructor(identity, start, end, type, properties) {
-    this.identity = identity;
-    this.start = start;
-    this.end = end;
-    this.type = type;
-    this.properties = properties;
+  constructor (identity, start, end, type, properties) {
+    this.identity = identity
+    this.start = start
+    this.end = end
+    this.type = type
+    this.properties = properties
   }
 
-  toString() {
-    let s = "(" + this.start + ")-[:" + this.type;
-    let keys = Object.keys(this.properties);
+  toString () {
+    let s = '(' + this.start + ')-[:' + this.type
+    let keys = Object.keys(this.properties)
     if (keys.length > 0) {
-      s += " {";
-      for(let i = 0; i < keys.length; i++) {
-        if (i > 0) s += ",";
-        s += keys[i] + ":" + JSON.stringify(this.properties[keys[i]]);
+      s += ' {'
+      for (let i = 0; i < keys.length; i++) {
+        if (i > 0) s += ','
+        s += keys[i] + ':' + JSON.stringify(this.properties[keys[i]])
       }
-      s += "}";
+      s += '}'
     }
-    s += "]->(" + this.end + ")";
-    return s;
+    s += ']->(' + this.end + ')'
+    return s
   }
 }
 
 /**
  * Class for UnboundRelationship Type.
  * @access private
- */ 
+ */
 class UnboundRelationship {
   /**
    * @constructor
@@ -101,10 +99,10 @@ class UnboundRelationship {
    * @param {string} type - Relationship type
    * @param {Object} properties - Map with relationship properties
    */
-  constructor(identity, type, properties) {
-    this.identity = identity;
-    this.type = type;
-    this.properties = properties;
+  constructor (identity, type, properties) {
+    this.identity = identity
+    this.type = type
+    this.properties = properties
   }
 
   /**
@@ -113,34 +111,35 @@ class UnboundRelationship {
    * @param {Integer} end - Identity of end node
    * @return {Relationship} - Created relationship
    */
-  bind( start, end ) {
+  bind (start, end) {
     return new Relationship(
-      this.identity, 
-      start, 
-      end, 
-      this.type, 
-      this.properties);
+      this.identity,
+      start,
+      end,
+      this.type,
+      this.properties
+    )
   }
 
-  toString() {
-    let s = "-[:" + this.type;
-    let keys = Object.keys(this.properties);
+  toString () {
+    let s = '-[:' + this.type
+    let keys = Object.keys(this.properties)
     if (keys.length > 0) {
-      s += " {";
-      for(let i = 0; i < keys.length; i++) {
-        if (i > 0) s += ",";
-        s += keys[i] + ":" + JSON.stringify(this.properties[keys[i]]);
+      s += ' {'
+      for (let i = 0; i < keys.length; i++) {
+        if (i > 0) s += ','
+        s += keys[i] + ':' + JSON.stringify(this.properties[keys[i]])
       }
-      s += "}";
+      s += '}'
     }
-    s += "]->";
-    return s;
+    s += ']->'
+    return s
   }
 }
 
 /**
  * Class for PathSegment Type.
- */ 
+ */
 class PathSegment {
   /**
    * @constructor
@@ -148,16 +147,16 @@ class PathSegment {
    * @param {Relationship} rel - relationship that connects start and end node
    * @param {Node} end - end node
    */
-  constructor(start, rel, end) {
-    this.start = start;
-    this.relationship = rel;
-    this.end = end;
+  constructor (start, rel, end) {
+    this.start = start
+    this.relationship = rel
+    this.end = end
   }
 }
 
 /**
  * Class for Path Type.
- */ 
+ */
 class Path {
   /**
    * @constructor
@@ -165,18 +164,12 @@ class Path {
    * @param {Node} end - end node
    * @param {Array<PathSegment>} segments - Array of Segments
    */
-  constructor(start, end, segments) {
-    this.start = start;
-    this.end = end;
-    this.segments = segments;
-    this.length = segments.length;
+  constructor (start, end, segments) {
+    this.start = start
+    this.end = end
+    this.segments = segments
+    this.length = segments.length
   }
 }
 
-export {
-  Node,
-  Relationship,
-  UnboundRelationship,
-  Path,
-  PathSegment
-}
+export { Node, Relationship, UnboundRelationship, Path, PathSegment }

@@ -9,7 +9,7 @@ If you simply want to get started or have a question on how to use a particular 
 [StackOverflow](http://stackoverflow.com/questions/tagged/neo4j) also hosts a ton of questions and might already have a discussion around your problem.
 Make sure you have a look there too.
 
-If you want to make a feature request, please prefix your issue title with `[Feature Request]` so that it is clear to us. 
+If you want to make a feature request, please prefix your issue title with `[Feature Request]` so that it is clear to us.
 If you have a bug report however, please continue reading.  
 To help us understand your issue, please specify important details, primarily:
 
@@ -32,17 +32,22 @@ I got connection reset by peer errors.
 **Neo4j Version:** 3.4.10 Community  
 **Neo4j Mode**: Single instance  
 **Driver version**: JS driver 1.7.1  
-**Operating System:** Ubuntu 16.10 on AWS  
+**Operating System:** Ubuntu 16.10 on AWS
 
 ### Steps to reproduce
+
 1. Start Neo4j on a AWS instance
 2. Run a query with the driver
 3. Put the driver idle for 2h
 4. Run another query
+
 ### Expected behavior
+
 The second query shall run successfully
+
 ### Actual behavior
+
 The client failed to run the second query with a `connection reset by peer` stacktrace.  
-*attach the stacktrace*  
+_attach the stacktrace_  
 Meanwhile, in the server log, I found this stacktrace that happened at the same time when the driver failed.  
-*attach the stacktrace*  
+_attach the stacktrace_

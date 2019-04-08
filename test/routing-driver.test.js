@@ -17,26 +17,34 @@
  * limitations under the License.
  */
 
-import LeastConnectedLoadBalancingStrategy from '../src/internal/least-connected-load-balancing-strategy';
-import RoutingDriver from '../src/routing-driver';
-import Pool from '../src/internal/pool';
-import neo4j from '../src';
+import LeastConnectedLoadBalancingStrategy from '../src/internal/least-connected-load-balancing-strategy'
+import RoutingDriver from '../src/routing-driver'
+import Pool from '../src/internal/pool'
+import neo4j from '../src'
 
 describe('RoutingDriver', () => {
-
   it('should create least connected', () => {
-    const strategy = createStrategy({});
-    expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy();
-  });
+    const strategy = createStrategy({})
+    expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy()
+  })
 
   it('should fail when configured resolver is of illegal type', () => {
-    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: 'string instead of a function'})).toThrowError(TypeError);
-    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: []})).toThrowError(TypeError);
-    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: {}})).toThrowError(TypeError);
-  });
+    expect(() =>
+      neo4j.driver(
+        'bolt+routing://localhost',
+        {},
+        { resolver: 'string instead of a function' }
+      )
+    ).toThrowError(TypeError)
+    expect(() =>
+      neo4j.driver('bolt+routing://localhost', {}, { resolver: [] })
+    ).toThrowError(TypeError)
+    expect(() =>
+      neo4j.driver('bolt+routing://localhost', {}, { resolver: {} })
+    ).toThrowError(TypeError)
+  })
+})
 
-});
-
-function createStrategy(config) {
-  return RoutingDriver._createLoadBalancingStrategy(config, new Pool());
+function createStrategy (config) {
+  return RoutingDriver._createLoadBalancingStrategy(config, new Pool())
 }

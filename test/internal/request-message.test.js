@@ -17,122 +17,157 @@
  * limitations under the License.
  */
 
-import RequestMessage from '../../src/internal/request-message';
-import Bookmark from '../../src/internal/bookmark';
-import TxConfig from '../../src/internal/tx-config';
-import {int} from '../../src';
-import {READ, WRITE} from "../../src/driver";
+import RequestMessage from '../../src/internal/request-message'
+import Bookmark from '../../src/internal/bookmark'
+import TxConfig from '../../src/internal/tx-config'
+import { int } from '../../src'
+import { READ, WRITE } from '../../src/driver'
 
 describe('RequestMessage', () => {
-
   it('should create INIT message', () => {
-    const userAgent = 'my-driver/1.0.2';
-    const authToken = {username: 'neo4j', password: 'secret'};
+    const userAgent = 'my-driver/1.0.2'
+    const authToken = { username: 'neo4j', password: 'secret' }
 
-    const message = RequestMessage.init(userAgent, authToken);
+    const message = RequestMessage.init(userAgent, authToken)
 
-    expect(message.signature).toEqual(0x01);
-    expect(message.fields).toEqual([userAgent, authToken]);
-    expect(message.toString()).toEqual(`INIT ${userAgent} {...}`);
-  });
+    expect(message.signature).toEqual(0x01)
+    expect(message.fields).toEqual([userAgent, authToken])
+    expect(message.toString()).toEqual(`INIT ${userAgent} {...}`)
+  })
 
   it('should create RUN message', () => {
-    const statement = 'RETURN $x';
-    const parameters = {x: 42};
+    const statement = 'RETURN $x'
+    const parameters = { x: 42 }
 
-    const message = RequestMessage.run(statement, parameters);
+    const message = RequestMessage.run(statement, parameters)
 
-    expect(message.signature).toEqual(0x10);
-    expect(message.fields).toEqual([statement, parameters]);
-    expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)}`);
-  });
+    expect(message.signature).toEqual(0x10)
+    expect(message.fields).toEqual([statement, parameters])
+    expect(message.toString()).toEqual(
+      `RUN ${statement} ${JSON.stringify(parameters)}`
+    )
+  })
 
   it('should create PULL_ALL message', () => {
-    const message = RequestMessage.pullAll();
+    const message = RequestMessage.pullAll()
 
-    expect(message.signature).toEqual(0x3F);
-    expect(message.fields).toEqual([]);
-    expect(message.toString()).toEqual('PULL_ALL');
-  });
+    expect(message.signature).toEqual(0x3f)
+    expect(message.fields).toEqual([])
+    expect(message.toString()).toEqual('PULL_ALL')
+  })
 
   it('should create RESET message', () => {
-    const message = RequestMessage.reset();
+    const message = RequestMessage.reset()
 
-    expect(message.signature).toEqual(0x0F);
-    expect(message.fields).toEqual([]);
-    expect(message.toString()).toEqual('RESET');
-  });
+    expect(message.signature).toEqual(0x0f)
+    expect(message.fields).toEqual([])
+    expect(message.toString()).toEqual('RESET')
+  })
 
   it('should create HELLO message', () => {
-    const userAgent = 'my-driver/1.0.2';
-    const authToken = {username: 'neo4j', password: 'secret'};
+    const userAgent = 'my-driver/1.0.2'
+    const authToken = { username: 'neo4j', password: 'secret' }
 
-    const message = RequestMessage.hello(userAgent, authToken);
+    const message = RequestMessage.hello(userAgent, authToken)
 
-    expect(message.signature).toEqual(0x01);
-    expect(message.fields).toEqual([{user_agent: userAgent, username: 'neo4j', password: 'secret'}]);
-    expect(message.toString()).toEqual(`HELLO {user_agent: '${userAgent}', ...}`);
-  });
+    expect(message.signature).toEqual(0x01)
+    expect(message.fields).toEqual([
+      { user_agent: userAgent, username: 'neo4j', password: 'secret' }
+    ])
+    expect(message.toString()).toEqual(
+      `HELLO {user_agent: '${userAgent}', ...}`
+    )
+  })
 
   it('should create BEGIN message', () => {
-    [READ, WRITE].forEach(mode => {
-      const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10']);
-      const txConfig = new TxConfig({timeout: 42, metadata: {key: 42}});
+    ;[READ, WRITE].forEach(mode => {
+      const bookmark = new Bookmark([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx10'
+      ])
+      const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
 
-      const message = RequestMessage.begin(bookmark, txConfig, mode);
+      const message = RequestMessage.begin(bookmark, txConfig, mode)
 
-      const expectedMetadata = {bookmarks: bookmark.values(), tx_timeout: int(42), tx_metadata: {key: 42}};
+      const expectedMetadata = {
+        bookmarks: bookmark.values(),
+        tx_timeout: int(42),
+        tx_metadata: { key: 42 }
+      }
       if (mode === READ) {
-        expectedMetadata.mode = "r";
+        expectedMetadata.mode = 'r'
       }
 
-      expect(message.signature).toEqual(0x11);
-      expect(message.fields).toEqual([expectedMetadata]);
-      expect(message.toString()).toEqual(`BEGIN ${JSON.stringify(expectedMetadata)}`);
-    });
-  });
+      expect(message.signature).toEqual(0x11)
+      expect(message.fields).toEqual([expectedMetadata])
+      expect(message.toString()).toEqual(
+        `BEGIN ${JSON.stringify(expectedMetadata)}`
+      )
+    })
+  })
 
   it('should create COMMIT message', () => {
-    const message = RequestMessage.commit();
+    const message = RequestMessage.commit()
 
-    expect(message.signature).toEqual(0x12);
-    expect(message.fields).toEqual([]);
-    expect(message.toString()).toEqual('COMMIT');
-  });
+    expect(message.signature).toEqual(0x12)
+    expect(message.fields).toEqual([])
+    expect(message.toString()).toEqual('COMMIT')
+  })
 
   it('should create ROLLBACK message', () => {
-    const message = RequestMessage.rollback();
+    const message = RequestMessage.rollback()
 
-    expect(message.signature).toEqual(0x13);
-    expect(message.fields).toEqual([]);
-    expect(message.toString()).toEqual('ROLLBACK');
-  });
+    expect(message.signature).toEqual(0x13)
+    expect(message.fields).toEqual([])
+    expect(message.toString()).toEqual('ROLLBACK')
+  })
 
   it('should create RUN with metadata message', () => {
-    [READ, WRITE].forEach(mode => {
-      const statement = 'RETURN $x';
-      const parameters = {x: 42};
-      const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10', 'neo4j:bookmark:v1:tx100']);
-      const txConfig = new TxConfig({timeout: 999, metadata: {a: 'a', b: 'b'}});
+    ;[READ, WRITE].forEach(mode => {
+      const statement = 'RETURN $x'
+      const parameters = { x: 42 }
+      const bookmark = new Bookmark([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx10',
+        'neo4j:bookmark:v1:tx100'
+      ])
+      const txConfig = new TxConfig({
+        timeout: 999,
+        metadata: { a: 'a', b: 'b' }
+      })
 
-      const message = RequestMessage.runWithMetadata(statement, parameters, bookmark, txConfig, mode);
+      const message = RequestMessage.runWithMetadata(
+        statement,
+        parameters,
+        bookmark,
+        txConfig,
+        mode
+      )
 
-      const expectedMetadata = {bookmarks: bookmark.values(), tx_timeout: int(999), tx_metadata: {a: 'a', b: 'b'}};
+      const expectedMetadata = {
+        bookmarks: bookmark.values(),
+        tx_timeout: int(999),
+        tx_metadata: { a: 'a', b: 'b' }
+      }
       if (mode === READ) {
-        expectedMetadata.mode = "r";
+        expectedMetadata.mode = 'r'
       }
 
-      expect(message.signature).toEqual(0x10);
-      expect(message.fields).toEqual([statement, parameters, expectedMetadata]);
-      expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(expectedMetadata)}`);
-    });
-  });
+      expect(message.signature).toEqual(0x10)
+      expect(message.fields).toEqual([statement, parameters, expectedMetadata])
+      expect(message.toString()).toEqual(
+        `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(
+          expectedMetadata
+        )}`
+      )
+    })
+  })
 
   it('should create GOODBYE message', () => {
-    const message = RequestMessage.goodbye();
+    const message = RequestMessage.goodbye()
 
-    expect(message.signature).toEqual(0x02);
-    expect(message.fields).toEqual([]);
-    expect(message.toString()).toEqual('GOODBYE');
-  });
-});
+    expect(message.signature).toEqual(0x02)
+    expect(message.fields).toEqual([])
+    expect(message.toString()).toEqual('GOODBYE')
+  })
+})

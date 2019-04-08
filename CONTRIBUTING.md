@@ -9,7 +9,6 @@ If you're not already a member, sign up!
 
 We love our community and wouldn't be where we are without you.
 
-
 ## Need to raise an issue?
 
 Where you raise an issue depends largely on the nature of the problem.
@@ -34,7 +33,6 @@ Include as much information as you can in any request you make:
 - What errors are you seeing?
 - What solutions have you tried already?
 
-
 ## Want to contribute?
 
 If you want to contribute a pull request, we have a little bit of process you'll need to follow:
@@ -50,7 +48,6 @@ We can't guarantee that we'll accept pull requests and may ask you to make some 
 Occasionally, we might also have logistical, commercial, or legal reasons why we can't accept your work but we'll try to find an alternative way for you to contribute in that case.
 Remember that many community members have become regular contributors and some are now even Neo employees!
 
-
 ## Got an idea for a new project?
 
 If you have an idea for a new tool or library, start by talking to other people in the community.
@@ -58,8 +55,6 @@ Chances are that someone has a similar idea or may have already started working 
 The best software comes from getting like minds together to solve a problem.
 And we'll do our best to help you promote and co-ordinate your Neo ecosystem projects.
 
-
 ## Further reading
 
 If you want to find out more about how you can contribute, head over to our website for [more information](http://neo4j.com/developer/contributing-code/).
-

@@ -17,110 +17,107 @@
  * limitations under the License.
  */
 
-import neo4j from '../../../src';
-import fs from 'fs';
-import path from 'path';
-import sharedNeo4j from '../shared-neo4j';
+import neo4j from '../../../src'
+import path from 'path'
+import sharedNeo4j from '../shared-neo4j'
 
 describe('trust-all-certificates', () => {
-
-  let driver;
+  let driver
 
   afterEach(() => {
     if (driver) {
-      driver.close();
+      driver.close()
     }
-  });
+  })
 
   it('should work with default certificate', done => {
     // Given
-    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
-      encrypted: "ENCRYPTION_ON",
-      trust: "TRUST_ALL_CERTIFICATES"
-    });
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      encrypted: 'ENCRYPTION_ON',
+      trust: 'TRUST_ALL_CERTIFICATES'
+    })
 
     // When
-    driver.session().run('RETURN 1').then(result => {
-      expect(result.records[0].get(0).toNumber()).toBe(1);
-      done();
-    });
-  });
-});
+    driver
+      .session()
+      .run('RETURN 1')
+      .then(result => {
+        expect(result.records[0].get(0).toNumber()).toBe(1)
+        done()
+      })
+  })
+})
 
 describe('trust-custom-ca-signed-certificates', () => {
-
-  let driver;
+  let driver
 
   afterEach(() => {
     if (driver) {
-      driver.close();
+      driver.close()
     }
-  });
+  })
 
   it('should reject unknown certificates', done => {
     // Given
-    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
       encrypted: true,
-      trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
-      trustedCertificates: ["test/resources/random.certificate"]
-    });
+      trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES',
+      trustedCertificates: ['test/resources/random.certificate']
+    })
 
     // When
-    driver.session().run('RETURN 1').catch(err => {
-      expect( err.message ).toContain( "Server certificate is not trusted" );
-      done();
-    });
-  });
+    driver
+      .session()
+      .run('RETURN 1')
+      .catch(err => {
+        expect(err.message).toContain('Server certificate is not trusted')
+        done()
+      })
+  })
 
   it('should accept known certificates', done => {
     // Given
-    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
       encrypted: true,
-      trust: "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES",
+      trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES',
       trustedCertificates: [neo4jCertPath()]
-    });
+    })
 
     // When
-    driver.session().run( "RETURN 1").then( done );
-  });
-});
+    driver
+      .session()
+      .run('RETURN 1')
+      .then(done)
+  })
+})
 
 describe('trust-system-ca-signed-certificates', () => {
-
-  let driver;
+  let driver
 
   afterEach(() => {
     if (driver) {
-      driver.close();
+      driver.close()
     }
-  });
+  })
 
   it('should reject unknown certificates', done => {
     // Given
-    driver = neo4j.driver("bolt://localhost", sharedNeo4j.authToken, {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
       encrypted: true,
-      trust: "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES"
-    });
+      trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+    })
 
     // When
-    driver.session().run('RETURN 1').catch(err => {
-      expect( err.message ).toContain( "Server certificate is not trusted" );
-      done();
-    });
-  });
-});
+    driver
+      .session()
+      .run('RETURN 1')
+      .catch(err => {
+        expect(err.message).toContain('Server certificate is not trusted')
+        done()
+      })
+  })
+})
 
-// To mute deprecation message in test output
-function muteConsoleLog() {
-  const originalLog = console.log;
-  console.log = () => {};
-  return originalLog;
-}
-
-function unMuteConsoleLog(originalLog) {
-  console.log = originalLog;
-}
-
-function neo4jCertPath() {
-  return sharedNeo4j.neo4jCertPath(path.join('build', 'neo4j'));
+function neo4jCertPath () {
+  return sharedNeo4j.neo4jCertPath(path.join('build', 'neo4j'))
 }

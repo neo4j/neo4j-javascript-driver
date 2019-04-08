@@ -17,35 +17,38 @@
  * limitations under the License.
  */
 
-import BaseHostNameResolver from '../resolver/base-host-name-resolver';
-import urlUtil from '../url-util';
-import nodeDns from 'dns';
+import BaseHostNameResolver from '../resolver/base-host-name-resolver'
+import urlUtil from '../url-util'
+import nodeDns from 'dns'
 
 export default class NodeHostNameResolver extends BaseHostNameResolver {
+  resolve (seedRouter) {
+    const parsedAddress = urlUtil.parseDatabaseUrl(seedRouter)
 
-  resolve(seedRouter) {
-    const parsedAddress = urlUtil.parseDatabaseUrl(seedRouter);
-
-    return new Promise((resolve) => {
-      nodeDns.lookup(parsedAddress.host, {all: true}, (error, addresses) => {
+    return new Promise(resolve => {
+      nodeDns.lookup(parsedAddress.host, { all: true }, (error, addresses) => {
         if (error) {
-          resolve(this._resolveToItself(seedRouter));
+          resolve(this._resolveToItself(seedRouter))
         } else {
-          const addressesWithPorts = addresses.map(address => addressWithPort(address, parsedAddress.port));
-          resolve(addressesWithPorts);
+          const addressesWithPorts = addresses.map(address =>
+            addressWithPort(address, parsedAddress.port)
+          )
+          resolve(addressesWithPorts)
         }
-      });
-    });
+      })
+    })
   }
 }
 
-function addressWithPort(addressObject, port) {
-  const address = addressObject.address;
-  const addressFamily = addressObject.family;
+function addressWithPort (addressObject, port) {
+  const address = addressObject.address
+  const addressFamily = addressObject.family
 
   if (!port) {
-    return address;
+    return address
   }
 
-  return addressFamily === 6 ? urlUtil.formatIPv6Address(address, port) : urlUtil.formatIPv4Address(address, port);
+  return addressFamily === 6
+    ? urlUtil.formatIPv6Address(address, port)
+    : urlUtil.formatIPv4Address(address, port)
 }

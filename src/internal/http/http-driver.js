@@ -17,22 +17,26 @@
  * limitations under the License.
  */
 
-import Driver from '../../driver';
-import HttpSession from './http-session';
-import HttpSessionTracker from './http-session-tracker';
+import Driver from '../../driver'
+import HttpSession from './http-session'
+import HttpSessionTracker from './http-session-tracker'
 
 export default class HttpDriver extends Driver {
-
-  constructor(hostPort, userAgent, token, config) {
-    super(hostPort, userAgent, token, config);
-    this._sessionTracker = new HttpSessionTracker();
+  constructor (hostPort, userAgent, token, config) {
+    super(hostPort, userAgent, token, config)
+    this._sessionTracker = new HttpSessionTracker()
   }
 
-  session() {
-    return new HttpSession(this._hostPort, this._authToken, this._config, this._sessionTracker);
+  session () {
+    return new HttpSession(
+      this._hostPort,
+      this._authToken,
+      this._config,
+      this._sessionTracker
+    )
   }
 
-  close() {
-    return this._sessionTracker.close();
+  close () {
+    return this._sessionTracker.close()
   }
 }

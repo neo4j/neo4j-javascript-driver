@@ -16,35 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {newError} from '../error';
+import { newError } from '../error'
 
-const ERROR = 'error';
-const WARN = 'warn';
-const INFO = 'info';
-const DEBUG = 'debug';
+const ERROR = 'error'
+const WARN = 'warn'
+const INFO = 'info'
+const DEBUG = 'debug'
 
-const DEFAULT_LEVEL = INFO;
+const DEFAULT_LEVEL = INFO
 
 const levels = {
   [ERROR]: 0,
   [WARN]: 1,
   [INFO]: 2,
   [DEBUG]: 3
-};
+}
 
 /**
  * Logger used by the driver to notify about various internal events. Single logger should be used per driver.
  */
 class Logger {
-
   /**
    * @constructor
    * @param {string} level the enabled logging level.
    * @param {function(level: string, message: string)} loggerFunction the function to write the log level and message.
    */
-  constructor(level, loggerFunction) {
-    this._level = level;
-    this._loggerFunction = loggerFunction;
+  constructor (level, loggerFunction) {
+    this._level = level
+    this._loggerFunction = loggerFunction
   }
 
   /**
@@ -52,39 +51,39 @@ class Logger {
    * @param {object} driverConfig the driver configuration as supplied by the user.
    * @return {Logger} a new logger instance or a no-op logger when not configured.
    */
-  static create(driverConfig) {
+  static create (driverConfig) {
     if (driverConfig && driverConfig.logging) {
-      const loggingConfig = driverConfig.logging;
-      const level = extractConfiguredLevel(loggingConfig);
-      const loggerFunction = extractConfiguredLogger(loggingConfig);
-      return new Logger(level, loggerFunction);
+      const loggingConfig = driverConfig.logging
+      const level = extractConfiguredLevel(loggingConfig)
+      const loggerFunction = extractConfiguredLogger(loggingConfig)
+      return new Logger(level, loggerFunction)
     }
-    return this.noOp();
+    return this.noOp()
   }
 
   /**
    * Create a no-op logger implementation.
    * @return {Logger} the no-op logger implementation.
    */
-  static noOp() {
-    return noOpLogger;
+  static noOp () {
+    return noOpLogger
   }
 
   /**
    * Check if error logging is enabled, i.e. it is not a no-op implementation.
    * @return {boolean} `true` when enabled, `false` otherwise.
    */
-  isErrorEnabled() {
-    return isLevelEnabled(this._level, ERROR);
+  isErrorEnabled () {
+    return isLevelEnabled(this._level, ERROR)
   }
 
   /**
    * Log an error message.
    * @param {string} message the message to log.
    */
-  error(message) {
+  error (message) {
     if (this.isErrorEnabled()) {
-      this._loggerFunction(ERROR, message);
+      this._loggerFunction(ERROR, message)
     }
   }
 
@@ -92,17 +91,17 @@ class Logger {
    * Check if warn logging is enabled, i.e. it is not a no-op implementation.
    * @return {boolean} `true` when enabled, `false` otherwise.
    */
-  isWarnEnabled() {
-    return isLevelEnabled(this._level, WARN);
+  isWarnEnabled () {
+    return isLevelEnabled(this._level, WARN)
   }
 
   /**
    * Log an warning message.
    * @param {string} message the message to log.
    */
-  warn(message) {
+  warn (message) {
     if (this.isWarnEnabled()) {
-      this._loggerFunction(WARN, message);
+      this._loggerFunction(WARN, message)
     }
   }
 
@@ -110,17 +109,17 @@ class Logger {
    * Check if info logging is enabled, i.e. it is not a no-op implementation.
    * @return {boolean} `true` when enabled, `false` otherwise.
    */
-  isInfoEnabled() {
-    return isLevelEnabled(this._level, INFO);
+  isInfoEnabled () {
+    return isLevelEnabled(this._level, INFO)
   }
 
   /**
    * Log an info message.
    * @param {string} message the message to log.
    */
-  info(message) {
+  info (message) {
     if (this.isInfoEnabled()) {
-      this._loggerFunction(INFO, message);
+      this._loggerFunction(INFO, message)
     }
   }
 
@@ -128,57 +127,52 @@ class Logger {
    * Check if debug logging is enabled, i.e. it is not a no-op implementation.
    * @return {boolean} `true` when enabled, `false` otherwise.
    */
-  isDebugEnabled() {
-    return isLevelEnabled(this._level, DEBUG);
+  isDebugEnabled () {
+    return isLevelEnabled(this._level, DEBUG)
   }
 
   /**
    * Log a debug message.
    * @param {string} message the message to log.
    */
-  debug(message) {
+  debug (message) {
     if (this.isDebugEnabled()) {
-      this._loggerFunction(DEBUG, message);
+      this._loggerFunction(DEBUG, message)
     }
   }
 }
 
 class NoOpLogger extends Logger {
-
-  constructor() {
-    super(null, null);
+  constructor () {
+    super(null, null)
   }
 
-  isErrorEnabled() {
-    return false;
+  isErrorEnabled () {
+    return false
   }
 
-  error(message) {
+  error (message) {}
+
+  isWarnEnabled () {
+    return false
   }
 
-  isWarnEnabled() {
-    return false;
+  warn (message) {}
+
+  isInfoEnabled () {
+    return false
   }
 
-  warn(message) {
+  info (message) {}
+
+  isDebugEnabled () {
+    return false
   }
 
-  isInfoEnabled() {
-    return false;
-  }
-
-  info(message) {
-  }
-
-  isDebugEnabled() {
-    return false;
-  }
-
-  debug(message) {
-  }
+  debug (message) {}
 }
 
-const noOpLogger = new NoOpLogger();
+const noOpLogger = new NoOpLogger()
 
 /**
  * Check if the given logging level is enabled.
@@ -186,8 +180,8 @@ const noOpLogger = new NoOpLogger();
  * @param {string} targetLevel the level to check.
  * @return {boolean} value of `true` when enabled, `false` otherwise.
  */
-function isLevelEnabled(configuredLevel, targetLevel) {
-  return levels[configuredLevel] >= levels[targetLevel];
+function isLevelEnabled (configuredLevel, targetLevel) {
+  return levels[configuredLevel] >= levels[targetLevel]
 }
 
 /**
@@ -195,16 +189,20 @@ function isLevelEnabled(configuredLevel, targetLevel) {
  * @param {object} loggingConfig the logging configuration.
  * @return {string} the configured log level or default when none configured.
  */
-function extractConfiguredLevel(loggingConfig) {
+function extractConfiguredLevel (loggingConfig) {
   if (loggingConfig && loggingConfig.level) {
-    const configuredLevel = loggingConfig.level;
-    const value = levels[configuredLevel];
+    const configuredLevel = loggingConfig.level
+    const value = levels[configuredLevel]
     if (!value && value !== 0) {
-      throw newError(`Illegal logging level: ${configuredLevel}. Supported levels are: ${Object.keys(levels)}`);
+      throw newError(
+        `Illegal logging level: ${configuredLevel}. Supported levels are: ${Object.keys(
+          levels
+        )}`
+      )
     }
-    return configuredLevel;
+    return configuredLevel
   }
-  return DEFAULT_LEVEL;
+  return DEFAULT_LEVEL
 }
 
 /**
@@ -212,14 +210,14 @@ function extractConfiguredLevel(loggingConfig) {
  * @param {object} loggingConfig the logging configuration.
  * @return {function(level: string, message: string)} the configured logging function.
  */
-function extractConfiguredLogger(loggingConfig) {
+function extractConfiguredLogger (loggingConfig) {
   if (loggingConfig && loggingConfig.logger) {
-    const configuredLogger = loggingConfig.logger;
+    const configuredLogger = loggingConfig.logger
     if (configuredLogger && typeof configuredLogger === 'function') {
-      return configuredLogger;
+      return configuredLogger
     }
   }
-  throw newError(`Illegal logger function: ${loggingConfig.logger}`);
+  throw newError(`Illegal logger function: ${loggingConfig.logger}`)
 }
 
-export default Logger;
+export default Logger

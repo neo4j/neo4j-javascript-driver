@@ -18,34 +18,33 @@
  */
 
 export default class HttpSessionTracker {
-
-  constructor() {
-    this._openSessions = new Set();
+  constructor () {
+    this._openSessions = new Set()
   }
 
   /**
    * Record given session as open.
    * @param {HttpSession} session the newly open session.
    */
-  sessionOpened(session) {
-    this._openSessions.add(session);
+  sessionOpened (session) {
+    this._openSessions.add(session)
   }
 
   /**
    * Record given session as close.
    * @param {HttpSession} session the just closed session.
    */
-  sessionClosed(session) {
-    this._openSessions.delete(session);
+  sessionClosed (session) {
+    this._openSessions.delete(session)
   }
 
   /**
    * Close this tracker and all open sessions.
    */
-  close() {
-    const sessions = Array.from(this._openSessions);
-    this._openSessions.clear();
-    return Promise.all(sessions.map(session => closeSession(session)));
+  close () {
+    const sessions = Array.from(this._openSessions)
+    this._openSessions.clear()
+    return Promise.all(sessions.map(session => closeSession(session)))
   }
 }
 
@@ -54,10 +53,10 @@ export default class HttpSessionTracker {
  * @param {HttpSession} session the session to close.
  * @return {Promise<void>} promise resolved when session is closed.
  */
-function closeSession(session) {
+function closeSession (session) {
   return new Promise(resolve => {
     session.close(() => {
-      resolve();
-    });
-  });
+      resolve()
+    })
+  })
 }

@@ -17,220 +17,226 @@
  * limitations under the License.
  */
 
-import ConnectionHolder, {EMPTY_CONNECTION_HOLDER} from '../../src/internal/connection-holder';
-import {SingleConnectionProvider} from '../../src/internal/connection-providers';
-import {READ} from '../../src/driver';
-import FakeConnection from './fake-connection';
-import StreamObserver from '../../src/internal/stream-observer';
+import ConnectionHolder, {
+  EMPTY_CONNECTION_HOLDER
+} from '../../src/internal/connection-holder'
+import { SingleConnectionProvider } from '../../src/internal/connection-providers'
+import { READ } from '../../src/driver'
+import FakeConnection from './fake-connection'
+import StreamObserver from '../../src/internal/stream-observer'
 
 describe('EmptyConnectionHolder', () => {
-
   it('should return rejected promise instead of connection', done => {
     EMPTY_CONNECTION_HOLDER.getConnection(new StreamObserver()).catch(() => {
-      done();
-    });
-  });
+      done()
+    })
+  })
 
   it('should return resolved promise on release', done => {
     EMPTY_CONNECTION_HOLDER.releaseConnection().then(() => {
-      done();
-    });
-  });
+      done()
+    })
+  })
 
   it('should return resolved promise on close', done => {
     EMPTY_CONNECTION_HOLDER.close().then(() => {
-      done();
-    });
-  });
-
-});
+      done()
+    })
+  })
+})
 
 describe('ConnectionHolder', () => {
-
   it('should acquire new connection during initialization', () => {
-    const connectionProvider = new RecordingConnectionProvider([new FakeConnection()]);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connectionProvider = new RecordingConnectionProvider([
+      new FakeConnection()
+    ])
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
 
-    expect(connectionProvider.acquireConnectionInvoked).toBe(1);
-  });
+    expect(connectionProvider.acquireConnectionInvoked).toBe(1)
+  })
 
   it('should return acquired during initialization connection', done => {
-    const connection = new FakeConnection();
-    const connectionProvider = newSingleConnectionProvider(connection);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connection = new FakeConnection()
+    const connectionProvider = newSingleConnectionProvider(connection)
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
 
     connectionHolder.getConnection(new StreamObserver()).then(conn => {
-      expect(conn).toBe(connection);
-      done();
-    });
-  });
+      expect(conn).toBe(connection)
+      done()
+    })
+  })
 
   it('should make stream observer aware about connection when initialization successful', done => {
-    const connection = new FakeConnection().withServerVersion('Neo4j/9.9.9');
-    const connectionProvider = newSingleConnectionProvider(connection);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
-    const streamObserver = new StreamObserver();
+    const connection = new FakeConnection().withServerVersion('Neo4j/9.9.9')
+    const connectionProvider = newSingleConnectionProvider(connection)
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const streamObserver = new StreamObserver()
 
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
 
     connectionHolder.getConnection(streamObserver).then(conn => {
-      verifyConnection(streamObserver, 'Neo4j/9.9.9');
-      done();
-    });
-  });
+      verifyConnection(streamObserver, 'Neo4j/9.9.9')
+      done()
+    })
+  })
 
   it('should propagate connection acquisition failure', done => {
-    const errorMessage = 'Failed to acquire or initialize the connection';
-    const connectionPromise = Promise.reject(new Error(errorMessage));
-    const connectionProvider = newSingleConnectionProvider(connectionPromise);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
-    const streamObserver = new StreamObserver();
+    const errorMessage = 'Failed to acquire or initialize the connection'
+    const connectionPromise = Promise.reject(new Error(errorMessage))
+    const connectionProvider = newSingleConnectionProvider(connectionPromise)
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const streamObserver = new StreamObserver()
 
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
 
     connectionHolder.getConnection(streamObserver).catch(error => {
-      expect(error.message).toEqual(errorMessage);
-      done();
-    });
-  });
+      expect(error.message).toEqual(errorMessage)
+      done()
+    })
+  })
 
   it('should release connection with single user', done => {
-    const connection = new FakeConnection();
-    const connectionProvider = newSingleConnectionProvider(connection);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connection = new FakeConnection()
+    const connectionProvider = newSingleConnectionProvider(connection)
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
 
     connectionHolder.releaseConnection().then(() => {
-      expect(connection.isReleasedOnce()).toBeTruthy();
-      done();
-    });
-  });
+      expect(connection.isReleasedOnce()).toBeTruthy()
+      done()
+    })
+  })
 
   it('should not release connection with multiple users', done => {
-    const connection = new FakeConnection();
-    const connectionProvider = newSingleConnectionProvider(connection);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connection = new FakeConnection()
+    const connectionProvider = newSingleConnectionProvider(connection)
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
-    connectionHolder.initializeConnection();
-    connectionHolder.initializeConnection();
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
+    connectionHolder.initializeConnection()
+    connectionHolder.initializeConnection()
 
     connectionHolder.releaseConnection().then(() => {
-      expect(connection.isNeverReleased()).toBeTruthy();
-      done();
-    });
-  });
+      expect(connection.isNeverReleased()).toBeTruthy()
+      done()
+    })
+  })
 
   it('should release connection with multiple users when all users release', done => {
-    const connection = new FakeConnection();
-    const connectionProvider = newSingleConnectionProvider(connection);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connection = new FakeConnection()
+    const connectionProvider = newSingleConnectionProvider(connection)
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
-    connectionHolder.initializeConnection();
-    connectionHolder.initializeConnection();
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
+    connectionHolder.initializeConnection()
+    connectionHolder.initializeConnection()
 
     connectionHolder.releaseConnection().then(() => {
       connectionHolder.releaseConnection().then(() => {
         connectionHolder.releaseConnection().then(() => {
-          expect(connection.isReleasedOnce()).toBeTruthy();
-          done();
-        });
-      });
-    });
-  });
+          expect(connection.isReleasedOnce()).toBeTruthy()
+          done()
+        })
+      })
+    })
+  })
 
   it('should do nothing when closed and not initialized', done => {
-    const connection = new FakeConnection();
-    const connectionProvider = newSingleConnectionProvider(connection);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connection = new FakeConnection()
+    const connectionProvider = newSingleConnectionProvider(connection)
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
     connectionHolder.close().then(() => {
-      expect(connection.isNeverReleased()).toBeTruthy();
-      done();
-    });
-  });
+      expect(connection.isNeverReleased()).toBeTruthy()
+      done()
+    })
+  })
 
   it('should close even when users exist', done => {
-    const connection = new FakeConnection();
-    const connectionProvider = newSingleConnectionProvider(connection);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connection = new FakeConnection()
+    const connectionProvider = newSingleConnectionProvider(connection)
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
-    connectionHolder.initializeConnection();
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
+    connectionHolder.initializeConnection()
 
     connectionHolder.close().then(() => {
-      expect(connection.isReleasedOnce()).toBeTruthy();
-      done();
-    });
-  });
+      expect(connection.isReleasedOnce()).toBeTruthy()
+      done()
+    })
+  })
 
   it('should initialize new connection after releasing current one', done => {
-    const connection1 = new FakeConnection();
-    const connection2 = new FakeConnection();
-    const connectionProvider = new RecordingConnectionProvider([connection1, connection2]);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connection1 = new FakeConnection()
+    const connection2 = new FakeConnection()
+    const connectionProvider = new RecordingConnectionProvider([
+      connection1,
+      connection2
+    ])
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
 
     connectionHolder.releaseConnection().then(() => {
-      expect(connection1.isReleasedOnce()).toBeTruthy();
+      expect(connection1.isReleasedOnce()).toBeTruthy()
 
-      connectionHolder.initializeConnection();
+      connectionHolder.initializeConnection()
       connectionHolder.releaseConnection().then(() => {
-        expect(connection2.isReleasedOnce()).toBeTruthy();
-        done();
-      });
-    });
-  });
+        expect(connection2.isReleasedOnce()).toBeTruthy()
+        done()
+      })
+    })
+  })
 
   it('should initialize new connection after being closed', done => {
-    const connection1 = new FakeConnection();
-    const connection2 = new FakeConnection();
-    const connectionProvider = new RecordingConnectionProvider([connection1, connection2]);
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider);
+    const connection1 = new FakeConnection()
+    const connection2 = new FakeConnection()
+    const connectionProvider = new RecordingConnectionProvider([
+      connection1,
+      connection2
+    ])
+    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
-    connectionHolder.initializeConnection();
+    connectionHolder.initializeConnection()
 
     connectionHolder.close().then(() => {
-      expect(connection1.isReleasedOnce()).toBeTruthy();
+      expect(connection1.isReleasedOnce()).toBeTruthy()
 
-      connectionHolder.initializeConnection();
+      connectionHolder.initializeConnection()
       connectionHolder.close().then(() => {
-        expect(connection2.isReleasedOnce()).toBeTruthy();
-        done();
-      });
-    });
-  });
-});
+        expect(connection2.isReleasedOnce()).toBeTruthy()
+        done()
+      })
+    })
+  })
+})
 
 class RecordingConnectionProvider extends SingleConnectionProvider {
-
-  constructor(connections) {
-    super(Promise.resolve());
-    this.connectionPromises = connections.map(conn => Promise.resolve(conn));
-    this.acquireConnectionInvoked = 0;
+  constructor (connections) {
+    super(Promise.resolve())
+    this.connectionPromises = connections.map(conn => Promise.resolve(conn))
+    this.acquireConnectionInvoked = 0
   }
 
-  acquireConnection(mode) {
-    return this.connectionPromises[this.acquireConnectionInvoked++];
+  acquireConnection (mode) {
+    return this.connectionPromises[this.acquireConnectionInvoked++]
   }
 }
 
-function newSingleConnectionProvider(connection) {
-  return new SingleConnectionProvider(Promise.resolve(connection));
+function newSingleConnectionProvider (connection) {
+  return new SingleConnectionProvider(Promise.resolve(connection))
 }
 
-function verifyConnection(streamObserver, expectedServerVersion) {
-  expect(streamObserver._conn).toBeDefined();
-  expect(streamObserver._conn).not.toBeNull();
+function verifyConnection (streamObserver, expectedServerVersion) {
+  expect(streamObserver._conn).toBeDefined()
+  expect(streamObserver._conn).not.toBeNull()
 
   // server version is taken from connection, verify it as well
-  const metadata = streamObserver.serverMetadata();
-  expect(metadata.server.version).toEqual(expectedServerVersion);
+  const metadata = streamObserver.serverMetadata()
+  expect(metadata.server.version).toEqual(expectedServerVersion)
 }

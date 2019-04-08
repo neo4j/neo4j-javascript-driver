@@ -17,15 +17,14 @@
  * limitations under the License.
  */
 
-import neo4j from '../src';
-import {READ, WRITE} from '../src/driver';
-import parallelLimit from 'async/parallelLimit';
-import _ from 'lodash';
-import {ServerVersion, VERSION_3_2_0} from '../src/internal/server-version';
-import sharedNeo4j from './internal/shared-neo4j';
+import neo4j from '../src'
+import { READ, WRITE } from '../src/driver'
+import parallelLimit from 'async/parallelLimit'
+import _ from 'lodash'
+import { ServerVersion, VERSION_3_2_0 } from '../src/internal/server-version'
+import sharedNeo4j from './internal/shared-neo4j'
 
 describe('stress tests', () => {
-
   const TEST_MODES = {
     fast: {
       commandsCount: 5000,
@@ -37,74 +36,80 @@ describe('stress tests', () => {
       parallelism: 16,
       maxRunTimeMs: 60 * 60000 // 60 minutes
     }
-  };
+  }
 
-  const READ_QUERY = 'MATCH (n) RETURN n LIMIT 1';
-  const WRITE_QUERY = 'CREATE (person:Person:Employee {name: {name}, salary: {salary}}) RETURN person';
+  const READ_QUERY = 'MATCH (n) RETURN n LIMIT 1'
+  const WRITE_QUERY =
+    'CREATE (person:Person:Employee {name: {name}, salary: {salary}}) RETURN person'
 
-  const TEST_MODE = modeFromEnvOrDefault('STRESS_TEST_MODE');
-  const DATABASE_URI = fromEnvOrDefault('STRESS_TEST_DATABASE_URI', 'bolt://localhost');
-  const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false);
+  const TEST_MODE = modeFromEnvOrDefault('STRESS_TEST_MODE')
+  const DATABASE_URI = fromEnvOrDefault(
+    'STRESS_TEST_DATABASE_URI',
+    'bolt://localhost'
+  )
+  const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
 
-  let originalTimeout;
-  let driver;
+  let originalTimeout
+  let driver
 
   beforeEach(done => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs;
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs
 
-    const config = {logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')};
-    driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken, config);
+    const config = {
+      logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')
+    }
+    driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken, config)
 
-    cleanupDb(driver).then(() => done());
-  });
+    cleanupDb(driver).then(() => done())
+  })
 
   afterEach(done => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
 
     cleanupDb(driver).then(() => {
-      driver.close();
-      done();
-    });
-  });
+      driver.close()
+      done()
+    })
+  })
 
   it('basic', done => {
-    const context = new Context(driver, LOGGING_ENABLED);
-    const commands = createCommands(context);
+    const context = new Context(driver, LOGGING_ENABLED)
+    const commands = createCommands(context)
 
-    console.time('Basic-stress-test');
+    console.time('Basic-stress-test')
     parallelLimit(commands, TEST_MODE.parallelism, error => {
-      console.timeEnd('Basic-stress-test');
+      console.timeEnd('Basic-stress-test')
 
-      console.log('Read statistics: ', context.readServersWithQueryCount);
-      console.log('Write statistics: ', context.writeServersWithQueryCount);
+      console.log('Read statistics: ', context.readServersWithQueryCount)
+      console.log('Write statistics: ', context.writeServersWithQueryCount)
 
       if (error) {
-        done.fail(error);
+        done.fail(error)
       }
 
       verifyServers(context)
         .then(() => verifyNodeCount(context))
         .then(() => done())
-        .catch(error => done.fail(error));
-    });
-  });
+        .catch(error => done.fail(error))
+    })
+  })
 
-  function createCommands(context) {
-    const uniqueCommands = createUniqueCommands(context);
+  function createCommands (context) {
+    const uniqueCommands = createUniqueCommands(context)
 
-    const commands = [];
+    const commands = []
     for (let i = 0; i < TEST_MODE.commandsCount; i++) {
-      const randomCommand = _.sample(uniqueCommands);
-      commands.push(randomCommand);
+      const randomCommand = _.sample(uniqueCommands)
+      commands.push(randomCommand)
     }
 
-    console.log(`Generated ${TEST_MODE.commandsCount} commands`);
+    console.log(`Generated ${TEST_MODE.commandsCount} commands`)
 
-    return commands;
+    return commands
   }
 
-  function createUniqueCommands(context) {
+  function createUniqueCommands (context) {
     return [
       readQueryCommand(context),
       readQueryWithBookmarkCommand(context),
@@ -118,388 +123,505 @@ describe('stress tests', () => {
       writeQueryInTxFunctionCommand(context),
       writeQueryInTxWithBookmarkCommand(context),
       writeQueryInTxFunctionWithBookmarkCommand(context)
-    ];
+    ]
   }
 
-  function readQueryCommand(context) {
-    return queryCommand(context, READ_QUERY, () => noParams(), READ, false);
+  function readQueryCommand (context) {
+    return queryCommand(context, READ_QUERY, () => noParams(), READ, false)
   }
 
-  function readQueryWithBookmarkCommand(context) {
-    return queryCommand(context, READ_QUERY, () => noParams(), READ, true);
+  function readQueryWithBookmarkCommand (context) {
+    return queryCommand(context, READ_QUERY, () => noParams(), READ, true)
   }
 
-  function readQueryInTxCommand(context) {
-    return queryInTxCommand(context, READ_QUERY, () => noParams(), READ, false);
+  function readQueryInTxCommand (context) {
+    return queryInTxCommand(context, READ_QUERY, () => noParams(), READ, false)
   }
 
-  function readQueryInTxFunctionCommand(context) {
-    return queryInTxFunctionCommand(context, READ_QUERY, () => noParams(), READ, false);
+  function readQueryInTxFunctionCommand (context) {
+    return queryInTxFunctionCommand(
+      context,
+      READ_QUERY,
+      () => noParams(),
+      READ,
+      false
+    )
   }
 
-  function readQueryInTxWithBookmarkCommand(context) {
-    return queryInTxCommand(context, READ_QUERY, () => noParams(), READ, true);
+  function readQueryInTxWithBookmarkCommand (context) {
+    return queryInTxCommand(context, READ_QUERY, () => noParams(), READ, true)
   }
 
-  function readQueryInTxFunctionWithBookmarkCommand(context) {
-    return queryInTxFunctionCommand(context, READ_QUERY, () => noParams(), READ, true);
+  function readQueryInTxFunctionWithBookmarkCommand (context) {
+    return queryInTxFunctionCommand(
+      context,
+      READ_QUERY,
+      () => noParams(),
+      READ,
+      true
+    )
   }
 
-  function writeQueryCommand(context) {
-    return queryCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false);
+  function writeQueryCommand (context) {
+    return queryCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      false
+    )
   }
 
-  function writeQueryWithBookmarkCommand(context) {
-    return queryCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true);
+  function writeQueryWithBookmarkCommand (context) {
+    return queryCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true)
   }
 
-  function writeQueryInTxCommand(context) {
-    return queryInTxCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false);
+  function writeQueryInTxCommand (context) {
+    return queryInTxCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      false
+    )
   }
 
-  function writeQueryInTxFunctionCommand(context) {
-    return queryInTxFunctionCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false);
+  function writeQueryInTxFunctionCommand (context) {
+    return queryInTxFunctionCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      false
+    )
   }
 
-  function writeQueryInTxWithBookmarkCommand(context) {
-    return queryInTxCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true);
+  function writeQueryInTxWithBookmarkCommand (context) {
+    return queryInTxCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      true
+    )
   }
 
-  function writeQueryInTxFunctionWithBookmarkCommand(context) {
-    return queryInTxFunctionCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true);
+  function writeQueryInTxFunctionWithBookmarkCommand (context) {
+    return queryInTxFunctionCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      true
+    )
   }
 
-  function queryCommand(context, query, paramsSupplier, accessMode, useBookmark) {
+  function queryCommand (
+    context,
+    query,
+    paramsSupplier,
+    accessMode,
+    useBookmark
+  ) {
     return callback => {
-      const commandId = context.nextCommandId();
-      const session = newSession(context, accessMode, useBookmark);
-      const params = paramsSupplier();
+      const commandId = context.nextCommandId()
+      const session = newSession(context, accessMode, useBookmark)
+      const params = paramsSupplier()
 
-      context.log(commandId, `About to run ${accessMode} query`);
+      context.log(commandId, `About to run ${accessMode} query`)
 
-      session.run(query, params).then(result => {
-        context.queryCompleted(result, accessMode);
-        context.log(commandId, `Query completed successfully`);
-
-        session.close(() => {
-          const possibleError = verifyQueryResult(result);
-          callback(possibleError);
-        });
-      }).catch(error => {
-        context.log(commandId, `Query failed with error ${JSON.stringify(error)}`);
-        callback(error);
-      });
-    };
-  }
-
-  function queryInTxFunctionCommand(context, query, paramsSupplier, accessMode, useBookmark) {
-    return callback => {
-      const commandId = context.nextCommandId();
-      const params = paramsSupplier();
-      const session = newSession(context, accessMode, useBookmark);
-
-      context.log(commandId, `About to run ${accessMode} query in TX function`);
-
-      let resultPromise;
-      if (accessMode === READ) {
-        resultPromise = session.readTransaction(tx => tx.run(query, params));
-      } else {
-        resultPromise = session.writeTransaction(tx => tx.run(query, params));
-      }
-
-      resultPromise.then(result => {
-        context.queryCompleted(result, accessMode, session.lastBookmark());
-        context.log(commandId, `Transaction function executed successfully`);
-
-        session.close(() => {
-          const possibleError = verifyQueryResult(result);
-          callback(possibleError);
-        });
-      }).catch(error => {
-        context.log(commandId, `Transaction function failed with error ${JSON.stringify(error)}`);
-        callback(error);
-      });
-    };
-  }
-
-  function queryInTxCommand(context, query, paramsSupplier, accessMode, useBookmark) {
-    return callback => {
-      const commandId = context.nextCommandId();
-      const session = newSession(context, accessMode, useBookmark);
-      const tx = session.beginTransaction();
-      const params = paramsSupplier();
-
-      context.log(commandId, `About to run ${accessMode} query in TX`);
-
-      tx.run(query, params).then(result => {
-        let commandError = verifyQueryResult(result);
-
-        tx.commit().catch(commitError => {
-          context.log(commandId, `Transaction commit failed with error ${JSON.stringify(error)}`);
-          if (!commandError) {
-            commandError = commitError;
-          }
-        }).then(() => {
-          context.queryCompleted(result, accessMode, session.lastBookmark());
-          context.log(commandId, `Transaction committed successfully`);
+      session
+        .run(query, params)
+        .then(result => {
+          context.queryCompleted(result, accessMode)
+          context.log(commandId, `Query completed successfully`)
 
           session.close(() => {
-            callback(commandError);
-          });
-        });
-
-      }).catch(error => {
-        context.log(commandId, `Query failed with error ${JSON.stringify(error)}`);
-        callback(error);
-      });
-    };
+            const possibleError = verifyQueryResult(result)
+            callback(possibleError)
+          })
+        })
+        .catch(error => {
+          context.log(
+            commandId,
+            `Query failed with error ${JSON.stringify(error)}`
+          )
+          callback(error)
+        })
+    }
   }
 
-  function verifyQueryResult(result) {
+  function queryInTxFunctionCommand (
+    context,
+    query,
+    paramsSupplier,
+    accessMode,
+    useBookmark
+  ) {
+    return callback => {
+      const commandId = context.nextCommandId()
+      const params = paramsSupplier()
+      const session = newSession(context, accessMode, useBookmark)
+
+      context.log(commandId, `About to run ${accessMode} query in TX function`)
+
+      let resultPromise
+      if (accessMode === READ) {
+        resultPromise = session.readTransaction(tx => tx.run(query, params))
+      } else {
+        resultPromise = session.writeTransaction(tx => tx.run(query, params))
+      }
+
+      resultPromise
+        .then(result => {
+          context.queryCompleted(result, accessMode, session.lastBookmark())
+          context.log(commandId, `Transaction function executed successfully`)
+
+          session.close(() => {
+            const possibleError = verifyQueryResult(result)
+            callback(possibleError)
+          })
+        })
+        .catch(error => {
+          context.log(
+            commandId,
+            `Transaction function failed with error ${JSON.stringify(error)}`
+          )
+          callback(error)
+        })
+    }
+  }
+
+  function queryInTxCommand (
+    context,
+    query,
+    paramsSupplier,
+    accessMode,
+    useBookmark
+  ) {
+    return callback => {
+      const commandId = context.nextCommandId()
+      const session = newSession(context, accessMode, useBookmark)
+      const tx = session.beginTransaction()
+      const params = paramsSupplier()
+
+      context.log(commandId, `About to run ${accessMode} query in TX`)
+
+      tx.run(query, params)
+        .then(result => {
+          let commandError = verifyQueryResult(result)
+
+          tx.commit()
+            .catch(commitError => {
+              context.log(
+                commandId,
+                `Transaction commit failed with error ${JSON.stringify(
+                  commitError
+                )}`
+              )
+              if (!commandError) {
+                commandError = commitError
+              }
+            })
+            .then(() => {
+              context.queryCompleted(result, accessMode, session.lastBookmark())
+              context.log(commandId, `Transaction committed successfully`)
+
+              session.close(() => {
+                callback(commandError)
+              })
+            })
+        })
+        .catch(error => {
+          context.log(
+            commandId,
+            `Query failed with error ${JSON.stringify(error)}`
+          )
+          callback(error)
+        })
+    }
+  }
+
+  function verifyQueryResult (result) {
     if (!result) {
-      return new Error(`Received undefined result`);
+      return new Error(`Received undefined result`)
     } else if (result.records.length === 0) {
       // it is ok to receive no nodes back for read queries at the beginning of the test
-      return null;
+      return null
     } else if (result.records.length === 1) {
-      const record = result.records[0];
-      return verifyRecord(record);
+      const record = result.records[0]
+      return verifyRecord(record)
     } else {
-      return new Error(`Unexpected amount of records received: ${JSON.stringify(result)}`);
+      return new Error(
+        `Unexpected amount of records received: ${JSON.stringify(result)}`
+      )
     }
   }
 
-  function verifyRecord(record) {
-    const node = record.get(0);
+  function verifyRecord (record) {
+    const node = record.get(0)
 
     if (!arraysEqual(['Person', 'Employee'], node.labels)) {
-      return new Error(`Unexpected labels in node: ${JSON.stringify(node)}`);
+      return new Error(`Unexpected labels in node: ${JSON.stringify(node)}`)
     }
 
-    const propertyKeys = _.keys(node.properties);
-    if (!_.isEmpty(propertyKeys) && !arraysEqual(['name', 'salary'], propertyKeys)) {
-      return new Error(`Unexpected property keys in node: ${JSON.stringify(node)}`);
+    const propertyKeys = _.keys(node.properties)
+    if (
+      !_.isEmpty(propertyKeys) &&
+      !arraysEqual(['name', 'salary'], propertyKeys)
+    ) {
+      return new Error(
+        `Unexpected property keys in node: ${JSON.stringify(node)}`
+      )
     }
 
-    return null;
+    return null
   }
 
-  function verifyNodeCount(context) {
-    const expectedNodeCount = context.createdNodesCount;
+  function verifyNodeCount (context) {
+    const expectedNodeCount = context.createdNodesCount
 
-    const session = context.driver.session();
+    const session = context.driver.session()
     return session.run('MATCH (n) RETURN count(n)').then(result => {
-      const record = result.records[0];
-      const count = record.get(0).toNumber();
+      const record = result.records[0]
+      const count = record.get(0).toNumber()
 
       if (count !== expectedNodeCount) {
-        throw new Error(`Unexpected node count: ${count}, expected: ${expectedNodeCount}`);
+        throw new Error(
+          `Unexpected node count: ${count}, expected: ${expectedNodeCount}`
+        )
       }
-    });
+    })
   }
 
-  function verifyServers(context) {
-    const routing = DATABASE_URI.indexOf('bolt+routing') === 0;
+  function verifyServers (context) {
+    const routing = DATABASE_URI.indexOf('bolt+routing') === 0
 
     if (routing) {
-      return verifyCausalClusterMembers(context);
+      return verifyCausalClusterMembers(context)
     }
-    return verifySingleInstance(context);
+    return verifySingleInstance(context)
   }
 
-  function verifySingleInstance(context) {
+  function verifySingleInstance (context) {
     return new Promise(resolve => {
-      const readServerAddresses = context.readServerAddresses();
-      const writeServerAddresses = context.writeServerAddresses();
+      const readServerAddresses = context.readServerAddresses()
+      const writeServerAddresses = context.writeServerAddresses()
 
-      expect(readServerAddresses.length).toEqual(1);
-      expect(writeServerAddresses.length).toEqual(1);
-      expect(readServerAddresses).toEqual(writeServerAddresses);
+      expect(readServerAddresses.length).toEqual(1)
+      expect(writeServerAddresses.length).toEqual(1)
+      expect(readServerAddresses).toEqual(writeServerAddresses)
 
-      const address = readServerAddresses[0];
-      expect(context.readServersWithQueryCount[address]).toBeGreaterThan(1);
-      expect(context.writeServersWithQueryCount[address]).toBeGreaterThan(1);
+      const address = readServerAddresses[0]
+      expect(context.readServersWithQueryCount[address]).toBeGreaterThan(1)
+      expect(context.writeServersWithQueryCount[address]).toBeGreaterThan(1)
 
-      resolve();
-    });
+      resolve()
+    })
   }
 
-  function verifyCausalClusterMembers(context) {
+  function verifyCausalClusterMembers (context) {
     return fetchClusterAddresses(context).then(clusterAddresses => {
       // before 3.2.0 only read replicas serve reads
-      const readsOnFollowersEnabled = context.serverVersion.compareTo(VERSION_3_2_0) >= 0;
+      const readsOnFollowersEnabled =
+        context.serverVersion.compareTo(VERSION_3_2_0) >= 0
 
       if (readsOnFollowersEnabled) {
         // expect all followers to serve more than zero read queries
-        assertAllAddressesServedReadQueries(clusterAddresses.followers, context.readServersWithQueryCount);
+        assertAllAddressesServedReadQueries(
+          clusterAddresses.followers,
+          context.readServersWithQueryCount
+        )
       }
 
       // expect all read replicas to serve more than zero read queries
-      assertAllAddressesServedReadQueries(clusterAddresses.readReplicas, context.readServersWithQueryCount);
+      assertAllAddressesServedReadQueries(
+        clusterAddresses.readReplicas,
+        context.readServersWithQueryCount
+      )
 
       if (readsOnFollowersEnabled) {
         // expect all followers to serve same order of magnitude read queries
-        assertAllAddressesServedSimilarAmountOfReadQueries(clusterAddresses.followers, context.readServersWithQueryCount);
+        assertAllAddressesServedSimilarAmountOfReadQueries(
+          clusterAddresses.followers,
+          context.readServersWithQueryCount
+        )
       }
 
       // expect all read replicas to serve same order of magnitude read queries
-      assertAllAddressesServedSimilarAmountOfReadQueries(clusterAddresses.readReplicas,
-        context.readServersWithQueryCount);
-    });
+      assertAllAddressesServedSimilarAmountOfReadQueries(
+        clusterAddresses.readReplicas,
+        context.readServersWithQueryCount
+      )
+    })
   }
 
-  function fetchClusterAddresses(context) {
-    const session = context.driver.session();
+  function fetchClusterAddresses (context) {
+    const session = context.driver.session()
     return session.run('CALL dbms.cluster.overview()').then(result => {
-      session.close();
-      const records = result.records;
+      session.close()
+      const records = result.records
 
-      const followers = addressesWithRole(records, 'FOLLOWER');
-      const readReplicas = addressesWithRole(records, 'READ_REPLICA');
+      const followers = addressesWithRole(records, 'FOLLOWER')
+      const readReplicas = addressesWithRole(records, 'READ_REPLICA')
 
-      return new ClusterAddresses(followers, readReplicas);
-    });
+      return new ClusterAddresses(followers, readReplicas)
+    })
   }
 
-  function addressesWithRole(records, role) {
-    return _.uniq(records.filter(record => record.get('role') === role)
-      .map(record => record.get('addresses')[0].replace('bolt://', '')));
+  function addressesWithRole (records, role) {
+    return _.uniq(
+      records
+        .filter(record => record.get('role') === role)
+        .map(record => record.get('addresses')[0].replace('bolt://', ''))
+    )
   }
 
-  function assertAllAddressesServedReadQueries(addresses, readQueriesByServer) {
+  function assertAllAddressesServedReadQueries (addresses, readQueriesByServer) {
     addresses.forEach(address => {
-      const queries = readQueriesByServer[address];
-      expect(queries).toBeGreaterThan(0);
-    });
+      const queries = readQueriesByServer[address]
+      expect(queries).toBeGreaterThan(0)
+    })
   }
 
-  function assertAllAddressesServedSimilarAmountOfReadQueries(addresses, readQueriesByServer) {
-    const expectedOrderOfMagnitude = orderOfMagnitude(readQueriesByServer[addresses[0]]);
+  function assertAllAddressesServedSimilarAmountOfReadQueries (
+    addresses,
+    readQueriesByServer
+  ) {
+    const expectedOrderOfMagnitude = orderOfMagnitude(
+      readQueriesByServer[addresses[0]]
+    )
 
     addresses.forEach(address => {
-      const queries = readQueriesByServer[address];
-      const currentOrderOfMagnitude = orderOfMagnitude(queries);
+      const queries = readQueriesByServer[address]
+      const currentOrderOfMagnitude = orderOfMagnitude(queries)
 
-      expect(currentOrderOfMagnitude).not.toBeLessThan(expectedOrderOfMagnitude - 1);
-      expect(currentOrderOfMagnitude).not.toBeGreaterThan(expectedOrderOfMagnitude + 1);
-    });
+      expect(currentOrderOfMagnitude).not.toBeLessThan(
+        expectedOrderOfMagnitude - 1
+      )
+      expect(currentOrderOfMagnitude).not.toBeGreaterThan(
+        expectedOrderOfMagnitude + 1
+      )
+    })
   }
 
-  function orderOfMagnitude(number) {
-    let result = 1;
+  function orderOfMagnitude (number) {
+    let result = 1
     while (number >= 10) {
-      number /= 10;
-      result++;
+      number /= 10
+      result++
     }
-    return result;
+    return result
   }
 
-  function randomParams() {
+  function randomParams () {
     return {
       name: `Person-${Date.now()}`,
       salary: Date.now()
-    };
+    }
   }
 
-  function noParams() {
-    return {};
+  function noParams () {
+    return {}
   }
 
-  function newSession(context, accessMode, useBookmark) {
+  function newSession (context, accessMode, useBookmark) {
     if (useBookmark) {
-      return context.driver.session(accessMode, context.bookmark);
+      return context.driver.session(accessMode, context.bookmark)
     }
-    return context.driver.session(accessMode);
+    return context.driver.session(accessMode)
   }
 
-  function modeFromEnvOrDefault(envVariableName) {
-    const modeName = fromEnvOrDefault(envVariableName, 'fast');
-    const mode = TEST_MODES[modeName];
+  function modeFromEnvOrDefault (envVariableName) {
+    const modeName = fromEnvOrDefault(envVariableName, 'fast')
+    const mode = TEST_MODES[modeName]
     if (!mode) {
-      throw new Error(`Unknown test mode: ${modeName}`);
+      throw new Error(`Unknown test mode: ${modeName}`)
     }
-    console.log(`Selected '${modeName}' mode for the stress test`);
-    return mode;
+    console.log(`Selected '${modeName}' mode for the stress test`)
+    return mode
   }
 
-  function fromEnvOrDefault(envVariableName, defaultValue) {
+  function fromEnvOrDefault (envVariableName, defaultValue) {
     if (process && process.env && process.env[envVariableName]) {
-      return process.env[envVariableName];
+      return process.env[envVariableName]
     }
-    return defaultValue;
+    return defaultValue
   }
 
-  function cleanupDb(driver) {
-    const session = driver.session();
-    return session.run('MATCH (n) DETACH DELETE n').then(() => {
-      session.close();
-    }).catch(error => {
-      console.log('Error clearing the database: ', error);
-    });
+  function cleanupDb (driver) {
+    const session = driver.session()
+    return session
+      .run('MATCH (n) DETACH DELETE n')
+      .then(() => {
+        session.close()
+      })
+      .catch(error => {
+        console.log('Error clearing the database: ', error)
+      })
   }
 
-  function arraysEqual(array1, array2) {
-    return _.difference(array1, array2).length === 0;
+  function arraysEqual (array1, array2) {
+    return _.difference(array1, array2).length === 0
   }
 
   class Context {
-
-    constructor(driver, loggingEnabled) {
-      this.driver = driver;
-      this.bookmark = null;
-      this.createdNodesCount = 0;
-      this._commandIdCouter = 0;
-      this._loggingEnabled = loggingEnabled;
-      this.readServersWithQueryCount = {};
-      this.writeServersWithQueryCount = {};
-      this.serverVersion = null;
+    constructor (driver, loggingEnabled) {
+      this.driver = driver
+      this.bookmark = null
+      this.createdNodesCount = 0
+      this._commandIdCouter = 0
+      this._loggingEnabled = loggingEnabled
+      this.readServersWithQueryCount = {}
+      this.writeServersWithQueryCount = {}
+      this.serverVersion = null
     }
 
-    queryCompleted(result, accessMode, bookmark) {
-      const serverInfo = result.summary.server;
+    queryCompleted (result, accessMode, bookmark) {
+      const serverInfo = result.summary.server
 
       if (!this.serverVersion) {
-        this.serverVersion = ServerVersion.fromString(serverInfo.version);
+        this.serverVersion = ServerVersion.fromString(serverInfo.version)
       }
 
-      const serverAddress = serverInfo.address;
+      const serverAddress = serverInfo.address
       if (accessMode === WRITE) {
-        this.createdNodesCount++;
-        this.writeServersWithQueryCount[serverAddress] = (this.writeServersWithQueryCount[serverAddress] || 0) + 1;
+        this.createdNodesCount++
+        this.writeServersWithQueryCount[serverAddress] =
+          (this.writeServersWithQueryCount[serverAddress] || 0) + 1
       } else {
-        this.readServersWithQueryCount[serverAddress] = (this.readServersWithQueryCount[serverAddress] || 0) + 1;
+        this.readServersWithQueryCount[serverAddress] =
+          (this.readServersWithQueryCount[serverAddress] || 0) + 1
       }
 
       if (bookmark) {
-        this.bookmark = bookmark;
+        this.bookmark = bookmark
       }
     }
 
-    nextCommandId() {
-      return this._commandIdCouter++;
+    nextCommandId () {
+      return this._commandIdCouter++
     }
 
-    readServerAddresses() {
-      return Object.keys(this.readServersWithQueryCount);
+    readServerAddresses () {
+      return Object.keys(this.readServersWithQueryCount)
     }
 
-    writeServerAddresses() {
-      return Object.keys(this.writeServersWithQueryCount);
+    writeServerAddresses () {
+      return Object.keys(this.writeServersWithQueryCount)
     }
 
-    log(commandId, message) {
+    log (commandId, message) {
       if (this._loggingEnabled) {
-        console.log(`Command [${commandId}]: ${message}`);
+        console.log(`Command [${commandId}]: ${message}`)
       }
     }
   }
 
   class ClusterAddresses {
-
-    constructor(followers, readReplicas) {
-      this.followers = followers;
-      this.readReplicas = readReplicas;
+    constructor (followers, readReplicas) {
+      this.followers = followers
+      this.readReplicas = readReplicas
     }
   }
-
-});
+})

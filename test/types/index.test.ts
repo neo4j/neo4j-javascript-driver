@@ -17,37 +17,57 @@
  * limitations under the License.
  */
 
-import {auth, AuthToken, Config, driver, error, session, spatial, temporal} from "../../types/index";
+import {
+  auth,
+  AuthToken,
+  Config,
+  driver,
+  error,
+  session,
+  spatial,
+  temporal
+} from '../../types/index'
 
-import Driver from "../../types/driver";
+import Driver from '../../types/driver'
 
-const dummy: any = null;
+const dummy: any = null
 
-const config: Config = dummy;
+const config: Config = dummy
 
-const basicAuthToken1: AuthToken = auth.basic("neo4j", "password");
-const basicAuthToken2: AuthToken = auth.basic("neo4j", "password", "realm");
+const basicAuthToken1: AuthToken = auth.basic('neo4j', 'password')
+const basicAuthToken2: AuthToken = auth.basic('neo4j', 'password', 'realm')
 
-const kerberosAuthToken1: AuthToken = auth.kerberos("base64EncodedTicket");
+const kerberosAuthToken1: AuthToken = auth.kerberos('base64EncodedTicket')
 
-const customAuthToken1: AuthToken = auth.custom("neo4j", "password", "realm", "scheme");
-const customAuthToken2: AuthToken = auth.custom("neo4j", "password", "realm", "scheme", {"key": "value"});
+const customAuthToken1: AuthToken = auth.custom(
+  'neo4j',
+  'password',
+  'realm',
+  'scheme'
+)
+const customAuthToken2: AuthToken = auth.custom(
+  'neo4j',
+  'password',
+  'realm',
+  'scheme',
+  { key: 'value' }
+)
 
-const driver1: Driver = driver("bolt://localhost:7687");
-const driver2: Driver = driver("bolt://localhost:7687", basicAuthToken1);
-const driver3: Driver = driver("bolt://localhost:7687", basicAuthToken1, config);
+const driver1: Driver = driver('bolt://localhost:7687')
+const driver2: Driver = driver('bolt://localhost:7687', basicAuthToken1)
+const driver3: Driver = driver('bolt://localhost:7687', basicAuthToken1, config)
 
-const readMode1: string = session.READ;
-const writeMode1: string = session.WRITE;
+const readMode1: string = session.READ
+const writeMode1: string = session.WRITE
 
-const serviceUnavailable1: string = error.SERVICE_UNAVAILABLE;
-const sessionExpired1: string = error.SESSION_EXPIRED;
-const protocolError1: string = error.PROTOCOL_ERROR;
+const serviceUnavailable1: string = error.SERVICE_UNAVAILABLE
+const sessionExpired1: string = error.SESSION_EXPIRED
+const protocolError1: string = error.PROTOCOL_ERROR
 
-const isNeo4jPoint: boolean = spatial.isPoint({});
-const isNeo4jDate: boolean = temporal.isDate({});
-const isNeo4jDateTime: boolean = temporal.isDateTime({});
-const isNeo4jDuration: boolean = temporal.isDuration({});
-const isNeo4jLocalDateTime: boolean = temporal.isLocalDateTime({});
-const isNeo4jLocalTime: boolean = temporal.isLocalTime({});
-const isNeo4jTime: boolean = temporal.isTime({});
+const isNeo4jPoint: boolean = spatial.isPoint({})
+const isNeo4jDate: boolean = temporal.isDate({})
+const isNeo4jDateTime: boolean = temporal.isDateTime({})
+const isNeo4jDuration: boolean = temporal.isDuration({})
+const isNeo4jLocalDateTime: boolean = temporal.isLocalDateTime({})
+const isNeo4jLocalTime: boolean = temporal.isLocalTime({})
+const isNeo4jTime: boolean = temporal.isTime({})

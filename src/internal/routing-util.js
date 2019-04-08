@@ -17,21 +17,21 @@
  * limitations under the License.
  */
 
-import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE} from '../error';
-import Integer, {int} from '../integer';
-import {ServerVersion, VERSION_3_2_0} from './server-version';
-import Bookmark from './bookmark';
-import TxConfig from './tx-config';
-import {ACCESS_MODE_WRITE} from "./constants";
+import { newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE } from '../error'
+import Integer, { int } from '../integer'
+import { ServerVersion, VERSION_3_2_0 } from './server-version'
+import Bookmark from './bookmark'
+import TxConfig from './tx-config'
+import { ACCESS_MODE_WRITE } from './constants'
 
-const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers';
-const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable($context)';
-const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound';
+const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers'
+const CALL_GET_ROUTING_TABLE =
+  'CALL dbms.cluster.routing.getRoutingTable($context)'
+const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 
 export default class RoutingUtil {
-
-  constructor(routingContext) {
-    this._routingContext = routingContext;
+  constructor (routingContext) {
+    this._routingContext = routingContext
   }
 
   /**
@@ -41,62 +41,70 @@ export default class RoutingUtil {
    * @return {Promise<Record[]>} promise resolved with records returned by the procedure call or null if
    * connection error happened.
    */
-  callRoutingProcedure(session, routerAddress) {
-    return this._callAvailableRoutingProcedure(session).then(result => {
-      session.close();
-      return result.records;
-    }).catch(error => {
-      if (error.code === PROCEDURE_NOT_FOUND_CODE) {
-        // throw when getServers procedure not found because this is clearly a configuration issue
-        throw newError(
-          `Server at ${routerAddress} can't perform routing. Make sure you are connecting to a causal cluster`,
-          SERVICE_UNAVAILABLE);
-      } else {
-        // return nothing when failed to connect because code higher in the callstack is still able to retry with a
-        // different session towards a different router
-        return null;
-      }
-    });
+  callRoutingProcedure (session, routerAddress) {
+    return this._callAvailableRoutingProcedure(session)
+      .then(result => {
+        session.close()
+        return result.records
+      })
+      .catch(error => {
+        if (error.code === PROCEDURE_NOT_FOUND_CODE) {
+          // throw when getServers procedure not found because this is clearly a configuration issue
+          throw newError(
+            `Server at ${routerAddress} can't perform routing. Make sure you are connecting to a causal cluster`,
+            SERVICE_UNAVAILABLE
+          )
+        } else {
+          // return nothing when failed to connect because code higher in the callstack is still able to retry with a
+          // different session towards a different router
+          return null
+        }
+      })
   }
 
-  parseTtl(record, routerAddress) {
+  parseTtl (record, routerAddress) {
     try {
-      const now = int(Date.now());
-      const expires = int(record.get('ttl')).multiply(1000).add(now);
+      const now = int(Date.now())
+      const expires = int(record.get('ttl'))
+        .multiply(1000)
+        .add(now)
       // if the server uses a really big expire time like Long.MAX_VALUE this may have overflowed
       if (expires.lessThan(now)) {
-        return Integer.MAX_VALUE;
+        return Integer.MAX_VALUE
       }
-      return expires;
+      return expires
     } catch (error) {
       throw newError(
-        `Unable to parse TTL entry from router ${routerAddress} from record:\n${JSON.stringify(record)}\nError message: ${error.message}`,
-        PROTOCOL_ERROR);
+        `Unable to parse TTL entry from router ${routerAddress} from record:\n${JSON.stringify(
+          record
+        )}\nError message: ${error.message}`,
+        PROTOCOL_ERROR
+      )
     }
   }
 
-  parseServers(record, routerAddress) {
+  parseServers (record, routerAddress) {
     try {
-      const servers = record.get('servers');
+      const servers = record.get('servers')
 
-      let routers = [];
-      let readers = [];
-      let writers = [];
+      let routers = []
+      let readers = []
+      let writers = []
 
       servers.forEach(server => {
-        const role = server['role'];
-        const addresses = server['addresses'];
+        const role = server['role']
+        const addresses = server['addresses']
 
         if (role === 'ROUTE') {
-          routers = parseArray(addresses);
+          routers = parseArray(addresses)
         } else if (role === 'WRITE') {
-          writers = parseArray(addresses);
+          writers = parseArray(addresses)
         } else if (role === 'READ') {
-          readers = parseArray(addresses);
+          readers = parseArray(addresses)
         } else {
-          throw newError('Unknown server role "' + role + '"', PROTOCOL_ERROR);
+          throw newError('Unknown server role "' + role + '"', PROTOCOL_ERROR)
         }
-      });
+      })
 
       return {
         routers: routers,
@@ -105,35 +113,47 @@ export default class RoutingUtil {
       }
     } catch (error) {
       throw newError(
-        `Unable to parse servers entry from router ${routerAddress} from record:\n${JSON.stringify(record)}\nError message: ${error.message}`,
-        PROTOCOL_ERROR);
+        `Unable to parse servers entry from router ${routerAddress} from record:\n${JSON.stringify(
+          record
+        )}\nError message: ${error.message}`,
+        PROTOCOL_ERROR
+      )
     }
   }
 
-  _callAvailableRoutingProcedure(session) {
+  _callAvailableRoutingProcedure (session) {
     return session._run(null, null, (connection, streamObserver) => {
-      const serverVersionString = connection.server.version;
-      const serverVersion = ServerVersion.fromString(serverVersionString);
+      const serverVersionString = connection.server.version
+      const serverVersion = ServerVersion.fromString(serverVersionString)
 
-      let query;
-      let params;
+      let query
+      let params
 
       if (serverVersion.compareTo(VERSION_3_2_0) >= 0) {
-        query = CALL_GET_ROUTING_TABLE;
-        params = {context: this._routingContext};
+        query = CALL_GET_ROUTING_TABLE
+        params = { context: this._routingContext }
       } else {
-        query = CALL_GET_SERVERS;
-        params = {};
+        query = CALL_GET_SERVERS
+        params = {}
       }
 
-      connection.protocol().run(query, params, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, streamObserver);
-    });
+      connection
+        .protocol()
+        .run(
+          query,
+          params,
+          Bookmark.empty(),
+          TxConfig.empty(),
+          ACCESS_MODE_WRITE,
+          streamObserver
+        )
+    })
   }
 }
 
-function parseArray(addresses) {
+function parseArray (addresses) {
   if (!Array.isArray(addresses)) {
-    throw new TypeError('Array expected but got: ' + addresses);
+    throw new TypeError('Array expected but got: ' + addresses)
   }
-  return Array.from(addresses);
+  return Array.from(addresses)
 }

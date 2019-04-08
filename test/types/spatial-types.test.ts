@@ -17,30 +17,30 @@
  * limitations under the License.
  */
 
-import {isPoint, Point} from "../../types/spatial-types";
-import Integer, {int} from "../../types/integer";
+import { isPoint, Point } from '../../types/spatial-types'
+import Integer, { int } from '../../types/integer'
 
-const point1: Point = new Point(int(1), 2, 3);
-const srid1: Integer = point1.srid;
-const x1: number = point1.x;
-const y1: number = point1.y;
+const point1: Point = new Point(int(1), 2, 3)
+const srid1: Integer = point1.srid
+const x1: number = point1.x
+const y1: number = point1.y
 
-const point2: Point<number> = new Point(1, 2, 3);
-const srid2: number = point2.srid;
-const x2: number = point2.x;
-const y2: number = point2.y;
+const point2: Point<number> = new Point(1, 2, 3)
+const srid2: number = point2.srid
+const x2: number = point2.x
+const y2: number = point2.y
 
-const point3: Point = new Point(int(1), 2, 3, 4);
-const srid3: Integer = point3.srid;
-const x3: number = point3.x;
-const y3: number = point3.y;
-const z3: number | undefined = point3.z;
+const point3: Point = new Point(int(1), 2, 3, 4)
+const srid3: Integer = point3.srid
+const x3: number = point3.x
+const y3: number = point3.y
+const z3: number | undefined = point3.z
 
-const point4: Point<number> = new Point(1, 2, 3, 4);
-const srid4: number = point4.srid;
-const x4: number = point4.x;
-const y4: number = point4.y;
-const z4: number | undefined = point4.z;
+const point4: Point<number> = new Point(1, 2, 3, 4)
+const srid4: number = point4.srid
+const x4: number = point4.x
+const y4: number = point4.y
+const z4: number | undefined = point4.z
 
-const isPoint1: boolean = isPoint(point1);
-const isPoint2: boolean = isPoint({});
+const isPoint1: boolean = isPoint(point1)
+const isPoint2: boolean = isPoint({})

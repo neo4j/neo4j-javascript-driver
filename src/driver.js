@@ -17,36 +17,38 @@
  * limitations under the License.
  */
 
-import Session from './session';
-import Pool from './internal/pool';
-import Connection from './internal/connection';
-import StreamObserver from './internal/stream-observer';
-import {newError, SERVICE_UNAVAILABLE} from './error';
-import {DirectConnectionProvider} from './internal/connection-providers';
-import Bookmark from './internal/bookmark';
-import ConnectivityVerifier from './internal/connectivity-verifier';
-import PoolConfig, {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from './internal/pool-config';
-import Logger from './internal/logger';
-import ConnectionErrorHandler from './internal/connection-error-handler';
-import {ACCESS_MODE_READ, ACCESS_MODE_WRITE} from './internal/constants';
+import Session from './session'
+import Pool from './internal/pool'
+import Connection from './internal/connection'
+import { newError, SERVICE_UNAVAILABLE } from './error'
+import { DirectConnectionProvider } from './internal/connection-providers'
+import Bookmark from './internal/bookmark'
+import ConnectivityVerifier from './internal/connectivity-verifier'
+import PoolConfig, {
+  DEFAULT_ACQUISITION_TIMEOUT,
+  DEFAULT_MAX_SIZE
+} from './internal/pool-config'
+import Logger from './internal/logger'
+import ConnectionErrorHandler from './internal/connection-error-handler'
+import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 
-const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000; // 1 hour
+const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000 // 1 hour
 
 /**
  * Constant that represents read session access mode.
  * Should be used like this: `driver.session(neo4j.session.READ)`.
  * @type {string}
  */
-const READ = ACCESS_MODE_READ;
+const READ = ACCESS_MODE_READ
 
 /**
  * Constant that represents write session access mode.
  * Should be used like this: `driver.session(neo4j.session.WRITE)`.
  * @type {string}
  */
-const WRITE = ACCESS_MODE_WRITE;
+const WRITE = ACCESS_MODE_WRITE
 
-let idGenerator = 0;
+let idGenerator = 0
 
 /**
  * A driver maintains one or more {@link Session}s with a remote
@@ -68,49 +70,51 @@ class Driver {
    * @param {object} config
    * @protected
    */
-  constructor(hostPort, userAgent, authToken = {}, config = {}) {
-    sanitizeConfig(config);
+  constructor (hostPort, userAgent, authToken = {}, config = {}) {
+    sanitizeConfig(config)
 
-    this._id = idGenerator++;
-    this._hostPort = hostPort;
-    this._userAgent = userAgent;
-    this._openConnections = {};
-    this._authToken = authToken;
-    this._config = config;
-    this._log = Logger.create(config);
+    this._id = idGenerator++
+    this._hostPort = hostPort
+    this._userAgent = userAgent
+    this._openConnections = {}
+    this._authToken = authToken
+    this._config = config
+    this._log = Logger.create(config)
     this._pool = new Pool(
       this._createConnection.bind(this),
       this._destroyConnection.bind(this),
       this._validateConnection.bind(this),
       PoolConfig.fromDriverConfig(config),
       this._log
-    );
+    )
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
      * @type {ConnectionProvider}
      * @protected
      */
-    this._connectionProvider = null;
+    this._connectionProvider = null
 
-    this._afterConstruction();
+    this._afterConstruction()
   }
 
   /**
    * @protected
    */
-  _afterConstruction() {
-    this._log.info(`Direct driver ${this._id} created for server address ${this._hostPort}`);
+  _afterConstruction () {
+    this._log.info(
+      `Direct driver ${this._id} created for server address ${this._hostPort}`
+    )
   }
 
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
    * @returns {Promise<object>} promise resolved with server info or rejected with error.
    */
-  verifyConnectivity() {
-    const connectionProvider = this._getOrCreateConnectionProvider();
-    const connectivityVerifier = new ConnectivityVerifier(connectionProvider);
-    return connectivityVerifier.verify();
+  verifyConnectivity () {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    const connectivityVerifier = new ConnectivityVerifier(connectionProvider)
+    return connectivityVerifier.verify()
   }
 
   /**
@@ -118,20 +122,24 @@ class Driver {
    * @return {Promise<Connection>} promise resolved with a new connection or rejected when failed to connect.
    * @access private
    */
-  _createConnection(hostPort, release) {
-    const connection = Connection.create(hostPort, this._config, this._createConnectionErrorHandler(), this._log);
-    connection._release = () => release(hostPort, connection);
-    this._openConnections[connection.id] = connection;
+  _createConnection (hostPort, release) {
+    const connection = Connection.create(
+      hostPort,
+      this._config,
+      this._createConnectionErrorHandler(),
+      this._log
+    )
+    connection._release = () => release(hostPort, connection)
+    this._openConnections[connection.id] = connection
 
-    return connection.connect(this._userAgent, this._authToken)
-      .catch(error => {
-        if (this.onError) {
-          // notify Driver.onError callback about connection initialization errors
-          this.onError(error);
-        }
-        // propagate the error because connection failed to connect / initialize
-        throw error;
-      });
+    return connection.connect(this._userAgent, this._authToken).catch(error => {
+      if (this.onError) {
+        // notify Driver.onError callback about connection initialization errors
+        this.onError(error)
+      }
+      // propagate the error because connection failed to connect / initialize
+      throw error
+    })
   }
 
   /**
@@ -139,14 +147,14 @@ class Driver {
    * @return {boolean} true if the connection is open
    * @access private
    **/
-  _validateConnection(conn) {
+  _validateConnection (conn) {
     if (!conn.isOpen()) {
-      return false;
+      return false
     }
 
-    const maxConnectionLifetime = this._config.maxConnectionLifetime;
-    const lifetime = Date.now() - conn.creationTimestamp;
-    return lifetime <= maxConnectionLifetime;
+    const maxConnectionLifetime = this._config.maxConnectionLifetime
+    const lifetime = Date.now() - conn.creationTimestamp
+    return lifetime <= maxConnectionLifetime
   }
 
   /**
@@ -154,9 +162,9 @@ class Driver {
    * @return {Connection} the connection to dispose.
    * @access private
    */
-  _destroyConnection(conn) {
-    delete this._openConnections[conn.id];
-    conn.close();
+  _destroyConnection (conn) {
+    delete this._openConnections[conn.id]
+    conn.close()
   }
 
   /**
@@ -175,43 +183,53 @@ class Driver {
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
    * @return {Session} new session.
    */
-  session(mode, bookmarkOrBookmarks) {
-    const sessionMode = Driver._validateSessionMode(mode);
-    const connectionProvider = this._getOrCreateConnectionProvider();
-    const bookmark = bookmarkOrBookmarks ? new Bookmark(bookmarkOrBookmarks) : Bookmark.empty();
-    return new Session(sessionMode, connectionProvider, bookmark, this._config);
+  session (mode, bookmarkOrBookmarks) {
+    const sessionMode = Driver._validateSessionMode(mode)
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    const bookmark = bookmarkOrBookmarks
+      ? new Bookmark(bookmarkOrBookmarks)
+      : Bookmark.empty()
+    return new Session(sessionMode, connectionProvider, bookmark, this._config)
   }
 
-  static _validateSessionMode(rawMode) {
-    const mode = rawMode || WRITE;
+  static _validateSessionMode (rawMode) {
+    const mode = rawMode || WRITE
     if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
-      throw newError('Illegal session mode ' + mode);
+      throw newError('Illegal session mode ' + mode)
     }
-    return mode;
+    return mode
   }
 
   // Extension point
-  _createConnectionProvider(hostPort, connectionPool, driverOnErrorCallback) {
-    return new DirectConnectionProvider(hostPort, connectionPool, driverOnErrorCallback);
+  _createConnectionProvider (hostPort, connectionPool, driverOnErrorCallback) {
+    return new DirectConnectionProvider(
+      hostPort,
+      connectionPool,
+      driverOnErrorCallback
+    )
   }
 
   // Extension point
-  _createConnectionErrorHandler() {
-    return new ConnectionErrorHandler(SERVICE_UNAVAILABLE);
+  _createConnectionErrorHandler () {
+    return new ConnectionErrorHandler(SERVICE_UNAVAILABLE)
   }
 
-  _getOrCreateConnectionProvider() {
+  _getOrCreateConnectionProvider () {
     if (!this._connectionProvider) {
-      const driverOnErrorCallback = this._driverOnErrorCallback.bind(this);
-      this._connectionProvider = this._createConnectionProvider(this._hostPort, this._pool, driverOnErrorCallback);
+      const driverOnErrorCallback = this._driverOnErrorCallback.bind(this)
+      this._connectionProvider = this._createConnectionProvider(
+        this._hostPort,
+        this._pool,
+        driverOnErrorCallback
+      )
     }
-    return this._connectionProvider;
+    return this._connectionProvider
   }
 
-  _driverOnErrorCallback(error) {
-    const userDefinedOnErrorCallback = this.onError;
+  _driverOnErrorCallback (error) {
+    const userDefinedOnErrorCallback = this.onError
     if (userDefinedOnErrorCallback && error.code === SERVICE_UNAVAILABLE) {
-      userDefinedOnErrorCallback(error);
+      userDefinedOnErrorCallback(error)
     } else {
       // we don't need to tell the driver about this error
     }
@@ -222,40 +240,20 @@ class Driver {
    * make sure to use this when you are done with this driver instance.
    * @return undefined
    */
-  close() {
-    this._log.info(`Driver ${this._id} closing`);
+  close () {
+    this._log.info(`Driver ${this._id} closing`)
 
     try {
       // purge all idle connections in the connection pool
-      this._pool.purgeAll();
+      this._pool.purgeAll()
     } finally {
       // then close all connections driver has ever created
       // it is needed to close connections that are active right now and are acquired from the pool
       for (let connectionId in this._openConnections) {
         if (this._openConnections.hasOwnProperty(connectionId)) {
-          this._openConnections[connectionId].close();
+          this._openConnections[connectionId].close()
         }
       }
-    }
-  }
-}
-
-/** Internal stream observer used for connection state */
-class _ConnectionStreamObserver extends StreamObserver {
-  constructor(driver, conn) {
-    super();
-    this._driver = driver;
-    this._conn = conn;
-    this._hasFailed = false;
-  }
-
-  onError(error) {
-    if (!this._hasFailed) {
-      super.onError(error);
-      if (this._driver.onError) {
-        this._driver.onError(error);
-      }
-      this._hasFailed = true;
     }
   }
 }
@@ -263,23 +261,32 @@ class _ConnectionStreamObserver extends StreamObserver {
 /**
  * @private
  */
-function sanitizeConfig(config) {
-  config.maxConnectionLifetime = sanitizeIntValue(config.maxConnectionLifetime, DEFAULT_MAX_CONNECTION_LIFETIME);
-  config.maxConnectionPoolSize = sanitizeIntValue(config.maxConnectionPoolSize, DEFAULT_MAX_SIZE);
-  config.connectionAcquisitionTimeout = sanitizeIntValue(config.connectionAcquisitionTimeout, DEFAULT_ACQUISITION_TIMEOUT);
+function sanitizeConfig (config) {
+  config.maxConnectionLifetime = sanitizeIntValue(
+    config.maxConnectionLifetime,
+    DEFAULT_MAX_CONNECTION_LIFETIME
+  )
+  config.maxConnectionPoolSize = sanitizeIntValue(
+    config.maxConnectionPoolSize,
+    DEFAULT_MAX_SIZE
+  )
+  config.connectionAcquisitionTimeout = sanitizeIntValue(
+    config.connectionAcquisitionTimeout,
+    DEFAULT_ACQUISITION_TIMEOUT
+  )
 }
 
-function sanitizeIntValue(rawValue, defaultWhenAbsent) {
-  const sanitizedValue = parseInt(rawValue, 10);
+function sanitizeIntValue (rawValue, defaultWhenAbsent) {
+  const sanitizedValue = parseInt(rawValue, 10)
   if (sanitizedValue > 0 || sanitizedValue === 0) {
-    return sanitizedValue;
+    return sanitizedValue
   } else if (sanitizedValue < 0) {
-    return Number.MAX_SAFE_INTEGER;
+    return Number.MAX_SAFE_INTEGER
   } else {
-    return defaultWhenAbsent;
+    return defaultWhenAbsent
   }
 }
 
-export {Driver, READ, WRITE}
+export { Driver, READ, WRITE }
 
 export default Driver

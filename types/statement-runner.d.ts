@@ -17,14 +17,14 @@
  * limitations under the License.
  */
 
-import Result from "./result";
+import Result from './result'
 
-declare type Parameters = { [key: string]: any };
+declare type Parameters = { [key: string]: any }
 
 declare interface StatementRunner {
-  run(statement: string, parameters?: Parameters): Result;
+  run(statement: string, parameters?: Parameters): Result
 }
 
-export {Parameters}
+export { Parameters }
 
-export default StatementRunner;
+export default StatementRunner

@@ -16,45 +16,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function isClient() {
-  return (typeof window != 'undefined' && window.document);
+function isClient () {
+  return typeof window !== 'undefined' && window.document
 }
 
-function isServer() {
-  return !isClient();
+function isServer () {
+  return !isClient()
 }
 
-function fakeStandardDateWithOffset(offsetMinutes) {
-  const date = new Date();
-  date.getTimezoneOffset = () => offsetMinutes;
-  return date;
+function fakeStandardDateWithOffset (offsetMinutes) {
+  const date = new Date()
+  date.getTimezoneOffset = () => offsetMinutes
+  return date
 }
 
 const matchers = {
   toBeElementOf: function (util, customEqualityTesters) {
     return {
-      compare: function(actual, expected) {
+      compare: function (actual, expected) {
         if (expected === undefined) {
-          expected = [];
+          expected = []
         }
 
-        let result = {};
+        let result = {}
 
-        result.pass = util.contains(expected, actual);
+        result.pass = util.contains(expected, actual)
         if (result.pass) {
-          result.message = `Expected '${actual}' to be an element of '[${expected}]'`;
+          result.message = `Expected '${actual}' to be an element of '[${expected}]'`
         } else {
-          result.message = `Expected '${actual}' to be an element of '[${expected}]', but it wasn't`;
+          result.message = `Expected '${actual}' to be an element of '[${expected}]', but it wasn't`
         }
-        return result;
+        return result
       }
     }
   }
-};
+}
 
 export default {
   isClient,
   isServer,
   fakeStandardDateWithOffset,
   matchers
-};
+}

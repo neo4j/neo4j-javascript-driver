@@ -17,60 +17,77 @@
  * limitations under the License.
  */
 
-import ConnectionErrorHandler from '../../src/internal/connection-error-handler';
-import {newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/error';
+import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
+import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
 
 describe('ConnectionErrorHandler', () => {
-
   it('should return error code', () => {
-    const code = 'Neo4j.Error.Hello';
-    const handler = new ConnectionErrorHandler(code);
-    expect(code).toEqual(handler.errorCode());
-  });
+    const code = 'Neo4j.Error.Hello'
+    const handler = new ConnectionErrorHandler(code)
+    expect(code).toEqual(handler.errorCode())
+  })
 
   it('should handle and transform availability errors', () => {
-    const errors = [];
-    const hostPorts = [];
-    const transformedError = newError('Message', 'Code');
-    const handler = new ConnectionErrorHandler(SERVICE_UNAVAILABLE, (error, hostPort) => {
-      errors.push(error);
-      hostPorts.push(hostPort);
-      return transformedError;
-    });
+    const errors = []
+    const hostPorts = []
+    const transformedError = newError('Message', 'Code')
+    const handler = new ConnectionErrorHandler(
+      SERVICE_UNAVAILABLE,
+      (error, hostPort) => {
+        errors.push(error)
+        hostPorts.push(hostPort)
+        return transformedError
+      }
+    )
 
-    const error1 = newError('A', SERVICE_UNAVAILABLE);
-    const error2 = newError('B', SESSION_EXPIRED);
-    const error3 = newError('C', 'Neo.TransientError.General.DatabaseUnavailable');
+    const error1 = newError('A', SERVICE_UNAVAILABLE)
+    const error2 = newError('B', SESSION_EXPIRED)
+    const error3 = newError(
+      'C',
+      'Neo.TransientError.General.DatabaseUnavailable'
+    )
 
-    [error1, error2, error3].forEach((error, idx) => {
-      const newTransformedError = handler.handleAndTransformError(error, 'localhost:' + idx);
-      expect(newTransformedError).toEqual(transformedError);
-    });
+    ;[error1, error2, error3].forEach((error, idx) => {
+      const newTransformedError = handler.handleAndTransformError(
+        error,
+        'localhost:' + idx
+      )
+      expect(newTransformedError).toEqual(transformedError)
+    })
 
-    expect(errors).toEqual([error1, error2, error3]);
-    expect(hostPorts).toEqual(['localhost:0', 'localhost:1', 'localhost:2']);
-  });
+    expect(errors).toEqual([error1, error2, error3])
+    expect(hostPorts).toEqual(['localhost:0', 'localhost:1', 'localhost:2'])
+  })
 
   it('should handle and transform failure to write errors', () => {
-    const errors = [];
-    const hostPorts = [];
-    const transformedError = newError('Message', 'Code');
-    const handler = new ConnectionErrorHandler(SERVICE_UNAVAILABLE, null, (error, hostPort) => {
-      errors.push(error);
-      hostPorts.push(hostPort);
-      return transformedError;
-    });
+    const errors = []
+    const hostPorts = []
+    const transformedError = newError('Message', 'Code')
+    const handler = new ConnectionErrorHandler(
+      SERVICE_UNAVAILABLE,
+      null,
+      (error, hostPort) => {
+        errors.push(error)
+        hostPorts.push(hostPort)
+        return transformedError
+      }
+    )
 
-    const error1 = newError('A', 'Neo.ClientError.Cluster.NotALeader');
-    const error2 = newError('B', 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase');
+    const error1 = newError('A', 'Neo.ClientError.Cluster.NotALeader')
+    const error2 = newError(
+      'B',
+      'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase'
+    )
 
-    [error1, error2].forEach((error, idx) => {
-      const newTransformedError = handler.handleAndTransformError(error, 'localhost:' + idx);
-      expect(newTransformedError).toEqual(transformedError);
-    });
+    ;[error1, error2].forEach((error, idx) => {
+      const newTransformedError = handler.handleAndTransformError(
+        error,
+        'localhost:' + idx
+      )
+      expect(newTransformedError).toEqual(transformedError)
+    })
 
-    expect(errors).toEqual([error1, error2]);
-    expect(hostPorts).toEqual(['localhost:0', 'localhost:1']);
-  });
-
-});
+    expect(errors).toEqual([error1, error2])
+    expect(hostPorts).toEqual(['localhost:0', 'localhost:1'])
+  })
+})

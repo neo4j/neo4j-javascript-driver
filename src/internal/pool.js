@@ -17,12 +17,11 @@
  * limitations under the License.
  */
 
-import PoolConfig from './pool-config';
-import {newError} from '../error';
-import Logger from './logger';
+import PoolConfig from './pool-config'
+import { newError } from '../error'
+import Logger from './logger'
 
 class Pool {
-
   /**
    * @param {function(function): Promise<object>} create  an allocation function that creates a promise with a new resource. It's given
    *                a single argument, a function that will return the resource to
@@ -35,18 +34,23 @@ class Pool {
    * @param {PoolConfig} config configuration for the new driver.
    * @param {Logger} log the driver logger.
    */
-  constructor(create, destroy = (() => true), validate = (() => true), config = PoolConfig.defaultConfig(),
-              log = Logger.noOp()) {
-    this._create = create;
-    this._destroy = destroy;
-    this._validate = validate;
-    this._maxSize = config.maxSize;
-    this._acquisitionTimeout = config.acquisitionTimeout;
-    this._pools = {};
-    this._acquireRequests = {};
-    this._activeResourceCounts = {};
-    this._release = this._release.bind(this);
-    this._log = log;
+  constructor (
+    create,
+    destroy = () => true,
+    validate = () => true,
+    config = PoolConfig.defaultConfig(),
+    log = Logger.noOp()
+  ) {
+    this._create = create
+    this._destroy = destroy
+    this._validate = validate
+    this._maxSize = config.maxSize
+    this._acquisitionTimeout = config.acquisitionTimeout
+    this._pools = {}
+    this._acquireRequests = {}
+    this._activeResourceCounts = {}
+    this._release = this._release.bind(this)
+    this._log = log
   }
 
   /**
@@ -54,58 +58,64 @@ class Pool {
    * @param {string} key the resource key.
    * @return {object} resource that is ready to use.
    */
-  acquire(key) {
+  acquire (key) {
     return this._acquire(key).then(resource => {
       if (resource) {
-        resourceAcquired(key, this._activeResourceCounts);
+        resourceAcquired(key, this._activeResourceCounts)
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} acquired from the pool`);
+          this._log.debug(`${resource} acquired from the pool`)
         }
-        return resource;
+        return resource
       }
 
       // We're out of resources and will try to acquire later on when an existing resource is released.
-      const allRequests = this._acquireRequests;
-      const requests = allRequests[key];
+      const allRequests = this._acquireRequests
+      const requests = allRequests[key]
       if (!requests) {
-        allRequests[key] = [];
+        allRequests[key] = []
       }
 
       return new Promise((resolve, reject) => {
-        let request;
+        let request
 
         const timeoutId = setTimeout(() => {
           // acquisition timeout fired
 
           // remove request from the queue of pending requests, if it's still there
           // request might've been taken out by the release operation
-          const pendingRequests = allRequests[key];
+          const pendingRequests = allRequests[key]
           if (pendingRequests) {
-            allRequests[key] = pendingRequests.filter(item => item !== request);
+            allRequests[key] = pendingRequests.filter(item => item !== request)
           }
 
           if (request.isCompleted()) {
             // request already resolved/rejected by the release operation; nothing to do
           } else {
             // request is still pending and needs to be failed
-            request.reject(newError(`Connection acquisition timed out in ${this._acquisitionTimeout} ms.`));
+            request.reject(
+              newError(
+                `Connection acquisition timed out in ${
+                  this._acquisitionTimeout
+                } ms.`
+              )
+            )
           }
-        }, this._acquisitionTimeout);
+        }, this._acquisitionTimeout)
 
-        request = new PendingRequest(resolve, reject, timeoutId, this._log);
-        allRequests[key].push(request);
-      });
-    });
+        request = new PendingRequest(resolve, reject, timeoutId, this._log)
+        allRequests[key].push(request)
+      })
+    })
   }
 
   /**
    * Destroy all idle resources for the given key.
    * @param {string} key the resource key to purge.
    */
-  purge(key) {
-    const pool = this._pools[key] || [];
+  purge (key) {
+    const pool = this._pools[key] || []
     while (pool.length) {
-      const resource = pool.pop();
+      const resource = pool.pop()
       this._destroy(resource)
     }
     delete this._pools[key]
@@ -114,8 +124,8 @@ class Pool {
   /**
    * Destroy all idle resources in this pool.
    */
-  purgeAll() {
-    Object.keys(this._pools).forEach(key => this.purge(key));
+  purgeAll () {
+    Object.keys(this._pools).forEach(key => this.purge(key))
   }
 
   /**
@@ -123,8 +133,8 @@ class Pool {
    * @param {string} key the resource key to check.
    * @return {boolean} `true` when pool contains entries for the given key, <code>false</code> otherwise.
    */
-  has(key) {
-    return (key in this._pools);
+  has (key) {
+    return key in this._pools
   }
 
   /**
@@ -132,75 +142,79 @@ class Pool {
    * @param {string} key the resource key to check.
    * @return {number} count of resources acquired by clients.
    */
-  activeResourceCount(key) {
-    return this._activeResourceCounts[key] || 0;
+  activeResourceCount (key) {
+    return this._activeResourceCounts[key] || 0
   }
 
-  _acquire(key) {
-    let pool = this._pools[key];
+  _acquire (key) {
+    let pool = this._pools[key]
     if (!pool) {
-      pool = [];
-      this._pools[key] = pool;
+      pool = []
+      this._pools[key] = pool
     }
     while (pool.length) {
-      const resource = pool.pop();
+      const resource = pool.pop()
 
       if (this._validate(resource)) {
         // idle resource is valid and can be acquired
-        return Promise.resolve(resource);
+        return Promise.resolve(resource)
       } else {
-        this._destroy(resource);
+        this._destroy(resource)
       }
     }
 
     if (this._maxSize && this.activeResourceCount(key) >= this._maxSize) {
-      return Promise.resolve(null);
+      return Promise.resolve(null)
     }
 
     // there exist no idle valid resources, create a new one for acquisition
-    return this._create(key, this._release);
+    return this._create(key, this._release)
   }
 
-  _release(key, resource) {
-    const pool = this._pools[key];
+  _release (key, resource) {
+    const pool = this._pools[key]
 
     if (pool) {
       // there exist idle connections for the given key
       if (!this._validate(resource)) {
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} destroyed and can't be released to the pool ${key} because it is not functional`);
+          this._log.debug(
+            `${resource} destroyed and can't be released to the pool ${key} because it is not functional`
+          )
         }
-        this._destroy(resource);
+        this._destroy(resource)
       } else {
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} released to the pool ${key}`);
+          this._log.debug(`${resource} released to the pool ${key}`)
         }
-        pool.push(resource);
+        pool.push(resource)
       }
     } else {
       // key has been purged, don't put it back, just destroy the resource
       if (this._log.isDebugEnabled()) {
-        this._log.debug(`${resource} destroyed and can't be released to the pool ${key} because pool has been purged`);
+        this._log.debug(
+          `${resource} destroyed and can't be released to the pool ${key} because pool has been purged`
+        )
       }
-      this._destroy(resource);
+      this._destroy(resource)
     }
-    resourceReleased(key, this._activeResourceCounts);
+    resourceReleased(key, this._activeResourceCounts)
 
-    this._processPendingAcquireRequests(key);
+    this._processPendingAcquireRequests(key)
   }
 
-  _processPendingAcquireRequests(key) {
-    const requests = this._acquireRequests[key];
+  _processPendingAcquireRequests (key) {
+    const requests = this._acquireRequests[key]
     if (requests) {
-      const pendingRequest = requests.shift(); // pop a pending acquire request
+      const pendingRequest = requests.shift() // pop a pending acquire request
 
       if (pendingRequest) {
         this._acquire(key)
           .catch(error => {
             // failed to acquire/create a new connection to resolve the pending acquire request
             // propagate the error by failing the pending request
-            pendingRequest.reject(error);
-            return null;
+            pendingRequest.reject(error)
+            return null
           })
           .then(resource => {
             if (resource) {
@@ -209,16 +223,16 @@ class Pool {
               if (pendingRequest.isCompleted()) {
                 // request has been completed, most likely failed by a timeout
                 // return the acquired resource back to the pool
-                this._release(key, resource);
+                this._release(key, resource)
               } else {
                 // request is still pending and can be resolved with the newly acquired resource
-                resourceAcquired(key, this._activeResourceCounts); // increment the active counter
-                pendingRequest.resolve(resource); // resolve the pending request with the acquired resource
+                resourceAcquired(key, this._activeResourceCounts) // increment the active counter
+                pendingRequest.resolve(resource) // resolve the pending request with the acquired resource
               }
             }
-          });
+          })
       } else {
-        delete this._acquireRequests[key];
+        delete this._acquireRequests[key]
       }
     }
   }
@@ -229,9 +243,9 @@ class Pool {
  * @param {string} key the resource group identifier (server address for connections).
  * @param {Object.<string, number>} activeResourceCounts the object holding active counts per key.
  */
-function resourceAcquired(key, activeResourceCounts) {
-  const currentCount = activeResourceCounts[key] || 0;
-  activeResourceCounts[key] = currentCount + 1;
+function resourceAcquired (key, activeResourceCounts) {
+  const currentCount = activeResourceCounts[key] || 0
+  activeResourceCounts[key] = currentCount + 1
 }
 
 /**
@@ -239,52 +253,51 @@ function resourceAcquired(key, activeResourceCounts) {
  * @param {string} key the resource group identifier (server address for connections).
  * @param {Object.<string, number>} activeResourceCounts the object holding active counts per key.
  */
-function resourceReleased(key, activeResourceCounts) {
-  const currentCount = activeResourceCounts[key] || 0;
-  const nextCount = currentCount - 1;
+function resourceReleased (key, activeResourceCounts) {
+  const currentCount = activeResourceCounts[key] || 0
+  const nextCount = currentCount - 1
 
   if (nextCount > 0) {
-    activeResourceCounts[key] = nextCount;
+    activeResourceCounts[key] = nextCount
   } else {
-    delete activeResourceCounts[key];
+    delete activeResourceCounts[key]
   }
 }
 
 class PendingRequest {
-
-  constructor(resolve, reject, timeoutId, log) {
-    this._resolve = resolve;
-    this._reject = reject;
-    this._timeoutId = timeoutId;
-    this._log = log;
-    this._completed = false;
+  constructor (resolve, reject, timeoutId, log) {
+    this._resolve = resolve
+    this._reject = reject
+    this._timeoutId = timeoutId
+    this._log = log
+    this._completed = false
   }
 
-  isCompleted() {
-    return this._completed;
+  isCompleted () {
+    return this._completed
   }
 
-  resolve(resource) {
+  resolve (resource) {
     if (this._completed) {
-      return;
+      return
     }
-    this._completed = true;
+    this._completed = true
 
-    clearTimeout(this._timeoutId);
+    clearTimeout(this._timeoutId)
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${resource} acquired from the pool`);
+      this._log.debug(`${resource} acquired from the pool`)
     }
-    this._resolve(resource);
+    this._resolve(resource)
   }
 
-  reject(error) {
+  reject (error) {
     if (this._completed) {
-      return;
+      return
     }
-    this._completed = true;
+    this._completed = true
 
-    clearTimeout(this._timeoutId);
-    this._reject(error);
+    clearTimeout(this._timeoutId)
+    this._reject(error)
   }
 }
 

@@ -24,41 +24,40 @@
  * Error code representing complete loss of service. Used by {@link Neo4jError#code}.
  * @type {string}
  */
-const SERVICE_UNAVAILABLE = 'ServiceUnavailable';
+const SERVICE_UNAVAILABLE = 'ServiceUnavailable'
 
 /**
  * Error code representing transient loss of service. Used by {@link Neo4jError#code}.
  * @type {string}
  */
-const SESSION_EXPIRED = 'SessionExpired';
+const SESSION_EXPIRED = 'SessionExpired'
 
 /**
  * Error code representing serialization/deserialization issue in the Bolt protocol. Used by {@link Neo4jError#code}.
  * @type {string}
  */
-const PROTOCOL_ERROR = 'ProtocolError';
+const PROTOCOL_ERROR = 'ProtocolError'
 
-function newError(message, code="N/A") {
+function newError (message, code = 'N/A') {
   // TODO: Idea is that we can check the code here and throw sub-classes
   // of Neo4jError as appropriate
-  return new Neo4jError(message, code);
+  return new Neo4jError(message, code)
 }
 
 /**
  * Class for all errors thrown/returned by the driver.
  */
 class Neo4jError extends Error {
-
   /**
    * @constructor
    * @param {string} message - The error message.
    * @param {string} code - Optional error code. Will be populated when error originates in the database.
    */
-  constructor(message, code = 'N/A') {
-    super( message );
-    this.message = message;
-    this.code = code;
-    this.name = "Neo4jError"
+  constructor (message, code = 'N/A') {
+    super(message)
+    this.message = message
+    this.code = code
+    this.name = 'Neo4jError'
   }
 }
 

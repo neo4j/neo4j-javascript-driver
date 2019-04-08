@@ -17,296 +17,378 @@
  * limitations under the License.
  */
 
-import HttpRequestRunner from '../../../src/internal/http/http-request-runner';
-import neo4j from '../../../src';
-import sharedNeo4j from '../../internal/shared-neo4j';
-import urlUtil from '../../../src/internal/url-util';
-import testUtils from '.././test-utils';
-import _ from 'lodash';
+import HttpRequestRunner from '../../../src/internal/http/http-request-runner'
+import neo4j from '../../../src'
+import sharedNeo4j from '../../internal/shared-neo4j'
+import urlUtil from '../../../src/internal/url-util'
+import testUtils from '.././test-utils'
+import _ from 'lodash'
 
-const VALID_URI = 'http://localhost';
-const INVALID_URI = 'http://not-localhost';
+const VALID_URI = 'http://localhost'
+const INVALID_URI = 'http://not-localhost'
 
 describe('http request runner', () => {
-
   it('should begin transaction', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(VALID_URI);
+    const runner = newRunner(VALID_URI)
 
-    runner.beginTransaction().then(transactionId => {
-      verifyTransactionId(transactionId);
-      done();
-    }).catch(error => {
-      done.fail(error);
-    });
-  });
+    runner
+      .beginTransaction()
+      .then(transactionId => {
+        verifyTransactionId(transactionId)
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
+  })
 
   it('should begin and commit transaction', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(VALID_URI);
+    const runner = newRunner(VALID_URI)
 
-    runner.beginTransaction().then(transactionId => {
-      verifyTransactionId(transactionId);
-      runner.commitTransaction(transactionId).then(() => {
-        done();
-      }).catch(error => {
-        done.fail(error);
-      });
-    }).catch(error => {
-      done.fail(error);
-    });
-  });
+    runner
+      .beginTransaction()
+      .then(transactionId => {
+        verifyTransactionId(transactionId)
+        runner
+          .commitTransaction(transactionId)
+          .then(() => {
+            done()
+          })
+          .catch(error => {
+            done.fail(error)
+          })
+      })
+      .catch(error => {
+        done.fail(error)
+      })
+  })
 
   it('should begin and rollback transaction', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(VALID_URI);
+    const runner = newRunner(VALID_URI)
 
-    runner.beginTransaction().then(transactionId => {
-      verifyTransactionId(transactionId);
-      runner.rollbackTransaction(transactionId).then(() => {
-        done();
-      }).catch(error => {
-        done.fail(error);
-      });
-    }).catch(error => {
-      done.fail(error);
-    });
-  });
+    runner
+      .beginTransaction()
+      .then(transactionId => {
+        verifyTransactionId(transactionId)
+        runner
+          .rollbackTransaction(transactionId)
+          .then(() => {
+            done()
+          })
+          .catch(error => {
+            done.fail(error)
+          })
+      })
+      .catch(error => {
+        done.fail(error)
+      })
+  })
 
   it('should fail to begin transaction with invalid uri', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(INVALID_URI);
+    const runner = newRunner(INVALID_URI)
 
-    runner.beginTransaction().then(transactionId => {
-      done.fail(new Error('Should not be possible to begin a transaction with invalid URI, received transactionId: ' + transactionId));
-    }).catch(error => {
-      expect(error.name).toEqual('Neo4jError');
-      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
-      done();
-    });
-  });
+    runner
+      .beginTransaction()
+      .then(transactionId => {
+        done.fail(
+          new Error(
+            'Should not be possible to begin a transaction with invalid URI, received transactionId: ' +
+              transactionId
+          )
+        )
+      })
+      .catch(error => {
+        expect(error.name).toEqual('Neo4jError')
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+        done()
+      })
+  })
 
   it('should fail to commit transaction with invalid uri', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(INVALID_URI);
+    const runner = newRunner(INVALID_URI)
 
-    runner.commitTransaction(42).then(() => {
-      done.fail(new Error('Should not be possible to commit a transaction with invalid URI'));
-    }).catch(error => {
-      expect(error.name).toEqual('Neo4jError');
-      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
-      done();
-    });
-  });
+    runner
+      .commitTransaction(42)
+      .then(() => {
+        done.fail(
+          new Error(
+            'Should not be possible to commit a transaction with invalid URI'
+          )
+        )
+      })
+      .catch(error => {
+        expect(error.name).toEqual('Neo4jError')
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+        done()
+      })
+  })
 
   it('should fail to rollback transaction with invalid uri', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(INVALID_URI);
+    const runner = newRunner(INVALID_URI)
 
-    runner.rollbackTransaction(42).then(() => {
-      done.fail(new Error('Should not be possible to rollback a transaction with invalid URI'));
-    }).catch(error => {
-      expect(error.name).toEqual('Neo4jError');
-      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
-      done();
-    });
-  });
+    runner
+      .rollbackTransaction(42)
+      .then(() => {
+        done.fail(
+          new Error(
+            'Should not be possible to rollback a transaction with invalid URI'
+          )
+        )
+      })
+      .catch(error => {
+        expect(error.name).toEqual('Neo4jError')
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+        done()
+      })
+  })
 
   it('should fail to commit transaction with invalid id', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(VALID_URI);
+    const runner = newRunner(VALID_URI)
 
-    runner.commitTransaction(424242).then(() => {
-      done.fail(new Error('Should not be possible to commit a transaction with invalid id'));
-    }).catch(error => {
-      expect(error.name).toEqual('Neo4jError');
-      expect(error.code).toEqual('Neo.ClientError.Transaction.TransactionNotFound');
-      done();
-    });
-  });
+    runner
+      .commitTransaction(424242)
+      .then(() => {
+        done.fail(
+          new Error(
+            'Should not be possible to commit a transaction with invalid id'
+          )
+        )
+      })
+      .catch(error => {
+        expect(error.name).toEqual('Neo4jError')
+        expect(error.code).toEqual(
+          'Neo.ClientError.Transaction.TransactionNotFound'
+        )
+        done()
+      })
+  })
 
   it('should fail to rollback transaction with invalid id', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(VALID_URI);
+    const runner = newRunner(VALID_URI)
 
-    runner.rollbackTransaction(424242).then(() => {
-      done.fail(new Error('Should not be possible to rollback a transaction with invalid id'));
-    }).catch(error => {
-      expect(error.name).toEqual('Neo4jError');
-      expect(error.code).toEqual('Neo.ClientError.Transaction.TransactionNotFound');
-      done();
-    });
-  });
+    runner
+      .rollbackTransaction(424242)
+      .then(() => {
+        done.fail(
+          new Error(
+            'Should not be possible to rollback a transaction with invalid id'
+          )
+        )
+      })
+      .catch(error => {
+        expect(error.name).toEqual('Neo4jError')
+        expect(error.code).toEqual(
+          'Neo.ClientError.Transaction.TransactionNotFound'
+        )
+        done()
+      })
+  })
 
   it('should run query in transaction', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(VALID_URI);
+    const runner = newRunner(VALID_URI)
 
-    runner.beginTransaction().then(transactionId => {
-      verifyTransactionId(transactionId);
-      runner.runQuery(transactionId, 'RETURN 42', {}).then(streamObserver => {
-        streamObserver.subscribe({
-          onNext: record => {
-            expect(record.get(0)).toEqual(42);
-          },
-          onError: error => {
-            done.fail(error);
-          },
-          onCompleted: () => {
-            runner.rollbackTransaction(transactionId).catch(error => {
-            }).then(() => {
-              done();
-            });
-          }
-        });
-      }).catch(error => {
-        done.fail(error);
-      });
-      done();
-    }).catch(error => {
-      done.fail(error);
-    });
-  });
+    runner
+      .beginTransaction()
+      .then(transactionId => {
+        verifyTransactionId(transactionId)
+        runner
+          .runQuery(transactionId, 'RETURN 42', {})
+          .then(streamObserver => {
+            streamObserver.subscribe({
+              onNext: record => {
+                expect(record.get(0)).toEqual(42)
+              },
+              onError: error => {
+                done.fail(error)
+              },
+              onCompleted: () => {
+                runner
+                  .rollbackTransaction(transactionId)
+                  .catch(() => {})
+                  .then(() => {
+                    done()
+                  })
+              }
+            })
+          })
+          .catch(error => {
+            done.fail(error)
+          })
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
+  })
 
   it('should fail to run invalid query in transaction', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(VALID_URI);
+    const runner = newRunner(VALID_URI)
 
-    runner.beginTransaction().then(transactionId => {
-      verifyTransactionId(transactionId);
-      runner.runQuery(transactionId, 'WRONG QUERY', {}).then(streamObserver => {
-        streamObserver.subscribe({
-          onNext: () => {
-            done.fail(new Error('Should not receive records'));
-          },
-          onError: error => {
-            expect(error.name).toEqual('Neo4jError');
-            expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError');
+    runner
+      .beginTransaction()
+      .then(transactionId => {
+        verifyTransactionId(transactionId)
+        runner
+          .runQuery(transactionId, 'WRONG QUERY', {})
+          .then(streamObserver => {
+            streamObserver.subscribe({
+              onNext: () => {
+                done.fail(new Error('Should not receive records'))
+              },
+              onError: error => {
+                expect(error.name).toEqual('Neo4jError')
+                expect(error.code).toEqual(
+                  'Neo.ClientError.Statement.SyntaxError'
+                )
 
-            runner.rollbackTransaction(transactionId).catch(error => {
-            }).then(() => {
-              done();
-            });
-          },
-          onCompleted: () => {
-            done.fail(new Error('Should not complete'));
-          }
-        });
-      }).catch(error => {
-        done.fail(error);
-      });
-      done();
-    }).catch(error => {
-      done.fail(error);
-    });
-  });
+                runner
+                  .rollbackTransaction(transactionId)
+                  .catch(() => {})
+                  .then(() => {
+                    done()
+                  })
+              },
+              onCompleted: () => {
+                done.fail(new Error('Should not complete'))
+              }
+            })
+          })
+          .catch(error => {
+            done.fail(error)
+          })
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
+  })
 
   it('should fail to run query in transaction with invalid uri', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(INVALID_URI);
+    const runner = newRunner(INVALID_URI)
 
-    runner.runQuery(424242, 'RETURN 42', {}).then(streamObserver => {
-      expect(streamObserver.hasFailed()).toBeTruthy();
-      streamObserver.subscribe({
-        onNext: () => {
-          done.fail(new Error('Should not receive records'));
-        },
-        onError: error => {
-          expect(error.name).toEqual('Neo4jError');
-          expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE);
-          done();
-        },
-        onCompleted: () => {
-          done.fail(new Error('Should not complete'));
-        }
-      });
-    }).catch(error => {
-      done.fail(error);
-    });
-  });
+    runner
+      .runQuery(424242, 'RETURN 42', {})
+      .then(streamObserver => {
+        expect(streamObserver.hasFailed()).toBeTruthy()
+        streamObserver.subscribe({
+          onNext: () => {
+            done.fail(new Error('Should not receive records'))
+          },
+          onError: error => {
+            expect(error.name).toEqual('Neo4jError')
+            expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+            done()
+          },
+          onCompleted: () => {
+            done.fail(new Error('Should not complete'))
+          }
+        })
+      })
+      .catch(error => {
+        done.fail(error)
+      })
+  })
 
   it('should fail to run query in transaction with invalid id', done => {
     if (testUtils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
-    const runner = newRunner(VALID_URI);
+    const runner = newRunner(VALID_URI)
 
-    runner.runQuery(424242, 'RETURN 42', {}).then(streamObserver => {
-      expect(streamObserver.hasFailed()).toBeTruthy();
-      streamObserver.subscribe({
-        onNext: () => {
-          done.fail(new Error('Should not receive records'));
-        },
-        onError: error => {
-          expect(error.name).toEqual('Neo4jError');
-          expect(error.code).toEqual('Neo.ClientError.Transaction.TransactionNotFound');
-          done();
-        },
-        onCompleted: () => {
-          done.fail(new Error('Should not complete'));
-        }
-      });
-    }).catch(error => {
-      done.fail(error);
-    });
-  });
+    runner
+      .runQuery(424242, 'RETURN 42', {})
+      .then(streamObserver => {
+        expect(streamObserver.hasFailed()).toBeTruthy()
+        streamObserver.subscribe({
+          onNext: () => {
+            done.fail(new Error('Should not receive records'))
+          },
+          onError: error => {
+            expect(error.name).toEqual('Neo4jError')
+            expect(error.code).toEqual(
+              'Neo.ClientError.Transaction.TransactionNotFound'
+            )
+            done()
+          },
+          onCompleted: () => {
+            done.fail(new Error('Should not complete'))
+          }
+        })
+      })
+      .catch(error => {
+        done.fail(error)
+      })
+  })
+})
 
-});
-
-function verifyTransactionId(transactionId) {
-  expect(transactionId).toBeDefined();
-  expect(transactionId).not.toBeNull();
-  expect(_.isNumber(transactionId)).toBeTruthy();
+function verifyTransactionId (transactionId) {
+  expect(transactionId).toBeDefined()
+  expect(transactionId).not.toBeNull()
+  expect(_.isNumber(transactionId)).toBeTruthy()
 }
 
-function newRunner(url, username, password) {
-  username = username ? username : sharedNeo4j.username;
-  password = password ? password : sharedNeo4j.password;
-  return new HttpRequestRunner(urlUtil.parseDatabaseUrl(url), neo4j.auth.basic(username, password));
+function newRunner (url, username, password) {
+  username = username || sharedNeo4j.username
+  password = password || sharedNeo4j.password
+  return new HttpRequestRunner(
+    urlUtil.parseDatabaseUrl(url),
+    neo4j.auth.basic(username, password)
+  )
 }

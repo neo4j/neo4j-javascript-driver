@@ -16,12 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import StreamObserver from './internal/stream-observer';
-import Result from './result';
-import {validateStatementAndParameters} from './internal/util';
-import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
-import Bookmark from './internal/bookmark';
-import TxConfig from './internal/tx-config';
+import StreamObserver from './internal/stream-observer'
+import Result from './result'
+import { validateStatementAndParameters } from './internal/util'
+import { EMPTY_CONNECTION_HOLDER } from './internal/connection-holder'
+import Bookmark from './internal/bookmark'
+import TxConfig from './internal/tx-config'
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -35,19 +35,29 @@ class Transaction {
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
    */
-  constructor(connectionHolder, onClose, onBookmark) {
-    this._connectionHolder = connectionHolder;
-    this._state = _states.ACTIVE;
-    this._onClose = onClose;
-    this._onBookmark = onBookmark;
+  constructor (connectionHolder, onClose, onBookmark) {
+    this._connectionHolder = connectionHolder
+    this._state = _states.ACTIVE
+    this._onClose = onClose
+    this._onBookmark = onBookmark
   }
 
-  _begin(bookmark, txConfig) {
-    const streamObserver = new _TransactionStreamObserver(this);
+  _begin (bookmark, txConfig) {
+    const streamObserver = new _TransactionStreamObserver(this)
 
-    this._connectionHolder.getConnection(streamObserver)
-      .then(conn => conn.protocol().beginTransaction(bookmark, txConfig, this._connectionHolder.mode(), streamObserver))
-      .catch(error => streamObserver.onError(error));
+    this._connectionHolder
+      .getConnection(streamObserver)
+      .then(conn =>
+        conn
+          .protocol()
+          .beginTransaction(
+            bookmark,
+            txConfig,
+            this._connectionHolder.mode(),
+            streamObserver
+          )
+      )
+      .catch(error => streamObserver.onError(error))
   }
 
   /**
@@ -58,10 +68,18 @@ class Transaction {
    * @param {Object} parameters - Map with parameters to use in statement
    * @return {Result} New Result
    */
-  run(statement, parameters) {
-    const {query, params} = validateStatementAndParameters(statement, parameters);
+  run (statement, parameters) {
+    const { query, params } = validateStatementAndParameters(
+      statement,
+      parameters
+    )
 
-    return this._state.run(this._connectionHolder, new _TransactionStreamObserver(this), query, params);
+    return this._state.run(
+      this._connectionHolder,
+      new _TransactionStreamObserver(this),
+      query,
+      params
+    )
   }
 
   /**
@@ -71,12 +89,15 @@ class Transaction {
    *
    * @returns {Result} New Result
    */
-  commit() {
-    let committed = this._state.commit(this._connectionHolder, new _TransactionStreamObserver(this));
-    this._state = committed.state;
-    //clean up
-    this._onClose();
-    return committed.result;
+  commit () {
+    let committed = this._state.commit(
+      this._connectionHolder,
+      new _TransactionStreamObserver(this)
+    )
+    this._state = committed.state
+    // clean up
+    this._onClose()
+    return committed.result
   }
 
   /**
@@ -86,164 +107,219 @@ class Transaction {
    *
    * @returns {Result} New Result
    */
-  rollback() {
-    let committed = this._state.rollback(this._connectionHolder, new _TransactionStreamObserver(this));
-    this._state = committed.state;
-    //clean up
-    this._onClose();
-    return committed.result;
+  rollback () {
+    let committed = this._state.rollback(
+      this._connectionHolder,
+      new _TransactionStreamObserver(this)
+    )
+    this._state = committed.state
+    // clean up
+    this._onClose()
+    return committed.result
   }
 
   /**
    * Check if this transaction is active, which means commit and rollback did not happen.
    * @return {boolean} `true` when not committed and not rolled back, `false` otherwise.
    */
-  isOpen() {
-    return this._state == _states.ACTIVE;
+  isOpen () {
+    return this._state === _states.ACTIVE
   }
 
-  _onError() {
+  _onError () {
     // error will be "acknowledged" by sending a RESET message
     // database will then forget about this transaction and cleanup all corresponding resources
     // it is thus safe to move this transaction to a FAILED state and disallow any further interactions with it
-    this._state = _states.FAILED;
-    this._onClose();
+    this._state = _states.FAILED
+    this._onClose()
 
     // release connection back to the pool
-    return this._connectionHolder.releaseConnection();
+    return this._connectionHolder.releaseConnection()
   }
 }
 
-/** Internal stream observer used for transactional results*/
+/** Internal stream observer used for transactional results */
 class _TransactionStreamObserver extends StreamObserver {
-  constructor(tx) {
-    super();
-    this._tx = tx;
+  constructor (tx) {
+    super()
+    this._tx = tx
   }
 
-  onError(error) {
+  onError (error) {
     if (!this._hasFailed) {
       this._tx._onError().then(() => {
-        super.onError(error);
-      });
+        super.onError(error)
+      })
     }
   }
 
-  onCompleted(meta) {
-    super.onCompleted(meta);
-    const bookmark = new Bookmark(meta.bookmark);
-    this._tx._onBookmark(bookmark);
+  onCompleted (meta) {
+    super.onCompleted(meta)
+    const bookmark = new Bookmark(meta.bookmark)
+    this._tx._onBookmark(bookmark)
   }
 }
 
-/** internal state machine of the transaction*/
+/** internal state machine of the transaction */
 let _states = {
-  //The transaction is running with no explicit success or failure marked
+  // The transaction is running with no explicit success or failure marked
   ACTIVE: {
     commit: (connectionHolder, observer) => {
       return {
         result: finishTransaction(true, connectionHolder, observer),
         state: _states.SUCCEEDED
-      };
+      }
     },
     rollback: (connectionHolder, observer) => {
       return {
         result: finishTransaction(false, connectionHolder, observer),
         state: _states.ROLLED_BACK
-      };
+      }
     },
     run: (connectionHolder, observer, statement, parameters) => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
-      const bookmark = Bookmark.empty();
-      const txConfig = TxConfig.empty();
+      const bookmark = Bookmark.empty()
+      const txConfig = TxConfig.empty()
 
-      connectionHolder.getConnection(observer)
-        .then(conn => conn.protocol().run(statement, parameters, bookmark, txConfig, connectionHolder.mode(), observer))
-        .catch(error => observer.onError(error));
+      connectionHolder
+        .getConnection(observer)
+        .then(conn =>
+          conn
+            .protocol()
+            .run(
+              statement,
+              parameters,
+              bookmark,
+              txConfig,
+              connectionHolder.mode(),
+              observer
+            )
+        )
+        .catch(error => observer.onError(error))
 
-      return _newRunResult(observer, statement, parameters, () => observer.serverMetadata());
+      return _newRunResult(observer, statement, parameters, () =>
+        observer.serverMetadata()
+      )
     }
   },
 
-  //An error has occurred, transaction can no longer be used and no more messages will
+  // An error has occurred, transaction can no longer be used and no more messages will
   // be sent for this transaction.
   FAILED: {
     commit: (connectionHolder, observer) => {
       observer.onError({
-        error: "Cannot commit statements in this transaction, because previous statements in the " +
-        "transaction has failed and the transaction has been rolled back. Please start a new" +
-        " transaction to run another statement."
-      });
-      return {result: _newDummyResult(observer, "COMMIT", {}), state: _states.FAILED};
+        error:
+          'Cannot commit statements in this transaction, because previous statements in the ' +
+          'transaction has failed and the transaction has been rolled back. Please start a new' +
+          ' transaction to run another statement.'
+      })
+      return {
+        result: _newDummyResult(observer, 'COMMIT', {}),
+        state: _states.FAILED
+      }
     },
     rollback: (connectionHolder, observer) => {
-      observer.markCompleted();
-      return {result: _newDummyResult(observer, "ROLLBACK", {}), state: _states.FAILED};
+      observer.markCompleted()
+      return {
+        result: _newDummyResult(observer, 'ROLLBACK', {}),
+        state: _states.FAILED
+      }
     },
     run: (connectionHolder, observer, statement, parameters) => {
-      observer.onError({error:
-      "Cannot run statement, because previous statements in the " +
-      "transaction has failed and the transaction has already been rolled back."});
-      return _newDummyResult(observer, statement, parameters);
+      observer.onError({
+        error:
+          'Cannot run statement, because previous statements in the ' +
+          'transaction has failed and the transaction has already been rolled back.'
+      })
+      return _newDummyResult(observer, statement, parameters)
     }
   },
 
-  //This transaction has successfully committed
+  // This transaction has successfully committed
   SUCCEEDED: {
     commit: (connectionHolder, observer) => {
       observer.onError({
-        error: "Cannot commit statements in this transaction, because commit has already been successfully called on the transaction and transaction has been closed. Please start a new" +
-        " transaction to run another statement."
-      });
-      return {result: _newDummyResult(observer, "COMMIT", {}), state: _states.SUCCEEDED};
+        error:
+          'Cannot commit statements in this transaction, because commit has already been successfully called on the transaction and transaction has been closed. Please start a new' +
+          ' transaction to run another statement.'
+      })
+      return {
+        result: _newDummyResult(observer, 'COMMIT', {}),
+        state: _states.SUCCEEDED
+      }
     },
     rollback: (connectionHolder, observer) => {
-      observer.onError({error:
-        "Cannot rollback transaction, because transaction has already been successfully closed."});
-      return {result: _newDummyResult(observer, "ROLLBACK", {}), state: _states.SUCCEEDED};
+      observer.onError({
+        error:
+          'Cannot rollback transaction, because transaction has already been successfully closed.'
+      })
+      return {
+        result: _newDummyResult(observer, 'ROLLBACK', {}),
+        state: _states.SUCCEEDED
+      }
     },
     run: (connectionHolder, observer, statement, parameters) => {
-      observer.onError({error:
-      "Cannot run statement, because transaction has already been successfully closed."});
-      return _newDummyResult(observer, statement, parameters);
+      observer.onError({
+        error:
+          'Cannot run statement, because transaction has already been successfully closed.'
+      })
+      return _newDummyResult(observer, statement, parameters)
     }
   },
 
-  //This transaction has been rolled back
+  // This transaction has been rolled back
   ROLLED_BACK: {
     commit: (connectionHolder, observer) => {
       observer.onError({
-        error: "Cannot commit this transaction, because it has already been rolled back."
-      });
-      return {result: _newDummyResult(observer, "COMMIT", {}), state: _states.ROLLED_BACK};
+        error:
+          'Cannot commit this transaction, because it has already been rolled back.'
+      })
+      return {
+        result: _newDummyResult(observer, 'COMMIT', {}),
+        state: _states.ROLLED_BACK
+      }
     },
     rollback: (connectionHolder, observer) => {
-      observer.onError({error:
-        "Cannot rollback transaction, because transaction has already been rolled back."});
-      return {result: _newDummyResult(observer, "ROLLBACK", {}), state: _states.ROLLED_BACK};
+      observer.onError({
+        error:
+          'Cannot rollback transaction, because transaction has already been rolled back.'
+      })
+      return {
+        result: _newDummyResult(observer, 'ROLLBACK', {}),
+        state: _states.ROLLED_BACK
+      }
     },
     run: (connectionHolder, observer, statement, parameters) => {
-      observer.onError({error:
-        "Cannot run statement, because transaction has already been rolled back."});
-      return _newDummyResult(observer, statement, parameters);
+      observer.onError({
+        error:
+          'Cannot run statement, because transaction has already been rolled back.'
+      })
+      return _newDummyResult(observer, statement, parameters)
     }
   }
-};
+}
 
-function finishTransaction(commit, connectionHolder, observer) {
-  connectionHolder.getConnection(observer)
+function finishTransaction (commit, connectionHolder, observer) {
+  connectionHolder
+    .getConnection(observer)
     .then(connection => {
       if (commit) {
-        return connection.protocol().commitTransaction(observer);
+        return connection.protocol().commitTransaction(observer)
       } else {
-        return connection.protocol().rollbackTransaction(observer);
+        return connection.protocol().rollbackTransaction(observer)
       }
     })
-    .catch(error => observer.onError(error));
+    .catch(error => observer.onError(error))
 
   // for commit & rollback we need result that uses real connection holder and notifies it when
   // connection is not needed and can be safely released to the pool
-  return new Result(observer, commit ? 'COMMIT' : 'ROLLBACK', {}, emptyMetadataSupplier, connectionHolder);
+  return new Result(
+    observer,
+    commit ? 'COMMIT' : 'ROLLBACK',
+    {},
+    emptyMetadataSupplier,
+    connectionHolder
+  )
 }
 
 /**
@@ -258,8 +334,14 @@ function finishTransaction(commit, connectionHolder, observer) {
  * @return {Result} new result.
  * @private
  */
-function _newRunResult(observer, statement, parameters, metadataSupplier) {
-  return new Result(observer, statement, parameters, metadataSupplier, EMPTY_CONNECTION_HOLDER);
+function _newRunResult (observer, statement, parameters, metadataSupplier) {
+  return new Result(
+    observer,
+    statement,
+    parameters,
+    metadataSupplier,
+    EMPTY_CONNECTION_HOLDER
+  )
 }
 
 /**
@@ -272,12 +354,18 @@ function _newRunResult(observer, statement, parameters, metadataSupplier) {
  * @return {Result} new result.
  * @private
  */
-function _newDummyResult(observer, statement, parameters) {
-  return new Result(observer, statement, parameters, emptyMetadataSupplier, EMPTY_CONNECTION_HOLDER);
+function _newDummyResult (observer, statement, parameters) {
+  return new Result(
+    observer,
+    statement,
+    parameters,
+    emptyMetadataSupplier,
+    EMPTY_CONNECTION_HOLDER
+  )
 }
 
-function emptyMetadataSupplier() {
-  return {};
+function emptyMetadataSupplier () {
+  return {}
 }
 
-export default Transaction;
+export default Transaction

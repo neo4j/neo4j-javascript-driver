@@ -17,98 +17,137 @@
  * limitations under the License.
  */
 
-import {WRITE} from '../../driver';
-import Session from '../../session';
-import {validateStatementAndParameters} from '../util';
-import {Neo4jError} from '../../error';
-import HttpRequestRunner from './http-request-runner';
-import {EMPTY_CONNECTION_HOLDER} from '../connection-holder';
-import Result from '../../result';
+import { WRITE } from '../../driver'
+import Session from '../../session'
+import { validateStatementAndParameters } from '../util'
+import { Neo4jError } from '../../error'
+import HttpRequestRunner from './http-request-runner'
+import { EMPTY_CONNECTION_HOLDER } from '../connection-holder'
+import Result from '../../result'
 
 export default class HttpSession extends Session {
-
-  constructor(url, authToken, config, sessionTracker) {
-    super(WRITE, null, null, config);
-    this._ongoingTransactionIds = [];
-    this._serverInfoSupplier = createServerInfoSupplier(url);
-    this._requestRunner = new HttpRequestRunner(url, authToken);
-    this._sessionTracker = sessionTracker;
-    this._sessionTracker.sessionOpened(this);
+  constructor (url, authToken, config, sessionTracker) {
+    super(WRITE, null, null, config)
+    this._ongoingTransactionIds = []
+    this._serverInfoSupplier = createServerInfoSupplier(url)
+    this._requestRunner = new HttpRequestRunner(url, authToken)
+    this._sessionTracker = sessionTracker
+    this._sessionTracker.sessionOpened(this)
   }
 
-  run(statement, parameters = {}) {
-    const {query, params} = validateStatementAndParameters(statement, parameters);
+  run (statement, parameters = {}) {
+    const { query, params } = validateStatementAndParameters(
+      statement,
+      parameters
+    )
 
     return this._requestRunner.beginTransaction().then(transactionId => {
-      this._ongoingTransactionIds.push(transactionId);
-      const queryPromise = this._requestRunner.runQuery(transactionId, query, params);
+      this._ongoingTransactionIds.push(transactionId)
+      const queryPromise = this._requestRunner.runQuery(
+        transactionId,
+        query,
+        params
+      )
 
-      return queryPromise.then(streamObserver => {
-        if (streamObserver.hasFailed()) {
-          return rollbackTransactionAfterQueryFailure(transactionId, streamObserver, this._requestRunner);
-        } else {
-          return commitTransactionAfterQuerySuccess(transactionId, streamObserver, this._requestRunner);
-        }
-      }).then(streamObserver => {
-        this._ongoingTransactionIds = this._ongoingTransactionIds.filter(id => id !== transactionId);
-        return new Result(streamObserver, query, params, this._serverInfoSupplier, EMPTY_CONNECTION_HOLDER);
-      });
-    });
+      return queryPromise
+        .then(streamObserver => {
+          if (streamObserver.hasFailed()) {
+            return rollbackTransactionAfterQueryFailure(
+              transactionId,
+              streamObserver,
+              this._requestRunner
+            )
+          } else {
+            return commitTransactionAfterQuerySuccess(
+              transactionId,
+              streamObserver,
+              this._requestRunner
+            )
+          }
+        })
+        .then(streamObserver => {
+          this._ongoingTransactionIds = this._ongoingTransactionIds.filter(
+            id => id !== transactionId
+          )
+          return new Result(
+            streamObserver,
+            query,
+            params,
+            this._serverInfoSupplier,
+            EMPTY_CONNECTION_HOLDER
+          )
+        })
+    })
   }
 
-  beginTransaction() {
-    throwTransactionsNotSupported();
+  beginTransaction () {
+    throwTransactionsNotSupported()
   }
 
-  readTransaction() {
-    throwTransactionsNotSupported();
+  readTransaction () {
+    throwTransactionsNotSupported()
   }
 
-  writeTransaction() {
-    throwTransactionsNotSupported();
+  writeTransaction () {
+    throwTransactionsNotSupported()
   }
 
-  lastBookmark() {
-    throw new Neo4jError('Experimental HTTP driver does not support bookmarks and routing');
+  lastBookmark () {
+    throw new Neo4jError(
+      'Experimental HTTP driver does not support bookmarks and routing'
+    )
   }
 
-  close(callback = (() => null)) {
-    const rollbackAllOngoingTransactions = this._ongoingTransactionIds.map(transactionId =>
-      rollbackTransactionSilently(transactionId, this._requestRunner)
-    );
+  close (callback = () => null) {
+    const rollbackAllOngoingTransactions = this._ongoingTransactionIds.map(
+      transactionId =>
+        rollbackTransactionSilently(transactionId, this._requestRunner)
+    )
 
-    Promise.all(rollbackAllOngoingTransactions)
-      .then(() => {
-        this._sessionTracker.sessionClosed(this);
-        callback();
-      });
+    Promise.all(rollbackAllOngoingTransactions).then(() => {
+      this._sessionTracker.sessionClosed(this)
+      callback()
+    })
   }
 }
 
-function rollbackTransactionAfterQueryFailure(transactionId, streamObserver, requestRunner) {
-  return rollbackTransactionSilently(transactionId, requestRunner).then(() => streamObserver);
+function rollbackTransactionAfterQueryFailure (
+  transactionId,
+  streamObserver,
+  requestRunner
+) {
+  return rollbackTransactionSilently(transactionId, requestRunner).then(
+    () => streamObserver
+  )
 }
 
-function commitTransactionAfterQuerySuccess(transactionId, streamObserver, requestRunner) {
-  return requestRunner.commitTransaction(transactionId).catch(error => {
-    streamObserver.onError(error);
-  }).then(() => {
-    return streamObserver;
-  });
+function commitTransactionAfterQuerySuccess (
+  transactionId,
+  streamObserver,
+  requestRunner
+) {
+  return requestRunner
+    .commitTransaction(transactionId)
+    .catch(error => {
+      streamObserver.onError(error)
+    })
+    .then(() => {
+      return streamObserver
+    })
 }
 
-function rollbackTransactionSilently(transactionId, requestRunner) {
-  return requestRunner.rollbackTransaction(transactionId).catch(error => {
+function rollbackTransactionSilently (transactionId, requestRunner) {
+  return requestRunner.rollbackTransaction(transactionId).catch(() => {
     // ignore all rollback errors
-  });
+  })
 }
 
-function createServerInfoSupplier(url) {
+function createServerInfoSupplier (url) {
   return () => {
-    return {server: {address: url.hostAndPort}};
-  };
+    return { server: { address: url.hostAndPort } }
+  }
 }
 
-function throwTransactionsNotSupported() {
-  throw new Neo4jError('Experimental HTTP driver does not support transactions');
+function throwTransactionsNotSupported () {
+  throw new Neo4jError('Experimental HTTP driver does not support transactions')
 }

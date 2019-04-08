@@ -16,17 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import StreamObserver from './internal/stream-observer';
-import Result from './result';
-import Transaction from './transaction';
-import {newError} from './error';
-import {validateStatementAndParameters} from './internal/util';
-import ConnectionHolder from './internal/connection-holder';
-import Driver from './driver';
-import {ACCESS_MODE_READ, ACCESS_MODE_WRITE} from './internal/constants';
-import TransactionExecutor from './internal/transaction-executor';
-import Bookmark from './internal/bookmark';
-import TxConfig from './internal/tx-config';
+import StreamObserver from './internal/stream-observer'
+import Result from './result'
+import Transaction from './transaction'
+import { newError } from './error'
+import { validateStatementAndParameters } from './internal/util'
+import ConnectionHolder from './internal/connection-holder'
+import Driver from './driver'
+import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
+import TransactionExecutor from './internal/transaction-executor'
+import Bookmark from './internal/bookmark'
+import TxConfig from './internal/tx-config'
 
 // Typedef for JSDoc. Declares TransactionConfig type and makes it possible to use in in method-level docs.
 /**
@@ -55,7 +55,6 @@ import TxConfig from './internal/tx-config';
  * @access public
  */
 class Session {
-
   /**
    * @constructor
    * @param {string} mode the default access mode for this session.
@@ -63,14 +62,20 @@ class Session {
    * @param {Bookmark} bookmark - the initial bookmark for this session.
    * @param {Object} [config={}] - this driver configuration.
    */
-  constructor(mode, connectionProvider, bookmark, config) {
-    this._mode = mode;
-    this._readConnectionHolder = new ConnectionHolder(ACCESS_MODE_READ, connectionProvider);
-    this._writeConnectionHolder = new ConnectionHolder(ACCESS_MODE_WRITE, connectionProvider);
-    this._open = true;
-    this._hasTx = false;
-    this._lastBookmark = bookmark;
-    this._transactionExecutor = _createTransactionExecutor(config);
+  constructor (mode, connectionProvider, bookmark, config) {
+    this._mode = mode
+    this._readConnectionHolder = new ConnectionHolder(
+      ACCESS_MODE_READ,
+      connectionProvider
+    )
+    this._writeConnectionHolder = new ConnectionHolder(
+      ACCESS_MODE_WRITE,
+      connectionProvider
+    )
+    this._open = true
+    this._hasTx = false
+    this._lastBookmark = bookmark
+    this._transactionExecutor = _createTransactionExecutor(config)
   }
 
   /**
@@ -82,29 +87,54 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @return {Result} - New Result
    */
-  run(statement, parameters, transactionConfig) {
-    const {query, params} = validateStatementAndParameters(statement, parameters);
-    const autoCommitTxConfig = transactionConfig ? new TxConfig(transactionConfig) : TxConfig.empty();
+  run (statement, parameters, transactionConfig) {
+    const { query, params } = validateStatementAndParameters(
+      statement,
+      parameters
+    )
+    const autoCommitTxConfig = transactionConfig
+      ? new TxConfig(transactionConfig)
+      : TxConfig.empty()
 
     return this._run(query, params, (connection, streamObserver) =>
-      connection.protocol().run(query, params, this._lastBookmark, autoCommitTxConfig, this._mode, streamObserver)
-    );
+      connection
+        .protocol()
+        .run(
+          query,
+          params,
+          this._lastBookmark,
+          autoCommitTxConfig,
+          this._mode,
+          streamObserver
+        )
+    )
   }
 
-  _run(statement, parameters, statementRunner) {
-    const streamObserver = new SessionStreamObserver(this);
-    const connectionHolder = this._connectionHolderWithMode(this._mode);
+  _run (statement, parameters, statementRunner) {
+    const streamObserver = new SessionStreamObserver(this)
+    const connectionHolder = this._connectionHolderWithMode(this._mode)
     if (!this._hasTx) {
-      connectionHolder.initializeConnection();
-      connectionHolder.getConnection(streamObserver)
+      connectionHolder.initializeConnection()
+      connectionHolder
+        .getConnection(streamObserver)
         .then(connection => statementRunner(connection, streamObserver))
-        .catch(error => streamObserver.onError(error));
+        .catch(error => streamObserver.onError(error))
     } else {
-      streamObserver.onError(newError('Statements cannot be run directly on a ' +
-        'session with an open transaction; either run from within the ' +
-        'transaction or use a different session.'));
+      streamObserver.onError(
+        newError(
+          'Statements cannot be run directly on a ' +
+            'session with an open transaction; either run from within the ' +
+            'transaction or use a different session.'
+        )
+      )
     }
-    return new Result(streamObserver, statement, parameters, () => streamObserver.serverMetadata(), connectionHolder);
+    return new Result(
+      streamObserver,
+      statement,
+      parameters,
+      () => streamObserver.serverMetadata(),
+      connectionHolder
+    )
   }
 
   /**
@@ -116,43 +146,53 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @returns {Transaction} - New Transaction
    */
-  beginTransaction(transactionConfig) {
+  beginTransaction (transactionConfig) {
     // this function needs to support bookmarks parameter for backwards compatibility
     // parameter was of type {string|string[]} and represented either a single or multiple bookmarks
     // that's why we need to check parameter type and decide how to interpret the value
-    const arg = transactionConfig;
+    const arg = transactionConfig
 
-    let txConfig = TxConfig.empty();
-    if (typeof arg === 'string' || arg instanceof String || Array.isArray(arg)) {
+    let txConfig = TxConfig.empty()
+    if (
+      typeof arg === 'string' ||
+      arg instanceof String ||
+      Array.isArray(arg)
+    ) {
       // argument looks like a single or multiple bookmarks
       // bookmarks in this function are deprecated but need to be supported for backwards compatibility
-      this._updateBookmark(new Bookmark(arg));
+      this._updateBookmark(new Bookmark(arg))
     } else if (arg) {
       // argument is probably a transaction configuration
-      txConfig = new TxConfig(arg);
+      txConfig = new TxConfig(arg)
     }
 
-    return this._beginTransaction(this._mode, txConfig);
+    return this._beginTransaction(this._mode, txConfig)
   }
 
-  _beginTransaction(accessMode, txConfig) {
+  _beginTransaction (accessMode, txConfig) {
     if (this._hasTx) {
-      throw newError('You cannot begin a transaction on a session with an open transaction; ' +
-        'either run from within the transaction or use a different session.');
+      throw newError(
+        'You cannot begin a transaction on a session with an open transaction; ' +
+          'either run from within the transaction or use a different session.'
+      )
     }
 
-    const mode = Driver._validateSessionMode(accessMode);
-    const connectionHolder = this._connectionHolderWithMode(mode);
-    connectionHolder.initializeConnection();
-    this._hasTx = true;
+    const mode = Driver._validateSessionMode(accessMode)
+    const connectionHolder = this._connectionHolderWithMode(mode)
+    connectionHolder.initializeConnection()
+    this._hasTx = true
 
-    const tx = new Transaction(connectionHolder, this._transactionClosed.bind(this), this._updateBookmark.bind(this));
-    tx._begin(this._lastBookmark, txConfig);
-    return tx;
+    const tx = new Transaction(
+      connectionHolder,
+      this._transactionClosed.bind(this),
+      this._updateBookmark.bind(this)
+    )
+    tx._begin(this._lastBookmark, txConfig)
+    return tx
   }
 
-  _transactionClosed() {
-    this._hasTx = false;
+  _transactionClosed () {
+    this._hasTx = false
   }
 
   /**
@@ -160,8 +200,8 @@ class Session {
    *
    * @return {string|null} a reference to a previous transaction
    */
-  lastBookmark() {
-    return this._lastBookmark.maxBookmarkAsString();
+  lastBookmark () {
+    return this._lastBookmark.maxBookmarkAsString()
   }
 
   /**
@@ -178,9 +218,9 @@ class Session {
    * @return {Promise} resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
-  readTransaction(transactionWork, transactionConfig) {
-    const config = new TxConfig(transactionConfig);
-    return this._runTransaction(ACCESS_MODE_READ, config, transactionWork);
+  readTransaction (transactionWork, transactionConfig) {
+    const config = new TxConfig(transactionConfig)
+    return this._runTransaction(ACCESS_MODE_READ, config, transactionWork)
   }
 
   /**
@@ -197,25 +237,25 @@ class Session {
    * @return {Promise} resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
-  writeTransaction(transactionWork, transactionConfig) {
-    const config = new TxConfig(transactionConfig);
-    return this._runTransaction(ACCESS_MODE_WRITE, config, transactionWork);
+  writeTransaction (transactionWork, transactionConfig) {
+    const config = new TxConfig(transactionConfig)
+    return this._runTransaction(ACCESS_MODE_WRITE, config, transactionWork)
   }
 
-  _runTransaction(accessMode, transactionConfig, transactionWork) {
+  _runTransaction (accessMode, transactionConfig, transactionWork) {
     return this._transactionExecutor.execute(
       () => this._beginTransaction(accessMode, transactionConfig),
       transactionWork
-    );
+    )
   }
 
   /**
    * Update value of the last bookmark.
    * @param {Bookmark} newBookmark the new bookmark.
    */
-  _updateBookmark(newBookmark) {
+  _updateBookmark (newBookmark) {
     if (newBookmark && !newBookmark.isEmpty()) {
-      this._lastBookmark = newBookmark;
+      this._lastBookmark = newBookmark
     }
   }
 
@@ -224,27 +264,27 @@ class Session {
    * @param {function()} callback - Function to be called after the session has been closed
    * @return
    */
-  close(callback = (() => null)) {
+  close (callback = () => null) {
     if (this._open) {
-      this._open = false;
-      this._transactionExecutor.close();
+      this._open = false
+      this._transactionExecutor.close()
       this._readConnectionHolder.close().then(() => {
         this._writeConnectionHolder.close().then(() => {
-          callback();
-        });
-      });
+          callback()
+        })
+      })
     } else {
-      callback();
+      callback()
     }
   }
 
-  _connectionHolderWithMode(mode) {
+  _connectionHolderWithMode (mode) {
     if (mode === ACCESS_MODE_READ) {
-      return this._readConnectionHolder;
+      return this._readConnectionHolder
     } else if (mode === ACCESS_MODE_WRITE) {
-      return this._writeConnectionHolder;
+      return this._writeConnectionHolder
     } else {
-      throw newError('Unknown access mode: ' + mode);
+      throw newError('Unknown access mode: ' + mode)
     }
   }
 }
@@ -253,22 +293,24 @@ class Session {
  * @private
  */
 class SessionStreamObserver extends StreamObserver {
-
-  constructor(session) {
-    super();
-    this._session = session;
+  constructor (session) {
+    super()
+    this._session = session
   }
 
-  onCompleted(meta) {
-    super.onCompleted(meta);
-    const bookmark = new Bookmark(meta.bookmark);
-    this._session._updateBookmark(bookmark);
+  onCompleted (meta) {
+    super.onCompleted(meta)
+    const bookmark = new Bookmark(meta.bookmark)
+    this._session._updateBookmark(bookmark)
   }
 }
 
-function _createTransactionExecutor(config) {
-  const maxRetryTimeMs = (config && config.maxTransactionRetryTime) ? config.maxTransactionRetryTime : null;
-  return new TransactionExecutor(maxRetryTimeMs);
+function _createTransactionExecutor (config) {
+  const maxRetryTimeMs =
+    config && config.maxTransactionRetryTime
+      ? config.maxTransactionRetryTime
+      : null
+  return new TransactionExecutor(maxRetryTimeMs)
 }
 
-export default Session;
+export default Session

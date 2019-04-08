@@ -18,118 +18,130 @@
  */
 
 declare class Integer {
-  low: number;
-  high: number;
+  low: number
+  high: number
 
   constructor(low?: number, high?: number)
 
-  inSafeRange(): boolean;
+  inSafeRange(): boolean
 
-  toInt(): number;
+  toInt(): number
 
-  toNumber(): number;
+  toNumber(): number
 
-  toString(radix: number): string;
+  toString(radix: number): string
 
-  getHighBits(): number;
+  getHighBits(): number
 
-  getLowBits(): number;
+  getLowBits(): number
 
-  getNumBitsAbs(): number;
+  getNumBitsAbs(): number
 
-  isZero(): boolean;
+  isZero(): boolean
 
-  isNegative(): boolean;
+  isNegative(): boolean
 
-  isPositive(): boolean;
+  isPositive(): boolean
 
-  isOdd(): boolean;
+  isOdd(): boolean
 
-  isEven(): boolean;
+  isEven(): boolean
 
-  equals(other: Integer | number | string): boolean;
+  equals(other: Integer | number | string): boolean
 
-  notEquals(other: Integer | number | string): boolean;
+  notEquals(other: Integer | number | string): boolean
 
-  lessThan(other: Integer | number | string): boolean;
+  lessThan(other: Integer | number | string): boolean
 
-  lessThanOrEqual(other: Integer | number | string): boolean;
+  lessThanOrEqual(other: Integer | number | string): boolean
 
-  greaterThan(other: Integer | number | string): boolean;
+  greaterThan(other: Integer | number | string): boolean
 
-  greaterThanOrEqual(other: Integer | number | string): boolean;
+  greaterThanOrEqual(other: Integer | number | string): boolean
 
-  compare(other: Integer | number | string): number;
+  compare(other: Integer | number | string): number
 
-  negate(): Integer;
+  negate(): Integer
 
-  add(addend: Integer | number | string): Integer;
+  add(addend: Integer | number | string): Integer
 
-  subtract(subtrahend: Integer | number | string): Integer;
+  subtract(subtrahend: Integer | number | string): Integer
 
-  multiply(multiplier: Integer | number | string): Integer;
+  multiply(multiplier: Integer | number | string): Integer
 
-  div(divisor: Integer | number | string): Integer;
+  div(divisor: Integer | number | string): Integer
 
-  modulo(divisor: Integer | number | string): Integer;
+  modulo(divisor: Integer | number | string): Integer
 
-  not(): Integer;
+  not(): Integer
 
-  and(other: Integer | number | string): Integer;
+  and(other: Integer | number | string): Integer
 
-  or(other: Integer | number | string): Integer;
+  or(other: Integer | number | string): Integer
 
-  xor(other: Integer | number | string): Integer;
+  xor(other: Integer | number | string): Integer
 
-  shiftLeft(numBits: Integer | number): Integer;
+  shiftLeft(numBits: Integer | number): Integer
 
-  shiftRight(numBits: Integer | number): Integer;
+  shiftRight(numBits: Integer | number): Integer
 
-  static __isInteger__: true;
+  static __isInteger__: true
 
-  static isInteger(obj: object): boolean;
+  static isInteger(obj: object): boolean
 
-  static fromInt(value: number): Integer;
+  static fromInt(value: number): Integer
 
-  static fromNumber(value: number): Integer;
+  static fromNumber(value: number): Integer
 
-  static fromBits(lowBits: number, highBits: number): Integer;
+  static fromBits(lowBits: number, highBits: number): Integer
 
-  static fromString(str: string, radix?: number): Integer;
+  static fromString(str: string, radix?: number): Integer
 
-  static fromValue(value: Integer | number | string | { low: number, high: number }): Integer;
+  static fromValue(
+    value: Integer | number | string | { low: number; high: number }
+  ): Integer
 
-  static toNumber(value: Integer | number | string | { low: number, high: number }): number;
+  static toNumber(
+    value: Integer | number | string | { low: number; high: number }
+  ): number
 
-  static toString(value: Integer | number | string | { low: number, high: number }, radix?: number): string;
+  static toString(
+    value: Integer | number | string | { low: number; high: number },
+    radix?: number
+  ): string
 
-  static inSafeRange(value: Integer | number | string | { low: number, high: number }): boolean;
+  static inSafeRange(
+    value: Integer | number | string | { low: number; high: number }
+  ): boolean
 
-  static ZERO: Integer;
-  static ONE: Integer;
-  static NEG_ONE: Integer;
-  static MAX_VALUE: Integer;
-  static MIN_VALUE: Integer;
-  static MIN_SAFE_VALUE: Integer;
-  static MAX_SAFE_VALUE: Integer;
+  static ZERO: Integer
+  static ONE: Integer
+  static NEG_ONE: Integer
+  static MAX_VALUE: Integer
+  static MIN_VALUE: Integer
+  static MIN_SAFE_VALUE: Integer
+  static MAX_SAFE_VALUE: Integer
 }
 
-declare function int(value: Integer | number | string | { low: number, high: number }): Integer;
+declare function int(
+  value: Integer | number | string | { low: number; high: number }
+): Integer
 
-declare function isInt(obj: object): boolean;
+declare function isInt(obj: object): boolean
 
-declare function inSafeRange(val: Integer | number | string | { low: number, high: number }): boolean;
+declare function inSafeRange(
+  val: Integer | number | string | { low: number; high: number }
+): boolean
 
-declare function toNumber(val: Integer | number | string | { low: number, high: number }): number;
+declare function toNumber(
+  val: Integer | number | string | { low: number; high: number }
+): number
 
-declare function toString(val: Integer | number | string | { low: number, high: number }, radix?: number): string;
+declare function toString(
+  val: Integer | number | string | { low: number; high: number },
+  radix?: number
+): string
 
-export {
-  int,
-  isInt,
-  inSafeRange,
-  toNumber,
-  toString
-}
+export { int, isInt, inSafeRange, toNumber, toString }
 
-export default Integer;
+export default Integer

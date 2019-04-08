@@ -16,86 +16,88 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TxConfig from '../../src/internal/tx-config';
-import {int} from '../../src';
+import TxConfig from '../../src/internal/tx-config'
+import { int } from '../../src'
 
 describe('TxConfig', () => {
-
   it('should be possible to construct from null', () => {
-    testEmptyConfigCreation(null);
-  });
+    testEmptyConfigCreation(null)
+  })
 
   it('should be possible to construct from undefined', () => {
-    testEmptyConfigCreation(undefined);
-  });
+    testEmptyConfigCreation(undefined)
+  })
 
   it('should be possible to construct from empty object', () => {
-    testEmptyConfigCreation({});
-  });
+    testEmptyConfigCreation({})
+  })
 
   it('should fail to construct from array', () => {
-    expect(() => new TxConfig([])).toThrowError(TypeError);
-  });
+    expect(() => new TxConfig([])).toThrowError(TypeError)
+  })
 
   it('should fail to construct from function', () => {
-    const func = () => {
-    };
-    expect(() => new TxConfig(func)).toThrowError(TypeError);
-  });
+    const func = () => {}
+    expect(() => new TxConfig(func)).toThrowError(TypeError)
+  })
 
   it('should expose empty config', () => {
-    const config = TxConfig.empty();
-    expect(config).toBeDefined();
-    expect(config.isEmpty()).toBeTruthy();
-  });
+    const config = TxConfig.empty()
+    expect(config).toBeDefined()
+    expect(config.isEmpty()).toBeTruthy()
+  })
 
   it('should fail to construct with invalid timeout', () => {
-    const invalidTimeoutValues = ['15s', [15], {}, 0, int(0), -42, int(-42)];
+    const invalidTimeoutValues = ['15s', [15], {}, 0, int(0), -42, int(-42)]
 
     invalidTimeoutValues.forEach(invalidValue =>
-      expect(() => new TxConfig({timeout: invalidValue})).toThrow());
-  });
+      expect(() => new TxConfig({ timeout: invalidValue })).toThrow()
+    )
+  })
 
   it('should construct with valid timeout', () => {
-    testConfigCreationWithTimeout(1);
-    testConfigCreationWithTimeout(42000);
+    testConfigCreationWithTimeout(1)
+    testConfigCreationWithTimeout(42000)
 
-    testConfigCreationWithTimeout(int(1));
-    testConfigCreationWithTimeout(int(424242));
-  });
+    testConfigCreationWithTimeout(int(1))
+    testConfigCreationWithTimeout(int(424242))
+  })
 
   it('should fail to construct with invalid metadata', () => {
-    const invalidMetadataValues = ['hello', [1, 2, 3], () => 'Hello', 42];
+    const invalidMetadataValues = ['hello', [1, 2, 3], () => 'Hello', 42]
 
     invalidMetadataValues.forEach(invalidValue =>
-      expect(() => new TxConfig({metadata: invalidValue})).toThrow());
-  });
+      expect(() => new TxConfig({ metadata: invalidValue })).toThrow()
+    )
+  })
 
   it('should construct with valid metadata', () => {
-    testEmptyConfigCreation({metadata: {}});
+    testEmptyConfigCreation({ metadata: {} })
 
-    testConfigCreationWithMetadata({key: 'value'});
-    testConfigCreationWithMetadata({map: {key1: 1, key2: '2', key3: []}, array: [1, 2, 3, '4']});
-  });
+    testConfigCreationWithMetadata({ key: 'value' })
+    testConfigCreationWithMetadata({
+      map: { key1: 1, key2: '2', key3: [] },
+      array: [1, 2, 3, '4']
+    })
+  })
 
-  function testEmptyConfigCreation(value) {
-    const config = new TxConfig(value);
-    expect(config).toBeDefined();
-    expect(config.isEmpty()).toBeTruthy();
+  function testEmptyConfigCreation (value) {
+    const config = new TxConfig(value)
+    expect(config).toBeDefined()
+    expect(config.isEmpty()).toBeTruthy()
   }
 
-  function testConfigCreationWithTimeout(value) {
-    const config = new TxConfig({timeout: value});
-    expect(config).toBeDefined();
-    expect(config.isEmpty()).toBeFalsy();
-    expect(config.timeout).toEqual(int(value));
+  function testConfigCreationWithTimeout (value) {
+    const config = new TxConfig({ timeout: value })
+    expect(config).toBeDefined()
+    expect(config.isEmpty()).toBeFalsy()
+    expect(config.timeout).toEqual(int(value))
   }
 
-  function testConfigCreationWithMetadata(value) {
-    const config = new TxConfig({metadata: value});
-    expect(config).toBeDefined();
-    expect(config.isEmpty()).toBeFalsy();
-    expect(config.metadata).toEqual(value);
+  function testConfigCreationWithMetadata (value) {
+    const config = new TxConfig({ metadata: value })
+    expect(config).toBeDefined()
+    expect(config.isEmpty()).toBeFalsy()
+    expect(config.metadata).toEqual(value)
   }
-
-});
+})

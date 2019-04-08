@@ -17,17 +17,17 @@
  * limitations under the License.
  */
 
-declare const SERVICE_UNAVAILABLE: string;
-declare const SESSION_EXPIRED: string;
-declare const PROTOCOL_ERROR: string;
+declare const SERVICE_UNAVAILABLE: string
+declare const SESSION_EXPIRED: string
+declare const PROTOCOL_ERROR: string
 
-declare function newError(message: any, code?: string): Neo4jError;
+declare function newError(message: any, code?: string): Neo4jError
 
 declare class Neo4jError extends Error {
-  code: string;
-  message: string;
+  code: string
+  message: string
 
-  constructor(message: any, code?: string);
+  constructor(message: any, code?: string)
 }
 
 export {

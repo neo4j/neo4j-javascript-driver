@@ -17,9 +17,9 @@
  * limitations under the License.
  */
 
-import * as util from './util';
-import {int} from '../integer';
-import {newError} from '../error';
+import * as util from './util'
+import { int } from '../integer'
+import { newError } from '../error'
 
 /**
  * Internal holder of the transaction configuration.
@@ -28,71 +28,70 @@ import {newError} from '../error';
  * Driver converts such objects to {@link TxConfig} immediately and uses converted values everywhere.
  */
 export default class TxConfig {
-
   /**
    * @constructor
    * @param {object} config the raw configuration object.
    */
-  constructor(config) {
-    assertValidConfig(config);
-    this.timeout = extractTimeout(config);
-    this.metadata = extractMetadata(config);
+  constructor (config) {
+    assertValidConfig(config)
+    this.timeout = extractTimeout(config)
+    this.metadata = extractMetadata(config)
   }
 
   /**
    * Get an empty config object.
    * @return {TxConfig} an empty config.
    */
-  static empty() {
-    return EMPTY_CONFIG;
+  static empty () {
+    return EMPTY_CONFIG
   }
 
   /**
    * Check if this config object is empty. I.e. has no configuration values specified.
    * @return {boolean} `true` if this object is empty, `false` otherwise.
    */
-  isEmpty() {
-    return Object.values(this).every(value => value == null);
+  isEmpty () {
+    return Object.values(this).every(value => value == null)
   }
 }
 
-const EMPTY_CONFIG = new TxConfig({});
+const EMPTY_CONFIG = new TxConfig({})
 
 /**
  * @return {Integer|null}
  */
-function extractTimeout(config) {
+function extractTimeout (config) {
   if (util.isObject(config) && (config.timeout || config.timeout === 0)) {
-    util.assertNumberOrInteger(config.timeout, 'Transaction timeout');
-    const timeout = int(config.timeout);
+    util.assertNumberOrInteger(config.timeout, 'Transaction timeout')
+    const timeout = int(config.timeout)
     if (timeout.isZero()) {
-      throw newError('Transaction timeout should not be zero');
+      throw newError('Transaction timeout should not be zero')
     }
     if (timeout.isNegative()) {
-      throw newError('Transaction timeout should not be negative');
+      throw newError('Transaction timeout should not be negative')
     }
-    return timeout;
+    return timeout
   }
-  return null;
+  return null
 }
 
 /**
  * @return {object|null}
  */
-function extractMetadata(config) {
+function extractMetadata (config) {
   if (util.isObject(config) && config.metadata) {
-    const metadata = config.metadata;
-    util.assertObject(metadata);
+    const metadata = config.metadata
+    util.assertObject(metadata)
     if (Object.keys(metadata).length !== 0) {
       // not an empty object
-      return metadata;
+      return metadata
     }
   }
-  return null;
+  return null
 }
 
-function assertValidConfig(config) {
+function assertValidConfig (config) {
   if (config) {
-    util.assertObject(config, 'Transaction config');
+    util.assertObject(config, 'Transaction config')
   }
 }

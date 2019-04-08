@@ -17,11 +17,10 @@
  * limitations under the License.
  */
 
-import BaseHostNameResolver from '../resolver/base-host-name-resolver';
+import BaseHostNameResolver from '../resolver/base-host-name-resolver'
 
 export default class BrowserHostNameResolver extends BaseHostNameResolver {
-
-  resolve(address) {
-    return this._resolveToItself(address);
+  resolve (address) {
+    return this._resolveToItself(address)
   }
 }

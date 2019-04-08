@@ -17,74 +17,98 @@
  * limitations under the License.
  */
 
-import ProtocolHandshaker from '../../src/internal/protocol-handshaker';
-import Logger from '../../src/internal/logger';
-import BoltProtocol from '../../src/internal/bolt-protocol-v1';
-import {alloc} from '../../src/internal/node';
+import ProtocolHandshaker from '../../src/internal/protocol-handshaker'
+import Logger from '../../src/internal/logger'
+import BoltProtocol from '../../src/internal/bolt-protocol-v1'
+import { alloc } from '../../src/internal/node'
 
 describe('ProtocolHandshaker', () => {
-
   it('should write handshake request', () => {
-    const writtenBuffers = [];
+    const writtenBuffers = []
     const fakeChannel = {
       write: buffer => writtenBuffers.push(buffer)
-    };
+    }
 
-    const handshaker = new ProtocolHandshaker(null, fakeChannel, null, false, Logger.noOp());
+    const handshaker = new ProtocolHandshaker(
+      null,
+      fakeChannel,
+      null,
+      false,
+      Logger.noOp()
+    )
 
-    handshaker.writeHandshakeRequest();
+    handshaker.writeHandshakeRequest()
 
-    expect(writtenBuffers.length).toEqual(1);
+    expect(writtenBuffers.length).toEqual(1)
 
-    const boltMagicPreamble = '60 60 b0 17';
-    const protocolVersion3 = '00 00 00 03';
-    const protocolVersion2 = '00 00 00 02';
-    const protocolVersion1 = '00 00 00 01';
-    const noProtocolVersion = '00 00 00 00';
+    const boltMagicPreamble = '60 60 b0 17'
+    const protocolVersion3 = '00 00 00 03'
+    const protocolVersion2 = '00 00 00 02'
+    const protocolVersion1 = '00 00 00 01'
+    const noProtocolVersion = '00 00 00 00'
 
-    expect(writtenBuffers[0].toHex()).toEqual(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`);
-  });
+    expect(writtenBuffers[0].toHex()).toEqual(
+      `${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`
+    )
+  })
 
   it('should create protocol with valid version', () => {
-    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
+    const handshaker = new ProtocolHandshaker(
+      null,
+      null,
+      null,
+      false,
+      Logger.noOp()
+    )
 
     // buffer with Bolt V1
-    const buffer = handshakeResponse(1);
+    const buffer = handshakeResponse(1)
 
-    const protocol = handshaker.createNegotiatedProtocol(buffer);
+    const protocol = handshaker.createNegotiatedProtocol(buffer)
 
-    expect(protocol).toBeDefined();
-    expect(protocol).not.toBeNull();
-    expect(protocol instanceof BoltProtocol).toBeTruthy();
-  });
+    expect(protocol).toBeDefined()
+    expect(protocol).not.toBeNull()
+    expect(protocol instanceof BoltProtocol).toBeTruthy()
+  })
 
   it('should fail to create protocol from invalid version', () => {
-    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
+    const handshaker = new ProtocolHandshaker(
+      null,
+      null,
+      null,
+      false,
+      Logger.noOp()
+    )
 
     // buffer with Bolt V42 which is invalid
-    const buffer = handshakeResponse(42);
+    const buffer = handshakeResponse(42)
 
-    expect(() => handshaker.createNegotiatedProtocol(buffer)).toThrow();
-  });
+    expect(() => handshaker.createNegotiatedProtocol(buffer)).toThrow()
+  })
 
   it('should fail to create protocol from HTTP as invalid version', () => {
-    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp());
+    const handshaker = new ProtocolHandshaker(
+      null,
+      null,
+      null,
+      false,
+      Logger.noOp()
+    )
 
     // buffer with HTTP magic int
-    const buffer = handshakeResponse(1213486160);
+    const buffer = handshakeResponse(1213486160)
 
-    expect(() => handshaker.createNegotiatedProtocol(buffer)).toThrow();
-  });
-
-});
+    expect(() => handshaker.createNegotiatedProtocol(buffer)).toThrow()
+  })
+})
 
 /**
  * @param {number} version
  * @return {BaseBuffer}
  */
-function handshakeResponse(version) {
-  const buffer = alloc(4);
-  buffer.writeInt32(version);
-  buffer.reset();
-  return buffer;
+function handshakeResponse (version) {
+  const buffer = alloc(4)
+  buffer.writeInt32(version)
+  buffer.reset()
+  return buffer
 }

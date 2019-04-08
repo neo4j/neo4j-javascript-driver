@@ -17,22 +17,21 @@
  * limitations under the License.
  */
 
-import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../error';
+import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../error'
 
 export default class ConnectionErrorHandler {
-
-  constructor(errorCode, handleUnavailability, handleWriteFailure) {
-    this._errorCode = errorCode;
-    this._handleUnavailability = handleUnavailability || noOpHandler;
-    this._handleWriteFailure = handleWriteFailure || noOpHandler;
+  constructor (errorCode, handleUnavailability, handleWriteFailure) {
+    this._errorCode = errorCode
+    this._handleUnavailability = handleUnavailability || noOpHandler
+    this._handleWriteFailure = handleWriteFailure || noOpHandler
   }
 
   /**
    * Error code to use for network errors.
    * @return {string} the error code.
    */
-  errorCode() {
-    return this._errorCode;
+  errorCode () {
+    return this._errorCode
   }
 
   /**
@@ -41,34 +40,38 @@ export default class ConnectionErrorHandler {
    * @param {string} hostPort the host and port of the connection where the error happened.
    * @return {Neo4jError} new error that should be propagated to the user.
    */
-  handleAndTransformError(error, hostPort) {
+  handleAndTransformError (error, hostPort) {
     if (isAvailabilityError(error)) {
-      return this._handleUnavailability(error, hostPort);
+      return this._handleUnavailability(error, hostPort)
     }
     if (isFailureToWrite(error)) {
-      return this._handleWriteFailure(error, hostPort);
+      return this._handleWriteFailure(error, hostPort)
     }
-    return error;
+    return error
   }
 }
 
-function isAvailabilityError(error) {
+function isAvailabilityError (error) {
   if (error) {
-    return error.code === SESSION_EXPIRED ||
+    return (
+      error.code === SESSION_EXPIRED ||
       error.code === SERVICE_UNAVAILABLE ||
-      error.code === 'Neo.TransientError.General.DatabaseUnavailable';
+      error.code === 'Neo.TransientError.General.DatabaseUnavailable'
+    )
   }
-  return false;
+  return false
 }
 
-function isFailureToWrite(error) {
+function isFailureToWrite (error) {
   if (error) {
-    return error.code === 'Neo.ClientError.Cluster.NotALeader' ||
-      error.code === 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase';
+    return (
+      error.code === 'Neo.ClientError.Cluster.NotALeader' ||
+      error.code === 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase'
+    )
   }
-  return false;
+  return false
 }
 
-function noOpHandler(error) {
-  return error;
+function noOpHandler (error) {
+  return error
 }

@@ -17,121 +17,122 @@
  * limitations under the License.
  */
 
-import neo4j from '../src';
-import sharedNeo4j from './internal/shared-neo4j';
-import utils from './internal/test-utils';
+import neo4j from '../src'
+import sharedNeo4j from './internal/shared-neo4j'
+import utils from './internal/test-utils'
 
 describe('result stream', () => {
-
-  let driver, session;
+  let driver, session
 
   beforeEach(done => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken);
-    session = driver.session();
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    session = driver.session()
 
-    session.run("MATCH (n) DETACH DELETE n").then(done);
-  });
+    session.run('MATCH (n) DETACH DELETE n').then(done)
+  })
 
   afterEach(() => {
-    driver.close();
-  });
+    driver.close()
+  })
 
   it('should allow chaining `then`, returning a new thing in each', done => {
     // When & Then
-    session.run( "RETURN 1")
+    session
+      .run('RETURN 1')
       .then(() => 'first')
       .then(arg => {
-        expect(arg).toBe( "first" );
-        return "second";
+        expect(arg).toBe('first')
+        return 'second'
       })
       .then(arg => {
-        expect(arg).toBe( "second" );
+        expect(arg).toBe('second')
       })
-      .then(done);
-  });
+      .then(done)
+  })
 
   it('should allow catching exception thrown in `then`', done => {
     // When & Then
-    session.run( "RETURN 1")
+    session
+      .run('RETURN 1')
       .then(() => {
-        throw new Error("Away with you!");
+        throw new Error('Away with you!')
       })
       .catch(err => {
-        expect(err.message).toBe( "Away with you!" );
+        expect(err.message).toBe('Away with you!')
         done()
-      });
-  });
+      })
+  })
 
   it('should handle missing onCompleted', done => {
     session.run('RETURN 1').subscribe({
       onNext: record => {
-        expect(record.get(0).toInt()).toEqual(1);
-        done();
+        expect(record.get(0).toInt()).toEqual(1)
+        done()
       },
       onError: error => {
-        console.log(error);
+        console.log(error)
       }
-    });
-  });
+    })
+  })
 
   it('should have a stack trace that contains code outside the driver calls [node]', done => {
     if (utils.isClient()) {
-      done();
-      return;
+      done()
+      return
     }
 
     // Given
-    const fn_a = cb => fn_b(cb);
-    const fn_b = cb => fn_c(cb);
-    const fn_c = cb => session.run('RETURN 1/0 AS x').catch(cb);
+    const fnA = cb => fnB(cb)
+    const fnB = cb => fnC(cb)
+    const fnC = cb => session.run('RETURN 1/0 AS x').catch(cb)
 
     // When
-    fn_a(err => {
-      const stack = err.stack;
+    fnA(err => {
+      const stack = err.stack
 
       // Then
-      const contains_fn_a = /at fn_a \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
-      const contains_fn_b = /at fn_b \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
-      const contains_fn_c = /at fn_c \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
+      const containsFnA = /at fnA \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
+      const containsFnB = /at fnB \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
+      const containsFnC = /at fnC \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
 
-      expect(contains_fn_a).toBeTruthy();
-      expect(contains_fn_b).toBeTruthy();
-      expect(contains_fn_c).toBeTruthy();
+      expect(containsFnA).toBeTruthy()
+      expect(containsFnB).toBeTruthy()
+      expect(containsFnC).toBeTruthy()
 
-      done();
-    });
-  });
+      done()
+    })
+  })
 
   it('should have a stack trace that contains code outside the driver calls [browser]', done => {
     if (utils.isServer()) {
-      done();
-      return;
+      done()
+      return
     }
 
     if (!new Error('').stack) {
-      done();
-      return;
+      done()
+      return
     }
 
     // Given
-    const fn_a = cb => fn_b(cb);
-    const fn_b = cb => fn_c(cb);
-    const fn_c = cb => session.run('RETURN 1/0 AS x').catch(cb);
+    const fnA = cb => fnB(cb)
+    const fnB = cb => fnC(cb)
+    const fnC = cb => session.run('RETURN 1/0 AS x').catch(cb)
 
     // When
-    fn_a(err => {
-      const stack = err.stack;
+    fnA(err => {
+      const stack = err.stack
 
       // Then
-      const contains_fn_a = /fn_a/.test(stack);
-      const contains_fn_b = /fn_b/.test(stack);
-      const contains_fn_c = /fn_c/.test(stack);
+      const containsFnA = /fnA/.test(stack)
+      const containsFnB = /fnB/.test(stack)
+      const containsFnC = /fnC/.test(stack)
 
-      expect(contains_fn_a).toBeTruthy();
-      expect(contains_fn_b).toBeTruthy();
-      expect(contains_fn_c).toBeTruthy();
+      expect(containsFnA).toBeTruthy()
+      expect(containsFnB).toBeTruthy()
+      expect(containsFnC).toBeTruthy()
 
-      done();
-    });
-  });
-});
+      done()
+    })
+  })
+})
