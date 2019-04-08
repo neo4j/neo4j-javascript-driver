@@ -23,9 +23,7 @@
           "enable": false
         },
         "accessor": {
-          "access": [
-            "public"
-          ],
+          "access": ["public"],
           "autoPrivate": true
         },
         "undocumentIdentifier": {

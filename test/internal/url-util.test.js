@@ -773,14 +773,12 @@ describe('url-util', () => {
         port: 80
       })
     })
-
     ;['localhost', '127.0.0.1', '192.168.10.29'].forEach(host => {
       verifyUrl(`${host}:80`, {
         host: host,
         port: 80
       })
     })
-
     ;['::1', '1afc:0:a33:85a3::ff2f'].forEach(host => {
       verifyUrl(`[${host}]:80`, {
         host: host,
