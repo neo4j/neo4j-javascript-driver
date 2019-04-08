@@ -25,7 +25,8 @@ import TxConfig from './tx-config'
 import { ACCESS_MODE_WRITE } from './constants'
 
 const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers'
-const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable($context)'
+const CALL_GET_ROUTING_TABLE =
+  'CALL dbms.cluster.routing.getRoutingTable($context)'
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 
 export default class RoutingUtil {
@@ -41,27 +42,32 @@ export default class RoutingUtil {
    * connection error happened.
    */
   callRoutingProcedure (session, routerAddress) {
-    return this._callAvailableRoutingProcedure(session).then(result => {
-      session.close()
-      return result.records
-    }).catch(error => {
-      if (error.code === PROCEDURE_NOT_FOUND_CODE) {
-        // throw when getServers procedure not found because this is clearly a configuration issue
-        throw newError(
-          `Server at ${routerAddress} can't perform routing. Make sure you are connecting to a causal cluster`,
-          SERVICE_UNAVAILABLE)
-      } else {
-        // return nothing when failed to connect because code higher in the callstack is still able to retry with a
-        // different session towards a different router
-        return null
-      }
-    })
+    return this._callAvailableRoutingProcedure(session)
+      .then(result => {
+        session.close()
+        return result.records
+      })
+      .catch(error => {
+        if (error.code === PROCEDURE_NOT_FOUND_CODE) {
+          // throw when getServers procedure not found because this is clearly a configuration issue
+          throw newError(
+            `Server at ${routerAddress} can't perform routing. Make sure you are connecting to a causal cluster`,
+            SERVICE_UNAVAILABLE
+          )
+        } else {
+          // return nothing when failed to connect because code higher in the callstack is still able to retry with a
+          // different session towards a different router
+          return null
+        }
+      })
   }
 
   parseTtl (record, routerAddress) {
     try {
       const now = int(Date.now())
-      const expires = int(record.get('ttl')).multiply(1000).add(now)
+      const expires = int(record.get('ttl'))
+        .multiply(1000)
+        .add(now)
       // if the server uses a really big expire time like Long.MAX_VALUE this may have overflowed
       if (expires.lessThan(now)) {
         return Integer.MAX_VALUE
@@ -69,8 +75,11 @@ export default class RoutingUtil {
       return expires
     } catch (error) {
       throw newError(
-        `Unable to parse TTL entry from router ${routerAddress} from record:\n${JSON.stringify(record)}\nError message: ${error.message}`,
-        PROTOCOL_ERROR)
+        `Unable to parse TTL entry from router ${routerAddress} from record:\n${JSON.stringify(
+          record
+        )}\nError message: ${error.message}`,
+        PROTOCOL_ERROR
+      )
     }
   }
 
@@ -104,8 +113,11 @@ export default class RoutingUtil {
       }
     } catch (error) {
       throw newError(
-        `Unable to parse servers entry from router ${routerAddress} from record:\n${JSON.stringify(record)}\nError message: ${error.message}`,
-        PROTOCOL_ERROR)
+        `Unable to parse servers entry from router ${routerAddress} from record:\n${JSON.stringify(
+          record
+        )}\nError message: ${error.message}`,
+        PROTOCOL_ERROR
+      )
     }
   }
 
@@ -125,7 +137,16 @@ export default class RoutingUtil {
         params = {}
       }
 
-      connection.protocol().run(query, params, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, streamObserver)
+      connection
+        .protocol()
+        .run(
+          query,
+          params,
+          Bookmark.empty(),
+          TxConfig.empty(),
+          ACCESS_MODE_WRITE,
+          streamObserver
+        )
     })
   }
 }

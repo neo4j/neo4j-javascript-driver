@@ -39,10 +39,14 @@ describe('stress tests', () => {
   }
 
   const READ_QUERY = 'MATCH (n) RETURN n LIMIT 1'
-  const WRITE_QUERY = 'CREATE (person:Person:Employee {name: {name}, salary: {salary}}) RETURN person'
+  const WRITE_QUERY =
+    'CREATE (person:Person:Employee {name: {name}, salary: {salary}}) RETURN person'
 
   const TEST_MODE = modeFromEnvOrDefault('STRESS_TEST_MODE')
-  const DATABASE_URI = fromEnvOrDefault('STRESS_TEST_DATABASE_URI', 'bolt://localhost')
+  const DATABASE_URI = fromEnvOrDefault(
+    'STRESS_TEST_DATABASE_URI',
+    'bolt://localhost'
+  )
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
 
   let originalTimeout
@@ -52,7 +56,9 @@ describe('stress tests', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs
 
-    const config = { logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info') }
+    const config = {
+      logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')
+    }
     driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken, config)
 
     cleanupDb(driver).then(() => done())
@@ -133,7 +139,13 @@ describe('stress tests', () => {
   }
 
   function readQueryInTxFunctionCommand (context) {
-    return queryInTxFunctionCommand(context, READ_QUERY, () => noParams(), READ, false)
+    return queryInTxFunctionCommand(
+      context,
+      READ_QUERY,
+      () => noParams(),
+      READ,
+      false
+    )
   }
 
   function readQueryInTxWithBookmarkCommand (context) {
@@ -141,11 +153,23 @@ describe('stress tests', () => {
   }
 
   function readQueryInTxFunctionWithBookmarkCommand (context) {
-    return queryInTxFunctionCommand(context, READ_QUERY, () => noParams(), READ, true)
+    return queryInTxFunctionCommand(
+      context,
+      READ_QUERY,
+      () => noParams(),
+      READ,
+      true
+    )
   }
 
   function writeQueryCommand (context) {
-    return queryCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false)
+    return queryCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      false
+    )
   }
 
   function writeQueryWithBookmarkCommand (context) {
@@ -153,22 +177,52 @@ describe('stress tests', () => {
   }
 
   function writeQueryInTxCommand (context) {
-    return queryInTxCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false)
+    return queryInTxCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      false
+    )
   }
 
   function writeQueryInTxFunctionCommand (context) {
-    return queryInTxFunctionCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false)
+    return queryInTxFunctionCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      false
+    )
   }
 
   function writeQueryInTxWithBookmarkCommand (context) {
-    return queryInTxCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true)
+    return queryInTxCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      true
+    )
   }
 
   function writeQueryInTxFunctionWithBookmarkCommand (context) {
-    return queryInTxFunctionCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true)
+    return queryInTxFunctionCommand(
+      context,
+      WRITE_QUERY,
+      () => randomParams(),
+      WRITE,
+      true
+    )
   }
 
-  function queryCommand (context, query, paramsSupplier, accessMode, useBookmark) {
+  function queryCommand (
+    context,
+    query,
+    paramsSupplier,
+    accessMode,
+    useBookmark
+  ) {
     return callback => {
       const commandId = context.nextCommandId()
       const session = newSession(context, accessMode, useBookmark)
@@ -176,22 +230,34 @@ describe('stress tests', () => {
 
       context.log(commandId, `About to run ${accessMode} query`)
 
-      session.run(query, params).then(result => {
-        context.queryCompleted(result, accessMode)
-        context.log(commandId, `Query completed successfully`)
+      session
+        .run(query, params)
+        .then(result => {
+          context.queryCompleted(result, accessMode)
+          context.log(commandId, `Query completed successfully`)
 
-        session.close(() => {
-          const possibleError = verifyQueryResult(result)
-          callback(possibleError)
+          session.close(() => {
+            const possibleError = verifyQueryResult(result)
+            callback(possibleError)
+          })
         })
-      }).catch(error => {
-        context.log(commandId, `Query failed with error ${JSON.stringify(error)}`)
-        callback(error)
-      })
+        .catch(error => {
+          context.log(
+            commandId,
+            `Query failed with error ${JSON.stringify(error)}`
+          )
+          callback(error)
+        })
     }
   }
 
-  function queryInTxFunctionCommand (context, query, paramsSupplier, accessMode, useBookmark) {
+  function queryInTxFunctionCommand (
+    context,
+    query,
+    paramsSupplier,
+    accessMode,
+    useBookmark
+  ) {
     return callback => {
       const commandId = context.nextCommandId()
       const params = paramsSupplier()
@@ -206,22 +272,33 @@ describe('stress tests', () => {
         resultPromise = session.writeTransaction(tx => tx.run(query, params))
       }
 
-      resultPromise.then(result => {
-        context.queryCompleted(result, accessMode, session.lastBookmark())
-        context.log(commandId, `Transaction function executed successfully`)
+      resultPromise
+        .then(result => {
+          context.queryCompleted(result, accessMode, session.lastBookmark())
+          context.log(commandId, `Transaction function executed successfully`)
 
-        session.close(() => {
-          const possibleError = verifyQueryResult(result)
-          callback(possibleError)
+          session.close(() => {
+            const possibleError = verifyQueryResult(result)
+            callback(possibleError)
+          })
         })
-      }).catch(error => {
-        context.log(commandId, `Transaction function failed with error ${JSON.stringify(error)}`)
-        callback(error)
-      })
+        .catch(error => {
+          context.log(
+            commandId,
+            `Transaction function failed with error ${JSON.stringify(error)}`
+          )
+          callback(error)
+        })
     }
   }
 
-  function queryInTxCommand (context, query, paramsSupplier, accessMode, useBookmark) {
+  function queryInTxCommand (
+    context,
+    query,
+    paramsSupplier,
+    accessMode,
+    useBookmark
+  ) {
     return callback => {
       const commandId = context.nextCommandId()
       const session = newSession(context, accessMode, useBookmark)
@@ -230,26 +307,38 @@ describe('stress tests', () => {
 
       context.log(commandId, `About to run ${accessMode} query in TX`)
 
-      tx.run(query, params).then(result => {
-        let commandError = verifyQueryResult(result)
+      tx.run(query, params)
+        .then(result => {
+          let commandError = verifyQueryResult(result)
 
-        tx.commit().catch(commitError => {
-          context.log(commandId, `Transaction commit failed with error ${JSON.stringify(commitError)}`)
-          if (!commandError) {
-            commandError = commitError
-          }
-        }).then(() => {
-          context.queryCompleted(result, accessMode, session.lastBookmark())
-          context.log(commandId, `Transaction committed successfully`)
+          tx.commit()
+            .catch(commitError => {
+              context.log(
+                commandId,
+                `Transaction commit failed with error ${JSON.stringify(
+                  commitError
+                )}`
+              )
+              if (!commandError) {
+                commandError = commitError
+              }
+            })
+            .then(() => {
+              context.queryCompleted(result, accessMode, session.lastBookmark())
+              context.log(commandId, `Transaction committed successfully`)
 
-          session.close(() => {
-            callback(commandError)
-          })
+              session.close(() => {
+                callback(commandError)
+              })
+            })
         })
-      }).catch(error => {
-        context.log(commandId, `Query failed with error ${JSON.stringify(error)}`)
-        callback(error)
-      })
+        .catch(error => {
+          context.log(
+            commandId,
+            `Query failed with error ${JSON.stringify(error)}`
+          )
+          callback(error)
+        })
     }
   }
 
@@ -263,7 +352,9 @@ describe('stress tests', () => {
       const record = result.records[0]
       return verifyRecord(record)
     } else {
-      return new Error(`Unexpected amount of records received: ${JSON.stringify(result)}`)
+      return new Error(
+        `Unexpected amount of records received: ${JSON.stringify(result)}`
+      )
     }
   }
 
@@ -275,8 +366,13 @@ describe('stress tests', () => {
     }
 
     const propertyKeys = _.keys(node.properties)
-    if (!_.isEmpty(propertyKeys) && !arraysEqual(['name', 'salary'], propertyKeys)) {
-      return new Error(`Unexpected property keys in node: ${JSON.stringify(node)}`)
+    if (
+      !_.isEmpty(propertyKeys) &&
+      !arraysEqual(['name', 'salary'], propertyKeys)
+    ) {
+      return new Error(
+        `Unexpected property keys in node: ${JSON.stringify(node)}`
+      )
     }
 
     return null
@@ -291,7 +387,9 @@ describe('stress tests', () => {
       const count = record.get(0).toNumber()
 
       if (count !== expectedNodeCount) {
-        throw new Error(`Unexpected node count: ${count}, expected: ${expectedNodeCount}`)
+        throw new Error(
+          `Unexpected node count: ${count}, expected: ${expectedNodeCount}`
+        )
       }
     })
   }
@@ -325,24 +423,36 @@ describe('stress tests', () => {
   function verifyCausalClusterMembers (context) {
     return fetchClusterAddresses(context).then(clusterAddresses => {
       // before 3.2.0 only read replicas serve reads
-      const readsOnFollowersEnabled = context.serverVersion.compareTo(VERSION_3_2_0) >= 0
+      const readsOnFollowersEnabled =
+        context.serverVersion.compareTo(VERSION_3_2_0) >= 0
 
       if (readsOnFollowersEnabled) {
         // expect all followers to serve more than zero read queries
-        assertAllAddressesServedReadQueries(clusterAddresses.followers, context.readServersWithQueryCount)
+        assertAllAddressesServedReadQueries(
+          clusterAddresses.followers,
+          context.readServersWithQueryCount
+        )
       }
 
       // expect all read replicas to serve more than zero read queries
-      assertAllAddressesServedReadQueries(clusterAddresses.readReplicas, context.readServersWithQueryCount)
+      assertAllAddressesServedReadQueries(
+        clusterAddresses.readReplicas,
+        context.readServersWithQueryCount
+      )
 
       if (readsOnFollowersEnabled) {
         // expect all followers to serve same order of magnitude read queries
-        assertAllAddressesServedSimilarAmountOfReadQueries(clusterAddresses.followers, context.readServersWithQueryCount)
+        assertAllAddressesServedSimilarAmountOfReadQueries(
+          clusterAddresses.followers,
+          context.readServersWithQueryCount
+        )
       }
 
       // expect all read replicas to serve same order of magnitude read queries
-      assertAllAddressesServedSimilarAmountOfReadQueries(clusterAddresses.readReplicas,
-        context.readServersWithQueryCount)
+      assertAllAddressesServedSimilarAmountOfReadQueries(
+        clusterAddresses.readReplicas,
+        context.readServersWithQueryCount
+      )
     })
   }
 
@@ -360,8 +470,11 @@ describe('stress tests', () => {
   }
 
   function addressesWithRole (records, role) {
-    return _.uniq(records.filter(record => record.get('role') === role)
-      .map(record => record.get('addresses')[0].replace('bolt://', '')))
+    return _.uniq(
+      records
+        .filter(record => record.get('role') === role)
+        .map(record => record.get('addresses')[0].replace('bolt://', ''))
+    )
   }
 
   function assertAllAddressesServedReadQueries (addresses, readQueriesByServer) {
@@ -371,15 +484,24 @@ describe('stress tests', () => {
     })
   }
 
-  function assertAllAddressesServedSimilarAmountOfReadQueries (addresses, readQueriesByServer) {
-    const expectedOrderOfMagnitude = orderOfMagnitude(readQueriesByServer[addresses[0]])
+  function assertAllAddressesServedSimilarAmountOfReadQueries (
+    addresses,
+    readQueriesByServer
+  ) {
+    const expectedOrderOfMagnitude = orderOfMagnitude(
+      readQueriesByServer[addresses[0]]
+    )
 
     addresses.forEach(address => {
       const queries = readQueriesByServer[address]
       const currentOrderOfMagnitude = orderOfMagnitude(queries)
 
-      expect(currentOrderOfMagnitude).not.toBeLessThan(expectedOrderOfMagnitude - 1)
-      expect(currentOrderOfMagnitude).not.toBeGreaterThan(expectedOrderOfMagnitude + 1)
+      expect(currentOrderOfMagnitude).not.toBeLessThan(
+        expectedOrderOfMagnitude - 1
+      )
+      expect(currentOrderOfMagnitude).not.toBeGreaterThan(
+        expectedOrderOfMagnitude + 1
+      )
     })
   }
 
@@ -429,11 +551,14 @@ describe('stress tests', () => {
 
   function cleanupDb (driver) {
     const session = driver.session()
-    return session.run('MATCH (n) DETACH DELETE n').then(() => {
-      session.close()
-    }).catch(error => {
-      console.log('Error clearing the database: ', error)
-    })
+    return session
+      .run('MATCH (n) DETACH DELETE n')
+      .then(() => {
+        session.close()
+      })
+      .catch(error => {
+        console.log('Error clearing the database: ', error)
+      })
   }
 
   function arraysEqual (array1, array2) {
@@ -462,9 +587,11 @@ describe('stress tests', () => {
       const serverAddress = serverInfo.address
       if (accessMode === WRITE) {
         this.createdNodesCount++
-        this.writeServersWithQueryCount[serverAddress] = (this.writeServersWithQueryCount[serverAddress] || 0) + 1
+        this.writeServersWithQueryCount[serverAddress] =
+          (this.writeServersWithQueryCount[serverAddress] || 0) + 1
       } else {
-        this.readServersWithQueryCount[serverAddress] = (this.readServersWithQueryCount[serverAddress] || 0) + 1
+        this.readServersWithQueryCount[serverAddress] =
+          (this.readServersWithQueryCount[serverAddress] || 0) + 1
       }
 
       if (bookmark) {

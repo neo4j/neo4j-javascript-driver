@@ -34,13 +34,15 @@ export default class HttpRequestRunner {
    */
   beginTransaction () {
     const url = beginTransactionUrl(this._url)
-    return sendRequest('POST', url, null, this._authToken).then(responseJson => {
-      const neo4jError = this._converter.extractError(responseJson)
-      if (neo4jError) {
-        throw neo4jError
+    return sendRequest('POST', url, null, this._authToken).then(
+      responseJson => {
+        const neo4jError = this._converter.extractError(responseJson)
+        if (neo4jError) {
+          throw neo4jError
+        }
+        return this._converter.extractTransactionId(responseJson)
       }
-      return this._converter.extractTransactionId(responseJson)
-    })
+    )
   }
 
   /**
@@ -50,12 +52,14 @@ export default class HttpRequestRunner {
    */
   commitTransaction (transactionId) {
     const url = commitTransactionUrl(this._url, transactionId)
-    return sendRequest('POST', url, null, this._authToken).then(responseJson => {
-      const neo4jError = this._converter.extractError(responseJson)
-      if (neo4jError) {
-        throw neo4jError
+    return sendRequest('POST', url, null, this._authToken).then(
+      responseJson => {
+        const neo4jError = this._converter.extractError(responseJson)
+        if (neo4jError) {
+          throw neo4jError
+        }
       }
-    })
+    )
   }
 
   /**
@@ -65,12 +69,14 @@ export default class HttpRequestRunner {
    */
   rollbackTransaction (transactionId) {
     const url = transactionUrl(this._url, transactionId)
-    return sendRequest('DELETE', url, null, this._authToken).then(responseJson => {
-      const neo4jError = this._converter.extractError(responseJson)
-      if (neo4jError) {
-        throw neo4jError
+    return sendRequest('DELETE', url, null, this._authToken).then(
+      responseJson => {
+        const neo4jError = this._converter.extractError(responseJson)
+        if (neo4jError) {
+          throw neo4jError
+        }
       }
-    })
+    )
   }
 
   /**
@@ -83,19 +89,27 @@ export default class HttpRequestRunner {
   runQuery (transactionId, statement, parameters) {
     const streamObserver = new StreamObserver()
     const url = transactionUrl(this._url, transactionId)
-    const body = createStatementJson(statement, parameters, this._converter, streamObserver)
+    const body = createStatementJson(
+      statement,
+      parameters,
+      this._converter,
+      streamObserver
+    )
     if (!body) {
       // unable to encode given statement and parameters, return a failed stream observer
       return Promise.resolve(streamObserver)
     }
 
-    return sendRequest('POST', url, body, this._authToken).then(responseJson => {
-      processResponseJson(responseJson, this._converter, streamObserver)
-    }).catch(error => {
-      streamObserver.onError(error)
-    }).then(() => {
-      return streamObserver
-    })
+    return sendRequest('POST', url, body, this._authToken)
+      .then(responseJson => {
+        processResponseJson(responseJson, this._converter, streamObserver)
+      })
+      .catch(error => {
+        streamObserver.onError(error)
+      })
+      .then(() => {
+        return streamObserver
+      })
   }
 }
 
@@ -111,7 +125,9 @@ function sendRequest (method, url, bodyString, authToken) {
       fetch(url, options)
         .then(response => response.json())
         .then(responseJson => resolve(responseJson))
-        .catch(error => reject(new Neo4jError(error.message, SERVICE_UNAVAILABLE)))
+        .catch(error =>
+          reject(new Neo4jError(error.message, SERVICE_UNAVAILABLE))
+        )
     })
   } catch (e) {
     return Promise.reject(e)
@@ -122,7 +138,10 @@ function createHttpHeaders (authToken) {
   const headers = new Headers()
   headers.append('Accept', 'application/json; charset=UTF-8')
   headers.append('Content-Type', 'application/json')
-  headers.append('Authorization', 'Basic ' + btoa(authToken.principal + ':' + authToken.credentials))
+  headers.append(
+    'Authorization',
+    'Basic ' + btoa(authToken.principal + ':' + authToken.credentials)
+  )
   return headers
 }
 
@@ -138,12 +157,14 @@ function createStatementJson (statement, parameters, converter, streamObserver) 
 function createStatementJsonOrThrow (statement, parameters, converter) {
   const encodedParameters = converter.encodeStatementParameters(parameters)
   return JSON.stringify({
-    statements: [{
-      statement: statement,
-      parameters: encodedParameters,
-      resultDataContents: ['row', 'graph'],
-      includeStats: true
-    }]
+    statements: [
+      {
+        statement: statement,
+        parameters: encodedParameters,
+        resultDataContents: ['row', 'graph'],
+        includeStats: true
+      }
+    ]
   })
 }
 

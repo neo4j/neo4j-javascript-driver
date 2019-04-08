@@ -21,18 +21,20 @@ import Pool from '../../src/internal/pool'
 import PoolConfig from '../../src/internal/pool-config'
 
 describe('Pool', () => {
-  it('allocates if pool is empty', (done) => {
+  it('allocates if pool is empty', done => {
     // Given
     let counter = 0
     const key = 'bolt://localhost:7687'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)))
+    const pool = new Pool((url, release) =>
+      Promise.resolve(new Resource(url, counter++, release))
+    )
 
     // When
     const p0 = pool.acquire(key)
     const p1 = pool.acquire(key)
 
     // Then
-    Promise.all([ p0, p1 ]).then(values => {
+    Promise.all([p0, p1]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
 
@@ -44,11 +46,13 @@ describe('Pool', () => {
     })
   })
 
-  it('pools if resources are returned', (done) => {
+  it('pools if resources are returned', done => {
     // Given a pool that allocates
     let counter = 0
     const key = 'bolt://localhost:7687'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)))
+    const pool = new Pool((url, release) =>
+      Promise.resolve(new Resource(url, counter++, release))
+    )
 
     // When
     const p0 = pool.acquire(key).then(r0 => {
@@ -58,7 +62,7 @@ describe('Pool', () => {
     const p1 = p0.then(r0 => pool.acquire(key))
 
     // Then
-    Promise.all([ p0, p1 ]).then(values => {
+    Promise.all([p0, p1]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
 
@@ -70,22 +74,24 @@ describe('Pool', () => {
     })
   })
 
-  it('handles multiple keys', (done) => {
+  it('handles multiple keys', done => {
     // Given a pool that allocates
     let counter = 0
     const key1 = 'bolt://localhost:7687'
     const key2 = 'bolt://localhost:7688'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)))
+    const pool = new Pool((url, release) =>
+      Promise.resolve(new Resource(url, counter++, release))
+    )
 
     // When
     const p0 = pool.acquire(key1)
     const p1 = pool.acquire(key2)
-    const p01 = Promise.all([ p0, p1 ]).then(values => values[0].close())
+    const p01 = Promise.all([p0, p1]).then(values => values[0].close())
     const p2 = p01.then(() => pool.acquire(key1))
     const p3 = p01.then(() => pool.acquire(key2))
 
     // Then
-    Promise.all([ p0, p1, p2, p3 ]).then(values => {
+    Promise.all([p0, p1, p2, p3]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
       const r2 = values[2]
@@ -103,7 +109,7 @@ describe('Pool', () => {
     })
   })
 
-  it('frees if validate returns false', (done) => {
+  it('frees if validate returns false', done => {
     // Given a pool that allocates
     let counter = 0
     let destroyed = []
@@ -122,7 +128,7 @@ describe('Pool', () => {
     const p1 = pool.acquire(key)
 
     // Then
-    Promise.all([ p0, p1 ]).then(values => {
+    Promise.all([p0, p1]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
 
@@ -137,12 +143,13 @@ describe('Pool', () => {
     })
   })
 
-  it('purges keys', (done) => {
+  it('purges keys', done => {
     // Given a pool that allocates
     let counter = 0
     const key1 = 'bolt://localhost:7687'
     const key2 = 'bolt://localhost:7688'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)),
+    const pool = new Pool(
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
       res => {
         res.destroyed = true
         return true
@@ -152,7 +159,7 @@ describe('Pool', () => {
     // When
     const p0 = pool.acquire(key1)
     const p1 = pool.acquire(key2)
-    const p01 = Promise.all([ p0, p1 ]).then(values => {
+    const p01 = Promise.all([p0, p1]).then(values => {
       values.forEach(v => v.close())
 
       expect(pool.has(key1)).toBeTruthy()
@@ -168,7 +175,7 @@ describe('Pool', () => {
     const p3 = p01.then(() => pool.acquire(key2))
 
     // Then
-    Promise.all([ p0, p1, p2, p3 ]).then(values => {
+    Promise.all([p0, p1, p2, p3]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
       const r2 = values[2]
@@ -184,10 +191,11 @@ describe('Pool', () => {
     })
   })
 
-  it('destroys resource when key was purged', (done) => {
+  it('destroys resource when key was purged', done => {
     let counter = 0
     const key = 'bolt://localhost:7687'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)),
+    const pool = new Pool(
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
       res => {
         res.destroyed = true
         return true
@@ -211,14 +219,15 @@ describe('Pool', () => {
     })
   })
 
-  it('purges all keys', (done) => {
+  it('purges all keys', done => {
     let counter = 0
 
     const key1 = 'bolt://localhost:7687'
     const key2 = 'bolt://localhost:7688'
     const key3 = 'bolt://localhost:7689'
 
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)),
+    const pool = new Pool(
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
       res => {
         res.destroyed = true
         return true
@@ -245,11 +254,12 @@ describe('Pool', () => {
     })
   })
 
-  it('skips broken connections during acquire', (done) => {
+  it('skips broken connections during acquire', done => {
     let validated = false
     let counter = 0
     const key = 'bolt://localhost:7687'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, counter++, release)),
+    const pool = new Pool(
+      (url, release) => Promise.resolve(new Resource(url, counter++, release)),
       res => {
         res.destroyed = true
         return true
@@ -270,7 +280,7 @@ describe('Pool', () => {
       return pool.acquire(key)
     })
 
-    Promise.all([ p0, p1 ]).then(values => {
+    Promise.all([p0, p1]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
 
@@ -280,16 +290,18 @@ describe('Pool', () => {
     })
   })
 
-  it('reports presence of the key', (done) => {
+  it('reports presence of the key', done => {
     const existingKey = 'bolt://localhost:7687'
     const absentKey = 'bolt://localhost:7688'
 
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)))
+    const pool = new Pool((url, release) =>
+      Promise.resolve(new Resource(url, 42, release))
+    )
 
     const p0 = pool.acquire(existingKey)
     const p1 = pool.acquire(existingKey)
 
-    Promise.all([ p0, p1 ]).then(() => {
+    Promise.all([p0, p1]).then(() => {
       expect(pool.has(existingKey)).toBeTruthy()
       expect(pool.has(absentKey)).toBeFalsy()
 
@@ -298,22 +310,26 @@ describe('Pool', () => {
   })
 
   it('reports zero active resources when empty', () => {
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)))
+    const pool = new Pool((url, release) =>
+      Promise.resolve(new Resource(url, 42, release))
+    )
 
     expect(pool.activeResourceCount('bolt://localhost:1')).toEqual(0)
     expect(pool.activeResourceCount('bolt://localhost:2')).toEqual(0)
     expect(pool.activeResourceCount('bolt://localhost:3')).toEqual(0)
   })
 
-  it('reports active resources', (done) => {
+  it('reports active resources', done => {
     const key = 'bolt://localhost:7687'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)))
+    const pool = new Pool((url, release) =>
+      Promise.resolve(new Resource(url, 42, release))
+    )
 
     const p0 = pool.acquire(key)
     const p1 = pool.acquire(key)
     const p2 = pool.acquire(key)
 
-    Promise.all([ p0, p1, p2 ]).then(values => {
+    Promise.all([p0, p1, p2]).then(values => {
       values.forEach(v => expect(v).toBeDefined())
 
       expect(pool.activeResourceCount(key)).toEqual(3)
@@ -322,15 +338,17 @@ describe('Pool', () => {
     })
   })
 
-  it('reports active resources when they are acquired', (done) => {
+  it('reports active resources when they are acquired', done => {
     const key = 'bolt://localhost:7687'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)))
+    const pool = new Pool((url, release) =>
+      Promise.resolve(new Resource(url, 42, release))
+    )
 
     // three new resources are created and returned to the pool
     const p0 = pool.acquire(key)
     const p1 = pool.acquire(key)
     const p2 = pool.acquire(key)
-    const p012 = Promise.all([ p0, p1, p2 ]).then(values => {
+    const p012 = Promise.all([p0, p1, p2]).then(values => {
       values.forEach(v => v.close())
       return values
     })
@@ -340,7 +358,7 @@ describe('Pool', () => {
     const p4 = p012.then(() => pool.acquire(key))
     const p5 = p012.then(() => pool.acquire(key))
 
-    Promise.all([ p012, p3, p4, p5 ]).then(values => {
+    Promise.all([p012, p3, p4, p5]).then(values => {
       const r0 = values[0][0]
       const r1 = values[0][1]
       const r2 = values[0][2]
@@ -355,14 +373,16 @@ describe('Pool', () => {
     })
   })
 
-  it('does not report resources that are returned to the pool', (done) => {
+  it('does not report resources that are returned to the pool', done => {
     const key = 'bolt://localhost:7687'
-    const pool = new Pool((url, release) => Promise.resolve(new Resource(url, 42, release)))
+    const pool = new Pool((url, release) =>
+      Promise.resolve(new Resource(url, 42, release))
+    )
 
     const p0 = pool.acquire(key)
     const p1 = pool.acquire(key)
     const p2 = pool.acquire(key)
-    const p012 = Promise.all([ p0, p1, p2 ]).then(values => {
+    const p012 = Promise.all([p0, p1, p2]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
       const r2 = values[2]
@@ -381,14 +401,16 @@ describe('Pool', () => {
       return values
     })
 
-    p012.then(() => pool.acquire(key)).then(r3 => {
-      expect(pool.activeResourceCount(key)).toEqual(1)
+    p012
+      .then(() => pool.acquire(key))
+      .then(r3 => {
+        expect(pool.activeResourceCount(key)).toEqual(1)
 
-      r3.close()
-      expect(pool.activeResourceCount(key)).toEqual(0)
+        r3.close()
+        expect(pool.activeResourceCount(key)).toEqual(0)
 
-      done()
-    })
+        done()
+      })
   })
 
   it('should wait for a returned connection when max pool size is reached', done => {
@@ -405,7 +427,7 @@ describe('Pool', () => {
     const p0 = pool.acquire(key)
     const p1 = pool.acquire(key)
 
-    Promise.all([ p0, p1 ]).then(values => {
+    Promise.all([p0, p1]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
 
@@ -439,7 +461,7 @@ describe('Pool', () => {
     const p0 = pool.acquire(key)
     const p1 = pool.acquire(key)
 
-    Promise.all([ p0, p1 ]).then(values => {
+    Promise.all([p0, p1]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
 
@@ -467,7 +489,7 @@ describe('Pool', () => {
     const p0 = pool.acquire(key)
     const p1 = pool.acquire(key)
 
-    Promise.all([ p0, p1 ]).then(values => {
+    Promise.all([p0, p1]).then(values => {
       const r0 = values[0]
       const r1 = values[1]
 
@@ -489,8 +511,7 @@ describe('Pool', () => {
     const key = 'bolt://localhost:7687'
     const pool = new Pool(
       (url, release) => Promise.resolve(new Resource(url, counter++, release)),
-      resource => {
-      },
+      resource => {},
       () => true,
       new PoolConfig(2, acquisitionTimeout)
     )
@@ -509,17 +530,20 @@ describe('Pool', () => {
           resource2.close()
         }, acquisitionTimeout)
 
-        pool.acquire(key).then(someResource => {
-          expect(someResource).toBeDefined()
-          expect(someResource).not.toBeNull()
-          expectNoPendingAcquisitionRequests(pool)
-          done() // ok, promise got resolved before the timeout
-        }).catch(error => {
-          expect(error).toBeDefined()
-          expect(error).not.toBeNull()
-          expectNoPendingAcquisitionRequests(pool)
-          done() // also ok, timeout fired before promise got resolved
-        })
+        pool
+          .acquire(key)
+          .then(someResource => {
+            expect(someResource).toBeDefined()
+            expect(someResource).not.toBeNull()
+            expectNoPendingAcquisitionRequests(pool)
+            done() // ok, promise got resolved before the timeout
+          })
+          .catch(error => {
+            expect(error).toBeDefined()
+            expect(error).not.toBeNull()
+            expectNoPendingAcquisitionRequests(pool)
+            done() // also ok, timeout fired before promise got resolved
+          })
       })
     })
   })
@@ -531,8 +555,7 @@ describe('Pool', () => {
 
     const pool = new Pool(
       (url, release) => Promise.resolve(new Resource(url, counter++, release)),
-      resource => {
-      },
+      resource => {},
       resourceValidOnlyOnceValidationFunction,
       new PoolConfig(1, acquisitionTimeout)
     )
@@ -547,14 +570,17 @@ describe('Pool', () => {
         resource1.close()
       }, acquisitionTimeout / 2)
 
-      pool.acquire(key).then(resource2 => {
-        expect(resource2.id).toEqual(1)
-        expectNoPendingAcquisitionRequests(pool)
-        expect(pool.activeResourceCount(key)).toEqual(1)
-        done()
-      }).catch(error => {
-        done.fail(error)
-      })
+      pool
+        .acquire(key)
+        .then(resource2 => {
+          expect(resource2.id).toEqual(1)
+          expectNoPendingAcquisitionRequests(pool)
+          expect(pool.activeResourceCount(key)).toEqual(1)
+          done()
+        })
+        .catch(error => {
+          done.fail(error)
+        })
     })
   })
 
@@ -565,8 +591,7 @@ describe('Pool', () => {
 
     const pool = new Pool(
       (url, release) => Promise.resolve(new Resource(url, counter++, release)),
-      resource => {
-      },
+      resource => {},
       resourceValidOnlyOnceValidationFunction,
       new PoolConfig(2, acquisitionTimeout)
     )
@@ -586,14 +611,17 @@ describe('Pool', () => {
           resource2.close()
         }, acquisitionTimeout / 2)
 
-        pool.acquire(key).then(resource3 => {
-          expect(resource3.id).toEqual(2)
-          expectNoPendingAcquisitionRequests(pool)
-          expect(pool.activeResourceCount(key)).toEqual(1)
-          done()
-        }).catch(error => {
-          done.fail(error)
-        })
+        pool
+          .acquire(key)
+          .then(resource3 => {
+            expect(resource3.id).toEqual(2)
+            expectNoPendingAcquisitionRequests(pool)
+            expect(pool.activeResourceCount(key)).toEqual(1)
+            done()
+          })
+          .catch(error => {
+            done.fail(error)
+          })
       })
     })
   })

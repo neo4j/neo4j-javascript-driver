@@ -53,17 +53,21 @@ export default class NodeBuffer extends BaseBuffer {
 
   putBytes (position, val) {
     if (val instanceof NodeBuffer) {
-      const bytesToCopy = Math.min(val.length - val.position, this.length - position)
+      const bytesToCopy = Math.min(
+        val.length - val.position,
+        this.length - position
+      )
       val._buffer.copy(
         this._buffer,
         position,
         val.position,
-        val.position + bytesToCopy)
+        val.position + bytesToCopy
+      )
       val.position += bytesToCopy
     } else {
       super.putBytes(position, val)
     }
-  };
+  }
 
   getSlice (start, length) {
     return new NodeBuffer(this._buffer.slice(start, start + length))
@@ -73,7 +77,10 @@ export default class NodeBuffer extends BaseBuffer {
 function newNodeJSBuffer (arg) {
   if (arg instanceof node.Buffer) {
     return arg
-  } else if (typeof arg === 'number' && typeof node.Buffer.alloc === 'function') {
+  } else if (
+    typeof arg === 'number' &&
+    typeof node.Buffer.alloc === 'function'
+  ) {
     // use static factory function present in newer NodeJS versions to allocate new buffer with specified size
     return node.Buffer.alloc(arg)
   } else {

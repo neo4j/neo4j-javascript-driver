@@ -24,7 +24,7 @@ import BoltProtocolV2 from './bolt-protocol-v2'
 import BoltProtocolV3 from './bolt-protocol-v3'
 
 const HTTP_MAGIC_PREAMBLE = 1213486160 // == 0x48545450 == "HTTP"
-const BOLT_MAGIC_PREAMBLE = 0x6060B017
+const BOLT_MAGIC_PREAMBLE = 0x6060b017
 
 export default class ProtocolHandshaker {
   /**
@@ -59,7 +59,9 @@ export default class ProtocolHandshaker {
   createNegotiatedProtocol (buffer) {
     const negotiatedVersion = buffer.readInt32()
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this._connection} negotiated protocol version ${negotiatedVersion}`)
+      this._log.debug(
+        `${this._connection} negotiated protocol version ${negotiatedVersion}`
+      )
     }
     return this._createProtocolWithVersion(negotiatedVersion)
   }
@@ -71,14 +73,28 @@ export default class ProtocolHandshaker {
   _createProtocolWithVersion (version) {
     switch (version) {
       case 1:
-        return new BoltProtocolV1(this._connection, this._chunker, this._disableLosslessIntegers)
+        return new BoltProtocolV1(
+          this._connection,
+          this._chunker,
+          this._disableLosslessIntegers
+        )
       case 2:
-        return new BoltProtocolV2(this._connection, this._chunker, this._disableLosslessIntegers)
+        return new BoltProtocolV2(
+          this._connection,
+          this._chunker,
+          this._disableLosslessIntegers
+        )
       case 3:
-        return new BoltProtocolV3(this._connection, this._chunker, this._disableLosslessIntegers)
+        return new BoltProtocolV3(
+          this._connection,
+          this._chunker,
+          this._disableLosslessIntegers
+        )
       case HTTP_MAGIC_PREAMBLE:
-        throw newError('Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
-          '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)')
+        throw newError(
+          'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
+            '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
+        )
       default:
         throw newError('Unknown Bolt protocol version: ' + version)
     }

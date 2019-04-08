@@ -27,7 +27,11 @@ describe('Bookmark', () => {
   })
 
   it('should be possible to construct bookmark from string array', () => {
-    const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx2', 'neo4j:bookmark:v1:tx3'])
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2',
+      'neo4j:bookmark:v1:tx3'
+    ])
 
     expect(bookmark.isEmpty()).toBeFalsy()
     expect(bookmark.maxBookmarkAsString()).toEqual('neo4j:bookmark:v1:tx3')
@@ -63,7 +67,9 @@ describe('Bookmark', () => {
 
   it('should not be possible to construct bookmark from object', () => {
     expect(() => new Bookmark({})).toThrowError(TypeError)
-    expect(() => new Bookmark({ bookmark: 'neo4j:bookmark:v1:tx1' })).toThrowError(TypeError)
+    expect(
+      () => new Bookmark({ bookmark: 'neo4j:bookmark:v1:tx1' })
+    ).toThrowError(TypeError)
   })
 
   it('should not be possible to construct bookmark from number array', () => {
@@ -71,7 +77,9 @@ describe('Bookmark', () => {
   })
 
   it('should not be possible to construct bookmark from mixed array', () => {
-    expect(() => new Bookmark(['neo4j:bookmark:v1:tx1', 2, 'neo4j:bookmark:v1:tx3'])).toThrowError(TypeError)
+    expect(
+      () => new Bookmark(['neo4j:bookmark:v1:tx1', 2, 'neo4j:bookmark:v1:tx3'])
+    ).toThrowError(TypeError)
   })
 
   it('should keep unparsable bookmark', () => {
@@ -82,7 +90,11 @@ describe('Bookmark', () => {
   })
 
   it('should skip unparsable bookmarks', () => {
-    const bookmark = new Bookmark(['neo4j:bookmark:v1:tx42', 'neo4j:bookmark:v1:txWrong', 'neo4j:bookmark:v1:tx4242'])
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx42',
+      'neo4j:bookmark:v1:txWrong',
+      'neo4j:bookmark:v1:tx4242'
+    ])
 
     expect(bookmark.isEmpty()).toBeFalsy()
     expect(bookmark.maxBookmarkAsString()).toEqual('neo4j:bookmark:v1:tx4242')
@@ -106,14 +118,22 @@ describe('Bookmark', () => {
   })
 
   it('should turn into transaction params when represents multiple bookmarks', () => {
-    const bookmark = new Bookmark(
-      ['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx3', 'neo4j:bookmark:v1:tx42', 'neo4j:bookmark:v1:tx5']
-    )
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx3',
+      'neo4j:bookmark:v1:tx42',
+      'neo4j:bookmark:v1:tx5'
+    ])
 
     expect(bookmark.isEmpty()).toBeFalsy()
     expect(bookmark.asBeginTransactionParameters()).toEqual({
       bookmark: 'neo4j:bookmark:v1:tx42',
-      bookmarks: ['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx3', 'neo4j:bookmark:v1:tx42', 'neo4j:bookmark:v1:tx5']
+      bookmarks: [
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx3',
+        'neo4j:bookmark:v1:tx42',
+        'neo4j:bookmark:v1:tx5'
+      ]
     })
   })
 
@@ -124,7 +144,11 @@ describe('Bookmark', () => {
     const bookmarkString = 'neo4j:bookmark:v1:tx123'
     expect(new Bookmark(bookmarkString).values()).toEqual([bookmarkString])
 
-    const bookmarkStrings = ['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx2', 'neo4j:bookmark:v1:tx3']
+    const bookmarkStrings = [
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2',
+      'neo4j:bookmark:v1:tx3'
+    ]
     expect(new Bookmark(bookmarkStrings).values()).toEqual(bookmarkStrings)
   })
 

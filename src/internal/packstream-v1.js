@@ -19,36 +19,42 @@
 import { utf8 } from './node'
 import Integer, { int, isInt } from '../integer'
 import { newError, PROTOCOL_ERROR } from '../error'
-import { Node, Path, PathSegment, Relationship, UnboundRelationship } from '../graph-types'
+import {
+  Node,
+  Path,
+  PathSegment,
+  Relationship,
+  UnboundRelationship
+} from '../graph-types'
 
 const TINY_STRING = 0x80
 const TINY_LIST = 0x90
-const TINY_MAP = 0xA0
-const TINY_STRUCT = 0xB0
-const NULL = 0xC0
-const FLOAT_64 = 0xC1
-const FALSE = 0xC2
-const TRUE = 0xC3
-const INT_8 = 0xC8
-const INT_16 = 0xC9
-const INT_32 = 0xCA
-const INT_64 = 0xCB
-const STRING_8 = 0xD0
-const STRING_16 = 0xD1
-const STRING_32 = 0xD2
-const LIST_8 = 0xD4
-const LIST_16 = 0xD5
-const LIST_32 = 0xD6
-const BYTES_8 = 0xCC
-const BYTES_16 = 0xCD
-const BYTES_32 = 0xCE
-const MAP_8 = 0xD8
-const MAP_16 = 0xD9
-const MAP_32 = 0xDA
-const STRUCT_8 = 0xDC
-const STRUCT_16 = 0xDD
+const TINY_MAP = 0xa0
+const TINY_STRUCT = 0xb0
+const NULL = 0xc0
+const FLOAT_64 = 0xc1
+const FALSE = 0xc2
+const TRUE = 0xc3
+const INT_8 = 0xc8
+const INT_16 = 0xc9
+const INT_32 = 0xca
+const INT_64 = 0xcb
+const STRING_8 = 0xd0
+const STRING_16 = 0xd1
+const STRING_32 = 0xd2
+const LIST_8 = 0xd4
+const LIST_16 = 0xd5
+const LIST_32 = 0xd6
+const BYTES_8 = 0xcc
+const BYTES_16 = 0xcd
+const BYTES_32 = 0xce
+const MAP_8 = 0xd8
+const MAP_16 = 0xd9
+const MAP_32 = 0xda
+const STRUCT_8 = 0xdc
+const STRUCT_16 = 0xdd
 
-const NODE = 0x4E
+const NODE = 0x4e
 const NODE_STRUCT_SIZE = 3
 
 const RELATIONSHIP = 0x52
@@ -61,9 +67,9 @@ const PATH = 0x50
 const PATH_STRUCT_SIZE = 3
 
 /**
-  * A Structure have a signature and fields.
-  * @access private
-  */
+ * A Structure have a signature and fields.
+ * @access private
+ */
 class Structure {
   /**
    * Create new instance
@@ -76,7 +82,9 @@ class Structure {
   toString () {
     let fieldStr = ''
     for (let i = 0; i < this.fields.length; i++) {
-      if (i > 0) { fieldStr += ', ' }
+      if (i > 0) {
+        fieldStr += ', '
+      }
       fieldStr += this.fields[i]
     }
     return 'Structure(' + this.signature + ', [' + fieldStr + '])'
@@ -84,9 +92,9 @@ class Structure {
 }
 
 /**
-  * Class to pack
-  * @access private
-  */
+ * Class to pack
+ * @access private
+ */
 class Packer {
   /**
    * @constructor
@@ -110,9 +118,9 @@ class Packer {
       return () => this._ch.writeUInt8(TRUE)
     } else if (x === false) {
       return () => this._ch.writeUInt8(FALSE)
-    } else if (typeof (x) === 'number') {
+    } else if (typeof x === 'number') {
       return () => this.packFloat(x)
-    } else if (typeof (x) === 'string') {
+    } else if (typeof x === 'string') {
       return () => this.packString(x, onError)
     } else if (isInt(x)) {
       return () => this.packInteger(x)
@@ -128,18 +136,27 @@ class Packer {
     } else if (isIterable(x)) {
       return this.packableIterable(x, onError)
     } else if (x instanceof Node) {
-      return this._nonPackableValue(`It is not allowed to pass nodes in query parameters, given: ${x}`, onError)
+      return this._nonPackableValue(
+        `It is not allowed to pass nodes in query parameters, given: ${x}`,
+        onError
+      )
     } else if (x instanceof Relationship) {
-      return this._nonPackableValue(`It is not allowed to pass relationships in query parameters, given: ${x}`, onError)
+      return this._nonPackableValue(
+        `It is not allowed to pass relationships in query parameters, given: ${x}`,
+        onError
+      )
     } else if (x instanceof Path) {
-      return this._nonPackableValue(`It is not allowed to pass paths in query parameters, given: ${x}`, onError)
+      return this._nonPackableValue(
+        `It is not allowed to pass paths in query parameters, given: ${x}`,
+        onError
+      )
     } else if (x instanceof Structure) {
       var packableFields = []
       for (var i = 0; i < x.fields.length; i++) {
         packableFields[i] = this.packable(x.fields[i], onError)
       }
       return () => this.packStruct(x.signature, packableFields)
-    } else if (typeof (x) === 'object') {
+    } else if (typeof x === 'object') {
       return () => {
         let keys = Object.keys(x)
 
@@ -159,7 +176,10 @@ class Packer {
         }
       }
     } else {
-      return this._nonPackableValue(`Unable to pack the given value: ${x}`, onError)
+      return this._nonPackableValue(
+        `Unable to pack the given value: ${x}`,
+        onError
+      )
     }
   }
 
@@ -224,14 +244,14 @@ class Packer {
       this._ch.writeBytes(bytes)
     } else if (size < 0x10000) {
       this._ch.writeUInt8(STRING_16)
-      this._ch.writeUInt8(size / 256 >> 0)
+      this._ch.writeUInt8((size / 256) >> 0)
       this._ch.writeUInt8(size % 256)
       this._ch.writeBytes(bytes)
     } else if (size < 0x100000000) {
       this._ch.writeUInt8(STRING_32)
-      this._ch.writeUInt8((size / 16777216 >> 0) % 256)
-      this._ch.writeUInt8((size / 65536 >> 0) % 256)
-      this._ch.writeUInt8((size / 256 >> 0) % 256)
+      this._ch.writeUInt8(((size / 16777216) >> 0) % 256)
+      this._ch.writeUInt8(((size / 65536) >> 0) % 256)
+      this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
       this._ch.writeBytes(bytes)
     } else {
@@ -247,13 +267,13 @@ class Packer {
       this._ch.writeUInt8(size)
     } else if (size < 0x10000) {
       this._ch.writeUInt8(LIST_16)
-      this._ch.writeUInt8((size / 256 >> 0) % 256)
+      this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
     } else if (size < 0x100000000) {
       this._ch.writeUInt8(LIST_32)
-      this._ch.writeUInt8((size / 16777216 >> 0) % 256)
-      this._ch.writeUInt8((size / 65536 >> 0) % 256)
-      this._ch.writeUInt8((size / 256 >> 0) % 256)
+      this._ch.writeUInt8(((size / 16777216) >> 0) % 256)
+      this._ch.writeUInt8(((size / 65536) >> 0) % 256)
+      this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
     } else {
       onError(newError('Lists of size ' + size + ' are not supported'))
@@ -267,7 +287,11 @@ class Packer {
         this._ch.writeInt8(array[i])
       }
     } else {
-      onError(newError('Byte arrays are not supported by the database this driver is connected to'))
+      onError(
+        newError(
+          'Byte arrays are not supported by the database this driver is connected to'
+        )
+      )
     }
   }
 
@@ -277,13 +301,13 @@ class Packer {
       this._ch.writeUInt8(size)
     } else if (size < 0x10000) {
       this._ch.writeUInt8(BYTES_16)
-      this._ch.writeUInt8((size / 256 >> 0) % 256)
+      this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
     } else if (size < 0x100000000) {
       this._ch.writeUInt8(BYTES_32)
-      this._ch.writeUInt8((size / 16777216 >> 0) % 256)
-      this._ch.writeUInt8((size / 65536 >> 0) % 256)
-      this._ch.writeUInt8((size / 256 >> 0) % 256)
+      this._ch.writeUInt8(((size / 16777216) >> 0) % 256)
+      this._ch.writeUInt8(((size / 65536) >> 0) % 256)
+      this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
     } else {
       onError(newError('Byte arrays of size ' + size + ' are not supported'))
@@ -298,13 +322,13 @@ class Packer {
       this._ch.writeUInt8(size)
     } else if (size < 0x10000) {
       this._ch.writeUInt8(MAP_16)
-      this._ch.writeUInt8(size / 256 >> 0)
+      this._ch.writeUInt8((size / 256) >> 0)
       this._ch.writeUInt8(size % 256)
     } else if (size < 0x100000000) {
       this._ch.writeUInt8(MAP_32)
-      this._ch.writeUInt8((size / 16777216 >> 0) % 256)
-      this._ch.writeUInt8((size / 65536 >> 0) % 256)
-      this._ch.writeUInt8((size / 256 >> 0) % 256)
+      this._ch.writeUInt8(((size / 16777216) >> 0) % 256)
+      this._ch.writeUInt8(((size / 65536) >> 0) % 256)
+      this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
     } else {
       onError(newError('Maps of size ' + size + ' are not supported'))
@@ -321,7 +345,7 @@ class Packer {
       this._ch.writeUInt8(signature)
     } else if (size < 0x10000) {
       this._ch.writeUInt8(STRUCT_16)
-      this._ch.writeUInt8(size / 256 >> 0)
+      this._ch.writeUInt8((size / 256) >> 0)
       this._ch.writeUInt8(size % 256)
     } else {
       onError(newError('Structures of size ' + size + ' are not supported'))
@@ -341,9 +365,9 @@ class Packer {
 }
 
 /**
-  * Class to unpack
-  * @access private
-  */
+ * Class to unpack
+ * @access private
+ */
 class Unpacker {
   /**
    * @constructor
@@ -355,8 +379,8 @@ class Unpacker {
 
   unpack (buffer) {
     const marker = buffer.readUInt8()
-    const markerHigh = marker & 0xF0
-    const markerLow = marker & 0x0F
+    const markerHigh = marker & 0xf0
+    const markerLow = marker & 0x0f
 
     if (marker === NULL) {
       return null
@@ -407,7 +431,9 @@ class Unpacker {
     const marker = buffer.readUInt8()
     const result = this._unpackInteger(marker, buffer)
     if (result == null) {
-      throw newError('Unable to unpack integer value with marker ' + marker.toString(16))
+      throw newError(
+        'Unable to unpack integer value with marker ' + marker.toString(16)
+      )
     }
     return result
   }
@@ -580,7 +606,11 @@ class Unpacker {
   }
 
   _unpackUnboundRelationship (structSize, buffer) {
-    this._verifyStructSize('UnboundRelationship', UNBOUND_RELATIONSHIP_STRUCT_SIZE, structSize)
+    this._verifyStructSize(
+      'UnboundRelationship',
+      UNBOUND_RELATIONSHIP_STRUCT_SIZE,
+      structSize
+    )
 
     return new UnboundRelationship(
       this.unpack(buffer), // Identity
@@ -611,13 +641,19 @@ class Unpacker {
           // information about their start and end nodes, that's instead
           // inferred from the path sequence. This is us inferring (and,
           // for performance reasons remembering) the start/end of a rel.
-          rels[relIndex - 1] = rel = rel.bind(prevNode.identity, nextNode.identity)
+          rels[relIndex - 1] = rel = rel.bind(
+            prevNode.identity,
+            nextNode.identity
+          )
         }
       } else {
         rel = rels[-relIndex - 1]
         if (rel instanceof UnboundRelationship) {
           // See above
-          rels[-relIndex - 1] = rel = rel.bind(nextNode.identity, prevNode.identity)
+          rels[-relIndex - 1] = rel = rel.bind(
+            nextNode.identity,
+            prevNode.identity
+          )
         }
       }
       // Done hydrating one path segment.
@@ -637,7 +673,10 @@ class Unpacker {
 
   _verifyStructSize (structName, expectedSize, actualSize) {
     if (expectedSize !== actualSize) {
-      throw newError(`Wrong struct size for ${structName}, expected ${expectedSize} but was ${actualSize}`, PROTOCOL_ERROR)
+      throw newError(
+        `Wrong struct size for ${structName}, expected ${expectedSize} but was ${actualSize}`,
+        PROTOCOL_ERROR
+      )
     }
   }
 }
@@ -649,8 +688,4 @@ function isIterable (obj) {
   return typeof obj[Symbol.iterator] === 'function'
 }
 
-export {
-  Packer,
-  Unpacker,
-  Structure
-}
+export { Packer, Unpacker, Structure }

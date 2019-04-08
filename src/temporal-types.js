@@ -18,7 +18,11 @@
  */
 
 import * as util from './internal/temporal-util'
-import { assertNumberOrInteger, assertString, assertValidDate } from './internal/util'
+import {
+  assertNumberOrInteger,
+  assertString,
+  assertValidDate
+} from './internal/util'
 import { newError } from './error'
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
@@ -57,11 +61,20 @@ export class Duration {
   }
 
   toString () {
-    return util.durationToIsoString(this.months, this.days, this.seconds, this.nanoseconds)
+    return util.durationToIsoString(
+      this.months,
+      this.days,
+      this.seconds,
+      this.nanoseconds
+    )
   }
 }
 
-Object.defineProperty(Duration.prototype, DURATION_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES)
+Object.defineProperty(
+  Duration.prototype,
+  DURATION_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
 
 /**
  * Test if given object is an instance of {@link Duration} class.
@@ -106,15 +119,25 @@ export class LocalTime {
       standardDate.getHours(),
       standardDate.getMinutes(),
       standardDate.getSeconds(),
-      util.totalNanoseconds(standardDate, nanosecond))
+      util.totalNanoseconds(standardDate, nanosecond)
+    )
   }
 
   toString () {
-    return util.timeToIsoString(this.hour, this.minute, this.second, this.nanosecond)
+    return util.timeToIsoString(
+      this.hour,
+      this.minute,
+      this.second,
+      this.nanosecond
+    )
   }
 }
 
-Object.defineProperty(LocalTime.prototype, LOCAL_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES)
+Object.defineProperty(
+  LocalTime.prototype,
+  LOCAL_TIME_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
 
 /**
  * Test if given object is an instance of {@link LocalTime} class.
@@ -144,7 +167,10 @@ export class Time {
     this.minute = util.assertValidMinute(minute)
     this.second = util.assertValidSecond(second)
     this.nanosecond = util.assertValidNanosecond(nanosecond)
-    this.timeZoneOffsetSeconds = assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds')
+    this.timeZoneOffsetSeconds = assertNumberOrInteger(
+      timeZoneOffsetSeconds,
+      'Time zone offset in seconds'
+    )
     Object.freeze(this)
   }
 
@@ -163,15 +189,27 @@ export class Time {
       standardDate.getMinutes(),
       standardDate.getSeconds(),
       util.totalNanoseconds(standardDate, nanosecond),
-      util.timeZoneOffsetInSeconds(standardDate))
+      util.timeZoneOffsetInSeconds(standardDate)
+    )
   }
 
   toString () {
-    return util.timeToIsoString(this.hour, this.minute, this.second, this.nanosecond) + util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds)
+    return (
+      util.timeToIsoString(
+        this.hour,
+        this.minute,
+        this.second,
+        this.nanosecond
+      ) + util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds)
+    )
   }
 }
 
-Object.defineProperty(Time.prototype, TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES)
+Object.defineProperty(
+  Time.prototype,
+  TIME_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
 
 /**
  * Test if given object is an instance of {@link Time} class.
@@ -212,7 +250,8 @@ export class Date {
     return new Date(
       standardDate.getFullYear(),
       standardDate.getMonth() + 1,
-      standardDate.getDate())
+      standardDate.getDate()
+    )
   }
 
   toString () {
@@ -220,7 +259,11 @@ export class Date {
   }
 }
 
-Object.defineProperty(Date.prototype, DATE_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES)
+Object.defineProperty(
+  Date.prototype,
+  DATE_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
 
 /**
  * Test if given object is an instance of {@link Date} class.
@@ -274,15 +317,28 @@ export class LocalDateTime {
       standardDate.getHours(),
       standardDate.getMinutes(),
       standardDate.getSeconds(),
-      util.totalNanoseconds(standardDate, nanosecond))
+      util.totalNanoseconds(standardDate, nanosecond)
+    )
   }
 
   toString () {
-    return localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond)
+    return localDateTimeToString(
+      this.year,
+      this.month,
+      this.day,
+      this.hour,
+      this.minute,
+      this.second,
+      this.nanosecond
+    )
   }
 }
 
-Object.defineProperty(LocalDateTime.prototype, LOCAL_DATE_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES)
+Object.defineProperty(
+  LocalDateTime.prototype,
+  LOCAL_DATE_TIME_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
 
 /**
  * Test if given object is an instance of {@link LocalDateTime} class.
@@ -312,7 +368,17 @@ export class DateTime {
    * This is different from standard JavaScript `Date.getTimezoneOffset()` which is the difference, in minutes, from local time to UTC.
    * @param {string|null} timeZoneId the time zone id for the new date-time. Either this argument or `timeZoneOffsetSeconds` should be defined.
    */
-  constructor (year, month, day, hour, minute, second, nanosecond, timeZoneOffsetSeconds, timeZoneId) {
+  constructor (
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    nanosecond,
+    timeZoneOffsetSeconds,
+    timeZoneId
+  ) {
     this.year = util.assertValidYear(year)
     this.month = util.assertValidMonth(month)
     this.day = util.assertValidDay(day)
@@ -321,7 +387,10 @@ export class DateTime {
     this.second = util.assertValidSecond(second)
     this.nanosecond = util.assertValidNanosecond(nanosecond)
 
-    const [offset, id] = verifyTimeZoneArguments(timeZoneOffsetSeconds, timeZoneId)
+    const [offset, id] = verifyTimeZoneArguments(
+      timeZoneOffsetSeconds,
+      timeZoneId
+    )
     this.timeZoneOffsetSeconds = offset
     this.timeZoneId = id
 
@@ -346,17 +415,32 @@ export class DateTime {
       standardDate.getSeconds(),
       util.totalNanoseconds(standardDate, nanosecond),
       util.timeZoneOffsetInSeconds(standardDate),
-      null /* no time zone id */)
+      null /* no time zone id */
+    )
   }
 
   toString () {
-    const localDateTimeStr = localDateTimeToString(this.year, this.month, this.day, this.hour, this.minute, this.second, this.nanosecond)
-    const timeZoneStr = this.timeZoneId ? `[${this.timeZoneId}]` : util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds)
+    const localDateTimeStr = localDateTimeToString(
+      this.year,
+      this.month,
+      this.day,
+      this.hour,
+      this.minute,
+      this.second,
+      this.nanosecond
+    )
+    const timeZoneStr = this.timeZoneId
+      ? `[${this.timeZoneId}]`
+      : util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds)
     return localDateTimeStr + timeZoneStr
   }
 }
 
-Object.defineProperty(DateTime.prototype, DATE_TIME_IDENTIFIER_PROPERTY, IDENTIFIER_PROPERTY_ATTRIBUTES)
+Object.defineProperty(
+  DateTime.prototype,
+  DATE_TIME_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
 
 /**
  * Test if given object is an instance of {@link DateTime} class.
@@ -371,8 +455,20 @@ function hasIdentifierProperty (obj, property) {
   return (obj && obj[property]) === true
 }
 
-function localDateTimeToString (year, month, day, hour, minute, second, nanosecond) {
-  return util.dateToIsoString(year, month, day) + 'T' + util.timeToIsoString(hour, minute, second, nanosecond)
+function localDateTimeToString (
+  year,
+  month,
+  day,
+  hour,
+  minute,
+  second,
+  nanosecond
+) {
+  return (
+    util.dateToIsoString(year, month, day) +
+    'T' +
+    util.timeToIsoString(hour, minute, second, nanosecond)
+  )
 }
 
 function verifyTimeZoneArguments (timeZoneOffsetSeconds, timeZoneId) {
@@ -386,9 +482,13 @@ function verifyTimeZoneArguments (timeZoneOffsetSeconds, timeZoneId) {
     assertString(timeZoneId, 'Time zone ID')
     return [null, timeZoneId]
   } else if (offsetDefined && idDefined) {
-    throw newError(`Unable to create DateTime with both time zone offset and id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`)
+    throw newError(
+      `Unable to create DateTime with both time zone offset and id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`
+    )
   } else {
-    throw newError(`Unable to create DateTime without either time zone offset or id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`)
+    throw newError(
+      `Unable to create DateTime without either time zone offset or id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`
+    )
   }
 }
 

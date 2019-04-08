@@ -21,8 +21,7 @@ import BaseBuffer from './buf/base-buf'
 import { alloc } from './node'
 import CombinedBuffer from './buf/combined-buf'
 
-let
-  _CHUNK_HEADER_SIZE = 2
+let _CHUNK_HEADER_SIZE = 2
 let _MESSAGE_BOUNDARY = 0x00
 let _DEFAULT_BUFFER_SIZE = 1400 // http://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
 
@@ -120,7 +119,8 @@ class Chunker extends BaseBuffer {
 
   _closeChunkIfOpen () {
     if (this._chunkOpen) {
-      let chunkSize = this._buffer.position - (this._currentChunkStart + _CHUNK_HEADER_SIZE)
+      let chunkSize =
+        this._buffer.position - (this._currentChunkStart + _CHUNK_HEADER_SIZE)
       this._buffer.putUInt16(this._currentChunkStart, chunkSize)
       this._chunkOpen = false
     }
@@ -152,7 +152,7 @@ class Dechunker {
 
   IN_HEADER (buf) {
     // First header byte read, now we read the next one
-    return this._onHeader((this._partialChunkHeader | buf.readUInt8()) & 0xFFFF)
+    return this._onHeader((this._partialChunkHeader | buf.readUInt8()) & 0xffff)
   }
 
   IN_CHUNK (buf) {
@@ -198,7 +198,4 @@ class Dechunker {
   }
 }
 
-export {
-  Chunker,
-  Dechunker
-}
+export { Chunker, Dechunker }

@@ -70,20 +70,29 @@ class Integer {
   // Common constant values ZERO, ONE, NEG_ONE, etc. are defined below the from*
   // methods on which they depend.
 
-  inSafeRange () { return this.greaterThanOrEqual(Integer.MIN_SAFE_VALUE) && this.lessThanOrEqual(Integer.MAX_SAFE_VALUE) }
+  inSafeRange () {
+    return (
+      this.greaterThanOrEqual(Integer.MIN_SAFE_VALUE) &&
+      this.lessThanOrEqual(Integer.MAX_SAFE_VALUE)
+    )
+  }
   /**
    * Converts the Integer to an exact javascript Number, assuming it is a 32 bit integer.
    * @returns {number}
    * @expose
    */
-  toInt () { return this.low };
+  toInt () {
+    return this.low
+  }
 
   /**
    * Converts the Integer to a the nearest floating-point representation of this value (double, 53 bit mantissa).
    * @returns {number}
    * @expose
    */
-  toNumber () { return this.high * TWO_PWR_32_DBL + (this.low >>> 0) }
+  toNumber () {
+    return this.high * TWO_PWR_32_DBL + (this.low >>> 0)
+  }
 
   /**
    * Converts the Integer to native number or -Infinity/+Infinity when it does not fit.
@@ -110,8 +119,12 @@ class Integer {
    */
   toString (radix) {
     radix = radix || 10
-    if (radix < 2 || radix > 36) { throw RangeError('radix out of range: ' + radix) }
-    if (this.isZero()) { return '0' }
+    if (radix < 2 || radix > 36) {
+      throw RangeError('radix out of range: ' + radix)
+    }
+    if (this.isZero()) {
+      return '0'
+    }
     var rem
     if (this.isNegative()) {
       if (this.equals(Integer.MIN_VALUE)) {
@@ -121,7 +134,9 @@ class Integer {
         var div = this.div(radixInteger)
         rem = div.multiply(radixInteger).subtract(this)
         return div.toString(radix) + rem.toInt().toString(radix)
-      } else { return '-' + this.negate().toString(radix) }
+      } else {
+        return '-' + this.negate().toString(radix)
+      }
     }
 
     // Do several (6) digits each time through the loop, so as to
@@ -134,8 +149,12 @@ class Integer {
       var intval = rem.subtract(remDiv.multiply(radixToPower)).toInt() >>> 0
       var digits = intval.toString(radix)
       rem = remDiv
-      if (rem.isZero()) { return digits + result } else {
-        while (digits.length < 6) { digits = '0' + digits }
+      if (rem.isZero()) {
+        return digits + result
+      } else {
+        while (digits.length < 6) {
+          digits = '0' + digits
+        }
         result = '' + digits + result
       }
     }
@@ -146,14 +165,18 @@ class Integer {
    * @returns {number} Signed high bits
    * @expose
    */
-  getHighBits () { return this.high }
+  getHighBits () {
+    return this.high
+  }
 
   /**
    * Gets the low 32 bits as a signed integer.
    * @returns {number} Signed low bits
    * @expose
    */
-  getLowBits () { return this.low }
+  getLowBits () {
+    return this.low
+  }
 
   /**
    * Gets the number of bits needed to represent the absolute value of this Integer.
@@ -161,10 +184,14 @@ class Integer {
    * @expose
    */
   getNumBitsAbs () {
-    if (this.isNegative()) { return this.equals(Integer.MIN_VALUE) ? 64 : this.negate().getNumBitsAbs() }
+    if (this.isNegative()) {
+      return this.equals(Integer.MIN_VALUE) ? 64 : this.negate().getNumBitsAbs()
+    }
     var val = this.high !== 0 ? this.high : this.low
     for (var bit = 31; bit > 0; bit--) {
-      if ((val & (1 << bit)) !== 0) { break }
+      if ((val & (1 << bit)) !== 0) {
+        break
+      }
     }
     return this.high !== 0 ? bit + 33 : bit + 1
   }
@@ -201,14 +228,18 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isOdd () { return (this.low & 1) === 1 }
+  isOdd () {
+    return (this.low & 1) === 1
+  }
 
   /**
    * Tests if this Integer's value is even.
    * @returns {boolean}
    * @expose
    */
-  isEven () { return (this.low & 1) === 0 };
+  isEven () {
+    return (this.low & 1) === 0
+  }
 
   /**
    * Tests if this Integer's value equals the specified's.
@@ -217,7 +248,9 @@ class Integer {
    * @expose
    */
   equals (other) {
-    if (!Integer.isInteger(other)) { other = Integer.fromValue(other) }
+    if (!Integer.isInteger(other)) {
+      other = Integer.fromValue(other)
+    }
     return this.high === other.high && this.low === other.low
   }
 
@@ -237,7 +270,9 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  lessThan (other) { return this.compare(/* validates */ other) < 0 }
+  lessThan (other) {
+    return this.compare(/* validates */ other) < 0
+  }
 
   /**
    * Tests if this Integer's value is less than or equal the specified's.
@@ -245,7 +280,9 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  lessThanOrEqual (other) { return this.compare(/* validates */ other) <= 0 }
+  lessThanOrEqual (other) {
+    return this.compare(/* validates */ other) <= 0
+  }
 
   /**
    * Tests if this Integer's value is greater than the specified's.
@@ -253,7 +290,9 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  greaterThan (other) { return this.compare(/* validates */ other) > 0 }
+  greaterThan (other) {
+    return this.compare(/* validates */ other) > 0
+  }
 
   /**
    * Tests if this Integer's value is greater than or equal the specified's.
@@ -261,7 +300,9 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  greaterThanOrEqual (other) { return this.compare(/* validates */ other) >= 0 }
+  greaterThanOrEqual (other) {
+    return this.compare(/* validates */ other) >= 0
+  }
 
   /**
    * Compares this Integer's value with the specified's.
@@ -271,12 +312,20 @@ class Integer {
    * @expose
    */
   compare (other) {
-    if (!Integer.isInteger(other)) { other = Integer.fromValue(other) }
-    if (this.equals(other)) { return 0 }
+    if (!Integer.isInteger(other)) {
+      other = Integer.fromValue(other)
+    }
+    if (this.equals(other)) {
+      return 0
+    }
     var thisNeg = this.isNegative()
     var otherNeg = other.isNegative()
-    if (thisNeg && !otherNeg) { return -1 }
-    if (!thisNeg && otherNeg) { return 1 }
+    if (thisNeg && !otherNeg) {
+      return -1
+    }
+    if (!thisNeg && otherNeg) {
+      return 1
+    }
     // At this point the sign bits are the same
     return this.subtract(other).isNegative() ? -1 : 1
   }
@@ -287,7 +336,9 @@ class Integer {
    * @expose
    */
   negate () {
-    if (this.equals(Integer.MIN_VALUE)) { return Integer.MIN_VALUE }
+    if (this.equals(Integer.MIN_VALUE)) {
+      return Integer.MIN_VALUE
+    }
     return this.not().add(Integer.ONE)
   }
 
@@ -298,32 +349,37 @@ class Integer {
    * @expose
    */
   add (addend) {
-    if (!Integer.isInteger(addend)) { addend = Integer.fromValue(addend) }
+    if (!Integer.isInteger(addend)) {
+      addend = Integer.fromValue(addend)
+    }
 
     // Divide each number into 4 chunks of 16 bits, and then sum the chunks.
 
     var a48 = this.high >>> 16
-    var a32 = this.high & 0xFFFF
+    var a32 = this.high & 0xffff
     var a16 = this.low >>> 16
-    var a00 = this.low & 0xFFFF
+    var a00 = this.low & 0xffff
 
     var b48 = addend.high >>> 16
-    var b32 = addend.high & 0xFFFF
+    var b32 = addend.high & 0xffff
     var b16 = addend.low >>> 16
-    var b00 = addend.low & 0xFFFF
+    var b00 = addend.low & 0xffff
 
-    var c48 = 0; var c32 = 0; var c16 = 0; var c00 = 0
+    var c48 = 0
+    var c32 = 0
+    var c16 = 0
+    var c00 = 0
     c00 += a00 + b00
     c16 += c00 >>> 16
-    c00 &= 0xFFFF
+    c00 &= 0xffff
     c16 += a16 + b16
     c32 += c16 >>> 16
-    c16 &= 0xFFFF
+    c16 &= 0xffff
     c32 += a32 + b32
     c48 += c32 >>> 16
-    c32 &= 0xFFFF
+    c32 &= 0xffff
     c48 += a48 + b48
-    c48 &= 0xFFFF
+    c48 &= 0xffff
     return Integer.fromBits((c16 << 16) | c00, (c48 << 16) | c32)
   }
 
@@ -334,7 +390,9 @@ class Integer {
    * @expose
    */
   subtract (subtrahend) {
-    if (!Integer.isInteger(subtrahend)) { subtrahend = Integer.fromValue(subtrahend) }
+    if (!Integer.isInteger(subtrahend)) {
+      subtrahend = Integer.fromValue(subtrahend)
+    }
     return this.add(subtrahend.negate())
   }
 
@@ -345,55 +403,78 @@ class Integer {
    * @expose
    */
   multiply (multiplier) {
-    if (this.isZero()) { return Integer.ZERO }
-    if (!Integer.isInteger(multiplier)) { multiplier = Integer.fromValue(multiplier) }
-    if (multiplier.isZero()) { return Integer.ZERO }
-    if (this.equals(Integer.MIN_VALUE)) { return multiplier.isOdd() ? Integer.MIN_VALUE : Integer.ZERO }
-    if (multiplier.equals(Integer.MIN_VALUE)) { return this.isOdd() ? Integer.MIN_VALUE : Integer.ZERO }
+    if (this.isZero()) {
+      return Integer.ZERO
+    }
+    if (!Integer.isInteger(multiplier)) {
+      multiplier = Integer.fromValue(multiplier)
+    }
+    if (multiplier.isZero()) {
+      return Integer.ZERO
+    }
+    if (this.equals(Integer.MIN_VALUE)) {
+      return multiplier.isOdd() ? Integer.MIN_VALUE : Integer.ZERO
+    }
+    if (multiplier.equals(Integer.MIN_VALUE)) {
+      return this.isOdd() ? Integer.MIN_VALUE : Integer.ZERO
+    }
 
     if (this.isNegative()) {
-      if (multiplier.isNegative()) { return this.negate().multiply(multiplier.negate()) } else { return this.negate().multiply(multiplier).negate() }
-    } else if (multiplier.isNegative()) { return this.multiply(multiplier.negate()).negate() }
+      if (multiplier.isNegative()) {
+        return this.negate().multiply(multiplier.negate())
+      } else {
+        return this.negate()
+          .multiply(multiplier)
+          .negate()
+      }
+    } else if (multiplier.isNegative()) {
+      return this.multiply(multiplier.negate()).negate()
+    }
 
     // If both longs are small, use float multiplication
-    if (this.lessThan(TWO_PWR_24) && multiplier.lessThan(TWO_PWR_24)) { return Integer.fromNumber(this.toNumber() * multiplier.toNumber()) }
+    if (this.lessThan(TWO_PWR_24) && multiplier.lessThan(TWO_PWR_24)) {
+      return Integer.fromNumber(this.toNumber() * multiplier.toNumber())
+    }
 
     // Divide each long into 4 chunks of 16 bits, and then add up 4x4 products.
     // We can skip products that would overflow.
 
     var a48 = this.high >>> 16
-    var a32 = this.high & 0xFFFF
+    var a32 = this.high & 0xffff
     var a16 = this.low >>> 16
-    var a00 = this.low & 0xFFFF
+    var a00 = this.low & 0xffff
 
     var b48 = multiplier.high >>> 16
-    var b32 = multiplier.high & 0xFFFF
+    var b32 = multiplier.high & 0xffff
     var b16 = multiplier.low >>> 16
-    var b00 = multiplier.low & 0xFFFF
+    var b00 = multiplier.low & 0xffff
 
-    var c48 = 0; var c32 = 0; var c16 = 0; var c00 = 0
+    var c48 = 0
+    var c32 = 0
+    var c16 = 0
+    var c00 = 0
     c00 += a00 * b00
     c16 += c00 >>> 16
-    c00 &= 0xFFFF
+    c00 &= 0xffff
     c16 += a16 * b00
     c32 += c16 >>> 16
-    c16 &= 0xFFFF
+    c16 &= 0xffff
     c16 += a00 * b16
     c32 += c16 >>> 16
-    c16 &= 0xFFFF
+    c16 &= 0xffff
     c32 += a32 * b00
     c48 += c32 >>> 16
-    c32 &= 0xFFFF
+    c32 &= 0xffff
     c32 += a16 * b16
     c48 += c32 >>> 16
-    c32 &= 0xFFFF
+    c32 &= 0xffff
     c32 += a00 * b32
     c48 += c32 >>> 16
-    c32 &= 0xFFFF
+    c32 &= 0xffff
     c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48
-    c48 &= 0xFFFF
+    c48 &= 0xffff
     return Integer.fromBits((c16 << 16) | c00, (c48 << 16) | c32)
-  };
+  }
 
   /**
    * Returns this Integer divided by the specified.
@@ -402,9 +483,15 @@ class Integer {
    * @expose
    */
   div (divisor) {
-    if (!Integer.isInteger(divisor)) { divisor = Integer.fromValue(divisor) }
-    if (divisor.isZero()) { throw newError('division by zero') }
-    if (this.isZero()) { return Integer.ZERO }
+    if (!Integer.isInteger(divisor)) {
+      divisor = Integer.fromValue(divisor)
+    }
+    if (divisor.isZero()) {
+      throw newError('division by zero')
+    }
+    if (this.isZero()) {
+      return Integer.ZERO
+    }
     var approx, rem, res
     if (this.equals(Integer.MIN_VALUE)) {
       if (divisor.equals(Integer.ONE) || divisor.equals(Integer.NEG_ONE)) {
@@ -424,11 +511,19 @@ class Integer {
           return res
         }
       }
-    } else if (divisor.equals(Integer.MIN_VALUE)) { return Integer.ZERO }
+    } else if (divisor.equals(Integer.MIN_VALUE)) {
+      return Integer.ZERO
+    }
     if (this.isNegative()) {
-      if (divisor.isNegative()) { return this.negate().div(divisor.negate()) }
-      return this.negate().div(divisor).negate()
-    } else if (divisor.isNegative()) { return this.div(divisor.negate()).negate() }
+      if (divisor.isNegative()) {
+        return this.negate().div(divisor.negate())
+      }
+      return this.negate()
+        .div(divisor)
+        .negate()
+    } else if (divisor.isNegative()) {
+      return this.div(divisor.negate()).negate()
+    }
 
     // Repeat the following until the remainder is less than other:  find a
     // floating-point that approximates remainder / other *from below*, add this
@@ -445,7 +540,7 @@ class Integer {
       // We will tweak the approximate result by changing it in the 48-th digit or
       // the smallest non-fractional digit, whichever is larger.
       var log2 = Math.ceil(Math.log(approx) / Math.LN2)
-      var delta = (log2 <= 48) ? 1 : Math.pow(2, log2 - 48)
+      var delta = log2 <= 48 ? 1 : Math.pow(2, log2 - 48)
 
       // Decrease the approximation until it is smaller than the remainder.  Note
       // that if it is too large, the product overflows and is negative.
@@ -459,7 +554,9 @@ class Integer {
 
       // We know the answer can't be zero... and actually, zero would cause
       // infinite recursion since we would make no progress.
-      if (approxRes.isZero()) { approxRes = Integer.ONE }
+      if (approxRes.isZero()) {
+        approxRes = Integer.ONE
+      }
 
       res = res.add(approxRes)
       rem = rem.subtract(approxRem)
@@ -474,7 +571,9 @@ class Integer {
    * @expose
    */
   modulo (divisor) {
-    if (!Integer.isInteger(divisor)) { divisor = Integer.fromValue(divisor) }
+    if (!Integer.isInteger(divisor)) {
+      divisor = Integer.fromValue(divisor)
+    }
     return this.subtract(this.div(divisor).multiply(divisor))
   }
 
@@ -494,7 +593,9 @@ class Integer {
    * @expose
    */
   and (other) {
-    if (!Integer.isInteger(other)) { other = Integer.fromValue(other) }
+    if (!Integer.isInteger(other)) {
+      other = Integer.fromValue(other)
+    }
     return Integer.fromBits(this.low & other.low, this.high & other.high)
   }
 
@@ -505,7 +606,9 @@ class Integer {
    * @expose
    */
   or (other) {
-    if (!Integer.isInteger(other)) { other = Integer.fromValue(other) }
+    if (!Integer.isInteger(other)) {
+      other = Integer.fromValue(other)
+    }
     return Integer.fromBits(this.low | other.low, this.high | other.high)
   }
 
@@ -516,7 +619,9 @@ class Integer {
    * @expose
    */
   xor (other) {
-    if (!Integer.isInteger(other)) { other = Integer.fromValue(other) }
+    if (!Integer.isInteger(other)) {
+      other = Integer.fromValue(other)
+    }
     return Integer.fromBits(this.low ^ other.low, this.high ^ other.high)
   }
 
@@ -527,8 +632,19 @@ class Integer {
    * @expose
    */
   shiftLeft (numBits) {
-    if (Integer.isInteger(numBits)) { numBits = numBits.toInt() }
-    if ((numBits &= 63) === 0) { return this } else if (numBits < 32) { return Integer.fromBits(this.low << numBits, (this.high << numBits) | (this.low >>> (32 - numBits))) } else { return Integer.fromBits(0, this.low << (numBits - 32)) }
+    if (Integer.isInteger(numBits)) {
+      numBits = numBits.toInt()
+    }
+    if ((numBits &= 63) === 0) {
+      return this
+    } else if (numBits < 32) {
+      return Integer.fromBits(
+        this.low << numBits,
+        (this.high << numBits) | (this.low >>> (32 - numBits))
+      )
+    } else {
+      return Integer.fromBits(0, this.low << (numBits - 32))
+    }
   }
 
   /**
@@ -538,8 +654,22 @@ class Integer {
    * @expose
    */
   shiftRight (numBits) {
-    if (Integer.isInteger(numBits)) { numBits = numBits.toInt() }
-    if ((numBits &= 63) === 0) { return this } else if (numBits < 32) { return Integer.fromBits((this.low >>> numBits) | (this.high << (32 - numBits)), this.high >> numBits) } else { return Integer.fromBits(this.high >> (numBits - 32), this.high >= 0 ? 0 : -1) }
+    if (Integer.isInteger(numBits)) {
+      numBits = numBits.toInt()
+    }
+    if ((numBits &= 63) === 0) {
+      return this
+    } else if (numBits < 32) {
+      return Integer.fromBits(
+        (this.low >>> numBits) | (this.high << (32 - numBits)),
+        this.high >> numBits
+      )
+    } else {
+      return Integer.fromBits(
+        this.high >> (numBits - 32),
+        this.high >= 0 ? 0 : -1
+      )
+    }
   }
 }
 
@@ -589,10 +719,14 @@ Integer.fromInt = function (value) {
   value = value | 0
   if (value >= -128 && value < 128) {
     cachedObj = INT_CACHE[value]
-    if (cachedObj) { return cachedObj }
+    if (cachedObj) {
+      return cachedObj
+    }
   }
   obj = new Integer(value, value < 0 ? -1 : 0, false)
-  if (value >= -128 && value < 128) { INT_CACHE[value] = obj }
+  if (value >= -128 && value < 128) {
+    INT_CACHE[value] = obj
+  }
   return obj
 }
 
@@ -604,11 +738,19 @@ Integer.fromInt = function (value) {
  * @expose
  */
 Integer.fromNumber = function (value) {
-  if (isNaN(value) || !isFinite(value)) { return Integer.ZERO }
-  if (value <= -TWO_PWR_63_DBL) { return Integer.MIN_VALUE }
-  if (value + 1 >= TWO_PWR_63_DBL) { return Integer.MAX_VALUE }
-  if (value < 0) { return Integer.fromNumber(-value).negate() }
-  return new Integer((value % TWO_PWR_32_DBL) | 0, (value / TWO_PWR_32_DBL) | 0)
+  if (isNaN(value) || !isFinite(value)) {
+    return Integer.ZERO
+  }
+  if (value <= -TWO_PWR_63_DBL) {
+    return Integer.MIN_VALUE
+  }
+  if (value + 1 >= TWO_PWR_63_DBL) {
+    return Integer.MAX_VALUE
+  }
+  if (value < 0) {
+    return Integer.fromNumber(-value).negate()
+  }
+  return new Integer(value % TWO_PWR_32_DBL | 0, (value / TWO_PWR_32_DBL) | 0)
 }
 
 /**
@@ -633,13 +775,28 @@ Integer.fromBits = function (lowBits, highBits) {
  * @expose
  */
 Integer.fromString = function (str, radix) {
-  if (str.length === 0) { throw newError('number format error: empty string') }
-  if (str === 'NaN' || str === 'Infinity' || str === '+Infinity' || str === '-Infinity') { return Integer.ZERO }
+  if (str.length === 0) {
+    throw newError('number format error: empty string')
+  }
+  if (
+    str === 'NaN' ||
+    str === 'Infinity' ||
+    str === '+Infinity' ||
+    str === '-Infinity'
+  ) {
+    return Integer.ZERO
+  }
   radix = radix || 10
-  if (radix < 2 || radix > 36) { throw newError('radix out of range: ' + radix) }
+  if (radix < 2 || radix > 36) {
+    throw newError('radix out of range: ' + radix)
+  }
 
   var p
-  if ((p = str.indexOf('-')) > 0) { throw newError('number format error: interior "-" character: ' + str) } else if (p === 0) { return Integer.fromString(str.substring(1), radix).negate() }
+  if ((p = str.indexOf('-')) > 0) {
+    throw newError('number format error: interior "-" character: ' + str)
+  } else if (p === 0) {
+    return Integer.fromString(str.substring(1), radix).negate()
+  }
 
   // Do several (8) digits each time through the loop, so as to
   // minimize the calls to the very expensive emulated div.
@@ -668,9 +825,15 @@ Integer.fromString = function (str, radix) {
  * @expose
  */
 Integer.fromValue = function (val) {
-  if (val /* is compatible */ instanceof Integer) { return val }
-  if (typeof val === 'number') { return Integer.fromNumber(val) }
-  if (typeof val === 'string') { return Integer.fromString(val) }
+  if (val /* is compatible */ instanceof Integer) {
+    return val
+  }
+  if (typeof val === 'number') {
+    return Integer.fromNumber(val)
+  }
+  if (typeof val === 'string') {
+    return Integer.fromString(val)
+  }
   // Throws for non-objects, converts non-instanceof Integer:
   return new Integer(val.low, val.high)
 }
@@ -687,13 +850,13 @@ Integer.toNumber = function (val) {
 }
 
 /**
-* Converts the specified value to a string.
-* @access private
-* @param {!Integer|number|string|!{low: number, high: number}} val Value
-* @param {number} radix optional radix for string conversion, defaults to 10
-* @returns {String}
-* @expose
-*/
+ * Converts the specified value to a string.
+ * @access private
+ * @param {!Integer|number|string|!{low: number, high: number}} val Value
+ * @param {number} radix optional radix for string conversion, defaults to 10
+ * @returns {String}
+ * @expose
+ */
 Integer.toString = function (val, radix) {
   return Integer.fromValue(val).toString(radix)
 }
@@ -784,7 +947,7 @@ Integer.NEG_ONE = Integer.fromInt(-1)
  * @type {!Integer}
  * @expose
  */
-Integer.MAX_VALUE = Integer.fromBits(0xFFFFFFFF | 0, 0x7FFFFFFF | 0, false)
+Integer.MAX_VALUE = Integer.fromBits(0xffffffff | 0, 0x7fffffff | 0, false)
 
 /**
  * Minimum signed value.
@@ -798,14 +961,14 @@ Integer.MIN_VALUE = Integer.fromBits(0, 0x80000000 | 0, false)
  * @type {!Integer}
  * @expose
  */
-Integer.MIN_SAFE_VALUE = Integer.fromBits(0x1 | 0, 0xFFFFFFFFFFE00000 | 0)
+Integer.MIN_SAFE_VALUE = Integer.fromBits(0x1 | 0, 0xffffffffffe00000 | 0)
 
 /**
-* Maximum safe value.
-* @type {!Integer}
-* @expose
-*/
-Integer.MAX_SAFE_VALUE = Integer.fromBits(0xFFFFFFFF | 0, 0x1FFFFF | 0)
+ * Maximum safe value.
+ * @type {!Integer}
+ * @expose
+ */
+Integer.MAX_SAFE_VALUE = Integer.fromBits(0xffffffff | 0, 0x1fffff | 0)
 
 /**
  * Cast value to Integer type.
@@ -848,12 +1011,6 @@ let toNumber = Integer.toNumber
  */
 let toString = Integer.toString
 
-export {
-  int,
-  isInt,
-  inSafeRange,
-  toNumber,
-  toString
-}
+export { int, isInt, inSafeRange, toNumber, toString }
 
 export default Integer

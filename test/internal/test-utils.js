@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 function isClient () {
-  return (typeof window !== 'undefined' && window.document)
+  return typeof window !== 'undefined' && window.document
 }
 
 function isServer () {

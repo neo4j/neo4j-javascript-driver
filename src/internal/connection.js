@@ -28,8 +28,8 @@ import ProtocolHandshaker from './protocol-handshaker'
 // Signature bytes for each response message type
 const SUCCESS = 0x70 // 0111 0000 // SUCCESS <metadata>
 const RECORD = 0x71 // 0111 0001 // RECORD <value>
-const IGNORED = 0x7E // 0111 1110 // IGNORED <metadata>
-const FAILURE = 0x7F // 0111 1111 // FAILURE <metadata>
+const IGNORED = 0x7e // 0111 1110 // IGNORED <metadata>
+const FAILURE = 0x7f // 0111 1111 // FAILURE <metadata>
 
 function NO_OP () {}
 
@@ -50,7 +50,13 @@ export default class Connection {
    * @param {Logger} log - the configured logger.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
    */
-  constructor (channel, errorHandler, hostPort, log, disableLosslessIntegers = false) {
+  constructor (
+    channel,
+    errorHandler,
+    hostPort,
+    log,
+    disableLosslessIntegers = false
+  ) {
     this.id = idGenerator++
     this.hostPort = hostPort
     this.server = { address: hostPort }
@@ -91,8 +97,18 @@ export default class Connection {
    */
   static create (url, config, errorHandler, log) {
     const parsedAddress = urlUtil.parseDatabaseUrl(url)
-    const channelConfig = new ChannelConfig(parsedAddress, config, errorHandler.errorCode())
-    return new Connection(new Channel(channelConfig), errorHandler, parsedAddress.hostAndPort, log, config.disableLosslessIntegers)
+    const channelConfig = new ChannelConfig(
+      parsedAddress,
+      config,
+      errorHandler.errorCode()
+    )
+    return new Connection(
+      new Channel(channelConfig),
+      errorHandler,
+      parsedAddress.hostAndPort,
+      log,
+      config.disableLosslessIntegers
+    )
   }
 
   /**
@@ -102,7 +118,9 @@ export default class Connection {
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
   connect (userAgent, authToken) {
-    return this._negotiateProtocol().then(() => this._initialize(userAgent, authToken))
+    return this._negotiateProtocol().then(() =>
+      this._initialize(userAgent, authToken)
+    )
   }
 
   /**
@@ -110,7 +128,13 @@ export default class Connection {
    * @return {Promise<Connection>} promise resolved with the current connection if handshake is successful. Rejected promise otherwise.
    */
   _negotiateProtocol () {
-    const protocolHandshaker = new ProtocolHandshaker(this, this._ch, this._chunker, this._disableLosslessIntegers, this._log)
+    const protocolHandshaker = new ProtocolHandshaker(
+      this,
+      this._ch,
+      this._chunker,
+      this._disableLosslessIntegers,
+      this._log
+    )
 
     return new Promise((resolve, reject) => {
       const handshakeErrorHandler = error => {
@@ -136,7 +160,7 @@ export default class Connection {
           this._ch.onmessage = buf => this._dechunker.write(buf)
 
           // setup dechunker to dechunk messages and forward them to the message handler
-          this._dechunker.onmessage = (buf) => {
+          this._dechunker.onmessage = buf => {
             this._handleMessage(this._protocol.unpacker().unpack(buf))
           }
           // forward all pending bytes to the dechunker
@@ -190,10 +214,13 @@ export default class Connection {
         this._log.debug(`${this} C: ${message}`)
       }
 
-      this._protocol.packer().packStruct(
-        message.signature,
-        message.fields.map(field => this._packable(field)),
-        err => this._handleFatalError(err))
+      this._protocol
+        .packer()
+        .packStruct(
+          message.signature,
+          message.fields.map(field => this._packable(field)),
+          err => this._handleFatalError(err)
+        )
 
       this._chunker.messageBoundary()
 
@@ -212,10 +239,15 @@ export default class Connection {
    */
   _handleFatalError (error) {
     this._isBroken = true
-    this._error = this._errorHandler.handleAndTransformError(error, this.hostPort)
+    this._error = this._errorHandler.handleAndTransformError(
+      error,
+      this.hostPort
+    )
 
     if (this._log.isErrorEnabled()) {
-      this._log.error(`${this} experienced a fatal error ${JSON.stringify(this._error)}`)
+      this._log.error(
+        `${this} experienced a fatal error ${JSON.stringify(this._error)}`
+      )
     }
 
     if (this._currentObserver && this._currentObserver.onError) {
@@ -262,7 +294,10 @@ export default class Connection {
         }
         try {
           const error = newError(payload.message, payload.code)
-          this._currentFailure = this._errorHandler.handleAndTransformError(error, this.hostPort)
+          this._currentFailure = this._errorHandler.handleAndTransformError(
+            error,
+            this.hostPort
+          )
           this._currentObserver.onError(this._currentFailure)
         } finally {
           this._updateCurrentObserver()
@@ -275,13 +310,21 @@ export default class Connection {
           this._log.debug(`${this} S: IGNORED ${JSON.stringify(msg)}`)
         }
         try {
-          if (this._currentFailure && this._currentObserver.onError) { this._currentObserver.onError(this._currentFailure) } else if (this._currentObserver.onError) { this._currentObserver.onError(newError('Ignored either because of an error or RESET')) }
+          if (this._currentFailure && this._currentObserver.onError) {
+            this._currentObserver.onError(this._currentFailure)
+          } else if (this._currentObserver.onError) {
+            this._currentObserver.onError(
+              newError('Ignored either because of an error or RESET')
+            )
+          }
         } finally {
           this._updateCurrentObserver()
         }
         break
       default:
-        this._handleFatalError(newError('Unknown Bolt protocol message: ' + msg))
+        this._handleFatalError(
+          newError('Unknown Bolt protocol message: ' + msg)
+        )
     }
   }
 
@@ -293,7 +336,9 @@ export default class Connection {
     return new Promise((resolve, reject) => {
       this._protocol.reset({
         onNext: record => {
-          const neo4jError = this._handleProtocolError('Received RECORD as a response for RESET: ' + JSON.stringify(record))
+          const neo4jError = this._handleProtocolError(
+            'Received RECORD as a response for RESET: ' + JSON.stringify(record)
+          )
           reject(neo4jError)
         },
         onError: error => {
@@ -301,7 +346,9 @@ export default class Connection {
             // handling a fatal error, no need to raise a protocol violation
             reject(error)
           } else {
-            const neo4jError = this._handleProtocolError('Received FAILURE as a response for RESET: ' + error)
+            const neo4jError = this._handleProtocolError(
+              'Received FAILURE as a response for RESET: ' + error
+            )
             reject(neo4jError)
           }
         },
@@ -315,7 +362,9 @@ export default class Connection {
   _resetOnFailure () {
     this._protocol.reset({
       onNext: record => {
-        this._handleProtocolError('Received RECORD as a response for RESET: ' + JSON.stringify(record))
+        this._handleProtocolError(
+          'Received RECORD as a response for RESET: ' + JSON.stringify(record)
+        )
       },
       // clear the current failure when response for RESET is received
       onError: () => {
@@ -363,7 +412,7 @@ export default class Connection {
    * Call close on the channel.
    * @param {function} cb - Function to call on close.
    */
-  close (cb = (() => null)) {
+  close (cb = () => null) {
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} closing`)
     }
@@ -388,7 +437,9 @@ export default class Connection {
   }
 
   _packable (value) {
-    return this._protocol.packer().packable(value, (err) => this._handleFatalError(err))
+    return this._protocol
+      .packer()
+      .packable(value, err => this._handleFatalError(err))
   }
 
   _handleProtocolError (message) {
@@ -408,7 +459,9 @@ class InitializationObserver {
   }
 
   onNext (record) {
-    this.onError(newError('Received RECORD when initializing ' + JSON.stringify(record)))
+    this.onError(
+      newError('Received RECORD when initializing ' + JSON.stringify(record))
+    )
   }
 
   onError (error) {
@@ -426,7 +479,10 @@ class InitializationObserver {
         this._connection.server.version = serverVersion
         const version = ServerVersion.fromString(serverVersion)
         if (version.compareTo(VERSION_3_2_0) < 0) {
-          this._connection.protocol().packer().disableByteArrays()
+          this._connection
+            .protocol()
+            .packer()
+            .disableByteArrays()
         }
       }
 

@@ -40,14 +40,17 @@ describe('direct driver with stub server', () => {
     }
 
     // Given
-    const server = boltStub.start('./test/resources/boltstub/return_x.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/return_x.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
       // When
       const session = driver.session()
       // Then
-      session.run('RETURN {x}', { 'x': 1 }).then(res => {
+      session.run('RETURN {x}', { x: 1 }).then(res => {
         expect(res.records[0].get('x').toInt()).toEqual(1)
         session.close()
         driver.close()
@@ -65,7 +68,10 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/read_tx_with_bookmarks.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/read_tx_with_bookmarks.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
@@ -98,13 +104,16 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/write_tx_with_bookmarks.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/write_tx_with_bookmarks.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
       const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
       const tx = session.beginTransaction()
-      tx.run('CREATE (n {name:\'Bob\'})').then(result => {
+      tx.run("CREATE (n {name:'Bob'})").then(result => {
         const records = result.records
         expect(records.length).toEqual(0)
 
@@ -129,13 +138,16 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmarks.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/write_read_tx_with_bookmarks.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
       const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
       const writeTx = session.beginTransaction()
-      writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
+      writeTx.run("CREATE (n {name:'Bob'})").then(result => {
         const records = result.records
         expect(records.length).toEqual(0)
 
@@ -149,7 +161,9 @@ describe('direct driver with stub server', () => {
             expect(records[0].get('name')).toEqual('Bob')
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
+              expect(session.lastBookmark()).toEqual(
+                'neo4j:bookmark:v1:tx424242'
+              )
 
               session.close(() => {
                 driver.close()
@@ -171,13 +185,16 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmark_override.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/write_read_tx_with_bookmark_override.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
       const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
       const writeTx = session.beginTransaction()
-      writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
+      writeTx.run("CREATE (n {name:'Bob'})").then(result => {
         const records = result.records
         expect(records.length).toEqual(0)
 
@@ -191,7 +208,9 @@ describe('direct driver with stub server', () => {
             expect(records[0].get('name')).toEqual('Bob')
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
+              expect(session.lastBookmark()).toEqual(
+                'neo4j:bookmark:v1:tx424242'
+              )
 
               session.close(() => {
                 driver.close()
@@ -213,13 +232,16 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/write_read_tx_with_bookmarks.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/write_read_tx_with_bookmarks.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
       const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
       const writeTx = session.beginTransaction()
-      writeTx.run('CREATE (n {name:\'Bob\'})').then(result => {
+      writeTx.run("CREATE (n {name:'Bob'})").then(result => {
         const records = result.records
         expect(records.length).toEqual(0)
 
@@ -233,7 +255,9 @@ describe('direct driver with stub server', () => {
             expect(records[0].get('name')).toEqual('Bob')
 
             readTx.commit().then(() => {
-              expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
+              expect(session.lastBookmark()).toEqual(
+                'neo4j:bookmark:v1:tx424242'
+              )
 
               session.close(() => {
                 driver.close()
@@ -255,7 +279,10 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/dead_read_server.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/dead_read_server.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
@@ -278,25 +305,31 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/reset_error.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/reset_error.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
       const session = driver.session()
 
-      session.run('RETURN 42 AS answer').then(result => {
-        const records = result.records
-        expect(records.length).toEqual(1)
-        expect(records[0].get(0).toNumber()).toEqual(42)
-        session.close(() => {
-          expect(driver._pool._pools['127.0.0.1:9001'].length).toEqual(0)
-          driver.close()
-          server.exit(code => {
-            expect(code).toEqual(0)
-            done()
+      session
+        .run('RETURN 42 AS answer')
+        .then(result => {
+          const records = result.records
+          expect(records.length).toEqual(1)
+          expect(records[0].get(0).toNumber()).toEqual(42)
+          session.close(() => {
+            expect(driver._pool._pools['127.0.0.1:9001'].length).toEqual(0)
+            driver.close()
+            server.exit(code => {
+              expect(code).toEqual(0)
+              done()
+            })
           })
         })
-      }).catch(error => done.fail(error))
+        .catch(error => done.fail(error))
     })
   })
 
@@ -306,26 +339,36 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/query_with_error.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/query_with_error.script',
+      9001
+    )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
       const session = driver.session()
 
-      session.run('RETURN 10 / 0').then(result => {
-        done.fail('Should fail but received a result: ' + JSON.stringify(result))
-      }).catch(error => {
-        expect(error.code).toEqual('Neo.ClientError.Statement.ArithmeticError')
-        expect(error.message).toEqual('/ by zero')
+      session
+        .run('RETURN 10 / 0')
+        .then(result => {
+          done.fail(
+            'Should fail but received a result: ' + JSON.stringify(result)
+          )
+        })
+        .catch(error => {
+          expect(error.code).toEqual(
+            'Neo.ClientError.Statement.ArithmeticError'
+          )
+          expect(error.message).toEqual('/ by zero')
 
-        session.close(() => {
-          driver.close()
-          server.exit(code => {
-            expect(code).toEqual(0)
-            done()
+          session.close(() => {
+            driver.close()
+            server.exit(code => {
+              expect(code).toEqual(0)
+              done()
+            })
           })
         })
-      })
     })
   })
 
@@ -335,7 +378,10 @@ describe('direct driver with stub server', () => {
       return
     }
 
-    const server = boltStub.start('./test/resources/boltstub/hello_run_exit.script', 9001)
+    const server = boltStub.start(
+      './test/resources/boltstub/hello_run_exit.script',
+      9001
+    )
 
     boltStub.run(() => {
       const messages = []
@@ -344,28 +390,35 @@ describe('direct driver with stub server', () => {
         logger: (level, message) => messages.push(message)
       }
 
-      const driver = boltStub.newDriver('bolt://127.0.0.1:9001', { logging: logging })
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {
+        logging: logging
+      })
       const session = driver.session()
 
-      session.run('MATCH (n) RETURN n.name').then(result => {
-        const names = result.records.map(record => record.get(0))
-        expect(names).toEqual(['Foo', 'Bar'])
-        session.close(() => {
-          driver.close()
-          server.exit(code => {
-            expect(code).toEqual(0)
+      session
+        .run('MATCH (n) RETURN n.name')
+        .then(result => {
+          const names = result.records.map(record => record.get(0))
+          expect(names).toEqual(['Foo', 'Bar'])
+          session.close(() => {
+            driver.close()
+            server.exit(code => {
+              expect(code).toEqual(0)
 
-            // logged messages should contain connection_id supplied by the database
-            const containsDbConnectionIdMessage = messages.find(message => message.match(/Connection \[[0-9]+]\[bolt-123456789]/))
-            if (!containsDbConnectionIdMessage) {
-              console.log(messages)
-            }
-            expect(containsDbConnectionIdMessage).toBeTruthy()
+              // logged messages should contain connection_id supplied by the database
+              const containsDbConnectionIdMessage = messages.find(message =>
+                message.match(/Connection \[[0-9]+]\[bolt-123456789]/)
+              )
+              if (!containsDbConnectionIdMessage) {
+                console.log(messages)
+              }
+              expect(containsDbConnectionIdMessage).toBeTruthy()
 
-            done()
+              done()
+            })
           })
         })
-      }).catch(error => done.fail(error))
+        .catch(error => done.fail(error))
     })
   })
 })

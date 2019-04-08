@@ -64,8 +64,14 @@ class Session {
    */
   constructor (mode, connectionProvider, bookmark, config) {
     this._mode = mode
-    this._readConnectionHolder = new ConnectionHolder(ACCESS_MODE_READ, connectionProvider)
-    this._writeConnectionHolder = new ConnectionHolder(ACCESS_MODE_WRITE, connectionProvider)
+    this._readConnectionHolder = new ConnectionHolder(
+      ACCESS_MODE_READ,
+      connectionProvider
+    )
+    this._writeConnectionHolder = new ConnectionHolder(
+      ACCESS_MODE_WRITE,
+      connectionProvider
+    )
     this._open = true
     this._hasTx = false
     this._lastBookmark = bookmark
@@ -82,11 +88,25 @@ class Session {
    * @return {Result} - New Result
    */
   run (statement, parameters, transactionConfig) {
-    const { query, params } = validateStatementAndParameters(statement, parameters)
-    const autoCommitTxConfig = transactionConfig ? new TxConfig(transactionConfig) : TxConfig.empty()
+    const { query, params } = validateStatementAndParameters(
+      statement,
+      parameters
+    )
+    const autoCommitTxConfig = transactionConfig
+      ? new TxConfig(transactionConfig)
+      : TxConfig.empty()
 
     return this._run(query, params, (connection, streamObserver) =>
-      connection.protocol().run(query, params, this._lastBookmark, autoCommitTxConfig, this._mode, streamObserver)
+      connection
+        .protocol()
+        .run(
+          query,
+          params,
+          this._lastBookmark,
+          autoCommitTxConfig,
+          this._mode,
+          streamObserver
+        )
     )
   }
 
@@ -95,15 +115,26 @@ class Session {
     const connectionHolder = this._connectionHolderWithMode(this._mode)
     if (!this._hasTx) {
       connectionHolder.initializeConnection()
-      connectionHolder.getConnection(streamObserver)
+      connectionHolder
+        .getConnection(streamObserver)
         .then(connection => statementRunner(connection, streamObserver))
         .catch(error => streamObserver.onError(error))
     } else {
-      streamObserver.onError(newError('Statements cannot be run directly on a ' +
-        'session with an open transaction; either run from within the ' +
-        'transaction or use a different session.'))
+      streamObserver.onError(
+        newError(
+          'Statements cannot be run directly on a ' +
+            'session with an open transaction; either run from within the ' +
+            'transaction or use a different session.'
+        )
+      )
     }
-    return new Result(streamObserver, statement, parameters, () => streamObserver.serverMetadata(), connectionHolder)
+    return new Result(
+      streamObserver,
+      statement,
+      parameters,
+      () => streamObserver.serverMetadata(),
+      connectionHolder
+    )
   }
 
   /**
@@ -122,7 +153,11 @@ class Session {
     const arg = transactionConfig
 
     let txConfig = TxConfig.empty()
-    if (typeof arg === 'string' || arg instanceof String || Array.isArray(arg)) {
+    if (
+      typeof arg === 'string' ||
+      arg instanceof String ||
+      Array.isArray(arg)
+    ) {
       // argument looks like a single or multiple bookmarks
       // bookmarks in this function are deprecated but need to be supported for backwards compatibility
       this._updateBookmark(new Bookmark(arg))
@@ -136,8 +171,10 @@ class Session {
 
   _beginTransaction (accessMode, txConfig) {
     if (this._hasTx) {
-      throw newError('You cannot begin a transaction on a session with an open transaction; ' +
-        'either run from within the transaction or use a different session.')
+      throw newError(
+        'You cannot begin a transaction on a session with an open transaction; ' +
+          'either run from within the transaction or use a different session.'
+      )
     }
 
     const mode = Driver._validateSessionMode(accessMode)
@@ -145,7 +182,11 @@ class Session {
     connectionHolder.initializeConnection()
     this._hasTx = true
 
-    const tx = new Transaction(connectionHolder, this._transactionClosed.bind(this), this._updateBookmark.bind(this))
+    const tx = new Transaction(
+      connectionHolder,
+      this._transactionClosed.bind(this),
+      this._updateBookmark.bind(this)
+    )
     tx._begin(this._lastBookmark, txConfig)
     return tx
   }
@@ -223,7 +264,7 @@ class Session {
    * @param {function()} callback - Function to be called after the session has been closed
    * @return
    */
-  close (callback = (() => null)) {
+  close (callback = () => null) {
     if (this._open) {
       this._open = false
       this._transactionExecutor.close()
@@ -265,7 +306,10 @@ class SessionStreamObserver extends StreamObserver {
 }
 
 function _createTransactionExecutor (config) {
-  const maxRetryTimeMs = (config && config.maxTransactionRetryTime) ? config.maxTransactionRetryTime : null
+  const maxRetryTimeMs =
+    config && config.maxTransactionRetryTime
+      ? config.maxTransactionRetryTime
+      : null
   return new TransactionExecutor(maxRetryTimeMs)
 }
 

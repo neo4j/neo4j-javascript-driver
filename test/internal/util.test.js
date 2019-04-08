@@ -193,19 +193,27 @@ describe('util', () => {
   }
 
   function verifyInvalidNumberOrInteger (obj) {
-    expect(() => util.assertNumberOrInteger(obj, 'Test object')).toThrowError(TypeError)
+    expect(() => util.assertNumberOrInteger(obj, 'Test object')).toThrowError(
+      TypeError
+    )
   }
 
   function verifyInvalidCypherStatement (str) {
-    expect(() => util.validateStatementAndParameters(str, {})).toThrowError(TypeError)
+    expect(() => util.validateStatementAndParameters(str, {})).toThrowError(
+      TypeError
+    )
   }
 
   function verifyValidQueryParameters (obj) {
-    expect(() => util.validateStatementAndParameters('RETURN 1', obj)).not.toThrow()
+    expect(() =>
+      util.validateStatementAndParameters('RETURN 1', obj)
+    ).not.toThrow()
   }
 
   function verifyInvalidQueryParameters (obj) {
-    expect(() => util.validateStatementAndParameters('RETURN 1', obj)).toThrowError(TypeError)
+    expect(() =>
+      util.validateStatementAndParameters('RETURN 1', obj)
+    ).toThrowError(TypeError)
   }
 
   function verifyValidDate (obj) {

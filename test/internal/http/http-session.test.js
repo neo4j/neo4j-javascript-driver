@@ -29,11 +29,20 @@ describe('http session', () => {
       return
     }
 
-    const session = new HttpSession(urlUtil.parseDatabaseUrl('http://localhost:7474'), sharedNeo4j.authToken, {}, new HttpSessionTracker())
+    const session = new HttpSession(
+      urlUtil.parseDatabaseUrl('http://localhost:7474'),
+      sharedNeo4j.authToken,
+      {},
+      new HttpSessionTracker()
+    )
 
-    expect(() => session.run('RETURN $value', [1, 2, 3])).toThrowError(TypeError)
+    expect(() => session.run('RETURN $value', [1, 2, 3])).toThrowError(
+      TypeError
+    )
     expect(() => session.run('RETURN $value', '123')).toThrowError(TypeError)
-    expect(() => session.run('RETURN $value', () => [123])).toThrowError(TypeError)
+    expect(() => session.run('RETURN $value', () => [123])).toThrowError(
+      TypeError
+    )
 
     session.close(() => done())
   })

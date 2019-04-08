@@ -40,16 +40,22 @@ describe('Package', function () {
       done.fail('Could not load sandbox package', e)
     }
 
-    driver = neo4j.driver('bolt://localhost', neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password))
+    driver = neo4j.driver(
+      'bolt://localhost',
+      neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password)
+    )
     var session = driver.session()
-    session.run('RETURN 1 AS answer').then(function (result) {
-      expect(result.records.length).toBe(1)
-      expect(result.records[0].get('answer').toNumber()).toBe(1)
-      session.close()
-      done()
-    }).catch(function (e) {
-      done.fail(e)
-    })
+    session
+      .run('RETURN 1 AS answer')
+      .then(function (result) {
+        expect(result.records.length).toBe(1)
+        expect(result.records[0].get('answer').toNumber()).toBe(1)
+        session.close()
+        done()
+      })
+      .catch(function (e) {
+        done.fail(e)
+      })
   })
 
   it('should work with Webpack', function (done) {

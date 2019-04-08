@@ -20,8 +20,7 @@
 import StreamObserver from '../../src/internal/stream-observer'
 import FakeConnection from './fake-connection'
 
-const NO_OP = () => {
-}
+const NO_OP = () => {}
 
 describe('StreamObserver', () => {
   it('remembers resolved connection', () => {
@@ -57,9 +56,9 @@ describe('StreamObserver', () => {
     streamObserver.onNext([111, 222, 333])
 
     expect(receivedRecords.length).toEqual(3)
-    expect(receivedRecords[0].toObject()).toEqual({ 'A': 1, 'B': 2, 'C': 3 })
-    expect(receivedRecords[1].toObject()).toEqual({ 'A': 11, 'B': 22, 'C': 33 })
-    expect(receivedRecords[2].toObject()).toEqual({ 'A': 111, 'B': 222, 'C': 333 })
+    expect(receivedRecords[0].toObject()).toEqual({ A: 1, B: 2, C: 3 })
+    expect(receivedRecords[1].toObject()).toEqual({ A: 11, B: 22, C: 33 })
+    expect(receivedRecords[2].toObject()).toEqual({ A: 111, B: 222, C: 333 })
   })
 
   it('queues received record when no subscriber', () => {
@@ -75,10 +74,10 @@ describe('StreamObserver', () => {
     const queuedRecords = streamObserver._queuedRecords
 
     expect(queuedRecords.length).toEqual(4)
-    expect(queuedRecords[0].toObject()).toEqual({ 'A': 1111, 'B': 2222, 'C': 3333 })
-    expect(queuedRecords[1].toObject()).toEqual({ 'A': 111, 'B': 222, 'C': 333 })
-    expect(queuedRecords[2].toObject()).toEqual({ 'A': 11, 'B': 22, 'C': 33 })
-    expect(queuedRecords[3].toObject()).toEqual({ 'A': 1, 'B': 2, 'C': 3 })
+    expect(queuedRecords[0].toObject()).toEqual({ A: 1111, B: 2222, C: 3333 })
+    expect(queuedRecords[1].toObject()).toEqual({ A: 111, B: 222, C: 333 })
+    expect(queuedRecords[2].toObject()).toEqual({ A: 11, B: 22, C: 33 })
+    expect(queuedRecords[3].toObject()).toEqual({ A: 1, B: 2, C: 3 })
   })
 
   it('passes received error the subscriber', () => {
@@ -102,9 +101,11 @@ describe('StreamObserver', () => {
 
     streamObserver.onError(error)
 
-    streamObserver.subscribe(newObserver(NO_OP, receivedError => {
-      expect(receivedError).toBe(error)
-    }))
+    streamObserver.subscribe(
+      newObserver(NO_OP, receivedError => {
+        expect(receivedError).toBe(error)
+      })
+    )
   })
 
   it('passes queued records to a new subscriber', () => {
@@ -117,28 +118,38 @@ describe('StreamObserver', () => {
     streamObserver.onNext([111, 222, 333])
 
     const receivedRecords = []
-    streamObserver.subscribe(newObserver(record => {
-      receivedRecords.push(record)
-    }))
+    streamObserver.subscribe(
+      newObserver(record => {
+        receivedRecords.push(record)
+      })
+    )
 
     expect(receivedRecords.length).toEqual(3)
-    expect(receivedRecords[0].toObject()).toEqual({ 'A': 1, 'B': 2, 'C': 3 })
-    expect(receivedRecords[1].toObject()).toEqual({ 'A': 11, 'B': 22, 'C': 33 })
-    expect(receivedRecords[2].toObject()).toEqual({ 'A': 111, 'B': 222, 'C': 333 })
+    expect(receivedRecords[0].toObject()).toEqual({ A: 1, B: 2, C: 3 })
+    expect(receivedRecords[1].toObject()).toEqual({ A: 11, B: 22, C: 33 })
+    expect(receivedRecords[2].toObject()).toEqual({ A: 111, B: 222, C: 333 })
   })
 
   it('passes existing metadata to a new subscriber', () => {
     const streamObserver = newStreamObserver()
 
     streamObserver.onCompleted({ fields: ['Foo', 'Bar', 'Baz', 'Qux'] })
-    streamObserver.onCompleted({ metaDataField1: 'value1', metaDataField2: 'value2' })
+    streamObserver.onCompleted({
+      metaDataField1: 'value1',
+      metaDataField2: 'value2'
+    })
 
     let receivedMetaData = null
-    streamObserver.subscribe(newObserver(NO_OP, NO_OP, metaData => {
-      receivedMetaData = metaData
-    }))
+    streamObserver.subscribe(
+      newObserver(NO_OP, NO_OP, metaData => {
+        receivedMetaData = metaData
+      })
+    )
 
-    expect(receivedMetaData).toEqual({ metaDataField1: 'value1', metaDataField2: 'value2' })
+    expect(receivedMetaData).toEqual({
+      metaDataField1: 'value1',
+      metaDataField2: 'value2'
+    })
   })
 
   it('invokes subscribed observer only once of error', () => {

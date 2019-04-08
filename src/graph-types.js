@@ -117,7 +117,8 @@ class UnboundRelationship {
       start,
       end,
       this.type,
-      this.properties)
+      this.properties
+    )
   }
 
   toString () {
@@ -171,10 +172,4 @@ class Path {
   }
 }
 
-export {
-  Node,
-  Relationship,
-  UnboundRelationship,
-  Path,
-  PathSegment
-}
+export { Node, Relationship, UnboundRelationship, Path, PathSegment }

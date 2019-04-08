@@ -17,14 +17,20 @@
  * limitations under the License.
  */
 
-import {Neo4jError, newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from "../../types/error";
+import {
+  Neo4jError,
+  newError,
+  PROTOCOL_ERROR,
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
+} from '../../types/error'
 
-const serviceUnavailable: string = SERVICE_UNAVAILABLE;
-const sessionExpired: string = SESSION_EXPIRED;
-const protocolError: string = PROTOCOL_ERROR;
+const serviceUnavailable: string = SERVICE_UNAVAILABLE
+const sessionExpired: string = SESSION_EXPIRED
+const protocolError: string = PROTOCOL_ERROR
 
-const error1: Neo4jError = new Neo4jError("Message");
-const error2: Neo4jError = new Neo4jError("Message", "Code");
+const error1: Neo4jError = new Neo4jError('Message')
+const error2: Neo4jError = new Neo4jError('Message', 'Code')
 
-const error3: Neo4jError = newError("Message");
-const error4: Neo4jError = newError("Message", "Code");
+const error3: Neo4jError = newError('Message')
+const error4: Neo4jError = newError('Message', 'Code')

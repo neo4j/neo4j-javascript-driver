@@ -65,50 +65,54 @@ export default class BaseBuffer {
    * @param p
    */
   getInt16 (p) {
-    return this.getInt8(p) << 8 |
-      this.getUInt8(p + 1)
+    return (this.getInt8(p) << 8) | this.getUInt8(p + 1)
   }
 
   /**
    * @param p
    */
   getUInt16 (p) {
-    return this.getUInt8(p) << 8 |
-      this.getUInt8(p + 1)
+    return (this.getUInt8(p) << 8) | this.getUInt8(p + 1)
   }
 
   /**
    * @param p
    */
   getInt32 (p) {
-    return this.getInt8(p) << 24 |
-      this.getUInt8(p + 1) << 16 |
-      this.getUInt8(p + 2) << 8 |
+    return (
+      (this.getInt8(p) << 24) |
+      (this.getUInt8(p + 1) << 16) |
+      (this.getUInt8(p + 2) << 8) |
       this.getUInt8(p + 3)
+    )
   }
 
   /**
    * @param p
    */
   getUInt32 (p) {
-    return this.getUInt8(p) << 24 |
-      this.getUInt8(p + 1) << 16 |
-      this.getUInt8(p + 2) << 8 |
+    return (
+      (this.getUInt8(p) << 24) |
+      (this.getUInt8(p + 1) << 16) |
+      (this.getUInt8(p + 2) << 8) |
       this.getUInt8(p + 3)
+    )
   }
 
   /**
    * @param p
    */
   getInt64 (p) {
-    return this.getInt8(p) << 56 |
-      this.getUInt8(p + 1) << 48 |
-      this.getUInt8(p + 2) << 40 |
-      this.getUInt8(p + 3) << 32 |
-      this.getUInt8(p + 4) << 24 |
-      this.getUInt8(p + 5) << 16 |
-      this.getUInt8(p + 6) << 8 |
+    return (
+      (this.getInt8(p) << 56) |
+      (this.getUInt8(p + 1) << 48) |
+      (this.getUInt8(p + 2) << 40) |
+      (this.getUInt8(p + 3) << 32) |
+      (this.getUInt8(p + 4) << 24) |
+      (this.getUInt8(p + 5) << 16) |
+      (this.getUInt8(p + 6) << 8) |
       this.getUInt8(p + 7)
+    )
   }
 
   /**
@@ -127,7 +131,7 @@ export default class BaseBuffer {
    */
   putInt16 (p, val) {
     this.putInt8(p, val >> 8)
-    this.putUInt8(p + 1, val & 0xFF)
+    this.putUInt8(p + 1, val & 0xff)
   }
 
   /**
@@ -135,8 +139,8 @@ export default class BaseBuffer {
    * @param val
    */
   putUInt16 (p, val) {
-    this.putUInt8(p, val >> 8 & 0xFF)
-    this.putUInt8(p + 1, val & 0xFF)
+    this.putUInt8(p, (val >> 8) & 0xff)
+    this.putUInt8(p + 1, val & 0xff)
   }
 
   /**
@@ -145,9 +149,9 @@ export default class BaseBuffer {
    */
   putInt32 (p, val) {
     this.putInt8(p, val >> 24)
-    this.putUInt8(p + 1, val >> 16 & 0xFF)
-    this.putUInt8(p + 2, val >> 8 & 0xFF)
-    this.putUInt8(p + 3, val & 0xFF)
+    this.putUInt8(p + 1, (val >> 16) & 0xff)
+    this.putUInt8(p + 2, (val >> 8) & 0xff)
+    this.putUInt8(p + 3, val & 0xff)
   }
 
   /**
@@ -155,10 +159,10 @@ export default class BaseBuffer {
    * @param val
    */
   putUInt32 (p, val) {
-    this.putUInt8(p, val >> 24 & 0xFF)
-    this.putUInt8(p + 1, val >> 16 & 0xFF)
-    this.putUInt8(p + 2, val >> 8 & 0xFF)
-    this.putUInt8(p + 3, val & 0xFF)
+    this.putUInt8(p, (val >> 24) & 0xff)
+    this.putUInt8(p + 1, (val >> 16) & 0xff)
+    this.putUInt8(p + 2, (val >> 8) & 0xff)
+    this.putUInt8(p + 3, val & 0xff)
   }
 
   /**
@@ -167,13 +171,13 @@ export default class BaseBuffer {
    */
   putInt64 (p, val) {
     this.putInt8(p, val >> 48)
-    this.putUInt8(p + 1, val >> 42 & 0xFF)
-    this.putUInt8(p + 2, val >> 36 & 0xFF)
-    this.putUInt8(p + 3, val >> 30 & 0xFF)
-    this.putUInt8(p + 4, val >> 24 & 0xFF)
-    this.putUInt8(p + 5, val >> 16 & 0xFF)
-    this.putUInt8(p + 6, val >> 8 & 0xFF)
-    this.putUInt8(p + 7, val & 0xFF)
+    this.putUInt8(p + 1, (val >> 42) & 0xff)
+    this.putUInt8(p + 2, (val >> 36) & 0xff)
+    this.putUInt8(p + 3, (val >> 30) & 0xff)
+    this.putUInt8(p + 4, (val >> 24) & 0xff)
+    this.putUInt8(p + 5, (val >> 16) & 0xff)
+    this.putUInt8(p + 6, (val >> 8) & 0xff)
+    this.putUInt8(p + 7, val & 0xff)
   }
 
   /**
@@ -347,7 +351,13 @@ export default class BaseBuffer {
    * @return {string} Buffer as a string
    */
   toString () {
-    return this.constructor.name + '( position=' + this.position + ' )\n  ' + this.toHex()
+    return (
+      this.constructor.name +
+      '( position=' +
+      this.position +
+      ' )\n  ' +
+      this.toHex()
+    )
   }
 
   /**

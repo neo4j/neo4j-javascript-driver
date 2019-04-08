@@ -49,7 +49,9 @@ export default class ConnectionHolder {
    */
   initializeConnection () {
     if (this._referenceCount === 0) {
-      this._connectionPromise = this._connectionProvider.acquireConnection(this._mode)
+      this._connectionPromise = this._connectionProvider.acquireConnection(
+        this._mode
+      )
     }
     this._referenceCount++
   }
@@ -102,15 +104,18 @@ export default class ConnectionHolder {
    * @private
    */
   _releaseConnection () {
-    this._connectionPromise = this._connectionPromise.then(connection => {
-      if (connection) {
-        return connection.resetAndFlush()
-          .catch(ignoreError)
-          .then(() => connection._release())
-      } else {
-        return Promise.resolve()
-      }
-    }).catch(ignoreError)
+    this._connectionPromise = this._connectionPromise
+      .then(connection => {
+        if (connection) {
+          return connection
+            .resetAndFlush()
+            .catch(ignoreError)
+            .then(() => connection._release())
+        } else {
+          return Promise.resolve()
+        }
+      })
+      .catch(ignoreError)
 
     return this._connectionPromise
   }
@@ -122,7 +127,9 @@ class EmptyConnectionHolder extends ConnectionHolder {
   }
 
   getConnection (streamObserver) {
-    return Promise.reject(newError('This connection holder does not serve connections'))
+    return Promise.reject(
+      newError('This connection holder does not serve connections')
+    )
   }
 
   releaseConnection () {
@@ -135,8 +142,7 @@ class EmptyConnectionHolder extends ConnectionHolder {
 }
 
 // eslint-disable-next-line handle-callback-err
-function ignoreError (error) {
-}
+function ignoreError (error) {}
 
 /**
  * Connection holder that does not manage any connections.

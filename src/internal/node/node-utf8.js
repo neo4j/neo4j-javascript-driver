@@ -47,7 +47,9 @@ function decodeNodeBuffer (buffer, length) {
 }
 
 function decodeCombinedBuffer (buffer, length) {
-  return streamDecodeCombinedBuffer(buffer, length,
+  return streamDecodeCombinedBuffer(
+    buffer,
+    length,
     partBuffer => decoder.write(partBuffer._buffer),
     () => decoder.end()
   )
@@ -56,7 +58,9 @@ function decodeCombinedBuffer (buffer, length) {
 function streamDecodeCombinedBuffer (combinedBuffers, length, decodeFn, endFn) {
   let remainingBytesToRead = length
   let position = combinedBuffers.position
-  combinedBuffers._updatePos(Math.min(length, combinedBuffers.length - position))
+  combinedBuffers._updatePos(
+    Math.min(length, combinedBuffers.length - position)
+  )
   // Reduce CombinedBuffers to a decoded string
   const out = combinedBuffers._buffers.reduce(function (last, partBuffer) {
     if (remainingBytesToRead <= 0) {
@@ -66,10 +70,16 @@ function streamDecodeCombinedBuffer (combinedBuffers, length, decodeFn, endFn) {
       return ''
     } else {
       partBuffer._updatePos(position - partBuffer.position)
-      let bytesToRead = Math.min(partBuffer.length - position, remainingBytesToRead)
+      let bytesToRead = Math.min(
+        partBuffer.length - position,
+        remainingBytesToRead
+      )
       let lastSlice = partBuffer.readSlice(bytesToRead)
       partBuffer._updatePos(bytesToRead)
-      remainingBytesToRead = Math.max(remainingBytesToRead - lastSlice.length, 0)
+      remainingBytesToRead = Math.max(
+        remainingBytesToRead - lastSlice.length,
+        0
+      )
       position = 0
       return last + decodeFn(lastSlice)
     }
@@ -83,8 +93,8 @@ function newNodeJSBuffer (str) {
 
   return typeof node.Buffer.from === 'function'
     ? node.Buffer.from(str, 'utf8')
-    // eslint-disable-next-line node/no-deprecated-api
-    : new node.Buffer(str, 'utf8')
+    : // eslint-disable-next-line node/no-deprecated-api
+    new node.Buffer(str, 'utf8')
 }
 
 export default {

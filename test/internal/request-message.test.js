@@ -43,13 +43,15 @@ describe('RequestMessage', () => {
 
     expect(message.signature).toEqual(0x10)
     expect(message.fields).toEqual([statement, parameters])
-    expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)}`)
+    expect(message.toString()).toEqual(
+      `RUN ${statement} ${JSON.stringify(parameters)}`
+    )
   })
 
   it('should create PULL_ALL message', () => {
     const message = RequestMessage.pullAll()
 
-    expect(message.signature).toEqual(0x3F)
+    expect(message.signature).toEqual(0x3f)
     expect(message.fields).toEqual([])
     expect(message.toString()).toEqual('PULL_ALL')
   })
@@ -57,7 +59,7 @@ describe('RequestMessage', () => {
   it('should create RESET message', () => {
     const message = RequestMessage.reset()
 
-    expect(message.signature).toEqual(0x0F)
+    expect(message.signature).toEqual(0x0f)
     expect(message.fields).toEqual([])
     expect(message.toString()).toEqual('RESET')
   })
@@ -69,25 +71,38 @@ describe('RequestMessage', () => {
     const message = RequestMessage.hello(userAgent, authToken)
 
     expect(message.signature).toEqual(0x01)
-    expect(message.fields).toEqual([{ user_agent: userAgent, username: 'neo4j', password: 'secret' }])
-    expect(message.toString()).toEqual(`HELLO {user_agent: '${userAgent}', ...}`)
+    expect(message.fields).toEqual([
+      { user_agent: userAgent, username: 'neo4j', password: 'secret' }
+    ])
+    expect(message.toString()).toEqual(
+      `HELLO {user_agent: '${userAgent}', ...}`
+    )
   })
 
   it('should create BEGIN message', () => {
-    [READ, WRITE].forEach(mode => {
-      const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10'])
+    ;[READ, WRITE].forEach(mode => {
+      const bookmark = new Bookmark([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx10'
+      ])
       const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
 
       const message = RequestMessage.begin(bookmark, txConfig, mode)
 
-      const expectedMetadata = { bookmarks: bookmark.values(), tx_timeout: int(42), tx_metadata: { key: 42 } }
+      const expectedMetadata = {
+        bookmarks: bookmark.values(),
+        tx_timeout: int(42),
+        tx_metadata: { key: 42 }
+      }
       if (mode === READ) {
         expectedMetadata.mode = 'r'
       }
 
       expect(message.signature).toEqual(0x11)
       expect(message.fields).toEqual([expectedMetadata])
-      expect(message.toString()).toEqual(`BEGIN ${JSON.stringify(expectedMetadata)}`)
+      expect(message.toString()).toEqual(
+        `BEGIN ${JSON.stringify(expectedMetadata)}`
+      )
     })
   })
 
@@ -108,22 +123,43 @@ describe('RequestMessage', () => {
   })
 
   it('should create RUN with metadata message', () => {
-    [READ, WRITE].forEach(mode => {
+    ;[READ, WRITE].forEach(mode => {
       const statement = 'RETURN $x'
       const parameters = { x: 42 }
-      const bookmark = new Bookmark(['neo4j:bookmark:v1:tx1', 'neo4j:bookmark:v1:tx10', 'neo4j:bookmark:v1:tx100'])
-      const txConfig = new TxConfig({ timeout: 999, metadata: { a: 'a', b: 'b' } })
+      const bookmark = new Bookmark([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx10',
+        'neo4j:bookmark:v1:tx100'
+      ])
+      const txConfig = new TxConfig({
+        timeout: 999,
+        metadata: { a: 'a', b: 'b' }
+      })
 
-      const message = RequestMessage.runWithMetadata(statement, parameters, bookmark, txConfig, mode)
+      const message = RequestMessage.runWithMetadata(
+        statement,
+        parameters,
+        bookmark,
+        txConfig,
+        mode
+      )
 
-      const expectedMetadata = { bookmarks: bookmark.values(), tx_timeout: int(999), tx_metadata: { a: 'a', b: 'b' } }
+      const expectedMetadata = {
+        bookmarks: bookmark.values(),
+        tx_timeout: int(999),
+        tx_metadata: { a: 'a', b: 'b' }
+      }
       if (mode === READ) {
         expectedMetadata.mode = 'r'
       }
 
       expect(message.signature).toEqual(0x10)
       expect(message.fields).toEqual([statement, parameters, expectedMetadata])
-      expect(message.toString()).toEqual(`RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(expectedMetadata)}`)
+      expect(message.toString()).toEqual(
+        `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(
+          expectedMetadata
+        )}`
+      )
     })
   })
 

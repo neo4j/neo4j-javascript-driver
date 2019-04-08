@@ -29,8 +29,8 @@ describe('null value', () => {
 describe('floating point values', () => {
   it('should support float 1.0 ', testValue(1))
   it('should support float 0.0 ', testValue(0.0))
-  it('should support pretty big float ', testValue(3.4028235e+38)) // Max 32-bit
-  it('should support really big float ', testValue(1.7976931348623157e+308)) // Max 64-bit
+  it('should support pretty big float ', testValue(3.4028235e38)) // Max 32-bit
+  it('should support really big float ', testValue(1.7976931348623157e308)) // Max 64-bit
   it('should support pretty small float ', testValue(1.4e-45)) // Min 32-bit
   it('should support really small float ', testValue(4.9e-324)) // Min 64-bit
 })
@@ -39,8 +39,14 @@ describe('integer values', () => {
   it('should support integer 1 ', testValue(neo4j.int(1)))
   it('should support integer 0 ', testValue(neo4j.int(0)))
   it('should support integer -1 ', testValue(neo4j.int(-1)))
-  it('should support integer larger than JS Numbers can model', testValue(neo4j.int('0x7fffffffffffffff')))
-  it('should support integer smaller than JS Numbers can model', testValue(neo4j.int('0x8000000000000000')))
+  it(
+    'should support integer larger than JS Numbers can model',
+    testValue(neo4j.int('0x7fffffffffffffff'))
+  )
+  it(
+    'should support integer smaller than JS Numbers can model',
+    testValue(neo4j.int('0x8000000000000000'))
+  )
 })
 
 describe('boolean values', () => {
@@ -51,7 +57,10 @@ describe('boolean values', () => {
 describe('string values', () => {
   it('should support empty string ', testValue(''))
   it('should support simple string ', testValue('abcdefghijklmnopqrstuvwxyz'))
-  it('should support awesome string ', testValue('All makt åt Tengil, vår befriare.'))
+  it(
+    'should support awesome string ',
+    testValue('All makt åt Tengil, vår befriare.')
+  )
   it('should support long string', testValue('*'.repeat(10000)))
 })
 
@@ -63,13 +72,22 @@ describe('list values', () => {
   it('should support string lists ', testValue(['', 'hello!']))
   it('should support list lists ', testValue([[], [1, 2, 3]]))
   it('should support map lists ', testValue([{}, { a: 12 }]))
-  it('should support long list', testValue(Array.from({ length: 1000 }, (v, i) => i)))
+  it(
+    'should support long list',
+    testValue(Array.from({ length: 1000 }, (v, i) => i))
+  )
 })
 
 describe('map values', () => {
   it('should support empty maps ', testValue({}))
-  it('should support basic maps ', testValue({ a: 1, b: {}, c: [], d: { e: 1 } }))
-  it('should support sparse maps ', testValue({ foo: undefined, bar: null }, { bar: null }))
+  it(
+    'should support basic maps ',
+    testValue({ a: 1, b: {}, c: [], d: { e: 1 } })
+  )
+  it(
+    'should support sparse maps ',
+    testValue({ foo: undefined, bar: null }, { bar: null })
+  )
 
   function longMap () {
     const map = {}
@@ -89,15 +107,17 @@ describe('node values', () => {
     const session = driver.session()
 
     // When
-    session.run('CREATE (n:User {name:\'Lisa\'}) RETURN n, id(n)').then(result => {
-      const node = result.records[0].get('n')
+    session
+      .run("CREATE (n:User {name:'Lisa'}) RETURN n, id(n)")
+      .then(result => {
+        const node = result.records[0].get('n')
 
-      expect(node.properties).toEqual({ name: 'Lisa' })
-      expect(node.labels).toEqual(['User'])
-      expect(node.identity).toEqual(result.records[0].get('id(n)'))
-      driver.close()
-      done()
-    })
+        expect(node.properties).toEqual({ name: 'Lisa' })
+        expect(node.labels).toEqual(['User'])
+        expect(node.identity).toEqual(result.records[0].get('id(n)'))
+        driver.close()
+        done()
+      })
   })
 })
 
@@ -108,15 +128,17 @@ describe('relationship values', () => {
     const session = driver.session()
 
     // When
-    session.run('CREATE ()-[r:User {name:\'Lisa\'}]->() RETURN r, id(r)').then(result => {
-      const rel = result.records[0].get('r')
+    session
+      .run("CREATE ()-[r:User {name:'Lisa'}]->() RETURN r, id(r)")
+      .then(result => {
+        const rel = result.records[0].get('r')
 
-      expect(rel.properties).toEqual({ name: 'Lisa' })
-      expect(rel.type).toEqual('User')
-      expect(rel.identity).toEqual(result.records[0].get('id(r)'))
-      driver.close()
-      done()
-    })
+        expect(rel.properties).toEqual({ name: 'Lisa' })
+        expect(rel.type).toEqual('User')
+        expect(rel.identity).toEqual(result.records[0].get('id(r)'))
+        driver.close()
+        done()
+      })
   })
 })
 
@@ -127,7 +149,10 @@ describe('path values', () => {
     const session = driver.session()
 
     // When
-    session.run('CREATE p=(:User { name:\'Lisa\' })<-[r:KNOWS {since:1234.0}]-() RETURN p')
+    session
+      .run(
+        "CREATE p=(:User { name:'Lisa' })<-[r:KNOWS {since:1234.0}]-() RETURN p"
+      )
       .then(result => {
         const path = result.records[0].get('p')
 
@@ -146,7 +171,8 @@ describe('path values', () => {
         }
         driver.close()
         done()
-      }).catch(err => {
+      })
+      .catch(err => {
         console.log(err)
       })
   })
@@ -224,11 +250,15 @@ describe('byte arrays', () => {
 
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     const session = driver.session()
-    session.run('RETURN {array}', { array: randomByteArray(42) }).catch(error => {
-      driver.close()
-      expect(error.message).toEqual('Byte arrays are not supported by the database this driver is connected to')
-      done()
-    })
+    session
+      .run('RETURN {array}', { array: randomByteArray(42) })
+      .catch(error => {
+        driver.close()
+        expect(error.message).toEqual(
+          'Byte arrays are not supported by the database this driver is connected to'
+        )
+        done()
+      })
   })
 })
 
@@ -237,42 +267,51 @@ function testValue (actual, expected) {
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     const queryPromise = runReturnQuery(driver, actual, expected)
 
-    queryPromise.then(() => {
-      driver.close()
-      done()
-    }).catch(error => {
-      driver.close()
-      console.log(error)
-    })
+    queryPromise
+      .then(() => {
+        driver.close()
+        done()
+      })
+      .catch(error => {
+        driver.close()
+        console.log(error)
+      })
   }
 }
 
 function testValues (values) {
   return done => {
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    const queriesPromise = values.reduce((acc, value) =>
-      acc.then(() => runReturnQuery(driver, value)), Promise.resolve())
+    const queriesPromise = values.reduce(
+      (acc, value) => acc.then(() => runReturnQuery(driver, value)),
+      Promise.resolve()
+    )
 
-    queriesPromise.then(() => {
-      driver.close()
-      done()
-    }).catch(error => {
-      driver.close()
-      console.log(error)
-    })
+    queriesPromise
+      .then(() => {
+        driver.close()
+        done()
+      })
+      .catch(error => {
+        driver.close()
+        console.log(error)
+      })
   }
 }
 
 function runReturnQuery (driver, actual, expected) {
   const session = driver.session()
   return new Promise((resolve, reject) => {
-    session.run('RETURN {val} as v', { val: actual }).then(result => {
-      expect(result.records[0].get('v')).toEqual(expected || actual)
-      session.close()
-      resolve()
-    }).catch(error => {
-      reject(error)
-    })
+    session
+      .run('RETURN {val} as v', { val: actual })
+      .then(result => {
+        expect(result.records[0].get('v')).toEqual(expected || actual)
+        session.close()
+        resolve()
+      })
+      .catch(error => {
+        reject(error)
+      })
   })
 }
 

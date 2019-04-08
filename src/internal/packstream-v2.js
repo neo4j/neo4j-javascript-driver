@@ -19,7 +19,17 @@
 
 import * as v1 from './packstream-v1'
 import { isPoint, Point } from '../spatial-types'
-import { DateTime, Duration, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime, Time } from '../temporal-types'
+import {
+  DateTime,
+  Duration,
+  isDate,
+  isDateTime,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  Time
+} from '../temporal-types'
 import { int, isInt } from '../integer'
 import {
   dateToEpochDay,
@@ -100,19 +110,44 @@ export class Unpacker extends v1.Unpacker {
     } else if (signature === DURATION) {
       return unpackDuration(this, structSize, buffer)
     } else if (signature === LOCAL_TIME) {
-      return unpackLocalTime(this, structSize, buffer, this._disableLosslessIntegers)
+      return unpackLocalTime(
+        this,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers
+      )
     } else if (signature === TIME) {
       return unpackTime(this, structSize, buffer, this._disableLosslessIntegers)
     } else if (signature === DATE) {
       return unpackDate(this, structSize, buffer, this._disableLosslessIntegers)
     } else if (signature === LOCAL_DATE_TIME) {
-      return unpackLocalDateTime(this, structSize, buffer, this._disableLosslessIntegers)
+      return unpackLocalDateTime(
+        this,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers
+      )
     } else if (signature === DATE_TIME_WITH_ZONE_OFFSET) {
-      return unpackDateTimeWithZoneOffset(this, structSize, buffer, this._disableLosslessIntegers)
+      return unpackDateTimeWithZoneOffset(
+        this,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers
+      )
     } else if (signature === DATE_TIME_WITH_ZONE_ID) {
-      return unpackDateTimeWithZoneId(this, structSize, buffer, this._disableLosslessIntegers)
+      return unpackDateTimeWithZoneId(
+        this,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers
+      )
     } else {
-      return super._unpackUnknownStruct(signature, structSize, buffer, this._disableLosslessIntegers)
+      return super._unpackUnknownStruct(
+        signature,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers
+      )
     }
   }
 }
@@ -245,11 +280,14 @@ function unpackDuration (unpacker, structSize, buffer) {
  * @param {function} onError the error callback.
  */
 function packLocalTime (value, packer, onError) {
-  const nanoOfDay = localTimeToNanoOfDay(value.hour, value.minute, value.second, value.nanosecond)
+  const nanoOfDay = localTimeToNanoOfDay(
+    value.hour,
+    value.minute,
+    value.second,
+    value.nanosecond
+  )
 
-  const packableStructFields = [
-    packer.packable(nanoOfDay, onError)
-  ]
+  const packableStructFields = [packer.packable(nanoOfDay, onError)]
   packer.packStruct(LOCAL_TIME, packableStructFields, onError)
 }
 
@@ -261,7 +299,12 @@ function packLocalTime (value, packer, onError) {
  * @param {boolean} disableLosslessIntegers if integer properties in the result local time should be native JS numbers.
  * @return {LocalTime} the unpacked local time value.
  */
-function unpackLocalTime (unpacker, structSize, buffer, disableLosslessIntegers) {
+function unpackLocalTime (
+  unpacker,
+  structSize,
+  buffer,
+  disableLosslessIntegers
+) {
   unpacker._verifyStructSize('LocalTime', LOCAL_TIME_STRUCT_SIZE, structSize)
 
   const nanoOfDay = unpacker.unpackInteger(buffer)
@@ -276,7 +319,12 @@ function unpackLocalTime (unpacker, structSize, buffer, disableLosslessIntegers)
  * @param {function} onError the error callback.
  */
 function packTime (value, packer, onError) {
-  const nanoOfDay = localTimeToNanoOfDay(value.hour, value.minute, value.second, value.nanosecond)
+  const nanoOfDay = localTimeToNanoOfDay(
+    value.hour,
+    value.minute,
+    value.second,
+    value.nanosecond
+  )
   const offsetSeconds = int(value.timeZoneOffsetSeconds)
 
   const packableStructFields = [
@@ -301,7 +349,13 @@ function unpackTime (unpacker, structSize, buffer, disableLosslessIntegers) {
   const offsetSeconds = unpacker.unpackInteger(buffer)
 
   const localTime = nanoOfDayToLocalTime(nanoOfDay)
-  const result = new Time(localTime.hour, localTime.minute, localTime.second, localTime.nanosecond, offsetSeconds)
+  const result = new Time(
+    localTime.hour,
+    localTime.minute,
+    localTime.second,
+    localTime.nanosecond,
+    offsetSeconds
+  )
   return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
 }
 
@@ -314,9 +368,7 @@ function unpackTime (unpacker, structSize, buffer, disableLosslessIntegers) {
 function packDate (value, packer, onError) {
   const epochDay = dateToEpochDay(value.year, value.month, value.day)
 
-  const packableStructFields = [
-    packer.packable(epochDay, onError)
-  ]
+  const packableStructFields = [packer.packable(epochDay, onError)]
   packer.packStruct(DATE, packableStructFields, onError)
 }
 
@@ -343,7 +395,15 @@ function unpackDate (unpacker, structSize, buffer, disableLosslessIntegers) {
  * @param {function} onError the error callback.
  */
 function packLocalDateTime (value, packer, onError) {
-  const epochSecond = localDateTimeToEpochSecond(value.year, value.month, value.day, value.hour, value.minute, value.second, value.nanosecond)
+  const epochSecond = localDateTimeToEpochSecond(
+    value.year,
+    value.month,
+    value.day,
+    value.hour,
+    value.minute,
+    value.second,
+    value.nanosecond
+  )
   const nano = int(value.nanosecond)
 
   const packableStructFields = [
@@ -361,8 +421,17 @@ function packLocalDateTime (value, packer, onError) {
  * @param {boolean} disableLosslessIntegers if integer properties in the result local date-time should be native JS numbers.
  * @return {LocalDateTime} the unpacked local date time value.
  */
-function unpackLocalDateTime (unpacker, structSize, buffer, disableLosslessIntegers) {
-  unpacker._verifyStructSize('LocalDateTime', LOCAL_DATE_TIME_STRUCT_SIZE, structSize)
+function unpackLocalDateTime (
+  unpacker,
+  structSize,
+  buffer,
+  disableLosslessIntegers
+) {
+  unpacker._verifyStructSize(
+    'LocalDateTime',
+    LOCAL_DATE_TIME_STRUCT_SIZE,
+    structSize
+  )
 
   const epochSecond = unpacker.unpackInteger(buffer)
   const nano = unpacker.unpackInteger(buffer)
@@ -391,7 +460,15 @@ function packDateTime (value, packer, onError) {
  * @param {function} onError the error callback.
  */
 function packDateTimeWithZoneOffset (value, packer, onError) {
-  const epochSecond = localDateTimeToEpochSecond(value.year, value.month, value.day, value.hour, value.minute, value.second, value.nanosecond)
+  const epochSecond = localDateTimeToEpochSecond(
+    value.year,
+    value.month,
+    value.day,
+    value.hour,
+    value.minute,
+    value.second,
+    value.nanosecond
+  )
   const nano = int(value.nanosecond)
   const timeZoneOffsetSeconds = int(value.timeZoneOffsetSeconds)
 
@@ -411,16 +488,34 @@ function packDateTimeWithZoneOffset (value, packer, onError) {
  * @param {boolean} disableLosslessIntegers if integer properties in the result date-time should be native JS numbers.
  * @return {DateTime} the unpacked date time with zone offset value.
  */
-function unpackDateTimeWithZoneOffset (unpacker, structSize, buffer, disableLosslessIntegers) {
-  unpacker._verifyStructSize('DateTimeWithZoneOffset', DATE_TIME_WITH_ZONE_OFFSET_STRUCT_SIZE, structSize)
+function unpackDateTimeWithZoneOffset (
+  unpacker,
+  structSize,
+  buffer,
+  disableLosslessIntegers
+) {
+  unpacker._verifyStructSize(
+    'DateTimeWithZoneOffset',
+    DATE_TIME_WITH_ZONE_OFFSET_STRUCT_SIZE,
+    structSize
+  )
 
   const epochSecond = unpacker.unpackInteger(buffer)
   const nano = unpacker.unpackInteger(buffer)
   const timeZoneOffsetSeconds = unpacker.unpackInteger(buffer)
 
   const localDateTime = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
-  const result = new DateTime(localDateTime.year, localDateTime.month, localDateTime.day,
-    localDateTime.hour, localDateTime.minute, localDateTime.second, localDateTime.nanosecond, timeZoneOffsetSeconds, null)
+  const result = new DateTime(
+    localDateTime.year,
+    localDateTime.month,
+    localDateTime.day,
+    localDateTime.hour,
+    localDateTime.minute,
+    localDateTime.second,
+    localDateTime.nanosecond,
+    timeZoneOffsetSeconds,
+    null
+  )
   return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
 }
 
@@ -431,7 +526,15 @@ function unpackDateTimeWithZoneOffset (unpacker, structSize, buffer, disableLoss
  * @param {function} onError the error callback.
  */
 function packDateTimeWithZoneId (value, packer, onError) {
-  const epochSecond = localDateTimeToEpochSecond(value.year, value.month, value.day, value.hour, value.minute, value.second, value.nanosecond)
+  const epochSecond = localDateTimeToEpochSecond(
+    value.year,
+    value.month,
+    value.day,
+    value.hour,
+    value.minute,
+    value.second,
+    value.nanosecond
+  )
   const nano = int(value.nanosecond)
   const timeZoneId = value.timeZoneId
 
@@ -451,16 +554,34 @@ function packDateTimeWithZoneId (value, packer, onError) {
  * @param {boolean} disableLosslessIntegers if integer properties in the result date-time should be native JS numbers.
  * @return {DateTime} the unpacked date time with zone id value.
  */
-function unpackDateTimeWithZoneId (unpacker, structSize, buffer, disableLosslessIntegers) {
-  unpacker._verifyStructSize('DateTimeWithZoneId', DATE_TIME_WITH_ZONE_ID_STRUCT_SIZE, structSize)
+function unpackDateTimeWithZoneId (
+  unpacker,
+  structSize,
+  buffer,
+  disableLosslessIntegers
+) {
+  unpacker._verifyStructSize(
+    'DateTimeWithZoneId',
+    DATE_TIME_WITH_ZONE_ID_STRUCT_SIZE,
+    structSize
+  )
 
   const epochSecond = unpacker.unpackInteger(buffer)
   const nano = unpacker.unpackInteger(buffer)
   const timeZoneId = unpacker.unpack(buffer)
 
   const localDateTime = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
-  const result = new DateTime(localDateTime.year, localDateTime.month, localDateTime.day,
-    localDateTime.hour, localDateTime.minute, localDateTime.second, localDateTime.nanosecond, null, timeZoneId)
+  const result = new DateTime(
+    localDateTime.year,
+    localDateTime.month,
+    localDateTime.day,
+    localDateTime.hour,
+    localDateTime.minute,
+    localDateTime.second,
+    localDateTime.nanosecond,
+    null,
+    timeZoneId
+  )
   return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
 }
 

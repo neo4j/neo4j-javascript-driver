@@ -23,7 +23,10 @@ const DEFAULT_ACQUISITION_TIMEOUT = 60 * 1000 // 60 seconds
 export default class PoolConfig {
   constructor (maxSize, acquisitionTimeout) {
     this.maxSize = valueOrDefault(maxSize, DEFAULT_MAX_SIZE)
-    this.acquisitionTimeout = valueOrDefault(acquisitionTimeout, DEFAULT_ACQUISITION_TIMEOUT)
+    this.acquisitionTimeout = valueOrDefault(
+      acquisitionTimeout,
+      DEFAULT_ACQUISITION_TIMEOUT
+    )
   }
 
   static defaultConfig () {
@@ -32,9 +35,15 @@ export default class PoolConfig {
 
   static fromDriverConfig (config) {
     const maxSizeConfigured = isConfigured(config.maxConnectionPoolSize)
-    const maxSize = maxSizeConfigured ? config.maxConnectionPoolSize : DEFAULT_MAX_SIZE
-    const acquisitionTimeoutConfigured = isConfigured(config.connectionAcquisitionTimeout)
-    const acquisitionTimeout = acquisitionTimeoutConfigured ? config.connectionAcquisitionTimeout : DEFAULT_ACQUISITION_TIMEOUT
+    const maxSize = maxSizeConfigured
+      ? config.maxConnectionPoolSize
+      : DEFAULT_MAX_SIZE
+    const acquisitionTimeoutConfigured = isConfigured(
+      config.connectionAcquisitionTimeout
+    )
+    const acquisitionTimeout = acquisitionTimeoutConfigured
+      ? config.connectionAcquisitionTimeout
+      : DEFAULT_ACQUISITION_TIMEOUT
 
     return new PoolConfig(maxSize, acquisitionTimeout)
   }
@@ -48,7 +57,4 @@ function isConfigured (value) {
   return value === 0 || value
 }
 
-export {
-  DEFAULT_MAX_SIZE,
-  DEFAULT_ACQUISITION_TIMEOUT
-}
+export { DEFAULT_MAX_SIZE, DEFAULT_ACQUISITION_TIMEOUT }

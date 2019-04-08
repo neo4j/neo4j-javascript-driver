@@ -17,33 +17,29 @@
  * limitations under the License.
  */
 
-import Record from "../../types/record";
+import Record from '../../types/record'
 
-const record1 = new Record(["name", "age"], ["Alice", 20]);
-const record2 = new Record(["name", "age"], ["Bob", 22], {"key": "value"});
+const record1 = new Record(['name', 'age'], ['Alice', 20])
+const record2 = new Record(['name', 'age'], ['Bob', 22], { key: 'value' })
 
-const record1Keys: string[] = record1.keys;
-const record1Length: number = record1.length;
+const record1Keys: string[] = record1.keys
+const record1Length: number = record1.length
 
-const record1Object: object = record1.toObject();
+const record1Object: object = record1.toObject()
 
-record1.forEach(() => {
-});
+record1.forEach(() => {})
 
-record1.forEach((value: any) => {
-});
+record1.forEach((value: any) => {})
 
-record1.forEach((value: any, key: string) => {
-});
+record1.forEach((value: any, key: string) => {})
 
-record1.forEach((value: any, key: string, record: Record) => {
-});
+record1.forEach((value: any, key: string, record: Record) => {})
 
-const record1Has: boolean = record1.has(42);
-const record2Has: boolean = record1.has("key");
+const record1Has: boolean = record1.has(42)
+const record2Has: boolean = record1.has('key')
 
-const record1Get1: any = record1.get(42);
-const record2Get1: any = record2.get("key");
+const record1Get1: any = record1.get(42)
+const record2Get1: any = record2.get('key')
 
-const record1Get2: object = record1.get(42);
-const record2Get2: string[] = record2.get("key");
+const record1Get2: object = record1.get(42)
+const record2Get2: string[] = record2.get('key')

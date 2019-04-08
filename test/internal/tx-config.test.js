@@ -37,8 +37,7 @@ describe('TxConfig', () => {
   })
 
   it('should fail to construct from function', () => {
-    const func = () => {
-    }
+    const func = () => {}
     expect(() => new TxConfig(func)).toThrowError(TypeError)
   })
 
@@ -52,7 +51,8 @@ describe('TxConfig', () => {
     const invalidTimeoutValues = ['15s', [15], {}, 0, int(0), -42, int(-42)]
 
     invalidTimeoutValues.forEach(invalidValue =>
-      expect(() => new TxConfig({ timeout: invalidValue })).toThrow())
+      expect(() => new TxConfig({ timeout: invalidValue })).toThrow()
+    )
   })
 
   it('should construct with valid timeout', () => {
@@ -67,14 +67,18 @@ describe('TxConfig', () => {
     const invalidMetadataValues = ['hello', [1, 2, 3], () => 'Hello', 42]
 
     invalidMetadataValues.forEach(invalidValue =>
-      expect(() => new TxConfig({ metadata: invalidValue })).toThrow())
+      expect(() => new TxConfig({ metadata: invalidValue })).toThrow()
+    )
   })
 
   it('should construct with valid metadata', () => {
     testEmptyConfigCreation({ metadata: {} })
 
     testConfigCreationWithMetadata({ key: 'value' })
-    testConfigCreationWithMetadata({ map: { key1: 1, key2: '2', key3: [] }, array: [1, 2, 3, '4'] })
+    testConfigCreationWithMetadata({
+      map: { key1: 1, key2: '2', key3: [] },
+      array: [1, 2, 3, '4']
+    })
   })
 
   function testEmptyConfigCreation (value) {

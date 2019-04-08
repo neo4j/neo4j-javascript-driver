@@ -82,7 +82,10 @@ describe('utf8', () => {
 
     // When
     // We read all but the unrelatedData and the last character of bufb
-    const decoded = utf8.decode(combined, combined.length - 1 - unrelatedData.length)
+    const decoded = utf8.decode(
+      combined,
+      combined.length - 1 - unrelatedData.length
+    )
 
     // Then
     expect(decoded).toBe(expectMsg)

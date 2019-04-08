@@ -23,8 +23,7 @@ import { EMPTY_CONNECTION_HOLDER } from './internal/connection-holder'
 const DEFAULT_ON_ERROR = error => {
   console.log('Uncaught error when processing result: ' + error)
 }
-const DEFAULT_ON_COMPLETED = summary => {
-}
+const DEFAULT_ON_COMPLETED = summary => {}
 
 /**
  * A stream of {@link Record} representing the result of a statement.
@@ -44,13 +43,23 @@ class Result {
    * @param metaSupplier function, when called provides metadata
    * @param {ConnectionHolder} connectionHolder - to be notified when result is either fully consumed or error happened.
    */
-  constructor (streamObserver, statement, parameters, metaSupplier, connectionHolder) {
+  constructor (
+    streamObserver,
+    statement,
+    parameters,
+    metaSupplier,
+    connectionHolder
+  ) {
     this._stack = captureStacktrace()
     this._streamObserver = streamObserver
     this._p = null
     this._statement = statement
     this._parameters = parameters || {}
-    this._metaSupplier = metaSupplier || function () { return {} }
+    this._metaSupplier =
+      metaSupplier ||
+      function () {
+        return {}
+      }
     this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
   }
 
@@ -67,11 +76,15 @@ class Result {
     this._p = new Promise((resolve, reject) => {
       let records = []
       let observer = {
-        onNext: (record) => { records.push(record) },
-        onCompleted: (summary) => {
+        onNext: record => {
+          records.push(record)
+        },
+        onCompleted: summary => {
           resolve({ records: records, summary: summary })
         },
-        onError: (error) => { reject(error) }
+        onError: error => {
+          reject(error)
+        }
       }
       self.subscribe(observer)
     })
@@ -116,7 +129,7 @@ class Result {
     const self = this
 
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
-    const onCompletedWrapper = (metadata) => {
+    const onCompletedWrapper = metadata => {
       const additionalMeta = self._metaSupplier()
       for (let key in additionalMeta) {
         if (additionalMeta.hasOwnProperty(key)) {

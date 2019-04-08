@@ -21,19 +21,24 @@ import { READ, WRITE } from '../../src/driver'
 import Integer, { int } from '../../src/integer'
 import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
 import RoutingTable from '../../src/internal/routing-table'
-import { DirectConnectionProvider, LoadBalancer } from '../../src/internal/connection-providers'
+import {
+  DirectConnectionProvider,
+  LoadBalancer
+} from '../../src/internal/connection-providers'
 import Pool from '../../src/internal/pool'
 import LeastConnectedLoadBalancingStrategy from '../../src/internal/least-connected-load-balancing-strategy'
 import Logger from '../../src/internal/logger'
 import SimpleHostNameResolver from '../../src/internal/browser/browser-host-name-resolver'
 
-const NO_OP_DRIVER_CALLBACK = () => {
-}
+const NO_OP_DRIVER_CALLBACK = () => {}
 
 describe('DirectConnectionProvider', () => {
   it('acquires connection from the pool', done => {
     const pool = newPool()
-    const connectionProvider = newDirectConnectionProvider('localhost:123', pool)
+    const connectionProvider = newDirectConnectionProvider(
+      'localhost:123',
+      pool
+    )
 
     connectionProvider.acquireConnection(READ).then(connection => {
       expect(connection).toBeDefined()
@@ -56,7 +61,8 @@ describe('LoadBalancer', () => {
 
     loadBalancer.forget('server-2')
 
-    expectRoutingTable(loadBalancer,
+    expectRoutingTable(
+      loadBalancer,
       ['server-1', 'server-2'],
       ['server-3'],
       ['server-4']
@@ -72,7 +78,8 @@ describe('LoadBalancer', () => {
 
     loadBalancer.forget('server-42')
 
-    expectRoutingTable(loadBalancer,
+    expectRoutingTable(
+      loadBalancer,
       ['server-1', 'server-2'],
       ['server-3', 'server-4'],
       ['server-5', 'server-6']
@@ -110,7 +117,8 @@ describe('LoadBalancer', () => {
 
     loadBalancer.forgetWriter('server-2')
 
-    expectRoutingTable(loadBalancer,
+    expectRoutingTable(
+      loadBalancer,
       ['server-1', 'server-2'],
       ['server-3', 'server-2'],
       ['server-4']
@@ -126,7 +134,8 @@ describe('LoadBalancer', () => {
 
     loadBalancer.forgetWriter('server-42')
 
-    expectRoutingTable(loadBalancer,
+    expectRoutingTable(
+      loadBalancer,
       ['server-1', 'server-2'],
       ['server-3', 'server-4'],
       ['server-5', 'server-6']
@@ -135,15 +144,20 @@ describe('LoadBalancer', () => {
 
   it('initializes routing table with the given router', () => {
     const connectionPool = newPool()
-    const loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(connectionPool)
-    const loadBalancer = new LoadBalancer('server-ABC', {}, connectionPool, loadBalancingStrategy, new SimpleHostNameResolver(),
-      NO_OP_DRIVER_CALLBACK, Logger.noOp())
-
-    expectRoutingTable(loadBalancer,
-      ['server-ABC'],
-      [],
-      []
+    const loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(
+      connectionPool
     )
+    const loadBalancer = new LoadBalancer(
+      'server-ABC',
+      {},
+      connectionPool,
+      loadBalancingStrategy,
+      new SimpleHostNameResolver(),
+      NO_OP_DRIVER_CALLBACK,
+      Logger.noOp()
+    )
+
+    expectRoutingTable(loadBalancer, ['server-ABC'], [], [])
   })
 
   it('acquires read connection with up-to-date routing table', done => {
@@ -524,12 +538,20 @@ describe('LoadBalancer', () => {
     )
 
     loadBalancer.acquireConnection(READ).then(() => {
-      expectRoutingTable(loadBalancer,
+      expectRoutingTable(
+        loadBalancer,
         ['server-A', 'server-B'],
         ['server-C', 'server-D'],
         ['server-E', 'server-F']
       )
-      expectPoolToNotContain(pool, ['server-1', 'server-2', 'server-3', 'server-4', 'server-5', 'server-6'])
+      expectPoolToNotContain(pool, [
+        'server-1',
+        'server-2',
+        'server-3',
+        'server-4',
+        'server-5',
+        'server-6'
+      ])
       done()
     })
   })
@@ -545,7 +567,8 @@ describe('LoadBalancer', () => {
 
     loadBalancer.acquireConnection(READ).catch(error => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE)
-      expectRoutingTable(loadBalancer,
+      expectRoutingTable(
+        loadBalancer,
         [],
         ['server-4', 'server-5'],
         ['server-6', 'server-7']
@@ -565,7 +588,8 @@ describe('LoadBalancer', () => {
 
     loadBalancer.acquireConnection(WRITE).catch(error => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE)
-      expectRoutingTable(loadBalancer,
+      expectRoutingTable(
+        loadBalancer,
         [],
         ['server-4', 'server-5'],
         ['server-6', 'server-7']
@@ -582,7 +606,8 @@ describe('LoadBalancer', () => {
     )
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-0'], // seed router address resolves just to itself
+      'server-0',
+      ['server-0'], // seed router address resolves just to itself
       ['server-1', 'server-2', 'server-3'],
       ['server-4', 'server-5'],
       ['server-6', 'server-7'],
@@ -601,7 +626,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(WRITE).then(connection2 => {
         expect(connection2.address).toEqual('server-F')
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           ['server-A', 'server-B', 'server-C'],
           ['server-D', 'server-E'],
           ['server-F', 'server-G']
@@ -619,7 +645,8 @@ describe('LoadBalancer', () => {
     )
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-01'], // seed router address resolves to a different one
+      'server-0',
+      ['server-01'], // seed router address resolves to a different one
       ['server-1', 'server-2', 'server-3'],
       ['server-4', 'server-5'],
       ['server-6', 'server-7'],
@@ -638,7 +665,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(READ).then(connection2 => {
         expect(connection2.address).toEqual('server-C')
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           ['server-A', 'server-B'],
           ['server-C', 'server-D'],
           ['server-E', 'server-F']
@@ -656,7 +684,8 @@ describe('LoadBalancer', () => {
     )
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-01', 'server-02', 'server-03'], // seed router address resolves to 3 different addresses
+      'server-0',
+      ['server-01', 'server-02', 'server-03'], // seed router address resolves to 3 different addresses
       ['server-1'],
       ['server-2'],
       ['server-3'],
@@ -675,7 +704,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(WRITE).then(connection2 => {
         expect(connection2.address).toEqual('server-E')
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           ['server-A', 'server-B'],
           ['server-C'],
           ['server-D', 'server-E']
@@ -687,7 +717,8 @@ describe('LoadBalancer', () => {
 
   it('fails when both existing routers and seed router fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-0'], // seed router address resolves just to itself
+      'server-0',
+      ['server-0'], // seed router address resolves just to itself
       ['server-1', 'server-2', 'server-3'],
       ['server-4', 'server-5'],
       ['server-6'],
@@ -703,7 +734,8 @@ describe('LoadBalancer', () => {
     loadBalancer.acquireConnection(READ).catch(error => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
-      expectRoutingTable(loadBalancer,
+      expectRoutingTable(
+        loadBalancer,
         [], // all routers were forgotten because they failed
         ['server-4', 'server-5'],
         ['server-6']
@@ -712,7 +744,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(WRITE).catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           [], // all routers were forgotten because they failed
           ['server-4', 'server-5'],
           ['server-6']
@@ -725,7 +758,8 @@ describe('LoadBalancer', () => {
 
   it('fails when both existing routers and resolved seed router fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-01'], // seed router address resolves to a different one
+      'server-0',
+      ['server-01'], // seed router address resolves to a different one
       ['server-1', 'server-2'],
       ['server-3'],
       ['server-4'],
@@ -740,7 +774,8 @@ describe('LoadBalancer', () => {
     loadBalancer.acquireConnection(WRITE).catch(error => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
-      expectRoutingTable(loadBalancer,
+      expectRoutingTable(
+        loadBalancer,
         [], // all routers were forgotten because they failed
         ['server-3'],
         ['server-4']
@@ -749,7 +784,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(READ).catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           [], // all routers were forgotten because they failed
           ['server-3'],
           ['server-4']
@@ -762,7 +798,8 @@ describe('LoadBalancer', () => {
 
   it('fails when both existing routers and all resolved seed routers fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-02', 'server-01'], // seed router address resolves to 2 different addresses
+      'server-0',
+      ['server-02', 'server-01'], // seed router address resolves to 2 different addresses
       ['server-1', 'server-2', 'server-3'],
       ['server-4'],
       ['server-5'],
@@ -779,7 +816,8 @@ describe('LoadBalancer', () => {
     loadBalancer.acquireConnection(READ).catch(error => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
-      expectRoutingTable(loadBalancer,
+      expectRoutingTable(
+        loadBalancer,
         [], // all known seed servers failed to return routing tables and were forgotten
         ['server-4'],
         ['server-5']
@@ -788,7 +826,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(WRITE).catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           [], // all known seed servers failed to return routing tables and were forgotten
           ['server-4'],
           ['server-5']
@@ -807,7 +846,8 @@ describe('LoadBalancer', () => {
     )
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-0'], // seed router address resolves just to itself
+      'server-0',
+      ['server-0'], // seed router address resolves just to itself
       [], // no routers in the known routing table
       ['server-1', 'server-2'],
       ['server-3'],
@@ -823,7 +863,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(READ).then(connection2 => {
         expect(connection2.address).toEqual('server-C')
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           ['server-A', 'server-B'],
           ['server-C'],
           ['server-D']
@@ -841,7 +882,8 @@ describe('LoadBalancer', () => {
     )
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-01'], // seed router address resolves to a different one
+      'server-0',
+      ['server-01'], // seed router address resolves to a different one
       [], // no routers in the known routing table
       ['server-1', 'server-2'],
       ['server-3', 'server-4'],
@@ -857,7 +899,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(WRITE).then(connection2 => {
         expect(connection2.address).toEqual('server-F')
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           ['server-A', 'server-B'],
           ['server-C', 'server-D'],
           ['server-F', 'server-E']
@@ -875,7 +918,8 @@ describe('LoadBalancer', () => {
     )
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-02', 'server-01', 'server-03'], // seed router address resolves to 3 different addresses
+      'server-0',
+      ['server-02', 'server-01', 'server-03'], // seed router address resolves to 3 different addresses
       [], // no routers in the known routing table
       ['server-1'],
       ['server-2', 'server-3'],
@@ -893,7 +937,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(READ).then(connection2 => {
         expect(connection2.address).toEqual('server-D')
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           ['server-A', 'server-B', 'server-C'],
           ['server-D', 'server-E'],
           ['server-F']
@@ -911,7 +956,8 @@ describe('LoadBalancer', () => {
     )
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-1', 'server-01', 'server-2', 'server-02'], // seed router address resolves to 4 different addresses
+      'server-0',
+      ['server-1', 'server-01', 'server-2', 'server-02'], // seed router address resolves to 4 different addresses
       ['server-1', 'server-2'],
       ['server-3', 'server-4'],
       ['server-5', 'server-6'],
@@ -939,7 +985,8 @@ describe('LoadBalancer', () => {
         expect(usedRouterArrays[0]).toEqual(['server-1', 'server-2'])
         expect(usedRouterArrays[1]).toEqual(['server-01', 'server-02'])
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           ['server-A', 'server-B'],
           ['server-C', 'server-D'],
           ['server-E', 'server-F']
@@ -1010,7 +1057,8 @@ describe('LoadBalancer', () => {
     )
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-02', 'server-01'], // seed router address resolves to 2 different addresses
+      'server-0',
+      ['server-02', 'server-01'], // seed router address resolves to 2 different addresses
       ['server-1'],
       ['server-2', 'server-3'],
       ['server-4', 'server-5'],
@@ -1030,7 +1078,8 @@ describe('LoadBalancer', () => {
       loadBalancer.acquireConnection(READ).then(connection2 => {
         expect(connection2.address).toEqual('server-D')
 
-        expectRoutingTable(loadBalancer,
+        expectRoutingTable(
+          loadBalancer,
           ['server-A', 'server-B'],
           ['server-C', 'server-D'],
           []
@@ -1039,7 +1088,8 @@ describe('LoadBalancer', () => {
         loadBalancer.acquireConnection(WRITE).then(connection3 => {
           expect(connection3.address).toEqual('server-EE')
 
-          expectRoutingTable(loadBalancer,
+          expectRoutingTable(
+            loadBalancer,
             ['server-AA', 'server-BB'],
             ['server-CC', 'server-DD'],
             ['server-EE']
@@ -1056,31 +1106,65 @@ function newDirectConnectionProvider (address, pool) {
   return new DirectConnectionProvider(address, pool, NO_OP_DRIVER_CALLBACK)
 }
 
-function newLoadBalancer (routers, readers, writers,
+function newLoadBalancer (
+  routers,
+  readers,
+  writers,
   pool = null,
   expirationTime = Integer.MAX_VALUE,
-  routerToRoutingTable = {}) {
+  routerToRoutingTable = {}
+) {
   const seedRouter = 'server-non-existing-seed-router'
-  return newLoadBalancerWithSeedRouter(seedRouter, [seedRouter], routers, readers, writers, expirationTime,
-    routerToRoutingTable, pool)
+  return newLoadBalancerWithSeedRouter(
+    seedRouter,
+    [seedRouter],
+    routers,
+    readers,
+    writers,
+    expirationTime,
+    routerToRoutingTable,
+    pool
+  )
 }
 
-function newLoadBalancerWithSeedRouter (seedRouter, seedRouterResolved,
-  routers, readers, writers,
+function newLoadBalancerWithSeedRouter (
+  seedRouter,
+  seedRouterResolved,
+  routers,
+  readers,
+  writers,
   expirationTime = Integer.MAX_VALUE,
   routerToRoutingTable = {},
-  connectionPool = null) {
+  connectionPool = null
+) {
   const pool = connectionPool || newPool()
   const loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(pool)
-  const loadBalancer = new LoadBalancer(seedRouter, {}, pool, loadBalancingStrategy, new SimpleHostNameResolver(),
-    NO_OP_DRIVER_CALLBACK, Logger.noOp())
-  loadBalancer._routingTable = new RoutingTable(routers, readers, writers, expirationTime)
+  const loadBalancer = new LoadBalancer(
+    seedRouter,
+    {},
+    pool,
+    loadBalancingStrategy,
+    new SimpleHostNameResolver(),
+    NO_OP_DRIVER_CALLBACK,
+    Logger.noOp()
+  )
+  loadBalancer._routingTable = new RoutingTable(
+    routers,
+    readers,
+    writers,
+    expirationTime
+  )
   loadBalancer._rediscovery = new FakeRediscovery(routerToRoutingTable)
   loadBalancer._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
   return loadBalancer
 }
 
-function newRoutingTable (routers, readers, writers, expirationTime = Integer.MAX_VALUE) {
+function newRoutingTable (
+  routers,
+  readers,
+  writers,
+  expirationTime = Integer.MAX_VALUE
+) {
   return new RoutingTable(routers, readers, writers, expirationTime)
 }
 
@@ -1094,7 +1178,9 @@ function setupLoadBalancerToRememberRouters (loadBalancer, routersArray) {
 }
 
 function newPool () {
-  return new Pool((address, release) => Promise.resolve(new FakeConnection(address, release)))
+  return new Pool((address, release) =>
+    Promise.resolve(new FakeConnection(address, release))
+  )
 }
 
 function expectRoutingTable (loadBalancer, routers, readers, writers) {

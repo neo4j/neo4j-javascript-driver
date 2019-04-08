@@ -26,7 +26,8 @@ const TRANSIENT_ERROR_1 = 'Neo.TransientError.Transaction.DeadlockDetected'
 const TRANSIENT_ERROR_2 = 'Neo.TransientError.Network.CommunicationError'
 const UNKNOWN_ERROR = 'Neo.DatabaseError.General.UnknownError'
 const TX_TERMINATED_ERROR = 'Neo.TransientError.Transaction.Terminated'
-const LOCKS_TERMINATED_ERROR = 'Neo.TransientError.Transaction.LockClientStopped'
+const LOCKS_TERMINATED_ERROR =
+  'Neo.TransientError.Transaction.LockClientStopped'
 const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError'
 
 describe('TransactionExecutor', () => {
@@ -46,7 +47,10 @@ describe('TransactionExecutor', () => {
   })
 
   it('should retry when transaction work returns promise rejected with SERVICE_UNAVAILABLE', done => {
-    testRetryWhenTransactionWorkReturnsRejectedPromise([SERVICE_UNAVAILABLE], done)
+    testRetryWhenTransactionWorkReturnsRejectedPromise(
+      [SERVICE_UNAVAILABLE],
+      done
+    )
   })
 
   it('should retry when transaction work returns promise rejected with SESSION_EXPIRED', done => {
@@ -54,11 +58,17 @@ describe('TransactionExecutor', () => {
   })
 
   it('should retry when transaction work returns promise rejected with deadlock error', done => {
-    testRetryWhenTransactionWorkReturnsRejectedPromise([TRANSIENT_ERROR_1], done)
+    testRetryWhenTransactionWorkReturnsRejectedPromise(
+      [TRANSIENT_ERROR_1],
+      done
+    )
   })
 
   it('should retry when transaction work returns promise rejected with communication error', done => {
-    testRetryWhenTransactionWorkReturnsRejectedPromise([TRANSIENT_ERROR_2], done)
+    testRetryWhenTransactionWorkReturnsRejectedPromise(
+      [TRANSIENT_ERROR_2],
+      done
+    )
   })
 
   it('should not retry when transaction work returns promise rejected with OOM error', done => {
@@ -80,7 +90,15 @@ describe('TransactionExecutor', () => {
   it('should stop retrying when time expires', done => {
     const executor = new TransactionExecutor()
     const usedTransactions = []
-    const realWork = transactionWork([SERVICE_UNAVAILABLE, SESSION_EXPIRED, TRANSIENT_ERROR_1, TRANSIENT_ERROR_2], 42)
+    const realWork = transactionWork(
+      [
+        SERVICE_UNAVAILABLE,
+        SESSION_EXPIRED,
+        TRANSIENT_ERROR_1,
+        TRANSIENT_ERROR_2
+      ],
+      42
+    )
 
     const result = executor.execute(transactionCreator(), tx => {
       expect(tx).toBeDefined()
@@ -102,15 +120,19 @@ describe('TransactionExecutor', () => {
   })
 
   it('should retry when given transaction creator throws once', done => {
-    testRetryWhenTransactionCreatorFails(
-      [SERVICE_UNAVAILABLE],
-      done
-    )
+    testRetryWhenTransactionCreatorFails([SERVICE_UNAVAILABLE], done)
   })
 
   it('should retry when given transaction creator throws many times', done => {
     testRetryWhenTransactionCreatorFails(
-      [SERVICE_UNAVAILABLE, SESSION_EXPIRED, TRANSIENT_ERROR_2, SESSION_EXPIRED, SERVICE_UNAVAILABLE, TRANSIENT_ERROR_1],
+      [
+        SERVICE_UNAVAILABLE,
+        SESSION_EXPIRED,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_1
+      ],
       done
     )
   })
@@ -121,32 +143,60 @@ describe('TransactionExecutor', () => {
 
   it('should retry when given transaction work throws many times', done => {
     testRetryWhenTransactionWorkThrows(
-      [SERVICE_UNAVAILABLE, TRANSIENT_ERROR_2, TRANSIENT_ERROR_2, SESSION_EXPIRED],
+      [
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_2,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED
+      ],
       done
     )
   })
 
   it('should retry when given transaction work returns rejected promise many times', done => {
     testRetryWhenTransactionWorkReturnsRejectedPromise(
-      [SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE, TRANSIENT_ERROR_2, SESSION_EXPIRED, TRANSIENT_ERROR_1, SESSION_EXPIRED],
+      [
+        SERVICE_UNAVAILABLE,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED,
+        TRANSIENT_ERROR_1,
+        SESSION_EXPIRED
+      ],
       done
     )
   })
 
   it('should retry when transaction commit returns rejected promise once', done => {
-    testRetryWhenTransactionCommitReturnsRejectedPromise([TRANSIENT_ERROR_1], done)
+    testRetryWhenTransactionCommitReturnsRejectedPromise(
+      [TRANSIENT_ERROR_1],
+      done
+    )
   })
 
   it('should retry when transaction commit returns rejected promise multiple times', done => {
     testRetryWhenTransactionCommitReturnsRejectedPromise(
-      [TRANSIENT_ERROR_1, TRANSIENT_ERROR_1, SESSION_EXPIRED, SERVICE_UNAVAILABLE, TRANSIENT_ERROR_2],
+      [
+        TRANSIENT_ERROR_1,
+        TRANSIENT_ERROR_1,
+        SESSION_EXPIRED,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_2
+      ],
       done
     )
   })
 
   it('should retry until database error happens', done => {
     testNoRetryOnUnknownError(
-      [SERVICE_UNAVAILABLE, SERVICE_UNAVAILABLE, TRANSIENT_ERROR_2, SESSION_EXPIRED, UNKNOWN_ERROR, SESSION_EXPIRED],
+      [
+        SERVICE_UNAVAILABLE,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED,
+        UNKNOWN_ERROR,
+        SESSION_EXPIRED
+      ],
       5,
       done
     )
@@ -154,7 +204,12 @@ describe('TransactionExecutor', () => {
 
   it('should retry when transaction work throws and rollback fails', done => {
     testRetryWhenTransactionWorkThrowsAndRollbackFails(
-      [SERVICE_UNAVAILABLE, TRANSIENT_ERROR_2, SESSION_EXPIRED, SESSION_EXPIRED],
+      [
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED,
+        SESSION_EXPIRED
+      ],
       [SESSION_EXPIRED, TRANSIENT_ERROR_1],
       done
     )
@@ -165,9 +220,15 @@ describe('TransactionExecutor', () => {
     // do not execute setTimeout callbacks
     fakeSetTimeout.pause()
 
-    executor.execute(transactionCreator([SERVICE_UNAVAILABLE]), () => Promise.resolve(42))
-    executor.execute(transactionCreator([TRANSIENT_ERROR_1]), () => Promise.resolve(4242))
-    executor.execute(transactionCreator([SESSION_EXPIRED]), () => Promise.resolve(424242))
+    executor.execute(transactionCreator([SERVICE_UNAVAILABLE]), () =>
+      Promise.resolve(42)
+    )
+    executor.execute(transactionCreator([TRANSIENT_ERROR_1]), () =>
+      Promise.resolve(4242)
+    )
+    executor.execute(transactionCreator([SESSION_EXPIRED]), () =>
+      Promise.resolve(424242)
+    )
 
     fakeSetTimeout.setTimeoutOriginal(() => {
       executor.close()
@@ -197,7 +258,10 @@ describe('TransactionExecutor', () => {
 
   function testRetryWhenTransactionCreatorFails (errorCodes, done) {
     const executor = new TransactionExecutor()
-    const transactionCreator = throwingTransactionCreator(errorCodes, new FakeTransaction())
+    const transactionCreator = throwingTransactionCreator(
+      errorCodes,
+      new FakeTransaction()
+    )
     const usedTransactions = []
 
     const result = executor.execute(transactionCreator, tx => {
@@ -214,7 +278,10 @@ describe('TransactionExecutor', () => {
     })
   }
 
-  function testRetryWhenTransactionWorkReturnsRejectedPromise (errorCodes, done) {
+  function testRetryWhenTransactionWorkReturnsRejectedPromise (
+    errorCodes,
+    done
+  ) {
     const executor = new TransactionExecutor()
     const usedTransactions = []
     const realWork = transactionWork(errorCodes, 42)
@@ -235,7 +302,10 @@ describe('TransactionExecutor', () => {
     })
   }
 
-  function testRetryWhenTransactionCommitReturnsRejectedPromise (errorCodes, done) {
+  function testRetryWhenTransactionCommitReturnsRejectedPromise (
+    errorCodes,
+    done
+  ) {
     const executor = new TransactionExecutor()
     const usedTransactions = []
     const realWork = () => Promise.resolve(4242)
@@ -277,16 +347,23 @@ describe('TransactionExecutor', () => {
     })
   }
 
-  function testRetryWhenTransactionWorkThrowsAndRollbackFails (txWorkErrorCodes, rollbackErrorCodes, done) {
+  function testRetryWhenTransactionWorkThrowsAndRollbackFails (
+    txWorkErrorCodes,
+    rollbackErrorCodes,
+    done
+  ) {
     const executor = new TransactionExecutor()
     const usedTransactions = []
     const realWork = throwingTransactionWork(txWorkErrorCodes, 424242)
 
-    const result = executor.execute(transactionCreator([], rollbackErrorCodes), tx => {
-      expect(tx).toBeDefined()
-      usedTransactions.push(tx)
-      return realWork()
-    })
+    const result = executor.execute(
+      transactionCreator([], rollbackErrorCodes),
+      tx => {
+        expect(tx).toBeDefined()
+        usedTransactions.push(tx)
+        return realWork()
+      }
+    )
 
     result.then(value => {
       // work should have failed 'failures.length' times and succeeded 1 time
@@ -298,7 +375,11 @@ describe('TransactionExecutor', () => {
     })
   }
 
-  function testNoRetryOnUnknownError (errorCodes, expectedWorkInvocationCount, done) {
+  function testNoRetryOnUnknownError (
+    errorCodes,
+    expectedWorkInvocationCount,
+    done
+  ) {
     const executor = new TransactionExecutor()
     const usedTransactions = []
     const realWork = transactionWork(errorCodes, 42)
@@ -324,8 +405,14 @@ describe('TransactionExecutor', () => {
 
 function transactionCreator (commitErrorCodes, rollbackErrorCodes) {
   const remainingCommitErrorCodes = (commitErrorCodes || []).slice().reverse()
-  const remainingRollbackErrorCodes = (rollbackErrorCodes || []).slice().reverse()
-  return () => new FakeTransaction(remainingCommitErrorCodes.pop(), remainingRollbackErrorCodes.pop())
+  const remainingRollbackErrorCodes = (rollbackErrorCodes || [])
+    .slice()
+    .reverse()
+  return () =>
+    new FakeTransaction(
+      remainingCommitErrorCodes.pop(),
+      remainingRollbackErrorCodes.pop()
+    )
 }
 
 function throwingTransactionCreator (errorCodes, result) {

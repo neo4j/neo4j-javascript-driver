@@ -22,11 +22,11 @@ import { ACCESS_MODE_READ } from './constants'
 /* eslint-disable no-unused-vars */
 // Signature bytes for each request message type
 const INIT = 0x01 // 0000 0001 // INIT <user_agent> <authentication_token>
-const ACK_FAILURE = 0x0E // 0000 1110 // ACK_FAILURE - unused
-const RESET = 0x0F // 0000 1111 // RESET
+const ACK_FAILURE = 0x0e // 0000 1110 // ACK_FAILURE - unused
+const RESET = 0x0f // 0000 1111 // RESET
 const RUN = 0x10 // 0001 0000 // RUN <statement> <parameters>
-const DISCARD_ALL = 0x2F // 0010 1111 // DISCARD_ALL - unused
-const PULL_ALL = 0x3F // 0011 1111 // PULL_ALL
+const DISCARD_ALL = 0x2f // 0010 1111 // DISCARD_ALL - unused
+const PULL_ALL = 0x3f // 0011 1111 // PULL_ALL
 
 const HELLO = 0x01 // 0000 0001 // HELLO <metadata>
 const GOODBYE = 0x02 // 0000 0010 // GOODBYE
@@ -34,8 +34,8 @@ const BEGIN = 0x11 // 0001 0001 // BEGIN <metadata>
 const COMMIT = 0x12 // 0001 0010 // COMMIT
 const ROLLBACK = 0x13 // 0001 0011 // ROLLBACK
 
-const DISCARD = 0x2F // 0010 1111 // DISCARD
-const PULL = 0x3F // 0011 1111 // PULL
+const DISCARD = 0x2f // 0010 1111 // DISCARD
+const PULL = 0x3f // 0011 1111 // PULL
 
 const READ_MODE = 'r'
 /* eslint-enable no-unused-vars */
@@ -54,7 +54,11 @@ export default class RequestMessage {
    * @return {RequestMessage} new INIT message.
    */
   static init (clientName, authToken) {
-    return new RequestMessage(INIT, [clientName, authToken], () => `INIT ${clientName} {...}`)
+    return new RequestMessage(
+      INIT,
+      [clientName, authToken],
+      () => `INIT ${clientName} {...}`
+    )
   }
 
   /**
@@ -64,7 +68,11 @@ export default class RequestMessage {
    * @return {RequestMessage} new RUN message.
    */
   static run (statement, parameters) {
-    return new RequestMessage(RUN, [statement, parameters], () => `RUN ${statement} ${JSON.stringify(parameters)}`)
+    return new RequestMessage(
+      RUN,
+      [statement, parameters],
+      () => `RUN ${statement} ${JSON.stringify(parameters)}`
+    )
   }
 
   /**
@@ -91,7 +99,11 @@ export default class RequestMessage {
    */
   static hello (userAgent, authToken) {
     const metadata = Object.assign({ user_agent: userAgent }, authToken)
-    return new RequestMessage(HELLO, [metadata], () => `HELLO {user_agent: '${userAgent}', ...}`)
+    return new RequestMessage(
+      HELLO,
+      [metadata],
+      () => `HELLO {user_agent: '${userAgent}', ...}`
+    )
   }
 
   /**
@@ -103,7 +115,11 @@ export default class RequestMessage {
    */
   static begin (bookmark, txConfig, mode) {
     const metadata = buildTxMetadata(bookmark, txConfig, mode)
-    return new RequestMessage(BEGIN, [metadata], () => `BEGIN ${JSON.stringify(metadata)}`)
+    return new RequestMessage(
+      BEGIN,
+      [metadata],
+      () => `BEGIN ${JSON.stringify(metadata)}`
+    )
   }
 
   /**
@@ -133,8 +149,14 @@ export default class RequestMessage {
    */
   static runWithMetadata (statement, parameters, bookmark, txConfig, mode) {
     const metadata = buildTxMetadata(bookmark, txConfig, mode)
-    return new RequestMessage(RUN, [statement, parameters, metadata],
-      () => `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(metadata)}`)
+    return new RequestMessage(
+      RUN,
+      [statement, parameters, metadata],
+      () =>
+        `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(
+          metadata
+        )}`
+    )
   }
 
   /**

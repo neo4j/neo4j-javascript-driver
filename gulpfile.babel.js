@@ -63,7 +63,8 @@ gulp.task('build-browser', function () {
     cache: {},
     standalone: 'neo4j',
     packageCache: {}
-  }).transform(babelifyTransform())
+  })
+    .transform(babelifyTransform())
     .transform(browserifyTransformNodeToBrowserRequire())
     .bundle()
 
@@ -84,39 +85,50 @@ gulp.task('build-browser', function () {
 gulp.task('build-browser-test', function () {
   var browserOutput = 'build/browser/'
   var testFiles = []
-  return gulp.src(['./test/**/*.test.js', '!./test/**/node/*.js'])
-    .pipe(through.obj(function (file, enc, cb) {
-      if (file.path.indexOf('examples.test.js') < 0) {
-        testFiles.push(file.path)
-      }
-      cb()
-    }, function (cb) {
-      // At end-of-stream, push the list of files to the next step
-      this.push(testFiles)
-      cb()
-    }))
-    .pipe(through.obj(function (testFiles, enc, cb) {
-      browserify({
-        entries: testFiles,
-        cache: {},
-        debug: true
-      }).transform(babelifyTransform())
-        .transform(browserifyTransformNodeToBrowserRequire())
-        .bundle(function () {
+  return gulp
+    .src(['./test/**/*.test.js', '!./test/**/node/*.js'])
+    .pipe(
+      through.obj(
+        function (file, enc, cb) {
+          if (file.path.indexOf('examples.test.js') < 0) {
+            testFiles.push(file.path)
+          }
           cb()
-        })
-        .on('error', gutil.log)
-        .pipe(source('neo4j-web.test.js'))
-        .pipe(gulp.dest(browserOutput))
-    },
-    function (cb) {
-      cb()
-    }
-    ))
+        },
+        function (cb) {
+          // At end-of-stream, push the list of files to the next step
+          this.push(testFiles)
+          cb()
+        }
+      )
+    )
+    .pipe(
+      through.obj(
+        function (testFiles, enc, cb) {
+          browserify({
+            entries: testFiles,
+            cache: {},
+            debug: true
+          })
+            .transform(babelifyTransform())
+            .transform(browserifyTransformNodeToBrowserRequire())
+            .bundle(function () {
+              cb()
+            })
+            .on('error', gutil.log)
+            .pipe(source('neo4j-web.test.js'))
+            .pipe(gulp.dest(browserOutput))
+        },
+        function (cb) {
+          cb()
+        }
+      )
+    )
 })
 
 var buildNode = function (options) {
-  return gulp.src(options.src)
+  return gulp
+    .src(options.src)
     .pipe(babel(babelConfig()))
     .pipe(gulp.dest(options.dest))
 }
@@ -138,8 +150,8 @@ gulp.task('install-driver-into-sandbox', ['nodejs'], function () {
   fs.emptyDirSync(testDir)
 
   var packageJsonContent = JSON.stringify({
-    'private': true,
-    'dependencies': {
+    private: true,
+    dependencies: {
       'neo4j-driver': __dirname
     }
   })
@@ -150,22 +162,31 @@ gulp.task('install-driver-into-sandbox', ['nodejs'], function () {
 })
 
 gulp.task('test', function (cb) {
-  runSequence('run-ts-declaration-tests', 'test-nodejs', 'test-browser', function (err) {
-    if (err) {
-      var exitCode = 2
-      console.log('[FAIL] test task failed - exiting with code ' + exitCode)
-      return process.exit(exitCode)
+  runSequence(
+    'run-ts-declaration-tests',
+    'test-nodejs',
+    'test-browser',
+    function (err) {
+      if (err) {
+        var exitCode = 2
+        console.log('[FAIL] test task failed - exiting with code ' + exitCode)
+        return process.exit(exitCode)
+      }
+      return cb()
     }
-    return cb()
-  })
+  )
 })
 
 gulp.task('test-nodejs', ['install-driver-into-sandbox'], function () {
-  return gulp.src(['./test/**/*.test.js', '!./test/**/browser/*.js'])
-    .pipe(jasmine({
-      includeStackTrace: true,
-      reporter: newJasmineConsoleReporter()
-    })).on('end', logActiveNodeHandles)
+  return gulp
+    .src(['./test/**/*.test.js', '!./test/**/browser/*.js'])
+    .pipe(
+      jasmine({
+        includeStackTrace: true,
+        reporter: newJasmineConsoleReporter()
+      })
+    )
+    .on('end', logActiveNodeHandles)
 })
 
 gulp.task('test-browser', function (cb) {
@@ -193,9 +214,12 @@ gulp.task('run-browser-test-ie', function (cb) {
 })
 
 gulp.task('watch', function () {
-  return watch('src/**/*.js', batch(function (events, done) {
-    gulp.start('all', done)
-  }))
+  return watch(
+    'src/**/*.js',
+    batch(function (events, done) {
+      gulp.start('all', done)
+    })
+  )
 })
 
 gulp.task('watch-n-test', ['test-nodejs'], function () {
@@ -213,7 +237,8 @@ gulp.task('set', function () {
 
   // Change the version in relevant files
   var versionFile = path.join('src', 'version.js')
-  return gulp.src([versionFile], { base: './' })
+  return gulp
+    .src([versionFile], { base: './' })
     .pipe(replace('0.0.0-dev', version))
     .pipe(gulp.dest('./'))
 })
@@ -231,30 +256,39 @@ gulp.task('stop-neo4j', function (done) {
 })
 
 gulp.task('run-stress-tests', function () {
-  return gulp.src('test/**/stress.test.js')
-    .pipe(jasmine({
-      includeStackTrace: true,
-      reporter: newJasmineConsoleReporter()
-    })).on('end', logActiveNodeHandles)
+  return gulp
+    .src('test/**/stress.test.js')
+    .pipe(
+      jasmine({
+        includeStackTrace: true,
+        reporter: newJasmineConsoleReporter()
+      })
+    )
+    .on('end', logActiveNodeHandles)
 })
 
 gulp.task('run-ts-declaration-tests', function () {
   var failed = false
 
-  return gulp.src(['test/types/**/*', 'types/**/*'], { base: '.' })
-    .pipe(ts({
-      module: 'es6',
-      target: 'es6',
-      noImplicitAny: true,
-      noImplicitReturns: true,
-      strictNullChecks: true
-    }))
+  return gulp
+    .src(['test/types/**/*', 'types/**/*'], { base: '.' })
+    .pipe(
+      ts({
+        module: 'es6',
+        target: 'es6',
+        noImplicitAny: true,
+        noImplicitReturns: true,
+        strictNullChecks: true
+      })
+    )
     .on('error', function () {
       failed = true
     })
     .on('finish', function () {
       if (failed) {
-        console.log('[ERROR] TypeScript declarations contain errors. Exiting...')
+        console.log(
+          '[ERROR] TypeScript declarations contain errors. Exiting...'
+        )
         process.exit(1)
       }
     })
@@ -263,7 +297,11 @@ gulp.task('run-ts-declaration-tests', function () {
 
 function logActiveNodeHandles () {
   if (enableActiveNodeHandlesLogging) {
-    console.log('-- Active NodeJS handles START\n', process._getActiveHandles(), '\n-- Active NodeJS handles END')
+    console.log(
+      '-- Active NodeJS handles START\n',
+      process._getActiveHandles(),
+      '\n-- Active NodeJS handles END'
+    )
   }
 }
 
@@ -283,7 +321,8 @@ function babelifyTransform () {
 
 function babelConfig () {
   return {
-    presets: ['env'], plugins: ['transform-runtime']
+    presets: ['env'],
+    plugins: ['transform-runtime']
   }
 }
 
@@ -291,25 +330,34 @@ function browserifyTransformNodeToBrowserRequire () {
   var nodeRequire = '/node'
   var browserRequire = '/browser'
 
-  return transformTools.makeRequireTransform('bodeToBrowserRequireTransform',
+  return transformTools.makeRequireTransform(
+    'bodeToBrowserRequireTransform',
     { evaluateArguments: true },
     function (args, opts, cb) {
       var requireArg = args[0]
-      var endsWithNodeRequire = requireArg.slice(-nodeRequire.length) === nodeRequire
+      var endsWithNodeRequire =
+        requireArg.slice(-nodeRequire.length) === nodeRequire
       if (endsWithNodeRequire) {
         var newRequireArg = requireArg.replace(nodeRequire, browserRequire)
-        return cb(null, 'require(\'' + newRequireArg + '\')')
+        return cb(null, "require('" + newRequireArg + "')")
       } else {
         return cb()
       }
-    })
+    }
+  )
 }
 
 function runKarma (browser, cb) {
-  new karma.Server({
-    configFile: path.join(__dirname, `/test/browser/karma-${browser}.conf.js`),
-    singleRun: true
-  }, function (exitCode) {
-    exitCode ? process.exit(exitCode) : cb()
-  }).start()
+  new karma.Server(
+    {
+      configFile: path.join(
+        __dirname,
+        `/test/browser/karma-${browser}.conf.js`
+      ),
+      singleRun: true
+    },
+    function (exitCode) {
+      exitCode ? process.exit(exitCode) : cb()
+    }
+  ).start()
 }

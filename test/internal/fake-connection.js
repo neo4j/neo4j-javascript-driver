@@ -85,4 +85,4 @@ export default class FakeConnection {
     this._open = false
     return this
   }
-};
+}

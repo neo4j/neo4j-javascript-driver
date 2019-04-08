@@ -36,33 +36,61 @@ class RoutingDriver extends Driver {
   }
 
   _afterConstruction () {
-    this._log.info(`Routing driver ${this._id} created for server address ${this._hostPort}`)
+    this._log.info(
+      `Routing driver ${this._id} created for server address ${this._hostPort}`
+    )
   }
 
   _createConnectionProvider (hostPort, connectionPool, driverOnErrorCallback) {
-    const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(this._config, connectionPool)
+    const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(
+      this._config,
+      connectionPool
+    )
     const resolver = createHostNameResolver(this._config)
-    return new LoadBalancer(hostPort, this._routingContext, connectionPool, loadBalancingStrategy, resolver, driverOnErrorCallback, this._log)
+    return new LoadBalancer(
+      hostPort,
+      this._routingContext,
+      connectionPool,
+      loadBalancingStrategy,
+      resolver,
+      driverOnErrorCallback,
+      this._log
+    )
   }
 
   _createConnectionErrorHandler () {
     // connection errors mean SERVICE_UNAVAILABLE for direct driver but for routing driver they should only
     // result in SESSION_EXPIRED because there might still exist other servers capable of serving the request
-    return new ConnectionErrorHandler(SESSION_EXPIRED,
+    return new ConnectionErrorHandler(
+      SESSION_EXPIRED,
       (error, hostPort) => this._handleUnavailability(error, hostPort),
-      (error, hostPort) => this._handleWriteFailure(error, hostPort))
+      (error, hostPort) => this._handleWriteFailure(error, hostPort)
+    )
   }
 
   _handleUnavailability (error, hostPort) {
-    this._log.warn(`Routing driver ${this._id} will forget ${hostPort} because of an error ${error.code} '${error.message}'`)
+    this._log.warn(
+      `Routing driver ${this._id} will forget ${hostPort} because of an error ${
+        error.code
+      } '${error.message}'`
+    )
     this._connectionProvider.forget(hostPort)
     return error
   }
 
   _handleWriteFailure (error, hostPort) {
-    this._log.warn(`Routing driver ${this._id} will forget writer ${hostPort} because of an error ${error.code} '${error.message}'`)
+    this._log.warn(
+      `Routing driver ${
+        this._id
+      } will forget writer ${hostPort} because of an error ${error.code} '${
+        error.message
+      }'`
+    )
     this._connectionProvider.forgetWriter(hostPort)
-    return newError('No longer possible to write to server at ' + hostPort, SESSION_EXPIRED)
+    return newError(
+      'No longer possible to write to server at ' + hostPort,
+      SESSION_EXPIRED
+    )
   }
 
   /**
@@ -95,7 +123,9 @@ function createHostNameResolver (config) {
 function validateConfig (config) {
   const resolver = config.resolver
   if (resolver && typeof resolver !== 'function') {
-    throw new TypeError(`Configured resolver should be a function. Got: ${resolver}`)
+    throw new TypeError(
+      `Configured resolver should be a function. Got: ${resolver}`
+    )
   }
   return config
 }

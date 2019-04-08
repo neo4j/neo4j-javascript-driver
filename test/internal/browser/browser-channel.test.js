@@ -47,11 +47,17 @@ describe('WebSocketChannel', () => {
   })
 
   it('should fallback to literal IPv6 when SyntaxError is thrown', () => {
-    testFallbackToLiteralIPv6('bolt://[::1]:7687', 'ws://--1.ipv6-literal.net:7687')
+    testFallbackToLiteralIPv6(
+      'bolt://[::1]:7687',
+      'ws://--1.ipv6-literal.net:7687'
+    )
   })
 
   it('should fallback to literal link-local IPv6 when SyntaxError is thrown', () => {
-    testFallbackToLiteralIPv6('bolt://[fe80::1%lo0]:8888', 'ws://fe80--1slo0.ipv6-literal.net:8888')
+    testFallbackToLiteralIPv6(
+      'bolt://[fe80::1%lo0]:8888',
+      'ws://fe80--1slo0.ipv6-literal.net:8888'
+    )
   })
 
   it('should clear connection timeout when closed', () => {
@@ -73,7 +79,11 @@ describe('WebSocketChannel', () => {
 
       const url = urlUtil.parseDatabaseUrl('bolt://localhost:7687')
       const driverConfig = { connectionTimeout: 4242 }
-      const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE)
+      const channelConfig = new ChannelConfig(
+        url,
+        driverConfig,
+        SERVICE_UNAVAILABLE
+      )
 
       webSocketChannel = new WebSocketChannel(channelConfig)
 
@@ -120,14 +130,17 @@ describe('WebSocketChannel', () => {
 
     WebSocket = () => {
       return {
-        close: () => {
-        }
+        close: () => {}
       }
     }
 
     const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989')
     const driverConfig = { encrypted: true, trust: 'TRUST_ALL_CERTIFICATES' }
-    const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE)
+    const channelConfig = new ChannelConfig(
+      url,
+      driverConfig,
+      SERVICE_UNAVAILABLE
+    )
 
     const channel = new WebSocketChannel(channelConfig, protocolSupplier)
 
@@ -153,35 +166,45 @@ describe('WebSocketChannel', () => {
       }
       return {
         url: url,
-        close: () => {
-        }
+        close: () => {}
       }
     }
 
     const url = urlUtil.parseDatabaseUrl(boltAddress)
     // disable connection timeout, so that WebSocketChannel does not set any timeouts
     const driverConfig = { connectionTimeout: 0 }
-    const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE)
+    const channelConfig = new ChannelConfig(
+      url,
+      driverConfig,
+      SERVICE_UNAVAILABLE
+    )
 
     webSocketChannel = new WebSocketChannel(channelConfig)
 
     expect(webSocketChannel._ws.url).toEqual(expectedWsAddress)
   }
 
-  function testWebSocketScheme (windowLocationProtocol, driverConfig, expectedScheme) {
+  function testWebSocketScheme (
+    windowLocationProtocol,
+    driverConfig,
+    expectedScheme
+  ) {
     const protocolSupplier = () => windowLocationProtocol
 
     // replace real WebSocket with a function that memorizes the url
     WebSocket = url => {
       return {
         url: url,
-        close: () => {
-        }
+        close: () => {}
       }
     }
 
     const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989')
-    const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE)
+    const channelConfig = new ChannelConfig(
+      url,
+      driverConfig,
+      SERVICE_UNAVAILABLE
+    )
     const channel = new WebSocketChannel(channelConfig, protocolSupplier)
 
     expect(channel._ws.url).toEqual(expectedScheme + '://localhost:8989')
@@ -192,8 +215,7 @@ describe('WebSocketChannel', () => {
     WebSocket = url => {
       return {
         url: url,
-        close: () => {
-        }
+        close: () => {}
       }
     }
 
@@ -202,7 +224,11 @@ describe('WebSocketChannel', () => {
     console.warn = message => warnMessages.push(message)
 
     const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989')
-    const config = new ChannelConfig(url, { encrypted: encrypted }, SERVICE_UNAVAILABLE)
+    const config = new ChannelConfig(
+      url,
+      { encrypted: encrypted },
+      SERVICE_UNAVAILABLE
+    )
     const protocolSupplier = () => scheme + ':'
 
     const channel = new WebSocketChannel(config, protocolSupplier)

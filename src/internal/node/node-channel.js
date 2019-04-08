@@ -27,64 +27,112 @@ let _CONNECTION_IDGEN = 0
 
 const TrustStrategy = {
   TRUST_CUSTOM_CA_SIGNED_CERTIFICATES: function (config, onSuccess, onFailure) {
-    if (!config.trustedCertificates || config.trustedCertificates.length === 0) {
-      onFailure(newError('You are using TRUST_CUSTOM_CA_SIGNED_CERTIFICATES as the method ' +
-        'to verify trust for encrypted  connections, but have not configured any ' +
-        'trustedCertificates. You  must specify the path to at least one trusted ' +
-        'X.509 certificate for this to work. Two other alternatives is to use ' +
-        'TRUST_ALL_CERTIFICATES or to disable encryption by setting encrypted="' + ENCRYPTION_OFF + '"' +
-        'in your driver configuration.'))
+    if (
+      !config.trustedCertificates ||
+      config.trustedCertificates.length === 0
+    ) {
+      onFailure(
+        newError(
+          'You are using TRUST_CUSTOM_CA_SIGNED_CERTIFICATES as the method ' +
+            'to verify trust for encrypted  connections, but have not configured any ' +
+            'trustedCertificates. You  must specify the path to at least one trusted ' +
+            'X.509 certificate for this to work. Two other alternatives is to use ' +
+            'TRUST_ALL_CERTIFICATES or to disable encryption by setting encrypted="' +
+            ENCRYPTION_OFF +
+            '"' +
+            'in your driver configuration.'
+        )
+      )
       return
     }
 
-    const tlsOpts = newTlsOptions(config.url.host, config.trustedCertificates.map((f) => fs.readFileSync(f)))
-    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
-      if (!socket.authorized) {
-        onFailure(newError('Server certificate is not trusted. If you trust the database you are connecting to, add' +
-          ' the signing certificate, or the server certificate, to the list of certificates trusted by this driver' +
-          " using `neo4j.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
-          ' is a security measure to protect against man-in-the-middle attacks. If you are just trying ' +
-          ' Neo4j out and are not concerned about encryption, simply disable it using `encrypted="' + ENCRYPTION_OFF + '"`' +
-          ' in the driver options. Socket responded with: ' + socket.authorizationError))
-      } else {
-        onSuccess()
+    const tlsOpts = newTlsOptions(
+      config.url.host,
+      config.trustedCertificates.map(f => fs.readFileSync(f))
+    )
+    const socket = tls.connect(
+      config.url.port,
+      config.url.host,
+      tlsOpts,
+      function () {
+        if (!socket.authorized) {
+          onFailure(
+            newError(
+              'Server certificate is not trusted. If you trust the database you are connecting to, add' +
+                ' the signing certificate, or the server certificate, to the list of certificates trusted by this driver' +
+                " using `neo4j.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
+                ' is a security measure to protect against man-in-the-middle attacks. If you are just trying ' +
+                ' Neo4j out and are not concerned about encryption, simply disable it using `encrypted="' +
+                ENCRYPTION_OFF +
+                '"`' +
+                ' in the driver options. Socket responded with: ' +
+                socket.authorizationError
+            )
+          )
+        } else {
+          onSuccess()
+        }
       }
-    })
+    )
     socket.on('error', onFailure)
     return configureSocket(socket)
   },
   TRUST_SYSTEM_CA_SIGNED_CERTIFICATES: function (config, onSuccess, onFailure) {
     const tlsOpts = newTlsOptions(config.url.host)
-    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
-      if (!socket.authorized) {
-        onFailure(newError('Server certificate is not trusted. If you trust the database you are connecting to, use ' +
-          'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES and add' +
-          ' the signing certificate, or the server certificate, to the list of certificates trusted by this driver' +
-          " using `neo4j.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
-          ' is a security measure to protect against man-in-the-middle attacks. If you are just trying ' +
-          ' Neo4j out and are not concerned about encryption, simply disable it using `encrypted="' + ENCRYPTION_OFF + '"`' +
-          ' in the driver options. Socket responded with: ' + socket.authorizationError))
-      } else {
-        onSuccess()
+    const socket = tls.connect(
+      config.url.port,
+      config.url.host,
+      tlsOpts,
+      function () {
+        if (!socket.authorized) {
+          onFailure(
+            newError(
+              'Server certificate is not trusted. If you trust the database you are connecting to, use ' +
+                'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES and add' +
+                ' the signing certificate, or the server certificate, to the list of certificates trusted by this driver' +
+                " using `neo4j.driver(.., { trustedCertificates:['path/to/certificate.crt']}). This " +
+                ' is a security measure to protect against man-in-the-middle attacks. If you are just trying ' +
+                ' Neo4j out and are not concerned about encryption, simply disable it using `encrypted="' +
+                ENCRYPTION_OFF +
+                '"`' +
+                ' in the driver options. Socket responded with: ' +
+                socket.authorizationError
+            )
+          )
+        } else {
+          onSuccess()
+        }
       }
-    })
+    )
     socket.on('error', onFailure)
     return configureSocket(socket)
   },
   TRUST_ALL_CERTIFICATES: function (config, onSuccess, onFailure) {
     const tlsOpts = newTlsOptions(config.url.host)
-    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
-      const certificate = socket.getPeerCertificate()
-      if (isEmptyObjectOrNull(certificate)) {
-        onFailure(newError('Secure connection was successful but server did not return any valid ' +
-            'certificates. Such connection can not be trusted. If you are just trying ' +
-            ' Neo4j out and are not concerned about encryption, simply disable it using ' +
-            '`encrypted="' + ENCRYPTION_OFF + '"` in the driver options. ' +
-            'Socket responded with: ' + socket.authorizationError))
-      } else {
-        onSuccess()
+    const socket = tls.connect(
+      config.url.port,
+      config.url.host,
+      tlsOpts,
+      function () {
+        const certificate = socket.getPeerCertificate()
+        if (isEmptyObjectOrNull(certificate)) {
+          onFailure(
+            newError(
+              'Secure connection was successful but server did not return any valid ' +
+                'certificates. Such connection can not be trusted. If you are just trying ' +
+                ' Neo4j out and are not concerned about encryption, simply disable it using ' +
+                '`encrypted="' +
+                ENCRYPTION_OFF +
+                '"` in the driver options. ' +
+                'Socket responded with: ' +
+                socket.authorizationError
+            )
+          )
+        } else {
+          onSuccess()
+        }
       }
-    })
+    )
     socket.on('error', onFailure)
     return configureSocket(socket)
   }
@@ -97,7 +145,7 @@ const TrustStrategy = {
  * @param {function} onFailure - callback to execute on connection failure.
  * @return {*} socket connection.
  */
-function connect (config, onSuccess, onFailure = (() => null)) {
+function connect (config, onSuccess, onFailure = () => null) {
   const trustStrategy = trustStrategyName(config)
   if (!isEncrypted(config)) {
     const socket = net.connect(config.url.port, config.url.host, onSuccess)
@@ -106,18 +154,27 @@ function connect (config, onSuccess, onFailure = (() => null)) {
   } else if (TrustStrategy[trustStrategy]) {
     return TrustStrategy[trustStrategy](config, onSuccess, onFailure)
   } else {
-    onFailure(newError('Unknown trust strategy: ' + config.trust + '. Please use either ' +
-      "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' or trust:'TRUST_ALL_CERTIFICATES' in your driver " +
-      'configuration. Alternatively, you can disable encryption by setting ' +
-      '`encrypted:"' + ENCRYPTION_OFF + '"`. There is no mechanism to use encryption without trust verification, ' +
-      'because this incurs the overhead of encryption without improving security. If ' +
-      'the driver does not verify that the peer it is connected to is really Neo4j, it ' +
-      'is very easy for an attacker to bypass the encryption by pretending to be Neo4j.'))
+    onFailure(
+      newError(
+        'Unknown trust strategy: ' +
+          config.trust +
+          '. Please use either ' +
+          "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' or trust:'TRUST_ALL_CERTIFICATES' in your driver " +
+          'configuration. Alternatively, you can disable encryption by setting ' +
+          '`encrypted:"' +
+          ENCRYPTION_OFF +
+          '"`. There is no mechanism to use encryption without trust verification, ' +
+          'because this incurs the overhead of encryption without improving security. If ' +
+          'the driver does not verify that the peer it is connected to is really Neo4j, it ' +
+          'is very easy for an attacker to bypass the encryption by pretending to be Neo4j.'
+      )
+    )
   }
 }
 
 function isEncrypted (config) {
-  const encryptionNotConfigured = config.encrypted == null || config.encrypted === undefined
+  const encryptionNotConfigured =
+    config.encrypted == null || config.encrypted === undefined
   if (encryptionNotConfigured) {
     // default to using encryption if trust-all-certificates is available
     return true
@@ -174,30 +231,36 @@ export default class NodeChannel {
     this._open = true
     this._error = null
     this._handleConnectionError = this._handleConnectionError.bind(this)
-    this._handleConnectionTerminated = this._handleConnectionTerminated.bind(this)
+    this._handleConnectionTerminated = this._handleConnectionTerminated.bind(
+      this
+    )
     this._connectionErrorCode = config.connectionErrorCode
 
-    this._conn = connect(config, () => {
-      if (!self._open) {
-        return
-      }
-
-      self._conn.on('data', (buffer) => {
-        if (self.onmessage) {
-          self.onmessage(new NodeBuffer(buffer))
+    this._conn = connect(
+      config,
+      () => {
+        if (!self._open) {
+          return
         }
-      })
 
-      self._conn.on('error', self._handleConnectionError)
-      self._conn.on('end', self._handleConnectionTerminated)
+        self._conn.on('data', buffer => {
+          if (self.onmessage) {
+            self.onmessage(new NodeBuffer(buffer))
+          }
+        })
 
-      // Drain all pending messages
-      let pending = self._pending
-      self._pending = null
-      for (let i = 0; i < pending.length; i++) {
-        self.write(pending[i])
-      }
-    }, this._handleConnectionError)
+        self._conn.on('error', self._handleConnectionError)
+        self._conn.on('end', self._handleConnectionTerminated)
+
+        // Drain all pending messages
+        let pending = self._pending
+        self._pending = null
+        for (let i = 0; i < pending.length; i++) {
+          self.write(pending[i])
+        }
+      },
+      this._handleConnectionError
+    )
 
     this._setupConnectionTimeout(config, this._conn)
   }
@@ -211,7 +274,10 @@ export default class NodeChannel {
   }
 
   _handleConnectionTerminated () {
-    this._error = newError('Connection was closed by server', this._connectionErrorCode)
+    this._error = newError(
+      'Connection was closed by server',
+      this._connectionErrorCode
+    )
     if (this.onerror) {
       this.onerror(this._error)
     }
@@ -234,7 +300,12 @@ export default class NodeChannel {
       socket.on('timeout', () => {
         // timeout fired - not connected within configured time. cancel timeout and destroy socket
         socket.setTimeout(0)
-        socket.destroy(newError(`Failed to establish connection in ${timeout}ms`, config.connectionErrorCode))
+        socket.destroy(
+          newError(
+            `Failed to establish connection in ${timeout}ms`,
+            config.connectionErrorCode
+          )
+        )
       })
 
       socket.setTimeout(timeout)
@@ -261,7 +332,7 @@ export default class NodeChannel {
    * Close the connection
    * @param {function} cb - Function to call on close.
    */
-  close (cb = (() => null)) {
+  close (cb = () => null) {
     this._open = false
     if (this._conn) {
       this._conn.end()

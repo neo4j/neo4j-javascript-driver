@@ -31,18 +31,27 @@ describe('ConnectionErrorHandler', () => {
     const errors = []
     const hostPorts = []
     const transformedError = newError('Message', 'Code')
-    const handler = new ConnectionErrorHandler(SERVICE_UNAVAILABLE, (error, hostPort) => {
-      errors.push(error)
-      hostPorts.push(hostPort)
-      return transformedError
-    })
+    const handler = new ConnectionErrorHandler(
+      SERVICE_UNAVAILABLE,
+      (error, hostPort) => {
+        errors.push(error)
+        hostPorts.push(hostPort)
+        return transformedError
+      }
+    )
 
     const error1 = newError('A', SERVICE_UNAVAILABLE)
     const error2 = newError('B', SESSION_EXPIRED)
-    const error3 = newError('C', 'Neo.TransientError.General.DatabaseUnavailable');
+    const error3 = newError(
+      'C',
+      'Neo.TransientError.General.DatabaseUnavailable'
+    )
 
-    [error1, error2, error3].forEach((error, idx) => {
-      const newTransformedError = handler.handleAndTransformError(error, 'localhost:' + idx)
+    ;[error1, error2, error3].forEach((error, idx) => {
+      const newTransformedError = handler.handleAndTransformError(
+        error,
+        'localhost:' + idx
+      )
       expect(newTransformedError).toEqual(transformedError)
     })
 
@@ -54,17 +63,27 @@ describe('ConnectionErrorHandler', () => {
     const errors = []
     const hostPorts = []
     const transformedError = newError('Message', 'Code')
-    const handler = new ConnectionErrorHandler(SERVICE_UNAVAILABLE, null, (error, hostPort) => {
-      errors.push(error)
-      hostPorts.push(hostPort)
-      return transformedError
-    })
+    const handler = new ConnectionErrorHandler(
+      SERVICE_UNAVAILABLE,
+      null,
+      (error, hostPort) => {
+        errors.push(error)
+        hostPorts.push(hostPort)
+        return transformedError
+      }
+    )
 
     const error1 = newError('A', 'Neo.ClientError.Cluster.NotALeader')
-    const error2 = newError('B', 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase');
+    const error2 = newError(
+      'B',
+      'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase'
+    )
 
-    [error1, error2].forEach((error, idx) => {
-      const newTransformedError = handler.handleAndTransformError(error, 'localhost:' + idx)
+    ;[error1, error2].forEach((error, idx) => {
+      const newTransformedError = handler.handleAndTransformError(
+        error,
+        'localhost:' + idx
+      )
       expect(newTransformedError).toEqual(transformedError)
     })
 

@@ -61,7 +61,9 @@ export default class LeastConnectedLoadBalancingStrategy extends LoadBalancingSt
     // iterate over the array to find least connected address
     do {
       const address = addresses[index]
-      const activeConnections = this._connectionPool.activeResourceCount(address)
+      const activeConnections = this._connectionPool.activeResourceCount(
+        address
+      )
 
       if (activeConnections < leastActiveConnections) {
         leastConnectedAddress = address
@@ -74,8 +76,7 @@ export default class LeastConnectedLoadBalancingStrategy extends LoadBalancingSt
       } else {
         index++
       }
-    }
-    while (index !== startIndex)
+    } while (index !== startIndex)
 
     return leastConnectedAddress
   }

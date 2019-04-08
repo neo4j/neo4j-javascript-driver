@@ -70,7 +70,9 @@ function parseDatabaseUrl (url) {
   const sanitized = sanitizeUrl(url)
   const parsedUrl = uriJsParse(sanitized.url)
 
-  const scheme = sanitized.schemeMissing ? null : extractScheme(parsedUrl.scheme)
+  const scheme = sanitized.schemeMissing
+    ? null
+    : extractScheme(parsedUrl.scheme)
   const host = extractHost(parsedUrl.host) // no square brackets for IPv6
   const formattedHost = formatHost(host) // has square brackets for IPv6
   const port = extractPort(parsedUrl.port, scheme)
@@ -111,7 +113,7 @@ function extractHost (host, url) {
 
 function extractPort (portString, scheme) {
   const port = parseInt(portString, 10)
-  return (port === 0 || port) ? port : defaultPortForScheme(scheme)
+  return port === 0 || port ? port : defaultPortForScheme(scheme)
 }
 
 function extractQuery (queryString, url) {
@@ -129,7 +131,9 @@ function extractQuery (queryString, url) {
       const value = trimAndVerifyQueryElement(keyValue[1], 'value', url)
 
       if (context[key]) {
-        throw new Error(`Duplicated query parameters with key '${key}' in URL '${url}'`)
+        throw new Error(
+          `Duplicated query parameters with key '${key}' in URL '${url}'`
+        )
       }
 
       context[key] = value

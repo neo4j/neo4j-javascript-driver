@@ -68,38 +68,56 @@ function validateStatementAndParameters (statement, parameters) {
 
 function assertObject (obj, objName) {
   if (!isObject(obj)) {
-    throw new TypeError(objName + ' expected to be an object but was: ' + JSON.stringify(obj))
+    throw new TypeError(
+      objName + ' expected to be an object but was: ' + JSON.stringify(obj)
+    )
   }
   return obj
 }
 
 function assertString (obj, objName) {
   if (!isString(obj)) {
-    throw new TypeError(objName + ' expected to be string but was: ' + JSON.stringify(obj))
+    throw new TypeError(
+      objName + ' expected to be string but was: ' + JSON.stringify(obj)
+    )
   }
   return obj
 }
 
 function assertNumber (obj, objName) {
   if (typeof obj !== 'number') {
-    throw new TypeError(objName + ' expected to be a number but was: ' + JSON.stringify(obj))
+    throw new TypeError(
+      objName + ' expected to be a number but was: ' + JSON.stringify(obj)
+    )
   }
   return obj
 }
 
 function assertNumberOrInteger (obj, objName) {
   if (typeof obj !== 'number' && !isInt(obj)) {
-    throw new TypeError(objName + ' expected to be either a number or an Integer object but was: ' + JSON.stringify(obj))
+    throw new TypeError(
+      objName +
+        ' expected to be either a number or an Integer object but was: ' +
+        JSON.stringify(obj)
+    )
   }
   return obj
 }
 
 function assertValidDate (obj, objName) {
   if (Object.prototype.toString.call(obj) !== '[object Date]') {
-    throw new TypeError(objName + ' expected to be a standard JavaScript Date but was: ' + JSON.stringify(obj))
+    throw new TypeError(
+      objName +
+        ' expected to be a standard JavaScript Date but was: ' +
+        JSON.stringify(obj)
+    )
   }
   if (Number.isNaN(obj.getTime())) {
-    throw new TypeError(objName + ' expected to be valid JavaScript Date but its time was NaN: ' + JSON.stringify(obj))
+    throw new TypeError(
+      objName +
+        ' expected to be valid JavaScript Date but its time was NaN: ' +
+        JSON.stringify(obj)
+    )
   }
   return obj
 }
@@ -107,7 +125,9 @@ function assertValidDate (obj, objName) {
 function assertCypherStatement (obj) {
   assertString(obj, 'Cypher statement')
   if (obj.trim().length === 0) {
-    throw new TypeError('Cypher statement is expected to be a non-empty string.')
+    throw new TypeError(
+      'Cypher statement is expected to be a non-empty string.'
+    )
   }
 }
 
@@ -115,7 +135,9 @@ function assertQueryParameters (obj) {
   if (!isObject(obj)) {
     // objects created with `Object.create(null)` do not have a constructor property
     const constructor = obj.constructor ? ' ' + obj.constructor.name : ''
-    throw new TypeError(`Query parameters are expected to either be undefined/null or an object, given:${constructor} ${obj}`)
+    throw new TypeError(
+      `Query parameters are expected to either be undefined/null or an object, given:${constructor} ${obj}`
+    )
   }
 }
 

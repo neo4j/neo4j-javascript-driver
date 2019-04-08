@@ -21,7 +21,9 @@ import { newError } from './error'
 
 function generateFieldLookup (keys) {
   let lookup = {}
-  keys.forEach((name, idx) => { lookup[name] = idx })
+  keys.forEach((name, idx) => {
+    lookup[name] = idx
+  })
   return lookup
 }
 
@@ -100,15 +102,25 @@ class Record {
     if (!(typeof key === 'number')) {
       index = this._fieldLookup[key]
       if (index === undefined) {
-        throw newError("This record has no field with key '" + key + "', available key are: [" + this.keys + '].')
+        throw newError(
+          "This record has no field with key '" +
+            key +
+            "', available key are: [" +
+            this.keys +
+            '].'
+        )
       }
     } else {
       index = key
     }
 
     if (index > this._fields.length - 1 || index < 0) {
-      throw newError("This record has no field with index '" + index + "'. Remember that indexes start at `0`, " +
-        'and make sure your statement returns records in the shape you meant it to.')
+      throw newError(
+        "This record has no field with index '" +
+          index +
+          "'. Remember that indexes start at `0`, " +
+          'and make sure your statement returns records in the shape you meant it to.'
+      )
     }
 
     return this._fields[index]
@@ -123,7 +135,7 @@ class Record {
   has (key) {
     // if key is a number, we check if it is in the _fields array
     if (typeof key === 'number') {
-      return (key >= 0 && key < this._fields.length)
+      return key >= 0 && key < this._fields.length
     }
 
     // if it's not a number, we check _fieldLookup dictionary directly

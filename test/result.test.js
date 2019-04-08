@@ -37,7 +37,8 @@ describe('result stream', () => {
 
   it('should allow chaining `then`, returning a new thing in each', done => {
     // When & Then
-    session.run('RETURN 1')
+    session
+      .run('RETURN 1')
       .then(() => 'first')
       .then(arg => {
         expect(arg).toBe('first')
@@ -51,7 +52,8 @@ describe('result stream', () => {
 
   it('should allow catching exception thrown in `then`', done => {
     // When & Then
-    session.run('RETURN 1')
+    session
+      .run('RETURN 1')
       .then(() => {
         throw new Error('Away with you!')
       })

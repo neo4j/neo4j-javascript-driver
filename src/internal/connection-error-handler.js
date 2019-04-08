@@ -53,17 +53,21 @@ export default class ConnectionErrorHandler {
 
 function isAvailabilityError (error) {
   if (error) {
-    return error.code === SESSION_EXPIRED ||
+    return (
+      error.code === SESSION_EXPIRED ||
       error.code === SERVICE_UNAVAILABLE ||
       error.code === 'Neo.TransientError.General.DatabaseUnavailable'
+    )
   }
   return false
 }
 
 function isFailureToWrite (error) {
   if (error) {
-    return error.code === 'Neo.ClientError.Cluster.NotALeader' ||
+    return (
+      error.code === 'Neo.ClientError.Cluster.NotALeader' ||
       error.code === 'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase'
+    )
   }
   return false
 }

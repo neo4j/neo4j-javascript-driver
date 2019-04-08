@@ -17,7 +17,9 @@
  * limitations under the License.
  */
 
-import ConnectionHolder, { EMPTY_CONNECTION_HOLDER } from '../../src/internal/connection-holder'
+import ConnectionHolder, {
+  EMPTY_CONNECTION_HOLDER
+} from '../../src/internal/connection-holder'
 import { SingleConnectionProvider } from '../../src/internal/connection-providers'
 import { READ } from '../../src/driver'
 import FakeConnection from './fake-connection'
@@ -45,7 +47,9 @@ describe('EmptyConnectionHolder', () => {
 
 describe('ConnectionHolder', () => {
   it('should acquire new connection during initialization', () => {
-    const connectionProvider = new RecordingConnectionProvider([new FakeConnection()])
+    const connectionProvider = new RecordingConnectionProvider([
+      new FakeConnection()
+    ])
     const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
     connectionHolder.initializeConnection()
@@ -170,7 +174,10 @@ describe('ConnectionHolder', () => {
   it('should initialize new connection after releasing current one', done => {
     const connection1 = new FakeConnection()
     const connection2 = new FakeConnection()
-    const connectionProvider = new RecordingConnectionProvider([connection1, connection2])
+    const connectionProvider = new RecordingConnectionProvider([
+      connection1,
+      connection2
+    ])
     const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
     connectionHolder.initializeConnection()
@@ -189,7 +196,10 @@ describe('ConnectionHolder', () => {
   it('should initialize new connection after being closed', done => {
     const connection1 = new FakeConnection()
     const connection2 = new FakeConnection()
-    const connectionProvider = new RecordingConnectionProvider([connection1, connection2])
+    const connectionProvider = new RecordingConnectionProvider([
+      connection1,
+      connection2
+    ])
     const connectionHolder = new ConnectionHolder(READ, connectionProvider)
 
     connectionHolder.initializeConnection()

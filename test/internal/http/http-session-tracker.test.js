@@ -69,7 +69,12 @@ describe('http session tracker', () => {
 
 class FakeHttpSession extends HttpSession {
   constructor (sessionTracker) {
-    super(urlUtil.parseDatabaseUrl('http://localhost:7474'), sharedNeo4j.authToken, {}, sessionTracker)
+    super(
+      urlUtil.parseDatabaseUrl('http://localhost:7474'),
+      sharedNeo4j.authToken,
+      {},
+      sessionTracker
+    )
     this.timesClosed = 0
   }
 

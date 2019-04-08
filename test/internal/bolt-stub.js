@@ -26,7 +26,9 @@ class UnsupportedBoltStub {
   }
 
   startWithTemplate (scriptTemplate, parameters, port) {
-    throw new Error('BoltStub: unable to start with template, unavailable on this platform')
+    throw new Error(
+      'BoltStub: unable to start with template, unavailable on this platform'
+    )
   }
 
   run (callback) {
@@ -57,10 +59,10 @@ class SupportedBoltStub extends UnsupportedBoltStub {
     const boltStub = this._childProcess.spawn('boltstub', ['-v', port, script])
 
     if (verbose) {
-      boltStub.stdout.on('data', (data) => {
+      boltStub.stdout.on('data', data => {
         console.log(`${data}`)
       })
-      boltStub.stderr.on('data', (data) => {
+      boltStub.stderr.on('data', data => {
         console.log(`${data}`)
       })
       boltStub.on('end', data => {

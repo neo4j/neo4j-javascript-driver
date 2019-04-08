@@ -19,7 +19,10 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import { timeZoneOffsetInSeconds, totalNanoseconds } from '../src/internal/temporal-util'
+import {
+  timeZoneOffsetInSeconds,
+  totalNanoseconds
+} from '../src/internal/temporal-util'
 import { ServerVersion, VERSION_3_4_0 } from '../src/internal/server-version'
 import timesSeries from 'async/timesSeries'
 import _ from 'lodash'
@@ -57,7 +60,11 @@ describe('temporal-types', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    driverWithNativeNumbers = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { disableLosslessIntegers: true })
+    driverWithNativeNumbers = neo4j.driver(
+      'bolt://localhost',
+      sharedNeo4j.authToken,
+      { disableLosslessIntegers: true }
+    )
 
     ServerVersion.fromDriver(driver).then(version => {
       serverVersion = version
@@ -81,11 +88,14 @@ describe('temporal-types', () => {
 
   beforeEach(done => {
     session = driver.session()
-    session.run('MATCH (n) DETACH DELETE n').then(() => {
-      done()
-    }).catch(error => {
-      done.fail(error)
-    })
+    session
+      .run('MATCH (n) DETACH DELETE n')
+      .then(() => {
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
   })
 
   afterEach(() => {
@@ -101,7 +111,11 @@ describe('temporal-types', () => {
     }
 
     const expectedValue = duration(27, 17, 91, 999)
-    testReceiveTemporalValue('RETURN duration({years: 2, months: 3, days: 17, seconds: 91, nanoseconds: 999})', expectedValue, done)
+    testReceiveTemporalValue(
+      'RETURN duration({years: 2, months: 3, days: 17, seconds: 91, nanoseconds: 999})',
+      expectedValue,
+      done
+    )
   })
 
   it('should send and receive random Duration', done => {
@@ -118,7 +132,10 @@ describe('temporal-types', () => {
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(new neo4j.types.Duration(4, 15, 931, 99953), done)
+    testSendReceiveTemporalValue(
+      new neo4j.types.Duration(4, 15, 931, 99953),
+      done
+    )
   })
 
   it('should send and receive array of Duration', done => {
@@ -135,7 +152,11 @@ describe('temporal-types', () => {
     }
 
     const expectedValue = localTime(22, 59, 10, 999999)
-    testReceiveTemporalValue('RETURN localtime({hour: 22, minute: 59, second: 10, nanosecond: 999999})', expectedValue, done)
+    testReceiveTemporalValue(
+      'RETURN localtime({hour: 22, minute: 59, second: 10, nanosecond: 999999})',
+      expectedValue,
+      done
+    )
   })
 
   it('should send and receive max LocalTime', done => {
@@ -162,7 +183,10 @@ describe('temporal-types', () => {
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(new neo4j.types.LocalTime(12, 32, 56, 12345), done)
+    testSendReceiveTemporalValue(
+      new neo4j.types.LocalTime(12, 32, 56, 12345),
+      done
+    )
   })
 
   it('should send and receive random LocalTime', done => {
@@ -187,7 +211,11 @@ describe('temporal-types', () => {
     }
 
     const expectedValue = time(11, 42, 59, 9999, -30600)
-    testReceiveTemporalValue('RETURN time({hour: 11, minute: 42, second: 59, nanosecond: 9999, timezone:"-08:30"})', expectedValue, done)
+    testReceiveTemporalValue(
+      'RETURN time({hour: 11, minute: 42, second: 59, nanosecond: 9999, timezone:"-08:30"})',
+      expectedValue,
+      done
+    )
   })
 
   it('should send and receive max Time', done => {
@@ -214,7 +242,10 @@ describe('temporal-types', () => {
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(new neo4j.types.Time(22, 19, 32, 18381, MAX_TIME_ZONE_OFFSET), done)
+    testSendReceiveTemporalValue(
+      new neo4j.types.Time(22, 19, 32, 18381, MAX_TIME_ZONE_OFFSET),
+      done
+    )
   })
 
   it('should send and receive random Time', done => {
@@ -239,7 +270,11 @@ describe('temporal-types', () => {
     }
 
     const expectedValue = date(1995, 7, 28)
-    testReceiveTemporalValue('RETURN date({year: 1995, month: 7, day: 28})', expectedValue, done)
+    testReceiveTemporalValue(
+      'RETURN date({year: 1995, month: 7, day: 28})',
+      expectedValue,
+      done
+    )
   })
 
   it('should send and receive max Date', done => {
@@ -291,7 +326,11 @@ describe('temporal-types', () => {
     }
 
     const expectedValue = localDateTime(1869, 9, 23, 18, 29, 59, 12349)
-    testReceiveTemporalValue('RETURN localdatetime({year: 1869, month: 9, day: 23, hour: 18, minute: 29, second: 59, nanosecond: 12349})', expectedValue, done)
+    testReceiveTemporalValue(
+      'RETURN localdatetime({year: 1869, month: 9, day: 23, hour: 18, minute: 29, second: 59, nanosecond: 12349})',
+      expectedValue,
+      done
+    )
   })
 
   it('should send and receive max LocalDateTime', done => {
@@ -299,7 +338,15 @@ describe('temporal-types', () => {
       return
     }
 
-    const maxLocalDateTime = localDateTime(MAX_YEAR, 12, 31, 23, 59, 59, MAX_NANO_OF_SECOND)
+    const maxLocalDateTime = localDateTime(
+      MAX_YEAR,
+      12,
+      31,
+      23,
+      59,
+      59,
+      MAX_NANO_OF_SECOND
+    )
     testSendReceiveTemporalValue(maxLocalDateTime, done)
   })
 
@@ -318,7 +365,10 @@ describe('temporal-types', () => {
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(new neo4j.types.LocalDateTime(2045, 9, 1, 11, 25, 25, 911), done)
+    testSendReceiveTemporalValue(
+      new neo4j.types.LocalDateTime(2045, 9, 1, 11, 25, 25, 911),
+      done
+    )
   })
 
   it('should send and receive random LocalDateTime', done => {
@@ -334,7 +384,10 @@ describe('temporal-types', () => {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(() => randomLocalDateTime(), done)
+    testSendAndReceiveArrayOfRandomTemporalValues(
+      () => randomLocalDateTime(),
+      done
+    )
   })
 
   it('should receive DateTime with time zone offset', done => {
@@ -342,8 +395,21 @@ describe('temporal-types', () => {
       return
     }
 
-    const expectedValue = dateTimeWithZoneOffset(1992, 11, 24, 9, 55, 42, 999, 18000)
-    testReceiveTemporalValue('RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "+05:00"})', expectedValue, done)
+    const expectedValue = dateTimeWithZoneOffset(
+      1992,
+      11,
+      24,
+      9,
+      55,
+      42,
+      999,
+      18000
+    )
+    testReceiveTemporalValue(
+      'RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "+05:00"})',
+      expectedValue,
+      done
+    )
   })
 
   it('should send and receive max DateTime with zone offset', done => {
@@ -351,7 +417,16 @@ describe('temporal-types', () => {
       return
     }
 
-    const maxDateTime = dateTimeWithZoneOffset(MAX_YEAR, 12, 31, 23, 59, 59, MAX_NANO_OF_SECOND, MAX_TIME_ZONE_OFFSET)
+    const maxDateTime = dateTimeWithZoneOffset(
+      MAX_YEAR,
+      12,
+      31,
+      23,
+      59,
+      59,
+      MAX_NANO_OF_SECOND,
+      MAX_TIME_ZONE_OFFSET
+    )
     testSendReceiveTemporalValue(maxDateTime, done)
   })
 
@@ -360,7 +435,16 @@ describe('temporal-types', () => {
       return
     }
 
-    const minDateTime = dateTimeWithZoneOffset(MIN_YEAR, 1, 1, 0, 0, 0, 0, MAX_TIME_ZONE_OFFSET)
+    const minDateTime = dateTimeWithZoneOffset(
+      MIN_YEAR,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      MAX_TIME_ZONE_OFFSET
+    )
     testSendReceiveTemporalValue(minDateTime, done)
   })
 
@@ -370,7 +454,20 @@ describe('temporal-types', () => {
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(new neo4j.types.DateTime(2022, 2, 7, 17, 15, 59, 12399, MAX_TIME_ZONE_OFFSET, null), done)
+    testSendReceiveTemporalValue(
+      new neo4j.types.DateTime(
+        2022,
+        2,
+        7,
+        17,
+        15,
+        59,
+        12399,
+        MAX_TIME_ZONE_OFFSET,
+        null
+      ),
+      done
+    )
   })
 
   it('should send and receive random DateTime with zone offset', done => {
@@ -378,7 +475,10 @@ describe('temporal-types', () => {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(() => randomDateTimeWithZoneOffset(), done)
+    testSendAndReceiveRandomTemporalValues(
+      () => randomDateTimeWithZoneOffset(),
+      done
+    )
   })
 
   it('should send and receive array of DateTime with zone offset', done => {
@@ -386,7 +486,10 @@ describe('temporal-types', () => {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(() => randomDateTimeWithZoneOffset(), done)
+    testSendAndReceiveArrayOfRandomTemporalValues(
+      () => randomDateTimeWithZoneOffset(),
+      done
+    )
   })
 
   it('should receive DateTime with zone id', done => {
@@ -394,8 +497,21 @@ describe('temporal-types', () => {
       return
     }
 
-    const expectedValue = dateTimeWithZoneId(1992, 11, 24, 9, 55, 42, 999, 'Europe/Stockholm')
-    testReceiveTemporalValue('RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "Europe/Stockholm"})', expectedValue, done)
+    const expectedValue = dateTimeWithZoneId(
+      1992,
+      11,
+      24,
+      9,
+      55,
+      42,
+      999,
+      'Europe/Stockholm'
+    )
+    testReceiveTemporalValue(
+      'RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "Europe/Stockholm"})',
+      expectedValue,
+      done
+    )
   })
 
   it('should send and receive max DateTime with zone id', done => {
@@ -403,7 +519,16 @@ describe('temporal-types', () => {
       return
     }
 
-    const maxDateTime = dateTimeWithZoneId(MAX_YEAR, 12, 31, 23, 59, 59, MAX_NANO_OF_SECOND, MAX_ZONE_ID)
+    const maxDateTime = dateTimeWithZoneId(
+      MAX_YEAR,
+      12,
+      31,
+      23,
+      59,
+      59,
+      MAX_NANO_OF_SECOND,
+      MAX_ZONE_ID
+    )
     testSendReceiveTemporalValue(maxDateTime, done)
   })
 
@@ -412,7 +537,16 @@ describe('temporal-types', () => {
       return
     }
 
-    const minDateTime = dateTimeWithZoneId(MIN_YEAR, 1, 1, 0, 0, 0, 0, MIN_ZONE_ID)
+    const minDateTime = dateTimeWithZoneId(
+      MIN_YEAR,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      MIN_ZONE_ID
+    )
     testSendReceiveTemporalValue(minDateTime, done)
   })
 
@@ -422,7 +556,20 @@ describe('temporal-types', () => {
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(new neo4j.types.DateTime(2011, 11, 25, 23, 59, 59, 192378, null, 'Europe/Stockholm'), done)
+    testSendReceiveTemporalValue(
+      new neo4j.types.DateTime(
+        2011,
+        11,
+        25,
+        23,
+        59,
+        59,
+        192378,
+        null,
+        'Europe/Stockholm'
+      ),
+      done
+    )
   })
 
   it('should send and receive random DateTime with zone id', done => {
@@ -430,7 +577,10 @@ describe('temporal-types', () => {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(() => randomDateTimeWithZoneId(), done)
+    testSendAndReceiveRandomTemporalValues(
+      () => randomDateTimeWithZoneId(),
+      done
+    )
   })
 
   it('should send and receive array of DateTime with zone id', done => {
@@ -438,26 +588,37 @@ describe('temporal-types', () => {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(() => randomDateTimeWithZoneId(), done)
+    testSendAndReceiveArrayOfRandomTemporalValues(
+      () => randomDateTimeWithZoneId(),
+      done
+    )
   })
 
   it('should convert Duration to ISO string', () => {
-    expect(duration(13, 62, 3, 999111999).toString()).toEqual('P13M62DT3.999111999S')
+    expect(duration(13, 62, 3, 999111999).toString()).toEqual(
+      'P13M62DT3.999111999S'
+    )
     expect(duration(0, 0, 0, 0).toString()).toEqual('P0M0DT0S')
     expect(duration(-1, -2, 10, 10).toString()).toEqual('P-1M-2DT10.000000010S')
   })
 
   it('should convert LocalTime to ISO string', () => {
-    expect(localTime(12, 19, 39, 111222333).toString()).toEqual('12:19:39.111222333')
+    expect(localTime(12, 19, 39, 111222333).toString()).toEqual(
+      '12:19:39.111222333'
+    )
     expect(localTime(3, 59, 2, 17).toString()).toEqual('03:59:02.000000017')
     expect(localTime(0, 0, 0, 0).toString()).toEqual('00:00:00')
   })
 
   it('should convert Time to ISO string', () => {
-    expect(time(11, 45, 22, 333222111, 9015).toString()).toEqual('11:45:22.333222111+02:30:15')
+    expect(time(11, 45, 22, 333222111, 9015).toString()).toEqual(
+      '11:45:22.333222111+02:30:15'
+    )
     expect(time(23, 2, 1, 10, 0).toString()).toEqual('23:02:01.000000010Z')
     expect(time(0, 12, 59, 0, -40500).toString()).toEqual('00:12:59-11:15')
-    expect(time(21, 59, 0, 123, -25200).toString()).toEqual('21:59:00.000000123-07:00')
+    expect(time(21, 59, 0, 123, -25200).toString()).toEqual(
+      '21:59:00.000000123-07:00'
+    )
   })
 
   it('should convert Date to ISO string', () => {
@@ -468,21 +629,57 @@ describe('temporal-types', () => {
   })
 
   it('should convert LocalDateTime to ISO string', () => {
-    expect(localDateTime(1992, 11, 8, 9, 42, 17, 22).toString()).toEqual('1992-11-08T09:42:17.000000022')
-    expect(localDateTime(-10, 7, 15, 8, 15, 33, 500).toString()).toEqual('-0010-07-15T08:15:33.000000500')
-    expect(localDateTime(0, 1, 1, 0, 0, 0, 1).toString()).toEqual('0000-01-01T00:00:00.000000001')
+    expect(localDateTime(1992, 11, 8, 9, 42, 17, 22).toString()).toEqual(
+      '1992-11-08T09:42:17.000000022'
+    )
+    expect(localDateTime(-10, 7, 15, 8, 15, 33, 500).toString()).toEqual(
+      '-0010-07-15T08:15:33.000000500'
+    )
+    expect(localDateTime(0, 1, 1, 0, 0, 0, 1).toString()).toEqual(
+      '0000-01-01T00:00:00.000000001'
+    )
   })
 
   it('should convert DateTime with time zone offset to ISO string', () => {
-    expect(dateTimeWithZoneOffset(2025, 9, 17, 23, 22, 21, 999888, 37800).toString()).toEqual('2025-09-17T23:22:21.000999888+10:30')
-    expect(dateTimeWithZoneOffset(1, 2, 3, 4, 5, 6, 7, -49376).toString()).toEqual('0001-02-03T04:05:06.000000007-13:42:56')
-    expect(dateTimeWithZoneOffset(-3, 3, 9, 9, 33, 27, 999000, 15300).toString()).toEqual('-0003-03-09T09:33:27.000999000+04:15')
+    expect(
+      dateTimeWithZoneOffset(2025, 9, 17, 23, 22, 21, 999888, 37800).toString()
+    ).toEqual('2025-09-17T23:22:21.000999888+10:30')
+    expect(
+      dateTimeWithZoneOffset(1, 2, 3, 4, 5, 6, 7, -49376).toString()
+    ).toEqual('0001-02-03T04:05:06.000000007-13:42:56')
+    expect(
+      dateTimeWithZoneOffset(-3, 3, 9, 9, 33, 27, 999000, 15300).toString()
+    ).toEqual('-0003-03-09T09:33:27.000999000+04:15')
   })
 
   it('should convert DateTime with time zone id to ISO-like string', () => {
-    expect(dateTimeWithZoneId(1949, 10, 7, 6, 10, 15, 15000000, 'Europe/Zaporozhye').toString()).toEqual('1949-10-07T06:10:15.015000000[Europe/Zaporozhye]')
-    expect(dateTimeWithZoneId(-30455, 5, 5, 12, 24, 10, 123, 'Asia/Yangon').toString()).toEqual('-30455-05-05T12:24:10.000000123[Asia/Yangon]')
-    expect(dateTimeWithZoneId(248, 12, 30, 23, 59, 59, 3, 'CET').toString()).toEqual('0248-12-30T23:59:59.000000003[CET]')
+    expect(
+      dateTimeWithZoneId(
+        1949,
+        10,
+        7,
+        6,
+        10,
+        15,
+        15000000,
+        'Europe/Zaporozhye'
+      ).toString()
+    ).toEqual('1949-10-07T06:10:15.015000000[Europe/Zaporozhye]')
+    expect(
+      dateTimeWithZoneId(
+        -30455,
+        5,
+        5,
+        12,
+        24,
+        10,
+        123,
+        'Asia/Yangon'
+      ).toString()
+    ).toEqual('-30455-05-05T12:24:10.000000123[Asia/Yangon]')
+    expect(
+      dateTimeWithZoneId(248, 12, 30, 23, 59, 59, 3, 'CET').toString()
+    ).toEqual('0248-12-30T23:59:59.000000003[CET]')
   })
 
   it('should expose local time components in time', () => {
@@ -508,7 +705,16 @@ describe('temporal-types', () => {
   })
 
   it('should expose local date-time components in date-time with zone offset', () => {
-    const zonedDateTime = dateTimeWithZoneOffset(1799, 5, 19, 18, 37, 59, 875387, 3600)
+    const zonedDateTime = dateTimeWithZoneOffset(
+      1799,
+      5,
+      19,
+      18,
+      37,
+      59,
+      875387,
+      3600
+    )
 
     expect(zonedDateTime.year).toEqual(neo4j.int(1799))
     expect(zonedDateTime.month).toEqual(neo4j.int(5))
@@ -521,7 +727,16 @@ describe('temporal-types', () => {
   })
 
   it('should expose local date-time components in date-time with zone ID', () => {
-    const zonedDateTime = dateTimeWithZoneId(2356, 7, 29, 23, 32, 11, 9346458, randomZoneId())
+    const zonedDateTime = dateTimeWithZoneId(
+      2356,
+      7,
+      29,
+      23,
+      32,
+      11,
+      9346458,
+      randomZoneId()
+    )
 
     expect(zonedDateTime.year).toEqual(neo4j.int(2356))
     expect(zonedDateTime.month).toEqual(neo4j.int(7))
@@ -538,45 +753,120 @@ describe('temporal-types', () => {
       return
     }
 
-    testDurationToString([
-      { duration: duration(0, 0, 0, 0), expectedString: 'P0M0DT0S' },
+    testDurationToString(
+      [
+        { duration: duration(0, 0, 0, 0), expectedString: 'P0M0DT0S' },
 
-      { duration: duration(0, 0, 42, 0), expectedString: 'P0M0DT42S' },
-      { duration: duration(0, 0, -42, 0), expectedString: 'P0M0DT-42S' },
-      { duration: duration(0, 0, 1, 0), expectedString: 'P0M0DT1S' },
-      { duration: duration(0, 0, -1, 0), expectedString: 'P0M0DT-1S' },
+        { duration: duration(0, 0, 42, 0), expectedString: 'P0M0DT42S' },
+        { duration: duration(0, 0, -42, 0), expectedString: 'P0M0DT-42S' },
+        { duration: duration(0, 0, 1, 0), expectedString: 'P0M0DT1S' },
+        { duration: duration(0, 0, -1, 0), expectedString: 'P0M0DT-1S' },
 
-      { duration: duration(0, 0, 0, 5), expectedString: 'P0M0DT0.000000005S' },
-      { duration: duration(0, 0, 0, -5), expectedString: 'P0M0DT-0.000000005S' },
-      { duration: duration(0, 0, 0, 999999999), expectedString: 'P0M0DT0.999999999S' },
-      { duration: duration(0, 0, 0, -999999999), expectedString: 'P0M0DT-0.999999999S' },
+        {
+          duration: duration(0, 0, 0, 5),
+          expectedString: 'P0M0DT0.000000005S'
+        },
+        {
+          duration: duration(0, 0, 0, -5),
+          expectedString: 'P0M0DT-0.000000005S'
+        },
+        {
+          duration: duration(0, 0, 0, 999999999),
+          expectedString: 'P0M0DT0.999999999S'
+        },
+        {
+          duration: duration(0, 0, 0, -999999999),
+          expectedString: 'P0M0DT-0.999999999S'
+        },
 
-      { duration: duration(0, 0, 1, 5), expectedString: 'P0M0DT1.000000005S' },
-      { duration: duration(0, 0, -1, -5), expectedString: 'P0M0DT-1.000000005S' },
-      { duration: duration(0, 0, 1, -5), expectedString: 'P0M0DT0.999999995S' },
-      { duration: duration(0, 0, -1, 5), expectedString: 'P0M0DT-0.999999995S' },
-      { duration: duration(0, 0, 1, 999999999), expectedString: 'P0M0DT1.999999999S' },
-      { duration: duration(0, 0, -1, -999999999), expectedString: 'P0M0DT-1.999999999S' },
-      { duration: duration(0, 0, 1, -999999999), expectedString: 'P0M0DT0.000000001S' },
-      { duration: duration(0, 0, -1, 999999999), expectedString: 'P0M0DT-0.000000001S' },
+        {
+          duration: duration(0, 0, 1, 5),
+          expectedString: 'P0M0DT1.000000005S'
+        },
+        {
+          duration: duration(0, 0, -1, -5),
+          expectedString: 'P0M0DT-1.000000005S'
+        },
+        {
+          duration: duration(0, 0, 1, -5),
+          expectedString: 'P0M0DT0.999999995S'
+        },
+        {
+          duration: duration(0, 0, -1, 5),
+          expectedString: 'P0M0DT-0.999999995S'
+        },
+        {
+          duration: duration(0, 0, 1, 999999999),
+          expectedString: 'P0M0DT1.999999999S'
+        },
+        {
+          duration: duration(0, 0, -1, -999999999),
+          expectedString: 'P0M0DT-1.999999999S'
+        },
+        {
+          duration: duration(0, 0, 1, -999999999),
+          expectedString: 'P0M0DT0.000000001S'
+        },
+        {
+          duration: duration(0, 0, -1, 999999999),
+          expectedString: 'P0M0DT-0.000000001S'
+        },
 
-      { duration: duration(0, 0, 28, 9), expectedString: 'P0M0DT28.000000009S' },
-      { duration: duration(0, 0, -28, 9), expectedString: 'P0M0DT-27.999999991S' },
-      { duration: duration(0, 0, 28, -9), expectedString: 'P0M0DT27.999999991S' },
-      { duration: duration(0, 0, -28, -9), expectedString: 'P0M0DT-28.000000009S' },
+        {
+          duration: duration(0, 0, 28, 9),
+          expectedString: 'P0M0DT28.000000009S'
+        },
+        {
+          duration: duration(0, 0, -28, 9),
+          expectedString: 'P0M0DT-27.999999991S'
+        },
+        {
+          duration: duration(0, 0, 28, -9),
+          expectedString: 'P0M0DT27.999999991S'
+        },
+        {
+          duration: duration(0, 0, -28, -9),
+          expectedString: 'P0M0DT-28.000000009S'
+        },
 
-      { duration: duration(0, 0, -78036, -143000000), expectedString: 'P0M0DT-78036.143000000S' },
+        {
+          duration: duration(0, 0, -78036, -143000000),
+          expectedString: 'P0M0DT-78036.143000000S'
+        },
 
-      { duration: duration(0, 0, 0, 1000000000), expectedString: 'P0M0DT1S' },
-      { duration: duration(0, 0, 0, -1000000000), expectedString: 'P0M0DT-1S' },
-      { duration: duration(0, 0, 0, 1000000007), expectedString: 'P0M0DT1.000000007S' },
-      { duration: duration(0, 0, 0, -1000000007), expectedString: 'P0M0DT-1.000000007S' },
+        { duration: duration(0, 0, 0, 1000000000), expectedString: 'P0M0DT1S' },
+        {
+          duration: duration(0, 0, 0, -1000000000),
+          expectedString: 'P0M0DT-1S'
+        },
+        {
+          duration: duration(0, 0, 0, 1000000007),
+          expectedString: 'P0M0DT1.000000007S'
+        },
+        {
+          duration: duration(0, 0, 0, -1000000007),
+          expectedString: 'P0M0DT-1.000000007S'
+        },
 
-      { duration: duration(0, 0, 40, 2123456789), expectedString: 'P0M0DT42.123456789S' },
-      { duration: duration(0, 0, -40, 2123456789), expectedString: 'P0M0DT-37.876543211S' },
-      { duration: duration(0, 0, 40, -2123456789), expectedString: 'P0M0DT37.876543211S' },
-      { duration: duration(0, 0, -40, -2123456789), expectedString: 'P0M0DT-42.123456789S' }
-    ], done)
+        {
+          duration: duration(0, 0, 40, 2123456789),
+          expectedString: 'P0M0DT42.123456789S'
+        },
+        {
+          duration: duration(0, 0, -40, 2123456789),
+          expectedString: 'P0M0DT-37.876543211S'
+        },
+        {
+          duration: duration(0, 0, 40, -2123456789),
+          expectedString: 'P0M0DT37.876543211S'
+        },
+        {
+          duration: duration(0, 0, -40, -2123456789),
+          expectedString: 'P0M0DT-42.123456789S'
+        }
+      ],
+      done
+    )
   })
 
   it('should normalize created duration', () => {
@@ -609,61 +899,154 @@ describe('temporal-types', () => {
     expect(() => new neo4j.types.Duration('1', 2, 3, 4)).toThrowError(TypeError)
     expect(() => new neo4j.types.Duration(1, '2', 3, 4)).toThrowError(TypeError)
     expect(() => new neo4j.types.Duration(1, 2, [3], 4)).toThrowError(TypeError)
-    expect(() => new neo4j.types.Duration(1, 2, 3, { value: 4 })).toThrowError(TypeError)
-    expect(() => new neo4j.types.Duration({ months: 1, days: 2, seconds: 3, nanoseconds: 4 })).toThrowError(TypeError)
+    expect(() => new neo4j.types.Duration(1, 2, 3, { value: 4 })).toThrowError(
+      TypeError
+    )
+    expect(
+      () =>
+        new neo4j.types.Duration({
+          months: 1,
+          days: 2,
+          seconds: 3,
+          nanoseconds: 4
+        })
+    ).toThrowError(TypeError)
   })
 
   it('should validate types of constructor arguments for LocalTime', () => {
-    expect(() => new neo4j.types.LocalTime('1', 2, 3, 4)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalTime(1, '2', 3, 4)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalTime(1, 2, [3], 4)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalTime(1, 2, 3, { value: 4 })).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalTime({ hour: 1, minute: 2, seconds: 3, nanosecond: 4 })).toThrowError(TypeError)
+    expect(() => new neo4j.types.LocalTime('1', 2, 3, 4)).toThrowError(
+      TypeError
+    )
+    expect(() => new neo4j.types.LocalTime(1, '2', 3, 4)).toThrowError(
+      TypeError
+    )
+    expect(() => new neo4j.types.LocalTime(1, 2, [3], 4)).toThrowError(
+      TypeError
+    )
+    expect(() => new neo4j.types.LocalTime(1, 2, 3, { value: 4 })).toThrowError(
+      TypeError
+    )
+    expect(
+      () =>
+        new neo4j.types.LocalTime({
+          hour: 1,
+          minute: 2,
+          seconds: 3,
+          nanosecond: 4
+        })
+    ).toThrowError(TypeError)
   })
 
   it('should validate types of constructor arguments for Time', () => {
     expect(() => new neo4j.types.Time('1', 2, 3, 4, 5)).toThrowError(TypeError)
     expect(() => new neo4j.types.Time(1, '2', 3, 4, 5)).toThrowError(TypeError)
     expect(() => new neo4j.types.Time(1, 2, [3], 4, 5)).toThrowError(TypeError)
-    expect(() => new neo4j.types.Time(1, 2, 3, { value: 4 }, 5)).toThrowError(TypeError)
-    expect(() => new neo4j.types.Time(1, 2, 3, 4, () => 5)).toThrowError(TypeError)
-    expect(() => new neo4j.types.Time({ hour: 1, minute: 2, seconds: 3, nanosecond: 4, timeZoneOffsetSeconds: 5 })).toThrowError(TypeError)
+    expect(() => new neo4j.types.Time(1, 2, 3, { value: 4 }, 5)).toThrowError(
+      TypeError
+    )
+    expect(() => new neo4j.types.Time(1, 2, 3, 4, () => 5)).toThrowError(
+      TypeError
+    )
+    expect(
+      () =>
+        new neo4j.types.Time({
+          hour: 1,
+          minute: 2,
+          seconds: 3,
+          nanosecond: 4,
+          timeZoneOffsetSeconds: 5
+        })
+    ).toThrowError(TypeError)
   })
 
   it('should validate types of constructor arguments for Date', () => {
     expect(() => new neo4j.types.Date('1', 2, 3)).toThrowError(TypeError)
     expect(() => new neo4j.types.Date(1, [2], 3)).toThrowError(TypeError)
     expect(() => new neo4j.types.Date(1, 2, () => 3)).toThrowError(TypeError)
-    expect(() => new neo4j.types.Date({ year: 1, month: 2, day: 3 })).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.Date({ year: 1, month: 2, day: 3 })
+    ).toThrowError(TypeError)
   })
 
   it('should validate types of constructor arguments for LocalDateTime', () => {
-    expect(() => new neo4j.types.LocalDateTime('1', 2, 3, 4, 5, 6, 7)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalDateTime(1, '2', 3, 4, 5, 6, 7)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalDateTime(1, 2, [3], 4, 5, 6, 7)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalDateTime(1, 2, 3, [4], 5, 6, 7)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalDateTime(1, 2, 3, 4, () => 5, 6, 7)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalDateTime(1, 2, 3, 4, 5, () => 6, 7)).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalDateTime(1, 2, 3, 4, 5, 6, { value: 7 })).toThrowError(TypeError)
-    expect(() => new neo4j.types.LocalDateTime({ year: 1, month: 2, day: 3, hour: 4, minute: 5, second: 6, nanosecond: 7 })).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.LocalDateTime('1', 2, 3, 4, 5, 6, 7)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.LocalDateTime(1, '2', 3, 4, 5, 6, 7)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.LocalDateTime(1, 2, [3], 4, 5, 6, 7)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.LocalDateTime(1, 2, 3, [4], 5, 6, 7)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.LocalDateTime(1, 2, 3, 4, () => 5, 6, 7)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.LocalDateTime(1, 2, 3, 4, 5, () => 6, 7)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.LocalDateTime(1, 2, 3, 4, 5, 6, { value: 7 })
+    ).toThrowError(TypeError)
+    expect(
+      () =>
+        new neo4j.types.LocalDateTime({
+          year: 1,
+          month: 2,
+          day: 3,
+          hour: 4,
+          minute: 5,
+          second: 6,
+          nanosecond: 7
+        })
+    ).toThrowError(TypeError)
   })
 
   it('should validate types of constructor arguments for DateTime', () => {
-    expect(() => new neo4j.types.DateTime('1', 2, 3, 4, 5, 6, 7, 8)).toThrowError(TypeError)
-    expect(() => new neo4j.types.DateTime(1, '2', 3, 4, 5, 6, 7, 8)).toThrowError(TypeError)
-    expect(() => new neo4j.types.DateTime(1, 2, [3], 4, 5, 6, 7, 8)).toThrowError(TypeError)
-    expect(() => new neo4j.types.DateTime(1, 2, 3, [4], 5, 6, 7, 8)).toThrowError(TypeError)
-    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, () => 5, 6, 7, 8)).toThrowError(TypeError)
-    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, () => 6, 7, 8)).toThrowError(TypeError)
-    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, { value: 7 }, 8)).toThrowError(TypeError)
-    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, { value: 8 })).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime('1', 2, 3, 4, 5, 6, 7, 8)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime(1, '2', 3, 4, 5, 6, 7, 8)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime(1, 2, [3], 4, 5, 6, 7, 8)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime(1, 2, 3, [4], 5, 6, 7, 8)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime(1, 2, 3, 4, () => 5, 6, 7, 8)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime(1, 2, 3, 4, 5, () => 6, 7, 8)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, { value: 7 }, 8)
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, { value: 8 })
+    ).toThrowError(TypeError)
 
-    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, { timeZoneId: 'UK' })).toThrowError(TypeError)
-    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, ['UK'])).toThrowError(TypeError)
+    expect(
+      () =>
+        new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, {
+          timeZoneId: 'UK'
+        })
+    ).toThrowError(TypeError)
+    expect(
+      () => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, ['UK'])
+    ).toThrowError(TypeError)
 
     expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7)).toThrow()
-    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, null)).toThrow()
-    expect(() => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, 8, 'UK')).toThrow()
+    expect(
+      () => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, null)
+    ).toThrow()
+    expect(
+      () => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, 8, 'UK')
+    ).toThrow()
   })
 
   it('should convert standard Date to neo4j LocalTime', () => {
@@ -674,25 +1057,48 @@ describe('temporal-types', () => {
     testStandardDateToLocalTimeConversion(new Date(1102, 6, 5, 17, 12, 32, 99))
     testStandardDateToLocalTimeConversion(new Date(2019, 2, 7, 0, 0, 0, 1))
 
-    testStandardDateToLocalTimeConversion(new Date(1351, 4, 7, 0, 0, 0, 0), neo4j.int(1))
-    testStandardDateToLocalTimeConversion(new Date(3841, 1, 19, 0, 0, 0, 0), neo4j.int(99))
-    testStandardDateToLocalTimeConversion(new Date(2222, 3, 29, 0, 0, 0, 0), neo4j.int(999999999))
+    testStandardDateToLocalTimeConversion(
+      new Date(1351, 4, 7, 0, 0, 0, 0),
+      neo4j.int(1)
+    )
+    testStandardDateToLocalTimeConversion(
+      new Date(3841, 1, 19, 0, 0, 0, 0),
+      neo4j.int(99)
+    )
+    testStandardDateToLocalTimeConversion(
+      new Date(2222, 3, 29, 0, 0, 0, 0),
+      neo4j.int(999999999)
+    )
   })
 
   it('should fail to convert invalid standard Date to neo4j LocalTime', () => {
     const LocalTime = neo4j.types.LocalTime
 
     expect(() => LocalTime.fromStandardDate()).toThrowError(TypeError)
-    expect(() => LocalTime.fromStandardDate('2007-04-05T12:30-02:00')).toThrowError(TypeError)
+    expect(() =>
+      LocalTime.fromStandardDate('2007-04-05T12:30-02:00')
+    ).toThrowError(TypeError)
     expect(() => LocalTime.fromStandardDate({})).toThrowError(TypeError)
 
-    expect(() => LocalTime.fromStandardDate(new Date({}))).toThrowError(TypeError)
-    expect(() => LocalTime.fromStandardDate(new Date([]))).toThrowError(TypeError)
-    expect(() => LocalTime.fromStandardDate(new Date(NaN))).toThrowError(TypeError)
+    expect(() => LocalTime.fromStandardDate(new Date({}))).toThrowError(
+      TypeError
+    )
+    expect(() => LocalTime.fromStandardDate(new Date([]))).toThrowError(
+      TypeError
+    )
+    expect(() => LocalTime.fromStandardDate(new Date(NaN))).toThrowError(
+      TypeError
+    )
 
-    expect(() => LocalTime.fromStandardDate(new Date(), '1')).toThrowError(TypeError)
-    expect(() => LocalTime.fromStandardDate(new Date(), { nanosecond: 1 })).toThrowError(TypeError)
-    expect(() => LocalTime.fromStandardDate(new Date(), [1])).toThrowError(TypeError)
+    expect(() => LocalTime.fromStandardDate(new Date(), '1')).toThrowError(
+      TypeError
+    )
+    expect(() =>
+      LocalTime.fromStandardDate(new Date(), { nanosecond: 1 })
+    ).toThrowError(TypeError)
+    expect(() => LocalTime.fromStandardDate(new Date(), [1])).toThrowError(
+      TypeError
+    )
   })
 
   it('should convert standard Date to neo4j Time', () => {
@@ -703,16 +1109,27 @@ describe('temporal-types', () => {
     testStandardDateToTimeConversion(new Date(1102, 6, 5, 17, 12, 32, 99))
     testStandardDateToTimeConversion(new Date(2019, 2, 7, 0, 0, 0, 1))
 
-    testStandardDateToTimeConversion(new Date(1351, 4, 7, 0, 0, 0, 0), neo4j.int(1))
-    testStandardDateToTimeConversion(new Date(3841, 1, 19, 0, 0, 0, 0), neo4j.int(99))
-    testStandardDateToTimeConversion(new Date(2222, 3, 29, 0, 0, 0, 0), neo4j.int(999999999))
+    testStandardDateToTimeConversion(
+      new Date(1351, 4, 7, 0, 0, 0, 0),
+      neo4j.int(1)
+    )
+    testStandardDateToTimeConversion(
+      new Date(3841, 1, 19, 0, 0, 0, 0),
+      neo4j.int(99)
+    )
+    testStandardDateToTimeConversion(
+      new Date(2222, 3, 29, 0, 0, 0, 0),
+      neo4j.int(999999999)
+    )
   })
 
   it('should fail to convert invalid standard Date to neo4j Time', () => {
     const Time = neo4j.types.Time
 
     expect(() => Time.fromStandardDate()).toThrowError(TypeError)
-    expect(() => Time.fromStandardDate('2007-04-05T12:30-02:00')).toThrowError(TypeError)
+    expect(() => Time.fromStandardDate('2007-04-05T12:30-02:00')).toThrowError(
+      TypeError
+    )
     expect(() => Time.fromStandardDate({})).toThrowError(TypeError)
 
     expect(() => Time.fromStandardDate(new Date({}))).toThrowError(TypeError)
@@ -720,7 +1137,9 @@ describe('temporal-types', () => {
     expect(() => Time.fromStandardDate(new Date(NaN))).toThrowError(TypeError)
 
     expect(() => Time.fromStandardDate(new Date(), '1')).toThrowError(TypeError)
-    expect(() => Time.fromStandardDate(new Date(), { nanosecond: 1 })).toThrowError(TypeError)
+    expect(() =>
+      Time.fromStandardDate(new Date(), { nanosecond: 1 })
+    ).toThrowError(TypeError)
     expect(() => Time.fromStandardDate(new Date(), [1])).toThrowError(TypeError)
   })
 
@@ -743,25 +1162,41 @@ describe('temporal-types', () => {
     const Neo4jDate = neo4j.types.Date
 
     expect(() => Neo4jDate.fromStandardDate()).toThrowError(TypeError)
-    expect(() => Neo4jDate.fromStandardDate('2007-04-05T12:30-02:00')).toThrowError(TypeError)
+    expect(() =>
+      Neo4jDate.fromStandardDate('2007-04-05T12:30-02:00')
+    ).toThrowError(TypeError)
     expect(() => Neo4jDate.fromStandardDate({})).toThrowError(TypeError)
 
-    expect(() => Neo4jDate.fromStandardDate(new Date({}))).toThrowError(TypeError)
-    expect(() => Neo4jDate.fromStandardDate(new Date([]))).toThrowError(TypeError)
-    expect(() => Neo4jDate.fromStandardDate(new Date(NaN))).toThrowError(TypeError)
+    expect(() => Neo4jDate.fromStandardDate(new Date({}))).toThrowError(
+      TypeError
+    )
+    expect(() => Neo4jDate.fromStandardDate(new Date([]))).toThrowError(
+      TypeError
+    )
+    expect(() => Neo4jDate.fromStandardDate(new Date(NaN))).toThrowError(
+      TypeError
+    )
   })
 
   it('should convert standard Date to neo4j LocalDateTime', () => {
     testStandardDateToLocalDateTimeConversion(new Date(2011, 9, 18))
     testStandardDateToLocalDateTimeConversion(new Date(1455, 0, 1))
     testStandardDateToLocalDateTimeConversion(new Date(0))
-    testStandardDateToLocalDateTimeConversion(new Date(2056, 5, 22, 21, 59, 12, 999))
+    testStandardDateToLocalDateTimeConversion(
+      new Date(2056, 5, 22, 21, 59, 12, 999)
+    )
 
     testStandardDateToLocalDateTimeConversion(new Date(0), 1)
     testStandardDateToLocalDateTimeConversion(new Date(0), 999999999)
-    testStandardDateToLocalDateTimeConversion(new Date(1922, 1, 22, 23, 23, 45, 123), 456789)
+    testStandardDateToLocalDateTimeConversion(
+      new Date(1922, 1, 22, 23, 23, 45, 123),
+      456789
+    )
 
-    testStandardDateToLocalDateTimeConversion(new Date(1999, 1, 1, 10, 10, 10), neo4j.int(999))
+    testStandardDateToLocalDateTimeConversion(
+      new Date(1999, 1, 1, 10, 10, 10),
+      neo4j.int(999)
+    )
 
     testStandardDateToLocalDateTimeConversion(new Date(2192, 0, 17, 20, 30, 40))
     testStandardDateToLocalDateTimeConversion(new Date(2239, 0, 9, 1, 2, 3), 4)
@@ -771,16 +1206,30 @@ describe('temporal-types', () => {
     const LocalDateTime = neo4j.types.LocalDateTime
 
     expect(() => LocalDateTime.fromStandardDate()).toThrowError(TypeError)
-    expect(() => LocalDateTime.fromStandardDate('2007-04-05T12:30-02:00')).toThrowError(TypeError)
+    expect(() =>
+      LocalDateTime.fromStandardDate('2007-04-05T12:30-02:00')
+    ).toThrowError(TypeError)
     expect(() => LocalDateTime.fromStandardDate({})).toThrowError(TypeError)
 
-    expect(() => LocalDateTime.fromStandardDate(new Date({}))).toThrowError(TypeError)
-    expect(() => LocalDateTime.fromStandardDate(new Date([]))).toThrowError(TypeError)
-    expect(() => LocalDateTime.fromStandardDate(new Date(NaN))).toThrowError(TypeError)
+    expect(() => LocalDateTime.fromStandardDate(new Date({}))).toThrowError(
+      TypeError
+    )
+    expect(() => LocalDateTime.fromStandardDate(new Date([]))).toThrowError(
+      TypeError
+    )
+    expect(() => LocalDateTime.fromStandardDate(new Date(NaN))).toThrowError(
+      TypeError
+    )
 
-    expect(() => LocalDateTime.fromStandardDate(new Date(), '1')).toThrowError(TypeError)
-    expect(() => LocalDateTime.fromStandardDate(new Date(), { nanosecond: 1 })).toThrowError(TypeError)
-    expect(() => LocalDateTime.fromStandardDate(new Date(), [1])).toThrowError(TypeError)
+    expect(() => LocalDateTime.fromStandardDate(new Date(), '1')).toThrowError(
+      TypeError
+    )
+    expect(() =>
+      LocalDateTime.fromStandardDate(new Date(), { nanosecond: 1 })
+    ).toThrowError(TypeError)
+    expect(() => LocalDateTime.fromStandardDate(new Date(), [1])).toThrowError(
+      TypeError
+    )
   })
 
   it('should convert standard Date to neo4j DateTime', () => {
@@ -792,8 +1241,14 @@ describe('temporal-types', () => {
     testStandardDateToDateTimeConversion(new Date(0), 1)
     testStandardDateToDateTimeConversion(new Date(0), 999999999)
 
-    testStandardDateToDateTimeConversion(new Date(1922, 1, 22, 23, 23, 45, 123), 456789)
-    testStandardDateToDateTimeConversion(new Date(1999, 1, 1, 10, 10, 10), neo4j.int(999))
+    testStandardDateToDateTimeConversion(
+      new Date(1922, 1, 22, 23, 23, 45, 123),
+      456789
+    )
+    testStandardDateToDateTimeConversion(
+      new Date(1999, 1, 1, 10, 10, 10),
+      neo4j.int(999)
+    )
 
     testStandardDateToDateTimeConversion(new Date(1899, 0, 7, 7, 7, 7, 7))
     testStandardDateToDateTimeConversion(new Date(2005, 0, 1, 2, 3, 4, 5), 100)
@@ -803,16 +1258,30 @@ describe('temporal-types', () => {
     const DateTime = neo4j.types.DateTime
 
     expect(() => DateTime.fromStandardDate()).toThrowError(TypeError)
-    expect(() => DateTime.fromStandardDate('2007-04-05T12:30-02:00')).toThrowError(TypeError)
+    expect(() =>
+      DateTime.fromStandardDate('2007-04-05T12:30-02:00')
+    ).toThrowError(TypeError)
     expect(() => DateTime.fromStandardDate({})).toThrowError(TypeError)
 
-    expect(() => DateTime.fromStandardDate(new Date({}))).toThrowError(TypeError)
-    expect(() => DateTime.fromStandardDate(new Date([]))).toThrowError(TypeError)
-    expect(() => DateTime.fromStandardDate(new Date(NaN))).toThrowError(TypeError)
+    expect(() => DateTime.fromStandardDate(new Date({}))).toThrowError(
+      TypeError
+    )
+    expect(() => DateTime.fromStandardDate(new Date([]))).toThrowError(
+      TypeError
+    )
+    expect(() => DateTime.fromStandardDate(new Date(NaN))).toThrowError(
+      TypeError
+    )
 
-    expect(() => DateTime.fromStandardDate(new Date(), '1')).toThrowError(TypeError)
-    expect(() => DateTime.fromStandardDate(new Date(), { nanosecond: 1 })).toThrowError(TypeError)
-    expect(() => DateTime.fromStandardDate(new Date(), [1])).toThrowError(TypeError)
+    expect(() => DateTime.fromStandardDate(new Date(), '1')).toThrowError(
+      TypeError
+    )
+    expect(() =>
+      DateTime.fromStandardDate(new Date(), { nanosecond: 1 })
+    ).toThrowError(TypeError)
+    expect(() => DateTime.fromStandardDate(new Date(), [1])).toThrowError(
+      TypeError
+    )
   })
 
   it('should send and receive neo4j Date created from standard Date with zero month', done => {
@@ -837,7 +1306,9 @@ describe('temporal-types', () => {
     session = driverWithNativeNumbers.session()
 
     const standardDate = new Date(2121, 0, 7, 10, 20, 30, 40)
-    const neo4jLocalDateTime = neo4j.types.LocalDateTime.fromStandardDate(standardDate)
+    const neo4jLocalDateTime = neo4j.types.LocalDateTime.fromStandardDate(
+      standardDate
+    )
     testSendReceiveTemporalValue(neo4jLocalDateTime, done)
   })
 
@@ -901,7 +1372,9 @@ describe('temporal-types', () => {
   })
 
   it('should fail to create DateTime with out of range values', () => {
-    expect(() => dateTimeWithZoneOffset(1000000000, 1, 1, 1, 1, 1, 1, 0)).toThrow()
+    expect(() =>
+      dateTimeWithZoneOffset(1000000000, 1, 1, 1, 1, 1, 1, 0)
+    ).toThrow()
     expect(() => dateTimeWithZoneOffset(1, 0, 1, 1, 1, 1, 1, 0)).toThrow()
     expect(() => dateTimeWithZoneOffset(1, 13, 1, 1, 1, 1, 1, 0)).toThrow()
     expect(() => dateTimeWithZoneOffset(1, -1, 1, 1, 1, 1, 1, 0)).toThrow()
@@ -918,7 +1391,9 @@ describe('temporal-types', () => {
     expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 60, 1, 0)).toThrow()
     expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 99, 1, 0)).toThrow()
     expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, -1, 0)).toThrow()
-    expect(() => dateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, 1000000000, 0)).toThrow()
+    expect(() =>
+      dateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, 1000000000, 0)
+    ).toThrow()
   })
 
   it('should convert standard Date with offset to neo4j Time', () => {
@@ -984,55 +1459,67 @@ describe('temporal-types', () => {
   }
 
   function testSendAndReceiveArrayOfRandomTemporalValues (valueGenerator, done) {
-    const arrayLength = _.random(MIN_TEMPORAL_ARRAY_LENGTH, MAX_TEMPORAL_ARRAY_LENGTH)
+    const arrayLength = _.random(
+      MIN_TEMPORAL_ARRAY_LENGTH,
+      MAX_TEMPORAL_ARRAY_LENGTH
+    )
     const values = _.range(arrayLength).map(() => valueGenerator())
     testSendReceiveTemporalValue(values, done)
   }
 
   function testReceiveTemporalValue (query, expectedValue, done) {
-    session.run(query).then(result => {
-      const records = result.records
-      expect(records.length).toEqual(1)
+    session
+      .run(query)
+      .then(result => {
+        const records = result.records
+        expect(records.length).toEqual(1)
 
-      const value = records[0].get(0)
-      expect(value).toEqual(expectedValue)
+        const value = records[0].get(0)
+        expect(value).toEqual(expectedValue)
 
-      session.close()
-      done()
-    }).catch(error => {
-      done.fail(error)
-    })
+        session.close()
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
   }
 
   function testSendReceiveTemporalValue (value, done) {
-    session.run('CREATE (n:Node {value: $value}) RETURN n.value', { value: value }).then(result => {
-      const records = result.records
-      expect(records.length).toEqual(1)
+    session
+      .run('CREATE (n:Node {value: $value}) RETURN n.value', { value: value })
+      .then(result => {
+        const records = result.records
+        expect(records.length).toEqual(1)
 
-      const receivedValue = records[0].get(0)
-      expect(receivedValue).toEqual(value)
+        const receivedValue = records[0].get(0)
+        expect(receivedValue).toEqual(value)
 
-      session.close()
-      done()
-    }).catch(error => {
-      done.fail(error)
-    })
+        session.close()
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
   }
 
   function testDurationToString (values, done) {
     const durations = values.map(value => value.duration)
     const expectedDurationStrings = values.map(value => value.expectedString)
 
-    session.run('UNWIND $durations AS d RETURN d', { durations: durations }).then(result => {
-      const receivedDurationStrings = result.records
-        .map(record => record.get(0))
-        .map(duration => duration.toString())
+    session
+      .run('UNWIND $durations AS d RETURN d', { durations: durations })
+      .then(result => {
+        const receivedDurationStrings = result.records
+          .map(record => record.get(0))
+          .map(duration => duration.toString())
 
-      expect(expectedDurationStrings).toEqual(receivedDurationStrings)
-      done()
-    }).catch(error => {
-      done.fail(error)
-    })
+        expect(expectedDurationStrings).toEqual(receivedDurationStrings)
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
   }
 
   function neo4jDoesNotSupportTemporalTypes (done) {
@@ -1055,26 +1542,60 @@ describe('temporal-types', () => {
 
   function randomDateTimeWithZoneOffset () {
     const dateTime = randomDstSafeLocalDateTime()
-    return new neo4j.types.DateTime(dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second, dateTime.nanosecond,
-      randomZoneOffsetSeconds(), null)
+    return new neo4j.types.DateTime(
+      dateTime.year,
+      dateTime.month,
+      dateTime.day,
+      dateTime.hour,
+      dateTime.minute,
+      dateTime.second,
+      dateTime.nanosecond,
+      randomZoneOffsetSeconds(),
+      null
+    )
   }
 
   function randomDateTimeWithZoneId () {
     const dateTime = randomDstSafeLocalDateTime()
-    return new neo4j.types.DateTime(dateTime.year, dateTime.month, dateTime.day, dateTime.hour, dateTime.minute, dateTime.second, dateTime.nanosecond,
-      null, randomZoneId())
+    return new neo4j.types.DateTime(
+      dateTime.year,
+      dateTime.month,
+      dateTime.day,
+      dateTime.hour,
+      dateTime.minute,
+      dateTime.second,
+      dateTime.nanosecond,
+      null,
+      randomZoneId()
+    )
   }
 
   function randomDstSafeLocalDateTime () {
     const date = randomDate()
     const time = randomDstSafeLocalTime()
-    return new neo4j.types.LocalDateTime(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nanosecond)
+    return new neo4j.types.LocalDateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+      time.second,
+      time.nanosecond
+    )
   }
 
   function randomLocalDateTime () {
     const date = randomDate()
     const time = randomLocalTime()
-    return new neo4j.types.LocalDateTime(date.year, date.month, date.day, time.hour, time.minute, time.second, time.nanosecond)
+    return new neo4j.types.LocalDateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+      time.second,
+      time.nanosecond
+    )
   }
 
   function randomDate () {
@@ -1087,7 +1608,13 @@ describe('temporal-types', () => {
 
   function randomTime () {
     const localTime = randomLocalTime()
-    return new neo4j.types.Time(localTime.hour, localTime.minute, localTime.second, localTime.nanosecond, randomZoneOffsetSeconds())
+    return new neo4j.types.Time(
+      localTime.hour,
+      localTime.minute,
+      localTime.second,
+      localTime.nanosecond,
+      randomZoneOffsetSeconds()
+    )
   }
 
   function randomLocalTime () {
@@ -1109,8 +1636,12 @@ describe('temporal-types', () => {
   }
 
   function randomZoneOffsetSeconds () {
-    const randomOffsetWithSeconds = neo4j.int(randomInt(MIN_TIME_ZONE_OFFSET, MAX_TIME_ZONE_OFFSET))
-    return randomOffsetWithSeconds.div(SECONDS_PER_MINUTE).multiply(SECONDS_PER_MINUTE) // truncate seconds
+    const randomOffsetWithSeconds = neo4j.int(
+      randomInt(MIN_TIME_ZONE_OFFSET, MAX_TIME_ZONE_OFFSET)
+    )
+    return randomOffsetWithSeconds
+      .div(SECONDS_PER_MINUTE)
+      .multiply(SECONDS_PER_MINUTE) // truncate seconds
   }
 
   function randomZoneId () {
@@ -1118,34 +1649,97 @@ describe('temporal-types', () => {
   }
 
   function duration (months, days, seconds, nanoseconds) {
-    return new neo4j.types.Duration(neo4j.int(months), neo4j.int(days), neo4j.int(seconds), neo4j.int(nanoseconds))
+    return new neo4j.types.Duration(
+      neo4j.int(months),
+      neo4j.int(days),
+      neo4j.int(seconds),
+      neo4j.int(nanoseconds)
+    )
   }
 
   function localTime (hour, minute, second, nanosecond) {
-    return new neo4j.types.LocalTime(neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond))
+    return new neo4j.types.LocalTime(
+      neo4j.int(hour),
+      neo4j.int(minute),
+      neo4j.int(second),
+      neo4j.int(nanosecond)
+    )
   }
 
   function time (hour, minute, second, nanosecond, offsetSeconds) {
-    return new neo4j.types.Time(neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), neo4j.int(offsetSeconds))
+    return new neo4j.types.Time(
+      neo4j.int(hour),
+      neo4j.int(minute),
+      neo4j.int(second),
+      neo4j.int(nanosecond),
+      neo4j.int(offsetSeconds)
+    )
   }
 
   function date (year, month, day) {
-    return new neo4j.types.Date(neo4j.int(year), neo4j.int(month), neo4j.int(day))
+    return new neo4j.types.Date(
+      neo4j.int(year),
+      neo4j.int(month),
+      neo4j.int(day)
+    )
   }
 
   function localDateTime (year, month, day, hour, minute, second, nanosecond) {
-    return new neo4j.types.LocalDateTime(neo4j.int(year), neo4j.int(month), neo4j.int(day),
-      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond))
+    return new neo4j.types.LocalDateTime(
+      neo4j.int(year),
+      neo4j.int(month),
+      neo4j.int(day),
+      neo4j.int(hour),
+      neo4j.int(minute),
+      neo4j.int(second),
+      neo4j.int(nanosecond)
+    )
   }
 
-  function dateTimeWithZoneOffset (year, month, day, hour, minute, second, nanosecond, offsetSeconds) {
-    return new neo4j.types.DateTime(neo4j.int(year), neo4j.int(month), neo4j.int(day),
-      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), neo4j.int(offsetSeconds), null)
+  function dateTimeWithZoneOffset (
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    nanosecond,
+    offsetSeconds
+  ) {
+    return new neo4j.types.DateTime(
+      neo4j.int(year),
+      neo4j.int(month),
+      neo4j.int(day),
+      neo4j.int(hour),
+      neo4j.int(minute),
+      neo4j.int(second),
+      neo4j.int(nanosecond),
+      neo4j.int(offsetSeconds),
+      null
+    )
   }
 
-  function dateTimeWithZoneId (year, month, day, hour, minute, second, nanosecond, zoneId) {
-    return new neo4j.types.DateTime(neo4j.int(year), neo4j.int(month), neo4j.int(day),
-      neo4j.int(hour), neo4j.int(minute), neo4j.int(second), neo4j.int(nanosecond), null, zoneId)
+  function dateTimeWithZoneId (
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    nanosecond,
+    zoneId
+  ) {
+    return new neo4j.types.DateTime(
+      neo4j.int(year),
+      neo4j.int(month),
+      neo4j.int(day),
+      neo4j.int(hour),
+      neo4j.int(minute),
+      neo4j.int(second),
+      neo4j.int(nanosecond),
+      null,
+      zoneId
+    )
   }
 
   function randomInt (lower, upper) {
@@ -1154,34 +1748,66 @@ describe('temporal-types', () => {
 
   function testStandardDateToLocalTimeConversion (date, nanosecond) {
     const converted = neo4j.types.LocalTime.fromStandardDate(date, nanosecond)
-    const expected = new neo4j.types.LocalTime(date.getHours(), date.getMinutes(), date.getSeconds(), totalNanoseconds(date, nanosecond))
+    const expected = new neo4j.types.LocalTime(
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds(),
+      totalNanoseconds(date, nanosecond)
+    )
     expect(converted).toEqual(expected)
   }
 
   function testStandardDateToTimeConversion (date, nanosecond) {
     const converted = neo4j.types.Time.fromStandardDate(date, nanosecond)
-    const expected = new neo4j.types.Time(date.getHours(), date.getMinutes(), date.getSeconds(), totalNanoseconds(date, nanosecond),
-      timeZoneOffsetInSeconds(date))
+    const expected = new neo4j.types.Time(
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds(),
+      totalNanoseconds(date, nanosecond),
+      timeZoneOffsetInSeconds(date)
+    )
     expect(converted).toEqual(expected)
   }
 
   function testStandardDateToNeo4jDateConversion (date) {
     const converted = neo4j.types.Date.fromStandardDate(date)
-    const expected = new neo4j.types.Date(date.getFullYear(), date.getMonth() + 1, date.getDate())
+    const expected = new neo4j.types.Date(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      date.getDate()
+    )
     expect(converted).toEqual(expected)
   }
 
   function testStandardDateToLocalDateTimeConversion (date, nanosecond) {
-    const converted = neo4j.types.LocalDateTime.fromStandardDate(date, nanosecond)
-    const expected = new neo4j.types.LocalDateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(),
-      date.getSeconds(), totalNanoseconds(date, nanosecond))
+    const converted = neo4j.types.LocalDateTime.fromStandardDate(
+      date,
+      nanosecond
+    )
+    const expected = new neo4j.types.LocalDateTime(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds(),
+      totalNanoseconds(date, nanosecond)
+    )
     expect(converted).toEqual(expected)
   }
 
   function testStandardDateToDateTimeConversion (date, nanosecond) {
     const converted = neo4j.types.DateTime.fromStandardDate(date, nanosecond)
-    const expected = new neo4j.types.DateTime(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(),
-      totalNanoseconds(date, nanosecond), timeZoneOffsetInSeconds(date))
+    const expected = new neo4j.types.DateTime(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      date.getDate(),
+      date.getHours(),
+      date.getMinutes(),
+      date.getSeconds(),
+      totalNanoseconds(date, nanosecond),
+      timeZoneOffsetInSeconds(date)
+    )
     expect(converted).toEqual(expected)
   }
 
@@ -1189,6 +1815,11 @@ describe('temporal-types', () => {
     expect(temporal.timeZoneOffsetSeconds).toEqual(expectedValue)
     const isoString = temporal.toString()
     // assert ISO string ends with the expected suffix
-    expect(isoString.indexOf(expectedStringValue, isoString.length - expectedStringValue.length)).toBeGreaterThan(0)
+    expect(
+      isoString.indexOf(
+        expectedStringValue,
+        isoString.length - expectedStringValue.length
+      )
+    ).toBeGreaterThan(0)
   }
 })

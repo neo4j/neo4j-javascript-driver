@@ -36,7 +36,7 @@ import { WRITE } from '../../src/driver'
 
 const ILLEGAL_MESSAGE = { signature: 42, fields: [] }
 const SUCCESS_MESSAGE = { signature: 0x70, fields: [{}] }
-const FAILURE_MESSAGE = { signature: 0x7F, fields: [newError('Hello')] }
+const FAILURE_MESSAGE = { signature: 0x7f, fields: [newError('Hello')] }
 const RECORD_MESSAGE = { signature: 0x71, fields: [{ value: 'Hello' }] }
 
 describe('Connection', () => {
@@ -96,15 +96,28 @@ describe('Connection', () => {
     const streamObserver = new StreamObserver()
     streamObserver.subscribe(pullAllObserver)
 
-    connection.connect('mydriver/0.0.0', basicAuthToken())
-      .then(() => {
-        connection.protocol().run('RETURN 1.0', {}, Bookmark.empty(), TxConfig.empty(), WRITE, streamObserver)
-      })
+    connection.connect('mydriver/0.0.0', basicAuthToken()).then(() => {
+      connection
+        .protocol()
+        .run(
+          'RETURN 1.0',
+          {},
+          Bookmark.empty(),
+          TxConfig.empty(),
+          WRITE,
+          streamObserver
+        )
+    })
   })
 
   it('should write protocol handshake', () => {
     const channel = new DummyChannel()
-    connection = new Connection(channel, new ConnectionErrorHandler(SERVICE_UNAVAILABLE), 'localhost:7687', Logger.noOp())
+    connection = new Connection(
+      channel,
+      new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
+      'localhost:7687',
+      Logger.noOp()
+    )
 
     connection._negotiateProtocol()
 
@@ -113,7 +126,9 @@ describe('Connection', () => {
     const protocolVersion2 = '00 00 00 02'
     const protocolVersion1 = '00 00 00 01'
     const noProtocolVersion = '00 00 00 00'
-    expect(channel.toHex()).toBe(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`)
+    expect(channel.toHex()).toBe(
+      `${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`
+    )
   })
 
   it('should provide error message when connecting to http-port', done => {
@@ -125,8 +140,10 @@ describe('Connection', () => {
 
       if (testUtils.isServer()) {
         // only node gets the pretty error message
-        expect(error.message).toBe('Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
-          '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)')
+        expect(error.message).toBe(
+          'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
+            '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
+        )
       }
 
       done()
@@ -135,12 +152,18 @@ describe('Connection', () => {
 
   it('should convert failure messages to errors', done => {
     const channel = new DummyChannel()
-    connection = new Connection(channel, new ConnectionErrorHandler(SERVICE_UNAVAILABLE), 'localhost:7687', Logger.noOp())
+    connection = new Connection(
+      channel,
+      new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
+      'localhost:7687',
+      Logger.noOp()
+    )
 
     connection._negotiateProtocol()
 
     const errorCode = 'Neo.ClientError.Schema.ConstraintValidationFailed'
-    const errorMessage = 'Node 0 already exists with label User and property "email"=[john@doe.com]'
+    const errorMessage =
+      'Node 0 already exists with label User and property "email"=[john@doe.com]'
 
     connection._queueObserver({
       onError: error => {
@@ -156,7 +179,8 @@ describe('Connection', () => {
   it('should notify when connection initialization completes', done => {
     connection = createConnection('bolt://localhost')
 
-    connection.connect('mydriver/0.0.0', basicAuthToken())
+    connection
+      .connect('mydriver/0.0.0', basicAuthToken())
       .then(initializedConnection => {
         expect(initializedConnection).toBe(connection)
         done()
@@ -166,7 +190,8 @@ describe('Connection', () => {
   it('should notify when connection initialization fails', done => {
     connection = createConnection('bolt://localhost:7474') // wrong port
 
-    connection.connect('mydriver/0.0.0', basicAuthToken())
+    connection
+      .connect('mydriver/0.0.0', basicAuthToken())
       .then(() => done.fail('Should not initialize'))
       .catch(error => {
         expect(error).toBeDefined()
@@ -177,10 +202,13 @@ describe('Connection', () => {
   it('should have server version after connection initialization completed', done => {
     connection = createConnection('bolt://localhost')
 
-    connection.connect('mydriver/0.0.0', basicAuthToken())
+    connection
+      .connect('mydriver/0.0.0', basicAuthToken())
       .then(initializedConnection => {
         expect(initializedConnection).toBe(connection)
-        const serverVersion = ServerVersion.fromString(connection.server.version)
+        const serverVersion = ServerVersion.fromString(
+          connection.server.version
+        )
         expect(serverVersion).toBeDefined()
         done()
       })
@@ -189,7 +217,8 @@ describe('Connection', () => {
   it('should fail all new observers after failure to connect', done => {
     connection = createConnection('bolt://localhost:7474') // wrong port
 
-    connection.connect('mydriver/0.0.0', basicAuthToken())
+    connection
+      .connect('mydriver/0.0.0', basicAuthToken())
       .then(() => done.fail('Should not connect'))
       .catch(initialError => {
         expect(initialError).toBeDefined()
@@ -217,17 +246,25 @@ describe('Connection', () => {
   })
 
   it('should not queue INIT observer when broken', done => {
-    testQueueingOfObserversWithBrokenConnection(connection => connection.protocol().initialize('Hello', {}, {}), done)
+    testQueueingOfObserversWithBrokenConnection(
+      connection => connection.protocol().initialize('Hello', {}, {}),
+      done
+    )
   })
 
   it('should not queue RUN observer when broken', done => {
-    testQueueingOfObserversWithBrokenConnection(connection =>
-      connection.protocol().run('RETURN 1', {}, Bookmark.empty(), TxConfig.empty(), {}), done)
+    testQueueingOfObserversWithBrokenConnection(
+      connection =>
+        connection
+          .protocol()
+          .run('RETURN 1', {}, Bookmark.empty(), TxConfig.empty(), {}),
+      done
+    )
   })
 
   it('should not queue RESET observer when broken', done => {
-    const resetAction = connection => connection.resetAndFlush().catch(ignore => {
-    })
+    const resetAction = connection =>
+      connection.resetAndFlush().catch(ignore => {})
 
     testQueueingOfObserversWithBrokenConnection(resetAction, done)
   })
@@ -235,103 +272,112 @@ describe('Connection', () => {
   it('should reset and flush when SUCCESS received', done => {
     connection = createConnection('bolt://localhost')
 
-    connection.connect('my-driver/1.2.3', basicAuthToken())
-      .then(() => {
-        connection.resetAndFlush().then(() => {
+    connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
+      connection
+        .resetAndFlush()
+        .then(() => {
           expect(connection.isOpen()).toBeTruthy()
           done()
-        }).catch(error => done.fail(error))
-
-        // write a SUCCESS message for RESET before the actual response is received
-        connection._handleMessage(SUCCESS_MESSAGE)
-        // enqueue a dummy observer to handle the real SUCCESS message
-        connection._queueObserver({
-          onCompleted: () => {
-          }
         })
+        .catch(error => done.fail(error))
+
+      // write a SUCCESS message for RESET before the actual response is received
+      connection._handleMessage(SUCCESS_MESSAGE)
+      // enqueue a dummy observer to handle the real SUCCESS message
+      connection._queueObserver({
+        onCompleted: () => {}
       })
+    })
   })
 
   it('should fail to reset and flush when FAILURE received', done => {
     connection = createConnection('bolt://localhost')
 
-    connection.connect('my-driver/1.2.3', basicAuthToken())
-      .then(() => {
-        connection.resetAndFlush()
-          .then(() => done.fail('Should fail'))
-          .catch(error => {
-            expect(error.message).toEqual('Received FAILURE as a response for RESET: Neo4jError: Hello')
-            expect(connection._isBroken).toBeTruthy()
-            expect(connection.isOpen()).toBeFalsy()
-            done()
-          })
-
-        // write a FAILURE message for RESET before the actual response is received
-        connection._handleMessage(FAILURE_MESSAGE)
-        // enqueue a dummy observer to handle the real SUCCESS message
-        connection._queueObserver({
-          onCompleted: () => {
-          }
+    connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
+      connection
+        .resetAndFlush()
+        .then(() => done.fail('Should fail'))
+        .catch(error => {
+          expect(error.message).toEqual(
+            'Received FAILURE as a response for RESET: Neo4jError: Hello'
+          )
+          expect(connection._isBroken).toBeTruthy()
+          expect(connection.isOpen()).toBeFalsy()
+          done()
         })
+
+      // write a FAILURE message for RESET before the actual response is received
+      connection._handleMessage(FAILURE_MESSAGE)
+      // enqueue a dummy observer to handle the real SUCCESS message
+      connection._queueObserver({
+        onCompleted: () => {}
       })
+    })
   })
 
   it('should fail to reset and flush when RECORD received', done => {
     connection = createConnection('bolt://localhost')
 
-    connection.connect('my-driver/1.2.3', basicAuthToken())
-      .then(() => {
-        connection.resetAndFlush()
-          .then(() => done.fail('Should fail'))
-          .catch(error => {
-            expect(error.message).toEqual('Received RECORD as a response for RESET: {"value":"Hello"}')
-            expect(connection._isBroken).toBeTruthy()
-            expect(connection.isOpen()).toBeFalsy()
-            done()
-          })
-
-        // write a RECORD message for RESET before the actual response is received
-        connection._handleMessage(RECORD_MESSAGE)
-        // enqueue a dummy observer to handle the real SUCCESS message
-        connection._queueObserver({
-          onCompleted: () => {
-          }
+    connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
+      connection
+        .resetAndFlush()
+        .then(() => done.fail('Should fail'))
+        .catch(error => {
+          expect(error.message).toEqual(
+            'Received RECORD as a response for RESET: {"value":"Hello"}'
+          )
+          expect(connection._isBroken).toBeTruthy()
+          expect(connection.isOpen()).toBeFalsy()
+          done()
         })
+
+      // write a RECORD message for RESET before the actual response is received
+      connection._handleMessage(RECORD_MESSAGE)
+      // enqueue a dummy observer to handle the real SUCCESS message
+      connection._queueObserver({
+        onCompleted: () => {}
       })
+    })
   })
 
   it('should acknowledge failure with RESET when SUCCESS received', done => {
     connection = createConnection('bolt://localhost')
 
-    connection.connect('my-driver/1.2.3', basicAuthToken())
-      .then(() => {
-        connection._currentFailure = newError('Hello')
-        connection._resetOnFailure()
+    connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
+      connection._currentFailure = newError('Hello')
+      connection._resetOnFailure()
 
-        // write a SUCCESS message for RESET before the actual response is received
-        connection._handleMessage(SUCCESS_MESSAGE)
-        // enqueue a dummy observer to handle the real SUCCESS message
-        connection._queueObserver({
-          onCompleted: () => {
-          }
-        })
-
-        expect(connection._currentFailure).toBeNull()
-        done()
+      // write a SUCCESS message for RESET before the actual response is received
+      connection._handleMessage(SUCCESS_MESSAGE)
+      // enqueue a dummy observer to handle the real SUCCESS message
+      connection._queueObserver({
+        onCompleted: () => {}
       })
+
+      expect(connection._currentFailure).toBeNull()
+      done()
+    })
   })
 
   it('should handle and transform fatal errors', done => {
     const errors = []
     const hostPorts = []
     const transformedError = newError('Message', 'Code')
-    const errorHandler = new ConnectionErrorHandler(SERVICE_UNAVAILABLE, (error, hostPort) => {
-      errors.push(error)
-      hostPorts.push(hostPort)
-      return transformedError
-    })
+    const errorHandler = new ConnectionErrorHandler(
+      SERVICE_UNAVAILABLE,
+      (error, hostPort) => {
+        errors.push(error)
+        hostPorts.push(hostPort)
+        return transformedError
+      }
+    )
 
-    connection = Connection.create('bolt://localhost', {}, errorHandler, Logger.noOp())
+    connection = Connection.create(
+      'bolt://localhost',
+      {},
+      errorHandler,
+      Logger.noOp()
+    )
 
     connection._queueObserver({
       onError: error => {
@@ -351,26 +397,31 @@ describe('Connection', () => {
     connection = createConnection('bolt://localhost')
     recordWrittenMessages(connection, messages)
 
-    connection.connect('mydriver/0.0.0', basicAuthToken())
+    connection
+      .connect('mydriver/0.0.0', basicAuthToken())
       .then(() => {
         expect(connection.isOpen()).toBeTruthy()
         connection.close(() => {
           expect(messages.length).toBeGreaterThan(0)
           expect(messages[0].signature).toEqual(0x01) // first message is either INIT or HELLO
 
-          const serverVersion = ServerVersion.fromString(connection.server.version)
+          const serverVersion = ServerVersion.fromString(
+            connection.server.version
+          )
           if (serverVersion.compareTo(VERSION_3_5_0) >= 0) {
             expect(messages[messages.length - 1].signature).toEqual(0x02) // last message is GOODBYE in V3
           }
           done()
         })
-      }).catch(done.fail)
+      })
+      .catch(done.fail)
   })
 
   it('should not prepare broken connection to close', done => {
     connection = createConnection('bolt://localhost')
 
-    connection.connect('my-connection/9.9.9', basicAuthToken())
+    connection
+      .connect('my-connection/9.9.9', basicAuthToken())
       .then(() => {
         expect(connection._protocol).toBeDefined()
         expect(connection._protocol).not.toBeNull()
@@ -399,7 +450,7 @@ describe('Connection', () => {
     const channel = new DummyChannel()
     const chunker = new Chunker(channel)
     const packer = new Packer(chunker)
-    packer.packStruct(0x7F, [packer.packable({ code: code, message: message })])
+    packer.packStruct(0x7f, [packer.packable({ code: code, message: message })])
     chunker.messageBoundary()
     chunker.flush()
     const data = channel.toBuffer()
@@ -425,9 +476,14 @@ describe('Connection', () => {
 
   function testConnectionTimeout (encrypted, done) {
     const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
-    connection = createConnection(boltUri, { encrypted: encrypted, connectionTimeout: 1000 }, 'TestErrorCode')
+    connection = createConnection(
+      boltUri,
+      { encrypted: encrypted, connectionTimeout: 1000 },
+      'TestErrorCode'
+    )
 
-    connection.connect('mydriver/0.0.0', basicAuthToken())
+    connection
+      .connect('mydriver/0.0.0', basicAuthToken())
       .then(() => done.fail('Should not be able to connect'))
       .catch(error => {
         expect(error.code).toEqual('TestErrorCode')
@@ -435,7 +491,9 @@ describe('Connection', () => {
         // in some environments non-routable address results in immediate 'connection refused' error and connect
         // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
         if (error.message.indexOf('Failed to establish connection') === 0) {
-          expect(error.message).toEqual('Failed to establish connection in 1000ms')
+          expect(error.message).toEqual(
+            'Failed to establish connection in 1000ms'
+          )
         }
 
         done()
@@ -461,7 +519,12 @@ describe('Connection', () => {
    * @return {Connection}
    */
   function createConnection (url, config, errorCode = null) {
-    return Connection.create(url, config || {}, new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE), Logger.noOp())
+    return Connection.create(
+      url,
+      config || {},
+      new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE),
+      Logger.noOp()
+    )
   }
 
   function recordWrittenMessages (connection, messages) {

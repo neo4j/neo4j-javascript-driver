@@ -21,8 +21,8 @@ import { isInt } from './integer'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.
-  * @access public
-  */
+ * @access public
+ */
 class ResultSummary {
   /**
    * @constructor
@@ -62,7 +62,10 @@ class ResultSummary {
      * Will only be populated for queries that start with "EXPLAIN".
      * @type {Plan}
      */
-    this.plan = metadata.plan || metadata.profile ? new Plan(metadata.plan || metadata.profile) : false
+    this.plan =
+      metadata.plan || metadata.profile
+        ? new Plan(metadata.plan || metadata.profile)
+        : false
 
     /**
      * This describes how the database did execute your statement. This will contain detailed information about what
@@ -108,7 +111,9 @@ class ResultSummary {
     if (!notifications) {
       return []
     }
-    return notifications.map(function (n) { return new Notification(n) })
+    return notifications.map(function (n) {
+      return new Notification(n)
+    })
   }
 
   /**
@@ -129,9 +134,9 @@ class ResultSummary {
 }
 
 /**
-  * Class for execution plan received by prepending Cypher with EXPLAIN.
-  * @access public
-  */
+ * Class for execution plan received by prepending Cypher with EXPLAIN.
+ * @access public
+ */
 class Plan {
   /**
    * Create a Plan instance
@@ -142,14 +147,16 @@ class Plan {
     this.operatorType = plan.operatorType
     this.identifiers = plan.identifiers
     this.arguments = plan.args
-    this.children = plan.children ? plan.children.map((child) => new Plan(child)) : []
+    this.children = plan.children
+      ? plan.children.map(child => new Plan(child))
+      : []
   }
 }
 
 /**
-  * Class for execution plan received by prepending Cypher with PROFILE.
-  * @access public
-  */
+ * Class for execution plan received by prepending Cypher with PROFILE.
+ * @access public
+ */
 class ProfiledPlan {
   /**
    * Create a ProfiledPlan instance
@@ -162,14 +169,16 @@ class ProfiledPlan {
     this.arguments = profile.args
     this.dbHits = profile.args.DbHits.toInt()
     this.rows = profile.args.Rows.toInt()
-    this.children = profile.children ? profile.children.map((child) => new ProfiledPlan(child)) : []
+    this.children = profile.children
+      ? profile.children.map(child => new ProfiledPlan(child))
+      : []
   }
 }
 
 /**
-  * Get statistical information for a {@link Result}.
-  * @access public
-  */
+ * Get statistical information for a {@link Result}.
+ * @access public
+ */
 class StatementStatistics {
   /**
    * Structurize the statistics
@@ -190,10 +199,13 @@ class StatementStatistics {
       constraintsAdded: 0,
       constraintsRemoved: 0
     }
-    Object.keys(statistics).forEach((index) => {
+    Object.keys(statistics).forEach(index => {
       // To camelCase
-      this._stats[index.replace(/(-\w)/g, (m) => m[1].toUpperCase())] =
-        isInt(statistics[index]) ? statistics[index].toInt() : statistics[index]
+      this._stats[index.replace(/(-\w)/g, m => m[1].toUpperCase())] = isInt(
+        statistics[index]
+      )
+        ? statistics[index].toInt()
+        : statistics[index]
     })
   }
 
@@ -202,9 +214,11 @@ class StatementStatistics {
    * @return {boolean}
    */
   containsUpdates () {
-    return Object.keys(this._stats).reduce((last, current) => {
-      return last + this._stats[current]
-    }, 0) > 0
+    return (
+      Object.keys(this._stats).reduce((last, current) => {
+        return last + this._stats[current]
+      }, 0) > 0
+    )
   }
 
   /**
@@ -286,9 +300,9 @@ class StatementStatistics {
 }
 
 /**
-  * Class for Cypher notifications
-  * @access public
-  */
+ * Class for Cypher notifications
+ * @access public
+ */
 class Notification {
   /**
    * Create a Notification instance
@@ -316,9 +330,9 @@ class Notification {
 }
 
 /**
-  * Class for exposing server info from a result.
-  * @access public
-  */
+ * Class for exposing server info from a result.
+ * @access public
+ */
 class ServerInfo {
   /**
    * Create a ServerInfo instance
@@ -340,8 +354,6 @@ const statementType = {
   SCHEMA_WRITE: 's'
 }
 
-export {
-  statementType
-}
+export { statementType }
 
 export default ResultSummary

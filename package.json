@@ -10,6 +10,7 @@
   },
   "scripts": {
     "lint": "eslint --fix --ext .js ./",
+    "format": "prettier-eslint '**/*.js' '**/*.ts' --write",
     "test": "gulp test",
     "build": "gulp all",
     "start-neo4j": "gulp start-neo4j",
@@ -73,6 +74,8 @@
     "lolex": "^1.5.2",
     "minimist": "^1.2.0",
     "mustache": "^2.3.0",
+    "prettier-eslint": "^8.8.2",
+    "prettier-eslint-cli": "^4.7.1",
     "run-sequence": "^1.1.4",
     "semver": "^5.3.0",
     "through2": "~2.0.0",

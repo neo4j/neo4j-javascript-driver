@@ -29,7 +29,9 @@ function encode (str) {
 
 function decode (buffer, length) {
   if (buffer instanceof HeapBuffer) {
-    return decoder.decode(buffer.readView(Math.min(length, buffer.length - buffer.position)))
+    return decoder.decode(
+      buffer.readView(Math.min(length, buffer.length - buffer.position))
+    )
   } else {
     // Copy the given buffer into a regular buffer and decode that
     const tmpBuf = new HeapBuffer(length)

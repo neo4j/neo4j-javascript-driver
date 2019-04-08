@@ -52,7 +52,11 @@ describe('ChannelConfig', () => {
   it('should respect given trusted certificates conf', () => {
     const trustedCertificates = ['./foo.pem', './bar.pem', './baz.pem']
 
-    const config = new ChannelConfig(null, { trustedCertificates: trustedCertificates }, '')
+    const config = new ChannelConfig(
+      null,
+      { trustedCertificates: trustedCertificates },
+      ''
+    )
 
     expect(config.trustedCertificates).toEqual(trustedCertificates)
   })
@@ -128,31 +132,65 @@ describe('ChannelConfig', () => {
   })
 
   it('should validate value of "encrypted" property', () => {
-    expect(new ChannelConfig(null, { encrypted: null }, '').encrypted).toBeNull()
-    expect(new ChannelConfig(null, { encrypted: undefined }, '').encrypted).toBeUndefined()
-    expect(new ChannelConfig(null, { encrypted: true }, '').encrypted).toBeTruthy()
-    expect(new ChannelConfig(null, { encrypted: false }, '').encrypted).toBeFalsy()
-    expect(new ChannelConfig(null, { encrypted: ENCRYPTION_ON }, '').encrypted).toEqual(ENCRYPTION_ON)
-    expect(new ChannelConfig(null, { encrypted: ENCRYPTION_OFF }, '').encrypted).toEqual(ENCRYPTION_OFF)
+    expect(
+      new ChannelConfig(null, { encrypted: null }, '').encrypted
+    ).toBeNull()
+    expect(
+      new ChannelConfig(null, { encrypted: undefined }, '').encrypted
+    ).toBeUndefined()
+    expect(
+      new ChannelConfig(null, { encrypted: true }, '').encrypted
+    ).toBeTruthy()
+    expect(
+      new ChannelConfig(null, { encrypted: false }, '').encrypted
+    ).toBeFalsy()
+    expect(
+      new ChannelConfig(null, { encrypted: ENCRYPTION_ON }, '').encrypted
+    ).toEqual(ENCRYPTION_ON)
+    expect(
+      new ChannelConfig(null, { encrypted: ENCRYPTION_OFF }, '').encrypted
+    ).toEqual(ENCRYPTION_OFF)
 
     expect(() => new ChannelConfig(null, { encrypted: [] }, '')).toThrow()
     expect(() => new ChannelConfig(null, { encrypted: {} }, '')).toThrow()
-    expect(() => new ChannelConfig(null, { encrypted: () => 'Hello' }, '')).toThrow()
+    expect(
+      () => new ChannelConfig(null, { encrypted: () => 'Hello' }, '')
+    ).toThrow()
     expect(() => new ChannelConfig(null, { encrypted: 42 }, '')).toThrow()
     expect(() => new ChannelConfig(null, { encrypted: 'Hello' }, '')).toThrow()
   })
 
   it('should validate value of "trust" property', () => {
     expect(new ChannelConfig(null, { trust: null }, '').trust).toBeNull()
-    expect(new ChannelConfig(null, { trust: undefined }, '').trust).toBeUndefined()
-    expect(new ChannelConfig(null, { trust: 'TRUST_ALL_CERTIFICATES' }, '').trust).toEqual('TRUST_ALL_CERTIFICATES')
-    expect(new ChannelConfig(null, { trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' }, '').trust).toEqual('TRUST_CUSTOM_CA_SIGNED_CERTIFICATES')
-    expect(new ChannelConfig(null, { trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES' }, '').trust).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES')
+    expect(
+      new ChannelConfig(null, { trust: undefined }, '').trust
+    ).toBeUndefined()
+    expect(
+      new ChannelConfig(null, { trust: 'TRUST_ALL_CERTIFICATES' }, '').trust
+    ).toEqual('TRUST_ALL_CERTIFICATES')
+    expect(
+      new ChannelConfig(
+        null,
+        { trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' },
+        ''
+      ).trust
+    ).toEqual('TRUST_CUSTOM_CA_SIGNED_CERTIFICATES')
+    expect(
+      new ChannelConfig(
+        null,
+        { trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES' },
+        ''
+      ).trust
+    ).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES')
 
     expect(() => new ChannelConfig(null, { trust: [] }, '')).toThrow()
     expect(() => new ChannelConfig(null, { trust: {} }, '')).toThrow()
-    expect(() => new ChannelConfig(null, { trust: () => 'Trust' }, '')).toThrow()
+    expect(
+      () => new ChannelConfig(null, { trust: () => 'Trust' }, '')
+    ).toThrow()
     expect(() => new ChannelConfig(null, { trust: 42 }, '')).toThrow()
-    expect(() => new ChannelConfig(null, { trust: 'SOME_WRONG_TRUST_STRATEGY' }, '')).toThrow()
+    expect(
+      () => new ChannelConfig(null, { trust: 'SOME_WRONG_TRUST_STRATEGY' }, '')
+    ).toThrow()
   })
 })

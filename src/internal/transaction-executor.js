@@ -26,10 +26,22 @@ const DEFAULT_RETRY_DELAY_JITTER_FACTOR = 0.2
 
 export default class TransactionExecutor {
   constructor (maxRetryTimeMs, initialRetryDelayMs, multiplier, jitterFactor) {
-    this._maxRetryTimeMs = _valueOrDefault(maxRetryTimeMs, DEFAULT_MAX_RETRY_TIME_MS)
-    this._initialRetryDelayMs = _valueOrDefault(initialRetryDelayMs, DEFAULT_INITIAL_RETRY_DELAY_MS)
-    this._multiplier = _valueOrDefault(multiplier, DEFAULT_RETRY_DELAY_MULTIPLIER)
-    this._jitterFactor = _valueOrDefault(jitterFactor, DEFAULT_RETRY_DELAY_JITTER_FACTOR)
+    this._maxRetryTimeMs = _valueOrDefault(
+      maxRetryTimeMs,
+      DEFAULT_MAX_RETRY_TIME_MS
+    )
+    this._initialRetryDelayMs = _valueOrDefault(
+      initialRetryDelayMs,
+      DEFAULT_INITIAL_RETRY_DELAY_MS
+    )
+    this._multiplier = _valueOrDefault(
+      multiplier,
+      DEFAULT_RETRY_DELAY_MULTIPLIER
+    )
+    this._jitterFactor = _valueOrDefault(
+      jitterFactor,
+      DEFAULT_RETRY_DELAY_JITTER_FACTOR
+    )
 
     this._inFlightTimeoutIds = []
 
@@ -38,11 +50,22 @@ export default class TransactionExecutor {
 
   execute (transactionCreator, transactionWork) {
     return new Promise((resolve, reject) => {
-      this._executeTransactionInsidePromise(transactionCreator, transactionWork, resolve, reject)
+      this._executeTransactionInsidePromise(
+        transactionCreator,
+        transactionWork,
+        resolve,
+        reject
+      )
     }).catch(error => {
       const retryStartTimeMs = Date.now()
       const retryDelayMs = this._initialRetryDelayMs
-      return this._retryTransactionPromise(transactionCreator, transactionWork, error, retryStartTimeMs, retryDelayMs)
+      return this._retryTransactionPromise(
+        transactionCreator,
+        transactionWork,
+        error,
+        retryStartTimeMs,
+        retryDelayMs
+      )
     })
   }
 
@@ -52,10 +75,19 @@ export default class TransactionExecutor {
     this._inFlightTimeoutIds = []
   }
 
-  _retryTransactionPromise (transactionCreator, transactionWork, error, retryStartTime, retryDelayMs) {
+  _retryTransactionPromise (
+    transactionCreator,
+    transactionWork,
+    error,
+    retryStartTime,
+    retryDelayMs
+  ) {
     const elapsedTimeMs = Date.now() - retryStartTime
 
-    if (elapsedTimeMs > this._maxRetryTimeMs || !TransactionExecutor._canRetryOn(error)) {
+    if (
+      elapsedTimeMs > this._maxRetryTimeMs ||
+      !TransactionExecutor._canRetryOn(error)
+    ) {
       return Promise.reject(error)
     }
 
@@ -63,18 +95,36 @@ export default class TransactionExecutor {
       const nextRetryTime = this._computeDelayWithJitter(retryDelayMs)
       const timeoutId = setTimeout(() => {
         // filter out this timeoutId when time has come and function is being executed
-        this._inFlightTimeoutIds = this._inFlightTimeoutIds.filter(id => id !== timeoutId)
-        this._executeTransactionInsidePromise(transactionCreator, transactionWork, resolve, reject)
+        this._inFlightTimeoutIds = this._inFlightTimeoutIds.filter(
+          id => id !== timeoutId
+        )
+        this._executeTransactionInsidePromise(
+          transactionCreator,
+          transactionWork,
+          resolve,
+          reject
+        )
       }, nextRetryTime)
       // add newly created timeoutId to the list of all in-flight timeouts
       this._inFlightTimeoutIds.push(timeoutId)
     }).catch(error => {
       const nextRetryDelayMs = retryDelayMs * this._multiplier
-      return this._retryTransactionPromise(transactionCreator, transactionWork, error, retryStartTime, nextRetryDelayMs)
+      return this._retryTransactionPromise(
+        transactionCreator,
+        transactionWork,
+        error,
+        retryStartTime,
+        nextRetryDelayMs
+      )
     })
   }
 
-  _executeTransactionInsidePromise (transactionCreator, transactionWork, resolve, reject) {
+  _executeTransactionInsidePromise (
+    transactionCreator,
+    transactionWork,
+    resolve,
+    reject
+  ) {
     let tx
     try {
       tx = transactionCreator()
@@ -87,7 +137,9 @@ export default class TransactionExecutor {
     const resultPromise = this._safeExecuteTransactionWork(tx, transactionWork)
 
     resultPromise
-      .then(result => this._handleTransactionWorkSuccess(result, tx, resolve, reject))
+      .then(result =>
+        this._handleTransactionWorkSuccess(result, tx, resolve, reject)
+      )
       .catch(error => this._handleTransactionWorkFailure(error, tx, reject))
   }
 
@@ -107,13 +159,15 @@ export default class TransactionExecutor {
     if (tx.isOpen()) {
       // transaction work returned resolved promise and transaction has not been committed/rolled back
       // try to commit the transaction
-      tx.commit().then(() => {
-        // transaction was committed, return result to the user
-        resolve(result)
-      }).catch(error => {
-        // transaction failed to commit, propagate the failure
-        reject(error)
-      })
+      tx.commit()
+        .then(() => {
+          // transaction was committed, return result to the user
+          resolve(result)
+        })
+        .catch(error => {
+          // transaction failed to commit, propagate the failure
+          reject(error)
+        })
     } else {
       // transaction work returned resolved promise and transaction is already committed/rolled back
       // return the result returned by given transaction work
@@ -136,17 +190,20 @@ export default class TransactionExecutor {
   }
 
   _computeDelayWithJitter (delayMs) {
-    const jitter = (delayMs * this._jitterFactor)
+    const jitter = delayMs * this._jitterFactor
     const min = delayMs - jitter
     const max = delayMs + jitter
     return Math.random() * (max - min) + min
   }
 
   static _canRetryOn (error) {
-    return error && error.code &&
+    return (
+      error &&
+      error.code &&
       (error.code === SERVICE_UNAVAILABLE ||
-      error.code === SESSION_EXPIRED ||
-      this._isTransientError(error))
+        error.code === SESSION_EXPIRED ||
+        this._isTransientError(error))
+    )
   }
 
   static _isTransientError (error) {
@@ -157,7 +214,10 @@ export default class TransactionExecutor {
 
     const code = error.code
     if (code.indexOf('TransientError') >= 0) {
-      if (code === 'Neo.TransientError.Transaction.Terminated' || code === 'Neo.TransientError.Transaction.LockClientStopped') {
+      if (
+        code === 'Neo.TransientError.Transaction.Terminated' ||
+        code === 'Neo.TransientError.Transaction.LockClientStopped'
+      ) {
         return false
       }
       return true
@@ -170,16 +230,20 @@ export default class TransactionExecutor {
       throw newError('Max retry time should be >= 0: ' + this._maxRetryTimeMs)
     }
     if (this._initialRetryDelayMs < 0) {
-      throw newError('Initial retry delay should >= 0: ' + this._initialRetryDelayMs)
+      throw newError(
+        'Initial retry delay should >= 0: ' + this._initialRetryDelayMs
+      )
     }
     if (this._multiplier < 1.0) {
       throw newError('Multiplier should be >= 1.0: ' + this._multiplier)
     }
     if (this._jitterFactor < 0 || this._jitterFactor > 1) {
-      throw newError('Jitter factor should be in [0.0, 1.0]: ' + this._jitterFactor)
+      throw newError(
+        'Jitter factor should be in [0.0, 1.0]: ' + this._jitterFactor
+      )
     }
   }
-};
+}
 
 function _valueOrDefault (value, defaultValue) {
   if (value || value === 0) {

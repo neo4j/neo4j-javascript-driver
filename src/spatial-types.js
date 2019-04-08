@@ -36,14 +36,18 @@ export class Point {
     this.srid = assertNumberOrInteger(srid, 'SRID')
     this.x = assertNumber(x, 'X coordinate')
     this.y = assertNumber(y, 'Y coordinate')
-    this.z = (z === null || z === undefined) ? z : assertNumber(z, 'Z coordinate')
+    this.z = z === null || z === undefined ? z : assertNumber(z, 'Z coordinate')
     Object.freeze(this)
   }
 
   toString () {
     return this.z || this.z === 0
-      ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(this.x)}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
-      : `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(this.x)}, y=${formatAsFloat(this.y)}}`
+      ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
+        this.x
+      )}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
+      : `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
+        this.x
+      )}, y=${formatAsFloat(this.y)}}`
   }
 }
 

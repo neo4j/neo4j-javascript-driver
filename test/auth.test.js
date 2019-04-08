@@ -59,7 +59,10 @@ describe('auth', () => {
   })
 
   it('should support parameters in custom auth', () => {
-    const token = neo4j.auth.custom('cat', 'dog', 'apartment', 'pets', { key1: 'value1', key2: 42 })
+    const token = neo4j.auth.custom('cat', 'dog', 'apartment', 'pets', {
+      key1: 'value1',
+      key2: 42
+    })
     expect(token).toEqual({
       scheme: 'pets',
       principal: 'cat',

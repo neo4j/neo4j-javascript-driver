@@ -37,7 +37,11 @@ describe('spatial-types', () => {
 
   beforeAll(done => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    driverWithNativeNumbers = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { disableLosslessIntegers: true })
+    driverWithNativeNumbers = neo4j.driver(
+      'bolt://localhost',
+      sharedNeo4j.authToken,
+      { disableLosslessIntegers: true }
+    )
     ServerVersion.fromDriver(driver).then(version => {
       serverVersion = version
       done()
@@ -58,11 +62,14 @@ describe('spatial-types', () => {
 
   beforeEach(done => {
     session = driver.session()
-    session.run('MATCH (n) DETACH DELETE n').then(() => {
-      done()
-    }).catch(error => {
-      done.fail(error)
-    })
+    session
+      .run('MATCH (n) DETACH DELETE n')
+      .then(() => {
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
   })
 
   afterEach(() => {
@@ -84,16 +91,13 @@ describe('spatial-types', () => {
 
     try {
       point.x = 5.6
-    } catch (e) {
-    }
+    } catch (e) {}
     try {
       point.y = 7.8
-    } catch (e) {
-    }
+    } catch (e) {}
     try {
       point.z = 9.0
-    } catch (e) {
-    }
+    } catch (e) {}
 
     expect(point.x).toEqual(1.2)
     expect(point.y).toEqual(3.4)
@@ -101,51 +105,73 @@ describe('spatial-types', () => {
   })
 
   it('should receive 2D points', done => {
-    testReceivingOfPoints(done, 'RETURN point({x: 169.99, y: 12.1718})', point => {
-      expect(isPoint(point)).toBeTruthy()
-      expect(point.srid).toEqual(CARTESIAN_2D_CRS_CODE)
-      expect(point.x).toEqual(169.99)
-      expect(point.y).toEqual(12.1718)
-      expect(point.z).toBeUndefined()
-    })
+    testReceivingOfPoints(
+      done,
+      'RETURN point({x: 169.99, y: 12.1718})',
+      point => {
+        expect(isPoint(point)).toBeTruthy()
+        expect(point.srid).toEqual(CARTESIAN_2D_CRS_CODE)
+        expect(point.x).toEqual(169.99)
+        expect(point.y).toEqual(12.1718)
+        expect(point.z).toBeUndefined()
+      }
+    )
   })
 
   it('should receive 2D points with crs', done => {
-    testReceivingOfPoints(done, `RETURN point({x: 2.3, y: 4.5, crs: 'WGS-84'})`, point => {
-      expect(isPoint(point)).toBeTruthy()
-      expect(point.srid).toEqual(WGS_84_2D_CRS_CODE)
-      expect(point.x).toEqual(2.3)
-      expect(point.y).toEqual(4.5)
-      expect(point.z).toBeUndefined()
-    })
+    testReceivingOfPoints(
+      done,
+      `RETURN point({x: 2.3, y: 4.5, crs: 'WGS-84'})`,
+      point => {
+        expect(isPoint(point)).toBeTruthy()
+        expect(point.srid).toEqual(WGS_84_2D_CRS_CODE)
+        expect(point.x).toEqual(2.3)
+        expect(point.y).toEqual(4.5)
+        expect(point.z).toBeUndefined()
+      }
+    )
   })
 
   it('should receive 3D points', done => {
-    testReceivingOfPoints(done, 'RETURN point({x: -19.9, y: 45.99, z: 8.88})', point => {
-      expect(isPoint(point)).toBeTruthy()
-      expect(point.srid).toEqual(CARTESIAN_3D_CRS_CODE)
-      expect(point.x).toEqual(-19.9)
-      expect(point.y).toEqual(45.99)
-      expect(point.z).toEqual(8.88)
-    })
+    testReceivingOfPoints(
+      done,
+      'RETURN point({x: -19.9, y: 45.99, z: 8.88})',
+      point => {
+        expect(isPoint(point)).toBeTruthy()
+        expect(point.srid).toEqual(CARTESIAN_3D_CRS_CODE)
+        expect(point.x).toEqual(-19.9)
+        expect(point.y).toEqual(45.99)
+        expect(point.z).toEqual(8.88)
+      }
+    )
   })
 
   it('should receive 3D points with crs', done => {
-    testReceivingOfPoints(done, `RETURN point({x: 34.76, y: 11.9, z: -99.01, crs: 'WGS-84-3D'})`, point => {
-      expect(isPoint(point)).toBeTruthy()
-      expect(point.srid).toEqual(WGS_84_3D_CRS_CODE)
-      expect(point.x).toEqual(34.76)
-      expect(point.y).toEqual(11.9)
-      expect(point.z).toEqual(-99.01)
-    })
+    testReceivingOfPoints(
+      done,
+      `RETURN point({x: 34.76, y: 11.9, z: -99.01, crs: 'WGS-84-3D'})`,
+      point => {
+        expect(isPoint(point)).toBeTruthy()
+        expect(point.srid).toEqual(WGS_84_3D_CRS_CODE)
+        expect(point.x).toEqual(34.76)
+        expect(point.y).toEqual(11.9)
+        expect(point.z).toEqual(-99.01)
+      }
+    )
   })
 
   it('should send and receive 2D point', done => {
-    testSendingAndReceivingOfPoints(done, new Point(CARTESIAN_2D_CRS_CODE, 19.101, -88.21))
+    testSendingAndReceivingOfPoints(
+      done,
+      new Point(CARTESIAN_2D_CRS_CODE, 19.101, -88.21)
+    )
   })
 
   it('should send and receive 3D point', done => {
-    testSendingAndReceivingOfPoints(done, new Point(WGS_84_3D_CRS_CODE, 1.22, 9.8, -6.65))
+    testSendingAndReceivingOfPoints(
+      done,
+      new Point(WGS_84_3D_CRS_CODE, 1.22, 9.8, -6.65)
+    )
   })
 
   it('should send and receive array of 2D points', done => {
@@ -176,28 +202,39 @@ describe('spatial-types', () => {
   it('should receive point with number srid when disableLosslessIntegers=true', done => {
     session = driverWithNativeNumbers.session()
 
-    testReceivingOfPoints(done, 'RETURN point({x: 42.231, y: 176.938123})', point => {
-      expect(isPoint(point)).toBeTruthy()
-      expect(_.isNumber(point.srid)).toBeTruthy()
-      expect(point.srid).toEqual(CARTESIAN_2D_CRS_CODE.toNumber())
-    })
+    testReceivingOfPoints(
+      done,
+      'RETURN point({x: 42.231, y: 176.938123})',
+      point => {
+        expect(isPoint(point)).toBeTruthy()
+        expect(_.isNumber(point.srid)).toBeTruthy()
+        expect(point.srid).toEqual(CARTESIAN_2D_CRS_CODE.toNumber())
+      }
+    )
   })
 
   it('should send and receive point with number srid when disableLosslessIntegers=true', done => {
     session = driverWithNativeNumbers.session()
 
-    testSendingAndReceivingOfPoints(done, new Point(CARTESIAN_3D_CRS_CODE.toNumber(), 12.87, 13.89, 14.901))
+    testSendingAndReceivingOfPoints(
+      done,
+      new Point(CARTESIAN_3D_CRS_CODE.toNumber(), 12.87, 13.89, 14.901)
+    )
   })
 
   it('should convert points to string', () => {
     const point1 = new Point(CARTESIAN_3D_CRS_CODE, 19.24, 100.29, 20.22222)
-    expect(point1.toString()).toEqual('Point{srid=9157, x=19.24, y=100.29, z=20.22222}')
+    expect(point1.toString()).toEqual(
+      'Point{srid=9157, x=19.24, y=100.29, z=20.22222}'
+    )
 
     const point2 = new Point(WGS_84_2D_CRS_CODE, 1.00005, 2.00006)
     expect(point2.toString()).toEqual('Point{srid=4326, x=1.00005, y=2.00006}')
 
     const point3 = new Point(WGS_84_3D_CRS_CODE, 1.111, 2.222, 0.0)
-    expect(point3.toString()).toEqual('Point{srid=4979, x=1.111, y=2.222, z=0.0}')
+    expect(point3.toString()).toEqual(
+      'Point{srid=4979, x=1.111, y=2.222, z=0.0}'
+    )
 
     const point4 = new Point(CARTESIAN_2D_CRS_CODE, 78.15, 92.2, null)
     expect(point4.toString()).toEqual('Point{srid=7203, x=78.15, y=92.2}')
@@ -205,8 +242,15 @@ describe('spatial-types', () => {
     const point5 = new Point(WGS_84_2D_CRS_CODE, 123.9, 64.5, undefined)
     expect(point5.toString()).toEqual('Point{srid=4326, x=123.9, y=64.5}')
 
-    const point6 = new Point(CARTESIAN_2D_CRS_CODE, 23.9378123, 67.3891, Number.NaN)
-    expect(point6.toString()).toEqual('Point{srid=7203, x=23.9378123, y=67.3891}')
+    const point6 = new Point(
+      CARTESIAN_2D_CRS_CODE,
+      23.9378123,
+      67.3891,
+      Number.NaN
+    )
+    expect(point6.toString()).toEqual(
+      'Point{srid=7203, x=23.9378123, y=67.3891}'
+    )
   })
 
   it('should validate types of constructor arguments for Point', () => {
@@ -260,16 +304,20 @@ describe('spatial-types', () => {
       return
     }
 
-    session.run('CREATE (n: Node {value: $value}) RETURN n.value', { value: originalValue }).then(result => {
-      const records = result.records
-      expect(records.length).toEqual(1)
+    session
+      .run('CREATE (n: Node {value: $value}) RETURN n.value', {
+        value: originalValue
+      })
+      .then(result => {
+        const records = result.records
+        expect(records.length).toEqual(1)
 
-      const receivedPoint = records[0].get(0)
-      expect(receivedPoint).toEqual(originalValue)
+        const receivedPoint = records[0].get(0)
+        expect(receivedPoint).toEqual(originalValue)
 
-      session.close()
-      done()
-    })
+        session.close()
+        done()
+      })
   }
 
   function neo4jDoesNotSupportPoints (done) {

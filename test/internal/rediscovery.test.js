@@ -51,7 +51,10 @@ describe('rediscovery', () => {
 
   it('should throw when multiple records are returned', done => {
     const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => [new Record(['a'], ['aaa']), new Record(['b'], ['bbb'])]
+      callRoutingProcedure: () => [
+        new Record(['a'], ['aaa']),
+        new Record(['b'], ['bbb'])
+      ]
     })
 
     lookupRoutingTableOnRouter(util).catch(error => {
@@ -152,14 +155,32 @@ describe('rediscovery', () => {
   })
 
   it('should return valid routing table with 2 routers, 2 readers and 2 writers', done => {
-    testValidRoutingTable(['router1', 'router2'], ['reader1', 'reader2'], ['writer1', 'writer2'], int(Date.now()), done)
+    testValidRoutingTable(
+      ['router1', 'router2'],
+      ['reader1', 'reader2'],
+      ['writer1', 'writer2'],
+      int(Date.now()),
+      done
+    )
   })
 
   it('should return valid routing table with 1 router, 3 readers and 1 writer', done => {
-    testValidRoutingTable(['router1'], ['reader1', 'reader2', 'reader3'], ['writer1'], int(12345), done)
+    testValidRoutingTable(
+      ['router1'],
+      ['reader1', 'reader2', 'reader3'],
+      ['writer1'],
+      int(12345),
+      done
+    )
   })
 
-  function testValidRoutingTable (routerAddresses, readerAddresses, writerAddresses, expires, done) {
+  function testValidRoutingTable (
+    routerAddresses,
+    readerAddresses,
+    writerAddresses,
+    expires,
+    done
+  ) {
     const util = new FakeRoutingUtil({
       callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
       parseTtl: () => expires,
@@ -179,7 +200,11 @@ describe('rediscovery', () => {
       expect(routingTable.expirationTime).toEqual(expires)
 
       const allServers = routingTable.serversDiff(new RoutingTable()).sort()
-      const allExpectedServers = [...routerAddresses, ...readerAddresses, ...writerAddresses].sort()
+      const allExpectedServers = [
+        ...routerAddresses,
+        ...readerAddresses,
+        ...writerAddresses
+      ].sort()
       expect(allServers).toEqual(allExpectedServers)
 
       done()
@@ -201,7 +226,11 @@ describe('rediscovery', () => {
   }
 
   class FakeRoutingUtil extends RoutingUtil {
-    constructor ({ callRoutingProcedure = shouldNotBeCalled, parseTtl = shouldNotBeCalled, parseServers = shouldNotBeCalled }) {
+    constructor ({
+      callRoutingProcedure = shouldNotBeCalled,
+      parseTtl = shouldNotBeCalled,
+      parseServers = shouldNotBeCalled
+    }) {
       super()
       this._callAvailableRoutingProcedure = callRoutingProcedure
       this._parseTtl = parseTtl

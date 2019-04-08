@@ -49,8 +49,9 @@ describe('packstream-v1', () => {
   })
 
   it('should pack structures', () => {
-    expect(packAndUnpack(new Structure(1, ['Hello, world!!!'])).fields[0])
-      .toBe('Hello, world!!!')
+    expect(packAndUnpack(new Structure(1, ['Hello, world!!!'])).fields[0]).toBe(
+      'Hello, world!!!'
+    )
   })
 
   it('should pack lists', () => {

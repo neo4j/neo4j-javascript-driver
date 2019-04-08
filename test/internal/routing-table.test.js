@@ -159,7 +159,12 @@ describe('routing-table', () => {
   })
 
   it('should include different servers in diff', () => {
-    const oldTable = createTable([1, 2, 11], [22, 3, 33, 4], [5, 44, 6], notExpired())
+    const oldTable = createTable(
+      [1, 2, 11],
+      [22, 3, 33, 4],
+      [5, 44, 6],
+      notExpired()
+    )
     const newTable = createTable([1], [2, 3, 4, 6], [5], notExpired())
 
     const servers = oldTable.serversDiff(newTable)
@@ -172,7 +177,9 @@ describe('routing-table', () => {
     try {
       Date.now = () => 4242
       const table = createTable([1, 2], [3, 4], [5, 6], 42)
-      expect(table.toString()).toEqual('RoutingTable[expirationTime=42, currentTime=4242, routers=[1,2], readers=[3,4], writers=[5,6]]')
+      expect(table.toString()).toEqual(
+        'RoutingTable[expirationTime=42, currentTime=4242, routers=[1,2], readers=[3,4], writers=[5,6]]'
+      )
     } finally {
       Date.now = originalDateNow
     }

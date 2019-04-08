@@ -29,7 +29,13 @@ describe('ProtocolHandshaker', () => {
       write: buffer => writtenBuffers.push(buffer)
     }
 
-    const handshaker = new ProtocolHandshaker(null, fakeChannel, null, false, Logger.noOp())
+    const handshaker = new ProtocolHandshaker(
+      null,
+      fakeChannel,
+      null,
+      false,
+      Logger.noOp()
+    )
 
     handshaker.writeHandshakeRequest()
 
@@ -41,11 +47,19 @@ describe('ProtocolHandshaker', () => {
     const protocolVersion1 = '00 00 00 01'
     const noProtocolVersion = '00 00 00 00'
 
-    expect(writtenBuffers[0].toHex()).toEqual(`${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`)
+    expect(writtenBuffers[0].toHex()).toEqual(
+      `${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`
+    )
   })
 
   it('should create protocol with valid version', () => {
-    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp())
+    const handshaker = new ProtocolHandshaker(
+      null,
+      null,
+      null,
+      false,
+      Logger.noOp()
+    )
 
     // buffer with Bolt V1
     const buffer = handshakeResponse(1)
@@ -58,7 +72,13 @@ describe('ProtocolHandshaker', () => {
   })
 
   it('should fail to create protocol from invalid version', () => {
-    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp())
+    const handshaker = new ProtocolHandshaker(
+      null,
+      null,
+      null,
+      false,
+      Logger.noOp()
+    )
 
     // buffer with Bolt V42 which is invalid
     const buffer = handshakeResponse(42)
@@ -67,7 +87,13 @@ describe('ProtocolHandshaker', () => {
   })
 
   it('should fail to create protocol from HTTP as invalid version', () => {
-    const handshaker = new ProtocolHandshaker(null, null, null, false, Logger.noOp())
+    const handshaker = new ProtocolHandshaker(
+      null,
+      null,
+      null,
+      false,
+      Logger.noOp()
+    )
 
     // buffer with HTTP magic int
     const buffer = handshakeResponse(1213486160)

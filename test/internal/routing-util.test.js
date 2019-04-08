@@ -20,7 +20,12 @@
 import RoutingUtil from '../../src/internal/routing-util'
 import Record from '../../src/record'
 import Integer, { int } from '../../src/integer'
-import { newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
+import {
+  newError,
+  PROTOCOL_ERROR,
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
+} from '../../src/error'
 import lolex from 'lolex'
 import FakeConnection from './fake-connection'
 
@@ -39,46 +44,57 @@ describe('RoutingUtil', () => {
   it('should return retrieved records when query succeeds', done => {
     const session = FakeSession.successful({ records: ['foo', 'bar', 'baz'] })
 
-    callRoutingProcedure(session).then(records => {
-      expect(records).toEqual(['foo', 'bar', 'baz'])
-      done()
-    }).catch(console.log)
+    callRoutingProcedure(session)
+      .then(records => {
+        expect(records).toEqual(['foo', 'bar', 'baz'])
+        done()
+      })
+      .catch(console.log)
   })
 
   it('should close session when query succeeds', done => {
     const session = FakeSession.successful({ records: ['foo', 'bar', 'baz'] })
 
-    callRoutingProcedure(session).then(() => {
-      expect(session.isClosed()).toBeTruthy()
-      done()
-    }).catch(console.log)
+    callRoutingProcedure(session)
+      .then(() => {
+        expect(session.isClosed()).toBeTruthy()
+        done()
+      })
+      .catch(console.log)
   })
 
   it('should not close session when query fails', done => {
     const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED))
 
-    callRoutingProcedure(session).then(() => {
-      expect(session.isClosed()).toBeFalsy()
-      done()
-    }).catch(console.log)
+    callRoutingProcedure(session)
+      .then(() => {
+        expect(session.isClosed()).toBeFalsy()
+        done()
+      })
+      .catch(console.log)
   })
 
   it('should return null on connection error', done => {
     const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED))
 
-    callRoutingProcedure(session).then(records => {
-      expect(records).toBeNull()
-      done()
-    }).catch(console.log)
+    callRoutingProcedure(session)
+      .then(records => {
+        expect(records).toBeNull()
+        done()
+      })
+      .catch(console.log)
   })
 
   it('should fail when procedure not found', done => {
-    const session = FakeSession.failed(newError('Oh no!', 'Neo.ClientError.Procedure.ProcedureNotFound'))
+    const session = FakeSession.failed(
+      newError('Oh no!', 'Neo.ClientError.Procedure.ProcedureNotFound')
+    )
 
     callRoutingProcedure(session).catch(error => {
       expect(error.code).toBe(SERVICE_UNAVAILABLE)
-      expect(error.message)
-        .toBe(`Server at ${ROUTER_ADDRESS} can't perform routing. Make sure you are connecting to a causal cluster`)
+      expect(error.message).toBe(
+        `Server at ${ROUTER_ADDRESS} can't perform routing. Make sure you are connecting to a causal cluster`
+      )
       done()
     })
   })
@@ -88,7 +104,9 @@ describe('RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection)
 
     callRoutingProcedure(session, {}).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getServers'])
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.cluster.routing.getServers'
+      ])
       expect(connection.seenParameters).toEqual([{}])
       done()
     })
@@ -99,7 +117,9 @@ describe('RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection)
 
     callRoutingProcedure(session, {}).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable($context)'])
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.cluster.routing.getRoutingTable($context)'
+      ])
       expect(connection.seenParameters).toEqual([{ context: {} }])
       done()
     })
@@ -109,11 +129,17 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.2.0')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, { key1: 'value1', key2: 'value2' }).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable($context)'])
-      expect(connection.seenParameters).toEqual([{ context: { key1: 'value1', key2: 'value2' } }])
-      done()
-    })
+    callRoutingProcedure(session, { key1: 'value1', key2: 'value2' }).then(
+      () => {
+        expect(connection.seenStatements).toEqual([
+          'CALL dbms.cluster.routing.getRoutingTable($context)'
+        ])
+        expect(connection.seenParameters).toEqual([
+          { context: { key1: 'value1', key2: 'value2' } }
+        ])
+        done()
+      }
+    )
   })
 
   it('should use getRoutingTable procedure with empty routing context when server version is newer than 3.2.0', done => {
@@ -121,7 +147,9 @@ describe('RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection)
 
     callRoutingProcedure(session, {}).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable($context)'])
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.cluster.routing.getRoutingTable($context)'
+      ])
       expect(connection.seenParameters).toEqual([{ context: {} }])
       done()
     })
@@ -132,8 +160,12 @@ describe('RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection)
 
     callRoutingProcedure(session, { key1: 'foo', key2: 'bar' }).then(() => {
-      expect(connection.seenStatements).toEqual(['CALL dbms.cluster.routing.getRoutingTable($context)'])
-      expect(connection.seenParameters).toEqual([{ context: { key1: 'foo', key2: 'bar' } }])
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.cluster.routing.getRoutingTable($context)'
+      ])
+      expect(connection.seenParameters).toEqual([
+        { context: { key1: 'foo', key2: 'bar' } }
+      ])
       done()
     })
   })
@@ -187,52 +219,84 @@ describe('RoutingUtil', () => {
     testValidServersParsing([], ['reader1'], ['writer1'])
 
     testValidServersParsing(['router1'], ['reader1'], ['writer1'])
-    testValidServersParsing(['router1', 'router2'], ['reader1', 'reader2'], ['writer1'])
-    testValidServersParsing(['router1', 'router2'], ['reader1', 'reader2'], ['writer1', 'writer2'])
+    testValidServersParsing(
+      ['router1', 'router2'],
+      ['reader1', 'reader2'],
+      ['writer1']
+    )
+    testValidServersParsing(
+      ['router1', 'router2'],
+      ['reader1', 'reader2'],
+      ['writer1', 'writer2']
+    )
   })
 
   it('should fail to parse servers entry when record does not have servers', done => {
-    const record = new Record(['ttl', 'notServers'], [int(42), [{ 'role': 'READ', 'addresses': ['1', '2', '3'] }]])
+    const record = new Record(
+      ['ttl', 'notServers'],
+      [int(42), [{ role: 'READ', addresses: ['1', '2', '3'] }]]
+    )
     expectProtocolError(() => parseServers(record), done)
   })
 
   it('should fail to parse servers entry without role', done => {
-    const record = new Record(['ttl', 'servers'], [int(42), [{ 'notRole': 'READ', 'addresses': ['1', '2', '3'] }]])
+    const record = new Record(
+      ['ttl', 'servers'],
+      [int(42), [{ notRole: 'READ', addresses: ['1', '2', '3'] }]]
+    )
     expectProtocolError(() => parseServers(record), done)
   })
 
   it('should fail to parse servers entry with illegal role', done => {
-    const record = new Record(['ttl', 'servers'], [int(42), [{ 'role': 'ARBITER', 'addresses': ['1', '2', '3'] }]])
+    const record = new Record(
+      ['ttl', 'servers'],
+      [int(42), [{ role: 'ARBITER', addresses: ['1', '2', '3'] }]]
+    )
     expectProtocolError(() => parseServers(record), done)
   })
 
   it('should fail to parse servers entry with just ttl', done => {
-    const record = new Record(['ttl', 'servers'], [int(42), [{ 'role': 'READ' }]])
+    const record = new Record(['ttl', 'servers'], [int(42), [{ role: 'READ' }]])
     expectProtocolError(() => parseServers(record), done)
   })
 
   it('should fail to parse servers entry without addresses', done => {
-    const record = new Record(['ttl', 'servers'], [int(42), [{ 'role': 'WRITE', 'notAddresses': ['1', '2', '3'] }]])
+    const record = new Record(
+      ['ttl', 'servers'],
+      [int(42), [{ role: 'WRITE', notAddresses: ['1', '2', '3'] }]]
+    )
     expectProtocolError(() => parseServers(record), done)
   })
 
   it('should fail to parse servers entry with string addresses', done => {
-    const record = new Record(['ttl', 'servers'], [int(42), [{ 'role': 'WRITE', 'addresses': '' }]])
+    const record = new Record(
+      ['ttl', 'servers'],
+      [int(42), [{ role: 'WRITE', addresses: '' }]]
+    )
     expectProtocolError(() => parseServers(record), done)
   })
 
   it('should fail to parse servers entry with null addresses', done => {
-    const record = new Record(['ttl', 'servers'], [int(42), [{ 'role': 'WRITE', 'addresses': null }]])
+    const record = new Record(
+      ['ttl', 'servers'],
+      [int(42), [{ role: 'WRITE', addresses: null }]]
+    )
     expectProtocolError(() => parseServers(record), done)
   })
 
   it('should fail to parse servers entry with integer addresses', done => {
-    const record = new Record(['ttl', 'servers'], [int(42), [{ 'role': 'WRITE', 'addresses': 12345 }]])
+    const record = new Record(
+      ['ttl', 'servers'],
+      [int(42), [{ role: 'WRITE', addresses: 12345 }]]
+    )
     expectProtocolError(() => parseServers(record), done)
   })
 
   it('should fail to parse servers entry with object addresses', done => {
-    const record = new Record(['ttl', 'servers'], [int(42), [{ 'role': 'WRITE', 'addresses': { key: ['localhost'] } }]])
+    const record = new Record(
+      ['ttl', 'servers'],
+      [int(42), [{ role: 'WRITE', addresses: { key: ['localhost'] } }]]
+    )
     expectProtocolError(() => parseServers(record), done)
   })
 
@@ -251,8 +315,16 @@ describe('RoutingUtil', () => {
     expect(expirationTime2).toEqual(expectedExpirationTime)
   }
 
-  function testValidServersParsing (routerAddresses, readerAddresses, writerAddresses) {
-    const record = newRecord({ routers: routerAddresses, readers: readerAddresses, writers: writerAddresses })
+  function testValidServersParsing (
+    routerAddresses,
+    readerAddresses,
+    writerAddresses
+  ) {
+    const record = newRecord({
+      routers: routerAddresses,
+      readers: readerAddresses,
+      writers: writerAddresses
+    })
 
     const { routers, readers, writers } = parseServers(record)
 
@@ -276,20 +348,28 @@ describe('RoutingUtil', () => {
     return util.parseServers(record, ROUTER_ADDRESS)
   }
 
-  function newRecord ({ ttl = int(42), routers = [], readers = [], writers = [] }) {
+  function newRecord ({
+    ttl = int(42),
+    routers = [],
+    readers = [],
+    writers = []
+  }) {
     const routersField = {
-      'role': 'ROUTE',
-      'addresses': routers
+      role: 'ROUTE',
+      addresses: routers
     }
     const readersField = {
-      'role': 'READ',
-      'addresses': readers
+      role: 'READ',
+      addresses: readers
     }
     const writersField = {
-      'role': 'WRITE',
-      'addresses': writers
+      role: 'WRITE',
+      addresses: writers
     }
-    return new Record(['ttl', 'servers'], [ttl, [routersField, readersField, writersField]])
+    return new Record(
+      ['ttl', 'servers'],
+      [ttl, [routersField, readersField, writersField]]
+    )
   }
 
   function expectProtocolError (action, done) {

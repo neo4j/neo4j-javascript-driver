@@ -21,23 +21,23 @@ import neo4j from '../../src'
 
 class UnsupportedPlatform {
   pathJoin () {
-    throw new Error('Module \'path\' is not available on this platform')
+    throw new Error("Module 'path' is not available on this platform")
   }
 
   spawn (command, args) {
-    throw new Error('Module \'child_process\' is not available on this platform')
+    throw new Error("Module 'child_process' is not available on this platform")
   }
 
   listDir (path) {
-    throw new Error('Module \'fs\' is not available on this platform')
+    throw new Error("Module 'fs' is not available on this platform")
   }
 
   removeDir (path) {
-    throw new Error('Module \'fs\' is not available on this platform')
+    throw new Error("Module 'fs' is not available on this platform")
   }
 
   isDirectory (path) {
-    throw new Error('Module \'fs\' is not available on this platform')
+    throw new Error("Module 'fs' is not available on this platform")
   }
 }
 
@@ -138,9 +138,14 @@ function start (dir, givenNeoCtrlArgs) {
     createDefaultUser(neo4jDir)
     startNeo4j(neo4jDir)
   } else {
-    console.log('Boltkit unavailable. Please install it by running \'pip install --upgrade boltkit.')
+    console.log(
+      "Boltkit unavailable. Please install it by running 'pip install --upgrade boltkit."
+    )
     console.log('Integration tests will be skipped.')
-    console.log('Command \'neoctrl-install -h\' resulted in\n' + boltKitCheckResult.fullOutput)
+    console.log(
+      "Command 'neoctrl-install -h' resulted in\n" +
+        boltKitCheckResult.fullOutput
+    )
   }
 }
 
@@ -163,58 +168,93 @@ function installNeo4j (dir, givenNeoCtrlArgs) {
   const neo4jVersion = extractNeo4jVersion(argsArray)
   const existingNeo4jDir = findExistingNeo4jDir(dir, neo4jVersion)
   if (existingNeo4jDir) {
-    console.log('Found existing Neo4j ' + neo4jVersion + ' installation at: \'' + existingNeo4jDir + '\'')
+    console.log(
+      'Found existing Neo4j ' +
+        neo4jVersion +
+        " installation at: '" +
+        existingNeo4jDir +
+        "'"
+    )
     return existingNeo4jDir
   } else {
     platform.removeDir(dir)
 
-    console.log('Installing Neo4j with neoctrl arguments: \'' + neoCtrlArgs + '\'')
+    console.log(
+      "Installing Neo4j with neoctrl arguments: '" + neoCtrlArgs + "'"
+    )
     const result = runCommand('neoctrl-install', argsArray)
     if (!result.successful) {
       throw new Error('Unable to install Neo4j.\n' + result.fullOutput)
     }
 
     const installedNeo4jDir = result.stdout
-    console.log('Installed Neo4j to: \'' + installedNeo4jDir + '\'')
+    console.log("Installed Neo4j to: '" + installedNeo4jDir + "'")
     return installedNeo4jDir
   }
 }
 
 function configureNeo4j (neo4jDir) {
-  console.log('Configuring Neo4j at: \'' + neo4jDir + '\' with ' + JSON.stringify(additionalConfig))
+  console.log(
+    "Configuring Neo4j at: '" +
+      neo4jDir +
+      "' with " +
+      JSON.stringify(additionalConfig)
+  )
 
-  const configEntries = Object.keys(additionalConfig).map(key => `${key}=${additionalConfig[key]}`)
-  const configureResult = runCommand('neoctrl-configure', [neo4jDir, ...configEntries])
+  const configEntries = Object.keys(additionalConfig).map(
+    key => `${key}=${additionalConfig[key]}`
+  )
+  const configureResult = runCommand('neoctrl-configure', [
+    neo4jDir,
+    ...configEntries
+  ])
   if (!configureResult.successful) {
     throw new Error('Unable to configure Neo4j.\n' + configureResult.fullOutput)
   }
 
-  console.log('Configured Neo4j at: \'' + neo4jDir + '\'')
+  console.log("Configured Neo4j at: '" + neo4jDir + "'")
 }
 
 function createDefaultUser (neo4jDir) {
-  console.log('Creating user \'' + username + '\' for Neo4j at: \'' + neo4jDir + '\'')
-  const result = runCommand('neoctrl-create-user', [neo4jDir, username, password])
+  console.log(
+    "Creating user '" + username + "' for Neo4j at: '" + neo4jDir + "'"
+  )
+  const result = runCommand('neoctrl-create-user', [
+    neo4jDir,
+    username,
+    password
+  ])
   if (!result.successful) {
-    throw new Error('Unable to create user: \'' + username + '\' for Neo4j at: ' + neo4jDir + '\'\n' + result.fullOutput)
+    throw new Error(
+      "Unable to create user: '" +
+        username +
+        "' for Neo4j at: " +
+        neo4jDir +
+        "'\n" +
+        result.fullOutput
+    )
   }
-  console.log('Created user \'' + username + '\' for Neo4j at: \'' + neo4jDir + '\'')
+  console.log(
+    "Created user '" + username + "' for Neo4j at: '" + neo4jDir + "'"
+  )
 }
 
 function startNeo4j (neo4jDir) {
-  console.log('Starting Neo4j at: \'' + neo4jDir + '\'')
+  console.log("Starting Neo4j at: '" + neo4jDir + "'")
   const result = runCommand('neoctrl-start', [neo4jDir])
   if (!result.successful) {
     throw new Error('Unable to start Neo4j.\n' + result.fullOutput)
   }
-  console.log('Started Neo4j at: \'' + neo4jDir + '\'')
+  console.log("Started Neo4j at: '" + neo4jDir + "'")
 }
 
 function stopNeo4j (neo4jDir) {
-  console.log('Stopping Neo4j at: \'' + neo4jDir + '\'')
+  console.log("Stopping Neo4j at: '" + neo4jDir + "'")
   const result = runCommand('neoctrl-stop', [neo4jDir])
   if (!result.successful) {
-    throw new Error('Unable to stop Neo4j at: \'' + neo4jDir + '\'\n' + result.fullOutput)
+    throw new Error(
+      "Unable to stop Neo4j at: '" + neo4jDir + "'\n" + result.fullOutput
+    )
   }
 }
 
@@ -231,7 +271,9 @@ function findExistingNeo4jDir (dir, neo4jVersion) {
     return null
   }
 
-  const dirs = platform.listDir(dir).filter(entry => isNeo4jDir(entry, neo4jVersion))
+  const dirs = platform
+    .listDir(dir)
+    .filter(entry => isNeo4jDir(entry, neo4jVersion))
     .map(entry => platform.pathJoin(dir, entry))
     .filter(entry => platform.isDirectory(entry))
 
@@ -272,10 +314,19 @@ class RunCommandResult {
     this.successful = spawnResult.status === 0
     this.stdout = (spawnResult.stdout || '').toString().trim()
     this.stderr = (spawnResult.stderr || '').toString().trim()
-    this.fullOutput = 'STDOUT:\n\t' + this.stdout + '\n' +
-      'STDERR:\n\t' + this.stderr + '\n' +
-      'EXIT CODE:\n\t' + spawnResult.status + '\n' +
-      'ERROR:\n\t' + spawnResult.error + '\n'
+    this.fullOutput =
+      'STDOUT:\n\t' +
+      this.stdout +
+      '\n' +
+      'STDERR:\n\t' +
+      this.stderr +
+      '\n' +
+      'EXIT CODE:\n\t' +
+      spawnResult.status +
+      '\n' +
+      'ERROR:\n\t' +
+      spawnResult.error +
+      '\n'
   }
 }
 

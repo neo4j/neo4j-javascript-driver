@@ -59,10 +59,12 @@ export default class RoutingTable {
    * @return {boolean} `true` when this table contains servers to serve the required operation, `false` otherwise.
    */
   isStaleFor (accessMode) {
-    return this.expirationTime.lessThan(Date.now()) ||
+    return (
+      this.expirationTime.lessThan(Date.now()) ||
       this.routers.length < MIN_ROUTERS ||
       (accessMode === READ && this.readers.length === 0) ||
       (accessMode === WRITE && this.writers.length === 0)
+    )
   }
 
   _allServers () {
@@ -70,12 +72,14 @@ export default class RoutingTable {
   }
 
   toString () {
-    return `RoutingTable[` +
+    return (
+      `RoutingTable[` +
       `expirationTime=${this.expirationTime}, ` +
       `currentTime=${Date.now()}, ` +
       `routers=[${this.routers}], ` +
       `readers=[${this.readers}], ` +
       `writers=[${this.writers}]]`
+    )
   }
 }
 

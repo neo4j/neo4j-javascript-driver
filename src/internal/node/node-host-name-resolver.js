@@ -25,12 +25,14 @@ export default class NodeHostNameResolver extends BaseHostNameResolver {
   resolve (seedRouter) {
     const parsedAddress = urlUtil.parseDatabaseUrl(seedRouter)
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       nodeDns.lookup(parsedAddress.host, { all: true }, (error, addresses) => {
         if (error) {
           resolve(this._resolveToItself(seedRouter))
         } else {
-          const addressesWithPorts = addresses.map(address => addressWithPort(address, parsedAddress.port))
+          const addressesWithPorts = addresses.map(address =>
+            addressWithPort(address, parsedAddress.port)
+          )
           resolve(addressesWithPorts)
         }
       })
@@ -46,5 +48,7 @@ function addressWithPort (addressObject, port) {
     return address
   }
 
-  return addressFamily === 6 ? urlUtil.formatIPv6Address(address, port) : urlUtil.formatIPv4Address(address, port)
+  return addressFamily === 6
+    ? urlUtil.formatIPv6Address(address, port)
+    : urlUtil.formatIPv4Address(address, port)
 }

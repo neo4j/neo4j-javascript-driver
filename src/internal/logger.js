@@ -151,29 +151,25 @@ class NoOpLogger extends Logger {
     return false
   }
 
-  error (message) {
-  }
+  error (message) {}
 
   isWarnEnabled () {
     return false
   }
 
-  warn (message) {
-  }
+  warn (message) {}
 
   isInfoEnabled () {
     return false
   }
 
-  info (message) {
-  }
+  info (message) {}
 
   isDebugEnabled () {
     return false
   }
 
-  debug (message) {
-  }
+  debug (message) {}
 }
 
 const noOpLogger = new NoOpLogger()
@@ -198,7 +194,11 @@ function extractConfiguredLevel (loggingConfig) {
     const configuredLevel = loggingConfig.level
     const value = levels[configuredLevel]
     if (!value && value !== 0) {
-      throw newError(`Illegal logging level: ${configuredLevel}. Supported levels are: ${Object.keys(levels)}`)
+      throw newError(
+        `Illegal logging level: ${configuredLevel}. Supported levels are: ${Object.keys(
+          levels
+        )}`
+      )
     }
     return configuredLevel
   }

@@ -42,7 +42,10 @@ describe('Record', () => {
 
   it('should transform Record into Object', () => {
     // Given
-    const record = new Record(['name', 'age', 'nested'], ['Bob', 20.5, { test: true }])
+    const record = new Record(
+      ['name', 'age', 'nested'],
+      ['Bob', 20.5, { test: true }]
+    )
 
     // When
     const obj = record.toObject()
@@ -60,8 +63,11 @@ describe('Record', () => {
     // When & Then
     expect(() => {
       record.get('age')
-    }).toThrow(new Neo4jError(
-      "This record has no field with key 'age', available key are: [name]."))
+    }).toThrow(
+      new Neo4jError(
+        "This record has no field with key 'age', available key are: [name]."
+      )
+    )
   })
 
   it('should allow getting fields by index', () => {
@@ -79,9 +85,12 @@ describe('Record', () => {
     // When & Then
     expect(() => {
       record.get(1)
-    }).toThrow(new Neo4jError(
-      "This record has no field with index '1'. Remember that indexes start at `0`, " +
-      'and make sure your statement returns records in the shape you meant it to.'))
+    }).toThrow(
+      new Neo4jError(
+        "This record has no field with index '1'. Remember that indexes start at `0`, " +
+          'and make sure your statement returns records in the shape you meant it to.'
+      )
+    )
   })
 
   it('should have length', () => {

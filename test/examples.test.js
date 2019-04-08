@@ -73,22 +73,28 @@ describe('examples', () => {
     // tag::autocommit-transaction[]
     function addPerson (name) {
       const session = driver.session()
-      return session.run('CREATE (a:Person {name: $name})', { name: name }).then(result => {
-        session.close()
-        return result
-      })
+      return session
+        .run('CREATE (a:Person {name: $name})', { name: name })
+        .then(result => {
+          session.close()
+          return result
+        })
     }
 
     // end::autocommit-transaction[]
 
     addPerson('Alice').then(() => {
       const session = driver.session()
-      session.run('MATCH (a:Person {name: $name}) RETURN count(a) AS result', { name: 'Alice' }).then(result => {
-        session.close(() => {
-          expect(result.records[0].get('result').toInt()).toEqual(1)
-          done()
+      session
+        .run('MATCH (a:Person {name: $name}) RETURN count(a) AS result', {
+          name: 'Alice'
         })
-      })
+        .then(result => {
+          session.close(() => {
+            expect(result.records[0].get('result').toInt()).toEqual(1)
+            done()
+          })
+        })
     })
   })
 
@@ -105,13 +111,11 @@ describe('examples', () => {
 
   it('config connection pool example', done => {
     // tag::config-connection-pool[]
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
-      {
-        maxConnectionLifetime: 3 * 60 * 60 * 1000, // 3 hours
-        maxConnectionPoolSize: 50,
-        connectionAcquisitionTimeout: 2 * 60 * 1000 // 120 seconds
-      }
-    )
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+      maxConnectionLifetime: 3 * 60 * 60 * 1000, // 3 hours
+      maxConnectionPoolSize: 50,
+      connectionAcquisitionTimeout: 2 * 60 * 1000 // 120 seconds
+    })
     // end::config-connection-pool[]
 
     driver.verifyConnectivity().then(() => {
@@ -122,11 +126,9 @@ describe('examples', () => {
 
   it('config connection timeout example', done => {
     // tag::config-connection-timeout[]
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
-      {
-        connectionTimeout: 20 * 1000 // 20 seconds
-      }
-    )
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+      connectionTimeout: 20 * 1000 // 20 seconds
+    })
     // end::config-connection-timeout[]
 
     driver.verifyConnectivity().then(() => {
@@ -138,11 +140,9 @@ describe('examples', () => {
   it('config max retry time example', done => {
     // tag::config-max-retry-time[]
     const maxRetryTimeMs = 15 * 1000 // 15 seconds
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
-      {
-        maxTransactionRetryTime: maxRetryTimeMs
-      }
-    )
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+      maxTransactionRetryTime: maxRetryTimeMs
+    })
     // end::config-max-retry-time[]
 
     driver.verifyConnectivity().then(() => {
@@ -153,12 +153,10 @@ describe('examples', () => {
 
   it('config trust example', done => {
     // tag::config-trust[]
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
-      {
-        encrypted: 'ENCRYPTION_ON',
-        trust: 'TRUST_ALL_CERTIFICATES'
-      }
-    )
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+      encrypted: 'ENCRYPTION_ON',
+      trust: 'TRUST_ALL_CERTIFICATES'
+    })
     // end::config-trust[]
 
     driver.verifyConnectivity().then(() => {
@@ -169,11 +167,9 @@ describe('examples', () => {
 
   it('config unencrypted example', done => {
     // tag::config-unencrypted[]
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password),
-      {
-        encrypted: 'ENCRYPTION_OFF'
-      }
-    )
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+      encrypted: 'ENCRYPTION_OFF'
+    })
     // end::config-unencrypted[]
 
     driver.verifyConnectivity().then(() => {
@@ -187,18 +183,24 @@ describe('examples', () => {
     // tag::config-custom-resolver[]
     function createDriver (virtualUri, user, password, addresses) {
       return neo4j.driver(virtualUri, neo4j.auth.basic(user, password), {
-        resolver: (address) => addresses
+        resolver: address => addresses
       })
     }
 
     function addPerson (name) {
-      const driver = createDriver('bolt+routing://x.acme.com', user, password, ['a.acme.com:7575', 'b.acme.com:7676', 'c.acme.com:8787'])
+      const driver = createDriver('bolt+routing://x.acme.com', user, password, [
+        'a.acme.com:7575',
+        'b.acme.com:7676',
+        'c.acme.com:8787'
+      ])
       const session = driver.session(neo4j.WRITE)
 
-      session.run('CREATE (n:Person { name: $name })', { name: name }).then(() => {
-        session.close()
-        driver.close()
-      })
+      session
+        .run('CREATE (n:Person { name: $name })', { name: name })
+        .then(() => {
+          session.close()
+          driver.close()
+        })
     }
     // end::config-custom-resolver[]
 
@@ -214,7 +216,10 @@ describe('examples', () => {
     const parameters = {}
 
     // tag::custom-auth[]
-    const driver = neo4j.driver(uri, neo4j.auth.custom(principal, credentials, realm, scheme, parameters))
+    const driver = neo4j.driver(
+      uri,
+      neo4j.auth.custom(principal, credentials, realm, scheme, parameters)
+    )
     // end::custom-auth[]
 
     driver.verifyConnectivity().then(() => {
@@ -240,7 +245,9 @@ describe('examples', () => {
     // tag::cypher-error[]
     const session = driver.session()
 
-    const readTxPromise = session.readTransaction(tx => tx.run('SELECT * FROM Employees WHERE name = $name', { name: personName }))
+    const readTxPromise = session.readTransaction(tx =>
+      tx.run('SELECT * FROM Employees WHERE name = $name', { name: personName })
+    )
 
     readTxPromise.catch(error => {
       session.close()
@@ -249,10 +256,13 @@ describe('examples', () => {
     // end::cypher-error[]
 
     testResultPromise.then(loggedMsg => {
-      expect(removeLineBreaks(loggedMsg)).toBe(removeLineBreaks(
-        'Invalid input \'L\': expected \'t/T\' (line 1, column 3 (offset: 2))\n' +
-        '"SELECT * FROM Employees WHERE name = $name"\n' +
-        '   ^'))
+      expect(removeLineBreaks(loggedMsg)).toBe(
+        removeLineBreaks(
+          "Invalid input 'L': expected 't/T' (line 1, column 3 (offset: 2))\n" +
+            '"SELECT * FROM Employees WHERE name = $name"\n' +
+            '   ^'
+        )
+      )
       done()
     })
   })
@@ -289,9 +299,12 @@ describe('examples', () => {
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
     const session = driver.session()
 
-    const resultPromise = session.writeTransaction(tx => tx.run(
-      'CREATE (a:Greeting) SET a.message = $message RETURN a.message + ", from node " + id(a)',
-      { message: 'hello, world' }))
+    const resultPromise = session.writeTransaction(tx =>
+      tx.run(
+        'CREATE (a:Greeting) SET a.message = $message RETURN a.message + ", from node " + id(a)',
+        { message: 'hello, world' }
+      )
+    )
 
     resultPromise.then(result => {
       session.close()
@@ -355,10 +368,16 @@ describe('examples', () => {
     // tag::read-write-transaction[]
     const session = driver.session()
 
-    const writeTxPromise = session.writeTransaction(tx => tx.run('CREATE (a:Person {name: $name})', { name: personName }))
+    const writeTxPromise = session.writeTransaction(tx =>
+      tx.run('CREATE (a:Person {name: $name})', { name: personName })
+    )
 
     writeTxPromise.then(() => {
-      const readTxPromise = session.readTransaction(tx => tx.run('MATCH (a:Person {name: $name}) RETURN id(a)', { name: personName }))
+      const readTxPromise = session.readTransaction(tx =>
+        tx.run('MATCH (a:Person {name: $name}) RETURN id(a)', {
+          name: personName
+        })
+      )
 
       readTxPromise.then(result => {
         session.close()
@@ -372,7 +391,9 @@ describe('examples', () => {
     // end::read-write-transaction[]
 
     testResultPromise.then(loggedMsg => {
-      expect(loggedMsg.indexOf('Matched created node with id') === 0).toBeTruthy()
+      expect(
+        loggedMsg.indexOf('Matched created node with id') === 0
+      ).toBeTruthy()
       done()
     })
   })
@@ -382,30 +403,34 @@ describe('examples', () => {
     const names = { nameA: 'Alice', nameB: 'Bob' }
     const tmpSession = driver.session()
 
-    tmpSession.run('CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})', names).then(() => {
-      tmpSession.close(() => {
-        // tag::result-consume[]
-        const session = driver.session()
-        const result = session.run('MATCH (a:Person) RETURN a.name ORDER BY a.name')
-        const collectedNames = []
+    tmpSession
+      .run('CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})', names)
+      .then(() => {
+        tmpSession.close(() => {
+          // tag::result-consume[]
+          const session = driver.session()
+          const result = session.run(
+            'MATCH (a:Person) RETURN a.name ORDER BY a.name'
+          )
+          const collectedNames = []
 
-        result.subscribe({
-          onNext: record => {
-            const name = record.get(0)
-            collectedNames.push(name)
-          },
-          onCompleted: () => {
-            session.close()
+          result.subscribe({
+            onNext: record => {
+              const name = record.get(0)
+              collectedNames.push(name)
+            },
+            onCompleted: () => {
+              session.close()
 
-            console.log('Names: ' + collectedNames.join(', '))
-          },
-          onError: error => {
-            console.log(error)
-          }
+              console.log('Names: ' + collectedNames.join(', '))
+            },
+            onError: error => {
+              console.log(error)
+            }
+          })
+          // end::result-consume[]
         })
-        // end::result-consume[]
       })
-    })
 
     testResultPromise.then(loggedMsg => {
       expect(loggedMsg).toEqual('Names: Alice, Bob')
@@ -419,39 +444,49 @@ describe('examples', () => {
     const personNames = { nameA: 'Alice', nameB: 'Bob' }
     const tmpSession = driver.session()
 
-    tmpSession.run('CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})', personNames).then(() => {
-      tmpSession.close(() => {
-        // tag::result-retain[]
-        const session = driver.session()
+    tmpSession
+      .run(
+        'CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})',
+        personNames
+      )
+      .then(() => {
+        tmpSession.close(() => {
+          // tag::result-retain[]
+          const session = driver.session()
 
-        const readTxPromise = session.readTransaction(tx => tx.run('MATCH (a:Person) RETURN a.name AS name'))
+          const readTxPromise = session.readTransaction(tx =>
+            tx.run('MATCH (a:Person) RETURN a.name AS name')
+          )
 
-        const addEmployeesPromise = readTxPromise.then(result => {
-          const nameRecords = result.records
+          const addEmployeesPromise = readTxPromise.then(result => {
+            const nameRecords = result.records
 
-          let writeTxsPromise = Promise.resolve()
-          for (let i = 0; i < nameRecords.length; i++) {
-            const name = nameRecords[i].get('name')
+            let writeTxsPromise = Promise.resolve()
+            for (let i = 0; i < nameRecords.length; i++) {
+              const name = nameRecords[i].get('name')
 
-            writeTxsPromise = writeTxsPromise.then(() =>
-              session.writeTransaction(tx =>
-                tx.run(
-                  'MATCH (emp:Person {name: $person_name}) ' +
-                  'MERGE (com:Company {name: $company_name}) ' +
-                  'MERGE (emp)-[:WORKS_FOR]->(com)',
-                  { 'person_name': name, 'company_name': companyName })))
-          }
+              writeTxsPromise = writeTxsPromise.then(() =>
+                session.writeTransaction(tx =>
+                  tx.run(
+                    'MATCH (emp:Person {name: $person_name}) ' +
+                      'MERGE (com:Company {name: $company_name}) ' +
+                      'MERGE (emp)-[:WORKS_FOR]->(com)',
+                    { person_name: name, company_name: companyName }
+                  )
+                )
+              )
+            }
 
-          return writeTxsPromise.then(() => nameRecords.length)
+            return writeTxsPromise.then(() => nameRecords.length)
+          })
+
+          addEmployeesPromise.then(employeesCreated => {
+            session.close()
+            console.log('Created ' + employeesCreated + ' employees')
+          })
+          // end::result-retain[]
         })
-
-        addEmployeesPromise.then(employeesCreated => {
-          session.close()
-          console.log('Created ' + employeesCreated + ' employees')
-        })
-        // end::result-retain[]
       })
-    })
 
     testResultPromise.then(loggedMsg => {
       driver.close()
@@ -465,10 +500,14 @@ describe('examples', () => {
     const password = 'wrongPassword'
 
     // tag::service-unavailable[]
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), { maxTransactionRetryTime: 3000 })
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+      maxTransactionRetryTime: 3000
+    })
     const session = driver.session()
 
-    const writeTxPromise = session.writeTransaction(tx => tx.run('CREATE (a:Item)'))
+    const writeTxPromise = session.writeTransaction(tx =>
+      tx.run('CREATE (a:Item)')
+    )
 
     writeTxPromise.catch(error => {
       if (error.code === neo4j.error.SERVICE_UNAVAILABLE) {
@@ -479,7 +518,9 @@ describe('examples', () => {
 
     testResultPromise.then(loggedMsg => {
       driver.close()
-      expect(loggedMsg).toBe('Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE)
+      expect(loggedMsg).toBe(
+        'Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE
+      )
       done()
     })
   })
@@ -491,11 +532,13 @@ describe('examples', () => {
     // tag::session[]
     const session = driver.session()
 
-    session.run('CREATE (a:Person {name: $name})', { 'name': personName }).then(() => {
-      session.close(() => {
-        console.log('Person created, session closed')
+    session
+      .run('CREATE (a:Person {name: $name})', { name: personName })
+      .then(() => {
+        session.close(() => {
+          console.log('Person created, session closed')
+        })
       })
-    })
     // end::session[]
 
     testResultPromise.then(loggedMsg => {
@@ -510,7 +553,9 @@ describe('examples', () => {
 
     // tag::transaction-function[]
     const session = driver.session()
-    const writeTxPromise = session.writeTransaction(tx => tx.run('CREATE (a:Person {name: $name})', { 'name': personName }))
+    const writeTxPromise = session.writeTransaction(tx =>
+      tx.run('CREATE (a:Person {name: $name})', { name: personName })
+    )
 
     writeTxPromise.then(result => {
       session.close()
@@ -533,27 +578,33 @@ describe('examples', () => {
     // tag::pass-bookmarks[]
     // Create a company node
     function addCompany (tx, name) {
-      return tx.run('CREATE (a:Company {name: $name})', { 'name': name })
+      return tx.run('CREATE (a:Company {name: $name})', { name: name })
     }
 
     // Create a person node
     function addPerson (tx, name) {
-      return tx.run('CREATE (a:Person {name: $name})', { 'name': name })
+      return tx.run('CREATE (a:Person {name: $name})', { name: name })
     }
 
     // Create an employment relationship to a pre-existing company node.
     // This relies on the person first having been created.
     function addEmployee (tx, personName, companyName) {
-      return tx.run('MATCH (person:Person {name: $personName}) ' +
-        'MATCH (company:Company {name: $companyName}) ' +
-        'CREATE (person)-[:WORKS_FOR]->(company)', { 'personName': personName, 'companyName': companyName })
+      return tx.run(
+        'MATCH (person:Person {name: $personName}) ' +
+          'MATCH (company:Company {name: $companyName}) ' +
+          'CREATE (person)-[:WORKS_FOR]->(company)',
+        { personName: personName, companyName: companyName }
+      )
     }
 
     // Create a friendship between two people.
     function makeFriends (tx, name1, name2) {
-      return tx.run('MATCH (a:Person {name: $name1}) ' +
-        'MATCH (b:Person {name: $name2}) ' +
-        'MERGE (a)-[:KNOWS]->(b)', { 'name1': name1, 'name2': name2 })
+      return tx.run(
+        'MATCH (a:Person {name: $name1}) ' +
+          'MATCH (b:Person {name: $name2}) ' +
+          'MERGE (a)-[:KNOWS]->(b)',
+        { name1: name1, name2: name2 }
+      )
     }
 
     // To collect friend relationships
@@ -568,7 +619,7 @@ describe('examples', () => {
           const name1 = record.get(0)
           const name2 = record.get(1)
 
-          friends.push({ 'name1': name1, 'name2': name2 })
+          friends.push({ name1: name1, name2: name2 })
         }
       })
     }
@@ -578,10 +629,15 @@ describe('examples', () => {
 
     // Create the first person and employment relationship.
     const session1 = driver.session(neo4j.WRITE)
-    const first = session1.writeTransaction(tx => addCompany(tx, 'Wayne Enterprises')).then(
-      () => session1.writeTransaction(tx => addPerson(tx, 'Alice'))).then(
-      () => session1.writeTransaction(tx => addEmployee(tx, 'Alice', 'Wayne Enterprises'))).then(
-      () => {
+    const first = session1
+      .writeTransaction(tx => addCompany(tx, 'Wayne Enterprises'))
+      .then(() => session1.writeTransaction(tx => addPerson(tx, 'Alice')))
+      .then(() =>
+        session1.writeTransaction(tx =>
+          addEmployee(tx, 'Alice', 'Wayne Enterprises')
+        )
+      )
+      .then(() => {
         savedBookmarks.push(session1.lastBookmark())
 
         return session1.close()
@@ -589,10 +645,13 @@ describe('examples', () => {
 
     // Create the second person and employment relationship.
     const session2 = driver.session(neo4j.WRITE)
-    const second = session2.writeTransaction(tx => addCompany(tx, 'LexCorp')).then(
-      () => session2.writeTransaction(tx => addPerson(tx, 'Bob'))).then(
-      () => session2.writeTransaction(tx => addEmployee(tx, 'Bob', 'LexCorp'))).then(
-      () => {
+    const second = session2
+      .writeTransaction(tx => addCompany(tx, 'LexCorp'))
+      .then(() => session2.writeTransaction(tx => addPerson(tx, 'Bob')))
+      .then(() =>
+        session2.writeTransaction(tx => addEmployee(tx, 'Bob', 'LexCorp'))
+      )
+      .then(() => {
         savedBookmarks.push(session2.lastBookmark())
 
         return session2.close()
@@ -602,11 +661,11 @@ describe('examples', () => {
     const last = Promise.all([first, second]).then(ignore => {
       const session3 = driver.session(neo4j.WRITE, savedBookmarks)
 
-      return session3.writeTransaction(tx => makeFriends(tx, 'Alice', 'Bob')).then(
-        () => session3.readTransaction(findFriendships).then(
-          () => session3.close()
+      return session3
+        .writeTransaction(tx => makeFriends(tx, 'Alice', 'Bob'))
+        .then(() =>
+          session3.readTransaction(findFriendships).then(() => session3.close())
         )
-      )
     })
     // end::pass-bookmarks[]
 

@@ -17,75 +17,87 @@
  * limitations under the License.
  */
 
-import Driver, {AuthToken, Config, EncryptionLevel, READ, SessionMode, TrustStrategy, WRITE} from "../../types/driver";
-import {Parameters} from "../../types/statement-runner";
-import Session from "../../types/session";
-import {Neo4jError} from "../../types/error";
-import {ServerInfo} from "../../types/result-summary";
+import Driver, {
+  AuthToken,
+  Config,
+  EncryptionLevel,
+  READ,
+  SessionMode,
+  TrustStrategy,
+  WRITE
+} from '../../types/driver'
+import { Parameters } from '../../types/statement-runner'
+import Session from '../../types/session'
+import { Neo4jError } from '../../types/error'
+import { ServerInfo } from '../../types/result-summary'
 
-const dummy: any = null;
+const dummy: any = null
 
-const authToken: AuthToken = dummy;
-const scheme: string = authToken.scheme;
-const principal: string = authToken.principal;
-const credentials: string = authToken.credentials;
-const realm1: undefined = <undefined>authToken.realm;
-const realm2: string = <string>authToken.realm;
-const parameters1: undefined = <undefined>authToken.parameters;
-const parameters2: { [key: string]: any } = <{ [key: string]: any }>authToken.parameters;
-const parameters3: Parameters = <Parameters>authToken.parameters;
+const authToken: AuthToken = dummy
+const scheme: string = authToken.scheme
+const principal: string = authToken.principal
+const credentials: string = authToken.credentials
+const realm1: undefined = <undefined>authToken.realm
+const realm2: string = <string>authToken.realm
+const parameters1: undefined = <undefined>authToken.parameters
+const parameters2: { [key: string]: any } = <{ [key: string]: any }>(
+  authToken.parameters
+)
+const parameters3: Parameters = <Parameters>authToken.parameters
 
-const encryptionLevel: EncryptionLevel = dummy;
-const encryptionLevelStr: string = encryptionLevel;
+const encryptionLevel: EncryptionLevel = dummy
+const encryptionLevelStr: string = encryptionLevel
 
-const trustStrategy: TrustStrategy = dummy;
-const trustStrategyStr: string = trustStrategy;
+const trustStrategy: TrustStrategy = dummy
+const trustStrategyStr: string = trustStrategy
 
-const config: Config = dummy;
-const encrypted: undefined | boolean | EncryptionLevel = config.encrypted;
-const trust: undefined | TrustStrategy = config.trust;
-const trustedCertificates: undefined | string[] = config.trustedCertificates;
-const knownHosts: undefined | string = config.knownHosts;
-const maxTransactionRetryTime: undefined | number = config.maxTransactionRetryTime;
-const maxConnectionLifetime: undefined | number = config.maxConnectionLifetime;
-const connectionTimeout: undefined | number = config.connectionTimeout;
-const disableLosslessIntegers: undefined | boolean = config.disableLosslessIntegers;
+const config: Config = dummy
+const encrypted: undefined | boolean | EncryptionLevel = config.encrypted
+const trust: undefined | TrustStrategy = config.trust
+const trustedCertificates: undefined | string[] = config.trustedCertificates
+const knownHosts: undefined | string = config.knownHosts
+const maxTransactionRetryTime: undefined | number =
+  config.maxTransactionRetryTime
+const maxConnectionLifetime: undefined | number = config.maxConnectionLifetime
+const connectionTimeout: undefined | number = config.connectionTimeout
+const disableLosslessIntegers: undefined | boolean =
+  config.disableLosslessIntegers
 
-const sessionMode: SessionMode = dummy;
-const sessionModeStr: string = sessionMode;
+const sessionMode: SessionMode = dummy
+const sessionModeStr: string = sessionMode
 
-const readMode1: SessionMode = READ;
-const readMode2: string = READ;
+const readMode1: SessionMode = READ
+const readMode2: string = READ
 
-const writeMode1: SessionMode = WRITE;
-const writeMode2: string = WRITE;
+const writeMode1: SessionMode = WRITE
+const writeMode2: string = WRITE
 
-const driver: Driver = dummy;
+const driver: Driver = dummy
 
-const session1: Session = driver.session();
-const session2: Session = driver.session("READ");
-const session3: Session = driver.session(READ);
-const session4: Session = driver.session("WRITE");
-const session5: Session = driver.session(WRITE);
-const session6: Session = driver.session(READ, "bookmark1");
-const session7: Session = driver.session(WRITE, "bookmark2");
+const session1: Session = driver.session()
+const session2: Session = driver.session('READ')
+const session3: Session = driver.session(READ)
+const session4: Session = driver.session('WRITE')
+const session5: Session = driver.session(WRITE)
+const session6: Session = driver.session(READ, 'bookmark1')
+const session7: Session = driver.session(WRITE, 'bookmark2')
 
-session1.run("RETURN 1").then(result => {
-  session1.close();
+session1.run('RETURN 1').then(result => {
+  session1.close()
   result.records.forEach(record => {
-    console.log(record);
-  });
-});
+    console.log(record)
+  })
+})
 
-const close: void = driver.close();
+const close: void = driver.close()
 
 driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
-  console.log(serverInfo.version);
-  console.log(serverInfo.address);
-});
+  console.log(serverInfo.version)
+  console.log(serverInfo.address)
+})
 
 driver.onError = (error: Neo4jError) => {
-  console.log(error);
-};
+  console.log(error)
+}
 
-driver.onError(new Neo4jError("message", "code"));
+driver.onError(new Neo4jError('message', 'code'))

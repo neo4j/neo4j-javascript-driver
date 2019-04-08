@@ -19,7 +19,9 @@
 
 import { assertString } from './util'
 
-const SERVER_VERSION_REGEX = new RegExp('^(Neo4j/)?(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?$')
+const SERVER_VERSION_REGEX = new RegExp(
+  '^(Neo4j/)?(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?$'
+)
 const NEO4J_IN_DEV_VERSION_STRING = 'Neo4j/dev'
 
 class ServerVersion {
@@ -61,7 +63,9 @@ class ServerVersion {
 
     assertString(versionStr, 'Neo4j version string')
 
-    if (versionStr.toLowerCase() === NEO4J_IN_DEV_VERSION_STRING.toLowerCase()) {
+    if (
+      versionStr.toLowerCase() === NEO4J_IN_DEV_VERSION_STRING.toLowerCase()
+    ) {
       return VERSION_IN_DEV
     }
 
@@ -105,7 +109,7 @@ function parseIntStrict (str, name) {
 }
 
 function compareInts (x, y) {
-  return (x < y) ? -1 : ((x === y) ? 0 : 1)
+  return x < y ? -1 : x === y ? 0 : 1
 }
 
 const VERSION_3_1_0 = new ServerVersion(3, 1, 0)

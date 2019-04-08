@@ -106,7 +106,9 @@ function asStringArray (value) {
       // if it is undefined or null, ignore it
       if (element !== undefined && element !== null) {
         if (!util.isString(element)) {
-          throw new TypeError(`Bookmark should be a string, given: '${element}'`)
+          throw new TypeError(
+            `Bookmark should be a string, given: '${element}'`
+          )
         }
         result.push(element)
       }
@@ -114,7 +116,9 @@ function asStringArray (value) {
     return result
   }
 
-  throw new TypeError(`Bookmark should either be a string or a string array, given: '${value}'`)
+  throw new TypeError(
+    `Bookmark should either be a string or a string array, given: '${value}'`
+  )
 }
 
 /**

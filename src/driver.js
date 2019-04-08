@@ -24,7 +24,10 @@ import { newError, SERVICE_UNAVAILABLE } from './error'
 import { DirectConnectionProvider } from './internal/connection-providers'
 import Bookmark from './internal/bookmark'
 import ConnectivityVerifier from './internal/connectivity-verifier'
-import PoolConfig, { DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE } from './internal/pool-config'
+import PoolConfig, {
+  DEFAULT_ACQUISITION_TIMEOUT,
+  DEFAULT_MAX_SIZE
+} from './internal/pool-config'
 import Logger from './internal/logger'
 import ConnectionErrorHandler from './internal/connection-error-handler'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
@@ -99,7 +102,9 @@ class Driver {
    * @protected
    */
   _afterConstruction () {
-    this._log.info(`Direct driver ${this._id} created for server address ${this._hostPort}`)
+    this._log.info(
+      `Direct driver ${this._id} created for server address ${this._hostPort}`
+    )
   }
 
   /**
@@ -118,19 +123,23 @@ class Driver {
    * @access private
    */
   _createConnection (hostPort, release) {
-    const connection = Connection.create(hostPort, this._config, this._createConnectionErrorHandler(), this._log)
+    const connection = Connection.create(
+      hostPort,
+      this._config,
+      this._createConnectionErrorHandler(),
+      this._log
+    )
     connection._release = () => release(hostPort, connection)
     this._openConnections[connection.id] = connection
 
-    return connection.connect(this._userAgent, this._authToken)
-      .catch(error => {
-        if (this.onError) {
-          // notify Driver.onError callback about connection initialization errors
-          this.onError(error)
-        }
-        // propagate the error because connection failed to connect / initialize
-        throw error
-      })
+    return connection.connect(this._userAgent, this._authToken).catch(error => {
+      if (this.onError) {
+        // notify Driver.onError callback about connection initialization errors
+        this.onError(error)
+      }
+      // propagate the error because connection failed to connect / initialize
+      throw error
+    })
   }
 
   /**
@@ -177,7 +186,9 @@ class Driver {
   session (mode, bookmarkOrBookmarks) {
     const sessionMode = Driver._validateSessionMode(mode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const bookmark = bookmarkOrBookmarks ? new Bookmark(bookmarkOrBookmarks) : Bookmark.empty()
+    const bookmark = bookmarkOrBookmarks
+      ? new Bookmark(bookmarkOrBookmarks)
+      : Bookmark.empty()
     return new Session(sessionMode, connectionProvider, bookmark, this._config)
   }
 
@@ -191,7 +202,11 @@ class Driver {
 
   // Extension point
   _createConnectionProvider (hostPort, connectionPool, driverOnErrorCallback) {
-    return new DirectConnectionProvider(hostPort, connectionPool, driverOnErrorCallback)
+    return new DirectConnectionProvider(
+      hostPort,
+      connectionPool,
+      driverOnErrorCallback
+    )
   }
 
   // Extension point
@@ -202,7 +217,11 @@ class Driver {
   _getOrCreateConnectionProvider () {
     if (!this._connectionProvider) {
       const driverOnErrorCallback = this._driverOnErrorCallback.bind(this)
-      this._connectionProvider = this._createConnectionProvider(this._hostPort, this._pool, driverOnErrorCallback)
+      this._connectionProvider = this._createConnectionProvider(
+        this._hostPort,
+        this._pool,
+        driverOnErrorCallback
+      )
     }
     return this._connectionProvider
   }
@@ -243,9 +262,18 @@ class Driver {
  * @private
  */
 function sanitizeConfig (config) {
-  config.maxConnectionLifetime = sanitizeIntValue(config.maxConnectionLifetime, DEFAULT_MAX_CONNECTION_LIFETIME)
-  config.maxConnectionPoolSize = sanitizeIntValue(config.maxConnectionPoolSize, DEFAULT_MAX_SIZE)
-  config.connectionAcquisitionTimeout = sanitizeIntValue(config.connectionAcquisitionTimeout, DEFAULT_ACQUISITION_TIMEOUT)
+  config.maxConnectionLifetime = sanitizeIntValue(
+    config.maxConnectionLifetime,
+    DEFAULT_MAX_CONNECTION_LIFETIME
+  )
+  config.maxConnectionPoolSize = sanitizeIntValue(
+    config.maxConnectionPoolSize,
+    DEFAULT_MAX_SIZE
+  )
+  config.connectionAcquisitionTimeout = sanitizeIntValue(
+    config.connectionAcquisitionTimeout,
+    DEFAULT_ACQUISITION_TIMEOUT
+  )
 }
 
 function sanitizeIntValue (rawValue, defaultWhenAbsent) {

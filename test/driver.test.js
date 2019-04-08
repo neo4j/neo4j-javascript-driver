@@ -21,8 +21,15 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import FakeConnection from './internal/fake-connection'
 import lolex from 'lolex'
-import { DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE } from '../src/internal/pool-config'
-import { ServerVersion, VERSION_3_1_0, VERSION_4_0_0 } from '../src/internal/server-version'
+import {
+  DEFAULT_ACQUISITION_TIMEOUT,
+  DEFAULT_MAX_SIZE
+} from '../src/internal/pool-config'
+import {
+  ServerVersion,
+  VERSION_3_1_0,
+  VERSION_4_0_0
+} from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
 
 describe('driver', () => {
@@ -87,31 +94,43 @@ describe('driver', () => {
 
     driver = neo4j.driver('bolt://localhost:80', sharedNeo4j.authToken)
 
-    driver.session().run('RETURN 1').then(result => {
-      done.fail('Should not be able to connect. Result: ' + JSON.stringify(result))
-    }).catch(error => {
-      const doesNotContainAddress = error.message.indexOf(':80') < 0
-      if (doesNotContainAddress) {
-        done.fail(`Expected to contain ':80' but was: ${error.message}`)
-      } else {
-        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
-        done()
-      }
-    })
+    driver
+      .session()
+      .run('RETURN 1')
+      .then(result => {
+        done.fail(
+          'Should not be able to connect. Result: ' + JSON.stringify(result)
+        )
+      })
+      .catch(error => {
+        const doesNotContainAddress = error.message.indexOf(':80') < 0
+        if (doesNotContainAddress) {
+          done.fail(`Expected to contain ':80' but was: ${error.message}`)
+        } else {
+          expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+          done()
+        }
+      })
   })
 
   it('should handle wrong scheme', () => {
-    expect(() => neo4j.driver('tank://localhost', sharedNeo4j.authToken))
-      .toThrow(new Error('Unknown scheme: tank'))
+    expect(() =>
+      neo4j.driver('tank://localhost', sharedNeo4j.authToken)
+    ).toThrow(new Error('Unknown scheme: tank'))
   })
 
   it('should handle URL parameter string', () => {
-    expect(() => neo4j.driver({ uri: 'bolt://localhost' })).toThrowError(TypeError)
+    expect(() => neo4j.driver({ uri: 'bolt://localhost' })).toThrowError(
+      TypeError
+    )
 
     expect(() => neo4j.driver(['bolt:localhost'])).toThrowError(TypeError)
 
     expect(() => {
-      const driver = neo4j.driver(String('bolt://localhost'), sharedNeo4j.authToken)
+      const driver = neo4j.driver(
+        String('bolt://localhost'),
+        sharedNeo4j.authToken
+      )
       return driver.session()
     }).toBeDefined()
   })
@@ -154,7 +173,10 @@ describe('driver', () => {
 
   it('should be possible to pass a realm with basic auth tokens', done => {
     // Given
-    driver = neo4j.driver('bolt://localhost', neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password, 'native'))
+    driver = neo4j.driver(
+      'bolt://localhost',
+      neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password, 'native')
+    )
 
     // Expect
     driver.verifyConnectivity().then(server => {
@@ -165,7 +187,15 @@ describe('driver', () => {
 
   it('should be possible to create custom auth tokens', done => {
     // Given
-    driver = neo4j.driver('bolt://localhost', neo4j.auth.custom(sharedNeo4j.username, sharedNeo4j.password, 'native', 'basic'))
+    driver = neo4j.driver(
+      'bolt://localhost',
+      neo4j.auth.custom(
+        sharedNeo4j.username,
+        sharedNeo4j.password,
+        'native',
+        'basic'
+      )
+    )
 
     // Expect
     driver.verifyConnectivity().then(server => {
@@ -176,7 +206,16 @@ describe('driver', () => {
 
   it('should be possible to create custom auth tokens with additional parameters', done => {
     // Given
-    driver = neo4j.driver('bolt://localhost', neo4j.auth.custom(sharedNeo4j.username, sharedNeo4j.password, 'native', 'basic', { secret: 42 }))
+    driver = neo4j.driver(
+      'bolt://localhost',
+      neo4j.auth.custom(
+        sharedNeo4j.username,
+        sharedNeo4j.password,
+        'native',
+        'basic',
+        { secret: 42 }
+      )
+    )
 
     // Expect
     driver.verifyConnectivity().then(server => {
@@ -196,7 +235,9 @@ describe('driver', () => {
 
     // Expect
     driver.onError = error => {
-      expect(error.message).toEqual(`Server at localhost:7687 can't perform routing. Make sure you are connecting to a causal cluster`)
+      expect(error.message).toEqual(
+        `Server at localhost:7687 can't perform routing. Make sure you are connecting to a causal cluster`
+      )
       expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
       done()
     }
@@ -216,25 +257,34 @@ describe('driver', () => {
   })
 
   it('should fail when bolt:// scheme used with routing params', () => {
-    expect(() => neo4j.driver('bolt://localhost:7687/?policy=my_policy')).toThrow()
+    expect(() =>
+      neo4j.driver('bolt://localhost:7687/?policy=my_policy')
+    ).toThrow()
   })
 
   it('should sanitize pool setting values in the config', () => {
     testConfigSanitizing('maxConnectionLifetime', 60 * 60 * 1000)
     testConfigSanitizing('maxConnectionPoolSize', DEFAULT_MAX_SIZE)
-    testConfigSanitizing('connectionAcquisitionTimeout', DEFAULT_ACQUISITION_TIMEOUT)
+    testConfigSanitizing(
+      'connectionAcquisitionTimeout',
+      DEFAULT_ACQUISITION_TIMEOUT
+    )
   })
 
   it('should treat closed connections as invalid', () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
 
-    const connectionValid = driver._validateConnection(new FakeConnection().closed())
+    const connectionValid = driver._validateConnection(
+      new FakeConnection().closed()
+    )
 
     expect(connectionValid).toBeFalsy()
   })
 
   it('should treat not old open connections as valid', () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { maxConnectionLifetime: 10 })
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      maxConnectionLifetime: 10
+    })
 
     const connection = new FakeConnection().withCreationTimestamp(12)
     clock = lolex.install()
@@ -245,7 +295,9 @@ describe('driver', () => {
   })
 
   it('should treat old open connections as invalid', () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { maxConnectionLifetime: 10 })
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      maxConnectionLifetime: 10
+    })
 
     const connection = new FakeConnection().withCreationTimestamp(5)
     clock = lolex.install()
@@ -286,7 +338,9 @@ describe('driver', () => {
 
   it('should discard old connections', done => {
     const maxLifetime = 100000
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { maxConnectionLifetime: maxLifetime })
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      maxConnectionLifetime: maxLifetime
+    })
 
     const session1 = driver.session()
     session1.run('CREATE () RETURN 42').then(() => {
@@ -342,14 +396,22 @@ describe('driver', () => {
   })
 
   const nativeNumbers = [
-    Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY,
-    Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER,
-    -0, 0,
-    -42, 42,
-    -999, 999,
-    -1000, 1000,
-    -9000000, 9000000,
-    Number.MIN_SAFE_INTEGER + 1, Number.MAX_SAFE_INTEGER - 1
+    Number.NEGATIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+    Number.MIN_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER,
+    -0,
+    0,
+    -42,
+    42,
+    -999,
+    999,
+    -1000,
+    1000,
+    -9000000,
+    9000000,
+    Number.MIN_SAFE_INTEGER + 1,
+    Number.MAX_SAFE_INTEGER - 1
   ]
 
   nativeNumbers.forEach(number => {
@@ -396,26 +458,33 @@ describe('driver', () => {
   }
 
   function testNumberInReturnedRecord (inputNumber, expectedNumber, done) {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { disableLosslessIntegers: true })
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      disableLosslessIntegers: true
+    })
 
     const session = driver.session()
-    session.run('RETURN $number AS n0, $number AS n1', { number: inputNumber }).then(result => {
-      session.close()
+    session
+      .run('RETURN $number AS n0, $number AS n1', { number: inputNumber })
+      .then(result => {
+        session.close()
 
-      const records = result.records
-      expect(records.length).toEqual(1)
-      const record = records[0]
+        const records = result.records
+        expect(records.length).toEqual(1)
+        const record = records[0]
 
-      expect(record.get('n0')).toEqual(expectedNumber)
-      expect(record.get('n1')).toEqual(expectedNumber)
+        expect(record.get('n0')).toEqual(expectedNumber)
+        expect(record.get('n1')).toEqual(expectedNumber)
 
-      expect(record.get(0)).toEqual(expectedNumber)
-      expect(record.get(1)).toEqual(expectedNumber)
+        expect(record.get(0)).toEqual(expectedNumber)
+        expect(record.get(1)).toEqual(expectedNumber)
 
-      expect(record.toObject()).toEqual({ n0: expectedNumber, n1: expectedNumber })
+        expect(record.toObject()).toEqual({
+          n0: expectedNumber,
+          n1: expectedNumber
+        })
 
-      done()
-    })
+        done()
+      })
   }
 
   /**
@@ -441,7 +510,11 @@ describe('driver', () => {
   }
 
   function validateConfigSanitizing (config, configProperty, expectedValue) {
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, config)
+    const driver = neo4j.driver(
+      'bolt://localhost',
+      sharedNeo4j.authToken,
+      config
+    )
     try {
       expect(driver._config[configProperty]).toEqual(expectedValue)
     } finally {

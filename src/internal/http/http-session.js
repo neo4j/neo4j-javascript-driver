@@ -36,22 +36,47 @@ export default class HttpSession extends Session {
   }
 
   run (statement, parameters = {}) {
-    const { query, params } = validateStatementAndParameters(statement, parameters)
+    const { query, params } = validateStatementAndParameters(
+      statement,
+      parameters
+    )
 
     return this._requestRunner.beginTransaction().then(transactionId => {
       this._ongoingTransactionIds.push(transactionId)
-      const queryPromise = this._requestRunner.runQuery(transactionId, query, params)
+      const queryPromise = this._requestRunner.runQuery(
+        transactionId,
+        query,
+        params
+      )
 
-      return queryPromise.then(streamObserver => {
-        if (streamObserver.hasFailed()) {
-          return rollbackTransactionAfterQueryFailure(transactionId, streamObserver, this._requestRunner)
-        } else {
-          return commitTransactionAfterQuerySuccess(transactionId, streamObserver, this._requestRunner)
-        }
-      }).then(streamObserver => {
-        this._ongoingTransactionIds = this._ongoingTransactionIds.filter(id => id !== transactionId)
-        return new Result(streamObserver, query, params, this._serverInfoSupplier, EMPTY_CONNECTION_HOLDER)
-      })
+      return queryPromise
+        .then(streamObserver => {
+          if (streamObserver.hasFailed()) {
+            return rollbackTransactionAfterQueryFailure(
+              transactionId,
+              streamObserver,
+              this._requestRunner
+            )
+          } else {
+            return commitTransactionAfterQuerySuccess(
+              transactionId,
+              streamObserver,
+              this._requestRunner
+            )
+          }
+        })
+        .then(streamObserver => {
+          this._ongoingTransactionIds = this._ongoingTransactionIds.filter(
+            id => id !== transactionId
+          )
+          return new Result(
+            streamObserver,
+            query,
+            params,
+            this._serverInfoSupplier,
+            EMPTY_CONNECTION_HOLDER
+          )
+        })
     })
   }
 
@@ -68,32 +93,47 @@ export default class HttpSession extends Session {
   }
 
   lastBookmark () {
-    throw new Neo4jError('Experimental HTTP driver does not support bookmarks and routing')
+    throw new Neo4jError(
+      'Experimental HTTP driver does not support bookmarks and routing'
+    )
   }
 
-  close (callback = (() => null)) {
-    const rollbackAllOngoingTransactions = this._ongoingTransactionIds.map(transactionId =>
-      rollbackTransactionSilently(transactionId, this._requestRunner)
+  close (callback = () => null) {
+    const rollbackAllOngoingTransactions = this._ongoingTransactionIds.map(
+      transactionId =>
+        rollbackTransactionSilently(transactionId, this._requestRunner)
     )
 
-    Promise.all(rollbackAllOngoingTransactions)
-      .then(() => {
-        this._sessionTracker.sessionClosed(this)
-        callback()
-      })
+    Promise.all(rollbackAllOngoingTransactions).then(() => {
+      this._sessionTracker.sessionClosed(this)
+      callback()
+    })
   }
 }
 
-function rollbackTransactionAfterQueryFailure (transactionId, streamObserver, requestRunner) {
-  return rollbackTransactionSilently(transactionId, requestRunner).then(() => streamObserver)
+function rollbackTransactionAfterQueryFailure (
+  transactionId,
+  streamObserver,
+  requestRunner
+) {
+  return rollbackTransactionSilently(transactionId, requestRunner).then(
+    () => streamObserver
+  )
 }
 
-function commitTransactionAfterQuerySuccess (transactionId, streamObserver, requestRunner) {
-  return requestRunner.commitTransaction(transactionId).catch(error => {
-    streamObserver.onError(error)
-  }).then(() => {
-    return streamObserver
-  })
+function commitTransactionAfterQuerySuccess (
+  transactionId,
+  streamObserver,
+  requestRunner
+) {
+  return requestRunner
+    .commitTransaction(transactionId)
+    .catch(error => {
+      streamObserver.onError(error)
+    })
+    .then(() => {
+      return streamObserver
+    })
 }
 
 function rollbackTransactionSilently (transactionId, requestRunner) {

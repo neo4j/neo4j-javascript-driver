@@ -104,10 +104,13 @@ describe('url-util', () => {
       query: { a: 'value1', b: 'value2', c: 'value3' }
     })
 
-    verifyUrl('ec2-34-242-76-91.eu-west-1.compute.aws.com/?foo=1&bar=2&baz=3&qux=4', {
-      host: 'ec2-34-242-76-91.eu-west-1.compute.aws.com',
-      query: { foo: '1', bar: '2', baz: '3', qux: '4' }
-    })
+    verifyUrl(
+      'ec2-34-242-76-91.eu-west-1.compute.aws.com/?foo=1&bar=2&baz=3&qux=4',
+      {
+        host: 'ec2-34-242-76-91.eu-west-1.compute.aws.com',
+        query: { foo: '1', bar: '2', baz: '3', qux: '4' }
+      }
+    )
   })
 
   it('should parse URL with IPv4 address and query', () => {
@@ -189,11 +192,14 @@ describe('url-util', () => {
       query: { a: 'value1', b: 'value2', c: 'value3' }
     })
 
-    verifyUrl('bolt+routing://ec2-34-242-76-91.eu-west-1.compute.aws.com?foo=1&bar=2&baz=3&qux=4', {
-      scheme: 'bolt+routing',
-      host: 'ec2-34-242-76-91.eu-west-1.compute.aws.com',
-      query: { foo: '1', bar: '2', baz: '3', qux: '4' }
-    })
+    verifyUrl(
+      'bolt+routing://ec2-34-242-76-91.eu-west-1.compute.aws.com?foo=1&bar=2&baz=3&qux=4',
+      {
+        scheme: 'bolt+routing',
+        host: 'ec2-34-242-76-91.eu-west-1.compute.aws.com',
+        query: { foo: '1', bar: '2', baz: '3', qux: '4' }
+      }
+    )
   })
 
   it('should parse URL with scheme, IPv4 address and query', () => {
@@ -251,12 +257,15 @@ describe('url-util', () => {
       ipv6: true
     })
 
-    verifyUrl('bolt+routing://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa', {
-      scheme: 'bolt+routing',
-      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
-      query: { animal: 'apa' },
-      ipv6: true
-    })
+    verifyUrl(
+      'bolt+routing://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa',
+      {
+        scheme: 'bolt+routing',
+        host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+        query: { animal: 'apa' },
+        ipv6: true
+      }
+    )
 
     verifyUrl('bolt+routing://[fe80::1%lo0]?animal=apa', {
       scheme: 'bolt+routing',
@@ -548,12 +557,15 @@ describe('url-util', () => {
       query: { key: 'value' }
     })
 
-    verifyUrl('ws://ec2-34-242-76-91.eu-west-1.compute.aws.com:30270?a=1&b=2&c=3&d=4', {
-      scheme: 'ws',
-      host: 'ec2-34-242-76-91.eu-west-1.compute.aws.com',
-      port: 30270,
-      query: { a: '1', b: '2', c: '3', d: '4' }
-    })
+    verifyUrl(
+      'ws://ec2-34-242-76-91.eu-west-1.compute.aws.com:30270?a=1&b=2&c=3&d=4',
+      {
+        scheme: 'ws',
+        host: 'ec2-34-242-76-91.eu-west-1.compute.aws.com',
+        port: 30270,
+        query: { a: '1', b: '2', c: '3', d: '4' }
+      }
+    )
   })
 
   it('should parse URL with scheme, IPv4 address, port and query', () => {
@@ -619,13 +631,16 @@ describe('url-util', () => {
       ipv6: true
     })
 
-    verifyUrl('https://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:42?key1=value1&key2=value2', {
-      scheme: 'https',
-      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
-      port: 42,
-      query: { key1: 'value1', key2: 'value2' },
-      ipv6: true
-    })
+    verifyUrl(
+      'https://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]:42?key1=value1&key2=value2',
+      {
+        scheme: 'https',
+        host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+        port: 42,
+        query: { key1: 'value1', key2: 'value2' },
+        ipv6: true
+      }
+    )
 
     verifyUrl('https://[fe80::1%lo0]:4242?key1=value1', {
       scheme: 'https',
@@ -644,13 +659,21 @@ describe('url-util', () => {
 
   it('should fail to parse URL with duplicated query parameters', () => {
     expect(() => parse('bolt://localhost/?key=value1&key=value2')).toThrow()
-    expect(() => parse('bolt://localhost:8080/?key=value1&key=value2')).toThrow()
+    expect(() =>
+      parse('bolt://localhost:8080/?key=value1&key=value2')
+    ).toThrow()
 
-    expect(() => parse('bolt+routing://10.10.127.5?key=value1&key=value2')).toThrow()
-    expect(() => parse('bolt+routing://10.10.127.5:8080?key=value1&key=value2')).toThrow()
+    expect(() =>
+      parse('bolt+routing://10.10.127.5?key=value1&key=value2')
+    ).toThrow()
+    expect(() =>
+      parse('bolt+routing://10.10.127.5:8080?key=value1&key=value2')
+    ).toThrow()
 
     expect(() => parse('https://[ff0a::101]?key=value1&key=value2')).toThrow()
-    expect(() => parse('https://[ff0a::101]:8080?key=value1&key=value2')).toThrow()
+    expect(() =>
+      parse('https://[ff0a::101]:8080?key=value1&key=value2')
+    ).toThrow()
   })
 
   it('should fail to parse URL with empty query key', () => {
@@ -693,52 +716,72 @@ describe('url-util', () => {
   })
 
   it('should format IPv4 address', () => {
-    expect(urlUtil.formatIPv4Address('127.0.0.1', 4242)).toEqual('127.0.0.1:4242')
-    expect(urlUtil.formatIPv4Address('192.168.10.10', 8080)).toEqual('192.168.10.10:8080')
+    expect(urlUtil.formatIPv4Address('127.0.0.1', 4242)).toEqual(
+      '127.0.0.1:4242'
+    )
+    expect(urlUtil.formatIPv4Address('192.168.10.10', 8080)).toEqual(
+      '192.168.10.10:8080'
+    )
     expect(urlUtil.formatIPv4Address('8.8.8.8', 80)).toEqual('8.8.8.8:80')
   })
 
   it('should format IPv6 address', () => {
     expect(urlUtil.formatIPv6Address('::1', 1200)).toEqual('[::1]:1200')
-    expect(urlUtil.formatIPv6Address('ff0a::101', 8080)).toEqual('[ff0a::101]:8080')
+    expect(urlUtil.formatIPv6Address('ff0a::101', 8080)).toEqual(
+      '[ff0a::101]:8080'
+    )
 
     expect(urlUtil.formatIPv6Address('[::1]', 42)).toEqual('[::1]:42')
-    expect(urlUtil.formatIPv6Address('[1afc:0:a33:85a3::ff2f]', 20201)).toEqual('[1afc:0:a33:85a3::ff2f]:20201')
+    expect(urlUtil.formatIPv6Address('[1afc:0:a33:85a3::ff2f]', 20201)).toEqual(
+      '[1afc:0:a33:85a3::ff2f]:20201'
+    )
   })
 
   it('should fail to format partially escaped IPv6 address', () => {
     expect(() => urlUtil.formatIPv6Address('[::1', 1000)).toThrow()
     expect(() => urlUtil.formatIPv6Address('::1]', 2000)).toThrow()
 
-    expect(() => urlUtil.formatIPv6Address('[1afc:0:a33:85a3::ff2f', 3000)).toThrow()
-    expect(() => urlUtil.formatIPv6Address('1afc:0:a33:85a3::ff2f]', 4000)).toThrow()
+    expect(() =>
+      urlUtil.formatIPv6Address('[1afc:0:a33:85a3::ff2f', 3000)
+    ).toThrow()
+    expect(() =>
+      urlUtil.formatIPv6Address('1afc:0:a33:85a3::ff2f]', 4000)
+    ).toThrow()
   })
 
   it('should use default ports when no port specified', () => {
-    expect(parse('bolt://localhost').port).toEqual(urlUtil.defaultPortForScheme('bolt'))
-    expect(parse('bolt+routing://localhost').port).toEqual(urlUtil.defaultPortForScheme('bolt'))
+    expect(parse('bolt://localhost').port).toEqual(
+      urlUtil.defaultPortForScheme('bolt')
+    )
+    expect(parse('bolt+routing://localhost').port).toEqual(
+      urlUtil.defaultPortForScheme('bolt')
+    )
 
-    expect(parse('http://localhost').port).toEqual(urlUtil.defaultPortForScheme('http'))
-    expect(parse('https://localhost').port).toEqual(urlUtil.defaultPortForScheme('https'))
+    expect(parse('http://localhost').port).toEqual(
+      urlUtil.defaultPortForScheme('http')
+    )
+    expect(parse('https://localhost').port).toEqual(
+      urlUtil.defaultPortForScheme('https')
+    )
   })
 
   it('should parse URLs with port 80', () => {
-    ['http', 'https', 'ws', 'wss', 'bolt', 'bolt+routing'].forEach(scheme => {
+    ;['http', 'https', 'ws', 'wss', 'bolt', 'bolt+routing'].forEach(scheme => {
       verifyUrl(`${scheme}://localhost:80`, {
         scheme: scheme,
         host: 'localhost',
         port: 80
       })
-    });
+    })
 
-    ['localhost', '127.0.0.1', '192.168.10.29'].forEach(host => {
+    ;['localhost', '127.0.0.1', '192.168.10.29'].forEach(host => {
       verifyUrl(`${host}:80`, {
         host: host,
         port: 80
       })
-    });
+    })
 
-    ['::1', '1afc:0:a33:85a3::ff2f'].forEach(host => {
+    ;['::1', '1afc:0:a33:85a3::ff2f'].forEach(host => {
       verifyUrl(`[${host}]:80`, {
         host: host,
         port: 80,
@@ -776,7 +819,10 @@ describe('url-util', () => {
   }
 
   function verifyHostAndPort (url, expectedUrl) {
-    const port = expectedUrl.port === 0 || expectedUrl.port ? expectedUrl.port : urlUtil.defaultPortForScheme(expectedUrl.scheme)
+    const port =
+      expectedUrl.port === 0 || expectedUrl.port
+        ? expectedUrl.port
+        : urlUtil.defaultPortForScheme(expectedUrl.scheme)
 
     if (expectedUrl.ipv6) {
       expect(url.hostAndPort).toEqual(`[${expectedUrl.host}]:${port}`)

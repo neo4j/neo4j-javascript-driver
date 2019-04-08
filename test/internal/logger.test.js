@@ -86,10 +86,15 @@ describe('Logger', () => {
   it('should log when logger configured in the driver', done => {
     const logged = []
     const config = memorizingLoggerConfig(logged)
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, config)
+    const driver = neo4j.driver(
+      'bolt://localhost',
+      sharedNeo4j.authToken,
+      config
+    )
 
     const session = driver.session()
-    session.run('RETURN 42')
+    session
+      .run('RETURN 42')
       .then(() => {
         expect(logged.length).toBeGreaterThan(0)
 
@@ -101,7 +106,9 @@ describe('Logger', () => {
         expect(seenLevels).toContain('debug')
 
         // the executed statement should've been logged
-        const statementLogged = seenMessages.find(message => message.indexOf('RETURN 42') !== -1)
+        const statementLogged = seenMessages.find(
+          message => message.indexOf('RETURN 42') !== -1
+        )
         expect(statementLogged).toBeTruthy()
       })
       .catch(error => {
@@ -116,19 +123,28 @@ describe('Logger', () => {
   it('should log debug to console when configured in the driver', done => {
     const logged = []
     console.log = message => logged.push(message)
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { logging: neo4j.logging.console('debug') })
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      logging: neo4j.logging.console('debug')
+    })
 
     const session = driver.session()
-    session.run('RETURN 123456789')
+    session
+      .run('RETURN 123456789')
       .then(() => {
         expect(logged.length).toBeGreaterThan(0)
 
         // the executed statement should've been logged
-        const statementLogged = logged.find(log => log.indexOf('DEBUG') !== -1 && log.indexOf('RETURN 123456789') !== -1)
+        const statementLogged = logged.find(
+          log =>
+            log.indexOf('DEBUG') !== -1 &&
+            log.indexOf('RETURN 123456789') !== -1
+        )
         expect(statementLogged).toBeTruthy()
 
         // driver creation should've been logged because it is on info level
-        const driverCreationLogged = logged.find(log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1)
+        const driverCreationLogged = logged.find(
+          log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1
+        )
         expect(driverCreationLogged).toBeTruthy()
       })
       .catch(error => {
@@ -143,19 +159,26 @@ describe('Logger', () => {
   it('should log info to console when configured in the driver', done => {
     const logged = []
     console.log = message => logged.push(message)
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { logging: neo4j.logging.console() }) // info is the default level
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      logging: neo4j.logging.console()
+    }) // info is the default level
 
     const session = driver.session()
-    session.run('RETURN 123456789')
+    session
+      .run('RETURN 123456789')
       .then(() => {
         expect(logged.length).toBeGreaterThan(0)
 
         // the executed statement should not be logged because it is in debug level
-        const statementLogged = logged.find(log => log.indexOf('RETURN 123456789') !== -1)
+        const statementLogged = logged.find(
+          log => log.indexOf('RETURN 123456789') !== -1
+        )
         expect(statementLogged).toBeFalsy()
 
         // driver creation should've been logged because it is on info level
-        const driverCreationLogged = logged.find(log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1)
+        const driverCreationLogged = logged.find(
+          log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1
+        )
         expect(driverCreationLogged).toBeTruthy()
       })
       .catch(error => {

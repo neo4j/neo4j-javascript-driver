@@ -22,10 +22,22 @@ import { ENCRYPTION_OFF, ENCRYPTION_ON } from './util'
 
 const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 5000 // 5 seconds by default
 
-const ALLOWED_VALUES_ENCRYPTED = [null, undefined, true, false, ENCRYPTION_ON, ENCRYPTION_OFF]
+const ALLOWED_VALUES_ENCRYPTED = [
+  null,
+  undefined,
+  true,
+  false,
+  ENCRYPTION_ON,
+  ENCRYPTION_OFF
+]
 
-const ALLOWED_VALUES_TRUST = [null, undefined, 'TRUST_ALL_CERTIFICATES',
-  'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES', 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES']
+const ALLOWED_VALUES_TRUST = [
+  null,
+  undefined,
+  'TRUST_ALL_CERTIFICATES',
+  'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES',
+  'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+]
 
 export default class ChannelConfig {
   /**
@@ -48,7 +60,9 @@ export default class ChannelConfig {
 function extractEncrypted (driverConfig) {
   const value = driverConfig.encrypted
   if (ALLOWED_VALUES_ENCRYPTED.indexOf(value) === -1) {
-    throw newError(`Illegal value of the encrypted setting ${value}. Expected one of ${ALLOWED_VALUES_ENCRYPTED}`)
+    throw newError(
+      `Illegal value of the encrypted setting ${value}. Expected one of ${ALLOWED_VALUES_ENCRYPTED}`
+    )
   }
   return value
 }
@@ -56,7 +70,9 @@ function extractEncrypted (driverConfig) {
 function extractTrust (driverConfig) {
   const value = driverConfig.trust
   if (ALLOWED_VALUES_TRUST.indexOf(value) === -1) {
-    throw newError(`Illegal value of the trust setting ${value}. Expected one of ${ALLOWED_VALUES_TRUST}`)
+    throw newError(
+      `Illegal value of the trust setting ${value}. Expected one of ${ALLOWED_VALUES_TRUST}`
+    )
   }
   return value
 }

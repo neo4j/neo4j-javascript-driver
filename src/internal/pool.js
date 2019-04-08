@@ -34,8 +34,13 @@ class Pool {
    * @param {PoolConfig} config configuration for the new driver.
    * @param {Logger} log the driver logger.
    */
-  constructor (create, destroy = (() => true), validate = (() => true), config = PoolConfig.defaultConfig(),
-    log = Logger.noOp()) {
+  constructor (
+    create,
+    destroy = () => true,
+    validate = () => true,
+    config = PoolConfig.defaultConfig(),
+    log = Logger.noOp()
+  ) {
     this._create = create
     this._destroy = destroy
     this._validate = validate
@@ -87,7 +92,13 @@ class Pool {
             // request already resolved/rejected by the release operation; nothing to do
           } else {
             // request is still pending and needs to be failed
-            request.reject(newError(`Connection acquisition timed out in ${this._acquisitionTimeout} ms.`))
+            request.reject(
+              newError(
+                `Connection acquisition timed out in ${
+                  this._acquisitionTimeout
+                } ms.`
+              )
+            )
           }
         }, this._acquisitionTimeout)
 
@@ -123,7 +134,7 @@ class Pool {
    * @return {boolean} `true` when pool contains entries for the given key, <code>false</code> otherwise.
    */
   has (key) {
-    return (key in this._pools)
+    return key in this._pools
   }
 
   /**
@@ -167,7 +178,9 @@ class Pool {
       // there exist idle connections for the given key
       if (!this._validate(resource)) {
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} destroyed and can't be released to the pool ${key} because it is not functional`)
+          this._log.debug(
+            `${resource} destroyed and can't be released to the pool ${key} because it is not functional`
+          )
         }
         this._destroy(resource)
       } else {
@@ -179,7 +192,9 @@ class Pool {
     } else {
       // key has been purged, don't put it back, just destroy the resource
       if (this._log.isDebugEnabled()) {
-        this._log.debug(`${resource} destroyed and can't be released to the pool ${key} because pool has been purged`)
+        this._log.debug(
+          `${resource} destroyed and can't be released to the pool ${key} because pool has been purged`
+        )
       }
       this._destroy(resource)
     }

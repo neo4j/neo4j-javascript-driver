@@ -66,7 +66,7 @@ export default class WebSocketChannel {
         self.write(pending[i])
       }
     }
-    this._ws.onmessage = (event) => {
+    this._ws.onmessage = event => {
       if (self.onmessage) {
         const b = new HeapBuffer(event.data)
         self.onmessage(b)
@@ -82,7 +82,10 @@ export default class WebSocketChannel {
   _handleConnectionError () {
     if (this._connectionTimeoutFired) {
       // timeout fired - not connected within configured time
-      this._error = newError(`Failed to establish connection in ${this._config.connectionTimeout}ms`, this._config.connectionErrorCode)
+      this._error = newError(
+        `Failed to establish connection in ${this._config.connectionTimeout}ms`,
+        this._config.connectionErrorCode
+      )
 
       if (this.onerror) {
         this.onerror(this._error)
@@ -93,13 +96,17 @@ export default class WebSocketChannel {
     // onerror triggers on websocket close as well.. don't get me started.
     if (this._open) {
       // http://stackoverflow.com/questions/25779831/how-to-catch-websocket-connection-to-ws-xxxnn-failed-connection-closed-be
-      this._error = newError('WebSocket connection failure. Due to security ' +
-        'constraints in your web browser, the reason for the failure is not available ' +
-        'to this Neo4j Driver. Please use your browsers development console to determine ' +
-        'the root cause of the failure. Common reasons include the database being ' +
-        'unavailable, using the wrong connection URL or temporary network problems. ' +
-        'If you have enabled encryption, ensure your browser is configured to trust the ' +
-        'certificate Neo4j is configured to use. WebSocket `readyState` is: ' + this._ws.readyState, this._config.connectionErrorCode)
+      this._error = newError(
+        'WebSocket connection failure. Due to security ' +
+          'constraints in your web browser, the reason for the failure is not available ' +
+          'to this Neo4j Driver. Please use your browsers development console to determine ' +
+          'the root cause of the failure. Common reasons include the database being ' +
+          'unavailable, using the wrong connection URL or temporary network problems. ' +
+          'If you have enabled encryption, ensure your browser is configured to trust the ' +
+          'certificate Neo4j is configured to use. WebSocket `readyState` is: ' +
+          this._ws.readyState,
+        this._config.connectionErrorCode
+      )
       if (this.onerror) {
         this.onerror(this._error)
       }
@@ -126,7 +133,7 @@ export default class WebSocketChannel {
    * Close the connection
    * @param {function} cb - Function to call on close.
    */
-  close (cb = (() => null)) {
+  close (cb = () => null) {
     this._open = false
     this._clearConnectionTimeout()
     this._ws.close()
@@ -245,10 +252,16 @@ function determineWebSocketScheme (config, protocolSupplier) {
       // trust strategy not specified or the only supported strategy is specified
       return { scheme: 'wss', error: null }
     } else {
-      const error = newError('The browser version of this driver only supports one trust ' +
-        'strategy, \'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES\'. ' + trust + ' is not supported. Please ' +
-        'either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting ' +
-        '`encrypted:"' + ENCRYPTION_OFF + '"` in the driver configuration.')
+      const error = newError(
+        'The browser version of this driver only supports one trust ' +
+          "strategy, 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'. " +
+          trust +
+          ' is not supported. Please ' +
+          'either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting ' +
+          '`encrypted:"' +
+          ENCRYPTION_OFF +
+          '"` in the driver configuration.'
+      )
       return { scheme: null, error: error }
     }
   }
@@ -278,24 +291,31 @@ function isEncryptionExplicitlyTurnedOff (config) {
  * @return {boolean} `true` if protocol returned by the given function is secure, `false` otherwise.
  */
 function isProtocolSecure (protocolSupplier) {
-  const protocol = typeof protocolSupplier === 'function' ? protocolSupplier() : ''
+  const protocol =
+    typeof protocolSupplier === 'function' ? protocolSupplier() : ''
   return protocol && protocol.toLowerCase().indexOf('https') >= 0
 }
 
 function verifyEncryptionSettings (encryptionOn, encryptionOff, secureProtocol) {
   if (encryptionOn && !secureProtocol) {
     // encryption explicitly turned on for a driver used on a HTTP web page
-    console.warn('Neo4j driver is configured to use secure WebSocket on a HTTP web page. ' +
-      'WebSockets might not work in a mixed content environment. ' +
-      'Please consider configuring driver to not use encryption.')
+    console.warn(
+      'Neo4j driver is configured to use secure WebSocket on a HTTP web page. ' +
+        'WebSockets might not work in a mixed content environment. ' +
+        'Please consider configuring driver to not use encryption.'
+    )
   } else if (encryptionOff && secureProtocol) {
     // encryption explicitly turned off for a driver used on a HTTPS web page
-    console.warn('Neo4j driver is configured to use insecure WebSocket on a HTTPS web page. ' +
-      'WebSockets might not work in a mixed content environment. ' +
-      'Please consider configuring driver to use encryption.')
+    console.warn(
+      'Neo4j driver is configured to use insecure WebSocket on a HTTPS web page. ' +
+        'WebSockets might not work in a mixed content environment. ' +
+        'Please consider configuring driver to use encryption.'
+    )
   }
 }
 
 function detectWebPageProtocol () {
-  return typeof window !== 'undefined' && window.location ? window.location.protocol : null
+  return typeof window !== 'undefined' && window.location
+    ? window.location.protocol
+    : null
 }

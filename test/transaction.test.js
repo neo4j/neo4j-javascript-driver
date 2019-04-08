@@ -48,181 +48,229 @@ describe('transaction', () => {
 
   it('should commit simple case', done => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.run('CREATE (:TXNode2)').then(() => {
-        tx.commit().then(() => {
-          session.run('MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)').then(result => {
-            expect(result.records.length).toBe(1)
-            expect(result.records[0].get('count(t1)').toInt()).toBe(1)
-            expect(result.records[0].get('count(t2)').toInt()).toBe(1)
-            done()
-          }).catch(console.log)
-        }).catch(console.log)
-      }).catch(console.log)
-    }).catch(console.log)
+    tx.run('CREATE (:TXNode1)')
+      .then(() => {
+        tx.run('CREATE (:TXNode2)')
+          .then(() => {
+            tx.commit()
+              .then(() => {
+                session
+                  .run(
+                    'MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)'
+                  )
+                  .then(result => {
+                    expect(result.records.length).toBe(1)
+                    expect(result.records[0].get('count(t1)').toInt()).toBe(1)
+                    expect(result.records[0].get('count(t2)').toInt()).toBe(1)
+                    done()
+                  })
+                  .catch(console.log)
+              })
+              .catch(console.log)
+          })
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should populate resultAvailableAfter for transaction#run', done => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(result => {
-      tx.commit().then(() => {
-        expect(result.summary.resultAvailableAfter).toBeDefined()
-        expect(result.summary.resultAvailableAfter.toInt()).not.toBeLessThan(0)
-        done()
-      }).catch(console.log)
-    }).catch(console.log)
+    tx.run('CREATE (:TXNode1)')
+      .then(result => {
+        tx.commit()
+          .then(() => {
+            expect(result.summary.resultAvailableAfter).toBeDefined()
+            expect(
+              result.summary.resultAvailableAfter.toInt()
+            ).not.toBeLessThan(0)
+            done()
+          })
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should handle interactive session', done => {
     const tx = session.beginTransaction()
-    tx.run("RETURN 'foo' AS res").then(result => {
-      tx.run('CREATE ({name: {param}})', { param: result.records[0].get('res') }).then(() => {
-        tx.commit().then(() => {
-          session.run("MATCH (a {name:'foo'}) RETURN count(a)").then(result => {
-            expect(result.records.length).toBe(1)
-            expect(result.records[0].get('count(a)').toInt()).toBe(1)
-            done()
+    tx.run("RETURN 'foo' AS res")
+      .then(result => {
+        tx.run('CREATE ({name: {param}})', {
+          param: result.records[0].get('res')
+        })
+          .then(() => {
+            tx.commit()
+              .then(() => {
+                session
+                  .run("MATCH (a {name:'foo'}) RETURN count(a)")
+                  .then(result => {
+                    expect(result.records.length).toBe(1)
+                    expect(result.records[0].get('count(a)').toInt()).toBe(1)
+                    done()
+                  })
+              })
+              .catch(console.log)
           })
-        }).catch(console.log)
-      }).catch(console.log)
-    }).catch(console.log)
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should handle failures with subscribe', done => {
     const tx = session.beginTransaction()
-    tx.run('THIS IS NOT CYPHER')
-      .catch(error => {
-        expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
-        driver.close()
-        done()
-      })
+    tx.run('THIS IS NOT CYPHER').catch(error => {
+      expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
+      driver.close()
+      done()
+    })
   })
 
   it('should handle failures with catch', done => {
     const tx = session.beginTransaction()
-    tx.run('THIS IS NOT CYPHER')
-      .subscribe({
-        onError: error => {
-          expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
-          driver.close()
-          done()
-        }
-      })
+    tx.run('THIS IS NOT CYPHER').subscribe({
+      onError: error => {
+        expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
+        driver.close()
+        done()
+      }
+    })
   })
 
   it('should handle failures on commit', done => {
     // When
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.run('THIS IS NOT CYPHER').catch(statementError => {
-        expectSyntaxError(statementError)
+    tx.run('CREATE (:TXNode1)')
+      .then(() => {
+        tx.run('THIS IS NOT CYPHER').catch(statementError => {
+          expectSyntaxError(statementError)
 
-        tx.run('CREATE (:TXNode2)').catch(() => {
-          tx.commit().catch(commitError => {
-            expect(commitError.error).toBeDefined()
+          tx.run('CREATE (:TXNode2)').catch(() => {
+            tx.commit().catch(commitError => {
+              expect(commitError.error).toBeDefined()
+              driver.close()
+              done()
+            })
+          })
+        })
+      })
+      .catch(console.log)
+  })
+
+  it('should fail when committing on a failed query', done => {
+    const tx = session.beginTransaction()
+    tx.run('CREATE (:TXNode1)')
+      .then(() => {
+        tx.run('THIS IS NOT CYPHER').catch(() => {
+          tx.commit().catch(error => {
+            expect(error.error).toBeDefined()
             driver.close()
             done()
           })
         })
       })
-    }).catch(console.log)
-  })
-
-  it('should fail when committing on a failed query', done => {
-    const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.run('THIS IS NOT CYPHER').catch(() => {
-        tx.commit().catch(error => {
-          expect(error.error).toBeDefined()
-          driver.close()
-          done()
-        })
-      })
-    }).catch(console.log)
+      .catch(console.log)
   })
 
   it('should handle when committing when another statement fails', done => {
     // When
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)')
-      .then(() => {
-        tx.commit()
-          .catch(error => {
-            expect(error).toBeDefined()
-            driver.close()
-            done()
-          })
+    tx.run('CREATE (:TXNode1)').then(() => {
+      tx.commit().catch(error => {
+        expect(error).toBeDefined()
+        driver.close()
+        done()
       })
+    })
     tx.run('THIS IS NOT CYPHER')
   })
 
   it('should handle rollbacks', done => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.run('CREATE (:TXNode2)').then(() => {
-        tx.rollback().then(() => {
-          session.run('MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)').then(result => {
-            expect(result.records.length).toBe(1)
-            expect(result.records[0].get('count(t1)').toInt()).toBe(0)
-            expect(result.records[0].get('count(t2)').toInt()).toBe(0)
-            done()
-          }).catch(console.log)
-        }).catch(console.log)
-      }).catch(console.log)
-    }).catch(console.log)
+    tx.run('CREATE (:TXNode1)')
+      .then(() => {
+        tx.run('CREATE (:TXNode2)')
+          .then(() => {
+            tx.rollback()
+              .then(() => {
+                session
+                  .run(
+                    'MATCH (t1:TXNode1), (t2:TXNode2) RETURN count(t1), count(t2)'
+                  )
+                  .then(result => {
+                    expect(result.records.length).toBe(1)
+                    expect(result.records[0].get('count(t1)').toInt()).toBe(0)
+                    expect(result.records[0].get('count(t2)').toInt()).toBe(0)
+                    done()
+                  })
+                  .catch(console.log)
+              })
+              .catch(console.log)
+          })
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should fail when committing on a rolled back query', done => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.rollback().then(() => {
-        tx.commit().catch(error => {
-          expect(error.error).toBeDefined()
-          driver.close()
-          done()
-        })
-      }).catch(console.log)
-    }).catch(console.log)
+    tx.run('CREATE (:TXNode1)')
+      .then(() => {
+        tx.rollback()
+          .then(() => {
+            tx.commit().catch(error => {
+              expect(error.error).toBeDefined()
+              driver.close()
+              done()
+            })
+          })
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should fail when running on a rolled back transaction', done => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.rollback().then(() => {
-        tx.run('RETURN 42').catch(error => {
-          expect(error.error).toBeDefined()
-          driver.close()
-          done()
-        })
-      }).catch(console.log)
-    }).catch(console.log)
+    tx.run('CREATE (:TXNode1)')
+      .then(() => {
+        tx.rollback()
+          .then(() => {
+            tx.run('RETURN 42').catch(error => {
+              expect(error.error).toBeDefined()
+              driver.close()
+              done()
+            })
+          })
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should fail when running when a previous statement failed', done => {
     const tx = session.beginTransaction()
-    tx.run('THIS IS NOT CYPHER')
-      .catch(() => {
-        tx.run('RETURN 42')
-          .catch(error => {
-            expect(error.error).toBeDefined()
-            driver.close()
-            done()
-          })
+    tx.run('THIS IS NOT CYPHER').catch(() => {
+      tx.run('RETURN 42').catch(error => {
+        expect(error.error).toBeDefined()
+        driver.close()
+        done()
       })
+    })
     tx.rollback()
   })
 
   it('should fail when trying to roll back a rolled back transaction', done => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.rollback().then(() => {
-        tx.rollback().catch(error => {
-          expect(error.error).toBeDefined()
-          driver.close()
-          done()
-        })
-      }).catch(console.log)
-    }).catch(console.log)
+    tx.run('CREATE (:TXNode1)')
+      .then(() => {
+        tx.rollback()
+          .then(() => {
+            tx.rollback().catch(error => {
+              expect(error.error).toBeDefined()
+              driver.close()
+              done()
+            })
+          })
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should provide bookmark on commit', done => {
@@ -231,14 +279,18 @@ describe('transaction', () => {
     expect(session.lastBookmark()).toBeNull()
 
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.run('CREATE (:TXNode2)').then(() => {
-        tx.commit().then(() => {
-          expectValidLastBookmark(session)
-          done()
-        })
-      }).catch(console.log)
-    }).catch(console.log)
+    tx.run('CREATE (:TXNode1)')
+      .then(() => {
+        tx.run('CREATE (:TXNode2)')
+          .then(() => {
+            tx.commit().then(() => {
+              expectValidLastBookmark(session)
+              done()
+            })
+          })
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should have bookmark when tx is rolled back', done => {
@@ -314,22 +366,30 @@ describe('transaction', () => {
 
   it('should fail to run query for unreachable bookmark', done => {
     const tx1 = session.beginTransaction()
-    tx1.run('CREATE ()').then(result => {
-      expect(result.summary.counters.nodesCreated()).toBe(1)
+    tx1
+      .run('CREATE ()')
+      .then(result => {
+        expect(result.summary.counters.nodesCreated()).toBe(1)
 
-      tx1.commit().then(() => {
-        expectValidLastBookmark(session)
+        tx1
+          .commit()
+          .then(() => {
+            expectValidLastBookmark(session)
 
-        const unreachableBookmark = session.lastBookmark() + '0'
-        const tx2 = session.beginTransaction(unreachableBookmark)
-        tx2.run('CREATE ()').catch(error => {
-          const message = error.message
-          const expectedPrefix = message.indexOf('Database not up to the requested version') === 0
-          expect(expectedPrefix).toBeTruthy()
-          done()
-        })
-      }).catch(console.log)
-    }).catch(console.log)
+            const unreachableBookmark = session.lastBookmark() + '0'
+            const tx2 = session.beginTransaction(unreachableBookmark)
+            tx2.run('CREATE ()').catch(error => {
+              const message = error.message
+              const expectedPrefix =
+                message.indexOf('Database not up to the requested version') ===
+                0
+              expect(expectedPrefix).toBeTruthy()
+              done()
+            })
+          })
+          .catch(console.log)
+      })
+      .catch(console.log)
   })
 
   it('should rollback when very first run fails', done => {
@@ -367,7 +427,9 @@ describe('transaction', () => {
         expectSyntaxError(error)
         tx1.commit().catch(error => {
           const errorMessage = error.error
-          const index = errorMessage.indexOf('Cannot commit statements in this transaction')
+          const index = errorMessage.indexOf(
+            'Cannot commit statements in this transaction'
+          )
           expect(index).not.toBeLessThan(0)
 
           const tx2 = session.beginTransaction()
@@ -384,13 +446,15 @@ describe('transaction', () => {
     const statement = 'RETURN 1'
 
     const tx = session.beginTransaction()
-    tx.run(statement).then(result => {
-      const sum = result.summary
-      expect(sum.server).toBeDefined()
-      expect(sum.server.address).toEqual('localhost:7687')
-      expect(sum.server.version).toBeDefined()
-      tx.commit().then(done)
-    }).catch(console.log)
+    tx.run(statement)
+      .then(result => {
+        const sum = result.summary
+        expect(sum.server).toBeDefined()
+        expect(sum.server.address).toEqual('localhost:7687')
+        expect(sum.server.version).toBeDefined()
+        tx.commit().then(done)
+      })
+      .catch(console.log)
   })
 
   it('should expose server info on successful query using observer', done => {
@@ -399,22 +463,19 @@ describe('transaction', () => {
 
     // When & Then
     const tx = session.beginTransaction()
-    tx.run(statement)
-      .subscribe({
-        onNext: record => {
-        },
-        onError: () => {
-        },
-        onCompleted: summary => {
-          const server = summary.server
+    tx.run(statement).subscribe({
+      onNext: record => {},
+      onError: () => {},
+      onCompleted: summary => {
+        const server = summary.server
 
-          expect(server).toBeDefined()
-          expect(server.address).toEqual('localhost:7687')
-          expect(server.version).toBeDefined()
+        expect(server).toBeDefined()
+        expect(server.address).toEqual('localhost:7687')
+        expect(server.version).toBeDefined()
 
-          done()
-        }
-      })
+        done()
+      }
+    })
   })
 
   it('should fail nicely for illegal statement', () => {
@@ -435,11 +496,13 @@ describe('transaction', () => {
     const tx = session.beginTransaction()
     const statement = { text: 'RETURN 1 AS a' }
 
-    tx.run(statement).then(result => {
-      expect(result.records.length).toBe(1)
-      expect(result.records[0].get('a').toInt()).toBe(1)
-      done()
-    }).catch(console.log)
+    tx.run(statement)
+      .then(result => {
+        expect(result.records.length).toBe(1)
+        expect(result.records[0].get('a').toInt()).toBe(1)
+        done()
+      })
+      .catch(console.log)
   })
 
   it('should be open when neither committed nor rolled back', () => {
@@ -525,23 +588,27 @@ describe('transaction', () => {
     const localDriver = neo4j.driver(boltUri, sharedNeo4j.authToken, config)
     const session = localDriver.session()
     const tx = session.beginTransaction()
-    tx.run('RETURN 1').then(() => {
-      tx.rollback()
-      session.close()
-      done.fail('Query did not fail')
-    }).catch(error => {
-      tx.rollback()
-      session.close()
+    tx.run('RETURN 1')
+      .then(() => {
+        tx.rollback()
+        session.close()
+        done.fail('Query did not fail')
+      })
+      .catch(error => {
+        tx.rollback()
+        session.close()
 
-      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 
-      // in some environments non-routable address results in immediate 'connection refused' error and connect
-      // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
-      if (error.message.indexOf('Failed to establish connection') === 0) {
-        expect(error.message).toEqual('Failed to establish connection in 1000ms')
-      }
+        // in some environments non-routable address results in immediate 'connection refused' error and connect
+        // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
+        if (error.message.indexOf('Failed to establish connection') === 0) {
+          expect(error.message).toEqual(
+            'Failed to establish connection in 1000ms'
+          )
+        }
 
-      done()
-    })
+        done()
+      })
   }
 })

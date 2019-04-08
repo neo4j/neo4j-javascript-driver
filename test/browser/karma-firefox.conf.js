@@ -33,7 +33,7 @@ module.exports = function (config) {
     customLaunchers: {
       FirefoxHeadless: {
         base: 'Firefox',
-        flags: [ '-headless' ],
+        flags: ['-headless'],
         prefs: {
           'network.websocket.max-connections': 256 // as in Chrome
         }

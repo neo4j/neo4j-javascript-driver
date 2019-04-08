@@ -53,15 +53,20 @@ function acquireAndReleaseDummyConnection (connectionProvider) {
   const dummyObserver = new StreamObserver()
   const connectionPromise = connectionHolder.getConnection(dummyObserver)
 
-  return connectionPromise.then(connection => {
-    // able to establish a connection
-    return connectionHolder.close().then(() => connection.server)
-  }).catch(error => {
-    // failed to establish a connection
-    return connectionHolder.close().catch(ignoredError => {
-      // ignore connection release error
-    }).then(() => {
-      return Promise.reject(error)
+  return connectionPromise
+    .then(connection => {
+      // able to establish a connection
+      return connectionHolder.close().then(() => connection.server)
     })
-  })
+    .catch(error => {
+      // failed to establish a connection
+      return connectionHolder
+        .close()
+        .catch(ignoredError => {
+          // ignore connection release error
+        })
+        .then(() => {
+          return Promise.reject(error)
+        })
+    })
 }

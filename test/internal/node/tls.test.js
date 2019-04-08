@@ -38,10 +38,13 @@ describe('trust-all-certificates', () => {
     })
 
     // When
-    driver.session().run('RETURN 1').then(result => {
-      expect(result.records[0].get(0).toNumber()).toBe(1)
-      done()
-    })
+    driver
+      .session()
+      .run('RETURN 1')
+      .then(result => {
+        expect(result.records[0].get(0).toNumber()).toBe(1)
+        done()
+      })
   })
 })
 
@@ -63,10 +66,13 @@ describe('trust-custom-ca-signed-certificates', () => {
     })
 
     // When
-    driver.session().run('RETURN 1').catch(err => {
-      expect(err.message).toContain('Server certificate is not trusted')
-      done()
-    })
+    driver
+      .session()
+      .run('RETURN 1')
+      .catch(err => {
+        expect(err.message).toContain('Server certificate is not trusted')
+        done()
+      })
   })
 
   it('should accept known certificates', done => {
@@ -78,7 +84,10 @@ describe('trust-custom-ca-signed-certificates', () => {
     })
 
     // When
-    driver.session().run('RETURN 1').then(done)
+    driver
+      .session()
+      .run('RETURN 1')
+      .then(done)
   })
 })
 
@@ -99,10 +108,13 @@ describe('trust-system-ca-signed-certificates', () => {
     })
 
     // When
-    driver.session().run('RETURN 1').catch(err => {
-      expect(err.message).toContain('Server certificate is not trusted')
-      done()
-    })
+    driver
+      .session()
+      .run('RETURN 1')
+      .catch(err => {
+        expect(err.message).toContain('Server certificate is not trusted')
+        done()
+      })
   })
 })
 

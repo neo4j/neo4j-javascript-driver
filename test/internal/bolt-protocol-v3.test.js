@@ -26,6 +26,11 @@ describe('BoltProtocolV3', () => {
 
     const transformedMetadata = protocol.transformMetadata(metadata)
 
-    expect(transformedMetadata).toEqual({ result_available_after: 1, result_consumed_after: 2, db_hits: 3, some_other_key: 4 })
+    expect(transformedMetadata).toEqual({
+      result_available_after: 1,
+      result_consumed_after: 2,
+      db_hits: 3,
+      some_other_key: 4
+    })
   })
 })

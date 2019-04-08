@@ -20,7 +20,11 @@
 import neo4j from '../../../src'
 import sharedNeo4j from '../../internal/shared-neo4j'
 import testUtils from '.././test-utils'
-import { ServerVersion, VERSION_3_1_0, VERSION_3_4_0 } from '../../../src/internal/server-version'
+import {
+  ServerVersion,
+  VERSION_3_1_0,
+  VERSION_3_4_0
+} from '../../../src/internal/server-version'
 
 describe('http driver', () => {
   let originalTimeout
@@ -34,7 +38,9 @@ describe('http driver', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
 
-    boltDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { disableLosslessIntegers: true })
+    boltDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      disableLosslessIntegers: true
+    })
     httpDriver = neo4j.driver('http://localhost:7474', sharedNeo4j.authToken)
 
     const session = boltDriver.session()
@@ -66,10 +72,40 @@ describe('http driver', () => {
 
     const primitiveValues = [
       null,
-      0, 1, 2, 3, 42, -1, -2, -3, 100, -100, 424242, -424242,
-      0.12345, -0.12345, 1.25, -1.25, 5.99, -5.99, 1000.99, -1000.99, 1234.56789, -1234.56789,
-      neo4j.int(0), neo4j.int(1), neo4j.int(-1), neo4j.int(42), neo4j.int(-42), neo4j.int(12345), neo4j.int(-12345),
-      '', 'hello', 'hello world!', 'Thor and Mjölnir', 'Хеллоу'
+      0,
+      1,
+      2,
+      3,
+      42,
+      -1,
+      -2,
+      -3,
+      100,
+      -100,
+      424242,
+      -424242,
+      0.12345,
+      -0.12345,
+      1.25,
+      -1.25,
+      5.99,
+      -5.99,
+      1000.99,
+      -1000.99,
+      1234.56789,
+      -1234.56789,
+      neo4j.int(0),
+      neo4j.int(1),
+      neo4j.int(-1),
+      neo4j.int(42),
+      neo4j.int(-42),
+      neo4j.int(12345),
+      neo4j.int(-12345),
+      '',
+      'hello',
+      'hello world!',
+      'Thor and Mjölnir',
+      'Хеллоу'
     ]
 
     await testSendAndReceiveWithReturnQuery(primitiveValues)
@@ -82,9 +118,21 @@ describe('http driver', () => {
 
     const arrayValues = [
       [],
-      [42], [-42], [1, 2, 3], [-1, -2, -3], [1, 2, 3, 4, 5, 6, 7, 10000000], [-10000000, 42, 7, 6, 5, 4, 3, 2, 1],
-      [0.001], [-0.19, 0.19], [100.25, 123.456, 90.99, 88.112], [-901.33, -90.90, 133, 144, 77835],
-      [''], ['hello'], ['hello', ' ', 'world', '!'], ['Thor', ' ', 'has ', 'Mjölnir'], ['Hello', ' is ', 'Хеллоу']
+      [42],
+      [-42],
+      [1, 2, 3],
+      [-1, -2, -3],
+      [1, 2, 3, 4, 5, 6, 7, 10000000],
+      [-10000000, 42, 7, 6, 5, 4, 3, 2, 1],
+      [0.001],
+      [-0.19, 0.19],
+      [100.25, 123.456, 90.99, 88.112],
+      [-901.33, -90.9, 133, 144, 77835],
+      [''],
+      ['hello'],
+      ['hello', ' ', 'world', '!'],
+      ['Thor', ' ', 'has ', 'Mjölnir'],
+      ['Hello', ' is ', 'Хеллоу']
     ]
 
     await testSendAndReceiveWithReturnQuery(arrayValues)
@@ -97,8 +145,22 @@ describe('http driver', () => {
 
     const objectValues = [
       {},
-      { name: 'Sam', age: 20, salary: 100 }, { name: 'Tom', age: 20, scores: [1, 2, 3], values: [neo4j.int(1), neo4j.int(42)] },
-      { name: 'Cat', value: neo4j.int(42), info: { otherName: 'Dog', wight: neo4j.int(20), otherInfo: { likes: ['eat', 'drink'] } } }
+      { name: 'Sam', age: 20, salary: 100 },
+      {
+        name: 'Tom',
+        age: 20,
+        scores: [1, 2, 3],
+        values: [neo4j.int(1), neo4j.int(42)]
+      },
+      {
+        name: 'Cat',
+        value: neo4j.int(42),
+        info: {
+          otherName: 'Dog',
+          wight: neo4j.int(20),
+          otherInfo: { likes: ['eat', 'drink'] }
+        }
+      }
     ]
 
     await testSendAndReceiveWithReturnQuery(objectValues)
@@ -207,8 +269,14 @@ describe('http driver', () => {
 
     const query = `CREATE (n1:Node {value: 1}), (n2:Node {name: '2', value: 2}) WITH n1, n2 DELETE n1 RETURN n1, n2`
 
-    const boltStatementStatistics = await runQueryAndGetStatementStatistics(query, boltDriver)
-    const httpStatementStatistics = await runQueryAndGetStatementStatistics(query, httpDriver)
+    const boltStatementStatistics = await runQueryAndGetStatementStatistics(
+      query,
+      boltDriver
+    )
+    const httpStatementStatistics = await runQueryAndGetStatementStatistics(
+      query,
+      httpDriver
+    )
 
     expect(boltStatementStatistics).toEqual(httpStatementStatistics)
   })
@@ -230,7 +298,10 @@ describe('http driver', () => {
   })
 
   it('should terminate query waiting on a lock when session is closed', async () => {
-    if (testUtils.isServer() || !databaseSupportsTransactionTerminationInLocks()) {
+    if (
+      testUtils.isServer() ||
+      !databaseSupportsTransactionTerminationInLocks()
+    ) {
       return
     }
 
@@ -254,8 +325,13 @@ describe('http driver', () => {
       } catch (error) {
         failed = true
         expect(error.name).toEqual('Neo4jError')
-        expect(error.code).toBeElementOf(['Neo.DatabaseError.Statement.ExecutionFailed', 'Neo.TransientError.Transaction.LockClientStopped'])
-        expect(error.message.indexOf('transaction has been terminated')).not.toBeLessThan(0)
+        expect(error.code).toBeElementOf([
+          'Neo.DatabaseError.Statement.ExecutionFailed',
+          'Neo.TransientError.Transaction.LockClientStopped'
+        ])
+        expect(
+          error.message.indexOf('transaction has been terminated')
+        ).not.toBeLessThan(0)
       }
 
       if (!failed) {
@@ -265,8 +341,7 @@ describe('http driver', () => {
       if (boltTx) {
         try {
           await boltTx.rollback()
-        } catch (ignore) {
-        }
+        } catch (ignore) {}
       }
       boltSession.close()
     }
@@ -277,7 +352,9 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Node(neo4j.int(1), ['Person'], { name: 'Bob' }))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.Node(neo4j.int(1), ['Person'], { name: 'Bob' })
+    )
   })
 
   it('should fail to pass relationship as a query parameter', async () => {
@@ -285,7 +362,15 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Relationship(neo4j.int(1), neo4j.int(2), neo4j.int(3), 'KNOWS', { since: 42 }))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.Relationship(
+        neo4j.int(1),
+        neo4j.int(2),
+        neo4j.int(3),
+        'KNOWS',
+        { since: 42 }
+      )
+    )
   })
 
   it('should fail to pass path as a query parameter', async () => {
@@ -293,9 +378,15 @@ describe('http driver', () => {
       return
     }
 
-    const node1 = new neo4j.types.Node(neo4j.int(1), ['Person'], { name: 'Alice' })
-    const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], { name: 'Bob' })
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Path(node1, node2, []))
+    const node1 = new neo4j.types.Node(neo4j.int(1), ['Person'], {
+      name: 'Alice'
+    })
+    const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], {
+      name: 'Bob'
+    })
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.Path(node1, node2, [])
+    )
   })
 
   it('should fail to pass point as a query parameter', async () => {
@@ -303,7 +394,9 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Point(neo4j.int(42), 1, 2, 3))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.Point(neo4j.int(42), 1, 2, 3)
+    )
   })
 
   it('should fail to pass date as a query parameter', async () => {
@@ -311,7 +404,9 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Date(2000, 10, 12))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.Date(2000, 10, 12)
+    )
   })
 
   it('should fail to pass date-time as a query parameter', async () => {
@@ -319,7 +414,9 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.DateTime(2000, 10, 12, 12, 12, 0, 0, 0, null))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.DateTime(2000, 10, 12, 12, 12, 0, 0, 0, null)
+    )
   })
 
   it('should fail to pass duration as a query parameter', async () => {
@@ -327,7 +424,9 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Duration(1, 1, 1, 1))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.Duration(1, 1, 1, 1)
+    )
   })
 
   it('should fail to pass local date-time as a query parameter', async () => {
@@ -335,7 +434,9 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalDateTime(2000, 10, 12, 10, 10, 10, 10))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.LocalDateTime(2000, 10, 12, 10, 10, 10, 10)
+    )
   })
 
   it('should fail to pass local time as a query parameter', async () => {
@@ -343,7 +444,9 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.LocalTime(12, 12, 12, 0))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.LocalTime(12, 12, 12, 0)
+    )
   })
 
   it('should fail to pass time as a query parameter', async () => {
@@ -351,7 +454,9 @@ describe('http driver', () => {
       return
     }
 
-    await testUnsupportedQueryParameterWithHttpDriver(new neo4j.types.Time(12, 12, 12, 0, 0))
+    await testUnsupportedQueryParameterWithHttpDriver(
+      new neo4j.types.Time(12, 12, 12, 0, 0)
+    )
   })
 
   it('should receive points', async () => {
@@ -374,7 +479,8 @@ describe('http driver', () => {
 
     await testReceiveSingleValueWithHttpDriver(
       'RETURN date({year: 2019, month: 9, day: 28})',
-      '2019-09-28')
+      '2019-09-28'
+    )
   })
 
   it('should receive date-time with time zone id', async () => {
@@ -384,7 +490,8 @@ describe('http driver', () => {
 
     await testReceiveSingleValueWithHttpDriver(
       'RETURN datetime({year: 1976, month: 11, day: 1, hour: 19, minute: 20, second: 55, nanosecond: 999111, timezone: "UTC"})',
-      '1976-11-01T19:20:55.000999111Z[UTC]')
+      '1976-11-01T19:20:55.000999111Z[UTC]'
+    )
   })
 
   it('should receive date-time with time zone name', async () => {
@@ -394,7 +501,8 @@ describe('http driver', () => {
 
     await testReceiveSingleValueWithHttpDriver(
       'RETURN datetime({year: 2012, month: 12, day: 12, hour: 1, minute: 9, second: 2, nanosecond: 123, timezone: "-08:30"})',
-      '2012-12-12T01:09:02.000000123-08:30')
+      '2012-12-12T01:09:02.000000123-08:30'
+    )
   })
 
   it('should receive duration', async () => {
@@ -404,7 +512,8 @@ describe('http driver', () => {
 
     await testReceiveSingleValueWithHttpDriver(
       'RETURN duration({months: 3, days: 35, seconds: 19, nanoseconds: 937139})',
-      'P3M35DT19.000937139S')
+      'P3M35DT19.000937139S'
+    )
   })
 
   it('should receive local date-time', async () => {
@@ -414,7 +523,8 @@ describe('http driver', () => {
 
     await testReceiveSingleValueWithHttpDriver(
       'RETURN localdatetime({year: 2032, month: 5, day: 17, hour: 13, minute: 56, second: 51, nanosecond: 999888111})',
-      '2032-05-17T13:56:51.999888111')
+      '2032-05-17T13:56:51.999888111'
+    )
   })
 
   it('should receive local time', async () => {
@@ -424,7 +534,8 @@ describe('http driver', () => {
 
     await testReceiveSingleValueWithHttpDriver(
       'RETURN localtime({hour: 17, minute: 2, second: 21, nanosecond: 123456789})',
-      '17:02:21.123456789')
+      '17:02:21.123456789'
+    )
   })
 
   it('should receive time', async () => {
@@ -434,7 +545,8 @@ describe('http driver', () => {
 
     await testReceiveSingleValueWithHttpDriver(
       'RETURN time({hour: 21, minute: 19, second: 1, nanosecond: 111, timezone: "+03:15"})',
-      '21:19:01.000000111+03:15')
+      '21:19:01.000000111+03:15'
+    )
   })
 
   it('should close all open sessions when closed', async () => {
@@ -468,13 +580,21 @@ describe('http driver', () => {
 
     const boltResults = []
     for (const value of values) {
-      const boltResult = await runQueryAndGetResults(query, { value: value }, boltDriver)
+      const boltResult = await runQueryAndGetResults(
+        query,
+        { value: value },
+        boltDriver
+      )
       boltResults.push(boltResult)
     }
 
     const httpResults = []
     for (const value of values) {
-      const httpResult = await runQueryAndGetResults(query, { value: value }, httpDriver)
+      const httpResult = await runQueryAndGetResults(
+        query,
+        { value: value },
+        httpDriver
+      )
       httpResults.push(httpResult)
     }
 
@@ -505,7 +625,10 @@ describe('http driver', () => {
       const testInput = testInputs[i]
       const boltResultRow = boltResults[i]
       const httpResultRow = httpResults[i]
-      expect(boltResultRow).toEqual(httpResultRow, 'Failed for: ' + JSON.stringify(testInput))
+      expect(boltResultRow).toEqual(
+        httpResultRow,
+        'Failed for: ' + JSON.stringify(testInput)
+      )
     }
   }
 
@@ -513,7 +636,9 @@ describe('http driver', () => {
     const session = driver.session()
     try {
       const result = await session.run(query, params)
-      return result.records.map(record => record.keys.map(key => record.get(key)))
+      return result.records.map(record =>
+        record.keys.map(key => record.get(key))
+      )
     } finally {
       session.close()
     }

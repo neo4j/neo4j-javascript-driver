@@ -43,7 +43,10 @@ class ValueRange {
 
   contains (value) {
     if (isInt(value)) {
-      return value.greaterThanOrEqual(this._minInteger) && value.lessThanOrEqual(this._maxInteger)
+      return (
+        value.greaterThanOrEqual(this._minInteger) &&
+        value.lessThanOrEqual(this._maxInteger)
+      )
     } else {
       return value >= this._minNumber && value <= this._maxNumber
     }
@@ -132,7 +135,15 @@ export function nanoOfDayToLocalTime (nanoOfDay) {
  * @param {Integer|number|string} nanosecond the nanosecond of the local date-time to convert.
  * @return {Integer} epoch second in UTC representing the given local date time.
  */
-export function localDateTimeToEpochSecond (year, month, day, hour, minute, second, nanosecond) {
+export function localDateTimeToEpochSecond (
+  year,
+  month,
+  day,
+  hour,
+  minute,
+  second,
+  nanosecond
+) {
   const epochDay = dateToEpochDay(year, month, day)
   const localTimeSeconds = localTimeToSecondOfDay(hour, minute, second)
   return epochDay.multiply(SECONDS_PER_DAY).add(localTimeSeconds)
@@ -151,7 +162,15 @@ export function epochSecondAndNanoToLocalDateTime (epochSecond, nano) {
 
   const localDate = epochDayToDate(epochDay)
   const localTime = nanoOfDayToLocalTime(nanoOfDay)
-  return new LocalDateTime(localDate.year, localDate.month, localDate.day, localTime.hour, localTime.minute, localTime.second, localTime.nanosecond)
+  return new LocalDateTime(
+    localDate.year,
+    localDate.month,
+    localDate.day,
+    localTime.hour,
+    localTime.minute,
+    localTime.second,
+    localTime.nanosecond
+  )
 }
 
 /**
@@ -169,12 +188,28 @@ export function dateToEpochDay (year, month, day) {
   let epochDay = year.multiply(365)
 
   if (year.greaterThanOrEqual(0)) {
-    epochDay = epochDay.add(year.add(3).div(4).subtract(year.add(99).div(100)).add(year.add(399).div(400)))
+    epochDay = epochDay.add(
+      year
+        .add(3)
+        .div(4)
+        .subtract(year.add(99).div(100))
+        .add(year.add(399).div(400))
+    )
   } else {
-    epochDay = epochDay.subtract(year.div(-4).subtract(year.div(-100)).add(year.div(-400)))
+    epochDay = epochDay.subtract(
+      year
+        .div(-4)
+        .subtract(year.div(-100))
+        .add(year.div(-400))
+    )
   }
 
-  epochDay = epochDay.add(month.multiply(367).subtract(362).div(12))
+  epochDay = epochDay.add(
+    month
+      .multiply(367)
+      .subtract(362)
+      .div(12)
+  )
   epochDay = epochDay.add(day.subtract(1))
   if (month.greaterThan(2)) {
     epochDay = epochDay.subtract(1)
@@ -196,22 +231,53 @@ export function epochDayToDate (epochDay) {
   let zeroDay = epochDay.add(DAYS_0000_TO_1970).subtract(60)
   let adjust = int(0)
   if (zeroDay.lessThan(0)) {
-    const adjustCycles = zeroDay.add(1).div(DAYS_PER_400_YEAR_CYCLE).subtract(1)
+    const adjustCycles = zeroDay
+      .add(1)
+      .div(DAYS_PER_400_YEAR_CYCLE)
+      .subtract(1)
     adjust = adjustCycles.multiply(400)
     zeroDay = zeroDay.add(adjustCycles.multiply(-DAYS_PER_400_YEAR_CYCLE))
   }
-  let year = zeroDay.multiply(400).add(591).div(DAYS_PER_400_YEAR_CYCLE)
-  let dayOfYearEst = zeroDay.subtract(year.multiply(365).add(year.div(4)).subtract(year.div(100)).add(year.div(400)))
+  let year = zeroDay
+    .multiply(400)
+    .add(591)
+    .div(DAYS_PER_400_YEAR_CYCLE)
+  let dayOfYearEst = zeroDay.subtract(
+    year
+      .multiply(365)
+      .add(year.div(4))
+      .subtract(year.div(100))
+      .add(year.div(400))
+  )
   if (dayOfYearEst.lessThan(0)) {
     year = year.subtract(1)
-    dayOfYearEst = zeroDay.subtract(year.multiply(365).add(year.div(4)).subtract(year.div(100)).add(year.div(400)))
+    dayOfYearEst = zeroDay.subtract(
+      year
+        .multiply(365)
+        .add(year.div(4))
+        .subtract(year.div(100))
+        .add(year.div(400))
+    )
   }
   year = year.add(adjust)
   let marchDayOfYear = dayOfYearEst
 
-  const marchMonth = marchDayOfYear.multiply(5).add(2).div(153)
-  const month = marchMonth.add(2).modulo(12).add(1)
-  const day = marchDayOfYear.subtract(marchMonth.multiply(306).add(5).div(10)).add(1)
+  const marchMonth = marchDayOfYear
+    .multiply(5)
+    .add(2)
+    .div(153)
+  const month = marchMonth
+    .add(2)
+    .modulo(12)
+    .add(1)
+  const day = marchDayOfYear
+    .subtract(
+      marchMonth
+        .multiply(306)
+        .add(5)
+        .div(10)
+    )
+    .add(1)
   year = year.add(marchMonth.div(10))
 
   return new Date(year, month, day)
@@ -228,7 +294,10 @@ export function epochDayToDate (epochDay) {
 export function durationToIsoString (months, days, seconds, nanoseconds) {
   const monthsString = formatNumber(months)
   const daysString = formatNumber(days)
-  const secondsAndNanosecondsString = formatSecondsAndNanosecondsForDuration(seconds, nanoseconds)
+  const secondsAndNanosecondsString = formatSecondsAndNanosecondsForDuration(
+    seconds,
+    nanoseconds
+  )
   return `P${monthsString}M${daysString}DT${secondsAndNanosecondsString}S`
 }
 
@@ -266,11 +335,16 @@ export function timeZoneOffsetToIsoString (offsetSeconds) {
   const signPrefix = isNegative ? '-' : '+'
 
   const hours = formatNumber(offsetSeconds.div(SECONDS_PER_HOUR), 2)
-  const minutes = formatNumber(offsetSeconds.div(SECONDS_PER_MINUTE).modulo(MINUTES_PER_HOUR), 2)
+  const minutes = formatNumber(
+    offsetSeconds.div(SECONDS_PER_MINUTE).modulo(MINUTES_PER_HOUR),
+    2
+  )
   let secondsValue = offsetSeconds.modulo(SECONDS_PER_MINUTE)
   const seconds = secondsValue.equals(0) ? null : formatNumber(secondsValue, 2)
 
-  return seconds ? `${signPrefix}${hours}:${minutes}:${seconds}` : `${signPrefix}${hours}:${minutes}`
+  return seconds
+    ? `${signPrefix}${hours}:${minutes}:${seconds}`
+    : `${signPrefix}${hours}:${minutes}`
 }
 
 /**
@@ -303,9 +377,11 @@ export function dateToIsoString (year, month, day) {
  * @return {Integer|number} the total amount of nanoseconds.
  */
 export function totalNanoseconds (standardDate, nanoseconds) {
-  nanoseconds = (nanoseconds || 0)
+  nanoseconds = nanoseconds || 0
   const nanosFromMillis = standardDate.getMilliseconds() * NANOS_PER_MILLISECOND
-  return isInt(nanoseconds) ? nanoseconds.add(nanosFromMillis) : nanoseconds + nanosFromMillis
+  return isInt(nanoseconds)
+    ? nanoseconds.add(nanosFromMillis)
+    : nanoseconds + nanosFromMillis
 }
 
 /**
@@ -388,7 +464,11 @@ export function assertValidSecond (second) {
  * @return {Integer|number} the value of the nanosecond if it is valid. Exception is thrown otherwise.
  */
 export function assertValidNanosecond (nanosecond) {
-  return assertValidTemporalValue(nanosecond, NANOSECOND_OF_SECOND_RANGE, 'Nanosecond')
+  return assertValidTemporalValue(
+    nanosecond,
+    NANOSECOND_OF_SECOND_RANGE,
+    'Nanosecond'
+  )
 }
 
 /**
@@ -401,7 +481,9 @@ export function assertValidNanosecond (nanosecond) {
 function assertValidTemporalValue (value, range, name) {
   assertNumberOrInteger(value, name)
   if (!range.contains(value)) {
-    throw newError(`${name} is expected to be in range ${range} but was: ${value}`)
+    throw newError(
+      `${name} is expected to be in range ${range} but was: ${value}`
+    )
   }
   return value
 }
@@ -496,9 +578,16 @@ function formatSecondsAndNanosecondsForDuration (seconds, nanoseconds) {
 
   if (nanosecondsGreaterThanZero) {
     if (secondsNegative) {
-      nanosecondsString = formatNanosecond(nanoseconds.negate().add(2 * NANOS_PER_SECOND).modulo(NANOS_PER_SECOND))
+      nanosecondsString = formatNanosecond(
+        nanoseconds
+          .negate()
+          .add(2 * NANOS_PER_SECOND)
+          .modulo(NANOS_PER_SECOND)
+      )
     } else {
-      nanosecondsString = formatNanosecond(nanoseconds.add(NANOS_PER_SECOND).modulo(NANOS_PER_SECOND))
+      nanosecondsString = formatNanosecond(
+        nanoseconds.add(NANOS_PER_SECOND).modulo(NANOS_PER_SECOND)
+      )
     }
   }
 

@@ -66,7 +66,13 @@ export default class BoltProtocol extends BoltProtocolV2 {
   }
 
   run (statement, parameters, bookmark, txConfig, mode, observer) {
-    const runMessage = RequestMessage.runWithMetadata(statement, parameters, bookmark, txConfig, mode)
+    const runMessage = RequestMessage.runWithMetadata(
+      statement,
+      parameters,
+      bookmark,
+      txConfig,
+      mode
+    )
     const pullAllMessage = RequestMessage.pullAll()
 
     this._connection.write(runMessage, observer, false)
@@ -75,7 +81,10 @@ export default class BoltProtocol extends BoltProtocolV2 {
 }
 
 function prepareToHandleSingleResponse (observer) {
-  if (observer && typeof observer.prepareToHandleSingleResponse === 'function') {
+  if (
+    observer &&
+    typeof observer.prepareToHandleSingleResponse === 'function'
+  ) {
     observer.prepareToHandleSingleResponse()
   }
 }

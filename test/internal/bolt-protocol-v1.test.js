@@ -45,12 +45,22 @@ class MessageRecorder {
 
 describe('BoltProtocolV1', () => {
   it('should not change metadata', () => {
-    const metadata = { result_available_after: 1, result_consumed_after: 2, t_first: 3, t_last: 4 }
+    const metadata = {
+      result_available_after: 1,
+      result_consumed_after: 2,
+      t_first: 3,
+      t_last: 4
+    }
     const protocol = new BoltProtocolV1(new MessageRecorder(), null, false)
 
     const transformedMetadata = protocol.transformMetadata(metadata)
 
-    expect(transformedMetadata).toEqual({ result_available_after: 1, result_consumed_after: 2, t_first: 3, t_last: 4 })
+    expect(transformedMetadata).toEqual({
+      result_available_after: 1,
+      result_consumed_after: 2,
+      t_first: 3,
+      t_last: 4
+    })
   })
 
   it('should initialize the connection', () => {
@@ -64,7 +74,10 @@ describe('BoltProtocolV1', () => {
     protocol.initialize(clientName, authToken, observer)
 
     recorder.verifyMessageCount(1)
-    verifyMessage(RequestMessage.init(clientName, authToken), recorder.messages[0])
+    verifyMessage(
+      RequestMessage.init(clientName, authToken),
+      recorder.messages[0]
+    )
     expect(recorder.observers).toEqual([observer])
     expect(recorder.flushes).toEqual([true])
   })
@@ -77,11 +90,21 @@ describe('BoltProtocolV1', () => {
     const parameters = { x: 'x', y: 'y' }
     const observer = {}
 
-    protocol.run(statement, parameters, Bookmark.empty(), TxConfig.empty(), WRITE, observer)
+    protocol.run(
+      statement,
+      parameters,
+      Bookmark.empty(),
+      TxConfig.empty(),
+      WRITE,
+      observer
+    )
 
     recorder.verifyMessageCount(2)
 
-    verifyMessage(RequestMessage.run(statement, parameters), recorder.messages[0])
+    verifyMessage(
+      RequestMessage.run(statement, parameters),
+      recorder.messages[0]
+    )
     verifyMessage(RequestMessage.pullAll(), recorder.messages[1])
 
     expect(recorder.observers).toEqual([observer, observer])
@@ -113,7 +136,10 @@ describe('BoltProtocolV1', () => {
 
     recorder.verifyMessageCount(2)
 
-    verifyMessage(RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters()), recorder.messages[0])
+    verifyMessage(
+      RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters()),
+      recorder.messages[0]
+    )
     verifyMessage(RequestMessage.pullAll(), recorder.messages[1])
 
     expect(recorder.observers).toEqual([observer, observer])

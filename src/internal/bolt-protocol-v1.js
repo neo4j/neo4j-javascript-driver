@@ -86,7 +86,10 @@ export default class BoltProtocol {
   beginTransaction (bookmark, txConfig, mode, observer) {
     assertTxConfigIsEmpty(txConfig, this._connection, observer)
 
-    const runMessage = RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters())
+    const runMessage = RequestMessage.run(
+      'BEGIN',
+      bookmark.asBeginTransactionParameters()
+    )
     const pullAllMessage = RequestMessage.pullAll()
 
     this._connection.write(runMessage, observer, false)
@@ -100,7 +103,14 @@ export default class BoltProtocol {
   commitTransaction (observer) {
     // WRITE access mode is used as a place holder here, it has
     // no effect on behaviour for Bolt V1 & V2
-    this.run('COMMIT', {}, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, observer)
+    this.run(
+      'COMMIT',
+      {},
+      Bookmark.empty(),
+      TxConfig.empty(),
+      ACCESS_MODE_WRITE,
+      observer
+    )
   }
 
   /**
@@ -110,7 +120,14 @@ export default class BoltProtocol {
   rollbackTransaction (observer) {
     // WRITE access mode is used as a place holder here, it has
     // no effect on behaviour for Bolt V1 & V2
-    this.run('ROLLBACK', {}, Bookmark.empty(), TxConfig.empty(), ACCESS_MODE_WRITE, observer)
+    this.run(
+      'ROLLBACK',
+      {},
+      Bookmark.empty(),
+      TxConfig.empty(),
+      ACCESS_MODE_WRITE,
+      observer
+    )
   }
 
   /**
@@ -158,8 +175,10 @@ export default class BoltProtocol {
  */
 function assertTxConfigIsEmpty (txConfig, connection, observer) {
   if (!txConfig.isEmpty()) {
-    const error = newError('Driver is connected to the database that does not support transaction configuration. ' +
-      'Please upgrade to neo4j 3.5.0 or later in order to use this functionality')
+    const error = newError(
+      'Driver is connected to the database that does not support transaction configuration. ' +
+        'Please upgrade to neo4j 3.5.0 or later in order to use this functionality'
+    )
 
     // unsupported API was used, consider this a fatal error for the current connection
     connection._handleFatalError(error)

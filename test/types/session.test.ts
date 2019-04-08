@@ -17,125 +17,154 @@
  * limitations under the License.
  */
 
-import Session, {TransactionConfig} from "../../types/session";
-import Transaction from "../../types/transaction";
-import Record from "../../types/record";
-import Result, {StatementResult} from "../../types/result";
-import ResultSummary from "../../types/result-summary";
-import Integer from "../../types/integer";
+import Session, { TransactionConfig } from '../../types/session'
+import Transaction from '../../types/transaction'
+import Record from '../../types/record'
+import Result, { StatementResult } from '../../types/result'
+import ResultSummary from '../../types/result-summary'
+import Integer from '../../types/integer'
 
-const dummy: any = null;
-const intValue: Integer = Integer.fromInt(42);
+const dummy: any = null
+const intValue: Integer = Integer.fromInt(42)
 
-const session: Session = dummy;
+const session: Session = dummy
 
-const txConfig1: TransactionConfig = {};
-const txConfig2: TransactionConfig = {timeout: 5000};
-const txConfig3: TransactionConfig = {timeout: intValue};
-const txConfig4: TransactionConfig = {metadata: {}};
-const txConfig5: TransactionConfig = {metadata: {key1: 'value1', key2: 5, key3: {a: 'a', b: 'b'}, key4: [1, 2, 3]}};
-const txConfig6: TransactionConfig = {timeout: 2000, metadata: {key1: 'value1', key2: 2}};
-const txConfig7: TransactionConfig = {timeout: intValue, metadata: {key1: 'value1', key2: 2}};
+const txConfig1: TransactionConfig = {}
+const txConfig2: TransactionConfig = { timeout: 5000 }
+const txConfig3: TransactionConfig = { timeout: intValue }
+const txConfig4: TransactionConfig = { metadata: {} }
+const txConfig5: TransactionConfig = {
+  metadata: {
+    key1: 'value1',
+    key2: 5,
+    key3: { a: 'a', b: 'b' },
+    key4: [1, 2, 3]
+  }
+}
+const txConfig6: TransactionConfig = {
+  timeout: 2000,
+  metadata: { key1: 'value1', key2: 2 }
+}
+const txConfig7: TransactionConfig = {
+  timeout: intValue,
+  metadata: { key1: 'value1', key2: 2 }
+}
 
-const tx1: Transaction = session.beginTransaction();
-const bookmark: null | string = <null>session.lastBookmark();
+const tx1: Transaction = session.beginTransaction()
+const bookmark: null | string = <null>session.lastBookmark()
 
 const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
-  return 10;
-});
+  return 10
+})
 
 const promise2: Promise<string> = session.readTransaction((tx: Transaction) => {
-  return Promise.resolve("42")
-});
+  return Promise.resolve('42')
+})
 
-const promise3: Promise<number> = session.writeTransaction((tx: Transaction) => {
-  return 10;
-});
+const promise3: Promise<number> = session.writeTransaction(
+  (tx: Transaction) => {
+    return 10
+  }
+)
 
-const promise4: Promise<string> = session.writeTransaction((tx: Transaction) => {
-  return Promise.resolve("42")
-});
+const promise4: Promise<string> = session.writeTransaction(
+  (tx: Transaction) => {
+    return Promise.resolve('42')
+  }
+)
 
-const close1: void = session.close();
+const close1: void = session.close()
 const close2: void = session.close(() => {
-  console.log("Session closed");
-});
+  console.log('Session closed')
+})
 
-const result1: Result = session.run("RETURN 1");
-result1.then((res: StatementResult) => {
-  const records: Record[] = res.records;
-  const summary: ResultSummary = res.summary;
-  console.log(records);
-  console.log(summary);
-}).catch((error: Error) => {
-  console.log(error);
-});
+const result1: Result = session.run('RETURN 1')
+result1
+  .then((res: StatementResult) => {
+    const records: Record[] = res.records
+    const summary: ResultSummary = res.summary
+    console.log(records)
+    console.log(summary)
+  })
+  .catch((error: Error) => {
+    console.log(error)
+  })
 
-const result2: Result = session.run("RETURN 2");
-result2.subscribe({});
+const result2: Result = session.run('RETURN 2')
+result2.subscribe({})
 result2.subscribe({
   onNext: (record: Record) => console.log(record)
-});
+})
 result2.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error)
-});
+})
 result2.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error),
   onCompleted: (summary: ResultSummary) => console.log(summary)
-});
+})
 
-const result3: Result = session.run("RETURN $value", {value: "42"});
-result3.then((res: StatementResult) => {
-  const records: Record[] = res.records;
-  const summary: ResultSummary = res.summary;
-  console.log(records);
-  console.log(summary);
-}).catch((error: Error) => {
-  console.log(error);
-});
+const result3: Result = session.run('RETURN $value', { value: '42' })
+result3
+  .then((res: StatementResult) => {
+    const records: Record[] = res.records
+    const summary: ResultSummary = res.summary
+    console.log(records)
+    console.log(summary)
+  })
+  .catch((error: Error) => {
+    console.log(error)
+  })
 
-const result4: Result = session.run("RETURN $value", {value: "42"});
-result4.subscribe({});
+const result4: Result = session.run('RETURN $value', { value: '42' })
+result4.subscribe({})
 result4.subscribe({
   onNext: (record: Record) => console.log(record)
-});
+})
 result4.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error)
-});
+})
 result4.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error),
   onCompleted: (summary: ResultSummary) => console.log(summary)
-});
+})
 
-const result5: Result = session.run("RETURN $value", {value: "42"}, txConfig1);
-result5.then((res: StatementResult) => {
-  const records: Record[] = res.records;
-  const summary: ResultSummary = res.summary;
-  console.log(records);
-  console.log(summary);
-}).catch((error: Error) => {
-  console.log(error);
-});
+const result5: Result = session.run('RETURN $value', { value: '42' }, txConfig1)
+result5
+  .then((res: StatementResult) => {
+    const records: Record[] = res.records
+    const summary: ResultSummary = res.summary
+    console.log(records)
+    console.log(summary)
+  })
+  .catch((error: Error) => {
+    console.log(error)
+  })
 
-const result6: Result = session.run("RETURN $value", {value: "42"}, txConfig2);
-result6.subscribe({});
+const result6: Result = session.run('RETURN $value', { value: '42' }, txConfig2)
+result6.subscribe({})
 result6.subscribe({
   onNext: (record: Record) => console.log(record)
-});
+})
 result6.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error)
-});
+})
 result6.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error),
   onCompleted: (summary: ResultSummary) => console.log(summary)
-});
+})
 
-const tx2: Transaction = session.beginTransaction(txConfig2);
-const promise5: Promise<string> = session.readTransaction((tx: Transaction) => "", txConfig3);
-const promise6: Promise<number> = session.writeTransaction((tx: Transaction) => 42, txConfig4);
+const tx2: Transaction = session.beginTransaction(txConfig2)
+const promise5: Promise<string> = session.readTransaction(
+  (tx: Transaction) => '',
+  txConfig3
+)
+const promise6: Promise<number> = session.writeTransaction(
+  (tx: Transaction) => 42,
+  txConfig4
+)

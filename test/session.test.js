@@ -172,7 +172,10 @@ describe('session', () => {
 
   it('should accept a statement object ', done => {
     // Given
-    const statement = { text: 'RETURN 1 = {param} AS a', parameters: { param: 1 } }
+    const statement = {
+      text: 'RETURN 1 = {param} AS a',
+      parameters: { param: 1 }
+    }
 
     // When & Then
     const records = []
@@ -190,29 +193,26 @@ describe('session', () => {
 
   it('should expose run/then/then/then ', done => {
     // When & Then
-    session.run('RETURN 1.0 AS a')
-      .then(
-        result => {
-          expect(result.records.length).toBe(1)
-          expect(result.records[0].get('a')).toBe(1)
-          return result
-        }
-      ).then(
-        result => {
-          expect(result.records.length).toBe(1)
-          expect(result.records[0].get('a')).toBe(1)
-        }
-      ).then(done)
+    session
+      .run('RETURN 1.0 AS a')
+      .then(result => {
+        expect(result.records.length).toBe(1)
+        expect(result.records[0].get('a')).toBe(1)
+        return result
+      })
+      .then(result => {
+        expect(result.records.length).toBe(1)
+        expect(result.records[0].get('a')).toBe(1)
+      })
+      .then(done)
   })
 
   it('should expose basic run/catch ', done => {
     // When & Then
-    session.run('RETURN 1 AS').catch(
-      error => {
-        expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
-        done()
-      }
-    )
+    session.run('RETURN 1 AS').catch(error => {
+      expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
+      done()
+    })
   })
 
   it('should expose summarize method for basic metadata ', done => {
@@ -220,16 +220,15 @@ describe('session', () => {
     const statement = 'CREATE (n:Label {prop:{prop}}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
-    session.run(statement, params)
-      .then(result => {
-        const sum = result.summary
-        expect(sum.statement.text).toBe(statement)
-        expect(sum.statement.parameters).toBe(params)
-        expect(sum.counters.containsUpdates()).toBe(true)
-        expect(sum.counters.nodesCreated()).toBe(1)
-        expect(sum.statementType).toBe(statementType.READ_WRITE)
-        done()
-      })
+    session.run(statement, params).then(result => {
+      const sum = result.summary
+      expect(sum.statement.text).toBe(statement)
+      expect(sum.statement.parameters).toBe(params)
+      expect(sum.counters.containsUpdates()).toBe(true)
+      expect(sum.counters.nodesCreated()).toBe(1)
+      expect(sum.statementType).toBe(statementType.READ_WRITE)
+      done()
+    })
   })
 
   it('should expose server info on successful query', done => {
@@ -237,14 +236,13 @@ describe('session', () => {
     const statement = 'RETURN 1'
 
     // When & Then
-    session.run(statement)
-      .then(result => {
-        const sum = result.summary
-        expect(sum.server).toBeDefined()
-        expect(sum.server.address).toEqual('localhost:7687')
-        expect(sum.server.version).toBeDefined()
-        done()
-      })
+    session.run(statement).then(result => {
+      const sum = result.summary
+      expect(sum.server).toBeDefined()
+      expect(sum.server.address).toEqual('localhost:7687')
+      expect(sum.server.version).toBeDefined()
+      done()
+    })
   })
 
   it('should expose execution time information', done => {
@@ -252,25 +250,23 @@ describe('session', () => {
     const statement = 'UNWIND range(1,10000) AS n RETURN n AS number'
     // When & Then
 
-    session.run(statement)
-      .then(result => {
-        const sum = result.summary
-        expect(sum.resultAvailableAfter.toInt()).not.toBeLessThan(0)
-        expect(sum.resultConsumedAfter.toInt()).not.toBeLessThan(0)
-        done()
-      })
+    session.run(statement).then(result => {
+      const sum = result.summary
+      expect(sum.resultAvailableAfter.toInt()).not.toBeLessThan(0)
+      expect(sum.resultConsumedAfter.toInt()).not.toBeLessThan(0)
+      done()
+    })
   })
 
   it('should expose empty parameter map on call with no parameters', done => {
     // Given
-    const statement = 'CREATE (n:Label {prop:\'string\'}) RETURN n'
+    const statement = "CREATE (n:Label {prop:'string'}) RETURN n"
     // When & Then
-    session.run(statement)
-      .then(result => {
-        const sum = result.summary
-        expect(sum.statement.parameters).toEqual({})
-        done()
-      })
+    session.run(statement).then(result => {
+      const sum = result.summary
+      expect(sum.statement.parameters).toEqual({})
+      done()
+    })
   })
 
   it('should expose plan ', done => {
@@ -278,18 +274,16 @@ describe('session', () => {
     const statement = 'EXPLAIN CREATE (n:Label {prop:{prop}}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
-    session
-      .run(statement, params)
-      .then(result => {
-        const sum = result.summary
-        expect(sum.hasPlan()).toBe(true)
-        expect(sum.hasProfile()).toBe(false)
-        expect(sum.plan.operatorType).toBeDefined()
-        expect(isString(sum.plan.arguments.runtime)).toBeTruthy()
-        expect(sum.plan.identifiers[0]).toBe('n')
-        expect(sum.plan.children[0].operatorType).toBeDefined()
-        done()
-      })
+    session.run(statement, params).then(result => {
+      const sum = result.summary
+      expect(sum.hasPlan()).toBe(true)
+      expect(sum.hasProfile()).toBe(false)
+      expect(sum.plan.operatorType).toBeDefined()
+      expect(isString(sum.plan.arguments.runtime)).toBeTruthy()
+      expect(sum.plan.identifiers[0]).toBe('n')
+      expect(sum.plan.children[0].operatorType).toBeDefined()
+      done()
+    })
   })
 
   it('should expose profile ', done => {
@@ -297,36 +291,36 @@ describe('session', () => {
     const statement = 'PROFILE MATCH (n:Label {prop:{prop}}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
-    session
-      .run(statement, params)
-      .then(result => {
-        const sum = result.summary
-        expect(sum.hasPlan()).toBe(true) // When there's a profile, there's a plan
-        expect(sum.hasProfile()).toBe(true)
-        expect(sum.profile.operatorType).toBeDefined()
-        expect(isString(sum.profile.arguments.runtime)).toBeTruthy()
-        expect(sum.profile.identifiers[0]).toBe('n')
-        expect(sum.profile.children[0].operatorType).toBeDefined()
-        expect(sum.profile.rows).toBe(0)
-        // expect(sum.profile.dbHits).toBeGreaterThan(0);
-        done()
-      })
+    session.run(statement, params).then(result => {
+      const sum = result.summary
+      expect(sum.hasPlan()).toBe(true) // When there's a profile, there's a plan
+      expect(sum.hasProfile()).toBe(true)
+      expect(sum.profile.operatorType).toBeDefined()
+      expect(isString(sum.profile.arguments.runtime)).toBeTruthy()
+      expect(sum.profile.identifiers[0]).toBe('n')
+      expect(sum.profile.children[0].operatorType).toBeDefined()
+      expect(sum.profile.rows).toBe(0)
+      // expect(sum.profile.dbHits).toBeGreaterThan(0);
+      done()
+    })
   })
 
   it('should expose cypher notifications ', done => {
     // Given
     const statement = 'EXPLAIN MATCH (n), (m) RETURN n, m'
     // When & Then
-    session
-      .run(statement)
-      .then(result => {
-        const sum = result.summary
-        expect(sum.notifications.length).toBeGreaterThan(0)
-        expect(sum.notifications[0].code).toBe('Neo.ClientNotification.Statement.CartesianProductWarning')
-        expect(sum.notifications[0].title).toBe('This query builds a cartesian product between disconnected patterns.')
-        expect(sum.notifications[0].position.column).toBeGreaterThan(0)
-        done()
-      })
+    session.run(statement).then(result => {
+      const sum = result.summary
+      expect(sum.notifications.length).toBeGreaterThan(0)
+      expect(sum.notifications[0].code).toBe(
+        'Neo.ClientNotification.Statement.CartesianProductWarning'
+      )
+      expect(sum.notifications[0].title).toBe(
+        'This query builds a cartesian product between disconnected patterns.'
+      )
+      expect(sum.notifications[0].position.column).toBeGreaterThan(0)
+      done()
+    })
   })
 
   it('should fail when using the session when having an open transaction', done => {
@@ -334,13 +328,14 @@ describe('session', () => {
     session.beginTransaction()
 
     // Then
-    session.run('RETURN 42')
-      .catch(error => {
-        expect(error.message).toBe('Statements cannot be run directly on a ' +
+    session.run('RETURN 42').catch(error => {
+      expect(error.message).toBe(
+        'Statements cannot be run directly on a ' +
           'session with an open transaction; either run from within the ' +
-          'transaction or use a different session.')
-        done()
-      })
+          'transaction or use a different session.'
+      )
+      done()
+    })
   })
 
   it('should fail when opening multiple transactions', () => {
@@ -349,48 +344,55 @@ describe('session', () => {
 
     // Then
     expect(() => session.beginTransaction()).toThrowError(
-      /You cannot begin a transaction on a session with an open transaction/)
+      /You cannot begin a transaction on a session with an open transaction/
+    )
   })
 
   it('should return lots of data', done => {
-    session.run("UNWIND range(1,10000) AS x CREATE (:ATTRACTION {prop: 'prop'})")
+    session
+      .run("UNWIND range(1,10000) AS x CREATE (:ATTRACTION {prop: 'prop'})")
       .then(() => {
-        session.run('MATCH (n) RETURN n')
-          .subscribe(
-            {
-              onNext: record => {
-                const node = record.get('n')
-                expect(node.labels[0]).toEqual('ATTRACTION')
-                expect(node.properties.prop).toEqual('prop')
-              },
-              onCompleted: () => {
-                session.close()
-                done()
-              },
-              onError: error => {
-                console.log(error)
-              }
-            }
-          )
+        session.run('MATCH (n) RETURN n').subscribe({
+          onNext: record => {
+            const node = record.get('n')
+            expect(node.labels[0]).toEqual('ATTRACTION')
+            expect(node.properties.prop).toEqual('prop')
+          },
+          onCompleted: () => {
+            session.close()
+            done()
+          },
+          onError: error => {
+            console.log(error)
+          }
+        })
       })
   })
 
   it('should be able to close a long running query ', done => {
     // given a long running query
-    session.run('unwind range(1,1000000) as x create (n {prop:x}) delete n').catch(error => {
-      // long running query should fail
-      expect(error).toBeDefined()
+    session
+      .run('unwind range(1,1000000) as x create (n {prop:x}) delete n')
+      .catch(error => {
+        // long running query should fail
+        expect(error).toBeDefined()
 
-      // and it should be possible to start another session and run a query
-      const anotherSession = driver.session()
-      anotherSession.run('RETURN 1.0 as a').then(result => {
-        expect(result.records.length).toBe(1)
-        expect(result.records[0].get('a')).toBe(1)
-        done()
-      }).catch(error => {
-        console.log('Query failed after a long running query was terminated', error)
+        // and it should be possible to start another session and run a query
+        const anotherSession = driver.session()
+        anotherSession
+          .run('RETURN 1.0 as a')
+          .then(result => {
+            expect(result.records.length).toBe(1)
+            expect(result.records[0].get('a')).toBe(1)
+            done()
+          })
+          .catch(error => {
+            console.log(
+              'Query failed after a long running query was terminated',
+              error
+            )
+          })
       })
-    })
 
     // wait some time than close the session with a long running query
     setTimeout(() => {
@@ -407,11 +409,9 @@ describe('session', () => {
     const statement = 'RETURN {param}'
     const params = { param: unpackable }
     // When & Then
-    session
-      .run(statement, params)
-      .catch(ignore => {
-        done()
-      })
+    session.run(statement, params).catch(ignore => {
+      done()
+    })
   })
 
   it('should fail nicely for illegal statement', () => {
@@ -423,7 +423,9 @@ describe('session', () => {
     expect(() => session.run('')).toThrowError(TypeError)
     expect(() => session.run(['CREATE ()'])).toThrowError(TypeError)
 
-    expect(() => session.run({ statement: 'CREATE ()' })).toThrowError(TypeError)
+    expect(() => session.run({ statement: 'CREATE ()' })).toThrowError(
+      TypeError
+    )
     expect(() => session.run({ cypher: 'CREATE ()' })).toThrowError(TypeError)
   })
 
@@ -431,7 +433,9 @@ describe('session', () => {
     expect(() => session.beginTransaction(42)).toThrowError(TypeError)
     expect(() => session.beginTransaction(42)).toThrowError(TypeError)
     expect(() => session.beginTransaction([42.0, 42.0])).toThrowError(TypeError)
-    expect(() => session.beginTransaction(() => ['bookmark:1', 'bookmark:2', 'bookmark:3'])).toThrowError(TypeError)
+    expect(() =>
+      session.beginTransaction(() => ['bookmark:1', 'bookmark:2', 'bookmark:3'])
+    ).toThrowError(TypeError)
   })
 
   it('should allow creation of a ' + neo4j.session.READ + ' session', done => {
@@ -511,8 +515,7 @@ describe('session', () => {
           expect(idleConnectionCount(driver)).toBe(idleConnectionsBefore)
           done()
         },
-        onCompleted: () => {
-        }
+        onCompleted: () => {}
       })
     })
   })
@@ -621,7 +624,9 @@ describe('session', () => {
     session = driver.session()
     expect(session.lastBookmark()).toBeNull()
 
-    const resultPromise = session.readTransaction(tx => tx.run('RETURN 42 AS answer'))
+    const resultPromise = session.readTransaction(tx =>
+      tx.run('RETURN 42 AS answer')
+    )
 
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
@@ -633,7 +638,9 @@ describe('session', () => {
 
   it('should commit write transaction', done => {
     const bookmarkBefore = session.lastBookmark()
-    const resultPromise = session.writeTransaction(tx => tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer'))
+    const resultPromise = session.writeTransaction(tx =>
+      tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
+    )
 
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
@@ -654,11 +661,15 @@ describe('session', () => {
   it('should not commit already committed read transaction', done => {
     const resultPromise = session.readTransaction(tx => {
       return new Promise((resolve, reject) => {
-        tx.run('RETURN 42 AS answer').then(result => {
-          tx.commit().then(() => {
-            resolve({ result: result, bookmark: session.lastBookmark() })
-          }).catch(error => reject(error))
-        }).catch(error => reject(error))
+        tx.run('RETURN 42 AS answer')
+          .then(result => {
+            tx.commit()
+              .then(() => {
+                resolve({ result: result, bookmark: session.lastBookmark() })
+              })
+              .catch(error => reject(error))
+          })
+          .catch(error => reject(error))
       })
     })
 
@@ -679,11 +690,15 @@ describe('session', () => {
   it('should not commit already committed write transaction', done => {
     const resultPromise = session.readTransaction(tx => {
       return new Promise((resolve, reject) => {
-        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer').then(result => {
-          tx.commit().then(() => {
-            resolve({ result: result, bookmark: session.lastBookmark() })
-          }).catch(error => reject(error))
-        }).catch(error => reject(error))
+        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
+          .then(result => {
+            tx.commit()
+              .then(() => {
+                resolve({ result: result, bookmark: session.lastBookmark() })
+              })
+              .catch(error => reject(error))
+          })
+          .catch(error => reject(error))
       })
     })
 
@@ -709,11 +724,15 @@ describe('session', () => {
     const bookmarkBefore = session.lastBookmark()
     const resultPromise = session.readTransaction(tx => {
       return new Promise((resolve, reject) => {
-        tx.run('RETURN 42 AS answer').then(result => {
-          tx.rollback().then(() => {
-            resolve(result)
-          }).catch(error => reject(error))
-        }).catch(error => reject(error))
+        tx.run('RETURN 42 AS answer')
+          .then(result => {
+            tx.rollback()
+              .then(() => {
+                resolve(result)
+              })
+              .catch(error => reject(error))
+          })
+          .catch(error => reject(error))
       })
     })
 
@@ -730,11 +749,15 @@ describe('session', () => {
     const bookmarkBefore = session.lastBookmark()
     const resultPromise = session.readTransaction(tx => {
       return new Promise((resolve, reject) => {
-        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer').then(result => {
-          tx.rollback().then(() => {
-            resolve(result)
-          }).catch(error => reject(error))
-        }).catch(error => reject(error))
+        tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
+          .then(result => {
+            tx.rollback()
+              .then(() => {
+                resolve(result)
+              })
+              .catch(error => reject(error))
+          })
+          .catch(error => reject(error))
       })
     })
 
@@ -764,15 +787,17 @@ describe('session', () => {
           expect(result.records[0].get(0).toNumber()).toEqual(42)
 
           // this query should get stuck waiting for the lock
-          session2.run('MATCH (n) SET n.id = 2 RETURN 42 AS answer').catch(error => {
-            expectTransactionTerminatedError(error)
-            tx1.commit().then(() => {
-              readAllNodeIds().then(ids => {
-                expect(ids).toEqual([1])
-                done()
+          session2
+            .run('MATCH (n) SET n.id = 2 RETURN 42 AS answer')
+            .catch(error => {
+              expectTransactionTerminatedError(error)
+              tx1.commit().then(() => {
+                readAllNodeIds().then(ids => {
+                  expect(ids).toEqual([1])
+                  done()
+                })
               })
             })
-          })
 
           setTimeout(() => {
             // close session after a while
@@ -830,15 +855,17 @@ describe('session', () => {
 
           session2.writeTransaction(tx2 => {
             // this query should get stuck waiting for the lock
-            return tx2.run('MATCH (n) SET n.id = 2 RETURN 42 AS answer').catch(error => {
-              expectTransactionTerminatedError(error)
-              tx1.commit().then(() => {
-                readAllNodeIds().then(ids => {
-                  expect(ids).toEqual([1])
-                  done()
+            return tx2
+              .run('MATCH (n) SET n.id = 2 RETURN 42 AS answer')
+              .catch(error => {
+                expectTransactionTerminatedError(error)
+                tx1.commit().then(() => {
+                  readAllNodeIds().then(ids => {
+                    expect(ids).toEqual([1])
+                    done()
+                  })
                 })
               })
-            })
           })
 
           setTimeout(() => {
@@ -851,19 +878,24 @@ describe('session', () => {
   })
 
   it('should be able to do nested queries', done => {
-    session.run(
-      'CREATE (knight:Person:Knight {name: {name1}, castle: {castle}})' +
-      'CREATE (king:Person {name: {name2}, title: {title}})',
-      { name1: 'Lancelot', castle: 'Camelot', name2: 'Arthur', title: 'King' })
+    session
+      .run(
+        'CREATE (knight:Person:Knight {name: {name1}, castle: {castle}})' +
+          'CREATE (king:Person {name: {name2}, title: {title}})',
+        { name1: 'Lancelot', castle: 'Camelot', name2: 'Arthur', title: 'King' }
+      )
       .then(() => {
-        session.run(
-          'MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id',
-          { castle: 'Camelot' }).subscribe(
-          {
+        session
+          .run(
+            'MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id',
+            { castle: 'Camelot' }
+          )
+          .subscribe({
             onNext: record => {
-              session
-                .run('MATCH (knight) WHERE id(knight) = {id} MATCH (king:Person) WHERE king.name = {king} CREATE (knight)-[:DEFENDS]->(king)',
-                  { id: record.get('knight_id'), king: 'Arthur' })
+              session.run(
+                'MATCH (knight) WHERE id(knight) = {id} MATCH (king:Person) WHERE king.name = {king} CREATE (knight)-[:DEFENDS]->(king)',
+                { id: record.get('knight_id'), king: 'Arthur' }
+              )
             },
             onCompleted: () => {
               session
@@ -906,27 +938,42 @@ describe('session', () => {
   it('should acquire connection for transaction', done => {
     expect(numberOfAcquiredConnectionsFromPool()).toEqual(0)
 
-    session.beginTransaction().run('RETURN 1.0').then(result => {
-      expect(result.records[0].get(0)).toEqual(1)
-      expect(numberOfAcquiredConnectionsFromPool()).toEqual(1)
+    session
+      .beginTransaction()
+      .run('RETURN 1.0')
+      .then(result => {
+        expect(result.records[0].get(0)).toEqual(1)
+        expect(numberOfAcquiredConnectionsFromPool()).toEqual(1)
 
-      driver.session().beginTransaction().run('RETURN 2.0').then(result => {
-        expect(result.records[0].get(0)).toEqual(2)
-        expect(numberOfAcquiredConnectionsFromPool()).toEqual(2)
+        driver
+          .session()
+          .beginTransaction()
+          .run('RETURN 2.0')
+          .then(result => {
+            expect(result.records[0].get(0)).toEqual(2)
+            expect(numberOfAcquiredConnectionsFromPool()).toEqual(2)
 
-        driver.session().beginTransaction().run('RETURN 3.0').then(result => {
-          expect(result.records[0].get(0)).toEqual(3)
-          expect(numberOfAcquiredConnectionsFromPool()).toEqual(3)
+            driver
+              .session()
+              .beginTransaction()
+              .run('RETURN 3.0')
+              .then(result => {
+                expect(result.records[0].get(0)).toEqual(3)
+                expect(numberOfAcquiredConnectionsFromPool()).toEqual(3)
 
-          driver.session().beginTransaction().run('RETURN 4.0').then(result => {
-            expect(result.records[0].get(0)).toEqual(4)
-            expect(numberOfAcquiredConnectionsFromPool()).toEqual(4)
+                driver
+                  .session()
+                  .beginTransaction()
+                  .run('RETURN 4.0')
+                  .then(result => {
+                    expect(result.records[0].get(0)).toEqual(4)
+                    expect(numberOfAcquiredConnectionsFromPool()).toEqual(4)
 
-            done()
+                    done()
+                  })
+              })
           })
-        })
       })
-    })
   })
 
   it('should acquire connection for query execution', done => {
@@ -984,28 +1031,38 @@ describe('session', () => {
       yield '333'
     }
 
-    session.run('RETURN $array', { array: iterable }).then(result => {
-      const records = result.records
-      expect(records.length).toEqual(1)
-      const received = records[0].get(0)
-      expect(received).toEqual(['111', '222', '333'])
-      done()
-    }).catch(error => {
-      done.fail(error)
-    })
+    session
+      .run('RETURN $array', { array: iterable })
+      .then(result => {
+        const records = result.records
+        expect(records.length).toEqual(1)
+        const received = records[0].get(0)
+        expect(received).toEqual(['111', '222', '333'])
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
   })
 
   it('should fail to convert illegal iterable to array', done => {
     const iterable = {}
-    iterable[Symbol.iterator] = function () {
-    }
+    iterable[Symbol.iterator] = function () {}
 
-    session.run('RETURN $array', { array: iterable }).then(result => {
-      done.fail('Failre expected but query returned ' + JSON.stringify(result.records[0].get(0)))
-    }).catch(error => {
-      expect(error.message.indexOf('Cannot pack given iterable')).not.toBeLessThan(0)
-      done()
-    })
+    session
+      .run('RETURN $array', { array: iterable })
+      .then(result => {
+        done.fail(
+          'Failre expected but query returned ' +
+            JSON.stringify(result.records[0].get(0))
+        )
+      })
+      .catch(error => {
+        expect(
+          error.message.indexOf('Cannot pack given iterable')
+        ).not.toBeLessThan(0)
+        done()
+      })
   })
 
   it('should fail for invalid query parameters', () => {
@@ -1015,16 +1072,32 @@ describe('session', () => {
   })
 
   it('should fail to pass node as a query parameter', done => {
-    testUnsupportedQueryParameter(new neo4j.types.Node(neo4j.int(1), ['Person'], { name: 'Bob' }), done)
+    testUnsupportedQueryParameter(
+      new neo4j.types.Node(neo4j.int(1), ['Person'], { name: 'Bob' }),
+      done
+    )
   })
 
   it('should fail to pass relationship as a query parameter', done => {
-    testUnsupportedQueryParameter(new neo4j.types.Relationship(neo4j.int(1), neo4j.int(2), neo4j.int(3), 'KNOWS', { since: 42 }), done)
+    testUnsupportedQueryParameter(
+      new neo4j.types.Relationship(
+        neo4j.int(1),
+        neo4j.int(2),
+        neo4j.int(3),
+        'KNOWS',
+        { since: 42 }
+      ),
+      done
+    )
   })
 
   it('should fail to pass path as a query parameter', done => {
-    const node1 = new neo4j.types.Node(neo4j.int(1), ['Person'], { name: 'Alice' })
-    const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], { name: 'Bob' })
+    const node1 = new neo4j.types.Node(neo4j.int(1), ['Person'], {
+      name: 'Alice'
+    })
+    const node2 = new neo4j.types.Node(neo4j.int(2), ['Person'], {
+      name: 'Bob'
+    })
     testUnsupportedQueryParameter(new neo4j.types.Path(node1, node2, []), done)
   })
 
@@ -1035,7 +1108,11 @@ describe('session', () => {
   })
 
   it('should retry transaction until success when function returns rejected promise', done => {
-    testTransactionRetryUntilSuccess(() => Promise.reject(newError('Error that can be retried', SESSION_EXPIRED)), done)
+    testTransactionRetryUntilSuccess(
+      () =>
+        Promise.reject(newError('Error that can be retried', SESSION_EXPIRED)),
+      done
+    )
   })
 
   it('should not retry transaction when function throws fatal error', done => {
@@ -1045,7 +1122,11 @@ describe('session', () => {
   })
 
   it('should not retry transaction when function returns promise rejected with fatal error', done => {
-    testTransactionRetryOnFatalError(() => Promise.reject(newError('Error that is fatal', 'ReallyFatalErrorCode')), done)
+    testTransactionRetryOnFatalError(
+      () =>
+        Promise.reject(newError('Error that is fatal', 'ReallyFatalErrorCode')),
+      done
+    )
   })
 
   function testTransactionRetryUntilSuccess (failureResponseFunction, done) {
@@ -1063,15 +1144,17 @@ describe('session', () => {
       }
     })
 
-    resultPromise.then(result => {
-      expect(result.records[0].get(0)).toEqual('424242')
-      expect(usedTransactions.length).toEqual(3)
-      usedTransactions.forEach(tx => expect(tx.isOpen()).toBeFalsy())
-      session.close()
-      done()
-    }).catch(error => {
-      done.fail(error)
-    })
+    resultPromise
+      .then(result => {
+        expect(result.records[0].get(0)).toEqual('424242')
+        expect(usedTransactions.length).toEqual(3)
+        usedTransactions.forEach(tx => expect(tx.isOpen()).toBeFalsy())
+        session.close()
+        done()
+      })
+      .catch(error => {
+        done.fail(error)
+      })
   }
 
   function testTransactionRetryOnFatalError (failureResponseFunction, done) {
@@ -1084,24 +1167,31 @@ describe('session', () => {
       return failureResponseFunction()
     })
 
-    resultPromise.then(result => {
-      session.close()
-      done.fail('Retries should not succeed: ' + JSON.stringify(result))
-    }).catch(error => {
-      session.close()
-      expect(error).toBeDefined()
-      expect(error).not.toBeNull()
-      expect(usedTransactions.length).toEqual(1)
-      expect(usedTransactions[0].isOpen()).toBeFalsy()
-      done()
-    })
+    resultPromise
+      .then(result => {
+        session.close()
+        done.fail('Retries should not succeed: ' + JSON.stringify(result))
+      })
+      .catch(error => {
+        session.close()
+        expect(error).toBeDefined()
+        expect(error).not.toBeNull()
+        expect(usedTransactions.length).toEqual(1)
+        expect(usedTransactions[0].isOpen()).toBeFalsy()
+        done()
+      })
   }
 
   function countNodes (label, propertyKey, propertyValue) {
     return new Promise((resolve, reject) => {
-      session.run(`MATCH (n: ${label} {${propertyKey}: ${propertyValue}}) RETURN count(n) AS count`).then(result => {
-        resolve(result.records[0].get('count').toNumber())
-      }).catch(error => reject(error))
+      session
+        .run(
+          `MATCH (n: ${label} {${propertyKey}: ${propertyValue}}) RETURN count(n) AS count`
+        )
+        .then(result => {
+          resolve(result.records[0].get('count').toNumber())
+        })
+        .catch(error => reject(error))
     })
   }
 
@@ -1113,7 +1203,9 @@ describe('session', () => {
   }
 
   function newSessionWithConnection (connection) {
-    const connectionProvider = new SingleConnectionProvider(Promise.resolve(connection))
+    const connectionProvider = new SingleConnectionProvider(
+      Promise.resolve(connection)
+    )
     const session = new Session(READ, connectionProvider)
     session.beginTransaction() // force session to acquire new connection
     return session
@@ -1141,13 +1233,16 @@ describe('session', () => {
   function readAllNodeIds () {
     return new Promise((resolve, reject) => {
       const session = driver.session()
-      session.run('MATCH (n) RETURN n.id').then(result => {
-        const ids = result.records.map(record => record.get(0).toNumber())
-        session.close()
-        resolve(ids)
-      }).catch(error => {
-        reject(error)
-      })
+      session
+        .run('MATCH (n) RETURN n.id')
+        .then(result => {
+          const ids = result.records.map(record => record.get(0).toNumber())
+          session.close()
+          resolve(ids)
+        })
+        .catch(error => {
+          reject(error)
+        })
     })
   }
 
@@ -1156,14 +1251,18 @@ describe('session', () => {
     const tx = session.beginTransaction()
 
     return new Promise((resolve, reject) => {
-      tx.run('CREATE ()').then(() => {
-        tx.commit().then(() => {
-          const bookmark = session.lastBookmark()
-          session.close(() => {
-            resolve(bookmark)
-          })
-        }).catch(error => reject(error))
-      }).catch(error => reject(error))
+      tx.run('CREATE ()')
+        .then(() => {
+          tx.commit()
+            .then(() => {
+              const bookmark = session.lastBookmark()
+              session.close(() => {
+                resolve(bookmark)
+              })
+            })
+            .catch(error => reject(error))
+        })
+        .catch(error => reject(error))
     })
   }
 
@@ -1184,30 +1283,42 @@ describe('session', () => {
 
     const localDriver = neo4j.driver(boltUri, sharedNeo4j.authToken, config)
     const session = localDriver.session()
-    session.run('RETURN 1').then(() => {
-      localDriver.close()
-      done.fail('Query did not fail')
-    }).catch(error => {
-      localDriver.close()
-      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+    session
+      .run('RETURN 1')
+      .then(() => {
+        localDriver.close()
+        done.fail('Query did not fail')
+      })
+      .catch(error => {
+        localDriver.close()
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 
-      // in some environments non-routable address results in immediate 'connection refused' error and connect
-      // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
-      if (error.message.indexOf('Failed to establish connection') === 0) {
-        expect(error.message).toEqual('Failed to establish connection in 1000ms')
-      }
+        // in some environments non-routable address results in immediate 'connection refused' error and connect
+        // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
+        if (error.message.indexOf('Failed to establish connection') === 0) {
+          expect(error.message).toEqual(
+            'Failed to establish connection in 1000ms'
+          )
+        }
 
-      done()
-    })
+        done()
+      })
   }
 
   function testUnsupportedQueryParameter (value, done) {
-    session.run('RETURN $value', { value: value }).then(() => {
-      done.fail(`Should not be possible to send ${value.constructor.name} ${value} as a query parameter`)
-    }).catch(error => {
-      expect(error.name).toEqual('Neo4jError')
-      expect(error.code).toEqual(neo4j.error.PROTOCOL_ERROR)
-      done()
-    })
+    session
+      .run('RETURN $value', { value: value })
+      .then(() => {
+        done.fail(
+          `Should not be possible to send ${
+            value.constructor.name
+          } ${value} as a query parameter`
+        )
+      })
+      .catch(error => {
+        expect(error.name).toEqual('Neo4jError')
+        expect(error.code).toEqual(neo4j.error.PROTOCOL_ERROR)
+        done()
+      })
   }
 })

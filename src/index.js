@@ -18,8 +18,19 @@
  */
 
 import Integer, { inSafeRange, int, isInt, toNumber, toString } from './integer'
-import { Node, Path, PathSegment, Relationship, UnboundRelationship } from './graph-types'
-import { Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from './error'
+import {
+  Node,
+  Path,
+  PathSegment,
+  Relationship,
+  UnboundRelationship
+} from './graph-types'
+import {
+  Neo4jError,
+  PROTOCOL_ERROR,
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
+} from './error'
 import Result from './result'
 import ResultSummary from './result-summary'
 import Record from './record'
@@ -30,7 +41,20 @@ import { assertString, isEmptyObjectOrNull } from './internal/util'
 import urlUtil from './internal/url-util'
 import HttpDriver from './internal/http/http-driver'
 import { isPoint, Point } from './spatial-types'
-import { Date, DateTime, Duration, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime, LocalDateTime, LocalTime, Time } from './temporal-types'
+import {
+  Date,
+  DateTime,
+  Duration,
+  isDate,
+  isDateTime,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
+} from './temporal-types'
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -43,12 +67,17 @@ import { Date, DateTime, Duration, isDate, isDateTime, isDuration, isLocalDateTi
 const auth = {
   basic: (username, password, realm = undefined) => {
     if (realm) {
-      return { scheme: 'basic', principal: username, credentials: password, realm: realm }
+      return {
+        scheme: 'basic',
+        principal: username,
+        credentials: password,
+        realm: realm
+      }
     } else {
       return { scheme: 'basic', principal: username, credentials: password }
     }
   },
-  kerberos: (base64EncodedTicket) => {
+  kerberos: base64EncodedTicket => {
     return {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
@@ -65,7 +94,12 @@ const auth = {
         parameters: parameters
       }
     } else {
-      return { scheme: scheme, principal: principal, credentials: credentials, realm: realm }
+      return {
+        scheme: scheme,
+        principal: principal,
+        credentials: credentials,
+        realm: realm
+      }
     }
   }
 }
@@ -80,7 +114,8 @@ const logging = {
   console: level => {
     return {
       level: level,
-      logger: (level, message) => console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
+      logger: (level, message) =>
+        console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
     }
   }
 }
@@ -205,10 +240,18 @@ function driver (url, authToken, config = {}) {
   assertString(url, 'Bolt URL')
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
   if (parsedUrl.scheme === 'bolt+routing') {
-    return new RoutingDriver(parsedUrl.hostAndPort, parsedUrl.query, USER_AGENT, authToken, config)
+    return new RoutingDriver(
+      parsedUrl.hostAndPort,
+      parsedUrl.query,
+      USER_AGENT,
+      authToken,
+      config
+    )
   } else if (parsedUrl.scheme === 'bolt') {
     if (!isEmptyObjectOrNull(parsedUrl.query)) {
-      throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`)
+      throw new Error(
+        `Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`
+      )
     }
     return new Driver(parsedUrl.hostAndPort, USER_AGENT, authToken, config)
   } else if (parsedUrl.scheme === 'http' || parsedUrl.scheme === 'https') {

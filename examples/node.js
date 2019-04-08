@@ -19,7 +19,8 @@
 
 var neo4j = require('neo4j')
 
-var statement = ['MERGE (alice:Person {name:{name_a},age:{age_a}})',
+var statement = [
+  'MERGE (alice:Person {name:{name_a},age:{age_a}})',
   'MERGE (bob:Person {name:{name_b},age:{age_b}})',
   'CREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)',
   'RETURN alice, bob, alice_knows_bob'
@@ -58,18 +59,19 @@ streamResult.subscribe({
 
 var promiseSession = driver.session()
 var promiseResult = promiseSession.run(statement.join(' '), params)
-promiseResult.then(function (records) {
-  records.forEach(function (record) {
-    for (var i in record) {
-      console.log(i)
-      console.log(record[i])
-    }
+promiseResult
+  .then(function (records) {
+    records.forEach(function (record) {
+      for (var i in record) {
+        console.log(i)
+        console.log(record[i])
+      }
+    })
+    var summary = promiseResult.summarize()
+    // Print number of nodes created
+    console.log('')
+    console.log(summary.updateStatistics.nodesCreated())
   })
-  var summary = promiseResult.summarize()
-  // Print number of nodes created
-  console.log('')
-  console.log(summary.updateStatistics.nodesCreated())
-})
   .catch(function (error) {
     console.log(error)
   })

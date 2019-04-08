@@ -17,15 +17,17 @@
  * limitations under the License.
  */
 
-import PoolConfig, { DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE } from '../../src/internal/pool-config'
+import PoolConfig, {
+  DEFAULT_ACQUISITION_TIMEOUT,
+  DEFAULT_MAX_SIZE
+} from '../../src/internal/pool-config'
 
 describe('PoolConfig', () => {
   let originalConsoleWarn
 
   beforeAll(() => {
     originalConsoleWarn = console.warn
-    console.warn = () => {
-    }
+    console.warn = () => {}
   })
 
   afterAll(() => {

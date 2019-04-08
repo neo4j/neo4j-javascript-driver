@@ -37,7 +37,9 @@ describe('LeastConnectedLoadBalancingStrategy', () => {
 
   it('should return same reader when it is the only one available and has no connections', () => {
     const knownReaders = ['reader-1']
-    const strategy = new LeastConnectedLoadBalancingStrategy(new DummyPool({ 'reader-1': 0 }))
+    const strategy = new LeastConnectedLoadBalancingStrategy(
+      new DummyPool({ 'reader-1': 0 })
+    )
 
     expect(strategy.selectReader(knownReaders)).toEqual('reader-1')
     expect(strategy.selectReader(knownReaders)).toEqual('reader-1')
@@ -46,7 +48,9 @@ describe('LeastConnectedLoadBalancingStrategy', () => {
 
   it('should return same writer when it is the only one available and has no connections', () => {
     const knownWriters = ['writer-1']
-    const strategy = new LeastConnectedLoadBalancingStrategy(new DummyPool({ 'writer-1': 0 }))
+    const strategy = new LeastConnectedLoadBalancingStrategy(
+      new DummyPool({ 'writer-1': 0 })
+    )
 
     expect(strategy.selectWriter(knownWriters)).toEqual('writer-1')
     expect(strategy.selectWriter(knownWriters)).toEqual('writer-1')
@@ -55,7 +59,9 @@ describe('LeastConnectedLoadBalancingStrategy', () => {
 
   it('should return same reader when it is the only one available and has active connections', () => {
     const knownReaders = ['reader-1']
-    const strategy = new LeastConnectedLoadBalancingStrategy(new DummyPool({ 'reader-1': 14 }))
+    const strategy = new LeastConnectedLoadBalancingStrategy(
+      new DummyPool({ 'reader-1': 14 })
+    )
 
     expect(strategy.selectReader(knownReaders)).toEqual('reader-1')
     expect(strategy.selectReader(knownReaders)).toEqual('reader-1')
@@ -64,7 +70,9 @@ describe('LeastConnectedLoadBalancingStrategy', () => {
 
   it('should return same writer when it is the only one available and has active connections', () => {
     const knownWriters = ['writer-1']
-    const strategy = new LeastConnectedLoadBalancingStrategy(new DummyPool({ 'writer-1': 3 }))
+    const strategy = new LeastConnectedLoadBalancingStrategy(
+      new DummyPool({ 'writer-1': 3 })
+    )
 
     expect(strategy.selectWriter(knownWriters)).toEqual('writer-1')
     expect(strategy.selectWriter(knownWriters)).toEqual('writer-1')
@@ -86,7 +94,12 @@ describe('LeastConnectedLoadBalancingStrategy', () => {
 
   it('should return writers in round robin order when no active connections', () => {
     const knownWriters = ['writer-1', 'writer-2', 'writer-3', 'writer-4']
-    const pool = new DummyPool({ 'writer-1': 0, 'writer-2': 0, 'writer-3': 0, 'writer-4': 0 })
+    const pool = new DummyPool({
+      'writer-1': 0,
+      'writer-2': 0,
+      'writer-3': 0,
+      'writer-4': 0
+    })
     const strategy = new LeastConnectedLoadBalancingStrategy(pool)
 
     expect(strategy.selectWriter(knownWriters)).toEqual('writer-1')
@@ -111,7 +124,12 @@ describe('LeastConnectedLoadBalancingStrategy', () => {
 
   it('should return least connected writer', () => {
     const knownWriters = ['writer-1', 'writer-2', 'writer-3', 'writer-4']
-    const pool = new DummyPool({ 'writer-1': 5, 'writer-2': 4, 'writer-3': 6, 'writer-4': 2 })
+    const pool = new DummyPool({
+      'writer-1': 5,
+      'writer-2': 4,
+      'writer-3': 6,
+      'writer-4': 2
+    })
     const strategy = new LeastConnectedLoadBalancingStrategy(pool)
 
     expect(strategy.selectWriter(knownWriters)).toEqual('writer-4')
