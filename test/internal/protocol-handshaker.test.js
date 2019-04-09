@@ -42,13 +42,13 @@ describe('ProtocolHandshaker', () => {
     expect(writtenBuffers.length).toEqual(1)
 
     const boltMagicPreamble = '60 60 b0 17'
+    const protocolVersion4 = '00 00 00 04'
     const protocolVersion3 = '00 00 00 03'
     const protocolVersion2 = '00 00 00 02'
     const protocolVersion1 = '00 00 00 01'
-    const noProtocolVersion = '00 00 00 00'
 
     expect(writtenBuffers[0].toHex()).toEqual(
-      `${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`
+      `${boltMagicPreamble} ${protocolVersion4} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1}`
     )
   })
 

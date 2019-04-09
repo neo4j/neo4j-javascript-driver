@@ -22,6 +22,7 @@ import { newError } from '../error'
 import BoltProtocolV1 from './bolt-protocol-v1'
 import BoltProtocolV2 from './bolt-protocol-v2'
 import BoltProtocolV3 from './bolt-protocol-v3'
+import BoltProtocolV4 from './bolt-protocol-v4'
 
 const HTTP_MAGIC_PREAMBLE = 1213486160 // == 0x48545450 == "HTTP"
 const BOLT_MAGIC_PREAMBLE = 0x6060b017
@@ -90,6 +91,12 @@ export default class ProtocolHandshaker {
           this._chunker,
           this._disableLosslessIntegers
         )
+      case 4:
+        return new BoltProtocolV4(
+          this._connection,
+          this._chunker,
+          this._disableLosslessIntegers
+        )
       case HTTP_MAGIC_PREAMBLE:
         throw newError(
           'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
@@ -112,10 +119,10 @@ function newHandshakeBuffer () {
   handshakeBuffer.writeInt32(BOLT_MAGIC_PREAMBLE)
 
   // proposed versions
+  handshakeBuffer.writeInt32(4)
   handshakeBuffer.writeInt32(3)
   handshakeBuffer.writeInt32(2)
   handshakeBuffer.writeInt32(1)
-  handshakeBuffer.writeInt32(0)
 
   // reset the reader position
   handshakeBuffer.reset()

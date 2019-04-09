@@ -18,6 +18,8 @@
  */
 
 import { ACCESS_MODE_READ } from './constants'
+import { int } from '../integer'
+import { assertString, isString } from './util'
 
 /* eslint-disable no-unused-vars */
 // Signature bytes for each request message type
@@ -39,6 +41,9 @@ const PULL = 0x3f // 0011 1111 // PULL
 
 const READ_MODE = 'r'
 /* eslint-enable no-unused-vars */
+
+const NO_STATEMENT_ID = -1
+const ALL = -1
 
 export default class RequestMessage {
   constructor (signature, fields, toString) {
@@ -110,11 +115,12 @@ export default class RequestMessage {
    * Create a new BEGIN message.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
+   * @param {string} db the database name.
    * @param {string} mode the access mode.
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin (bookmark, txConfig, mode) {
-    const metadata = buildTxMetadata(bookmark, txConfig, mode)
+  static begin ({ bookmark, txConfig, db, mode } = {}) {
+    const metadata = buildTxMetadata(bookmark, txConfig, db, mode)
     return new RequestMessage(
       BEGIN,
       [metadata],
@@ -144,11 +150,16 @@ export default class RequestMessage {
    * @param {object} parameters the statement parameters.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
+   * @param {string} db the database name.
    * @param {string} mode the access mode.
    * @return {RequestMessage} new RUN message with additional metadata.
    */
-  static runWithMetadata (statement, parameters, bookmark, txConfig, mode) {
-    const metadata = buildTxMetadata(bookmark, txConfig, mode)
+  static runWithMetadata (
+    statement,
+    parameters,
+    { bookmark, txConfig, db, mode } = {}
+  ) {
+    const metadata = buildTxMetadata(bookmark, txConfig, db, mode)
     return new RequestMessage(
       RUN,
       [statement, parameters, metadata],
@@ -166,16 +177,47 @@ export default class RequestMessage {
   static goodbye () {
     return GOODBYE_MESSAGE
   }
+
+  /**
+   * Generates a new PULL message with additional metadata.
+   * @param {Integer|number} stmtId
+   * @param {Integer|number} n
+   * @return {RequestMessage} the PULL message.
+   */
+  static pull ({ stmtId = NO_STATEMENT_ID, n = ALL } = {}) {
+    const metadata = buildStreamMetadata(stmtId, n)
+    return new RequestMessage(
+      PULL,
+      [metadata],
+      () => `PULL ${JSON.stringify(metadata)}`
+    )
+  }
+
+  /**
+   * Generates a new DISCARD message with additional metadata.
+   * @param {Integer|number} stmtId
+   * @param {Integer|number} n
+   * @return {RequestMessage} the PULL message.
+   */
+  static discard ({ stmtId = NO_STATEMENT_ID, n = ALL } = {}) {
+    const metadata = buildStreamMetadata(stmtId, n)
+    return new RequestMessage(
+      DISCARD,
+      [metadata],
+      () => `DISCARD ${JSON.stringify(metadata)}`
+    )
+  }
 }
 
 /**
  * Create an object that represent transaction metadata.
  * @param {Bookmark} bookmark the bookmark.
  * @param {TxConfig} txConfig the configuration.
+ * @param {string} db the database name.
  * @param {string} mode the access mode.
  * @return {object} a metadata object.
  */
-function buildTxMetadata (bookmark, txConfig, mode) {
+function buildTxMetadata (bookmark, txConfig, db, mode) {
   const metadata = {}
   if (!bookmark.isEmpty()) {
     metadata['bookmarks'] = bookmark.values()
@@ -186,8 +228,25 @@ function buildTxMetadata (bookmark, txConfig, mode) {
   if (txConfig.metadata) {
     metadata['tx_metadata'] = txConfig.metadata
   }
+  if (db) {
+    metadata['db'] = assertString(db, 'db')
+  }
   if (mode === ACCESS_MODE_READ) {
     metadata['mode'] = READ_MODE
+  }
+  return metadata
+}
+
+/**
+ * Create an object that represents streaming metadata.
+ * @param {Integer|number} stmtId The statement id to stream its results.
+ * @param {Integer|number} n The number of records to stream.
+ * @returns {object} a metadata object.
+ */
+function buildStreamMetadata (stmtId, n) {
+  const metadata = { n: int(n) }
+  if (stmtId !== NO_STATEMENT_ID) {
+    metadata['stmt_id'] = int(stmtId)
   }
   return metadata
 }

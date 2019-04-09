@@ -97,16 +97,11 @@ class Session {
       : TxConfig.empty()
 
     return this._run(query, params, (connection, streamObserver) =>
-      connection
-        .protocol()
-        .run(
-          query,
-          params,
-          this._lastBookmark,
-          autoCommitTxConfig,
-          this._mode,
-          streamObserver
-        )
+      connection.protocol().run(query, params, streamObserver, {
+        bookmark: this._lastBookmark,
+        txConfig: autoCommitTxConfig,
+        mode: this._mode
+      })
     )
   }
 

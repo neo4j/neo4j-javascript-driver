@@ -18,10 +18,10 @@
  */
 import RequestMessage from './request-message'
 import * as v1 from './packstream-v1'
-import { newError } from '../error'
 import Bookmark from './bookmark'
 import TxConfig from './tx-config'
 import { ACCESS_MODE_WRITE } from './constants'
+import { assertDbIsEmpty, assertTxConfigIsEmpty } from './bolt-protocol-util'
 
 export default class BoltProtocol {
   /**
@@ -78,13 +78,15 @@ export default class BoltProtocol {
 
   /**
    * Begin an explicit transaction.
+   * @param {StreamObserver} observer the response observer.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
+   * @param {string} db the target database name.
    * @param {string} mode the access mode.
-   * @param {StreamObserver} observer the response observer.
    */
-  beginTransaction (bookmark, txConfig, mode, observer) {
+  beginTransaction (observer, { bookmark, txConfig, db, mode }) {
     assertTxConfigIsEmpty(txConfig, this._connection, observer)
+    assertDbIsEmpty(db, this._connection, observer)
 
     const runMessage = RequestMessage.run(
       'BEGIN',
@@ -103,14 +105,11 @@ export default class BoltProtocol {
   commitTransaction (observer) {
     // WRITE access mode is used as a place holder here, it has
     // no effect on behaviour for Bolt V1 & V2
-    this.run(
-      'COMMIT',
-      {},
-      Bookmark.empty(),
-      TxConfig.empty(),
-      ACCESS_MODE_WRITE,
-      observer
-    )
+    this.run('COMMIT', {}, observer, {
+      bookmark: Bookmark.empty(),
+      txConfig: TxConfig.empty(),
+      mode: ACCESS_MODE_WRITE
+    })
   }
 
   /**
@@ -120,28 +119,28 @@ export default class BoltProtocol {
   rollbackTransaction (observer) {
     // WRITE access mode is used as a place holder here, it has
     // no effect on behaviour for Bolt V1 & V2
-    this.run(
-      'ROLLBACK',
-      {},
-      Bookmark.empty(),
-      TxConfig.empty(),
-      ACCESS_MODE_WRITE,
-      observer
-    )
+    this.run('ROLLBACK', {}, observer, {
+      bookmark: Bookmark.empty(),
+      txConfig: TxConfig.empty(),
+      mode: ACCESS_MODE_WRITE
+    })
   }
 
   /**
    * Send a Cypher statement through the underlying connection.
    * @param {string} statement the cypher statement.
    * @param {object} parameters the statement parameters.
+   * @param {StreamObserver} observer the response observer.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the auto-commit transaction configuration.
+   * @param {string} db the target database name.
    * @param {string} mode the access mode.
-   * @param {StreamObserver} observer the response observer.
    */
-  run (statement, parameters, bookmark, txConfig, mode, observer) {
-    // bookmark and mode are ignored in this versioon of the protocol
+  run (statement, parameters, observer, { bookmark, txConfig, db, mode }) {
+    // bookmark and mode are ignored in this version of the protocol
     assertTxConfigIsEmpty(txConfig, this._connection, observer)
+    // passing in a db name on this protocol version throws an error
+    assertDbIsEmpty(db, this._connection, observer)
 
     const runMessage = RequestMessage.run(statement, parameters)
     const pullAllMessage = RequestMessage.pullAll()
@@ -165,24 +164,5 @@ export default class BoltProtocol {
 
   _createUnpacker (disableLosslessIntegers) {
     return new v1.Unpacker(disableLosslessIntegers)
-  }
-}
-
-/**
- * @param {TxConfig} txConfig the auto-commit transaction configuration.
- * @param {Connection} connection the connection.
- * @param {StreamObserver} observer the response observer.
- */
-function assertTxConfigIsEmpty (txConfig, connection, observer) {
-  if (!txConfig.isEmpty()) {
-    const error = newError(
-      'Driver is connected to the database that does not support transaction configuration. ' +
-        'Please upgrade to neo4j 3.5.0 or later in order to use this functionality'
-    )
-
-    // unsupported API was used, consider this a fatal error for the current connection
-    connection._handleFatalError(error)
-    observer.onError(error)
-    throw error
   }
 }
