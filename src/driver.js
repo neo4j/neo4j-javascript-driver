@@ -178,13 +178,18 @@ class Driver {
    * it is closed, the underlying connection will be released to the connection
    * pool and made available for others to use.
    *
-   * @param {string} [mode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
-   * @param {string|string[]} [bookmarkOrBookmarks=null] the initial reference or references to some previous
+   * @param {string} [defaultAccessMode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
+   * @param {string|string[]} [bookmarks=null] the initial reference or references to some previous
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
+   * @param {string} [db=''] the database this session will connect to.
    * @return {Session} new session.
    */
-  session (mode, bookmarkOrBookmarks) {
-    const sessionMode = Driver._validateSessionMode(mode)
+  session ({
+    defaultAccessMode = WRITE,
+    bookmarks: bookmarkOrBookmarks,
+    db = ''
+  } = {}) {
+    const sessionMode = Driver._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmark = bookmarkOrBookmarks
       ? new Bookmark(bookmarkOrBookmarks)

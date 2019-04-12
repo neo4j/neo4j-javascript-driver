@@ -62,7 +62,15 @@ declare const READ: SessionMode
 declare const WRITE: SessionMode
 
 declare interface Driver {
-  session(mode?: SessionMode, bookmark?: string): Session
+  session({
+    defaultAccessMode,
+    bookmarks,
+    db
+  }?: {
+  defaultAccessMode?: SessionMode
+  bookmarks?: string | string[]
+  db?: string
+  }): Session
 
   close(): void
 

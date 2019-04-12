@@ -439,7 +439,9 @@ describe('session', () => {
   })
 
   it('should allow creation of a ' + neo4j.session.READ + ' session', done => {
-    const readSession = driver.session(neo4j.session.READ)
+    const readSession = driver.session({
+      defaultAccessMode: neo4j.session.READ
+    })
     readSession.run('RETURN 1').then(() => {
       readSession.close()
       done()
@@ -447,7 +449,9 @@ describe('session', () => {
   })
 
   it('should allow creation of a ' + neo4j.session.WRITE + ' session', done => {
-    const writeSession = driver.session(neo4j.session.WRITE)
+    const writeSession = driver.session({
+      defaultAccessMode: neo4j.session.WRITE
+    })
     writeSession.run('CREATE ()').then(() => {
       writeSession.close()
       done()
@@ -455,7 +459,9 @@ describe('session', () => {
   })
 
   it('should fail for illegal session mode', () => {
-    expect(() => driver.session('ILLEGAL_MODE')).toThrow()
+    expect(() =>
+      driver.session({ defaultAccessMode: 'ILLEGAL_MODE' })
+    ).toThrow()
   })
 
   it('should release connection to the pool after run', done => {
@@ -925,7 +931,7 @@ describe('session', () => {
     expect(_.uniq(bookmarks).length).toEqual(nodeCount)
     bookmarks.forEach(bookmark => expect(_.isString(bookmark)).toBeTruthy())
 
-    const session = driver.session(READ, bookmarks)
+    const session = driver.session({ defaultAccessMode: READ, bookmarks })
     try {
       const result = await session.run('MATCH (n) RETURN count(n)')
       const count = result.records[0].get(0).toInt()

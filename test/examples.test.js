@@ -193,7 +193,7 @@ describe('examples', () => {
         'b.acme.com:7676',
         'c.acme.com:8787'
       ])
-      const session = driver.session(neo4j.WRITE)
+      const session = driver.session({ defaultAccessMode: neo4j.WRITE })
 
       session
         .run('CREATE (n:Person { name: $name })', { name: name })
@@ -628,7 +628,7 @@ describe('examples', () => {
     const savedBookmarks = []
 
     // Create the first person and employment relationship.
-    const session1 = driver.session(neo4j.WRITE)
+    const session1 = driver.session({ defaultAccessMode: neo4j.WRITE })
     const first = session1
       .writeTransaction(tx => addCompany(tx, 'Wayne Enterprises'))
       .then(() => session1.writeTransaction(tx => addPerson(tx, 'Alice')))
@@ -644,7 +644,7 @@ describe('examples', () => {
       })
 
     // Create the second person and employment relationship.
-    const session2 = driver.session(neo4j.WRITE)
+    const session2 = driver.session({ defaultAccessMode: neo4j.WRITE })
     const second = session2
       .writeTransaction(tx => addCompany(tx, 'LexCorp'))
       .then(() => session2.writeTransaction(tx => addPerson(tx, 'Bob')))
@@ -659,7 +659,10 @@ describe('examples', () => {
 
     // Create a friendship between the two people created above.
     const last = Promise.all([first, second]).then(ignore => {
-      const session3 = driver.session(neo4j.WRITE, savedBookmarks)
+      const session3 = driver.session({
+        defaultAccessMode: neo4j.WRITE,
+        bookmarks: savedBookmarks
+      })
 
       return session3
         .writeTransaction(tx => makeFriends(tx, 'Alice', 'Bob'))
