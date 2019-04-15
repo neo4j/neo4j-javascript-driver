@@ -51,7 +51,8 @@ class Transaction {
         conn.protocol().beginTransaction(streamObserver, {
           bookmark: bookmark,
           txConfig: txConfig,
-          mode: this._connectionHolder.mode()
+          mode: this._connectionHolder.mode(),
+          db: this._connectionHolder.db()
         })
       )
       .catch(error => streamObserver.onError(error))
@@ -184,7 +185,8 @@ let _states = {
           conn.protocol().run(statement, parameters, observer, {
             bookmark: bookmark,
             txConfig: txConfig,
-            mode: connectionHolder.mode()
+            mode: connectionHolder.mode(),
+            db: connectionHolder.db()
           })
         )
         .catch(error => observer.onError(error))

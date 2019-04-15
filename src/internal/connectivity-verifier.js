@@ -37,8 +37,8 @@ export default class ConnectivityVerifier {
    * Try to obtain a working connection from the connection provider.
    * @returns {Promise<object>} promise resolved with server info or rejected with error.
    */
-  verify () {
-    return acquireAndReleaseDummyConnection(this._connectionProvider)
+  verify ({ db = '' } = {}) {
+    return acquireAndReleaseDummyConnection(this._connectionProvider, db)
   }
 }
 
@@ -47,8 +47,12 @@ export default class ConnectivityVerifier {
  * @param {ConnectionProvider} connectionProvider the provider to obtain connections from.
  * @return {Promise<object>} promise resolved with server info or rejected with error.
  */
-function acquireAndReleaseDummyConnection (connectionProvider) {
-  const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+function acquireAndReleaseDummyConnection (connectionProvider, db) {
+  const connectionHolder = new ConnectionHolder({
+    mode: READ,
+    db,
+    connectionProvider
+  })
   connectionHolder.initializeConnection()
   const dummyObserver = new StreamObserver()
   const connectionPromise = connectionHolder.getConnection(dummyObserver)

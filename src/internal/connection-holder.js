@@ -18,6 +18,8 @@
  */
 
 import { newError } from '../error'
+import { assertString } from './util'
+import { ACCESS_MODE_WRITE } from './constants'
 
 /**
  * Utility to lazily initialize connections and return them back to the pool when unused.
@@ -26,10 +28,12 @@ export default class ConnectionHolder {
   /**
    * @constructor
    * @param {string} mode - the access mode for new connection holder.
+   * @param {string} db - the target database name.
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
    */
-  constructor (mode, connectionProvider) {
+  constructor ({ mode = ACCESS_MODE_WRITE, db = '', connectionProvider } = {}) {
     this._mode = mode
+    this._db = db ? assertString(db, 'db') : ''
     this._connectionProvider = connectionProvider
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
@@ -44,13 +48,22 @@ export default class ConnectionHolder {
   }
 
   /**
+   * Returns the target database name
+   * @returns {string} db name
+   */
+  db () {
+    return this._db
+  }
+
+  /**
    * Make this holder initialize new connection if none exists already.
    * @return {undefined}
    */
   initializeConnection () {
     if (this._referenceCount === 0) {
       this._connectionPromise = this._connectionProvider.acquireConnection(
-        this._mode
+        this._mode,
+        this._db
       )
     }
     this._referenceCount++

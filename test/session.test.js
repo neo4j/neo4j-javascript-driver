@@ -1212,7 +1212,7 @@ describe('session', () => {
     const connectionProvider = new SingleConnectionProvider(
       Promise.resolve(connection)
     )
-    const session = new Session(READ, connectionProvider)
+    const session = new Session({ mode: READ, connectionProvider })
     session.beginTransaction() // force session to acquire new connection
     return session
   }

@@ -27,7 +27,7 @@ import RoutingUtil from './routing-util'
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 
 class ConnectionProvider {
-  acquireConnection (mode) {
+  acquireConnection (accessMode, db) {
     throw new Error('Abstract function')
   }
 
@@ -50,7 +50,7 @@ export class DirectConnectionProvider extends ConnectionProvider {
     this._driverOnErrorCallback = driverOnErrorCallback
   }
 
-  acquireConnection (mode) {
+  acquireConnection (accessMode, db) {
     const connectionPromise = this._connectionPool.acquire(this._hostPort)
     return this._withAdditionalOnErrorCallback(
       connectionPromise,
@@ -81,7 +81,7 @@ export class LoadBalancer extends ConnectionProvider {
     this._useSeedRouter = false
   }
 
-  acquireConnection (accessMode) {
+  acquireConnection (accessMode, db) {
     const connectionPromise = this._freshRoutingTable(accessMode).then(
       routingTable => {
         if (accessMode === READ) {
@@ -282,7 +282,7 @@ export class LoadBalancer extends ConnectionProvider {
       .acquire(routerAddress)
       .then(connection => {
         const connectionProvider = new SingleConnectionProvider(connection)
-        return new Session(READ, connectionProvider)
+        return new Session({ mode: READ, connectionProvider })
       })
       .catch(error => {
         // unable to acquire connection towards the given router
@@ -340,7 +340,7 @@ export class SingleConnectionProvider extends ConnectionProvider {
     this._connection = connection
   }
 
-  acquireConnection (mode) {
+  acquireConnection (mode, db) {
     const connection = this._connection
     this._connection = null
     return Promise.resolve(connection)

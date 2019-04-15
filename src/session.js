@@ -62,16 +62,19 @@ class Session {
    * @param {Bookmark} bookmark - the initial bookmark for this session.
    * @param {Object} [config={}] - this driver configuration.
    */
-  constructor (mode, connectionProvider, bookmark, config) {
+  constructor ({ mode, connectionProvider, bookmark, db, config }) {
     this._mode = mode
-    this._readConnectionHolder = new ConnectionHolder(
-      ACCESS_MODE_READ,
+    this._db = db
+    this._readConnectionHolder = new ConnectionHolder({
+      mode: ACCESS_MODE_READ,
+      db,
       connectionProvider
-    )
-    this._writeConnectionHolder = new ConnectionHolder(
-      ACCESS_MODE_WRITE,
+    })
+    this._writeConnectionHolder = new ConnectionHolder({
+      mode: ACCESS_MODE_WRITE,
+      db,
       connectionProvider
-    )
+    })
     this._open = true
     this._hasTx = false
     this._lastBookmark = bookmark
@@ -100,7 +103,8 @@ class Session {
       connection.protocol().run(query, params, streamObserver, {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
-        mode: this._mode
+        mode: this._mode,
+        db: this._db
       })
     )
   }

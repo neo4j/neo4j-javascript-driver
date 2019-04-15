@@ -109,12 +109,13 @@ class Driver {
 
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
+   * @param {string} [db=''] the target database to verify connectivity for.
    * @returns {Promise<object>} promise resolved with server info or rejected with error.
    */
-  verifyConnectivity () {
+  verifyConnectivity ({ db = '' } = {}) {
     const connectionProvider = this._getOrCreateConnectionProvider()
     const connectivityVerifier = new ConnectivityVerifier(connectionProvider)
-    return connectivityVerifier.verify()
+    return connectivityVerifier.verify({ db })
   }
 
   /**
@@ -194,7 +195,13 @@ class Driver {
     const bookmark = bookmarkOrBookmarks
       ? new Bookmark(bookmarkOrBookmarks)
       : Bookmark.empty()
-    return new Session(sessionMode, connectionProvider, bookmark, this._config)
+    return new Session({
+      mode: sessionMode,
+      db,
+      connectionProvider,
+      bookmark,
+      config: this._config
+    })
   }
 
   static _validateSessionMode (rawMode) {
