@@ -121,6 +121,11 @@ describe('Bolt V4 API', () => {
     })
 
     it('should fail if connecting to a non-existing database', done => {
+      if (!databaseSupportsBoltV4()) {
+        done()
+        return
+      }
+
       const neoSession = driver.session({ db: 'testdb' })
 
       neoSession
