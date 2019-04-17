@@ -88,7 +88,7 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
-      const session = driver.session(READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(() => {
         expect(
           hasAddressInConnectionPool(driver, '127.0.0.1:9001')
@@ -130,7 +130,7 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9042')
-      const session = driver.session(neo4j.session.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(() => {
         session.close()
 
@@ -236,7 +236,7 @@ describe('routing driver with stub server', () => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
 
       // When
-      const session = driver.session(neo4j.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session
         .run('MATCH (n) RETURN n.name')
         .catch(err => {
@@ -273,7 +273,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(res => {
         session.close()
 
@@ -325,7 +325,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9999')
       // When
-      const session1 = driver.session(neo4j.session.READ)
+      const session1 = driver.session({ defaultAccessMode: READ })
       session1.run('MATCH (n) RETURN n.name').then(res => {
         // Then
         expect(res.records[0].get('n.name')).toEqual('Bob')
@@ -333,7 +333,7 @@ describe('routing driver with stub server', () => {
         expect(res.records[2].get('n.name')).toEqual('Tina')
         session1.close()
 
-        const session2 = driver.session(neo4j.session.READ)
+        const session2 = driver.session({ defaultAccessMode: READ })
         session2.run('MATCH (n) RETURN n.name').then(res => {
           // Then
           expect(res.records[0].get('n.name')).toEqual('Bob')
@@ -381,14 +381,14 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session1 = driver.session(neo4j.session.READ)
+      const session1 = driver.session({ defaultAccessMode: READ })
       session1.run('MATCH (n) RETURN n.name').then(res => {
         // Then
         expect(res.records[0].get('n.name')).toEqual('Bob')
         expect(res.records[1].get('n.name')).toEqual('Alice')
         expect(res.records[2].get('n.name')).toEqual('Tina')
         session1.close()
-        const session2 = driver.session(neo4j.session.READ)
+        const session2 = driver.session({ defaultAccessMode: READ })
         session2.run('MATCH (n) RETURN n.name').then(res => {
           // Then
           expect(res.records[0].get('n.name')).toEqual('Bob')
@@ -430,7 +430,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').catch(err => {
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED)
         driver.close()
@@ -463,7 +463,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.WRITE)
+      const session = driver.session({ defaultAccessMode: WRITE })
       session.run("CREATE (n {name:'Bob'})").then(() => {
         // Then
         driver.close()
@@ -500,9 +500,9 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session1 = driver.session(neo4j.session.WRITE)
+      const session1 = driver.session({ defaultAccessMode: WRITE })
       session1.run("CREATE (n {name:'Bob'})").then(() => {
-        const session2 = driver.session(neo4j.session.WRITE)
+        const session2 = driver.session({ defaultAccessMode: WRITE })
         session2.run("CREATE (n {name:'Bob'})").then(() => {
           // Then
           driver.close()
@@ -539,7 +539,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.WRITE)
+      const session = driver.session({ defaultAccessMode: WRITE })
       session.run('MATCH (n) RETURN n.name').catch(err => {
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED)
         driver.close()
@@ -572,7 +572,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(() => {
         // Then
         assertHasRouters(driver, [
@@ -612,7 +612,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').catch(() => {
         session.close()
         // Then
@@ -653,7 +653,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').catch(() => {
         session.close()
         // Then
@@ -695,9 +695,9 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session1 = driver.session(neo4j.session.READ)
+      const session1 = driver.session({ defaultAccessMode: READ })
       session1.run('MATCH (n) RETURN n.name').catch(() => {
-        const session2 = driver.session(neo4j.session.READ)
+        const session2 = driver.session({ defaultAccessMode: READ })
         session2.run('MATCH (n) RETURN n.name').then(() => {
           driver.close()
           seedServer.exit(code1 => {
@@ -835,7 +835,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.WRITE)
+      const session = driver.session({ defaultAccessMode: WRITE })
       session.run('MATCH (n) RETURN n.name').catch(err => {
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED)
         driver.close()
@@ -936,11 +936,11 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9002')
       // When
-      const session1 = driver.session(neo4j.session.WRITE)
+      const session1 = driver.session({ defaultAccessMode: WRITE })
       session1.run("CREATE (n {name:'Bob'})").then(() => {
         session1.close(() => {
           const openConnectionsCount = numberOfOpenConnections(driver)
-          const session2 = driver.session(neo4j.session.WRITE)
+          const session2 = driver.session({ defaultAccessMode: WRITE })
           session2.run('CREATE ()').then(() => {
             // driver should have same amount of open connections at this point;
             // no new connections should be created, existing connections should be reused
@@ -988,9 +988,9 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const readSession = driver.session(neo4j.session.READ)
+      const readSession = driver.session({ defaultAccessMode: READ })
       readSession.run('MATCH (n) RETURN n.name').then(readResult => {
-        const writeSession = driver.session(neo4j.session.WRITE)
+        const writeSession = driver.session({ defaultAccessMode: WRITE })
         writeSession.run("CREATE (n {name:'Bob'})").then(writeResult => {
           const readServerInfo = readResult.summary.server
           const writeServerInfo = writeResult.summary.server
@@ -1044,12 +1044,12 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const readSession = driver.session(neo4j.session.READ)
+      const readSession = driver.session({ defaultAccessMode: READ })
       readSession.run('MATCH (n) RETURN n.name').subscribe({
         onNext: () => {},
         onError: () => {},
         onCompleted: readSummary => {
-          const writeSession = driver.session(neo4j.session.WRITE)
+          const writeSession = driver.session({ defaultAccessMode: WRITE })
           writeSession.run("CREATE (n {name:'Bob'})").subscribe({
             onNext: () => {},
             onError: () => {},
@@ -1398,7 +1398,10 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
 
-      const session = driver.session(READ, 'neo4j:bookmark:v1:tx42')
+      const session = driver.session({
+        defaultAccessMode: READ,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
+      })
       const tx = session.beginTransaction()
       tx.run('MATCH (n) RETURN n.name AS name').then(result => {
         const records = result.records
@@ -1442,7 +1445,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
 
-      const session = driver.session(null, 'neo4j:bookmark:v1:tx42')
+      const session = driver.session({ bookmarks: ['neo4j:bookmark:v1:tx42'] })
       const writeTx = session.beginTransaction()
       writeTx.run("CREATE (n {name:'Bob'})").then(() => {
         writeTx.commit().then(() => {
@@ -1836,7 +1839,7 @@ describe('routing driver with stub server', () => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
 
       // run a dummy query to force routing table initialization
-      const session = driver.session(READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(result => {
         expect(result.records.length).toEqual(3)
         session.close(() => {
@@ -2041,7 +2044,7 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
-      const session = driver.session(READ)
+      const session = driver.session({ defaultAccessMode: READ })
 
       session.run('MATCH (n) RETURN n.name').then(result1 => {
         expect(result1.records.length).toEqual(3)
@@ -2087,7 +2090,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
 
-      const session = driver.session(READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(result => {
         session.close(() => {
           expect(result.records.map(record => record.get(0))).toEqual([
@@ -2144,7 +2147,7 @@ describe('routing driver with stub server', () => {
               'Tina'
             ])
 
-            const writeSession = driver.session(WRITE)
+            const writeSession = driver.session({ defaultAccessMode: WRITE })
             writeSession.run("CREATE (n {name:'Bob'})").catch(error => {
               expect(error.code).toEqual(neo4j.error.SESSION_EXPIRED)
 
@@ -2209,7 +2212,7 @@ describe('routing driver with stub server', () => {
               9010
             )
             boltStub.run(() => {
-              const writeSession = driver.session(WRITE)
+              const writeSession = driver.session({ defaultAccessMode: WRITE })
               writeSession.run("CREATE (n {name:'Bob'})").then(result => {
                 writeSession.close(() => {
                   expect(result.records).toEqual([])
@@ -2263,7 +2266,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
 
-      const readSession = driver.session(READ)
+      const readSession = driver.session({ defaultAccessMode: READ })
       readSession.run('MATCH (n) RETURN n.name').then(result => {
         readSession.close(() => {
           expect(result.records.map(record => record.get(0))).toEqual([
@@ -2276,7 +2279,7 @@ describe('routing driver with stub server', () => {
             '127.0.0.1:9020'
           ])
 
-          const writeSession = driver.session(WRITE)
+          const writeSession = driver.session({ defaultAccessMode: WRITE })
           writeSession.run("CREATE (n {name:'Bob'})").then(result => {
             writeSession.close(() => {
               expect(result.records).toEqual([])
@@ -2358,7 +2361,7 @@ describe('routing driver with stub server', () => {
         'neo4j:bookmark:v1:tx16',
         'neo4j:bookmark:v1:tx68'
       ]
-      const session = driver.session(WRITE, bookmarks)
+      const session = driver.session({ defaultAccessMode: WRITE, bookmarks })
       const tx = session.beginTransaction()
 
       tx.run(`CREATE (n {name:'Bob'})`).then(() => {
@@ -2466,7 +2469,7 @@ describe('routing driver with stub server', () => {
         resolver: resolverFunction
       })
 
-      const session = driver.session(READ)
+      const session = driver.session({ defaultAccessMode: READ })
       // run a query that should trigger discovery against 9001 and then read from it
       session
         .run('MATCH (n) RETURN n.name AS name')
@@ -2550,7 +2553,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(res => {
         session.close()
 
@@ -2588,7 +2591,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session
         .readTransaction(tx => tx.run('MATCH (n) RETURN n.name'))
         .then(res => {
@@ -2628,7 +2631,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.WRITE)
+      const session = driver.session({ defaultAccessMode: WRITE })
       session.run("CREATE (n {name:'Bob'})").then(res => {
         session.close()
         driver.close()
@@ -2661,7 +2664,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
-      const session = driver.session(neo4j.session.WRITE)
+      const session = driver.session({ defaultAccessMode: WRITE })
       session
         .writeTransaction(tx => tx.run("CREATE (n {name:'Bob'})"))
         .then(res => {
@@ -2702,7 +2705,7 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
 
-      const session = driver.session(accessMode)
+      const session = driver.session({ defaultAccessMode: accessMode })
       session.run(query).catch(error => {
         expect(error.message).toEqual('Database is busy doing store copy')
         expect(error.code).toEqual(
@@ -2764,7 +2767,10 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
 
-      const session = driver.session(accessMode, bookmark)
+      const session = driver.session({
+        defaultAccessMode: accessMode,
+        bookmarks: [bookmark]
+      })
       const tx = session.beginTransaction()
       tx.run("CREATE (n {name:'Bob'})").then(() => {
         tx.commit().then(() => {
@@ -2807,7 +2813,7 @@ describe('routing driver with stub server', () => {
         driverConfig
       )
 
-      const session = driver.session(READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session
         .run('MATCH (n) RETURN n.name')
         .then(result => {
@@ -3012,7 +3018,7 @@ describe('routing driver with stub server', () => {
         resolver: resolverFunction
       })
 
-      const session = driver.session(READ)
+      const session = driver.session({ defaultAccessMode: READ })
       session
         .run('MATCH (n) RETURN n.name')
         .then(result => {

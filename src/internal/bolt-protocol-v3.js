@@ -18,6 +18,7 @@
  */
 import BoltProtocolV2 from './bolt-protocol-v2'
 import RequestMessage from './request-message'
+import { assertDbIsEmpty } from './bolt-protocol-util'
 
 export default class BoltProtocol extends BoltProtocolV2 {
   transformMetadata (metadata) {
@@ -47,9 +48,10 @@ export default class BoltProtocol extends BoltProtocolV2 {
     this._connection.write(message, observer, true)
   }
 
-  beginTransaction (bookmark, txConfig, mode, observer) {
+  beginTransaction (observer, { bookmark, txConfig, db, mode }) {
+    assertDbIsEmpty(db, this._connection, observer)
     prepareToHandleSingleResponse(observer)
-    const message = RequestMessage.begin(bookmark, txConfig, mode)
+    const message = RequestMessage.begin({ bookmark, txConfig, mode })
     this._connection.write(message, observer, true)
   }
 
@@ -65,14 +67,15 @@ export default class BoltProtocol extends BoltProtocolV2 {
     this._connection.write(message, observer, true)
   }
 
-  run (statement, parameters, bookmark, txConfig, mode, observer) {
-    const runMessage = RequestMessage.runWithMetadata(
-      statement,
-      parameters,
+  run (statement, parameters, observer, { bookmark, txConfig, db, mode }) {
+    // passing in a db name on this protocol version throws an error
+    assertDbIsEmpty(db, this._connection, observer)
+
+    const runMessage = RequestMessage.runWithMetadata(statement, parameters, {
       bookmark,
       txConfig,
       mode
-    )
+    })
     const pullAllMessage = RequestMessage.pullAll()
 
     this._connection.write(runMessage, observer, false)

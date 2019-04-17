@@ -97,16 +97,11 @@ describe('Connection', () => {
     streamObserver.subscribe(pullAllObserver)
 
     connection.connect('mydriver/0.0.0', basicAuthToken()).then(() => {
-      connection
-        .protocol()
-        .run(
-          'RETURN 1.0',
-          {},
-          Bookmark.empty(),
-          TxConfig.empty(),
-          WRITE,
-          streamObserver
-        )
+      connection.protocol().run('RETURN 1.0', {}, streamObserver, {
+        bookmark: Bookmark.empty(),
+        txConfig: TxConfig.empty(),
+        mode: WRITE
+      })
     })
   })
 
@@ -122,12 +117,12 @@ describe('Connection', () => {
     connection._negotiateProtocol()
 
     const boltMagicPreamble = '60 60 b0 17'
+    const protocolVersion4 = '00 00 00 04'
     const protocolVersion3 = '00 00 00 03'
     const protocolVersion2 = '00 00 00 02'
     const protocolVersion1 = '00 00 00 01'
-    const noProtocolVersion = '00 00 00 00'
     expect(channel.toHex()).toBe(
-      `${boltMagicPreamble} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1} ${noProtocolVersion}`
+      `${boltMagicPreamble} ${protocolVersion4} ${protocolVersion3} ${protocolVersion2} ${protocolVersion1}`
     )
   })
 
@@ -257,7 +252,12 @@ describe('Connection', () => {
       connection =>
         connection
           .protocol()
-          .run('RETURN 1', {}, Bookmark.empty(), TxConfig.empty(), {}),
+          .run(
+            'RETURN 1',
+            {},
+            {},
+            { bookmark: Bookmark.empty(), txConfig: TxConfig.empty() }
+          ),
       done
     )
   })

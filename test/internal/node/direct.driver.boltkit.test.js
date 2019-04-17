@@ -75,7 +75,10 @@ describe('direct driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-      const session = driver.session(READ, 'neo4j:bookmark:v1:tx42')
+      const session = driver.session({
+        defaultAccessMode: READ,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
+      })
       const tx = session.beginTransaction()
       tx.run('MATCH (n) RETURN n.name AS name').then(result => {
         const records = result.records
@@ -111,7 +114,10 @@ describe('direct driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
+      const session = driver.session({
+        defaultAccessMode: WRITE,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
+      })
       const tx = session.beginTransaction()
       tx.run("CREATE (n {name:'Bob'})").then(result => {
         const records = result.records
@@ -145,7 +151,10 @@ describe('direct driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
+      const session = driver.session({
+        defaultAccessMode: WRITE,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
+      })
       const writeTx = session.beginTransaction()
       writeTx.run("CREATE (n {name:'Bob'})").then(result => {
         const records = result.records
@@ -192,7 +201,10 @@ describe('direct driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
+      const session = driver.session({
+        defaultAccessMode: WRITE,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
+      })
       const writeTx = session.beginTransaction()
       writeTx.run("CREATE (n {name:'Bob'})").then(result => {
         const records = result.records
@@ -239,7 +251,10 @@ describe('direct driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-      const session = driver.session(WRITE, 'neo4j:bookmark:v1:tx42')
+      const session = driver.session({
+        defaultAccessMode: WRITE,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
+      })
       const writeTx = session.beginTransaction()
       writeTx.run("CREATE (n {name:'Bob'})").then(result => {
         const records = result.records

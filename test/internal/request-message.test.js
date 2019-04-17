@@ -87,7 +87,7 @@ describe('RequestMessage', () => {
       ])
       const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
 
-      const message = RequestMessage.begin(bookmark, txConfig, mode)
+      const message = RequestMessage.begin({ bookmark, txConfig, mode })
 
       const expectedMetadata = {
         bookmarks: bookmark.values(),
@@ -136,13 +136,11 @@ describe('RequestMessage', () => {
         metadata: { a: 'a', b: 'b' }
       })
 
-      const message = RequestMessage.runWithMetadata(
-        statement,
-        parameters,
+      const message = RequestMessage.runWithMetadata(statement, parameters, {
         bookmark,
         txConfig,
         mode
-      )
+      })
 
       const expectedMetadata = {
         bookmarks: bookmark.values(),
@@ -169,5 +167,52 @@ describe('RequestMessage', () => {
     expect(message.signature).toEqual(0x02)
     expect(message.fields).toEqual([])
     expect(message.toString()).toEqual('GOODBYE')
+  })
+
+  describe('BoltV4', () => {
+    function verify (message, signature, metadata, name) {
+      expect(message.signature).toEqual(signature)
+      expect(message.fields).toEqual([metadata])
+      expect(message.toString()).toEqual(`${name} ${JSON.stringify(metadata)}`)
+    }
+
+    it('should create PULL message', () => {
+      verify(RequestMessage.pull(), 0x3f, { n: int(-1) }, 'PULL')
+    })
+
+    it('should create PULL message with n only', () => {
+      verify(RequestMessage.pull({ n: 501 }), 0x3f, { n: int(501) }, 'PULL')
+    })
+
+    it('should create PULL message with stmt_id and n', () => {
+      verify(
+        RequestMessage.pull({ stmtId: 27, n: 1023 }),
+        0x3f,
+        { n: int(1023), stmt_id: int(27) },
+        'PULL'
+      )
+    })
+
+    it('should create DISCARD message', () => {
+      verify(RequestMessage.discard(), 0x2f, { n: int(-1) }, 'DISCARD')
+    })
+
+    it('should create DISCARD message with n', () => {
+      verify(
+        RequestMessage.discard({ n: 501 }),
+        0x2f,
+        { n: int(501) },
+        'DISCARD'
+      )
+    })
+
+    it('should create DISCARD message with stmt_id and n', () => {
+      verify(
+        RequestMessage.discard({ stmtId: 27, n: 1023 }),
+        0x2f,
+        { n: int(1023), stmt_id: int(27) },
+        'DISCARD'
+      )
+    })
   })
 })

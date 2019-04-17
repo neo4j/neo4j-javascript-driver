@@ -527,9 +527,12 @@ describe('stress tests', () => {
 
   function newSession (context, accessMode, useBookmark) {
     if (useBookmark) {
-      return context.driver.session(accessMode, context.bookmark)
+      return context.driver.session({
+        defaultAccessMode: accessMode,
+        bookmarks: [context.bookmark]
+      })
     }
-    return context.driver.session(accessMode)
+    return context.driver.session({ defaultAccessMode: accessMode })
   }
 
   function modeFromEnvOrDefault (envVariableName) {

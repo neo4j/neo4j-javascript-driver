@@ -137,16 +137,11 @@ export default class RoutingUtil {
         params = {}
       }
 
-      connection
-        .protocol()
-        .run(
-          query,
-          params,
-          Bookmark.empty(),
-          TxConfig.empty(),
-          ACCESS_MODE_WRITE,
-          streamObserver
-        )
+      connection.protocol().run(query, params, streamObserver, {
+        bookmark: Bookmark.empty(),
+        txConfig: TxConfig.empty(),
+        mode: ACCESS_MODE_WRITE
+      })
     })
   }
 }

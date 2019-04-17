@@ -21,7 +21,7 @@ import ConnectionHolder, {
   EMPTY_CONNECTION_HOLDER
 } from '../../src/internal/connection-holder'
 import { SingleConnectionProvider } from '../../src/internal/connection-providers'
-import { READ } from '../../src/driver'
+import { READ, WRITE } from '../../src/driver'
 import FakeConnection from './fake-connection'
 import StreamObserver from '../../src/internal/stream-observer'
 
@@ -50,7 +50,10 @@ describe('ConnectionHolder', () => {
     const connectionProvider = new RecordingConnectionProvider([
       new FakeConnection()
     ])
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.initializeConnection()
 
@@ -60,7 +63,10 @@ describe('ConnectionHolder', () => {
   it('should return acquired during initialization connection', done => {
     const connection = new FakeConnection()
     const connectionProvider = newSingleConnectionProvider(connection)
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.initializeConnection()
 
@@ -73,7 +79,10 @@ describe('ConnectionHolder', () => {
   it('should make stream observer aware about connection when initialization successful', done => {
     const connection = new FakeConnection().withServerVersion('Neo4j/9.9.9')
     const connectionProvider = newSingleConnectionProvider(connection)
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
     const streamObserver = new StreamObserver()
 
     connectionHolder.initializeConnection()
@@ -88,7 +97,10 @@ describe('ConnectionHolder', () => {
     const errorMessage = 'Failed to acquire or initialize the connection'
     const connectionPromise = Promise.reject(new Error(errorMessage))
     const connectionProvider = newSingleConnectionProvider(connectionPromise)
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
     const streamObserver = new StreamObserver()
 
     connectionHolder.initializeConnection()
@@ -102,7 +114,10 @@ describe('ConnectionHolder', () => {
   it('should release connection with single user', done => {
     const connection = new FakeConnection()
     const connectionProvider = newSingleConnectionProvider(connection)
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.initializeConnection()
 
@@ -115,7 +130,10 @@ describe('ConnectionHolder', () => {
   it('should not release connection with multiple users', done => {
     const connection = new FakeConnection()
     const connectionProvider = newSingleConnectionProvider(connection)
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.initializeConnection()
     connectionHolder.initializeConnection()
@@ -130,7 +148,10 @@ describe('ConnectionHolder', () => {
   it('should release connection with multiple users when all users release', done => {
     const connection = new FakeConnection()
     const connectionProvider = newSingleConnectionProvider(connection)
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.initializeConnection()
     connectionHolder.initializeConnection()
@@ -149,7 +170,10 @@ describe('ConnectionHolder', () => {
   it('should do nothing when closed and not initialized', done => {
     const connection = new FakeConnection()
     const connectionProvider = newSingleConnectionProvider(connection)
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.close().then(() => {
       expect(connection.isNeverReleased()).toBeTruthy()
@@ -160,7 +184,10 @@ describe('ConnectionHolder', () => {
   it('should close even when users exist', done => {
     const connection = new FakeConnection()
     const connectionProvider = newSingleConnectionProvider(connection)
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.initializeConnection()
     connectionHolder.initializeConnection()
@@ -178,7 +205,10 @@ describe('ConnectionHolder', () => {
       connection1,
       connection2
     ])
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.initializeConnection()
 
@@ -200,7 +230,10 @@ describe('ConnectionHolder', () => {
       connection1,
       connection2
     ])
-    const connectionHolder = new ConnectionHolder(READ, connectionProvider)
+    const connectionHolder = new ConnectionHolder({
+      mode: READ,
+      connectionProvider
+    })
 
     connectionHolder.initializeConnection()
 
@@ -214,6 +247,47 @@ describe('ConnectionHolder', () => {
       })
     })
   })
+
+  it('should return passed mode', () => {
+    function verifyMode (connectionProvider, mode) {
+      expect(connectionProvider.mode()).toBe(mode)
+    }
+
+    verifyMode(new ConnectionHolder(), WRITE)
+    verifyMode(new ConnectionHolder({ mode: WRITE }), WRITE)
+    verifyMode(new ConnectionHolder({ mode: READ }), READ)
+  })
+
+  it('should default to empty db', () => {
+    function verifyDefault (connectionProvider) {
+      expect(connectionProvider.db()).toBe('')
+    }
+
+    const connectionProvider = newSingleConnectionProvider(new FakeConnection())
+
+    verifyDefault(new ConnectionHolder())
+    verifyDefault(new ConnectionHolder({ mode: READ, connectionProvider }))
+    verifyDefault(new ConnectionHolder({ mode: WRITE, connectionProvider }))
+    verifyDefault(
+      new ConnectionHolder({ mode: WRITE, db: '', connectionProvider })
+    )
+    verifyDefault(
+      new ConnectionHolder({ mode: WRITE, db: null, connectionProvider })
+    )
+    verifyDefault(
+      new ConnectionHolder({ mode: WRITE, db: undefined, connectionProvider })
+    )
+  })
+
+  it('should return passed db', () => {
+    const connectionProvider = newSingleConnectionProvider(new FakeConnection())
+    const connectionHolder = new ConnectionHolder({
+      db: 'testdb',
+      connectionProvider
+    })
+
+    expect(connectionHolder.db()).toBe('testdb')
+  })
 })
 
 class RecordingConnectionProvider extends SingleConnectionProvider {
@@ -223,7 +297,7 @@ class RecordingConnectionProvider extends SingleConnectionProvider {
     this.acquireConnectionInvoked = 0
   }
 
-  acquireConnection (mode) {
+  acquireConnection (mode, db) {
     return this.connectionPromises[this.acquireConnectionInvoked++]
   }
 }

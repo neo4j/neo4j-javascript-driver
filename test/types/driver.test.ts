@@ -75,12 +75,18 @@ const writeMode2: string = WRITE
 const driver: Driver = dummy
 
 const session1: Session = driver.session()
-const session2: Session = driver.session('READ')
-const session3: Session = driver.session(READ)
-const session4: Session = driver.session('WRITE')
-const session5: Session = driver.session(WRITE)
-const session6: Session = driver.session(READ, 'bookmark1')
-const session7: Session = driver.session(WRITE, 'bookmark2')
+const session2: Session = driver.session({ defaultAccessMode: 'READ' })
+const session3: Session = driver.session({ defaultAccessMode: READ })
+const session4: Session = driver.session({ defaultAccessMode: 'WRITE' })
+const session5: Session = driver.session({ defaultAccessMode: WRITE })
+const session6: Session = driver.session({
+  defaultAccessMode: READ,
+  bookmarks: 'bookmark1'
+})
+const session7: Session = driver.session({
+  defaultAccessMode: WRITE,
+  bookmarks: 'bookmark2'
+})
 
 session1.run('RETURN 1').then(result => {
   session1.close()

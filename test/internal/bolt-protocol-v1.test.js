@@ -22,28 +22,13 @@ import RequestMessage from '../../src/internal/request-message'
 import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
-
-class MessageRecorder {
-  constructor () {
-    this.messages = []
-    this.observers = []
-    this.flushes = []
-  }
-
-  write (message, observer, flush) {
-    this.messages.push(message)
-    this.observers.push(observer)
-    this.flushes.push(flush)
-  }
-
-  verifyMessageCount (expected) {
-    expect(this.messages.length).toEqual(expected)
-    expect(this.observers.length).toEqual(expected)
-    expect(this.flushes.length).toEqual(expected)
-  }
-}
+import utils from './test-utils'
 
 describe('BoltProtocolV1', () => {
+  beforeEach(() => {
+    jasmine.addMatchers(utils.matchers)
+  })
+
   it('should not change metadata', () => {
     const metadata = {
       result_available_after: 1,
@@ -51,7 +36,11 @@ describe('BoltProtocolV1', () => {
       t_first: 3,
       t_last: 4
     }
-    const protocol = new BoltProtocolV1(new MessageRecorder(), null, false)
+    const protocol = new BoltProtocolV1(
+      new utils.MessageRecordingConnection(),
+      null,
+      false
+    )
 
     const transformedMetadata = protocol.transformMetadata(metadata)
 
@@ -64,7 +53,7 @@ describe('BoltProtocolV1', () => {
   })
 
   it('should initialize the connection', () => {
-    const recorder = new MessageRecorder()
+    const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
     const clientName = 'js-driver/1.2.3'
@@ -74,45 +63,39 @@ describe('BoltProtocolV1', () => {
     protocol.initialize(clientName, authToken, observer)
 
     recorder.verifyMessageCount(1)
-    verifyMessage(
-      RequestMessage.init(clientName, authToken),
-      recorder.messages[0]
+    expect(recorder.messages[0]).toBeMessage(
+      RequestMessage.init(clientName, authToken)
     )
     expect(recorder.observers).toEqual([observer])
     expect(recorder.flushes).toEqual([true])
   })
 
   it('should run a statement', () => {
-    const recorder = new MessageRecorder()
+    const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
     const statement = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
     const observer = {}
 
-    protocol.run(
-      statement,
-      parameters,
-      Bookmark.empty(),
-      TxConfig.empty(),
-      WRITE,
-      observer
-    )
+    protocol.run(statement, parameters, observer, {
+      bookmark: Bookmark.empty(),
+      txConfig: TxConfig.empty(),
+      mode: WRITE
+    })
 
     recorder.verifyMessageCount(2)
 
-    verifyMessage(
-      RequestMessage.run(statement, parameters),
-      recorder.messages[0]
+    expect(recorder.messages[0]).toBeMessage(
+      RequestMessage.run(statement, parameters)
     )
-    verifyMessage(RequestMessage.pullAll(), recorder.messages[1])
-
+    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
     expect(recorder.observers).toEqual([observer, observer])
     expect(recorder.flushes).toEqual([false, true])
   })
 
   it('should reset the connection', () => {
-    const recorder = new MessageRecorder()
+    const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
     const observer = {}
@@ -120,34 +103,36 @@ describe('BoltProtocolV1', () => {
     protocol.reset(observer)
 
     recorder.verifyMessageCount(1)
-    verifyMessage(RequestMessage.reset(), recorder.messages[0])
+    expect(recorder.messages[0]).toBeMessage(RequestMessage.reset())
     expect(recorder.observers).toEqual([observer])
     expect(recorder.flushes).toEqual([true])
   })
 
   it('should begin a transaction', () => {
-    const recorder = new MessageRecorder()
+    const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
     const bookmark = new Bookmark('neo4j:bookmark:v1:tx42')
     const observer = {}
 
-    protocol.beginTransaction(bookmark, TxConfig.empty(), WRITE, observer)
+    protocol.beginTransaction(observer, {
+      bookmark: bookmark,
+      txConfig: TxConfig.empty(),
+      mode: WRITE
+    })
 
     recorder.verifyMessageCount(2)
 
-    verifyMessage(
-      RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters()),
-      recorder.messages[0]
+    expect(recorder.messages[0]).toBeMessage(
+      RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters())
     )
-    verifyMessage(RequestMessage.pullAll(), recorder.messages[1])
-
+    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
     expect(recorder.observers).toEqual([observer, observer])
     expect(recorder.flushes).toEqual([false, false])
   })
 
   it('should commit a transaction', () => {
-    const recorder = new MessageRecorder()
+    const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
     const observer = {}
@@ -156,15 +141,14 @@ describe('BoltProtocolV1', () => {
 
     recorder.verifyMessageCount(2)
 
-    verifyMessage(RequestMessage.run('COMMIT', {}), recorder.messages[0])
-    verifyMessage(RequestMessage.pullAll(), recorder.messages[1])
-
+    expect(recorder.messages[0]).toBeMessage(RequestMessage.run('COMMIT', {}))
+    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
     expect(recorder.observers).toEqual([observer, observer])
     expect(recorder.flushes).toEqual([false, true])
   })
 
   it('should rollback a transaction', () => {
-    const recorder = new MessageRecorder()
+    const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
     const observer = {}
@@ -173,15 +157,105 @@ describe('BoltProtocolV1', () => {
 
     recorder.verifyMessageCount(2)
 
-    verifyMessage(RequestMessage.run('ROLLBACK', {}), recorder.messages[0])
-    verifyMessage(RequestMessage.pullAll(), recorder.messages[1])
-
+    expect(recorder.messages[0]).toBeMessage(RequestMessage.run('ROLLBACK', {}))
+    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
     expect(recorder.observers).toEqual([observer, observer])
     expect(recorder.flushes).toEqual([false, true])
   })
-})
 
-function verifyMessage (expected, actual) {
-  expect(actual.signature).toEqual(expected.signature)
-  expect(actual.fields).toEqual(expected.fields)
-}
+  describe('Bolt V3', () => {
+    function verifyError (fn) {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV1(recorder, null, false)
+      const observer = {
+        onError: () => {}
+      }
+
+      expect(() => fn(protocol, observer)).toThrowError(
+        'Driver is connected to the database that does not support transaction configuration. ' +
+          'Please upgrade to neo4j 3.5.0 or later in order to use this functionality'
+      )
+    }
+
+    describe('beginTransaction', () => {
+      function verifyBeginTransaction (txConfig) {
+        verifyError((protocol, observer) =>
+          protocol.beginTransaction(observer, { txConfig })
+        )
+      }
+
+      it('should throw error when txConfig.timeout is set', () => {
+        verifyBeginTransaction(new TxConfig({ timeout: 5000 }))
+      })
+
+      it('should throw error when txConfig.metadata is set', () => {
+        verifyBeginTransaction(new TxConfig({ metadata: { x: 1, y: true } }))
+      })
+
+      it('should throw error when txConfig is set', () => {
+        verifyBeginTransaction(
+          new TxConfig({ timeout: 5000, metadata: { x: 1, y: true } })
+        )
+      })
+    })
+
+    describe('run', () => {
+      function verifyRun (txConfig) {
+        verifyError((protocol, observer) =>
+          protocol.run('statement', {}, observer, { txConfig })
+        )
+      }
+
+      it('should throw error when txConfig.timeout is set', () => {
+        verifyRun(new TxConfig({ timeout: 5000 }))
+      })
+
+      it('should throw error when txConfig.metadata is set', () => {
+        verifyRun(new TxConfig({ metadata: { x: 1, y: true } }))
+      })
+
+      it('should throw error when txConfig is set', () => {
+        verifyRun(new TxConfig({ timeout: 5000, metadata: { x: 1, y: true } }))
+      })
+    })
+  })
+
+  describe('Bolt V4', () => {
+    function verifyError (fn) {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV1(recorder, null, false)
+      const observer = {
+        onError: () => {}
+      }
+
+      expect(() => fn(protocol, observer)).toThrowError(
+        'Driver is connected to the database that does not support multiple databases. ' +
+          'Please upgrade to neo4j 4.0.0 or later in order to use this functionality'
+      )
+    }
+
+    describe('beginTransaction', () => {
+      function verifyBeginTransaction (db) {
+        verifyError((protocol, observer) =>
+          protocol.beginTransaction(observer, { db })
+        )
+      }
+
+      it('should throw error when db is set', () => {
+        verifyBeginTransaction('test')
+      })
+    })
+
+    describe('run', () => {
+      function verifyRun (db) {
+        verifyError((protocol, observer) =>
+          protocol.run('statement', {}, observer, { db })
+        )
+      }
+
+      it('should throw error when db is set', () => {
+        verifyRun('test')
+      })
+    })
+  })
+})

@@ -28,12 +28,12 @@ export default class HttpDriver extends Driver {
   }
 
   session () {
-    return new HttpSession(
-      this._hostPort,
-      this._authToken,
-      this._config,
-      this._sessionTracker
-    )
+    return new HttpSession({
+      url: this._hostPort,
+      authToken: this._authToken,
+      config: this._config,
+      sessionTracker: this._sessionTracker
+    })
   }
 
   close () {

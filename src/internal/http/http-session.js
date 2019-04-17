@@ -26,8 +26,8 @@ import { EMPTY_CONNECTION_HOLDER } from '../connection-holder'
 import Result from '../../result'
 
 export default class HttpSession extends Session {
-  constructor (url, authToken, config, sessionTracker) {
-    super(WRITE, null, null, config)
+  constructor ({ url, authToken, config, db = '', sessionTracker } = {}) {
+    super({ mode: WRITE, connectionProvider: null, bookmark: null, db, config })
     this._ongoingTransactionIds = []
     this._serverInfoSupplier = createServerInfoSupplier(url)
     this._requestRunner = new HttpRequestRunner(url, authToken)
@@ -35,7 +35,7 @@ export default class HttpSession extends Session {
     this._sessionTracker.sessionOpened(this)
   }
 
-  run (statement, parameters = {}) {
+  run (statement, parameters = {}, transactionConfig) {
     const { query, params } = validateStatementAndParameters(
       statement,
       parameters

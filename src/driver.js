@@ -109,12 +109,13 @@ class Driver {
 
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
+   * @param {string} [db=''] the target database to verify connectivity for.
    * @returns {Promise<object>} promise resolved with server info or rejected with error.
    */
-  verifyConnectivity () {
+  verifyConnectivity ({ db = '' } = {}) {
     const connectionProvider = this._getOrCreateConnectionProvider()
     const connectivityVerifier = new ConnectivityVerifier(connectionProvider)
-    return connectivityVerifier.verify()
+    return connectivityVerifier.verify({ db })
   }
 
   /**
@@ -178,18 +179,29 @@ class Driver {
    * it is closed, the underlying connection will be released to the connection
    * pool and made available for others to use.
    *
-   * @param {string} [mode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
-   * @param {string|string[]} [bookmarkOrBookmarks=null] the initial reference or references to some previous
+   * @param {string} [defaultAccessMode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
+   * @param {string|string[]} [bookmarks=null] the initial reference or references to some previous
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
+   * @param {string} [db=''] the database this session will connect to.
    * @return {Session} new session.
    */
-  session (mode, bookmarkOrBookmarks) {
-    const sessionMode = Driver._validateSessionMode(mode)
+  session ({
+    defaultAccessMode = WRITE,
+    bookmarks: bookmarkOrBookmarks,
+    db = ''
+  } = {}) {
+    const sessionMode = Driver._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmark = bookmarkOrBookmarks
       ? new Bookmark(bookmarkOrBookmarks)
       : Bookmark.empty()
-    return new Session(sessionMode, connectionProvider, bookmark, this._config)
+    return new Session({
+      mode: sessionMode,
+      db,
+      connectionProvider,
+      bookmark,
+      config: this._config
+    })
   }
 
   static _validateSessionMode (rawMode) {
