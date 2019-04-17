@@ -28,7 +28,7 @@ class Url {
   constructor (scheme, host, port, hostAndPort, query) {
     /**
      * Nullable scheme (protocol) of the URL.
-     * Example: 'bolt', 'bolt+routing', 'http', 'https', etc.
+     * Example: 'bolt', 'neo4j', 'http', 'https', etc.
      * @type {string}
      */
     this.scheme = scheme

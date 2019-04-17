@@ -239,7 +239,7 @@ const logging = {
 function driver (url, authToken, config = {}) {
   assertString(url, 'Bolt URL')
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
-  if (parsedUrl.scheme === 'bolt+routing') {
+  if (parsedUrl.scheme === 'neo4j') {
     return new RoutingDriver(
       parsedUrl.hostAndPort,
       parsedUrl.query,

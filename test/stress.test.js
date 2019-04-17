@@ -395,7 +395,7 @@ describe('stress tests', () => {
   }
 
   function verifyServers (context) {
-    const routing = DATABASE_URI.indexOf('bolt+routing') === 0
+    const routing = DATABASE_URI.indexOf('neo4j') === 0
 
     if (routing) {
       return verifyCausalClusterMembers(context)

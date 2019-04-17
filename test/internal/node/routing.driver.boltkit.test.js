@@ -49,7 +49,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').then(() => {
@@ -87,7 +87,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(() => {
         expect(
@@ -129,7 +129,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9042')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9042')
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(() => {
         session.close()
@@ -163,7 +163,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').then(() => {
@@ -197,7 +197,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').subscribe({
@@ -233,7 +233,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       // When
       const session = driver.session({ defaultAccessMode: READ })
@@ -271,7 +271,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(res => {
@@ -323,7 +323,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9999')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9999')
       // When
       const session1 = driver.session({ defaultAccessMode: READ })
       session1.run('MATCH (n) RETURN n.name').then(res => {
@@ -379,7 +379,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session1 = driver.session({ defaultAccessMode: READ })
       session1.run('MATCH (n) RETURN n.name').then(res => {
@@ -428,7 +428,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').catch(err => {
@@ -461,7 +461,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: WRITE })
       session.run("CREATE (n {name:'Bob'})").then(() => {
@@ -498,7 +498,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session1 = driver.session({ defaultAccessMode: WRITE })
       session1.run("CREATE (n {name:'Bob'})").then(() => {
@@ -537,7 +537,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: WRITE })
       session.run('MATCH (n) RETURN n.name').catch(err => {
@@ -570,7 +570,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(() => {
@@ -610,7 +610,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').catch(() => {
@@ -651,7 +651,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').catch(() => {
@@ -693,7 +693,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session1 = driver.session({ defaultAccessMode: READ })
       session1.run('MATCH (n) RETURN n.name').catch(() => {
@@ -725,7 +725,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').catch(err => {
@@ -762,7 +762,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session()
       session.run('CREATE ()').catch(err => {
@@ -798,7 +798,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session()
       const tx = session.beginTransaction()
@@ -833,7 +833,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: WRITE })
       session.run('MATCH (n) RETURN n.name').catch(err => {
@@ -871,7 +871,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9999')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9999')
 
       const session1 = driver.session()
       session1.run('MATCH (n) RETURN n').then(result1 => {
@@ -934,7 +934,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9002')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9002')
       // When
       const session1 = driver.session({ defaultAccessMode: WRITE })
       session1.run("CREATE (n {name:'Bob'})").then(() => {
@@ -986,7 +986,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const readSession = driver.session({ defaultAccessMode: READ })
       readSession.run('MATCH (n) RETURN n.name').then(readResult => {
@@ -1042,7 +1042,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const readSession = driver.session({ defaultAccessMode: READ })
       readSession.run('MATCH (n) RETURN n.name').subscribe({
@@ -1094,7 +1094,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9999')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9999')
 
       const session1 = driver.session()
       session1.run('MATCH (n) RETURN n').then(result1 => {
@@ -1144,7 +1144,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const acquiredConnections = []
       const releasedConnections = []
@@ -1341,7 +1341,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const session = driver.session()
       const tx = session.beginTransaction('neo4j:bookmark:v1:tx42')
@@ -1396,7 +1396,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const session = driver.session({
         defaultAccessMode: READ,
@@ -1443,7 +1443,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const session = driver.session({ bookmarks: ['neo4j:bookmark:v1:tx42'] })
       const writeTx = session.beginTransaction()
@@ -1499,7 +1499,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
 
       let invocations = 0
@@ -1549,7 +1549,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
 
       let invocations = 0
@@ -1599,7 +1599,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
 
       let invocations = 0
@@ -1655,7 +1655,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
 
       let invocations = 0
@@ -1719,7 +1719,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
       const session = driver.session()
 
       let invocations = 0
@@ -1783,7 +1783,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
       const session = driver.session()
 
       let invocations = 0
@@ -1836,7 +1836,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
 
       // run a dummy query to force routing table initialization
       const session = driver.session({ defaultAccessMode: READ })
@@ -1901,7 +1901,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
       // make seed address resolve to 3 different addresses (only last one has backing stub server):
       setupFakeHostNameResolution(driver, '127.0.0.1:9010', [
         '127.0.0.1:9011',
@@ -1944,7 +1944,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name AS name').then(result => {
         const names = result.records.map(record => record.get('name'))
@@ -1974,7 +1974,7 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver(
-        'bolt+routing://127.0.0.1:9001/?policy=my_policy&region=china'
+        'neo4j://127.0.0.1:9001/?policy=my_policy&region=china'
       )
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name AS name').then(result => {
@@ -2005,7 +2005,7 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver(
-        'bolt+routing://127.0.0.1:9001/?policy=my_policy'
+        'neo4j://127.0.0.1:9001/?policy=my_policy'
       )
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').then(result => {
@@ -2043,7 +2043,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
       const session = driver.session({ defaultAccessMode: READ })
 
       session.run('MATCH (n) RETURN n.name').then(result1 => {
@@ -2088,7 +2088,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
 
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(result => {
@@ -2133,7 +2133,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
 
       const readSession = driver.session()
 
@@ -2192,7 +2192,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
 
       const readSession = driver.session()
 
@@ -2264,7 +2264,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
 
       const readSession = driver.session({ defaultAccessMode: READ })
       readSession.run('MATCH (n) RETURN n.name').then(result => {
@@ -2318,7 +2318,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
       const session = driver.session()
       session.run('RETURN 1').catch(error => {
         expect(error.code).toEqual('Neo.ClientError.Security.Unauthorized')
@@ -2351,7 +2351,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
 
       const bookmarks = [
         'neo4j:bookmark:v1:tx5',
@@ -2465,7 +2465,7 @@ describe('routing driver with stub server', () => {
         throw new Error(`Unexpected address ${address}`)
       }
 
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001', {
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001', {
         resolver: resolverFunction
       })
 
@@ -2551,7 +2551,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(res => {
@@ -2589,7 +2589,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: READ })
       session
@@ -2629,7 +2629,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: WRITE })
       session.run("CREATE (n {name:'Bob'})").then(res => {
@@ -2662,7 +2662,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: WRITE })
       session
@@ -2703,7 +2703,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
 
       const session = driver.session({ defaultAccessMode: accessMode })
       session.run(query).catch(error => {
@@ -2765,7 +2765,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const session = driver.session({
         defaultAccessMode: accessMode,
@@ -2809,7 +2809,7 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver(
-        'bolt+routing://127.0.0.1:9001',
+        'neo4j://127.0.0.1:9001',
         driverConfig
       )
 
@@ -2845,7 +2845,7 @@ describe('routing driver with stub server', () => {
     const server = boltStub.start(scriptFile, 9001)
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').catch(error => {
@@ -2881,7 +2881,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:' + port)
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:' + port)
 
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').then(result => {
@@ -3014,7 +3014,7 @@ describe('routing driver with stub server', () => {
         throw new Error(`Unexpected address ${address}`)
       }
 
-      const driver = boltStub.newDriver('bolt+routing://neo4j.com', {
+      const driver = boltStub.newDriver('neo4j://neo4j.com', {
         resolver: resolverFunction
       })
 
@@ -3061,7 +3061,7 @@ describe('routing driver with stub server', () => {
       throw new Error('Unexpected address')
     }
 
-    const driver = boltStub.newDriver('bolt+routing://neo4j.com:8989', {
+    const driver = boltStub.newDriver('neo4j://neo4j.com:8989', {
       resolver: resolverFunction
     })
     const session = driver.session()

@@ -231,7 +231,7 @@ describe('driver', () => {
     }
 
     // Given
-    driver = neo4j.driver('bolt+routing://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver('neo4j://localhost', sharedNeo4j.authToken)
 
     // Expect
     driver.onError = error => {
@@ -251,7 +251,7 @@ describe('driver', () => {
     expect(directDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
     directDriver.close()
 
-    const routingDriver = neo4j.driver('bolt+routing://localhost')
+    const routingDriver = neo4j.driver('neo4j://localhost')
     expect(routingDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
     routingDriver.close()
   })

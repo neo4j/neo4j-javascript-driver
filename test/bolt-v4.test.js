@@ -161,6 +161,30 @@ describe('Bolt V4 API', () => {
           })
           .finally(() => neoSession.close())
       })
+
+      it('should be able to connect single instance using neo4j scheme', done => {
+        if (!databaseSupportsBoltV4()) {
+          done()
+          return
+        }
+
+        const neoDriver = neo4j.driver('neo4j://localhost', sharedNeo4j.authToken)
+        const neoSession = driver.session({ db: 'neo4j' })
+
+        neoSession
+          .run('CREATE (n { db: $db }) RETURN n.db', { db: 'neo4j' })
+          .then(result => {
+            expect(result.records.length).toBe(1)
+            expect(result.records[0].get('n.db')).toBe('neo4j')
+            done()
+          })
+          .catch(error => {
+            done.fail(error)
+          })
+          .finally(() => neoSession.close())
+
+        neoDriver.close()
+      })
     })
   })
 

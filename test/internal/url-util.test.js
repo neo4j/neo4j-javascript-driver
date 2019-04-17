@@ -193,9 +193,9 @@ describe('url-util', () => {
     })
 
     verifyUrl(
-      'bolt+routing://ec2-34-242-76-91.eu-west-1.compute.aws.com?foo=1&bar=2&baz=3&qux=4',
+      'neo4j://ec2-34-242-76-91.eu-west-1.compute.aws.com?foo=1&bar=2&baz=3&qux=4',
       {
-        scheme: 'bolt+routing',
+        scheme: 'neo4j',
         host: 'ec2-34-242-76-91.eu-west-1.compute.aws.com',
         query: { foo: '1', bar: '2', baz: '3', qux: '4' }
       }
@@ -209,8 +209,8 @@ describe('url-util', () => {
       query: { key1: 'value1', key2: 'value2' }
     })
 
-    verifyUrl('bolt+routing://10.10.192.0?key1=1&key2=2', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://10.10.192.0?key1=1&key2=2', {
+      scheme: 'neo4j',
       host: '10.10.192.0',
       query: { key1: '1', key2: '2' }
     })
@@ -229,8 +229,8 @@ describe('url-util', () => {
   })
 
   it('should parse URL with scheme, IPv6 address and query', () => {
-    verifyUrl('bolt+routing://[::1]?key1=value1&key2=value2', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://[::1]?key1=value1&key2=value2', {
+      scheme: 'neo4j',
       host: '::1',
       query: { key1: 'value1', key2: 'value2' },
       ipv6: true
@@ -258,17 +258,17 @@ describe('url-util', () => {
     })
 
     verifyUrl(
-      'bolt+routing://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa',
+      'neo4j://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa',
       {
-        scheme: 'bolt+routing',
+        scheme: 'neo4j',
         host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
         query: { animal: 'apa' },
         ipv6: true
       }
     )
 
-    verifyUrl('bolt+routing://[fe80::1%lo0]?animal=apa', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://[fe80::1%lo0]?animal=apa', {
+      scheme: 'neo4j',
       host: 'fe80::1%lo0',
       query: { animal: 'apa' },
       ipv6: true
@@ -380,8 +380,8 @@ describe('url-util', () => {
   })
 
   it('should parse URL with scheme and IPv4 address', () => {
-    verifyUrl('bolt+routing://127.0.0.1', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://127.0.0.1', {
+      scheme: 'neo4j',
       host: '127.0.0.1'
     })
 
@@ -414,8 +414,8 @@ describe('url-util', () => {
       ipv6: true
     })
 
-    verifyUrl('bolt+routing://[1afc:0:a33:85a3::ff2f]', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://[1afc:0:a33:85a3::ff2f]', {
+      scheme: 'neo4j',
       host: '1afc:0:a33:85a3::ff2f',
       ipv6: true
     })
@@ -426,14 +426,14 @@ describe('url-util', () => {
       ipv6: true
     })
 
-    verifyUrl('bolt+routing://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]', {
+      scheme: 'neo4j',
       host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
       ipv6: true
     })
 
-    verifyUrl('bolt+routing://[fe80::1%lo0]', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://[fe80::1%lo0]', {
+      scheme: 'neo4j',
       host: 'fe80::1%lo0',
       ipv6: true
     })
@@ -452,8 +452,8 @@ describe('url-util', () => {
       port: 42
     })
 
-    verifyUrl('bolt+routing://some-neo4j-server.com:12000', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://some-neo4j-server.com:12000', {
+      scheme: 'neo4j',
       host: 'some-neo4j-server.com',
       port: 12000
     })
@@ -478,8 +478,8 @@ describe('url-util', () => {
       port: 7447
     })
 
-    verifyUrl('bolt+routing://172.10.5.1:8888', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://172.10.5.1:8888', {
+      scheme: 'neo4j',
       host: '172.10.5.1',
       port: 8888
     })
@@ -506,8 +506,8 @@ describe('url-util', () => {
       ipv6: true
     })
 
-    verifyUrl('bolt+routing://[1afc:0:a33:85a3::ff2f]:50505', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://[1afc:0:a33:85a3::ff2f]:50505', {
+      scheme: 'neo4j',
       host: '1afc:0:a33:85a3::ff2f',
       port: 50505,
       ipv6: true
@@ -550,8 +550,8 @@ describe('url-util', () => {
       query: { foo: 'bar', baz: 'qux' }
     })
 
-    verifyUrl('bolt+routing://some-neo4j-server.com:14500?key=value', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://some-neo4j-server.com:14500?key=value', {
+      scheme: 'neo4j',
       host: 'some-neo4j-server.com',
       port: 14500,
       query: { key: 'value' }
@@ -576,8 +576,8 @@ describe('url-util', () => {
       query: { key1: 'value1', key2: 'value2' }
     })
 
-    verifyUrl('bolt+routing://10.10.192.0:12100/?foo=bar&baz=qux', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://10.10.192.0:12100/?foo=bar&baz=qux', {
+      scheme: 'neo4j',
       host: '10.10.192.0',
       port: 12100,
       query: { foo: 'bar', baz: 'qux' }
@@ -607,8 +607,8 @@ describe('url-util', () => {
       ipv6: true
     })
 
-    verifyUrl('bolt+routing://[ff02::2:ff00:0]:22/?animal1=apa&animal2=dog', {
-      scheme: 'bolt+routing',
+    verifyUrl('neo4j://[ff02::2:ff00:0]:22/?animal1=apa&animal2=dog', {
+      scheme: 'neo4j',
       host: 'ff02::2:ff00:0',
       port: 22,
       query: { animal1: 'apa', animal2: 'dog' },
@@ -654,7 +654,7 @@ describe('url-util', () => {
   it('should fail to parse URL without host', () => {
     expect(() => parse('http://')).toThrow()
     expect(() => parse('bolt://')).toThrow()
-    expect(() => parse('bolt+routing://')).toThrow()
+    expect(() => parse('neo4j://')).toThrow()
   })
 
   it('should fail to parse URL with duplicated query parameters', () => {
@@ -664,10 +664,10 @@ describe('url-util', () => {
     ).toThrow()
 
     expect(() =>
-      parse('bolt+routing://10.10.127.5?key=value1&key=value2')
+      parse('neo4j://10.10.127.5?key=value1&key=value2')
     ).toThrow()
     expect(() =>
-      parse('bolt+routing://10.10.127.5:8080?key=value1&key=value2')
+      parse('neo4j://10.10.127.5:8080?key=value1&key=value2')
     ).toThrow()
 
     expect(() => parse('https://[ff0a::101]?key=value1&key=value2')).toThrow()
@@ -680,8 +680,8 @@ describe('url-util', () => {
     expect(() => parse('bolt://localhost?=value')).toThrow()
     expect(() => parse('bolt://localhost:8080?=value')).toThrow()
 
-    expect(() => parse('bolt+routing://10.10.127.5?=value')).toThrow()
-    expect(() => parse('bolt+routing://10.10.127.5:8080?=value')).toThrow()
+    expect(() => parse('neo4j://10.10.127.5?=value')).toThrow()
+    expect(() => parse('neo4j://10.10.127.5:8080?=value')).toThrow()
 
     expect(() => parse('https://[ff0a::101]/?value=')).toThrow()
     expect(() => parse('https://[ff0a::101]:8080/?=value')).toThrow()
@@ -691,8 +691,8 @@ describe('url-util', () => {
     expect(() => parse('bolt://localhost?key=')).toThrow()
     expect(() => parse('bolt://localhost:8080?key=')).toThrow()
 
-    expect(() => parse('bolt+routing://10.10.127.5/?key=')).toThrow()
-    expect(() => parse('bolt+routing://10.10.127.5:8080/?key=')).toThrow()
+    expect(() => parse('neo4j://10.10.127.5/?key=')).toThrow()
+    expect(() => parse('neo4j://10.10.127.5:8080/?key=')).toThrow()
 
     expect(() => parse('https://[ff0a::101]?key=')).toThrow()
     expect(() => parse('https://[ff0a::101]:8080?key=')).toThrow()
@@ -702,8 +702,8 @@ describe('url-util', () => {
     expect(() => parse('bolt://localhost?key')).toThrow()
     expect(() => parse('bolt://localhost:8080?key')).toThrow()
 
-    expect(() => parse('bolt+routing://10.10.127.5/?key')).toThrow()
-    expect(() => parse('bolt+routing://10.10.127.5:8080/?key')).toThrow()
+    expect(() => parse('neo4j://10.10.127.5/?key')).toThrow()
+    expect(() => parse('neo4j://10.10.127.5:8080/?key')).toThrow()
 
     expect(() => parse('https://[ff0a::101]?key')).toThrow()
     expect(() => parse('https://[ff0a::101]:8080?key')).toThrow()
@@ -753,7 +753,7 @@ describe('url-util', () => {
     expect(parse('bolt://localhost').port).toEqual(
       urlUtil.defaultPortForScheme('bolt')
     )
-    expect(parse('bolt+routing://localhost').port).toEqual(
+    expect(parse('neo4j://localhost').port).toEqual(
       urlUtil.defaultPortForScheme('bolt')
     )
 
@@ -766,7 +766,7 @@ describe('url-util', () => {
   })
 
   it('should parse URLs with port 80', () => {
-    ;['http', 'https', 'ws', 'wss', 'bolt', 'bolt+routing'].forEach(scheme => {
+    ;['http', 'https', 'ws', 'wss', 'bolt', 'neo4j'].forEach(scheme => {
       verifyUrl(`${scheme}://localhost:80`, {
         scheme: scheme,
         host: 'localhost',

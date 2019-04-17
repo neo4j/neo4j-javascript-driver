@@ -188,7 +188,7 @@ describe('examples', () => {
     }
 
     function addPerson (name) {
-      const driver = createDriver('bolt+routing://x.acme.com', user, password, [
+      const driver = createDriver('neo4j://x.acme.com', user, password, [
         'a.acme.com:7575',
         'b.acme.com:7676',
         'c.acme.com:8787'
