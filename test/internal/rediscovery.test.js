@@ -24,7 +24,7 @@ import Record from '../../src/record'
 import { int } from '../../src/integer'
 import RoutingTable from '../../src/internal/routing-table'
 
-const ROUTER_ADDRESS = 'bolt+routing://test.router.com'
+const ROUTER_ADDRESS = 'neo4j://test.router.com'
 
 describe('rediscovery', () => {
   it('should return null when connection error happens', done => {

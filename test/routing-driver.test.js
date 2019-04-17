@@ -31,16 +31,16 @@ describe('RoutingDriver', () => {
   it('should fail when configured resolver is of illegal type', () => {
     expect(() =>
       neo4j.driver(
-        'bolt+routing://localhost',
+        'neo4j://localhost',
         {},
         { resolver: 'string instead of a function' }
       )
     ).toThrowError(TypeError)
     expect(() =>
-      neo4j.driver('bolt+routing://localhost', {}, { resolver: [] })
+      neo4j.driver('neo4j://localhost', {}, { resolver: [] })
     ).toThrowError(TypeError)
     expect(() =>
-      neo4j.driver('bolt+routing://localhost', {}, { resolver: {} })
+      neo4j.driver('neo4j://localhost', {}, { resolver: {} })
     ).toThrowError(TypeError)
   })
 })

@@ -148,7 +148,7 @@ neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j', 'neo4j'), {
 
 // It is possible to execute read transactions that will benefit from automatic
 // retries on both single instance ('bolt' URI scheme) and Causal Cluster
-// ('bolt+routing' URI scheme) and will get automatic load balancing in cluster deployments
+// ('neo4j' URI scheme) and will get automatic load balancing in cluster deployments
 var readTxResultPromise = session.readTransaction(function(transaction) {
   // used transaction will be committed automatically, no need for explicit commit/rollback
 
@@ -171,7 +171,7 @@ readTxResultPromise
   })
 
 // It is possible to execute write transactions that will benefit from automatic retries
-// on both single instance ('bolt' URI scheme) and Causal Cluster ('bolt+routing' URI scheme)
+// on both single instance ('bolt' URI scheme) and Causal Cluster ('neo4j' URI scheme)
 var writeTxResultPromise = session.writeTransaction(function(transaction) {
   // used transaction will be committed automatically, no need for explicit commit/rollback
 
