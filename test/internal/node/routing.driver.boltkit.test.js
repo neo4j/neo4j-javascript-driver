@@ -23,6 +23,7 @@ import boltStub from '../bolt-stub';
 import RoutingTable from '../../../src/v1/internal/routing-table';
 import {SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../../src/v1/error';
 import lolex from 'lolex';
+import ServerAddress from '../../../src/v1/internal/server-address';
 
 describe('routing driver with stub server', () => {
 
@@ -84,7 +85,7 @@ describe('routing driver with stub server', () => {
         expect(hasAddressInConnectionPool(driver, '127.0.0.1:9001')).toBeTruthy();
         assertHasReaders(driver, ['127.0.0.1:9001', '[::1]:9001']);
         assertHasWriters(driver, ['[2001:db8:a0b:12f0::1]:9002', '[3731:54:65fe:2::a7]:9003']);
-        assertHasRouters(driver, ['[ff02::1]:9001', '[684D:1111:222:3333:4444:5555:6:77]:9002', '[::1]:9003']);
+        assertHasRouters(driver, ['[ff02::1]:9001', '[684d:1111:222:3333:4444:5555:6:77]:9002', '[::1]:9003']);
 
         driver.close();
         server.exit(code => {
@@ -2322,31 +2323,31 @@ describe('routing driver with stub server', () => {
   }
 
   function hasAddressInConnectionPool(driver, address) {
-    return getConnectionPool(driver).has(address);
+    return getConnectionPool(driver).has(ServerAddress.fromUrl(address));
   }
 
   function hasRouterInRoutingTable(driver, expectedRouter) {
-    return getRoutingTable(driver).routers.indexOf(expectedRouter) > -1;
+    return getRoutingTable(driver).routers.indexOf(ServerAddress.fromUrl(expectedRouter)) > -1;
   }
 
   function hasReaderInRoutingTable(driver, expectedReader) {
-    return getRoutingTable(driver).readers.indexOf(expectedReader) > -1;
+    return getRoutingTable(driver).readers.indexOf(ServerAddress.fromUrl(expectedReader)) > -1;
   }
 
   function hasWriterInRoutingTable(driver, expectedWriter) {
-    return getRoutingTable(driver).writers.indexOf(expectedWriter) > -1;
+    return getRoutingTable(driver).writers.indexOf(ServerAddress.fromUrl(expectedWriter)) > -1;
   }
 
   function assertHasRouters(driver, expectedRouters) {
-    expect(getRoutingTable(driver).routers).toEqual(expectedRouters);
+    expect(getRoutingTable(driver).routers.map(s => s.asHostPort())).toEqual(expectedRouters);
   }
 
   function assertHasReaders(driver, expectedReaders) {
-    expect(getRoutingTable(driver).readers).toEqual(expectedReaders);
+    expect(getRoutingTable(driver).readers.map(s => s.asHostPort())).toEqual(expectedReaders);
   }
 
   function assertHasWriters(driver, expectedWriters) {
-    expect(getRoutingTable(driver).writers).toEqual(expectedWriters);
+    expect(getRoutingTable(driver).writers.map(s => s.asHostPort())).toEqual(expectedWriters);
   }
 
   function setUpMemorizingRoutingTable(driver) {
@@ -2357,7 +2358,12 @@ describe('routing driver with stub server', () => {
 
   function setupFakeHostNameResolution(driver, seedRouter, resolvedAddresses) {
     const connectionProvider = driver._getOrCreateConnectionProvider();
-    connectionProvider._hostNameResolver = new FakeHostNameResolver(seedRouter, resolvedAddresses);
+    connectionProvider._hostNameResolver._resolverFunction = function (address) {
+      if (address === seedRouter) {
+        return Promise.resolve(resolvedAddresses);
+      }
+      return Promise.reject(new Error('Unexpected seed router address ' + address));
+    };
   }
 
   function getConnectionPool(driver) {
@@ -2464,23 +2470,7 @@ describe('routing driver with stub server', () => {
     }
 
     assertForgotRouters(expectedRouters) {
-      expect(this._forgottenRouters).toEqual(expectedRouters);
+      expect(this._forgottenRouters.map(s => s.asHostPort())).toEqual(expectedRouters);
     }
   }
-
-  class FakeHostNameResolver {
-
-    constructor(seedRouter, resolvedAddresses) {
-      this._seedRouter = seedRouter;
-      this._resolvedAddresses = resolvedAddresses;
-    }
-
-    resolve(seedRouter) {
-      if (seedRouter === this._seedRouter) {
-        return Promise.resolve(this._resolvedAddresses);
-      }
-      return Promise.reject(new Error('Unexpected seed router address ' + seedRouter));
-    }
-  }
-
 });

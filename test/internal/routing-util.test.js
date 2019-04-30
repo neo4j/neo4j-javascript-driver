@@ -23,6 +23,7 @@ import Integer, {int} from '../../src/v1/integer';
 import {newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from '../../src/v1/error';
 import lolex from 'lolex';
 import FakeConnection from './fake-connection';
+import ServerAddress from '../../src/v1/internal/server-address';
 
 const ROUTER_ADDRESS = 'test.router.com:4242';
 
@@ -257,9 +258,9 @@ describe('RoutingUtil', () => {
 
     const {routers, readers, writers} = parseServers(record);
 
-    expect(routers).toEqual(routerAddresses);
-    expect(readers).toEqual(readerAddresses);
-    expect(writers).toEqual(writerAddresses);
+    expect(routers).toEqual(routerAddresses.map(r => ServerAddress.fromUrl(r)));
+    expect(readers).toEqual(readerAddresses.map(r => ServerAddress.fromUrl(r)));
+    expect(writers).toEqual(writerAddresses.map(w => ServerAddress.fromUrl(w)));
   }
 
   function callRoutingProcedure(session, routingContext) {

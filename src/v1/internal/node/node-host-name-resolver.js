@@ -23,29 +23,16 @@ import nodeDns from 'dns';
 
 export default class NodeHostNameResolver extends BaseHostNameResolver {
 
-  resolve(seedRouter) {
-    const parsedAddress = urlUtil.parseDatabaseUrl(seedRouter);
-
+  resolve(address) {
     return new Promise((resolve) => {
-      nodeDns.lookup(parsedAddress.host, {all: true}, (error, addresses) => {
+      nodeDns.lookup(address.host(), { all: true }, (error, resolvedTo) => {
         if (error) {
-          resolve(this._resolveToItself(seedRouter));
+          resolve([address]);
         } else {
-          const addressesWithPorts = addresses.map(address => addressWithPort(address, parsedAddress.port));
-          resolve(addressesWithPorts);
+          const resolvedAddresses = resolvedTo.map(a => address.resolveWith(a.address));
+          resolve(resolvedAddresses);
         }
       });
     });
   }
-}
-
-function addressWithPort(addressObject, port) {
-  const address = addressObject.address;
-  const addressFamily = addressObject.family;
-
-  if (!port) {
-    return address;
-  }
-
-  return addressFamily === 6 ? urlUtil.formatIPv6Address(address, port) : urlUtil.formatIPv4Address(address, port);
 }

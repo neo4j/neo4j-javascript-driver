@@ -33,6 +33,7 @@ import testUtils from '../internal/test-utils';
 import Bookmark from '../../src/v1/internal/bookmark';
 import TxConfig from '../../src/v1/internal/tx-config';
 import {WRITE} from "../../src/v1/driver";
+import ServerAddress from '../../src/v1/internal/server-address';
 
 const ILLEGAL_MESSAGE = {signature: 42, fields: []};
 const SUCCESS_MESSAGE = {signature: 0x70, fields: [{}]};
@@ -105,7 +106,7 @@ describe('Connection', () => {
 
   it('should write protocol handshake', () => {
     const channel = new DummyChannel();
-    connection = new Connection(channel, new ConnectionErrorHandler(SERVICE_UNAVAILABLE), 'localhost:7687', Logger.noOp());
+    connection = new Connection(channel, new ConnectionErrorHandler(SERVICE_UNAVAILABLE), ServerAddress.fromUrl('localhost:7687'), Logger.noOp());
 
     connection._negotiateProtocol();
 
@@ -136,7 +137,7 @@ describe('Connection', () => {
 
   it('should convert failure messages to errors', done => {
     const channel = new DummyChannel();
-    connection = new Connection(channel, new ConnectionErrorHandler(SERVICE_UNAVAILABLE), 'localhost:7687', Logger.noOp());
+    connection = new Connection(channel, new ConnectionErrorHandler(SERVICE_UNAVAILABLE), ServerAddress.fromUrl('localhost:7687'), Logger.noOp());
 
     connection._negotiateProtocol();
 
@@ -324,22 +325,22 @@ describe('Connection', () => {
 
   it('should handle and transform fatal errors', done => {
     const errors = [];
-    const hostPorts = [];
+    const addresses = [];
     const transformedError = newError('Message', 'Code');
-    const errorHandler = new ConnectionErrorHandler(SERVICE_UNAVAILABLE, (error, hostPort) => {
+    const errorHandler = new ConnectionErrorHandler(SERVICE_UNAVAILABLE, (error, address) => {
       errors.push(error);
-      hostPorts.push(hostPort);
+      addresses.push(address);
       return transformedError;
     });
 
-    connection = Connection.create('bolt://localhost', {}, errorHandler, Logger.noOp());
+    connection = Connection.create(ServerAddress.fromUrl('bolt://localhost'), {}, errorHandler, Logger.noOp());
 
     connection._queueObserver({
       onError: error => {
         expect(error).toEqual(transformedError);
         expect(errors.length).toEqual(1);
         expect(errors[0].code).toEqual(SERVICE_UNAVAILABLE);
-        expect(hostPorts).toEqual([connection.hostPort]);
+        expect(addresses).toEqual([connection.address]);
         done();
       }
     });
@@ -462,7 +463,7 @@ describe('Connection', () => {
    * @return {Connection}
    */
   function createConnection(url, config, errorCode = null) {
-    return Connection.create(url, config || {}, new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE), Logger.noOp());
+    return Connection.create(ServerAddress.fromUrl(url), config || {}, new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE), Logger.noOp());
   }
 
   function recordWrittenMessages(connection, messages) {

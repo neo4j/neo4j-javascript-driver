@@ -125,8 +125,8 @@ const TrustStrategy = {
       return;
     }
 
-    const tlsOpts = newTlsOptions(config.url.host, config.trustedCertificates.map((f) => fs.readFileSync(f)));
-    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
+    const tlsOpts = newTlsOptions(config.address.host(), config.trustedCertificates.map((f) => fs.readFileSync(f)));
+    const socket = tls.connect(config.address.port(), config.address.resolvedHost(), tlsOpts, function () {
       if (!socket.authorized) {
         onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, add" +
           " the signing certificate, or the server certificate, to the list of certificates trusted by this driver" +
@@ -142,8 +142,8 @@ const TrustStrategy = {
     return configureSocket(socket);
   },
   TRUST_SYSTEM_CA_SIGNED_CERTIFICATES : function( config, onSuccess, onFailure ) {
-    const tlsOpts = newTlsOptions(config.url.host);
-    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
+    const tlsOpts = newTlsOptions(config.address.host());
+    const socket = tls.connect(config.address.port(), config.address.resolvedHost(), tlsOpts, function () {
       if (!socket.authorized) {
         onFailure(newError("Server certificate is not trusted. If you trust the database you are connecting to, use " +
           "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES and add" +
@@ -166,8 +166,8 @@ const TrustStrategy = {
     console.warn('`TRUST_ON_FIRST_USE` has been deprecated as option and will be removed in a future version of ' +
           "the driver. Please use `TRUST_ALL_CERTIFICATES` instead.");
 
-    const tlsOpts = newTlsOptions(config.url.host);
-    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
+    const tlsOpts = newTlsOptions(config.address.host());
+    const socket = tls.connect(config.address.port(), config.address.resolvedHost(), tlsOpts, function () {
       const serverCert = socket.getPeerCertificate(/*raw=*/true);
 
       if( !serverCert.raw ) {
@@ -184,7 +184,7 @@ const TrustStrategy = {
 
       const serverFingerprint = crypto.createHash('sha512').update(serverCert.raw).digest('hex');
       const knownHostsPath = config.knownHostsPath || path.join(userHome(), ".neo4j", "known_hosts");
-      const serverId = config.url.hostAndPort;
+      const serverId = config.address.asHostPort();
 
       loadFingerprint(serverId, knownHostsPath, (knownFingerprint) => {
         if( knownFingerprint === serverFingerprint ) {
@@ -216,8 +216,8 @@ const TrustStrategy = {
   },
 
   TRUST_ALL_CERTIFICATES: function (config, onSuccess, onFailure) {
-    const tlsOpts = newTlsOptions(config.url.host);
-    const socket = tls.connect(config.url.port, config.url.host, tlsOpts, function () {
+    const tlsOpts = newTlsOptions(config.address.host());
+    const socket = tls.connect(config.address.port(), config.address.resolvedHost(), tlsOpts, function () {
       const certificate = socket.getPeerCertificate();
       if (isEmptyObjectOrNull(certificate)) {
         onFailure(newError("Secure connection was successful but server did not return any valid " +
@@ -244,7 +244,7 @@ const TrustStrategy = {
 function connect( config, onSuccess, onFailure=(()=>null) ) {
   const trustStrategy = trustStrategyName(config);
   if (!isEncrypted(config)) {
-    const socket = net.connect(config.url.port, config.url.host, onSuccess);
+    const socket = net.connect(config.address.port(), config.address.resolvedHost(), onSuccess);
     socket.on('error', onFailure);
     return configureSocket(socket);
   } else if (TrustStrategy[trustStrategy]) {

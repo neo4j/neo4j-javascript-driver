@@ -23,6 +23,7 @@ import urlUtil from '../../../src/v1/internal/url-util';
 import {Neo4jError, SERVICE_UNAVAILABLE} from '../../../src/v1/error';
 import {setTimeoutMock} from '../timers-util';
 import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../../src/v1/internal/util';
+import ServerAddress from '../../../src/v1/internal/server-address';
 
 describe('WebSocketChannel', () => {
 
@@ -71,9 +72,9 @@ describe('WebSocketChannel', () => {
         };
       };
 
-      const url = urlUtil.parseDatabaseUrl('bolt://localhost:7687');
+      const address = ServerAddress.fromUrl('bolt://localhost:8989');
       const driverConfig = {connectionTimeout: 4242};
-      const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);
+      const channelConfig = new ChannelConfig(address, driverConfig, SERVICE_UNAVAILABLE);
 
       webSocketChannel = new WebSocketChannel(channelConfig);
 
@@ -125,9 +126,9 @@ describe('WebSocketChannel', () => {
       };
     };
 
-    const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989');
+    const address = ServerAddress.fromUrl('bolt://localhost:8989');
     const driverConfig = {encrypted: true, trust: 'TRUST_ON_FIRST_USE'};
-    const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);
+    const channelConfig = new ChannelConfig(address, driverConfig, SERVICE_UNAVAILABLE);
 
     const channel = new WebSocketChannel(channelConfig, protocolSupplier);
 
@@ -158,10 +159,10 @@ describe('WebSocketChannel', () => {
       };
     };
 
-    const url = urlUtil.parseDatabaseUrl(boltAddress);
+    const address = ServerAddress.fromUrl(boltAddress);
     // disable connection timeout, so that WebSocketChannel does not set any timeouts
     const driverConfig = {connectionTimeout: 0};
-    const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);
+    const channelConfig = new ChannelConfig(address, driverConfig, SERVICE_UNAVAILABLE);
 
     webSocketChannel = new WebSocketChannel(channelConfig);
 
@@ -180,8 +181,8 @@ describe('WebSocketChannel', () => {
       };
     };
 
-    const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989');
-    const channelConfig = new ChannelConfig(url, driverConfig, SERVICE_UNAVAILABLE);
+    const address = ServerAddress.fromUrl('bolt://localhost:8989');
+    const channelConfig = new ChannelConfig(address, driverConfig, SERVICE_UNAVAILABLE);
     const channel = new WebSocketChannel(channelConfig, protocolSupplier);
 
     expect(channel._ws.url).toEqual(expectedScheme + '://localhost:8989');
@@ -201,8 +202,8 @@ describe('WebSocketChannel', () => {
     const warnMessages = [];
     console.warn = message => warnMessages.push(message);
 
-    const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989');
-    const config = new ChannelConfig(url, {encrypted: encrypted}, SERVICE_UNAVAILABLE);
+    const address = ServerAddress.fromUrl('bolt://localhost:8989');
+    const config = new ChannelConfig(address, {encrypted: encrypted}, SERVICE_UNAVAILABLE);
     const protocolSupplier = () => scheme + ':';
 
     const channel = new WebSocketChannel(config, protocolSupplier);

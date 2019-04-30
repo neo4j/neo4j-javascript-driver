@@ -48,10 +48,12 @@ export default class RoutingTable {
   }
 
   serversDiff(otherRoutingTable) {
-    const oldServers = new Set(this._allServers());
+    const oldServers = this._allServers();
     const newServers = otherRoutingTable._allServers();
-    newServers.forEach(newServer => oldServers.delete(newServer));
-    return Array.from(oldServers);
+    const diffTable = {};
+    oldServers.forEach(oldServer => diffTable[oldServer.asKey()] = oldServer);
+    newServers.forEach(newServer => delete diffTable[newServer.asKey()]);
+    return Object.values(diffTable);
   }
 
   /**
@@ -87,5 +89,5 @@ export default class RoutingTable {
  * @return {Array} new filtered array.
  */
 function removeFromArray(array, element) {
-  return array.filter(item => item !== element);
+  return array.filter(item => item.asKey() !== element.asKey());
 }

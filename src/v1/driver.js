@@ -62,17 +62,17 @@ class Driver {
   /**
    * You should not be calling this directly, instead use {@link driver}.
    * @constructor
-   * @param {string} hostPort
+   * @param {ServerAddress} address
    * @param {string} userAgent
    * @param {object} authToken
    * @param {object} config
    * @protected
    */
-  constructor(hostPort, userAgent, authToken = {}, config = {}) {
+  constructor(address, userAgent, authToken = {}, config = {}) {
     sanitizeConfig(config);
 
     this._id = idGenerator++;
-    this._hostPort = hostPort;
+    this._address = address;
     this._userAgent = userAgent;
     this._openConnections = {};
     this._authToken = authToken;
@@ -102,7 +102,7 @@ class Driver {
    * @protected
    */
   _afterConstruction() {
-    this._log.info(`Direct driver ${this._id} created for server address ${this._hostPort}`);
+    this._log.info(`Direct driver ${this._id} created for server address ${this._address}`);
   }
 
   /**
@@ -133,9 +133,9 @@ class Driver {
    * @return {Promise<Connection>} promise resolved with a new connection or rejected when failed to connect.
    * @access private
    */
-  _createConnection(hostPort, release) {
-    const connection = Connection.create(hostPort, this._config, this._createConnectionErrorHandler(), this._log);
-    connection._release = () => release(hostPort, connection);
+  _createConnection(address, release) {
+    const connection = Connection.create(address, this._config, this._createConnectionErrorHandler(), this._log);
+    connection._release = () => release(address, connection);
     this._openConnections[connection.id] = connection;
 
     return connection.connect(this._userAgent, this._authToken)
@@ -206,8 +206,8 @@ class Driver {
   }
 
   // Extension point
-  _createConnectionProvider(hostPort, connectionPool, driverOnErrorCallback) {
-    return new DirectConnectionProvider(hostPort, connectionPool, driverOnErrorCallback);
+  _createConnectionProvider(address, connectionPool, driverOnErrorCallback) {
+    return new DirectConnectionProvider(address, connectionPool, driverOnErrorCallback);
   }
 
   // Extension point
@@ -218,7 +218,7 @@ class Driver {
   _getOrCreateConnectionProvider() {
     if (!this._connectionProvider) {
       const driverOnErrorCallback = this._driverOnErrorCallback.bind(this);
-      this._connectionProvider = this._createConnectionProvider(this._hostPort, this._pool, driverOnErrorCallback);
+      this._connectionProvider = this._createConnectionProvider(this._address, this._pool, driverOnErrorCallback);
     }
     return this._connectionProvider;
   }
