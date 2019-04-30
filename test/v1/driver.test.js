@@ -79,6 +79,20 @@ describe('driver', () => {
     startNewTransaction(driver);
   }, 10000);
 
+  it('should destroy failed connections', done => {
+    // Given
+    driver = neo4j.driver('bolt://local-host', sharedNeo4j.authToken);
+
+    const session = driver.session();
+
+    session.run('RETURN 1').catch(err => {
+      expect(driver._openConnections).toEqual({});
+
+      done();
+    });
+  }, 10000);
+
+
   it('should fail with correct error message when connecting to port 80', done => {
     if (testUtils.isClient()) {
       // good error message is not available in browser

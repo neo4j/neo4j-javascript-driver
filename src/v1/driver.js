@@ -144,6 +144,8 @@ class Driver {
           // notify Driver.onError callback about connection initialization errors
           this.onError(error);
         }
+        // let's destroy this connection
+        this._destroyConnection(connection);
         // propagate the error because connection failed to connect / initialize
         throw error;
       });
