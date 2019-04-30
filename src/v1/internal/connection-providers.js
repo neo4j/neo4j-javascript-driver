@@ -76,10 +76,9 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   acquireConnection(accessMode) {
-    let that = this;
     const connectionPromise = this._freshRoutingTable(accessMode).then(routingTable => {
       if (accessMode === READ) {
-        const address = that._loadBalancingStrategy.selectReader(routingTable.readers);
+        const address = this._loadBalancingStrategy.selectReader(routingTable.readers);
         return this._acquireConnectionToServer(address, 'read');
       } else if (accessMode === WRITE) {
         const address = this._loadBalancingStrategy.selectWriter(routingTable.writers);
