@@ -25,7 +25,7 @@ import lolex from 'lolex';
 import FakeConnection from './fake-connection';
 import ServerAddress from '../../src/v1/internal/server-address';
 
-const ROUTER_ADDRESS = 'test.router.com:4242';
+const ROUTER_ADDRESS = ServerAddress.fromUrl('test.router.com:4242');
 
 describe('RoutingUtil', () => {
 
