@@ -24,7 +24,6 @@ import RoutingTable from './routing-table';
 import Rediscovery from './rediscovery';
 import RoutingUtil from './routing-util';
 import { HostNameResolver } from './node';
-import { flatMap } from 'lodash/collection';
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized';
 
