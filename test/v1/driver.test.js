@@ -203,6 +203,7 @@ describe('driver', () => {
   it('should fail nicely when connecting with routing to standalone server', done => {
     if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
       done();
+      return;
     }
 
     // Given
@@ -412,6 +413,7 @@ describe('driver', () => {
     if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
       // IPv6 listen address only supported starting from neo4j 3.1, so let's ignore the rest
       done();
+      return;
     }
 
     driver = neo4j.driver(url, sharedNeo4j.authToken);
