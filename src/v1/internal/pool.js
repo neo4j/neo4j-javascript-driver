@@ -61,7 +61,7 @@ class Pool {
       if (resource) {
         resourceAcquired(key, this._activeResourceCounts);
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} acquired from the pool`);
+          this._log.debug(`${resource} acquired from the pool ${key}`);
         }
         return resource;
       }
@@ -94,7 +94,7 @@ class Pool {
           }
         }, this._acquisitionTimeout);
 
-        request = new PendingRequest(resolve, reject, timeoutId, this._log);
+        request = new PendingRequest(key, resolve, reject, timeoutId, this._log);
         allRequests[key].push(request);
       });
     });
@@ -261,7 +261,8 @@ function resourceReleased(key, activeResourceCounts) {
 
 class PendingRequest {
 
-  constructor(resolve, reject, timeoutId, log) {
+  constructor(key, resolve, reject, timeoutId, log) {
+    this._key = key;
     this._resolve = resolve;
     this._reject = reject;
     this._timeoutId = timeoutId;
@@ -281,7 +282,7 @@ class PendingRequest {
 
     clearTimeout(this._timeoutId);
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${resource} acquired from the pool`);
+      this._log.debug(`${resource} acquired from the pool ${this._key}`);
     }
     this._resolve(resource);
   }

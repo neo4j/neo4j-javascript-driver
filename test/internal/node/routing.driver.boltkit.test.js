@@ -1522,7 +1522,7 @@ describe('routing driver with stub server', () => {
       return;
     }
 
-    const router1 = boltStub.start('./test/resources/boltstub/acquire_endpoints.script', 9010);
+    const router1 = boltStub.start('./test/resources/boltstub/acquire_endpoints_and_exit.script', 9011);
     // start new router on a different port to emulate host name resolution
     // this router uses different script that contains itself as reader
     const router2 = boltStub.start('./test/resources/boltstub/rediscover_using_initial_router.script', 9009);
@@ -1957,13 +1957,13 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const resolverFunction = address => {
-        if (address === '127.0.0.1:9001') {
-          return ['127.0.0.1:9010', '127.0.0.1:9011', '127.0.0.1:9042'];
+        if (address === '127.0.0.1:9000') {
+          return ['127.0.0.1:9010', '127.0.0.1:9001', '127.0.0.1:9042'];
         }
         throw new Error(`Unexpected address ${address}`);
       };
 
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001', {resolver: resolverFunction});
+      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9000', { resolver: resolverFunction });
 
       const session = driver.session(READ);
       // run a query that should trigger discovery against 9001 and then read from it

@@ -72,7 +72,7 @@ export class LoadBalancer extends ConnectionProvider {
     this._hostNameResolver = hostNameResolver;
     this._dnsResolver = new HostNameResolver();
     this._log = log;
-    this._useSeedRouter = false;
+    this._useSeedRouter = true;
   }
 
   acquireConnection(accessMode) {
