@@ -957,6 +957,9 @@ describe('LoadBalancer', () => {
         'server02:7687': updatedRoutingTable
       }
     );
+    // override default use of seed router
+    loadBalancer._useSeedRouter = false;
+
     const usedRouterArrays = [];
     setupLoadBalancerToRememberRouters(loadBalancer, usedRouterArrays);
 
@@ -1057,6 +1060,8 @@ describe('LoadBalancer', () => {
         'server02:7687': routingTable2
       }
     );
+    // override default use of seed router
+    loadBalancer._useSeedRouter = false;
 
     loadBalancer.acquireConnection(READ).then(connection1 => {
       expect(connection1.address).toEqual(serverC);

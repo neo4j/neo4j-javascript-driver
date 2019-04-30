@@ -50,7 +50,7 @@ export default class RoutingUtil {
       if (error.code === PROCEDURE_NOT_FOUND_CODE) {
         // throw when getServers procedure not found because this is clearly a configuration issue
         throw newError(
-          `Server at ${routerAddress} can't perform routing. Make sure you are connecting to a causal cluster`,
+          `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
           SERVICE_UNAVAILABLE);
       } else {
         // return nothing when failed to connect because code higher in the callstack is still able to retry with a
