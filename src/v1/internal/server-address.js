@@ -26,7 +26,7 @@ export default class ServerAddress {
     this._resolved = resolved ? assertString(resolved, 'resolved') : null;
     this._port = assertNumber(port, 'port');
     this._hostPort = hostPort;
-    this._stringValue = resolved ? `${hostPort}[${resolved}]` : `${hostPort}`;
+    this._stringValue = resolved ? `${hostPort}(${resolved})` : `${hostPort}`;
   }
 
   host() {
