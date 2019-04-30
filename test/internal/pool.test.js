@@ -187,6 +187,54 @@ describe('Pool', () => {
     });
   });
 
+  it('clears out resource counters even after purge', (done) => {
+    // Given a pool that allocates
+    let counter = 0;
+    const address1 = ServerAddress.fromUrl('bolt://localhost:7687');
+    const address2 = ServerAddress.fromUrl('bolt://localhost:7688');
+    const pool = new Pool((server, release) => Promise.resolve(new Resource(server, counter++, release)),
+      res => {
+        res.destroyed = true;
+        return true;
+      }
+    );
+
+    // When
+    const p00 = pool.acquire(address1);
+    const p01 = pool.acquire(address1);
+    const p10 = pool.acquire(address2);
+    const p11 = pool.acquire(address2);
+    const p12 = pool.acquire(address2);
+    const pall = Promise.all([p00, p01, p10, p11, p12]).then(values => {
+      expect(pool.activeResourceCount(address1)).toEqual(2);
+      expect(pool.activeResourceCount(address2)).toEqual(3);
+
+      expect(pool.has(address1)).toBeTruthy();
+      expect(pool.has(address2)).toBeTruthy();
+
+      values[0].close();
+
+      expect(pool.activeResourceCount(address1)).toEqual(1);
+
+      pool.purge(address1);
+
+      expect(pool.activeResourceCount(address1)).toEqual(1);
+
+      values[1].close();
+
+      expect(pool.activeResourceCount(address1)).toEqual(0);
+      expect(pool.activeResourceCount(address2)).toEqual(3);
+
+      expect(values[0].destroyed).toBeTruthy();
+      expect(values[1].destroyed).toBeTruthy();
+
+      expect(pool.has(address1)).toBeFalsy();
+      expect(pool.has(address2)).toBeTruthy();
+
+      done();
+    });
+  });
+
   it('destroys resource when key was purged', (done) => {
     let counter = 0;
     const address = ServerAddress.fromUrl('bolt://localhost:7687');
