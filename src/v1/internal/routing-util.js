@@ -23,6 +23,7 @@ import {ServerVersion, VERSION_3_2_0} from './server-version';
 import Bookmark from './bookmark';
 import TxConfig from './tx-config';
 import {ACCESS_MODE_WRITE} from "./constants";
+import ServerAddress from './server-address';
 
 const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers';
 const CALL_GET_ROUTING_TABLE = 'CALL dbms.cluster.routing.getRoutingTable($context)';
@@ -49,7 +50,7 @@ export default class RoutingUtil {
       if (error.code === PROCEDURE_NOT_FOUND_CODE) {
         // throw when getServers procedure not found because this is clearly a configuration issue
         throw newError(
-          `Server at ${routerAddress} can't perform routing. Make sure you are connecting to a causal cluster`,
+          `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
           SERVICE_UNAVAILABLE);
       } else {
         // return nothing when failed to connect because code higher in the callstack is still able to retry with a
@@ -88,11 +89,11 @@ export default class RoutingUtil {
         const addresses = server['addresses'];
 
         if (role === 'ROUTE') {
-          routers = parseArray(addresses);
+          routers = parseArray(addresses).map(address => ServerAddress.fromUrl(address));
         } else if (role === 'WRITE') {
-          writers = parseArray(addresses);
+          writers = parseArray(addresses).map(address => ServerAddress.fromUrl(address));
         } else if (role === 'READ') {
-          readers = parseArray(addresses);
+          readers = parseArray(addresses).map(address => ServerAddress.fromUrl(address));
         } else {
           throw newError('Unknown server role "' + role + '"', PROTOCOL_ERROR);
         }

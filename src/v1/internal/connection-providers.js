@@ -23,6 +23,7 @@ import Session from '../session';
 import RoutingTable from './routing-table';
 import Rediscovery from './rediscovery';
 import RoutingUtil from './routing-util';
+import { HostNameResolver } from './node';
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized';
 
@@ -45,32 +46,33 @@ class ConnectionProvider {
 
 export class DirectConnectionProvider extends ConnectionProvider {
 
-  constructor(hostPort, connectionPool, driverOnErrorCallback) {
+  constructor(address, connectionPool, driverOnErrorCallback) {
     super();
-    this._hostPort = hostPort;
+    this._address = address;
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
   }
 
   acquireConnection(mode) {
-    const connectionPromise = this._connectionPool.acquire(this._hostPort);
+    const connectionPromise = this._connectionPool.acquire(this._address);
     return this._withAdditionalOnErrorCallback(connectionPromise, this._driverOnErrorCallback);
   }
 }
 
 export class LoadBalancer extends ConnectionProvider {
 
-  constructor(hostPort, routingContext, connectionPool, loadBalancingStrategy, hostNameResolver, driverOnErrorCallback, log) {
+  constructor(address, routingContext, connectionPool, loadBalancingStrategy, hostNameResolver, driverOnErrorCallback, log) {
     super();
-    this._seedRouter = hostPort;
+    this._seedRouter = address;
     this._routingTable = new RoutingTable([this._seedRouter]);
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext));
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
     this._loadBalancingStrategy = loadBalancingStrategy;
     this._hostNameResolver = hostNameResolver;
+    this._dnsResolver = new HostNameResolver();
     this._log = log;
-    this._useSeedRouter = false;
+    this._useSeedRouter = true;
   }
 
   acquireConnection(accessMode) {
@@ -173,11 +175,23 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   _fetchRoutingTableUsingSeedRouter(seenRouters, seedRouter) {
-    const resolvedAddresses = this._hostNameResolver.resolve(seedRouter);
+    const resolvedAddresses = this._resolveSeedRouter(seedRouter);
     return resolvedAddresses.then(resolvedRouterAddresses => {
       // filter out all addresses that we've already tried
       const newAddresses = resolvedRouterAddresses.filter(address => seenRouters.indexOf(address) < 0);
       return this._fetchRoutingTable(newAddresses, null);
+    });
+  }
+
+  _resolveSeedRouter(seedRouter) {
+    const customResolution = this._hostNameResolver.resolve(seedRouter);
+    const dnsResolutions = customResolution.then(resolvedAddresses => {
+      return Promise.all(resolvedAddresses.map(address => {
+        return this._dnsResolver.resolve(address);
+      }));
+    });
+    return dnsResolutions.then(results => {
+      return [].concat.apply([], results);
     });
   }
 

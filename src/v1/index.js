@@ -31,6 +31,7 @@ import urlUtil from './internal/url-util';
 import HttpDriver from './internal/http/http-driver';
 import {isPoint, Point} from './spatial-types';
 import {Date, DateTime, Duration, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime, LocalDateTime, LocalTime, Time} from './temporal-types';
+import ServerAddress from './internal/server-address';
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -227,12 +228,12 @@ function driver(url, authToken, config = {}) {
   assertString(url, 'Bolt URL');
   const parsedUrl = urlUtil.parseDatabaseUrl(url);
   if (parsedUrl.scheme === 'bolt+routing') {
-    return new RoutingDriver(parsedUrl.hostAndPort, parsedUrl.query, USER_AGENT, authToken, config);
+    return new RoutingDriver(ServerAddress.fromUrl(parsedUrl.hostAndPort), parsedUrl.query, USER_AGENT, authToken, config);
   } else if (parsedUrl.scheme === 'bolt') {
     if (!isEmptyObjectOrNull(parsedUrl.query)) {
       throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
     }
-    return new Driver(parsedUrl.hostAndPort, USER_AGENT, authToken, config);
+    return new Driver(ServerAddress.fromUrl(parsedUrl.hostAndPort), USER_AGENT, authToken, config);
   } else if (parsedUrl.scheme === 'http' || parsedUrl.scheme === 'https') {
     return new HttpDriver(parsedUrl, USER_AGENT, authToken, config);
   } else {

@@ -22,7 +22,7 @@ import sharedNeo4j from '../internal/shared-neo4j';
 import FakeConnection from '../internal/fake-connection';
 import lolex from 'lolex';
 import {DEFAULT_ACQUISITION_TIMEOUT, DEFAULT_MAX_SIZE} from '../../src/v1/internal/pool-config';
-import {ServerVersion, VERSION_3_1_0} from '../../src/v1/internal/server-version';
+import { ServerVersion, VERSION_3_1_0, VERSION_4_0_0 } from '../../src/v1/internal/server-version';
 import testUtils from '../internal/test-utils';
 
 describe('driver', () => {
@@ -78,6 +78,20 @@ describe('driver', () => {
     // When
     startNewTransaction(driver);
   }, 10000);
+
+  it('should destroy failed connections', done => {
+    // Given
+    driver = neo4j.driver('bolt://local-host', sharedNeo4j.authToken);
+
+    const session = driver.session();
+
+    session.run('RETURN 1').catch(err => {
+      expect(driver._openConnections).toEqual({});
+
+      done();
+    });
+  }, 10000);
+
 
   it('should fail with correct error message when connecting to port 80', done => {
     if (testUtils.isClient()) {
@@ -187,6 +201,11 @@ describe('driver', () => {
   });
 
   it('should fail nicely when connecting with routing to standalone server', done => {
+    if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
+      done();
+      return;
+    }
+
     // Given
     driver = neo4j.driver("bolt+routing://localhost", sharedNeo4j.authToken);
 
@@ -394,6 +413,7 @@ describe('driver', () => {
     if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
       // IPv6 listen address only supported starting from neo4j 3.1, so let's ignore the rest
       done();
+      return;
     }
 
     driver = neo4j.driver(url, sharedNeo4j.authToken);

@@ -50,14 +50,14 @@ export default class Connection {
    * @constructor
    * @param {Channel} channel - channel with a 'write' function and a 'onmessage' callback property.
    * @param {ConnectionErrorHandler} errorHandler the error handler.
-   * @param {string} hostPort - the hostname and port to connect to.
+   * @param {ServerAddress} address - the server address to connect to.
    * @param {Logger} log - the configured logger.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
    */
-  constructor(channel, errorHandler, hostPort, log, disableLosslessIntegers = false) {
+  constructor(channel, errorHandler, address, log, disableLosslessIntegers = false) {
     this.id = idGenerator++;
-    this.hostPort = hostPort;
-    this.server = {address: hostPort};
+    this.address = address;
+    this.server = { address: address.asHostPort() };
     this.creationTimestamp = Date.now();
     this._errorHandler = errorHandler;
     this._disableLosslessIntegers = disableLosslessIntegers;
@@ -81,22 +81,21 @@ export default class Connection {
     this._isBroken = false;
 
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} created towards ${hostPort}`);
+      this._log.debug(`${this} created towards ${address}`);
     }
   }
 
   /**
    * Crete new connection to the provided address. Returned connection is not connected.
-   * @param {string} url - the Bolt endpoint to connect to.
+   * @param {ServerAddress} address - the Bolt endpoint to connect to.
    * @param {object} config - this driver configuration.
    * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
    * @param {Logger} log - configured logger.
    * @return {Connection} - new connection.
    */
-  static create(url, config, errorHandler, log) {
-    const parsedAddress = urlUtil.parseDatabaseUrl(url);
-    const channelConfig = new ChannelConfig(parsedAddress, config, errorHandler.errorCode());
-    return new Connection(new Channel(channelConfig), errorHandler, parsedAddress.hostAndPort, log, config.disableLosslessIntegers);
+  static create(address, config, errorHandler, log) {
+    const channelConfig = new ChannelConfig(address, config, errorHandler.errorCode());
+    return new Connection(new Channel(channelConfig), errorHandler, address, log, config.disableLosslessIntegers);
   }
 
   /**
@@ -217,7 +216,7 @@ export default class Connection {
    */
   _handleFatalError(error) {
     this._isBroken = true;
-    this._error = this._errorHandler.handleAndTransformError(error, this.hostPort);
+    this._error = this._errorHandler.handleAndTransformError(error, this.address);
 
     if (this._log.isErrorEnabled()) {
       this._log.error(`${this} experienced a fatal error ${JSON.stringify(this._error)}`);
@@ -267,7 +266,7 @@ export default class Connection {
         }
         try {
           const error = newError(payload.message, payload.code);
-          this._currentFailure = this._errorHandler.handleAndTransformError(error, this.hostPort);
+          this._currentFailure = this._errorHandler.handleAndTransformError(error, this.address);
           this._currentObserver.onError( this._currentFailure );
         } finally {
           this._updateCurrentObserver();

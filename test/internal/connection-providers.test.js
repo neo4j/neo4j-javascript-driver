@@ -26,6 +26,7 @@ import Pool from '../../src/v1/internal/pool';
 import LeastConnectedLoadBalancingStrategy from '../../src/v1/internal/least-connected-load-balancing-strategy';
 import Logger from '../../src/v1/internal/logger';
 import SimpleHostNameResolver from '../../src/v1/internal/browser/browser-host-name-resolver';
+import ServerAddress from '../../src/v1/internal/server-address';
 
 const NO_OP_DRIVER_CALLBACK = () => {
 };
@@ -33,14 +34,15 @@ const NO_OP_DRIVER_CALLBACK = () => {
 describe('DirectConnectionProvider', () => {
 
   it('acquires connection from the pool', done => {
+    const address = ServerAddress.fromUrl('localhost:123');
     const pool = newPool();
-    const connectionProvider = newDirectConnectionProvider('localhost:123', pool);
+    const connectionProvider = newDirectConnectionProvider(address, pool);
 
     connectionProvider.acquireConnection(READ).then(connection => {
       expect(connection).toBeDefined();
-      expect(connection.address).toEqual('localhost:123');
+      expect(connection.address).toEqual(address);
       expect(connection.release).toBeDefined();
-      expect(pool.has('localhost:123')).toBeTruthy();
+      expect(pool.has(address)).toBeTruthy();
 
       done();
     });
@@ -49,101 +51,130 @@ describe('DirectConnectionProvider', () => {
 });
 
 describe('LoadBalancer', () => {
+  const server0 = ServerAddress.fromUrl('server0');
+  const server1 = ServerAddress.fromUrl('server1');
+  const server2 = ServerAddress.fromUrl('server2');
+  const server3 = ServerAddress.fromUrl('server3');
+  const server4 = ServerAddress.fromUrl('server4');
+  const server5 = ServerAddress.fromUrl('server5');
+  const server6 = ServerAddress.fromUrl('server6');
+  const server7 = ServerAddress.fromUrl('server7');
+  const server42 = ServerAddress.fromUrl('server42');
+
+  const server01 = ServerAddress.fromUrl('server01');
+  const server02 = ServerAddress.fromUrl('server02');
+  const server03 = ServerAddress.fromUrl('server03');
+
+  const serverA = ServerAddress.fromUrl('serverA');
+  const serverB = ServerAddress.fromUrl('serverB');
+  const serverC = ServerAddress.fromUrl('serverC');
+  const serverD = ServerAddress.fromUrl('serverD');
+  const serverE = ServerAddress.fromUrl('serverE');
+  const serverF = ServerAddress.fromUrl('serverF');
+  const serverG = ServerAddress.fromUrl('serverG');
+
+  const serverAA = ServerAddress.fromUrl('serverAA');
+  const serverBB = ServerAddress.fromUrl('serverBB');
+  const serverCC = ServerAddress.fromUrl('serverCC');
+  const serverDD = ServerAddress.fromUrl('serverDD');
+  const serverEE = ServerAddress.fromUrl('serverEE');
+
+  const serverABC = ServerAddress.fromUrl('serverABC');
 
   it('can forget address', () => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-2'],
-      ['server-2', 'server-4']
+      [server1, server2],
+      [server3, server2],
+      [server2, server4]
     );
 
-    loadBalancer.forget('server-2');
+    loadBalancer.forget(server2);
 
     expectRoutingTable(loadBalancer,
-      ['server-1', 'server-2'],
-      ['server-3'],
-      ['server-4']
+      [server1, server2],
+      [server3],
+      [server4]
     );
   });
 
   it('can not forget unknown address', () => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6']
+      [server1, server2],
+      [server3, server4],
+      [server5, server6]
     );
 
-    loadBalancer.forget('server-42');
+    loadBalancer.forget(server42);
 
     expectRoutingTable(loadBalancer,
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6']
+      [server1, server2],
+      [server3, server4],
+      [server5, server6]
     );
   });
 
   it('purges connections when address is forgotten', () => {
     const pool = newPool();
 
-    pool.acquire('server-1');
-    pool.acquire('server-3');
-    pool.acquire('server-5');
-    expectPoolToContain(pool, ['server-1', 'server-3', 'server-5']);
+    pool.acquire(server1);
+    pool.acquire(server3);
+    pool.acquire(server5);
+    expectPoolToContain(pool, [server1, server3, server5]);
 
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-2'],
-      ['server-2', 'server-4'],
+      [server1, server2],
+      [server3, server2],
+      [server2, server4],
       pool
     );
 
-    loadBalancer.forget('server-1');
-    loadBalancer.forget('server-5');
+    loadBalancer.forget(server1);
+    loadBalancer.forget(server5);
 
-    expectPoolToContain(pool, ['server-3']);
-    expectPoolToNotContain(pool, ['server-1', 'server-5']);
+    expectPoolToContain(pool, [server3]);
+    expectPoolToNotContain(pool, [server1, server5]);
   });
 
   it('can forget writer address', () => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-2'],
-      ['server-2', 'server-4']
+      [server1, server2],
+      [server3, server2],
+      [server2, server4]
     );
 
-    loadBalancer.forgetWriter('server-2');
+    loadBalancer.forgetWriter(server2);
 
     expectRoutingTable(loadBalancer,
-      ['server-1', 'server-2'],
-      ['server-3', 'server-2'],
-      ['server-4']
+      [server1, server2],
+      [server3, server2],
+      [server4]
     );
   });
 
   it('can not forget unknown writer address', () => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6']
+      [server1, server2],
+      [server3, server4],
+      [server5, server6]
     );
 
-    loadBalancer.forgetWriter('server-42');
+    loadBalancer.forgetWriter(server42);
 
     expectRoutingTable(loadBalancer,
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6']
+      [server1, server2],
+      [server3, server4],
+      [server5, server6]
     );
   });
 
   it('initializes routing table with the given router', () => {
     const connectionPool = newPool();
     const loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(connectionPool);
-    const loadBalancer = new LoadBalancer('server-ABC', {}, connectionPool, loadBalancingStrategy, new SimpleHostNameResolver(),
+    const loadBalancer = new LoadBalancer(serverABC, {}, connectionPool, loadBalancingStrategy, new SimpleHostNameResolver(),
       NO_OP_DRIVER_CALLBACK, Logger.noOp());
 
     expectRoutingTable(loadBalancer,
-      ['server-ABC'],
+      [serverABC],
       [],
       []
     );
@@ -152,19 +183,19 @@ describe('LoadBalancer', () => {
   it('acquires read connection with up-to-date routing table', done => {
     const pool = newPool();
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool
     );
 
     loadBalancer.acquireConnection(READ).then(connection => {
-      expect(connection.address).toEqual('server-3');
-      expect(pool.has('server-3')).toBeTruthy();
+      expect(connection.address).toEqual(server3);
+      expect(pool.has(server3)).toBeTruthy();
 
       loadBalancer.acquireConnection(READ).then(connection => {
-        expect(connection.address).toEqual('server-4');
-        expect(pool.has('server-4')).toBeTruthy();
+        expect(connection.address).toEqual(server4);
+        expect(pool.has(server4)).toBeTruthy();
 
         done();
       });
@@ -174,19 +205,19 @@ describe('LoadBalancer', () => {
   it('acquires write connection with up-to-date routing table', done => {
     const pool = newPool();
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool
     );
 
     loadBalancer.acquireConnection(WRITE).then(connection => {
-      expect(connection.address).toEqual('server-5');
-      expect(pool.has('server-5')).toBeTruthy();
+      expect(connection.address).toEqual(server5);
+      expect(pool.has(server5)).toBeTruthy();
 
       loadBalancer.acquireConnection(WRITE).then(connection => {
-        expect(connection.address).toEqual('server-6');
-        expect(pool.has('server-6')).toBeTruthy();
+        expect(connection.address).toEqual(server6);
+        expect(pool.has(server6)).toBeTruthy();
 
         done();
       });
@@ -195,9 +226,9 @@ describe('LoadBalancer', () => {
 
   it('throws for illegal access mode', done => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6']
+      [server1, server2],
+      [server3, server4],
+      [server5, server6]
     );
 
     loadBalancer.acquireConnection('WRONG').catch(error => {
@@ -209,26 +240,26 @@ describe('LoadBalancer', () => {
   it('refreshes stale routing table to get read connection', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool,
       int(0), // expired routing table
-      {'server-1': updatedRoutingTable}
+      { 'server1:7687': updatedRoutingTable }
     );
 
     loadBalancer.acquireConnection(READ).then(connection => {
-      expect(connection.address).toEqual('server-C');
-      expect(pool.has('server-C')).toBeTruthy();
+      expect(connection.address).toEqual(serverC);
+      expect(pool.has(serverC)).toBeTruthy();
 
       loadBalancer.acquireConnection(READ).then(connection => {
-        expect(connection.address).toEqual('server-D');
-        expect(pool.has('server-D')).toBeTruthy();
+        expect(connection.address).toEqual(serverD);
+        expect(pool.has(serverD)).toBeTruthy();
 
         done();
       });
@@ -238,26 +269,26 @@ describe('LoadBalancer', () => {
   it('refreshes stale routing table to get write connection', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool,
       int(0), // expired routing table
-      {'server-1': updatedRoutingTable}
+      { 'server1:7687': updatedRoutingTable }
     );
 
     loadBalancer.acquireConnection(WRITE).then(connection => {
-      expect(connection.address).toEqual('server-E');
-      expect(pool.has('server-E')).toBeTruthy();
+      expect(connection.address).toEqual(serverE);
+      expect(pool.has(serverE)).toBeTruthy();
 
       loadBalancer.acquireConnection(WRITE).then(connection => {
-        expect(connection.address).toEqual('server-F');
-        expect(pool.has('server-F')).toBeTruthy();
+        expect(connection.address).toEqual(serverF);
+        expect(pool.has(serverF)).toBeTruthy();
 
         done();
       });
@@ -267,29 +298,29 @@ describe('LoadBalancer', () => {
   it('refreshes stale routing table to get read connection when one router fails', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool,
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': updatedRoutingTable,
+        'server1:7687': null, // returns no routing table
+        'server2:7687': updatedRoutingTable,
       }
     );
 
     loadBalancer.acquireConnection(READ).then(connection => {
-      expect(connection.address).toEqual('server-C');
-      expect(pool.has('server-C')).toBeTruthy();
+      expect(connection.address).toEqual(serverC);
+      expect(pool.has(serverC)).toBeTruthy();
 
       loadBalancer.acquireConnection(READ).then(connection => {
-        expect(connection.address).toEqual('server-D');
-        expect(pool.has('server-D')).toBeTruthy();
+        expect(connection.address).toEqual(serverD);
+        expect(pool.has(serverD)).toBeTruthy();
 
         done();
       });
@@ -299,29 +330,29 @@ describe('LoadBalancer', () => {
   it('refreshes stale routing table to get write connection when one router fails', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool,
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': updatedRoutingTable,
+        'server1:7687': null, // returns no routing table
+        'server2:7687': updatedRoutingTable,
       }
     );
 
     loadBalancer.acquireConnection(WRITE).then(connection => {
-      expect(connection.address).toEqual('server-E');
-      expect(pool.has('server-E')).toBeTruthy();
+      expect(connection.address).toEqual(serverE);
+      expect(pool.has(serverE)).toBeTruthy();
 
       loadBalancer.acquireConnection(WRITE).then(connection => {
-        expect(connection.address).toEqual('server-F');
-        expect(pool.has('server-F')).toBeTruthy();
+        expect(connection.address).toEqual(serverF);
+        expect(pool.has(serverF)).toBeTruthy();
 
         done();
       });
@@ -331,29 +362,29 @@ describe('LoadBalancer', () => {
   it('refreshes routing table without readers to get read connection', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
+      [server1, server2],
       [], // no readers
-      ['server-3', 'server-4'],
+      [server3, server4],
       pool,
       Integer.MAX_VALUE,
       {
-        'server-1': null, // returns no routing table
-        'server-2': updatedRoutingTable,
+        'server1:7687': null, // returns no routing table
+        'server2:7687': updatedRoutingTable,
       }
     );
 
     loadBalancer.acquireConnection(READ).then(connection => {
-      expect(connection.address).toEqual('server-C');
-      expect(pool.has('server-C')).toBeTruthy();
+      expect(connection.address).toEqual(serverC);
+      expect(pool.has(serverC)).toBeTruthy();
 
       loadBalancer.acquireConnection(READ).then(connection => {
-        expect(connection.address).toEqual('server-D');
-        expect(pool.has('server-D')).toBeTruthy();
+        expect(connection.address).toEqual(serverD);
+        expect(pool.has(serverD)).toBeTruthy();
 
         done();
       });
@@ -363,29 +394,29 @@ describe('LoadBalancer', () => {
   it('refreshes routing table without writers to get write connection', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
+      [server1, server2],
+      [server3, server4],
       [], // no writers
       pool,
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': updatedRoutingTable,
+        'server1:7687': null, // returns no routing table
+        'server2:7687': updatedRoutingTable,
       }
     );
 
     loadBalancer.acquireConnection(WRITE).then(connection => {
-      expect(connection.address).toEqual('server-E');
-      expect(pool.has('server-E')).toBeTruthy();
+      expect(connection.address).toEqual(serverE);
+      expect(pool.has(serverE)).toBeTruthy();
 
       loadBalancer.acquireConnection(WRITE).then(connection => {
-        expect(connection.address).toEqual('server-F');
-        expect(pool.has('server-F')).toBeTruthy();
+        expect(connection.address).toEqual(serverF);
+        expect(pool.has(serverF)).toBeTruthy();
 
         done();
       });
@@ -394,14 +425,14 @@ describe('LoadBalancer', () => {
 
   it('throws when all routers return nothing while getting read connection', done => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       newPool(),
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': null  // returns no routing table
+        'server1:7687': null, // returns no routing table
+        'server2:7687': null  // returns no routing table
       }
     );
 
@@ -413,14 +444,14 @@ describe('LoadBalancer', () => {
 
   it('throws when all routers return nothing while getting write connection', done => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       newPool(),
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': null  // returns no routing table
+        'server1:7687': null, // returns no routing table
+        'server2:7687': null  // returns no routing table
       }
     );
 
@@ -432,19 +463,19 @@ describe('LoadBalancer', () => {
 
   it('throws when all routers return routing tables without readers while getting read connection', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
+      [serverA, serverB],
       [], // no readers - table can't satisfy connection requirement
-      ['server-C', 'server-D']
+      [serverC, serverD]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       newPool(),
       int(0), // expired routing table
       {
-        'server-1': updatedRoutingTable,
-        'server-2': updatedRoutingTable
+        'server1:7687': updatedRoutingTable,
+        'server2:7687': updatedRoutingTable
       }
     );
 
@@ -456,19 +487,19 @@ describe('LoadBalancer', () => {
 
   it('throws when all routers return routing tables without writers while getting write connection', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
+      [serverA, serverB],
+      [serverC, serverD],
       [] // no writers - table can't satisfy connection requirement
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       newPool(),
       int(0), // expired routing table
       {
-        'server-1': updatedRoutingTable,
-        'server-2': updatedRoutingTable
+        'server1:7687': updatedRoutingTable,
+        'server2:7687': updatedRoutingTable
       }
     );
 
@@ -481,8 +512,8 @@ describe('LoadBalancer', () => {
   it('throws when stale routing table without routers while getting read connection', done => {
     const loadBalancer = newLoadBalancer(
       [], // no routers
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server3, server4],
+      [server5, server6],
       newPool(),
       int(0) // expired routing table
     );
@@ -496,8 +527,8 @@ describe('LoadBalancer', () => {
   it('throws when stale routing table without routers while getting write connection', done => {
     const loadBalancer = newLoadBalancer(
       [], // no routers
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server3, server4],
+      [server5, server6],
       newPool(),
       int(0) // expired routing table
     );
@@ -511,37 +542,37 @@ describe('LoadBalancer', () => {
   it('updates routing table after refresh', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool,
       int(0), // expired routing table
       {
-        'server-1': updatedRoutingTable
+        'server1:7687': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(READ).then(() => {
       expectRoutingTable(loadBalancer,
-        ['server-A', 'server-B'],
-        ['server-C', 'server-D'],
-        ['server-E', 'server-F']
+        [serverA, serverB],
+        [serverC, serverD],
+        [serverE, serverF]
       );
-      expectPoolToNotContain(pool, ['server-1', 'server-2', 'server-3', 'server-4', 'server-5', 'server-6']);
+      expectPoolToNotContain(pool, [server1, server2, server3, server4, server5, server6]);
       done();
     });
   });
 
   it('forgets all routers when they fail while acquiring read connection', done => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2', 'server-3'],
-      ['server-4', 'server-5'],
-      ['server-6', 'server-7'],
+      [server1, server2, server3],
+      [server4, server5],
+      [server6, server7],
       newPool(),
       int(0) // expired routing table
     );
@@ -550,8 +581,8 @@ describe('LoadBalancer', () => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE);
       expectRoutingTable(loadBalancer,
         [],
-        ['server-4', 'server-5'],
-        ['server-6', 'server-7']
+        [server4, server5],
+        [server6, server7]
       );
       done();
     });
@@ -559,9 +590,9 @@ describe('LoadBalancer', () => {
 
   it('forgets all routers when they fail while acquiring write connection', done => {
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2', 'server-3'],
-      ['server-4', 'server-5'],
-      ['server-6', 'server-7'],
+      [server1, server2, server3],
+      [server4, server5],
+      [server6, server7],
       newPool(),
       int(0) // expired routing table
     );
@@ -570,8 +601,8 @@ describe('LoadBalancer', () => {
       expect(error.code).toEqual(SERVICE_UNAVAILABLE);
       expectRoutingTable(loadBalancer,
         [],
-        ['server-4', 'server-5'],
-        ['server-6', 'server-7']
+        [server4, server5],
+        [server6, server7]
       );
       done();
     });
@@ -579,35 +610,35 @@ describe('LoadBalancer', () => {
 
   it('uses seed router address when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B', 'server-C'],
-      ['server-D', 'server-E'],
-      ['server-F', 'server-G']
+      [serverA, serverB, serverC],
+      [serverD, serverE],
+      [serverF, serverG]
     );
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-0'], // seed router address resolves just to itself
-      ['server-1', 'server-2', 'server-3'],
-      ['server-4', 'server-5'],
-      ['server-6', 'server-7'],
+      server0, [server0], // seed router address resolves just to itself
+      [server1, server2, server3],
+      [server4, server5],
+      [server6, server7],
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': null, // returns no routing table
-        'server-3': null, // returns no routing table
-        'server-0': updatedRoutingTable
+        'server1:7687': null, // returns no routing table
+        'server2:7687': null, // returns no routing table
+        'server3:7687': null, // returns no routing table
+        'server0:7687': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(READ).then(connection1 => {
-      expect(connection1.address).toEqual('server-D');
+      expect(connection1.address).toEqual(serverD);
 
       loadBalancer.acquireConnection(WRITE).then(connection2 => {
-        expect(connection2.address).toEqual('server-F');
+        expect(connection2.address).toEqual(serverF);
 
         expectRoutingTable(loadBalancer,
-          ['server-A', 'server-B', 'server-C'],
-          ['server-D', 'server-E'],
-          ['server-F', 'server-G']
+          [serverA, serverB, serverC],
+          [serverD, serverE],
+          [serverF, serverG]
         );
         done();
       });
@@ -616,35 +647,35 @@ describe('LoadBalancer', () => {
 
   it('uses resolved seed router address when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-01'], // seed router address resolves to a different one
-      ['server-1', 'server-2', 'server-3'],
-      ['server-4', 'server-5'],
-      ['server-6', 'server-7'],
+      server0, [server01], // seed router address resolves to a different one
+      [server1, server2, server3],
+      [server4, server5],
+      [server6, server7],
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': null, // returns no routing table
-        'server-3': null, // returns no routing table
-        'server-01': updatedRoutingTable
+        'server1:7687': null, // returns no routing table
+        'server2:7687': null, // returns no routing table
+        'server3:7687': null, // returns no routing table
+        'server01:7687': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(WRITE).then(connection1 => {
-      expect(connection1.address).toEqual('server-E');
+      expect(connection1.address).toEqual(serverE);
 
       loadBalancer.acquireConnection(READ).then(connection2 => {
-        expect(connection2.address).toEqual('server-C');
+        expect(connection2.address).toEqual(serverC);
 
         expectRoutingTable(loadBalancer,
-          ['server-A', 'server-B'],
-          ['server-C', 'server-D'],
-          ['server-E', 'server-F']
+          [serverA, serverB],
+          [serverC, serverD],
+          [serverE, serverF]
         );
         done();
       });
@@ -653,35 +684,35 @@ describe('LoadBalancer', () => {
 
   it('uses resolved seed router address that returns correct routing table when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C'],
-      ['server-D', 'server-E']
+      [serverA, serverB],
+      [serverC],
+      [serverD, serverE]
     );
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-01', 'server-02', 'server-03'], // seed router address resolves to 3 different addresses
-      ['server-1'],
-      ['server-2'],
-      ['server-3'],
+      server0, [server01, server02, server03], // seed router address resolves to 3 different addresses
+      [server1],
+      [server2],
+      [server3],
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-01': null, // returns no routing table
-        'server-02': null, // returns no routing table
-        'server-03': updatedRoutingTable
+        'server1:7687': null, // returns no routing table
+        'server01:7687': null, // returns no routing table
+        'server02:7687': null, // returns no routing table
+        'server03:7687': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(WRITE).then(connection1 => {
-      expect(connection1.address).toEqual('server-D');
+      expect(connection1.address).toEqual(serverD);
 
       loadBalancer.acquireConnection(WRITE).then(connection2 => {
-        expect(connection2.address).toEqual('server-E');
+        expect(connection2.address).toEqual(serverE);
 
         expectRoutingTable(loadBalancer,
-          ['server-A', 'server-B'],
-          ['server-C'],
-          ['server-D', 'server-E']
+          [serverA, serverB],
+          [serverC],
+          [serverD, serverE]
         );
         done();
       });
@@ -690,16 +721,16 @@ describe('LoadBalancer', () => {
 
   it('fails when both existing routers and seed router fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-0'], // seed router address resolves just to itself
-      ['server-1', 'server-2', 'server-3'],
-      ['server-4', 'server-5'],
-      ['server-6'],
+      server0, [server0], // seed router address resolves just to itself
+      [server1, server2, server3],
+      [server4, server5],
+      [server6],
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': null, // returns no routing table
-        'server-3': null, // returns no routing table
-        'server-0': null // returns no routing table
+        'server1:7687': null, // returns no routing table
+        'server2:7687': null, // returns no routing table
+        'server3:7687': null, // returns no routing table
+        'server0:7687': null // returns no routing table
       }
     );
 
@@ -708,8 +739,8 @@ describe('LoadBalancer', () => {
 
       expectRoutingTable(loadBalancer,
         [], // all routers were forgotten because they failed
-        ['server-4', 'server-5'],
-        ['server-6'],
+        [server4, server5],
+        [server6],
       );
 
       loadBalancer.acquireConnection(WRITE).catch(error => {
@@ -717,8 +748,8 @@ describe('LoadBalancer', () => {
 
         expectRoutingTable(loadBalancer,
           [], // all routers were forgotten because they failed
-          ['server-4', 'server-5'],
-          ['server-6'],
+          [server4, server5],
+          [server6],
         );
 
         done();
@@ -728,15 +759,15 @@ describe('LoadBalancer', () => {
 
   it('fails when both existing routers and resolved seed router fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-01'], // seed router address resolves to a different one
-      ['server-1', 'server-2'],
-      ['server-3'],
-      ['server-4'],
+      server0, [server01], // seed router address resolves to a different one
+      [server1, server2],
+      [server3],
+      [server4],
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': null, // returns no routing table
-        'server-01': null // returns no routing table
+        'server1:7687': null, // returns no routing table
+        'server2:7687': null, // returns no routing table
+        'server01:7687': null // returns no routing table
       }
     );
 
@@ -745,8 +776,8 @@ describe('LoadBalancer', () => {
 
       expectRoutingTable(loadBalancer,
         [], // all routers were forgotten because they failed
-        ['server-3'],
-        ['server-4'],
+        [server3],
+        [server4],
       );
 
       loadBalancer.acquireConnection(READ).catch(error => {
@@ -754,8 +785,8 @@ describe('LoadBalancer', () => {
 
         expectRoutingTable(loadBalancer,
           [], // all routers were forgotten because they failed
-          ['server-3'],
-          ['server-4'],
+          [server3],
+          [server4],
         );
 
         done();
@@ -765,17 +796,17 @@ describe('LoadBalancer', () => {
 
   it('fails when both existing routers and all resolved seed routers fail to return a routing table', done => {
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-02', 'server-01'], // seed router address resolves to 2 different addresses
-      ['server-1', 'server-2', 'server-3'],
-      ['server-4'],
-      ['server-5'],
+      server0, [server02, server01], // seed router address resolves to 2 different addresses
+      [server1, server2, server3],
+      [server4],
+      [server5],
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-2': null, // returns no routing table
-        'server-3': null, // returns no routing table
-        'server-01': null, // returns no routing table
-        'server-02': null // returns no routing table
+        'server1:7687': null, // returns no routing table
+        'server2:7687': null, // returns no routing table
+        'server3:7687': null, // returns no routing table
+        'server01:7687': null, // returns no routing table
+        'server02:7687': null // returns no routing table
       }
     );
 
@@ -784,8 +815,8 @@ describe('LoadBalancer', () => {
 
       expectRoutingTable(loadBalancer,
         [], // all known seed servers failed to return routing tables and were forgotten
-        ['server-4'],
-        ['server-5'],
+        [server4],
+        [server5],
       );
 
       loadBalancer.acquireConnection(WRITE).catch(error => {
@@ -793,8 +824,8 @@ describe('LoadBalancer', () => {
 
         expectRoutingTable(loadBalancer,
           [], // all known seed servers failed to return routing tables and were forgotten
-          ['server-4'],
-          ['server-5'],
+          [server4],
+          [server5],
         );
 
         done();
@@ -804,32 +835,32 @@ describe('LoadBalancer', () => {
 
   it('uses seed router when no existing routers', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C'],
-      ['server-D']
+      [serverA, serverB],
+      [serverC],
+      [serverD]
     );
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-0'], // seed router address resolves just to itself
+      server0, [server0], // seed router address resolves just to itself
       [], // no routers in the known routing table
-      ['server-1', 'server-2'],
-      ['server-3'],
+      [server1, server2],
+      [server3],
       Integer.MAX_VALUE, // not expired
       {
-        'server-0': updatedRoutingTable
+        'server0:7687': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(WRITE).then(connection1 => {
-      expect(connection1.address).toEqual('server-D');
+      expect(connection1.address).toEqual(serverD);
 
       loadBalancer.acquireConnection(READ).then(connection2 => {
-        expect(connection2.address).toEqual('server-C');
+        expect(connection2.address).toEqual(serverC);
 
         expectRoutingTable(loadBalancer,
-          ['server-A', 'server-B'],
-          ['server-C'],
-          ['server-D']
+          [serverA, serverB],
+          [serverC],
+          [serverD]
         );
         done();
       });
@@ -838,32 +869,32 @@ describe('LoadBalancer', () => {
 
   it('uses resolved seed router when no existing routers', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-F', 'server-E']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverF, serverE]
     );
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-01'], // seed router address resolves to a different one
+      server0, [server01], // seed router address resolves to a different one
       [], // no routers in the known routing table
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
+      [server1, server2],
+      [server3, server4],
       Integer.MAX_VALUE, // not expired
       {
-        'server-01': updatedRoutingTable
+        'server01:7687': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(READ).then(connection1 => {
-      expect(connection1.address).toEqual('server-C');
+      expect(connection1.address).toEqual(serverC);
 
       loadBalancer.acquireConnection(WRITE).then(connection2 => {
-        expect(connection2.address).toEqual('server-F');
+        expect(connection2.address).toEqual(serverF);
 
         expectRoutingTable(loadBalancer,
-          ['server-A', 'server-B'],
-          ['server-C', 'server-D'],
-          ['server-F', 'server-E']
+          [serverA, serverB],
+          [serverC, serverD],
+          [serverF, serverE]
         );
         done();
       });
@@ -872,34 +903,34 @@ describe('LoadBalancer', () => {
 
   it('uses resolved seed router that returns routing table when no existing routers exist', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B', 'server-C'],
-      ['server-D', 'server-E'],
-      ['server-F']
+      [serverA, serverB, serverC],
+      [serverD, serverE],
+      [serverF]
     );
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-02', 'server-01', 'server-03'], // seed router address resolves to 3 different addresses
+      server0, [server02, server01, server03], // seed router address resolves to 3 different addresses
       [], // no routers in the known routing table
-      ['server-1'],
-      ['server-2', 'server-3'],
+      [server1],
+      [server2, server3],
       Integer.MAX_VALUE, // not expired
       {
-        'server-01': null, // returns no routing table
-        'server-02': null, // returns no routing table
-        'server-03': updatedRoutingTable
+        'server01:7687': null, // returns no routing table
+        'server02:7687': null, // returns no routing table
+        'server03:7687': updatedRoutingTable
       }
     );
 
     loadBalancer.acquireConnection(WRITE).then(connection1 => {
-      expect(connection1.address).toEqual('server-F');
+      expect(connection1.address).toEqual(serverF);
 
       loadBalancer.acquireConnection(READ).then(connection2 => {
-        expect(connection2.address).toEqual('server-D');
+        expect(connection2.address).toEqual(serverD);
 
         expectRoutingTable(loadBalancer,
-          ['server-A', 'server-B', 'server-C'],
-          ['server-D', 'server-E'],
-          ['server-F']
+          [serverA, serverB, serverC],
+          [serverD, serverE],
+          [serverF]
         );
         done();
       });
@@ -908,44 +939,47 @@ describe('LoadBalancer', () => {
 
   it('ignores already probed routers after seed router resolution', done => {
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
-      ['server-E', 'server-F']
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
     );
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-1', 'server-01', 'server-2', 'server-02'], // seed router address resolves to 4 different addresses
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      server0, [server1, server01, server2, server02], // seed router address resolves to 4 different addresses
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       int(0), // expired routing table
       {
-        'server-1': null, // returns no routing table
-        'server-01': null, // returns no routing table
-        'server-2': null, // returns no routing table
-        'server-02': updatedRoutingTable
+        'server1:7687': null, // returns no routing table
+        'server01:7687': null, // returns no routing table
+        'server2:7687': null, // returns no routing table
+        'server02:7687': updatedRoutingTable
       }
     );
+    // override default use of seed router
+    loadBalancer._useSeedRouter = false;
+
     const usedRouterArrays = [];
     setupLoadBalancerToRememberRouters(loadBalancer, usedRouterArrays);
 
     loadBalancer.acquireConnection(READ).then(connection1 => {
-      expect(connection1.address).toEqual('server-C');
+      expect(connection1.address).toEqual(serverC);
 
       loadBalancer.acquireConnection(WRITE).then(connection2 => {
-        expect(connection2.address).toEqual('server-E');
+        expect(connection2.address).toEqual(serverE);
 
         // two sets of routers probed:
-        // 1) existing routers 'server-1' & 'server-2'
-        // 2) resolved routers 'server-01' & 'server-02'
+        // 1) existing routers server1 & server2
+        // 2) resolved routers server01 & server02
         expect(usedRouterArrays.length).toEqual(2);
-        expect(usedRouterArrays[0]).toEqual(['server-1', 'server-2']);
-        expect(usedRouterArrays[1]).toEqual(['server-01', 'server-02']);
+        expect(usedRouterArrays[0]).toEqual([server1, server2]);
+        expect(usedRouterArrays[1]).toEqual([server01, server02]);
 
         expectRoutingTable(loadBalancer,
-          ['server-A', 'server-B'],
-          ['server-C', 'server-D'],
-          ['server-E', 'server-F']
+          [serverA, serverB],
+          [serverC, serverD],
+          [serverE, serverF]
         );
         done();
       });
@@ -955,18 +989,18 @@ describe('LoadBalancer', () => {
   it('throws session expired when refreshed routing table has no readers', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
+      [serverA, serverB],
       [], // no readers
-      ['server-C', 'server-D']
+      [serverC, serverD]
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool,
       int(0), // expired routing table
       {
-        'server-1': updatedRoutingTable,
+        'server1:7687': updatedRoutingTable,
       }
     );
 
@@ -979,18 +1013,18 @@ describe('LoadBalancer', () => {
   it('throws session expired when refreshed routing table has no writers', done => {
     const pool = newPool();
     const updatedRoutingTable = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
+      [serverA, serverB],
+      [serverC, serverD],
       [] // no writers
     );
     const loadBalancer = newLoadBalancer(
-      ['server-1', 'server-2'],
-      ['server-3', 'server-4'],
-      ['server-5', 'server-6'],
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
       pool,
       int(0), // expired routing table
       {
-        'server-1': updatedRoutingTable,
+        'server1:7687': updatedRoutingTable,
       }
     );
 
@@ -1002,50 +1036,52 @@ describe('LoadBalancer', () => {
 
   it('should use resolved seed router after accepting table with no writers', done => {
     const routingTable1 = newRoutingTable(
-      ['server-A', 'server-B'],
-      ['server-C', 'server-D'],
+      [serverA, serverB],
+      [serverC, serverD],
       [] // no writers
     );
     const routingTable2 = newRoutingTable(
-      ['server-AA', 'server-BB'],
-      ['server-CC', 'server-DD'],
-      ['server-EE']
+      [serverAA, serverBB],
+      [serverCC, serverDD],
+      [serverEE]
     );
 
     const loadBalancer = newLoadBalancerWithSeedRouter(
-      'server-0', ['server-02', 'server-01'], // seed router address resolves to 2 different addresses
-      ['server-1'],
-      ['server-2', 'server-3'],
-      ['server-4', 'server-5'],
+      server0, [server02, server01], // seed router address resolves to 2 different addresses
+      [server1],
+      [server2, server3],
+      [server4, server5],
       int(0), // expired routing table
       {
-        'server-1': routingTable1,
-        'server-A': routingTable1,
-        'server-B': routingTable1,
-        'server-01': null, // returns no routing table
-        'server-02': routingTable2
+        'server1:7687': routingTable1,
+        'serverA:7687': routingTable1,
+        'serverB:7687': routingTable1,
+        'server01:7687': null, // returns no routing table
+        'server02:7687': routingTable2
       }
     );
+    // override default use of seed router
+    loadBalancer._useSeedRouter = false;
 
     loadBalancer.acquireConnection(READ).then(connection1 => {
-      expect(connection1.address).toEqual('server-C');
+      expect(connection1.address).toEqual(serverC);
 
       loadBalancer.acquireConnection(READ).then(connection2 => {
-        expect(connection2.address).toEqual('server-D');
+        expect(connection2.address).toEqual(serverD);
 
         expectRoutingTable(loadBalancer,
-          ['server-A', 'server-B'],
-          ['server-C', 'server-D'],
+          [serverA, serverB],
+          [serverC, serverD],
           []
         );
 
         loadBalancer.acquireConnection(WRITE).then(connection3 => {
-          expect(connection3.address).toEqual('server-EE');
+          expect(connection3.address).toEqual(serverEE);
 
           expectRoutingTable(loadBalancer,
-            ['server-AA', 'server-BB'],
-            ['server-CC', 'server-DD'],
-            ['server-EE']
+            [serverAA, serverBB],
+            [serverCC, serverDD],
+            [serverEE]
           );
 
           done();
@@ -1064,7 +1100,7 @@ function newLoadBalancer(routers, readers, writers,
                          pool = null,
                          expirationTime = Integer.MAX_VALUE,
                          routerToRoutingTable = {}) {
-  const seedRouter = 'server-non-existing-seed-router';
+  const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router');
   return newLoadBalancerWithSeedRouter(seedRouter, [seedRouter], routers, readers, writers, expirationTime,
     routerToRoutingTable, pool);
 }
@@ -1134,7 +1170,7 @@ class FakeRediscovery {
   }
 
   lookupRoutingTableOnRouter(ignored, router) {
-    return this._routerToRoutingTable[router];
+    return this._routerToRoutingTable[router.asKey()];
   }
 }
 

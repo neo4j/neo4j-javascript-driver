@@ -19,6 +19,7 @@
 
 import NodeHostNameResolver from '../../../src/v1/internal/node/node-host-name-resolver';
 import urlUtil from '../../../src/v1/internal/url-util';
+import ServerAddress from '../../../src/v1/internal/server-address';
 
 describe('NodeHostNameResolver', () => {
 
@@ -35,7 +36,7 @@ describe('NodeHostNameResolver', () => {
   });
 
   it('should resolve address', done => {
-    const seedRouter = 'neo4j.com';
+    const seedRouter = ServerAddress.fromUrl('neo4j.com');
     const resolver = new NodeHostNameResolver();
 
     resolver.resolve(seedRouter).then(addresses => {
@@ -43,10 +44,9 @@ describe('NodeHostNameResolver', () => {
 
       addresses.forEach(address => {
         expectToBeDefined(address);
-        const parsedUrl = urlUtil.parseDatabaseUrl(address);
-        expect(parsedUrl.scheme).toBeNull();
-        expectToBeDefined(parsedUrl.host);
-        expect(parsedUrl.port).toEqual(7687); // default port should be appended
+        expect(address.host()).toEqual('neo4j.com');
+        expect(address.resolvedHost()).not.toEqual('neo4j.com');
+        expect(address.port()).toEqual(7687); // default port should be appended
       });
 
       done();
@@ -54,7 +54,7 @@ describe('NodeHostNameResolver', () => {
   });
 
   it('should resolve address with port', done => {
-    const seedRouter = 'neo4j.com:7474';
+    const seedRouter = ServerAddress.fromUrl('neo4j.com:7474');
     const resolver = new NodeHostNameResolver();
 
     resolver.resolve(seedRouter).then(addresses => {
@@ -62,10 +62,9 @@ describe('NodeHostNameResolver', () => {
 
       addresses.forEach(address => {
         expectToBeDefined(address);
-        const parsedUrl = urlUtil.parseDatabaseUrl(address);
-        expect(parsedUrl.scheme).toBeNull();
-        expectToBeDefined(parsedUrl.host);
-        expect(parsedUrl.port).toEqual(7474);
+        expect(address.host()).toEqual('neo4j.com');
+        expect(address.resolvedHost()).not.toEqual('neo4j.com');
+        expect(address.port()).toEqual(7474); // default port should be appended
       });
 
       done();
@@ -73,25 +72,27 @@ describe('NodeHostNameResolver', () => {
   });
 
   it('should resolve IPv4 address to itself', done => {
-    const addressToResolve = '127.0.0.1';
+    const addressToResolve = ServerAddress.fromUrl('127.0.0.1');
     const expectedResolvedAddress = '127.0.0.1:7687'; // includes default port
     testIpAddressResolution(addressToResolve, expectedResolvedAddress, done);
   });
 
   it('should resolve IPv4 address with port to itself', done => {
-    const address = '127.0.0.1:7474';
-    testIpAddressResolution(address, address, done);
+    const address = ServerAddress.fromUrl('127.0.0.1:7474');
+    const expectedResolvedAddress = '127.0.0.1:7474'; // includes default port
+    testIpAddressResolution(address, expectedResolvedAddress, done);
   });
 
   it('should resolve IPv6 address to itself', done => {
-    const addressToResolve = '[2001:4860:4860::8888]';
+    const addressToResolve = ServerAddress.fromUrl('[2001:4860:4860::8888]');
     const expectedResolvedAddress = '[2001:4860:4860::8888]:7687'; // includes default port
     testIpAddressResolution(addressToResolve, expectedResolvedAddress, done);
   });
 
   it('should resolve IPv6 address with port to itself', done => {
-    const address = '[2001:4860:4860::8888]:7474';
-    testIpAddressResolution(address, address, done);
+    const address = ServerAddress.fromUrl('[2001:4860:4860::8888]:7474');
+    const expectedResolvedAddress = '[2001:4860:4860::8888]:7474';
+    testIpAddressResolution(address, expectedResolvedAddress, done);
   });
 });
 
@@ -100,7 +101,7 @@ function testIpAddressResolution(address, expectedResolvedAddress, done) {
 
   resolver.resolve(address).then(addresses => {
     expect(addresses.length).toEqual(1);
-    expect(addresses[0]).toEqual(expectedResolvedAddress);
+    expect(addresses[0].asHostPort()).toEqual(expectedResolvedAddress);
     done();
   });
 }

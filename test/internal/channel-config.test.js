@@ -21,17 +21,17 @@ import ChannelConfig from '../../src/v1/internal/channel-config';
 import urlUtil from '../../src/v1/internal/url-util';
 import {SERVICE_UNAVAILABLE} from '../../src/v1/error';
 import {ENCRYPTION_OFF, ENCRYPTION_ON} from '../../src/v1/internal/util';
+import ServerAddress from '../../src/v1/internal/server-address';
 
 describe('ChannelConfig', () => {
 
   it('should respect given Url', () => {
-    const url = urlUtil.parseDatabaseUrl('bolt://neo4j.com:4242');
+    const address = ServerAddress.fromUrl('bolt://neo4j.com:4242');
 
-    const config = new ChannelConfig(url, {}, '');
+    const config = new ChannelConfig(address, {}, '');
 
-    expect(config.url.scheme).toEqual('bolt');
-    expect(config.url.host).toEqual('neo4j.com');
-    expect(config.url.port).toEqual(4242);
+    expect(config.address.host()).toEqual('neo4j.com');
+    expect(config.address.port()).toEqual(4242);
   });
 
   it('should respect given encrypted conf', () => {
