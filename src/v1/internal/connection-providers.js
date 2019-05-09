@@ -211,7 +211,10 @@ export class LoadBalancer extends ConnectionProvider {
         // try next router
         return this._createSessionForRediscovery(currentRouter).then(session => {
           if (session) {
-            return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter);
+            return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter).catch(error => {
+              this._log.warn(`unable to fetch routing table because of an error ${error}`);
+              return null;
+            });
           } else {
             // unable to acquire connection and create session towards the current router
             // return null to signal that the next router should be tried
