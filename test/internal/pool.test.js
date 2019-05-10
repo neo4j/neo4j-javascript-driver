@@ -296,6 +296,83 @@ describe('Pool', () => {
     });
   });
 
+  it('purges keys other than the ones to keep', done => {
+    let counter = 0;
+
+    const address1 = ServerAddress.fromUrl('bolt://localhost:7687');
+    const address2 = ServerAddress.fromUrl('bolt://localhost:7688');
+    const address3 = ServerAddress.fromUrl('bolt://localhost:7689');
+
+    const pool = new Pool((server, release) => Promise.resolve(new Resource(server, counter++, release)),
+      res => {
+        res.destroyed = true;
+        return true;
+      }
+    );
+
+    const acquiredResources = [
+      pool.acquire(address1),
+      pool.acquire(address2),
+      pool.acquire(address3),
+      pool.acquire(address1),
+      pool.acquire(address2),
+      pool.acquire(address3)
+    ];
+
+    Promise.all(acquiredResources).then(values => {
+      expect(pool.has(address1)).toBeTruthy();
+      expect(pool.has(address2)).toBeTruthy();
+      expect(pool.has(address3)).toBeTruthy();
+
+      pool.keepAll([address1, address3]);
+
+      expect(pool.has(address1)).toBeTruthy();
+      expect(pool.has(address3)).toBeTruthy();
+      expect(pool.has(address2)).toBeFalsy();
+
+      done();
+    });
+  });
+
+  it('purges all keys if addresses to keep is empty', done => {
+    let counter = 0;
+
+    const address1 = ServerAddress.fromUrl('bolt://localhost:7687');
+    const address2 = ServerAddress.fromUrl('bolt://localhost:7688');
+    const address3 = ServerAddress.fromUrl('bolt://localhost:7689');
+
+    const pool = new Pool((server, release) => Promise.resolve(new Resource(server, counter++, release)),
+      res => {
+        res.destroyed = true;
+        return true;
+      }
+    );
+
+    const acquiredResources = [
+      pool.acquire(address1),
+      pool.acquire(address2),
+      pool.acquire(address3),
+      pool.acquire(address1),
+      pool.acquire(address2),
+      pool.acquire(address3)
+    ];
+
+    Promise.all(acquiredResources).then(values => {
+      expect(pool.has(address1)).toBeTruthy();
+      expect(pool.has(address2)).toBeTruthy();
+      expect(pool.has(address3)).toBeTruthy();
+
+      pool.keepAll([]);
+
+      expect(pool.has(address1)).toBeFalsy();
+      expect(pool.has(address3)).toBeFalsy();
+      expect(pool.has(address2)).toBeFalsy();
+
+      done();
+    });
+  });
+
+
   it('skips broken connections during acquire', (done) => {
     let validated = false;
     let counter = 0;

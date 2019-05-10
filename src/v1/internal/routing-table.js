@@ -47,15 +47,6 @@ export default class RoutingTable {
     this.writers = removeFromArray(this.writers, address);
   }
 
-  serversDiff(otherRoutingTable) {
-    const oldServers = this._allServers();
-    const newServers = otherRoutingTable._allServers();
-    const diffTable = {};
-    oldServers.forEach(oldServer => diffTable[oldServer.asKey()] = oldServer);
-    newServers.forEach(newServer => delete diffTable[newServer.asKey()]);
-    return Object.values(diffTable);
-  }
-
   /**
    * Check if this routing table is fresh to perform the required operation.
    * @param {string} accessMode the type of operation. Allowed values are {@link READ} and {@link WRITE}.
@@ -68,7 +59,7 @@ export default class RoutingTable {
       accessMode === WRITE && this.writers.length === 0;
   }
 
-  _allServers() {
+  allServers() {
     return [...this.routers, ...this.readers, ...this.writers];
   }
 

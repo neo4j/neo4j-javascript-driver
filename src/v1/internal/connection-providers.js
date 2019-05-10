@@ -64,7 +64,7 @@ export class LoadBalancer extends ConnectionProvider {
   constructor(address, routingContext, connectionPool, loadBalancingStrategy, hostNameResolver, driverOnErrorCallback, log) {
     super();
     this._seedRouter = address;
-    this._routingTable = new RoutingTable([this._seedRouter]);
+    this._routingTable = new RoutingTable();
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext));
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
@@ -259,11 +259,8 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   _updateRoutingTable(newRoutingTable) {
-    const currentRoutingTable = this._routingTable;
-
     // close old connections to servers not present in the new routing table
-    const staleServers = currentRoutingTable.serversDiff(newRoutingTable);
-    staleServers.forEach(server => this._connectionPool.purge(server));
+    this._connectionPool.keepAll(newRoutingTable.allServers());
 
     // make this driver instance aware of the new table
     this._routingTable = newRoutingTable;

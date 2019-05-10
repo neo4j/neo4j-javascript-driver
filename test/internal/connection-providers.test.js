@@ -174,7 +174,7 @@ describe('LoadBalancer', () => {
       NO_OP_DRIVER_CALLBACK, Logger.noOp());
 
     expectRoutingTable(loadBalancer,
-      [serverABC],
+      [],
       [],
       []
     );

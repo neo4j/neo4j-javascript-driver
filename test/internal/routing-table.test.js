@@ -127,69 +127,6 @@ describe('routing-table', () => {
     expect(table.writers).toEqual([server5]);
   });
 
-  it('should return all servers in diff when other table is empty', () => {
-    const oldTable = createTable([server1, server2], [server3, server4], [server5, server6], notExpired());
-    const newTable = createTable([], [], [], notExpired());
-
-    const servers = oldTable.serversDiff(newTable);
-
-    expect(servers).toEqual([server1, server2, server3, server4, server5, server6]);
-  });
-
-  it('should no servers in diff when this table is empty', () => {
-    const oldTable = createTable([], [], [], notExpired());
-    const newTable = createTable([server1, server2], [server3, server4], [server5, server6], notExpired());
-
-    const servers = oldTable.serversDiff(newTable);
-
-    expect(servers).toEqual([]);
-  });
-
-  it('should include different routers in servers diff', () => {
-    const oldTable = createTable([server1, server7, server2, server42], [server3, server4], [server5, server6], notExpired());
-    const newTable = createTable([server1, server2], [server3, server4], [server5, server6], notExpired());
-
-    const servers = oldTable.serversDiff(newTable);
-
-    expect(servers).toEqual([server7, server42]);
-  });
-
-  it('should include different readers in servers diff', () => {
-    const oldTable = createTable([server1, server2], [server3, server7, server4, server42], [server5, server6], notExpired());
-    const newTable = createTable([server1, server2], [server3, server4], [server5, server6], notExpired());
-
-    const servers = oldTable.serversDiff(newTable);
-
-    expect(servers).toEqual([server7, server42]);
-  });
-
-  it('should include different writers in servers diff', () => {
-    const oldTable = createTable([server1, server2], [server3, server4], [server5, server7, server6, server42], notExpired());
-    const newTable = createTable([server1, server2], [server3, server4], [server5, server6], notExpired());
-
-    const servers = oldTable.serversDiff(newTable);
-
-    expect(servers).toEqual([server7, server42]);
-  });
-
-  it('should include different servers in diff', () => {
-    const oldTable = createTable([server1, server2, server11], [server22, server3, server33, server4], [server5, server44, server6], notExpired());
-    const newTable = createTable([server1], [server2, server3, server4, server6], [server5], notExpired());
-
-    const servers = oldTable.serversDiff(newTable);
-
-    expect(servers).toEqual([server11, server22, server33, server44]);
-  });
-
-  it('should include different servers in diff with logical equality', () => {
-    const oldTable = createTable([server1, server11], [server2, server22], [server3, server33], notExpired());
-    const newTable = createTable([ServerAddress.fromUrl(server1.asHostPort())], [ServerAddress.fromUrl(server2.asHostPort())], [ServerAddress.fromUrl(server3.asHostPort())], notExpired());
-
-    const servers = oldTable.serversDiff(newTable);
-
-    expect(servers).toEqual([server11, server22, server33]);
-  });
-
   it('should have correct toString', () => {
     const originalDateNow = Date.now;
     try {

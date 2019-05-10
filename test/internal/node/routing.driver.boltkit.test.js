@@ -562,6 +562,8 @@ describe('routing driver with stub server', () => {
       // When
       const session1 = driver.session(neo4j.session.READ);
       session1.run("MATCH (n) RETURN n.name").catch(() => {
+        const session2 = driver.session(neo4j.session.READ);
+        session2.run('MATCH (n) RETURN n.name').then(() => {
           driver.close();
           seedServer.exit(code1 => {
             readServer.exit(code2 => {
@@ -570,6 +572,7 @@ describe('routing driver with stub server', () => {
               done();
             });
           });
+        });
       });
     });
   });
@@ -2131,13 +2134,13 @@ describe('routing driver with stub server', () => {
     // the first seed to get the routing table
     // the returned routing table includes a non-reachable read-server and points to only one router
     // which will return an invalid routing table
-    const seedServer1 = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3_point_to_empty_router.script', 9001);
+    const router1 = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3_point_to_empty_router_and_exit.script', 9001);
     // returns an empty routing table
-    const failingSeedServer2 = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3_empty.script', 9004);
+    const router2 = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3_empty.script', 9004);
     // returns a normal routing table
-    const seedServer3 = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3_three_servers.script', 9003);
+    const router3 = boltStub.start('./test/resources/boltstub/acquire_endpoints_v3_three_servers_and_exit.script', 9003);
     // ordinary read server
-    const readServer = boltStub.start('./test/resources/boltstub/read_server_v3_read_tx.script', 9002);
+    const reader = boltStub.start('./test/resources/boltstub/read_server_v3_read_tx.script', 9002);
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://my.virtual.host:8080', {
@@ -2148,10 +2151,10 @@ describe('routing driver with stub server', () => {
       session.readTransaction(tx => tx.run('MATCH (n) RETURN n.name')).then(res => {
         session.close();
         driver.close();
-        seedServer1.exit(code1 => {
-          failingSeedServer2.exit(code2 => {
-            seedServer3.exit(code3 => {
-              readServer.exit(code4 => {
+        router1.exit(code1 => {
+          router2.exit(code2 => {
+            router3.exit(code3 => {
+              reader.exit(code4 => {
                 expect(code1).toEqual(0);
                 expect(code2).toEqual(0);
                 expect(code3).toEqual(0);

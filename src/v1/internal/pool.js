@@ -116,6 +116,17 @@ class Pool {
   }
 
   /**
+   * Keep the idle resources for the provided addresses and purge the rest.
+   */
+  keepAll(addresses) {
+    const keysToKeep = addresses.map(a => a.asKey());
+    const keysPresent = Object.keys(this._pools);
+    const keysToPurge = keysPresent.filter(k => keysToKeep.indexOf(k) == -1);
+
+    keysToPurge.forEach(key => this._purgeKey(key));
+  }
+
+  /**
    * Check if this pool contains resources for the given address.
    * @param {ServerAddress} address the address of the server to check.
    * @return {boolean} `true` when pool contains entries for the given key, <code>false</code> otherwise.
