@@ -114,13 +114,11 @@ class StubServer {
 function newDriver(url, config = {}) {
   // left here for debugging purposes
   const logging = {
-    level: 'debug',
+    level: (process.env['NEOLOGLEVEL'] || 'error').toLowerCase(),
     logger: (level, msg) => console.log(`${level}: ${msg}`)
   };
   // boltstub currently does not support encryption, create driver with encryption turned off
-  const newConfig = Object.assign({encrypted: 'ENCRYPTION_OFF'}, config);
-  // use for logging enabled
-  // const newConfig = Object.assign({encrypted: 'ENCRYPTION_OFF', logging}, config);
+  const newConfig = Object.assign({ encrypted: 'ENCRYPTION_OFF', logging }, config);
   return neo4j.driver(url, sharedNeo4j.authToken, newConfig);
 }
 

@@ -180,7 +180,7 @@ describe('rediscovery', () => {
 
       expect(routingTable.expirationTime).toEqual(expires);
 
-      const allServers = routingTable.serversDiff(new RoutingTable()).sort();
+      const allServers = routingTable.allServers().sort();
       const allExpectedServers = [...routerAddresses, ...readerAddresses, ...writerAddresses].sort();
       expect(allServers.map(s => s.asHostPort())).toEqual(allExpectedServers);
 

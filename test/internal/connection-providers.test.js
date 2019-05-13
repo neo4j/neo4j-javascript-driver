@@ -174,7 +174,7 @@ describe('LoadBalancer', () => {
       NO_OP_DRIVER_CALLBACK, Logger.noOp());
 
     expectRoutingTable(loadBalancer,
-      [serverABC],
+      [],
       [],
       []
     );
@@ -1117,6 +1117,9 @@ function newLoadBalancerWithSeedRouter(seedRouter, seedRouterResolved,
   loadBalancer._routingTable = new RoutingTable(routers, readers, writers, expirationTime);
   loadBalancer._rediscovery = new FakeRediscovery(routerToRoutingTable);
   loadBalancer._hostNameResolver = new FakeDnsResolver(seedRouterResolved);
+  if (expirationTime === Integer.ZERO) {
+    loadBalancer._useSeedRouter = false;
+  }
   return loadBalancer;
 }
 
@@ -1170,7 +1173,7 @@ class FakeRediscovery {
   }
 
   lookupRoutingTableOnRouter(ignored, router) {
-    return this._routerToRoutingTable[router.asKey()];
+    return Promise.resolve(this._routerToRoutingTable[router.asKey()]);
   }
 }
 

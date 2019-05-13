@@ -1,0 +1,12 @@
+!: BOLT 3
+!: AUTO HELLO
+!: AUTO RESET
+
+C: BEGIN {}
+S: SUCCESS {}
+C: RUN "CREATE (n {name: 'Bob'})" {} {}
+   PULL_ALL
+S: SUCCESS {}
+   SUCCESS {}
+C: COMMIT
+S: <EXIT>

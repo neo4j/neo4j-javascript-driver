@@ -64,7 +64,7 @@ export class LoadBalancer extends ConnectionProvider {
   constructor(address, routingContext, connectionPool, loadBalancingStrategy, hostNameResolver, driverOnErrorCallback, log) {
     super();
     this._seedRouter = address;
-    this._routingTable = new RoutingTable([this._seedRouter]);
+    this._routingTable = new RoutingTable();
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext));
     this._connectionPool = connectionPool;
     this._driverOnErrorCallback = driverOnErrorCallback;
@@ -211,7 +211,10 @@ export class LoadBalancer extends ConnectionProvider {
         // try next router
         return this._createSessionForRediscovery(currentRouter).then(session => {
           if (session) {
-            return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter);
+            return this._rediscovery.lookupRoutingTableOnRouter(session, currentRouter).catch(error => {
+              this._log.warn(`unable to fetch routing table because of an error ${error}`);
+              return null;
+            });
           } else {
             // unable to acquire connection and create session towards the current router
             // return null to signal that the next router should be tried
@@ -256,11 +259,8 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   _updateRoutingTable(newRoutingTable) {
-    const currentRoutingTable = this._routingTable;
-
     // close old connections to servers not present in the new routing table
-    const staleServers = currentRoutingTable.serversDiff(newRoutingTable);
-    staleServers.forEach(server => this._connectionPool.purge(server));
+    this._connectionPool.keepAll(newRoutingTable.allServers());
 
     // make this driver instance aware of the new table
     this._routingTable = newRoutingTable;
