@@ -23,7 +23,6 @@ var buffer = require('vinyl-buffer')
 var gulp = require('gulp')
 var through = require('through2')
 var uglify = require('gulp-uglify')
-var gutil = require('gulp-util')
 var jasmine = require('gulp-jasmine')
 var babelify = require('babelify')
 var babel = require('gulp-babel')
@@ -41,6 +40,7 @@ var ts = require('gulp-typescript')
 var JasmineConsoleReporter = require('jasmine-console-reporter')
 var karma = require('karma')
 var transformTools = require('browserify-transform-tools')
+var log = require('fancy-log')
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
@@ -63,12 +63,12 @@ gulp.task('build-browser', async function () {
 
   // Un-minified browser package
   await appBundler
-    .on('error', gutil.log)
+    .on('error', log.error)
     .pipe(source('neo4j-web.js'))
     .pipe(gulp.dest(browserOutput))
 
   await appBundler
-    .on('error', gutil.log)
+    .on('error', log.error)
     .pipe(source('neo4j-web.min.js'))
     .pipe(buffer())
     .pipe(uglify())
@@ -104,7 +104,7 @@ gulp.task('build-browser-test', async function () {
           .transform(babelifyTransform())
           .transform(browserifyTransformNodeToBrowserRequire())
           .bundle()
-          .on('error', gutil.log)
+          .on('error', log.error)
           .pipe(source('neo4j-web.test.js'))
           .pipe(gulp.dest(browserOutput))
           .on('end', cb)
