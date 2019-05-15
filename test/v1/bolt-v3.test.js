@@ -74,8 +74,8 @@ describe('Bolt V3 API', () => {
     session
       .run('CALL dbms.listTransactions()', {}, { metadata: metadata })
       .then(result => {
-        const receivedMetadata = result.records[0].get('metaData')
-        expect(receivedMetadata).toEqual(metadata)
+        const receivedMetadatas = result.records.map(r => r.get('metaData'))
+        expect(receivedMetadatas).toContain(metadata)
         done()
       })
       .catch(error => {
@@ -186,8 +186,8 @@ describe('Bolt V3 API', () => {
     // call listTransactions procedure that should list itself with the specified metadata
     tx.run('CALL dbms.listTransactions()')
       .then(result => {
-        const receivedMetadata = result.records[0].get('metaData')
-        expect(receivedMetadata).toEqual(metadata)
+        const receivedMetadatas = result.records.map(r => r.get('metaData'))
+        expect(receivedMetadatas).toContain(metadata)
         tx.commit()
           .then(() => done())
           .catch(error => done.fail(error))
@@ -479,8 +479,8 @@ describe('Bolt V3 API', () => {
 
     txFunctionWithMetadata(tx => tx.run('CALL dbms.listTransactions()'))
       .then(result => {
-        const receivedMetadata = result.records[0].get('metaData')
-        expect(receivedMetadata).toEqual(metadata)
+        const receivedMetadatas = result.records.map(r => r.get('metaData'))
+        expect(receivedMetadatas).toContain(metadata)
         done()
       })
       .catch(error => {
