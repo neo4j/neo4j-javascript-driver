@@ -227,7 +227,7 @@ const logging = {
 function driver(url, authToken, config = {}) {
   assertString(url, 'Bolt URL');
   const parsedUrl = urlUtil.parseDatabaseUrl(url);
-  if (parsedUrl.scheme === 'bolt+routing') {
+  if (['bolt+routing', 'neo4j'].indexOf(parsedUrl.scheme) !== -1) {
     return new RoutingDriver(ServerAddress.fromUrl(parsedUrl.hostAndPort), parsedUrl.query, USER_AGENT, authToken, config);
   } else if (parsedUrl.scheme === 'bolt') {
     if (!isEmptyObjectOrNull(parsedUrl.query)) {

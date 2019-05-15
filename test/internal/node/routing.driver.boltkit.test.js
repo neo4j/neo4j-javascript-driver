@@ -39,35 +39,13 @@ describe('routing driver with stub server', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
-  it('should discover servers', done => {
-    if (!boltStub.supported) {
-      done();
-      return;
-    }
-    // Given
-    const server = boltStub.start('./test/resources/boltstub/discover_servers_and_read.script', 9001);
-
-    boltStub.run(() => {
-      const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001');
-      // When
-      const session = driver.session();
-      session.run("MATCH (n) RETURN n.name").then(() => {
-
-        session.close();
-        // Then
-        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9001')).toBeTruthy();
-        assertHasRouters(driver, ["127.0.0.1:9001", "127.0.0.1:9002", "127.0.0.1:9003"]);
-        assertHasReaders(driver, ["127.0.0.1:9002", "127.0.0.1:9003"]);
-        assertHasWriters(driver, ["127.0.0.1:9001"]);
-
-        driver.close();
-        server.exit(code => {
-          expect(code).toEqual(0);
-          done();
-        });
-      });
-    });
+  it('should discover servers with bolt+routing scheme', done => {
+    testDiscovery('bolt+routing', done)
   });
+
+  it('should discover servers with neo4j scheme', done => {
+    testDiscovery('neo4j', done)
+  })
 
   it('should discover IPv6 servers', done => {
     if (!boltStub.supported) {
@@ -2167,6 +2145,36 @@ describe('routing driver with stub server', () => {
       }).catch(error => done.fail(error));
     });
   });
+
+  function testDiscovery(scheme, done) {
+    if (!boltStub.supported) {
+      done()
+      return
+    }
+    // Given
+    const server = boltStub.start('./test/resources/boltstub/discover_servers_and_read.script', 9001)
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver(`${scheme}://127.0.0.1:9001`)
+      // When
+      const session = driver.session()
+      session.run('MATCH (n) RETURN n.name').then(() => {
+
+        session.close()
+        // Then
+        expect(hasAddressInConnectionPool(driver, '127.0.0.1:9001')).toBeTruthy()
+        assertHasRouters(driver, ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003'])
+        assertHasReaders(driver, ['127.0.0.1:9002', '127.0.0.1:9003'])
+        assertHasWriters(driver, ['127.0.0.1:9001'])
+
+        driver.close()
+        server.exit(code => {
+          expect(code).toEqual(0)
+          done()
+        })
+      })
+    })
+  }
 
   function testAddressPurgeOnDatabaseError(query, accessMode, done) {
     if (!boltStub.supported) {
