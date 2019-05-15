@@ -91,9 +91,9 @@ describe('result stream', () => {
       const stack = err.stack
 
       // Then
-      const containsFnA = /at fnA \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
-      const containsFnB = /at fnB \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
-      const containsFnC = /at fnC \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
+      const containsFnA = /fnA \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
+      const containsFnB = /fnB \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
+      const containsFnC = /fnC \(.*?\/result.test.js:\d+:\d+\)/.test(stack)
 
       expect(containsFnA).toBeTruthy()
       expect(containsFnB).toBeTruthy()

@@ -105,6 +105,13 @@ class ResultSummary {
      * @public
      */
     this.resultAvailableAfter = metadata.result_available_after
+
+    /**
+     * The database name where this summary is obtained from.
+     * @type {{name: string}}
+     * @public
+     */
+    this.database = { name: metadata.db || null }
   }
 
   _buildNotifications (notifications) {
