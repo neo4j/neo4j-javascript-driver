@@ -120,70 +120,68 @@ describe('Bolt V4 API', () => {
       })
     })
 
-    it('should fail if connecting to a non-existing database', done => {
+    it('should fail if connecting to a non-existing database', async () => {
       if (!databaseSupportsBoltV4()) {
-        done()
         return
       }
 
       const neoSession = driver.session({ db: 'testdb' })
 
-      neoSession
-        .run('RETURN 1')
-        .then(result => {
-          done.fail('Failure expected')
-        })
-        .catch(error => {
-          expect(error.code).toContain('DatabaseNotFound')
-          done()
-        })
-        .finally(() => neoSession.close())
+      try {
+        await neoSession.run('RETURN 1')
+
+        fail('failure expected')
+      } catch (error) {
+        expect(error.code).toContain('DatabaseNotFound')
+      } finally {
+        neoSession.close()
+      }
     })
 
     describe('neo4j database', () => {
-      it('should be able to create a node', done => {
+      it('should be able to create a node', async () => {
         if (!databaseSupportsBoltV4()) {
-          done()
           return
         }
 
         const neoSession = driver.session({ db: 'neo4j' })
 
-        neoSession
-          .run('CREATE (n { db: $db }) RETURN n.db', { db: 'neo4j' })
-          .then(result => {
-            expect(result.records.length).toBe(1)
-            expect(result.records[0].get('n.db')).toBe('neo4j')
-            done()
-          })
-          .catch(error => {
-            done.fail(error)
-          })
-          .finally(() => neoSession.close())
+        try {
+          const result = await session.run(
+            'CREATE (n { db: $db }) RETURN n.db',
+            { db: 'neo4j' }
+          )
+
+          expect(result.records.length).toBe(1)
+          expect(result.records[0].get('n.db')).toBe('neo4j')
+        } finally {
+          neoSession.close()
+        }
       })
 
-      it('should be able to connect single instance using neo4j scheme', done => {
+      it('should be able to connect single instance using neo4j scheme', async () => {
         if (!databaseSupportsBoltV4()) {
-          done()
           return
         }
 
-        const neoDriver = neo4j.driver('neo4j://localhost', sharedNeo4j.authToken)
+        const neoDriver = neo4j.driver(
+          'neo4j://localhost',
+          sharedNeo4j.authToken
+        )
         const neoSession = driver.session({ db: 'neo4j' })
 
-        neoSession
-          .run('CREATE (n { db: $db }) RETURN n.db', { db: 'neo4j' })
-          .then(result => {
-            expect(result.records.length).toBe(1)
-            expect(result.records[0].get('n.db')).toBe('neo4j')
-            done()
-          })
-          .catch(error => {
-            done.fail(error)
-          })
-          .finally(() => neoSession.close())
+        try {
+          const result = await session.run(
+            'CREATE (n { db: $db }) RETURN n.db',
+            { db: 'neo4j' }
+          )
 
-        neoDriver.close()
+          expect(result.records.length).toBe(1)
+          expect(result.records[0].get('n.db')).toBe('neo4j')
+        } finally {
+          neoSession.close()
+          neoDriver.close()
+        }
       })
     })
   })
