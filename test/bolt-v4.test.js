@@ -118,6 +118,23 @@ describe('Bolt V4 API', () => {
             done()
           })
       })
+
+      it('should return db.name as null in result summary', async () => {
+        if (databaseSupportsBoltV4()) {
+          return
+        }
+
+        const session = driver.session()
+
+        try {
+          const result = await session.readTransaction(tx => tx.run('RETURN 1'))
+
+          expect(result.summary.database).toBeTruthy()
+          expect(result.summary.database.name).toBeNull()
+        } finally {
+          session.close()
+        }
+      })
     })
 
     it('should fail if connecting to a non-existing database', async () => {
@@ -138,7 +155,17 @@ describe('Bolt V4 API', () => {
       }
     })
 
+    describe('default database', function () {
+      it('should return database name in summary', async () => {
+        await testDatabaseNameInSummary(null)
+      })
+    })
+
     describe('neo4j database', () => {
+      it('should return database name in summary', async () => {
+        await testDatabaseNameInSummary('neo4j')
+      })
+
       it('should be able to create a node', async () => {
         if (!databaseSupportsBoltV4()) {
           return
@@ -185,6 +212,27 @@ describe('Bolt V4 API', () => {
       })
     })
   })
+
+  async function testDatabaseNameInSummary (dbname) {
+    if (!databaseSupportsBoltV4()) {
+      return
+    }
+
+    const neoSession = dbname
+      ? driver.session({ db: dbname })
+      : driver.session()
+
+    try {
+      const result = await neoSession.run('CREATE (n { id: $id }) RETURN n', {
+        id: 5
+      })
+
+      expect(result.summary.database).toBeTruthy()
+      expect(result.summary.database.name).toBe(dbname || 'neo4j')
+    } finally {
+      neoSession.close()
+    }
+  }
 
   function expectBoltV4NotSupportedError (error) {
     expect(
