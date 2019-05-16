@@ -481,7 +481,6 @@ describe('direct driver with stub server', () => {
             result => fail('expected an error'),
             error => {
               expect(error.code).toBe(SERVICE_UNAVAILABLE)
-              expect(error.message).toContain('Connection was closed by server')
             }
           )
         )
