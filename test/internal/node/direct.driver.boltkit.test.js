@@ -401,7 +401,6 @@ describe('direct driver with stub server', () => {
         writeTx.run('CREATE (n {name: \'Bob\'})').then(() =>
           writeTx.commit().then(result => fail('expected an error'), (error) => {
             expect(error.code).toBe(SERVICE_UNAVAILABLE);
-            expect(error.message).toContain('Connection was closed by server');
           })
         ).finally(() =>
           session.close(() => {
