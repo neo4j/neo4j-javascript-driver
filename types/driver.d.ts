@@ -67,9 +67,9 @@ declare interface Driver {
     bookmarks,
     db
   }?: {
-  defaultAccessMode?: SessionMode
-  bookmarks?: string | string[]
-  db?: string
+    defaultAccessMode?: SessionMode
+    bookmarks?: string | string[]
+    db?: string
   }): Session
 
   close(): void

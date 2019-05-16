@@ -22,33 +22,32 @@ import { newError, SESSION_EXPIRED } from './error'
 import { LoadBalancer } from './internal/connection-providers'
 import LeastConnectedLoadBalancingStrategy from './internal/least-connected-load-balancing-strategy'
 import ConnectionErrorHandler from './internal/connection-error-handler'
-import ConfiguredHostNameResolver from './internal/resolver/configured-host-name-resolver'
-import { HostNameResolver } from './internal/node'
+import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
 
 /**
  * A driver that supports routing in a causal cluster.
  * @private
  */
 class RoutingDriver extends Driver {
-  constructor (hostPort, routingContext, userAgent, token = {}, config = {}) {
-    super(hostPort, userAgent, token, validateConfig(config))
+  constructor (address, routingContext, userAgent, token = {}, config = {}) {
+    super(address, userAgent, token, validateConfig(config))
     this._routingContext = routingContext
   }
 
   _afterConstruction () {
     this._log.info(
-      `Routing driver ${this._id} created for server address ${this._hostPort}`
+      `Routing driver ${this._id} created for server address ${this._address}`
     )
   }
 
-  _createConnectionProvider (hostPort, connectionPool, driverOnErrorCallback) {
+  _createConnectionProvider (address, connectionPool, driverOnErrorCallback) {
     const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(
       this._config,
       connectionPool
     )
     const resolver = createHostNameResolver(this._config)
     return new LoadBalancer(
-      hostPort,
+      address,
       this._routingContext,
       connectionPool,
       loadBalancingStrategy,
@@ -63,32 +62,32 @@ class RoutingDriver extends Driver {
     // result in SESSION_EXPIRED because there might still exist other servers capable of serving the request
     return new ConnectionErrorHandler(
       SESSION_EXPIRED,
-      (error, hostPort) => this._handleUnavailability(error, hostPort),
-      (error, hostPort) => this._handleWriteFailure(error, hostPort)
+      (error, address) => this._handleUnavailability(error, address),
+      (error, address) => this._handleWriteFailure(error, address)
     )
   }
 
-  _handleUnavailability (error, hostPort) {
+  _handleUnavailability (error, address) {
     this._log.warn(
-      `Routing driver ${this._id} will forget ${hostPort} because of an error ${
+      `Routing driver ${this._id} will forget ${address} because of an error ${
         error.code
       } '${error.message}'`
     )
-    this._connectionProvider.forget(hostPort)
+    this._connectionProvider.forget(address)
     return error
   }
 
-  _handleWriteFailure (error, hostPort) {
+  _handleWriteFailure (error, address) {
     this._log.warn(
       `Routing driver ${
         this._id
-      } will forget writer ${hostPort} because of an error ${error.code} '${
+      } will forget writer ${address} because of an error ${error.code} '${
         error.message
       }'`
     )
-    this._connectionProvider.forgetWriter(hostPort)
+    this._connectionProvider.forgetWriter(address)
     return newError(
-      'No longer possible to write to server at ' + hostPort,
+      'No longer possible to write to server at ' + address,
       SESSION_EXPIRED
     )
   }
@@ -107,13 +106,11 @@ class RoutingDriver extends Driver {
 
 /**
  * @private
- * @returns {HostNameResolver} new resolver.
+ * @returns {ConfiguredCustomResolver} new custom resolver that wraps the passed-in resolver function.
+ *              If resolved function is not specified, it defaults to an identity resolver.
  */
 function createHostNameResolver (config) {
-  if (config.resolver) {
-    return new ConfiguredHostNameResolver(config.resolver)
-  }
-  return new HostNameResolver()
+  return new ConfiguredCustomResolver(config.resolver)
 }
 
 /**

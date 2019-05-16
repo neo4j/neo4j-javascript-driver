@@ -71,17 +71,17 @@ import Transaction from './transaction'
 import { Parameters } from './statement-runner'
 
 declare const auth: {
-basic: (username: string, password: string, realm?: string) => AuthToken
+  basic: (username: string, password: string, realm?: string) => AuthToken
 
-kerberos: (base64EncodedTicket: string) => AuthToken
+  kerberos: (base64EncodedTicket: string) => AuthToken
 
-custom: (
-  principal: string,
-  credentials: string,
-  realm: string,
-  scheme: string,
-  parameters?: Parameters
-) => AuthToken
+  custom: (
+    principal: string,
+    credentials: string,
+    realm: string,
+    scheme: string,
+    parameters?: Parameters
+  ) => AuthToken
 }
 
 declare function driver(
@@ -91,51 +91,51 @@ declare function driver(
 ): Driver
 
 declare const types: {
-Node: Node
-Relationship: Relationship
-UnboundRelationship: UnboundRelationship
-PathSegment: PathSegment
-Path: Path
-Result: Result
-ResultSummary: ResultSummary
-Record: Record
-Point: typeof Point
-Duration: typeof Duration
-LocalTime: typeof LocalTime
-Time: typeof Time
-Date: typeof Date
-LocalDateTime: typeof LocalDateTime
-DateTime: typeof DateTime
+  Node: Node
+  Relationship: Relationship
+  UnboundRelationship: UnboundRelationship
+  PathSegment: PathSegment
+  Path: Path
+  Result: Result
+  ResultSummary: ResultSummary
+  Record: Record
+  Point: typeof Point
+  Duration: typeof Duration
+  LocalTime: typeof LocalTime
+  Time: typeof Time
+  Date: typeof Date
+  LocalDateTime: typeof LocalDateTime
+  DateTime: typeof DateTime
 }
 
 declare const session: {
-READ: typeof READ
-WRITE: typeof WRITE
+  READ: typeof READ
+  WRITE: typeof WRITE
 }
 
 declare const error: {
-SERVICE_UNAVAILABLE: typeof SERVICE_UNAVAILABLE
-SESSION_EXPIRED: typeof SESSION_EXPIRED
-PROTOCOL_ERROR: typeof PROTOCOL_ERROR
+  SERVICE_UNAVAILABLE: typeof SERVICE_UNAVAILABLE
+  SESSION_EXPIRED: typeof SESSION_EXPIRED
+  PROTOCOL_ERROR: typeof PROTOCOL_ERROR
 }
 
 declare const integer: {
-toNumber: typeof toNumber
-toString: typeof toString
-inSafeRange: typeof inSafeRange
+  toNumber: typeof toNumber
+  toString: typeof toString
+  inSafeRange: typeof inSafeRange
 }
 
 declare const spatial: {
-isPoint: typeof isPoint
+  isPoint: typeof isPoint
 }
 
 declare const temporal: {
-isDuration: typeof isDuration
-isLocalTime: typeof isLocalTime
-isTime: typeof isTime
-isDate: typeof isDate
-isLocalDateTime: typeof isLocalDateTime
-isDateTime: typeof isDateTime
+  isDuration: typeof isDuration
+  isLocalTime: typeof isLocalTime
+  isTime: typeof isTime
+  isDate: typeof isDate
+  isLocalDateTime: typeof isLocalDateTime
+  isDateTime: typeof isDateTime
 }
 
 /*
@@ -148,56 +148,56 @@ isDateTime: typeof isDateTime
 */
 
 declare const forExport: {
-driver: typeof driver
-int: typeof int
-isInt: typeof isInt
-integer: typeof integer
-auth: typeof auth
-types: typeof types
-session: typeof session
-error: typeof error
-spatial: typeof spatial
-temporal: typeof temporal
-Driver: Driver
-AuthToken: AuthToken
-Config: Config
-EncryptionLevel: EncryptionLevel
-TrustStrategy: TrustStrategy
-SessionMode: SessionMode
-Neo4jError: Neo4jError
-Node: Node
-Relationship: Relationship
-UnboundRelationship: UnboundRelationship
-PathSegment: PathSegment
-Path: Path
-Integer: Integer
-Record: Record
-Result: Result
-StatementResult: StatementResult
-Observer: Observer
-ResultSummary: ResultSummary
-Plan: Plan
-ProfiledPlan: ProfiledPlan
-StatementStatistic: StatementStatistic
-Notification: Notification
-ServerInfo: ServerInfo
-NotificationPosition: NotificationPosition
-Session: Session
-Transaction: Transaction
-Point: Point
-isPoint: typeof isPoint
-Duration: Duration
-LocalTime: LocalTime
-Time: Time
-Date: Date
-LocalDateTime: LocalDateTime
-DateTime: DateTime
-isDuration: typeof isDuration
-isLocalTime: typeof isLocalTime
-isTime: typeof isTime
-isDate: typeof isDate
-isLocalDateTime: typeof isLocalDateTime
-isDateTime: typeof isDateTime
+  driver: typeof driver
+  int: typeof int
+  isInt: typeof isInt
+  integer: typeof integer
+  auth: typeof auth
+  types: typeof types
+  session: typeof session
+  error: typeof error
+  spatial: typeof spatial
+  temporal: typeof temporal
+  Driver: Driver
+  AuthToken: AuthToken
+  Config: Config
+  EncryptionLevel: EncryptionLevel
+  TrustStrategy: TrustStrategy
+  SessionMode: SessionMode
+  Neo4jError: Neo4jError
+  Node: Node
+  Relationship: Relationship
+  UnboundRelationship: UnboundRelationship
+  PathSegment: PathSegment
+  Path: Path
+  Integer: Integer
+  Record: Record
+  Result: Result
+  StatementResult: StatementResult
+  Observer: Observer
+  ResultSummary: ResultSummary
+  Plan: Plan
+  ProfiledPlan: ProfiledPlan
+  StatementStatistic: StatementStatistic
+  Notification: Notification
+  ServerInfo: ServerInfo
+  NotificationPosition: NotificationPosition
+  Session: Session
+  Transaction: Transaction
+  Point: Point
+  isPoint: typeof isPoint
+  Duration: Duration
+  LocalTime: LocalTime
+  Time: Time
+  Date: Date
+  LocalDateTime: LocalDateTime
+  DateTime: DateTime
+  isDuration: typeof isDuration
+  isLocalTime: typeof isLocalTime
+  isTime: typeof isTime
+  isDate: typeof isDate
+  isLocalDateTime: typeof isLocalDateTime
+  isDateTime: typeof isDateTime
 }
 
 export {

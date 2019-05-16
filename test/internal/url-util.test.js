@@ -257,15 +257,12 @@ describe('url-util', () => {
       ipv6: true
     })
 
-    verifyUrl(
-      'neo4j://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa',
-      {
-        scheme: 'neo4j',
-        host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
-        query: { animal: 'apa' },
-        ipv6: true
-      }
-    )
+    verifyUrl('neo4j://[2a05:d018:270:f400:6d8c:d425:c5f:97f3]?animal=apa', {
+      scheme: 'neo4j',
+      host: '2a05:d018:270:f400:6d8c:d425:c5f:97f3',
+      query: { animal: 'apa' },
+      ipv6: true
+    })
 
     verifyUrl('neo4j://[fe80::1%lo0]?animal=apa', {
       scheme: 'neo4j',
@@ -663,9 +660,7 @@ describe('url-util', () => {
       parse('bolt://localhost:8080/?key=value1&key=value2')
     ).toThrow()
 
-    expect(() =>
-      parse('neo4j://10.10.127.5?key=value1&key=value2')
-    ).toThrow()
+    expect(() => parse('neo4j://10.10.127.5?key=value1&key=value2')).toThrow()
     expect(() =>
       parse('neo4j://10.10.127.5:8080?key=value1&key=value2')
     ).toThrow()

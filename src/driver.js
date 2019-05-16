@@ -36,14 +36,14 @@ const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000 // 1 hour
 
 /**
  * Constant that represents read session access mode.
- * Should be used like this: `driver.session(neo4j.session.READ)`.
+ * Should be used like this: `driver.session({ defaultAccessMode: neo4j.session.READ })`.
  * @type {string}
  */
 const READ = ACCESS_MODE_READ
 
 /**
  * Constant that represents write session access mode.
- * Should be used like this: `driver.session(neo4j.session.WRITE)`.
+ * Should be used like this: `driver.session({ defaultAccessMode: neo4j.session.WRITE })`.
  * @type {string}
  */
 const WRITE = ACCESS_MODE_WRITE
@@ -64,17 +64,17 @@ class Driver {
   /**
    * You should not be calling this directly, instead use {@link driver}.
    * @constructor
-   * @param {string} hostPort
+   * @param {ServerAddress} address
    * @param {string} userAgent
    * @param {object} authToken
    * @param {object} config
    * @protected
    */
-  constructor (hostPort, userAgent, authToken = {}, config = {}) {
+  constructor (address, userAgent, authToken = {}, config = {}) {
     sanitizeConfig(config)
 
     this._id = idGenerator++
-    this._hostPort = hostPort
+    this._address = address
     this._userAgent = userAgent
     this._openConnections = {}
     this._authToken = authToken
@@ -103,7 +103,7 @@ class Driver {
    */
   _afterConstruction () {
     this._log.info(
-      `Direct driver ${this._id} created for server address ${this._hostPort}`
+      `Direct driver ${this._id} created for server address ${this._address}`
     )
   }
 
@@ -123,14 +123,14 @@ class Driver {
    * @return {Promise<Connection>} promise resolved with a new connection or rejected when failed to connect.
    * @access private
    */
-  _createConnection (hostPort, release) {
+  _createConnection (address, release) {
     const connection = Connection.create(
-      hostPort,
+      address,
       this._config,
       this._createConnectionErrorHandler(),
       this._log
     )
-    connection._release = () => release(hostPort, connection)
+    connection._release = () => release(address, connection)
     this._openConnections[connection.id] = connection
 
     return connection.connect(this._userAgent, this._authToken).catch(error => {
@@ -138,6 +138,8 @@ class Driver {
         // notify Driver.onError callback about connection initialization errors
         this.onError(error)
       }
+      // let's destroy this connection
+      this._destroyConnection(connection)
       // propagate the error because connection failed to connect / initialize
       throw error
     })
@@ -213,9 +215,9 @@ class Driver {
   }
 
   // Extension point
-  _createConnectionProvider (hostPort, connectionPool, driverOnErrorCallback) {
+  _createConnectionProvider (address, connectionPool, driverOnErrorCallback) {
     return new DirectConnectionProvider(
-      hostPort,
+      address,
       connectionPool,
       driverOnErrorCallback
     )
@@ -230,7 +232,7 @@ class Driver {
     if (!this._connectionProvider) {
       const driverOnErrorCallback = this._driverOnErrorCallback.bind(this)
       this._connectionProvider = this._createConnectionProvider(
-        this._hostPort,
+        this._address,
         this._pool,
         driverOnErrorCallback
       )

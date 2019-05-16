@@ -46,13 +46,6 @@ export default class RoutingTable {
     this.writers = removeFromArray(this.writers, address)
   }
 
-  serversDiff (otherRoutingTable) {
-    const oldServers = new Set(this._allServers())
-    const newServers = otherRoutingTable._allServers()
-    newServers.forEach(newServer => oldServers.delete(newServer))
-    return Array.from(oldServers)
-  }
-
   /**
    * Check if this routing table is fresh to perform the required operation.
    * @param {string} accessMode the type of operation. Allowed values are {@link READ} and {@link WRITE}.
@@ -67,7 +60,7 @@ export default class RoutingTable {
     )
   }
 
-  _allServers () {
+  allServers () {
     return [...this.routers, ...this.readers, ...this.writers]
   }
 
@@ -90,5 +83,5 @@ export default class RoutingTable {
  * @return {Array} new filtered array.
  */
 function removeFromArray (array, element) {
-  return array.filter(item => item !== element)
+  return array.filter(item => item.asKey() !== element.asKey())
 }

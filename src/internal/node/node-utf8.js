@@ -91,10 +91,12 @@ function newNodeJSBuffer (str) {
   // use static factory function present in newer NodeJS versions to create a buffer containing the given string
   // or fallback to the old, potentially deprecated constructor
 
-  return typeof node.Buffer.from === 'function'
-    ? node.Buffer.from(str, 'utf8')
-    : // eslint-disable-next-line node/no-deprecated-api
-    new node.Buffer(str, 'utf8')
+  if (typeof node.Buffer.from === 'function') {
+    return node.Buffer.from(str, 'utf8')
+  } else {
+    // eslint-disable-next-line node/no-deprecated-api
+    return new node.Buffer(str, 'utf8')
+  }
 }
 
 export default {

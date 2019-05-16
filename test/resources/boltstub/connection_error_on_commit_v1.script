@@ -1,0 +1,15 @@
+!: BOLT 1
+!: AUTO INIT
+!: AUTO RESET
+
+C: RUN "BEGIN" {}
+   PULL_ALL
+   RUN "CREATE (n {name: 'Bob'})" {}
+   PULL_ALL
+S: SUCCESS {}
+   SUCCESS {}
+   SUCCESS {}
+   SUCCESS {}
+C: RUN "COMMIT" {}
+   PULL_ALL
+S: <EXIT>

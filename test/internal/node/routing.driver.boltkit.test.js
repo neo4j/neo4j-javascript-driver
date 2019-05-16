@@ -23,6 +23,7 @@ import boltStub from '../bolt-stub'
 import RoutingTable from '../../../src/internal/routing-table'
 import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../../src/error'
 import lolex from 'lolex'
+import ServerAddress from '../../../src/internal/server-address'
 
 describe('routing driver with stub server', () => {
   let originalTimeout
@@ -100,7 +101,21 @@ describe('routing driver with stub server', () => {
         ])
         assertHasRouters(driver, [
           '[ff02::1]:9001',
-          '[684D:1111:222:3333:4444:5555:6:77]:9002',
+          '[684d:1111:222:3333:4444:5555:6:77]:9002',
+          '[::1]:9003'
+        ])
+
+        expect(
+          hasAddressInConnectionPool(driver, '127.0.0.1:9001')
+        ).toBeTruthy()
+        assertHasReaders(driver, ['127.0.0.1:9001', '[::1]:9001'])
+        assertHasWriters(driver, [
+          '[2001:db8:a0b:12f0::1]:9002',
+          '[3731:54:65fe:2::a7]:9003'
+        ])
+        assertHasRouters(driver, [
+          '[ff02::1]:9001',
+          '[684d:1111:222:3333:4444:5555:6:77]:9002',
           '[::1]:9003'
         ])
 
@@ -236,11 +251,11 @@ describe('routing driver with stub server', () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       // When
-      const session = driver.session({ defaultAccessMode: READ })
+      const session = driver.session({ defaultAccessMode: neo4j.READ })
       session
         .run('MATCH (n) RETURN n.name')
         .catch(err => {
-          expect(err.code).toEqual(neo4j.error.PROTOCOL_ERROR)
+          expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 
           session.close()
           driver.close()
@@ -695,9 +710,11 @@ describe('routing driver with stub server', () => {
     boltStub.run(() => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
-      const session1 = driver.session({ defaultAccessMode: READ })
+      const session1 = driver.session({ defaultAccessMode: neo4j.session.READ })
       session1.run('MATCH (n) RETURN n.name').catch(() => {
-        const session2 = driver.session({ defaultAccessMode: READ })
+        const session2 = driver.session({
+          defaultAccessMode: neo4j.session.READ
+        })
         session2.run('MATCH (n) RETURN n.name').then(() => {
           driver.close()
           seedServer.exit(code1 => {
@@ -730,12 +747,8 @@ describe('routing driver with stub server', () => {
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').catch(err => {
         expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
-        expect(
-          err.message.indexOf(
-            'Make sure you are connecting to a causal cluster'
-          ) > 0
-        ).toBeTruthy()
-        assertHasRouters(driver, ['127.0.0.1:9001'])
+        expect(err.message).toContain('Could not perform discovery')
+        assertHasRouters(driver, [])
         session.close()
         driver.close()
         server.exit(code => {
@@ -1180,49 +1193,49 @@ describe('routing driver with stub server', () => {
     })
   })
 
-  it('should throw protocol error when no records', done => {
+  it('should throw error when no records', done => {
     testForProtocolError(
       './test/resources/boltstub/empty_get_servers_response.script',
       done
     )
   })
 
-  it('should throw protocol error when no TTL entry', done => {
+  it('should throw error when no TTL entry', done => {
     testForProtocolError(
       './test/resources/boltstub/no_ttl_entry_get_servers.script',
       done
     )
   })
 
-  it('should throw protocol error when no servers entry', done => {
+  it('should throw error when no servers entry', done => {
     testForProtocolError(
       './test/resources/boltstub/no_servers_entry_get_servers.script',
       done
     )
   })
 
-  it('should throw protocol error when multiple records', done => {
+  it('should throw error when multiple records', done => {
     testForProtocolError(
       './test/resources/boltstub/unparsable_ttl_get_servers.script',
       done
     )
   })
 
-  it('should throw protocol error on unparsable record', done => {
+  it('should throw error on unparsable record', done => {
     testForProtocolError(
       './test/resources/boltstub/unparsable_servers_get_servers.script',
       done
     )
   })
 
-  it('should throw protocol error when no routers', done => {
+  it('should throw error when no routers', done => {
     testForProtocolError(
       './test/resources/boltstub/no_routers_get_servers.script',
       done
     )
   })
 
-  it('should throw protocol error when no readers', done => {
+  it('should throw error when no readers', done => {
     testForProtocolError(
       './test/resources/boltstub/no_readers_get_servers.script',
       done
@@ -1890,8 +1903,8 @@ describe('routing driver with stub server', () => {
     }
 
     const router1 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
-      9010
+      './test/resources/boltstub/acquire_endpoints_and_exit.script',
+      9011
     )
     // start new router on a different port to emulate host name resolution
     // this router uses different script that contains itself as reader
@@ -2459,13 +2472,13 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const resolverFunction = address => {
-        if (address === '127.0.0.1:9001') {
-          return ['127.0.0.1:9010', '127.0.0.1:9011', '127.0.0.1:9042']
+        if (address === '127.0.0.1:9000') {
+          return ['127.0.0.1:9010', '127.0.0.1:9001', '127.0.0.1:9042']
         }
         throw new Error(`Unexpected address ${address}`)
       }
 
-      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001', {
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9000', {
         resolver: resolverFunction
       })
 
@@ -2681,6 +2694,64 @@ describe('routing driver with stub server', () => {
     })
   })
 
+  it('should revert to initial router if the only known router returns invalid routing table', done => {
+    if (!boltStub.supported) {
+      done()
+      return
+    }
+
+    // the first seed to get the routing table
+    // the returned routing table includes a non-reachable read-server and points to only one router
+    // which will return an invalid routing table
+    const router1 = boltStub.start(
+      './test/resources/boltstub/acquire_endpoints_v3_point_to_empty_router_and_exit.script',
+      9001
+    )
+    // returns an empty routing table
+    const router2 = boltStub.start(
+      './test/resources/boltstub/acquire_endpoints_v3_empty.script',
+      9004
+    )
+    // returns a normal routing table
+    const router3 = boltStub.start(
+      './test/resources/boltstub/acquire_endpoints_v3_three_servers_and_exit.script',
+      9003
+    )
+    // ordinary read server
+    const reader = boltStub.start(
+      './test/resources/boltstub/read_server_v3_read_tx.script',
+      9002
+    )
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('neo4j://my.virtual.host:8080', {
+        resolver: address => ['127.0.0.1:9001', '127.0.0.1:9003']
+      })
+
+      const session = driver.session({ defaultAccessMode: READ })
+      session
+        .readTransaction(tx => tx.run('MATCH (n) RETURN n.name'))
+        .then(res => {
+          session.close()
+          driver.close()
+          router1.exit(code1 => {
+            router2.exit(code2 => {
+              router3.exit(code3 => {
+                reader.exit(code4 => {
+                  expect(code1).toEqual(0)
+                  expect(code2).toEqual(0)
+                  expect(code3).toEqual(0)
+                  expect(code4).toEqual(0)
+                  done()
+                })
+              })
+            })
+          })
+        })
+        .catch(error => done.fail(error))
+    })
+  })
+
   function testAddressPurgeOnDatabaseError (query, accessMode, done) {
     if (!boltStub.supported) {
       done()
@@ -2808,10 +2879,7 @@ describe('routing driver with stub server', () => {
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver(
-        'neo4j://127.0.0.1:9001',
-        driverConfig
-      )
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001', driverConfig)
 
       const session = driver.session({ defaultAccessMode: READ })
       session
@@ -2849,7 +2917,7 @@ describe('routing driver with stub server', () => {
 
       const session = driver.session()
       session.run('MATCH (n) RETURN n.name').catch(error => {
-        expect(error.code).toEqual(neo4j.error.PROTOCOL_ERROR)
+        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 
         session.close()
         driver.close()
@@ -2925,31 +2993,49 @@ describe('routing driver with stub server', () => {
   }
 
   function hasAddressInConnectionPool (driver, address) {
-    return getConnectionPool(driver).has(address)
+    return getConnectionPool(driver).has(ServerAddress.fromUrl(address))
   }
 
   function hasRouterInRoutingTable (driver, expectedRouter) {
-    return getRoutingTable(driver).routers.indexOf(expectedRouter) > -1
+    return (
+      getRoutingTable(driver).routers.indexOf(
+        ServerAddress.fromUrl(expectedRouter)
+      ) > -1
+    )
   }
 
   function hasReaderInRoutingTable (driver, expectedReader) {
-    return getRoutingTable(driver).readers.indexOf(expectedReader) > -1
+    return (
+      getRoutingTable(driver).readers.indexOf(
+        ServerAddress.fromUrl(expectedReader)
+      ) > -1
+    )
   }
 
   function hasWriterInRoutingTable (driver, expectedWriter) {
-    return getRoutingTable(driver).writers.indexOf(expectedWriter) > -1
+    return (
+      getRoutingTable(driver).writers.indexOf(
+        ServerAddress.fromUrl(expectedWriter)
+      ) > -1
+    )
   }
 
   function assertHasRouters (driver, expectedRouters) {
-    expect(getRoutingTable(driver).routers).toEqual(expectedRouters)
+    expect(getRoutingTable(driver).routers.map(s => s.asHostPort())).toEqual(
+      expectedRouters
+    )
   }
 
   function assertHasReaders (driver, expectedReaders) {
-    expect(getRoutingTable(driver).readers).toEqual(expectedReaders)
+    expect(getRoutingTable(driver).readers.map(s => s.asHostPort())).toEqual(
+      expectedReaders
+    )
   }
 
   function assertHasWriters (driver, expectedWriters) {
-    expect(getRoutingTable(driver).writers).toEqual(expectedWriters)
+    expect(getRoutingTable(driver).writers.map(s => s.asHostPort())).toEqual(
+      expectedWriters
+    )
   }
 
   function setUpMemorizingRoutingTable (driver) {
@@ -2962,10 +3048,14 @@ describe('routing driver with stub server', () => {
 
   function setupFakeHostNameResolution (driver, seedRouter, resolvedAddresses) {
     const connectionProvider = driver._getOrCreateConnectionProvider()
-    connectionProvider._hostNameResolver = new FakeHostNameResolver(
-      seedRouter,
-      resolvedAddresses
-    )
+    connectionProvider._hostNameResolver._resolverFunction = function (address) {
+      if (address === seedRouter) {
+        return Promise.resolve(resolvedAddresses)
+      }
+      return Promise.reject(
+        new Error('Unexpected seed router address ' + address)
+      )
+    }
   }
 
   function getConnectionPool (driver) {
@@ -3097,22 +3187,8 @@ describe('routing driver with stub server', () => {
     }
 
     assertForgotRouters (expectedRouters) {
-      expect(this._forgottenRouters).toEqual(expectedRouters)
-    }
-  }
-
-  class FakeHostNameResolver {
-    constructor (seedRouter, resolvedAddresses) {
-      this._seedRouter = seedRouter
-      this._resolvedAddresses = resolvedAddresses
-    }
-
-    resolve (seedRouter) {
-      if (seedRouter === this._seedRouter) {
-        return Promise.resolve(this._resolvedAddresses)
-      }
-      return Promise.reject(
-        new Error('Unexpected seed router address ' + seedRouter)
+      expect(this._forgottenRouters.map(s => s.asHostPort())).toEqual(
+        expectedRouters
       )
     }
   }

@@ -37,15 +37,15 @@ export default class ConnectionErrorHandler {
   /**
    * Handle and transform the error.
    * @param {Neo4jError} error the original error.
-   * @param {string} hostPort the host and port of the connection where the error happened.
+   * @param {ServerAddress} address the address of the connection where the error happened.
    * @return {Neo4jError} new error that should be propagated to the user.
    */
-  handleAndTransformError (error, hostPort) {
+  handleAndTransformError (error, address) {
     if (isAvailabilityError(error)) {
-      return this._handleUnavailability(error, hostPort)
+      return this._handleUnavailability(error, address)
     }
     if (isFailureToWrite(error)) {
-      return this._handleWriteFailure(error, hostPort)
+      return this._handleWriteFailure(error, address)
     }
     return error
   }

@@ -19,7 +19,7 @@
 
 import { ACCESS_MODE_READ } from './constants'
 import { int } from '../integer'
-import { assertString, isString } from './util'
+import { assertString } from './util'
 
 /* eslint-disable no-unused-vars */
 // Signature bytes for each request message type

@@ -55,6 +55,7 @@ import {
   LocalTime,
   Time
 } from './temporal-types'
+import ServerAddress from './internal/server-address'
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -241,7 +242,7 @@ function driver (url, authToken, config = {}) {
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
   if (parsedUrl.scheme === 'neo4j') {
     return new RoutingDriver(
-      parsedUrl.hostAndPort,
+      ServerAddress.fromUrl(parsedUrl.hostAndPort),
       parsedUrl.query,
       USER_AGENT,
       authToken,
@@ -253,7 +254,12 @@ function driver (url, authToken, config = {}) {
         `Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`
       )
     }
-    return new Driver(parsedUrl.hostAndPort, USER_AGENT, authToken, config)
+    return new Driver(
+      ServerAddress.fromUrl(parsedUrl.hostAndPort),
+      USER_AGENT,
+      authToken,
+      config
+    )
   } else if (parsedUrl.scheme === 'http' || parsedUrl.scheme === 'https') {
     return new HttpDriver(parsedUrl, USER_AGENT, authToken, config)
   } else {

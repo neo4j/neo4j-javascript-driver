@@ -20,16 +20,18 @@
 import Driver from '../../driver'
 import HttpSession from './http-session'
 import HttpSessionTracker from './http-session-tracker'
+import ServerAddress from '../server-address'
 
 export default class HttpDriver extends Driver {
-  constructor (hostPort, userAgent, token, config) {
-    super(hostPort, userAgent, token, config)
+  constructor (url, userAgent, token, config) {
+    super(ServerAddress.fromUrl(url.hostAndPort), userAgent, token, config)
+    this._url = url
     this._sessionTracker = new HttpSessionTracker()
   }
 
   session () {
     return new HttpSession({
-      url: this._hostPort,
+      url: this._url,
       authToken: this._authToken,
       config: this._config,
       sessionTracker: this._sessionTracker

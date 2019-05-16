@@ -19,6 +19,7 @@
 
 import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
 import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
+import ServerAddress from '../../src/internal/server-address'
 
 describe('ConnectionErrorHandler', () => {
   it('should return error code', () => {
@@ -29,13 +30,13 @@ describe('ConnectionErrorHandler', () => {
 
   it('should handle and transform availability errors', () => {
     const errors = []
-    const hostPorts = []
+    const addresses = []
     const transformedError = newError('Message', 'Code')
     const handler = new ConnectionErrorHandler(
       SERVICE_UNAVAILABLE,
-      (error, hostPort) => {
+      (error, address) => {
         errors.push(error)
-        hostPorts.push(hostPort)
+        addresses.push(address)
         return transformedError
       }
     )
@@ -47,28 +48,42 @@ describe('ConnectionErrorHandler', () => {
       'Neo.TransientError.General.DatabaseUnavailable'
     )
 
-    ;[error1, error2, error3].forEach((error, idx) => {
-      const newTransformedError = handler.handleAndTransformError(
-        error,
-        'localhost:' + idx
-      )
-      expect(newTransformedError).toEqual(transformedError)
-    })
+    const errorTransformed1 = handler.handleAndTransformError(
+      error1,
+      ServerAddress.fromUrl('localhost:0')
+    )
+    expect(errorTransformed1).toEqual(transformedError)
+
+    const errorTransformed2 = handler.handleAndTransformError(
+      error2,
+      ServerAddress.fromUrl('localhost:1')
+    )
+    expect(errorTransformed2).toEqual(transformedError)
+
+    const errorTransformed3 = handler.handleAndTransformError(
+      error3,
+      ServerAddress.fromUrl('localhost:2')
+    )
+    expect(errorTransformed3).toEqual(transformedError)
 
     expect(errors).toEqual([error1, error2, error3])
-    expect(hostPorts).toEqual(['localhost:0', 'localhost:1', 'localhost:2'])
+    expect(addresses).toEqual([
+      ServerAddress.fromUrl('localhost:0'),
+      ServerAddress.fromUrl('localhost:1'),
+      ServerAddress.fromUrl('localhost:2')
+    ])
   })
 
   it('should handle and transform failure to write errors', () => {
     const errors = []
-    const hostPorts = []
+    const addresses = []
     const transformedError = newError('Message', 'Code')
     const handler = new ConnectionErrorHandler(
       SERVICE_UNAVAILABLE,
       null,
-      (error, hostPort) => {
+      (error, address) => {
         errors.push(error)
-        hostPorts.push(hostPort)
+        addresses.push(address)
         return transformedError
       }
     )
@@ -79,15 +94,22 @@ describe('ConnectionErrorHandler', () => {
       'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase'
     )
 
-    ;[error1, error2].forEach((error, idx) => {
-      const newTransformedError = handler.handleAndTransformError(
-        error,
-        'localhost:' + idx
-      )
-      expect(newTransformedError).toEqual(transformedError)
-    })
+    const errorTransformed1 = handler.handleAndTransformError(
+      error1,
+      ServerAddress.fromUrl('localhost:0')
+    )
+    expect(errorTransformed1).toEqual(transformedError)
+
+    const errorTransformed2 = handler.handleAndTransformError(
+      error2,
+      ServerAddress.fromUrl('localhost:1')
+    )
+    expect(errorTransformed2).toEqual(transformedError)
 
     expect(errors).toEqual([error1, error2])
-    expect(hostPorts).toEqual(['localhost:0', 'localhost:1'])
+    expect(addresses).toEqual([
+      ServerAddress.fromUrl('localhost:0'),
+      ServerAddress.fromUrl('localhost:1')
+    ])
   })
 })

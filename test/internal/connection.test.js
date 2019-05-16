@@ -33,6 +33,7 @@ import testUtils from '../internal/test-utils'
 import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
+import ServerAddress from '../../src/internal/server-address'
 
 const ILLEGAL_MESSAGE = { signature: 42, fields: [] }
 const SUCCESS_MESSAGE = { signature: 0x70, fields: [{}] }
@@ -110,7 +111,7 @@ describe('Connection', () => {
     connection = new Connection(
       channel,
       new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
-      'localhost:7687',
+      ServerAddress.fromUrl('localhost:7687'),
       Logger.noOp()
     )
 
@@ -150,7 +151,7 @@ describe('Connection', () => {
     connection = new Connection(
       channel,
       new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
-      'localhost:7687',
+      ServerAddress.fromUrl('localhost:7687'),
       Logger.noOp()
     )
 
@@ -361,19 +362,19 @@ describe('Connection', () => {
 
   it('should handle and transform fatal errors', done => {
     const errors = []
-    const hostPorts = []
+    const addresses = []
     const transformedError = newError('Message', 'Code')
     const errorHandler = new ConnectionErrorHandler(
       SERVICE_UNAVAILABLE,
-      (error, hostPort) => {
+      (error, address) => {
         errors.push(error)
-        hostPorts.push(hostPort)
+        addresses.push(address)
         return transformedError
       }
     )
 
     connection = Connection.create(
-      'bolt://localhost',
+      ServerAddress.fromUrl('bolt://localhost'),
       {},
       errorHandler,
       Logger.noOp()
@@ -384,7 +385,7 @@ describe('Connection', () => {
         expect(error).toEqual(transformedError)
         expect(errors.length).toEqual(1)
         expect(errors[0].code).toEqual(SERVICE_UNAVAILABLE)
-        expect(hostPorts).toEqual([connection.hostPort])
+        expect(addresses).toEqual([connection.address])
         done()
       }
     })
@@ -520,7 +521,7 @@ describe('Connection', () => {
    */
   function createConnection (url, config, errorCode = null) {
     return Connection.create(
-      url,
+      ServerAddress.fromUrl(url),
       config || {},
       new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE),
       Logger.noOp()

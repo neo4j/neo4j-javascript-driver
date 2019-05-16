@@ -42,12 +42,12 @@ const ALLOWED_VALUES_TRUST = [
 export default class ChannelConfig {
   /**
    * @constructor
-   * @param {Url} url the URL for the channel to connect to.
+   * @param {ServerAddress} address the address for the channel to connect to.
    * @param {object} driverConfig the driver config provided by the user when driver is created.
    * @param {string} connectionErrorCode the default error code to use on connection errors.
    */
-  constructor (url, driverConfig, connectionErrorCode) {
-    this.url = url
+  constructor (address, driverConfig, connectionErrorCode) {
+    this.address = address
     this.encrypted = extractEncrypted(driverConfig)
     this.trust = extractTrust(driverConfig)
     this.trustedCertificates = extractTrustedCertificates(driverConfig)

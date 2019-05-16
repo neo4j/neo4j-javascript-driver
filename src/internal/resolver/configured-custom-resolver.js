@@ -16,18 +16,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import ServerAddress from '../server-address'
 
-import BaseHostNameResolver from './base-host-name-resolver'
+function resolveToSelf (address) {
+  return Promise.resolve([address])
+}
 
-export default class ConfiguredHostNameResolver extends BaseHostNameResolver {
+export default class ConfiguredCustomResolver {
   constructor (resolverFunction) {
-    super()
-    this._resolverFunction = resolverFunction
+    this._resolverFunction = resolverFunction || resolveToSelf
   }
 
   resolve (seedRouter) {
     return new Promise(resolve =>
-      resolve(this._resolverFunction(seedRouter))
+      resolve(this._resolverFunction(seedRouter.asHostPort()))
     ).then(resolved => {
       if (!Array.isArray(resolved)) {
         throw new TypeError(
@@ -35,7 +37,7 @@ export default class ConfiguredHostNameResolver extends BaseHostNameResolver {
             `Each address is '<host>:<port>'. Got: ${resolved}`
         )
       }
-      return resolved
+      return resolved.map(r => ServerAddress.fromUrl(r))
     })
   }
 }

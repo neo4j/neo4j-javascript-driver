@@ -29,6 +29,7 @@ import { ServerVersion } from '../src/internal/server-version'
 import { isString } from '../src/internal/util'
 import testUtils from './internal/test-utils'
 import { newError, PROTOCOL_ERROR, SESSION_EXPIRED } from '../src/error'
+import ServerAddress from '../src/internal/server-address'
 
 describe('session', () => {
   let driver
@@ -1219,7 +1220,7 @@ describe('session', () => {
 
   function idleConnectionCount (driver) {
     const connectionProvider = driver._connectionProvider
-    const address = connectionProvider._hostPort
+    const address = connectionProvider._address
     const connectionPool = connectionProvider._connectionPool
     const idleConnections = connectionPool._pools[address]
     return idleConnections.length
@@ -1274,7 +1275,7 @@ describe('session', () => {
 
   function numberOfAcquiredConnectionsFromPool () {
     const pool = driver._pool
-    return pool.activeResourceCount('localhost:7687')
+    return pool.activeResourceCount(ServerAddress.fromUrl('localhost:7687'))
   }
 
   function testConnectionTimeout (encrypted, done) {

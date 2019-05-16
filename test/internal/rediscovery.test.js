@@ -22,7 +22,7 @@ import RoutingUtil from '../../src/internal/routing-util'
 import { newError, PROTOCOL_ERROR } from '../../src/error'
 import Record from '../../src/record'
 import { int } from '../../src/integer'
-import RoutingTable from '../../src/internal/routing-table'
+import ServerAddress from '../../src/internal/server-address'
 
 const ROUTER_ADDRESS = 'neo4j://test.router.com'
 
@@ -151,14 +151,20 @@ describe('rediscovery', () => {
   })
 
   it('should return valid routing table with 1 router, 1 reader and 1 writer', done => {
-    testValidRoutingTable(['router1'], ['reader1'], ['writer1'], int(42), done)
+    testValidRoutingTable(
+      ['router1:7687'],
+      ['reader1:7687'],
+      ['writer1:7687'],
+      int(42),
+      done
+    )
   })
 
   it('should return valid routing table with 2 routers, 2 readers and 2 writers', done => {
     testValidRoutingTable(
-      ['router1', 'router2'],
-      ['reader1', 'reader2'],
-      ['writer1', 'writer2'],
+      ['router1:7687', 'router2:7687'],
+      ['reader1:7687', 'reader2:7687'],
+      ['writer1:7687', 'writer2:7687'],
       int(Date.now()),
       done
     )
@@ -166,9 +172,9 @@ describe('rediscovery', () => {
 
   it('should return valid routing table with 1 router, 3 readers and 1 writer', done => {
     testValidRoutingTable(
-      ['router1'],
-      ['reader1', 'reader2', 'reader3'],
-      ['writer1'],
+      ['router1:7687'],
+      ['reader1:7687', 'reader2:7687', 'reader3:7687'],
+      ['writer1:7687'],
       int(12345),
       done
     )
@@ -186,9 +192,9 @@ describe('rediscovery', () => {
       parseTtl: () => expires,
       parseServers: () => {
         return {
-          routers: routerAddresses,
-          readers: readerAddresses,
-          writers: writerAddresses
+          routers: routerAddresses.map(a => ServerAddress.fromUrl(a)),
+          readers: readerAddresses.map(a => ServerAddress.fromUrl(a)),
+          writers: writerAddresses.map(a => ServerAddress.fromUrl(a))
         }
       }
     })
@@ -199,13 +205,13 @@ describe('rediscovery', () => {
 
       expect(routingTable.expirationTime).toEqual(expires)
 
-      const allServers = routingTable.serversDiff(new RoutingTable()).sort()
+      const allServers = routingTable.allServers().sort()
       const allExpectedServers = [
         ...routerAddresses,
         ...readerAddresses,
         ...writerAddresses
       ].sort()
-      expect(allServers).toEqual(allExpectedServers)
+      expect(allServers.map(s => s.asHostPort())).toEqual(allExpectedServers)
 
       done()
     })

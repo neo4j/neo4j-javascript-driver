@@ -20,6 +20,7 @@
 import neo4j from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
+import { SERVICE_UNAVAILABLE } from '../../../src/error'
 
 describe('direct driver with stub server', () => {
   let originalTimeout
@@ -436,4 +437,65 @@ describe('direct driver with stub server', () => {
         .catch(error => done.fail(error))
     })
   })
+
+  describe('should fail if commit fails due to broken connection', () => {
+    it('v1', done => {
+      verifyFailureOnConnectionFailureWhenExplicitTransactionIsCommitted(
+        'v1',
+        done
+      )
+    })
+
+    it('v3', done => {
+      verifyFailureOnConnectionFailureWhenExplicitTransactionIsCommitted(
+        'v3',
+        done
+      )
+    })
+  })
+
+  function verifyFailureOnConnectionFailureWhenExplicitTransactionIsCommitted (
+    version,
+    done
+  ) {
+    if (!boltStub.supported) {
+      done()
+      return
+    }
+
+    const server = boltStub.start(
+      `./test/resources/boltstub/connection_error_on_commit_${version}.script`,
+      9001
+    )
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session()
+
+      const writeTx = session.beginTransaction()
+
+      writeTx
+        .run("CREATE (n {name: 'Bob'})")
+        .then(() =>
+          writeTx.commit().then(
+            result => fail('expected an error'),
+            error => {
+              expect(error.code).toBe(SERVICE_UNAVAILABLE)
+              expect(error.message).toContain('Connection was closed by server')
+            }
+          )
+        )
+        .then(() =>
+          session.close(() => {
+            driver.close()
+
+            server.exit(code => {
+              expect(code).toEqual(0)
+              done()
+            })
+          })
+        )
+        .catch(error => done.fail(error))
+    })
+  }
 })

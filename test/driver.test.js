@@ -235,8 +235,8 @@ describe('driver', () => {
 
     // Expect
     driver.onError = error => {
-      expect(error.message).toEqual(
-        `Server at localhost:7687 can't perform routing. Make sure you are connecting to a causal cluster`
+      expect(error.message).toContain(
+        'Could not perform discovery. No routing servers available.'
       )
       expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
       done()

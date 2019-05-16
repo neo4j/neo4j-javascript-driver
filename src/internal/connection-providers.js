@@ -23,6 +23,7 @@ import Session from '../session'
 import RoutingTable from './routing-table'
 import Rediscovery from './rediscovery'
 import RoutingUtil from './routing-util'
+import { HostNameResolver } from './node'
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 
@@ -43,15 +44,15 @@ class ConnectionProvider {
 }
 
 export class DirectConnectionProvider extends ConnectionProvider {
-  constructor (hostPort, connectionPool, driverOnErrorCallback) {
+  constructor (address, connectionPool, driverOnErrorCallback) {
     super()
-    this._hostPort = hostPort
+    this._address = address
     this._connectionPool = connectionPool
     this._driverOnErrorCallback = driverOnErrorCallback
   }
 
   acquireConnection (accessMode, db) {
-    const connectionPromise = this._connectionPool.acquire(this._hostPort)
+    const connectionPromise = this._connectionPool.acquire(this._address)
     return this._withAdditionalOnErrorCallback(
       connectionPromise,
       this._driverOnErrorCallback
@@ -61,7 +62,7 @@ export class DirectConnectionProvider extends ConnectionProvider {
 
 export class LoadBalancer extends ConnectionProvider {
   constructor (
-    hostPort,
+    address,
     routingContext,
     connectionPool,
     loadBalancingStrategy,
@@ -70,15 +71,16 @@ export class LoadBalancer extends ConnectionProvider {
     log
   ) {
     super()
-    this._seedRouter = hostPort
-    this._routingTable = new RoutingTable([this._seedRouter])
+    this._seedRouter = address
+    this._routingTable = new RoutingTable()
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext))
     this._connectionPool = connectionPool
     this._driverOnErrorCallback = driverOnErrorCallback
     this._loadBalancingStrategy = loadBalancingStrategy
     this._hostNameResolver = hostNameResolver
+    this._dnsResolver = new HostNameResolver()
     this._log = log
-    this._useSeedRouter = false
+    this._useSeedRouter = true
   }
 
   acquireConnection (accessMode, db) {
@@ -238,6 +240,20 @@ export class LoadBalancer extends ConnectionProvider {
     })
   }
 
+  _resolveSeedRouter (seedRouter) {
+    const customResolution = this._hostNameResolver.resolve(seedRouter)
+    const dnsResolutions = customResolution.then(resolvedAddresses => {
+      return Promise.all(
+        resolvedAddresses.map(address => {
+          return this._dnsResolver.resolve(address)
+        })
+      )
+    })
+    return dnsResolutions.then(results => {
+      return [].concat.apply([], results)
+    })
+  }
+
   _fetchRoutingTable (routerAddresses, routingTable) {
     return routerAddresses.reduce(
       (refreshedTablePromise, currentRouter, currentIndex) => {
@@ -260,10 +276,14 @@ export class LoadBalancer extends ConnectionProvider {
           return this._createSessionForRediscovery(currentRouter).then(
             session => {
               if (session) {
-                return this._rediscovery.lookupRoutingTableOnRouter(
-                  session,
-                  currentRouter
-                )
+                return this._rediscovery
+                  .lookupRoutingTableOnRouter(session, currentRouter)
+                  .catch(error => {
+                    this._log.warn(
+                      `unable to fetch routing table because of an error ${error}`
+                    )
+                    return null
+                  })
               } else {
                 // unable to acquire connection and create session towards the current router
                 // return null to signal that the next router should be tried
@@ -315,11 +335,8 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   _updateRoutingTable (newRoutingTable) {
-    const currentRoutingTable = this._routingTable
-
     // close old connections to servers not present in the new routing table
-    const staleServers = currentRoutingTable.serversDiff(newRoutingTable)
-    staleServers.forEach(server => this._connectionPool.purge(server))
+    this._connectionPool.keepAll(newRoutingTable.allServers())
 
     // make this driver instance aware of the new table
     this._routingTable = newRoutingTable

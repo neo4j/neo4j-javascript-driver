@@ -98,10 +98,10 @@ declare interface ServerInfo {
 }
 
 declare const statementType: {
-READ_ONLY: 'r'
-READ_WRITE: 'rw'
-WRITE_ONLY: 'w'
-SCHEMA_WRITE: 's'
+  READ_ONLY: 'r'
+  READ_WRITE: 'rw'
+  WRITE_ONLY: 'w'
+  SCHEMA_WRITE: 's'
 }
 
 export {

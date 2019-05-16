@@ -19,10 +19,10 @@
 
 import WebSocketChannel from '../../../src/internal/browser/browser-channel'
 import ChannelConfig from '../../../src/internal/channel-config'
-import urlUtil from '../../../src/internal/url-util'
 import { SERVICE_UNAVAILABLE } from '../../../src/error'
 import { setTimeoutMock } from '../timers-util'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../../../src/internal/util'
+import ServerAddress from '../../../src/internal/server-address'
 
 /* eslint-disable no-global-assign */
 describe('WebSocketChannel', () => {
@@ -77,10 +77,10 @@ describe('WebSocketChannel', () => {
         }
       }
 
-      const url = urlUtil.parseDatabaseUrl('bolt://localhost:7687')
+      const address = ServerAddress.fromUrl('bolt://localhost:8989')
       const driverConfig = { connectionTimeout: 4242 }
       const channelConfig = new ChannelConfig(
-        url,
+        address,
         driverConfig,
         SERVICE_UNAVAILABLE
       )
@@ -134,10 +134,10 @@ describe('WebSocketChannel', () => {
       }
     }
 
-    const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989')
+    const address = ServerAddress.fromUrl('bolt://localhost:8989')
     const driverConfig = { encrypted: true, trust: 'TRUST_ALL_CERTIFICATES' }
     const channelConfig = new ChannelConfig(
-      url,
+      address,
       driverConfig,
       SERVICE_UNAVAILABLE
     )
@@ -170,11 +170,11 @@ describe('WebSocketChannel', () => {
       }
     }
 
-    const url = urlUtil.parseDatabaseUrl(boltAddress)
+    const address = ServerAddress.fromUrl(boltAddress)
     // disable connection timeout, so that WebSocketChannel does not set any timeouts
     const driverConfig = { connectionTimeout: 0 }
     const channelConfig = new ChannelConfig(
-      url,
+      address,
       driverConfig,
       SERVICE_UNAVAILABLE
     )
@@ -199,9 +199,9 @@ describe('WebSocketChannel', () => {
       }
     }
 
-    const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989')
+    const address = ServerAddress.fromUrl('bolt://localhost:8989')
     const channelConfig = new ChannelConfig(
-      url,
+      address,
       driverConfig,
       SERVICE_UNAVAILABLE
     )
@@ -223,9 +223,9 @@ describe('WebSocketChannel', () => {
     const warnMessages = []
     console.warn = message => warnMessages.push(message)
 
-    const url = urlUtil.parseDatabaseUrl('bolt://localhost:8989')
+    const address = ServerAddress.fromUrl('bolt://localhost:8989')
     const config = new ChannelConfig(
-      url,
+      address,
       { encrypted: encrypted },
       SERVICE_UNAVAILABLE
     )

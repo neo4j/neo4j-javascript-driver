@@ -55,15 +55,17 @@ class Pool {
 
   /**
    * Acquire and idle resource fom the pool or create a new one.
-   * @param {string} key the resource key.
+   * @param {ServerAddress} address the address for which we're acquiring.
    * @return {object} resource that is ready to use.
    */
-  acquire (key) {
-    return this._acquire(key).then(resource => {
+  acquire (address) {
+    return this._acquire(address).then(resource => {
+      const key = address.asKey()
+
       if (resource) {
         resourceAcquired(key, this._activeResourceCounts)
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} acquired from the pool`)
+          this._log.debug(`${resource} acquired from the pool ${key}`)
         }
         return resource
       }
@@ -102,51 +104,58 @@ class Pool {
           }
         }, this._acquisitionTimeout)
 
-        request = new PendingRequest(resolve, reject, timeoutId, this._log)
+        request = new PendingRequest(key, resolve, reject, timeoutId, this._log)
         allRequests[key].push(request)
       })
     })
   }
 
   /**
-   * Destroy all idle resources for the given key.
-   * @param {string} key the resource key to purge.
+   * Destroy all idle resources for the given address.
+   * @param {ServerAddress} address the address of the server to purge its pool.
    */
-  purge (key) {
-    const pool = this._pools[key] || []
-    while (pool.length) {
-      const resource = pool.pop()
-      this._destroy(resource)
-    }
-    delete this._pools[key]
+  purge (address) {
+    this._purgeKey(address.asKey())
   }
 
   /**
    * Destroy all idle resources in this pool.
    */
   purgeAll () {
-    Object.keys(this._pools).forEach(key => this.purge(key))
+    Object.keys(this._pools).forEach(key => this._purgeKey(key))
   }
 
   /**
-   * Check if this pool contains resources for the given key.
-   * @param {string} key the resource key to check.
+   * Keep the idle resources for the provided addresses and purge the rest.
+   */
+  keepAll (addresses) {
+    const keysToKeep = addresses.map(a => a.asKey())
+    const keysPresent = Object.keys(this._pools)
+    const keysToPurge = keysPresent.filter(k => keysToKeep.indexOf(k) === -1)
+
+    keysToPurge.forEach(key => this._purgeKey(key))
+  }
+
+  /**
+   * Check if this pool contains resources for the given address.
+   * @param {ServerAddress} address the address of the server to check.
    * @return {boolean} `true` when pool contains entries for the given key, <code>false</code> otherwise.
    */
-  has (key) {
-    return key in this._pools
+  has (address) {
+    return address.asKey() in this._pools
   }
 
   /**
    * Get count of active (checked out of the pool) resources for the given key.
-   * @param {string} key the resource key to check.
+   * @param {ServerAddress} address the address of the server to check.
    * @return {number} count of resources acquired by clients.
    */
-  activeResourceCount (key) {
-    return this._activeResourceCounts[key] || 0
+  activeResourceCount (address) {
+    return this._activeResourceCounts[address.asKey()] || 0
   }
 
-  _acquire (key) {
+  _acquire (address) {
+    const key = address.asKey()
     let pool = this._pools[key]
     if (!pool) {
       pool = []
@@ -163,15 +172,16 @@ class Pool {
       }
     }
 
-    if (this._maxSize && this.activeResourceCount(key) >= this._maxSize) {
+    if (this._maxSize && this.activeResourceCount(address) >= this._maxSize) {
       return Promise.resolve(null)
     }
 
     // there exist no idle valid resources, create a new one for acquisition
-    return this._create(key, this._release)
+    return this._create(address, this._release)
   }
 
-  _release (key, resource) {
+  _release (address, resource) {
+    const key = address.asKey()
     const pool = this._pools[key]
 
     if (pool) {
@@ -200,16 +210,26 @@ class Pool {
     }
     resourceReleased(key, this._activeResourceCounts)
 
-    this._processPendingAcquireRequests(key)
+    this._processPendingAcquireRequests(address)
   }
 
-  _processPendingAcquireRequests (key) {
+  _purgeKey (key) {
+    const pool = this._pools[key] || []
+    while (pool.length) {
+      const resource = pool.pop()
+      this._destroy(resource)
+    }
+    delete this._pools[key]
+  }
+
+  _processPendingAcquireRequests (address) {
+    const key = address.asKey()
     const requests = this._acquireRequests[key]
     if (requests) {
       const pendingRequest = requests.shift() // pop a pending acquire request
 
       if (pendingRequest) {
-        this._acquire(key)
+        this._acquire(address)
           .catch(error => {
             // failed to acquire/create a new connection to resolve the pending acquire request
             // propagate the error by failing the pending request
@@ -223,7 +243,7 @@ class Pool {
               if (pendingRequest.isCompleted()) {
                 // request has been completed, most likely failed by a timeout
                 // return the acquired resource back to the pool
-                this._release(key, resource)
+                this._release(address, resource)
               } else {
                 // request is still pending and can be resolved with the newly acquired resource
                 resourceAcquired(key, this._activeResourceCounts) // increment the active counter
@@ -265,7 +285,8 @@ function resourceReleased (key, activeResourceCounts) {
 }
 
 class PendingRequest {
-  constructor (resolve, reject, timeoutId, log) {
+  constructor (key, resolve, reject, timeoutId, log) {
+    this._key = key
     this._resolve = resolve
     this._reject = reject
     this._timeoutId = timeoutId
@@ -285,7 +306,7 @@ class PendingRequest {
 
     clearTimeout(this._timeoutId)
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${resource} acquired from the pool`)
+      this._log.debug(`${resource} acquired from the pool ${this._key}`)
     }
     this._resolve(resource)
   }

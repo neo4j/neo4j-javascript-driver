@@ -47,12 +47,12 @@ const TrustStrategy = {
     }
 
     const tlsOpts = newTlsOptions(
-      config.url.host,
+      config.address.host(),
       config.trustedCertificates.map(f => fs.readFileSync(f))
     )
     const socket = tls.connect(
-      config.url.port,
-      config.url.host,
+      config.address.port(),
+      config.address.resolvedHost(),
       tlsOpts,
       function () {
         if (!socket.authorized) {
@@ -78,10 +78,10 @@ const TrustStrategy = {
     return configureSocket(socket)
   },
   TRUST_SYSTEM_CA_SIGNED_CERTIFICATES: function (config, onSuccess, onFailure) {
-    const tlsOpts = newTlsOptions(config.url.host)
+    const tlsOpts = newTlsOptions(config.address.host())
     const socket = tls.connect(
-      config.url.port,
-      config.url.host,
+      config.address.port(),
+      config.address.resolvedHost(),
       tlsOpts,
       function () {
         if (!socket.authorized) {
@@ -108,10 +108,10 @@ const TrustStrategy = {
     return configureSocket(socket)
   },
   TRUST_ALL_CERTIFICATES: function (config, onSuccess, onFailure) {
-    const tlsOpts = newTlsOptions(config.url.host)
+    const tlsOpts = newTlsOptions(config.address.host())
     const socket = tls.connect(
-      config.url.port,
-      config.url.host,
+      config.address.port(),
+      config.address.resolvedHost(),
       tlsOpts,
       function () {
         const certificate = socket.getPeerCertificate()
@@ -148,7 +148,11 @@ const TrustStrategy = {
 function connect (config, onSuccess, onFailure = () => null) {
   const trustStrategy = trustStrategyName(config)
   if (!isEncrypted(config)) {
-    const socket = net.connect(config.url.port, config.url.host, onSuccess)
+    const socket = net.connect(
+      config.address.port(),
+      config.address.resolvedHost(),
+      onSuccess
+    )
     socket.on('error', onFailure)
     return configureSocket(socket)
   } else if (TrustStrategy[trustStrategy]) {
