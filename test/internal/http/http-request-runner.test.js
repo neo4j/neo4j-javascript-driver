@@ -122,7 +122,7 @@ describe('http request runner', () => {
         expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
         done()
       })
-  })
+  }, 10000)
 
   it('should fail to commit transaction with invalid uri', done => {
     if (testUtils.isServer()) {
