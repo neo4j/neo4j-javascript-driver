@@ -90,9 +90,9 @@ describe('result stream', () => {
       const stack = err.stack;
 
       // Then
-      const contains_fn_a = /at fn_a \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
-      const contains_fn_b = /at fn_b \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
-      const contains_fn_c = /at fn_c \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
+      const contains_fn_a = /fn_a \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
+      const contains_fn_b = /fn_b \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
+      const contains_fn_c = /fn_c \(.*?\/result.test.js:\d+:\d+\)/.test(stack);
 
       expect(contains_fn_a).toBeTruthy();
       expect(contains_fn_b).toBeTruthy();
