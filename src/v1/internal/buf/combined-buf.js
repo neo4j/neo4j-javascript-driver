@@ -17,56 +17,55 @@
  * limitations under the License.
  */
 
-import BaseBuffer from './base-buf';
-import {alloc} from '../node';
+import BaseBuffer from './base-buf'
+import { alloc } from '../node'
 
 /**
  * Buffer that combines multiple buffers, exposing them as one single buffer.
  */
 export default class CombinedBuffer extends BaseBuffer {
-
-  constructor(buffers) {
-    let length = 0;
+  constructor (buffers) {
+    let length = 0
     for (let i = 0; i < buffers.length; i++) {
-      length += buffers[i].length;
+      length += buffers[i].length
     }
-    super(length);
-    this._buffers = buffers;
+    super(length)
+    this._buffers = buffers
   }
 
-  getUInt8(position) {
+  getUInt8 (position) {
     // Surely there's a faster way to do this.. some sort of lookup table thing?
     for (let i = 0; i < this._buffers.length; i++) {
-      const buffer = this._buffers[i];
+      const buffer = this._buffers[i]
       // If the position is not in the current buffer, skip the current buffer
       if (position >= buffer.length) {
-        position -= buffer.length;
+        position -= buffer.length
       } else {
-        return buffer.getUInt8(position);
+        return buffer.getUInt8(position)
       }
     }
   }
 
-  getInt8(position) {
+  getInt8 (position) {
     // Surely there's a faster way to do this.. some sort of lookup table thing?
     for (let i = 0; i < this._buffers.length; i++) {
-      const buffer = this._buffers[i];
+      const buffer = this._buffers[i]
       // If the position is not in the current buffer, skip the current buffer
       if (position >= buffer.length) {
-        position -= buffer.length;
+        position -= buffer.length
       } else {
-        return buffer.getInt8(position);
+        return buffer.getInt8(position)
       }
     }
   }
 
-  getFloat64(position) {
+  getFloat64 (position) {
     // At some point, a more efficient impl. For now, we copy the 8 bytes
     // we want to read and depend on the platform impl of IEEE 754.
-    const b = alloc(8);
+    const b = alloc(8)
     for (let i = 0; i < 8; i++) {
-      b.putUInt8(i, this.getUInt8(position + i));
+      b.putUInt8(i, this.getUInt8(position + i))
     }
-    return b.getFloat64(0);
+    return b.getFloat64(0)
   }
 }

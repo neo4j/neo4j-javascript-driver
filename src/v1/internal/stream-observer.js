@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Record from '../record';
+import Record from '../record'
 
 /**
  * Handles a RUN/PULL_ALL, or RUN/DISCARD_ALL requests, maps the responses
@@ -29,17 +29,16 @@ import Record from '../record';
  * @access private
  */
 class StreamObserver {
-
-  constructor() {
-    this._fieldKeys = null;
-    this._fieldLookup = null;
-    this._queuedRecords = [];
-    this._tail = null;
-    this._error = null;
-    this._hasFailed = false;
-    this._observer = null;
-    this._conn = null;
-    this._meta = {};
+  constructor () {
+    this._fieldKeys = null
+    this._fieldLookup = null
+    this._queuedRecords = []
+    this._tail = null
+    this._error = null
+    this._hasFailed = false
+    this._observer = null
+    this._conn = null
+    this._meta = {}
   }
 
   /**
@@ -48,55 +47,55 @@ class StreamObserver {
    * to it's onNext method, otherwise, push to record que.
    * @param {Array} rawRecord - An array with the raw record
    */
-  onNext(rawRecord) {
-    let record = new Record(this._fieldKeys, rawRecord, this._fieldLookup);
-    if( this._observer ) {
-      this._observer.onNext( record );
+  onNext (rawRecord) {
+    let record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
+    if (this._observer) {
+      this._observer.onNext(record)
     } else {
-      this._queuedRecords.push( record );
+      this._queuedRecords.push(record)
     }
   }
 
-  onCompleted(meta) {
-    if( this._fieldKeys === null ) {
+  onCompleted (meta) {
+    if (this._fieldKeys === null) {
       // Stream header, build a name->index field lookup table
       // to be used by records. This is an optimization to make it
       // faster to look up fields in a record by name, rather than by index.
       // Since the records we get back via Bolt are just arrays of values.
-      this._fieldKeys = [];
-      this._fieldLookup = {};
-      if( meta.fields && meta.fields.length > 0 ) {
-        this._fieldKeys = meta.fields;
+      this._fieldKeys = []
+      this._fieldLookup = {}
+      if (meta.fields && meta.fields.length > 0) {
+        this._fieldKeys = meta.fields
         for (let i = 0; i < meta.fields.length; i++) {
-          this._fieldLookup[meta.fields[i]] = i;
+          this._fieldLookup[meta.fields[i]] = i
         }
       }
     } else {
       // End of stream
-      if( this._observer ) {
-        this._observer.onCompleted( meta );
+      if (this._observer) {
+        this._observer.onCompleted(meta)
       } else {
-        this._tail = meta;
+        this._tail = meta
       }
     }
-    this._copyMetadataOnCompletion( meta );
+    this._copyMetadataOnCompletion(meta)
   }
 
-  _copyMetadataOnCompletion(meta) {
-      for (var key in meta) {
-          if (meta.hasOwnProperty(key)) {
-              this._meta[key] = meta[key];
-          }
+  _copyMetadataOnCompletion (meta) {
+    for (var key in meta) {
+      if (meta.hasOwnProperty(key)) {
+        this._meta[key] = meta[key]
       }
+    }
   }
 
-  serverMetadata() {
-      const serverMeta = {server: this._conn.server};
-      return Object.assign({}, this._meta, serverMeta);
+  serverMetadata () {
+    const serverMeta = { server: this._conn.server }
+    return Object.assign({}, this._meta, serverMeta)
   }
 
-  resolveConnection(conn) {
-    this._conn = conn;
+  resolveConnection (conn) {
+    this._conn = conn
   }
 
   /**
@@ -109,16 +108,16 @@ class StreamObserver {
    *
    * This function prepares the observer to only handle a single response message.
    */
-  prepareToHandleSingleResponse() {
-    this._fieldKeys = [];
+  prepareToHandleSingleResponse () {
+    this._fieldKeys = []
   }
 
   /**
    * Mark this observer as if it has completed with no metadata.
    */
-  markCompleted() {
-    this._fieldKeys = [];
-    this._tail = {};
+  markCompleted () {
+    this._fieldKeys = []
+    this._tail = {}
   }
 
   /**
@@ -127,20 +126,20 @@ class StreamObserver {
    * to it's onError method, otherwise set instance variable _error.
    * @param {Object} error - An error object
    */
-  onError(error) {
+  onError (error) {
     if (this._hasFailed) {
-      return;
+      return
     }
-    this._hasFailed = true;
+    this._hasFailed = true
 
     if (this._observer) {
       if (this._observer.onError) {
-        this._observer.onError(error);
+        this._observer.onError(error)
       } else {
-        console.log(error);
+        console.log(error)
       }
     } else {
-      this._error = error;
+      this._error = error
     }
   }
 
@@ -151,25 +150,25 @@ class StreamObserver {
    * @param {function(metadata: Object)} observer.onComplete - Handle stream tail, the metadata.
    * @param {function(error: Object)} observer.onError - Handle errors.
    */
-  subscribe( observer ) {
-    if( this._error ) {
-      observer.onError(this._error);
-      return;
+  subscribe (observer) {
+    if (this._error) {
+      observer.onError(this._error)
+      return
     }
-    if( this._queuedRecords.length > 0 ) {
+    if (this._queuedRecords.length > 0) {
       for (let i = 0; i < this._queuedRecords.length; i++) {
-        observer.onNext( this._queuedRecords[i] );
+        observer.onNext(this._queuedRecords[i])
       }
     }
-    if( this._tail ) {
-      observer.onCompleted( this._tail );
+    if (this._tail) {
+      observer.onCompleted(this._tail)
     }
-    this._observer = observer;
+    this._observer = observer
   }
 
-  hasFailed() {
-    return this._hasFailed;
+  hasFailed () {
+    return this._hasFailed
   }
 }
 
-export default StreamObserver;
+export default StreamObserver

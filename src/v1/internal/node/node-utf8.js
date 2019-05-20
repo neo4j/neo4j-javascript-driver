@@ -17,76 +17,89 @@
  * limitations under the License.
  */
 
-import CombinedBuffer from '../buf/combined-buf';
-import NodeBuffer from '../node/node-buf';
-import {newError} from '../../error';
-import node from 'buffer';
-import {StringDecoder} from 'string_decoder';
+import CombinedBuffer from '../buf/combined-buf'
+import NodeBuffer from '../node/node-buf'
+import { newError } from '../../error'
+import node from 'buffer'
+import { StringDecoder } from 'string_decoder'
 
-const decoder = new StringDecoder('utf8');
+const decoder = new StringDecoder('utf8')
 
-function encode(str) {
-  return new NodeBuffer(newNodeJSBuffer(str));
+function encode (str) {
+  return new NodeBuffer(newNodeJSBuffer(str))
 }
 
-function decode(buffer, length) {
+function decode (buffer, length) {
   if (buffer instanceof NodeBuffer) {
-    return decodeNodeBuffer(buffer, length);
+    return decodeNodeBuffer(buffer, length)
   } else if (buffer instanceof CombinedBuffer) {
-    return decodeCombinedBuffer(buffer, length);
+    return decodeCombinedBuffer(buffer, length)
   } else {
-    throw newError(`Don't know how to decode strings from '${buffer}'`);
+    throw newError(`Don't know how to decode strings from '${buffer}'`)
   }
 }
 
-function decodeNodeBuffer(buffer, length) {
-  const start = buffer.position;
-  const end = start + length;
-  buffer.position = Math.min(end, buffer.length);
-  return buffer._buffer.toString('utf8', start, end);
+function decodeNodeBuffer (buffer, length) {
+  const start = buffer.position
+  const end = start + length
+  buffer.position = Math.min(end, buffer.length)
+  return buffer._buffer.toString('utf8', start, end)
 }
 
-function decodeCombinedBuffer(buffer, length) {
-  return streamDecodeCombinedBuffer(buffer, length,
+function decodeCombinedBuffer (buffer, length) {
+  return streamDecodeCombinedBuffer(
+    buffer,
+    length,
     partBuffer => decoder.write(partBuffer._buffer),
     () => decoder.end()
-  );
+  )
 }
 
-function streamDecodeCombinedBuffer(combinedBuffers, length, decodeFn, endFn) {
-  let remainingBytesToRead = length;
-  let position = combinedBuffers.position;
-  combinedBuffers._updatePos(Math.min(length, combinedBuffers.length - position));
+function streamDecodeCombinedBuffer (combinedBuffers, length, decodeFn, endFn) {
+  let remainingBytesToRead = length
+  let position = combinedBuffers.position
+  combinedBuffers._updatePos(
+    Math.min(length, combinedBuffers.length - position)
+  )
   // Reduce CombinedBuffers to a decoded string
   const out = combinedBuffers._buffers.reduce(function (last, partBuffer) {
     if (remainingBytesToRead <= 0) {
-      return last;
+      return last
     } else if (position >= partBuffer.length) {
-      position -= partBuffer.length;
-      return '';
+      position -= partBuffer.length
+      return ''
     } else {
-      partBuffer._updatePos(position - partBuffer.position);
-      let bytesToRead = Math.min(partBuffer.length - position, remainingBytesToRead);
-      let lastSlice = partBuffer.readSlice(bytesToRead);
-      partBuffer._updatePos(bytesToRead);
-      remainingBytesToRead = Math.max(remainingBytesToRead - lastSlice.length, 0);
-      position = 0;
-      return last + decodeFn(lastSlice);
+      partBuffer._updatePos(position - partBuffer.position)
+      let bytesToRead = Math.min(
+        partBuffer.length - position,
+        remainingBytesToRead
+      )
+      let lastSlice = partBuffer.readSlice(bytesToRead)
+      partBuffer._updatePos(bytesToRead)
+      remainingBytesToRead = Math.max(
+        remainingBytesToRead - lastSlice.length,
+        0
+      )
+      position = 0
+      return last + decodeFn(lastSlice)
     }
-  }, '');
-  return out + endFn();
+  }, '')
+  return out + endFn()
 }
 
-function newNodeJSBuffer(str) {
+function newNodeJSBuffer (str) {
   // use static factory function present in newer NodeJS versions to create a buffer containing the given string
   // or fallback to the old, potentially deprecated constructor
 
-  return typeof node.Buffer.from === 'function'
-    ? node.Buffer.from(str, 'utf8')
-    : new node.Buffer(str, 'utf8');
+  if (typeof node.Buffer.from === 'function') {
+    return node.Buffer.from(str, 'utf8')
+  } else {
+    // eslint-disable-next-line node/no-deprecated-api
+    return new node.Buffer(str, 'utf8')
+  }
 }
 
 export default {
   encode,
   decode
-};
+}

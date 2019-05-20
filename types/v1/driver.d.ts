@@ -17,68 +17,78 @@
  * limitations under the License.
  */
 
-import Session from "./session";
-import {Parameters} from "./statement-runner";
-import {Neo4jError} from "./error";
-import {ServerInfo} from "./result-summary";
+import Session from './session'
+import { Parameters } from './statement-runner'
+import { Neo4jError } from './error'
+import { ServerInfo } from './result-summary'
 
 declare interface AuthToken {
-  scheme: string;
-  principal: string;
-  credentials: string;
-  realm?: string;
-  parameters?: Parameters;
+  scheme: string
+  principal: string
+  credentials: string
+  realm?: string
+  parameters?: Parameters
 }
 
-declare type EncryptionLevel = "ENCRYPTION_ON" | "ENCRYPTION_OFF";
+declare type EncryptionLevel = 'ENCRYPTION_ON' | 'ENCRYPTION_OFF'
 declare type TrustStrategy =
-  "TRUST_ALL_CERTIFICATES" |
-  "TRUST_ON_FIRST_USE" |
-  "TRUST_SIGNED_CERTIFICATES" |
-  "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" |
-  "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES";
+  | 'TRUST_ALL_CERTIFICATES'
+  | 'TRUST_ON_FIRST_USE'
+  | 'TRUST_SIGNED_CERTIFICATES'
+  | 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
+  | 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
 
-declare type LoadBalancingStrategy = "least_connected" | "round_robin";
+declare type LoadBalancingStrategy = 'least_connected' | 'round_robin'
 
-declare type LogLevel = "error" | "warn" | "info" | "debug";
+declare type LogLevel = 'error' | 'warn' | 'info' | 'debug'
 
 declare interface LoggingConfig {
-  level?: LogLevel;
-  logger: (level: LogLevel, message: string) => void;
+  level?: LogLevel
+  logger: (level: LogLevel, message: string) => void
 }
 
 declare interface Config {
-  encrypted?: boolean | EncryptionLevel;
-  trust?: TrustStrategy;
-  trustedCertificates?: string[];
-  knownHosts?: string;
+  encrypted?: boolean | EncryptionLevel
+  trust?: TrustStrategy
+  trustedCertificates?: string[]
+  knownHosts?: string
   /**
    * @deprecated use {@link maxConnectionPoolSize} instead.
    */
-  connectionPoolSize?: number;
-  maxConnectionPoolSize?: number;
-  maxTransactionRetryTime?: number;
-  loadBalancingStrategy?: LoadBalancingStrategy;
-  maxConnectionLifetime?: number;
-  connectionTimeout?: number;
-  disableLosslessIntegers?: boolean;
-  logging?: LoggingConfig;
+  connectionPoolSize?: number
+  maxConnectionPoolSize?: number
+  maxTransactionRetryTime?: number
+  loadBalancingStrategy?: LoadBalancingStrategy
+  maxConnectionLifetime?: number
+  connectionTimeout?: number
+  disableLosslessIntegers?: boolean
+  logging?: LoggingConfig
 }
 
-declare type SessionMode = "READ" | "WRITE";
+declare type SessionMode = 'READ' | 'WRITE'
 
-declare const READ: SessionMode;
-declare const WRITE: SessionMode;
+declare const READ: SessionMode
+declare const WRITE: SessionMode
 
 declare interface Driver {
-  session(mode?: SessionMode, bookmark?: string): Session;
+  session(mode?: SessionMode, bookmark?: string): Session
 
-  close(): void;
+  close(): void
 
-  onCompleted?: (serverInfo: ServerInfo) => void;
-  onError?: (error: Neo4jError) => void;
+  onCompleted?: (serverInfo: ServerInfo) => void
+  onError?: (error: Neo4jError) => void
 }
 
-export {Driver, READ, WRITE, AuthToken, Config, EncryptionLevel, TrustStrategy, LoadBalancingStrategy, SessionMode}
+export {
+  Driver,
+  READ,
+  WRITE,
+  AuthToken,
+  Config,
+  EncryptionLevel,
+  TrustStrategy,
+  LoadBalancingStrategy,
+  SessionMode
+}
 
-export default Driver;
+export default Driver

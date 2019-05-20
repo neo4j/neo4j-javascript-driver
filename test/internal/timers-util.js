@@ -17,52 +17,51 @@
  * limitations under the License.
  */
 class SetTimeoutMock {
-
-  constructor() {
-    this._clearState();
+  constructor () {
+    this._clearState()
   }
 
-  install() {
-    this._originalSetTimeout = global.setTimeout;
+  install () {
+    this._originalSetTimeout = global.setTimeout
     global.setTimeout = (code, delay) => {
       if (!this._paused) {
-        code();
-        this.invocationDelays.push(delay);
+        code()
+        this.invocationDelays.push(delay)
       }
-      return this._timeoutIdCounter++;
-    };
+      return this._timeoutIdCounter++
+    }
 
-    this._originalClearTimeout = global.clearTimeout;
+    this._originalClearTimeout = global.clearTimeout
     global.clearTimeout = id => {
-      this.clearedTimeouts.push(id);
-    };
+      this.clearedTimeouts.push(id)
+    }
 
-    return this;
+    return this
   }
 
-  pause() {
-    this._paused = true;
+  pause () {
+    this._paused = true
   }
 
-  uninstall() {
-    global.setTimeout = this._originalSetTimeout;
-    global.clearTimeout = this._originalClearTimeout;
-    this._clearState();
+  uninstall () {
+    global.setTimeout = this._originalSetTimeout
+    global.clearTimeout = this._originalClearTimeout
+    this._clearState()
   }
 
-  setTimeoutOriginal(code, delay) {
-    return this._originalSetTimeout.call(null, code, delay);
+  setTimeoutOriginal (code, delay) {
+    return this._originalSetTimeout.call(null, code, delay)
   }
 
-  _clearState() {
-    this._originalSetTimeout = null;
-    this._originalClearTimeout = null;
-    this._paused = false;
-    this._timeoutIdCounter = 0;
+  _clearState () {
+    this._originalSetTimeout = null
+    this._originalClearTimeout = null
+    this._paused = false
+    this._timeoutIdCounter = 0
 
-    this.invocationDelays = [];
-    this.clearedTimeouts = [];
+    this.invocationDelays = []
+    this.clearedTimeouts = []
   }
 }
 
-export const setTimeoutMock = new SetTimeoutMock();
+export const setTimeoutMock = new SetTimeoutMock()

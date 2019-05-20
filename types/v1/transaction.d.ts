@@ -17,15 +17,15 @@
  * limitations under the License.
  */
 
-import Result from "./result";
-import StatementRunner from "./statement-runner";
+import Result from './result'
+import StatementRunner from './statement-runner'
 
 declare interface Transaction extends StatementRunner {
-  commit(): Result;
+  commit(): Result
 
-  rollback(): Result;
+  rollback(): Result
 
-  isOpen(): boolean;
+  isOpen(): boolean
 }
 
-export default Transaction;
+export default Transaction

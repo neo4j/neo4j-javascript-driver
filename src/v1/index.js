@@ -17,21 +17,45 @@
  * limitations under the License.
  */
 
-import Integer, {inSafeRange, int, isInt, toNumber, toString} from './integer';
-import {Node, Path, PathSegment, Relationship, UnboundRelationship} from './graph-types';
-import {Neo4jError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED} from './error';
-import Result from './result';
-import ResultSummary from './result-summary';
-import Record from './record';
-import {Driver, READ, WRITE} from './driver';
-import RoutingDriver from './routing-driver';
-import VERSION from '../version';
-import {assertString, isEmptyObjectOrNull} from './internal/util';
-import urlUtil from './internal/url-util';
-import HttpDriver from './internal/http/http-driver';
-import {isPoint, Point} from './spatial-types';
-import {Date, DateTime, Duration, isDate, isDateTime, isDuration, isLocalDateTime, isLocalTime, isTime, LocalDateTime, LocalTime, Time} from './temporal-types';
-import ServerAddress from './internal/server-address';
+import Integer, { inSafeRange, int, isInt, toNumber, toString } from './integer'
+import {
+  Node,
+  Path,
+  PathSegment,
+  Relationship,
+  UnboundRelationship
+} from './graph-types'
+import {
+  Neo4jError,
+  PROTOCOL_ERROR,
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
+} from './error'
+import Result from './result'
+import ResultSummary from './result-summary'
+import Record from './record'
+import { Driver, READ, WRITE } from './driver'
+import RoutingDriver from './routing-driver'
+import VERSION from '../version'
+import { assertString, isEmptyObjectOrNull } from './internal/util'
+import urlUtil from './internal/url-util'
+import HttpDriver from './internal/http/http-driver'
+import { isPoint, Point } from './spatial-types'
+import {
+  Date,
+  DateTime,
+  Duration,
+  isDate,
+  isDateTime,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
+} from './temporal-types'
+import ServerAddress from './internal/server-address'
 
 /**
  * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
@@ -44,30 +68,43 @@ import ServerAddress from './internal/server-address';
 const auth = {
   basic: (username, password, realm = undefined) => {
     if (realm) {
-      return {scheme: 'basic', principal: username, credentials: password, realm: realm};
+      return {
+        scheme: 'basic',
+        principal: username,
+        credentials: password,
+        realm: realm
+      }
     } else {
-      return {scheme: 'basic', principal: username, credentials: password};
+      return { scheme: 'basic', principal: username, credentials: password }
     }
   },
-  kerberos: (base64EncodedTicket) => {
+  kerberos: base64EncodedTicket => {
     return {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
       credentials: base64EncodedTicket
-    };
+    }
   },
   custom: (principal, credentials, realm, scheme, parameters = undefined) => {
     if (parameters) {
       return {
-        scheme: scheme, principal: principal, credentials: credentials, realm: realm,
+        scheme: scheme,
+        principal: principal,
+        credentials: credentials,
+        realm: realm,
         parameters: parameters
-      };
+      }
     } else {
-      return {scheme: scheme, principal: principal, credentials: credentials, realm: realm};
+      return {
+        scheme: scheme,
+        principal: principal,
+        credentials: credentials,
+        realm: realm
+      }
     }
   }
-};
-const USER_AGENT = "neo4j-javascript/" + VERSION;
+}
+const USER_AGENT = 'neo4j-javascript/' + VERSION
 
 /**
  * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
@@ -78,10 +115,11 @@ const logging = {
   console: level => {
     return {
       level: level,
-      logger: (level, message) => console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
-    };
+      logger: (level, message) =>
+        console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
+    }
   }
-};
+}
 
 /**
  * Construct a new Neo4j Driver. This is your main entry point for this
@@ -224,20 +262,33 @@ const logging = {
  * @param {Object} config Configuration object. See the configuration section above for details.
  * @returns {Driver}
  */
-function driver(url, authToken, config = {}) {
-  assertString(url, 'Bolt URL');
-  const parsedUrl = urlUtil.parseDatabaseUrl(url);
+function driver (url, authToken, config = {}) {
+  assertString(url, 'Bolt URL')
+  const parsedUrl = urlUtil.parseDatabaseUrl(url)
   if (['bolt+routing', 'neo4j'].indexOf(parsedUrl.scheme) !== -1) {
-    return new RoutingDriver(ServerAddress.fromUrl(parsedUrl.hostAndPort), parsedUrl.query, USER_AGENT, authToken, config);
+    return new RoutingDriver(
+      ServerAddress.fromUrl(parsedUrl.hostAndPort),
+      parsedUrl.query,
+      USER_AGENT,
+      authToken,
+      config
+    )
   } else if (parsedUrl.scheme === 'bolt') {
     if (!isEmptyObjectOrNull(parsedUrl.query)) {
-      throw new Error(`Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`);
+      throw new Error(
+        `Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`
+      )
     }
-    return new Driver(ServerAddress.fromUrl(parsedUrl.hostAndPort), USER_AGENT, authToken, config);
+    return new Driver(
+      ServerAddress.fromUrl(parsedUrl.hostAndPort),
+      USER_AGENT,
+      authToken,
+      config
+    )
   } else if (parsedUrl.scheme === 'http' || parsedUrl.scheme === 'https') {
-    return new HttpDriver(parsedUrl, USER_AGENT, authToken, config);
+    return new HttpDriver(parsedUrl, USER_AGENT, authToken, config)
   } else {
-    throw new Error(`Unknown scheme: ${parsedUrl.scheme}`);
+    throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
   }
 }
 
@@ -261,7 +312,7 @@ const types = {
   LocalTime,
   Time,
   Integer
-};
+}
 
 /**
  * Object containing string constants representing session access modes.
@@ -269,7 +320,7 @@ const types = {
 const session = {
   READ,
   WRITE
-};
+}
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -278,7 +329,7 @@ const error = {
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED,
   PROTOCOL_ERROR
-};
+}
 
 /**
  * Object containing functions to work with {@link Integer} objects.
@@ -287,14 +338,14 @@ const integer = {
   toNumber,
   toString,
   inSafeRange
-};
+}
 
 /**
  * Object containing functions to work with spatial types, like {@link Point}.
  */
 const spatial = {
   isPoint
-};
+}
 
 /**
  * Object containing functions to work with temporal types, like {@link Time} or {@link Duration}.
@@ -306,8 +357,7 @@ const temporal = {
   isDate,
   isLocalDateTime,
   isDateTime
-};
-
+}
 
 /**
  * @private
@@ -332,7 +382,7 @@ const forExport = {
   error,
   spatial,
   temporal
-};
+}
 
 export {
   driver,
@@ -354,5 +404,5 @@ export {
   error,
   spatial,
   temporal
-};
-export default forExport;
+}
+export default forExport

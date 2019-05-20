@@ -25,65 +25,64 @@
  * PhantomJS which does not support proxies.
  */
 export default class FakeConnection {
+  constructor () {
+    this._open = true
+    this.creationTimestamp = Date.now()
 
-  constructor() {
-    this._open = true;
-    this.creationTimestamp = Date.now();
-
-    this.resetInvoked = 0;
-    this.releaseInvoked = 0;
-    this.seenStatements = [];
-    this.seenParameters = [];
-    this.server = {};
+    this.resetInvoked = 0
+    this.releaseInvoked = 0
+    this.seenStatements = []
+    this.seenParameters = []
+    this.server = {}
   }
 
-  protocol() {
+  protocol () {
     // return fake protocol object that simply records seen statements and parameters
     return {
       run: (statement, parameters) => {
-        this.seenStatements.push(statement);
-        this.seenParameters.push(parameters);
+        this.seenStatements.push(statement)
+        this.seenParameters.push(parameters)
       }
-    };
+    }
   }
 
-  resetAndFlush() {
-    this.resetInvoked++;
-    return Promise.resolve();
+  resetAndFlush () {
+    this.resetInvoked++
+    return Promise.resolve()
   }
 
-  _release() {
-    this.releaseInvoked++;
+  _release () {
+    this.releaseInvoked++
   }
 
-  isOpen() {
-    return this._open;
+  isOpen () {
+    return this._open
   }
 
-  isNeverReleased() {
-    return this.isReleasedTimes(0);
+  isNeverReleased () {
+    return this.isReleasedTimes(0)
   }
 
-  isReleasedOnce() {
-    return this.isReleasedTimes(1);
+  isReleasedOnce () {
+    return this.isReleasedTimes(1)
   }
 
-  isReleasedTimes(times) {
-    return this.resetInvoked === times && this.releaseInvoked === times;
+  isReleasedTimes (times) {
+    return this.resetInvoked === times && this.releaseInvoked === times
   }
 
-  withServerVersion(version) {
-    this.server.version = version;
-    return this;
+  withServerVersion (version) {
+    this.server.version = version
+    return this
   }
 
-  withCreationTimestamp(value) {
-    this.creationTimestamp = value;
-    return this;
+  withCreationTimestamp (value) {
+    this.creationTimestamp = value
+    return this
   }
 
-  closed() {
-    this._open = false;
-    return this;
+  closed () {
+    this._open = false
+    return this
   }
-};
+}

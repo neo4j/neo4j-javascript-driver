@@ -16,25 +16,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ServerAddress from '../server-address';
+import ServerAddress from '../server-address'
 
-function resolveToSelf(address) {
-  return Promise.resolve([address]);
+function resolveToSelf (address) {
+  return Promise.resolve([address])
 }
 
 export default class ConfiguredCustomResolver {
-  constructor(resolverFunction) {
-    this._resolverFunction = resolverFunction ? resolverFunction : resolveToSelf;
+  constructor (resolverFunction) {
+    this._resolverFunction = resolverFunction || resolveToSelf
   }
 
-  resolve(seedRouter) {
-    return new Promise(resolve => resolve(this._resolverFunction(seedRouter.asHostPort())))
-      .then(resolved => {
-        if (!Array.isArray(resolved)) {
-          throw new TypeError(`Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.` +
-            `Each address is '<host>:<port>'. Got: ${resolved}`);
-        }
-        return resolved.map(r => ServerAddress.fromUrl(r));
-      });
+  resolve (seedRouter) {
+    return new Promise(resolve =>
+      resolve(this._resolverFunction(seedRouter.asHostPort()))
+    ).then(resolved => {
+      if (!Array.isArray(resolved)) {
+        throw new TypeError(
+          `Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.` +
+            `Each address is '<host>:<port>'. Got: ${resolved}`
+        )
+      }
+      return resolved.map(r => ServerAddress.fromUrl(r))
+    })
   }
 }

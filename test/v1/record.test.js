@@ -17,92 +17,100 @@
  * limitations under the License.
  */
 
-import Record from '../../src/v1/record';
-import {Neo4jError} from '../../src/v1/error';
+import Record from '../../src/v1/record'
+import { Neo4jError } from '../../src/v1/error'
 
 describe('Record', () => {
-
   it('should allow getting fields by name', () => {
     // Given
-    const record = new Record(['name'], ['Bob']);
+    const record = new Record(['name'], ['Bob'])
 
     // When & Then
-    expect(record.get("name")).toEqual("Bob");
-  });
+    expect(record.get('name')).toEqual('Bob')
+  })
 
   it('should allow checking if fields exist', () => {
     // Given
-    const record = new Record(['name'], ['Bob']);
+    const record = new Record(['name'], ['Bob'])
 
     // When & Then
-    expect(record.has("name")).toEqual(true);
-    expect(record.has("invalid key")).toEqual(false);
-    expect(record.has(0)).toEqual(true);
-    expect(record.has(1)).toEqual(false);
-  });
+    expect(record.has('name')).toEqual(true)
+    expect(record.has('invalid key')).toEqual(false)
+    expect(record.has(0)).toEqual(true)
+    expect(record.has(1)).toEqual(false)
+  })
 
   it('should transform Record into Object', () => {
     // Given
-    const record = new Record(['name', 'age', 'nested'], ['Bob', 20.5, {test: true}]);
+    const record = new Record(
+      ['name', 'age', 'nested'],
+      ['Bob', 20.5, { test: true }]
+    )
 
     // When
-    const obj = record.toObject();
+    const obj = record.toObject()
 
     // Then
-    expect(obj.name).toEqual("Bob");
-    expect(obj.age).toEqual(20.5);
-    expect(obj.nested.test).toEqual(true);
-  });
+    expect(obj.name).toEqual('Bob')
+    expect(obj.age).toEqual(20.5)
+    expect(obj.nested.test).toEqual(true)
+  })
 
   it('should give helpful error on no such key', () => {
     // Given
-    const record = new Record(['name'], ['Bob']);
+    const record = new Record(['name'], ['Bob'])
 
     // When & Then
     expect(() => {
-      record.get('age');
-    }).toThrow(new Neo4jError(
-      "This record has no field with key 'age', available key are: [name]."));
-  });
+      record.get('age')
+    }).toThrow(
+      new Neo4jError(
+        "This record has no field with key 'age', available key are: [name]."
+      )
+    )
+  })
 
   it('should allow getting fields by index', () => {
     // Given
-    const record = new Record(['name'], ['Bob']);
+    const record = new Record(['name'], ['Bob'])
 
     // When & Then
-    expect(record.get(0)).toEqual("Bob");
-  });
+    expect(record.get(0)).toEqual('Bob')
+  })
 
   it('should give helpful error on no such index', () => {
     // Given
-    const record = new Record(['name'], ['Bob']);
+    const record = new Record(['name'], ['Bob'])
 
     // When & Then
     expect(() => {
-      record.get(1);
-    }).toThrow(new Neo4jError(
-      "This record has no field with index '1'. Remember that indexes start at `0`, " +
-      "and make sure your statement returns records in the shape you meant it to."));
-  });
+      record.get(1)
+    }).toThrow(
+      new Neo4jError(
+        "This record has no field with index '1'. Remember that indexes start at `0`, " +
+          'and make sure your statement returns records in the shape you meant it to.'
+      )
+    )
+  })
 
   it('should have length', () => {
     // When & Then
-    expect( new Record( [], []).length ).toBe(0);
-    expect( new Record( ["name"], ["Bob"]).length ).toBe(1);
-    expect( new Record( ["name", "age"], ["Bob", 45]).length ).toBe(2);
-  });
+    expect(new Record([], []).length).toBe(0)
+    expect(new Record(['name'], ['Bob']).length).toBe(1)
+    expect(new Record(['name', 'age'], ['Bob', 45]).length).toBe(2)
+  })
 
   it('should allow forEach through the record', () => {
     // Given
-    const record = new Record(['name', 'age'], ['Bob', 45]);
-    const result = [];
+    const record = new Record(['name', 'age'], ['Bob', 45])
+    const result = []
 
     // When
     record.forEach((value, key, record) => {
-      result.push( [value, key, record] );
-    });
+      result.push([value, key, record])
+    })
 
     // Then
-    expect(result).toEqual([["Bob", "name", record], [45, "age", record]]);
-  });
-});
+    expect(result).toEqual([['Bob', 'name', record], [45, 'age', record]])
+  })
+})

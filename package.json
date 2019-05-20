@@ -9,6 +9,8 @@
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
   },
   "scripts": {
+    "lint": "eslint --fix --ext .js ./",
+    "format": "prettier-eslint '**/*.js' '**/*.json' '**/*.md' '**/*.ts' '**/*.html' --write",
     "test": "gulp test",
     "build": "gulp all",
     "start-neo4j": "gulp start-neo4j",
@@ -18,6 +20,17 @@
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version",
     "browser": "gulp browser && gulp test-browser"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,json,ts,md,html}": [
+      "prettier-eslint --write",
+      "git add"
+    ]
   },
   "main": "lib/index.js",
   "browser": {

@@ -26,7 +26,7 @@ module.exports = function (config) {
     files: [
       'src/*.js',
       'src/**/!(node)/*.js',
-      'test/**/!(node)/!(examples).test.js',
+      'test/**/!(node)/!(examples).test.js'
     ],
     preprocessors: {
       'src/**/*.js': ['browserify'],

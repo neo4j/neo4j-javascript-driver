@@ -17,21 +17,19 @@
  * limitations under the License.
  */
 
-import ConnectivityVerifier from '../../src/v1/internal/connectivity-verifier';
-import {SingleConnectionProvider} from '../../src/v1/internal/connection-providers';
-import FakeConnection from './fake-connection';
+import ConnectivityVerifier from '../../src/v1/internal/connectivity-verifier'
+import { SingleConnectionProvider } from '../../src/v1/internal/connection-providers'
+import FakeConnection from './fake-connection'
 
 describe('ConnectivityVerifier', () => {
-
   it('should call success callback when able to acquire and release a connection', done => {
-    const connectionPromise = Promise.resolve(new FakeConnection());
-    const connectionProvider = new SingleConnectionProvider(connectionPromise);
+    const connectionPromise = Promise.resolve(new FakeConnection())
+    const connectionProvider = new SingleConnectionProvider(connectionPromise)
 
     const verifier = new ConnectivityVerifier(connectionProvider, () => {
-      done();
-    });
+      done()
+    })
 
-    verifier.verify();
-  });
-
-});
+    verifier.verify()
+  })
+})

@@ -1,71 +1,71 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Cypher Runner for Neo4j Bolt Protocol</title>
     <style>
-    #main {
+      #main {
         width: 60%;
         margin: 0;
-        background-color: #DDD;
+        background-color: #ddd;
         position: relative;
-    }
-    h1 {
+      }
+      h1 {
         margin: 0;
-        padding: .5em;
-    }
-    #console {
+        padding: 0.5em;
+      }
+      #console {
         width: 100%;
         vertical-align: top;
-    }
-    #runButton {
+      }
+      #runButton {
         width: 100%;
         height: 100%;
         border-width: 0;
         margin: 0;
-        font: bold 16px "Courier New";
+        font: bold 16px 'Courier New';
         cursor: pointer;
-        background-color: #008CC2;
-        color: #FFF;
-    }
-    body {
-        font: 15px "Courier New";
-        background-color: #CCC;
+        background-color: #008cc2;
+        color: #fff;
+      }
+      body {
+        font: 15px 'Courier New';
+        background-color: #ccc;
         margin: 0;
         overflow-y: scroll;
-    }
-    table {
+      }
+      table {
         width: 100%;
         border-collapse: collapse;
-    }
-    td {
+      }
+      td {
         position: relative;
         padding: 0;
-    }
-    #results table {
+      }
+      #results table {
         width: auto;
-        background-color: #EEE;
+        background-color: #eee;
         font-size: 13px;
-    }
-    #results th {
-        border-right: 1px solid #DDD;
-        border-bottom: 1px solid #DDD;
+      }
+      #results th {
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
         padding: 3px 5px;
         background-color: #999;
-        color: #FFF;
-    }
-    #results td {
-        border-right: 1px solid #BBB;
-        border-bottom: 1px solid #BBB;
+        color: #fff;
+      }
+      #results td {
+        border-right: 1px solid #bbb;
+        border-bottom: 1px solid #bbb;
         padding: 3px 5px;
         vertical-align: top;
-    }
-    form {
+      }
+      form {
         position: relative;
-    }
-    textarea {
+      }
+      textarea {
         border-width: 0;
-        font: 15px "Courier New";
+        font: 15px 'Courier New';
         margin: 0;
         width: 100%;
         resize: vertical;
@@ -74,173 +74,202 @@
         padding: 0;
         background-color: transparent;
         vertical-align: top;
-    }
-    #parameters {
-        font: 13px "Courier New";
-    }
-    #parameters td {
-    }
-    #parameters input[type=text] {
+      }
+      #parameters {
+        font: 13px 'Courier New';
+      }
+      #parameters td {
+      }
+      #parameters input[type='text'] {
         border-width: 0;
         background-color: transparent;
-        color: #FFF;
-        font: 13px "Courier New";
+        color: #fff;
+        font: 13px 'Courier New';
         padding: 0;
         margin: 0;
-    }
-    #parameters input[type=button] {
-        font: 13px "Courier New";
+      }
+      #parameters input[type='button'] {
+        font: 13px 'Courier New';
         padding: 0 2px;
-    }
+      }
     </style>
     <script src="../lib/browser/neo4j-web.js"></script>
   </head>
   <body>
-
     <div id="main">
-
       <h1>Cypher Runner for New Remoting</h1>
 
       <table width="100%" border="0" cellspacing="0" cellpadding="0">
         <tr>
           <td id="console">
-
             <form>
               <table>
                 <tr>
-                  <td style="width:75%;padding:2px 2px 2px 4px;background-color:#FFF;vertical-align:top" rowspan="2"><textarea id="statement"></textarea></td>
-                  <td style="width:25%;vertical-align:top;background-color:#0F5788;color:#FFF">
-                    <table id="parameters"><tbody>
-                      <tr><td><input type="text" id="key" placeholder="(parameter)"></td><td><input type="text" id="value" placeholder="(value)"></td><td width="20"><input id="addParameter" type="button" value="+"></td></tr>
-                    </tbody></table>
+                  <td
+                    style="width:75%;padding:2px 2px 2px 4px;background-color:#FFF;vertical-align:top"
+                    rowspan="2"
+                  >
+                    <textarea id="statement"></textarea>
+                  </td>
+                  <td
+                    style="width:25%;vertical-align:top;background-color:#0F5788;color:#FFF"
+                  >
+                    <table id="parameters">
+                      <tbody>
+                        <tr>
+                          <td>
+                            <input
+                              type="text"
+                              id="key"
+                              placeholder="(parameter)"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
+                              id="value"
+                              placeholder="(value)"
+                            />
+                          </td>
+                          <td width="20">
+                            <input id="addParameter" type="button" value="+" />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </td>
                 </tr>
                 <tr>
-                  <td style="width:25%;height:40px;vertical-align:bottom;background-color:#0F5788"><input id="runButton" type="button" value="RUN" onfocus="this.blur()"></td>
+                  <td
+                    style="width:25%;height:40px;vertical-align:bottom;background-color:#0F5788"
+                  >
+                    <input
+                      id="runButton"
+                      type="button"
+                      value="RUN"
+                      onfocus="this.blur()"
+                    />
+                  </td>
                 </tr>
               </table>
             </form>
 
             <div id="results"></div>
-
           </td>
-        
         </tr>
       </table>
-    
     </div>
 
     <script>
-    var authToken = neo4j.v1.auth.basic("neo4j", "neo4j");
-    console.log(authToken);
-    var driver = neo4j.v1.driver("bolt://localhost", authToken, {
-        encrypted:false
-    });
-    var session = driver.session();
+      var authToken = neo4j.v1.auth.basic('neo4j', 'neo4j')
+      console.log(authToken)
+      var driver = neo4j.v1.driver('bolt://localhost', authToken, {
+        encrypted: false
+      })
+      var session = driver.session()
 
-    function run() {
-        var statement = document.getElementById("statement").value,
-            parameters = getParameters();
+      function run() {
+        var statement = document.getElementById('statement').value,
+          parameters = getParameters()
 
-        var table = document.createElement("table");
+        var table = document.createElement('table')
         session.run(statement, parameters).subscribe({
-            onNext: function(record) {
-                // On receipt of RECORD
-                var tr = document.createElement("tr");
-                record.forEach( function( value ) {
-                    var td = document.createElement("td");
-                    td.appendChild(document.createTextNode(value));
-                    tr.appendChild(td);
-                });
-                table.appendChild(tr);
-            },
-            onCompleted: function(metadata) {
-                
-            }
-        });
-        
-        var results = document.getElementById("results");
-        while(results.childElementCount > 0) {
-            results.removeChild(results.children[0]);
-        }
-        results.appendChild(table);
+          onNext: function(record) {
+            // On receipt of RECORD
+            var tr = document.createElement('tr')
+            record.forEach(function(value) {
+              var td = document.createElement('td')
+              td.appendChild(document.createTextNode(value))
+              tr.appendChild(td)
+            })
+            table.appendChild(tr)
+          },
+          onCompleted: function(metadata) {}
+        })
 
-    }
-    
-    function addParameter(key, value) {
-        var row = document.getElementById("addParameter").parentNode.parentNode;
-        
-        if (!key) key = document.getElementById("key").value;
-        if (!value) value = document.getElementById("value").value;
-        
+        var results = document.getElementById('results')
+        while (results.childElementCount > 0) {
+          results.removeChild(results.children[0])
+        }
+        results.appendChild(table)
+      }
+
+      function addParameter(key, value) {
+        var row = document.getElementById('addParameter').parentNode.parentNode
+
+        if (!key) key = document.getElementById('key').value
+        if (!value) value = document.getElementById('value').value
+
         if (key.length > 0) {
-            var tbody = document.getElementById("parameters").getElementsByTagName("tbody")[0];
-            var tr = document.createElement("tr");
+          var tbody = document
+            .getElementById('parameters')
+            .getElementsByTagName('tbody')[0]
+          var tr = document.createElement('tr')
 
-            var td1 = document.createElement("td");
-            td1.setAttribute("class", "parameter");
-            td1.appendChild(document.createTextNode(key));
-            tr.appendChild(td1);
+          var td1 = document.createElement('td')
+          td1.setAttribute('class', 'parameter')
+          td1.appendChild(document.createTextNode(key))
+          tr.appendChild(td1)
 
-            var td2 = document.createElement("td");
-            td2.appendChild(document.createTextNode(value));
-            tr.appendChild(td2);
+          var td2 = document.createElement('td')
+          td2.appendChild(document.createTextNode(value))
+          tr.appendChild(td2)
 
-            var td3 = document.createElement("td");
-            var button = document.createElement("input");
-            button.setAttribute("type", "button");
-            button.setAttribute("value", "-");
-            button.onclick = function(event) {
-                removeParameter(event.target.parentNode.parentNode);
-            };
-            td3.appendChild(button);
-            tr.appendChild(td3);
+          var td3 = document.createElement('td')
+          var button = document.createElement('input')
+          button.setAttribute('type', 'button')
+          button.setAttribute('value', '-')
+          button.onclick = function(event) {
+            removeParameter(event.target.parentNode.parentNode)
+          }
+          td3.appendChild(button)
+          tr.appendChild(td3)
 
-            document.getElementById("key").value = "";
-            document.getElementById("value").value = "";
-            
-            tbody.insertBefore(tr, row);
+          document.getElementById('key').value = ''
+          document.getElementById('value').value = ''
+
+          tbody.insertBefore(tr, row)
         }
-    }
-    
-    function removeParameter(row) {
-        row.parentNode.removeChild(row);
-    }
-    
-    function getParameters() {
+      }
+
+      function removeParameter(row) {
+        row.parentNode.removeChild(row)
+      }
+
+      function getParameters() {
         var map = {},
-            parameters = document.getElementById("parameters").getElementsByClassName("parameter");
-        for(var i = 0; i < parameters.length; i++) {
-            var p = parameters[i],
-                key = p.textContent,
-                value = p.nextSibling.textContent;
-            try {
-                map[key] = JSON.parse(value);
-            } catch(e) {
-                map[key] = value;
-            }
+          parameters = document
+            .getElementById('parameters')
+            .getElementsByClassName('parameter')
+        for (var i = 0; i < parameters.length; i++) {
+          var p = parameters[i],
+            key = p.textContent,
+            value = p.nextSibling.textContent
+          try {
+            map[key] = JSON.parse(value)
+          } catch (e) {
+            map[key] = value
+          }
         }
-        return map;
-    }
-    
-    document.getElementById("addParameter").onclick = function(event) {
-        addParameter();
-    };
-    document.getElementById("runButton").onclick = run;
+        return map
+      }
 
-    if (document.location.href.indexOf("example") >= 0) {
-//        document.getElementById("statement").textContent = "MERGE (alice:Person {name:{name_a},age:{age_a},married:{married_a}})\nMERGE (bob:Person {name:{name_b},age:{age_b},married:{married_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob";
-        document.getElementById("statement").textContent = "MERGE (alice:Person {name:{name_a},age:{age_a}})\nMERGE (bob:Person {name:{name_b},age:{age_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob";
-        addParameter("name_a", "Alice");
-        addParameter("age_a", 33);
+      document.getElementById('addParameter').onclick = function(event) {
+        addParameter()
+      }
+      document.getElementById('runButton').onclick = run
+
+      if (document.location.href.indexOf('example') >= 0) {
+        //        document.getElementById("statement").textContent = "MERGE (alice:Person {name:{name_a},age:{age_a},married:{married_a}})\nMERGE (bob:Person {name:{name_b},age:{age_b},married:{married_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob";
+        document.getElementById('statement').textContent =
+          'MERGE (alice:Person {name:{name_a},age:{age_a}})\nMERGE (bob:Person {name:{name_b},age:{age_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob'
+        addParameter('name_a', 'Alice')
+        addParameter('age_a', 33)
         //addParameter("married_a", "true");
-        addParameter("name_b", "Bob");
-        addParameter("age_b", 44);
+        addParameter('name_b', 'Bob')
+        addParameter('age_b', 44)
         //addParameter("married_b", "false");
-    }
-
+      }
     </script>
-
   </body>
 </html>
-

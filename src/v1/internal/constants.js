@@ -17,10 +17,7 @@
  * limitations under the License.
  */
 
-const ACCESS_MODE_READ = 'READ';
-const ACCESS_MODE_WRITE = 'WRITE';
+const ACCESS_MODE_READ = 'READ'
+const ACCESS_MODE_WRITE = 'WRITE'
 
-export {
-  ACCESS_MODE_READ,
-  ACCESS_MODE_WRITE
-}
+export { ACCESS_MODE_READ, ACCESS_MODE_WRITE }

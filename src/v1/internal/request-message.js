@@ -17,30 +17,31 @@
  * limitations under the License.
  */
 
-import {ACCESS_MODE_READ} from './constants';
+import { ACCESS_MODE_READ } from './constants'
 
 // Signature bytes for each request message type
-const INIT = 0x01;            // 0000 0001 // INIT <user_agent> <authentication_token>
-const ACK_FAILURE = 0x0E;     // 0000 1110 // ACK_FAILURE - unused
-const RESET = 0x0F;           // 0000 1111 // RESET
-const RUN = 0x10;             // 0001 0000 // RUN <statement> <parameters>
-const DISCARD_ALL = 0x2F;     // 0010 1111 // DISCARD_ALL - unused
-const PULL_ALL = 0x3F;        // 0011 1111 // PULL_ALL
+const INIT = 0x01 // 0000 0001 // INIT <user_agent> <authentication_token>
+// eslint-disable-next-line no-unused-vars
+const ACK_FAILURE = 0x0e // 0000 1110 // ACK_FAILURE - unused
+const RESET = 0x0f // 0000 1111 // RESET
+const RUN = 0x10 // 0001 0000 // RUN <statement> <parameters>
+// eslint-disable-next-line no-unused-vars
+const DISCARD_ALL = 0x2f // 0010 1111 // DISCARD_ALL - unused
+const PULL_ALL = 0x3f // 0011 1111 // PULL_ALL
 
-const HELLO = 0x01;           // 0000 0001 // HELLO <metadata>
-const GOODBYE = 0x02;         // 0000 0010 // GOODBYE
-const BEGIN = 0x11;           // 0001 0001 // BEGIN <metadata>
-const COMMIT = 0x12;          // 0001 0010 // COMMIT
-const ROLLBACK = 0x13;        // 0001 0011 // ROLLBACK
+const HELLO = 0x01 // 0000 0001 // HELLO <metadata>
+const GOODBYE = 0x02 // 0000 0010 // GOODBYE
+const BEGIN = 0x11 // 0001 0001 // BEGIN <metadata>
+const COMMIT = 0x12 // 0001 0010 // COMMIT
+const ROLLBACK = 0x13 // 0001 0011 // ROLLBACK
 
-const READ_MODE = "r";
+const READ_MODE = 'r'
 
 export default class RequestMessage {
-
-  constructor(signature, fields, toString) {
-    this.signature = signature;
-    this.fields = fields;
-    this.toString = toString;
+  constructor (signature, fields, toString) {
+    this.signature = signature
+    this.fields = fields
+    this.toString = toString
   }
 
   /**
@@ -49,8 +50,12 @@ export default class RequestMessage {
    * @param {object} authToken the authentication token.
    * @return {RequestMessage} new INIT message.
    */
-  static init(clientName, authToken) {
-    return new RequestMessage(INIT, [clientName, authToken], () => `INIT ${clientName} {...}`);
+  static init (clientName, authToken) {
+    return new RequestMessage(
+      INIT,
+      [clientName, authToken],
+      () => `INIT ${clientName} {...}`
+    )
   }
 
   /**
@@ -59,24 +64,28 @@ export default class RequestMessage {
    * @param {object} parameters the statement parameters.
    * @return {RequestMessage} new RUN message.
    */
-  static run(statement, parameters) {
-    return new RequestMessage(RUN, [statement, parameters], () => `RUN ${statement} ${JSON.stringify(parameters)}`);
+  static run (statement, parameters) {
+    return new RequestMessage(
+      RUN,
+      [statement, parameters],
+      () => `RUN ${statement} ${JSON.stringify(parameters)}`
+    )
   }
 
   /**
    * Get a PULL_ALL message.
    * @return {RequestMessage} the PULL_ALL message.
    */
-  static pullAll() {
-    return PULL_ALL_MESSAGE;
+  static pullAll () {
+    return PULL_ALL_MESSAGE
   }
 
   /**
    * Get a RESET message.
    * @return {RequestMessage} the RESET message.
    */
-  static reset() {
-    return RESET_MESSAGE;
+  static reset () {
+    return RESET_MESSAGE
   }
 
   /**
@@ -85,9 +94,13 @@ export default class RequestMessage {
    * @param {object} authToken the authentication token.
    * @return {RequestMessage} new HELLO message.
    */
-  static hello(userAgent, authToken) {
-    const metadata = Object.assign({user_agent: userAgent}, authToken);
-    return new RequestMessage(HELLO, [metadata], () => `HELLO {user_agent: '${userAgent}', ...}`);
+  static hello (userAgent, authToken) {
+    const metadata = Object.assign({ user_agent: userAgent }, authToken)
+    return new RequestMessage(
+      HELLO,
+      [metadata],
+      () => `HELLO {user_agent: '${userAgent}', ...}`
+    )
   }
 
   /**
@@ -97,25 +110,29 @@ export default class RequestMessage {
    * @param {string} mode the access mode.
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin(bookmark, txConfig, mode) {
-    const metadata = buildTxMetadata(bookmark, txConfig, mode);
-    return new RequestMessage(BEGIN, [metadata], () => `BEGIN ${JSON.stringify(metadata)}`);
+  static begin (bookmark, txConfig, mode) {
+    const metadata = buildTxMetadata(bookmark, txConfig, mode)
+    return new RequestMessage(
+      BEGIN,
+      [metadata],
+      () => `BEGIN ${JSON.stringify(metadata)}`
+    )
   }
 
   /**
    * Get a COMMIT message.
    * @return {RequestMessage} the COMMIT message.
    */
-  static commit() {
-    return COMMIT_MESSAGE;
+  static commit () {
+    return COMMIT_MESSAGE
   }
 
   /**
    * Get a ROLLBACK message.
    * @return {RequestMessage} the ROLLBACK message.
    */
-  static rollback() {
-    return ROLLBACK_MESSAGE;
+  static rollback () {
+    return ROLLBACK_MESSAGE
   }
 
   /**
@@ -127,18 +144,24 @@ export default class RequestMessage {
    * @param {string} mode the access mode.
    * @return {RequestMessage} new RUN message with additional metadata.
    */
-  static runWithMetadata(statement, parameters, bookmark, txConfig, mode) {
-    const metadata = buildTxMetadata(bookmark, txConfig, mode);
-    return new RequestMessage(RUN, [statement, parameters, metadata],
-      () => `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(metadata)}`);
+  static runWithMetadata (statement, parameters, bookmark, txConfig, mode) {
+    const metadata = buildTxMetadata(bookmark, txConfig, mode)
+    return new RequestMessage(
+      RUN,
+      [statement, parameters, metadata],
+      () =>
+        `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(
+          metadata
+        )}`
+    )
   }
 
   /**
    * Get a GOODBYE message.
    * @return {RequestMessage} the GOODBYE message.
    */
-  static goodbye() {
-    return GOODBYE_MESSAGE;
+  static goodbye () {
+    return GOODBYE_MESSAGE
   }
 }
 
@@ -149,26 +172,26 @@ export default class RequestMessage {
  * @param {string} mode the access mode.
  * @return {object} a metadata object.
  */
-function buildTxMetadata(bookmark, txConfig, mode) {
-  const metadata = {};
+function buildTxMetadata (bookmark, txConfig, mode) {
+  const metadata = {}
   if (!bookmark.isEmpty()) {
-    metadata['bookmarks'] = bookmark.values();
+    metadata['bookmarks'] = bookmark.values()
   }
   if (txConfig.timeout) {
-    metadata['tx_timeout'] = txConfig.timeout;
+    metadata['tx_timeout'] = txConfig.timeout
   }
   if (txConfig.metadata) {
-    metadata['tx_metadata'] = txConfig.metadata;
+    metadata['tx_metadata'] = txConfig.metadata
   }
   if (mode === ACCESS_MODE_READ) {
-    metadata['mode'] = READ_MODE;
+    metadata['mode'] = READ_MODE
   }
-  return metadata;
+  return metadata
 }
 
 // constants for messages that never change
-const PULL_ALL_MESSAGE = new RequestMessage(PULL_ALL, [], () => 'PULL_ALL');
-const RESET_MESSAGE = new RequestMessage(RESET, [], () => 'RESET');
-const COMMIT_MESSAGE = new RequestMessage(COMMIT, [], () => 'COMMIT');
-const ROLLBACK_MESSAGE = new RequestMessage(ROLLBACK, [], () => 'ROLLBACK');
-const GOODBYE_MESSAGE = new RequestMessage(GOODBYE, [], () => 'GOODBYE');
+const PULL_ALL_MESSAGE = new RequestMessage(PULL_ALL, [], () => 'PULL_ALL')
+const RESET_MESSAGE = new RequestMessage(RESET, [], () => 'RESET')
+const COMMIT_MESSAGE = new RequestMessage(COMMIT, [], () => 'COMMIT')
+const ROLLBACK_MESSAGE = new RequestMessage(ROLLBACK, [], () => 'ROLLBACK')
+const GOODBYE_MESSAGE = new RequestMessage(GOODBYE, [], () => 'GOODBYE')

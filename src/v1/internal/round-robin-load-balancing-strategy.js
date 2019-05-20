@@ -17,39 +17,38 @@
  * limitations under the License.
  */
 
-import RoundRobinArrayIndex from './round-robin-array-index';
-import LoadBalancingStrategy from './load-balancing-strategy';
+import RoundRobinArrayIndex from './round-robin-array-index'
+import LoadBalancingStrategy from './load-balancing-strategy'
 
-export const ROUND_ROBIN_STRATEGY_NAME = 'round_robin';
+export const ROUND_ROBIN_STRATEGY_NAME = 'round_robin'
 
 export default class RoundRobinLoadBalancingStrategy extends LoadBalancingStrategy {
-
-  constructor() {
-    super();
-    this._readersIndex = new RoundRobinArrayIndex();
-    this._writersIndex = new RoundRobinArrayIndex();
+  constructor () {
+    super()
+    this._readersIndex = new RoundRobinArrayIndex()
+    this._writersIndex = new RoundRobinArrayIndex()
   }
 
   /**
    * @inheritDoc
    */
-  selectReader(knownReaders) {
-    return this._select(knownReaders, this._readersIndex);
+  selectReader (knownReaders) {
+    return this._select(knownReaders, this._readersIndex)
   }
 
   /**
    * @inheritDoc
    */
-  selectWriter(knownWriters) {
-    return this._select(knownWriters, this._writersIndex);
+  selectWriter (knownWriters) {
+    return this._select(knownWriters, this._writersIndex)
   }
 
-  _select(addresses, roundRobinIndex) {
-    const length = addresses.length;
+  _select (addresses, roundRobinIndex) {
+    const length = addresses.length
     if (length === 0) {
-      return null;
+      return null
     }
-    const index = roundRobinIndex.next(length);
-    return addresses[index];
+    const index = roundRobinIndex.next(length)
+    return addresses[index]
   }
 }
