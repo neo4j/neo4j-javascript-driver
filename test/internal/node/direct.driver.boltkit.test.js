@@ -469,7 +469,7 @@ describe('direct driver with stub server', () => {
             }
           )
         )
-        .finally(() =>
+        .then(() =>
           session.close(() => {
             driver.close()
 
