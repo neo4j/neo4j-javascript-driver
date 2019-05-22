@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import HeapBuffer from './browser-buf'
-import textEncoding from 'text-encoding'
+import HeapBuffer from '../browser/browser-buf'
+import { TextEncoder, TextDecoder } from 'text-encoding-utf-8'
 
-const encoder = new textEncoding.TextEncoder('utf-8')
-const decoder = new textEncoding.TextDecoder('utf-8')
+const encoder = new TextEncoder('utf-8')
+const decoder = new TextDecoder('utf-8')
 
 function encode (str) {
   return new HeapBuffer(encoder.encode(str).buffer)
