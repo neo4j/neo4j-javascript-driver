@@ -140,7 +140,7 @@ describe('LeastConnectedLoadBalancingStrategy', () => {
 
 class DummyPool extends Pool {
   constructor (activeConnections) {
-    super(() => 42)
+    super({ create: () => 42 })
     this._activeConnections = activeConnections
   }
 

@@ -1210,9 +1210,10 @@ function setupLoadBalancerToRememberRouters (loadBalancer, routersArray) {
 }
 
 function newPool () {
-  return new Pool((address, release) =>
-    Promise.resolve(new FakeConnection(address, release))
-  )
+  return new Pool({
+    create: (address, release) =>
+      Promise.resolve(new FakeConnection(address, release))
+  })
 }
 
 function expectRoutingTable (loadBalancer, routers, readers, writers) {

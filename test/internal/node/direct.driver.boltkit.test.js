@@ -20,7 +20,7 @@
 import neo4j from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
-import { SERVICE_UNAVAILABLE } from '../../../src/error'
+import { newError, SERVICE_UNAVAILABLE } from '../../../src/v1/error'
 
 describe('direct driver with stub server', () => {
   let originalTimeout
@@ -430,6 +430,58 @@ describe('direct driver with stub server', () => {
               }
               expect(containsDbConnectionIdMessage).toBeTruthy()
 
+              done()
+            })
+          })
+        })
+        .catch(error => done.fail(error))
+    })
+  })
+
+  it('should close connection if it dies sitting idle in connection pool', done => {
+    if (!boltStub.supported) {
+      done()
+      return
+    }
+
+    const server = boltStub.start(
+      './test/resources/boltstub/read_server_v3_read.script',
+      9001
+    )
+
+    boltStub.run(() => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session({ defaultAccessMode: READ })
+
+      session
+        .run('MATCH (n) RETURN n.name')
+        .then(result => {
+          const records = result.records
+          expect(records.length).toEqual(3)
+          expect(records[0].get(0)).toBe('Bob')
+          expect(records[1].get(0)).toBe('Alice')
+          expect(records[2].get(0)).toBe('Tina')
+
+          const connectionKey = Object.keys(driver._openConnections)[0]
+          expect(connectionKey).toBeTruthy()
+
+          const connection = driver._openConnections[connectionKey]
+          session.close(() => {
+            // generate a fake fatal error
+            connection._handleFatalError(
+              newError('connection reset', SERVICE_UNAVAILABLE)
+            )
+
+            // expect that the connection to be removed from the pool
+            expect(driver._pool._pools['127.0.0.1:9001'].length).toEqual(0)
+            expect(
+              driver._pool._activeResourceCounts['127.0.0.1:9001']
+            ).toBeFalsy()
+            // expect that the connection to be unregistered from the open connections registry
+            expect(driver._openConnections[connectionKey]).toBeFalsy()
+            driver.close()
+            server.exit(code => {
+              expect(code).toEqual(0)
               done()
             })
           })

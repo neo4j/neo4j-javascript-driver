@@ -80,13 +80,15 @@ class Driver {
     this._authToken = authToken
     this._config = config
     this._log = Logger.create(config)
-    this._pool = new Pool(
-      this._createConnection.bind(this),
-      this._destroyConnection.bind(this),
-      this._validateConnection.bind(this),
-      PoolConfig.fromDriverConfig(config),
-      this._log
-    )
+    this._pool = new Pool({
+      create: this._createConnection.bind(this),
+      destroy: this._destroyConnection.bind(this),
+      validate: this._validateConnection.bind(this),
+      installIdleObserver: this._installIdleObserverOnConnection.bind(this),
+      removeIdleObserver: this._removeIdleObserverOnConnection.bind(this),
+      config: PoolConfig.fromDriverConfig(config),
+      log: this._log
+    })
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
@@ -158,6 +160,14 @@ class Driver {
     const maxConnectionLifetime = this._config.maxConnectionLifetime
     const lifetime = Date.now() - conn.creationTimestamp
     return lifetime <= maxConnectionLifetime
+  }
+
+  _installIdleObserverOnConnection (conn, observer) {
+    conn._queueObserver(observer)
+  }
+
+  _removeIdleObserverOnConnection (conn) {
+    conn._updateCurrentObserver()
   }
 
   /**
