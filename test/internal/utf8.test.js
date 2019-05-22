@@ -17,147 +17,147 @@
  * limitations under the License.
  */
 
-import CombinedBuffer from '../../src/v1/internal/buf/combined-buf';
-import {alloc, utf8} from '../../src/v1/internal/node';
+import CombinedBuffer from '../../src/v1/internal/buf/combined-buf'
+import { alloc, utf8 } from '../../src/v1/internal/node'
 
 describe('utf8', () => {
-
   it('should have a nice clean buffer position after serializing', () => {
     // When
-    const buffer = utf8.encode('hello, world!');
+    const buffer = utf8.encode('hello, world!')
 
     // Then
-    expect( buffer.position ).toBe( 0 );
-  });
+    expect(buffer.position).toBe(0)
+  })
 
   it('should respect position of single buffer', () => {
     // When
-    const buffer = utf8.encode('hello, world!');
-    buffer.readInt8();
-    const decoded = utf8.decode(buffer, buffer.length - 1);
+    const buffer = utf8.encode('hello, world!')
+    buffer.readInt8()
+    const decoded = utf8.decode(buffer, buffer.length - 1)
     // Then
-    expect( decoded ).toBe( "ello, world!" );
+    expect(decoded).toBe('ello, world!')
     expect(buffer.position).toEqual(13)
-  });
-
+  })
 
   it('should be able to decode substring', () => {
     // When
-    const buffer = utf8.encode('hello, world!');
-    buffer.readInt8();
-    const decoded = utf8.decode(buffer, 3);
+    const buffer = utf8.encode('hello, world!')
+    buffer.readInt8()
+    const decoded = utf8.decode(buffer, 3)
     // Then
-    expect( decoded ).toBe( "ell" );
+    expect(decoded).toBe('ell')
     expect(buffer.position).toEqual(4)
-  });
+  })
 
   it('should read/write utf8', () => {
-    expect( packAndUnpack( "" ) ).toBe( "" );
-    expect( packAndUnpack( "åäö123" ) ).toBe( "åäö123"  );
-  });
+    expect(packAndUnpack('')).toBe('')
+    expect(packAndUnpack('åäö123')).toBe('åäö123')
+  })
 
   it('should decode utf8 from a complete combined buffer', () => {
     // Given
-    const msg = 'asåfqwer';
-    const buf = utf8.encode(msg);
-    const bufa = buf.readSlice(3);
-    const bufb = buf.readSlice(3);
-    const bufc = buf.readSlice(3);
-    const combined = new CombinedBuffer([bufa, bufb, bufc]);
+    const msg = 'asåfqwer'
+    const buf = utf8.encode(msg)
+    const bufa = buf.readSlice(3)
+    const bufb = buf.readSlice(3)
+    const bufc = buf.readSlice(3)
+    const combined = new CombinedBuffer([bufa, bufb, bufc])
 
     // When
-    const decoded = utf8.decode(combined, combined.length);
+    const decoded = utf8.decode(combined, combined.length)
 
     // Then
-    expect(decoded).toBe(msg);
-  });
+    expect(decoded).toBe(msg)
+  })
 
   it('should decode utf8 from part of a combined buffer', () => {
     // Given
-    const msg = 'asåfq';
-    const expectMsg = msg.substring(0, msg.length - 1);
-    const buf = utf8.encode(msg);
-    const bufa = buf.readSlice(3);
-    const bufb = buf.readSlice(3);
-    const unrelatedData = alloc(3);
-    const combined = new CombinedBuffer([bufa, bufb, unrelatedData]);
+    const msg = 'asåfq'
+    const expectMsg = msg.substring(0, msg.length - 1)
+    const buf = utf8.encode(msg)
+    const bufa = buf.readSlice(3)
+    const bufb = buf.readSlice(3)
+    const unrelatedData = alloc(3)
+    const combined = new CombinedBuffer([bufa, bufb, unrelatedData])
 
-    // When 
+    // When
     // We read all but the unrelatedData and the last character of bufb
-    const decoded = utf8.decode(combined, combined.length - 1 - unrelatedData.length);
+    const decoded = utf8.decode(
+      combined,
+      combined.length - 1 - unrelatedData.length
+    )
 
     // Then
-    expect(decoded).toBe(expectMsg);
-  });
+    expect(decoded).toBe(expectMsg)
+  })
 
   it('should respect the position in the combined buffer', () => {
     // Given
-    const msg = 'abcdefgh';
-    const buf = utf8.encode(msg);
-    const bufa = buf.readSlice(4);
-    const bufb = buf.readSlice(4);
-    const combined = new CombinedBuffer([bufa, bufb]);
-    //move position forward
-    combined.readInt8();
-    combined.readInt8();
+    const msg = 'abcdefgh'
+    const buf = utf8.encode(msg)
+    const bufa = buf.readSlice(4)
+    const bufb = buf.readSlice(4)
+    const combined = new CombinedBuffer([bufa, bufb])
+    // move position forward
+    combined.readInt8()
+    combined.readInt8()
 
     // When
-    const decoded = utf8.decode(combined, combined.length - 2);
-
+    const decoded = utf8.decode(combined, combined.length - 2)
 
     // Then
-    expect(decoded).toEqual("cdefgh");
+    expect(decoded).toEqual('cdefgh')
     expect(combined.position).toBe(8)
-  });
+  })
 
   it('should be able to decode a substring in a combined buffer across buffers', () => {
     // Given
-    const msg = 'abcdefghijkl';
-    const buf = utf8.encode(msg);
-    const bufa = buf.readSlice(4);
-    const bufb = buf.readSlice(4);
-    const bufc = buf.readSlice(4);
-    const combined = new CombinedBuffer([bufa, bufb, bufc]);
-    //move position forward
-    combined.readInt8();
-    combined.readInt8();
-    combined.readInt8();
-    combined.readInt8();
-    combined.readInt8();
+    const msg = 'abcdefghijkl'
+    const buf = utf8.encode(msg)
+    const bufa = buf.readSlice(4)
+    const bufb = buf.readSlice(4)
+    const bufc = buf.readSlice(4)
+    const combined = new CombinedBuffer([bufa, bufb, bufc])
+    // move position forward
+    combined.readInt8()
+    combined.readInt8()
+    combined.readInt8()
+    combined.readInt8()
+    combined.readInt8()
 
     // When
-    const decoded = utf8.decode(combined, 4);
+    const decoded = utf8.decode(combined, 4)
 
     // Then
-    expect(decoded).toBe("fghi");
+    expect(decoded).toBe('fghi')
     expect(combined.position).toBe(9)
-  });
+  })
 
   it('should be able to decode a substring in a combined within buffer', () => {
     // Given
-    const msg = 'abcdefghijkl';
-    const buf = utf8.encode(msg);
-    const bufa = buf.readSlice(4);
-    const bufb = buf.readSlice(4);
-    const bufc = buf.readSlice(4);
-    const combined = new CombinedBuffer([bufa, bufb, bufc]);
-    //move position forward
-    combined.readInt8();
-    combined.readInt8();
-    combined.readInt8();
-    combined.readInt8();
-    combined.readInt8();
+    const msg = 'abcdefghijkl'
+    const buf = utf8.encode(msg)
+    const bufa = buf.readSlice(4)
+    const bufb = buf.readSlice(4)
+    const bufc = buf.readSlice(4)
+    const combined = new CombinedBuffer([bufa, bufb, bufc])
+    // move position forward
+    combined.readInt8()
+    combined.readInt8()
+    combined.readInt8()
+    combined.readInt8()
+    combined.readInt8()
 
     // When
-    const decoded = utf8.decode(combined, 2);
+    const decoded = utf8.decode(combined, 2)
 
     // Then
-    expect(decoded).toBe("fg");
+    expect(decoded).toBe('fg')
     expect(combined.position).toBe(7)
-  });
-});
+  })
+})
 
-function packAndUnpack( str ) {
-  const buffer = utf8.encode(str);
-  return utf8.decode( buffer, buffer.length );
+function packAndUnpack (str) {
+  const buffer = utf8.encode(str)
+  return utf8.decode(buffer, buffer.length)
 }

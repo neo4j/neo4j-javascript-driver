@@ -17,57 +17,58 @@
  * limitations under the License.
  */
 
-import neo4j from '../../src/v1';
+import neo4j from '../../src/v1'
 
 describe('auth', () => {
-
   it('should use correct username and password in basic auth', () => {
-    const token = neo4j.auth.basic('cat', 'dog');
+    const token = neo4j.auth.basic('cat', 'dog')
     expect(token).toEqual({
       scheme: 'basic',
       principal: 'cat',
       credentials: 'dog'
-    });
-  });
+    })
+  })
 
   it('should support realm in basic auth', () => {
-    const token = neo4j.auth.basic('cat', 'dog', 'apartment');
+    const token = neo4j.auth.basic('cat', 'dog', 'apartment')
     expect(token).toEqual({
       scheme: 'basic',
       principal: 'cat',
       credentials: 'dog',
       realm: 'apartment'
-    });
-  });
+    })
+  })
 
   it('should use correct ticket in kerberos', () => {
-    const token = neo4j.auth.kerberos('my-ticket');
+    const token = neo4j.auth.kerberos('my-ticket')
     expect(token).toEqual({
       scheme: 'kerberos',
       principal: '',
       credentials: 'my-ticket'
-    });
-  });
+    })
+  })
 
   it('should construct correct custom auth', () => {
-    const token = neo4j.auth.custom('cat', 'dog', 'apartment', 'pets');
+    const token = neo4j.auth.custom('cat', 'dog', 'apartment', 'pets')
     expect(token).toEqual({
       scheme: 'pets',
       principal: 'cat',
       credentials: 'dog',
       realm: 'apartment'
-    });
-  });
+    })
+  })
 
   it('should support parameters in custom auth', () => {
-    const token = neo4j.auth.custom('cat', 'dog', 'apartment', 'pets', {key1: 'value1', key2: 42});
+    const token = neo4j.auth.custom('cat', 'dog', 'apartment', 'pets', {
+      key1: 'value1',
+      key2: 42
+    })
     expect(token).toEqual({
       scheme: 'pets',
       principal: 'cat',
       credentials: 'dog',
       realm: 'apartment',
-      parameters: {key1: 'value1', key2: 42}
-    });
-  });
-
-});
+      parameters: { key1: 'value1', key2: 42 }
+    })
+  })
+})

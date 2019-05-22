@@ -17,14 +17,13 @@
  * limitations under the License.
  */
 
-import ResultSummary from './result-summary';
-import {EMPTY_CONNECTION_HOLDER} from './internal/connection-holder';
+import ResultSummary from './result-summary'
+import { EMPTY_CONNECTION_HOLDER } from './internal/connection-holder'
 
 const DEFAULT_ON_ERROR = error => {
-  console.log('Uncaught error when processing result: ' + error);
-};
-const DEFAULT_ON_COMPLETED = summary => {
-};
+  console.log('Uncaught error when processing result: ' + error)
+}
+const DEFAULT_ON_COMPLETED = summary => {}
 
 /**
  * A stream of {@link Record} representing the result of a statement.
@@ -44,14 +43,24 @@ class Result {
    * @param metaSupplier function, when called provides metadata
    * @param {ConnectionHolder} connectionHolder - to be notified when result is either fully consumed or error happened.
    */
-  constructor(streamObserver, statement, parameters, metaSupplier, connectionHolder) {
-    this._stack = captureStacktrace();
-    this._streamObserver = streamObserver;
-    this._p = null;
-    this._statement = statement;
-    this._parameters = parameters || {};
-    this._metaSupplier = metaSupplier || function(){return {};};
-    this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER;
+  constructor (
+    streamObserver,
+    statement,
+    parameters,
+    metaSupplier,
+    connectionHolder
+  ) {
+    this._stack = captureStacktrace()
+    this._streamObserver = streamObserver
+    this._p = null
+    this._statement = statement
+    this._parameters = parameters || {}
+    this._metaSupplier =
+      metaSupplier ||
+      function () {
+        return {}
+      }
+    this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
   }
 
   /**
@@ -59,22 +68,26 @@ class Result {
    * @return {Promise} new Promise.
    * @access private
    */
-  _createPromise() {
-    if(this._p) {
-      return;
+  _createPromise () {
+    if (this._p) {
+      return
     }
-    let self = this;
+    let self = this
     this._p = new Promise((resolve, reject) => {
-      let records = [];
+      let records = []
       let observer = {
-        onNext: (record) => { records.push(record); },
-        onCompleted: (summary) => {
-          resolve({records: records, summary: summary});
+        onNext: record => {
+          records.push(record)
         },
-        onError: (error) => { reject(error); }
-      };
-      self.subscribe(observer);
-    });
+        onCompleted: summary => {
+          resolve({ records: records, summary: summary })
+        },
+        onError: error => {
+          reject(error)
+        }
+      }
+      self.subscribe(observer)
+    })
   }
 
   /**
@@ -86,9 +99,9 @@ class Result {
    * @param {function(error: {message:string, code:string})} onRejected - function to be called upon errors.
    * @return {Promise} promise.
    */
-  then(onFulfilled, onRejected) {
-    this._createPromise();
-    return this._p.then(onFulfilled, onRejected);
+  then (onFulfilled, onRejected) {
+    this._createPromise()
+    return this._p.then(onFulfilled, onRejected)
   }
 
   /**
@@ -97,9 +110,9 @@ class Result {
    * @param {function(error: Neo4jError)} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
-  catch(onRejected) {
-    this._createPromise();
-    return this._p.catch(onRejected);
+  catch (onRejected) {
+    this._createPromise()
+    return this._p.catch(onRejected)
   }
 
   /**
@@ -112,56 +125,56 @@ class Result {
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return
    */
-  subscribe(observer) {
-    const self = this;
+  subscribe (observer) {
+    const self = this
 
-    const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED;
-    const onCompletedWrapper = (metadata) => {
-      const additionalMeta = self._metaSupplier();
+    const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
+    const onCompletedWrapper = metadata => {
+      const additionalMeta = self._metaSupplier()
       for (let key in additionalMeta) {
         if (additionalMeta.hasOwnProperty(key)) {
-          metadata[key] = additionalMeta[key];
+          metadata[key] = additionalMeta[key]
         }
       }
-      const sum = new ResultSummary(this._statement, this._parameters, metadata);
+      const sum = new ResultSummary(this._statement, this._parameters, metadata)
 
       // notify connection holder that the used connection is not needed any more because result has
       // been fully consumed; call the original onCompleted callback after that
       self._connectionHolder.releaseConnection().then(() => {
-        onCompletedOriginal.call(observer, sum);
-      });
-    };
-    observer.onCompleted = onCompletedWrapper;
+        onCompletedOriginal.call(observer, sum)
+      })
+    }
+    observer.onCompleted = onCompletedWrapper
 
-    const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR;
+    const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR
     const onErrorWrapper = error => {
       // notify connection holder that the used connection is not needed any more because error happened
       // and result can't bee consumed any further; call the original onError callback after that
       self._connectionHolder.releaseConnection().then(() => {
-        replaceStacktrace(error, this._stack);
-        onErrorOriginal.call(observer, error);
-      });
-    };
-    observer.onError = onErrorWrapper;
+        replaceStacktrace(error, this._stack)
+        onErrorOriginal.call(observer, error)
+      })
+    }
+    observer.onError = onErrorWrapper
 
-    this._streamObserver.subscribe(observer);
+    this._streamObserver.subscribe(observer)
   }
 }
 
-function captureStacktrace() {
-  const error = new Error('');
+function captureStacktrace () {
+  const error = new Error('')
   if (error.stack) {
-    return error.stack.replace(/^Error(\n\r)*/, ''); // we don't need the 'Error\n' part, if only it exists
+    return error.stack.replace(/^Error(\n\r)*/, '') // we don't need the 'Error\n' part, if only it exists
   }
-  return null;
+  return null
 }
 
-function replaceStacktrace(error, newStack) {
+function replaceStacktrace (error, newStack) {
   if (newStack) {
     // Error.prototype.toString() concatenates error.name and error.message nicely
     // then we add the rest of the stack trace
-    error.stack = error.toString() + '\n' + newStack;
+    error.stack = error.toString() + '\n' + newStack
   }
 }
 
-export default Result;
+export default Result

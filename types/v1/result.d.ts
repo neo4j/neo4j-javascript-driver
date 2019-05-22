@@ -17,23 +17,23 @@
  * limitations under the License.
  */
 
-import ResultSummary from "./result-summary";
-import Record from "./record";
+import ResultSummary from './result-summary'
+import Record from './record'
 
 declare type StatementResult = {
-  records: Record[];
-  summary: ResultSummary;
+  records: Record[]
+  summary: ResultSummary
 }
 
 declare type Observer = {
-  onNext?(record: Record): void;
-  onCompleted?(summary: ResultSummary): void;
-  onError?(error: Error): void;
+  onNext?(record: Record): void
+  onCompleted?(summary: ResultSummary): void
+  onError?(error: Error): void
 }
 
 declare interface Result extends Promise<StatementResult> {
-  subscribe(observer: Observer): void;
+  subscribe(observer: Observer): void
 }
 
-export {StatementResult, Observer};
-export default Result;
+export { StatementResult, Observer }
+export default Result

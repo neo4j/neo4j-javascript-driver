@@ -16,22 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-function isClient() {
-  return (typeof window != 'undefined' && window.document);
+function isClient () {
+  return typeof window !== 'undefined' && window.document
 }
 
-function isServer() {
-  return !isClient();
+function isServer () {
+  return !isClient()
 }
 
-function fakeStandardDateWithOffset(offsetMinutes) {
-  const date = new Date();
-  date.getTimezoneOffset = () => offsetMinutes;
-  return date;
+function fakeStandardDateWithOffset (offsetMinutes) {
+  const date = new Date()
+  date.getTimezoneOffset = () => offsetMinutes
+  return date
 }
 
 export default {
   isClient,
   isServer,
   fakeStandardDateWithOffset
-};
+}

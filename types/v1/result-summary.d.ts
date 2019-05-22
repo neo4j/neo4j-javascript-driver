@@ -17,89 +17,101 @@
  * limitations under the License.
  */
 
-import Integer from "./integer";
-import {NumberOrInteger} from "./graph-types";
+import Integer from './integer'
+import { NumberOrInteger } from './graph-types'
 
 declare interface ResultSummary<T extends NumberOrInteger = Integer> {
-  statement: { text: string, parameters: { [key: string]: any } };
-  statementType: string;
-  counters: StatementStatistic;
-  plan: Plan;
-  profile: ProfiledPlan;
-  notifications: Notification[];
-  server: ServerInfo;
-  resultConsumedAfter: T;
-  resultAvailableAfter: T;
+  statement: { text: string; parameters: { [key: string]: any } }
+  statementType: string
+  counters: StatementStatistic
+  plan: Plan
+  profile: ProfiledPlan
+  notifications: Notification[]
+  server: ServerInfo
+  resultConsumedAfter: T
+  resultAvailableAfter: T
 
-  hasPlan(): boolean;
+  hasPlan(): boolean
 
-  hasProfile(): boolean;
+  hasProfile(): boolean
 }
 
 declare interface Plan {
-  operatorType: string;
-  identifiers: string[];
-  arguments: { [key: string]: string };
-  children: Plan[];
+  operatorType: string
+  identifiers: string[]
+  arguments: { [key: string]: string }
+  children: Plan[]
 }
 
 declare interface ProfiledPlan {
-  operatorType: string;
-  identifiers: string[];
-  arguments: { [key: string]: string };
-  dbHits: number;
-  rows: number;
-  children: ProfiledPlan[];
+  operatorType: string
+  identifiers: string[]
+  arguments: { [key: string]: string }
+  dbHits: number
+  rows: number
+  children: ProfiledPlan[]
 }
 
 declare interface StatementStatistic {
-  containsUpdates(): boolean;
+  containsUpdates(): boolean
 
-  nodesCreated(): number;
+  nodesCreated(): number
 
-  nodesDeleted(): number;
+  nodesDeleted(): number
 
-  relationshipsCreated(): number;
+  relationshipsCreated(): number
 
-  relationshipsDeleted(): number;
+  relationshipsDeleted(): number
 
-  propertiesSet(): number;
+  propertiesSet(): number
 
-  labelsAdded(): number;
+  labelsAdded(): number
 
-  labelsRemoved(): number;
+  labelsRemoved(): number
 
-  indexesAdded(): number;
+  indexesAdded(): number
 
-  indexesRemoved(): number;
+  indexesRemoved(): number
 
-  constraintsAdded(): number;
+  constraintsAdded(): number
 
-  constraintsRemoved(): number;
+  constraintsRemoved(): number
 }
 
-declare type NotificationPosition = { offset: number; line: number; column: number; }
+declare type NotificationPosition = {
+  offset: number
+  line: number
+  column: number
+}
 
 declare interface Notification {
-  code: string;
-  title: string;
-  description: string;
-  severity: string;
-  position: NotificationPosition | {};
+  code: string
+  title: string
+  description: string
+  severity: string
+  position: NotificationPosition | {}
 }
 
 declare interface ServerInfo {
-  address: string;
-  version: string;
+  address: string
+  version: string
 }
 
 declare const statementType: {
-  READ_ONLY: "r";
-  READ_WRITE: "rw";
-  WRITE_ONLY: "w";
-  SCHEMA_WRITE: "s";
-};
+  READ_ONLY: 'r'
+  READ_WRITE: 'rw'
+  WRITE_ONLY: 'w'
+  SCHEMA_WRITE: 's'
+}
 
-export {statementType, Plan, ProfiledPlan, StatementStatistic, Notification, ServerInfo, NotificationPosition}
+export {
+  statementType,
+  Plan,
+  ProfiledPlan,
+  StatementStatistic,
+  Notification,
+  ServerInfo,
+  NotificationPosition
+}
 
-export default ResultSummary;
+export default ResultSummary

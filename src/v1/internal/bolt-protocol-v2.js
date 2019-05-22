@@ -16,20 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import BoltProtocolV1 from './bolt-protocol-v1';
-import * as v2 from './packstream-v2';
+import BoltProtocolV1 from './bolt-protocol-v1'
+import * as v2 from './packstream-v2'
 
 export default class BoltProtocol extends BoltProtocolV1 {
-
-  constructor(connection, chunker, disableLosslessIntegers) {
-    super(connection, chunker, disableLosslessIntegers);
+  _createPacker (chunker) {
+    return new v2.Packer(chunker)
   }
 
-  _createPacker(chunker) {
-    return new v2.Packer(chunker);
-  }
-
-  _createUnpacker(disableLosslessIntegers) {
-    return new v2.Unpacker(disableLosslessIntegers);
+  _createUnpacker (disableLosslessIntegers) {
+    return new v2.Unpacker(disableLosslessIntegers)
   }
 }

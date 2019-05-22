@@ -17,34 +17,36 @@
  * limitations under the License.
  */
 
-import Result from "../../../types/v1/result";
-import Record from "../../../types/v1/record";
-import ResultSummary from "../../../types/v1/result-summary";
+import Result from '../../../types/v1/result'
+import Record from '../../../types/v1/record'
+import ResultSummary from '../../../types/v1/result-summary'
 
-const dummy: any = null;
+const dummy: any = null
 
-const res: Result = dummy;
+const res: Result = dummy
 
-res.then(value => {
-  const records: Record[] = value.records;
-  const summary: ResultSummary = value.summary;
-}).catch(error => {
-  console.log(error);
-});
+res
+  .then(value => {
+    const records: Record[] = value.records
+    const summary: ResultSummary = value.summary
+  })
+  .catch(error => {
+    console.log(error)
+  })
 
-res.subscribe({});
+res.subscribe({})
 
 res.subscribe({
   onNext: (record: Record) => console.log(record)
-});
+})
 
 res.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error)
-});
+})
 
 res.subscribe({
   onNext: (record: Record) => console.log(record),
   onError: (error: Error) => console.log(error),
   onCompleted: (summary: ResultSummary) => console.log(summary)
-});
+})

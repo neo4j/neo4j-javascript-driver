@@ -17,21 +17,25 @@
  * limitations under the License.
  */
 
-declare type Visitor = (value: any, key: string, record: Record) => void;
+declare type Visitor = (value: any, key: string, record: Record) => void
 
 declare class Record {
-  keys: string[];
-  length: number;
+  keys: string[]
+  length: number
 
-  constructor(keys: string[], fields: any[], fieldLookup?: { [index: string]: string });
+  constructor(
+    keys: string[],
+    fields: any[],
+    fieldLookup?: { [index: string]: string }
+  )
 
-  forEach(visitor: Visitor): void;
+  forEach(visitor: Visitor): void
 
-  toObject(): object;
+  toObject(): object
 
-  get(key: string | number): any;
+  get(key: string | number): any
 
-  has(key: string | number): boolean;
+  has(key: string | number): boolean
 }
 
-export default Record;
+export default Record

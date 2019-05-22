@@ -17,41 +17,51 @@
  * limitations under the License.
  */
 
-import RoundRobinLoadBalancingStrategy from '../../src/v1/internal/round-robin-load-balancing-strategy';
-import LeastConnectedLoadBalancingStrategy from '../../src/v1/internal/least-connected-load-balancing-strategy';
-import RoutingDriver from '../../src/v1/routing-driver';
-import Pool from '../../src/v1/internal/pool';
-import neo4j from '../../src/v1';
+import RoundRobinLoadBalancingStrategy from '../../src/v1/internal/round-robin-load-balancing-strategy'
+import LeastConnectedLoadBalancingStrategy from '../../src/v1/internal/least-connected-load-balancing-strategy'
+import RoutingDriver from '../../src/v1/routing-driver'
+import Pool from '../../src/v1/internal/pool'
+import neo4j from '../../src/v1'
 
 describe('RoutingDriver', () => {
-
   it('should create least connected when nothing configured', () => {
-    const strategy = createStrategy({});
-    expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy();
-  });
+    const strategy = createStrategy({})
+    expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy()
+  })
 
   it('should create least connected when it is configured', () => {
-    const strategy = createStrategy({loadBalancingStrategy: 'least_connected'});
-    expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy();
-  });
+    const strategy = createStrategy({
+      loadBalancingStrategy: 'least_connected'
+    })
+    expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy()
+  })
 
   it('should create round robin when it is configured', () => {
-    const strategy = createStrategy({loadBalancingStrategy: 'round_robin'});
-    expect(strategy instanceof RoundRobinLoadBalancingStrategy).toBeTruthy();
-  });
+    const strategy = createStrategy({ loadBalancingStrategy: 'round_robin' })
+    expect(strategy instanceof RoundRobinLoadBalancingStrategy).toBeTruthy()
+  })
 
   it('should fail when unknown strategy is configured', () => {
-    expect(() => createStrategy({loadBalancingStrategy: 'wrong'})).toThrow();
-  });
+    expect(() => createStrategy({ loadBalancingStrategy: 'wrong' })).toThrow()
+  })
 
   it('should fail when configured resolver is of illegal type', () => {
-    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: 'string instead of a function'})).toThrowError(TypeError);
-    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: []})).toThrowError(TypeError);
-    expect(() => neo4j.driver('bolt+routing://localhost', {}, {resolver: {}})).toThrowError(TypeError);
-  });
+    expect(() =>
+      neo4j.driver(
+        'bolt+routing://localhost',
+        {},
+        { resolver: 'string instead of a function' }
+      )
+    ).toThrowError(TypeError)
+    expect(() =>
+      neo4j.driver('bolt+routing://localhost', {}, { resolver: [] })
+    ).toThrowError(TypeError)
+    expect(() =>
+      neo4j.driver('bolt+routing://localhost', {}, { resolver: {} })
+    ).toThrowError(TypeError)
+  })
+})
 
-});
-
-function createStrategy(config) {
-  return RoutingDriver._createLoadBalancingStrategy(config, new Pool());
+function createStrategy (config) {
+  return RoutingDriver._createLoadBalancingStrategy(config, new Pool())
 }

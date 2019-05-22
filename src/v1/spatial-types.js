@@ -16,16 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {assertNumber, assertNumberOrInteger} from './internal/util';
+import { assertNumber, assertNumberOrInteger } from './internal/util'
 
-const POINT_IDENTIFIER_PROPERTY = '__isPoint__';
+const POINT_IDENTIFIER_PROPERTY = '__isPoint__'
 
 /**
  * Represents a single two or three-dimensional point in a particular coordinate reference system.
  * Created `Point` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class Point {
-
   /**
    * @constructor
    * @param {Integer|number} srid the coordinate reference system identifier.
@@ -33,36 +32,40 @@ export class Point {
    * @param {number} y the `y` coordinate of the point.
    * @param {number} [z=undefined] the `y` coordinate of the point or `undefined` if point has 2 dimensions.
    */
-  constructor(srid, x, y, z) {
-    this.srid = assertNumberOrInteger(srid, 'SRID');
-    this.x = assertNumber(x, 'X coordinate');
-    this.y = assertNumber(y, 'Y coordinate');
-    this.z = (z === null || z === undefined) ? z : assertNumber(z, 'Z coordinate');
-    Object.freeze(this);
+  constructor (srid, x, y, z) {
+    this.srid = assertNumberOrInteger(srid, 'SRID')
+    this.x = assertNumber(x, 'X coordinate')
+    this.y = assertNumber(y, 'Y coordinate')
+    this.z = z === null || z === undefined ? z : assertNumber(z, 'Z coordinate')
+    Object.freeze(this)
   }
 
-  toString() {
+  toString () {
     return this.z || this.z === 0
-      ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(this.x)}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
-      : `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(this.x)}, y=${formatAsFloat(this.y)}}`;
+      ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
+        this.x
+      )}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
+      : `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
+        this.x
+      )}, y=${formatAsFloat(this.y)}}`
   }
 }
 
-function formatAsFloat(number) {
-  return Number.isInteger(number) ? number + '.0' : number.toString();
+function formatAsFloat (number) {
+  return Number.isInteger(number) ? number + '.0' : number.toString()
 }
 
 Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
   value: true,
   enumerable: false,
   configurable: false
-});
+})
 
 /**
  * Test if given object is an instance of {@link Point} class.
  * @param {object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
  */
-export function isPoint(obj) {
-  return (obj && obj[POINT_IDENTIFIER_PROPERTY]) === true;
+export function isPoint (obj) {
+  return (obj && obj[POINT_IDENTIFIER_PROPERTY]) === true
 }

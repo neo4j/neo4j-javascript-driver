@@ -17,31 +17,31 @@
  * limitations under the License.
  */
 
-import {isInt} from '../integer';
+import { isInt } from '../integer'
 
-const ENCRYPTION_ON = "ENCRYPTION_ON";
-const ENCRYPTION_OFF = "ENCRYPTION_OFF";
+const ENCRYPTION_ON = 'ENCRYPTION_ON'
+const ENCRYPTION_OFF = 'ENCRYPTION_OFF'
 
-function isEmptyObjectOrNull(obj) {
+function isEmptyObjectOrNull (obj) {
   if (obj === null) {
-    return true;
+    return true
   }
 
   if (!isObject(obj)) {
-    return false;
+    return false
   }
 
   for (let prop in obj) {
     if (obj.hasOwnProperty(prop)) {
-      return false;
+      return false
     }
   }
 
-  return true;
+  return true
 }
 
-function isObject(obj) {
-  return typeof obj === 'object' && !Array.isArray(obj) && obj !== null;
+function isObject (obj) {
+  return typeof obj === 'object' && !Array.isArray(obj) && obj !== null
 }
 
 /**
@@ -51,76 +51,98 @@ function isObject(obj) {
  * @return {{query: string, params: object}} the normalized query with parameters.
  * @throws TypeError when either given query or parameters are invalid.
  */
-function validateStatementAndParameters(statement, parameters) {
-  let query = statement;
-  let params = parameters || {};
+function validateStatementAndParameters (statement, parameters) {
+  let query = statement
+  let params = parameters || {}
 
   if (typeof statement === 'object' && statement.text) {
-    query = statement.text;
-    params = statement.parameters || {};
+    query = statement.text
+    params = statement.parameters || {}
   }
 
-  assertCypherStatement(query);
-  assertQueryParameters(params);
+  assertCypherStatement(query)
+  assertQueryParameters(params)
 
-  return {query, params};
+  return { query, params }
 }
 
-function assertObject(obj, objName) {
+function assertObject (obj, objName) {
   if (!isObject(obj)) {
-    throw new TypeError(objName + ' expected to be an object but was: ' + JSON.stringify(obj));
+    throw new TypeError(
+      objName + ' expected to be an object but was: ' + JSON.stringify(obj)
+    )
   }
-  return obj;
+  return obj
 }
 
-function assertString(obj, objName) {
+function assertString (obj, objName) {
   if (!isString(obj)) {
-    throw new TypeError(objName + ' expected to be string but was: ' + JSON.stringify(obj));
+    throw new TypeError(
+      objName + ' expected to be string but was: ' + JSON.stringify(obj)
+    )
   }
-  return obj;
+  return obj
 }
 
-function assertNumber(obj, objName) {
+function assertNumber (obj, objName) {
   if (typeof obj !== 'number') {
-    throw new TypeError(objName + ' expected to be a number but was: ' + JSON.stringify(obj));
+    throw new TypeError(
+      objName + ' expected to be a number but was: ' + JSON.stringify(obj)
+    )
   }
-  return obj;
+  return obj
 }
 
-function assertNumberOrInteger(obj, objName) {
+function assertNumberOrInteger (obj, objName) {
   if (typeof obj !== 'number' && !isInt(obj)) {
-    throw new TypeError(objName + ' expected to be either a number or an Integer object but was: ' + JSON.stringify(obj));
+    throw new TypeError(
+      objName +
+        ' expected to be either a number or an Integer object but was: ' +
+        JSON.stringify(obj)
+    )
   }
-  return obj;
+  return obj
 }
 
-function assertValidDate(obj, objName) {
+function assertValidDate (obj, objName) {
   if (Object.prototype.toString.call(obj) !== '[object Date]') {
-    throw new TypeError(objName + ' expected to be a standard JavaScript Date but was: ' + JSON.stringify(obj));
+    throw new TypeError(
+      objName +
+        ' expected to be a standard JavaScript Date but was: ' +
+        JSON.stringify(obj)
+    )
   }
   if (Number.isNaN(obj.getTime())) {
-    throw new TypeError(objName + ' expected to be valid JavaScript Date but its time was NaN: ' + JSON.stringify(obj));
+    throw new TypeError(
+      objName +
+        ' expected to be valid JavaScript Date but its time was NaN: ' +
+        JSON.stringify(obj)
+    )
   }
-  return obj;
+  return obj
 }
 
-function assertCypherStatement(obj) {
-  assertString(obj, 'Cypher statement');
+function assertCypherStatement (obj) {
+  assertString(obj, 'Cypher statement')
   if (obj.trim().length === 0) {
-    throw new TypeError('Cypher statement is expected to be a non-empty string.');
+    throw new TypeError(
+      'Cypher statement is expected to be a non-empty string.'
+    )
   }
 }
 
-function assertQueryParameters(obj) {
+function assertQueryParameters (obj) {
   if (!isObject(obj)) {
     // objects created with `Object.create(null)` do not have a constructor property
-    const constructor = obj.constructor ? ' ' + obj.constructor.name : '';
-    throw new TypeError(`Query parameters are expected to either be undefined/null or an object, given:${constructor} ${obj}`);
+    const constructor = obj.constructor ? ' ' + obj.constructor.name : ''
+    throw new TypeError(
+      `Query parameters are expected to either be undefined/null or an object, given:${constructor} ${obj}`
+    )
   }
 }
 
-function isString(str) {
-  return Object.prototype.toString.call(str) === '[object String]';
+function isString (str) {
+  return Object.prototype.toString.call(str) === '[object String]'
 }
 
 export {

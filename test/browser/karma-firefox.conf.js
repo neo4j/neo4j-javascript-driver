@@ -16,13 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
-    frameworks: ['jasmine'],
     basePath: '../../',
-    files: ['build/browser/neo4j-web.test.js'],
+    browserify: {
+      debug: true,
+      transform: ['babelify', './support/inject-browser-transform']
+    },
+    files: [
+      'src/*.js',
+      'src/**/!(node)/*.js',
+      'test/**/!(node)/!(examples).test.js'
+    ],
+    preprocessors: {
+      'src/**/*.js': ['browserify'],
+      'test/**/*.test.js': ['browserify']
+    },
+    frameworks: ['browserify', 'source-map-support', 'jasmine'],
     reporters: ['spec'],
-    port: 9876,  // karma web server port
+    port: 9876, // karma web server port
     colors: true,
     logLevel: config.LOG_DEBUG,
     browsers: ['FirefoxHeadless'],
@@ -33,11 +45,11 @@ module.exports = function(config) {
     customLaunchers: {
       FirefoxHeadless: {
         base: 'Firefox',
-        flags: [ '-headless' ],
+        flags: ['-headless'],
         prefs: {
           'network.websocket.max-connections': 256 // as in Chrome
         }
-      },
-    },
+      }
+    }
   })
-};
+}

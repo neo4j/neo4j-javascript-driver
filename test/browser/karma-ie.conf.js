@@ -22,13 +22,13 @@ module.exports = function (config) {
     basePath: '../../',
     files: ['build/browser/neo4j-web.test.js'],
     reporters: ['spec'],
-    port: 9876,  // karma web server port
+    port: 9876, // karma web server port
     colors: true,
     logLevel: config.LOG_DEBUG,
     browsers: ['IE'],
     autoWatch: false,
     singleRun: true,
     concurrency: 1,
-    browserNoActivityTimeout: 30 * 60 * 1000,
-  });
-};
+    browserNoActivityTimeout: 30 * 60 * 1000
+  })
+}

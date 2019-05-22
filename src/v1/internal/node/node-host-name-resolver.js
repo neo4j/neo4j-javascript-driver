@@ -17,22 +17,22 @@
  * limitations under the License.
  */
 
-import BaseHostNameResolver from '../resolver/base-host-name-resolver';
-import urlUtil from '../url-util';
-import nodeDns from 'dns';
+import BaseHostNameResolver from '../resolver/base-host-name-resolver'
+import nodeDns from 'dns'
 
 export default class NodeHostNameResolver extends BaseHostNameResolver {
-
-  resolve(address) {
-    return new Promise((resolve) => {
+  resolve (address) {
+    return new Promise(resolve => {
       nodeDns.lookup(address.host(), { all: true }, (error, resolvedTo) => {
         if (error) {
-          resolve([address]);
+          resolve([address])
         } else {
-          const resolvedAddresses = resolvedTo.map(a => address.resolveWith(a.address));
-          resolve(resolvedAddresses);
+          const resolvedAddresses = resolvedTo.map(a =>
+            address.resolveWith(a.address)
+          )
+          resolve(resolvedAddresses)
         }
-      });
-    });
+      })
+    })
   }
 }

@@ -17,22 +17,18 @@
  * limitations under the License.
  */
 
-import {NumberOrInteger} from './graph-types';
-import Integer from "./integer";
+import { NumberOrInteger } from './graph-types'
+import Integer from './integer'
 
 declare class Point<T extends NumberOrInteger = Integer> {
-
-  readonly srid: T;
-  readonly x: number;
-  readonly y: number;
-  readonly z?: number;
+  readonly srid: T
+  readonly x: number
+  readonly y: number
+  readonly z?: number
 
   constructor(srid: T, x: number, y: number, z?: number)
 }
 
-declare function isPoint(obj: object): boolean;
+declare function isPoint(obj: object): boolean
 
-export {
-  Point,
-  isPoint
-}
+export { Point, isPoint }

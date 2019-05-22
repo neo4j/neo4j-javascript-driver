@@ -17,183 +17,192 @@
  * limitations under the License.
  */
 
-import StreamObserver from '../../src/v1/internal/stream-observer';
-import FakeConnection from './fake-connection';
+import StreamObserver from '../../src/v1/internal/stream-observer'
+import FakeConnection from './fake-connection'
 
-const NO_OP = () => {
-};
+const NO_OP = () => {}
 
 describe('StreamObserver', () => {
-
   it('remembers resolved connection', () => {
-    const streamObserver = newStreamObserver();
-    const connection = new FakeConnection();
+    const streamObserver = newStreamObserver()
+    const connection = new FakeConnection()
 
-    streamObserver.resolveConnection(connection);
+    streamObserver.resolveConnection(connection)
 
-    expect(streamObserver._conn).toBe(connection);
-  });
+    expect(streamObserver._conn).toBe(connection)
+  })
 
   it('remembers subscriber', () => {
-    const streamObserver = newStreamObserver();
-    const subscriber = newObserver();
+    const streamObserver = newStreamObserver()
+    const subscriber = newObserver()
 
-    streamObserver.subscribe(subscriber);
+    streamObserver.subscribe(subscriber)
 
-    expect(streamObserver._observer).toBe(subscriber);
-  });
+    expect(streamObserver._observer).toBe(subscriber)
+  })
 
   it('passes received records to the subscriber', () => {
-    const streamObserver = newStreamObserver();
-    const receivedRecords = [];
+    const streamObserver = newStreamObserver()
+    const receivedRecords = []
     const observer = newObserver(record => {
-      receivedRecords.push(record);
-    });
+      receivedRecords.push(record)
+    })
 
-    streamObserver.subscribe(observer);
-    streamObserver.onCompleted({fields: ['A', 'B', 'C']});
+    streamObserver.subscribe(observer)
+    streamObserver.onCompleted({ fields: ['A', 'B', 'C'] })
 
-    streamObserver.onNext([1, 2, 3]);
-    streamObserver.onNext([11, 22, 33]);
-    streamObserver.onNext([111, 222, 333]);
+    streamObserver.onNext([1, 2, 3])
+    streamObserver.onNext([11, 22, 33])
+    streamObserver.onNext([111, 222, 333])
 
-    expect(receivedRecords.length).toEqual(3);
-    expect(receivedRecords[0].toObject()).toEqual({'A': 1, 'B': 2, 'C': 3});
-    expect(receivedRecords[1].toObject()).toEqual({'A': 11, 'B': 22, 'C': 33});
-    expect(receivedRecords[2].toObject()).toEqual({'A': 111, 'B': 222, 'C': 333});
-  });
+    expect(receivedRecords.length).toEqual(3)
+    expect(receivedRecords[0].toObject()).toEqual({ A: 1, B: 2, C: 3 })
+    expect(receivedRecords[1].toObject()).toEqual({ A: 11, B: 22, C: 33 })
+    expect(receivedRecords[2].toObject()).toEqual({ A: 111, B: 222, C: 333 })
+  })
 
   it('queues received record when no subscriber', () => {
-    const streamObserver = newStreamObserver();
+    const streamObserver = newStreamObserver()
 
-    streamObserver.onCompleted({fields: ['A', 'B', 'C']});
+    streamObserver.onCompleted({ fields: ['A', 'B', 'C'] })
 
-    streamObserver.onNext([1111, 2222, 3333]);
-    streamObserver.onNext([111, 222, 333]);
-    streamObserver.onNext([11, 22, 33]);
-    streamObserver.onNext([1, 2, 3]);
+    streamObserver.onNext([1111, 2222, 3333])
+    streamObserver.onNext([111, 222, 333])
+    streamObserver.onNext([11, 22, 33])
+    streamObserver.onNext([1, 2, 3])
 
-    const queuedRecords = streamObserver._queuedRecords;
+    const queuedRecords = streamObserver._queuedRecords
 
-    expect(queuedRecords.length).toEqual(4);
-    expect(queuedRecords[0].toObject()).toEqual({'A': 1111, 'B': 2222, 'C': 3333});
-    expect(queuedRecords[1].toObject()).toEqual({'A': 111, 'B': 222, 'C': 333});
-    expect(queuedRecords[2].toObject()).toEqual({'A': 11, 'B': 22, 'C': 33});
-    expect(queuedRecords[3].toObject()).toEqual({'A': 1, 'B': 2, 'C': 3});
-  });
+    expect(queuedRecords.length).toEqual(4)
+    expect(queuedRecords[0].toObject()).toEqual({ A: 1111, B: 2222, C: 3333 })
+    expect(queuedRecords[1].toObject()).toEqual({ A: 111, B: 222, C: 333 })
+    expect(queuedRecords[2].toObject()).toEqual({ A: 11, B: 22, C: 33 })
+    expect(queuedRecords[3].toObject()).toEqual({ A: 1, B: 2, C: 3 })
+  })
 
   it('passes received error the subscriber', () => {
-    const streamObserver = newStreamObserver();
-    const error = new Error('Invalid Cypher statement');
+    const streamObserver = newStreamObserver()
+    const error = new Error('Invalid Cypher statement')
 
-    let receivedError = null;
+    let receivedError = null
     const observer = newObserver(NO_OP, error => {
-      receivedError = error;
-    });
+      receivedError = error
+    })
 
-    streamObserver.subscribe(observer);
-    streamObserver.onError(error);
+    streamObserver.subscribe(observer)
+    streamObserver.onError(error)
 
-    expect(receivedError).toBe(error);
-  });
+    expect(receivedError).toBe(error)
+  })
 
   it('passes existing error to a new subscriber', () => {
-    const streamObserver = newStreamObserver();
-    const error = new Error('Invalid Cypher statement');
+    const streamObserver = newStreamObserver()
+    const error = new Error('Invalid Cypher statement')
 
-    streamObserver.onError(error);
+    streamObserver.onError(error)
 
-    streamObserver.subscribe(newObserver(NO_OP, receivedError => {
-      expect(receivedError).toBe(error);
-    }));
-  });
+    streamObserver.subscribe(
+      newObserver(NO_OP, receivedError => {
+        expect(receivedError).toBe(error)
+      })
+    )
+  })
 
   it('passes queued records to a new subscriber', () => {
-    const streamObserver = newStreamObserver();
+    const streamObserver = newStreamObserver()
 
-    streamObserver.onCompleted({fields: ['A', 'B', 'C']});
+    streamObserver.onCompleted({ fields: ['A', 'B', 'C'] })
 
-    streamObserver.onNext([1, 2, 3]);
-    streamObserver.onNext([11, 22, 33]);
-    streamObserver.onNext([111, 222, 333]);
+    streamObserver.onNext([1, 2, 3])
+    streamObserver.onNext([11, 22, 33])
+    streamObserver.onNext([111, 222, 333])
 
-    const receivedRecords = [];
-    streamObserver.subscribe(newObserver(record => {
-      receivedRecords.push(record);
-    }));
+    const receivedRecords = []
+    streamObserver.subscribe(
+      newObserver(record => {
+        receivedRecords.push(record)
+      })
+    )
 
-    expect(receivedRecords.length).toEqual(3);
-    expect(receivedRecords[0].toObject()).toEqual({'A': 1, 'B': 2, 'C': 3});
-    expect(receivedRecords[1].toObject()).toEqual({'A': 11, 'B': 22, 'C': 33});
-    expect(receivedRecords[2].toObject()).toEqual({'A': 111, 'B': 222, 'C': 333});
-  });
+    expect(receivedRecords.length).toEqual(3)
+    expect(receivedRecords[0].toObject()).toEqual({ A: 1, B: 2, C: 3 })
+    expect(receivedRecords[1].toObject()).toEqual({ A: 11, B: 22, C: 33 })
+    expect(receivedRecords[2].toObject()).toEqual({ A: 111, B: 222, C: 333 })
+  })
 
   it('passes existing metadata to a new subscriber', () => {
-    const streamObserver = newStreamObserver();
+    const streamObserver = newStreamObserver()
 
-    streamObserver.onCompleted({fields: ['Foo', 'Bar', 'Baz', 'Qux']});
-    streamObserver.onCompleted({metaDataField1: 'value1', metaDataField2: 'value2'});
+    streamObserver.onCompleted({ fields: ['Foo', 'Bar', 'Baz', 'Qux'] })
+    streamObserver.onCompleted({
+      metaDataField1: 'value1',
+      metaDataField2: 'value2'
+    })
 
-    let receivedMetaData = null;
-    streamObserver.subscribe(newObserver(NO_OP, NO_OP, metaData => {
-      receivedMetaData = metaData;
-    }));
+    let receivedMetaData = null
+    streamObserver.subscribe(
+      newObserver(NO_OP, NO_OP, metaData => {
+        receivedMetaData = metaData
+      })
+    )
 
-    expect(receivedMetaData).toEqual({metaDataField1: 'value1', metaDataField2: 'value2'});
-  });
+    expect(receivedMetaData).toEqual({
+      metaDataField1: 'value1',
+      metaDataField2: 'value2'
+    })
+  })
 
   it('invokes subscribed observer only once of error', () => {
-    const errors = [];
-    const streamObserver = new StreamObserver();
+    const errors = []
+    const streamObserver = new StreamObserver()
     streamObserver.subscribe({
       onError: error => errors.push(error)
-    });
+    })
 
-    const error1 = new Error('Hello');
-    const error2 = new Error('World');
+    const error1 = new Error('Hello')
+    const error2 = new Error('World')
 
-    streamObserver.onError(error1);
-    streamObserver.onError(error2);
+    streamObserver.onError(error1)
+    streamObserver.onError(error2)
 
-    expect(errors).toEqual([error1]);
-  });
+    expect(errors).toEqual([error1])
+  })
 
   it('should be able to handle a single response', done => {
-    const streamObserver = new StreamObserver();
-    streamObserver.prepareToHandleSingleResponse();
+    const streamObserver = new StreamObserver()
+    streamObserver.prepareToHandleSingleResponse()
 
     streamObserver.subscribe({
       onCompleted: metadata => {
-        expect(metadata.key).toEqual(42);
-        done();
+        expect(metadata.key).toEqual(42)
+        done()
       }
-    });
+    })
 
-    streamObserver.onCompleted({key: 42});
-  });
+    streamObserver.onCompleted({ key: 42 })
+  })
 
   it('should mark as completed', done => {
-    const streamObserver = new StreamObserver();
-    streamObserver.markCompleted();
+    const streamObserver = new StreamObserver()
+    streamObserver.markCompleted()
 
     streamObserver.subscribe({
       onCompleted: metadata => {
-        expect(metadata).toEqual({});
-        done();
+        expect(metadata).toEqual({})
+        done()
       }
-    });
-  });
+    })
+  })
+})
 
-});
-
-function newStreamObserver() {
-  return new StreamObserver();
+function newStreamObserver () {
+  return new StreamObserver()
 }
 
-function newObserver(onNext = NO_OP, onError = NO_OP, onCompleted = NO_OP) {
+function newObserver (onNext = NO_OP, onError = NO_OP, onCompleted = NO_OP) {
   return {
     onNext: onNext,
     onError: onError,
     onCompleted: onCompleted
-  };
+  }
 }

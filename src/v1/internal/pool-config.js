@@ -17,53 +17,58 @@
  * limitations under the License.
  */
 
-const DEFAULT_MAX_SIZE = 100;
-const DEFAULT_ACQUISITION_TIMEOUT = 60 * 1000; // 60 seconds
+const DEFAULT_MAX_SIZE = 100
+const DEFAULT_ACQUISITION_TIMEOUT = 60 * 1000 // 60 seconds
 
 export default class PoolConfig {
-
-  constructor(maxSize, acquisitionTimeout) {
-    this.maxSize = valueOrDefault(maxSize, DEFAULT_MAX_SIZE);
-    this.acquisitionTimeout = valueOrDefault(acquisitionTimeout, DEFAULT_ACQUISITION_TIMEOUT);
+  constructor (maxSize, acquisitionTimeout) {
+    this.maxSize = valueOrDefault(maxSize, DEFAULT_MAX_SIZE)
+    this.acquisitionTimeout = valueOrDefault(
+      acquisitionTimeout,
+      DEFAULT_ACQUISITION_TIMEOUT
+    )
   }
 
-  static defaultConfig() {
-    return new PoolConfig(DEFAULT_MAX_SIZE, DEFAULT_ACQUISITION_TIMEOUT);
+  static defaultConfig () {
+    return new PoolConfig(DEFAULT_MAX_SIZE, DEFAULT_ACQUISITION_TIMEOUT)
   }
 
-  static fromDriverConfig(config) {
-    const maxIdleSizeConfigured = isConfigured(config.connectionPoolSize);
-    const maxSizeConfigured = isConfigured(config.maxConnectionPoolSize);
+  static fromDriverConfig (config) {
+    const maxIdleSizeConfigured = isConfigured(config.connectionPoolSize)
+    const maxSizeConfigured = isConfigured(config.maxConnectionPoolSize)
 
-    let maxSize;
+    let maxSize
 
     if (maxSizeConfigured) {
       // correct size setting is set - use it's value
-      maxSize = config.maxConnectionPoolSize;
+      maxSize = config.maxConnectionPoolSize
     } else if (maxIdleSizeConfigured) {
       // deprecated size setting is set - use it's value
-      console.warn('WARNING: neo4j-driver setting "connectionPoolSize" is deprecated, please use "maxConnectionPoolSize" instead');
-      maxSize = config.connectionPoolSize;
+      console.warn(
+        'WARNING: neo4j-driver setting "connectionPoolSize" is deprecated, please use "maxConnectionPoolSize" instead'
+      )
+      maxSize = config.connectionPoolSize
     } else {
-      maxSize = DEFAULT_MAX_SIZE;
+      maxSize = DEFAULT_MAX_SIZE
     }
 
-    const acquisitionTimeoutConfigured = isConfigured(config.connectionAcquisitionTimeout);
-    const acquisitionTimeout = acquisitionTimeoutConfigured ? config.connectionAcquisitionTimeout : DEFAULT_ACQUISITION_TIMEOUT;
+    const acquisitionTimeoutConfigured = isConfigured(
+      config.connectionAcquisitionTimeout
+    )
+    const acquisitionTimeout = acquisitionTimeoutConfigured
+      ? config.connectionAcquisitionTimeout
+      : DEFAULT_ACQUISITION_TIMEOUT
 
-    return new PoolConfig(maxSize, acquisitionTimeout);
+    return new PoolConfig(maxSize, acquisitionTimeout)
   }
 }
 
-function valueOrDefault(value, defaultValue) {
-  return value === 0 || value ? value : defaultValue;
+function valueOrDefault (value, defaultValue) {
+  return value === 0 || value ? value : defaultValue
 }
 
-function isConfigured(value) {
-  return value === 0 || value;
+function isConfigured (value) {
+  return value === 0 || value
 }
 
-export {
-  DEFAULT_MAX_SIZE,
-  DEFAULT_ACQUISITION_TIMEOUT
-};
+export { DEFAULT_MAX_SIZE, DEFAULT_ACQUISITION_TIMEOUT }
