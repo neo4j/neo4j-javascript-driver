@@ -31,19 +31,25 @@ class Pool {
    * @param {function} validate called at various times (like when an instance is acquired and
    *                 when it is returned). If this returns false, the resource will
    *                 be evicted
+   * @param {function} installIdleObserver called when the resource is released back to pool
+   * @param {function} removeIdleObserver called when the resource is acquired from the pool
    * @param {PoolConfig} config configuration for the new driver.
    * @param {Logger} log the driver logger.
    */
-  constructor (
-    create,
-    destroy = () => true,
-    validate = () => true,
+  constructor ({
+    create = (address, release) => {},
+    destroy = conn => true,
+    validate = conn => true,
+    installIdleObserver = (conn, observer) => {},
+    removeIdleObserver = conn => {},
     config = PoolConfig.defaultConfig(),
     log = Logger.noOp()
-  ) {
+  } = {}) {
     this._create = create
     this._destroy = destroy
     this._validate = validate
+    this._installIdleObserver = installIdleObserver
+    this._removeIdleObserver = removeIdleObserver
     this._maxSize = config.maxSize
     this._acquisitionTimeout = config.acquisitionTimeout
     this._pools = {}
@@ -165,6 +171,10 @@ class Pool {
       const resource = pool.pop()
 
       if (this._validate(resource)) {
+        if (this._removeIdleObserver) {
+          this._removeIdleObserver(resource)
+        }
+
         // idle resource is valid and can be acquired
         return Promise.resolve(resource)
       } else {
@@ -196,6 +206,14 @@ class Pool {
       } else {
         if (this._log.isDebugEnabled()) {
           this._log.debug(`${resource} released to the pool ${key}`)
+        }
+        if (this._installIdleObserver) {
+          this._installIdleObserver(resource, {
+            onError: () => {
+              this._pools[key] = this._pools[key].filter(r => r !== resource)
+              this._destroy(resource)
+            }
+          })
         }
         pool.push(resource)
       }
