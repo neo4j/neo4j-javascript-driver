@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import neo4j, { Neo4jError } from '../../../src/v1'
+import neo4j from '../../../src/v1'
 import { READ, WRITE } from '../../../src/v1/driver'
 import boltStub from '../bolt-stub'
 import { newError, SERVICE_UNAVAILABLE } from '../../../src/v1/error'
@@ -447,7 +447,10 @@ describe('direct driver with stub server', () => {
           expect(records[1].get(0)).toBe('Alice')
           expect(records[2].get(0)).toBe('Tina')
 
-          const connection = driver._openConnections[0]
+          const connectionKey = Object.keys(driver._openConnections)[0]
+          expect(connectionKey).toBeTruthy()
+
+          const connection = driver._openConnections[connectionKey]
           session.close(() => {
             // generate a fake fatal error
             connection._handleFatalError(
@@ -460,7 +463,7 @@ describe('direct driver with stub server', () => {
               driver._pool._activeResourceCounts['127.0.0.1:9001']
             ).toBeFalsy()
             // expect that the connection to be unregistered from the open connections registry
-            expect(driver._openConnections[0]).toBeFalsy()
+            expect(driver._openConnections[connectionKey]).toBeFalsy()
             driver.close()
             server.exit(code => {
               expect(code).toEqual(0)
