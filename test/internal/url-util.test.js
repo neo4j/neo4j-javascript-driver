@@ -724,7 +724,7 @@ describe('url-util', () => {
   });
 
   it('should parse URLs with port 80', () => {
-    ['http', 'https', 'ws', 'wss', 'bolt', 'bolt+routing'].forEach(scheme => {
+    ['http', 'https', 'ws', 'wss', 'bolt', 'bolt+routing', 'neo4j'].forEach(scheme => {
       verifyUrl(`${scheme}://localhost:80`, {
         scheme: scheme,
         host: 'localhost',
