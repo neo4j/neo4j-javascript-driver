@@ -51,6 +51,16 @@ describe('DirectConnectionProvider', () => {
 })
 
 describe('LoadBalancer', () => {
+  let originalTimeout
+  beforeEach(function () {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
+  })
+
+  afterEach(function () {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
+  })
+
   const server0 = ServerAddress.fromUrl('server0')
   const server1 = ServerAddress.fromUrl('server1')
   const server2 = ServerAddress.fromUrl('server2')
