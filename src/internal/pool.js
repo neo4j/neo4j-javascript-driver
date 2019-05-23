@@ -210,7 +210,10 @@ class Pool {
         if (this._installIdleObserver) {
           this._installIdleObserver(resource, {
             onError: () => {
-              this._pools[key] = this._pools[key].filter(r => r !== resource)
+              const pool = this._pools[key]
+              if (pool) {
+                this._pools[key] = pool.filter(r => r !== resource)
+              }
               this._destroy(resource)
             }
           })
@@ -235,6 +238,9 @@ class Pool {
     const pool = this._pools[key] || []
     while (pool.length) {
       const resource = pool.pop()
+      if (this._removeIdleObserver) {
+        this._removeIdleObserver(resource)
+      }
       this._destroy(resource)
     }
     delete this._pools[key]
