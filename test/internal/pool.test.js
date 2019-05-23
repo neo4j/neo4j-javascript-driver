@@ -866,6 +866,38 @@ describe('Pool', () => {
       })
     })
   })
+
+  it('should clean-up idle observer on purge', done => {
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    let resourceCount = 0
+
+    const pool = new Pool({
+      create: (server, release) =>
+        Promise.resolve(new Resource(server, resourceCount++, release)),
+      destroy: resource => {},
+      validate: resource => true,
+      installIdleObserver: (resource, observer) => {
+        resource['observer'] = observer
+      },
+      removeIdleObserver: resource => {
+        delete resource['observer']
+      }
+    })
+
+    pool.acquire(address).then(resource1 => {
+      pool.acquire(address).then(resource2 => {
+        resource1.close()
+        resource2.close()
+
+        pool.purge(address)
+
+        expect(resource1['observer']).toBeFalsy()
+        expect(resource2['observer']).toBeFalsy()
+
+        done()
+      })
+    })
+  })
 })
 
 function expectNoPendingAcquisitionRequests (pool) {
