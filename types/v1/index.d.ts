@@ -96,8 +96,8 @@ declare const types: {
   UnboundRelationship: typeof UnboundRelationship
   PathSegment: typeof PathSegment
   Path: typeof Path
-  Result: typeof Result
-  ResultSummary: typeof ResultSummary
+  Result: Result
+  ResultSummary: ResultSummary
   Record: typeof Record
   Point: typeof Point
   Duration: typeof Duration
