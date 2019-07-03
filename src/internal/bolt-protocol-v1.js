@@ -21,7 +21,10 @@ import * as v1 from './packstream-v1'
 import Bookmark from './bookmark'
 import TxConfig from './tx-config'
 import { ACCESS_MODE_WRITE } from './constants'
-import { assertDbIsEmpty, assertTxConfigIsEmpty } from './bolt-protocol-util'
+import {
+  assertDatabaseIsEmpty,
+  assertTxConfigIsEmpty
+} from './bolt-protocol-util'
 
 export default class BoltProtocol {
   /**
@@ -81,12 +84,12 @@ export default class BoltProtocol {
    * @param {StreamObserver} observer the response observer.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
-   * @param {string} db the target database name.
+   * @param {string} database the target database name.
    * @param {string} mode the access mode.
    */
-  beginTransaction (observer, { bookmark, txConfig, db, mode }) {
+  beginTransaction (observer, { bookmark, txConfig, database, mode }) {
     assertTxConfigIsEmpty(txConfig, this._connection, observer)
-    assertDbIsEmpty(db, this._connection, observer)
+    assertDatabaseIsEmpty(database, this._connection, observer)
 
     const runMessage = RequestMessage.run(
       'BEGIN',
@@ -133,14 +136,14 @@ export default class BoltProtocol {
    * @param {StreamObserver} observer the response observer.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the auto-commit transaction configuration.
-   * @param {string} db the target database name.
+   * @param {string} database the target database name.
    * @param {string} mode the access mode.
    */
-  run (statement, parameters, observer, { bookmark, txConfig, db, mode }) {
+  run (statement, parameters, observer, { bookmark, txConfig, database, mode }) {
     // bookmark and mode are ignored in this version of the protocol
     assertTxConfigIsEmpty(txConfig, this._connection, observer)
-    // passing in a db name on this protocol version throws an error
-    assertDbIsEmpty(db, this._connection, observer)
+    // passing in a database name on this protocol version throws an error
+    assertDatabaseIsEmpty(database, this._connection, observer)
 
     const runMessage = RequestMessage.run(statement, parameters)
     const pullAllMessage = RequestMessage.pullAll()

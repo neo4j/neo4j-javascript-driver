@@ -111,13 +111,13 @@ class Driver {
 
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
-   * @param {string} [db=''] the target database to verify connectivity for.
+   * @param {string} [database=''] the target database to verify connectivity for.
    * @returns {Promise<object>} promise resolved with server info or rejected with error.
    */
-  verifyConnectivity ({ db = '' } = {}) {
+  verifyConnectivity ({ database = '' } = {}) {
     const connectionProvider = this._getOrCreateConnectionProvider()
     const connectivityVerifier = new ConnectivityVerifier(connectionProvider)
-    return connectivityVerifier.verify({ db })
+    return connectivityVerifier.verify({ database })
   }
 
   /**
@@ -194,13 +194,13 @@ class Driver {
    * @param {string} [defaultAccessMode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
    * @param {string|string[]} [bookmarks=null] the initial reference or references to some previous
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
-   * @param {string} [db=''] the database this session will connect to.
+   * @param {string} [database=''] the database this session will connect to.
    * @return {Session} new session.
    */
   session ({
     defaultAccessMode = WRITE,
     bookmarks: bookmarkOrBookmarks,
-    db = ''
+    database = ''
   } = {}) {
     const sessionMode = Driver._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -209,7 +209,7 @@ class Driver {
       : Bookmark.empty()
     return new Session({
       mode: sessionMode,
-      db,
+      database,
       connectionProvider,
       bookmark,
       config: this._config

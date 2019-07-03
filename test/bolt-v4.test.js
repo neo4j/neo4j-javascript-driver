@@ -53,7 +53,7 @@ describe('Bolt V4 API', () => {
           return
         }
 
-        const session = driver.session({ db: 'adb' })
+        const session = driver.session({ database: 'adb' })
 
         session
           .run('RETURN 1')
@@ -71,7 +71,7 @@ describe('Bolt V4 API', () => {
           return
         }
 
-        const session = driver.session({ db: 'adb' })
+        const session = driver.session({ database: 'adb' })
         const tx = session.beginTransaction()
 
         tx.run('RETURN 1')
@@ -89,7 +89,7 @@ describe('Bolt V4 API', () => {
           return
         }
 
-        const session = driver.session({ db: 'adb' })
+        const session = driver.session({ database: 'adb' })
 
         session
           .readTransaction(tx => tx.run('RETURN 1'))
@@ -107,7 +107,7 @@ describe('Bolt V4 API', () => {
           return
         }
 
-        const session = driver.session({ db: 'adb' })
+        const session = driver.session({ database: 'adb' })
 
         session
           .writeTransaction(tx => tx.run('RETURN 1'))
@@ -119,7 +119,7 @@ describe('Bolt V4 API', () => {
           })
       })
 
-      it('should return db.name as null in result summary', async () => {
+      it('should return database.name as null in result summary', async () => {
         if (databaseSupportsBoltV4()) {
           return
         }
@@ -142,7 +142,7 @@ describe('Bolt V4 API', () => {
         return
       }
 
-      const neoSession = driver.session({ db: 'testdb' })
+      const neoSession = driver.session({ database: 'testdb' })
 
       try {
         await neoSession.run('RETURN 1')
@@ -171,16 +171,16 @@ describe('Bolt V4 API', () => {
           return
         }
 
-        const neoSession = driver.session({ db: 'neo4j' })
+        const neoSession = driver.session({ database: 'neo4j' })
 
         try {
           const result = await session.run(
-            'CREATE (n { db: $db }) RETURN n.db',
-            { db: 'neo4j' }
+            'CREATE (n { name: $name }) RETURN n.name',
+            { name: 'neo4j' }
           )
 
           expect(result.records.length).toBe(1)
-          expect(result.records[0].get('n.db')).toBe('neo4j')
+          expect(result.records[0].get('n.name')).toBe('neo4j')
         } finally {
           neoSession.close()
         }
@@ -195,16 +195,16 @@ describe('Bolt V4 API', () => {
           'neo4j://localhost',
           sharedNeo4j.authToken
         )
-        const neoSession = driver.session({ db: 'neo4j' })
+        const neoSession = driver.session({ database: 'neo4j' })
 
         try {
           const result = await session.run(
-            'CREATE (n { db: $db }) RETURN n.db',
-            { db: 'neo4j' }
+            'CREATE (n { name: $name }) RETURN n.name',
+            { name: 'neo4j' }
           )
 
           expect(result.records.length).toBe(1)
-          expect(result.records[0].get('n.db')).toBe('neo4j')
+          expect(result.records[0].get('n.name')).toBe('neo4j')
         } finally {
           neoSession.close()
           neoDriver.close()
@@ -213,13 +213,13 @@ describe('Bolt V4 API', () => {
     })
   })
 
-  async function testDatabaseNameInSummary (dbname) {
+  async function testDatabaseNameInSummary (database) {
     if (!databaseSupportsBoltV4()) {
       return
     }
 
-    const neoSession = dbname
-      ? driver.session({ db: dbname })
+    const neoSession = database
+      ? driver.session({ database })
       : driver.session()
 
     try {
@@ -228,7 +228,7 @@ describe('Bolt V4 API', () => {
       })
 
       expect(result.summary.database).toBeTruthy()
-      expect(result.summary.database.name).toBe(dbname || 'neo4j')
+      expect(result.summary.database.name).toBe(database || 'neo4j')
     } finally {
       neoSession.close()
     }

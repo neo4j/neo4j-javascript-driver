@@ -65,11 +65,11 @@ declare interface Driver {
   session({
     defaultAccessMode,
     bookmarks,
-    db
+    database
   }?: {
     defaultAccessMode?: SessionMode
     bookmarks?: string | string[]
-    db?: string
+    database?: string
   }): Session
 
   close(): void

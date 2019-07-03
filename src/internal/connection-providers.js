@@ -28,7 +28,7 @@ import { HostNameResolver } from './node'
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 
 class ConnectionProvider {
-  acquireConnection (accessMode, db) {
+  acquireConnection (accessMode, database) {
     throw new Error('Abstract function')
   }
 
@@ -51,7 +51,7 @@ export class DirectConnectionProvider extends ConnectionProvider {
     this._driverOnErrorCallback = driverOnErrorCallback
   }
 
-  acquireConnection (accessMode, db) {
+  acquireConnection (accessMode, database) {
     const connectionPromise = this._connectionPool.acquire(this._address)
     return this._withAdditionalOnErrorCallback(
       connectionPromise,
@@ -83,7 +83,7 @@ export class LoadBalancer extends ConnectionProvider {
     this._useSeedRouter = true
   }
 
-  acquireConnection (accessMode, db) {
+  acquireConnection (accessMode, database) {
     const connectionPromise = this._freshRoutingTable(accessMode).then(
       routingTable => {
         if (accessMode === READ) {
@@ -357,7 +357,7 @@ export class SingleConnectionProvider extends ConnectionProvider {
     this._connection = connection
   }
 
-  acquireConnection (mode, db) {
+  acquireConnection (mode, database) {
     const connection = this._connection
     this._connection = null
     return Promise.resolve(connection)

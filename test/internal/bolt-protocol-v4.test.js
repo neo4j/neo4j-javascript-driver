@@ -30,7 +30,7 @@ describe('BoltProtocolV4', () => {
   })
 
   it('should run a statement', () => {
-    const db = 'testdb'
+    const database = 'testdb'
     const bookmark = new Bookmark([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
@@ -49,7 +49,7 @@ describe('BoltProtocolV4', () => {
     protocol.run(statement, parameters, observer, {
       bookmark,
       txConfig,
-      db,
+      database,
       mode: WRITE
     })
 
@@ -59,7 +59,7 @@ describe('BoltProtocolV4', () => {
       RequestMessage.runWithMetadata(statement, parameters, {
         bookmark,
         txConfig,
-        db,
+        database,
         mode: WRITE
       })
     )
@@ -69,7 +69,7 @@ describe('BoltProtocolV4', () => {
   })
 
   it('should begin a transaction', () => {
-    const db = 'testdb'
+    const database = 'testdb'
     const bookmark = new Bookmark([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
@@ -86,13 +86,13 @@ describe('BoltProtocolV4', () => {
     protocol.beginTransaction(observer, {
       bookmark,
       txConfig,
-      db,
+      database,
       mode: WRITE
     })
 
     recorder.verifyMessageCount(1)
     expect(recorder.messages[0]).toBeMessage(
-      RequestMessage.begin({ bookmark, txConfig, db, mode: WRITE })
+      RequestMessage.begin({ bookmark, txConfig, database, mode: WRITE })
     )
     expect(recorder.observers).toEqual([observer])
     expect(recorder.flushes).toEqual([true])

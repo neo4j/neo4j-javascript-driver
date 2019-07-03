@@ -28,12 +28,16 @@ export default class ConnectionHolder {
   /**
    * @constructor
    * @param {string} mode - the access mode for new connection holder.
-   * @param {string} db - the target database name.
+   * @param {string} database - the target database name.
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
    */
-  constructor ({ mode = ACCESS_MODE_WRITE, db = '', connectionProvider } = {}) {
+  constructor ({
+    mode = ACCESS_MODE_WRITE,
+    database = '',
+    connectionProvider
+  } = {}) {
     this._mode = mode
-    this._db = db ? assertString(db, 'db') : ''
+    this._database = database ? assertString(database, 'database') : ''
     this._connectionProvider = connectionProvider
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
@@ -49,10 +53,10 @@ export default class ConnectionHolder {
 
   /**
    * Returns the target database name
-   * @returns {string} db name
+   * @returns {string} the database name
    */
-  db () {
-    return this._db
+  database () {
+    return this._database
   }
 
   /**
@@ -63,7 +67,7 @@ export default class ConnectionHolder {
     if (this._referenceCount === 0) {
       this._connectionPromise = this._connectionProvider.acquireConnection(
         this._mode,
-        this._db
+        this._database
       )
     }
     this._referenceCount++

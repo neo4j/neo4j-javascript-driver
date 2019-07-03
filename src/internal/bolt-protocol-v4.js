@@ -20,16 +20,16 @@ import BoltProtocolV3 from './bolt-protocol-v3'
 import RequestMessage from './request-message'
 
 export default class BoltProtocol extends BoltProtocolV3 {
-  beginTransaction (observer, { bookmark, txConfig, db, mode }) {
-    const message = RequestMessage.begin({ bookmark, txConfig, db, mode })
+  beginTransaction (observer, { bookmark, txConfig, database, mode }) {
+    const message = RequestMessage.begin({ bookmark, txConfig, database, mode })
     this._connection.write(message, observer, true)
   }
 
-  run (statement, parameters, observer, { bookmark, txConfig, db, mode }) {
+  run (statement, parameters, observer, { bookmark, txConfig, database, mode }) {
     const runMessage = RequestMessage.runWithMetadata(statement, parameters, {
       bookmark,
       txConfig,
-      db,
+      database,
       mode
     })
     const pullMessage = RequestMessage.pull()

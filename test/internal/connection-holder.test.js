@@ -258,9 +258,9 @@ describe('ConnectionHolder', () => {
     verifyMode(new ConnectionHolder({ mode: READ }), READ)
   })
 
-  it('should default to empty db', () => {
+  it('should default to empty database', () => {
     function verifyDefault (connectionProvider) {
-      expect(connectionProvider.db()).toBe('')
+      expect(connectionProvider.database()).toBe('')
     }
 
     const connectionProvider = newSingleConnectionProvider(new FakeConnection())
@@ -269,24 +269,28 @@ describe('ConnectionHolder', () => {
     verifyDefault(new ConnectionHolder({ mode: READ, connectionProvider }))
     verifyDefault(new ConnectionHolder({ mode: WRITE, connectionProvider }))
     verifyDefault(
-      new ConnectionHolder({ mode: WRITE, db: '', connectionProvider })
+      new ConnectionHolder({ mode: WRITE, database: '', connectionProvider })
     )
     verifyDefault(
-      new ConnectionHolder({ mode: WRITE, db: null, connectionProvider })
+      new ConnectionHolder({ mode: WRITE, database: null, connectionProvider })
     )
     verifyDefault(
-      new ConnectionHolder({ mode: WRITE, db: undefined, connectionProvider })
+      new ConnectionHolder({
+        mode: WRITE,
+        database: undefined,
+        connectionProvider
+      })
     )
   })
 
-  it('should return passed db', () => {
+  it('should return passed database', () => {
     const connectionProvider = newSingleConnectionProvider(new FakeConnection())
     const connectionHolder = new ConnectionHolder({
-      db: 'testdb',
+      database: 'testdb',
       connectionProvider
     })
 
-    expect(connectionHolder.db()).toBe('testdb')
+    expect(connectionHolder.database()).toBe('testdb')
   })
 })
 
@@ -297,7 +301,7 @@ class RecordingConnectionProvider extends SingleConnectionProvider {
     this.acquireConnectionInvoked = 0
   }
 
-  acquireConnection (mode, db) {
+  acquireConnection (mode, database) {
     return this.connectionPromises[this.acquireConnectionInvoked++]
   }
 }

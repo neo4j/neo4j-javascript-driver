@@ -20,7 +20,7 @@
 import neo4j from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
-import { newError, SERVICE_UNAVAILABLE } from '../../../src/v1/error'
+import { newError, SERVICE_UNAVAILABLE } from '../../../src/error'
 
 describe('direct driver with stub server', () => {
   let originalTimeout

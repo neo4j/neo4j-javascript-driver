@@ -60,19 +60,20 @@ class Session {
    * @param {string} mode the default access mode for this session.
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
    * @param {Bookmark} bookmark - the initial bookmark for this session.
+   * @param {string} database the database name
    * @param {Object} [config={}] - this driver configuration.
    */
-  constructor ({ mode, connectionProvider, bookmark, db, config }) {
+  constructor ({ mode, connectionProvider, bookmark, database, config }) {
     this._mode = mode
-    this._db = db
+    this._database = database
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
-      db,
+      database,
       connectionProvider
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
-      db,
+      database,
       connectionProvider
     })
     this._open = true
@@ -104,7 +105,7 @@ class Session {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
-        db: this._db
+        database: this._database
       })
     )
   }
