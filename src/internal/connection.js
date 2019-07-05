@@ -199,6 +199,16 @@ export default class Connection {
   }
 
   /**
+   * Get the version of the connected server.
+   * Available only after initialization
+   *
+   * @returns {ServerVersion} version
+   */
+  version () {
+    return ServerVersion.fromString(this.server.version)
+  }
+
+  /**
    * Write a message to the network channel.
    * @param {RequestMessage} message the message to write.
    * @param {StreamObserver} observer the response observer.

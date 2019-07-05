@@ -1,6 +1,6 @@
+!: BOLT 1
 !: AUTO INIT
 !: AUTO RESET
-!: AUTO PULL_ALL
 
 S: SUCCESS {"server": "Neo4j/3.1.0"}
 C: RUN "CALL dbms.cluster.routing.getServers" {}

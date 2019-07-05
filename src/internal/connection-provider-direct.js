@@ -17,18 +17,21 @@
  * limitations under the License.
  */
 
-import ConnectivityVerifier from '../../src/internal/connectivity-verifier'
-import SingleConnectionProvider from '../../src/internal/connection-provider-single'
-import FakeConnection from './fake-connection'
+import ConnectionProvider from './connection-provider'
 
-describe('ConnectivityVerifier', () => {
-  it('should call success callback when able to acquire and release a connection', done => {
-    const connectionPromise = Promise.resolve(new FakeConnection())
-    const connectionProvider = new SingleConnectionProvider(connectionPromise)
-    const verifier = new ConnectivityVerifier(connectionProvider)
+export default class DirectConnectionProvider extends ConnectionProvider {
+  constructor (address, connectionPool, driverOnErrorCallback) {
+    super()
+    this._address = address
+    this._connectionPool = connectionPool
+    this._driverOnErrorCallback = driverOnErrorCallback
+  }
 
-    verifier.verify().then(() => {
-      done()
-    })
-  })
-})
+  acquireConnection (accessMode, database) {
+    const connectionPromise = this._connectionPool.acquire(this._address)
+    return this._withAdditionalOnErrorCallback(
+      connectionPromise,
+      this._driverOnErrorCallback
+    )
+  }
+}

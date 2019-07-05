@@ -1,5 +1,5 @@
+!: BOLT 2
 !: AUTO INIT
-!: AUTO PULL_ALL
 
 C: RUN "RETURN 10 / 0" {}
 C: PULL_ALL

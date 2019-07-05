@@ -139,7 +139,7 @@ describe('routing driver with stub server', () => {
       9042
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9005
     )
 
@@ -281,7 +281,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9005
     )
 
@@ -329,11 +329,11 @@ describe('routing driver with stub server', () => {
       9003
     )
     const readServer1 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9004
     )
     const readServer2 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9006
     )
 
@@ -385,11 +385,11 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer1 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9005
     )
     const readServer2 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9006
     )
 
@@ -438,7 +438,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_dead.script',
       9005
     )
 
@@ -471,7 +471,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const writeServer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/write_server_v2_write.script',
       9007
     )
 
@@ -504,11 +504,11 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer1 = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/write_server_v2_write.script',
       9007
     )
     const readServer2 = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/write_server_v2_write.script',
       9008
     )
 
@@ -547,7 +547,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_dead.script',
       9007
     )
 
@@ -580,7 +580,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9005
     )
 
@@ -620,7 +620,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_dead.script',
       9005
     )
 
@@ -703,7 +703,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9005
     )
 
@@ -748,7 +748,7 @@ describe('routing driver with stub server', () => {
       session.run('MATCH (n) RETURN n.name').catch(err => {
         expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
         expect(err.message).toContain('Could not perform discovery')
-        assertHasRouters(driver, [])
+        assertNoRoutingTable(driver)
         session.close()
         driver.close()
         server.exit(code => {
@@ -1214,9 +1214,16 @@ describe('routing driver with stub server', () => {
     )
   })
 
-  it('should throw error when multiple records', done => {
+  it('should throw error when unparsable TTL entry', done => {
     testForProtocolError(
       './test/resources/boltstub/unparsable_ttl_get_servers.script',
+      done
+    )
+  })
+
+  it('should throw error when multiple records', done => {
+    testForProtocolError(
+      './test/resources/boltstub/unparsable_multiple_records_get_servers.script',
       done
     )
   })
@@ -1503,11 +1510,11 @@ describe('routing driver with stub server', () => {
       9001
     )
     const brokenReader = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx_dead.script',
       9005
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx.script',
       9006
     )
 
@@ -1553,11 +1560,11 @@ describe('routing driver with stub server', () => {
       9001
     )
     const brokenWriter = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/write_server_v2_write_tx_dead.script',
       9007
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/write_server_v2_write_tx.script',
       9008
     )
 
@@ -1603,11 +1610,11 @@ describe('routing driver with stub server', () => {
       9001
     )
     const brokenReader1 = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx_dead.script',
       9005
     )
     const brokenReader2 = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx_dead.script',
       9006
     )
 
@@ -1659,11 +1666,11 @@ describe('routing driver with stub server', () => {
       9001
     )
     const brokenWriter1 = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/write_server_v2_write_tx_dead.script',
       9007
     )
     const brokenWriter2 = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/write_server_v2_write_tx_dead.script',
       9008
     )
 
@@ -1715,11 +1722,11 @@ describe('routing driver with stub server', () => {
       9010
     )
     const brokenReader1 = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx_dead.script',
       9005
     )
     const brokenReader2 = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx_dead.script',
       9006
     )
     const router2 = boltStub.start(
@@ -1727,7 +1734,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx.script',
       9002
     )
 
@@ -1779,11 +1786,11 @@ describe('routing driver with stub server', () => {
       9010
     )
     const brokenWriter1 = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/write_server_v2_write_tx_dead.script',
       9007
     )
     const brokenWriter2 = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/write_server_v2_write_tx_dead.script',
       9008
     )
     const router2 = boltStub.start(
@@ -1791,7 +1798,7 @@ describe('routing driver with stub server', () => {
       9002
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/write_server_v2_write_tx.script',
       9009
     )
 
@@ -2047,11 +2054,11 @@ describe('routing driver with stub server', () => {
       9010
     )
     const reader1 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9003
     )
     const reader2 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9004
     )
 
@@ -2096,7 +2103,7 @@ describe('routing driver with stub server', () => {
       9010
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9002
     )
 
@@ -2141,7 +2148,7 @@ describe('routing driver with stub server', () => {
       9004
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx.script',
       9003
     )
 
@@ -2196,11 +2203,11 @@ describe('routing driver with stub server', () => {
     )
     let router2 = null
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx.script',
       9003
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/write_server_v2_write.script',
       9007
     )
 
@@ -2268,11 +2275,11 @@ describe('routing driver with stub server', () => {
       9020
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9005
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/write_server_v2_write.script',
       9007
     )
 
@@ -2466,7 +2473,7 @@ describe('routing driver with stub server', () => {
       9042
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read_tx.script',
       9005
     )
 
@@ -2874,7 +2881,7 @@ describe('routing driver with stub server', () => {
 
     const router = boltStub.start(routerScript, 9001)
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9005
     )
 
@@ -2996,51 +3003,55 @@ describe('routing driver with stub server', () => {
     return getConnectionPool(driver).has(ServerAddress.fromUrl(address))
   }
 
-  function hasRouterInRoutingTable (driver, expectedRouter) {
+  function hasRouterInRoutingTable (driver, expectedRouter, database) {
     return (
-      getRoutingTable(driver).routers.indexOf(
+      getRoutingTable(driver, database).routers.indexOf(
         ServerAddress.fromUrl(expectedRouter)
       ) > -1
     )
   }
 
-  function hasReaderInRoutingTable (driver, expectedReader) {
+  function hasReaderInRoutingTable (driver, expectedReader, database) {
     return (
-      getRoutingTable(driver).readers.indexOf(
+      getRoutingTable(driver, database).readers.indexOf(
         ServerAddress.fromUrl(expectedReader)
       ) > -1
     )
   }
 
-  function hasWriterInRoutingTable (driver, expectedWriter) {
+  function hasWriterInRoutingTable (driver, expectedWriter, database) {
     return (
-      getRoutingTable(driver).writers.indexOf(
+      getRoutingTable(driver, database).writers.indexOf(
         ServerAddress.fromUrl(expectedWriter)
       ) > -1
     )
   }
 
-  function assertHasRouters (driver, expectedRouters) {
-    expect(getRoutingTable(driver).routers.map(s => s.asHostPort())).toEqual(
-      expectedRouters
-    )
+  function assertNoRoutingTable (driver, database) {
+    expect(getRoutingTable(driver, database)).toBeFalsy()
   }
 
-  function assertHasReaders (driver, expectedReaders) {
-    expect(getRoutingTable(driver).readers.map(s => s.asHostPort())).toEqual(
-      expectedReaders
-    )
+  function assertHasRouters (driver, expectedRouters, database) {
+    expect(
+      getRoutingTable(driver, database).routers.map(s => s.asHostPort())
+    ).toEqual(expectedRouters)
   }
 
-  function assertHasWriters (driver, expectedWriters) {
-    expect(getRoutingTable(driver).writers.map(s => s.asHostPort())).toEqual(
-      expectedWriters
-    )
+  function assertHasReaders (driver, expectedReaders, database) {
+    expect(
+      getRoutingTable(driver, database).readers.map(s => s.asHostPort())
+    ).toEqual(expectedReaders)
   }
 
-  function setUpMemorizingRoutingTable (driver) {
+  function assertHasWriters (driver, expectedWriters, database) {
+    expect(
+      getRoutingTable(driver, database).writers.map(s => s.asHostPort())
+    ).toEqual(expectedWriters)
+  }
+
+  function setUpMemorizingRoutingTable (driver, database) {
     const memorizingRoutingTable = new MemorizingRoutingTable(
-      getRoutingTable(driver)
+      getRoutingTable(driver, database)
     )
     setRoutingTable(driver, memorizingRoutingTable)
     return memorizingRoutingTable
@@ -3063,14 +3074,16 @@ describe('routing driver with stub server', () => {
     return connectionProvider._connectionPool
   }
 
-  function getRoutingTable (driver) {
+  function getRoutingTable (driver, database) {
     const connectionProvider = driver._getOrCreateConnectionProvider()
-    return connectionProvider._routingTable
+    return connectionProvider._routingTables[database || '']
   }
 
   function setRoutingTable (driver, newRoutingTable) {
     const connectionProvider = driver._getOrCreateConnectionProvider()
-    connectionProvider._routingTable = newRoutingTable
+    connectionProvider._routingTables[
+      newRoutingTable.database
+    ] = newRoutingTable
   }
 
   function joinStrings (array) {
@@ -3092,7 +3105,7 @@ describe('routing driver with stub server', () => {
       9010
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/read_server_v2_read.script',
       9005
     )
 
@@ -3172,12 +3185,13 @@ describe('routing driver with stub server', () => {
 
   class MemorizingRoutingTable extends RoutingTable {
     constructor (initialTable) {
-      super(
-        initialTable.routers,
-        initialTable.readers,
-        initialTable.writers,
-        initialTable.expirationTime
-      )
+      super({
+        database: initialTable.database,
+        routers: initialTable.routers,
+        readers: initialTable.readers,
+        writers: initialTable.writers,
+        expirationTime: initialTable.expirationTime
+      })
       this._forgottenRouters = []
     }
 

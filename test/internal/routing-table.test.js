@@ -21,7 +21,7 @@ import { int } from '../../src/integer'
 import { READ, WRITE } from '../../src/driver'
 import ServerAddress from '../../src/internal/server-address'
 
-describe('routing-table', () => {
+describe('RoutingTable', () => {
   const server1 = ServerAddress.fromUrl('server1')
   const server2 = ServerAddress.fromUrl('server2')
   const server3 = ServerAddress.fromUrl('server3')
@@ -190,10 +190,11 @@ describe('routing-table', () => {
         [server1, server2],
         [server3, server4],
         [server5, server6],
-        42
+        42,
+        'myDatabase'
       )
       expect(table.toString()).toEqual(
-        'RoutingTable[expirationTime=42, currentTime=4242, routers=[server1:7687,server2:7687], readers=[server3:7687,server4:7687], writers=[server5:7687,server6:7687]]'
+        'RoutingTable[database=myDatabase, expirationTime=42, currentTime=4242, routers=[server1:7687,server2:7687], readers=[server3:7687,server4:7687], writers=[server5:7687,server6:7687]]'
       )
     } finally {
       Date.now = originalDateNow
@@ -208,8 +209,13 @@ describe('routing-table', () => {
     return Date.now() + 3600 // will expire in an hour
   }
 
-  function createTable (routers, readers, writers, expirationTime) {
-    const expiration = int(expirationTime)
-    return new RoutingTable(routers, readers, writers, expiration)
+  function createTable (routers, readers, writers, expirationTime, database) {
+    return new RoutingTable({
+      database,
+      routers,
+      readers,
+      writers,
+      expirationTime: int(expirationTime)
+    })
   }
 })

@@ -219,7 +219,7 @@ describe('rediscovery', () => {
 
   function lookupRoutingTableOnRouter (routingUtil) {
     const rediscovery = new Rediscovery(routingUtil)
-    return rediscovery.lookupRoutingTableOnRouter(null, ROUTER_ADDRESS)
+    return rediscovery.lookupRoutingTableOnRouter(null, null, ROUTER_ADDRESS)
   }
 
   function expectProtocolError (error, messagePrefix) {

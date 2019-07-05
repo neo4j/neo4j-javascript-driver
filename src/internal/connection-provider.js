@@ -17,18 +17,18 @@
  * limitations under the License.
  */
 
-import ConnectivityVerifier from '../../src/internal/connectivity-verifier'
-import SingleConnectionProvider from '../../src/internal/connection-provider-single'
-import FakeConnection from './fake-connection'
+export default class ConnectionProvider {
+  acquireConnection (accessMode, database) {
+    throw new Error('Abstract function')
+  }
 
-describe('ConnectivityVerifier', () => {
-  it('should call success callback when able to acquire and release a connection', done => {
-    const connectionPromise = Promise.resolve(new FakeConnection())
-    const connectionProvider = new SingleConnectionProvider(connectionPromise)
-    const verifier = new ConnectivityVerifier(connectionProvider)
-
-    verifier.verify().then(() => {
-      done()
+  _withAdditionalOnErrorCallback (connectionPromise, driverOnErrorCallback) {
+    // install error handler from the driver on the connection promise; this callback is installed separately
+    // so that it does not handle errors, instead it is just an additional error reporting facility.
+    connectionPromise.catch(error => {
+      driverOnErrorCallback(error)
     })
-  })
-})
+    // return the original connection promise
+    return connectionPromise
+  }
+}

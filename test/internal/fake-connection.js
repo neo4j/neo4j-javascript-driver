@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import { ServerVersion } from '../../src/internal/server-version'
+
 /**
  * This class is like a mock of {@link Connection} that tracks invocations count.
  * It tries to maintain same "interface" as {@link Connection}.
@@ -34,6 +36,10 @@ export default class FakeConnection {
     this.seenStatements = []
     this.seenParameters = []
     this.server = {}
+  }
+
+  version () {
+    return ServerVersion.fromString(this.server.version)
   }
 
   protocol () {

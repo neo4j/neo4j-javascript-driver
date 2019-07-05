@@ -1,6 +1,6 @@
+!: BOLT 2
 !: AUTO INIT
 !: AUTO RESET
-!: AUTO PULL_ALL
 
 C: RUN "RETURN {x}" {"x": 1}
    PULL_ALL

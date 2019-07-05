@@ -20,7 +20,7 @@
 import ConnectionHolder, {
   EMPTY_CONNECTION_HOLDER
 } from '../../src/internal/connection-holder'
-import { SingleConnectionProvider } from '../../src/internal/connection-providers'
+import SingleConnectionProvider from '../../src/internal/connection-provider-single'
 import { READ, WRITE } from '../../src/driver'
 import FakeConnection from './fake-connection'
 import StreamObserver from '../../src/internal/stream-observer'

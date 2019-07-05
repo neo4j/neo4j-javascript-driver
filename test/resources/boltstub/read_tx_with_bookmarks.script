@@ -1,6 +1,5 @@
 !: AUTO INIT
 !: AUTO RESET
-!: AUTO PULL_ALL
 
 C: RUN "BEGIN" {"bookmark": "neo4j:bookmark:v1:tx42", "bookmarks": ["neo4j:bookmark:v1:tx42"]}
    PULL_ALL

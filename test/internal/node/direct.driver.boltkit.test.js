@@ -296,7 +296,7 @@ describe('direct driver with stub server', () => {
     }
 
     const server = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/read_server_v2_read_dead.script',
       9001
     )
 

@@ -1,3 +1,4 @@
+!: BOLT 2
 !: AUTO INIT
 
 C: RUN "RETURN 42 AS answer" {}

@@ -19,15 +19,17 @@
 
 import { newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE } from '../error'
 import Integer, { int } from '../integer'
-import { ServerVersion, VERSION_3_2_0 } from './server-version'
+import { ServerVersion, VERSION_3_2_0, VERSION_4_0_0 } from './server-version'
 import Bookmark from './bookmark'
 import TxConfig from './tx-config'
 import { ACCESS_MODE_WRITE } from './constants'
 import ServerAddress from './server-address'
 
+const CONTEXT = 'context'
 const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers'
-const CALL_GET_ROUTING_TABLE =
-  'CALL dbms.cluster.routing.getRoutingTable($context)'
+const CALL_GET_ROUTING_TABLE = `CALL dbms.cluster.routing.getRoutingTable($${CONTEXT})`
+const DATABASE = 'database'
+const CALL_GET_ROUTING_TABLE_MULTI_DB = `CALL dbms.routing.getRoutingTable($${CONTEXT}, $${DATABASE})`
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 
 export default class RoutingUtil {
@@ -42,8 +44,8 @@ export default class RoutingUtil {
    * @return {Promise<Record[]>} promise resolved with records returned by the procedure call or null if
    * connection error happened.
    */
-  callRoutingProcedure (session, routerAddress) {
-    return this._callAvailableRoutingProcedure(session)
+  callRoutingProcedure (session, database, routerAddress) {
+    return this._callAvailableRoutingProcedure(session, database)
       .then(result => {
         session.close()
         return result.records
@@ -128,17 +130,22 @@ export default class RoutingUtil {
     }
   }
 
-  _callAvailableRoutingProcedure (session) {
+  _callAvailableRoutingProcedure (session, database) {
     return session._run(null, null, (connection, streamObserver) => {
-      const serverVersionString = connection.server.version
-      const serverVersion = ServerVersion.fromString(serverVersionString)
+      const serverVersion = connection.version()
 
       let query
       let params
 
-      if (serverVersion.compareTo(VERSION_3_2_0) >= 0) {
+      if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
+        query = CALL_GET_ROUTING_TABLE_MULTI_DB
+        params = {}
+        params[CONTEXT] = this._routingContext
+        params[DATABASE] = database
+      } else if (serverVersion.compareTo(VERSION_3_2_0) >= 0) {
         query = CALL_GET_ROUTING_TABLE
-        params = { context: this._routingContext }
+        params = {}
+        params[CONTEXT] = this._routingContext
       } else {
         query = CALL_GET_SERVERS
         params = {}

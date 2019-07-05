@@ -1,9 +1,6 @@
+!: BOLT 2
 !: AUTO INIT
 !: AUTO RESET
-!: AUTO PULL_ALL
-!: AUTO RUN "ROLLBACK" {}
-!: AUTO RUN "BEGIN" {}
-!: AUTO RUN "COMMIT" {}
 
 C: RUN "{{{query}}}" {}
 C: PULL_ALL

@@ -19,7 +19,7 @@
 
 import { Driver } from './driver'
 import { newError, SESSION_EXPIRED } from './error'
-import { LoadBalancer } from './internal/connection-providers'
+import RoutingConnectionProvider from './internal/connection-provider-routing'
 import LeastConnectedLoadBalancingStrategy from './internal/least-connected-load-balancing-strategy'
 import ConnectionErrorHandler from './internal/connection-error-handler'
 import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
@@ -46,7 +46,7 @@ class RoutingDriver extends Driver {
       connectionPool
     )
     const resolver = createHostNameResolver(this._config)
-    return new LoadBalancer(
+    return new RoutingConnectionProvider(
       address,
       this._routingContext,
       connectionPool,

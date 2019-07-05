@@ -21,7 +21,7 @@ import Session from './session'
 import Pool from './internal/pool'
 import Connection from './internal/connection'
 import { newError, SERVICE_UNAVAILABLE } from './error'
-import { DirectConnectionProvider } from './internal/connection-providers'
+import DirectConnectionProvider from './internal/connection-provider-direct'
 import Bookmark from './internal/bookmark'
 import ConnectivityVerifier from './internal/connectivity-verifier'
 import PoolConfig, {

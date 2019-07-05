@@ -45,7 +45,7 @@ describe('RoutingUtil', () => {
   it('should return retrieved records when query succeeds', done => {
     const session = FakeSession.successful({ records: ['foo', 'bar', 'baz'] })
 
-    callRoutingProcedure(session)
+    callRoutingProcedure(session, '')
       .then(records => {
         expect(records).toEqual(['foo', 'bar', 'baz'])
         done()
@@ -56,7 +56,7 @@ describe('RoutingUtil', () => {
   it('should close session when query succeeds', done => {
     const session = FakeSession.successful({ records: ['foo', 'bar', 'baz'] })
 
-    callRoutingProcedure(session)
+    callRoutingProcedure(session, '')
       .then(() => {
         expect(session.isClosed()).toBeTruthy()
         done()
@@ -67,7 +67,7 @@ describe('RoutingUtil', () => {
   it('should not close session when query fails', done => {
     const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED))
 
-    callRoutingProcedure(session)
+    callRoutingProcedure(session, '')
       .then(() => {
         expect(session.isClosed()).toBeFalsy()
         done()
@@ -78,7 +78,7 @@ describe('RoutingUtil', () => {
   it('should return null on connection error', done => {
     const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED))
 
-    callRoutingProcedure(session)
+    callRoutingProcedure(session, '')
       .then(records => {
         expect(records).toBeNull()
         done()
@@ -91,7 +91,7 @@ describe('RoutingUtil', () => {
       newError('Oh no!', 'Neo.ClientError.Procedure.ProcedureNotFound')
     )
 
-    callRoutingProcedure(session).catch(error => {
+    callRoutingProcedure(session, '').catch(error => {
       expect(error.code).toBe(SERVICE_UNAVAILABLE)
       expect(error.message).toBe(
         `Server at ${ROUTER_ADDRESS} can't perform routing. Make sure you are connecting to a causal cluster`
@@ -104,7 +104,7 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.1.9')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, {}).then(() => {
+    callRoutingProcedure(session, '', {}).then(() => {
       expect(connection.seenStatements).toEqual([
         'CALL dbms.cluster.routing.getServers'
       ])
@@ -117,7 +117,7 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.2.0')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, {}).then(() => {
+    callRoutingProcedure(session, '', {}).then(() => {
       expect(connection.seenStatements).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
@@ -130,7 +130,7 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.2.0')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, { key1: 'value1', key2: 'value2' }).then(
+    callRoutingProcedure(session, '', { key1: 'value1', key2: 'value2' }).then(
       () => {
         expect(connection.seenStatements).toEqual([
           'CALL dbms.cluster.routing.getRoutingTable($context)'
@@ -147,7 +147,7 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.3.5')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, {}).then(() => {
+    callRoutingProcedure(session, '', {}).then(() => {
       expect(connection.seenStatements).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
@@ -160,7 +160,7 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.2.8')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, { key1: 'foo', key2: 'bar' }).then(() => {
+    callRoutingProcedure(session, '', { key1: 'foo', key2: 'bar' }).then(() => {
       expect(connection.seenStatements).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
@@ -169,6 +169,26 @@ describe('RoutingUtil', () => {
       ])
       done()
     })
+  })
+
+  it('should use getRoutingTable procedure without database and routing context when server version is newer than 4.0.0', done => {
+    testMultiDbRoutingProcedure({}, '', done)
+  })
+
+  it('should use getRoutingTable procedure without database but routing context when server version is newer than 4.0.0', done => {
+    testMultiDbRoutingProcedure({ key1: 'foo', key2: 'bar' }, '', done)
+  })
+
+  it('should use getRoutingTable procedure without routing context but database when server version is newer than 4.0.0', done => {
+    testMultiDbRoutingProcedure({}, 'myDatabase', done)
+  })
+
+  it('should use getRoutingTable procedure with database and routing context when server version is newer than 4.0.0', done => {
+    testMultiDbRoutingProcedure(
+      { key1: 'foo', key2: 'bar' },
+      'myDatabase',
+      done
+    )
   })
 
   it('should parse valid ttl', () => {
@@ -301,6 +321,19 @@ describe('RoutingUtil', () => {
     expectProtocolError(() => parseServers(record), done)
   })
 
+  function testMultiDbRoutingProcedure (context, database, done) {
+    const connection = new FakeConnection().withServerVersion('Neo4j/4.0.0')
+    const session = FakeSession.withFakeConnection(connection)
+
+    callRoutingProcedure(session, database, context).then(() => {
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.routing.getRoutingTable($context, $database)'
+      ])
+      expect(connection.seenParameters).toEqual([{ context, database }])
+      done()
+    })
+  }
+
   function testValidTtlParsing (currentTime, ttlSeconds) {
     clock.setSystemTime(currentTime)
     const expectedExpirationTime = currentTime + ttlSeconds * 1000
@@ -334,9 +367,9 @@ describe('RoutingUtil', () => {
     expect(writers).toEqual(writerAddresses.map(w => ServerAddress.fromUrl(w)))
   }
 
-  function callRoutingProcedure (session, routingContext) {
+  function callRoutingProcedure (session, database, routingContext) {
     const util = new RoutingUtil(routingContext || {})
-    return util.callRoutingProcedure(session, ROUTER_ADDRESS)
+    return util.callRoutingProcedure(session, database, ROUTER_ADDRESS)
   }
 
   function parseTtl (record) {

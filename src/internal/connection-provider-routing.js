@@ -24,43 +24,17 @@ import RoutingTable from './routing-table'
 import Rediscovery from './rediscovery'
 import RoutingUtil from './routing-util'
 import { HostNameResolver } from './node'
+import ConnectionProvider from './connection-provider'
+import SingleConnectionProvider from './connection-provider-single'
+import { VERSION_4_0_0 } from './server-version'
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
+const DATABASE_NOT_FOUND_ERROR_CODE =
+  'Neo.ClientError.Database.DatabaseNotFound'
+const SYSTEM_DB_NAME = 'system'
+const DEFAULT_DB_NAME = ''
 
-class ConnectionProvider {
-  acquireConnection (accessMode, database) {
-    throw new Error('Abstract function')
-  }
-
-  _withAdditionalOnErrorCallback (connectionPromise, driverOnErrorCallback) {
-    // install error handler from the driver on the connection promise; this callback is installed separately
-    // so that it does not handle errors, instead it is just an additional error reporting facility.
-    connectionPromise.catch(error => {
-      driverOnErrorCallback(error)
-    })
-    // return the original connection promise
-    return connectionPromise
-  }
-}
-
-export class DirectConnectionProvider extends ConnectionProvider {
-  constructor (address, connectionPool, driverOnErrorCallback) {
-    super()
-    this._address = address
-    this._connectionPool = connectionPool
-    this._driverOnErrorCallback = driverOnErrorCallback
-  }
-
-  acquireConnection (accessMode, database) {
-    const connectionPromise = this._connectionPool.acquire(this._address)
-    return this._withAdditionalOnErrorCallback(
-      connectionPromise,
-      this._driverOnErrorCallback
-    )
-  }
-}
-
-export class LoadBalancer extends ConnectionProvider {
+export default class RoutingConnectionProvider extends ConnectionProvider {
   constructor (
     address,
     routingContext,
@@ -72,7 +46,7 @@ export class LoadBalancer extends ConnectionProvider {
   ) {
     super()
     this._seedRouter = address
-    this._routingTable = new RoutingTable()
+    this._routingTables = {}
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext))
     this._connectionPool = connectionPool
     this._driverOnErrorCallback = driverOnErrorCallback
@@ -84,23 +58,24 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   acquireConnection (accessMode, database) {
-    const connectionPromise = this._freshRoutingTable(accessMode).then(
-      routingTable => {
-        if (accessMode === READ) {
-          const address = this._loadBalancingStrategy.selectReader(
-            routingTable.readers
-          )
-          return this._acquireConnectionToServer(address, 'read')
-        } else if (accessMode === WRITE) {
-          const address = this._loadBalancingStrategy.selectWriter(
-            routingTable.writers
-          )
-          return this._acquireConnectionToServer(address, 'write')
-        } else {
-          throw newError('Illegal mode ' + accessMode)
-        }
+    const connectionPromise = this._freshRoutingTable(
+      accessMode,
+      database || DEFAULT_DB_NAME
+    ).then(routingTable => {
+      if (accessMode === READ) {
+        const address = this._loadBalancingStrategy.selectReader(
+          routingTable.readers
+        )
+        return this._acquireConnectionToServer(address, 'read', routingTable)
+      } else if (accessMode === WRITE) {
+        const address = this._loadBalancingStrategy.selectWriter(
+          routingTable.writers
+        )
+        return this._acquireConnectionToServer(address, 'write', routingTable)
+      } else {
+        throw newError('Illegal mode ' + accessMode)
       }
-    )
+    })
     return this._withAdditionalOnErrorCallback(
       connectionPromise,
       this._driverOnErrorCallback
@@ -108,21 +83,23 @@ export class LoadBalancer extends ConnectionProvider {
   }
 
   forget (address) {
-    this._routingTable.forget(address)
+    Object.values(this._routingTables).forEach(routingTable =>
+      routingTable.forget(address)
+    )
     this._connectionPool.purge(address)
   }
 
   forgetWriter (address) {
-    this._routingTable.forgetWriter(address)
+    Object.values(this._routingTables).forEach(routingTable =>
+      routingTable.forgetWriter(address)
+    )
   }
 
-  _acquireConnectionToServer (address, serverName) {
+  _acquireConnectionToServer (address, serverName, routingTable) {
     if (!address) {
       return Promise.reject(
         newError(
-          `Failed to obtain connection towards ${serverName} server. Known routing table is: ${
-            this._routingTable
-          }`,
+          `Failed to obtain connection towards ${serverName} server. Known routing table is: ${routingTable}`,
           SESSION_EXPIRED
         )
       )
@@ -130,14 +107,15 @@ export class LoadBalancer extends ConnectionProvider {
     return this._connectionPool.acquire(address)
   }
 
-  _freshRoutingTable (accessMode) {
-    const currentRoutingTable = this._routingTable
+  _freshRoutingTable (accessMode, database) {
+    const currentRoutingTable =
+      this._routingTables[database] || new RoutingTable({ database })
 
     if (!currentRoutingTable.isStaleFor(accessMode)) {
       return Promise.resolve(currentRoutingTable)
     }
     this._log.info(
-      `Routing table is stale for ${accessMode}: ${currentRoutingTable}`
+      `Routing table is stale for database: "${database}" and access mode: "${accessMode}": ${currentRoutingTable}`
     )
     return this._refreshRoutingTable(currentRoutingTable)
   }
@@ -163,7 +141,11 @@ export class LoadBalancer extends ConnectionProvider {
   ) {
     // we start with seed router, no routers were probed before
     const seenRouters = []
-    return this._fetchRoutingTableUsingSeedRouter(seenRouters, this._seedRouter)
+    return this._fetchRoutingTableUsingSeedRouter(
+      seenRouters,
+      this._seedRouter,
+      currentRoutingTable
+    )
       .then(newRoutingTable => {
         if (newRoutingTable) {
           this._useSeedRouter = false
@@ -177,7 +159,7 @@ export class LoadBalancer extends ConnectionProvider {
         )
       })
       .then(newRoutingTable => {
-        this._applyRoutingTableIfPossible(newRoutingTable)
+        this._applyRoutingTableIfPossible(currentRoutingTable, newRoutingTable)
         return newRoutingTable
       })
   }
@@ -198,11 +180,12 @@ export class LoadBalancer extends ConnectionProvider {
         // none of the known routers returned a valid routing table - try to use seed router address for rediscovery
         return this._fetchRoutingTableUsingSeedRouter(
           knownRouters,
-          this._seedRouter
+          this._seedRouter,
+          currentRoutingTable
         )
       })
       .then(newRoutingTable => {
-        this._applyRoutingTableIfPossible(newRoutingTable)
+        this._applyRoutingTableIfPossible(currentRoutingTable, newRoutingTable)
         return newRoutingTable
       })
   }
@@ -218,7 +201,7 @@ export class LoadBalancer extends ConnectionProvider {
         // returned routing table was undefined, this means a connection error happened and the last known
         // router did not return a valid routing table, so we need to forget it
         const lastRouterIndex = knownRouters.length - 1
-        LoadBalancer._forgetRouter(
+        RoutingConnectionProvider._forgetRouter(
           currentRoutingTable,
           knownRouters,
           lastRouterIndex
@@ -229,14 +212,14 @@ export class LoadBalancer extends ConnectionProvider {
     )
   }
 
-  _fetchRoutingTableUsingSeedRouter (seenRouters, seedRouter) {
-    const resolvedAddresses = this._hostNameResolver.resolve(seedRouter)
+  _fetchRoutingTableUsingSeedRouter (seenRouters, seedRouter, routingTable) {
+    const resolvedAddresses = this._resolveSeedRouter(seedRouter)
     return resolvedAddresses.then(resolvedRouterAddresses => {
       // filter out all addresses that we've already tried
       const newAddresses = resolvedRouterAddresses.filter(
         address => seenRouters.indexOf(address) < 0
       )
-      return this._fetchRoutingTable(newAddresses, null)
+      return this._fetchRoutingTable(newAddresses, routingTable)
     })
   }
 
@@ -265,7 +248,7 @@ export class LoadBalancer extends ConnectionProvider {
             // returned routing table was undefined, this means a connection error happened and we need to forget the
             // previous router and try the next one
             const previousRouterIndex = currentIndex - 1
-            LoadBalancer._forgetRouter(
+            RoutingConnectionProvider._forgetRouter(
               routingTable,
               routerAddresses,
               previousRouterIndex
@@ -277,8 +260,16 @@ export class LoadBalancer extends ConnectionProvider {
             session => {
               if (session) {
                 return this._rediscovery
-                  .lookupRoutingTableOnRouter(session, currentRouter)
+                  .lookupRoutingTableOnRouter(
+                    session,
+                    routingTable.database,
+                    currentRouter
+                  )
                   .catch(error => {
+                    if (error && error.code === DATABASE_NOT_FOUND_ERROR_CODE) {
+                      // not finding the target database is a sign of a configuration issue
+                      throw error
+                    }
                     this._log.warn(
                       `unable to fetch routing table because of an error ${error}`
                     )
@@ -302,25 +293,37 @@ export class LoadBalancer extends ConnectionProvider {
       .acquire(routerAddress)
       .then(connection => {
         const connectionProvider = new SingleConnectionProvider(connection)
-        return new Session({ mode: READ, connectionProvider })
+
+        if (connection.version().compareTo(VERSION_4_0_0) < 0) {
+          return new Session({ mode: READ, connectionProvider })
+        }
+
+        return new Session({
+          mode: READ,
+          database: SYSTEM_DB_NAME,
+          connectionProvider
+        })
       })
       .catch(error => {
         // unable to acquire connection towards the given router
-        if (error && error.code === UNAUTHORIZED_ERROR_CODE) {
-          // auth error is a sign of a configuration issue, rediscovery should not proceed
+        if (
+          error &&
+          (error.code === UNAUTHORIZED_ERROR_CODE ||
+            error.code === DATABASE_NOT_FOUND_ERROR_CODE)
+        ) {
+          // auth error and not finding system database is a sign of a configuration issue
+          // discovery should not proceed
           throw error
         }
         return null
       })
   }
 
-  _applyRoutingTableIfPossible (newRoutingTable) {
+  _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable) {
     if (!newRoutingTable) {
       // none of routing servers returned valid routing table, throw exception
       throw newError(
-        `Could not perform discovery. No routing servers available. Known routing table: ${
-          this._routingTable
-        }`,
+        `Could not perform discovery. No routing servers available. Known routing table: ${currentRoutingTable}`,
         SERVICE_UNAVAILABLE
       )
     }
@@ -339,7 +342,7 @@ export class LoadBalancer extends ConnectionProvider {
     this._connectionPool.keepAll(newRoutingTable.allServers())
 
     // make this driver instance aware of the new table
-    this._routingTable = newRoutingTable
+    this._routingTables[newRoutingTable.database] = newRoutingTable
     this._log.info(`Updated routing table ${newRoutingTable}`)
   }
 
@@ -348,18 +351,5 @@ export class LoadBalancer extends ConnectionProvider {
     if (routingTable && address) {
       routingTable.forgetRouter(address)
     }
-  }
-}
-
-export class SingleConnectionProvider extends ConnectionProvider {
-  constructor (connection) {
-    super()
-    this._connection = connection
-  }
-
-  acquireConnection (mode, database) {
-    const connection = this._connection
-    this._connection = null
-    return Promise.resolve(connection)
   }
 }
