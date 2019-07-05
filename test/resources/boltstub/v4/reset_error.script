@@ -1,0 +1,10 @@
+!: BOLT 4
+!: AUTO HELLO
+
+C: RUN "RETURN 42 AS answer" {} {}
+   PULL {"n": -1}
+S: SUCCESS {"fields": ["answer"]}
+   RECORD [42]
+   SUCCESS {}
+C: RESET
+S: FAILURE {"code": "Neo.TransientError.General.DatabaseUnavailable", "message": "Unable to reset"}

@@ -1,0 +1,8 @@
+!: BOLT 3
+!: AUTO HELLO
+!: AUTO RESET
+
+C: RUN "RETURN 1" {} {"mode": "r"}
+C: PULL_ALL
+S: FAILURE {"code": "Neo.TransientError.General.DatabaseUnavailable", "message": "Database is busy doing store copy"}
+S: IGNORED

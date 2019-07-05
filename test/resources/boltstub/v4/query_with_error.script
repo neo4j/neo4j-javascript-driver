@@ -1,0 +1,11 @@
+!: BOLT 4
+!: AUTO HELLO
+
+C: RUN "RETURN 10 / 0" {} {}
+C: PULL {"n": -1}
+S: FAILURE {"code": "Neo.ClientError.Statement.ArithmeticError", "message": "/ by zero"}
+S: IGNORED
+C: RESET
+S: SUCCESS {}
+C: RESET
+S: SUCCESS {}

@@ -153,16 +153,7 @@ class Session {
     const arg = transactionConfig
 
     let txConfig = TxConfig.empty()
-    if (
-      typeof arg === 'string' ||
-      arg instanceof String ||
-      Array.isArray(arg)
-    ) {
-      // argument looks like a single or multiple bookmarks
-      // bookmarks in this function are deprecated but need to be supported for backwards compatibility
-      this._updateBookmark(new Bookmark(arg))
-    } else if (arg) {
-      // argument is probably a transaction configuration
+    if (arg) {
       txConfig = new TxConfig(arg)
     }
 

@@ -1,0 +1,12 @@
+!: BOLT 3
+!: AUTO HELLO
+!: AUTO RESET
+
+C: RUN "CREATE (n {name:'Bob'})" {} {}
+   PULL_ALL
+S: SUCCESS {"fields": []}
+   SUCCESS {}
+C: RUN "CREATE ()" {} {}
+   PULL_ALL
+S: SUCCESS {"fields": []}
+   SUCCESS {}

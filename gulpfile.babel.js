@@ -35,7 +35,7 @@ const file = require('gulp-file')
 const semver = require('semver')
 const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const ts = require('gulp-typescript')
-const JasmineConsoleReporter = require('jasmine-console-reporter')
+const JasmineReporter = require('jasmine-spec-reporter').SpecReporter
 const karma = require('karma')
 const log = require('fancy-log')
 
@@ -218,12 +218,23 @@ function logActiveNodeHandles () {
 }
 
 function newJasmineConsoleReporter () {
-  return new JasmineConsoleReporter({
-    colors: 1,
-    cleanStack: 1,
-    verbosity: 4,
-    listStyle: 'indent',
-    activity: false
+  return new JasmineReporter({
+    colors: {
+      enabled: true
+    },
+    spec: {
+      displayDuration: true,
+      displayErrorMessages: true,
+      displayStacktrace: true,
+      displayFailed: true,
+      displaySuccessful: true,
+      displayPending: false
+    },
+    summary: {
+      displayFailed: true,
+      displayStacktrace: true,
+      displayErrorMessages: true
+    }
   })
 }
 

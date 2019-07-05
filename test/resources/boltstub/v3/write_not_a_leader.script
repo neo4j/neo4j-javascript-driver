@@ -1,0 +1,8 @@
+!: BOLT 3
+!: AUTO HELLO
+!: AUTO RESET
+
+C: RUN "CREATE ()" {} {}
+   PULL_ALL
+S: FAILURE {"code": "Neo.ClientError.Cluster.NotALeader", "message": "blabla"}
+   IGNORED

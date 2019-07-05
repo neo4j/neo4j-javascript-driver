@@ -1,8 +1,0 @@
-!: BOLT 2
-!: AUTO INIT
-!: AUTO RESET
-
-C: RUN "CALL dbms.cluster.routing.getRoutingTable($context)" {"context": {}}
-C: PULL_ALL
-S: FAILURE {"code": "Neo.ClientError.Procedure.ProcedureNotFound", "message": "blabla"}
-S: IGNORED
