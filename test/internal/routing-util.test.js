@@ -100,19 +100,6 @@ describe('RoutingUtil', () => {
     })
   })
 
-  it('should use getServers procedure when server version is older than 3.2.0', done => {
-    const connection = new FakeConnection().withServerVersion('Neo4j/3.1.9')
-    const session = FakeSession.withFakeConnection(connection)
-
-    callRoutingProcedure(session, '', {}).then(() => {
-      expect(connection.seenStatements).toEqual([
-        'CALL dbms.cluster.routing.getServers'
-      ])
-      expect(connection.seenParameters).toEqual([{}])
-      done()
-    })
-  })
-
   it('should use getRoutingTable procedure with empty routing context when server version is 3.2.0', done => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.2.0')
     const session = FakeSession.withFakeConnection(connection)
@@ -329,7 +316,9 @@ describe('RoutingUtil', () => {
       expect(connection.seenStatements).toEqual([
         'CALL dbms.routing.getRoutingTable($context, $database)'
       ])
-      expect(connection.seenParameters).toEqual([{ context, database }])
+      expect(connection.seenParameters).toEqual([
+        { context, database: database || null }
+      ])
       done()
     })
   }

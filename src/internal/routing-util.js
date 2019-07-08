@@ -19,18 +19,18 @@
 
 import { newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE } from '../error'
 import Integer, { int } from '../integer'
-import { ServerVersion, VERSION_3_2_0, VERSION_4_0_0 } from './server-version'
+import { VERSION_4_0_0 } from './server-version'
 import Bookmark from './bookmark'
 import TxConfig from './tx-config'
-import { ACCESS_MODE_WRITE } from './constants'
+import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './constants'
 import ServerAddress from './server-address'
 
 const CONTEXT = 'context'
-const CALL_GET_SERVERS = 'CALL dbms.cluster.routing.getServers'
 const CALL_GET_ROUTING_TABLE = `CALL dbms.cluster.routing.getRoutingTable($${CONTEXT})`
 const DATABASE = 'database'
 const CALL_GET_ROUTING_TABLE_MULTI_DB = `CALL dbms.routing.getRoutingTable($${CONTEXT}, $${DATABASE})`
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
+const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
 
 export default class RoutingUtil {
   constructor (routingContext) {
@@ -51,7 +51,9 @@ export default class RoutingUtil {
         return result.records
       })
       .catch(error => {
-        if (error.code === PROCEDURE_NOT_FOUND_CODE) {
+        if (error.code === DATABASE_NOT_FOUND_CODE) {
+          throw error
+        } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
           // throw when getServers procedure not found because this is clearly a configuration issue
           throw newError(
             `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
@@ -139,22 +141,20 @@ export default class RoutingUtil {
 
       if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
         query = CALL_GET_ROUTING_TABLE_MULTI_DB
-        params = {}
-        params[CONTEXT] = this._routingContext
-        params[DATABASE] = database
-      } else if (serverVersion.compareTo(VERSION_3_2_0) >= 0) {
-        query = CALL_GET_ROUTING_TABLE
-        params = {}
-        params[CONTEXT] = this._routingContext
+        params = {
+          context: this._routingContext,
+          database: database || null
+        }
       } else {
-        query = CALL_GET_SERVERS
-        params = {}
+        query = CALL_GET_ROUTING_TABLE
+        params = { context: this._routingContext }
       }
 
       connection.protocol().run(query, params, streamObserver, {
         bookmark: Bookmark.empty(),
         txConfig: TxConfig.empty(),
-        mode: ACCESS_MODE_WRITE
+        mode: session._mode,
+        database: session._database
       })
     })
   }

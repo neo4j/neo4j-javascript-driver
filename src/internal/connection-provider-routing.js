@@ -295,7 +295,7 @@ export default class RoutingConnectionProvider extends ConnectionProvider {
         const connectionProvider = new SingleConnectionProvider(connection)
 
         if (connection.version().compareTo(VERSION_4_0_0) < 0) {
-          return new Session({ mode: READ, connectionProvider })
+          return new Session({ mode: WRITE, connectionProvider })
         }
 
         return new Session({
@@ -306,11 +306,7 @@ export default class RoutingConnectionProvider extends ConnectionProvider {
       })
       .catch(error => {
         // unable to acquire connection towards the given router
-        if (
-          error &&
-          (error.code === UNAUTHORIZED_ERROR_CODE ||
-            error.code === DATABASE_NOT_FOUND_ERROR_CODE)
-        ) {
+        if (error && error.code === UNAUTHORIZED_ERROR_CODE) {
           // auth error and not finding system database is a sign of a configuration issue
           // discovery should not proceed
           throw error

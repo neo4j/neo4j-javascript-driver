@@ -1,5 +1,6 @@
 !: BOLT 4
 !: AUTO HELLO
+!: AUTO GOODBYE
 
 C: RUN "RETURN 10 / 0" {} {}
 C: PULL {"n": -1}

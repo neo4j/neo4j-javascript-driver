@@ -1,6 +1,7 @@
 !: BOLT 3
 !: AUTO HELLO
 !: AUTO RESET
+!: AUTO GOODBYE
 
 C: RUN "RETURN 1" {} {"mode": "r"}
 C: PULL_ALL

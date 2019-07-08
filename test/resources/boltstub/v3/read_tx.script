@@ -1,6 +1,7 @@
 !: BOLT 3
 !: AUTO HELLO
 !: AUTO RESET
+!: AUTO GOODBYE
 
 C: BEGIN {"mode": "r"}
 S: SUCCESS {}

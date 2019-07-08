@@ -2665,6 +2665,233 @@ describe('routing driver with stub server', () => {
     })
   })
 
+  describe('Multi-Database', () => {
+    function verifyDiscoverAndRead (script, database, done) {
+      if (!boltStub.supported) {
+        done()
+        return
+      }
+
+      // Given
+      const server = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_${database ||
+          'default_database'}.script`,
+        9001
+      )
+      const readServer = boltStub.start(
+        `./test/resources/boltstub/v4/${script}.script`,
+        9005
+      )
+
+      boltStub.run(() => {
+        const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+        // When
+        const session = driver.session({
+          database: database,
+          defaultAccessMode: READ
+        })
+        session.run('MATCH (n) RETURN n.name').then(() => {
+          session.close()
+          // Then
+          expect(
+            hasAddressInConnectionPool(driver, '127.0.0.1:9001')
+          ).toBeTruthy()
+          expect(
+            hasAddressInConnectionPool(driver, '127.0.0.1:9005')
+          ).toBeTruthy()
+          assertHasRouters(
+            driver,
+            ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003'],
+            database
+          )
+          assertHasReaders(
+            driver,
+            ['127.0.0.1:9005', '127.0.0.1:9006'],
+            database
+          )
+          assertHasWriters(
+            driver,
+            ['127.0.0.1:9007', '127.0.0.1:9008'],
+            database
+          )
+
+          driver.close()
+          server.exit(code => {
+            readServer.exit(readCode => {
+              expect(code).toEqual(0)
+              expect(readCode).toEqual(0)
+              done()
+            })
+          })
+        })
+      })
+    }
+
+    function verifyDiscoverAndWrite (script, database, done) {
+      if (!boltStub.supported) {
+        done()
+        return
+      }
+
+      // Given
+      const server = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_${database ||
+          'default_database'}.script`,
+        9001
+      )
+      const writeServer = boltStub.start(
+        `./test/resources/boltstub/v4/${script}.script`,
+        9007
+      )
+
+      boltStub.run(() => {
+        const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+        // When
+        const session = driver.session({ database: database })
+        session.run("CREATE (n {name:'Bob'})").then(() => {
+          session.close()
+          // Then
+          expect(
+            hasAddressInConnectionPool(driver, '127.0.0.1:9001')
+          ).toBeTruthy()
+          expect(
+            hasAddressInConnectionPool(driver, '127.0.0.1:9007')
+          ).toBeTruthy()
+          assertHasRouters(
+            driver,
+            ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003'],
+            database
+          )
+          assertHasReaders(
+            driver,
+            ['127.0.0.1:9005', '127.0.0.1:9006'],
+            database
+          )
+          assertHasWriters(
+            driver,
+            ['127.0.0.1:9007', '127.0.0.1:9008'],
+            database
+          )
+
+          driver.close()
+          server.exit(code => {
+            writeServer.exit(writeCode => {
+              expect(code).toEqual(0)
+              expect(writeCode).toEqual(0)
+              done()
+            })
+          })
+        })
+      })
+    }
+
+    it('should discover servers for default database and read', done => {
+      verifyDiscoverAndRead('read', '', done)
+    })
+
+    it('should discover servers for aDatabase and read', done => {
+      verifyDiscoverAndRead('read_from_aDatabase', 'aDatabase', done)
+    })
+
+    it('should discover servers for default database and write', done => {
+      verifyDiscoverAndWrite('write', '', done)
+    })
+
+    it('should discover servers for aDatabase and write', done => {
+      verifyDiscoverAndWrite('write_to_aDatabase', 'aDatabase', done)
+    })
+
+    it('should fail discovery if database not found', done => {
+      if (!boltStub.supported) {
+        done()
+        return
+      }
+
+      // Given
+      const server = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_db_not_found.script`,
+        9001
+      )
+
+      boltStub.run(() => {
+        const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+        // When
+        const session = driver.session({ database: 'aDatabase' })
+
+        session.run('CREATE ()').catch(error => {
+          // Then
+          expect(error.code).toEqual(
+            'Neo.ClientError.Database.DatabaseNotFound'
+          )
+          expect(error.message).toEqual('database not found')
+
+          session.close()
+          driver.close()
+          server.exit(code => {
+            expect(code).toEqual(0)
+            done()
+          })
+        })
+      })
+    })
+
+    it('should try next server for empty routing table response', done => {
+      if (!boltStub.supported) {
+        done()
+        return
+      }
+
+      // Given
+      const router1 = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_aDatabase_no_servers.script`,
+        9001
+      )
+      const router2 = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_aDatabase.script`,
+        9002
+      )
+      const reader1 = boltStub.start(
+        `./test/resources/boltstub/v4/read_from_aDatabase.script`,
+        9005
+      )
+
+      boltStub.run(() => {
+        const driver = boltStub.newDriver('neo4j://127.0.0.1:9000', {
+          resolver: address => [
+            'neo4j://127.0.0.1:9001',
+            'neo4j://127.0.0.1:9002'
+          ]
+        })
+
+        // When
+        const session = driver.session({
+          database: 'aDatabase',
+          defaultAccessMode: READ
+        })
+        session.run('MATCH (n) RETURN n.name').then(result => {
+          expect(result.records.map(record => record.get(0))).toEqual([
+            'Bob',
+            'Alice',
+            'Tina'
+          ])
+
+          session.close()
+          driver.close()
+          router1.exit(code1 => {
+            router2.exit(code2 => {
+              reader1.exit(code3 => {
+                expect(code1).toEqual(0)
+                expect(code2).toEqual(0)
+                expect(code3).toEqual(0)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   function testAddressPurgeOnDatabaseError (script, query, accessMode, done) {
     if (!boltStub.supported) {
       done()
