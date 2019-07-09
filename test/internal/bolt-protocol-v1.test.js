@@ -24,7 +24,7 @@ import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
 import utils from './test-utils'
 
-describe('BoltProtocolV1', () => {
+describe('#unit BoltProtocolV1', () => {
   beforeEach(() => {
     jasmine.addMatchers(utils.matchers)
   })

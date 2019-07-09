@@ -25,7 +25,7 @@ import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../../src/error'
 import lolex from 'lolex'
 import ServerAddress from '../../../src/internal/server-address'
 
-describe('routing driver with stub server', () => {
+describe('#stub-routing routing driver with stub server', () => {
   let originalTimeout
   let clock
 
@@ -2665,7 +2665,7 @@ describe('routing driver with stub server', () => {
     })
   })
 
-  describe('Multi-Database', () => {
+  describe('multi-Database', () => {
     function verifyDiscoverAndRead (script, database, done) {
       if (!boltStub.supported) {
         done()
@@ -3218,7 +3218,7 @@ describe('routing driver with stub server', () => {
   }
 
   function numberOfOpenConnections (driver) {
-    return Object.keys(driver._openConnections).length
+    return Object.keys(driver._connectionProvider._openConnections).length
   }
 
   function testResolverFunctionDuringFirstDiscovery (resolutionResult, done) {

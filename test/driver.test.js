@@ -25,14 +25,10 @@ import {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
 } from '../src/internal/pool-config'
-import {
-  ServerVersion,
-  VERSION_3_1_0,
-  VERSION_4_0_0
-} from '../src/internal/server-version'
+import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
 
-describe('driver', () => {
+describe('#integration driver', () => {
   let clock
   let driver
   let serverVersion
@@ -442,11 +438,6 @@ describe('driver', () => {
   })
 
   function testIPv6Connection (url, done) {
-    if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
-      // IPv6 listen address only supported starting from neo4j 3.1, so let's ignore the rest
-      done()
-    }
-
     driver = neo4j.driver(url, sharedNeo4j.authToken)
 
     const session = driver.session()

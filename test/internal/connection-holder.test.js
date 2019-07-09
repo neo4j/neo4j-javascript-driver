@@ -25,7 +25,7 @@ import { READ, WRITE } from '../../src/driver'
 import FakeConnection from './fake-connection'
 import StreamObserver from '../../src/internal/stream-observer'
 
-describe('EmptyConnectionHolder', () => {
+describe('#unit EmptyConnectionHolder', () => {
   it('should return rejected promise instead of connection', done => {
     EMPTY_CONNECTION_HOLDER.getConnection(new StreamObserver()).catch(() => {
       done()
@@ -45,7 +45,7 @@ describe('EmptyConnectionHolder', () => {
   })
 })
 
-describe('ConnectionHolder', () => {
+describe('#unit ConnectionHolder', () => {
   it('should acquire new connection during initialization', () => {
     const connectionProvider = new RecordingConnectionProvider([
       new FakeConnection()

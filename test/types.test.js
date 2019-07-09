@@ -22,11 +22,11 @@ import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
 import { ServerVersion, VERSION_3_2_0 } from '../src/internal/server-version'
 
-describe('null value', () => {
+describe('#integration null value', () => {
   it('should support null', testValue(null))
 })
 
-describe('floating point values', () => {
+describe('#integration floating point values', () => {
   it('should support float 1.0 ', testValue(1))
   it('should support float 0.0 ', testValue(0.0))
   it('should support pretty big float ', testValue(3.4028235e38)) // Max 32-bit
@@ -35,7 +35,7 @@ describe('floating point values', () => {
   it('should support really small float ', testValue(4.9e-324)) // Min 64-bit
 })
 
-describe('integer values', () => {
+describe('#integration integer values', () => {
   it('should support integer 1 ', testValue(neo4j.int(1)))
   it('should support integer 0 ', testValue(neo4j.int(0)))
   it('should support integer -1 ', testValue(neo4j.int(-1)))
@@ -49,12 +49,12 @@ describe('integer values', () => {
   )
 })
 
-describe('boolean values', () => {
+describe('#integration boolean values', () => {
   it('should support true ', testValue(true))
   it('should support false ', testValue(false))
 })
 
-describe('string values', () => {
+describe('#integration string values', () => {
   it('should support empty string ', testValue(''))
   it('should support simple string ', testValue('abcdefghijklmnopqrstuvwxyz'))
   it(
@@ -64,7 +64,7 @@ describe('string values', () => {
   it('should support long string', testValue('*'.repeat(10000)))
 })
 
-describe('list values', () => {
+describe('#integration list values', () => {
   it('should support empty lists ', testValue([]))
   it('should support sparse lists ', testValue([undefined, 4], [null, 4]))
   it('should support float lists ', testValue([1, 2, 3]))
@@ -78,7 +78,7 @@ describe('list values', () => {
   )
 })
 
-describe('map values', () => {
+describe('#integration map values', () => {
   it('should support empty maps ', testValue({}))
   it(
     'should support basic maps ',
@@ -100,7 +100,7 @@ describe('map values', () => {
   it('should support long maps', testValue(longMap()))
 })
 
-describe('node values', () => {
+describe('#integration node values', () => {
   it('should support returning nodes ', done => {
     // Given
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
@@ -121,7 +121,7 @@ describe('node values', () => {
   })
 })
 
-describe('relationship values', () => {
+describe('#integration relationship values', () => {
   it('should support returning relationships', done => {
     // Given
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
@@ -142,7 +142,7 @@ describe('relationship values', () => {
   })
 })
 
-describe('path values', () => {
+describe('#integration path values', () => {
   it('should support returning paths', done => {
     // Given
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
@@ -178,7 +178,7 @@ describe('path values', () => {
   })
 })
 
-describe('byte arrays', () => {
+describe('#integration byte arrays', () => {
   let originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
   let serverSupportsByteArrays = false
 

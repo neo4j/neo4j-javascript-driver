@@ -18,7 +18,7 @@
  */
 
 import DummyChannel from './dummy-channel'
-import Connection from '../../src/internal/connection'
+import ChannelConnection from '../../src/internal/connection-channel'
 import { Packer } from '../../src/internal/packstream-v1'
 import { Chunker } from '../../src/internal/chunking'
 import { alloc } from '../../src/internal/node'
@@ -40,7 +40,7 @@ const SUCCESS_MESSAGE = { signature: 0x70, fields: [{}] }
 const FAILURE_MESSAGE = { signature: 0x7f, fields: [newError('Hello')] }
 const RECORD_MESSAGE = { signature: 0x71, fields: [{ value: 'Hello' }] }
 
-describe('Connection', () => {
+describe('#integration ChannelConnection', () => {
   let clock
   let connection
 
@@ -108,7 +108,7 @@ describe('Connection', () => {
 
   it('should write protocol handshake', () => {
     const channel = new DummyChannel()
-    connection = new Connection(
+    connection = new ChannelConnection(
       channel,
       new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
       ServerAddress.fromUrl('localhost:7687'),
@@ -148,7 +148,7 @@ describe('Connection', () => {
 
   it('should convert failure messages to errors', done => {
     const channel = new DummyChannel()
-    connection = new Connection(
+    connection = new ChannelConnection(
       channel,
       new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
       ServerAddress.fromUrl('localhost:7687'),
@@ -202,9 +202,7 @@ describe('Connection', () => {
       .connect('mydriver/0.0.0', basicAuthToken())
       .then(initializedConnection => {
         expect(initializedConnection).toBe(connection)
-        const serverVersion = ServerVersion.fromString(
-          connection.server.version
-        )
+        const serverVersion = ServerVersion.fromString(connection.version)
         expect(serverVersion).toBeDefined()
         done()
       })
@@ -373,7 +371,7 @@ describe('Connection', () => {
       }
     )
 
-    connection = Connection.create(
+    connection = ChannelConnection.create(
       ServerAddress.fromUrl('bolt://localhost'),
       {},
       errorHandler,
@@ -406,9 +404,7 @@ describe('Connection', () => {
           expect(messages.length).toBeGreaterThan(0)
           expect(messages[0].signature).toEqual(0x01) // first message is either INIT or HELLO
 
-          const serverVersion = ServerVersion.fromString(
-            connection.server.version
-          )
+          const serverVersion = ServerVersion.fromString(connection.version)
           if (serverVersion.compareTo(VERSION_3_5_0) >= 0) {
             expect(messages[messages.length - 1].signature).toEqual(0x02) // last message is GOODBYE in V3
           }
@@ -520,7 +516,7 @@ describe('Connection', () => {
    * @return {Connection}
    */
   function createConnection (url, config, errorCode = null) {
-    return Connection.create(
+    return ChannelConnection.create(
       ServerAddress.fromUrl(url),
       config || {},
       new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE),

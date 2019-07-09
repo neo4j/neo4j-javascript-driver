@@ -27,7 +27,7 @@ import sharedNeo4j from './internal/shared-neo4j'
  * DO NOT add tests to this file that are not for that exact purpose.
  * DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
  */
-describe('examples', () => {
+describe('#integration examples', () => {
   let driverGlobal
   let console
   let originalTimeout

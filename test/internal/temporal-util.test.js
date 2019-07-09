@@ -22,7 +22,7 @@ import * as util from '../../src/internal/temporal-util'
 import { types } from '../../src'
 import testUtils from './test-utils'
 
-describe('temporal-util', () => {
+describe('#unit temporal-util', () => {
   it('should normalize seconds for duration', () => {
     expect(util.normalizeSecondsForDuration(1, 0)).toEqual(int(1))
     expect(util.normalizeSecondsForDuration(3, 0)).toEqual(int(3))

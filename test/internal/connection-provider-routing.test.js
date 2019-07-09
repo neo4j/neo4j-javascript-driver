@@ -22,16 +22,14 @@ import Integer, { int } from '../../src/integer'
 import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
 import RoutingTable from '../../src/internal/routing-table'
 import Pool from '../../src/internal/pool'
-import LeastConnectedLoadBalancingStrategy from '../../src/internal/least-connected-load-balancing-strategy'
 import Logger from '../../src/internal/logger'
 import SimpleHostNameResolver from '../../src/internal/browser/browser-host-name-resolver'
 import ServerAddress from '../../src/internal/server-address'
 import RoutingConnectionProvider from '../../src/internal/connection-provider-routing'
 import { VERSION_IN_DEV } from '../../src/internal/server-version'
+import Connection from '../../src/internal/connection'
 
-const NO_OP_DRIVER_CALLBACK = () => {}
-
-describe('RoutingConnectionProvider', () => {
+describe('#unit RoutingConnectionProvider', () => {
   let originalTimeout
   beforeEach(function () {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
@@ -1225,16 +1223,15 @@ function newRoutingConnectionProviderWithSeedRouter (
   connectionPool = null
 ) {
   const pool = connectionPool || newPool()
-  const loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(pool)
-  const connectionProvider = new RoutingConnectionProvider(
-    seedRouter,
-    {},
-    pool,
-    loadBalancingStrategy,
-    new SimpleHostNameResolver(),
-    NO_OP_DRIVER_CALLBACK,
-    Logger.noOp()
-  )
+  const connectionProvider = new RoutingConnectionProvider({
+    id: 0,
+    address: seedRouter,
+    routingContext: {},
+    hostNameResolver: new SimpleHostNameResolver(),
+    config: {},
+    log: Logger.noOp()
+  })
+  connectionProvider._connectionPool = pool
   connectionProvider._routingTables[database] = new RoutingTable({
     database,
     routers,
@@ -1314,11 +1311,21 @@ function expectPoolToNotContain (pool, addresses) {
   })
 }
 
-class FakeConnection {
+class FakeConnection extends Connection {
   constructor (address, release, version) {
-    this.address = address
+    super(null)
+
+    this._address = address
+    this._version = version || VERSION_IN_DEV.toString()
     this.release = release
-    this.version = () => VERSION_IN_DEV
+  }
+
+  get address () {
+    return this._address
+  }
+
+  get version () {
+    return this._version
   }
 }
 

@@ -22,7 +22,7 @@ import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
 import { newError, SERVICE_UNAVAILABLE } from '../../../src/error'
 
-describe('direct driver with stub server', () => {
+describe('#stub-direct direct driver with stub server', () => {
   let originalTimeout
 
   beforeAll(() => {
@@ -308,7 +308,7 @@ describe('direct driver with stub server', () => {
             expect(records.length).toEqual(1)
             expect(records[0].get(0).toNumber()).toEqual(42)
             session.close(() => {
-              expect(driver._pool._pools['127.0.0.1:9001'].length).toEqual(0)
+              expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
               driver.close()
               server.exit(code => {
                 expect(code).toEqual(0)
@@ -471,10 +471,10 @@ describe('direct driver with stub server', () => {
             expect(records[1].get(0)).toBe('Alice')
             expect(records[2].get(0)).toBe('Tina')
 
-            const connectionKey = Object.keys(driver._openConnections)[0]
+            const connectionKey = Object.keys(openConnections(driver))[0]
             expect(connectionKey).toBeTruthy()
 
-            const connection = driver._openConnections[connectionKey]
+            const connection = openConnections(driver, connectionKey)
             session.close(() => {
               // generate a fake fatal error
               connection._handleFatalError(
@@ -482,12 +482,10 @@ describe('direct driver with stub server', () => {
               )
 
               // expect that the connection to be removed from the pool
-              expect(driver._pool._pools['127.0.0.1:9001'].length).toEqual(0)
-              expect(
-                driver._pool._activeResourceCounts['127.0.0.1:9001']
-              ).toBeFalsy()
+              expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
+              expect(activeResources(driver, '127.0.0.1:9001')).toBeFalsy()
               // expect that the connection to be unregistered from the open connections registry
-              expect(driver._openConnections[connectionKey]).toBeFalsy()
+              expect(openConnections(driver, connectionKey)).toBeFalsy()
               driver.close()
               server.exit(code => {
                 expect(code).toEqual(0)
@@ -562,4 +560,25 @@ describe('direct driver with stub server', () => {
       verifyFailureOnCommit('v3', done)
     })
   })
+
+  function connectionPool (driver, key) {
+    return driver._connectionProvider._connectionPool._pools[key]
+  }
+
+  function openConnections (driver, key) {
+    const connections = driver._connectionProvider._openConnections
+    if (key) {
+      return connections[key]
+    }
+    return connections
+  }
+
+  function activeResources (driver, key) {
+    const resources =
+      driver._connectionProvider._connectionPool._activeResourceCounts
+    if (key) {
+      return resources[key]
+    }
+    return resources
+  }
 })

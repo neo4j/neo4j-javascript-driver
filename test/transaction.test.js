@@ -20,7 +20,7 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion } from '../src/internal/server-version'
 
-describe('transaction', () => {
+describe('#integration transaction', () => {
   let driver
   let session
   // eslint-disable-next-line no-unused-vars

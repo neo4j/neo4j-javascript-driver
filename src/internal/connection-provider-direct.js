@@ -17,21 +17,16 @@
  * limitations under the License.
  */
 
-import ConnectionProvider from './connection-provider'
+import PooledConnectionProvider from './connection-provider-pooled'
 
-export default class DirectConnectionProvider extends ConnectionProvider {
-  constructor (address, connectionPool, driverOnErrorCallback) {
-    super()
+export default class DirectConnectionProvider extends PooledConnectionProvider {
+  constructor ({ id, config, log, address, userAgent, authToken }) {
+    super({ id, config, log, userAgent, authToken })
+
     this._address = address
-    this._connectionPool = connectionPool
-    this._driverOnErrorCallback = driverOnErrorCallback
   }
 
   acquireConnection (accessMode, database) {
-    const connectionPromise = this._connectionPool.acquire(this._address)
-    return this._withAdditionalOnErrorCallback(
-      connectionPromise,
-      this._driverOnErrorCallback
-    )
+    return this._connectionPool.acquire(this._address)
   }
 }

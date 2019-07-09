@@ -26,7 +26,7 @@ import ServerAddress from '../../src/internal/server-address'
 
 const ROUTER_ADDRESS = 'neo4j://test.router.com'
 
-describe('rediscovery', () => {
+describe('#unit Rediscovery', () => {
   it('should return null when connection error happens', done => {
     const util = new FakeRoutingUtil({
       callRoutingProcedure: () => null

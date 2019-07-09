@@ -25,7 +25,7 @@ import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../../../src/internal/util'
 import ServerAddress from '../../../src/internal/server-address'
 
 /* eslint-disable no-global-assign */
-describe('WebSocketChannel', () => {
+describe('#unit WebSocketChannel', () => {
   let OriginalWebSocket
   let webSocketChannel
   let originalConsoleWarn

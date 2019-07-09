@@ -21,7 +21,7 @@ import { int } from '../../src/integer'
 import { READ, WRITE } from '../../src/driver'
 import ServerAddress from '../../src/internal/server-address'
 
-describe('RoutingTable', () => {
+describe('#unit RoutingTable', () => {
   const server1 = ServerAddress.fromUrl('server1')
   const server2 = ServerAddress.fromUrl('server2')
   const server3 = ServerAddress.fromUrl('server3')

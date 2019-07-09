@@ -22,7 +22,7 @@ import FakeConnection from './fake-connection'
 
 const NO_OP = () => {}
 
-describe('StreamObserver', () => {
+describe('#unit StreamObserver', () => {
   it('remembers resolved connection', () => {
     const streamObserver = newStreamObserver()
     const connection = new FakeConnection()

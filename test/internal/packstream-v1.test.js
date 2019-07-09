@@ -21,7 +21,7 @@ import { alloc } from '../../src/internal/node'
 import { Packer, Structure, Unpacker } from '../../src/internal/packstream-v1'
 import { int } from '../../src'
 
-describe('packstream-v1', () => {
+describe('#unit PackStreamV1', () => {
   it('should pack integers', () => {
     let n, i
     // test small numbers

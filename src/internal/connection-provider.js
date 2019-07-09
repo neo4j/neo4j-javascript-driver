@@ -19,16 +19,10 @@
 
 export default class ConnectionProvider {
   acquireConnection (accessMode, database) {
-    throw new Error('Abstract function')
+    throw new Error('not implemented')
   }
 
-  _withAdditionalOnErrorCallback (connectionPromise, driverOnErrorCallback) {
-    // install error handler from the driver on the connection promise; this callback is installed separately
-    // so that it does not handle errors, instead it is just an additional error reporting facility.
-    connectionPromise.catch(error => {
-      driverOnErrorCallback(error)
-    })
-    // return the original connection promise
-    return connectionPromise
+  close () {
+    throw new Error('not implemented')
   }
 }

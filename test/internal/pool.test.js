@@ -22,7 +22,7 @@ import PoolConfig from '../../src/internal/pool-config'
 import ServerAddress from '../../src/internal/server-address'
 import { newError, SERVICE_UNAVAILABLE } from '../../src/error'
 
-describe('Pool', () => {
+describe('#unit Pool', () => {
   it('allocates if pool is empty', done => {
     // Given
     let counter = 0

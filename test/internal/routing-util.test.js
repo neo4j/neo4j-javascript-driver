@@ -32,7 +32,7 @@ import ServerAddress from '../../src/internal/server-address'
 
 const ROUTER_ADDRESS = ServerAddress.fromUrl('test.router.com:4242')
 
-describe('RoutingUtil', () => {
+describe('#unit RoutingUtil', () => {
   let clock
 
   afterEach(() => {

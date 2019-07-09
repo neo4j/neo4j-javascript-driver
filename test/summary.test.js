@@ -20,7 +20,7 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 
-describe('result summary', () => {
+describe('#integration result summary', () => {
   let driver, session
 
   beforeEach(done => {

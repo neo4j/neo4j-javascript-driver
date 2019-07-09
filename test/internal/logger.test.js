@@ -21,7 +21,7 @@ import neo4j from '../../src'
 import sharedNeo4j from '../../test/internal/shared-neo4j'
 import Logger from '../../src/internal/logger'
 
-describe('Logger', () => {
+describe('#unit Logger', () => {
   let originalConsoleLog
 
   beforeEach(() => {
@@ -82,7 +82,9 @@ describe('Logger', () => {
       { level: 'warn', message: 'Warn! Two' }
     ])
   })
+})
 
+describe('#integration Logger', () => {
   it('should log when logger configured in the driver', done => {
     const logged = []
     const config = memorizingLoggerConfig(logged)

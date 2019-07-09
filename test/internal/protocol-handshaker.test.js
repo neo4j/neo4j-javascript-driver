@@ -22,7 +22,7 @@ import Logger from '../../src/internal/logger'
 import BoltProtocol from '../../src/internal/bolt-protocol-v1'
 import { alloc } from '../../src/internal/node'
 
-describe('ProtocolHandshaker', () => {
+describe('#unit ProtocolHandshaker', () => {
   it('should write handshake request', () => {
     const writtenBuffers = []
     const fakeChannel = {

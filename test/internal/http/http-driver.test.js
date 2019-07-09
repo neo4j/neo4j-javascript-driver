@@ -22,11 +22,10 @@ import sharedNeo4j from '../../internal/shared-neo4j'
 import testUtils from '.././test-utils'
 import {
   ServerVersion,
-  VERSION_3_1_0,
   VERSION_3_4_0
 } from '../../../src/internal/server-version'
 
-describe('http driver', () => {
+describe('#integration http driver', () => {
   let originalTimeout
   let boltDriver
   let httpDriver
@@ -298,10 +297,7 @@ describe('http driver', () => {
   })
 
   it('should terminate query waiting on a lock when session is closed', async () => {
-    if (
-      testUtils.isServer() ||
-      !databaseSupportsTransactionTerminationInLocks()
-    ) {
+    if (testUtils.isServer()) {
       return
     }
 
@@ -698,10 +694,6 @@ describe('http driver', () => {
     if (!failed) {
       throw new Error('Should not be possible to send ' + value)
     }
-  }
-
-  function databaseSupportsTransactionTerminationInLocks () {
-    return serverVersion.compareTo(VERSION_3_1_0) >= 0
   }
 
   function databaseSupportsSpatialAndTemporalTypes () {

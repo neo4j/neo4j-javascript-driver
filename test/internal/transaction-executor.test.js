@@ -30,7 +30,7 @@ const LOCKS_TERMINATED_ERROR =
   'Neo.TransientError.Transaction.LockClientStopped'
 const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError'
 
-describe('TransactionExecutor', () => {
+describe('#unit TransactionExecutor', () => {
   let clock
   let fakeSetTimeout
 

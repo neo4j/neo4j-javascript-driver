@@ -19,7 +19,7 @@
 import TxConfig from '../../src/internal/tx-config'
 import { int } from '../../src'
 
-describe('TxConfig', () => {
+describe('#unit TxConfig', () => {
   it('should be possible to construct from null', () => {
     testEmptyConfigCreation(null)
   })

@@ -18,7 +18,7 @@
  */
 import RoundRobinArrayIndex from '../../src/internal/round-robin-array-index'
 
-describe('RoundRobinArrayIndex', () => {
+describe('#unit RoundRobinArrayIndex', () => {
   it('should return -1 for empty array', () => {
     const arrayLength = 0
     const index = new RoundRobinArrayIndex()

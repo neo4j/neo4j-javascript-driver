@@ -21,7 +21,7 @@ import neo4j from '../../../src'
 import path from 'path'
 import sharedNeo4j from '../shared-neo4j'
 
-describe('trust-all-certificates', () => {
+describe(' #integration trust-all-certificates', () => {
   let driver
 
   afterEach(() => {
@@ -48,7 +48,7 @@ describe('trust-all-certificates', () => {
   })
 })
 
-describe('trust-custom-ca-signed-certificates', () => {
+describe('#integration trust-custom-ca-signed-certificates', () => {
   let driver
 
   afterEach(() => {
@@ -91,7 +91,7 @@ describe('trust-custom-ca-signed-certificates', () => {
   })
 })
 
-describe('trust-system-ca-signed-certificates', () => {
+describe('#integration trust-system-ca-signed-certificates', () => {
   let driver
 
   afterEach(() => {

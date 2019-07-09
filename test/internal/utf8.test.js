@@ -20,7 +20,7 @@
 import CombinedBuffer from '../../src/internal/buf/combined-buf'
 import { alloc, utf8 } from '../../src/internal/node'
 
-describe('utf8', () => {
+describe('#unit UTF8Encoding', () => {
   it('should have a nice clean buffer position after serializing', () => {
     // When
     const buffer = utf8.encode('hello, world!')

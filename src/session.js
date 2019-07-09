@@ -84,7 +84,7 @@ class Session {
 
   /**
    * Run Cypher statement
-   * Could be called with a statement object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
+   * Could be called with a statement object i.e.: `{text: "MATCH ...", prameters: {param: 1}}`
    * or with the statement and parameters as separate arguments.
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement

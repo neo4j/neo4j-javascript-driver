@@ -24,9 +24,12 @@ import RoutingTable from './routing-table'
 import Rediscovery from './rediscovery'
 import RoutingUtil from './routing-util'
 import { HostNameResolver } from './node'
-import ConnectionProvider from './connection-provider'
 import SingleConnectionProvider from './connection-provider-single'
-import { VERSION_4_0_0 } from './server-version'
+import { ServerVersion, VERSION_4_0_0 } from './server-version'
+import PooledConnectionProvider from './connection-provider-pooled'
+import ConnectionErrorHandler from './connection-error-handler'
+import DelegateConnection from './connection-delegate'
+import LeastConnectedLoadBalancingStrategy from './least-connected-load-balancing-strategy'
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 const DATABASE_NOT_FOUND_ERROR_CODE =
@@ -34,76 +37,138 @@ const DATABASE_NOT_FOUND_ERROR_CODE =
 const SYSTEM_DB_NAME = 'system'
 const DEFAULT_DB_NAME = ''
 
-export default class RoutingConnectionProvider extends ConnectionProvider {
-  constructor (
+export default class RoutingConnectionProvider extends PooledConnectionProvider {
+  constructor ({
+    id,
     address,
     routingContext,
-    connectionPool,
-    loadBalancingStrategy,
     hostNameResolver,
-    driverOnErrorCallback,
-    log
-  ) {
-    super()
+    config,
+    log,
+    userAgent,
+    authToken
+  }) {
+    super({ id, config, log, userAgent, authToken })
+
     this._seedRouter = address
     this._routingTables = {}
     this._rediscovery = new Rediscovery(new RoutingUtil(routingContext))
-    this._connectionPool = connectionPool
-    this._driverOnErrorCallback = driverOnErrorCallback
-    this._loadBalancingStrategy = loadBalancingStrategy
+    this._loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(
+      this._connectionPool
+    )
     this._hostNameResolver = hostNameResolver
     this._dnsResolver = new HostNameResolver()
     this._log = log
     this._useSeedRouter = true
   }
 
-  acquireConnection (accessMode, database) {
-    const connectionPromise = this._freshRoutingTable(
-      accessMode,
-      database || DEFAULT_DB_NAME
-    ).then(routingTable => {
-      if (accessMode === READ) {
-        const address = this._loadBalancingStrategy.selectReader(
-          routingTable.readers
-        )
-        return this._acquireConnectionToServer(address, 'read', routingTable)
-      } else if (accessMode === WRITE) {
-        const address = this._loadBalancingStrategy.selectWriter(
-          routingTable.writers
-        )
-        return this._acquireConnectionToServer(address, 'write', routingTable)
-      } else {
-        throw newError('Illegal mode ' + accessMode)
-      }
-    })
-    return this._withAdditionalOnErrorCallback(
-      connectionPromise,
-      this._driverOnErrorCallback
+  _createConnectionErrorHandler () {
+    // connection errors mean SERVICE_UNAVAILABLE for direct driver but for routing driver they should only
+    // result in SESSION_EXPIRED because there might still exist other servers capable of serving the request
+    return new ConnectionErrorHandler(SESSION_EXPIRED)
+  }
+
+  _handleUnavailability (error, address, database) {
+    this._log.warn(
+      `Routing driver ${
+        this._id
+      } will forget ${address} for database '${database}' because of an error ${
+        error.code
+      } '${error.message}'`
+    )
+    this.forget(address, database || '')
+    return error
+  }
+
+  _handleWriteFailure (error, address, database) {
+    this._log.warn(
+      `Routing driver ${
+        this._id
+      } will forget writer ${address} for database '${database}' because of an error ${
+        error.code
+      } '${error.message}'`
+    )
+    this.forgetWriter(address, database || '')
+    return newError(
+      'No longer possible to write to server at ' + address,
+      SESSION_EXPIRED
     )
   }
 
-  forget (address) {
-    Object.values(this._routingTables).forEach(routingTable =>
-      routingTable.forget(address)
+  acquireConnection (accessMode, database) {
+    const databaseSpecificErrorHandler = new ConnectionErrorHandler(
+      SESSION_EXPIRED,
+      (error, address) => this._handleUnavailability(error, address, database),
+      (error, address) => this._handleWriteFailure(error, address, database)
     )
+
+    return this._freshRoutingTable(accessMode, database || DEFAULT_DB_NAME)
+      .then(routingTable => {
+        let name
+        let address
+
+        if (accessMode === READ) {
+          address = this._loadBalancingStrategy.selectReader(
+            routingTable.readers
+          )
+          name = 'read'
+        } else if (accessMode === WRITE) {
+          address = this._loadBalancingStrategy.selectWriter(
+            routingTable.writers
+          )
+          name = 'write'
+        } else {
+          throw newError('Illegal mode ' + accessMode)
+        }
+
+        if (!address) {
+          throw newError(
+            `Failed to obtain connection towards ${name} server. Known routing table is: ${routingTable}`,
+            SESSION_EXPIRED
+          )
+        }
+
+        return this._acquireConnectionToServer(
+          address,
+          name,
+          routingTable
+        ).catch(error => {
+          const transformed = databaseSpecificErrorHandler.handleAndTransformError(
+            error,
+            address
+          )
+          throw transformed
+        })
+      })
+      .then(
+        connection =>
+          new DelegateConnection(connection, databaseSpecificErrorHandler)
+      )
+  }
+
+  forget (address, database) {
+    if (database || database === '') {
+      this._routingTables[database].forget(address)
+    } else {
+      Object.values(this._routingTables).forEach(routingTable =>
+        routingTable.forget(address)
+      )
+    }
+
     this._connectionPool.purge(address)
   }
 
-  forgetWriter (address) {
-    Object.values(this._routingTables).forEach(routingTable =>
-      routingTable.forgetWriter(address)
-    )
+  forgetWriter (address, database) {
+    if (database || database === '') {
+      this._routingTables[database].forgetWriter(address)
+    } else {
+      Object.values(this._routingTables).forEach(routingTable =>
+        routingTable.forgetWriter(address)
+      )
+    }
   }
 
   _acquireConnectionToServer (address, serverName, routingTable) {
-    if (!address) {
-      return Promise.reject(
-        newError(
-          `Failed to obtain connection towards ${serverName} server. Known routing table is: ${routingTable}`,
-          SESSION_EXPIRED
-        )
-      )
-    }
     return this._connectionPool.acquire(address)
   }
 
@@ -294,7 +359,8 @@ export default class RoutingConnectionProvider extends ConnectionProvider {
       .then(connection => {
         const connectionProvider = new SingleConnectionProvider(connection)
 
-        if (connection.version().compareTo(VERSION_4_0_0) < 0) {
+        const version = ServerVersion.fromString(connection.version)
+        if (version.compareTo(VERSION_4_0_0) < 0) {
           return new Session({ mode: WRITE, connectionProvider })
         }
 

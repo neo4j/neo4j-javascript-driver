@@ -21,7 +21,7 @@ import ConnectivityVerifier from '../../src/internal/connectivity-verifier'
 import SingleConnectionProvider from '../../src/internal/connection-provider-single'
 import FakeConnection from './fake-connection'
 
-describe('ConnectivityVerifier', () => {
+describe('#unit ConnectivityVerifier', () => {
   it('should call success callback when able to acquire and release a connection', done => {
     const connectionPromise = Promise.resolve(new FakeConnection())
     const connectionProvider = new SingleConnectionProvider(connectionPromise)

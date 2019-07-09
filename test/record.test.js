@@ -20,7 +20,7 @@
 import Record from '../src/record'
 import { Neo4jError } from '../src/error'
 
-describe('Record', () => {
+describe('#unit Record', () => {
   it('should allow getting fields by name', () => {
     // Given
     const record = new Record(['name'], ['Bob'])

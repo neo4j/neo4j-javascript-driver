@@ -20,7 +20,7 @@
 import NodeHostNameResolver from '../../../src/internal/node/node-host-name-resolver'
 import ServerAddress from '../../../src/internal/server-address'
 
-describe('NodeHostNameResolver', () => {
+describe('#unit NodeHostNameResolver', () => {
   let originalTimeout
 
   beforeEach(() => {

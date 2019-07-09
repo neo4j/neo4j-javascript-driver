@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { ServerVersion } from '../../src/internal/server-version'
+import Connection from '../../src/internal/connection'
 
 /**
  * This class is like a mock of {@link Connection} that tracks invocations count.
@@ -26,20 +26,44 @@ import { ServerVersion } from '../../src/internal/server-version'
  * At the time of writing such libraries require {@link Proxy} support but browser tests execute in
  * PhantomJS which does not support proxies.
  */
-export default class FakeConnection {
+export default class FakeConnection extends Connection {
   constructor () {
+    super(null)
+
     this._open = true
+    this._id = 0
+    this._databaseId = null
     this.creationTimestamp = Date.now()
 
     this.resetInvoked = 0
     this.releaseInvoked = 0
     this.seenStatements = []
     this.seenParameters = []
-    this.server = {}
+    this._server = {}
   }
 
-  version () {
-    return ServerVersion.fromString(this.server.version)
+  get id () {
+    return this._id
+  }
+
+  get databaseId () {
+    return this._databaseId
+  }
+
+  set databaseId (value) {
+    this._databaseId = value
+  }
+
+  get server () {
+    return this._server
+  }
+
+  get version () {
+    return this._server.version
+  }
+
+  set version (value) {
+    this._server.version = value
   }
 
   protocol () {
@@ -78,7 +102,7 @@ export default class FakeConnection {
   }
 
   withServerVersion (version) {
-    this.server.version = version
+    this.version = version
     return this
   }
 

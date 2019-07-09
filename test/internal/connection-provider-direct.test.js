@@ -21,10 +21,10 @@ import { READ } from '../../src/driver'
 import DirectConnectionProvider from '../../src/internal/connection-provider-direct'
 import Pool from '../../src/internal/pool'
 import ServerAddress from '../../src/internal/server-address'
+import Connection from '../../src/internal/connection'
+import Logger from '../../src/internal/logger'
 
-const NO_OP_DRIVER_CALLBACK = () => {}
-
-describe('DirectConnectionProvider', () => {
+describe('#unit DirectConnectionProvider', () => {
   it('acquires connection from the pool', done => {
     const address = ServerAddress.fromUrl('localhost:123')
     const pool = newPool()
@@ -42,7 +42,14 @@ describe('DirectConnectionProvider', () => {
 })
 
 function newDirectConnectionProvider (address, pool) {
-  return new DirectConnectionProvider(address, pool, NO_OP_DRIVER_CALLBACK)
+  const connectionProvider = new DirectConnectionProvider({
+    id: 0,
+    config: {},
+    logger: Logger.noOp(),
+    address: address
+  })
+  connectionProvider._connectionPool = pool
+  return connectionProvider
 }
 
 function newPool () {
@@ -52,9 +59,15 @@ function newPool () {
   })
 }
 
-class FakeConnection {
+class FakeConnection extends Connection {
   constructor (address, release) {
-    this.address = address
+    super(null)
+
+    this._address = address
     this.release = release
+  }
+
+  get address () {
+    return this._address
   }
 }

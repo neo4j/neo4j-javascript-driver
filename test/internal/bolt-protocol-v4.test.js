@@ -24,7 +24,7 @@ import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
 
-describe('BoltProtocolV4', () => {
+describe('#unit BoltProtocolV4', () => {
   beforeEach(() => {
     jasmine.addMatchers(utils.matchers)
   })

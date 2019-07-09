@@ -31,7 +31,7 @@ import testUtils from './internal/test-utils'
 import { newError, PROTOCOL_ERROR, SESSION_EXPIRED } from '../src/error'
 import ServerAddress from '../src/internal/server-address'
 
-describe('session', () => {
+describe('#integration session', () => {
   let driver
   let session
   // eslint-disable-next-line no-unused-vars

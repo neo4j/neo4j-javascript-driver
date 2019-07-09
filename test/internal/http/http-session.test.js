@@ -22,7 +22,7 @@ import testUtil from '../test-utils'
 import HttpSession from '../../../src/internal/http/http-session'
 import HttpSessionTracker from '../../../src/internal/http/http-session-tracker'
 
-describe('http session', () => {
+describe('#unit http session', () => {
   it('should fail for invalid query parameters', done => {
     if (testUtil.isServer()) {
       done()

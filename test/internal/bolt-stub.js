@@ -36,7 +36,8 @@ class UnsupportedBoltStub {
   }
 }
 
-const verbose = false // for debugging purposes
+const verbose =
+  (process.env['NEOLOGLEVEL'] || 'error').toLowerCase() === 'debug' // for debugging purposes
 
 class SupportedBoltStub extends UnsupportedBoltStub {
   constructor () {
