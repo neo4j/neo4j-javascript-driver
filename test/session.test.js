@@ -1274,7 +1274,7 @@ describe('#integration session', () => {
   }
 
   function numberOfAcquiredConnectionsFromPool () {
-    const pool = driver._pool
+    const pool = driver._connectionProvider._connectionPool
     return pool.activeResourceCount(ServerAddress.fromUrl('localhost:7687'))
   }
 

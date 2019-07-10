@@ -75,8 +75,6 @@ declare interface Driver {
   close(): void
 
   verifyConnectivity(): Promise<ServerInfo>
-
-  onError?: (error: Neo4jError) => void
 }
 
 export {

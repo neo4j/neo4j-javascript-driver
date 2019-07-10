@@ -271,21 +271,27 @@ describe('#integration examples', () => {
     // tag::driver-lifecycle[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
 
-    driver.verifyConnectivity().then(() => {
-      console.log('Driver created')
-    })
-
-    driver.onError = error => {
-      console.log(error)
-    }
+    driver
+      .verifyConnectivity()
+      .then(() => {
+        console.log('Driver created')
+      })
+      .catch(error => {
+        console.log(`connectivity verification failed. ${error}`)
+      })
 
     const session = driver.session()
-    session.run('CREATE (i:Item)').then(() => {
-      session.close()
+    session
+      .run('CREATE (i:Item)')
+      .then(() => {
+        session.close()
 
-      // ... on application exit:
-      driver.close()
-    })
+        // ... on application exit:
+        driver.close()
+      })
+      .catch(error => {
+        console.log(`unable to execute statement. ${error}`)
+      })
     // end::driver-lifecycle[]
 
     testResultPromise.then(loggedMsg => {
