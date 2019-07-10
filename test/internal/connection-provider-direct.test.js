@@ -23,6 +23,7 @@ import Pool from '../../src/internal/pool'
 import ServerAddress from '../../src/internal/server-address'
 import Connection from '../../src/internal/connection'
 import Logger from '../../src/internal/logger'
+import DelegateConnection from '../../src/internal/connection-delegate'
 
 describe('#unit DirectConnectionProvider', () => {
   it('acquires connection from the pool', done => {
@@ -30,14 +31,22 @@ describe('#unit DirectConnectionProvider', () => {
     const pool = newPool()
     const connectionProvider = newDirectConnectionProvider(address, pool)
 
-    connectionProvider.acquireConnection(READ).then(connection => {
+    connectionProvider.acquireConnection(READ, '').then(connection => {
       expect(connection).toBeDefined()
       expect(connection.address).toEqual(address)
-      expect(connection.release).toBeDefined()
       expect(pool.has(address)).toBeTruthy()
 
       done()
     })
+  })
+
+  it('acquires connection and returns a DelegateConnection', async () => {
+    const address = ServerAddress.fromUrl('localhost:123')
+    const pool = newPool()
+    const connectionProvider = newDirectConnectionProvider(address, pool)
+
+    const conn = await connectionProvider.acquireConnection(READ, '')
+    expect(conn instanceof DelegateConnection).toBeTruthy()
   })
 })
 

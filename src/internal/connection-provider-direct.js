@@ -18,6 +18,7 @@
  */
 
 import PooledConnectionProvider from './connection-provider-pooled'
+import DelegateConnection from './connection-delegate'
 
 export default class DirectConnectionProvider extends PooledConnectionProvider {
   constructor ({ id, config, log, address, userAgent, authToken }) {
@@ -27,6 +28,8 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
   }
 
   acquireConnection (accessMode, database) {
-    return this._connectionPool.acquire(this._address)
+    return this._connectionPool
+      .acquire(this._address)
+      .then(connection => new DelegateConnection(connection, null))
   }
 }

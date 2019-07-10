@@ -27,8 +27,10 @@ export default class DelegateConnection extends Connection {
   constructor (delegate, errorHandler) {
     super(errorHandler)
 
-    this._originalErrorHandler = delegate._errorHandler
-    delegate._errorHandler = this._errorHandler
+    if (errorHandler) {
+      this._originalErrorHandler = delegate._errorHandler
+      delegate._errorHandler = this._errorHandler
+    }
 
     this._delegate = delegate
   }
@@ -45,12 +47,8 @@ export default class DelegateConnection extends Connection {
     this._delegate.databaseId = value
   }
 
-  isOpen () {
-    return this._delegate.isOpen()
-  }
-
-  protocol () {
-    return this._delegate.protocol()
+  get server () {
+    return this._delegate.server
   }
 
   get address () {
@@ -65,8 +63,12 @@ export default class DelegateConnection extends Connection {
     this._delegate.version = value
   }
 
-  get server () {
-    return this._delegate.server
+  isOpen () {
+    return this._delegate.isOpen()
+  }
+
+  protocol () {
+    return this._delegate.protocol()
   }
 
   connect (userAgent, authToken) {
@@ -86,7 +88,10 @@ export default class DelegateConnection extends Connection {
   }
 
   _release () {
-    this._delegate._errorHandler = this._originalErrorHandler
+    if (this._originalErrorHandler) {
+      this._delegate._errorHandler = this._originalErrorHandler
+    }
+
     this._delegate._release()
   }
 }

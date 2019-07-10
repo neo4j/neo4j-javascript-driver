@@ -28,6 +28,7 @@ import ServerAddress from '../../src/internal/server-address'
 import RoutingConnectionProvider from '../../src/internal/connection-provider-routing'
 import { VERSION_IN_DEV } from '../../src/internal/server-version'
 import Connection from '../../src/internal/connection'
+import DelegateConnection from '../../src/internal/connection-delegate'
 
 describe('#unit RoutingConnectionProvider', () => {
   let originalTimeout
@@ -167,6 +168,23 @@ describe('#unit RoutingConnectionProvider', () => {
       [server3, server4],
       [server5, server6]
     )
+  })
+
+  it('acquires connection and returns a DelegateConnection', async () => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      '',
+      [server1, server2],
+      [server3, server4],
+      [server5, server6],
+      pool
+    )
+
+    const conn1 = await connectionProvider.acquireConnection(READ, '')
+    expect(conn1 instanceof DelegateConnection).toBeTruthy()
+
+    const conn2 = await connectionProvider.acquireConnection(WRITE, '')
+    expect(conn2 instanceof DelegateConnection).toBeTruthy()
   })
 
   it('acquires read connection with up-to-date routing table', done => {
