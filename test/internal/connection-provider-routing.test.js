@@ -31,7 +31,7 @@ import Connection from '../../src/internal/connection'
 import DelegateConnection from '../../src/internal/connection-delegate'
 import { Neo4jError } from '../../src'
 
-fdescribe('#unit RoutingConnectionProvider', () => {
+describe('#unit RoutingConnectionProvider', () => {
   let originalTimeout
   beforeEach(function () {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
@@ -1388,7 +1388,7 @@ fdescribe('#unit RoutingConnectionProvider', () => {
     })
   })
 
-  fdescribe('multi-database', () => {
+  describe('multi-database', () => {
     it('should acquire read connection from correct routing table', async () => {
       const pool = newPool()
       const connectionProvider = newRoutingConnectionProvider(
