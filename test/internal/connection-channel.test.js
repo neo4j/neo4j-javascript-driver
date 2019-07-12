@@ -41,15 +41,9 @@ const FAILURE_MESSAGE = { signature: 0x7f, fields: [newError('Hello')] }
 const RECORD_MESSAGE = { signature: 0x71, fields: [{ value: 'Hello' }] }
 
 describe('#integration ChannelConnection', () => {
-  let clock
   let connection
 
   afterEach(done => {
-    if (clock) {
-      clock.uninstall()
-      clock = null
-    }
-
     const usedConnection = connection
     connection = null
     if (usedConnection) {
@@ -59,12 +53,16 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should have correct creation timestamp', () => {
-    clock = lolex.install()
-    clock.setSystemTime(424242)
+    const clock = lolex.install()
+    try {
+      clock.setSystemTime(424242)
 
-    connection = createConnection('bolt://localhost')
+      connection = createConnection('bolt://localhost')
 
-    expect(connection.creationTimestamp).toEqual(424242)
+      expect(connection.creationTimestamp).toEqual(424242)
+    } finally {
+      clock.uninstall()
+    }
   })
 
   it('should read/write basic messages', done => {
@@ -231,12 +229,12 @@ describe('#integration ChannelConnection', () => {
       })
   })
 
-  it('should respect connection timeout', done => {
-    testConnectionTimeout(false, done)
+  it('should respect connection timeout', async () => {
+    await testConnectionTimeout(false)
   })
 
-  it('should respect encrypted connection timeout', done => {
-    testConnectionTimeout(true, done)
+  it('should respect encrypted connection timeout', async () => {
+    await testConnectionTimeout(true)
   })
 
   it('should not queue INIT observer when broken', done => {
@@ -471,30 +469,38 @@ describe('#integration ChannelConnection', () => {
     }
   }
 
-  function testConnectionTimeout (encrypted, done) {
-    const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
-    connection = createConnection(
-      boltUri,
-      { encrypted: encrypted, connectionTimeout: 1000 },
-      'TestErrorCode'
-    )
+  async function testConnectionTimeout (encrypted) {
+    const clock = jasmine.clock()
+    clock.install()
 
-    connection
-      .connect('mydriver/0.0.0', basicAuthToken())
-      .then(() => done.fail('Should not be able to connect'))
-      .catch(error => {
-        expect(error.code).toEqual('TestErrorCode')
+    try {
+      const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
+      connection = createConnection(
+        boltUri,
+        { encrypted: encrypted, connectionTimeout: 1000 },
+        'TestErrorCode'
+      )
 
-        // in some environments non-routable address results in immediate 'connection refused' error and connect
-        // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
-        if (error.message.indexOf('Failed to establish connection') === 0) {
-          expect(error.message).toEqual(
-            'Failed to establish connection in 1000ms'
-          )
-        }
+      clock.tick(1001)
 
-        done()
-      })
+      await connection.connect('mydriver/0.0.0', basicAuthToken())
+    } catch (error) {
+      expect(error.code).toEqual('TestErrorCode')
+
+      // in some environments non-routable address results in immediate 'connection refused' error and connect
+      // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
+      if (error.message.indexOf('Failed to establish connection') === 0) {
+        expect(error.message).toEqual(
+          'Failed to establish connection in 1000ms'
+        )
+      }
+
+      return
+    } finally {
+      clock.uninstall()
+    }
+
+    expect(false).toBeTruthy('exception expected')
   }
 
   function testQueueingOfObserversWithBrokenConnection (connectionAction, done) {

@@ -28,7 +28,6 @@ import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
 
 describe('#integration driver', () => {
-  let clock
   let driver
   let serverVersion
 
@@ -42,10 +41,6 @@ describe('#integration driver', () => {
   })
 
   afterEach(() => {
-    if (clock) {
-      clock.uninstall()
-      clock = null
-    }
     if (driver) {
       driver.close()
       driver = null
@@ -295,38 +290,38 @@ describe('#integration driver', () => {
     })
   })
 
-  it('should discard old connections', done => {
+  it('should discard old connections', async () => {
     const maxLifetime = 100000
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
       maxConnectionLifetime: maxLifetime
     })
 
     const session1 = driver.session()
-    session1.run('CREATE () RETURN 42').then(() => {
-      session1.close()
+    await session1.run('CREATE () RETURN 42')
+    session1.close()
 
-      // one connection should be established
-      const connections1 = openConnectionFrom(driver)
-      expect(connections1.length).toEqual(1)
+    // one connection should be established
+    const connections1 = openConnectionFrom(driver)
+    expect(connections1.length).toEqual(1)
 
-      // make existing connection look very old by advancing the `Date.now()` value
-      const currentTime = Date.now()
-      clock = lolex.install()
+    // make existing connection look very old by advancing the `Date.now()` value
+    const currentTime = Date.now()
+    const clock = lolex.install()
+    try {
       clock.setSystemTime(currentTime + maxLifetime * 2)
 
       const session2 = driver.session()
-      session2.run('RETURN 1').then(() => {
-        session2.close()
+      await session2.run('RETURN 1')
+      session2.close()
 
-        // old connection should be disposed and new one should be created
-        const connections2 = openConnectionFrom(driver)
-        expect(connections2.length).toEqual(1)
+      // old connection should be disposed and new one should be created
+      const connections2 = openConnectionFrom(driver)
+      expect(connections2.length).toEqual(1)
 
-        expect(connections1[0]).not.toEqual(connections2[0])
-
-        done()
-      })
-    })
+      expect(connections1[0]).not.toEqual(connections2[0])
+    } finally {
+      clock.uninstall()
+    }
   })
 
   const exposedTypes = [

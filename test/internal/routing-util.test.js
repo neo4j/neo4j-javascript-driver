@@ -33,15 +33,6 @@ import ServerAddress from '../../src/internal/server-address'
 const ROUTER_ADDRESS = ServerAddress.fromUrl('test.router.com:4242')
 
 describe('#unit RoutingUtil', () => {
-  let clock
-
-  afterEach(() => {
-    if (clock) {
-      clock.uninstall()
-      clock = null
-    }
-  })
-
   it('should return retrieved records when query succeeds', done => {
     const session = FakeSession.successful({ records: ['foo', 'bar', 'baz'] })
 
@@ -179,35 +170,46 @@ describe('#unit RoutingUtil', () => {
   })
 
   it('should parse valid ttl', () => {
-    clock = lolex.install()
-
-    testValidTtlParsing(100, 5)
-    testValidTtlParsing(Date.now(), 3600) // 1 hour
-    testValidTtlParsing(Date.now(), 86400) // 24 hours
-    testValidTtlParsing(Date.now(), 3628800) // 42 days
-    testValidTtlParsing(0, 1)
-    testValidTtlParsing(50, 0)
-    testValidTtlParsing(Date.now(), 0)
+    const clock = lolex.install()
+    try {
+      testValidTtlParsing(clock, 100, 5)
+      testValidTtlParsing(clock, Date.now(), 3600) // 1 hour
+      testValidTtlParsing(clock, Date.now(), 86400) // 24 hours
+      testValidTtlParsing(clock, Date.now(), 3628800) // 42 days
+      testValidTtlParsing(clock, 0, 1)
+      testValidTtlParsing(clock, 50, 0)
+      testValidTtlParsing(clock, Date.now(), 0)
+    } finally {
+      clock.uninstall()
+    }
   })
 
   it('should not overflow parsing huge ttl', () => {
     const record = newRecord({ ttl: Integer.MAX_VALUE })
-    clock = lolex.install()
-    clock.setSystemTime(42)
+    const clock = lolex.install()
+    try {
+      clock.setSystemTime(42)
 
-    const expirationTime = parseTtl(record)
+      const expirationTime = parseTtl(record)
 
-    expect(expirationTime).toBe(Integer.MAX_VALUE)
+      expect(expirationTime).toBe(Integer.MAX_VALUE)
+    } finally {
+      clock.uninstall()
+    }
   })
 
   it('should return valid value parsing negative ttl', () => {
     const record = newRecord({ ttl: int(-42) })
-    clock = lolex.install()
-    clock.setSystemTime(42)
+    const clock = lolex.install()
+    try {
+      clock.setSystemTime(42)
 
-    const expirationTime = parseTtl(record)
+      const expirationTime = parseTtl(record)
 
-    expect(expirationTime).toBe(Integer.MAX_VALUE)
+      expect(expirationTime).toBe(Integer.MAX_VALUE)
+    } finally {
+      clock.uninstall()
+    }
   })
 
   it('should throw when record does not have a ttl entry', done => {
@@ -323,7 +325,7 @@ describe('#unit RoutingUtil', () => {
     })
   }
 
-  function testValidTtlParsing (currentTime, ttlSeconds) {
+  function testValidTtlParsing (clock, currentTime, ttlSeconds) {
     clock.setSystemTime(currentTime)
     const expectedExpirationTime = currentTime + ttlSeconds * 1000
 

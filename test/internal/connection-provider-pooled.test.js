@@ -21,15 +21,6 @@ import FakeConnection from './fake-connection'
 import lolex from 'lolex'
 
 describe('#unit PooledConnectionProvider', () => {
-  let clock
-
-  beforeEach(() => {
-    if (clock) {
-      clock.uninstall()
-      clock = null
-    }
-  })
-
   it('should treat closed connections as invalid', () => {
     const provider = new PooledConnectionProvider({
       id: 0,
@@ -52,11 +43,15 @@ describe('#unit PooledConnectionProvider', () => {
     })
 
     const connection = new FakeConnection().withCreationTimestamp(12)
-    clock = lolex.install()
-    clock.setSystemTime(20)
-    const connectionValid = provider._validateConnection(connection)
+    const clock = lolex.install()
+    try {
+      clock.setSystemTime(20)
+      const connectionValid = provider._validateConnection(connection)
 
-    expect(connectionValid).toBeTruthy()
+      expect(connectionValid).toBeTruthy()
+    } finally {
+      clock.uninstall()
+    }
   })
 
   it('should treat old open connections as invalid', () => {
@@ -68,10 +63,14 @@ describe('#unit PooledConnectionProvider', () => {
     })
 
     const connection = new FakeConnection().withCreationTimestamp(5)
-    clock = lolex.install()
-    clock.setSystemTime(20)
-    const connectionValid = provider._validateConnection(connection)
+    const clock = lolex.install()
+    try {
+      clock.setSystemTime(20)
+      const connectionValid = provider._validateConnection(connection)
 
-    expect(connectionValid).toBeFalsy()
+      expect(connectionValid).toBeFalsy()
+    } finally {
+      clock.uninstall()
+    }
   })
 })

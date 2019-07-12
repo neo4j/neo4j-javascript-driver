@@ -27,7 +27,6 @@ import ServerAddress from '../../../src/internal/server-address'
 
 describe('#stub-routing routing driver with stub server', () => {
   let originalTimeout
-  let clock
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
@@ -1586,18 +1585,19 @@ describe('#stub-routing routing driver with stub server', () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
 
+      let clock
       let invocations = 0
       const resultPromise = session.readTransaction(tx => {
         invocations++
         if (invocations === 2) {
           // make retries stop after two invocations
-          moveTime30SecondsForward()
+          clock = moveTime30SecondsForward()
         }
         return tx.run('MATCH (n) RETURN n.name')
       })
 
       resultPromise.catch(error => {
-        removeTimeMocking() // uninstall lolex mocking to make test complete, boltkit uses timers
+        removeTimeMocking(clock) // uninstall lolex mocking to make test complete, boltkit uses timers
 
         expect(error.code).toEqual(SESSION_EXPIRED)
         expect(invocations).toEqual(2)
@@ -1642,18 +1642,19 @@ describe('#stub-routing routing driver with stub server', () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
 
+      let clock = null
       let invocations = 0
       const resultPromise = session.writeTransaction(tx => {
         invocations++
         if (invocations === 2) {
           // make retries stop after two invocations
-          moveTime30SecondsForward()
+          clock = moveTime30SecondsForward()
         }
         return tx.run("CREATE (n {name:'Bob'})")
       })
 
       resultPromise.catch(error => {
-        removeTimeMocking() // uninstall lolex mocking to make test complete, boltStub uses timers
+        removeTimeMocking(clock) // uninstall lolex mocking to make test complete, boltStub uses timers
 
         expect(error.code).toEqual(SESSION_EXPIRED)
         expect(invocations).toEqual(2)
@@ -2939,14 +2940,14 @@ describe('#stub-routing routing driver with stub server', () => {
 
   function moveTime30SecondsForward () {
     const currentTime = Date.now()
-    clock = lolex.install()
+    const clock = lolex.install()
     clock.setSystemTime(currentTime + 30 * 1000 + 1)
+    return clock
   }
 
-  function removeTimeMocking () {
+  function removeTimeMocking (clock) {
     if (clock) {
       clock.uninstall()
-      clock = null
     }
   }
 
