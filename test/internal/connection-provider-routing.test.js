@@ -19,7 +19,7 @@
 
 import { READ, WRITE } from '../../src/driver'
 import Integer, { int } from '../../src/integer'
-import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
+import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
 import RoutingTable from '../../src/internal/routing-table'
 import Pool from '../../src/internal/pool'
 import Logger from '../../src/internal/logger'
@@ -29,8 +29,9 @@ import RoutingConnectionProvider from '../../src/internal/connection-provider-ro
 import { VERSION_IN_DEV } from '../../src/internal/server-version'
 import Connection from '../../src/internal/connection'
 import DelegateConnection from '../../src/internal/connection-delegate'
+import { Neo4jError } from '../../src'
 
-describe('#unit RoutingConnectionProvider', () => {
+fdescribe('#unit RoutingConnectionProvider', () => {
   let originalTimeout
   beforeEach(function () {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
@@ -72,12 +73,14 @@ describe('#unit RoutingConnectionProvider', () => {
   const serverABC = ServerAddress.fromUrl('serverABC')
 
   it('can forget address', () => {
-    const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server2],
-      [server2, server4]
-    )
+    const connectionProvider = newRoutingConnectionProvider([
+      newRoutingTable(
+        '',
+        [server1, server2],
+        [server3, server2],
+        [server2, server4]
+      )
+    ])
 
     connectionProvider.forget(server2)
 
@@ -91,12 +94,14 @@ describe('#unit RoutingConnectionProvider', () => {
   })
 
   it('can not forget unknown address', () => {
-    const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6]
-    )
+    const connectionProvider = newRoutingConnectionProvider([
+      newRoutingTable(
+        '',
+        [server1, server2],
+        [server3, server4],
+        [server5, server6]
+      )
+    ])
 
     connectionProvider.forget(server42)
 
@@ -118,10 +123,14 @@ describe('#unit RoutingConnectionProvider', () => {
     expectPoolToContain(pool, [server1, server3, server5])
 
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server2],
-      [server2, server4],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
       pool
     )
 
@@ -133,12 +142,14 @@ describe('#unit RoutingConnectionProvider', () => {
   })
 
   it('can forget writer address', () => {
-    const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server2],
-      [server2, server4]
-    )
+    const connectionProvider = newRoutingConnectionProvider([
+      newRoutingTable(
+        '',
+        [server1, server2],
+        [server3, server2],
+        [server2, server4]
+      )
+    ])
 
     connectionProvider.forgetWriter(server2)
 
@@ -152,12 +163,14 @@ describe('#unit RoutingConnectionProvider', () => {
   })
 
   it('can not forget unknown writer address', () => {
-    const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6]
-    )
+    const connectionProvider = newRoutingConnectionProvider([
+      newRoutingTable(
+        '',
+        [server1, server2],
+        [server3, server4],
+        [server5, server6]
+      )
+    ])
 
     connectionProvider.forgetWriter(server42)
 
@@ -173,10 +186,14 @@ describe('#unit RoutingConnectionProvider', () => {
   it('acquires connection and returns a DelegateConnection', async () => {
     const pool = newPool()
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6]
+        )
+      ],
       pool
     )
 
@@ -190,10 +207,14 @@ describe('#unit RoutingConnectionProvider', () => {
   it('acquires read connection with up-to-date routing table', done => {
     const pool = newPool()
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6]
+        )
+      ],
       pool
     )
 
@@ -213,10 +234,14 @@ describe('#unit RoutingConnectionProvider', () => {
   it('acquires write connection with up-to-date routing table', done => {
     const pool = newPool()
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6]
+        )
+      ],
       pool
     )
 
@@ -234,12 +259,14 @@ describe('#unit RoutingConnectionProvider', () => {
   })
 
   it('throws for illegal access mode', done => {
-    const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6]
-    )
+    const connectionProvider = newRoutingConnectionProvider([
+      newRoutingTable(
+        '',
+        [server1, server2],
+        [server3, server4],
+        [server5, server6]
+      )
+    ])
 
     connectionProvider.acquireConnection('WRONG', '').catch(error => {
       expect(error.message).toEqual('Illegal mode WRONG')
@@ -256,13 +283,17 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverE, serverF]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       pool,
-      int(0), // expired routing table
-      { 'server1:7687': updatedRoutingTable }
+      { '': { 'server1:7687': updatedRoutingTable } }
     )
 
     connectionProvider.acquireConnection(READ, '').then(connection => {
@@ -287,13 +318,17 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverE, serverF]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       pool,
-      int(0), // expired routing table
-      { 'server1:7687': updatedRoutingTable }
+      { '': { 'server1:7687': updatedRoutingTable } }
     )
 
     connectionProvider.acquireConnection(WRITE, '').then(connection => {
@@ -318,15 +353,21 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverE, serverF]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       pool,
-      int(0), // expired routing table
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': updatedRoutingTable
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -352,15 +393,21 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverE, serverF]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       pool,
-      int(0), // expired routing table
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': updatedRoutingTable
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -386,15 +433,21 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverE, serverF]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [], // no readers
-      [server3, server4],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [], // no readers
+          [server3, server4],
+          Integer.MAX_VALUE
+        )
+      ],
       pool,
-      Integer.MAX_VALUE,
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': updatedRoutingTable
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -420,15 +473,21 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverE, serverF]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [], // no writers
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [], // no writers
+          int(0) // expired routing table
+        )
+      ],
       pool,
-      int(0), // expired routing table
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': updatedRoutingTable
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -447,15 +506,21 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('throws when all routers return nothing while getting read connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       newPool(),
-      int(0), // expired routing table
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': null // returns no routing table
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': null // returns no routing table
+        }
       }
     )
 
@@ -467,15 +532,21 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('throws when all routers return nothing while getting write connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       newPool(),
-      int(0), // expired routing table
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': null // returns no routing table
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': null // returns no routing table
+        }
       }
     )
 
@@ -493,15 +564,21 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverC, serverD]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       newPool(),
-      int(0), // expired routing table
       {
-        'server1:7687': updatedRoutingTable,
-        'server2:7687': updatedRoutingTable
+        '': {
+          'server1:7687': updatedRoutingTable,
+          'server2:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -519,15 +596,21 @@ describe('#unit RoutingConnectionProvider', () => {
       [] // no writers - table can't satisfy connection requirement
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       newPool(),
-      int(0), // expired routing table
       {
-        'server1:7687': updatedRoutingTable,
-        'server2:7687': updatedRoutingTable
+        '': {
+          'server1:7687': updatedRoutingTable,
+          'server2:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -539,12 +622,16 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('throws when stale routing table without routers while getting read connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [], // no routers
-      [server3, server4],
-      [server5, server6],
-      newPool(),
-      int(0) // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [], // no routers
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
+      newPool()
     )
 
     connectionProvider.acquireConnection(READ, '').catch(error => {
@@ -555,12 +642,16 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('throws when stale routing table without routers while getting write connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [], // no routers
-      [server3, server4],
-      [server5, server6],
-      newPool(),
-      int(0) // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [], // no routers
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
+      newPool()
     )
 
     connectionProvider.acquireConnection(WRITE, '').catch(error => {
@@ -578,14 +669,20 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverE, serverF]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       pool,
-      int(0), // expired routing table
       {
-        'server1:7687': updatedRoutingTable
+        '': {
+          'server1:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -611,12 +708,16 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('forgets all routers when they fail while acquiring read connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2, server3],
-      [server4, server5],
-      [server6, server7],
-      newPool(),
-      int(0) // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1, server2, server3],
+          [server4, server5],
+          [server6, server7],
+          int(0) // expired routing table
+        )
+      ],
+      newPool()
     )
 
     connectionProvider.acquireConnection(READ, '').catch(error => {
@@ -634,12 +735,16 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('forgets all routers when they fail while acquiring write connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2, server3],
-      [server4, server5],
-      [server6, server7],
-      newPool(),
-      int(0) // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1, server2, server3],
+          [server4, server5],
+          [server6, server7],
+          int(0) // expired routing table
+        )
+      ],
+      newPool()
     )
 
     connectionProvider.acquireConnection(WRITE, '').catch(error => {
@@ -666,16 +771,22 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server0], // seed router address resolves just to itself
-      '',
-      [server1, server2, server3],
-      [server4, server5],
-      [server6, server7],
-      int(0), // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1, server2, server3],
+          [server4, server5],
+          [server6, server7],
+          int(0) // expired routing table
+        )
+      ],
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': null, // returns no routing table
-        'server3:7687': null, // returns no routing table
-        'server0:7687': updatedRoutingTable
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': null, // returns no routing table
+          'server3:7687': null, // returns no routing table
+          'server0:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -708,16 +819,22 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server01], // seed router address resolves to a different one
-      '',
-      [server1, server2, server3],
-      [server4, server5],
-      [server6, server7],
-      int(0), // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1, server2, server3],
+          [server4, server5],
+          [server6, server7],
+          int(0) // expired routing table
+        )
+      ],
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': null, // returns no routing table
-        'server3:7687': null, // returns no routing table
-        'server01:7687': updatedRoutingTable
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': null, // returns no routing table
+          'server3:7687': null, // returns no routing table
+          'server01:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -750,16 +867,22 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server01, server02, server03], // seed router address resolves to 3 different addresses
-      '',
-      [server1],
-      [server2],
-      [server3],
-      int(0), // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1],
+          [server2],
+          [server3],
+          int(0) // expired routing table
+        )
+      ],
       {
-        'server1:7687': null, // returns no routing table
-        'server01:7687': null, // returns no routing table
-        'server02:7687': null, // returns no routing table
-        'server03:7687': updatedRoutingTable
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server01:7687': null, // returns no routing table
+          'server02:7687': null, // returns no routing table
+          'server03:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -785,16 +908,22 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server0], // seed router address resolves just to itself
-      '',
-      [server1, server2, server3],
-      [server4, server5],
-      [server6],
-      int(0), // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1, server2, server3],
+          [server4, server5],
+          [server6],
+          int(0) // expired routing table
+        )
+      ],
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': null, // returns no routing table
-        'server3:7687': null, // returns no routing table
-        'server0:7687': null // returns no routing table
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': null, // returns no routing table
+          'server3:7687': null, // returns no routing table
+          'server0:7687': null // returns no routing table
+        }
       }
     )
 
@@ -829,15 +958,21 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server01], // seed router address resolves to a different one
-      '',
-      [server1, server2],
-      [server3],
-      [server4],
-      int(0), // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3],
+          [server4],
+          int(0) // expired routing table
+        )
+      ],
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': null, // returns no routing table
-        'server01:7687': null // returns no routing table
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': null, // returns no routing table
+          'server01:7687': null // returns no routing table
+        }
       }
     )
 
@@ -872,17 +1007,23 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server02, server01], // seed router address resolves to 2 different addresses
-      '',
-      [server1, server2, server3],
-      [server4],
-      [server5],
-      int(0), // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1, server2, server3],
+          [server4],
+          [server5],
+          int(0) // expired routing table
+        )
+      ],
       {
-        'server1:7687': null, // returns no routing table
-        'server2:7687': null, // returns no routing table
-        'server3:7687': null, // returns no routing table
-        'server01:7687': null, // returns no routing table
-        'server02:7687': null // returns no routing table
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': null, // returns no routing table
+          'server3:7687': null, // returns no routing table
+          'server01:7687': null, // returns no routing table
+          'server02:7687': null // returns no routing table
+        }
       }
     )
 
@@ -924,13 +1065,19 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server0], // seed router address resolves just to itself
-      '',
-      [], // no routers in the known routing table
-      [server1, server2],
-      [server3],
-      Integer.MAX_VALUE, // not expired
+      [
+        newRoutingTable(
+          '',
+          [], // no routers in the known routing table
+          [server1, server2],
+          [server3],
+          Integer.MAX_VALUE // not expired
+        )
+      ],
       {
-        'server0:7687': updatedRoutingTable
+        '': {
+          'server0:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -963,13 +1110,19 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server01], // seed router address resolves to a different one
-      '',
-      [], // no routers in the known routing table
-      [server1, server2],
-      [server3, server4],
-      Integer.MAX_VALUE, // not expired
+      [
+        newRoutingTable(
+          '',
+          [], // no routers in the known routing table
+          [server1, server2],
+          [server3, server4],
+          Integer.MAX_VALUE // not expired
+        )
+      ],
       {
-        'server01:7687': updatedRoutingTable
+        '': {
+          'server01:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -1002,15 +1155,21 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server02, server01, server03], // seed router address resolves to 3 different addresses
-      '',
-      [], // no routers in the known routing table
-      [server1],
-      [server2, server3],
-      Integer.MAX_VALUE, // not expired
+      [
+        newRoutingTable(
+          '',
+          [], // no routers in the known routing table
+          [server1],
+          [server2, server3],
+          Integer.MAX_VALUE // not expired
+        )
+      ],
       {
-        'server01:7687': null, // returns no routing table
-        'server02:7687': null, // returns no routing table
-        'server03:7687': updatedRoutingTable
+        '': {
+          'server01:7687': null, // returns no routing table
+          'server02:7687': null, // returns no routing table
+          'server03:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -1043,16 +1202,22 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server1, server01, server2, server02], // seed router address resolves to 4 different addresses
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
-      int(0), // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       {
-        'server1:7687': null, // returns no routing table
-        'server01:7687': null, // returns no routing table
-        'server2:7687': null, // returns no routing table
-        'server02:7687': updatedRoutingTable
+        '': {
+          'server1:7687': null, // returns no routing table
+          'server01:7687': null, // returns no routing table
+          'server2:7687': null, // returns no routing table
+          'server02:7687': updatedRoutingTable
+        }
       }
     )
     // override default use of seed router
@@ -1098,14 +1263,20 @@ describe('#unit RoutingConnectionProvider', () => {
       [serverC, serverD]
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       pool,
-      int(0), // expired routing table
       {
-        'server1:7687': updatedRoutingTable
+        '': {
+          'server1:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -1124,14 +1295,20 @@ describe('#unit RoutingConnectionProvider', () => {
       [] // no writers
     )
     const connectionProvider = newRoutingConnectionProvider(
-      '',
-      [server1, server2],
-      [server3, server4],
-      [server5, server6],
+      [
+        newRoutingTable(
+          '',
+          [server1, server2],
+          [server3, server4],
+          [server5, server6],
+          int(0) // expired routing table
+        )
+      ],
       pool,
-      int(0), // expired routing table
       {
-        'server1:7687': updatedRoutingTable
+        '': {
+          'server1:7687': updatedRoutingTable
+        }
       }
     )
 
@@ -1158,17 +1335,23 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
       server0,
       [server02, server01], // seed router address resolves to 2 different addresses
-      '',
-      [server1],
-      [server2, server3],
-      [server4, server5],
-      int(0), // expired routing table
+      [
+        newRoutingTable(
+          '',
+          [server1],
+          [server2, server3],
+          [server4, server5],
+          int(0) // expired routing table
+        )
+      ],
       {
-        'server1:7687': routingTable1,
-        'serverA:7687': routingTable1,
-        'serverB:7687': routingTable1,
-        'server01:7687': null, // returns no routing table
-        'server02:7687': routingTable2
+        '': {
+          'server1:7687': routingTable1,
+          'serverA:7687': routingTable1,
+          'serverB:7687': routingTable1,
+          'server01:7687': null, // returns no routing table
+          'server02:7687': routingTable2
+        }
       }
     )
     // override default use of seed router
@@ -1204,26 +1387,244 @@ describe('#unit RoutingConnectionProvider', () => {
       })
     })
   })
+
+  fdescribe('multi-database', () => {
+    it('should acquire read connection from correct routing table', async () => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2],
+            [server1],
+            [server2]
+          ),
+          newRoutingTable('databaseB', [serverA, serverB], [serverA], [serverB])
+        ],
+        pool
+      )
+
+      const conn1 = await connectionProvider.acquireConnection(
+        READ,
+        'databaseA'
+      )
+      expect(conn1 instanceof DelegateConnection).toBeTruthy()
+      expect(conn1.address).toBe(server1)
+
+      const conn2 = await connectionProvider.acquireConnection(
+        READ,
+        'databaseB'
+      )
+      expect(conn2 instanceof DelegateConnection).toBeTruthy()
+      expect(conn2.address).toBe(serverA)
+    })
+
+    it('should acquire write connection from correct routing table', async () => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2],
+            [server1],
+            [server2]
+          ),
+          newRoutingTable('databaseB', [serverA, serverB], [serverA], [serverB])
+        ],
+        pool
+      )
+
+      const conn1 = await connectionProvider.acquireConnection(
+        WRITE,
+        'databaseA'
+      )
+      expect(conn1 instanceof DelegateConnection).toBeTruthy()
+      expect(conn1.address).toBe(server2)
+
+      const conn2 = await connectionProvider.acquireConnection(
+        WRITE,
+        'databaseB'
+      )
+      expect(conn2 instanceof DelegateConnection).toBeTruthy()
+      expect(conn2.address).toBe(serverB)
+    })
+
+    it('should fail connection acquisition if database is not known', async () => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable('databaseA', [server1, server2], [server1], [server2])
+        ],
+        pool
+      )
+
+      try {
+        await connectionProvider.acquireConnection(WRITE, 'databaseX')
+      } catch (error) {
+        expect(error instanceof Neo4jError).toBeTruthy()
+        expect(error.code).toBe(SERVICE_UNAVAILABLE)
+        expect(error.message).toContain(
+          'Could not perform discovery. No routing servers available.'
+        )
+        return
+      }
+
+      expect(false).toBeTruthy('exception expected')
+    })
+
+    it('should forget read server from correct routing table on availability error', async () => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2, server3],
+            [server1, server2],
+            [server3]
+          ),
+          newRoutingTable(
+            'databaseB',
+            [serverA, serverB, serverC],
+            [serverA, serverB],
+            [serverA, serverC]
+          )
+        ],
+        pool
+      )
+
+      const conn1 = await connectionProvider.acquireConnection(
+        READ,
+        'databaseB'
+      )
+
+      // when
+      conn1._errorHandler.handleAndTransformError(
+        newError('connection error', SERVICE_UNAVAILABLE),
+        conn1.address
+      )
+
+      expectRoutingTable(
+        connectionProvider,
+        'databaseA',
+        [server1, server2, server3],
+        [server1, server2],
+        [server3]
+      )
+      expectRoutingTable(
+        connectionProvider,
+        'databaseB',
+        [serverA, serverB, serverC],
+        [serverB],
+        [serverC]
+      )
+    })
+
+    it('should forget write server from correct routing table on availability error', async () => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2, server3],
+            [server1, server2],
+            [server3]
+          ),
+          newRoutingTable(
+            'databaseB',
+            [serverA, serverB, serverC],
+            [serverA, serverB],
+            [serverA, serverC]
+          )
+        ],
+        pool
+      )
+
+      const conn1 = await connectionProvider.acquireConnection(
+        WRITE,
+        'databaseB'
+      )
+
+      // when
+      conn1._errorHandler.handleAndTransformError(
+        newError('connection error', SERVICE_UNAVAILABLE),
+        conn1.address
+      )
+
+      expectRoutingTable(
+        connectionProvider,
+        'databaseA',
+        [server1, server2, server3],
+        [server1, server2],
+        [server3]
+      )
+      expectRoutingTable(
+        connectionProvider,
+        'databaseB',
+        [serverA, serverB, serverC],
+        [serverB],
+        [serverC]
+      )
+    })
+
+    it('should forget write server from correct routing table on write error', async () => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2, server3],
+            [server1, server2],
+            [server3]
+          ),
+          newRoutingTable(
+            'databaseB',
+            [serverA, serverB, serverC],
+            [serverA, serverB],
+            [serverA, serverC]
+          )
+        ],
+        pool
+      )
+
+      const conn1 = await connectionProvider.acquireConnection(
+        WRITE,
+        'databaseB'
+      )
+
+      // when
+      conn1._errorHandler.handleAndTransformError(
+        newError('connection error', 'Neo.ClientError.Cluster.NotALeader'),
+        conn1.address
+      )
+
+      expectRoutingTable(
+        connectionProvider,
+        'databaseA',
+        [server1, server2, server3],
+        [server1, server2],
+        [server3]
+      )
+      expectRoutingTable(
+        connectionProvider,
+        'databaseB',
+        [serverA, serverB, serverC],
+        [serverA, serverB],
+        [serverC]
+      )
+    })
+  })
 })
 
 function newRoutingConnectionProvider (
-  database,
-  routers,
-  readers,
-  writers,
+  routingTables,
   pool = null,
-  expirationTime = Integer.MAX_VALUE,
-  routerToRoutingTable = {}
+  routerToRoutingTable = { '': {} }
 ) {
   const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
   return newRoutingConnectionProviderWithSeedRouter(
     seedRouter,
     [seedRouter],
-    database,
-    routers,
-    readers,
-    writers,
-    expirationTime,
+    routingTables,
     routerToRoutingTable,
     pool
   )
@@ -1232,12 +1633,8 @@ function newRoutingConnectionProvider (
 function newRoutingConnectionProviderWithSeedRouter (
   seedRouter,
   seedRouterResolved,
-  database,
-  routers,
-  readers,
-  writers,
-  expirationTime = Integer.MAX_VALUE,
-  routerToRoutingTable = {},
+  routingTables,
+  routerToRoutingTable = { '': {} },
   connectionPool = null
 ) {
   const pool = connectionPool || newPool()
@@ -1250,18 +1647,14 @@ function newRoutingConnectionProviderWithSeedRouter (
     log: Logger.noOp()
   })
   connectionProvider._connectionPool = pool
-  connectionProvider._routingTables[database] = new RoutingTable({
-    database,
-    routers,
-    readers,
-    writers,
-    expirationTime
+  routingTables.forEach(r => {
+    connectionProvider._routingTables[r.database] = r
   })
   connectionProvider._rediscovery = new FakeRediscovery(routerToRoutingTable)
   connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
-  if (expirationTime === Integer.ZERO) {
-    connectionProvider._useSeedRouter = false
-  }
+  connectionProvider._useSeedRouter = routingTables.every(
+    r => r.expirationTime !== Integer.ZERO
+  )
   return connectionProvider
 }
 
@@ -1353,7 +1746,11 @@ class FakeRediscovery {
   }
 
   lookupRoutingTableOnRouter (ignored, database, router) {
-    return Promise.resolve(this._routerToRoutingTable[router.asKey()])
+    const table = this._routerToRoutingTable[database || '']
+    if (table) {
+      return Promise.resolve(table[router.asKey()])
+    }
+    return Promise.resolve(null)
   }
 }
 
