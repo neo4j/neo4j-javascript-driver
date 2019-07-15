@@ -39,7 +39,6 @@ import RoutingDriver from './routing-driver'
 import VERSION from './version'
 import { assertString, isEmptyObjectOrNull } from './internal/util'
 import urlUtil from './internal/url-util'
-import HttpDriver from './internal/http/http-driver'
 import { isPoint, Point } from './spatial-types'
 import {
   Date,
@@ -260,8 +259,6 @@ function driver (url, authToken, config = {}) {
       authToken,
       config
     )
-  } else if (parsedUrl.scheme === 'http' || parsedUrl.scheme === 'https') {
-    return new HttpDriver(parsedUrl, USER_AGENT, authToken, config)
   } else {
     throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
   }
