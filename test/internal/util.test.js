@@ -21,7 +21,7 @@ import * as util from '../../src/internal/util'
 import { int } from '../../src'
 
 /* eslint-disable no-new-wrappers */
-describe('util', () => {
+describe('#unit Utils', () => {
   it('should check empty objects', () => {
     expect(util.isEmptyObjectOrNull(null)).toBeTruthy()
     expect(util.isEmptyObjectOrNull({})).toBeTruthy()

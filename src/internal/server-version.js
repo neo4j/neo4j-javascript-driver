@@ -30,11 +30,14 @@ class ServerVersion {
    * @param {number} major the major version number.
    * @param {number} minor the minor version number.
    * @param {number} patch the patch version number.
+   * @param {string} the original version string
    */
-  constructor (major, minor, patch) {
+  constructor (major, minor, patch, originalVersionString) {
     this.major = major
     this.minor = minor
     this.patch = patch
+
+    this._originalVersionString = originalVersionString
   }
 
   /**
@@ -78,7 +81,7 @@ class ServerVersion {
     const minor = parseIntStrict(version[3])
     const patch = parseIntStrict(version[4] || 0)
 
-    return new ServerVersion(major, minor, patch)
+    return new ServerVersion(major, minor, patch, versionStr)
   }
 
   /**
@@ -98,6 +101,14 @@ class ServerVersion {
     }
     return result
   }
+
+  toString () {
+    if (this._originalVersionString) {
+      return this._originalVersionString
+    }
+
+    return `${this.major}.${this.minor}.${this.patch}`
+  }
 }
 
 function parseIntStrict (str, name) {
@@ -112,17 +123,20 @@ function compareInts (x, y) {
   return x < y ? -1 : x === y ? 0 : 1
 }
 
-const VERSION_3_1_0 = new ServerVersion(3, 1, 0)
-const VERSION_3_2_0 = new ServerVersion(3, 2, 0)
-const VERSION_3_4_0 = new ServerVersion(3, 4, 0)
-const VERSION_3_5_0 = new ServerVersion(3, 5, 0)
-const VERSION_4_0_0 = new ServerVersion(4, 0, 0)
+const VERSION_3_2_0 = ServerVersion.fromString('Neo4j/3.2.0')
+const VERSION_3_4_0 = ServerVersion.fromString('Neo4j/3.4.0')
+const VERSION_3_5_0 = ServerVersion.fromString('Neo4j/3.5.0')
+const VERSION_4_0_0 = ServerVersion.fromString('Neo4j/4.0.0')
 const maxVer = Number.MAX_SAFE_INTEGER
-const VERSION_IN_DEV = new ServerVersion(maxVer, maxVer, maxVer)
+const VERSION_IN_DEV = new ServerVersion(
+  maxVer,
+  maxVer,
+  maxVer,
+  NEO4J_IN_DEV_VERSION_STRING
+)
 
 export {
   ServerVersion,
-  VERSION_3_1_0,
   VERSION_3_2_0,
   VERSION_3_4_0,
   VERSION_3_5_0,

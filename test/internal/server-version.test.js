@@ -25,7 +25,7 @@ import {
   VERSION_IN_DEV
 } from '../../src/internal/server-version'
 
-describe('ServerVersion', () => {
+describe('#unit ServerVersion', () => {
   it('should construct with correct values', () => {
     verifyVersion(new ServerVersion(2, 3, 10), 2, 3, 10)
     verifyVersion(new ServerVersion(3, 2, 0), 3, 2, 0)
@@ -83,39 +83,6 @@ describe('ServerVersion', () => {
     verifyVersion(parse('Neo4j/dev'), maxVer, maxVer, maxVer)
     verifyVersion(parse('Neo4j/DEV'), maxVer, maxVer, maxVer)
     verifyVersion(parse('Neo4j/Dev'), maxVer, maxVer, maxVer)
-  })
-
-  it('should fetch version using driver', done => {
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    ServerVersion.fromDriver(driver)
-      .then(version => {
-        driver.close()
-        expect(version).not.toBeNull()
-        expect(version).toBeDefined()
-        expect(version instanceof ServerVersion).toBeTruthy()
-        done()
-      })
-      .catch(error => {
-        driver.close()
-        done.fail(error)
-      })
-  })
-
-  it('should fail to fetch version using incorrect driver', done => {
-    const driver = neo4j.driver('bolt://localhost:4242', sharedNeo4j.authToken) // use wrong port
-    ServerVersion.fromDriver(driver)
-      .then(version => {
-        driver.close()
-        done.fail(
-          'Should not be able to fetch version: ' + JSON.stringify(version)
-        )
-      })
-      .catch(error => {
-        expect(error).not.toBeNull()
-        expect(error).toBeDefined()
-        driver.close()
-        done()
-      })
   })
 
   it('should compare equal versions', () => {
@@ -181,6 +148,41 @@ describe('ServerVersion', () => {
     expect(new ServerVersion(3, 1, 0).compareTo(VERSION_IN_DEV)).toBeLessThan(0)
     expect(new ServerVersion(3, 3, 6).compareTo(VERSION_IN_DEV)).toBeLessThan(0)
     expect(new ServerVersion(2, 3, 0).compareTo(VERSION_IN_DEV)).toBeLessThan(0)
+  })
+})
+
+describe('#integration ServerVersion', () => {
+  it('should fetch version using driver', done => {
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    ServerVersion.fromDriver(driver)
+      .then(version => {
+        driver.close()
+        expect(version).not.toBeNull()
+        expect(version).toBeDefined()
+        expect(version instanceof ServerVersion).toBeTruthy()
+        done()
+      })
+      .catch(error => {
+        driver.close()
+        done.fail(error)
+      })
+  })
+
+  it('should fail to fetch version using incorrect driver', done => {
+    const driver = neo4j.driver('bolt://localhost:4242', sharedNeo4j.authToken) // use wrong port
+    ServerVersion.fromDriver(driver)
+      .then(version => {
+        driver.close()
+        done.fail(
+          'Should not be able to fetch version: ' + JSON.stringify(version)
+        )
+      })
+      .catch(error => {
+        expect(error).not.toBeNull()
+        expect(error).toBeDefined()
+        driver.close()
+        done()
+      })
   })
 })
 

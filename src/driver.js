@@ -19,9 +19,9 @@
 
 import Session from './session'
 import Pool from './internal/pool'
-import Connection from './internal/connection'
+import ChannelConnection from './internal/connection-channel'
 import { newError, SERVICE_UNAVAILABLE } from './error'
-import { DirectConnectionProvider } from './internal/connection-providers'
+import DirectConnectionProvider from './internal/connection-provider-direct'
 import Bookmark from './internal/bookmark'
 import ConnectivityVerifier from './internal/connectivity-verifier'
 import PoolConfig, {
@@ -76,19 +76,9 @@ class Driver {
     this._id = idGenerator++
     this._address = address
     this._userAgent = userAgent
-    this._openConnections = {}
     this._authToken = authToken
     this._config = config
     this._log = Logger.create(config)
-    this._pool = new Pool({
-      create: this._createConnection.bind(this),
-      destroy: this._destroyConnection.bind(this),
-      validate: this._validateConnection.bind(this),
-      installIdleObserver: this._installIdleObserverOnConnection.bind(this),
-      removeIdleObserver: this._removeIdleObserverOnConnection.bind(this),
-      config: PoolConfig.fromDriverConfig(config),
-      log: this._log
-    })
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
@@ -111,73 +101,13 @@ class Driver {
 
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
-   * @param {string} [db=''] the target database to verify connectivity for.
+   * @param {string} [database=''] the target database to verify connectivity for.
    * @returns {Promise<object>} promise resolved with server info or rejected with error.
    */
-  verifyConnectivity ({ db = '' } = {}) {
+  verifyConnectivity ({ database = '' } = {}) {
     const connectionProvider = this._getOrCreateConnectionProvider()
     const connectivityVerifier = new ConnectivityVerifier(connectionProvider)
-    return connectivityVerifier.verify({ db })
-  }
-
-  /**
-   * Create a new connection and initialize it.
-   * @return {Promise<Connection>} promise resolved with a new connection or rejected when failed to connect.
-   * @access private
-   */
-  _createConnection (address, release) {
-    const connection = Connection.create(
-      address,
-      this._config,
-      this._createConnectionErrorHandler(),
-      this._log
-    )
-    connection._release = () => release(address, connection)
-    this._openConnections[connection.id] = connection
-
-    return connection.connect(this._userAgent, this._authToken).catch(error => {
-      if (this.onError) {
-        // notify Driver.onError callback about connection initialization errors
-        this.onError(error)
-      }
-      // let's destroy this connection
-      this._destroyConnection(connection)
-      // propagate the error because connection failed to connect / initialize
-      throw error
-    })
-  }
-
-  /**
-   * Check that a connection is usable
-   * @return {boolean} true if the connection is open
-   * @access private
-   **/
-  _validateConnection (conn) {
-    if (!conn.isOpen()) {
-      return false
-    }
-
-    const maxConnectionLifetime = this._config.maxConnectionLifetime
-    const lifetime = Date.now() - conn.creationTimestamp
-    return lifetime <= maxConnectionLifetime
-  }
-
-  _installIdleObserverOnConnection (conn, observer) {
-    conn._queueObserver(observer)
-  }
-
-  _removeIdleObserverOnConnection (conn) {
-    conn._updateCurrentObserver()
-  }
-
-  /**
-   * Dispose of a connection.
-   * @return {Connection} the connection to dispose.
-   * @access private
-   */
-  _destroyConnection (conn) {
-    delete this._openConnections[conn.id]
-    conn.close()
+    return connectivityVerifier.verify({ database })
   }
 
   /**
@@ -194,13 +124,13 @@ class Driver {
    * @param {string} [defaultAccessMode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
    * @param {string|string[]} [bookmarks=null] the initial reference or references to some previous
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
-   * @param {string} [db=''] the database this session will connect to.
+   * @param {string} [database=''] the database this session will connect to.
    * @return {Session} new session.
    */
   session ({
     defaultAccessMode = WRITE,
     bookmarks: bookmarkOrBookmarks,
-    db = ''
+    database = ''
   } = {}) {
     const sessionMode = Driver._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -209,7 +139,7 @@ class Driver {
       : Bookmark.empty()
     return new Session({
       mode: sessionMode,
-      db,
+      database,
       connectionProvider,
       bookmark,
       config: this._config
@@ -225,38 +155,27 @@ class Driver {
   }
 
   // Extension point
-  _createConnectionProvider (address, connectionPool, driverOnErrorCallback) {
-    return new DirectConnectionProvider(
-      address,
-      connectionPool,
-      driverOnErrorCallback
-    )
-  }
-
-  // Extension point
-  _createConnectionErrorHandler () {
-    return new ConnectionErrorHandler(SERVICE_UNAVAILABLE)
+  _createConnectionProvider (address, userAgent, authToken) {
+    return new DirectConnectionProvider({
+      id: this._id,
+      config: this._config,
+      log: this._log,
+      address: address,
+      userAgent: userAgent,
+      authToken: authToken
+    })
   }
 
   _getOrCreateConnectionProvider () {
     if (!this._connectionProvider) {
-      const driverOnErrorCallback = this._driverOnErrorCallback.bind(this)
       this._connectionProvider = this._createConnectionProvider(
         this._address,
-        this._pool,
-        driverOnErrorCallback
+        this._userAgent,
+        this._authToken
       )
     }
-    return this._connectionProvider
-  }
 
-  _driverOnErrorCallback (error) {
-    const userDefinedOnErrorCallback = this.onError
-    if (userDefinedOnErrorCallback && error.code === SERVICE_UNAVAILABLE) {
-      userDefinedOnErrorCallback(error)
-    } else {
-      // we don't need to tell the driver about this error
-    }
+    return this._connectionProvider
   }
 
   /**
@@ -266,18 +185,8 @@ class Driver {
    */
   close () {
     this._log.info(`Driver ${this._id} closing`)
-
-    try {
-      // purge all idle connections in the connection pool
-      this._pool.purgeAll()
-    } finally {
-      // then close all connections driver has ever created
-      // it is needed to close connections that are active right now and are acquired from the pool
-      for (let connectionId in this._openConnections) {
-        if (this._openConnections.hasOwnProperty(connectionId)) {
-          this._openConnections[connectionId].close()
-        }
-      }
+    if (this._connectionProvider) {
+      this._connectionProvider.close()
     }
   }
 }

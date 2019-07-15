@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import Connection from '../../src/internal/connection'
 
 function isClient () {
   return typeof window !== 'undefined' && window.document
@@ -87,8 +88,10 @@ const matchers = {
   }
 }
 
-class MessageRecordingConnection {
+class MessageRecordingConnection extends Connection {
   constructor () {
+    super(null)
+
     this.messages = []
     this.observers = []
     this.flushes = []

@@ -32,20 +32,11 @@ import ServerAddress from '../../src/internal/server-address'
 
 const ROUTER_ADDRESS = ServerAddress.fromUrl('test.router.com:4242')
 
-describe('RoutingUtil', () => {
-  let clock
-
-  afterEach(() => {
-    if (clock) {
-      clock.uninstall()
-      clock = null
-    }
-  })
-
+describe('#unit RoutingUtil', () => {
   it('should return retrieved records when query succeeds', done => {
     const session = FakeSession.successful({ records: ['foo', 'bar', 'baz'] })
 
-    callRoutingProcedure(session)
+    callRoutingProcedure(session, '')
       .then(records => {
         expect(records).toEqual(['foo', 'bar', 'baz'])
         done()
@@ -56,7 +47,7 @@ describe('RoutingUtil', () => {
   it('should close session when query succeeds', done => {
     const session = FakeSession.successful({ records: ['foo', 'bar', 'baz'] })
 
-    callRoutingProcedure(session)
+    callRoutingProcedure(session, '')
       .then(() => {
         expect(session.isClosed()).toBeTruthy()
         done()
@@ -67,7 +58,7 @@ describe('RoutingUtil', () => {
   it('should not close session when query fails', done => {
     const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED))
 
-    callRoutingProcedure(session)
+    callRoutingProcedure(session, '')
       .then(() => {
         expect(session.isClosed()).toBeFalsy()
         done()
@@ -78,7 +69,7 @@ describe('RoutingUtil', () => {
   it('should return null on connection error', done => {
     const session = FakeSession.failed(newError('Oh no!', SESSION_EXPIRED))
 
-    callRoutingProcedure(session)
+    callRoutingProcedure(session, '')
       .then(records => {
         expect(records).toBeNull()
         done()
@@ -91,7 +82,7 @@ describe('RoutingUtil', () => {
       newError('Oh no!', 'Neo.ClientError.Procedure.ProcedureNotFound')
     )
 
-    callRoutingProcedure(session).catch(error => {
+    callRoutingProcedure(session, '').catch(error => {
       expect(error.code).toBe(SERVICE_UNAVAILABLE)
       expect(error.message).toBe(
         `Server at ${ROUTER_ADDRESS} can't perform routing. Make sure you are connecting to a causal cluster`
@@ -100,24 +91,11 @@ describe('RoutingUtil', () => {
     })
   })
 
-  it('should use getServers procedure when server version is older than 3.2.0', done => {
-    const connection = new FakeConnection().withServerVersion('Neo4j/3.1.9')
-    const session = FakeSession.withFakeConnection(connection)
-
-    callRoutingProcedure(session, {}).then(() => {
-      expect(connection.seenStatements).toEqual([
-        'CALL dbms.cluster.routing.getServers'
-      ])
-      expect(connection.seenParameters).toEqual([{}])
-      done()
-    })
-  })
-
   it('should use getRoutingTable procedure with empty routing context when server version is 3.2.0', done => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.2.0')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, {}).then(() => {
+    callRoutingProcedure(session, '', {}).then(() => {
       expect(connection.seenStatements).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
@@ -130,7 +108,7 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.2.0')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, { key1: 'value1', key2: 'value2' }).then(
+    callRoutingProcedure(session, '', { key1: 'value1', key2: 'value2' }).then(
       () => {
         expect(connection.seenStatements).toEqual([
           'CALL dbms.cluster.routing.getRoutingTable($context)'
@@ -147,7 +125,7 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.3.5')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, {}).then(() => {
+    callRoutingProcedure(session, '', {}).then(() => {
       expect(connection.seenStatements).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
@@ -160,7 +138,7 @@ describe('RoutingUtil', () => {
     const connection = new FakeConnection().withServerVersion('Neo4j/3.2.8')
     const session = FakeSession.withFakeConnection(connection)
 
-    callRoutingProcedure(session, { key1: 'foo', key2: 'bar' }).then(() => {
+    callRoutingProcedure(session, '', { key1: 'foo', key2: 'bar' }).then(() => {
       expect(connection.seenStatements).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
@@ -171,36 +149,67 @@ describe('RoutingUtil', () => {
     })
   })
 
-  it('should parse valid ttl', () => {
-    clock = lolex.install()
+  it('should use getRoutingTable procedure without database and routing context when server version is newer than 4.0.0', done => {
+    testMultiDbRoutingProcedure({}, '', done)
+  })
 
-    testValidTtlParsing(100, 5)
-    testValidTtlParsing(Date.now(), 3600) // 1 hour
-    testValidTtlParsing(Date.now(), 86400) // 24 hours
-    testValidTtlParsing(Date.now(), 3628800) // 42 days
-    testValidTtlParsing(0, 1)
-    testValidTtlParsing(50, 0)
-    testValidTtlParsing(Date.now(), 0)
+  it('should use getRoutingTable procedure without database but routing context when server version is newer than 4.0.0', done => {
+    testMultiDbRoutingProcedure({ key1: 'foo', key2: 'bar' }, '', done)
+  })
+
+  it('should use getRoutingTable procedure without routing context but database when server version is newer than 4.0.0', done => {
+    testMultiDbRoutingProcedure({}, 'myDatabase', done)
+  })
+
+  it('should use getRoutingTable procedure with database and routing context when server version is newer than 4.0.0', done => {
+    testMultiDbRoutingProcedure(
+      { key1: 'foo', key2: 'bar' },
+      'myDatabase',
+      done
+    )
+  })
+
+  it('should parse valid ttl', () => {
+    const clock = lolex.install()
+    try {
+      testValidTtlParsing(clock, 100, 5)
+      testValidTtlParsing(clock, Date.now(), 3600) // 1 hour
+      testValidTtlParsing(clock, Date.now(), 86400) // 24 hours
+      testValidTtlParsing(clock, Date.now(), 3628800) // 42 days
+      testValidTtlParsing(clock, 0, 1)
+      testValidTtlParsing(clock, 50, 0)
+      testValidTtlParsing(clock, Date.now(), 0)
+    } finally {
+      clock.uninstall()
+    }
   })
 
   it('should not overflow parsing huge ttl', () => {
     const record = newRecord({ ttl: Integer.MAX_VALUE })
-    clock = lolex.install()
-    clock.setSystemTime(42)
+    const clock = lolex.install()
+    try {
+      clock.setSystemTime(42)
 
-    const expirationTime = parseTtl(record)
+      const expirationTime = parseTtl(record)
 
-    expect(expirationTime).toBe(Integer.MAX_VALUE)
+      expect(expirationTime).toBe(Integer.MAX_VALUE)
+    } finally {
+      clock.uninstall()
+    }
   })
 
   it('should return valid value parsing negative ttl', () => {
     const record = newRecord({ ttl: int(-42) })
-    clock = lolex.install()
-    clock.setSystemTime(42)
+    const clock = lolex.install()
+    try {
+      clock.setSystemTime(42)
 
-    const expirationTime = parseTtl(record)
+      const expirationTime = parseTtl(record)
 
-    expect(expirationTime).toBe(Integer.MAX_VALUE)
+      expect(expirationTime).toBe(Integer.MAX_VALUE)
+    } finally {
+      clock.uninstall()
+    }
   })
 
   it('should throw when record does not have a ttl entry', done => {
@@ -301,7 +310,22 @@ describe('RoutingUtil', () => {
     expectProtocolError(() => parseServers(record), done)
   })
 
-  function testValidTtlParsing (currentTime, ttlSeconds) {
+  function testMultiDbRoutingProcedure (context, database, done) {
+    const connection = new FakeConnection().withServerVersion('Neo4j/4.0.0')
+    const session = FakeSession.withFakeConnection(connection)
+
+    callRoutingProcedure(session, database, context).then(() => {
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.routing.getRoutingTable($context, $database)'
+      ])
+      expect(connection.seenParameters).toEqual([
+        { context, database: database || null }
+      ])
+      done()
+    })
+  }
+
+  function testValidTtlParsing (clock, currentTime, ttlSeconds) {
     clock.setSystemTime(currentTime)
     const expectedExpirationTime = currentTime + ttlSeconds * 1000
 
@@ -334,9 +358,9 @@ describe('RoutingUtil', () => {
     expect(writers).toEqual(writerAddresses.map(w => ServerAddress.fromUrl(w)))
   }
 
-  function callRoutingProcedure (session, routingContext) {
+  function callRoutingProcedure (session, database, routingContext) {
     const util = new RoutingUtil(routingContext || {})
-    return util.callRoutingProcedure(session, ROUTER_ADDRESS)
+    return util.callRoutingProcedure(session, database, ROUTER_ADDRESS)
   }
 
   function parseTtl (record) {

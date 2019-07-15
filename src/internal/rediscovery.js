@@ -32,12 +32,13 @@ export default class Rediscovery {
   /**
    * Try to fetch new routing table from the given router.
    * @param {Session} session the session to use.
+   * @param {string} database the database for which to lookup routing table.
    * @param {string} routerAddress the URL of the router.
    * @return {Promise<RoutingTable>} promise resolved with new routing table or null when connection error happened.
    */
-  lookupRoutingTableOnRouter (session, routerAddress) {
+  lookupRoutingTableOnRouter (session, database, routerAddress) {
     return this._routingUtil
-      .callRoutingProcedure(session, routerAddress)
+      .callRoutingProcedure(session, database, routerAddress)
       .then(records => {
         if (records === null) {
           // connection error happened, unable to retrieve routing table from this router, next one should be queried
@@ -70,7 +71,13 @@ export default class Rediscovery {
         // case with no writers is processed higher in the promise chain because only RoutingDriver knows
         // how to deal with such table and how to treat router that returned such table
 
-        return new RoutingTable(routers, readers, writers, expirationTime)
+        return new RoutingTable({
+          database,
+          routers,
+          readers,
+          writers,
+          expirationTime
+        })
       })
   }
 

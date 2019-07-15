@@ -1,9 +1,0 @@
-!: AUTO RESET
-!: AUTO PULL_ALL
-
-C: INIT "neo4j-javascript/0.0.0-dev" {"credentials": "password", "scheme": "basic", "principal": "neo4j"}
-S: SUCCESS {"server": "Neo4j/9.9.9"}
-C: RUN "CREATE (n {name:'Bob'})" {}
-   PULL_ALL
-S: SUCCESS {}
-   SUCCESS {}

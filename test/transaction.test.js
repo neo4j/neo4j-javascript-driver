@@ -20,7 +20,7 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion } from '../src/internal/server-version'
 
-describe('transaction', () => {
+describe('#integration transaction', () => {
   let driver
   let session
   // eslint-disable-next-line no-unused-vars
@@ -355,13 +355,12 @@ describe('transaction', () => {
     })
   })
 
-  it('should fail for invalid bookmark', done => {
-    const invalidBookmark = 'hi, this is an invalid bookmark'
-    const tx = session.beginTransaction(invalidBookmark)
-    tx.run('RETURN 1').catch(error => {
-      expect(error.code).toBe('Neo.ClientError.Transaction.InvalidBookmark')
-      done()
-    })
+  it('should throw when provided string (bookmark) parameter', () => {
+    expect(() => session.beginTransaction('bookmark')).toThrowError(TypeError)
+  })
+
+  it('should throw when provided string[] (bookmark) parameter', () => {
+    expect(() => session.beginTransaction(['bookmark'])).toThrowError(TypeError)
   })
 
   it('should fail to run query for unreachable bookmark', done => {
@@ -377,7 +376,10 @@ describe('transaction', () => {
             expectValidLastBookmark(session)
 
             const unreachableBookmark = session.lastBookmark() + '0'
-            const tx2 = session.beginTransaction(unreachableBookmark)
+            const session2 = driver.session({
+              bookmarks: [unreachableBookmark]
+            })
+            const tx2 = session2.beginTransaction()
             tx2.run('CREATE ()').catch(error => {
               const message = error.message
               const expectedPrefix =

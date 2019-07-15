@@ -19,7 +19,7 @@
 
 import { Driver } from './driver'
 import { newError, SESSION_EXPIRED } from './error'
-import { LoadBalancer } from './internal/connection-providers'
+import RoutingConnectionProvider from './internal/connection-provider-routing'
 import LeastConnectedLoadBalancingStrategy from './internal/least-connected-load-balancing-strategy'
 import ConnectionErrorHandler from './internal/connection-error-handler'
 import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
@@ -40,67 +40,17 @@ class RoutingDriver extends Driver {
     )
   }
 
-  _createConnectionProvider (address, connectionPool, driverOnErrorCallback) {
-    const loadBalancingStrategy = RoutingDriver._createLoadBalancingStrategy(
-      this._config,
-      connectionPool
-    )
-    const resolver = createHostNameResolver(this._config)
-    return new LoadBalancer(
-      address,
-      this._routingContext,
-      connectionPool,
-      loadBalancingStrategy,
-      resolver,
-      driverOnErrorCallback,
-      this._log
-    )
-  }
-
-  _createConnectionErrorHandler () {
-    // connection errors mean SERVICE_UNAVAILABLE for direct driver but for routing driver they should only
-    // result in SESSION_EXPIRED because there might still exist other servers capable of serving the request
-    return new ConnectionErrorHandler(
-      SESSION_EXPIRED,
-      (error, address) => this._handleUnavailability(error, address),
-      (error, address) => this._handleWriteFailure(error, address)
-    )
-  }
-
-  _handleUnavailability (error, address) {
-    this._log.warn(
-      `Routing driver ${this._id} will forget ${address} because of an error ${
-        error.code
-      } '${error.message}'`
-    )
-    this._connectionProvider.forget(address)
-    return error
-  }
-
-  _handleWriteFailure (error, address) {
-    this._log.warn(
-      `Routing driver ${
-        this._id
-      } will forget writer ${address} because of an error ${error.code} '${
-        error.message
-      }'`
-    )
-    this._connectionProvider.forgetWriter(address)
-    return newError(
-      'No longer possible to write to server at ' + address,
-      SESSION_EXPIRED
-    )
-  }
-
-  /**
-   * Create new load balancing strategy based on the config.
-   * @param {object} config the user provided config.
-   * @param {Pool} connectionPool the connection pool for this driver.
-   * @return {LoadBalancingStrategy} new strategy.
-   * @private
-   */
-  static _createLoadBalancingStrategy (config, connectionPool) {
-    return new LeastConnectedLoadBalancingStrategy(connectionPool)
+  _createConnectionProvider (address, userAgent, authToken) {
+    return new RoutingConnectionProvider({
+      id: this._id,
+      address: address,
+      routingContext: this._routingContext,
+      hostNameResolver: createHostNameResolver(this._config),
+      config: this._config,
+      log: this._log,
+      userAgent: userAgent,
+      authToken: authToken
+    })
   }
 }
 

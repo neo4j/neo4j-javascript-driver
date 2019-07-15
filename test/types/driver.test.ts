@@ -101,9 +101,3 @@ driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
   console.log(serverInfo.version)
   console.log(serverInfo.address)
 })
-
-driver.onError = (error: Neo4jError) => {
-  console.log(error)
-}
-
-driver.onError(new Neo4jError('message', 'code'))

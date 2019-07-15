@@ -21,17 +21,7 @@ import neo4j from '../../src'
 import sharedNeo4j from '../../test/internal/shared-neo4j'
 import Logger from '../../src/internal/logger'
 
-describe('Logger', () => {
-  let originalConsoleLog
-
-  beforeEach(() => {
-    originalConsoleLog = console.log
-  })
-
-  afterEach(() => {
-    console.log = originalConsoleLog
-  })
-
+describe('#unit Logger', () => {
   it('should create no-op logger when not configured', () => {
     const log = Logger.create({ logging: null })
 
@@ -82,7 +72,9 @@ describe('Logger', () => {
       { level: 'warn', message: 'Warn! Two' }
     ])
   })
+})
 
+describe('#integration Logger', () => {
   it('should log when logger configured in the driver', done => {
     const logged = []
     const config = memorizingLoggerConfig(logged)
@@ -120,74 +112,68 @@ describe('Logger', () => {
       })
   })
 
-  it('should log debug to console when configured in the driver', done => {
+  it('should log debug to console when configured in the driver', async () => {
+    const originalConsoleLog = console.log
     const logged = []
     console.log = message => logged.push(message)
+
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
       logging: neo4j.logging.console('debug')
     })
 
-    const session = driver.session()
-    session
-      .run('RETURN 123456789')
-      .then(() => {
-        expect(logged.length).toBeGreaterThan(0)
+    try {
+      const session = driver.session()
+      await session.run('RETURN 123456789')
 
-        // the executed statement should've been logged
-        const statementLogged = logged.find(
-          log =>
-            log.indexOf('DEBUG') !== -1 &&
-            log.indexOf('RETURN 123456789') !== -1
-        )
-        expect(statementLogged).toBeTruthy()
+      expect(logged.length).toBeGreaterThan(0)
 
-        // driver creation should've been logged because it is on info level
-        const driverCreationLogged = logged.find(
-          log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1
-        )
-        expect(driverCreationLogged).toBeTruthy()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
-      .then(() => {
-        driver.close()
-        done()
-      })
+      // the executed statement should've been logged
+      const statementLogged = logged.find(
+        log =>
+          log.indexOf('DEBUG') !== -1 && log.indexOf('RETURN 123456789') !== -1
+      )
+      expect(statementLogged).toBeTruthy()
+
+      // driver creation should've been logged because it is on info level
+      const driverCreationLogged = logged.find(
+        log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1
+      )
+      expect(driverCreationLogged).toBeTruthy()
+    } finally {
+      console.log = originalConsoleLog
+      driver.close()
+    }
   })
 
-  it('should log info to console when configured in the driver', done => {
+  it('should log info to console when configured in the driver', async () => {
+    const originalConsoleLog = console.log
     const logged = []
     console.log = message => logged.push(message)
+
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
       logging: neo4j.logging.console()
     }) // info is the default level
 
-    const session = driver.session()
-    session
-      .run('RETURN 123456789')
-      .then(() => {
-        expect(logged.length).toBeGreaterThan(0)
+    try {
+      const session = driver.session()
+      await session.run('RETURN 123456789')
+      expect(logged.length).toBeGreaterThan(0)
 
-        // the executed statement should not be logged because it is in debug level
-        const statementLogged = logged.find(
-          log => log.indexOf('RETURN 123456789') !== -1
-        )
-        expect(statementLogged).toBeFalsy()
+      // the executed statement should not be logged because it is in debug level
+      const statementLogged = logged.find(
+        log => log.indexOf('RETURN 123456789') !== -1
+      )
+      expect(statementLogged).toBeFalsy()
 
-        // driver creation should've been logged because it is on info level
-        const driverCreationLogged = logged.find(
-          log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1
-        )
-        expect(driverCreationLogged).toBeTruthy()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
-      .then(() => {
-        driver.close()
-        done()
-      })
+      // driver creation should've been logged because it is on info level
+      const driverCreationLogged = logged.find(
+        log => log.indexOf('driver') !== -1 && log.indexOf('created') !== -1
+      )
+      expect(driverCreationLogged).toBeTruthy()
+    } finally {
+      console.log = originalConsoleLog
+      driver.close()
+    }
   })
 })
 

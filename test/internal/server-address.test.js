@@ -19,7 +19,7 @@
 
 import ServerAddress from '../../src/internal/server-address'
 
-describe('ServerAddress', () => {
+describe('#unit ServerAddress', () => {
   it('should construct with correct values', () => {
     verifyAddress(ServerAddress.fromUrl('host.some.domain:8687'), {
       host: 'host.some.domain',

@@ -24,7 +24,7 @@ import _ from 'lodash'
 import { ServerVersion, VERSION_3_2_0 } from '../src/internal/server-version'
 import sharedNeo4j from './internal/shared-neo4j'
 
-describe('stress tests', () => {
+describe('#integration stress tests', () => {
   const TEST_MODES = {
     fast: {
       commandsCount: 5000,

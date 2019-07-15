@@ -19,21 +19,15 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import FakeConnection from './internal/fake-connection'
 import lolex from 'lolex'
 import {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
 } from '../src/internal/pool-config'
-import {
-  ServerVersion,
-  VERSION_3_1_0,
-  VERSION_4_0_0
-} from '../src/internal/server-version'
+import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
 
-describe('driver', () => {
-  let clock
+describe('#integration driver', () => {
   let driver
   let serverVersion
 
@@ -47,10 +41,6 @@ describe('driver', () => {
   })
 
   afterEach(() => {
-    if (clock) {
-      clock.uninstall()
-      clock = null
-    }
     if (driver) {
       driver.close()
       driver = null
@@ -69,20 +59,20 @@ describe('driver', () => {
     driver.close()
   })
 
-  it('should handle connection errors', done => {
+  it('should handle connection errors', async () => {
     // Given
     driver = neo4j.driver('bolt://local-host', sharedNeo4j.authToken)
-
-    // Expect
-    driver.onError = error => {
-      // the error message is different whether in browser or node
+    const session = driver.session()
+    const txc = session.beginTransaction()
+    try {
+      await txc.run('RETURN 1')
+      expect(true).toBeFalsy('exception expected')
+    } catch (error) {
       expect(error.message).not.toBeNull()
       expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
-      done()
+    } finally {
+      session.close()
     }
-
-    // When
-    startNewTransaction(driver)
   }, 10000)
 
   it('should fail with correct error message when connecting to port 80', done => {
@@ -135,19 +125,20 @@ describe('driver', () => {
     }).toBeDefined()
   })
 
-  it('should fail early on wrong credentials', done => {
+  it('should fail early on wrong credentials', async () => {
     // Given
     driver = neo4j.driver('bolt://localhost', wrongCredentials())
-
-    // Expect
-    driver.onError = err => {
-      // the error message is different whether in browser or node
-      expect(err.code).toEqual('Neo.ClientError.Security.Unauthorized')
-      done()
+    const session = driver.session()
+    const txc = session.beginTransaction()
+    try {
+      await txc.run('RETURN 1')
+      expect(true).toBeFalsy('exception expected')
+    } catch (error) {
+      expect(error.message).not.toBeNull()
+      expect(error.code).toEqual('Neo.ClientError.Security.Unauthorized')
+    } finally {
+      session.close()
     }
-
-    // When
-    startNewTransaction(driver)
   })
 
   it('should fail queries on wrong credentials', done => {
@@ -224,26 +215,25 @@ describe('driver', () => {
     })
   })
 
-  it('should fail nicely when connecting with routing to standalone server', done => {
+  it('should fail nicely when connecting with routing to standalone server', async () => {
     if (!routingProcedureOnlyAvailableOnCores()) {
-      done()
-      return
+      return Promise.resolve(null)
     }
 
     // Given
     driver = neo4j.driver('neo4j://localhost', sharedNeo4j.authToken)
-
-    // Expect
-    driver.onError = error => {
+    const session = driver.session()
+    try {
+      await session.run('RETURN 1')
+      expect(true).toBeFalsy('exception expected')
+    } catch (error) {
       expect(error.message).toContain(
         'Could not perform discovery. No routing servers available.'
       )
       expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
-      done()
+    } finally {
+      session.close()
     }
-
-    // When
-    startNewTransaction(driver)
   })
 
   it('should have correct user agent', () => {
@@ -269,42 +259,6 @@ describe('driver', () => {
       'connectionAcquisitionTimeout',
       DEFAULT_ACQUISITION_TIMEOUT
     )
-  })
-
-  it('should treat closed connections as invalid', () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-
-    const connectionValid = driver._validateConnection(
-      new FakeConnection().closed()
-    )
-
-    expect(connectionValid).toBeFalsy()
-  })
-
-  it('should treat not old open connections as valid', () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-      maxConnectionLifetime: 10
-    })
-
-    const connection = new FakeConnection().withCreationTimestamp(12)
-    clock = lolex.install()
-    clock.setSystemTime(20)
-    const connectionValid = driver._validateConnection(connection)
-
-    expect(connectionValid).toBeTruthy()
-  })
-
-  it('should treat old open connections as invalid', () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-      maxConnectionLifetime: 10
-    })
-
-    const connection = new FakeConnection().withCreationTimestamp(5)
-    clock = lolex.install()
-    clock.setSystemTime(20)
-    const connectionValid = driver._validateConnection(connection)
-
-    expect(connectionValid).toBeFalsy()
   })
 
   it('should discard closed connections', done => {
@@ -336,38 +290,38 @@ describe('driver', () => {
     })
   })
 
-  it('should discard old connections', done => {
+  it('should discard old connections', async () => {
     const maxLifetime = 100000
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
       maxConnectionLifetime: maxLifetime
     })
 
     const session1 = driver.session()
-    session1.run('CREATE () RETURN 42').then(() => {
-      session1.close()
+    await session1.run('CREATE () RETURN 42')
+    session1.close()
 
-      // one connection should be established
-      const connections1 = openConnectionFrom(driver)
-      expect(connections1.length).toEqual(1)
+    // one connection should be established
+    const connections1 = openConnectionFrom(driver)
+    expect(connections1.length).toEqual(1)
 
-      // make existing connection look very old by advancing the `Date.now()` value
-      const currentTime = Date.now()
-      clock = lolex.install()
+    // make existing connection look very old by advancing the `Date.now()` value
+    const currentTime = Date.now()
+    const clock = lolex.install()
+    try {
       clock.setSystemTime(currentTime + maxLifetime * 2)
 
       const session2 = driver.session()
-      session2.run('RETURN 1').then(() => {
-        session2.close()
+      await session2.run('RETURN 1')
+      session2.close()
 
-        // old connection should be disposed and new one should be created
-        const connections2 = openConnectionFrom(driver)
-        expect(connections2.length).toEqual(1)
+      // old connection should be disposed and new one should be created
+      const connections2 = openConnectionFrom(driver)
+      expect(connections2.length).toEqual(1)
 
-        expect(connections1[0]).not.toEqual(connections2[0])
-
-        done()
-      })
-    })
+      expect(connections1[0]).not.toEqual(connections2[0])
+    } finally {
+      clock.uninstall()
+    }
   })
 
   const exposedTypes = [
@@ -442,11 +396,6 @@ describe('driver', () => {
   })
 
   function testIPv6Connection (url, done) {
-    if (serverVersion.compareTo(VERSION_3_1_0) < 0) {
-      // IPv6 listen address only supported starting from neo4j 3.1, so let's ignore the rest
-      done()
-    }
-
     driver = neo4j.driver(url, sharedNeo4j.authToken)
 
     const session = driver.session()
@@ -523,7 +472,9 @@ describe('driver', () => {
   }
 
   function openConnectionFrom (driver) {
-    return Array.from(Object.values(driver._openConnections))
+    return Array.from(
+      Object.values(driver._connectionProvider._openConnections)
+    )
   }
 
   function routingProcedureOnlyAvailableOnCores () {

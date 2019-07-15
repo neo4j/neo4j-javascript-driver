@@ -26,7 +26,7 @@ import ServerAddress from '../../src/internal/server-address'
 
 const ROUTER_ADDRESS = 'neo4j://test.router.com'
 
-describe('rediscovery', () => {
+describe('#unit Rediscovery', () => {
   it('should return null when connection error happens', done => {
     const util = new FakeRoutingUtil({
       callRoutingProcedure: () => null
@@ -219,7 +219,7 @@ describe('rediscovery', () => {
 
   function lookupRoutingTableOnRouter (routingUtil) {
     const rediscovery = new Rediscovery(routingUtil)
-    return rediscovery.lookupRoutingTableOnRouter(null, ROUTER_ADDRESS)
+    return rediscovery.lookupRoutingTableOnRouter(null, null, ROUTER_ADDRESS)
   }
 
   function expectProtocolError (error, messagePrefix) {

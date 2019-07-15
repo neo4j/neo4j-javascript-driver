@@ -48,7 +48,7 @@ const MIN_ZONE_ID = 'Etc/GMT+12'
 const MAX_ZONE_ID = 'Etc/GMT-14'
 const ZONE_IDS = ['Europe/Zaporozhye', 'Europe/London', 'UTC', 'Africa/Cairo']
 
-describe('temporal-types', () => {
+describe('#integration temporal-types', () => {
   let originalTimeout
   let driver
   let driverWithNativeNumbers

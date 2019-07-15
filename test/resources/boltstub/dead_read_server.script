@@ -1,8 +1,0 @@
-!: AUTO INIT
-!: AUTO RESET
-!: AUTO PULL_ALL
-!: AUTO RUN "BEGIN" {}
-
-C: RUN "MATCH (n) RETURN n.name" {}
-C: PULL_ALL
-S: <EXIT>

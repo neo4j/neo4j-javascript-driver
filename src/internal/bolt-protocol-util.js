@@ -39,12 +39,12 @@ function assertTxConfigIsEmpty (txConfig, connection, observer) {
 
 /**
  * Asserts that the passed-in database name is empty.
- * @param {string} db
+ * @param {string} database
  * @param {Connection} connection
  * @param {StreamObserver} observer
  */
-function assertDbIsEmpty (db, connection, observer) {
-  if (db) {
+function assertDatabaseIsEmpty (database, connection, observer) {
+  if (database) {
     const error = newError(
       'Driver is connected to the database that does not support multiple databases. ' +
         'Please upgrade to neo4j 4.0.0 or later in order to use this functionality'
@@ -57,4 +57,4 @@ function assertDbIsEmpty (db, connection, observer) {
   }
 }
 
-export { assertDbIsEmpty, assertTxConfigIsEmpty }
+export { assertDatabaseIsEmpty, assertTxConfigIsEmpty }

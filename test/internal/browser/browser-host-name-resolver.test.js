@@ -19,7 +19,7 @@
 
 import BrowserHostNameResolver from '../../../src/internal/browser/browser-host-name-resolver'
 
-describe('BrowserHostNameResolver', () => {
+describe('#unit BrowserHostNameResolver', () => {
   it('should resolve given address to itself', done => {
     const seedRouter = 'localhost'
     const resolver = new BrowserHostNameResolver()

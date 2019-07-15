@@ -24,7 +24,7 @@ import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
 
-describe('BoltProtocolV3', () => {
+describe('#unit BoltProtocolV3', () => {
   beforeEach(() => {
     jasmine.addMatchers(utils.matchers)
   })
@@ -168,25 +168,25 @@ describe('BoltProtocolV3', () => {
     }
 
     describe('beginTransaction', () => {
-      function verifyBeginTransaction (db) {
+      function verifyBeginTransaction (database) {
         verifyError((protocol, observer) =>
-          protocol.beginTransaction(observer, { db })
+          protocol.beginTransaction(observer, { database })
         )
       }
 
-      it('should throw error when db is set', () => {
+      it('should throw error when database is set', () => {
         verifyBeginTransaction('test')
       })
     })
 
     describe('run', () => {
-      function verifyRun (db) {
+      function verifyRun (database) {
         verifyError((protocol, observer) =>
-          protocol.run('statement', {}, observer, { db })
+          protocol.run('statement', {}, observer, { database })
         )
       }
 
-      it('should throw error when db is set', () => {
+      it('should throw error when database is set', () => {
         verifyRun('test')
       })
     })

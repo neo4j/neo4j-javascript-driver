@@ -21,7 +21,7 @@ import neo4j from '../src'
 import { statementType } from '../src/result-summary'
 import Session from '../src/session'
 import { READ } from '../src/driver'
-import { SingleConnectionProvider } from '../src/internal/connection-providers'
+import SingleConnectionProvider from '../src/internal/connection-provider-single'
 import FakeConnection from './internal/fake-connection'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
@@ -31,7 +31,7 @@ import testUtils from './internal/test-utils'
 import { newError, PROTOCOL_ERROR, SESSION_EXPIRED } from '../src/error'
 import ServerAddress from '../src/internal/server-address'
 
-describe('session', () => {
+describe('#integration session', () => {
   let driver
   let session
   // eslint-disable-next-line no-unused-vars
@@ -1274,7 +1274,7 @@ describe('session', () => {
   }
 
   function numberOfAcquiredConnectionsFromPool () {
-    const pool = driver._pool
+    const pool = driver._connectionProvider._connectionPool
     return pool.activeResourceCount(ServerAddress.fromUrl('localhost:7687'))
   }
 

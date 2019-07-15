@@ -36,7 +36,8 @@ class UnsupportedBoltStub {
   }
 }
 
-const verbose = false // for debugging purposes
+const verbose =
+  (process.env['NEOLOGLEVEL'] || 'error').toLowerCase() === 'debug' // for debugging purposes
 
 class SupportedBoltStub extends UnsupportedBoltStub {
   constructor () {
@@ -60,13 +61,13 @@ class SupportedBoltStub extends UnsupportedBoltStub {
 
     if (verbose) {
       boltStub.stdout.on('data', data => {
-        console.log(`${data}`)
+        console.warn(`${data}`)
       })
       boltStub.stderr.on('data', data => {
-        console.log(`${data}`)
+        console.warn(`${data}`)
       })
       boltStub.on('end', data => {
-        console.log(data)
+        console.warn(data)
       })
     }
 
@@ -76,7 +77,7 @@ class SupportedBoltStub extends UnsupportedBoltStub {
     })
 
     boltStub.on('error', error => {
-      console.log('Failed to start child process:' + error)
+      console.warn('Failed to start child process:' + error)
     })
 
     return new StubServer(() => exitCode)
@@ -114,7 +115,7 @@ function newDriver (url, config = {}) {
   // left here for debugging purposes
   const logging = {
     level: (process.env['NEOLOGLEVEL'] || 'error').toLowerCase(),
-    logger: (level, msg) => console.log(`${level}: ${msg}`)
+    logger: (level, msg) => console.warn(`${level}: ${msg}`)
   }
   // boltstub currently does not support encryption, create driver with encryption turned off
   const newConfig = Object.assign(

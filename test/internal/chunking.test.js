@@ -21,7 +21,7 @@ import { Chunker, Dechunker } from '../../src/internal/chunking'
 import { alloc } from '../../src/internal/node'
 import DummyChannel from './dummy-channel'
 
-describe('Chunker', () => {
+describe('#unit Chunker', () => {
   it('should chunk simple data', () => {
     // Given
     const ch = new DummyChannel()

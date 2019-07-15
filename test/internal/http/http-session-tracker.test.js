@@ -21,7 +21,7 @@ import HttpSession from '../../../src/internal/http/http-session'
 import urlUtil from '../../../src/internal/url-util'
 import HttpSessionTracker from '../../../src/internal/http/http-session-tracker'
 
-describe('http session tracker', () => {
+describe('#unit http session tracker', () => {
   it('should close open sessions', done => {
     const tracker = new HttpSessionTracker()
 

@@ -21,7 +21,7 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import utils from './internal/test-utils'
 
-describe('result stream', () => {
+describe('#integration result stream', () => {
   let driver, session
 
   beforeEach(done => {

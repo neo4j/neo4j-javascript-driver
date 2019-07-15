@@ -25,9 +25,8 @@ import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../../src/error'
 import lolex from 'lolex'
 import ServerAddress from '../../../src/internal/server-address'
 
-describe('routing driver with stub server', () => {
+describe('#stub-routing routing driver with stub server', () => {
   let originalTimeout
-  let clock
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
@@ -45,7 +44,7 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const server = boltStub.start(
-      './test/resources/boltstub/discover_servers_and_read.script',
+      './test/resources/boltstub/v3/discover_servers_and_read.script',
       9001
     )
 
@@ -83,7 +82,7 @@ describe('routing driver with stub server', () => {
     }
 
     const server = boltStub.start(
-      './test/resources/boltstub/discover_ipv6_servers_and_read.script',
+      './test/resources/boltstub/v3/discover_ipv6_servers_and_read.script',
       9001
     )
 
@@ -135,11 +134,11 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9042
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
 
@@ -166,48 +165,14 @@ describe('routing driver with stub server', () => {
     })
   })
 
-  it('should discover new servers', done => {
+  it('should discover servers using subscribe', done => {
     if (!boltStub.supported) {
       done()
       return
     }
     // Given
     const server = boltStub.start(
-      './test/resources/boltstub/discover_new_servers.script',
-      9001
-    )
-
-    boltStub.run(() => {
-      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
-      // When
-      const session = driver.session()
-      session.run('MATCH (n) RETURN n.name').then(() => {
-        // Then
-        assertHasRouters(driver, [
-          '127.0.0.1:9004',
-          '127.0.0.1:9002',
-          '127.0.0.1:9003'
-        ])
-        assertHasReaders(driver, ['127.0.0.1:9005', '127.0.0.1:9003'])
-        assertHasWriters(driver, ['127.0.0.1:9001'])
-
-        driver.close()
-        server.exit(code => {
-          expect(code).toEqual(0)
-          done()
-        })
-      })
-    })
-  })
-
-  it('should discover new servers using subscribe', done => {
-    if (!boltStub.supported) {
-      done()
-      return
-    }
-    // Given
-    const server = boltStub.start(
-      './test/resources/boltstub/discover_new_servers.script',
+      './test/resources/boltstub/v3/discover_servers_and_read.script',
       9001
     )
 
@@ -219,11 +184,11 @@ describe('routing driver with stub server', () => {
         onCompleted: () => {
           // Then
           assertHasRouters(driver, [
-            '127.0.0.1:9004',
+            '127.0.0.1:9001',
             '127.0.0.1:9002',
             '127.0.0.1:9003'
           ])
-          assertHasReaders(driver, ['127.0.0.1:9005', '127.0.0.1:9003'])
+          assertHasReaders(driver, ['127.0.0.1:9002', '127.0.0.1:9003'])
           assertHasWriters(driver, ['127.0.0.1:9001'])
 
           driver.close()
@@ -243,7 +208,7 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const server = boltStub.start(
-      './test/resources/boltstub/empty_get_servers_response.script',
+      './test/resources/boltstub/v3/acquire_endpoints_no_records.script',
       9001
     )
 
@@ -277,11 +242,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
 
@@ -321,19 +286,19 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/short_ttl.script',
+      './test/resources/boltstub/v3/acquire_endpoints_short_ttl.script',
       9999
     )
     const nextRouter = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9003
     )
     const readServer1 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9004
     )
     const readServer2 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9006
     )
 
@@ -381,15 +346,15 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer1 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
     const readServer2 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9006
     )
 
@@ -434,11 +399,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/v3/read_dead.script',
       9005
     )
 
@@ -467,11 +432,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const writeServer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/v3/write.script',
       9007
     )
 
@@ -500,15 +465,15 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer1 = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/v3/write.script',
       9007
     )
     const readServer2 = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/v3/write.script',
       9008
     )
 
@@ -543,11 +508,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/v3/write_dead.script',
       9007
     )
 
@@ -555,7 +520,7 @@ describe('routing driver with stub server', () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
       const session = driver.session({ defaultAccessMode: WRITE })
-      session.run('MATCH (n) RETURN n.name').catch(err => {
+      session.run('CREATE ()').catch(err => {
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED)
         driver.close()
         seedServer.exit(code1 => {
@@ -576,11 +541,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
 
@@ -616,11 +581,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/v3/read_dead.script',
       9005
     )
 
@@ -661,7 +626,7 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
 
@@ -699,22 +664,20 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/rediscover.script',
+      './test/resources/boltstub/v3/acquire_endpoints_rediscover.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       // When
-      const session1 = driver.session({ defaultAccessMode: neo4j.session.READ })
+      const session1 = driver.session({ defaultAccessMode: READ })
       session1.run('MATCH (n) RETURN n.name').catch(() => {
-        const session2 = driver.session({
-          defaultAccessMode: neo4j.session.READ
-        })
+        const session2 = driver.session({ defaultAccessMode: READ })
         session2.run('MATCH (n) RETURN n.name').then(() => {
           driver.close()
           seedServer.exit(code1 => {
@@ -737,7 +700,7 @@ describe('routing driver with stub server', () => {
 
     // Given
     const server = boltStub.start(
-      './test/resources/boltstub/non_discovery.script',
+      './test/resources/boltstub/v3/acquire_endpoints_not_supported.script',
       9001
     )
 
@@ -748,7 +711,7 @@ describe('routing driver with stub server', () => {
       session.run('MATCH (n) RETURN n.name').catch(err => {
         expect(err.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
         expect(err.message).toContain('Could not perform discovery')
-        assertHasRouters(driver, [])
+        assertNoRoutingTable(driver)
         session.close()
         driver.close()
         server.exit(code => {
@@ -766,11 +729,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/not_able_to_write.script',
+      './test/resources/boltstub/v3/write_not_a_leader.script',
       9007
     )
 
@@ -802,11 +765,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/not_able_to_write_in_transaction.script',
+      './test/resources/boltstub/v3/write_tx_not_a_leader.script',
       9007
     )
 
@@ -841,7 +804,7 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/no_writers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_no_writers.script',
       9001
     )
 
@@ -867,19 +830,19 @@ describe('routing driver with stub server', () => {
     }
 
     const server1 = boltStub.start(
-      './test/resources/boltstub/routing_table_with_zero_ttl.script',
+      './test/resources/boltstub/v3/acquire_endpoints_zero_ttl.script',
       9999
     )
     const server2 = boltStub.start(
-      './test/resources/boltstub/dead_routing_server.script',
+      './test/resources/boltstub/v3/acquire_endpoints_dead.script',
       9091
     )
     const server3 = boltStub.start(
-      './test/resources/boltstub/dead_routing_server.script',
+      './test/resources/boltstub/v3/acquire_endpoints_dead.script',
       9092
     )
     const server4 = boltStub.start(
-      './test/resources/boltstub/dead_routing_server.script',
+      './test/resources/boltstub/v3/acquire_endpoints_dead.script',
       9093
     )
 
@@ -938,11 +901,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/single_write_server.script',
+      './test/resources/boltstub/v3/acquire_endpoints_three_servers_set_1.script',
       9002
     )
     const writeServer = boltStub.start(
-      './test/resources/boltstub/two_write_responses_server.script',
+      './test/resources/boltstub/v3/write_twice.script',
       9001
     )
 
@@ -986,15 +949,15 @@ describe('routing driver with stub server', () => {
 
     // Given
     const routingServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const writeServer = boltStub.start(
-      './test/resources/boltstub/write_server_with_version.script',
+      './test/resources/boltstub/v3/write_with_server_version.script',
       9007
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server_with_version.script',
+      './test/resources/boltstub/v3/read_with_server_version.script',
       9005
     )
 
@@ -1042,15 +1005,15 @@ describe('routing driver with stub server', () => {
 
     // Given
     const routingServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const writeServer = boltStub.start(
-      './test/resources/boltstub/write_server_with_version.script',
+      './test/resources/boltstub/v3/write_with_server_version.script',
       9007
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server_with_version.script',
+      './test/resources/boltstub/v3/read_with_server_version.script',
       9005
     )
 
@@ -1102,7 +1065,7 @@ describe('routing driver with stub server', () => {
     }
 
     const server = boltStub.start(
-      './test/resources/boltstub/routing_table_with_zero_ttl.script',
+      './test/resources/boltstub/v3/acquire_endpoints_zero_ttl.script',
       9999
     )
 
@@ -1152,7 +1115,7 @@ describe('routing driver with stub server', () => {
 
     // server is both router and writer
     const server = boltStub.start(
-      './test/resources/boltstub/discover_new_servers.script',
+      './test/resources/boltstub/v3/discover_servers_and_read.script',
       9001
     )
 
@@ -1195,49 +1158,56 @@ describe('routing driver with stub server', () => {
 
   it('should throw error when no records', done => {
     testForProtocolError(
-      './test/resources/boltstub/empty_get_servers_response.script',
+      './test/resources/boltstub/v3/acquire_endpoints_no_records.script',
       done
     )
   })
 
   it('should throw error when no TTL entry', done => {
     testForProtocolError(
-      './test/resources/boltstub/no_ttl_entry_get_servers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_no_ttl_field.script',
       done
     )
   })
 
   it('should throw error when no servers entry', done => {
     testForProtocolError(
-      './test/resources/boltstub/no_servers_entry_get_servers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_no_servers_field.script',
+      done
+    )
+  })
+
+  it('should throw error when unparsable TTL entry', done => {
+    testForProtocolError(
+      './test/resources/boltstub/v3/acquire_endpoints_unparsable_ttl.script',
       done
     )
   })
 
   it('should throw error when multiple records', done => {
     testForProtocolError(
-      './test/resources/boltstub/unparsable_ttl_get_servers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_multiple_records.script',
       done
     )
   })
 
   it('should throw error on unparsable record', done => {
     testForProtocolError(
-      './test/resources/boltstub/unparsable_servers_get_servers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_unparsable_servers.script',
       done
     )
   })
 
   it('should throw error when no routers', done => {
     testForProtocolError(
-      './test/resources/boltstub/no_routers_get_servers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_no_routers.script',
       done
     )
   })
 
   it('should throw error when no readers', done => {
     testForProtocolError(
-      './test/resources/boltstub/no_readers_get_servers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_no_readers.script',
       done
     )
   })
@@ -1345,19 +1315,19 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_tx_with_bookmarks.script',
+      './test/resources/boltstub/v3/write_tx_with_bookmarks.script',
       9007
     )
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
-      const session = driver.session()
-      const tx = session.beginTransaction('neo4j:bookmark:v1:tx42')
+      const session = driver.session({ bookmarks: ['neo4j:bookmark:v1:tx42'] })
+      const tx = session.beginTransaction()
       tx.run("CREATE (n {name:'Bob'})").then(() => {
         tx.commit().then(() => {
           expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
@@ -1400,11 +1370,11 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/read_tx_with_bookmarks.script',
+      './test/resources/boltstub/v3/read_tx_with_bookmarks.script',
       9005
     )
 
@@ -1447,12 +1417,12 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_with_one_of_each.script',
+      './test/resources/boltstub/v3/acquire_endpoints_three_servers_set_2.script',
       9001
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_read_tx_with_bookmarks.script',
-      9007
+      './test/resources/boltstub/v3/write_read_tx_with_bookmarks.script',
+      9010
     )
 
     boltStub.run(() => {
@@ -1499,15 +1469,15 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const brokenReader = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/v3/read_tx_dead.script',
       9005
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read_tx.script',
       9006
     )
 
@@ -1549,15 +1519,15 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const brokenWriter = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/v3/write_tx_dead.script',
       9007
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/v3/write_tx.script',
       9008
     )
 
@@ -1599,15 +1569,15 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const brokenReader1 = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/v3/read_tx_dead.script',
       9005
     )
     const brokenReader2 = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/v3/read_tx_dead.script',
       9006
     )
 
@@ -1615,18 +1585,19 @@ describe('routing driver with stub server', () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
 
+      let clock
       let invocations = 0
       const resultPromise = session.readTransaction(tx => {
         invocations++
         if (invocations === 2) {
           // make retries stop after two invocations
-          moveTime30SecondsForward()
+          clock = moveTime30SecondsForward()
         }
         return tx.run('MATCH (n) RETURN n.name')
       })
 
       resultPromise.catch(error => {
-        removeTimeMocking() // uninstall lolex mocking to make test complete, boltkit uses timers
+        removeTimeMocking(clock) // uninstall lolex mocking to make test complete, boltkit uses timers
 
         expect(error.code).toEqual(SESSION_EXPIRED)
         expect(invocations).toEqual(2)
@@ -1655,15 +1626,15 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const brokenWriter1 = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/v3/write_tx_dead.script',
       9007
     )
     const brokenWriter2 = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/v3/write_tx_dead.script',
       9008
     )
 
@@ -1671,18 +1642,19 @@ describe('routing driver with stub server', () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
       const session = driver.session()
 
+      let clock = null
       let invocations = 0
       const resultPromise = session.writeTransaction(tx => {
         invocations++
         if (invocations === 2) {
           // make retries stop after two invocations
-          moveTime30SecondsForward()
+          clock = moveTime30SecondsForward()
         }
         return tx.run("CREATE (n {name:'Bob'})")
       })
 
       resultPromise.catch(error => {
-        removeTimeMocking() // uninstall lolex mocking to make test complete, boltStub uses timers
+        removeTimeMocking(clock) // uninstall lolex mocking to make test complete, boltStub uses timers
 
         expect(error.code).toEqual(SESSION_EXPIRED)
         expect(invocations).toEqual(2)
@@ -1711,23 +1683,23 @@ describe('routing driver with stub server', () => {
     }
 
     const router1 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9010
     )
     const brokenReader1 = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/v3/read_tx_dead.script',
       9005
     )
     const brokenReader2 = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/v3/read_tx_dead.script',
       9006
     )
     const router2 = boltStub.start(
-      './test/resources/boltstub/discover_servers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_three_servers_set_3.script',
       9001
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read_tx.script',
       9002
     )
 
@@ -1775,23 +1747,23 @@ describe('routing driver with stub server', () => {
     }
 
     const router1 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9010
     )
     const brokenWriter1 = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/v3/write_tx_dead.script',
       9007
     )
     const brokenWriter2 = boltStub.start(
-      './test/resources/boltstub/dead_write_server.script',
+      './test/resources/boltstub/v3/write_tx_dead.script',
       9008
     )
     const router2 = boltStub.start(
-      './test/resources/boltstub/discover_servers.script',
+      './test/resources/boltstub/v3/acquire_endpoints_three_servers_set_3.script',
       9002
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/v3/write_tx.script',
       9009
     )
 
@@ -1840,11 +1812,11 @@ describe('routing driver with stub server', () => {
 
     // use scripts that exit eagerly when they are executed to simulate failed servers
     const router1 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_and_exit.script',
+      './test/resources/boltstub/v3/acquire_endpoints_and_exit.script',
       9010
     )
     const tmpReader = boltStub.start(
-      './test/resources/boltstub/read_server_and_exit.script',
+      './test/resources/boltstub/v3/read_and_exit.script',
       9005
     )
 
@@ -1865,7 +1837,7 @@ describe('routing driver with stub server', () => {
 
               // start new router on the same port with different script that contains itself as reader
               const router2 = boltStub.start(
-                './test/resources/boltstub/rediscover_using_initial_router.script',
+                './test/resources/boltstub/v3/acquire_endpoints_self_as_reader.script',
                 9010
               )
 
@@ -1903,13 +1875,13 @@ describe('routing driver with stub server', () => {
     }
 
     const router1 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_and_exit.script',
+      './test/resources/boltstub/v3/acquire_endpoints_and_exit.script',
       9011
     )
     // start new router on a different port to emulate host name resolution
     // this router uses different script that contains itself as reader
     const router2 = boltStub.start(
-      './test/resources/boltstub/rediscover_using_initial_router.script',
+      './test/resources/boltstub/v3/acquire_endpoints_self_as_reader.script',
       9009
     )
 
@@ -1945,35 +1917,6 @@ describe('routing driver with stub server', () => {
     })
   })
 
-  it('should invoke procedure get routing table when server version permits', done => {
-    if (!boltStub.supported) {
-      done()
-      return
-    }
-
-    const router = boltStub.start(
-      './test/resources/boltstub/get_routing_table.script',
-      9001
-    )
-
-    boltStub.run(() => {
-      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
-      const session = driver.session()
-      session.run('MATCH (n) RETURN n.name AS name').then(result => {
-        const names = result.records.map(record => record.get('name'))
-        expect(names).toEqual(['Alice', 'Bob', 'Eve'])
-
-        session.close(() => {
-          driver.close()
-          router.exit(code => {
-            expect(code).toEqual(0)
-            done()
-          })
-        })
-      })
-    })
-  })
-
   it('should send routing context to server', done => {
     if (!boltStub.supported) {
       done()
@@ -1981,7 +1924,7 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/get_routing_table_with_context.script',
+      './test/resources/boltstub/v3/acquire_endpoints_with_context.script',
       9001
     )
 
@@ -2005,37 +1948,6 @@ describe('routing driver with stub server', () => {
     })
   })
 
-  it('should ignore routing context when server does not support it', done => {
-    if (!boltStub.supported) {
-      done()
-      return
-    }
-
-    const router = boltStub.start(
-      './test/resources/boltstub/rediscover_and_read_with_init.script',
-      9001
-    )
-
-    boltStub.run(() => {
-      const driver = boltStub.newDriver(
-        'neo4j://127.0.0.1:9001/?policy=my_policy'
-      )
-      const session = driver.session()
-      session.run('MATCH (n) RETURN n.name').then(result => {
-        const names = result.records.map(record => record.get(0))
-        expect(names).toEqual(['Bob', 'Tina'])
-
-        session.close(() => {
-          driver.close()
-          router.exit(code => {
-            expect(code).toEqual(0)
-            done()
-          })
-        })
-      })
-    })
-  })
-
   it('should treat routing table with single router as valid', done => {
     if (!boltStub.supported) {
       done()
@@ -2043,15 +1955,15 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/discover_one_router.script',
+      './test/resources/boltstub/v3/acquire_endpoints_one_router.script',
       9010
     )
     const reader1 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9003
     )
     const reader2 = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9004
     )
 
@@ -2092,16 +2004,16 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/discover_no_writers.script',
-      9010
+      './test/resources/boltstub/v3/acquire_endpoints_no_writers.script',
+      9001
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
-      9002
+      './test/resources/boltstub/v3/read.script',
+      9005
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(result => {
@@ -2133,20 +2045,20 @@ describe('routing driver with stub server', () => {
     }
 
     const router1 = boltStub.start(
-      './test/resources/boltstub/discover_no_writers.script',
-      9010
+      './test/resources/boltstub/v3/acquire_endpoints_no_writers.script',
+      9001
     )
     const router2 = boltStub.start(
-      './test/resources/boltstub/discover_no_writers.script',
-      9004
+      './test/resources/boltstub/v3/acquire_endpoints_no_writers.script',
+      9002
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
-      9003
+      './test/resources/boltstub/v3/read_tx.script',
+      9005
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const readSession = driver.session()
 
@@ -2191,21 +2103,21 @@ describe('routing driver with stub server', () => {
     // first router does not have itself in the resulting routing table so connection
     // towards it will be closed after rediscovery
     const router1 = boltStub.start(
-      './test/resources/boltstub/discover_no_writers.script',
-      9010
+      './test/resources/boltstub/v3/acquire_endpoints_no_writers.script',
+      9001
     )
     let router2 = null
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
-      9003
+      './test/resources/boltstub/v3/read_tx.script',
+      9005
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/v3/write.script',
       9007
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const readSession = driver.session()
 
@@ -2221,8 +2133,8 @@ describe('routing driver with stub server', () => {
 
             // start another router which knows about writes, use same address as the initial router
             router2 = boltStub.start(
-              './test/resources/boltstub/acquire_endpoints.script',
-              9010
+              './test/resources/boltstub/v3/acquire_endpoints.script',
+              9002
             )
             boltStub.run(() => {
               const writeSession = driver.session({ defaultAccessMode: WRITE })
@@ -2260,24 +2172,24 @@ describe('routing driver with stub server', () => {
     }
 
     const seedRouter = boltStub.start(
-      './test/resources/boltstub/no_writers.script',
-      9010
+      './test/resources/boltstub/v3/acquire_endpoints_no_writers.script',
+      9001
     )
     const resolvedSeedRouter = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9020
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_server.script',
+      './test/resources/boltstub/v3/write.script',
       9007
     )
 
     boltStub.run(() => {
-      const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       const readSession = driver.session({ defaultAccessMode: READ })
       readSession.run('MATCH (n) RETURN n.name').then(result => {
@@ -2288,7 +2200,7 @@ describe('routing driver with stub server', () => {
             'Tina'
           ])
 
-          setupFakeHostNameResolution(driver, '127.0.0.1:9010', [
+          setupFakeHostNameResolution(driver, '127.0.0.1:9001', [
             '127.0.0.1:9020'
           ])
 
@@ -2326,7 +2238,7 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/failed_auth.script',
+      './test/resources/boltstub/v3/no_auth.script',
       9010
     )
 
@@ -2355,11 +2267,11 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9010
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/multiple_bookmarks.script',
+      './test/resources/boltstub/v3/write_tx_with_multiple_bookmarks.script',
       9007
     )
 
@@ -2397,11 +2309,21 @@ describe('routing driver with stub server', () => {
   })
 
   it('should forget writer on database unavailable error', done => {
-    testAddressPurgeOnDatabaseError(`CREATE (n {name:'Bob'})`, WRITE, done)
+    testAddressPurgeOnDatabaseError(
+      './test/resources/boltstub/v3/write_database_unavailable.script',
+      `CREATE (n {name:'Bob'})`,
+      WRITE,
+      done
+    )
   })
 
   it('should forget reader on database unavailable error', done => {
-    testAddressPurgeOnDatabaseError(`RETURN 1`, READ, done)
+    testAddressPurgeOnDatabaseError(
+      './test/resources/boltstub/v3/read_database_unavailable.script',
+      `RETURN 1`,
+      READ,
+      done
+    )
   })
 
   it('should use resolver function that returns array during first discovery', done => {
@@ -2458,15 +2380,15 @@ describe('routing driver with stub server', () => {
     }
 
     const router1 = boltStub.start(
-      './test/resources/boltstub/get_routing_table.script',
+      './test/resources/boltstub/v3/acquire_endpoints_two_servers_set_1.script',
       9001
     )
     const router2 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9042
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read_tx.script',
       9005
     )
 
@@ -2532,17 +2454,9 @@ describe('routing driver with stub server', () => {
     })
   })
 
-  it('should rediscover using older getServers procedure when server is old', done => {
-    testDiscoveryAndReadQueryInAutoCommitTx(
-      './test/resources/boltstub/acquire_endpoints_old_routing_procedure.script',
-      {},
-      done
-    )
-  })
-
   it('should connect to cluster when disableLosslessIntegers is on', done => {
     testDiscoveryAndReadQueryInAutoCommitTx(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       { disableLosslessIntegers: true },
       done
     )
@@ -2555,11 +2469,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_v3.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server_v3_read.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
 
@@ -2593,11 +2507,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_v3.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/read_server_v3_read_tx.script',
+      './test/resources/boltstub/v3/read_tx.script',
       9005
     )
 
@@ -2633,11 +2547,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_v3.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const writeServer = boltStub.start(
-      './test/resources/boltstub/write_server_v3_write.script',
+      './test/resources/boltstub/v3/write.script',
       9007
     )
 
@@ -2666,11 +2580,11 @@ describe('routing driver with stub server', () => {
     }
     // Given
     const seedServer = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_v3.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const writeServer = boltStub.start(
-      './test/resources/boltstub/write_server_v3_write_tx.script',
+      './test/resources/boltstub/v3/write_tx.script',
       9007
     )
 
@@ -2704,22 +2618,22 @@ describe('routing driver with stub server', () => {
     // the returned routing table includes a non-reachable read-server and points to only one router
     // which will return an invalid routing table
     const router1 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_v3_point_to_empty_router_and_exit.script',
+      './test/resources/boltstub/v3/acquire_endpoints_three_servers_set_2.script',
       9001
     )
     // returns an empty routing table
     const router2 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_v3_empty.script',
+      './test/resources/boltstub/v3/acquire_endpoints_no_servers.script',
       9004
     )
     // returns a normal routing table
     const router3 = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints_v3_three_servers_and_exit.script',
+      './test/resources/boltstub/v3/acquire_endpoints_three_servers_set_1.script',
       9003
     )
     // ordinary read server
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server_v3_read_tx.script',
+      './test/resources/boltstub/v3/read_tx.script',
       9002
     )
 
@@ -2752,26 +2666,247 @@ describe('routing driver with stub server', () => {
     })
   })
 
-  function testAddressPurgeOnDatabaseError (query, accessMode, done) {
+  describe('multi-Database', () => {
+    function verifyDiscoverAndRead (script, database, done) {
+      if (!boltStub.supported) {
+        done()
+        return
+      }
+
+      // Given
+      const server = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_${database ||
+          'default_database'}.script`,
+        9001
+      )
+      const readServer = boltStub.start(
+        `./test/resources/boltstub/v4/${script}.script`,
+        9005
+      )
+
+      boltStub.run(() => {
+        const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+        // When
+        const session = driver.session({
+          database: database,
+          defaultAccessMode: READ
+        })
+        session.run('MATCH (n) RETURN n.name').then(() => {
+          session.close()
+          // Then
+          expect(
+            hasAddressInConnectionPool(driver, '127.0.0.1:9001')
+          ).toBeTruthy()
+          expect(
+            hasAddressInConnectionPool(driver, '127.0.0.1:9005')
+          ).toBeTruthy()
+          assertHasRouters(
+            driver,
+            ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003'],
+            database
+          )
+          assertHasReaders(
+            driver,
+            ['127.0.0.1:9005', '127.0.0.1:9006'],
+            database
+          )
+          assertHasWriters(
+            driver,
+            ['127.0.0.1:9007', '127.0.0.1:9008'],
+            database
+          )
+
+          driver.close()
+          server.exit(code => {
+            readServer.exit(readCode => {
+              expect(code).toEqual(0)
+              expect(readCode).toEqual(0)
+              done()
+            })
+          })
+        })
+      })
+    }
+
+    function verifyDiscoverAndWrite (script, database, done) {
+      if (!boltStub.supported) {
+        done()
+        return
+      }
+
+      // Given
+      const server = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_${database ||
+          'default_database'}.script`,
+        9001
+      )
+      const writeServer = boltStub.start(
+        `./test/resources/boltstub/v4/${script}.script`,
+        9007
+      )
+
+      boltStub.run(() => {
+        const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+        // When
+        const session = driver.session({ database: database })
+        session.run("CREATE (n {name:'Bob'})").then(() => {
+          session.close()
+          // Then
+          expect(
+            hasAddressInConnectionPool(driver, '127.0.0.1:9001')
+          ).toBeTruthy()
+          expect(
+            hasAddressInConnectionPool(driver, '127.0.0.1:9007')
+          ).toBeTruthy()
+          assertHasRouters(
+            driver,
+            ['127.0.0.1:9001', '127.0.0.1:9002', '127.0.0.1:9003'],
+            database
+          )
+          assertHasReaders(
+            driver,
+            ['127.0.0.1:9005', '127.0.0.1:9006'],
+            database
+          )
+          assertHasWriters(
+            driver,
+            ['127.0.0.1:9007', '127.0.0.1:9008'],
+            database
+          )
+
+          driver.close()
+          server.exit(code => {
+            writeServer.exit(writeCode => {
+              expect(code).toEqual(0)
+              expect(writeCode).toEqual(0)
+              done()
+            })
+          })
+        })
+      })
+    }
+
+    it('should discover servers for default database and read', done => {
+      verifyDiscoverAndRead('read', '', done)
+    })
+
+    it('should discover servers for aDatabase and read', done => {
+      verifyDiscoverAndRead('read_from_aDatabase', 'aDatabase', done)
+    })
+
+    it('should discover servers for default database and write', done => {
+      verifyDiscoverAndWrite('write', '', done)
+    })
+
+    it('should discover servers for aDatabase and write', done => {
+      verifyDiscoverAndWrite('write_to_aDatabase', 'aDatabase', done)
+    })
+
+    it('should fail discovery if database not found', done => {
+      if (!boltStub.supported) {
+        done()
+        return
+      }
+
+      // Given
+      const server = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_db_not_found.script`,
+        9001
+      )
+
+      boltStub.run(() => {
+        const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+        // When
+        const session = driver.session({ database: 'aDatabase' })
+
+        session.run('CREATE ()').catch(error => {
+          // Then
+          expect(error.code).toEqual(
+            'Neo.ClientError.Database.DatabaseNotFound'
+          )
+          expect(error.message).toEqual('database not found')
+
+          session.close()
+          driver.close()
+          server.exit(code => {
+            expect(code).toEqual(0)
+            done()
+          })
+        })
+      })
+    })
+
+    it('should try next server for empty routing table response', done => {
+      if (!boltStub.supported) {
+        done()
+        return
+      }
+
+      // Given
+      const router1 = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_aDatabase_no_servers.script`,
+        9001
+      )
+      const router2 = boltStub.start(
+        `./test/resources/boltstub/v4/acquire_endpoints_aDatabase.script`,
+        9002
+      )
+      const reader1 = boltStub.start(
+        `./test/resources/boltstub/v4/read_from_aDatabase.script`,
+        9005
+      )
+
+      boltStub.run(() => {
+        const driver = boltStub.newDriver('neo4j://127.0.0.1:9000', {
+          resolver: address => [
+            'neo4j://127.0.0.1:9001',
+            'neo4j://127.0.0.1:9002'
+          ]
+        })
+
+        // When
+        const session = driver.session({
+          database: 'aDatabase',
+          defaultAccessMode: READ
+        })
+        session.run('MATCH (n) RETURN n.name').then(result => {
+          expect(result.records.map(record => record.get(0))).toEqual([
+            'Bob',
+            'Alice',
+            'Tina'
+          ])
+
+          session.close()
+          driver.close()
+          router1.exit(code1 => {
+            router2.exit(code2 => {
+              reader1.exit(code3 => {
+                expect(code1).toEqual(0)
+                expect(code2).toEqual(0)
+                expect(code3).toEqual(0)
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
+  function testAddressPurgeOnDatabaseError (script, query, accessMode, done) {
     if (!boltStub.supported) {
       done()
       return
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9010
     )
 
     const serverPort = accessMode === READ ? 9005 : 9007
     const serverAddress = '127.0.0.1:' + serverPort
-    const serverTemplateScript =
-      './test/resources/boltstub/address_unavailable_template.script.mst'
-    const server = boltStub.startWithTemplate(
-      serverTemplateScript,
-      { query: query },
-      serverPort
-    )
+    const server = boltStub.start(script, serverPort)
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
@@ -2805,14 +2940,14 @@ describe('routing driver with stub server', () => {
 
   function moveTime30SecondsForward () {
     const currentTime = Date.now()
-    clock = lolex.install()
+    const clock = lolex.install()
     clock.setSystemTime(currentTime + 30 * 1000 + 1)
+    return clock
   }
 
-  function removeTimeMocking () {
+  function removeTimeMocking (clock) {
     if (clock) {
       clock.uninstall()
-      clock = null
     }
   }
 
@@ -2827,11 +2962,11 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9001
     )
     const writer = boltStub.start(
-      './test/resources/boltstub/write_tx_with_bookmarks.script',
+      './test/resources/boltstub/v3/write_tx_with_bookmarks.script',
       9007
     )
 
@@ -2874,7 +3009,7 @@ describe('routing driver with stub server', () => {
 
     const router = boltStub.start(routerScript, 9001)
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
 
@@ -2943,7 +3078,7 @@ describe('routing driver with stub server', () => {
       writers: joinStrings(writers)
     }
     const server = boltStub.startWithTemplate(
-      './test/resources/boltstub/one_of_each_template.script.mst',
+      './test/resources/boltstub/v3/acquire_endpoints_template.script',
       params,
       port
     )
@@ -2996,51 +3131,55 @@ describe('routing driver with stub server', () => {
     return getConnectionPool(driver).has(ServerAddress.fromUrl(address))
   }
 
-  function hasRouterInRoutingTable (driver, expectedRouter) {
+  function hasRouterInRoutingTable (driver, expectedRouter, database) {
     return (
-      getRoutingTable(driver).routers.indexOf(
+      getRoutingTable(driver, database).routers.indexOf(
         ServerAddress.fromUrl(expectedRouter)
       ) > -1
     )
   }
 
-  function hasReaderInRoutingTable (driver, expectedReader) {
+  function hasReaderInRoutingTable (driver, expectedReader, database) {
     return (
-      getRoutingTable(driver).readers.indexOf(
+      getRoutingTable(driver, database).readers.indexOf(
         ServerAddress.fromUrl(expectedReader)
       ) > -1
     )
   }
 
-  function hasWriterInRoutingTable (driver, expectedWriter) {
+  function hasWriterInRoutingTable (driver, expectedWriter, database) {
     return (
-      getRoutingTable(driver).writers.indexOf(
+      getRoutingTable(driver, database).writers.indexOf(
         ServerAddress.fromUrl(expectedWriter)
       ) > -1
     )
   }
 
-  function assertHasRouters (driver, expectedRouters) {
-    expect(getRoutingTable(driver).routers.map(s => s.asHostPort())).toEqual(
-      expectedRouters
-    )
+  function assertNoRoutingTable (driver, database) {
+    expect(getRoutingTable(driver, database)).toBeFalsy()
   }
 
-  function assertHasReaders (driver, expectedReaders) {
-    expect(getRoutingTable(driver).readers.map(s => s.asHostPort())).toEqual(
-      expectedReaders
-    )
+  function assertHasRouters (driver, expectedRouters, database) {
+    expect(
+      getRoutingTable(driver, database).routers.map(s => s.asHostPort())
+    ).toEqual(expectedRouters)
   }
 
-  function assertHasWriters (driver, expectedWriters) {
-    expect(getRoutingTable(driver).writers.map(s => s.asHostPort())).toEqual(
-      expectedWriters
-    )
+  function assertHasReaders (driver, expectedReaders, database) {
+    expect(
+      getRoutingTable(driver, database).readers.map(s => s.asHostPort())
+    ).toEqual(expectedReaders)
   }
 
-  function setUpMemorizingRoutingTable (driver) {
+  function assertHasWriters (driver, expectedWriters, database) {
+    expect(
+      getRoutingTable(driver, database).writers.map(s => s.asHostPort())
+    ).toEqual(expectedWriters)
+  }
+
+  function setUpMemorizingRoutingTable (driver, database) {
     const memorizingRoutingTable = new MemorizingRoutingTable(
-      getRoutingTable(driver)
+      getRoutingTable(driver, database)
     )
     setRoutingTable(driver, memorizingRoutingTable)
     return memorizingRoutingTable
@@ -3063,14 +3202,16 @@ describe('routing driver with stub server', () => {
     return connectionProvider._connectionPool
   }
 
-  function getRoutingTable (driver) {
+  function getRoutingTable (driver, database) {
     const connectionProvider = driver._getOrCreateConnectionProvider()
-    return connectionProvider._routingTable
+    return connectionProvider._routingTables[database || '']
   }
 
   function setRoutingTable (driver, newRoutingTable) {
     const connectionProvider = driver._getOrCreateConnectionProvider()
-    connectionProvider._routingTable = newRoutingTable
+    connectionProvider._routingTables[
+      newRoutingTable.database
+    ] = newRoutingTable
   }
 
   function joinStrings (array) {
@@ -3078,7 +3219,7 @@ describe('routing driver with stub server', () => {
   }
 
   function numberOfOpenConnections (driver) {
-    return Object.keys(driver._openConnections).length
+    return Object.keys(driver._connectionProvider._openConnections).length
   }
 
   function testResolverFunctionDuringFirstDiscovery (resolutionResult, done) {
@@ -3088,11 +3229,11 @@ describe('routing driver with stub server', () => {
     }
 
     const router = boltStub.start(
-      './test/resources/boltstub/acquire_endpoints.script',
+      './test/resources/boltstub/v3/acquire_endpoints.script',
       9010
     )
     const reader = boltStub.start(
-      './test/resources/boltstub/read_server.script',
+      './test/resources/boltstub/v3/read.script',
       9005
     )
 
@@ -3172,12 +3313,13 @@ describe('routing driver with stub server', () => {
 
   class MemorizingRoutingTable extends RoutingTable {
     constructor (initialTable) {
-      super(
-        initialTable.routers,
-        initialTable.readers,
-        initialTable.writers,
-        initialTable.expirationTime
-      )
+      super({
+        database: initialTable.database,
+        routers: initialTable.routers,
+        readers: initialTable.readers,
+        writers: initialTable.writers,
+        expirationTime: initialTable.expirationTime
+      })
       this._forgottenRouters = []
     }
 

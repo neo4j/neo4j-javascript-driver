@@ -31,7 +31,7 @@ const INVALID_METADATA_VALUES = [
   () => 'hello world'
 ]
 
-describe('Bolt V3 API', () => {
+describe('#integration Bolt V3 API', () => {
   let driver
   let session
   let serverVersion

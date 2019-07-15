@@ -1,6 +1,0 @@
-!: AUTO RESET
-!: AUTO PULL_ALL
-
-C: INIT "neo4j-javascript/0.0.0-dev" {"credentials": "password", "scheme": "basic", "principal": "neo4j"}
-S: FAILURE {"code": "Neo.ClientError.Security.Unauthorized", "message": "Some server auth error message"}
-S: <EXIT>

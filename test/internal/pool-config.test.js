@@ -22,7 +22,7 @@ import PoolConfig, {
   DEFAULT_MAX_SIZE
 } from '../../src/internal/pool-config'
 
-describe('PoolConfig', () => {
+describe('#unit PoolConfig', () => {
   let originalConsoleWarn
 
   beforeAll(() => {

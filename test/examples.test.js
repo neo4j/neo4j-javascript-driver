@@ -27,7 +27,7 @@ import sharedNeo4j from './internal/shared-neo4j'
  * DO NOT add tests to this file that are not for that exact purpose.
  * DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
  */
-describe('examples', () => {
+describe('#integration examples', () => {
   let driverGlobal
   let console
   let originalTimeout
@@ -271,21 +271,27 @@ describe('examples', () => {
     // tag::driver-lifecycle[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
 
-    driver.verifyConnectivity().then(() => {
-      console.log('Driver created')
-    })
-
-    driver.onError = error => {
-      console.log(error)
-    }
+    driver
+      .verifyConnectivity()
+      .then(() => {
+        console.log('Driver created')
+      })
+      .catch(error => {
+        console.log(`connectivity verification failed. ${error}`)
+      })
 
     const session = driver.session()
-    session.run('CREATE (i:Item)').then(() => {
-      session.close()
+    session
+      .run('CREATE (i:Item)')
+      .then(() => {
+        session.close()
 
-      // ... on application exit:
-      driver.close()
-    })
+        // ... on application exit:
+        driver.close()
+      })
+      .catch(error => {
+        console.log(`unable to execute statement. ${error}`)
+      })
     // end::driver-lifecycle[]
 
     testResultPromise.then(loggedMsg => {

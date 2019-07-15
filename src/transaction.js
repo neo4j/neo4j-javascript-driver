@@ -52,7 +52,7 @@ class Transaction {
           bookmark: bookmark,
           txConfig: txConfig,
           mode: this._connectionHolder.mode(),
-          db: this._connectionHolder.db()
+          database: this._connectionHolder.database()
         })
       )
       .catch(error => streamObserver.onError(error))
@@ -186,7 +186,7 @@ let _states = {
             bookmark: bookmark,
             txConfig: txConfig,
             mode: connectionHolder.mode(),
-            db: connectionHolder.db()
+            database: connectionHolder.database()
           })
         )
         .catch(error => observer.onError(error))

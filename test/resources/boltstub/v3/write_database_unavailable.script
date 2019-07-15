@@ -1,0 +1,9 @@
+!: BOLT 3
+!: AUTO HELLO
+!: AUTO RESET
+!: AUTO GOODBYE
+
+C: RUN "CREATE (n {name:'Bob'})" {} {}
+C: PULL_ALL
+S: FAILURE {"code": "Neo.TransientError.General.DatabaseUnavailable", "message": "Database is busy doing store copy"}
+S: IGNORED

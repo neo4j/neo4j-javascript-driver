@@ -1,0 +1,6 @@
+!: BOLT 3
+!: AUTO RESET
+
+C: HELLO {"credentials": "password", "scheme": "basic", "user_agent": "neo4j-javascript/0.0.0-dev", "principal": "neo4j"}
+S: FAILURE {"code": "Neo.ClientError.Security.Unauthorized", "message": "Some server auth error message"}
+S: <EXIT>

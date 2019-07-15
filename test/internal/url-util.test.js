@@ -19,7 +19,7 @@
 
 import urlUtil from '../../src/internal/url-util'
 
-describe('url-util', () => {
+describe('#unit url-util', () => {
   it('should parse URL with just host name', () => {
     verifyUrl('localhost', {
       host: 'localhost'

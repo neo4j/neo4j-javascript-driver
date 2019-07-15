@@ -20,7 +20,7 @@
 import LeastConnectedLoadBalancingStrategy from '../../src/internal/least-connected-load-balancing-strategy'
 import Pool from '../../src/internal/pool'
 
-describe('LeastConnectedLoadBalancingStrategy', () => {
+describe('#unit LeastConnectedLoadBalancingStrategy', () => {
   it('should return null when no readers', () => {
     const knownReaders = []
     const strategy = new LeastConnectedLoadBalancingStrategy(new DummyPool({}))

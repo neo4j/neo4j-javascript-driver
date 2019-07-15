@@ -19,7 +19,7 @@
 
 import neo4j from '../src'
 
-describe('auth', () => {
+describe('#unit auth', () => {
   it('should use correct username and password in basic auth', () => {
     const token = neo4j.auth.basic('cat', 'dog')
     expect(token).toEqual({

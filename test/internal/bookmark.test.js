@@ -18,7 +18,7 @@
  */
 import Bookmark from '../../src/internal/bookmark'
 
-describe('Bookmark', () => {
+describe('#unit Bookmark', () => {
   it('should be possible to construct bookmark from string', () => {
     const bookmark = new Bookmark('neo4j:bookmark:v1:tx412')
 

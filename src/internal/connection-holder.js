@@ -28,12 +28,16 @@ export default class ConnectionHolder {
   /**
    * @constructor
    * @param {string} mode - the access mode for new connection holder.
-   * @param {string} db - the target database name.
+   * @param {string} database - the target database name.
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
    */
-  constructor ({ mode = ACCESS_MODE_WRITE, db = '', connectionProvider } = {}) {
+  constructor ({
+    mode = ACCESS_MODE_WRITE,
+    database = '',
+    connectionProvider
+  } = {}) {
     this._mode = mode
-    this._db = db ? assertString(db, 'db') : ''
+    this._database = database ? assertString(database, 'database') : ''
     this._connectionProvider = connectionProvider
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
@@ -49,10 +53,10 @@ export default class ConnectionHolder {
 
   /**
    * Returns the target database name
-   * @returns {string} db name
+   * @returns {string} the database name
    */
-  db () {
-    return this._db
+  database () {
+    return this._database
   }
 
   /**
@@ -63,7 +67,7 @@ export default class ConnectionHolder {
     if (this._referenceCount === 0) {
       this._connectionPromise = this._connectionProvider.acquireConnection(
         this._mode,
-        this._db
+        this._database
       )
     }
     this._referenceCount++
@@ -112,7 +116,7 @@ export default class ConnectionHolder {
   /**
    * Return the current pooled connection instance to the connection pool.
    * We don't pool Session instances, to avoid users using the Session after they've called close.
-   * The `Session` object is just a thin wrapper around Connection anyway, so it makes little difference.
+   * The `Session` object is just a thin wrapper around ChannelConnection anyway, so it makes little difference.
    * @return {Promise} - promise resolved then connection is returned to the pool.
    * @private
    */
@@ -158,7 +162,7 @@ class EmptyConnectionHolder extends ConnectionHolder {
 function ignoreError (error) {}
 
 /**
- * Connection holder that does not manage any connections.
+ * ChannelConnection holder that does not manage any connections.
  * @type {ConnectionHolder}
  */
 export const EMPTY_CONNECTION_HOLDER = new EmptyConnectionHolder()

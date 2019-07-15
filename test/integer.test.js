@@ -23,7 +23,7 @@ import Integer from '../src/integer'
 const int = neo4j.int
 const integer = neo4j.integer
 
-describe('Integer', () => {
+describe('#unit Integer', () => {
   it('exposes inSafeRange function', () => {
     expect(integer.inSafeRange(int('9007199254740991'))).toBeTruthy()
     expect(integer.inSafeRange(int('9007199254740992'))).toBeFalsy()

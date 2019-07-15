@@ -27,7 +27,7 @@ import _ from 'lodash'
 const VALID_URI = 'http://localhost'
 const INVALID_URI = 'http://not-localhost'
 
-describe('http request runner', () => {
+describe('#unit http request runner', () => {
   let originalTimeout
   beforeEach(function () {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL

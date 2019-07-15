@@ -22,7 +22,8 @@ import { READ, WRITE } from '../driver'
 const MIN_ROUTERS = 1
 
 export default class RoutingTable {
-  constructor (routers, readers, writers, expirationTime) {
+  constructor ({ database, routers, readers, writers, expirationTime } = {}) {
+    this.database = database
     this.routers = routers || []
     this.readers = readers || []
     this.writers = writers || []
@@ -67,6 +68,7 @@ export default class RoutingTable {
   toString () {
     return (
       `RoutingTable[` +
+      `database=${this.database}, ` +
       `expirationTime=${this.expirationTime}, ` +
       `currentTime=${Date.now()}, ` +
       `routers=[${this.routers}], ` +

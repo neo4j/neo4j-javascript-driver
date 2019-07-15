@@ -21,7 +21,7 @@ import { Unpacker } from '../../src/internal/packstream-v1'
 import CombinedBuffer from '../../src/internal/buf/combined-buf'
 import { alloc, utf8 } from '../../src/internal/node'
 
-describe('buffers', () => {
+describe('#unit Buffers', () => {
   it('should have helpful toString', () => {
     // Given
     const b = alloc(4)

@@ -29,7 +29,7 @@ const CARTESIAN_2D_CRS_CODE = neo4j.int(7203)
 const WGS_84_3D_CRS_CODE = neo4j.int(4979)
 const CARTESIAN_3D_CRS_CODE = neo4j.int(9157)
 
-describe('spatial-types', () => {
+describe('#integration spatial-types', () => {
   let driver
   let driverWithNativeNumbers
   let session

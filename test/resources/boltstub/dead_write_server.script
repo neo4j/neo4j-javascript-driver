@@ -1,8 +1,0 @@
-!: AUTO INIT
-!: AUTO RESET
-!: AUTO PULL_ALL
-!: AUTO RUN "BEGIN" {}
-
-C: RUN "CREATE (n {name:'Bob'})" {}
-C: PULL_ALL
-S: <EXIT>

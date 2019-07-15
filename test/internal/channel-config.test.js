@@ -22,7 +22,7 @@ import { SERVICE_UNAVAILABLE } from '../../src/error'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../../src/internal/util'
 import ServerAddress from '../../src/internal/server-address'
 
-describe('ChannelConfig', () => {
+describe('#unit ChannelConfig', () => {
   it('should respect given Url', () => {
     const address = ServerAddress.fromUrl('bolt://neo4j.com:4242')
 

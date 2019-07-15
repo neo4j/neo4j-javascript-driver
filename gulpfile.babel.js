@@ -35,9 +35,10 @@ const file = require('gulp-file')
 const semver = require('semver')
 const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const ts = require('gulp-typescript')
-const JasmineConsoleReporter = require('jasmine-console-reporter')
+const JasmineReporter = require('jasmine-spec-reporter').SpecReporter
 const karma = require('karma')
 const log = require('fancy-log')
+const JasmineExec = require('jasmine')
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
@@ -111,6 +112,18 @@ gulp.task(
       .on('end', logActiveNodeHandles)
   })
 )
+
+gulp.task('test-nodejs-unit', () => {
+  return runJasmineTests('#unit*')
+})
+
+gulp.task('test-nodejs-stub', () => {
+  return runJasmineTests('#stub*')
+})
+
+gulp.task('test-nodejs-integration', () => {
+  return runJasmineTests('#integration*')
+})
 
 gulp.task('run-browser-test-chrome', function (cb) {
   runKarma('chrome', cb)
@@ -218,12 +231,23 @@ function logActiveNodeHandles () {
 }
 
 function newJasmineConsoleReporter () {
-  return new JasmineConsoleReporter({
-    colors: 1,
-    cleanStack: 1,
-    verbosity: 4,
-    listStyle: 'indent',
-    activity: false
+  return new JasmineReporter({
+    colors: {
+      enabled: true
+    },
+    spec: {
+      displayDuration: true,
+      displayErrorMessages: true,
+      displayStacktrace: true,
+      displayFailed: true,
+      displaySuccessful: true,
+      displayPending: false
+    },
+    summary: {
+      displayFailed: true,
+      displayStacktrace: true,
+      displayErrorMessages: true
+    }
   })
 }
 
@@ -236,4 +260,25 @@ function runKarma (browser, cb) {
       exitCode ? process.exit(exitCode) : cb()
     }
   ).start()
+}
+
+function runJasmineTests (filterString) {
+  return new Promise((resolve, reject) => {
+    const jasmine = new JasmineExec()
+    jasmine.loadConfigFile('./spec/support/jasmine.json')
+    jasmine.loadHelpers()
+    jasmine.loadSpecs()
+    jasmine.configureDefaultReporter({
+      print: () => {}
+    })
+    jasmine.addReporter(newJasmineConsoleReporter())
+    jasmine.onComplete(passed => {
+      if (passed) {
+        resolve()
+      } else {
+        reject(new Error('tests failed'))
+      }
+    })
+    jasmine.execute(null, filterString)
+  })
 }

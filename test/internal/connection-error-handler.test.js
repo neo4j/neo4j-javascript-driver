@@ -21,7 +21,7 @@ import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
 import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
 import ServerAddress from '../../src/internal/server-address'
 
-describe('ConnectionErrorHandler', () => {
+describe('#unit ConnectionErrorHandler', () => {
   it('should return error code', () => {
     const code = 'Neo4j.Error.Hello'
     const handler = new ConnectionErrorHandler(code)

@@ -115,12 +115,12 @@ export default class RequestMessage {
    * Create a new BEGIN message.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
-   * @param {string} db the database name.
+   * @param {string} database the database name.
    * @param {string} mode the access mode.
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin ({ bookmark, txConfig, db, mode } = {}) {
-    const metadata = buildTxMetadata(bookmark, txConfig, db, mode)
+  static begin ({ bookmark, txConfig, database, mode } = {}) {
+    const metadata = buildTxMetadata(bookmark, txConfig, database, mode)
     return new RequestMessage(
       BEGIN,
       [metadata],
@@ -150,16 +150,16 @@ export default class RequestMessage {
    * @param {object} parameters the statement parameters.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
-   * @param {string} db the database name.
+   * @param {string} database the database name.
    * @param {string} mode the access mode.
    * @return {RequestMessage} new RUN message with additional metadata.
    */
   static runWithMetadata (
     statement,
     parameters,
-    { bookmark, txConfig, db, mode } = {}
+    { bookmark, txConfig, database, mode } = {}
   ) {
-    const metadata = buildTxMetadata(bookmark, txConfig, db, mode)
+    const metadata = buildTxMetadata(bookmark, txConfig, database, mode)
     return new RequestMessage(
       RUN,
       [statement, parameters, metadata],
@@ -213,11 +213,11 @@ export default class RequestMessage {
  * Create an object that represent transaction metadata.
  * @param {Bookmark} bookmark the bookmark.
  * @param {TxConfig} txConfig the configuration.
- * @param {string} db the database name.
+ * @param {string} database the database name.
  * @param {string} mode the access mode.
  * @return {object} a metadata object.
  */
-function buildTxMetadata (bookmark, txConfig, db, mode) {
+function buildTxMetadata (bookmark, txConfig, database, mode) {
   const metadata = {}
   if (!bookmark.isEmpty()) {
     metadata['bookmarks'] = bookmark.values()
@@ -228,8 +228,8 @@ function buildTxMetadata (bookmark, txConfig, db, mode) {
   if (txConfig.metadata) {
     metadata['tx_metadata'] = txConfig.metadata
   }
-  if (db) {
-    metadata['db'] = assertString(db, 'db')
+  if (database) {
+    metadata['db'] = assertString(database, 'database')
   }
   if (mode === ACCESS_MODE_READ) {
     metadata['mode'] = READ_MODE

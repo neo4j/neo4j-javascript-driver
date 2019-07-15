@@ -22,12 +22,7 @@ import RoutingDriver from '../src/routing-driver'
 import Pool from '../src/internal/pool'
 import neo4j from '../src'
 
-describe('RoutingDriver', () => {
-  it('should create least connected', () => {
-    const strategy = createStrategy({})
-    expect(strategy instanceof LeastConnectedLoadBalancingStrategy).toBeTruthy()
-  })
-
+describe('#unit RoutingDriver', () => {
   it('should fail when configured resolver is of illegal type', () => {
     expect(() =>
       neo4j.driver(
@@ -44,7 +39,3 @@ describe('RoutingDriver', () => {
     ).toThrowError(TypeError)
   })
 })
-
-function createStrategy (config) {
-  return RoutingDriver._createLoadBalancingStrategy(config, new Pool())
-}

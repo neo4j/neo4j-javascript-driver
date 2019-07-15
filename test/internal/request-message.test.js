@@ -23,7 +23,7 @@ import TxConfig from '../../src/internal/tx-config'
 import { int } from '../../src'
 import { READ, WRITE } from '../../src/driver'
 
-describe('RequestMessage', () => {
+describe('#unit RequestMessage', () => {
   it('should create INIT message', () => {
     const userAgent = 'my-driver/1.0.2'
     const authToken = { username: 'neo4j', password: 'secret' }
