@@ -116,7 +116,7 @@ export default class ConnectionHolder {
   /**
    * Return the current pooled connection instance to the connection pool.
    * We don't pool Session instances, to avoid users using the Session after they've called close.
-   * The `Session` object is just a thin wrapper around ChannelConnection anyway, so it makes little difference.
+   * The `Session` object is just a thin wrapper around Connection anyway, so it makes little difference.
    * @return {Promise} - promise resolved then connection is returned to the pool.
    * @private
    */
@@ -162,7 +162,7 @@ class EmptyConnectionHolder extends ConnectionHolder {
 function ignoreError (error) {}
 
 /**
- * ChannelConnection holder that does not manage any connections.
+ * Connection holder that does not manage any connections.
  * @type {ConnectionHolder}
  */
 export const EMPTY_CONNECTION_HOLDER = new EmptyConnectionHolder()
