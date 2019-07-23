@@ -76,9 +76,9 @@ function parseDatabaseUrl (url) {
   const host = extractHost(parsedUrl.host) // no square brackets for IPv6
   const formattedHost = formatHost(host) // has square brackets for IPv6
   const port = extractPort(parsedUrl.port, scheme)
-  const hostAndPort = parsedUrl.path ?
-    `${formattedHost}${parsedUrl.path}` :
-    `${formattedHost}:${port}`
+  const hostAndPort = parsedUrl.path
+    ? `${formattedHost}${parsedUrl.path}`
+    : `${formattedHost}:${port}`
 
   const query = extractQuery(parsedUrl.query, url)
 
