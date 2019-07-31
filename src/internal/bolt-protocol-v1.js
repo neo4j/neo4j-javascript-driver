@@ -21,10 +21,19 @@ import * as v1 from './packstream-v1'
 import Bookmark from './bookmark'
 import TxConfig from './tx-config'
 import { ACCESS_MODE_WRITE } from './constants'
+import Connection from './connection'
+import { Chunker } from './chunking'
+import { Packer } from './packstream-v1'
 import {
   assertDatabaseIsEmpty,
   assertTxConfigIsEmpty
 } from './bolt-protocol-util'
+import {
+  ResultStreamObserver,
+  LoginObserver,
+  ResetObserver,
+  StreamObserver
+} from './stream-observers'
 
 export default class BoltProtocol {
   /**
@@ -66,99 +75,217 @@ export default class BoltProtocol {
 
   /**
    * Perform initialization and authentication of the underlying connection.
-   * @param {string} clientName the client name.
-   * @param {object} authToken the authentication token.
-   * @param {StreamObserver} observer the response observer.
+   * @param {object} param
+   * @param {string} param.userAgent the user agent.
+   * @param {object} param.authToken the authentication token.
+   * @param {function(err: Error)} param.onError the callback to invoke on error.
+   * @param {function()} param.onComplete the callback to invoke on completion.
+   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  initialize (clientName, authToken, observer) {
-    const message = RequestMessage.init(clientName, authToken)
-    this._connection.write(message, observer, true)
+  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+    const observer = new LoginObserver({
+      connection: this._connection,
+      afterError: onError,
+      afterComplete: onComplete
+    })
+
+    this._connection.write(
+      RequestMessage.init(userAgent, authToken),
+      observer,
+      true
+    )
+
+    return observer
   }
 
-  prepareToClose (observer) {
+  /**
+   * Perform protocol related operations for closing this connection
+   */
+  prepareToClose () {
     // no need to notify the database in this protocol version
   }
 
   /**
    * Begin an explicit transaction.
-   * @param {StreamObserver} observer the response observer.
-   * @param {Bookmark} bookmark the bookmark.
-   * @param {TxConfig} txConfig the configuration.
-   * @param {string} database the target database name.
-   * @param {string} mode the access mode.
+   * @param {object} param
+   * @param {Bookmark} param.bookmark the bookmark.
+   * @param {TxConfig} param.txConfig the configuration.
+   * @param {string} param.database the target database name.
+   * @param {string} param.mode the access mode.
+   * @param {function(err: Error)} param.beforeError the callback to invoke before handling the error.
+   * @param {function(err: Error)} param.afterError the callback to invoke after handling the error.
+   * @param {function()} param.beforeComplete the callback to invoke before handling the completion.
+   * @param {function()} param.afterComplete the callback to invoke after handling the completion.
+   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  beginTransaction (observer, { bookmark, txConfig, database, mode }) {
-    assertTxConfigIsEmpty(txConfig, this._connection, observer)
-    assertDatabaseIsEmpty(database, this._connection, observer)
-
-    const runMessage = RequestMessage.run(
+  beginTransaction ({
+    bookmark,
+    txConfig,
+    database,
+    mode,
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
+    return this.run(
       'BEGIN',
-      bookmark.asBeginTransactionParameters()
+      bookmark ? bookmark.asBeginTransactionParameters() : {},
+      {
+        bookmark: bookmark,
+        txConfig: txConfig,
+        database,
+        mode,
+        beforeError,
+        afterError,
+        beforeComplete,
+        afterComplete,
+        flush: false
+      }
     )
-    const pullAllMessage = RequestMessage.pullAll()
-
-    this._connection.write(runMessage, observer, false)
-    this._connection.write(pullAllMessage, observer, false)
   }
 
   /**
    * Commit the explicit transaction.
-   * @param {StreamObserver} observer the response observer.
+   * @param {object} param
+   * @param {function(err: Error)} param.beforeError the callback to invoke before handling the error.
+   * @param {function(err: Error)} param.afterError the callback to invoke after handling the error.
+   * @param {function()} param.beforeComplete the callback to invoke before handling the completion.
+   * @param {function()} param.afterComplete the callback to invoke after handling the completion.
+   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  commitTransaction (observer) {
+  commitTransaction ({
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
     // WRITE access mode is used as a place holder here, it has
     // no effect on behaviour for Bolt V1 & V2
-    this.run('COMMIT', {}, observer, {
-      bookmark: Bookmark.empty(),
-      txConfig: TxConfig.empty(),
-      mode: ACCESS_MODE_WRITE
-    })
+    return this.run(
+      'COMMIT',
+      {},
+      {
+        bookmark: Bookmark.empty(),
+        txConfig: TxConfig.empty(),
+        mode: ACCESS_MODE_WRITE,
+        beforeError,
+        afterError,
+        beforeComplete,
+        afterComplete
+      }
+    )
   }
 
   /**
    * Rollback the explicit transaction.
-   * @param {StreamObserver} observer the response observer.
+   * @param {object} param
+   * @param {function(err: Error)} param.beforeError the callback to invoke before handling the error.
+   * @param {function(err: Error)} param.afterError the callback to invoke after handling the error.
+   * @param {function()} param.beforeComplete the callback to invoke before handling the completion.
+   * @param {function()} param.afterComplete the callback to invoke after handling the completion.
+   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  rollbackTransaction (observer) {
+  rollbackTransaction ({
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
     // WRITE access mode is used as a place holder here, it has
     // no effect on behaviour for Bolt V1 & V2
-    this.run('ROLLBACK', {}, observer, {
-      bookmark: Bookmark.empty(),
-      txConfig: TxConfig.empty(),
-      mode: ACCESS_MODE_WRITE
-    })
+    return this.run(
+      'ROLLBACK',
+      {},
+      {
+        bookmark: Bookmark.empty(),
+        txConfig: TxConfig.empty(),
+        mode: ACCESS_MODE_WRITE,
+        beforeError,
+        afterError,
+        beforeComplete,
+        afterComplete
+      }
+    )
   }
 
   /**
    * Send a Cypher statement through the underlying connection.
    * @param {string} statement the cypher statement.
    * @param {object} parameters the statement parameters.
-   * @param {StreamObserver} observer the response observer.
-   * @param {Bookmark} bookmark the bookmark.
-   * @param {TxConfig} txConfig the auto-commit transaction configuration.
-   * @param {string} database the target database name.
-   * @param {string} mode the access mode.
+   * @param {object} param
+   * @param {Bookmark} param.bookmark the bookmark.
+   * @param {TxConfig} param.txConfig the transaction configuration.
+   * @param {string} param.database the target database name.
+   * @param {string} param.mode the access mode.
+   * @param {function(keys: string[])} param.beforeKeys the callback to invoke before handling the keys.
+   * @param {function(keys: string[])} param.afterKeys the callback to invoke after handling the keys.
+   * @param {function(err: Error)} param.beforeError the callback to invoke before handling the error.
+   * @param {function(err: Error)} param.afterError the callback to invoke after handling the error.
+   * @param {function()} param.beforeComplete the callback to invoke before handling the completion.
+   * @param {function()} param.afterComplete the callback to invoke after handling the completion.
+   * @param {boolean} param.flush whether to flush the buffered messages.
+   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  run (statement, parameters, observer, { bookmark, txConfig, database, mode }) {
+  run (
+    statement,
+    parameters,
+    {
+      bookmark,
+      txConfig,
+      database,
+      mode,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete,
+      flush = true
+    } = {}
+  ) {
+    const observer = new ResultStreamObserver({
+      connection: this._connection,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
+    })
+
     // bookmark and mode are ignored in this version of the protocol
     assertTxConfigIsEmpty(txConfig, this._connection, observer)
     // passing in a database name on this protocol version throws an error
     assertDatabaseIsEmpty(database, this._connection, observer)
 
-    const runMessage = RequestMessage.run(statement, parameters)
-    const pullAllMessage = RequestMessage.pullAll()
+    this._connection.write(
+      RequestMessage.run(statement, parameters),
+      observer,
+      false
+    )
+    this._connection.write(RequestMessage.pullAll(), observer, flush)
 
-    this._connection.write(runMessage, observer, false)
-    this._connection.write(pullAllMessage, observer, true)
+    return observer
   }
 
   /**
    * Send a RESET through the underlying connection.
-   * @param {StreamObserver} observer the response observer.
+   * @param {object} param
+   * @param {function(err: Error)} param.onError the callback to invoke on error.
+   * @param {function()} param.onComplete the callback to invoke on completion.
+   * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  reset (observer) {
-    const message = RequestMessage.reset()
-    this._connection.write(message, observer, true)
+  reset ({ onError, onComplete } = {}) {
+    const observer = new ResetObserver({
+      connection: this._connection,
+      onError,
+      onComplete
+    })
+
+    this._connection.write(RequestMessage.reset(), observer, true)
+
+    return observer
   }
 
   _createPacker (chunker) {

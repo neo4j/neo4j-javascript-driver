@@ -18,6 +18,7 @@
  */
 
 import DummyChannel from './dummy-channel'
+import Connection from '../../src/internal/connection'
 import ChannelConnection from '../../src/internal/connection-channel'
 import { Packer } from '../../src/internal/packstream-v1'
 import { Chunker } from '../../src/internal/chunking'
@@ -27,13 +28,13 @@ import sharedNeo4j from '../internal/shared-neo4j'
 import { ServerVersion, VERSION_3_5_0 } from '../../src/internal/server-version'
 import lolex from 'lolex'
 import Logger from '../../src/internal/logger'
-import StreamObserver from '../../src/internal/stream-observer'
 import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
 import testUtils from '../internal/test-utils'
 import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
 import ServerAddress from '../../src/internal/server-address'
+import { ResultStreamObserver } from '../../src/internal/stream-observers'
 
 const ILLEGAL_MESSAGE = { signature: 42, fields: [] }
 const SUCCESS_MESSAGE = { signature: 0x70, fields: [{}] }
@@ -41,6 +42,7 @@ const FAILURE_MESSAGE = { signature: 0x7f, fields: [newError('Hello')] }
 const RECORD_MESSAGE = { signature: 0x71, fields: [{ value: 'Hello' }] }
 
 describe('#integration ChannelConnection', () => {
+  /** @type {Connection} */
   let connection
 
   afterEach(done => {
@@ -69,9 +71,11 @@ describe('#integration ChannelConnection', () => {
     connection = createConnection('bolt://localhost')
 
     connection._negotiateProtocol().then(() => {
-      connection.protocol().initialize('mydriver/0.0.0', basicAuthToken(), {
-        onCompleted: msg => {
-          expect(msg).not.toBeNull()
+      connection.protocol().initialize({
+        userAgent: 'mydriver/0.0.0',
+        authToken: basicAuthToken(),
+        onComplete: metadata => {
+          expect(metadata).not.toBeNull()
           done()
         },
         onError: console.log
@@ -92,15 +96,20 @@ describe('#integration ChannelConnection', () => {
         done()
       }
     }
-    const streamObserver = new StreamObserver()
-    streamObserver.subscribe(pullAllObserver)
 
     connection.connect('mydriver/0.0.0', basicAuthToken()).then(() => {
-      connection.protocol().run('RETURN 1.0', {}, streamObserver, {
-        bookmark: Bookmark.empty(),
-        txConfig: TxConfig.empty(),
-        mode: WRITE
-      })
+      connection
+        .protocol()
+        .run(
+          'RETURN 1.0',
+          {},
+          {
+            bookmark: Bookmark.empty(),
+            txConfig: TxConfig.empty(),
+            mode: WRITE
+          }
+        )
+        .subscribe(pullAllObserver)
     })
   })
 
@@ -218,7 +227,7 @@ describe('#integration ChannelConnection', () => {
 
         expect(connection.isOpen()).toBeFalsy()
 
-        const streamObserver = new StreamObserver()
+        const streamObserver = new ResultStreamObserver()
         streamObserver.subscribe({
           onError: error => {
             expect(error).toEqual(initialError)
@@ -239,7 +248,8 @@ describe('#integration ChannelConnection', () => {
 
   it('should not queue INIT observer when broken', done => {
     testQueueingOfObserversWithBrokenConnection(
-      connection => connection.protocol().initialize('Hello', {}, {}),
+      connection =>
+        connection.protocol().initialize({ userAgent: 'Hello', authToken: {} }),
       done
     )
   })
@@ -251,7 +261,6 @@ describe('#integration ChannelConnection', () => {
           .protocol()
           .run(
             'RETURN 1',
-            {},
             {},
             { bookmark: Bookmark.empty(), txConfig: TxConfig.empty() }
           ),
@@ -321,7 +330,7 @@ describe('#integration ChannelConnection', () => {
         .then(() => done.fail('Should fail'))
         .catch(error => {
           expect(error.message).toEqual(
-            'Received RECORD as a response for RESET: {"value":"Hello"}'
+            'Received RECORD when resetting: received record is: {"value":"Hello"}'
           )
           expect(connection._isBroken).toBeTruthy()
           expect(connection.isOpen()).toBeFalsy()

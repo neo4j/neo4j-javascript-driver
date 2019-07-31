@@ -73,8 +73,8 @@ const promise4: Promise<string> = session.writeTransaction(
   }
 )
 
-const close1: void = session.close()
-const close2: void = session.close(() => {
+const close1: Promise<void> = session.close()
+const close2: Promise<void> = session.close().then(() => {
   console.log('Session closed')
 })
 

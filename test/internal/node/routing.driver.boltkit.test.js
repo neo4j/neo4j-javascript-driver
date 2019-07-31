@@ -914,7 +914,7 @@ describe('#stub-routing routing driver with stub server', () => {
       // When
       const session1 = driver.session({ defaultAccessMode: WRITE })
       session1.run("CREATE (n {name:'Bob'})").then(() => {
-        session1.close(() => {
+        session1.close().then(() => {
           const openConnectionsCount = numberOfOpenConnections(driver)
           const session2 = driver.session({ defaultAccessMode: WRITE })
           session2.run('CREATE ()').then(() => {
@@ -1134,7 +1134,7 @@ describe('#stub-routing routing driver with stub server', () => {
       session
         .run('MATCH (n) RETURN n.name')
         .then(() => {
-          session.close(() => {
+          session.close().then(() => {
             driver.close()
             server.exit(code => {
               expect(code).toEqual(0)
@@ -1495,7 +1495,7 @@ describe('#stub-routing routing driver with stub server', () => {
         expect(result.records.length).toEqual(3)
         expect(invocations).toEqual(2)
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           router.exit(code1 => {
             brokenReader.exit(code2 => {
@@ -1545,7 +1545,7 @@ describe('#stub-routing routing driver with stub server', () => {
         expect(result.records.length).toEqual(0)
         expect(invocations).toEqual(2)
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           router.exit(code1 => {
             brokenWriter.exit(code2 => {
@@ -1602,7 +1602,7 @@ describe('#stub-routing routing driver with stub server', () => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         expect(invocations).toEqual(2)
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           router.exit(code1 => {
             brokenReader1.exit(code2 => {
@@ -1659,7 +1659,7 @@ describe('#stub-routing routing driver with stub server', () => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         expect(invocations).toEqual(2)
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           router.exit(code1 => {
             brokenWriter1.exit(code2 => {
@@ -1717,7 +1717,7 @@ describe('#stub-routing routing driver with stub server', () => {
         expect(result.records.length).toEqual(3)
         expect(invocations).toEqual(3)
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           router1.exit(code1 => {
             brokenReader1.exit(code2 => {
@@ -1781,7 +1781,7 @@ describe('#stub-routing routing driver with stub server', () => {
         expect(result.records.length).toEqual(0)
         expect(invocations).toEqual(3)
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           router1.exit(code1 => {
             brokenWriter1.exit(code2 => {
@@ -1827,7 +1827,7 @@ describe('#stub-routing routing driver with stub server', () => {
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(result => {
         expect(result.records.length).toEqual(3)
-        session.close(() => {
+        session.close().then(() => {
           // stop existing router and reader
           router1.exit(code1 => {
             tmpReader.exit(code2 => {
@@ -1852,7 +1852,7 @@ describe('#stub-routing routing driver with stub server', () => {
                     expect(records[0].get('name')).toEqual('Bob')
                     expect(records[1].get('name')).toEqual('Alice')
 
-                    session.close(() => {
+                    session.close().then(() => {
                       driver.close()
                       router2.exit(code => {
                         expect(code).toEqual(0)
@@ -1903,7 +1903,7 @@ describe('#stub-routing routing driver with stub server', () => {
           expect(records[0].get('name')).toEqual('Bob')
           expect(records[1].get('name')).toEqual('Alice')
 
-          session.close(() => {
+          session.close().then(() => {
             driver.close()
             router1.exit(code1 => {
               router2.exit(code2 => {
@@ -1937,7 +1937,7 @@ describe('#stub-routing routing driver with stub server', () => {
         const names = result.records.map(record => record.get('name'))
         expect(names).toEqual(['Alice', 'Bob'])
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           router.exit(code => {
             expect(code).toEqual(0)
@@ -1979,7 +1979,7 @@ describe('#stub-routing routing driver with stub server', () => {
           expect(result2.records.length).toEqual(3)
           expect(result2.summary.server.address).toEqual('127.0.0.1:9004')
 
-          session.close(() => {
+          session.close().then(() => {
             driver.close()
             router.exit(code1 => {
               reader1.exit(code2 => {
@@ -2017,7 +2017,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
       const session = driver.session({ defaultAccessMode: READ })
       session.run('MATCH (n) RETURN n.name').then(result => {
-        session.close(() => {
+        session.close().then(() => {
           expect(result.records.map(record => record.get(0))).toEqual([
             'Bob',
             'Alice',
@@ -2065,7 +2065,7 @@ describe('#stub-routing routing driver with stub server', () => {
       readSession
         .readTransaction(tx => tx.run('MATCH (n) RETURN n.name'))
         .then(result => {
-          readSession.close(() => {
+          readSession.close().then(() => {
             expect(result.records.map(record => record.get(0))).toEqual([
               'Bob',
               'Alice',
@@ -2124,7 +2124,7 @@ describe('#stub-routing routing driver with stub server', () => {
       readSession
         .readTransaction(tx => tx.run('MATCH (n) RETURN n.name'))
         .then(result => {
-          readSession.close(() => {
+          readSession.close().then(() => {
             expect(result.records.map(record => record.get(0))).toEqual([
               'Bob',
               'Alice',
@@ -2139,7 +2139,7 @@ describe('#stub-routing routing driver with stub server', () => {
             boltStub.run(() => {
               const writeSession = driver.session({ defaultAccessMode: WRITE })
               writeSession.run("CREATE (n {name:'Bob'})").then(result => {
-                writeSession.close(() => {
+                writeSession.close().then(() => {
                   expect(result.records).toEqual([])
 
                   driver.close()
@@ -2193,7 +2193,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
       const readSession = driver.session({ defaultAccessMode: READ })
       readSession.run('MATCH (n) RETURN n.name').then(result => {
-        readSession.close(() => {
+        readSession.close().then(() => {
           expect(result.records.map(record => record.get(0))).toEqual([
             'Bob',
             'Alice',
@@ -2206,7 +2206,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
           const writeSession = driver.session({ defaultAccessMode: WRITE })
           writeSession.run("CREATE (n {name:'Bob'})").then(result => {
-            writeSession.close(() => {
+            writeSession.close().then(() => {
               expect(result.records).toEqual([])
 
               driver.close()
@@ -2249,7 +2249,7 @@ describe('#stub-routing routing driver with stub server', () => {
         expect(error.code).toEqual('Neo.ClientError.Security.Unauthorized')
         expect(error.message).toEqual('Some server auth error message')
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           router.exit(code => {
             expect(code).toEqual(0)
@@ -2434,7 +2434,7 @@ describe('#stub-routing routing driver with stub server', () => {
               assertHasReaders(driver, ['127.0.0.1:9005', '127.0.0.1:9006'])
               assertHasWriters(driver, ['127.0.0.1:9007', '127.0.0.1:9008'])
 
-              session.close(() => {
+              session.close().then(() => {
                 driver.close()
                 router1.exit(code1 => {
                   router2.exit(code2 => {
@@ -2923,7 +2923,7 @@ describe('#stub-routing routing driver with stub server', () => {
         expect(hasReaderInRoutingTable(driver, serverAddress)).toBeFalsy()
         expect(hasWriterInRoutingTable(driver, serverAddress)).toBeFalsy()
 
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
 
           router.exit(code1 => {
@@ -3258,7 +3258,7 @@ describe('#stub-routing routing driver with stub server', () => {
             'Alice',
             'Tina'
           ])
-          session.close(() => {
+          session.close().then(() => {
             driver.close()
 
             router.exit(code1 => {

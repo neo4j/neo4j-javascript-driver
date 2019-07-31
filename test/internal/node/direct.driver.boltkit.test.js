@@ -105,7 +105,7 @@ describe('#stub-direct direct driver with stub server', () => {
           tx.commit().then(() => {
             expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
 
-            session.close(() => {
+            session.close().then(() => {
               driver.close()
               server.exit(code => {
                 expect(code).toEqual(0)
@@ -156,7 +156,7 @@ describe('#stub-direct direct driver with stub server', () => {
           tx.commit().then(() => {
             expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
 
-            session.close(() => {
+            session.close().then(() => {
               driver.close()
               server.exit(code => {
                 expect(code).toEqual(0)
@@ -218,7 +218,7 @@ describe('#stub-direct direct driver with stub server', () => {
                   'neo4j:bookmark:v1:tx424242'
                 )
 
-                session.close(() => {
+                session.close().then(() => {
                   driver.close()
                   server.exit(code => {
                     expect(code).toEqual(0)
@@ -307,7 +307,7 @@ describe('#stub-direct direct driver with stub server', () => {
             const records = result.records
             expect(records.length).toEqual(1)
             expect(records[0].get(0).toNumber()).toEqual(42)
-            session.close(() => {
+            session.close().then(() => {
               expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
               driver.close()
               server.exit(code => {
@@ -362,7 +362,7 @@ describe('#stub-direct direct driver with stub server', () => {
             )
             expect(error.message).toEqual('/ by zero')
 
-            session.close(() => {
+            session.close().then(() => {
               driver.close()
               server.exit(code => {
                 expect(code).toEqual(0)
@@ -415,7 +415,7 @@ describe('#stub-direct direct driver with stub server', () => {
           .then(result => {
             const names = result.records.map(record => record.get(0))
             expect(names).toEqual(['Foo', 'Bar'])
-            session.close(() => {
+            session.close().then(() => {
               driver.close()
               server.exit(code => {
                 expect(code).toEqual(0)
@@ -475,7 +475,7 @@ describe('#stub-direct direct driver with stub server', () => {
             expect(connectionKey).toBeTruthy()
 
             const connection = openConnections(driver, connectionKey)
-            session.close(() => {
+            session.close().then(() => {
               // generate a fake fatal error
               connection._handleFatalError(
                 newError('connection reset', SERVICE_UNAVAILABLE)
@@ -539,7 +539,7 @@ describe('#stub-direct direct driver with stub server', () => {
             )
           )
           .then(() =>
-            session.close(() => {
+            session.close().then(() => {
               driver.close()
 
               server.exit(code => {

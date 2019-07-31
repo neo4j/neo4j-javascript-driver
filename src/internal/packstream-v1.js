@@ -108,10 +108,9 @@ class Packer {
   /**
    * Creates a packable function out of the provided value
    * @param x the value to pack
-   * @param onError callback for the case when value cannot be packed
    * @returns Function
    */
-  packable (x, onError) {
+  packable (x) {
     if (x === null) {
       return () => this._ch.writeUInt8(NULL)
     } else if (x === true) {
@@ -121,39 +120,36 @@ class Packer {
     } else if (typeof x === 'number') {
       return () => this.packFloat(x)
     } else if (typeof x === 'string') {
-      return () => this.packString(x, onError)
+      return () => this.packString(x)
     } else if (isInt(x)) {
       return () => this.packInteger(x)
     } else if (x instanceof Int8Array) {
-      return () => this.packBytes(x, onError)
+      return () => this.packBytes(x)
     } else if (x instanceof Array) {
       return () => {
-        this.packListHeader(x.length, onError)
+        this.packListHeader(x.length)
         for (let i = 0; i < x.length; i++) {
-          this.packable(x[i] === undefined ? null : x[i], onError)()
+          this.packable(x[i] === undefined ? null : x[i])()
         }
       }
     } else if (isIterable(x)) {
-      return this.packableIterable(x, onError)
+      return this.packableIterable(x)
     } else if (x instanceof Node) {
       return this._nonPackableValue(
-        `It is not allowed to pass nodes in query parameters, given: ${x}`,
-        onError
+        `It is not allowed to pass nodes in query parameters, given: ${x}`
       )
     } else if (x instanceof Relationship) {
       return this._nonPackableValue(
-        `It is not allowed to pass relationships in query parameters, given: ${x}`,
-        onError
+        `It is not allowed to pass relationships in query parameters, given: ${x}`
       )
     } else if (x instanceof Path) {
       return this._nonPackableValue(
-        `It is not allowed to pass paths in query parameters, given: ${x}`,
-        onError
+        `It is not allowed to pass paths in query parameters, given: ${x}`
       )
     } else if (x instanceof Structure) {
       var packableFields = []
       for (var i = 0; i < x.fields.length; i++) {
-        packableFields[i] = this.packable(x.fields[i], onError)
+        packableFields[i] = this.packable(x.fields[i])
       }
       return () => this.packStruct(x.signature, packableFields)
     } else if (typeof x === 'object') {
@@ -166,30 +162,27 @@ class Packer {
             count++
           }
         }
-        this.packMapHeader(count, onError)
+        this.packMapHeader(count)
         for (let i = 0; i < keys.length; i++) {
           let key = keys[i]
           if (x[key] !== undefined) {
             this.packString(key)
-            this.packable(x[key], onError)()
+            this.packable(x[key])()
           }
         }
       }
     } else {
-      return this._nonPackableValue(
-        `Unable to pack the given value: ${x}`,
-        onError
-      )
+      return this._nonPackableValue(`Unable to pack the given value: ${x}`)
     }
   }
 
-  packableIterable (iterable, onError) {
+  packableIterable (iterable) {
     try {
       const array = Array.from(iterable)
-      return this.packable(array, onError)
+      return this.packable(array)
     } catch (e) {
       // handle errors from iterable to array conversion
-      onError(newError(`Cannot pack given iterable, ${e.message}: ${iterable}`))
+      throw newError(`Cannot pack given iterable, ${e.message}: ${iterable}`)
     }
   }
 
@@ -198,9 +191,9 @@ class Packer {
    * @param signature the signature of the struct
    * @param packableFields the fields of the struct, make sure you call `packable on all fields`
    */
-  packStruct (signature, packableFields, onError) {
+  packStruct (signature, packableFields) {
     packableFields = packableFields || []
-    this.packStructHeader(packableFields.length, signature, onError)
+    this.packStructHeader(packableFields.length, signature)
     for (let i = 0; i < packableFields.length; i++) {
       packableFields[i]()
     }
@@ -232,7 +225,7 @@ class Packer {
     this._ch.writeFloat64(x)
   }
 
-  packString (x, onError) {
+  packString (x) {
     let bytes = utf8.encode(x)
     let size = bytes.length
     if (size < 0x10) {
@@ -255,11 +248,11 @@ class Packer {
       this._ch.writeUInt8(size % 256)
       this._ch.writeBytes(bytes)
     } else {
-      onError(newError('UTF-8 strings of size ' + size + ' are not supported'))
+      throw newError('UTF-8 strings of size ' + size + ' are not supported')
     }
   }
 
-  packListHeader (size, onError) {
+  packListHeader (size) {
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_LIST | size)
     } else if (size < 0x100) {
@@ -276,26 +269,24 @@ class Packer {
       this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
     } else {
-      onError(newError('Lists of size ' + size + ' are not supported'))
+      throw newError('Lists of size ' + size + ' are not supported')
     }
   }
 
-  packBytes (array, onError) {
+  packBytes (array) {
     if (this._byteArraysSupported) {
-      this.packBytesHeader(array.length, onError)
+      this.packBytesHeader(array.length)
       for (let i = 0; i < array.length; i++) {
         this._ch.writeInt8(array[i])
       }
     } else {
-      onError(
-        newError(
-          'Byte arrays are not supported by the database this driver is connected to'
-        )
+      throw newError(
+        'Byte arrays are not supported by the database this driver is connected to'
       )
     }
   }
 
-  packBytesHeader (size, onError) {
+  packBytesHeader (size) {
     if (size < 0x100) {
       this._ch.writeUInt8(BYTES_8)
       this._ch.writeUInt8(size)
@@ -310,11 +301,11 @@ class Packer {
       this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
     } else {
-      onError(newError('Byte arrays of size ' + size + ' are not supported'))
+      throw newError('Byte arrays of size ' + size + ' are not supported')
     }
   }
 
-  packMapHeader (size, onError) {
+  packMapHeader (size) {
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_MAP | size)
     } else if (size < 0x100) {
@@ -331,11 +322,11 @@ class Packer {
       this._ch.writeUInt8(((size / 256) >> 0) % 256)
       this._ch.writeUInt8(size % 256)
     } else {
-      onError(newError('Maps of size ' + size + ' are not supported'))
+      throw newError('Maps of size ' + size + ' are not supported')
     }
   }
 
-  packStructHeader (size, signature, onError) {
+  packStructHeader (size, signature) {
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_STRUCT | size)
       this._ch.writeUInt8(signature)
@@ -348,7 +339,7 @@ class Packer {
       this._ch.writeUInt8((size / 256) >> 0)
       this._ch.writeUInt8(size % 256)
     } else {
-      onError(newError('Structures of size ' + size + ' are not supported'))
+      throw newError('Structures of size ' + size + ' are not supported')
     }
   }
 
@@ -356,11 +347,10 @@ class Packer {
     this._byteArraysSupported = false
   }
 
-  _nonPackableValue (message, onError) {
-    if (onError) {
-      onError(newError(message, PROTOCOL_ERROR))
+  _nonPackableValue (message) {
+    return () => {
+      throw newError(message, PROTOCOL_ERROR)
     }
-    return () => undefined
   }
 }
 

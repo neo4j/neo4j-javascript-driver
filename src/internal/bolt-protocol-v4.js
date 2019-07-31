@@ -18,23 +18,76 @@
  */
 import BoltProtocolV3 from './bolt-protocol-v3'
 import RequestMessage from './request-message'
+import { ResultStreamObserver } from './stream-observers'
 
 export default class BoltProtocol extends BoltProtocolV3 {
-  beginTransaction (observer, { bookmark, txConfig, database, mode }) {
-    const message = RequestMessage.begin({ bookmark, txConfig, database, mode })
-    this._connection.write(message, observer, true)
+  beginTransaction ({
+    bookmark,
+    txConfig,
+    database,
+    mode,
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
+    const observer = new ResultStreamObserver({
+      connection: this._connection,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
+    })
+    observer.prepareToHandleSingleResponse()
+
+    this._connection.write(
+      RequestMessage.begin({ bookmark, txConfig, database, mode }),
+      observer,
+      true
+    )
+
+    return observer
   }
 
-  run (statement, parameters, observer, { bookmark, txConfig, database, mode }) {
-    const runMessage = RequestMessage.runWithMetadata(statement, parameters, {
+  run (
+    statement,
+    parameters,
+    {
       bookmark,
       txConfig,
       database,
-      mode
+      mode,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete,
+      flush = true
+    } = {}
+  ) {
+    const observer = new ResultStreamObserver({
+      connection: this._connection,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
     })
-    const pullMessage = RequestMessage.pull()
 
-    this._connection.write(runMessage, observer, false)
-    this._connection.write(pullMessage, observer, true)
+    this._connection.write(
+      RequestMessage.runWithMetadata(statement, parameters, {
+        bookmark,
+        txConfig,
+        database,
+        mode
+      }),
+      observer,
+      false
+    )
+    this._connection.write(RequestMessage.pull(), observer, flush)
+
+    return observer
   }
 }

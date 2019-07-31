@@ -72,23 +72,23 @@ export class Packer extends v1.Packer {
     throw new Error('Bolt V2 should always support byte arrays')
   }
 
-  packable (obj, onError) {
+  packable (obj) {
     if (isPoint(obj)) {
-      return () => packPoint(obj, this, onError)
+      return () => packPoint(obj, this)
     } else if (isDuration(obj)) {
-      return () => packDuration(obj, this, onError)
+      return () => packDuration(obj, this)
     } else if (isLocalTime(obj)) {
-      return () => packLocalTime(obj, this, onError)
+      return () => packLocalTime(obj, this)
     } else if (isTime(obj)) {
-      return () => packTime(obj, this, onError)
+      return () => packTime(obj, this)
     } else if (isDate(obj)) {
-      return () => packDate(obj, this, onError)
+      return () => packDate(obj, this)
     } else if (isLocalDateTime(obj)) {
-      return () => packLocalDateTime(obj, this, onError)
+      return () => packLocalDateTime(obj, this)
     } else if (isDateTime(obj)) {
-      return () => packDateTime(obj, this, onError)
+      return () => packDateTime(obj, this)
     } else {
-      return super.packable(obj, onError)
+      return super.packable(obj)
     }
   }
 }
@@ -156,14 +156,13 @@ export class Unpacker extends v1.Unpacker {
  * Pack given 2D or 3D point.
  * @param {Point} point the point value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packPoint (point, packer, onError) {
+function packPoint (point, packer) {
   const is2DPoint = point.z === null || point.z === undefined
   if (is2DPoint) {
-    packPoint2D(point, packer, onError)
+    packPoint2D(point, packer)
   } else {
-    packPoint3D(point, packer, onError)
+    packPoint3D(point, packer)
   }
 }
 
@@ -171,31 +170,29 @@ function packPoint (point, packer, onError) {
  * Pack given 2D point.
  * @param {Point} point the point value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packPoint2D (point, packer, onError) {
+function packPoint2D (point, packer) {
   const packableStructFields = [
-    packer.packable(int(point.srid), onError),
-    packer.packable(point.x, onError),
-    packer.packable(point.y, onError)
+    packer.packable(int(point.srid)),
+    packer.packable(point.x),
+    packer.packable(point.y)
   ]
-  packer.packStruct(POINT_2D, packableStructFields, onError)
+  packer.packStruct(POINT_2D, packableStructFields)
 }
 
 /**
  * Pack given 3D point.
  * @param {Point} point the point value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packPoint3D (point, packer, onError) {
+function packPoint3D (point, packer) {
   const packableStructFields = [
-    packer.packable(int(point.srid), onError),
-    packer.packable(point.x, onError),
-    packer.packable(point.y, onError),
-    packer.packable(point.z, onError)
+    packer.packable(int(point.srid)),
+    packer.packable(point.x),
+    packer.packable(point.y),
+    packer.packable(point.z)
   ]
-  packer.packStruct(POINT_3D, packableStructFields, onError)
+  packer.packStruct(POINT_3D, packableStructFields)
 }
 
 /**
@@ -238,21 +235,20 @@ function unpackPoint3D (unpacker, structSize, buffer) {
  * Pack given duration.
  * @param {Duration} value the duration value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packDuration (value, packer, onError) {
+function packDuration (value, packer) {
   const months = int(value.months)
   const days = int(value.days)
   const seconds = int(value.seconds)
   const nanoseconds = int(value.nanoseconds)
 
   const packableStructFields = [
-    packer.packable(months, onError),
-    packer.packable(days, onError),
-    packer.packable(seconds, onError),
-    packer.packable(nanoseconds, onError)
+    packer.packable(months),
+    packer.packable(days),
+    packer.packable(seconds),
+    packer.packable(nanoseconds)
   ]
-  packer.packStruct(DURATION, packableStructFields, onError)
+  packer.packStruct(DURATION, packableStructFields)
 }
 
 /**
@@ -277,9 +273,8 @@ function unpackDuration (unpacker, structSize, buffer) {
  * Pack given local time.
  * @param {LocalTime} value the local time value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packLocalTime (value, packer, onError) {
+function packLocalTime (value, packer) {
   const nanoOfDay = localTimeToNanoOfDay(
     value.hour,
     value.minute,
@@ -287,8 +282,8 @@ function packLocalTime (value, packer, onError) {
     value.nanosecond
   )
 
-  const packableStructFields = [packer.packable(nanoOfDay, onError)]
-  packer.packStruct(LOCAL_TIME, packableStructFields, onError)
+  const packableStructFields = [packer.packable(nanoOfDay)]
+  packer.packStruct(LOCAL_TIME, packableStructFields)
 }
 
 /**
@@ -316,9 +311,8 @@ function unpackLocalTime (
  * Pack given time.
  * @param {Time} value the time value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packTime (value, packer, onError) {
+function packTime (value, packer) {
   const nanoOfDay = localTimeToNanoOfDay(
     value.hour,
     value.minute,
@@ -328,10 +322,10 @@ function packTime (value, packer, onError) {
   const offsetSeconds = int(value.timeZoneOffsetSeconds)
 
   const packableStructFields = [
-    packer.packable(nanoOfDay, onError),
-    packer.packable(offsetSeconds, onError)
+    packer.packable(nanoOfDay),
+    packer.packable(offsetSeconds)
   ]
-  packer.packStruct(TIME, packableStructFields, onError)
+  packer.packStruct(TIME, packableStructFields)
 }
 
 /**
@@ -363,13 +357,12 @@ function unpackTime (unpacker, structSize, buffer, disableLosslessIntegers) {
  * Pack given neo4j date.
  * @param {Date} value the date value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packDate (value, packer, onError) {
+function packDate (value, packer) {
   const epochDay = dateToEpochDay(value.year, value.month, value.day)
 
-  const packableStructFields = [packer.packable(epochDay, onError)]
-  packer.packStruct(DATE, packableStructFields, onError)
+  const packableStructFields = [packer.packable(epochDay)]
+  packer.packStruct(DATE, packableStructFields)
 }
 
 /**
@@ -392,9 +385,8 @@ function unpackDate (unpacker, structSize, buffer, disableLosslessIntegers) {
  * Pack given local date time.
  * @param {LocalDateTime} value the local date time value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packLocalDateTime (value, packer, onError) {
+function packLocalDateTime (value, packer) {
   const epochSecond = localDateTimeToEpochSecond(
     value.year,
     value.month,
@@ -407,10 +399,10 @@ function packLocalDateTime (value, packer, onError) {
   const nano = int(value.nanosecond)
 
   const packableStructFields = [
-    packer.packable(epochSecond, onError),
-    packer.packable(nano, onError)
+    packer.packable(epochSecond),
+    packer.packable(nano)
   ]
-  packer.packStruct(LOCAL_DATE_TIME, packableStructFields, onError)
+  packer.packStruct(LOCAL_DATE_TIME, packableStructFields)
 }
 
 /**
@@ -443,13 +435,12 @@ function unpackLocalDateTime (
  * Pack given date time.
  * @param {DateTime} value the date time value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packDateTime (value, packer, onError) {
+function packDateTime (value, packer) {
   if (value.timeZoneId) {
-    packDateTimeWithZoneId(value, packer, onError)
+    packDateTimeWithZoneId(value, packer)
   } else {
-    packDateTimeWithZoneOffset(value, packer, onError)
+    packDateTimeWithZoneOffset(value, packer)
   }
 }
 
@@ -457,9 +448,8 @@ function packDateTime (value, packer, onError) {
  * Pack given date time with zone offset.
  * @param {DateTime} value the date time value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packDateTimeWithZoneOffset (value, packer, onError) {
+function packDateTimeWithZoneOffset (value, packer) {
   const epochSecond = localDateTimeToEpochSecond(
     value.year,
     value.month,
@@ -473,11 +463,11 @@ function packDateTimeWithZoneOffset (value, packer, onError) {
   const timeZoneOffsetSeconds = int(value.timeZoneOffsetSeconds)
 
   const packableStructFields = [
-    packer.packable(epochSecond, onError),
-    packer.packable(nano, onError),
-    packer.packable(timeZoneOffsetSeconds, onError)
+    packer.packable(epochSecond),
+    packer.packable(nano),
+    packer.packable(timeZoneOffsetSeconds)
   ]
-  packer.packStruct(DATE_TIME_WITH_ZONE_OFFSET, packableStructFields, onError)
+  packer.packStruct(DATE_TIME_WITH_ZONE_OFFSET, packableStructFields)
 }
 
 /**
@@ -523,9 +513,8 @@ function unpackDateTimeWithZoneOffset (
  * Pack given date time with zone id.
  * @param {DateTime} value the date time value to pack.
  * @param {Packer} packer the packer to use.
- * @param {function} onError the error callback.
  */
-function packDateTimeWithZoneId (value, packer, onError) {
+function packDateTimeWithZoneId (value, packer) {
   const epochSecond = localDateTimeToEpochSecond(
     value.year,
     value.month,
@@ -539,11 +528,11 @@ function packDateTimeWithZoneId (value, packer, onError) {
   const timeZoneId = value.timeZoneId
 
   const packableStructFields = [
-    packer.packable(epochSecond, onError),
-    packer.packable(nano, onError),
-    packer.packable(timeZoneId, onError)
+    packer.packable(epochSecond),
+    packer.packable(nano),
+    packer.packable(timeZoneId)
   ]
-  packer.packStruct(DATE_TIME_WITH_ZONE_ID, packableStructFields, onError)
+  packer.packStruct(DATE_TIME_WITH_ZONE_ID, packableStructFields)
 }
 
 /**

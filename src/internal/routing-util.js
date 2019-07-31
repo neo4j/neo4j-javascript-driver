@@ -132,7 +132,7 @@ export default class RoutingUtil {
   }
 
   _callAvailableRoutingProcedure (session, database) {
-    return session._run(null, null, (connection, streamObserver) => {
+    return session._run(null, null, connection => {
       let query
       let params
 
@@ -148,11 +148,12 @@ export default class RoutingUtil {
         params = { context: this._routingContext }
       }
 
-      connection.protocol().run(query, params, streamObserver, {
+      return connection.protocol().run(query, params, {
         bookmark: Bookmark.empty(),
         txConfig: TxConfig.empty(),
         mode: session._mode,
-        database: session._database
+        database: session._database,
+        afterComplete: session._onComplete
       })
     })
   }

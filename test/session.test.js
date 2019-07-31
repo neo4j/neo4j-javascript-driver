@@ -55,20 +55,20 @@ describe('#integration session', () => {
     driver.close()
   })
 
-  it('close should invoke callback ', done => {
+  it('close should return promise', done => {
     const connection = new FakeConnection()
     const session = newSessionWithConnection(connection)
 
-    session.close(done)
+    session.close().then(() => done())
   })
 
-  it('close should invoke callback even when already closed ', done => {
+  it('close should return promise even when already closed ', done => {
     const connection = new FakeConnection()
     const session = newSessionWithConnection(connection)
 
-    session.close(() => {
-      session.close(() => {
-        session.close(() => {
+    session.close().then(() => {
+      session.close().then(() => {
+        session.close().then(() => {
           done()
         })
       })
@@ -79,13 +79,13 @@ describe('#integration session', () => {
     const connection = new FakeConnection()
     const session = newSessionWithConnection(connection)
 
-    session.close(() => {
+    session.close().then(() => {
       expect(connection.isReleasedOnce()).toBeTruthy()
 
-      session.close(() => {
+      session.close().then(() => {
         expect(connection.isReleasedOnce()).toBeTruthy()
 
-        session.close(() => {
+        session.close().then(() => {
           expect(connection.isReleasedOnce()).toBeTruthy()
           done()
         })
@@ -104,7 +104,7 @@ describe('#integration session', () => {
       originalClose.call(transactionExecutor)
     }
 
-    session.close(() => {
+    session.close().then(() => {
       expect(closeCalledTimes).toEqual(1)
       done()
     })
@@ -116,7 +116,7 @@ describe('#integration session', () => {
     const tx = session.beginTransaction()
     tx.run('INVALID QUERY').catch(() => {
       tx.rollback().then(() => {
-        session.close(() => {
+        session.close().then(() => {
           driver.close()
           done()
         })
@@ -324,7 +324,7 @@ describe('#integration session', () => {
     })
   })
 
-  it('should fail when using the session when having an open transaction', done => {
+  it('should fail when using the session with an open transaction', done => {
     // When
     session.beginTransaction()
 
@@ -783,7 +783,7 @@ describe('#integration session', () => {
 
   it('should interrupt query waiting on a lock when closed', done => {
     session.run('CREATE ()').then(() => {
-      session.close(() => {
+      session.close().then(() => {
         const session1 = driver.session()
         const session2 = driver.session()
         const tx1 = session1.beginTransaction()
@@ -817,7 +817,7 @@ describe('#integration session', () => {
 
   it('should interrupt transaction waiting on a lock when closed', done => {
     session.run('CREATE ()').then(() => {
-      session.close(() => {
+      session.close().then(() => {
         const session1 = driver.session()
         const session2 = driver.session()
         const tx1 = session1.beginTransaction()
@@ -850,7 +850,7 @@ describe('#integration session', () => {
 
   it('should interrupt transaction function waiting on a lock when closed', done => {
     session.run('CREATE ()').then(() => {
-      session.close(() => {
+      session.close().then(() => {
         const session1 = driver.session()
         const session2 = driver.session()
         const tx1 = session1.beginTransaction()
@@ -990,7 +990,7 @@ describe('#integration session', () => {
         expect(numberOfAcquiredConnectionsFromPool()).toEqual(1)
       },
       onCompleted: () => {
-        session.close(() => {
+        session.close().then(() => {
           done()
         })
       },
@@ -1010,8 +1010,8 @@ describe('#integration session', () => {
         expect(numberOfAcquiredConnectionsFromPool()).toEqual(2)
       },
       onCompleted: () => {
-        otherSession.close(() => {
-          session.close(() => {
+        otherSession.close().then(() => {
+          session.close().then(() => {
             done()
           })
         })
@@ -1060,7 +1060,7 @@ describe('#integration session', () => {
       .run('RETURN $array', { array: iterable })
       .then(result => {
         done.fail(
-          'Failre expected but query returned ' +
+          'Failure expected but query returned ' +
             JSON.stringify(result.records[0].get(0))
         )
       })
@@ -1205,7 +1205,7 @@ describe('#integration session', () => {
   function withQueryInTmpSession (driver, callback) {
     const tmpSession = driver.session()
     return tmpSession.run('RETURN 1').then(() => {
-      tmpSession.close(callback)
+      tmpSession.close().then(() => callback())
     })
   }
 
@@ -1263,7 +1263,7 @@ describe('#integration session', () => {
           tx.commit()
             .then(() => {
               const bookmark = session.lastBookmark()
-              session.close(() => {
+              session.close().then(() => {
                 resolve(bookmark)
               })
             })

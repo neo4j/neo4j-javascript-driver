@@ -49,9 +49,8 @@ describe('#unit BoltProtocolV3', () => {
 
     const clientName = 'js-driver/1.2.3'
     const authToken = { username: 'neo4j', password: 'secret' }
-    const observer = {}
 
-    protocol.initialize(clientName, authToken, observer)
+    const observer = protocol.initialize({ userAgent: clientName, authToken })
 
     recorder.verifyMessageCount(1)
     expect(recorder.messages[0]).toBeMessage(
@@ -75,9 +74,8 @@ describe('#unit BoltProtocolV3', () => {
 
     const statement = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
-    const observer = {}
 
-    protocol.run(statement, parameters, observer, {
+    const observer = protocol.run(statement, parameters, {
       bookmark,
       txConfig,
       mode: WRITE
@@ -109,9 +107,7 @@ describe('#unit BoltProtocolV3', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
 
-    const observer = {}
-
-    protocol.beginTransaction(observer, {
+    const observer = protocol.beginTransaction({
       bookmark,
       txConfig,
       mode: WRITE
@@ -129,9 +125,7 @@ describe('#unit BoltProtocolV3', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
 
-    const observer = {}
-
-    protocol.commitTransaction(observer)
+    const observer = protocol.commitTransaction()
 
     recorder.verifyMessageCount(1)
     expect(recorder.messages[0]).toBeMessage(RequestMessage.commit())
@@ -143,9 +137,7 @@ describe('#unit BoltProtocolV3', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
 
-    const observer = {}
-
-    protocol.rollbackTransaction(observer)
+    const observer = protocol.rollbackTransaction()
 
     recorder.verifyMessageCount(1)
     expect(recorder.messages[0]).toBeMessage(RequestMessage.rollback())
@@ -154,14 +146,14 @@ describe('#unit BoltProtocolV3', () => {
   })
 
   describe('Bolt V4', () => {
+    /**
+     * @param {function(protocol: BoltProtocolV3)} fn
+     */
     function verifyError (fn) {
       const recorder = new utils.MessageRecordingConnection()
       const protocol = new BoltProtocolV3(recorder, null, false)
-      const observer = {
-        onError: () => {}
-      }
 
-      expect(() => fn(protocol, observer)).toThrowError(
+      expect(() => fn(protocol)).toThrowError(
         'Driver is connected to the database that does not support multiple databases. ' +
           'Please upgrade to neo4j 4.0.0 or later in order to use this functionality'
       )
@@ -169,9 +161,7 @@ describe('#unit BoltProtocolV3', () => {
 
     describe('beginTransaction', () => {
       function verifyBeginTransaction (database) {
-        verifyError((protocol, observer) =>
-          protocol.beginTransaction(observer, { database })
-        )
+        verifyError(protocol => protocol.beginTransaction({ database }))
       }
 
       it('should throw error when database is set', () => {
@@ -181,9 +171,7 @@ describe('#unit BoltProtocolV3', () => {
 
     describe('run', () => {
       function verifyRun (database) {
-        verifyError((protocol, observer) =>
-          protocol.run('statement', {}, observer, { database })
-        )
+        verifyError(protocol => protocol.run('statement', {}, { database }))
       }
 
       it('should throw error when database is set', () => {

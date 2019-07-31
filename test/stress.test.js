@@ -236,7 +236,7 @@ describe('#integration stress tests', () => {
           context.queryCompleted(result, accessMode)
           context.log(commandId, `Query completed successfully`)
 
-          session.close(() => {
+          return session.close().then(() => {
             const possibleError = verifyQueryResult(result)
             callback(possibleError)
           })
@@ -277,7 +277,7 @@ describe('#integration stress tests', () => {
           context.queryCompleted(result, accessMode, session.lastBookmark())
           context.log(commandId, `Transaction function executed successfully`)
 
-          session.close(() => {
+          return session.close().then(() => {
             const possibleError = verifyQueryResult(result)
             callback(possibleError)
           })
@@ -327,7 +327,7 @@ describe('#integration stress tests', () => {
               context.queryCompleted(result, accessMode, session.lastBookmark())
               context.log(commandId, `Transaction committed successfully`)
 
-              session.close(() => {
+              return session.close().then(() => {
                 callback(commandError)
               })
             })

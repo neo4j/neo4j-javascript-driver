@@ -16,7 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import StreamObserver from './internal/stream-observer'
+import {
+  ResultStreamObserver,
+  FailedObserver
+} from './internal/stream-observers'
 import Result from './result'
 import Transaction from './transaction'
 import { newError } from './error'
@@ -80,6 +83,7 @@ class Session {
     this._hasTx = false
     this._lastBookmark = bookmark
     this._transactionExecutor = _createTransactionExecutor(config)
+    this._onComplete = this._onCompleteCallback.bind(this)
   }
 
   /**
@@ -100,41 +104,39 @@ class Session {
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    return this._run(query, params, (connection, streamObserver) =>
-      connection.protocol().run(query, params, streamObserver, {
+    return this._run(query, params, connection =>
+      connection.protocol().run(query, params, {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
-        database: this._database
+        database: this._database,
+        afterComplete: this._onComplete
       })
     )
   }
 
-  _run (statement, parameters, statementRunner) {
-    const streamObserver = new SessionStreamObserver(this)
+  _run (statement, parameters, customRunner) {
     const connectionHolder = this._connectionHolderWithMode(this._mode)
+
+    let observerPromise
     if (!this._hasTx) {
       connectionHolder.initializeConnection()
-      connectionHolder
-        .getConnection(streamObserver)
-        .then(connection => statementRunner(connection, streamObserver))
-        .catch(error => streamObserver.onError(error))
+      observerPromise = connectionHolder
+        .getConnection()
+        .then(connection => customRunner(connection))
+        .catch(error => Promise.resolve(new FailedObserver({ error })))
     } else {
-      streamObserver.onError(
-        newError(
-          'Statements cannot be run directly on a ' +
-            'session with an open transaction; either run from within the ' +
-            'transaction or use a different session.'
-        )
+      observerPromise = Promise.resolve(
+        new FailedObserver({
+          error: newError(
+            'Statements cannot be run directly on a ' +
+              'session with an open transaction; either run from within the ' +
+              'transaction or use a different session.'
+          )
+        })
       )
     }
-    return new Result(
-      streamObserver,
-      statement,
-      parameters,
-      () => streamObserver.serverMetadata(),
-      connectionHolder
-    )
+    return new Result(observerPromise, statement, parameters, connectionHolder)
   }
 
   /**
@@ -252,20 +254,15 @@ class Session {
 
   /**
    * Close this session.
-   * @param {function()} callback - Function to be called after the session has been closed
-   * @return
+   * @return ${Promise}
    */
-  close (callback = () => null) {
+  async close () {
     if (this._open) {
       this._open = false
       this._transactionExecutor.close()
-      this._readConnectionHolder.close().then(() => {
-        this._writeConnectionHolder.close().then(() => {
-          callback()
-        })
-      })
-    } else {
-      callback()
+
+      await this._readConnectionHolder.close()
+      await this._writeConnectionHolder.close()
     }
   }
 
@@ -278,21 +275,9 @@ class Session {
       throw newError('Unknown access mode: ' + mode)
     }
   }
-}
 
-/**
- * @private
- */
-class SessionStreamObserver extends StreamObserver {
-  constructor (session) {
-    super()
-    this._session = session
-  }
-
-  onCompleted (meta) {
-    super.onCompleted(meta)
-    const bookmark = new Bookmark(meta.bookmark)
-    this._session._updateBookmark(bookmark)
+  _onCompleteCallback (meta) {
+    this._updateBookmark(new Bookmark(meta.bookmark))
   }
 }
 
