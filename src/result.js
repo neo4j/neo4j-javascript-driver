@@ -162,6 +162,10 @@ class Result {
 
     this._streamObserverPromise.then(o => o.subscribe(observer))
   }
+
+  _discard () {
+    this._streamObserverPromise.then(o => o.discard())
+  }
 }
 
 function captureStacktrace () {

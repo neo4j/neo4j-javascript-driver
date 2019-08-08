@@ -63,11 +63,15 @@ export default class BoltProtocol extends BoltProtocolV3 {
       afterError,
       beforeComplete,
       afterComplete,
-      flush = true
+      flush = true,
+      reactive = false
     } = {}
   ) {
     const observer = new ResultStreamObserver({
       connection: this._connection,
+      reactive: reactive,
+      moreFunction: reactive ? this._requestMore : this._noOp,
+      discardFunction: reactive ? this._requestDiscard : this._noOp,
       beforeKeys,
       afterKeys,
       beforeError,
@@ -76,6 +80,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
       afterComplete
     })
 
+    const flushRun = reactive
     this._connection.write(
       RequestMessage.runWithMetadata(statement, parameters, {
         bookmark,
@@ -84,10 +89,23 @@ export default class BoltProtocol extends BoltProtocolV3 {
         mode
       }),
       observer,
-      false
+      flushRun && flush
     )
-    this._connection.write(RequestMessage.pull(), observer, flush)
+
+    if (!reactive) {
+      this._connection.write(RequestMessage.pull(), observer, flush)
+    }
 
     return observer
   }
+
+  _requestMore (connection, stmtId, n, observer) {
+    connection.write(RequestMessage.pull({ stmtId, n }), observer, true)
+  }
+
+  _requestDiscard (connection, stmtId, observer) {
+    connection.write(RequestMessage.discard({ stmtId }), observer, true)
+  }
+
+  _noOp () {}
 }

@@ -41,9 +41,11 @@ class Transaction {
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
+   * @param {boolean} reactive whether this transaction generates reactive streams
    */
-  constructor (connectionHolder, onClose, onBookmark) {
+  constructor ({ connectionHolder, onClose, onBookmark, reactive }) {
     this._connectionHolder = connectionHolder
+    this._reactive = reactive
     this._state = _states.ACTIVE
     this._onClose = onClose
     this._onBookmark = onBookmark
@@ -84,7 +86,8 @@ class Transaction {
     return this._state.run(query, params, {
       connectionHolder: this._connectionHolder,
       onError: this._onError,
-      onComplete: this._onComplete
+      onComplete: this._onComplete,
+      reactive: this._reactive
     })
   }
 
@@ -165,7 +168,11 @@ let _states = {
         state: _states.ROLLED_BACK
       }
     },
-    run: (statement, parameters, { connectionHolder, onError, onComplete }) => {
+    run: (
+      statement,
+      parameters,
+      { connectionHolder, onError, onComplete, reactive }
+    ) => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
       const observerPromise = connectionHolder
         .getConnection()
@@ -176,7 +183,8 @@ let _states = {
             mode: connectionHolder.mode(),
             database: connectionHolder.database(),
             beforeError: onError,
-            afterComplete: onComplete
+            afterComplete: onComplete,
+            reactive: reactive
           })
         )
         .catch(error => new FailedObserver({ error, onError }))
@@ -210,7 +218,11 @@ let _states = {
         state: _states.FAILED
       }
     },
-    run: (statement, parameters, { connectionHolder, onError, onComplete }) => {
+    run: (
+      statement,
+      parameters,
+      { connectionHolder, onError, onComplete, reactive }
+    ) => {
       return newCompletedResult(
         new FailedObserver({
           error:
@@ -256,7 +268,11 @@ let _states = {
         state: _states.SUCCEEDED
       }
     },
-    run: (statement, parameters, { connectionHolder, onError, onComplete }) => {
+    run: (
+      statement,
+      parameters,
+      { connectionHolder, onError, onComplete, reactive }
+    ) => {
       return newCompletedResult(
         new FailedObserver({
           error:
@@ -298,7 +314,11 @@ let _states = {
         state: _states.ROLLED_BACK
       }
     },
-    run: (statement, parameters, { connectionHolder, onError, onComplete }) => {
+    run: (
+      statement,
+      parameters,
+      { connectionHolder, onError, onComplete, reactive }
+    ) => {
       return newCompletedResult(
         new FailedObserver({
           error:

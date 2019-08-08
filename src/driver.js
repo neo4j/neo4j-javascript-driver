@@ -17,20 +17,19 @@
  * limitations under the License.
  */
 
-import Session from './session'
-import Pool from './internal/pool'
-import ChannelConnection from './internal/connection-channel'
-import { newError, SERVICE_UNAVAILABLE } from './error'
-import DirectConnectionProvider from './internal/connection-provider-direct'
+import { newError } from './error'
+import ConnectionProvider from './internal/connection-provider'
 import Bookmark from './internal/bookmark'
+import DirectConnectionProvider from './internal/connection-provider-direct'
 import ConnectivityVerifier from './internal/connectivity-verifier'
-import PoolConfig, {
+import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
+import Logger from './internal/logger'
+import {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
 } from './internal/pool-config'
-import Logger from './internal/logger'
-import ConnectionErrorHandler from './internal/connection-error-handler'
-import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
+import Session from './session'
+import RxSession from './session-rx'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000 // 1 hour
 
@@ -121,10 +120,11 @@ class Driver {
    * it is closed, the underlying connection will be released to the connection
    * pool and made available for others to use.
    *
-   * @param {string} [defaultAccessMode=WRITE] the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
-   * @param {string|string[]} [bookmarks=null] the initial reference or references to some previous
+   * @param {Object} args -
+   * @param {string} args.defaultAccessMode='WRITE' - the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
+   * @param {string|string[]} args.bookmarks - the initial reference or references to some previous
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
-   * @param {string} [database=''] the database this session will connect to.
+   * @param {string} args.database='' - the database this session will connect to.
    * @return {Session} new session.
    */
   session ({
@@ -132,6 +132,26 @@ class Driver {
     bookmarks: bookmarkOrBookmarks,
     database = ''
   } = {}) {
+    return this._newSession({
+      defaultAccessMode,
+      bookmarkOrBookmarks,
+      database,
+      reactive: false
+    })
+  }
+
+  rxSession ({ defaultAccessMode = WRITE, bookmarks, database = '' } = {}) {
+    return new RxSession(
+      this._newSession({
+        defaultAccessMode,
+        bookmarks,
+        database,
+        reactive: true
+      })
+    )
+  }
+
+  _newSession ({ defaultAccessMode, bookmarkOrBookmarks, database, reactive }) {
     const sessionMode = Driver._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmark = bookmarkOrBookmarks
@@ -142,7 +162,8 @@ class Driver {
       database,
       connectionProvider,
       bookmark,
-      config: this._config
+      config: this._config,
+      reactive
     })
   }
 

@@ -20,8 +20,9 @@ import Record from '../record'
 import Connection from './connection'
 import { newError, PROTOCOL_ERROR } from '../error'
 import { isString } from './util'
+import Integer from '../integer'
 
-const DefaultBatchSize = 100
+const DefaultBatchSize = 50
 
 class StreamObserver {
   onNext (rawRecord) {}
@@ -45,10 +46,11 @@ class ResultStreamObserver extends StreamObserver {
   /**
    *
    * @param {Object} param
-   * @param {Connection} connection
-   * @param {} param.moreFunction -
-   * @param {} param.discardFunction -
-   * @param {} param.batchSize -
+   * @param {Connection} param.connection
+   * @param {boolean} param.reactive
+   * @param {function(connection: Connection, stmtId: number|Integer, n: number|Integer, observer: StreamObserver)} param.moreFunction -
+   * @param {function(connection: Connection, stmtId: number|Integer, observer: StreamObserver)} param.discardFunction -
+   * @param {number|Integer} param.batchSize -
    * @param {function(err: Error): Promise|void} param.beforeError -
    * @param {function(err: Error): Promise|void} param.afterError -
    * @param {function(keys: string[]): Promise|void} param.beforeKeys -
@@ -58,6 +60,7 @@ class ResultStreamObserver extends StreamObserver {
    */
   constructor ({
     connection,
+    reactive = false,
     moreFunction,
     discardFunction,
     batchSize = DefaultBatchSize,
@@ -71,6 +74,8 @@ class ResultStreamObserver extends StreamObserver {
     super()
 
     this._connection = connection
+    this._reactive = reactive
+    this._streaming = false
 
     this._fieldKeys = null
     this._fieldLookup = null
@@ -105,7 +110,11 @@ class ResultStreamObserver extends StreamObserver {
   onNext (rawRecord) {
     let record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
     if (this._observers.some(o => o.onNext)) {
-      this._observers.forEach(o => (o.onNext ? o.onNext(record) : {}))
+      this._observers.forEach(o => {
+        if (o.onNext) {
+          o.onNext(record)
+        }
+      })
     } else {
       this._queuedRecords.push(record)
     }
@@ -149,13 +158,19 @@ class ResultStreamObserver extends StreamObserver {
         this._head = this._fieldKeys
 
         if (this._observers.some(o => o.onKeys)) {
-          this._observers.forEach(o =>
-            o.onKeys ? o.onKeys(this._fieldKeys) : {}
-          )
+          this._observers.forEach(o => {
+            if (o.onKeys) {
+              o.onKeys(this._fieldKeys)
+            }
+          })
         }
 
         if (this._afterKeys) {
           this._afterKeys(this._fieldKeys)
+        }
+
+        if (this._reactive) {
+          this._handleStreaming()
         }
       }
 
@@ -165,22 +180,13 @@ class ResultStreamObserver extends StreamObserver {
         continuation()
       }
     } else {
+      this._streaming = false
+
       if (meta.has_more) {
         // We've consumed current batch and server notified us that there're more
         // records to stream. Let's invoke more or discard function based on whether
         // the user wants to discard streaming or not
-        if (this._discard) {
-          this._discardFunction({
-            connection: this._connection,
-            statementId: this._statementId
-          })
-        } else {
-          this._moreFunction({
-            connection: this._connection,
-            statementId: this._statementId,
-            n: this._batchSize
-          })
-        }
+        this._handleStreaming()
 
         delete meta.has_more
       } else {
@@ -200,9 +206,11 @@ class ResultStreamObserver extends StreamObserver {
           this._tail = completionMetadata
 
           if (this._observers.some(o => o.onCompleted)) {
-            this._observers.forEach(o =>
-              o.onCompleted ? o.onCompleted(completionMetadata) : {}
-            )
+            this._observers.forEach(o => {
+              if (o.onCompleted) {
+                o.onCompleted(completionMetadata)
+              }
+            })
           }
 
           if (this._afterComplete) {
@@ -215,6 +223,28 @@ class ResultStreamObserver extends StreamObserver {
         } else {
           continuation()
         }
+      }
+    }
+  }
+
+  _handleStreaming () {
+    if (
+      this._reactive &&
+      this._head &&
+      this._observers.some(o => o.onNext || o.onCompleted) &&
+      !this._streaming
+    ) {
+      this._streaming = true
+
+      if (this._discard) {
+        this._discardFunction(this._connection, this._statementId, this)
+      } else {
+        this._moreFunction(
+          this._connection,
+          this._statementId,
+          this._batchSize,
+          this
+        )
       }
     }
   }
@@ -282,9 +312,11 @@ class ResultStreamObserver extends StreamObserver {
 
     const continuation = () => {
       if (this._observers.some(o => o.onError)) {
-        this._observers.forEach(o =>
-          o.onError ? o.onError(error) : console.log(error)
-        )
+        this._observers.forEach(o => {
+          if (o.onError) {
+            o.onError(error)
+          }
+        })
       }
 
       if (this._afterError) {
@@ -324,6 +356,10 @@ class ResultStreamObserver extends StreamObserver {
       observer.onCompleted(this._tail)
     }
     this._observers.push(observer)
+
+    if (this._reactive) {
+      this._handleStreaming()
+    }
   }
 
   hasFailed () {

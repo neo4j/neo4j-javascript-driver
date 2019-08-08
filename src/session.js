@@ -60,15 +60,25 @@ import TxConfig from './internal/tx-config'
 class Session {
   /**
    * @constructor
-   * @param {string} mode the default access mode for this session.
-   * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
-   * @param {Bookmark} bookmark - the initial bookmark for this session.
-   * @param {string} database the database name
-   * @param {Object} [config={}] - this driver configuration.
+   * @param {Object} args
+   * @param {string} args.mode the default access mode for this session.
+   * @param {ConnectionProvider} args.connectionProvider - the connection provider to acquire connections from.
+   * @param {Bookmark} args.bookmark - the initial bookmark for this session.
+   * @param {string} args.database the database name
+   * @param {Object} args.config={} - this driver configuration.
+   * @param {boolean} args.reactive - whether this session should create reactive streams
    */
-  constructor ({ mode, connectionProvider, bookmark, database, config }) {
+  constructor ({
+    mode,
+    connectionProvider,
+    bookmark,
+    database,
+    config,
+    reactive
+  }) {
     this._mode = mode
     this._database = database
+    this._reactive = reactive
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
@@ -110,7 +120,8 @@ class Session {
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
-        afterComplete: this._onComplete
+        afterComplete: this._onComplete,
+        reactive: this._reactive
       })
     )
   }
@@ -175,11 +186,12 @@ class Session {
     connectionHolder.initializeConnection()
     this._hasTx = true
 
-    const tx = new Transaction(
+    const tx = new Transaction({
       connectionHolder,
-      this._transactionClosed.bind(this),
-      this._updateBookmark.bind(this)
-    )
+      onClose: this._transactionClosed.bind(this),
+      onBookmark: this._updateBookmark.bind(this),
+      reactive: this._reactive
+    })
     tx._begin(this._lastBookmark, txConfig)
     return tx
   }

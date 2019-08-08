@@ -185,7 +185,7 @@ export default class RequestMessage {
    * @return {RequestMessage} the PULL message.
    */
   static pull ({ stmtId = NO_STATEMENT_ID, n = ALL } = {}) {
-    const metadata = buildStreamMetadata(stmtId, n)
+    const metadata = buildStreamMetadata(stmtId || NO_STATEMENT_ID, n || ALL)
     return new RequestMessage(
       PULL,
       [metadata],
@@ -200,7 +200,7 @@ export default class RequestMessage {
    * @return {RequestMessage} the PULL message.
    */
   static discard ({ stmtId = NO_STATEMENT_ID, n = ALL } = {}) {
-    const metadata = buildStreamMetadata(stmtId, n)
+    const metadata = buildStreamMetadata(stmtId || NO_STATEMENT_ID, n || ALL)
     return new RequestMessage(
       DISCARD,
       [metadata],
@@ -246,7 +246,7 @@ function buildTxMetadata (bookmark, txConfig, database, mode) {
 function buildStreamMetadata (stmtId, n) {
   const metadata = { n: int(n) }
   if (stmtId !== NO_STATEMENT_ID) {
-    metadata['stmt_id'] = int(stmtId)
+    metadata['qid'] = int(stmtId)
   }
   return metadata
 }
