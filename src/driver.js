@@ -141,14 +141,15 @@ class Driver {
   }
 
   rxSession ({ defaultAccessMode = WRITE, bookmarks, database = '' } = {}) {
-    return new RxSession(
-      this._newSession({
+    return new RxSession({
+      session: this._newSession({
         defaultAccessMode,
         bookmarks,
         database,
         reactive: true
-      })
-    )
+      }),
+      config: this._config
+    })
   }
 
   _newSession ({ defaultAccessMode, bookmarkOrBookmarks, database, reactive }) {

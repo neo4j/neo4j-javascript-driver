@@ -567,10 +567,10 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnNotification (version, runnable) {
-    // TODO: seems to be flaky
-    return
+    pending('seems to be flaky')
 
     if (version.compareTo(VERSION_4_0_0) < 0) {
+      return
     }
 
     const summary = await runnable

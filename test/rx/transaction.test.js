@@ -287,10 +287,10 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should allow commit after commit', async () => {
-    // TODO: behaviour difference across drivers
-    return
+    pending('behaviour difference across drivers')
 
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
     }
 
     const txc = await session.beginTransaction().toPromise()
@@ -309,10 +309,10 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should allow rollback after rollback', async () => {
-    // TODO: behaviour difference across drivers
-    return
+    pending('behaviour difference across drivers')
 
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
     }
 
     const txc = await session.beginTransaction().toPromise()
@@ -481,9 +481,10 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not propagate run failure from summary', async () => {
-    // TODO: behaviour difference across drivers
-    return
+    pending('behaviour difference across drivers')
+
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
     }
 
     const txc = await session.beginTransaction().toPromise()

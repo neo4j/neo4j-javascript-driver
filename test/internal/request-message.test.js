@@ -184,11 +184,11 @@ describe('#unit RequestMessage', () => {
       verify(RequestMessage.pull({ n: 501 }), 0x3f, { n: int(501) }, 'PULL')
     })
 
-    it('should create PULL message with stmt_id and n', () => {
+    it('should create PULL message with qid and n', () => {
       verify(
         RequestMessage.pull({ stmtId: 27, n: 1023 }),
         0x3f,
-        { n: int(1023), stmt_id: int(27) },
+        { n: int(1023), qid: int(27) },
         'PULL'
       )
     })
@@ -206,11 +206,11 @@ describe('#unit RequestMessage', () => {
       )
     })
 
-    it('should create DISCARD message with stmt_id and n', () => {
+    it('should create DISCARD message with qid and n', () => {
       verify(
         RequestMessage.discard({ stmtId: 27, n: 1023 }),
         0x2f,
-        { n: int(1023), stmt_id: int(27) },
+        { n: int(1023), qid: int(27) },
         'DISCARD'
       )
     })
