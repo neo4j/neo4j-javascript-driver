@@ -198,6 +198,10 @@ describe('#integration rx-session', () => {
   })
 
   it('should fail on transactions that cannot be retried', async () => {
+    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
     const txcWork = new ConfigurableTransactionWork({
       statement: 'UNWIND [10, 5, 0] AS x CREATE (:Hi) RETURN 10/x'
     })
