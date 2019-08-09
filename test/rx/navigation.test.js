@@ -485,10 +485,13 @@ describe('#integration-rx navigation', () => {
 
     const result = runnable.run('THIS IS NOT A CYPHER')
 
-    await collectAndAssertError(result.keys(), error => {
-      expect(error.message).toContain('Invalid input')
-      expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
-    })
+    await collectAndAssertError(
+      result.keys(),
+      jasmine.objectContaining({
+        code: 'Neo.ClientError.Statement.SyntaxError',
+        message: jasmine.stringMatching(/Invalid input/)
+      })
+    )
   }
 
   /**
@@ -496,19 +499,18 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnSubsequentKeysWhenRunFails (version, runnable) {
-    function expectations (error) {
-      expect(error.message).toContain('Invalid input')
-      expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
-    }
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
     const result = runnable.run('THIS IS NOT A CYPHER')
-
-    await collectAndAssertError(result.keys(), expectations)
-    await collectAndAssertError(result.keys(), expectations)
-    await collectAndAssertError(result.keys(), expectations)
+    const expectedError = jasmine.objectContaining({
+      code: 'Neo.ClientError.Statement.SyntaxError',
+      message: jasmine.stringMatching(/Invalid input/)
+    })
+    await collectAndAssertError(result.keys(), expectedError)
+    await collectAndAssertError(result.keys(), expectedError)
+    await collectAndAssertError(result.keys(), expectedError)
   }
 
   /**
@@ -522,10 +524,13 @@ describe('#integration-rx navigation', () => {
 
     const result = runnable.run('THIS IS NOT A CYPHER')
 
-    await collectAndAssertError(result.records(), error => {
-      expect(error.message).toContain('Invalid input')
-      expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
-    })
+    await collectAndAssertError(
+      result.records(),
+      jasmine.objectContaining({
+        code: 'Neo.ClientError.Statement.SyntaxError',
+        message: jasmine.stringMatching(/Invalid input/)
+      })
+    )
   }
 
   /**
@@ -539,10 +544,13 @@ describe('#integration-rx navigation', () => {
 
     const result = runnable.run('THIS IS NOT A CYPHER')
 
-    await collectAndAssertError(result.summary(), error => {
-      expect(error.message).toContain('Invalid input')
-      expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
-    })
+    await collectAndAssertError(
+      result.summary(),
+      jasmine.objectContaining({
+        code: 'Neo.ClientError.Statement.SyntaxError',
+        message: jasmine.stringMatching(/Invalid input/)
+      })
+    )
   }
 
   /**
@@ -550,19 +558,19 @@ describe('#integration-rx navigation', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldFailOnSubsequentSummaryWhenRunFails (version, runnable) {
-    function expectations (error) {
-      expect(error.message).toContain('Invalid input')
-      expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
-    }
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
     const result = runnable.run('THIS IS NOT A CYPHER')
+    const expectedError = jasmine.objectContaining({
+      code: 'Neo.ClientError.Statement.SyntaxError',
+      message: jasmine.stringMatching(/Invalid input/)
+    })
 
-    await collectAndAssertError(result.summary(), expectations)
-    await collectAndAssertError(result.summary(), expectations)
-    await collectAndAssertError(result.summary(), expectations)
+    await collectAndAssertError(result.summary(), expectedError)
+    await collectAndAssertError(result.summary(), expectedError)
+    await collectAndAssertError(result.summary(), expectedError)
   }
 
   async function collectAndAssertKeys (result) {
@@ -628,15 +636,14 @@ describe('#integration-rx navigation', () => {
    * @param {Observable} stream
    * @param {function(err: Error): void} expectationFunc
    */
-  async function collectAndAssertError (stream, expectationFunc) {
-    const error = await stream
+  async function collectAndAssertError (stream, expectedError) {
+    const result = await stream
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
 
-    expect(error).toBeTruthy()
-    expectationFunc(error)
+    expect(result).toEqual([Notification.createError(expectedError)])
   }
 })

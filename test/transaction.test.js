@@ -382,10 +382,7 @@ describe('#integration transaction', () => {
             const tx2 = session2.beginTransaction()
             tx2.run('CREATE ()').catch(error => {
               const message = error.message
-              const expectedPrefix =
-                message.indexOf('Database not up to the requested version') ===
-                0
-              expect(expectedPrefix).toBeTruthy()
+              expect(message).toContain('not up to the requested version')
               done()
             })
           })

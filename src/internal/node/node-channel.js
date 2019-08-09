@@ -181,7 +181,7 @@ function isEncrypted (config) {
     config.encrypted == null || config.encrypted === undefined
   if (encryptionNotConfigured) {
     // default to using encryption if trust-all-certificates is available
-    return true
+    return false
   }
   return config.encrypted === true || config.encrypted === ENCRYPTION_ON
 }

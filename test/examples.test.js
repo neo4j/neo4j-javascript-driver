@@ -19,6 +19,7 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
+import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 
 /**
  * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
@@ -32,6 +33,7 @@ describe('#integration examples', () => {
   const originalConsole = console
 
   let driverGlobal
+  let version
   let originalTimeout
 
   let consoleOverride
@@ -57,7 +59,8 @@ describe('#integration examples', () => {
 
     const session = driverGlobal.session()
     try {
-      await session.run('MATCH (n) DETACH DELETE n')
+      const result = await session.run('MATCH (n) DETACH DELETE n')
+      version = ServerVersion.fromString(result.summary.server.version)
     } finally {
       await session.close()
     }
@@ -155,6 +158,10 @@ describe('#integration examples', () => {
   })
 
   it('config trust example', done => {
+    if (version.compareTo(VERSION_4_0_0) >= 0) {
+      pending('address within security work')
+    }
+
     // tag::config-trust[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       encrypted: 'ENCRYPTION_ON',

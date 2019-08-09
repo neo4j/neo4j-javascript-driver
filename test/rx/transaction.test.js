@@ -30,7 +30,6 @@ import {
 import neo4j from '../../src'
 import { ServerVersion, VERSION_4_0_0 } from '../../src/internal/server-version'
 import RxSession from '../../src/session-rx'
-import RxTransaction from '../../src/transaction-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { newError } from '../../src/error'
 
@@ -186,17 +185,22 @@ describe('#integration-rx transaction', () => {
 
     await verifyFailsWithWrongStatement(txc)
 
-    const error = await txc
+    const result = await txc
       .commit()
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
-    expect(error).toBeTruthy()
-    expect(error.error).toContain(
-      'Cannot commit statements in this transaction'
-    )
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.objectContaining({
+          error: jasmine.stringMatching(
+            /Cannot commit statements in this transaction/
+          )
+        })
+      )
+    ])
   })
 
   it('should succeed to rollback after a failed statement', async () => {
@@ -229,17 +233,22 @@ describe('#integration-rx transaction', () => {
     await verifyCanReturnOne(txc)
     await verifyFailsWithWrongStatement(txc)
 
-    const error = await txc
+    const result = await txc
       .commit()
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
-    expect(error).toBeTruthy()
-    expect(error.error).toContain(
-      'Cannot commit statements in this transaction'
-    )
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.objectContaining({
+          error: jasmine.stringMatching(
+            /Cannot commit statements in this transaction/
+          )
+        })
+      )
+    ])
   })
 
   it('should succeed to rollback after successful and failed statement', async () => {
@@ -272,18 +281,23 @@ describe('#integration-rx transaction', () => {
 
     await verifyFailsWithWrongStatement(txc)
 
-    const error = await txc
+    const result = await txc
       .run('CREATE ()')
       .records()
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
-    expect(error).toBeTruthy()
-    expect(error.error).toContain(
-      'Cannot run statement, because previous statements in the transaction has failed'
-    )
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.objectContaining({
+          error: jasmine.stringMatching(
+            /Cannot run statement, because previous statements in the transaction has failed/
+          )
+        })
+      )
+    ])
   })
 
   it('should allow commit after commit', async () => {
@@ -340,16 +354,22 @@ describe('#integration-rx transaction', () => {
     await verifyCanCreateNode(txc, 6)
     await verifyCanCommit(txc)
 
-    const error = await txc
+    const result = await txc
       .rollback()
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
-    expect(error.error).toContain(
-      'Cannot rollback transaction, because transaction has already been successfully closed'
-    )
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.objectContaining({
+          error: jasmine.stringMatching(
+            /Cannot rollback transaction, because transaction has already been successfully closed/
+          )
+        })
+      )
+    ])
   })
 
   it('should fail to commit after rollback', async () => {
@@ -362,16 +382,22 @@ describe('#integration-rx transaction', () => {
     await verifyCanCreateNode(txc, 6)
     await verifyCanRollback(txc)
 
-    const error = await txc
+    const result = await txc
       .commit()
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
-    expect(error.error).toContain(
-      'Cannot commit this transaction, because it has already been rolled back'
-    )
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.objectContaining({
+          error: jasmine.stringMatching(
+            /Cannot commit this transaction, because it has already been rolled back/
+          )
+        })
+      )
+    ])
   })
 
   it('should fail to run statement after committed transaction', async () => {
@@ -490,14 +516,18 @@ describe('#integration-rx transaction', () => {
     const txc = await session.beginTransaction().toPromise()
     const result = txc.run('RETURN Wrong')
 
-    const error = await result
+    const messages = await result
       .records()
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
-    expect(error.message).toContain('Variable `Wrong` not defined')
+    expect(messages).toEqual([
+      Notification.createError(
+        jasmine.stringMatching(/Variable `Wrong` not defined/)
+      )
+    ])
 
     const summary = await result.summary().toPromise()
     expect(summary).toBeTruthy()
@@ -561,15 +591,23 @@ describe('#integration-rx transaction', () => {
     await verifyCanCreateNode(txc, 15)
     await verifyCanCommitOrRollback(txc, commit)
 
-    const error = await txc
+    const result = await txc
       .run('CREATE ()')
       .records()
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
-    expect(error.error).toContain('Cannot run statement, because transaction')
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.objectContaining({
+          error: jasmine.stringMatching(
+            /Cannot run statement, because transaction/
+          )
+        })
+      )
+    ])
   }
 
   async function verifyCanRunMultipleStatements (commit) {
@@ -716,17 +754,19 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyFailsWithWrongStatement (txc) {
-    const error = await txc
+    const result = await txc
       .run('RETURN')
       .records()
       .pipe(
         materialize(),
-        map(n => n.error)
+        toArray()
       )
       .toPromise()
-
-    expect(error).toBeTruthy()
-    expect(error.code).toContain('SyntaxError')
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.stringMatching(/Unexpected end of input/)
+      )
+    ])
   }
 
   async function verifyCommittedOrRollbacked (commit) {

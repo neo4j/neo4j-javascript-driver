@@ -20,7 +20,7 @@
 import { Notification, throwError } from 'rxjs'
 import { map, materialize, toArray, concat } from 'rxjs/operators'
 import neo4j from '../../src'
-import { ServerVersion } from '../../src/internal/server-version'
+import { ServerVersion, VERSION_4_0_0 } from '../../src/internal/server-version'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
 
@@ -57,6 +57,10 @@ describe('#integration rx-session', () => {
   })
 
   it('should be able to run a simple statement', async () => {
+    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
     const result = await session
       .run('UNWIND [1,2,3,4] AS n RETURN n')
       .records()
@@ -77,6 +81,10 @@ describe('#integration rx-session', () => {
   })
 
   it('should be able to reuse session after failure', async () => {
+    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
     const result1 = await session
       .run('INVALID STATEMENT')
       .records()
@@ -105,6 +113,10 @@ describe('#integration rx-session', () => {
   })
 
   it('should run transactions without retries', async () => {
+    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
     const txcWork = new ConfigurableTransactionWork({
       statement: 'CREATE (:WithoutRetry) RETURN 5'
     })
@@ -126,6 +138,10 @@ describe('#integration rx-session', () => {
   })
 
   it('should run transaction with retries on reactive failures', async () => {
+    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
     const txcWork = new ConfigurableTransactionWork({
       statement: 'CREATE (:WithReactiveFailure) RETURN 7',
       reactiveFailures: [
@@ -152,6 +168,10 @@ describe('#integration rx-session', () => {
   })
 
   it('should run transaction with retries on synchronous failures', async () => {
+    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
     const txcWork = new ConfigurableTransactionWork({
       statement: 'CREATE (:WithSyncFailure) RETURN 9',
       syncFailures: [
@@ -200,6 +220,10 @@ describe('#integration rx-session', () => {
   })
 
   it('should fail even after a transient error', async () => {
+    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
     const txcWork = new ConfigurableTransactionWork({
       statement: 'CREATE (:Person) RETURN 1',
       syncFailures: [
