@@ -65,7 +65,7 @@ export default class Bookmark {
 
   /**
    * Get this bookmark as an object for begin transaction call.
-   * @return {object} the value of this bookmark as object.
+   * @return {Object} the value of this bookmark as object.
    */
   asBeginTransactionParameters () {
     if (this.isEmpty()) {

@@ -17,8 +17,7 @@
  * limitations under the License.
  */
 import { defer, Observable, throwError } from 'rxjs'
-import { map, flatMap, catchError, concat } from 'rxjs/operators'
-import { newError } from './error'
+import { flatMap, catchError, concat } from 'rxjs/operators'
 import RxResult from './result-rx'
 import Session from './session'
 import RxTransaction from './transaction-rx'
@@ -26,15 +25,32 @@ import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import TxConfig from './internal/tx-config'
 import RxRetryLogic from './internal/retry-logic-rx'
 
+/**
+ * A Reactive session, which provides the same functionality as {@link Session} but through a Reactive API.
+ */
 export default class RxSession {
   /**
-   * @param {Session} session
+   * Constructs a reactive session with given default session instance and provided driver configuration.
+   *
+   * @protected
+   * @param {Object} param - Object parameter
+   * @param {Session} param.session - The underlying session instance to relay requests
    */
   constructor ({ session, config } = {}) {
     this._session = session
     this._retryLogic = _createRetryLogic(config)
   }
 
+  /**
+   * Creates a reactive result that will execute the  statement with the provided parameters and the provided
+   * transaction configuration that applies to the underlying auto-commit transaction.
+   *
+   * @public
+   * @param {string} statement - Statement to be executed.
+   * @param {Object} parameters - Parameter values to use in statement execution.
+   * @param {TransactionConfig} transactionConfig - Configuration for the new auto-commit transaction.
+   * @returns {RxResult} - A reactive result
+   */
   run (statement, parameters, transactionConfig) {
     return new RxResult(
       new Observable(observer => {
@@ -52,10 +68,76 @@ export default class RxSession {
     )
   }
 
+  /**
+   * Starts a new explicit transaction with the provided transaction configuration.
+   *
+   * @public
+   * @param {TransactionConfig} transactionConfig - Configuration for the new transaction.
+   * @returns {Observable<RxTransaction>} - A reactive stream that will generate at most **one** RxTransaction instance.
+   */
   beginTransaction (transactionConfig) {
     return this._beginTransaction(this._session._mode, transactionConfig)
   }
 
+  /**
+   * Executes the provided unit of work in a {@link READ} reactive transaction which is created with the provided
+   * transaction configuration.
+   * @public
+   * @param {function(txc: RxTransaction): Observable} work - A unit of work to be executed.
+   * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
+   * @returns {Observable} - A reactive stream returned by the unit of work.
+   */
+  readTransaction (work, transactionConfig) {
+    return this._runTransaction(ACCESS_MODE_READ, work, transactionConfig)
+  }
+
+  /**
+   * Executes the provided unit of work in a {@link WRITE} reactive transaction which is created with the provided
+   * transaction configuration.
+   * @public
+   * @param {function(txc: RxTransaction): Observable} work - A unit of work to be executed.
+   * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
+   * @returns {Observable} - A reactive stream returned by the unit of work.
+   */
+  writeTransaction (work, transactionConfig) {
+    return this._runTransaction(ACCESS_MODE_WRITE, work, transactionConfig)
+  }
+
+  /**
+   * Closes this reactive session.
+   *
+   * @public
+   * @returns {Observable} - An empty reactive stream
+   */
+  close () {
+    return new Observable(observer => {
+      this._session
+        .close()
+        .then(() => {
+          observer.complete()
+        })
+        .catch(err => observer.error(err))
+    })
+  }
+
+  /**
+   * Returns the bookmark received following the last successfully completed statement, which is executed
+   * either in an {@link RxTransaction} obtained from this session instance or directly through one of
+   * the {@link RxSession#run} method of this session instance.
+   *
+   * If no bookmark was received or if this transaction was rolled back, the bookmark value will not be
+   * changed.
+   *
+   * @public
+   * @returns {string}
+   */
+  lastBookmark () {
+    return this._session.lastBookmark()
+  }
+
+  /**
+   * @private
+   */
   _beginTransaction (accessMode, transactionConfig) {
     let txConfig = TxConfig.empty()
     if (transactionConfig) {
@@ -78,23 +160,10 @@ export default class RxSession {
     })
   }
 
-  readTransaction (transactionWork, transactionConfig) {
-    return this._runTransaction(
-      ACCESS_MODE_READ,
-      transactionWork,
-      transactionConfig
-    )
-  }
-
-  writeTransaction (transactionWork, transactionConfig) {
-    return this._runTransaction(
-      ACCESS_MODE_WRITE,
-      transactionWork,
-      transactionConfig
-    )
-  }
-
-  _runTransaction (accessMode, transactionWork, transactionConfig) {
+  /**
+   * @private
+   */
+  _runTransaction (accessMode, work, transactionConfig) {
     let txConfig = TxConfig.empty()
     if (transactionConfig) {
       txConfig = new TxConfig(transactionConfig)
@@ -105,7 +174,7 @@ export default class RxSession {
         flatMap(txc =>
           defer(() => {
             try {
-              return transactionWork(txc)
+              return work(txc)
             } catch (err) {
               return throwError(err)
             }
@@ -116,21 +185,6 @@ export default class RxSession {
         )
       )
     )
-  }
-
-  close () {
-    return new Observable(observer => {
-      this._session
-        .close()
-        .then(() => {
-          observer.complete()
-        })
-        .catch(err => observer.error(err))
-    })
-  }
-
-  lastBookmark () {
-    return this._session.lastBookmark()
   }
 }
 

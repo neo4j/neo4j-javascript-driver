@@ -53,6 +53,15 @@ class Result {
     this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
   }
 
+  /**
+   * Returns a promise for the field keys.
+   *
+   * *Should not be combined with {@link Result#subscribe} function.*
+   *
+   * @public
+   * @returns {Promise<string[]>} - Field keys, in the order they will appear in records.
+   }
+   */
   keys () {
     return new Promise((resolve, reject) => {
       this._streamObserverPromise.then(observer =>
@@ -64,6 +73,15 @@ class Result {
     })
   }
 
+  /**
+   * Returns a promise for the result summary.
+   *
+   * *Should not be combined with {@link Result#subscribe} function.*
+   *
+   * @public
+   * @returns {Promise<ResultSummary>} - Result summary.
+   *
+   */
   summary () {
     return new Promise((resolve, reject) => {
       this._streamObserverPromise.then(o =>
@@ -77,8 +95,9 @@ class Result {
 
   /**
    * Create and return new Promise
+   *
+   * @private
    * @return {Promise} new Promise.
-   * @access private
    */
   _getOrCreatePromise () {
     if (!this._p) {
@@ -104,7 +123,8 @@ class Result {
 
   /**
    * Waits for all results and calls the passed in function with the results.
-   * Cannot be combined with the {@link Result#subscribe} function.
+   *
+   * *Should not be combined with {@link Result#subscribe} function.*
    *
    * @param {function(result: {records:Array<Record>, summary: ResultSummary})} onFulfilled - function to be called
    * when finished.
@@ -117,7 +137,9 @@ class Result {
 
   /**
    * Catch errors when using promises.
-   * Cannot be used with the subscribe function.
+   *
+   * *Should not be combined with {@link Result#subscribe} function.*
+   *
    * @param {function(error: Neo4jError)} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
@@ -130,6 +152,7 @@ class Result {
    * of handling the results, and allows you to handle arbitrarily large results.
    *
    * @param {Object} observer - Observer object
+   * @param {function(keys: string[])} observer.onKeys - handle stream head, the field keys.
    * @param {function(record: Record)} observer.onNext - handle records, one by one.
    * @param {function(summary: ResultSummary)} observer.onCompleted - handle stream tail, the result summary.
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
@@ -163,6 +186,12 @@ class Result {
     this._streamObserverPromise.then(o => o.subscribe(observer))
   }
 
+  /**
+   * Signals the stream observer that the future records should be discarded on the server.
+   *
+   * @protected
+   * @since 4.0.0
+   */
   _discard () {
     this._streamObserverPromise.then(o => o.discard())
   }

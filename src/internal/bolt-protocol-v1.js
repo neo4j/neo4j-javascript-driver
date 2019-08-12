@@ -66,8 +66,8 @@ export default class BoltProtocol {
 
   /**
    * Transform metadata received in SUCCESS message before it is passed to the handler.
-   * @param {object} metadata the received metadata.
-   * @return {object} transformed metadata.
+   * @param {Object} metadata the received metadata.
+   * @return {Object} transformed metadata.
    */
   transformMetadata (metadata) {
     return metadata
@@ -75,9 +75,9 @@ export default class BoltProtocol {
 
   /**
    * Perform initialization and authentication of the underlying connection.
-   * @param {object} param
+   * @param {Object} param
    * @param {string} param.userAgent the user agent.
-   * @param {object} param.authToken the authentication token.
+   * @param {Object} param.authToken the authentication token.
    * @param {function(err: Error)} param.onError the callback to invoke on error.
    * @param {function()} param.onComplete the callback to invoke on completion.
    * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
@@ -107,7 +107,7 @@ export default class BoltProtocol {
 
   /**
    * Begin an explicit transaction.
-   * @param {object} param
+   * @param {Object} param
    * @param {Bookmark} param.bookmark the bookmark.
    * @param {TxConfig} param.txConfig the configuration.
    * @param {string} param.database the target database name.
@@ -147,7 +147,7 @@ export default class BoltProtocol {
 
   /**
    * Commit the explicit transaction.
-   * @param {object} param
+   * @param {Object} param
    * @param {function(err: Error)} param.beforeError the callback to invoke before handling the error.
    * @param {function(err: Error)} param.afterError the callback to invoke after handling the error.
    * @param {function()} param.beforeComplete the callback to invoke before handling the completion.
@@ -179,7 +179,7 @@ export default class BoltProtocol {
 
   /**
    * Rollback the explicit transaction.
-   * @param {object} param
+   * @param {Object} param
    * @param {function(err: Error)} param.beforeError the callback to invoke before handling the error.
    * @param {function(err: Error)} param.afterError the callback to invoke after handling the error.
    * @param {function()} param.beforeComplete the callback to invoke before handling the completion.
@@ -212,8 +212,8 @@ export default class BoltProtocol {
   /**
    * Send a Cypher statement through the underlying connection.
    * @param {string} statement the cypher statement.
-   * @param {object} parameters the statement parameters.
-   * @param {object} param
+   * @param {Object} parameters the statement parameters.
+   * @param {Object} param
    * @param {Bookmark} param.bookmark the bookmark.
    * @param {TxConfig} param.txConfig the transaction configuration.
    * @param {string} param.database the target database name.
@@ -271,7 +271,7 @@ export default class BoltProtocol {
 
   /**
    * Send a RESET through the underlying connection.
-   * @param {object} param
+   * @param {Object} param
    * @param {function(err: Error)} param.onError the callback to invoke on error.
    * @param {function()} param.onComplete the callback to invoke on completion.
    * @returns {StreamObserver} the stream observer that monitors the corresponding server response.

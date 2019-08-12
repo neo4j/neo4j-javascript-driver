@@ -96,7 +96,7 @@ export default class ChannelConnection extends Connection {
   /**
    * Crete new connection to the provided address. Returned connection is not connected.
    * @param {ServerAddress} address - the Bolt endpoint to connect to.
-   * @param {object} config - the driver configuration.
+   * @param {Object} config - the driver configuration.
    * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
    * @param {Logger} log - configured logger.
    * @return {Connection} - new connection.
@@ -131,7 +131,7 @@ export default class ChannelConnection extends Connection {
   /**
    * Connect to the target address, negotiate Bolt protocol and send initialization message.
    * @param {string} userAgent the user agent for this driver.
-   * @param {object} authToken the object containing auth information.
+   * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
   connect (userAgent, authToken) {
@@ -199,7 +199,7 @@ export default class ChannelConnection extends Connection {
   /**
    * Perform protocol-specific initialization which includes authentication.
    * @param {string} userAgent the user agent for this driver.
-   * @param {object} authToken the object containing auth information.
+   * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if initialization is successful. Rejected promise otherwise.
    */
   _initialize (userAgent, authToken) {

@@ -62,7 +62,7 @@ class Pool {
   /**
    * Acquire and idle resource fom the pool or create a new one.
    * @param {ServerAddress} address the address for which we're acquiring.
-   * @return {object} resource that is ready to use.
+   * @return {Object} resource that is ready to use.
    */
   acquire (address) {
     return this._acquire(address).then(resource => {

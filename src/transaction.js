@@ -373,7 +373,7 @@ function finishTransaction (commit, connectionHolder, onError, onComplete) {
  * need to influence real connection holder to release connections.
  * @param {ResultStreamObserver} observer - an observer for the created result.
  * @param {string} statement - the cypher statement that produced the result.
- * @param {object} parameters - the parameters for cypher statement that produced the result.
+ * @param {Object} parameters - the parameters for cypher statement that produced the result.
  * @return {Result} new result.
  * @private
  */

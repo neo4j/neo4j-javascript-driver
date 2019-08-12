@@ -31,25 +31,6 @@ import TransactionExecutor from './internal/transaction-executor'
 import Bookmark from './internal/bookmark'
 import TxConfig from './internal/tx-config'
 
-// Typedef for JSDoc. Declares TransactionConfig type and makes it possible to use in in method-level docs.
-/**
- * Configuration object containing settings for explicit and auto-commit transactions.
- * <p>
- * Configuration is supported for:
- * <ul>
- *   <li>queries executed in auto-commit transactions using {@link Session#run}</li>
- *   <li>transactions started by transaction functions using {@link Session#readTransaction} and {@link Session#writeTransaction}</li>
- *   <li>explicit transactions using {@link Session#beginTransaction}</li>
- * </ul>
- * @typedef {object} TransactionConfig
- * @property {number} timeout - the transaction timeout in **milliseconds**. Transactions that execute longer than the configured timeout will
- * be terminated by the database. This functionality allows to limit query/transaction execution time. Specified timeout overrides the default timeout
- * configured in the database using `dbms.transaction.timeout` setting. Value should not represent a duration of zero or negative duration.
- * @property {object} metadata - the transaction metadata. Specified metadata will be attached to the executing transaction and visible in the output of
- * `dbms.listQueries` and `dbms.listTransactions` procedures. It will also get logged to the `query.log`. This functionality makes it easier to tag
- * transactions and is equivalent to `dbms.setTXMetaData` procedure.
- */
-
 /**
  * A Session instance is used for handling the connection and
  * sending statements through the connection.
@@ -60,6 +41,7 @@ import TxConfig from './internal/tx-config'
 class Session {
   /**
    * @constructor
+   * @protected
    * @param {Object} args
    * @param {string} args.mode the default access mode for this session.
    * @param {ConnectionProvider} args.connectionProvider - the connection provider to acquire connections from.
@@ -100,6 +82,8 @@ class Session {
    * Run Cypher statement
    * Could be called with a statement object i.e.: `{text: "MATCH ...", prameters: {param: 1}}`
    * or with the statement and parameters as separate arguments.
+   *
+   * @public
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
@@ -266,7 +250,7 @@ class Session {
 
   /**
    * Close this session.
-   * @return ${Promise}
+   * @return {Promise}
    */
   async close () {
     if (this._open) {

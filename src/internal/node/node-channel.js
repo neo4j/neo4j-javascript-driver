@@ -197,7 +197,7 @@ function trustStrategyName (config) {
  * Create a new configuration options object for the {@code tls.connect()} call.
  * @param {string} hostname the target hostname.
  * @param {string|undefined} ca an optional CA.
- * @return {object} a new options object.
+ * @return {Object} a new options object.
  */
 function newTlsOptions (hostname, ca = undefined) {
   return {
@@ -290,7 +290,7 @@ export default class NodeChannel {
   /**
    * Setup connection timeout on the socket, if configured.
    * @param {ChannelConfig} config - configuration of this channel.
-   * @param {object} socket - `net.Socket` or `tls.TLSSocket` object.
+   * @param {Object} socket - `net.Socket` or `tls.TLSSocket` object.
    * @private
    */
   _setupConnectionTimeout (config, socket) {

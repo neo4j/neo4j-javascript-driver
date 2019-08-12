@@ -47,7 +47,7 @@ function isObject (obj) {
 /**
  * Check and normalize given statement and parameters.
  * @param {string|{text: string, parameters: object}} statement the statement to check.
- * @param {object} parameters
+ * @param {Object} parameters
  * @return {{query: string, params: object}} the normalized query with parameters.
  * @throws TypeError when either given query or parameters are invalid.
  */

@@ -65,7 +65,7 @@ function createHostNameResolver (config) {
 
 /**
  * @private
- * @returns {object} the given config.
+ * @returns {Object} the given config.
  */
 function validateConfig (config) {
   const resolver = config.resolver

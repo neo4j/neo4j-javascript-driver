@@ -30,16 +30,35 @@ export class Point {
    * @param {Integer|number} srid the coordinate reference system identifier.
    * @param {number} x the `x` coordinate of the point.
    * @param {number} y the `y` coordinate of the point.
-   * @param {number} [z=undefined] the `y` coordinate of the point or `undefined` if point has 2 dimensions.
+   * @param {number} [z=undefined] the `z` coordinate of the point or `undefined` if point has 2 dimensions.
    */
   constructor (srid, x, y, z) {
+    /**
+     * The coordinate reference system identifier.
+     * @type {Integer|Number}
+     */
     this.srid = assertNumberOrInteger(srid, 'SRID')
+    /**
+     * The `x` coordinate of the point.
+     * @type {number}
+     */
     this.x = assertNumber(x, 'X coordinate')
+    /**
+     * The `y` coordinate of the point.
+     * @type {number}
+     */
     this.y = assertNumber(y, 'Y coordinate')
+    /**
+     * The `z` coordinate of the point or `undefined` if point is 2-dimensional.
+     * @type {number}
+     */
     this.z = z === null || z === undefined ? z : assertNumber(z, 'Z coordinate')
     Object.freeze(this)
   }
 
+  /**
+   * @ignore
+   */
   toString () {
     return this.z || this.z === 0
       ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
@@ -63,7 +82,7 @@ Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
 
 /**
  * Test if given object is an instance of {@link Point} class.
- * @param {object} obj the object to test.
+ * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
  */
 export function isPoint (obj) {

@@ -232,7 +232,7 @@ const logging = {
  *     }
  *
  * @param {string} url The URL for the Neo4j database, for instance "bolt://localhost"
- * @param {Map<String,String>} authToken Authentication credentials. See {@link auth} for helpers.
+ * @param {Map<string,string>} authToken Authentication credentials. See {@link auth} for helpers.
  * @param {Object} config Configuration object. See the configuration section above for details.
  * @returns {Driver}
  */

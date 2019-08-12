@@ -16,19 +16,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError } from './error'
-import { Observable, from } from 'rxjs'
-import Transaction from './transaction'
+import { Observable } from 'rxjs'
 import RxResult from './result-rx'
+import Transaction from './transaction'
 
+/**
+ * A reactive transaction, which provides the same functionality as {@link Transaction} but through a Reactive API.
+ */
 export default class RxTransaction {
   /**
-   *
-   * @param {Transaction} txc
+   * @constructor
+   * @protected
+   * @param {Transaction} txc - The underlying transaction instance to relay requests
    */
   constructor (txc) {
     this._txc = txc
   }
+
+  /**
+   * Creates a reactive result that will execute the statement in this transaction, with the provided parameters.
+   *
+   * @public
+   * @param {string} statement - Statement to be executed.
+   * @param {Object} parameters - Parameter values to use in statement execution.
+   * @returns {RxResult} - A reactive result
+   */
 
   run (statement, parameters) {
     return new RxResult(
@@ -45,6 +57,12 @@ export default class RxTransaction {
     )
   }
 
+  /**
+   *  Commits the transaction.
+   *
+   * @public
+   * @returns {Observable} - An empty observable
+   */
   commit () {
     return new Observable(observer => {
       this._txc
@@ -56,6 +74,12 @@ export default class RxTransaction {
     })
   }
 
+  /**
+   *  Rollbacks the transaction.
+   *
+   * @public
+   * @returns {Observable} - An empty observable
+   */
   rollback () {
     return new Observable(observer => {
       this._txc

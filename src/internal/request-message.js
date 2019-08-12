@@ -55,7 +55,7 @@ export default class RequestMessage {
   /**
    * Create a new INIT message.
    * @param {string} clientName the client name.
-   * @param {object} authToken the authentication token.
+   * @param {Object} authToken the authentication token.
    * @return {RequestMessage} new INIT message.
    */
   static init (clientName, authToken) {
@@ -69,7 +69,7 @@ export default class RequestMessage {
   /**
    * Create a new RUN message.
    * @param {string} statement the cypher statement.
-   * @param {object} parameters the statement parameters.
+   * @param {Object} parameters the statement parameters.
    * @return {RequestMessage} new RUN message.
    */
   static run (statement, parameters) {
@@ -99,7 +99,7 @@ export default class RequestMessage {
   /**
    * Create a new HELLO message.
    * @param {string} userAgent the user agent.
-   * @param {object} authToken the authentication token.
+   * @param {Object} authToken the authentication token.
    * @return {RequestMessage} new HELLO message.
    */
   static hello (userAgent, authToken) {
@@ -147,7 +147,7 @@ export default class RequestMessage {
   /**
    * Create a new RUN message with additional metadata.
    * @param {string} statement the cypher statement.
-   * @param {object} parameters the statement parameters.
+   * @param {Object} parameters the statement parameters.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
@@ -215,7 +215,7 @@ export default class RequestMessage {
  * @param {TxConfig} txConfig the configuration.
  * @param {string} database the database name.
  * @param {string} mode the access mode.
- * @return {object} a metadata object.
+ * @return {Object} a metadata object.
  */
 function buildTxMetadata (bookmark, txConfig, database, mode) {
   const metadata = {}
@@ -241,7 +241,7 @@ function buildTxMetadata (bookmark, txConfig, database, mode) {
  * Create an object that represents streaming metadata.
  * @param {Integer|number} stmtId The statement id to stream its results.
  * @param {Integer|number} n The number of records to stream.
- * @returns {object} a metadata object.
+ * @returns {Object} a metadata object.
  */
 function buildStreamMetadata (stmtId, n) {
   const metadata = { n: int(n) }

@@ -51,15 +51,34 @@ export class Duration {
    * @param {Integer|number} nanoseconds the number of nanoseconds for the new duration.
    */
   constructor (months, days, seconds, nanoseconds) {
+    /**
+     * The number of months.
+     * @type {Integer|number}
+     */
     this.months = assertNumberOrInteger(months, 'Months')
+    /**
+     * The number of days.
+     * @type {Integer|number}
+     */
     this.days = assertNumberOrInteger(days, 'Days')
     assertNumberOrInteger(seconds, 'Seconds')
     assertNumberOrInteger(nanoseconds, 'Nanoseconds')
+    /**
+     * The number of seconds.
+     * @type {Integer|number}
+     */
     this.seconds = util.normalizeSecondsForDuration(seconds, nanoseconds)
+    /**
+     * The number of nanoseconds.
+     * @type {Integer|number}
+     */
     this.nanoseconds = util.normalizeNanosecondsForDuration(nanoseconds)
     Object.freeze(this)
   }
 
+  /**
+   * @ignore
+   */
   toString () {
     return util.durationToIsoString(
       this.months,
@@ -78,7 +97,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link Duration} class.
- * @param {object} obj the object to test.
+ * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Duration}, `false` otherwise.
  */
 export function isDuration (obj) {
@@ -98,9 +117,25 @@ export class LocalTime {
    * @param {Integer|number} nanosecond the nanosecond for the new local time.
    */
   constructor (hour, minute, second, nanosecond) {
+    /**
+     * The hour.
+     * @type {Integer|number}
+     */
     this.hour = util.assertValidHour(hour)
+    /**
+     * The minute.
+     * @type {Integer|number}
+     */
     this.minute = util.assertValidMinute(minute)
+    /**
+     * The second.
+     * @type {Integer|number}
+     */
     this.second = util.assertValidSecond(second)
+    /**
+     * The nanosecond.
+     * @type {Integer|number}
+     */
     this.nanosecond = util.assertValidNanosecond(nanosecond)
     Object.freeze(this)
   }
@@ -123,6 +158,9 @@ export class LocalTime {
     )
   }
 
+  /**
+   * @ignore
+   */
   toString () {
     return util.timeToIsoString(
       this.hour,
@@ -141,7 +179,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link LocalTime} class.
- * @param {object} obj the object to test.
+ * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link LocalTime}, `false` otherwise.
  */
 export function isLocalTime (obj) {
@@ -163,10 +201,30 @@ export class Time {
    * This is different from standard JavaScript `Date.getTimezoneOffset()` which is the difference, in minutes, from local time to UTC.
    */
   constructor (hour, minute, second, nanosecond, timeZoneOffsetSeconds) {
+    /**
+     * The hour.
+     * @type {Integer|number}
+     */
     this.hour = util.assertValidHour(hour)
+    /**
+     * The minute.
+     * @type {Integer|number}
+     */
     this.minute = util.assertValidMinute(minute)
+    /**
+     * The second.
+     * @type {Integer|number}
+     */
     this.second = util.assertValidSecond(second)
+    /**
+     * The nanosecond.
+     * @type {Integer|number}
+     */
     this.nanosecond = util.assertValidNanosecond(nanosecond)
+    /**
+     * The time zone offset in seconds.
+     * @type {Integer|number}
+     */
     this.timeZoneOffsetSeconds = assertNumberOrInteger(
       timeZoneOffsetSeconds,
       'Time zone offset in seconds'
@@ -193,6 +251,9 @@ export class Time {
     )
   }
 
+  /**
+   * @ignore
+   */
   toString () {
     return (
       util.timeToIsoString(
@@ -213,7 +274,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link Time} class.
- * @param {object} obj the object to test.
+ * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Time}, `false` otherwise.
  */
 export function isTime (obj) {
@@ -232,8 +293,20 @@ export class Date {
    * @param {Integer|number} day the day for the new local date.
    */
   constructor (year, month, day) {
+    /**
+     * The year.
+     * @type {Integer|number}
+     */
     this.year = util.assertValidYear(year)
+    /**
+     * The month.
+     * @type {Integer|number}
+     */
     this.month = util.assertValidMonth(month)
+    /**
+     * The day.
+     * @type {Integer|number}
+     */
     this.day = util.assertValidDay(day)
     Object.freeze(this)
   }
@@ -254,6 +327,9 @@ export class Date {
     )
   }
 
+  /**
+   * @ignore
+   */
   toString () {
     return util.dateToIsoString(this.year, this.month, this.day)
   }
@@ -267,7 +343,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link Date} class.
- * @param {object} obj the object to test.
+ * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Date}, `false` otherwise.
  */
 export function isDate (obj) {
@@ -290,12 +366,40 @@ export class LocalDateTime {
    * @param {Integer|number} nanosecond the nanosecond for the new local time.
    */
   constructor (year, month, day, hour, minute, second, nanosecond) {
+    /**
+     * The year.
+     * @type {Integer|number}
+     */
     this.year = util.assertValidYear(year)
+    /**
+     * The month.
+     * @type {Integer|number}
+     */
     this.month = util.assertValidMonth(month)
+    /**
+     * The day.
+     * @type {Integer|number}
+     */
     this.day = util.assertValidDay(day)
+    /**
+     * The hour.
+     * @type {Integer|number}
+     */
     this.hour = util.assertValidHour(hour)
+    /**
+     * The minute.
+     * @type {Integer|number}
+     */
     this.minute = util.assertValidMinute(minute)
+    /**
+     * The second.
+     * @type {Integer|number}
+     */
     this.second = util.assertValidSecond(second)
+    /**
+     * The nanosecond.
+     * @type {Integer|number}
+     */
     this.nanosecond = util.assertValidNanosecond(nanosecond)
     Object.freeze(this)
   }
@@ -321,6 +425,9 @@ export class LocalDateTime {
     )
   }
 
+  /**
+   * @ignore
+   */
   toString () {
     return localDateTimeToString(
       this.year,
@@ -342,7 +449,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link LocalDateTime} class.
- * @param {object} obj the object to test.
+ * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link LocalDateTime}, `false` otherwise.
  */
 export function isLocalDateTime (obj) {
@@ -379,19 +486,61 @@ export class DateTime {
     timeZoneOffsetSeconds,
     timeZoneId
   ) {
+    /**
+     * The year.
+     * @type {Integer|number}
+     */
     this.year = util.assertValidYear(year)
+    /**
+     * The month.
+     * @type {Integer|number}
+     */
     this.month = util.assertValidMonth(month)
+    /**
+     * The day.
+     * @type {Integer|number}
+     */
     this.day = util.assertValidDay(day)
+    /**
+     * The hour.
+     * @type {Integer|number}
+     */
     this.hour = util.assertValidHour(hour)
+    /**
+     * The minute.
+     * @type {Integer|number}
+     */
     this.minute = util.assertValidMinute(minute)
+    /**
+     * The second.
+     * @type {Integer|number}
+     */
     this.second = util.assertValidSecond(second)
+    /**
+     * The nanosecond.
+     * @type {Integer|number}
+     */
     this.nanosecond = util.assertValidNanosecond(nanosecond)
 
     const [offset, id] = verifyTimeZoneArguments(
       timeZoneOffsetSeconds,
       timeZoneId
     )
+    /**
+     * The time zone offset in seconds.
+     *
+     * *Either this or {@link timeZoneId} is defined.*
+     *
+     * @type {Integer|number}
+     */
     this.timeZoneOffsetSeconds = offset
+    /**
+     * The time zone id.
+     *
+     * *Either this or {@link timeZoneOffsetSeconds} is defined.*
+     *
+     * @type {string}
+     */
     this.timeZoneId = id
 
     Object.freeze(this)
@@ -419,6 +568,9 @@ export class DateTime {
     )
   }
 
+  /**
+   * @ignore
+   */
   toString () {
     const localDateTimeStr = localDateTimeToString(
       this.year,
@@ -444,7 +596,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link DateTime} class.
- * @param {object} obj the object to test.
+ * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link DateTime}, `false` otherwise.
  */
 export function isDateTime (obj) {

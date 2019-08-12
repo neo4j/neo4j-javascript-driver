@@ -58,7 +58,7 @@ class Url {
     /**
      * Nonnull object representing parsed query string key-value pairs. Duplicated keys not supported.
      * Example: '{}', '{'key1': 'value1', 'key2': 'value2'}', etc.
-     * @type {object}
+     * @type {Object}
      */
     this.query = query
   }
