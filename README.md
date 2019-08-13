@@ -5,8 +5,6 @@ A database driver for Neo4j 3.0.0+.
 Resources to get you started:
 
 - Detailed docs _Not available yet_
-- [Sample small project using the driver](https://github.com/neo4j-examples/movies-javascript-bolt)
-- [Sample application using the driver](https://github.com/neo4j-examples/neo4j-movies-template)
 - [Neo4j Manual](https://neo4j.com/docs/)
 - [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
@@ -14,13 +12,14 @@ Resources to get you started:
 
 - Introduces a brand new reactive API (built on top of RxJS) available with 4.0 version server, which includes reactive protocol improvements.
 - Session instances can now be acquired against a specific database against a multi-database server, which is available with 4.0 version server.
+- A new `driver.verifyConnectivity()` method is introduced for connectivity verification purposes.
 
 ## Breaking Changes
 
 - Driver API is moved from `neo4j.v1` to `neo4j` namespace.
-- `driver#session()` method now makes use of object destructuring rather than positional arguments.
+- `driver#session()` method now makes use of object destructuring rather than positional arguments (see [Acquiring a Session](#acquiring-a-session) for examples).
 - `session#close()` now returns a `Promise` and no more accepts a callback function argument.
-- `driver.onError` callback is removed and errors should be monitored on related code paths (i.e. through `Promise#catch`, etc.).
+- `driver.onError` and `driver.onCompleted` callbacks are completely removed. Errors should be monitored on related code paths (i.e. through `Promise#catch`, etc.).
 - `bolt+routing` scheme is now renamed to `neo4j`. `neo4j` scheme is designed to work work with all possible 4.0 server deployments, but `bolt` scheme is still available for explicit single instance connections.
 
 ## Including the Driver
@@ -99,7 +98,7 @@ driver.close()
 // Create a driver instance, for the user neo4j with password neo4j.
 // It should be enough to have a single driver per database per application.
 var driver = neo4j.driver(
-  'bolt://localhost',
+  'neo4j://localhost',
   neo4j.auth.basic('neo4j', 'neo4j')
 )
 
@@ -249,7 +248,7 @@ rxSession
 // retries on network fluctuations and transient errors. Maximum retry time is
 // configured on the driver level and is 30 seconds by default:
 // Applies both to standard and reactive sessions.
-neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j', 'neo4j'), {
+neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'neo4j'), {
   maxTransactionRetryTime: 30000
 })
 ```
@@ -476,7 +475,7 @@ To enable potentially lossy integer values use the driver's configuration object
 
 ```javascript
 var driver = neo4j.driver(
-  'bolt://localhost',
+  'neo4j://localhost',
   neo4j.auth.basic('neo4j', 'neo4j'),
   { disableLosslessIntegers: true }
 )
