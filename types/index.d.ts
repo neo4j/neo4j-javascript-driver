@@ -46,7 +46,7 @@ import {
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED
 } from './error'
-import Result, { Observer, StatementResult } from './result'
+import Result, { ResultObserver, StatementResult } from './result'
 import ResultSummary, {
   Notification,
   NotificationPosition,
@@ -174,7 +174,7 @@ declare const forExport: {
   Record: Record
   Result: Result
   StatementResult: StatementResult
-  Observer: Observer
+  ResultObserver: ResultObserver
   ResultSummary: ResultSummary
   Plan: Plan
   ProfiledPlan: ProfiledPlan
@@ -227,7 +227,7 @@ export {
   Record,
   Result,
   StatementResult,
-  Observer,
+  ResultObserver,
   ResultSummary,
   Plan,
   ProfiledPlan,

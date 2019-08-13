@@ -201,7 +201,9 @@ gulp.task('run-ts-declaration-tests', function (done) {
         target: 'es6',
         noImplicitAny: true,
         noImplicitReturns: true,
-        strictNullChecks: true
+        strictNullChecks: true,
+        moduleResolution: 'node',
+        types: []
       })
     )
     .pipe(gulp.dest('build/test/types'))

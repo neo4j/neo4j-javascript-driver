@@ -18,6 +18,7 @@
  */
 
 import Session from './session'
+import RxSession from './session-rx'
 import { Parameters } from './statement-runner'
 import { Neo4jError } from './error'
 import { ServerInfo } from './result-summary'
@@ -71,6 +72,16 @@ declare interface Driver {
     bookmarks?: string | string[]
     database?: string
   }): Session
+
+  rxSession({
+    defaultAccessMode,
+    bookmarks,
+    database
+  }?: {
+    defaultAccessMode?: SessionMode
+    bookmarks?: string | string[]
+    database?: string
+  }): RxSession
 
   close(): void
 

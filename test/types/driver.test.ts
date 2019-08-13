@@ -30,6 +30,9 @@ import { Parameters } from '../../types/statement-runner'
 import Session from '../../types/session'
 import { Neo4jError } from '../../types/error'
 import { ServerInfo } from '../../types/result-summary'
+import RxSession from '../../types/session-rx'
+import { concat, map, catchError } from 'rxjs/operators'
+import { throwError } from 'rxjs'
 
 const dummy: any = null
 
@@ -88,12 +91,14 @@ const session7: Session = driver.session({
   bookmarks: 'bookmark2'
 })
 
-session1.run('RETURN 1').then(result => {
-  session1.close()
-  result.records.forEach(record => {
-    console.log(record)
+session1
+  .run('RETURN 1')
+  .then(result => {
+    result.records.forEach(record => {
+      console.log(record)
+    })
   })
-})
+  .then(() => session1.close())
 
 const close: void = driver.close()
 
@@ -101,3 +106,39 @@ driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
   console.log(serverInfo.version)
   console.log(serverInfo.address)
 })
+
+const rxSession1: RxSession = driver.rxSession()
+const rxSession2: RxSession = driver.rxSession({ defaultAccessMode: READ })
+const rxSession3: RxSession = driver.rxSession({ defaultAccessMode: 'READ' })
+const rxSession4: RxSession = driver.rxSession({ defaultAccessMode: WRITE })
+const rxSession5: RxSession = driver.rxSession({ defaultAccessMode: 'WRITE' })
+const rxSession6: RxSession = driver.rxSession({
+  defaultAccessMode: READ,
+  bookmarks: 'bookmark1'
+})
+const rxSession7: RxSession = driver.rxSession({
+  defaultAccessMode: READ,
+  bookmarks: ['bookmark1', 'bookmark2']
+})
+const rxSession8: RxSession = driver.rxSession({
+  defaultAccessMode: WRITE,
+  bookmarks: 'bookmark1'
+})
+const rxSession9: RxSession = driver.rxSession({
+  defaultAccessMode: WRITE,
+  bookmarks: ['bookmark1', 'bookmark2']
+})
+
+rxSession1
+  .run('RETURN 1')
+  .records()
+  .pipe(
+    map(r => r.get(0)),
+    concat(rxSession1.close()),
+    catchError(err => rxSession1.close().pipe(concat(throwError(err))))
+  )
+  .subscribe({
+    next: data => console.log(data),
+    complete: () => console.log('completed'),
+    error: error => console.log(error)
+  })

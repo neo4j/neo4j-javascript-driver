@@ -16,25 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { Observable } from 'rxjs'
 import ResultSummary from './result-summary'
 import Record from './record'
 
-declare type StatementResult = {
-  records: Record[]
-  summary: ResultSummary
+declare interface RxResult {
+  keys(): Observable<string[]>
+
+  records(): Observable<Record>
+
+  summary(): Observable<ResultSummary>
 }
 
-declare type ResultObserver = {
-  onKeys?(keys: string[]): void
-  onNext?(record: Record): void
-  onCompleted?(summary: ResultSummary): void
-  onError?(error: Error): void
-}
-
-declare interface Result extends Promise<StatementResult> {
-  subscribe(observer: ResultObserver): void
-}
-
-export { StatementResult, ResultObserver }
-export default Result
+export default RxResult
