@@ -107,7 +107,12 @@ class Transaction {
     this._state = committed.state
     // clean up
     this._onClose()
-    return committed.result
+    return new Promise((resolve, reject) => {
+      committed.result.subscribe({
+        onCompleted: () => resolve(),
+        onError: error => reject(error)
+      })
+    })
   }
 
   /**
@@ -118,15 +123,20 @@ class Transaction {
    * @returns {Result} New Result
    */
   rollback () {
-    let committed = this._state.rollback({
+    let rolledback = this._state.rollback({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
       onComplete: this._onComplete
     })
-    this._state = committed.state
+    this._state = rolledback.state
     // clean up
     this._onClose()
-    return committed.result
+    return new Promise((resolve, reject) => {
+      rolledback.result.subscribe({
+        onCompleted: () => resolve(),
+        onError: error => reject(error)
+      })
+    })
   }
 
   /**

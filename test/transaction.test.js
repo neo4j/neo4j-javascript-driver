@@ -19,6 +19,7 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion } from '../src/internal/server-version'
+import TxConfig from '../src/internal/tx-config'
 
 describe('#integration transaction', () => {
   let driver
@@ -569,6 +570,20 @@ describe('#integration transaction', () => {
           .catch(error => done.fail(error))
           .then(() => done())
       })
+  })
+
+  it('should return empty promise on commit', async () => {
+    const tx = session.beginTransaction()
+    const result = await tx.commit()
+
+    expect(result).toBeUndefined()
+  })
+
+  it('should return empty promise on rollback', async () => {
+    const tx = session.beginTransaction()
+    const result = await tx.rollback()
+
+    expect(result).toBeUndefined()
   })
 
   function expectSyntaxError (error) {
