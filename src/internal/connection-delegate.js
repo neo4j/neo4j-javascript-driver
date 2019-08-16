@@ -83,8 +83,8 @@ export default class DelegateConnection extends Connection {
     return this._delegate.resetAndFlush()
   }
 
-  close (cb = () => null) {
-    return this._delegate.close(cb)
+  close () {
+    return this._delegate.close()
   }
 
   _release () {

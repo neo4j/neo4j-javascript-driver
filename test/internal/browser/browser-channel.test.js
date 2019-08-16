@@ -24,6 +24,11 @@ import { setTimeoutMock } from '../timers-util'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../../../src/internal/util'
 import ServerAddress from '../../../src/internal/server-address'
 
+const WS_CONNECTING = 0
+const WS_OPEN = 1
+const WS_CLOSING = 2
+const WS_CLOSED = 3
+
 /* eslint-disable no-global-assign */
 describe('#unit WebSocketChannel', () => {
   let OriginalWebSocket
@@ -156,6 +161,44 @@ describe('#unit WebSocketChannel', () => {
   it('should generate a warning when encryption turned off for HTTPS web page', () => {
     testWarningInMixedEnvironment(false, 'https')
     testWarningInMixedEnvironment(ENCRYPTION_OFF, 'https')
+  })
+
+  it('should resolve close if websocket is already closed', () => {
+    WebSocket = () => {
+      return {
+        readyState: WS_CLOSED
+      }
+    }
+
+    const address = ServerAddress.fromUrl('bolt://localhost:8989')
+    const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
+
+    const channel = new WebSocketChannel(channelConfig)
+
+    return expectAsync(channel.close()).toBeResolved()
+  })
+
+  it('should resolve close when websocket is closed', () => {
+    WebSocket = () => {
+      const ws = {
+        readyState: WS_OPEN,
+        onclose: () => {}
+      }
+
+      ws.close = () => {
+        ws.readyState = WS_CLOSED
+        ws.onclose()
+      }
+
+      return ws
+    }
+
+    const address = ServerAddress.fromUrl('bolt://localhost:8989')
+    const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
+
+    const channel = new WebSocketChannel(channelConfig)
+
+    return expectAsync(channel.close()).toBeResolved()
   })
 
   function testFallbackToLiteralIPv6 (boltAddress, expectedWsAddress) {

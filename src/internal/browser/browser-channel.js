@@ -21,6 +21,13 @@ import HeapBuffer from './browser-buf'
 import { newError } from '../../error'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../util'
 
+// Just to be sure that these values are with us even after WebSocket is injected
+// for tests.
+const WS_CONNECTING = 0
+const WS_OPEN = 1
+const WS_CLOSING = 2
+const WS_CLOSED = 3
+
 /**
  * Create a new WebSocketChannel to be used in web browsers.
  * @access private
@@ -131,13 +138,19 @@ export default class WebSocketChannel {
 
   /**
    * Close the connection
-   * @param {function} cb - Function to call on close.
+   * @returns {Promise} A promise that will be resolved after channel is closed
    */
-  close (cb = () => null) {
-    this._open = false
-    this._clearConnectionTimeout()
-    this._ws.close()
-    this._ws.onclose = cb
+  close () {
+    return new Promise((resolve, reject) => {
+      if (this._ws && this._ws.readyState != WS_CLOSED) {
+        this._open = false
+        this._clearConnectionTimeout()
+        this._ws.onclose = () => resolve()
+        this._ws.close()
+      } else {
+        resolve()
+      }
+    })
   }
 
   /**
@@ -151,7 +164,7 @@ export default class WebSocketChannel {
       const webSocket = this._ws
 
       return setTimeout(() => {
-        if (webSocket.readyState !== WebSocket.OPEN) {
+        if (webSocket.readyState !== WS_OPEN) {
           this._connectionTimeoutFired = true
           webSocket.close()
         }

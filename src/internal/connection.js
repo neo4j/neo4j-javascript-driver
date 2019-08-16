@@ -106,9 +106,10 @@ export default class Connection {
 
   /**
    * Call close on the channel.
-   * @param {function} cb - Function to call on close.
+   * @returns {Promise<void>} - A promise that will be resolved when the connection is closed.
+   *
    */
-  close (cb = () => null) {
+  close () {
     throw new Error('not implemented')
   }
 

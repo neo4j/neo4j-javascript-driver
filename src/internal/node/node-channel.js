@@ -334,16 +334,18 @@ export default class NodeChannel {
 
   /**
    * Close the connection
-   * @param {function} cb - Function to call on close.
+   * @returns {Promise} A promise that will be resolved after channel is closed
    */
-  close (cb = () => null) {
-    this._open = false
-    if (this._conn) {
-      this._conn.end()
-      this._conn.removeListener('end', this._handleConnectionTerminated)
-      this._conn.on('end', cb)
-    } else {
-      cb()
-    }
+  close () {
+    return new Promise((resolve, reject) => {
+      if (this._open) {
+        this._open = false
+        this._conn.removeListener('end', this._handleConnectionTerminated)
+        this._conn.on('end', () => resolve())
+        this._conn.end()
+      } else {
+        resolve()
+      }
+    })
   }
 }
