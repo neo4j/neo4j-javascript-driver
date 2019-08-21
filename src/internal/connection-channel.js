@@ -440,7 +440,7 @@ export default class ChannelConnection extends Connection {
    * Call close on the channel.
    * @returns {Promise<void>} - A promise that will be resolved when the underlying channel is closed.
    */
-  close () {
+  async close () {
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} closing`)
     }
@@ -451,11 +451,11 @@ export default class ChannelConnection extends Connection {
       this._protocol.prepareToClose()
     }
 
-    return this._ch.close().then(() => {
-      if (this._log.isDebugEnabled()) {
-        this._log.debug(`${this} closed`)
-      }
-    })
+    await this._ch.close()
+
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} closed`)
+    }
   }
 
   toString () {

@@ -39,13 +39,7 @@ describe('#integration-rx navigation', () => {
       originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
       jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000
 
-      const normalSession = driver.session()
-      try {
-        const result = await normalSession.run('MATCH (n) DETACH DELETE n')
-        serverVersion = ServerVersion.fromString(result.summary.server.version)
-      } finally {
-        await normalSession.close()
-      }
+      serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
     })
 
     afterEach(async () => {
@@ -53,7 +47,7 @@ describe('#integration-rx navigation', () => {
       if (session) {
         await session.close().toPromise()
       }
-      driver.close()
+      await driver.close()
     })
 
     it('should return keys', () => shouldReturnKeys(serverVersion, session))
@@ -151,7 +145,7 @@ describe('#integration-rx navigation', () => {
       if (session) {
         await session.close().toPromise()
       }
-      driver.close()
+      await driver.close()
     })
 
     it('should return keys', () => shouldReturnKeys(serverVersion, txc))

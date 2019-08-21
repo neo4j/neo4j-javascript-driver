@@ -28,12 +28,11 @@ describe('#integration result summary', () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
 
-    const result = await session.run('MATCH (n) DETACH DELETE n')
-    serverVersion = ServerVersion.fromString(result.summary.server.version)
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(() => {
-    driver.close()
+  afterEach(async () => {
+    await driver.close()
   })
 
   it('should get result summary', done => {

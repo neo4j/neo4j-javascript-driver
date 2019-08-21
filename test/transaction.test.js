@@ -28,7 +28,7 @@ describe('#integration transaction', () => {
   let serverVersion
   let originalTimeout
 
-  beforeEach(done => {
+  beforeEach(async () => {
     // make jasmine timeout high enough to test unreachable bookmarks
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000
@@ -36,15 +36,14 @@ describe('#integration transaction', () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
 
-    session.run('MATCH (n) DETACH DELETE n').then(result => {
-      serverVersion = ServerVersion.fromString(result.summary.server.version)
-      done()
-    })
+    const result = await session.run('MATCH (n) DETACH DELETE n')
+    serverVersion = ServerVersion.fromString(result.summary.server.version)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-    driver.close()
+    await session.close()
+    await driver.close()
   })
 
   it('should commit simple case', done => {
@@ -120,7 +119,6 @@ describe('#integration transaction', () => {
     const tx = session.beginTransaction()
     tx.run('THIS IS NOT CYPHER').catch(error => {
       expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
-      driver.close()
       done()
     })
   })
@@ -130,7 +128,6 @@ describe('#integration transaction', () => {
     tx.run('THIS IS NOT CYPHER').subscribe({
       onError: error => {
         expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
-        driver.close()
         done()
       }
     })
@@ -147,7 +144,6 @@ describe('#integration transaction', () => {
           tx.run('CREATE (:TXNode2)').catch(() => {
             tx.commit().catch(commitError => {
               expect(commitError.error).toBeDefined()
-              driver.close()
               done()
             })
           })
@@ -163,7 +159,6 @@ describe('#integration transaction', () => {
         tx.run('THIS IS NOT CYPHER').catch(() => {
           tx.commit().catch(error => {
             expect(error.error).toBeDefined()
-            driver.close()
             done()
           })
         })
@@ -171,17 +166,21 @@ describe('#integration transaction', () => {
       .catch(console.log)
   })
 
-  it('should handle when committing when another statement fails', done => {
+  it('should handle when committing when another statement fails', async () => {
     // When
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.commit().catch(error => {
-        expect(error).toBeDefined()
-        driver.close()
-        done()
+
+    await expectAsync(tx.run('CREATE (:TXNode1)')).toBeResolved()
+    await expectAsync(tx.run('THIS IS NOT CYHER')).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(/Invalid input/)
       })
-    })
-    tx.run('THIS IS NOT CYPHER')
+    )
+    await expectAsync(tx.commit()).toBeRejectedWith(
+      jasmine.objectContaining({
+        error: jasmine.stringMatching(/Cannot commit statements/)
+      })
+    )
   })
 
   it('should handle rollbacks', done => {
@@ -219,7 +218,6 @@ describe('#integration transaction', () => {
           .then(() => {
             tx.commit().catch(error => {
               expect(error.error).toBeDefined()
-              driver.close()
               done()
             })
           })
@@ -236,7 +234,6 @@ describe('#integration transaction', () => {
           .then(() => {
             tx.run('RETURN 42').catch(error => {
               expect(error.error).toBeDefined()
-              driver.close()
               done()
             })
           })
@@ -245,16 +242,19 @@ describe('#integration transaction', () => {
       .catch(console.log)
   })
 
-  it('should fail when running when a previous statement failed', done => {
+  it('should fail running when a previous statement failed', async () => {
     const tx = session.beginTransaction()
-    tx.run('THIS IS NOT CYPHER').catch(() => {
-      tx.run('RETURN 42').catch(error => {
-        expect(error.error).toBeDefined()
-        driver.close()
-        done()
+
+    await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
+      jasmine.stringMatching(/Invalid input/)
+    )
+
+    await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
+      jasmine.objectContaining({
+        error: jasmine.stringMatching(/Cannot run statement/)
       })
-    })
-    tx.rollback()
+    )
+    await tx.rollback()
   })
 
   it('should fail when trying to roll back a rolled back transaction', done => {
@@ -265,7 +265,6 @@ describe('#integration transaction', () => {
           .then(() => {
             tx.rollback().catch(error => {
               expect(error.error).toBeDefined()
-              driver.close()
               done()
             })
           })
@@ -478,7 +477,7 @@ describe('#integration transaction', () => {
     })
   })
 
-  it('should fail nicely for illegal statement', () => {
+  it('should fail nicely for illegal statement', async () => {
     const tx = session.beginTransaction()
 
     expect(() => tx.run()).toThrowError(TypeError)
@@ -603,26 +602,29 @@ describe('#integration transaction', () => {
     const session = localDriver.session()
     const tx = session.beginTransaction()
     tx.run('RETURN 1')
-      .then(() => {
-        tx.rollback()
-        session.close()
-        done.fail('Query did not fail')
-      })
-      .catch(error => {
-        tx.rollback()
-        session.close()
+      .then(() =>
+        tx
+          .rollback()
+          .then(() => session.close())
+          .then(() => done.fail('Query did not fail'))
+      )
+      .catch(error =>
+        tx
+          .rollback()
+          .then(() => session.close())
+          .then(() => {
+            expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 
-        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+            // in some environments non-routable address results in immediate 'connection refused' error and connect
+            // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
+            if (error.message.indexOf('Failed to establish connection') === 0) {
+              expect(error.message).toEqual(
+                'Failed to establish connection in 1000ms'
+              )
+            }
 
-        // in some environments non-routable address results in immediate 'connection refused' error and connect
-        // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
-        if (error.message.indexOf('Failed to establish connection') === 0) {
-          expect(error.message).toEqual(
-            'Failed to establish connection in 1000ms'
-          )
-        }
-
-        done()
-      })
+            done()
+          })
+      )
   }
 })

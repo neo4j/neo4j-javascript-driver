@@ -149,12 +149,12 @@ describe('#unit DelegateConnection', () => {
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
-  it('should delegate close', () => {
+  it('should delegate close', async () => {
     const delegate = new Connection(null)
-    const spy = spyOn(delegate, 'close')
+    const spy = spyOn(delegate, 'close').and.returnValue(Promise.resolve())
     const connection = new DelegateConnection(delegate, null)
 
-    connection.close()
+    await connection.close()
 
     expect(spy).toHaveBeenCalledTimes(1)
   })

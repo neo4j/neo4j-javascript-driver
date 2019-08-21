@@ -38,21 +38,18 @@ describe('#integration session', () => {
   let serverVersion
   let originalTimeout
 
-  beforeEach(done => {
+  beforeEach(async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000
 
-    session.run('MATCH (n) DETACH DELETE n').then(result => {
-      serverVersion = ServerVersion.fromString(result.summary.server.version)
-      done()
-    })
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-    driver.close()
+    await driver.close()
   })
 
   it('close should return promise', done => {
@@ -116,10 +113,10 @@ describe('#integration session', () => {
     const tx = session.beginTransaction()
     tx.run('INVALID QUERY').catch(() => {
       tx.rollback().then(() => {
-        session.close().then(() => {
-          driver.close()
-          done()
-        })
+        session
+          .close()
+          .then(() => driver.close())
+          .then(() => done())
       })
     })
   })
@@ -364,8 +361,7 @@ describe('#integration session', () => {
             expect(node.properties.prop).toEqual('prop')
           },
           onCompleted: () => {
-            session.close()
-            done()
+            session.close().then(() => done())
           },
           onError: error => {
             console.log(error)
@@ -447,20 +443,20 @@ describe('#integration session', () => {
     const readSession = driver.session({
       defaultAccessMode: neo4j.session.READ
     })
-    readSession.run('RETURN 1').then(() => {
-      readSession.close()
-      done()
-    })
+    readSession
+      .run('RETURN 1')
+      .then(() => readSession.close())
+      .then(() => done())
   })
 
   it('should allow creation of a ' + neo4j.session.WRITE + ' session', done => {
     const writeSession = driver.session({
       defaultAccessMode: neo4j.session.WRITE
     })
-    writeSession.run('CREATE ()').then(() => {
-      writeSession.close()
-      done()
-    })
+    writeSession
+      .run('CREATE ()')
+      .then(() => writeSession.close())
+      .then(() => done())
   })
 
   it('should fail for illegal session mode', () => {
@@ -912,11 +908,11 @@ describe('#integration session', () => {
               session
                 .run('MATCH (:Knight)-[:DEFENDS]->() RETURN count(*)')
                 .then(result => {
-                  session.close()
                   const count = result.records[0].get(0).toInt()
                   expect(count).toEqual(1)
-                  done()
                 })
+                .then(() => session.close())
+                .then(() => done())
             },
             onError: error => {
               console.log(error)
@@ -942,7 +938,7 @@ describe('#integration session', () => {
       const count = result.records[0].get(0).toInt()
       expect(count).toEqual(nodeCount)
     } finally {
-      session.close()
+      await session.close()
     }
   })
 
@@ -1014,11 +1010,7 @@ describe('#integration session', () => {
         expect(numberOfAcquiredConnectionsFromPool()).toEqual(2)
       },
       onCompleted: () => {
-        otherSession.close().then(() => {
-          session.close().then(() => {
-            done()
-          })
-        })
+        otherSession.close().then(() => session.close().then(() => done()))
       },
       onError: error => {
         console.log(error)
@@ -1160,9 +1152,9 @@ describe('#integration session', () => {
         expect(result.records[0].get(0)).toEqual('424242')
         expect(usedTransactions.length).toEqual(3)
         usedTransactions.forEach(tx => expect(tx.isOpen()).toBeFalsy())
-        session.close()
-        done()
       })
+      .then(() => session.close())
+      .then(() => done())
       .catch(error => {
         done.fail(error)
       })
@@ -1179,18 +1171,21 @@ describe('#integration session', () => {
     })
 
     resultPromise
-      .then(result => {
-        session.close()
-        done.fail('Retries should not succeed: ' + JSON.stringify(result))
-      })
+      .then(result =>
+        session
+          .close()
+          .then(() =>
+            done.fail('Retries should not succeed: ' + JSON.stringify(result))
+          )
+      )
       .catch(error => {
-        session.close()
         expect(error).toBeDefined()
         expect(error).not.toBeNull()
         expect(usedTransactions.length).toEqual(1)
         expect(usedTransactions[0].isOpen()).toBeFalsy()
-        done()
       })
+      .then(() => session.close())
+      .then(() => done())
   }
 
   function countNodes (label, propertyKey, propertyValue) {
@@ -1208,9 +1203,10 @@ describe('#integration session', () => {
 
   function withQueryInTmpSession (driver, callback) {
     const tmpSession = driver.session()
-    return tmpSession.run('RETURN 1').then(() => {
-      tmpSession.close().then(() => callback())
-    })
+    return tmpSession
+      .run('RETURN 1')
+      .then(() => tmpSession.close())
+      .then(() => callback())
   }
 
   function newSessionWithConnection (connection) {
@@ -1248,9 +1244,9 @@ describe('#integration session', () => {
         .run('MATCH (n) RETURN n.id')
         .then(result => {
           const ids = result.records.map(record => record.get(0).toNumber())
-          session.close()
           resolve(ids)
         })
+        .then(() => session.close())
         .catch(error => {
           reject(error)
         })
@@ -1296,12 +1292,9 @@ describe('#integration session', () => {
     const session = localDriver.session()
     session
       .run('RETURN 1')
-      .then(() => {
-        localDriver.close()
-        done.fail('Query did not fail')
-      })
+      .then(() => localDriver.close())
+      .then(() => done.fail('Query did not fail'))
       .catch(error => {
-        localDriver.close()
         expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 
         // in some environments non-routable address results in immediate 'connection refused' error and connect
@@ -1311,9 +1304,9 @@ describe('#integration session', () => {
             'Failed to establish connection in 1000ms'
           )
         }
-
-        done()
       })
+      .then(() => localDriver.close())
+      .then(() => done())
   }
 
   function testUnsupportedQueryParameter (value, done) {

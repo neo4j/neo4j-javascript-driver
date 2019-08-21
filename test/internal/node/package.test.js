@@ -25,9 +25,9 @@ var sharedNeo4j = require('../shared-neo4j').default
 describe('Package', function () {
   var driver
 
-  afterAll(function () {
+  afterAll(async () => {
     if (driver) {
-      driver.close()
+      await driver.close()
     }
   })
 
@@ -50,9 +50,9 @@ describe('Package', function () {
       .then(function (result) {
         expect(result.records.length).toBe(1)
         expect(result.records[0].get('answer').toNumber()).toBe(1)
-        session.close()
-        done()
       })
+      .then(() => session.close())
+      .then(() => done())
       .catch(function (e) {
         done.fail(e)
       })

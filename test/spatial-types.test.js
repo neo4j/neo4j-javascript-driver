@@ -35,46 +35,35 @@ describe('#integration spatial-types', () => {
   let session
   let serverVersion
 
-  beforeAll(done => {
+  beforeAll(() => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     driverWithNativeNumbers = neo4j.driver(
       'bolt://localhost',
       sharedNeo4j.authToken,
       { disableLosslessIntegers: true }
     )
-    ServerVersion.fromDriver(driver).then(version => {
-      serverVersion = version
-      done()
-    })
   })
 
-  afterAll(() => {
+  afterAll(async () => {
     if (driver) {
-      driver.close()
+      await driver.close()
       driver = null
     }
 
     if (driverWithNativeNumbers) {
-      driverWithNativeNumbers.close()
+      await driverWithNativeNumbers.close()
       driverWithNativeNumbers = null
     }
   })
 
-  beforeEach(done => {
+  beforeEach(async () => {
     session = driver.session()
-    session
-      .run('MATCH (n) DETACH DELETE n')
-      .then(() => {
-        done()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     if (session) {
-      session.close()
+      await session.close()
       session = null
     }
   })
@@ -287,16 +276,17 @@ describe('#integration spatial-types', () => {
       return
     }
 
-    session.run(query).then(result => {
-      const records = result.records
-      expect(records.length).toEqual(1)
+    session
+      .run(query)
+      .then(result => {
+        const records = result.records
+        expect(records.length).toEqual(1)
 
-      const point = records[0].get(0)
-      pointChecker(point)
-
-      session.close()
-      done()
-    })
+        const point = records[0].get(0)
+        pointChecker(point)
+      })
+      .then(() => session.close())
+      .then(() => done())
   }
 
   function testSendingAndReceivingOfPoints (done, originalValue) {
@@ -314,10 +304,9 @@ describe('#integration spatial-types', () => {
 
         const receivedPoint = records[0].get(0)
         expect(receivedPoint).toEqual(originalValue)
-
-        session.close()
-        done()
       })
+      .then(() => session.close())
+      .then(() => done())
   }
 
   function neo4jDoesNotSupportPoints (done) {

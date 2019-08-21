@@ -441,6 +441,7 @@ describe('#unit RoutingUtil', () => {
 
     close () {
       this._closed = true
+      return Promise.resolve()
     }
 
     isClosed () {

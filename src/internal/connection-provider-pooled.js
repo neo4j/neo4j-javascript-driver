@@ -98,22 +98,16 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    */
   _destroyConnection (conn) {
     delete this._openConnections[conn.id]
-    conn.close()
+    return conn.close()
   }
 
-  close () {
-    try {
-      // purge all idle connections in the connection pool
-      this._connectionPool.purgeAll()
-    } finally {
-      // then close all connections driver has ever created
-      // it is needed to close connections that are active right now and are acquired from the pool
-      for (let connectionId in this._openConnections) {
-        if (this._openConnections.hasOwnProperty(connectionId)) {
-          this._openConnections[connectionId].close()
-        }
-      }
-    }
+  async close () {
+    // purge all idle connections in the connection pool
+    await this._connectionPool.close()
+
+    // then close all connections driver has ever created
+    // it is needed to close connections that are active right now and are acquired from the pool
+    await Promise.all(Object.values(this._openConnections).map(c => c.close()))
   }
 
   static _installIdleObserverOnConnection (conn, observer) {

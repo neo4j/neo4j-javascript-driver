@@ -83,6 +83,7 @@ export default class FakeConnection extends Connection {
 
   _release () {
     this.releaseInvoked++
+    return Promise.resolve()
   }
 
   isOpen () {

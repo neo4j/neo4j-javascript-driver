@@ -35,530 +35,381 @@ describe('#stub-direct direct driver with stub server', () => {
   })
 
   describe('should run query', () => {
-    function verifyShouldRunQuery (version, done) {
+    async function verifyShouldRunQuery (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
       // Given
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/return_x.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        // When
-        const session = driver.session()
-        // Then
-        session.run('RETURN $x', { x: 1 }).then(res => {
-          expect(res.records[0].get('x').toInt()).toEqual(1)
-          session.close()
-          driver.close()
-          server.exit(code => {
-            expect(code).toEqual(0)
-            done()
-          })
-        })
-      })
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      // When
+      const session = driver.session()
+      // Then
+      const res = await session.run('RETURN $x', { x: 1 })
+      expect(res.records[0].get('x').toInt()).toEqual(1)
+
+      await session.close()
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyShouldRunQuery('v2', done)
-    })
+    it('v2', () => verifyShouldRunQuery('v2'))
 
-    it('v3', done => {
-      verifyShouldRunQuery('v3', done)
-    })
+    it('v3', () => verifyShouldRunQuery('v3'))
 
-    it('v4', done => {
-      verifyShouldRunQuery('v4', done)
-    })
+    it('v4', () => verifyShouldRunQuery('v4'))
   })
 
   describe('should send and receive bookmark for read transaction', () => {
-    function verifyBookmarkForReadTxc (version, done) {
+    async function verifyBookmarkForReadTxc (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/read_tx_with_bookmarks.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        const session = driver.session({
-          defaultAccessMode: READ,
-          bookmarks: ['neo4j:bookmark:v1:tx42']
-        })
-        const tx = session.beginTransaction()
-        tx.run('MATCH (n) RETURN n.name AS name').then(result => {
-          const records = result.records
-          expect(records.length).toEqual(2)
-          expect(records[0].get('name')).toEqual('Bob')
-          expect(records[1].get('name')).toEqual('Alice')
-
-          tx.commit().then(() => {
-            expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
-
-            session.close().then(() => {
-              driver.close()
-              server.exit(code => {
-                expect(code).toEqual(0)
-                done()
-              })
-            })
-          })
-        })
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session({
+        defaultAccessMode: READ,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
       })
+      const tx = session.beginTransaction()
+      const result = await tx.run('MATCH (n) RETURN n.name AS name')
+      const records = result.records
+      expect(records.length).toEqual(2)
+      expect(records[0].get('name')).toEqual('Bob')
+      expect(records[1].get('name')).toEqual('Alice')
+
+      await tx.commit()
+      expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+
+      await session.close()
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyBookmarkForReadTxc('v2', done)
-    })
+    it('v2', () => verifyBookmarkForReadTxc('v2'))
 
-    it('v3', done => {
-      verifyBookmarkForReadTxc('v3', done)
-    })
+    it('v3', () => verifyBookmarkForReadTxc('v3'))
 
-    it('v4', done => {
-      verifyBookmarkForReadTxc('v4', done)
-    })
+    it('v4', () => verifyBookmarkForReadTxc('v4'))
   })
 
   describe('should send and receive bookmark for write transaction', () => {
-    function verifyBookmarkForWriteTxc (version, done) {
+    async function verifyBookmarkForWriteTxc (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/write_tx_with_bookmarks.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        const session = driver.session({
-          defaultAccessMode: WRITE,
-          bookmarks: ['neo4j:bookmark:v1:tx42']
-        })
-        const tx = session.beginTransaction()
-        tx.run("CREATE (n {name:'Bob'})").then(result => {
-          const records = result.records
-          expect(records.length).toEqual(0)
-
-          tx.commit().then(() => {
-            expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
-
-            session.close().then(() => {
-              driver.close()
-              server.exit(code => {
-                expect(code).toEqual(0)
-                done()
-              })
-            })
-          })
-        })
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session({
+        defaultAccessMode: WRITE,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
       })
+      const tx = session.beginTransaction()
+      const result = await tx.run("CREATE (n {name:'Bob'})")
+      const records = result.records
+      expect(records.length).toEqual(0)
+
+      await tx.commit()
+      expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+
+      await session.close()
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyBookmarkForWriteTxc('v2', done)
-    })
+    it('v2', () => verifyBookmarkForWriteTxc('v2'))
 
-    it('v3', done => {
-      verifyBookmarkForWriteTxc('v3', done)
-    })
+    it('v3', () => verifyBookmarkForWriteTxc('v3'))
 
-    it('v4', done => {
-      verifyBookmarkForWriteTxc('v4', done)
-    })
+    it('v4', () => verifyBookmarkForWriteTxc('v4'))
   })
 
   describe('should send and receive bookmark between write and read transactions', () => {
-    function verifyBookmark (version, done) {
+    async function verifyBookmark (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/write_read_tx_with_bookmarks.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        const session = driver.session({
-          defaultAccessMode: WRITE,
-          bookmarks: ['neo4j:bookmark:v1:tx42']
-        })
-        const writeTx = session.beginTransaction()
-        writeTx.run("CREATE (n {name:'Bob'})").then(result => {
-          const records = result.records
-          expect(records.length).toEqual(0)
-
-          writeTx.commit().then(() => {
-            expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
-
-            const readTx = session.beginTransaction()
-            readTx.run('MATCH (n) RETURN n.name AS name').then(result => {
-              const records = result.records
-              expect(records.length).toEqual(1)
-              expect(records[0].get('name')).toEqual('Bob')
-
-              readTx.commit().then(() => {
-                expect(session.lastBookmark()).toEqual(
-                  'neo4j:bookmark:v1:tx424242'
-                )
-
-                session.close().then(() => {
-                  driver.close()
-                  server.exit(code => {
-                    expect(code).toEqual(0)
-                    done()
-                  })
-                })
-              })
-            })
-          })
-        })
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session({
+        defaultAccessMode: WRITE,
+        bookmarks: ['neo4j:bookmark:v1:tx42']
       })
+      const writeTx = session.beginTransaction()
+      const result1 = await writeTx.run("CREATE (n {name:'Bob'})")
+      const records1 = result1.records
+      expect(records1.length).toEqual(0)
+
+      await writeTx.commit()
+      expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+
+      const readTx = session.beginTransaction()
+      const result2 = await readTx.run('MATCH (n) RETURN n.name AS name')
+      const records2 = result2.records
+      expect(records2.length).toEqual(1)
+      expect(records2[0].get('name')).toEqual('Bob')
+
+      await readTx.commit()
+      expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
+
+      await session.close()
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyBookmark('v2', done)
-    })
+    it('v2', () => verifyBookmark('v2'))
 
-    it('v3', done => {
-      verifyBookmark('v3', done)
-    })
+    it('v3', () => verifyBookmark('v3'))
 
-    it('v4', done => {
-      verifyBookmark('v4', done)
-    })
+    it('v4', () => verifyBookmark('v4'))
   })
 
   describe('should throw service unavailable when server dies', () => {
-    function verifyServiceUnavailable (version, done) {
+    async function verifyServiceUnavailable (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/read_dead.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        const session = driver.session({ defaultAccessMode: READ })
-        session.run('MATCH (n) RETURN n.name').catch(error => {
-          expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
-
-          driver.close()
-          server.exit(code => {
-            expect(code).toEqual(0)
-            done()
-          })
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session({ defaultAccessMode: READ })
+      await expectAsync(
+        session.run('MATCH (n) RETURN n.name')
+      ).toBeRejectedWith(
+        jasmine.objectContaining({
+          code: neo4j.error.SERVICE_UNAVAILABLE
         })
-      })
+      )
+
+      await session.close()
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyServiceUnavailable('v2', done)
-    })
+    it('v2', () => verifyServiceUnavailable('v2'))
 
-    it('v3', done => {
-      verifyServiceUnavailable('v3', done)
-    })
+    it('v3', () => verifyServiceUnavailable('v3'))
 
-    it('v4', done => {
-      verifyServiceUnavailable('v4', done)
-    })
+    it('v4', () => verifyServiceUnavailable('v4'))
   })
 
   describe('should close connection when RESET fails', () => {
-    function verifyCloseConnection (version, done) {
+    async function verifyCloseConnection (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/reset_error.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        const session = driver.session()
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session()
 
-        session
-          .run('RETURN 42 AS answer')
-          .then(result => {
-            const records = result.records
-            expect(records.length).toEqual(1)
-            expect(records[0].get(0).toNumber()).toEqual(42)
-            session.close().then(() => {
-              expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
-              driver.close()
-              server.exit(code => {
-                expect(code).toEqual(0)
-                done()
-              })
-            })
-          })
-          .catch(error => done.fail(error))
-      })
+      const result = await session.run('RETURN 42 AS answer')
+      const records = result.records
+      expect(records.length).toEqual(1)
+      expect(records[0].get(0).toNumber()).toEqual(42)
+
+      await session.close()
+      expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
+
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyCloseConnection('v2', done)
-    })
+    it('v2', () => verifyCloseConnection('v2'))
 
-    it('v3', done => {
-      verifyCloseConnection('v3', done)
-    })
+    it('v3', () => verifyCloseConnection('v3'))
 
-    it('v4', done => {
-      verifyCloseConnection('v4', done)
-    })
+    it('v4', () => verifyCloseConnection('v4'))
   })
 
   describe('should send RESET on error', () => {
-    function verifyReset (version, done) {
+    async function verifyReset (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/query_with_error.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        const session = driver.session()
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session()
 
-        session
-          .run('RETURN 10 / 0')
-          .then(result => {
-            done.fail(
-              'Should fail but received a result: ' + JSON.stringify(result)
-            )
-          })
-          .catch(error => {
-            expect(error.code).toEqual(
-              'Neo.ClientError.Statement.ArithmeticError'
-            )
-            expect(error.message).toEqual('/ by zero')
+      await expectAsync(session.run('RETURN 10 / 0')).toBeRejectedWith(
+        jasmine.objectContaining({
+          code: 'Neo.ClientError.Statement.ArithmeticError',
+          message: '/ by zero'
+        })
+      )
 
-            session.close().then(() => {
-              driver.close()
-              server.exit(code => {
-                expect(code).toEqual(0)
-                done()
-              })
-            })
-          })
-      })
+      await session.close()
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyReset('v2', done)
-    })
+    it('v2', () => verifyReset('v2'))
 
-    it('v3', done => {
-      verifyReset('v3', done)
-    })
+    it('v3', () => verifyReset('v3'))
 
-    it('v4', done => {
-      verifyReset('v4', done)
-    })
+    it('v4', () => verifyReset('v4'))
   })
 
   describe('should include database connection id in logs', () => {
-    function verifyConnectionId (version, done) {
+    async function verifyConnectionId (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/hello_run_exit.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const messages = []
-        const logging = {
-          level: 'debug',
-          logger: (level, message) => messages.push(message)
-        }
+      const messages = []
+      const logging = {
+        level: 'debug',
+        logger: (level, message) => messages.push(message)
+      }
 
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {
-          logging: logging
-        })
-        const session = driver.session()
-
-        session
-          .run('MATCH (n) RETURN n.name')
-          .then(result => {
-            const names = result.records.map(record => record.get(0))
-            expect(names).toEqual(['Foo', 'Bar'])
-            session.close().then(() => {
-              driver.close()
-              server.exit(code => {
-                expect(code).toEqual(0)
-
-                // logged messages should contain connection_id supplied by the database
-                const containsDbConnectionIdMessage = messages.find(message =>
-                  message.match(/Connection \[[0-9]+]\[bolt-123456789]/)
-                )
-                if (!containsDbConnectionIdMessage) {
-                  console.log(messages)
-                }
-                expect(containsDbConnectionIdMessage).toBeTruthy()
-
-                done()
-              })
-            })
-          })
-          .catch(error => done.fail(error))
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {
+        logging: logging
       })
+      const session = driver.session()
+
+      const result = await session.run('MATCH (n) RETURN n.name')
+
+      const names = result.records.map(record => record.get(0))
+      expect(names).toEqual(['Foo', 'Bar'])
+
+      await session.close()
+      await driver.close()
+      await server.exit()
+
+      // logged messages should contain connection_id supplied by the database
+      const containsDbConnectionIdMessage = messages.find(message =>
+        message.match(/Connection \[[0-9]+]\[bolt-123456789]/)
+      )
+      if (!containsDbConnectionIdMessage) {
+        console.log(messages)
+      }
+      expect(containsDbConnectionIdMessage).toBeTruthy()
     }
 
-    it('v3', done => {
-      verifyConnectionId('v3', done)
-    })
+    it('v3', () => verifyConnectionId('v3'))
 
-    it('v4', done => {
-      verifyConnectionId('v4', done)
-    })
+    it('v4', () => verifyConnectionId('v4'))
   })
 
   describe('should close connection if it dies sitting idle in connection pool', () => {
-    function verifyConnectionCleanup (version, done) {
+    async function verifyConnectionCleanup (version) {
       if (!boltStub.supported) {
         done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/read.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        const session = driver.session({ defaultAccessMode: READ })
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session({ defaultAccessMode: READ })
 
-        session
-          .run('MATCH (n) RETURN n.name')
-          .then(result => {
-            const records = result.records
-            expect(records.length).toEqual(3)
-            expect(records[0].get(0)).toBe('Bob')
-            expect(records[1].get(0)).toBe('Alice')
-            expect(records[2].get(0)).toBe('Tina')
+      const result = await session.run('MATCH (n) RETURN n.name')
+      const records = result.records
+      expect(records.length).toEqual(3)
+      expect(records[0].get(0)).toBe('Bob')
+      expect(records[1].get(0)).toBe('Alice')
+      expect(records[2].get(0)).toBe('Tina')
 
-            const connectionKey = Object.keys(openConnections(driver))[0]
-            expect(connectionKey).toBeTruthy()
+      const connectionKey = Object.keys(openConnections(driver))[0]
+      expect(connectionKey).toBeTruthy()
 
-            const connection = openConnections(driver, connectionKey)
-            session.close().then(() => {
-              // generate a fake fatal error
-              connection._handleFatalError(
-                newError('connection reset', SERVICE_UNAVAILABLE)
-              )
+      const connection = openConnections(driver, connectionKey)
+      await session.close()
 
-              // expect that the connection to be removed from the pool
-              expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
-              expect(activeResources(driver, '127.0.0.1:9001')).toBeFalsy()
-              // expect that the connection to be unregistered from the open connections registry
-              expect(openConnections(driver, connectionKey)).toBeFalsy()
-              driver.close()
-              server.exit(code => {
-                expect(code).toEqual(0)
-                done()
-              })
-            })
-          })
-          .catch(error => done.fail(error))
-      })
+      // generate a fake fatal error
+      connection._handleFatalError(
+        newError('connection reset', SERVICE_UNAVAILABLE)
+      )
+
+      // expect that the connection to be removed from the pool
+      expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
+      expect(activeResources(driver, '127.0.0.1:9001')).toBeFalsy()
+      // expect that the connection to be unregistered from the open connections registry
+      expect(openConnections(driver, connectionKey)).toBeFalsy()
+
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyConnectionCleanup('v2', done)
-    })
+    it('v2', () => verifyConnectionCleanup('v2'))
 
-    it('v3', done => {
-      verifyConnectionCleanup('v3', done)
-    })
+    it('v3', () => verifyConnectionCleanup('v3'))
 
-    it('v4', done => {
-      verifyConnectionCleanup('v4', done)
-    })
+    it('v4', () => verifyConnectionCleanup('v4'))
   })
 
   describe('should fail if commit fails due to broken connection', () => {
-    function verifyFailureOnCommit (version, done) {
+    async function verifyFailureOnCommit (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 
-      const server = boltStub.start(
+      const server = await boltStub.start(
         `./test/resources/boltstub/${version}/connection_error_on_commit.script`,
         9001
       )
 
-      boltStub.run(() => {
-        const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-        const session = driver.session()
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session()
 
-        const writeTx = session.beginTransaction()
+      const writeTx = session.beginTransaction()
+      await writeTx.run("CREATE (n {name: 'Bob'})")
 
-        writeTx
-          .run("CREATE (n {name: 'Bob'})")
-          .then(() =>
-            writeTx.commit().then(
-              result => fail('expected an error'),
-              error => {
-                expect(error.code).toBe(SERVICE_UNAVAILABLE)
-              }
-            )
-          )
-          .then(() =>
-            session.close().then(() => {
-              driver.close()
+      await expectAsync(writeTx.commit()).toBeRejectedWith(
+        jasmine.objectContaining({
+          code: neo4j.error.SERVICE_UNAVAILABLE
+        })
+      )
 
-              server.exit(code => {
-                expect(code).toEqual(0)
-                done()
-              })
-            })
-          )
-          .catch(error => done.fail(error))
-      })
+      await session.close()
+      await driver.close()
+      await server.exit()
     }
 
-    it('v2', done => {
-      verifyFailureOnCommit('v2', done)
-    })
+    it('v2', () => verifyFailureOnCommit('v2'))
 
-    it('v3', done => {
-      verifyFailureOnCommit('v3', done)
-    })
+    it('v3', () => verifyFailureOnCommit('v3'))
   })
 
   function connectionPool (driver, key) {

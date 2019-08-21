@@ -57,18 +57,12 @@ describe('#integration examples', () => {
     })
     consoleOverride = { log: msg => consoleOverridePromiseResolve(msg) }
 
-    const session = driverGlobal.session()
-    try {
-      const result = await session.run('MATCH (n) DETACH DELETE n')
-      version = ServerVersion.fromString(result.summary.server.version)
-    } finally {
-      await session.close()
-    }
+    version = await sharedNeo4j.cleanupAndGetVersion(driverGlobal)
   })
 
-  afterAll(() => {
+  afterAll(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-    driverGlobal.close()
+    await driverGlobal.close()
   })
 
   it('autocommit transaction example', async () => {
@@ -104,18 +98,16 @@ describe('#integration examples', () => {
     }
   })
 
-  it('basic auth example', done => {
+  it('basic auth example', async () => {
     // tag::basic-auth[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
     // end::basic-auth[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config connection pool example', done => {
+  it('config connection pool example', async () => {
     // tag::config-connection-pool[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       maxConnectionLifetime: 3 * 60 * 60 * 1000, // 3 hours
@@ -124,26 +116,22 @@ describe('#integration examples', () => {
     })
     // end::config-connection-pool[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config connection timeout example', done => {
+  it('config connection timeout example', async () => {
     // tag::config-connection-timeout[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       connectionTimeout: 20 * 1000 // 20 seconds
     })
     // end::config-connection-timeout[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config max retry time example', done => {
+  it('config max retry time example', async () => {
     // tag::config-max-retry-time[]
     const maxRetryTimeMs = 15 * 1000 // 15 seconds
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
@@ -151,13 +139,11 @@ describe('#integration examples', () => {
     })
     // end::config-max-retry-time[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config trust example', done => {
+  it('config trust example', async () => {
     if (version.compareTo(VERSION_4_0_0) >= 0) {
       pending('address within security work')
     }
@@ -169,23 +155,19 @@ describe('#integration examples', () => {
     })
     // end::config-trust[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config unencrypted example', done => {
+  it('config unencrypted example', async () => {
     // tag::config-unencrypted[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       encrypted: 'ENCRYPTION_OFF'
     })
     // end::config-unencrypted[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
   /* eslint-disable no-unused-vars */
@@ -207,10 +189,8 @@ describe('#integration examples', () => {
 
       session
         .run('CREATE (n:Person { name: $name })', { name: name })
-        .then(() => {
-          session.close()
-          driver.close()
-        })
+        .then(() => session.close())
+        .then(() => driver.close())
     }
     // end::config-custom-resolver[]
 
@@ -218,7 +198,7 @@ describe('#integration examples', () => {
   })
   /* eslint-enable no-unused-vars */
 
-  it('custom auth example', done => {
+  it('custom auth example', async () => {
     const principal = user
     const credentials = password
     const realm = undefined
@@ -232,20 +212,18 @@ describe('#integration examples', () => {
     )
     // end::custom-auth[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('kerberos auth example', () => {
+  it('kerberos auth example', async () => {
     const ticket = 'a base64 encoded ticket'
 
     // tag::kerberos-auth[]
     const driver = neo4j.driver(uri, neo4j.auth.kerberos(ticket))
     // end::kerberos-auth[]
 
-    driver.close()
+    await driver.close()
   })
 
   it('cypher error example', async () => {
@@ -302,7 +280,7 @@ describe('#integration examples', () => {
     }
 
     // ... on application exit:
-    driver.close()
+    await driver.close()
     // end::driver-lifecycle[]
 
     expect(await consoleLoggedMsg).toEqual('Driver created')
@@ -332,7 +310,7 @@ describe('#integration examples', () => {
     }
 
     // on application exit:
-    driver.close()
+    await driver.close()
     // end::hello-world[]
 
     expect(await consoleLoggedMsg).toContain('hello, world, from node')
@@ -367,7 +345,7 @@ describe('#integration examples', () => {
     }
 
     // on application exit:
-    driver.close()
+    await driver.close()
     // end::language-guide-page[]
 
     expect(await consoleLoggedMsg).toEqual(personName)
@@ -429,9 +407,9 @@ describe('#integration examples', () => {
           collectedNames.push(name)
         },
         onCompleted: () => {
-          session.close()
-
-          console.log('Names: ' + collectedNames.join(', '))
+          session.close().then(() => {
+            console.log('Names: ' + collectedNames.join(', '))
+          })
         },
         onError: error => {
           console.log(error)
@@ -515,13 +493,14 @@ describe('#integration examples', () => {
     })
     // end::service-unavailable[]
 
-    consoleLoggedMsg.then(loggedMsg => {
-      driver.close()
-      expect(loggedMsg).toBe(
-        'Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE
-      )
-      done()
-    })
+    consoleLoggedMsg
+      .then(loggedMsg => {
+        expect(loggedMsg).toBe(
+          'Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE
+        )
+      })
+      .then(() => driver.close())
+      .then(() => done())
   })
 
   it('session example', async () => {
@@ -635,9 +614,8 @@ describe('#integration examples', () => {
       )
       .then(() => {
         savedBookmarks.push(session1.lastBookmark())
-
-        return session1.close()
       })
+      .then(() => session1.close())
 
     // Create the second person and employment relationship.
     const session2 = driver.session({ defaultAccessMode: neo4j.WRITE })
@@ -649,12 +627,11 @@ describe('#integration examples', () => {
       )
       .then(() => {
         savedBookmarks.push(session2.lastBookmark())
-
-        return session2.close()
       })
+      .then(() => session2.close())
 
     // Create a friendship between the two people created above.
-    const last = Promise.all([first, second]).then(ignore => {
+    const last = Promise.all([first, second]).then(() => {
       const session3 = driver.session({
         defaultAccessMode: neo4j.WRITE,
         bookmarks: savedBookmarks

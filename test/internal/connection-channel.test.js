@@ -45,13 +45,12 @@ describe('#integration ChannelConnection', () => {
   /** @type {Connection} */
   let connection
 
-  afterEach(done => {
+  afterEach(async () => {
     const usedConnection = connection
     connection = null
     if (usedConnection) {
-      usedConnection.close()
+      await usedConnection.close()
     }
-    done()
   })
 
   it('should have correct creation timestamp', () => {
@@ -398,49 +397,41 @@ describe('#integration ChannelConnection', () => {
     connection._handleFatalError(newError('Hello', SERVICE_UNAVAILABLE))
   })
 
-  it('should send INIT/HELLO and GOODBYE messages', done => {
+  it('should send INIT/HELLO and GOODBYE messages', async () => {
     const messages = []
     connection = createConnection('bolt://localhost')
     recordWrittenMessages(connection, messages)
 
-    connection
-      .connect('mydriver/0.0.0', basicAuthToken())
-      .then(() => {
-        expect(connection.isOpen()).toBeTruthy()
-        connection.close(() => {
-          expect(messages.length).toBeGreaterThan(0)
-          expect(messages[0].signature).toEqual(0x01) // first message is either INIT or HELLO
+    await connection.connect('mydriver/0.0.0', basicAuthToken())
 
-          const serverVersion = ServerVersion.fromString(connection.version)
-          if (serverVersion.compareTo(VERSION_3_5_0) >= 0) {
-            expect(messages[messages.length - 1].signature).toEqual(0x02) // last message is GOODBYE in V3
-          }
-          done()
-        })
-      })
-      .catch(done.fail)
+    expect(connection.isOpen()).toBeTruthy()
+    await connection.close()
+
+    expect(messages.length).toBeGreaterThan(0)
+    expect(messages[0].signature).toEqual(0x01) // first message is either INIT or HELLO
+
+    const serverVersion = ServerVersion.fromString(connection.version)
+    if (serverVersion.compareTo(VERSION_3_5_0) >= 0) {
+      expect(messages[messages.length - 1].signature).toEqual(0x02) // last message is GOODBYE in V3
+    }
   })
 
-  it('should not prepare broken connection to close', done => {
+  it('should not prepare broken connection to close', async () => {
     connection = createConnection('bolt://localhost')
 
-    connection
-      .connect('my-connection/9.9.9', basicAuthToken())
-      .then(() => {
-        expect(connection._protocol).toBeDefined()
-        expect(connection._protocol).not.toBeNull()
+    await connection.connect('my-connection/9.9.9', basicAuthToken())
+    expect(connection._protocol).toBeDefined()
+    expect(connection._protocol).not.toBeNull()
 
-        // make connection seem broken
-        connection._isBroken = true
-        expect(connection.isOpen()).toBeFalsy()
+    // make connection seem broken
+    connection._isBroken = true
+    expect(connection.isOpen()).toBeFalsy()
 
-        connection._protocol.prepareToClose = () => {
-          throw new Error('Not supposed to be called')
-        }
+    connection._protocol.prepareToClose = () => {
+      throw new Error('Not supposed to be called')
+    }
 
-        connection.close(() => done())
-      })
-      .catch(error => done.fail(error))
+    await connection.close()
   })
 
   function packedHandshakeMessage () {

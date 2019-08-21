@@ -34,14 +34,7 @@ describe('#integration-rx summary', () => {
       driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
       session = driver.rxSession()
 
-      const normalSession = driver.session()
-      try {
-        const result = await normalSession.run('MATCH (n) DETACH DELETE n')
-        serverVersion = ServerVersion.fromString(result.summary.server.version)
-      } finally {
-        await normalSession.close()
-      }
-
+      serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
       await dropConstraintsAndIndices(driver)
     })
 
@@ -49,7 +42,7 @@ describe('#integration-rx summary', () => {
       if (session) {
         await session.close().toPromise()
       }
-      driver.close()
+      await driver.close()
     })
 
     it('should return non-null summary', () =>
@@ -148,7 +141,7 @@ describe('#integration-rx summary', () => {
       if (session) {
         await session.close().toPromise()
       }
-      driver.close()
+      await driver.close()
     })
 
     it('should return non-null summary', () =>

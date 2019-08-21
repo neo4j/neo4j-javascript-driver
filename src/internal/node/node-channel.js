@@ -278,6 +278,7 @@ export default class NodeChannel {
   }
 
   _handleConnectionTerminated () {
+    this._open = false
     this._error = newError(
       'Connection was closed by server',
       this._connectionErrorCode
@@ -338,13 +339,23 @@ export default class NodeChannel {
    */
   close () {
     return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        if (!this._conn.destroyed) {
+          this._conn.destroy()
+        }
+
+        resolve()
+      }
+
       if (this._open) {
         this._open = false
         this._conn.removeListener('end', this._handleConnectionTerminated)
-        this._conn.on('end', () => resolve())
+        this._conn.on('end', () => cleanup())
+        this._conn.on('close', () => cleanup())
         this._conn.end()
+        this._conn.destroy()
       } else {
-        resolve()
+        cleanup()
       }
     })
   }

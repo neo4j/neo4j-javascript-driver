@@ -23,22 +23,25 @@ import Logger from './logger'
 
 class Pool {
   /**
-   * @param {function(function): Promise<object>} create  an allocation function that creates a promise with a new resource. It's given
-   *                a single argument, a function that will return the resource to
-   *                the pool if invoked, which is meant to be called on .dispose
-   *                or .close or whatever mechanism the resource uses to finalize.
-   * @param {function} destroy called with the resource when it is evicted from this pool
-   * @param {function} validate called at various times (like when an instance is acquired and
-   *                 when it is returned). If this returns false, the resource will
-   *                 be evicted
-   * @param {function} installIdleObserver called when the resource is released back to pool
-   * @param {function} removeIdleObserver called when the resource is acquired from the pool
+   * @param {function(address: ServerAddress, function(address: ServerAddress, resource: object): Promise<object>): Promise<object>} create
+   *                an allocation function that creates a promise with a new resource. It's given an address for which to
+   *                allocate the connection and a function that will return the resource to the pool if invoked, which is
+   *                meant to be called on .dispose or .close or whatever mechanism the resource uses to finalize.
+   * @param {function(resource: object): Promise<void>} destroy
+   *                called with the resource when it is evicted from this pool
+   * @param {function(resource: object): boolean} validate
+   *                called at various times (like when an instance is acquired and when it is returned.
+   *                If this returns false, the resource will be evicted
+   * @param {function(resource: object, observer: { onError }): void} installIdleObserver
+   *                called when the resource is released back to pool
+   * @param {function(resource: object): void} removeIdleObserver
+   *                called when the resource is acquired from the pool
    * @param {PoolConfig} config configuration for the new driver.
    * @param {Logger} log the driver logger.
    */
   constructor ({
-    create = (address, release) => {},
-    destroy = conn => true,
+    create = (address, release) => Promise.resolve(),
+    destroy = conn => Promise.resolve(),
     validate = conn => true,
     installIdleObserver = (conn, observer) => {},
     removeIdleObserver = conn => {},
@@ -57,6 +60,7 @@ class Pool {
     this._activeResourceCounts = {}
     this._release = this._release.bind(this)
     this._log = log
+    this._closed = false
   }
 
   /**
@@ -119,27 +123,31 @@ class Pool {
   /**
    * Destroy all idle resources for the given address.
    * @param {ServerAddress} address the address of the server to purge its pool.
+   * @returns {Promise<void>} A promise that is resolved when the resources are purged
    */
   purge (address) {
-    this._purgeKey(address.asKey())
+    return this._purgeKey(address.asKey())
   }
 
   /**
    * Destroy all idle resources in this pool.
+   * @returns {Promise<void>} A promise that is resolved when the resources are purged
    */
-  purgeAll () {
-    Object.keys(this._pools).forEach(key => this._purgeKey(key))
+  close () {
+    this._closed = true
+    return Promise.all(Object.keys(this._pools).map(key => this._purgeKey(key)))
   }
 
   /**
    * Keep the idle resources for the provided addresses and purge the rest.
+   * @returns {Promise<void>} A promise that is resolved when the other resources are purged
    */
   keepAll (addresses) {
     const keysToKeep = addresses.map(a => a.asKey())
     const keysPresent = Object.keys(this._pools)
     const keysToPurge = keysPresent.filter(k => keysToKeep.indexOf(k) === -1)
 
-    keysToPurge.forEach(key => this._purgeKey(key))
+    return Promise.all(keysToPurge.map(key => this._purgeKey(key)))
   }
 
   /**
@@ -160,7 +168,11 @@ class Pool {
     return this._activeResourceCounts[address.asKey()] || 0
   }
 
-  _acquire (address) {
+  async _acquire (address) {
+    if (this._closed) {
+      throw newError('Pool is closed, it is no more able to serve requests.')
+    }
+
     const key = address.asKey()
     let pool = this._pools[key]
     if (!pool) {
@@ -178,19 +190,19 @@ class Pool {
         // idle resource is valid and can be acquired
         return Promise.resolve(resource)
       } else {
-        this._destroy(resource)
+        await this._destroy(resource)
       }
     }
 
     if (this._maxSize && this.activeResourceCount(address) >= this._maxSize) {
-      return Promise.resolve(null)
+      return null
     }
 
     // there exist no idle valid resources, create a new one for acquisition
-    return this._create(address, this._release)
+    return await this._create(address, this._release)
   }
 
-  _release (address, resource) {
+  async _release (address, resource) {
     const key = address.asKey()
     const pool = this._pools[key]
 
@@ -202,11 +214,8 @@ class Pool {
             `${resource} destroyed and can't be released to the pool ${key} because it is not functional`
           )
         }
-        this._destroy(resource)
+        await this._destroy(resource)
       } else {
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} released to the pool ${key}`)
-        }
         if (this._installIdleObserver) {
           this._installIdleObserver(resource, {
             onError: () => {
@@ -214,11 +223,17 @@ class Pool {
               if (pool) {
                 this._pools[key] = pool.filter(r => r !== resource)
               }
-              this._destroy(resource)
+              // let's not care about background clean-ups due to errors but just trigger the destroy
+              // process for the resource, we especially catch any errors and ignore them to avoid
+              // unhandled promise rejection warnings
+              this._destroy(resource).catch(() => {})
             }
           })
         }
         pool.push(resource)
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${resource} released to the pool ${key}`)
+        }
       }
     } else {
       // key has been purged, don't put it back, just destroy the resource
@@ -227,21 +242,21 @@ class Pool {
           `${resource} destroyed and can't be released to the pool ${key} because pool has been purged`
         )
       }
-      this._destroy(resource)
+      await this._destroy(resource)
     }
     resourceReleased(key, this._activeResourceCounts)
 
     this._processPendingAcquireRequests(address)
   }
 
-  _purgeKey (key) {
+  async _purgeKey (key) {
     const pool = this._pools[key] || []
     while (pool.length) {
       const resource = pool.pop()
       if (this._removeIdleObserver) {
         this._removeIdleObserver(resource)
       }
-      this._destroy(resource)
+      await this._destroy(resource)
     }
     delete this._pools[key]
   }

@@ -48,7 +48,7 @@ var neo4j = require('neo4j-driver')
 Driver instance should be closed when Node.js application exits:
 
 ```javascript
-driver.close()
+driver.close() // returns a Promise
 ```
 
 otherwise application shutdown might hang or it might exit with a non-zero exit code.
@@ -87,7 +87,7 @@ WebSockets when the page is unloaded. However, driver instance should be explici
 is not the same as the lifetime of the web page:
 
 ```javascript
-driver.close()
+driver.close() // returns a Promise
 ```
 
 ## Usage examples
@@ -104,7 +104,7 @@ var driver = neo4j.driver(
 
 // Close the driver when application exits.
 // This closes all used network connections.
-driver.close()
+await driver.close()
 ```
 
 ### Acquiring a Session
@@ -189,7 +189,7 @@ session
       console.log(record.get('name'))
     },
     onCompleted: () => {
-      session.close()
+      session.close() // returns a Promise
     },
     onError: error => {
       console.log(error)

@@ -47,6 +47,8 @@ function createMockedChannel (connected) {
   const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
   const channel = new NodeChannel(channelConfig)
   const socket = {
+    destroyed: false,
+    destroy: () => {},
     end: () => {
       channel._open = false
       endCallback()

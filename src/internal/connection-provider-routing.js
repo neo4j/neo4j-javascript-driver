@@ -155,7 +155,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       )
     }
 
-    this._connectionPool.purge(address)
+    // We're firing and forgetting this operation explicitly and listening for any
+    // errors to avoid unhandled promise rejection
+    this._connectionPool.purge(address).catch(() => {})
   }
 
   forgetWriter (address, database) {
@@ -223,10 +225,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
           currentRoutingTable
         )
       })
-      .then(newRoutingTable => {
+      .then(newRoutingTable =>
         this._applyRoutingTableIfPossible(currentRoutingTable, newRoutingTable)
-        return newRoutingTable
-      })
+      )
   }
 
   _fetchRoutingTableFromKnownRoutersFallbackToSeedRouter (
@@ -249,10 +250,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
           currentRoutingTable
         )
       })
-      .then(newRoutingTable => {
+      .then(newRoutingTable =>
         this._applyRoutingTableIfPossible(currentRoutingTable, newRoutingTable)
-        return newRoutingTable
-      })
+      )
   }
 
   _fetchRoutingTableUsingKnownRouters (knownRouters, currentRoutingTable) {
@@ -381,7 +381,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       })
   }
 
-  _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable) {
+  async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable) {
     if (!newRoutingTable) {
       // none of routing servers returned valid routing table, throw exception
       throw newError(
@@ -396,12 +396,14 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       this._useSeedRouter = true
     }
 
-    this._updateRoutingTable(newRoutingTable)
+    await this._updateRoutingTable(newRoutingTable)
+
+    return newRoutingTable
   }
 
-  _updateRoutingTable (newRoutingTable) {
+  async _updateRoutingTable (newRoutingTable) {
     // close old connections to servers not present in the new routing table
-    this._connectionPool.keepAll(newRoutingTable.allServers())
+    await this._connectionPool.keepAll(newRoutingTable.allServers())
 
     // make this driver instance aware of the new table
     this._routingTables[newRoutingTable.database] = newRoutingTable

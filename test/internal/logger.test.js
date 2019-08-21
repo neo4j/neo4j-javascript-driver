@@ -75,7 +75,7 @@ describe('#unit Logger', () => {
 })
 
 describe('#integration Logger', () => {
-  it('should log when logger configured in the driver', done => {
+  it('should log when logger configured in the driver', async () => {
     const logged = []
     const config = memorizingLoggerConfig(logged)
     const driver = neo4j.driver(
@@ -85,31 +85,25 @@ describe('#integration Logger', () => {
     )
 
     const session = driver.session()
-    session
-      .run('RETURN 42')
-      .then(() => {
-        expect(logged.length).toBeGreaterThan(0)
+    await session.run('RETURN 42')
 
-        const seenLevels = logged.map(log => log.level)
-        const seenMessages = logged.map(log => log.message)
+    expect(logged.length).toBeGreaterThan(0)
 
-        // at least info and debug should've been used
-        expect(seenLevels).toContain('info')
-        expect(seenLevels).toContain('debug')
+    const seenLevels = logged.map(log => log.level)
+    const seenMessages = logged.map(log => log.message)
 
-        // the executed statement should've been logged
-        const statementLogged = seenMessages.find(
-          message => message.indexOf('RETURN 42') !== -1
-        )
-        expect(statementLogged).toBeTruthy()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
-      .then(() => {
-        driver.close()
-        done()
-      })
+    // at least info and debug should've been used
+    expect(seenLevels).toContain('info')
+    expect(seenLevels).toContain('debug')
+
+    // the executed statement should've been logged
+    const statementLogged = seenMessages.find(
+      message => message.indexOf('RETURN 42') !== -1
+    )
+    expect(statementLogged).toBeTruthy()
+
+    await session.close()
+    await driver.close()
   })
 
   it('should log debug to console when configured in the driver', async () => {
@@ -141,7 +135,7 @@ describe('#integration Logger', () => {
       expect(driverCreationLogged).toBeTruthy()
     } finally {
       console.log = originalConsoleLog
-      driver.close()
+      await driver.close()
     }
   })
 
@@ -172,7 +166,7 @@ describe('#integration Logger', () => {
       expect(driverCreationLogged).toBeTruthy()
     } finally {
       console.log = originalConsoleLog
-      driver.close()
+      await driver.close()
     }
   })
 })

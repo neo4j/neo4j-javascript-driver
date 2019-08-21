@@ -83,7 +83,7 @@ declare interface Driver {
     database?: string
   }): RxSession
 
-  close(): void
+  close(): Promise<void>
 
   verifyConnectivity(): Promise<ServerInfo>
 }

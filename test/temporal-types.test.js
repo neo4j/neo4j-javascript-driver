@@ -55,7 +55,7 @@ describe('#integration temporal-types', () => {
   let session
   let serverVersion
 
-  beforeAll(done => {
+  beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
@@ -65,35 +65,25 @@ describe('#integration temporal-types', () => {
       sharedNeo4j.authToken,
       { disableLosslessIntegers: true }
     )
-
-    ServerVersion.fromDriver(driver).then(version => {
-      serverVersion = version
-      done()
-    })
   })
 
-  afterAll(() => {
+  afterAll(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
 
     if (driver) {
-      driver.close()
+      await driver.close()
       driver = null
     }
 
     if (driverWithNativeNumbers) {
-      driverWithNativeNumbers.close()
+      await driverWithNativeNumbers.close()
       driverWithNativeNumbers = null
     }
   })
 
   beforeEach(async () => {
     session = driver.session()
-
-    try {
-      await session.run('MATCH (n) DETACH DELETE n')
-    } finally {
-      await session.close()
-    }
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
   afterEach(async () => {

@@ -45,10 +45,7 @@ export default class RoutingUtil {
    */
   callRoutingProcedure (session, database, routerAddress) {
     return this._callAvailableRoutingProcedure(session, database)
-      .then(result => {
-        session.close()
-        return result.records
-      })
+      .then(result => session.close().then(() => result.records))
       .catch(error => {
         if (error.code === DATABASE_NOT_FOUND_CODE) {
           throw error

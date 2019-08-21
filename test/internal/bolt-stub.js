@@ -30,10 +30,6 @@ class UnsupportedBoltStub {
       'BoltStub: unable to start with template, unavailable on this platform'
     )
   }
-
-  run (callback) {
-    throw new Error('BoltStub: unable to run, unavailable on this platform')
-  }
 }
 
 const verbose =
@@ -46,6 +42,7 @@ class SupportedBoltStub extends UnsupportedBoltStub {
     this._mustache = require('mustache')
     this._fs = require('fs')
     this._tmp = require('tmp')
+    this._net = require('net')
   }
 
   static create () {
@@ -71,8 +68,10 @@ class SupportedBoltStub extends UnsupportedBoltStub {
       })
     }
 
+    let exited = false
     let exitCode = -1
     boltStub.on('close', code => {
+      exited = true
       exitCode = code
     })
 
@@ -80,7 +79,34 @@ class SupportedBoltStub extends UnsupportedBoltStub {
       console.warn('Failed to start child process:' + error)
     })
 
-    return new StubServer(() => exitCode)
+    return new Promise((resolve, reject) => {
+      let timedOut = false
+      const timeoutId = setTimeout(() => {
+        timedOut = true
+        reject(`unable to connect to localhost:${port}`)
+      }, 15000)
+
+      const tryConnect = () => {
+        const client = this._net.createConnection({ port }, () => {
+          clearTimeout(timeoutId)
+          resolve(
+            new StubServer(() => {
+              return {
+                exited: exited,
+                code: exitCode
+              }
+            })
+          )
+        })
+        client.on('error', () => {
+          if (!timedOut) {
+            setTimeout(tryConnect, 200)
+          }
+        })
+      }
+
+      tryConnect()
+    })
   }
 
   startWithTemplate (scriptTemplate, parameters, port) {
@@ -90,24 +116,41 @@ class SupportedBoltStub extends UnsupportedBoltStub {
     this._fs.writeFileSync(script, scriptContents, 'utf-8')
     return this.start(script, port)
   }
-
-  run (callback) {
-    // wait to make sure boltstub is started before running user code
-    setTimeout(callback, 1000)
-  }
 }
 
 class StubServer {
-  constructor (exitCodeSupplier) {
-    this._exitCodeSupplier = exitCodeSupplier
+  constructor (exitStatusSupplier) {
+    this._exitStatusSupplier = exitStatusSupplier
     this.exit.bind(this)
   }
 
-  exit (callback) {
-    // give process some time to exit
-    setTimeout(() => {
-      callback(this._exitCodeSupplier())
-    }, 1000)
+  exit () {
+    return new Promise((resolve, reject) => {
+      let timedOut = false
+      const timeoutId = setTimeout(() => {
+        timedOut = true
+        reject('timed out waiting for the stub server to exit')
+      }, 5000)
+
+      const checkStatus = () => {
+        const exitStatus = this._exitStatusSupplier()
+        if (exitStatus.exited) {
+          clearTimeout(timeoutId)
+
+          if (exitStatus.code === 0) {
+            resolve()
+          } else {
+            reject(`stub server exited with code: ${exitCode}`)
+          }
+        } else {
+          if (!timedOut) {
+            setTimeout(() => checkStatus(), 500)
+          }
+        }
+      }
+
+      checkStatus()
+    })
   }
 }
 
@@ -133,6 +176,5 @@ export default {
   supported: supported,
   start: stub.start.bind(stub),
   startWithTemplate: stub.startWithTemplate.bind(stub),
-  run: stub.run.bind(stub),
   newDriver: newDriver
 }

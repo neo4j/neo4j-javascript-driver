@@ -31,9 +31,9 @@ describe('#integration trust', () => {
   beforeAll(async () => {
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     try {
-      serverVersion = await ServerVersion.fromDriver(driver)
+      serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
     } finally {
-      driver.close()
+      await driver.close()
     }
   })
 
@@ -46,9 +46,9 @@ describe('#integration trust', () => {
   describe('trust-all-certificates', () => {
     let driver
 
-    afterEach(() => {
+    afterEach(async () => {
       if (driver) {
-        driver.close()
+        await driver.close()
       }
     })
 
@@ -73,9 +73,9 @@ describe('#integration trust', () => {
   describe('trust-custom-ca-signed-certificates', () => {
     let driver
 
-    afterEach(() => {
+    afterEach(async () => {
       if (driver) {
-        driver.close()
+        await driver.close()
       }
     })
 
@@ -116,9 +116,9 @@ describe('#integration trust', () => {
   describe('trust-system-ca-signed-certificates', () => {
     let driver
 
-    afterEach(() => {
+    afterEach(async () => {
       if (driver) {
-        driver.close()
+        await driver.close()
       }
     })
 

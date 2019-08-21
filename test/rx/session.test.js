@@ -33,27 +33,20 @@ describe('#integration rx-session', () => {
   let serverVersion
 
   beforeEach(async () => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.rxSession()
 
-    const normalSession = driver.session()
-    try {
-      const result = await normalSession.run('MATCH (n) DETACH DELETE n')
-      serverVersion = ServerVersion.fromString(result.summary.server.version)
-    } finally {
-      await normalSession.close()
-    }
-
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
   afterEach(async () => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     if (session) {
       await session.close().toPromise()
     }
-    driver.close()
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
+    await driver.close()
   })
 
   it('should be able to run a simple statement', async () => {

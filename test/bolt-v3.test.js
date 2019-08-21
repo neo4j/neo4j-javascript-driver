@@ -37,27 +37,23 @@ describe('#integration Bolt V3 API', () => {
   let serverVersion
   let originalTimeout
 
-  beforeEach(done => {
+  beforeEach(async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
 
-    session.run('MATCH (n) DETACH DELETE n').then(result => {
-      serverVersion = ServerVersion.fromString(result.summary.server.version)
-      done()
-    })
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-    session.close()
-    driver.close()
+    await session.close()
+    await driver.close()
   })
 
-  it('should set transaction metadata for auto-commit transaction', done => {
+  it('should set transaction metadata for auto-commit transaction', async () => {
     if (!databaseSupportsBoltV3()) {
-      done()
       return
     }
 
@@ -68,108 +64,85 @@ describe('#integration Bolt V3 API', () => {
     }
 
     // call listTransactions procedure that should list itself with the specified metadata
-    session
-      .run('CALL dbms.listTransactions()', {}, { metadata: metadata })
-      .then(result => {
-        const receivedMetadatas = result.records.map(r => r.get('metaData'))
-        expect(receivedMetadatas).toContain(metadata)
-        done()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
+    const result = await session.run(
+      'CALL dbms.listTransactions()',
+      {},
+      { metadata: metadata }
+    )
+    const receivedMetadatas = result.records.map(r => r.get('metaData'))
+    expect(receivedMetadatas).toContain(metadata)
   })
 
-  it('should set transaction timeout for auto-commit transaction', done => {
+  it('should set transaction timeout for auto-commit transaction', async () => {
     if (!databaseSupportsBoltV3()) {
-      done()
       return
     }
 
-    session
-      .run('CREATE (:Node)') // create a dummy node
-      .then(() => {
-        const otherSession = driver.session()
-        const tx = otherSession.beginTransaction()
-        tx.run('MATCH (n:Node) SET n.prop = 1') // lock dummy node but keep the transaction open
-          .then(() => {
-            // run a query in an auto-commit transaction with timeout and try to update the locked dummy node
-            session
-              .run(
-                'MATCH (n:Node) SET n.prop = $newValue',
-                { newValue: 2 },
-                { timeout: 1 }
-              )
-              .then(() => done.fail('Failure expected'))
-              .catch(error => {
-                expectTransactionTerminatedError(error)
+    await session.run('CREATE (:Node)') // create a dummy node
 
-                tx.rollback()
-                  .then(() => otherSession.close())
-                  .then(() => done())
-                  .catch(error => done.fail(error))
-              })
-          })
+    const otherSession = driver.session()
+    const tx = otherSession.beginTransaction()
+    await tx.run('MATCH (n:Node) SET n.prop = 1') // lock dummy node but keep the transaction open
+
+    // run a query in an auto-commit transaction with timeout and try to update the locked dummy node
+    await expectAsync(
+      session.run(
+        'MATCH (n:Node) SET n.prop = $newValue',
+        { newValue: 2 },
+        { timeout: 1 }
+      )
+    ).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(/transaction has been terminated/)
       })
-  })
-
-  it('should set transaction metadata with read transaction function', done => {
-    testTransactionMetadataWithTransactionFunctions(true, done)
-  })
-
-  it('should set transaction metadata with write transaction function', done => {
-    testTransactionMetadataWithTransactionFunctions(false, done)
-  })
-
-  it('should fail auto-commit transaction with metadata when database does not support Bolt V3', done => {
-    testAutoCommitTransactionConfigWhenBoltV3NotSupported(
-      TX_CONFIG_WITH_METADATA,
-      done
     )
+
+    await tx.rollback()
+    await otherSession.close()
   })
 
-  it('should fail auto-commit transaction with timeout when database does not support Bolt V3', done => {
+  it('should set transaction metadata with read transaction function', () =>
+    testTransactionMetadataWithTransactionFunctions(true))
+
+  it('should set transaction metadata with write transaction function', () =>
+    testTransactionMetadataWithTransactionFunctions(false))
+
+  it('should fail auto-commit transaction with metadata when database does not support Bolt V3', () =>
     testAutoCommitTransactionConfigWhenBoltV3NotSupported(
-      TX_CONFIG_WITH_TIMEOUT,
-      done
-    )
-  })
+      TX_CONFIG_WITH_METADATA
+    ))
 
-  it('should fail read transaction function with metadata when database does not support Bolt V3', done => {
+  it('should fail auto-commit transaction with timeout when database does not support Bolt V3', () =>
+    testAutoCommitTransactionConfigWhenBoltV3NotSupported(
+      TX_CONFIG_WITH_TIMEOUT
+    ))
+
+  it('should fail read transaction function with metadata when database does not support Bolt V3', () =>
     testTransactionFunctionConfigWhenBoltV3NotSupported(
       true,
-      TX_CONFIG_WITH_METADATA,
-      done
-    )
-  })
+      TX_CONFIG_WITH_METADATA
+    ))
 
-  it('should fail read transaction function with timeout when database does not support Bolt V3', done => {
+  it('should fail read transaction function with timeout when database does not support Bolt V3', () =>
     testTransactionFunctionConfigWhenBoltV3NotSupported(
       true,
-      TX_CONFIG_WITH_TIMEOUT,
-      done
-    )
-  })
+      TX_CONFIG_WITH_TIMEOUT
+    ))
 
-  it('should fail write transaction function with metadata when database does not support Bolt V3', done => {
+  it('should fail write transaction function with metadata when database does not support Bolt V3', () =>
     testTransactionFunctionConfigWhenBoltV3NotSupported(
       false,
-      TX_CONFIG_WITH_METADATA,
-      done
-    )
-  })
+      TX_CONFIG_WITH_METADATA
+    ))
 
-  it('should fail write transaction function with timeout when database does not support Bolt V3', done => {
+  it('should fail write transaction function with timeout when database does not support Bolt V3', () =>
     testTransactionFunctionConfigWhenBoltV3NotSupported(
       false,
-      TX_CONFIG_WITH_TIMEOUT,
-      done
-    )
-  })
+      TX_CONFIG_WITH_TIMEOUT
+    ))
 
-  it('should set transaction metadata for explicit transactions', done => {
+  it('should set transaction metadata for explicit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
-      done()
       return
     }
 
@@ -180,96 +153,73 @@ describe('#integration Bolt V3 API', () => {
     }
 
     const tx = session.beginTransaction({ metadata: metadata })
+
     // call listTransactions procedure that should list itself with the specified metadata
-    tx.run('CALL dbms.listTransactions()')
-      .then(result => {
-        const receivedMetadatas = result.records.map(r => r.get('metaData'))
-        expect(receivedMetadatas).toContain(metadata)
-        tx.commit()
-          .then(() => done())
-          .catch(error => done.fail(error))
-      })
-      .catch(error => {
-        done.fail(error)
-      })
+    const result = await tx.run('CALL dbms.listTransactions()')
+    const receivedMetadatas = result.records.map(r => r.get('metaData'))
+    expect(receivedMetadatas).toContain(metadata)
+
+    await tx.commit()
   })
 
-  it('should set transaction timeout for explicit transactions', done => {
+  it('should set transaction timeout for explicit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
-      done()
       return
     }
 
-    session
-      .run('CREATE (:Node)') // create a dummy node
-      .then(() => {
-        const otherSession = driver.session()
-        const otherTx = otherSession.beginTransaction()
-        otherTx
-          .run('MATCH (n:Node) SET n.prop = 1') // lock dummy node but keep the transaction open
-          .then(() => {
-            // run a query in an explicit transaction with timeout and try to update the locked dummy node
-            const tx = session.beginTransaction({ timeout: 1 })
-            tx.run('MATCH (n:Node) SET n.prop = $newValue', { newValue: 2 })
-              .then(() => done.fail('Failure expected'))
-              .catch(error => {
-                expectTransactionTerminatedError(error)
+    await session.run('CREATE (:Node)') // create a dummy node
 
-                otherTx
-                  .rollback()
-                  .then(() => otherSession.close())
-                  .then(() => done())
-                  .catch(error => done.fail(error))
-              })
-          })
+    const otherSession = driver.session()
+    const otherTx = otherSession.beginTransaction()
+    await otherTx.run('MATCH (n:Node) SET n.prop = 1') // lock dummy node but keep the transaction open
+
+    // run a query in an explicit transaction with timeout and try to update the locked dummy node
+    const tx = session.beginTransaction({ timeout: 1 })
+    await expectAsync(
+      tx.run('MATCH (n:Node) SET n.prop = $newValue', { newValue: 2 })
+    ).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(/transaction has been terminated/)
       })
-  })
-
-  it('should fail to run in explicit transaction with metadata when database does not support Bolt V3', done => {
-    testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported(
-      TX_CONFIG_WITH_METADATA,
-      done
     )
+
+    await otherTx.rollback()
+    await otherSession.close()
   })
 
-  it('should fail to run in explicit transaction with timeout when database does not support Bolt V3', done => {
+  it('should fail to run in explicit transaction with metadata when database does not support Bolt V3', () =>
     testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported(
-      TX_CONFIG_WITH_TIMEOUT,
-      done
-    )
-  })
+      TX_CONFIG_WITH_METADATA
+    ))
 
-  it('should fail to commit explicit transaction with metadata when database does not support Bolt V3', done => {
+  it('should fail to run in explicit transaction with timeout when database does not support Bolt V3', () =>
+    testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported(
+      TX_CONFIG_WITH_TIMEOUT
+    ))
+
+  it('should fail to commit explicit transaction with metadata when database does not support Bolt V3', () =>
     testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
       true,
-      TX_CONFIG_WITH_METADATA,
-      done
-    )
-  })
+      TX_CONFIG_WITH_METADATA
+    ))
 
-  it('should fail to commit explicit transaction with timeout when database does not support Bolt V3', done => {
+  it('should fail to commit explicit transaction with timeout when database does not support Bolt V3', () =>
     testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
       true,
-      TX_CONFIG_WITH_TIMEOUT,
-      done
-    )
-  })
+      TX_CONFIG_WITH_TIMEOUT
+    ))
 
-  it('should fail to rollback explicit transaction with metadata when database does not support Bolt V3', done => {
+  it('should fail to rollback explicit transaction with metadata when database does not support Bolt V3', () =>
     testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
       false,
-      TX_CONFIG_WITH_METADATA,
-      done
-    )
-  })
+      TX_CONFIG_WITH_METADATA
+    ))
 
-  it('should fail to rollback explicit transaction with timeout when database does not support Bolt V3', done => {
+  it('should fail to rollback explicit transaction with timeout when database does not support Bolt V3', () =>
     testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
       false,
-      TX_CONFIG_WITH_TIMEOUT,
-      done
-    )
-  })
+      TX_CONFIG_WITH_TIMEOUT
+    ))
 
   it('should fail to run auto-commit transaction with invalid timeout', () => {
     INVALID_TIMEOUT_VALUES.forEach(invalidValue =>
@@ -343,7 +293,7 @@ describe('#integration Bolt V3 API', () => {
     )
   })
 
-  it('should use bookmarks for auto commit transactions', done => {
+  it('should use bookmarks for auto commit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
       done()
       return
@@ -351,34 +301,29 @@ describe('#integration Bolt V3 API', () => {
 
     const initialBookmark = session.lastBookmark()
 
-    session.run('CREATE ()').then(() => {
-      const bookmark1 = session.lastBookmark()
-      expect(bookmark1).not.toBeNull()
-      expect(bookmark1).toBeDefined()
-      expect(bookmark1).not.toEqual(initialBookmark)
+    await session.run('CREATE ()')
+    const bookmark1 = session.lastBookmark()
+    expect(bookmark1).not.toBeNull()
+    expect(bookmark1).toBeDefined()
+    expect(bookmark1).not.toEqual(initialBookmark)
 
-      session.run('CREATE ()').then(() => {
-        const bookmark2 = session.lastBookmark()
-        expect(bookmark2).not.toBeNull()
-        expect(bookmark2).toBeDefined()
-        expect(bookmark2).not.toEqual(initialBookmark)
-        expect(bookmark2).not.toEqual(bookmark1)
+    await session.run('CREATE ()')
+    const bookmark2 = session.lastBookmark()
+    expect(bookmark2).not.toBeNull()
+    expect(bookmark2).toBeDefined()
+    expect(bookmark2).not.toEqual(initialBookmark)
+    expect(bookmark2).not.toEqual(bookmark1)
 
-        session.run('CREATE ()').then(() => {
-          const bookmark3 = session.lastBookmark()
-          expect(bookmark3).not.toBeNull()
-          expect(bookmark3).toBeDefined()
-          expect(bookmark3).not.toEqual(initialBookmark)
-          expect(bookmark3).not.toEqual(bookmark1)
-          expect(bookmark3).not.toEqual(bookmark2)
-
-          done()
-        })
-      })
-    })
+    await session.run('CREATE ()')
+    const bookmark3 = session.lastBookmark()
+    expect(bookmark3).not.toBeNull()
+    expect(bookmark3).toBeDefined()
+    expect(bookmark3).not.toEqual(initialBookmark)
+    expect(bookmark3).not.toEqual(bookmark1)
+    expect(bookmark3).not.toEqual(bookmark2)
   })
 
-  it('should use bookmarks for auto commit and explicit transactions', done => {
+  it('should use bookmarks for auto commit and explicit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
       done()
       return
@@ -387,80 +332,62 @@ describe('#integration Bolt V3 API', () => {
     const initialBookmark = session.lastBookmark()
 
     const tx1 = session.beginTransaction()
-    tx1.run('CREATE ()').then(() => {
-      tx1.commit().then(() => {
-        const bookmark1 = session.lastBookmark()
-        expect(bookmark1).not.toBeNull()
-        expect(bookmark1).toBeDefined()
-        expect(bookmark1).not.toEqual(initialBookmark)
+    await tx1.run('CREATE ()')
+    await tx1.commit()
+    const bookmark1 = session.lastBookmark()
+    expect(bookmark1).not.toBeNull()
+    expect(bookmark1).toBeDefined()
+    expect(bookmark1).not.toEqual(initialBookmark)
 
-        session.run('CREATE ()').then(() => {
-          const bookmark2 = session.lastBookmark()
-          expect(bookmark2).not.toBeNull()
-          expect(bookmark2).toBeDefined()
-          expect(bookmark2).not.toEqual(initialBookmark)
-          expect(bookmark2).not.toEqual(bookmark1)
+    await session.run('CREATE ()')
+    const bookmark2 = session.lastBookmark()
+    expect(bookmark2).not.toBeNull()
+    expect(bookmark2).toBeDefined()
+    expect(bookmark2).not.toEqual(initialBookmark)
+    expect(bookmark2).not.toEqual(bookmark1)
 
-          const tx2 = session.beginTransaction()
-          tx2.run('CREATE ()').then(() => {
-            tx2.commit().then(() => {
-              const bookmark3 = session.lastBookmark()
-              expect(bookmark3).not.toBeNull()
-              expect(bookmark3).toBeDefined()
-              expect(bookmark3).not.toEqual(initialBookmark)
-              expect(bookmark3).not.toEqual(bookmark1)
-              expect(bookmark3).not.toEqual(bookmark2)
-
-              done()
-            })
-          })
-        })
-      })
-    })
+    const tx2 = session.beginTransaction()
+    await tx2.run('CREATE ()')
+    await tx2.commit()
+    const bookmark3 = session.lastBookmark()
+    expect(bookmark3).not.toBeNull()
+    expect(bookmark3).toBeDefined()
+    expect(bookmark3).not.toEqual(initialBookmark)
+    expect(bookmark3).not.toEqual(bookmark1)
+    expect(bookmark3).not.toEqual(bookmark2)
   })
 
-  it('should use bookmarks for auto commit transactions and transaction functions', done => {
+  it('should use bookmarks for auto commit transactions and transaction functions', async () => {
     if (!databaseSupportsBoltV3()) {
-      done()
       return
     }
 
     const initialBookmark = session.lastBookmark()
 
-    session
-      .writeTransaction(tx => tx.run('CREATE ()'))
-      .then(() => {
-        const bookmark1 = session.lastBookmark()
-        expect(bookmark1).not.toBeNull()
-        expect(bookmark1).toBeDefined()
-        expect(bookmark1).not.toEqual(initialBookmark)
+    await session.writeTransaction(tx => tx.run('CREATE ()'))
+    const bookmark1 = session.lastBookmark()
+    expect(bookmark1).not.toBeNull()
+    expect(bookmark1).toBeDefined()
+    expect(bookmark1).not.toEqual(initialBookmark)
 
-        session.run('CREATE ()').then(() => {
-          const bookmark2 = session.lastBookmark()
-          expect(bookmark2).not.toBeNull()
-          expect(bookmark2).toBeDefined()
-          expect(bookmark2).not.toEqual(initialBookmark)
-          expect(bookmark2).not.toEqual(bookmark1)
+    await session.run('CREATE ()')
+    const bookmark2 = session.lastBookmark()
+    expect(bookmark2).not.toBeNull()
+    expect(bookmark2).toBeDefined()
+    expect(bookmark2).not.toEqual(initialBookmark)
+    expect(bookmark2).not.toEqual(bookmark1)
 
-          session
-            .writeTransaction(tx => tx.run('CREATE ()'))
-            .then(() => {
-              const bookmark3 = session.lastBookmark()
-              expect(bookmark3).not.toBeNull()
-              expect(bookmark3).toBeDefined()
-              expect(bookmark3).not.toEqual(initialBookmark)
-              expect(bookmark3).not.toEqual(bookmark1)
-              expect(bookmark3).not.toEqual(bookmark2)
-
-              done()
-            })
-        })
-      })
+    await session.writeTransaction(tx => tx.run('CREATE ()'))
+    const bookmark3 = session.lastBookmark()
+    expect(bookmark3).not.toBeNull()
+    expect(bookmark3).toBeDefined()
+    expect(bookmark3).not.toEqual(initialBookmark)
+    expect(bookmark3).not.toEqual(bookmark1)
+    expect(bookmark3).not.toEqual(bookmark2)
   })
 
-  function testTransactionMetadataWithTransactionFunctions (read, done) {
+  async function testTransactionMetadataWithTransactionFunctions (read) {
     if (!databaseSupportsBoltV3()) {
-      done()
       return
     }
 
@@ -474,42 +401,36 @@ describe('#integration Bolt V3 API', () => {
         ? session.readTransaction(work, { metadata: metadata })
         : session.writeTransaction(work, { metadata: metadata })
 
-    txFunctionWithMetadata(tx => tx.run('CALL dbms.listTransactions()'))
-      .then(result => {
-        const receivedMetadatas = result.records.map(r => r.get('metaData'))
-        expect(receivedMetadatas).toContain(metadata)
-        done()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
+    const result = await txFunctionWithMetadata(tx =>
+      tx.run('CALL dbms.listTransactions()')
+    )
+    const receivedMetadatas = result.records.map(r => r.get('metaData'))
+    expect(receivedMetadatas).toContain(metadata)
   }
 
-  function testAutoCommitTransactionConfigWhenBoltV3NotSupported (
-    txConfig,
-    done
+  async function testAutoCommitTransactionConfigWhenBoltV3NotSupported (
+    txConfig
   ) {
     if (databaseSupportsBoltV3()) {
-      done()
       return
     }
 
-    session
-      .run('RETURN $x', { x: 42 }, txConfig)
-      .then(() => done.fail('Failure expected'))
-      .catch(error => {
-        expectBoltV3NotSupportedError(error)
-        done()
+    await expectAsync(
+      session.run('RETURN $x', { x: 42 }, txConfig)
+    ).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Driver is connected to the database that does not support transaction configuration/
+        )
       })
+    )
   }
 
-  function testTransactionFunctionConfigWhenBoltV3NotSupported (
+  async function testTransactionFunctionConfigWhenBoltV3NotSupported (
     read,
-    txConfig,
-    done
+    txConfig
   ) {
     if (databaseSupportsBoltV3()) {
-      done()
       return
     }
 
@@ -518,71 +439,52 @@ describe('#integration Bolt V3 API', () => {
         ? session.readTransaction(work, txConfig)
         : session.writeTransaction(work, txConfig)
 
-    txFunctionWithMetadata(tx => tx.run('RETURN 42'))
-      .then(() => done.fail('Failure expected'))
-      .catch(error => {
-        expectBoltV3NotSupportedError(error)
-        done()
+    await expectAsync(
+      txFunctionWithMetadata(tx => tx.run('RETURN 42'))
+    ).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Driver is connected to the database that does not support transaction configuration/
+        )
       })
+    )
   }
 
-  function testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported (
-    txConfig,
-    done
+  async function testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported (
+    txConfig
   ) {
     if (databaseSupportsBoltV3()) {
-      done()
       return
     }
 
     const tx = session.beginTransaction(txConfig)
-    tx.run('RETURN 42')
-      .then(() => done.fail('Failure expected'))
-      .catch(error => {
-        expectBoltV3NotSupportedError(error)
-        session.close()
-        done()
+
+    await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Driver is connected to the database that does not support transaction configuration/
+        )
       })
+    )
   }
 
-  function testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported (
+  async function testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported (
     commit,
-    txConfig,
-    done
+    txConfig
   ) {
     if (databaseSupportsBoltV3()) {
-      done()
       return
     }
 
     const tx = session.beginTransaction(txConfig)
-    const promise = commit ? tx.commit() : tx.rollback()
 
-    promise
-      .then(() => done.fail('Failure expected'))
-      .catch(error => {
-        expectBoltV3NotSupportedError(error)
-        session.close()
-        done()
+    await expectAsync(commit ? tx.commit() : tx.rollback()).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Driver is connected to the database that does not support transaction configuration/
+        )
       })
-  }
-
-  function expectBoltV3NotSupportedError (error) {
-    expect(
-      error.message.indexOf(
-        'Driver is connected to the database that does not support transaction configuration'
-      )
-    ).toBeGreaterThan(-1)
-  }
-
-  function expectTransactionTerminatedError (error) {
-    const hasExpectedMessage =
-      error.message.toLowerCase().indexOf('transaction has been terminated') >
-      -1
-    if (!hasExpectedMessage) {
-      console.log(`Unexpected error with code: ${error.code}`, error)
-    }
-    expect(hasExpectedMessage).toBeTruthy()
+    )
   }
 
   function databaseSupportsBoltV3 () {

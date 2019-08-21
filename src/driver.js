@@ -174,8 +174,9 @@ class Driver {
   close () {
     this._log.info(`Driver ${this._id} closing`)
     if (this._connectionProvider) {
-      this._connectionProvider.close()
+      return this._connectionProvider.close()
     }
+    return Promise.resolve()
   }
 
   /**

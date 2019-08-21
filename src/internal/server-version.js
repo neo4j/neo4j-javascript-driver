@@ -47,10 +47,13 @@ class ServerVersion {
    */
   static fromDriver (driver) {
     const session = driver.session()
-    return session.run('RETURN 1').then(result => {
-      session.close()
-      return ServerVersion.fromString(result.summary.server.version)
-    })
+    return session
+      .run('RETURN 1')
+      .then(result =>
+        session
+          .close()
+          .then(() => ServerVersion.fromString(result.summary.server.version))
+      )
   }
 
   /**

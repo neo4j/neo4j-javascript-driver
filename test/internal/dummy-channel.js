@@ -51,11 +51,9 @@ export default class DummyChannel {
     return new CombinedBuffer(this.written)
   }
 
-  close (cb) {
+  close () {
     this.clear()
-    if (cb) {
-      return cb()
-    }
+    return Promise.resolve()
   }
 
   clear () {

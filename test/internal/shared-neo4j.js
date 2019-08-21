@@ -18,6 +18,7 @@
  */
 
 import neo4j from '../../src'
+import { ServerVersion } from '../../src/internal/server-version'
 
 class UnsupportedPlatform {
   pathJoin () {
@@ -255,6 +256,16 @@ function stopNeo4j (neo4jDir) {
   }
 }
 
+async function cleanupAndGetVersion (driver) {
+  const session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
+  try {
+    const result = await session.run('MATCH (n) DETACH DELETE n')
+    return ServerVersion.fromString(result.summary.server.version)
+  } finally {
+    await session.close()
+  }
+}
+
 function findExistingNeo4jDirStrict (dir) {
   const neo4jDir = findExistingNeo4jDir(dir, null)
   if (!neo4jDir) {
@@ -327,6 +338,11 @@ class RunCommandResult {
   }
 }
 
+const debugLogging = {
+  level: 'debug',
+  logger: (level, message) => console.warn(`${level}: ${message}`)
+}
+
 export default {
   start: start,
   stop: stop,
@@ -335,5 +351,7 @@ export default {
   neo4jKeyPath: neo4jKeyPath,
   username: username,
   password: password,
-  authToken: authToken
+  authToken: authToken,
+  logging: debugLogging,
+  cleanupAndGetVersion: cleanupAndGetVersion
 }

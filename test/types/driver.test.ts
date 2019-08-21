@@ -100,7 +100,7 @@ session1
   })
   .then(() => session1.close())
 
-const close: void = driver.close()
+const close: Promise<void> = driver.close()
 
 driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
   console.log(serverInfo.version)

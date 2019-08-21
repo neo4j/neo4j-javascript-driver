@@ -92,6 +92,6 @@ export default class DelegateConnection extends Connection {
       this._delegate._errorHandler = this._originalErrorHandler
     }
 
-    this._delegate._release()
+    return this._delegate._release()
   }
 }
