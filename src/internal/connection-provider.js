@@ -18,7 +18,7 @@
  */
 
 export default class ConnectionProvider {
-  acquireConnection (accessMode, database) {
+  acquireConnection ({ accessMode, database, bookmarks } = {}) {
     throw new Error('not implemented')
   }
 

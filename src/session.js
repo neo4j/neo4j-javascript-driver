@@ -64,11 +64,13 @@ class Session {
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
+      bookmark,
       connectionProvider
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
       database,
+      bookmark,
       connectionProvider
     })
     this._open = true
@@ -190,7 +192,7 @@ class Session {
    * @return {string|null} a reference to a previous transaction
    */
   lastBookmark () {
-    return this._lastBookmark.maxBookmarkAsString()
+    return this._lastBookmark.values()
   }
 
   /**

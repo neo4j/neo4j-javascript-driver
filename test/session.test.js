@@ -580,7 +580,7 @@ describe('#integration session', () => {
   it('should update last bookmark after every read tx commit', done => {
     // new session without initial bookmark
     session = driver.session()
-    expect(session.lastBookmark()).toBeNull()
+    expect(session.lastBookmark()).toEqual([])
 
     const tx = session.beginTransaction()
     tx.run('RETURN 42 as answer').then(result => {
@@ -629,7 +629,7 @@ describe('#integration session', () => {
   it('should commit read transaction', done => {
     // new session without initial bookmark
     session = driver.session()
-    expect(session.lastBookmark()).toBeNull()
+    expect(session.lastBookmark()).toEqual([])
 
     const resultPromise = session.readTransaction(tx =>
       tx.run('RETURN 42 AS answer')
@@ -930,7 +930,7 @@ describe('#integration session', () => {
     }
 
     expect(_.uniq(bookmarks).length).toEqual(nodeCount)
-    bookmarks.forEach(bookmark => expect(_.isString(bookmark)).toBeTruthy())
+    bookmarks.forEach(bookmark => expect(_.isArray(bookmark)).toBeTruthy())
 
     const session = driver.session({ defaultAccessMode: READ, bookmarks })
     try {

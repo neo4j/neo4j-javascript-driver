@@ -276,7 +276,7 @@ describe('#integration transaction', () => {
   it('should provide bookmark on commit', done => {
     // new session without initial bookmark
     session = driver.session()
-    expect(session.lastBookmark()).toBeNull()
+    expect(session.lastBookmark()).toEqual([])
 
     const tx = session.beginTransaction()
     tx.run('CREATE (:TXNode1)')
@@ -296,7 +296,7 @@ describe('#integration transaction', () => {
   it('should have bookmark when tx is rolled back', done => {
     // new session without initial bookmark
     session = driver.session()
-    expect(session.lastBookmark()).toBeNull()
+    expect(session.lastBookmark()).toEqual([])
 
     const tx1 = session.beginTransaction()
     tx1.run('CREATE ()').then(() => {
@@ -327,7 +327,7 @@ describe('#integration transaction', () => {
   it('should have no bookmark when tx fails', done => {
     // new session without initial bookmark
     session = driver.session()
-    expect(session.lastBookmark()).toBeNull()
+    expect(session.lastBookmark()).toEqual([])
 
     const tx1 = session.beginTransaction()
 

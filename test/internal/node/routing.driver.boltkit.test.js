@@ -1106,7 +1106,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await tx.commit()
 
     // Then
-    expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+    expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx4242'])
 
     await session.close()
     await driver.close()
@@ -1148,7 +1148,7 @@ describe('#stub-routing routing driver with stub server', () => {
     expect(records[1].get('name')).toEqual('Alice')
 
     await tx.commit()
-    expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+    expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx4242'])
 
     await session.close()
     await driver.close()
@@ -1176,7 +1176,7 @@ describe('#stub-routing routing driver with stub server', () => {
     const writeTx = session.beginTransaction()
     await writeTx.run("CREATE (n {name:'Bob'})")
     await writeTx.commit()
-    expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+    expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx4242'])
 
     const readTx = session.beginTransaction()
     const result = await readTx.run('MATCH (n) RETURN n.name AS name')
@@ -1185,7 +1185,7 @@ describe('#stub-routing routing driver with stub server', () => {
     expect(records[0].get('name')).toEqual('Bob')
 
     await readTx.commit()
-    expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
+    expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx424242'])
 
     await session.close()
     await driver.close()
@@ -1824,7 +1824,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
     await tx.run(`CREATE (n {name:'Bob'})`)
     await tx.commit()
-    expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx95')
+    expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx95'])
 
     await session.close()
     await driver.close()
@@ -2260,6 +2260,75 @@ describe('#stub-routing routing driver with stub server', () => {
       await router2.exit()
       await reader1.exit()
     })
+
+    it('should use provided bookmarks for the discovery', async () => {
+      if (!boltStub.supported) {
+        return
+      }
+
+      // Given
+      const server = await boltStub.start(
+        './test/resources/boltstub/v4/acquire_endpoints_aDatabase_with_bookmark.script',
+        9001
+      )
+      const readServer = await boltStub.start(
+        `./test/resources/boltstub/v4/read_from_aDatabase_with_bookmark.script`,
+        9005
+      )
+
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+
+      // When
+      const session = driver.session({
+        database: 'aDatabase',
+        defaultAccessMode: READ,
+        bookmarks: ['system:1111', 'aDatabase:5555']
+      })
+      const result = await session.run('MATCH (n) RETURN n.name')
+
+      // Then
+      expect(result.records.length).toBe(3)
+      expect(session.lastBookmark()).toEqual(['aDatabase:6666'])
+
+      await session.close()
+      await driver.close()
+      await server.exit()
+      await readServer.exit()
+    })
+
+    it('should ignore provided bookmarks for the discovery', async () => {
+      if (!boltStub.supported) {
+        return
+      }
+
+      // Given
+      const server = await boltStub.start(
+        './test/resources/boltstub/v3/acquire_endpoints.script',
+        9001
+      )
+      const readServer = await boltStub.start(
+        `./test/resources/boltstub/v3/read_with_bookmark.script`,
+        9005
+      )
+
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+
+      // When
+      const session = driver.session({
+        defaultAccessMode: READ,
+        bookmarks: ['system:1111', 'aDatabase:5555']
+      })
+      const result = await session.run('MATCH (n) RETURN n.name')
+
+      // Then
+      expect(result.records.length).toBe(3)
+      expect(session.lastBookmark()).toEqual(['aDatabase:6666'])
+
+      await session.close()
+      await driver.close()
+      await server.exit()
+      await readServer.exit()
+    })
   })
 
   async function testAddressPurgeOnDatabaseError (script, query, accessMode) {
@@ -2339,7 +2408,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await tx.commit()
 
     // Then
-    expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+    expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx4242'])
 
     await session.close()
     await driver.close()

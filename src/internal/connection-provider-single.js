@@ -25,7 +25,7 @@ export default class SingleConnectionProvider extends ConnectionProvider {
     this._connection = connection
   }
 
-  acquireConnection (mode, database) {
+  acquireConnection ({ accessMode, database, bookmarks } = {}) {
     const connection = this._connection
     this._connection = null
     return Promise.resolve(connection)

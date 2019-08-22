@@ -29,6 +29,11 @@ import {
 import lolex from 'lolex'
 import FakeConnection from './fake-connection'
 import ServerAddress from '../../src/internal/server-address'
+import Bookmark from '../../src/internal/bookmark'
+import {
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE
+} from '../../src/internal/constants'
 
 const ROUTER_ADDRESS = ServerAddress.fromUrl('test.router.com:4242')
 
@@ -167,6 +172,93 @@ describe('#unit RoutingUtil', () => {
       'myDatabase',
       done
     )
+  })
+
+  describe('should pass session access mode while invoking routing procedure', () => {
+    async function verifyAccessMode (mode) {
+      const connection = new FakeConnection().withServerVersion('Neo4j/4.0.0')
+      const session = FakeSession.withFakeConnection(connection).withMode(mode)
+
+      await callRoutingProcedure(session, '', {})
+
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.routing.getRoutingTable($context, $database)'
+      ])
+      expect(connection.seenParameters).toEqual([
+        { context: {}, database: null }
+      ])
+      expect(connection.seenProtocolOptions).toEqual([
+        jasmine.objectContaining({
+          mode
+        })
+      ])
+    }
+
+    it('READ', () => verifyAccessMode(ACCESS_MODE_READ))
+
+    it('WRITE', () => verifyAccessMode(ACCESS_MODE_WRITE))
+  })
+
+  describe('should pass session database while invoking routing procedure', () => {
+    async function verifyDatabase (database) {
+      const connection = new FakeConnection().withServerVersion('Neo4j/4.0.0')
+      const session = FakeSession.withFakeConnection(connection).withDatabase(
+        database
+      )
+
+      await callRoutingProcedure(session, '', {})
+
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.routing.getRoutingTable($context, $database)'
+      ])
+      expect(connection.seenParameters).toEqual([
+        { context: {}, database: null }
+      ])
+      expect(connection.seenProtocolOptions).toEqual([
+        jasmine.objectContaining({
+          database
+        })
+      ])
+    }
+    it('systemdb', () => verifyDatabase('systemdb'))
+
+    it('someOtherDb', () => verifyDatabase('someOtherDb'))
+  })
+
+  describe('should pass session bookmark while invoking routing procedure', () => {
+    async function verifyBookmark (bookmark) {
+      const connection = new FakeConnection().withServerVersion('Neo4j/4.0.0')
+      const session = FakeSession.withFakeConnection(connection).withBookmark(
+        bookmark
+      )
+
+      await callRoutingProcedure(session, '', {})
+
+      expect(connection.seenStatements).toEqual([
+        'CALL dbms.routing.getRoutingTable($context, $database)'
+      ])
+      expect(connection.seenParameters).toEqual([
+        { context: {}, database: null }
+      ])
+      expect(connection.seenProtocolOptions).toEqual([
+        jasmine.objectContaining({
+          bookmark
+        })
+      ])
+    }
+    it('empty', () => verifyBookmark(Bookmark.empty()))
+
+    it('single', () => verifyBookmark(new Bookmark('bookmark1')))
+
+    it('single item', () => verifyBookmark(new Bookmark(['bookmark1'])))
+
+    it('multiple items', () =>
+      verifyBookmark(new Bookmark(['bookmark1', 'bookmark2', 'bookmark3'])))
+
+    it('nested items', () =>
+      verifyBookmark(
+        new Bookmark(['bookmark1', ['bookmark2'], ['bookmark3', 'bookmark4']])
+      ))
   })
 
   it('should parse valid ttl', () => {
@@ -437,6 +529,21 @@ describe('#unit RoutingUtil', () => {
       }
       statementRunner(this._fakeConnection)
       return Promise.resolve()
+    }
+
+    withBookmark (bookmark) {
+      this._lastBookmark = bookmark
+      return this
+    }
+
+    withDatabase (database) {
+      this._database = database || ''
+      return this
+    }
+
+    withMode (mode) {
+      this._mode = mode
+      return this
     }
 
     close () {

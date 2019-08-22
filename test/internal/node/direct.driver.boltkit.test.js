@@ -89,7 +89,7 @@ describe('#stub-direct direct driver with stub server', () => {
       expect(records[1].get('name')).toEqual('Alice')
 
       await tx.commit()
-      expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+      expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx4242'])
 
       await session.close()
       await driver.close()
@@ -125,7 +125,7 @@ describe('#stub-direct direct driver with stub server', () => {
       expect(records.length).toEqual(0)
 
       await tx.commit()
-      expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+      expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx4242'])
 
       await session.close()
       await driver.close()
@@ -161,7 +161,7 @@ describe('#stub-direct direct driver with stub server', () => {
       expect(records1.length).toEqual(0)
 
       await writeTx.commit()
-      expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx4242')
+      expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx4242'])
 
       const readTx = session.beginTransaction()
       const result2 = await readTx.run('MATCH (n) RETURN n.name AS name')
@@ -170,7 +170,7 @@ describe('#stub-direct direct driver with stub server', () => {
       expect(records2[0].get('name')).toEqual('Bob')
 
       await readTx.commit()
-      expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx424242')
+      expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx424242'])
 
       await session.close()
       await driver.close()

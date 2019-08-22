@@ -30,6 +30,7 @@ import PooledConnectionProvider from './connection-provider-pooled'
 import ConnectionErrorHandler from './connection-error-handler'
 import DelegateConnection from './connection-delegate'
 import LeastConnectedLoadBalancingStrategy from './least-connected-load-balancing-strategy'
+import Bookmark from './bookmark'
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 const DATABASE_NOT_FOUND_ERROR_CODE =
@@ -95,55 +96,56 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
   }
 
-  acquireConnection (accessMode, database) {
+  async acquireConnection ({ accessMode, database, bookmark } = {}) {
+    let name
+    let address
+
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
       SESSION_EXPIRED,
       (error, address) => this._handleUnavailability(error, address, database),
       (error, address) => this._handleWriteFailure(error, address, database)
     )
 
-    return this._freshRoutingTable(accessMode, database || DEFAULT_DB_NAME)
-      .then(routingTable => {
-        let name
-        let address
+    const routingTable = await this._freshRoutingTable({
+      accessMode,
+      database: database || DEFAULT_DB_NAME,
+      bookmark
+    })
 
-        if (accessMode === READ) {
-          address = this._loadBalancingStrategy.selectReader(
-            routingTable.readers
-          )
-          name = 'read'
-        } else if (accessMode === WRITE) {
-          address = this._loadBalancingStrategy.selectWriter(
-            routingTable.writers
-          )
-          name = 'write'
-        } else {
-          throw newError('Illegal mode ' + accessMode)
-        }
+    // select a target server based on specified access mode
+    if (accessMode === READ) {
+      address = this._loadBalancingStrategy.selectReader(routingTable.readers)
+      name = 'read'
+    } else if (accessMode === WRITE) {
+      address = this._loadBalancingStrategy.selectWriter(routingTable.writers)
+      name = 'write'
+    } else {
+      throw newError('Illegal mode ' + accessMode)
+    }
 
-        if (!address) {
-          throw newError(
-            `Failed to obtain connection towards ${name} server. Known routing table is: ${routingTable}`,
-            SESSION_EXPIRED
-          )
-        }
-
-        return this._acquireConnectionToServer(
-          address,
-          name,
-          routingTable
-        ).catch(error => {
-          const transformed = databaseSpecificErrorHandler.handleAndTransformError(
-            error,
-            address
-          )
-          throw transformed
-        })
-      })
-      .then(
-        connection =>
-          new DelegateConnection(connection, databaseSpecificErrorHandler)
+    // we couldn't select a target server
+    if (!address) {
+      throw newError(
+        `Failed to obtain connection towards ${name} server. Known routing table is: ${routingTable}`,
+        SESSION_EXPIRED
       )
+    }
+
+    try {
+      const connection = await this._acquireConnectionToServer(
+        address,
+        name,
+        routingTable
+      )
+
+      return new DelegateConnection(connection, databaseSpecificErrorHandler)
+    } catch (error) {
+      const transformed = databaseSpecificErrorHandler.handleAndTransformError(
+        error,
+        address
+      )
+      throw transformed
+    }
   }
 
   forget (address, database) {
@@ -174,211 +176,227 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return this._connectionPool.acquire(address)
   }
 
-  _freshRoutingTable (accessMode, database) {
+  _freshRoutingTable ({ accessMode, database, bookmark } = {}) {
     const currentRoutingTable =
       this._routingTables[database] || new RoutingTable({ database })
 
     if (!currentRoutingTable.isStaleFor(accessMode)) {
-      return Promise.resolve(currentRoutingTable)
+      return currentRoutingTable
     }
     this._log.info(
       `Routing table is stale for database: "${database}" and access mode: "${accessMode}": ${currentRoutingTable}`
     )
-    return this._refreshRoutingTable(currentRoutingTable)
+    return this._refreshRoutingTable(currentRoutingTable, bookmark)
   }
 
-  _refreshRoutingTable (currentRoutingTable) {
+  _refreshRoutingTable (currentRoutingTable, bookmark) {
     const knownRouters = currentRoutingTable.routers
 
     if (this._useSeedRouter) {
       return this._fetchRoutingTableFromSeedRouterFallbackToKnownRouters(
         knownRouters,
-        currentRoutingTable
+        currentRoutingTable,
+        bookmark
       )
     }
     return this._fetchRoutingTableFromKnownRoutersFallbackToSeedRouter(
       knownRouters,
-      currentRoutingTable
+      currentRoutingTable,
+      bookmark
     )
   }
 
-  _fetchRoutingTableFromSeedRouterFallbackToKnownRouters (
+  async _fetchRoutingTableFromSeedRouterFallbackToKnownRouters (
     knownRouters,
-    currentRoutingTable
+    currentRoutingTable,
+    bookmark
   ) {
     // we start with seed router, no routers were probed before
     const seenRouters = []
-    return this._fetchRoutingTableUsingSeedRouter(
+    let newRoutingTable = await this._fetchRoutingTableUsingSeedRouter(
       seenRouters,
       this._seedRouter,
-      currentRoutingTable
+      currentRoutingTable,
+      bookmark
     )
-      .then(newRoutingTable => {
-        if (newRoutingTable) {
-          this._useSeedRouter = false
-          return newRoutingTable
-        }
 
-        // seed router did not return a valid routing table - try to use other known routers
-        return this._fetchRoutingTableUsingKnownRouters(
-          knownRouters,
-          currentRoutingTable
-        )
-      })
-      .then(newRoutingTable =>
-        this._applyRoutingTableIfPossible(currentRoutingTable, newRoutingTable)
+    if (newRoutingTable) {
+      this._useSeedRouter = false
+    } else {
+      // seed router did not return a valid routing table - try to use other known routers
+      newRoutingTable = await this._fetchRoutingTableUsingKnownRouters(
+        knownRouters,
+        currentRoutingTable,
+        bookmark
       )
+    }
+
+    return await this._applyRoutingTableIfPossible(
+      currentRoutingTable,
+      newRoutingTable
+    )
   }
 
-  _fetchRoutingTableFromKnownRoutersFallbackToSeedRouter (
+  async _fetchRoutingTableFromKnownRoutersFallbackToSeedRouter (
     knownRouters,
-    currentRoutingTable
+    currentRoutingTable,
+    bookmark
   ) {
-    return this._fetchRoutingTableUsingKnownRouters(
+    let newRoutingTable = await this._fetchRoutingTableUsingKnownRouters(
       knownRouters,
-      currentRoutingTable
+      currentRoutingTable,
+      bookmark
     )
-      .then(newRoutingTable => {
-        if (newRoutingTable) {
-          return newRoutingTable
-        }
 
-        // none of the known routers returned a valid routing table - try to use seed router address for rediscovery
-        return this._fetchRoutingTableUsingSeedRouter(
-          knownRouters,
-          this._seedRouter,
-          currentRoutingTable
-        )
-      })
-      .then(newRoutingTable =>
-        this._applyRoutingTableIfPossible(currentRoutingTable, newRoutingTable)
+    if (!newRoutingTable) {
+      // none of the known routers returned a valid routing table - try to use seed router address for rediscovery
+      newRoutingTable = await this._fetchRoutingTableUsingSeedRouter(
+        knownRouters,
+        this._seedRouter,
+        currentRoutingTable,
+        bookmark
       )
-  }
+    }
 
-  _fetchRoutingTableUsingKnownRouters (knownRouters, currentRoutingTable) {
-    return this._fetchRoutingTable(knownRouters, currentRoutingTable).then(
-      newRoutingTable => {
-        if (newRoutingTable) {
-          // one of the known routers returned a valid routing table - use it
-          return newRoutingTable
-        }
-
-        // returned routing table was undefined, this means a connection error happened and the last known
-        // router did not return a valid routing table, so we need to forget it
-        const lastRouterIndex = knownRouters.length - 1
-        RoutingConnectionProvider._forgetRouter(
-          currentRoutingTable,
-          knownRouters,
-          lastRouterIndex
-        )
-
-        return null
-      }
+    return await this._applyRoutingTableIfPossible(
+      currentRoutingTable,
+      newRoutingTable
     )
   }
 
-  _fetchRoutingTableUsingSeedRouter (seenRouters, seedRouter, routingTable) {
-    const resolvedAddresses = this._resolveSeedRouter(seedRouter)
-    return resolvedAddresses.then(resolvedRouterAddresses => {
-      // filter out all addresses that we've already tried
-      const newAddresses = resolvedRouterAddresses.filter(
-        address => seenRouters.indexOf(address) < 0
-      )
-      return this._fetchRoutingTable(newAddresses, routingTable)
-    })
+  async _fetchRoutingTableUsingKnownRouters (
+    knownRouters,
+    currentRoutingTable,
+    bookmark
+  ) {
+    const newRoutingTable = await this._fetchRoutingTable(
+      knownRouters,
+      currentRoutingTable,
+      bookmark
+    )
+
+    if (newRoutingTable) {
+      // one of the known routers returned a valid routing table - use it
+      return newRoutingTable
+    }
+
+    // returned routing table was undefined, this means a connection error happened and the last known
+    // router did not return a valid routing table, so we need to forget it
+    const lastRouterIndex = knownRouters.length - 1
+    RoutingConnectionProvider._forgetRouter(
+      currentRoutingTable,
+      knownRouters,
+      lastRouterIndex
+    )
+
+    return null
   }
 
-  _resolveSeedRouter (seedRouter) {
-    const customResolution = this._hostNameResolver.resolve(seedRouter)
-    const dnsResolutions = customResolution.then(resolvedAddresses => {
-      return Promise.all(
-        resolvedAddresses.map(address => {
-          return this._dnsResolver.resolve(address)
-        })
-      )
-    })
-    return dnsResolutions.then(results => {
-      return [].concat.apply([], results)
-    })
+  async _fetchRoutingTableUsingSeedRouter (
+    seenRouters,
+    seedRouter,
+    routingTable,
+    bookmark
+  ) {
+    const resolvedAddresses = await this._resolveSeedRouter(seedRouter)
+
+    // filter out all addresses that we've already tried
+    const newAddresses = resolvedAddresses.filter(
+      address => seenRouters.indexOf(address) < 0
+    )
+
+    return await this._fetchRoutingTable(newAddresses, routingTable, bookmark)
   }
 
-  _fetchRoutingTable (routerAddresses, routingTable) {
+  async _resolveSeedRouter (seedRouter) {
+    const resolvedAddresses = await this._hostNameResolver.resolve(seedRouter)
+    const dnsResolvedAddresses = await Promise.all(
+      resolvedAddresses.map(address => this._dnsResolver.resolve(address))
+    )
+
+    return [].concat.apply([], dnsResolvedAddresses)
+  }
+
+  _fetchRoutingTable (routerAddresses, routingTable, bookmark) {
     return routerAddresses.reduce(
-      (refreshedTablePromise, currentRouter, currentIndex) => {
-        return refreshedTablePromise.then(newRoutingTable => {
-          if (newRoutingTable) {
-            // valid routing table was fetched - just return it, try next router otherwise
-            return newRoutingTable
-          } else {
-            // returned routing table was undefined, this means a connection error happened and we need to forget the
-            // previous router and try the next one
-            const previousRouterIndex = currentIndex - 1
-            RoutingConnectionProvider._forgetRouter(
-              routingTable,
-              routerAddresses,
-              previousRouterIndex
-            )
-          }
+      async (refreshedTablePromise, currentRouter, currentIndex) => {
+        const newRoutingTable = await refreshedTablePromise
 
-          // try next router
-          return this._createSessionForRediscovery(currentRouter).then(
-            session => {
-              if (session) {
-                return this._rediscovery
-                  .lookupRoutingTableOnRouter(
-                    session,
-                    routingTable.database,
-                    currentRouter
-                  )
-                  .catch(error => {
-                    if (error && error.code === DATABASE_NOT_FOUND_ERROR_CODE) {
-                      // not finding the target database is a sign of a configuration issue
-                      throw error
-                    }
-                    this._log.warn(
-                      `unable to fetch routing table because of an error ${error}`
-                    )
-                    return null
-                  })
-              } else {
-                // unable to acquire connection and create session towards the current router
-                // return null to signal that the next router should be tried
-                return null
-              }
-            }
+        if (newRoutingTable) {
+          // valid routing table was fetched - just return it, try next router otherwise
+          return newRoutingTable
+        } else {
+          // returned routing table was undefined, this means a connection error happened and we need to forget the
+          // previous router and try the next one
+          const previousRouterIndex = currentIndex - 1
+          RoutingConnectionProvider._forgetRouter(
+            routingTable,
+            routerAddresses,
+            previousRouterIndex
           )
-        })
+        }
+
+        // try next router
+        const session = await this._createSessionForRediscovery(
+          currentRouter,
+          bookmark
+        )
+        if (session) {
+          try {
+            return await this._rediscovery.lookupRoutingTableOnRouter(
+              session,
+              routingTable.database,
+              currentRouter
+            )
+          } catch (error) {
+            if (error && error.code === DATABASE_NOT_FOUND_ERROR_CODE) {
+              // not finding the target database is a sign of a configuration issue
+              throw error
+            }
+            this._log.warn(
+              `unable to fetch routing table because of an error ${error}`
+            )
+            return null
+          }
+        } else {
+          // unable to acquire connection and create session towards the current router
+          // return null to signal that the next router should be tried
+          return null
+        }
       },
       Promise.resolve(null)
     )
   }
 
-  _createSessionForRediscovery (routerAddress) {
-    return this._connectionPool
-      .acquire(routerAddress)
-      .then(connection => {
-        const connectionProvider = new SingleConnectionProvider(connection)
+  async _createSessionForRediscovery (routerAddress, bookmark) {
+    try {
+      const connection = await this._connectionPool.acquire(routerAddress)
+      const connectionProvider = new SingleConnectionProvider(connection)
 
-        const version = ServerVersion.fromString(connection.version)
-        if (version.compareTo(VERSION_4_0_0) < 0) {
-          return new Session({ mode: WRITE, connectionProvider })
-        }
-
+      const version = ServerVersion.fromString(connection.version)
+      if (version.compareTo(VERSION_4_0_0) < 0) {
         return new Session({
-          mode: READ,
-          database: SYSTEM_DB_NAME,
+          mode: WRITE,
+          bookmark: Bookmark.empty(),
           connectionProvider
         })
+      }
+
+      return new Session({
+        mode: READ,
+        database: SYSTEM_DB_NAME,
+        bookmark,
+        connectionProvider
       })
-      .catch(error => {
-        // unable to acquire connection towards the given router
-        if (error && error.code === UNAUTHORIZED_ERROR_CODE) {
-          // auth error and not finding system database is a sign of a configuration issue
-          // discovery should not proceed
-          throw error
-        }
-        return null
-      })
+    } catch (error) {
+      // unable to acquire connection towards the given router
+      if (error && error.code === UNAUTHORIZED_ERROR_CODE) {
+        // auth error and not finding system database is a sign of a configuration issue
+        // discovery should not proceed
+        throw error
+      }
+      return null
+    }
   }
 
   async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable) {

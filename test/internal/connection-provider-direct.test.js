@@ -31,13 +31,15 @@ describe('#unit DirectConnectionProvider', () => {
     const pool = newPool()
     const connectionProvider = newDirectConnectionProvider(address, pool)
 
-    connectionProvider.acquireConnection(READ, '').then(connection => {
-      expect(connection).toBeDefined()
-      expect(connection.address).toEqual(address)
-      expect(pool.has(address)).toBeTruthy()
+    connectionProvider
+      .acquireConnection({ accessMode: READ, database: '' })
+      .then(connection => {
+        expect(connection).toBeDefined()
+        expect(connection.address).toEqual(address)
+        expect(pool.has(address)).toBeTruthy()
 
-      done()
-    })
+        done()
+      })
   })
 
   it('acquires connection and returns a DelegateConnection', async () => {
@@ -45,7 +47,10 @@ describe('#unit DirectConnectionProvider', () => {
     const pool = newPool()
     const connectionProvider = newDirectConnectionProvider(address, pool)
 
-    const conn = await connectionProvider.acquireConnection(READ, '')
+    const conn = await connectionProvider.acquireConnection({
+      accessMode: READ,
+      database: ''
+    })
     expect(conn instanceof DelegateConnection).toBeTruthy()
   })
 })

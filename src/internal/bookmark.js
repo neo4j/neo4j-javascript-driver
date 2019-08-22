@@ -19,11 +19,7 @@
 
 import * as util from './util'
 
-const BOOKMARK_KEY = 'bookmark'
 const BOOKMARKS_KEY = 'bookmarks'
-const BOOKMARK_PREFIX = 'neo4j:bookmark:v1:tx'
-
-const UNKNOWN_BOOKMARK_VALUE = -1
 
 export default class Bookmark {
   /**
@@ -32,7 +28,6 @@ export default class Bookmark {
    */
   constructor (values) {
     this._values = asStringArray(values)
-    this._maxValue = maxBookmark(this._values)
   }
 
   static empty () {
@@ -44,15 +39,7 @@ export default class Bookmark {
    * @return {boolean} returns `true` bookmark has a value, `false` otherwise.
    */
   isEmpty () {
-    return this._maxValue === null
-  }
-
-  /**
-   * Get maximum value of this bookmark as string.
-   * @return {string|null} the maximum value or `null` if it is not defined.
-   */
-  maxBookmarkAsString () {
-    return this._maxValue
+    return this._values.length === 0
   }
 
   /**
@@ -77,7 +64,6 @@ export default class Bookmark {
     // bookmark that is why driver has to parse and compare given list of bookmarks. This functionality will
     // eventually be removed.
     return {
-      [BOOKMARK_KEY]: this._maxValue,
       [BOOKMARKS_KEY]: this._values
     }
   }
@@ -87,7 +73,7 @@ const EMPTY_BOOKMARK = new Bookmark(null)
 
 /**
  * Converts given value to an array.
- * @param {string|string[]} [value=undefined] argument to convert.
+ * @param {string|string[]|Array} [value=undefined] argument to convert.
  * @return {string[]} value converted to an array.
  */
 function asStringArray (value) {
@@ -101,13 +87,14 @@ function asStringArray (value) {
 
   if (Array.isArray(value)) {
     const result = []
-    for (let i = 0; i < value.length; i++) {
-      const element = value[i]
+    const flattenedValue = flattenArray(value)
+    for (let i = 0; i < flattenedValue.length; i++) {
+      const element = flattenedValue[i]
       // if it is undefined or null, ignore it
       if (element !== undefined && element !== null) {
         if (!util.isString(element)) {
           throw new TypeError(
-            `Bookmark should be a string, given: '${element}'`
+            `Bookmark value should be a string, given: '${element}'`
           )
         }
         result.push(element)
@@ -122,40 +109,17 @@ function asStringArray (value) {
 }
 
 /**
- * Find latest bookmark in the given array of bookmarks.
- * @param {string[]} bookmarks array of bookmarks.
- * @return {string|null} latest bookmark value.
+ * Recursively flattens an array so that the result becomes a single array
+ * of values, which does not include any sub-arrays
+ *
+ * @param {Array} value
  */
-function maxBookmark (bookmarks) {
-  if (!bookmarks || bookmarks.length === 0) {
-    return null
-  }
-
-  let maxBookmark = bookmarks[0]
-  let maxValue = bookmarkValue(maxBookmark)
-
-  for (let i = 1; i < bookmarks.length; i++) {
-    const bookmark = bookmarks[i]
-    const value = bookmarkValue(bookmark)
-
-    if (value > maxValue) {
-      maxBookmark = bookmark
-      maxValue = value
-    }
-  }
-
-  return maxBookmark
-}
-
-/**
- * Calculate numeric value for the given bookmark.
- * @param {string} bookmark argument to get numeric value for.
- * @return {number} value of the bookmark.
- */
-function bookmarkValue (bookmark) {
-  if (bookmark && bookmark.indexOf(BOOKMARK_PREFIX) === 0) {
-    const result = parseInt(bookmark.substring(BOOKMARK_PREFIX.length))
-    return result || UNKNOWN_BOOKMARK_VALUE
-  }
-  return UNKNOWN_BOOKMARK_VALUE
+function flattenArray (values) {
+  return values.reduce(
+    (dest, value) =>
+      Array.isArray(value)
+        ? dest.concat(flattenArray(value))
+        : dest.concat(value),
+    []
+  )
 }

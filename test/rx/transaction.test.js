@@ -419,7 +419,7 @@ describe('#integration-rx transaction', () => {
     await verifyCanCommit(txc2)
     const bookmark2 = session.lastBookmark()
 
-    expect(bookmark0).toBeFalsy()
+    expect(bookmark0).toEqual([])
     expect(bookmark1).toBeTruthy()
     expect(bookmark1).not.toEqual(bookmark0)
     expect(bookmark2).toBeTruthy()
