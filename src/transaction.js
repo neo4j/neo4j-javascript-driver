@@ -29,6 +29,7 @@ import {
   FailedObserver,
   CompletedObserver
 } from './internal/stream-observers'
+import { newError } from './error'
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -210,10 +211,9 @@ let _states = {
       return {
         result: newCompletedResult(
           new FailedObserver({
-            error:
-              'Cannot commit statements in this transaction, because previous statements in the ' +
-              'transaction has failed and the transaction has been rolled back. Please start a new ' +
-              'transaction to run another statement.',
+            error: newError(
+              'Cannot commit this transaction, because it has been rolled back either because of an error or explicit termination.'
+            ),
             onError
           }),
           'COMMIT',
@@ -235,9 +235,9 @@ let _states = {
     ) => {
       return newCompletedResult(
         new FailedObserver({
-          error:
-            'Cannot run statement, because previous statements in the ' +
-            'transaction has failed and the transaction has already been rolled back.',
+          error: newError(
+            'Cannot run statement in this transaction, because it has been rolled back either because of an error or explicit termination.'
+          ),
           onError
         }),
         statement,
@@ -252,10 +252,9 @@ let _states = {
       return {
         result: newCompletedResult(
           new FailedObserver({
-            error:
-              'Cannot commit statements in this transaction, because commit has already been ' +
-              'successfully called on the transaction and transaction has been closed. Please ' +
-              'start a new transaction to run another statement.',
+            error: newError(
+              'Cannot commit this transaction, because it has already been committed.'
+            ),
             onError
           }),
           'COMMIT',
@@ -268,8 +267,9 @@ let _states = {
       return {
         result: newCompletedResult(
           new FailedObserver({
-            error:
-              'Cannot rollback transaction, because transaction has already been successfully closed.',
+            error: newError(
+              'Cannot rollback this transaction, because it has already been committed.'
+            ),
             onError
           }),
           'ROLLBACK',
@@ -285,8 +285,9 @@ let _states = {
     ) => {
       return newCompletedResult(
         new FailedObserver({
-          error:
-            'Cannot run statement, because transaction has already been successfully closed.',
+          error: newError(
+            'Cannot run statement in this transaction, because it has already been committed.'
+          ),
           onError
         }),
         statement,
@@ -301,8 +302,9 @@ let _states = {
       return {
         result: newCompletedResult(
           new FailedObserver({
-            error:
-              'Cannot commit this transaction, because it has already been rolled back.',
+            error: newError(
+              'Cannot commit this transaction, because it has already been rolled back.'
+            ),
             onError
           }),
           'COMMIT',
@@ -315,8 +317,9 @@ let _states = {
       return {
         result: newCompletedResult(
           new FailedObserver({
-            error:
-              'Cannot rollback transaction, because transaction has already been rolled back.'
+            error: newError(
+              'Cannot rollback this transaction, because it has already been rolled back.'
+            )
           }),
           'ROLLBACK',
           {}
@@ -331,8 +334,9 @@ let _states = {
     ) => {
       return newCompletedResult(
         new FailedObserver({
-          error:
-            'Cannot run statement, because transaction has already been rolled back.',
+          error: newError(
+            'Cannot run statement in this transaction, because it has already been rolled back.'
+          ),
           onError
         }),
         statement,

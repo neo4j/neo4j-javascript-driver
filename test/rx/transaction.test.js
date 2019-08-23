@@ -189,8 +189,8 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
-          error: jasmine.stringMatching(
-            /Cannot commit statements in this transaction/
+          message: jasmine.stringMatching(
+            /Cannot commit this transaction, because .* of an error/
           )
         })
       )
@@ -237,8 +237,8 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
-          error: jasmine.stringMatching(
-            /Cannot commit statements in this transaction/
+          message: jasmine.stringMatching(
+            /Cannot commit this transaction, because .* of an error/
           )
         })
       )
@@ -286,17 +286,15 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
-          error: jasmine.stringMatching(
-            /Cannot run statement, because previous statements in the transaction has failed/
+          message: jasmine.stringMatching(
+            /Cannot run statement in this transaction, because .* of an error/
           )
         })
       )
     ])
   })
 
-  it('should allow commit after commit', async () => {
-    pending('behaviour difference across drivers')
-
+  it('should not allow commit after commit', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -313,12 +311,18 @@ describe('#integration-rx transaction', () => {
         toArray()
       )
       .toPromise()
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.objectContaining({
+          message: jasmine.stringMatching(
+            /Cannot commit this transaction, because .* committed/
+          )
+        })
+      )
+    ])
   })
 
-  it('should allow rollback after rollback', async () => {
-    pending('behaviour difference across drivers')
-
+  it('should not allow rollback after rollback', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -335,7 +339,15 @@ describe('#integration-rx transaction', () => {
         toArray()
       )
       .toPromise()
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([
+      Notification.createError(
+        jasmine.objectContaining({
+          message: jasmine.stringMatching(
+            /Cannot rollback this transaction, because .* rolled back/
+          )
+        })
+      )
+    ])
   })
 
   it('should fail to rollback after commit', async () => {
@@ -358,8 +370,8 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
-          error: jasmine.stringMatching(
-            /Cannot rollback transaction, because transaction has already been successfully closed/
+          message: jasmine.stringMatching(
+            /Cannot rollback this transaction, because .* committed/
           )
         })
       )
@@ -386,8 +398,8 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
-          error: jasmine.stringMatching(
-            /Cannot commit this transaction, because it has already been rolled back/
+          message: jasmine.stringMatching(
+            /Cannot commit this transaction, because .* rolled back/
           )
         })
       )
@@ -596,8 +608,8 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
-          error: jasmine.stringMatching(
-            /Cannot run statement, because transaction/
+          message: jasmine.stringMatching(
+            /Cannot run statement in this transaction, because/
           )
         })
       )

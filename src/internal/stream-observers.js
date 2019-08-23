@@ -484,11 +484,7 @@ class FailedObserver extends ResultStreamObserver {
   constructor ({ error, onError }) {
     super({ beforeError: onError })
 
-    if (error instanceof Error) {
-      this.onError(error)
-    } else if (isString(error)) {
-      this.onError({ error: error })
-    }
+    this.onError(error)
   }
 }
 

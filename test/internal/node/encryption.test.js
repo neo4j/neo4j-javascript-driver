@@ -74,8 +74,7 @@ describe('#integration encryption', () => {
     sharedNeo4j.restart(tlsConfig(tlsLevel))
 
     const config = {
-      encrypted: encrypted,
-      logging: sharedNeo4j.logging
+      encrypted: encrypted
     }
     if (trust) {
       config.trust = trust
