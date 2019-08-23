@@ -138,19 +138,22 @@ const logging = {
  *       // this is that if you don't know who you are talking to, it is easy for an
  *       // attacker to hijack your encrypted connection, rendering encryption pointless.
  *       //
- *       // TRUST_ALL_CERTIFICATES is the default choice for NodeJS deployments. It only requires
- *       // new host to provide a certificate and does no verification of the provided certificate.
+ *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES is the default choice. For NodeJS environments, this
+ *       // means that you trust whatever certificates are in the default trusted certificate
+ *       // store of the underlying system. For Browser environments, the trusted certificate
+ *       // store is usually managed by the browser. Refer to your system or browser documentation
+ *       // if you want to explicitly add a certificate as trusted.
  *       //
- *       // TRUST_CUSTOM_CA_SIGNED_CERTIFICATES is the classic approach to trust verification -
+ *       // TRUST_CUSTOM_CA_SIGNED_CERTIFICATES is another option for trust verification -
  *       // whenever we establish an encrypted connection, we ensure the host is using
- *       // an encryption certificate that is in, or is signed by, a certificate listed
- *       // as trusted. In the web bundle, this list of trusted certificates is maintained
- *       // by the web browser. In NodeJS, you configure the list with the next config option.
+ *       // an encryption certificate that is in, or is signed by, a certificate given
+ *       // as trusted through configuration. This option is only available for NodeJS environments.
  *       //
- *       // TRUST_SYSTEM_CA_SIGNED_CERTIFICATES means that you trust whatever certificates
- *       // are in the default certificate chain of the underlying system.
- *       trust: "TRUST_ALL_CERTIFICATES" | "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" |
- *       "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES",
+ *       // TRUST_ALL_CERTIFICATES means that you trust everything without any verifications
+ *       // steps carried out.  This option is only available for NodeJS environments and should not
+ *       // be used on production systems.
+ *       trust: "TRUST_SYSTEM_CA_SIGNED_CERTIFICATES" | "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES" |
+ *       "TRUST_ALL_CERTIFICATES",
  *
  *       // List of one or more paths to trusted encryption certificates. This only
  *       // works in the NodeJS bundle, and only matters if you use "TRUST_CUSTOM_CA_SIGNED_CERTIFICATES".

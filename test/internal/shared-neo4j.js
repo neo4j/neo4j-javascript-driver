@@ -124,10 +124,13 @@ const username = 'neo4j'
 const password = 'password'
 const authToken = neo4j.auth.basic(username, password)
 
-const boltTlsLevel = {
-  optional: 'OPTIONAL',
-  required: 'REQUIRED',
-  disabled: 'DISABLED'
+const tlsConfig = {
+  key: 'dbms.connector.bolt.tls_level',
+  levels: {
+    optional: 'OPTIONAL',
+    required: 'REQUIRED',
+    disabled: 'DISABLED'
+  }
 }
 
 const defaultConfig = {
@@ -147,7 +150,7 @@ const defaultConfig = {
   'dbms.memory.pagecache.size': '512m',
 
   // make TLS optional
-  'dbms.connector.bolt.tls_level': boltTlsLevel.optional
+  'dbms.connector.bolt.tls_level': tlsConfig.levels.optional
 }
 
 const NEOCTRLARGS = 'NEOCTRLARGS'
@@ -217,9 +220,7 @@ function configure (config) {
     `Configuring neo4j at "${neo4jDir()}" with "${JSON.stringify(config)}"`
   )
 
-  const configEntries = Object.keys(config).map(
-    key => `${key}=${defaultConfig[key]}`
-  )
+  const configEntries = Object.keys(config).map(key => `${key}=${config[key]}`)
   if (configEntries.length > 0) {
     const result = runCommand('neoctrl-configure', [
       neo4jDir(),
@@ -289,8 +290,15 @@ function stop () {
   stopNeo4j()
 }
 
-function restart () {
+function restart (configOverride) {
   stopNeo4j()
+  const newConfig = Object.assign({}, defaultConfig)
+  if (configOverride) {
+    Object.keys(configOverride).forEach(
+      key => (newConfig[key] = configOverride[key])
+    )
+  }
+  configure(newConfig)
   startNeo4j()
 }
 
@@ -345,5 +353,6 @@ export default {
   password: password,
   authToken: authToken,
   logging: debugLogging,
-  cleanupAndGetVersion: cleanupAndGetVersion
+  cleanupAndGetVersion: cleanupAndGetVersion,
+  tlsConfig: tlsConfig
 }
