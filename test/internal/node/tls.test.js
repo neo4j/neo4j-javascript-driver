@@ -37,12 +37,6 @@ describe('#integration trust', () => {
     }
   })
 
-  beforeEach(() => {
-    if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
-      pending('address within security work')
-    }
-  })
-
   describe('trust-all-certificates', () => {
     let driver
 
@@ -102,7 +96,7 @@ describe('#integration trust', () => {
       driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
         encrypted: true,
         trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES',
-        trustedCertificates: [neo4jCertPath()]
+        trustedCertificates: [sharedNeo4j.neo4jCertPath()]
       })
 
       // When
@@ -138,9 +132,21 @@ describe('#integration trust', () => {
           done()
         })
     })
-  })
 
-  function neo4jCertPath () {
-    return sharedNeo4j.neo4jCertPath(path.join('build', 'neo4j'))
-  }
+    it('should reject unknown certificates if trust not specified', done => {
+      // Given
+      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+        encrypted: true
+      })
+
+      // When
+      driver
+        .session()
+        .run('RETURN 1')
+        .catch(err => {
+          expect(err.message).toContain('Server certificate is not trusted')
+          done()
+        })
+    })
+  })
 })

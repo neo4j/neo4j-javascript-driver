@@ -264,16 +264,16 @@ function determineWebSocketScheme (config, protocolSupplier) {
 
   if (encryptionOn) {
     // encryption explicitly requested in the config
-    if (!trust || trust === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
+    if (!trust || trust === 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES') {
       // trust strategy not specified or the only supported strategy is specified
       return { scheme: 'wss', error: null }
     } else {
       const error = newError(
         'The browser version of this driver only supports one trust ' +
-          "strategy, 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'. " +
+          "strategy, 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'. " +
           trust +
           ' is not supported. Please ' +
-          'either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting ' +
+          'either use TRUST_SYSTEM_CA_SIGNED_CERTIFICATES or disable encryption by setting ' +
           '`encrypted:"' +
           ENCRYPTION_OFF +
           '"` in the driver configuration.'

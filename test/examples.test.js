@@ -144,10 +144,6 @@ describe('#integration examples', () => {
   })
 
   it('config trust example', async () => {
-    if (version.compareTo(VERSION_4_0_0) >= 0) {
-      pending('address within security work')
-    }
-
     // tag::config-trust[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       encrypted: 'ENCRYPTION_ON',

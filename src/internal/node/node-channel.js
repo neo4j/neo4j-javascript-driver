@@ -190,7 +190,7 @@ function trustStrategyName (config) {
   if (config.trust) {
     return config.trust
   }
-  return 'TRUST_ALL_CERTIFICATES'
+  return 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
 }
 
 /**
