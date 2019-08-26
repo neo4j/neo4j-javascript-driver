@@ -287,7 +287,7 @@ describe('direct driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
-      const session = driver.session()
+      const session = driver.session(neo4j.session.READ)
       session.run('MATCH (n) RETURN n.name').catch(error => {
         expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 

@@ -1,18 +1,16 @@
-!: AUTO INIT
+!: BOLT 3
+!: AUTO HELLO
 !: AUTO RESET
 !: AUTO PULL_ALL
+!: AUTO GOODBYE
 
-C: RUN "BEGIN" {"bookmark": "neo4j:bookmark:v1:tx42", "bookmarks": ["neo4j:bookmark:v1:tx42"]}
+C: BEGIN {"bookmarks": ["neo4j:bookmark:v1:tx42"], "mode": "r"}
+C: RUN "MATCH (n) RETURN n.name AS name" {} {"mode": "r"}
    PULL_ALL
 S: SUCCESS {}
-   SUCCESS {}
-C: RUN "MATCH (n) RETURN n.name AS name" {}
-   PULL_ALL
-S: SUCCESS {"fields": ["name"]}
+   SUCCESS {"fields": ["name"]}
    RECORD ["Bob"]
    RECORD ["Alice"]
    SUCCESS {"bookmark": "neo4j:bookmark:v1:tx4242"}
-C: RUN "COMMIT" {}
-   PULL_ALL
+C: COMMIT
 S: SUCCESS {}
-   SUCCESS {}
