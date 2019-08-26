@@ -85,7 +85,7 @@
     "karma-source-map-support": "^1.4.0",
     "karma-spec-reporter": "^0.0.32",
     "lint-staged": "^8.1.7",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.15",
     "lolex": "^4.0.1",
     "minimist": "^1.2.0",
     "mustache": "^3.0.1",
