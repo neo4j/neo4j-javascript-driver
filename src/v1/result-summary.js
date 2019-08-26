@@ -167,8 +167,8 @@ class ProfiledPlan {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
-    this.dbHits = profile.args.DbHits.toInt()
-    this.rows = profile.args.Rows.toInt()
+    this.dbHits = intValue(profile.args.DbHits)
+    this.rows = intValue(profile.args.Rows)
     this.children = profile.children
       ? profile.children.map(child => new ProfiledPlan(child))
       : []
@@ -201,11 +201,9 @@ class StatementStatistics {
     }
     Object.keys(statistics).forEach(index => {
       // To camelCase
-      this._stats[index.replace(/(-\w)/g, m => m[1].toUpperCase())] = isInt(
+      this._stats[index.replace(/(-\w)/g, m => m[1].toUpperCase())] = intValue(
         statistics[index]
       )
-        ? statistics[index].toInt()
-        : statistics[index]
     })
   }
 
@@ -322,9 +320,9 @@ class Notification {
       return {}
     }
     return {
-      offset: pos.offset.toInt(),
-      line: pos.line.toInt(),
-      column: pos.column.toInt()
+      offset: intValue(pos.offset),
+      line: intValue(pos.line),
+      column: intValue(pos.column)
     }
   }
 }
@@ -345,6 +343,10 @@ class ServerInfo {
       this.version = serverMeta.version
     }
   }
+}
+
+function intValue (value) {
+  return isInt(value) ? value.toInt() : value
 }
 
 const statementType = {

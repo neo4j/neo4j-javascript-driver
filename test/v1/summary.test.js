@@ -21,21 +21,71 @@ import neo4j from '../../src/v1'
 import sharedNeo4j from '../internal/shared-neo4j'
 
 describe('result summary', () => {
-  let driver, session
+  describe('default driver', () => {
+    let driver, session
 
-  beforeEach(done => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    session = driver.session()
+    beforeEach(done => {
+      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      session = driver.session()
 
-    session.run('MATCH (n) DETACH DELETE n').then(done)
+      session.run('MATCH (n) DETACH DELETE n').then(done)
+    })
+
+    afterEach(() => {
+      driver.close()
+    })
+
+    it('should get result summary', done => {
+      verifySummary(session, done)
+    })
+
+    it('should get plan from summary', done => {
+      verifyPlan(session, done)
+    })
+
+    it('should get profile from summary', done => {
+      verifyProfile(session, done)
+    })
+
+    it('should get notifications from summary', done => {
+      verifyNotifications(session, 'EXPLAIN MATCH (n), (m) RETURN n, m', done)
+    })
   })
 
-  afterEach(() => {
-    driver.close()
+  describe('driver with lossless integers disabled', () => {
+    let driver, session
+
+    beforeEach(done => {
+      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+        disableLosslessIntegers: true
+      })
+      session = driver.session()
+
+      session.run('MATCH (n) DETACH DELETE n').then(done)
+    })
+
+    afterEach(() => {
+      driver.close()
+    })
+
+    it('should get result summary', done => {
+      verifySummary(session, done)
+    })
+
+    it('should get plan from summary', done => {
+      verifyPlan(session, done)
+    })
+
+    it('should get profile from summary', done => {
+      verifyProfile(session, done)
+    })
+
+    it('should get notifications from summary', done => {
+      verifyNotifications(session, 'EXPLAIN MATCH (n), (m) RETURN n, m', done)
+    })
   })
 
-  it('should get result summary', done => {
-    // When & Then
+  function verifySummary (session, done) {
     session.run("CREATE (p:Person { Name: 'Test'})").then(result => {
       let summary = result.summary
 
@@ -63,9 +113,9 @@ describe('result summary', () => {
       expect(counters.constraintsRemoved()).toBe(0)
       done()
     })
-  })
+  }
 
-  it('should get plan from summary', done => {
+  function verifyPlan (session, done) {
     session.run('EXPLAIN MATCH (n) RETURN 1').then(result => {
       let summary = result.summary
       expect(summary.plan).toBeDefined()
@@ -78,9 +128,9 @@ describe('result summary', () => {
       expect(plan.operatorType).toBeDefined()
       done()
     })
-  })
+  }
 
-  it('should get profile from summary', done => {
+  function verifyProfile (session, done) {
     session.run('PROFILE RETURN 1').then(result => {
       let summary = result.summary
       expect(summary.plan).toBeDefined()
@@ -96,10 +146,10 @@ describe('result summary', () => {
 
       done()
     })
-  })
+  }
 
-  it('should get notifications from summary', done => {
-    session.run('EXPLAIN MATCH (n), (m) RETURN n, m').then(result => {
+  function verifyNotifications (session, statement, done) {
+    session.run(statement).then(result => {
       let summary = result.summary
       expect(summary.notifications).toBeDefined()
       expect(summary.notifications.length).toBe(1)
@@ -113,7 +163,7 @@ describe('result summary', () => {
 
       done()
     })
-  })
+  }
 
   function verifyProfileAndPlanAreEqual (profile, plan) {
     expect(profile.arguments).toBe(plan.arguments)
