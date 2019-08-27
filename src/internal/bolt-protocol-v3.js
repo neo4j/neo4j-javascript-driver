@@ -19,6 +19,13 @@
 import BoltProtocolV2 from './bolt-protocol-v2'
 import RequestMessage from './request-message'
 import { assertDatabaseIsEmpty } from './bolt-protocol-util'
+import {
+  StreamObserver,
+  LoginObserver,
+  ResultStreamObserver
+} from './stream-observers'
+
+const noOpObserver = new StreamObserver()
 
 export default class BoltProtocol extends BoltProtocolV2 {
   transformMetadata (metadata) {
@@ -37,57 +44,138 @@ export default class BoltProtocol extends BoltProtocolV2 {
     return metadata
   }
 
-  initialize (userAgent, authToken, observer) {
-    prepareToHandleSingleResponse(observer)
-    const message = RequestMessage.hello(userAgent, authToken)
-    this._connection.write(message, observer, true)
+  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+    const observer = new LoginObserver({
+      connection: this._connection,
+      afterError: onError,
+      afterComplete: onComplete
+    })
+
+    this._connection.write(
+      RequestMessage.hello(userAgent, authToken),
+      observer,
+      true
+    )
+
+    return observer
   }
 
-  prepareToClose (observer) {
-    const message = RequestMessage.goodbye()
-    this._connection.write(message, observer, true)
+  prepareToClose () {
+    this._connection.write(RequestMessage.goodbye(), noOpObserver, true)
   }
 
-  beginTransaction (observer, { bookmark, txConfig, database, mode }) {
-    assertDatabaseIsEmpty(database, this._connection, observer)
-    prepareToHandleSingleResponse(observer)
-    const message = RequestMessage.begin({ bookmark, txConfig, mode })
-    this._connection.write(message, observer, true)
-  }
+  beginTransaction ({
+    bookmark,
+    txConfig,
+    database,
+    mode,
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
+    const observer = new ResultStreamObserver({
+      connection: this._connection,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
+    })
+    observer.prepareToHandleSingleResponse()
 
-  commitTransaction (observer) {
-    prepareToHandleSingleResponse(observer)
-    const message = RequestMessage.commit()
-    this._connection.write(message, observer, true)
-  }
-
-  rollbackTransaction (observer) {
-    prepareToHandleSingleResponse(observer)
-    const message = RequestMessage.rollback()
-    this._connection.write(message, observer, true)
-  }
-
-  run (statement, parameters, observer, { bookmark, txConfig, database, mode }) {
     // passing in a database name on this protocol version throws an error
     assertDatabaseIsEmpty(database, this._connection, observer)
 
-    const runMessage = RequestMessage.runWithMetadata(statement, parameters, {
+    this._connection.write(
+      RequestMessage.begin({ bookmark, txConfig, mode }),
+      observer,
+      true
+    )
+
+    return observer
+  }
+
+  commitTransaction ({
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
+    const observer = new ResultStreamObserver({
+      connection: this._connection,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
+    })
+    observer.prepareToHandleSingleResponse()
+
+    this._connection.write(RequestMessage.commit(), observer, true)
+
+    return observer
+  }
+
+  rollbackTransaction ({
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
+    const observer = new ResultStreamObserver({
+      connection: this._connection,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
+    })
+    observer.prepareToHandleSingleResponse()
+
+    this._connection.write(RequestMessage.rollback(), observer, true)
+
+    return observer
+  }
+
+  run (
+    statement,
+    parameters,
+    {
       bookmark,
       txConfig,
-      mode
-    })
-    const pullAllMessage = RequestMessage.pullAll()
-
-    this._connection.write(runMessage, observer, false)
-    this._connection.write(pullAllMessage, observer, true)
-  }
-}
-
-function prepareToHandleSingleResponse (observer) {
-  if (
-    observer &&
-    typeof observer.prepareToHandleSingleResponse === 'function'
+      database,
+      mode,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete,
+      flush = true
+    } = {}
   ) {
-    observer.prepareToHandleSingleResponse()
+    const observer = new ResultStreamObserver({
+      connection: this._connection,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
+    })
+
+    // passing in a database name on this protocol version throws an error
+    assertDatabaseIsEmpty(database, this._connection, observer)
+
+    this._connection.write(
+      RequestMessage.runWithMetadata(statement, parameters, {
+        bookmark,
+        txConfig,
+        mode
+      }),
+      observer,
+      false
+    )
+    this._connection.write(RequestMessage.pullAll(), observer, flush)
+
+    return observer
   }
 }

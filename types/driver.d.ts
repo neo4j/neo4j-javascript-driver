@@ -18,6 +18,7 @@
  */
 
 import Session from './session'
+import RxSession from './session-rx'
 import { Parameters } from './statement-runner'
 import { Neo4jError } from './error'
 import { ServerInfo } from './result-summary'
@@ -72,7 +73,17 @@ declare interface Driver {
     database?: string
   }): Session
 
-  close(): void
+  rxSession({
+    defaultAccessMode,
+    bookmarks,
+    database
+  }?: {
+    defaultAccessMode?: SessionMode
+    bookmarks?: string | string[]
+    database?: string
+  }): RxSession
+
+  close(): Promise<void>
 
   verifyConnectivity(): Promise<ServerInfo>
 }

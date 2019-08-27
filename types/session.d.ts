@@ -50,7 +50,7 @@ declare interface Session extends StatementRunner {
     config?: TransactionConfig
   ): Promise<T>
 
-  close(callback?: () => void): void
+  close(): Promise<void>
 }
 
 export { TransactionConfig }

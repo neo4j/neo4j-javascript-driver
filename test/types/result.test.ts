@@ -50,3 +50,10 @@ res.subscribe({
   onError: (error: Error) => console.log(error),
   onCompleted: (summary: ResultSummary) => console.log(summary)
 })
+
+res.subscribe({
+  onKeys: (keys: string[]) => console.log(keys),
+  onNext: (record: Record) => console.log(record),
+  onError: (error: Error) => console.log(error),
+  onCompleted: (summary: ResultSummary) => console.log(summary)
+})

@@ -1,3 +1,5 @@
+import Bookmark from './bookmark'
+
 /**
  * Copyright (c) 2002-2019 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
@@ -18,10 +20,29 @@
  */
 
 export default class ConnectionProvider {
-  acquireConnection (accessMode, database) {
+  /**
+   * This method acquires a connection against the specified database.
+   *
+   * Access mode and Bookmarks only applies to routing driver. Access mode only
+   * differentiates the target server for the connection, where WRITE selects a
+   * WRITER server, whereas READ selects a READ server. Bookmarks, when specified,
+   * is only passed to the routing discovery procedure, for the system database to
+   * synchronize on creation of databases and is never used in direct drivers.
+   *
+   * @param {object} param - object parameter
+   * @param {string} param.accessMode - the access mode for the to-be-acquired connection
+   * @param {string} param.database - the target database for the to-be-acquired connection
+   * @param {Bookmark} param.bookmarks - the bookmarks to send to routing discovery
+   */
+  acquireConnection ({ accessMode, database, bookmarks } = {}) {
     throw new Error('not implemented')
   }
 
+  /**
+   * Closes this connection provider along with its internals (connections, pools, etc.)
+   *
+   * @returns {Promise<void>}
+   */
   close () {
     throw new Error('not implemented')
   }

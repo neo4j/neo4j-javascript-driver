@@ -30,7 +30,7 @@ import { newError } from '../error'
 export default class TxConfig {
   /**
    * @constructor
-   * @param {object} config the raw configuration object.
+   * @param {Object} config the raw configuration object.
    */
   constructor (config) {
     assertValidConfig(config)

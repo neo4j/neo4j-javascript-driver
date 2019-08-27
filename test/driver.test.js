@@ -31,18 +31,15 @@ describe('#integration driver', () => {
   let driver
   let serverVersion
 
-  beforeAll(done => {
+  beforeAll(async () => {
     const tmpDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    ServerVersion.fromDriver(tmpDriver).then(version => {
-      tmpDriver.close()
-      serverVersion = version
-      done()
-    })
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(tmpDriver)
+    await tmpDriver.close()
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     if (driver) {
-      driver.close()
+      await driver.close()
       driver = null
     }
   })
@@ -56,7 +53,6 @@ describe('#integration driver', () => {
 
     // Then
     expect(session).not.toBeNull()
-    driver.close()
   })
 
   it('should handle connection errors', async () => {
@@ -64,15 +60,14 @@ describe('#integration driver', () => {
     driver = neo4j.driver('bolt://local-host', sharedNeo4j.authToken)
     const session = driver.session()
     const txc = session.beginTransaction()
-    try {
-      await txc.run('RETURN 1')
-      expect(true).toBeFalsy('exception expected')
-    } catch (error) {
-      expect(error.message).not.toBeNull()
-      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
-    } finally {
-      session.close()
-    }
+
+    await expectAsync(txc.run('RETURN 1')).toBeRejectedWith(
+      jasmine.objectContaining({
+        code: neo4j.error.SERVICE_UNAVAILABLE
+      })
+    )
+
+    await session.close()
   }, 10000)
 
   it('should fail with correct error message when connecting to port 80', done => {
@@ -130,15 +125,14 @@ describe('#integration driver', () => {
     driver = neo4j.driver('bolt://localhost', wrongCredentials())
     const session = driver.session()
     const txc = session.beginTransaction()
-    try {
-      await txc.run('RETURN 1')
-      expect(true).toBeFalsy('exception expected')
-    } catch (error) {
-      expect(error.message).not.toBeNull()
-      expect(error.code).toEqual('Neo.ClientError.Security.Unauthorized')
-    } finally {
-      session.close()
-    }
+
+    await expectAsync(txc.run('RETURN 1')).toBeRejectedWith(
+      jasmine.objectContaining({
+        code: 'Neo.ClientError.Security.Unauthorized'
+      })
+    )
+
+    await session.close()
   })
 
   it('should fail queries on wrong credentials', done => {
@@ -223,27 +217,25 @@ describe('#integration driver', () => {
     // Given
     driver = neo4j.driver('neo4j://localhost', sharedNeo4j.authToken)
     const session = driver.session()
-    try {
-      await session.run('RETURN 1')
-      expect(true).toBeFalsy('exception expected')
-    } catch (error) {
-      expect(error.message).toContain(
-        'Could not perform discovery. No routing servers available.'
-      )
-      expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
-    } finally {
-      session.close()
-    }
+
+    await expectAsync(session.run('RETURN 1')).toBeRejectedWith(
+      jasmine.objectContaining({
+        code: neo4j.error.SERVICE_UNAVAILABLE,
+        message: jasmine.stringMatching(/No routing servers available/)
+      })
+    )
+
+    await session.close()
   })
 
-  it('should have correct user agent', () => {
+  it('should have correct user agent', async () => {
     const directDriver = neo4j.driver('bolt://localhost')
     expect(directDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
-    directDriver.close()
+    await directDriver.close()
 
     const routingDriver = neo4j.driver('neo4j://localhost')
     expect(routingDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
-    routingDriver.close()
+    await routingDriver.close()
   })
 
   it('should fail when bolt:// scheme used with routing params', () => {
@@ -252,42 +244,38 @@ describe('#integration driver', () => {
     ).toThrow()
   })
 
-  it('should sanitize pool setting values in the config', () => {
-    testConfigSanitizing('maxConnectionLifetime', 60 * 60 * 1000)
-    testConfigSanitizing('maxConnectionPoolSize', DEFAULT_MAX_SIZE)
-    testConfigSanitizing(
+  it('should sanitize pool setting values in the config', async () => {
+    await testConfigSanitizing('maxConnectionLifetime', 60 * 60 * 1000)
+    await testConfigSanitizing('maxConnectionPoolSize', DEFAULT_MAX_SIZE)
+    await testConfigSanitizing(
       'connectionAcquisitionTimeout',
       DEFAULT_ACQUISITION_TIMEOUT
     )
   })
 
-  it('should discard closed connections', done => {
+  it('should discard closed connections', async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
 
     const session1 = driver.session()
-    session1.run('CREATE () RETURN 42').then(() => {
-      session1.close()
+    await session1.run('CREATE () RETURN 42')
+    await session1.close()
 
-      // one connection should be established
-      const connections1 = openConnectionFrom(driver)
-      expect(connections1.length).toEqual(1)
+    // one connection should be established
+    const connections1 = openConnectionFrom(driver)
+    expect(connections1.length).toEqual(1)
 
-      // close/break existing pooled connection
-      connections1.forEach(connection => connection.close())
+    // close/break existing pooled connection
+    await Promise.all(connections1.map(connection => connection.close()))
 
-      const session2 = driver.session()
-      session2.run('RETURN 1').then(() => {
-        session2.close()
+    const session2 = driver.session()
+    await session2.run('RETURN 1')
+    await session2.close()
 
-        // existing connection should be disposed and new one should be created
-        const connections2 = openConnectionFrom(driver)
-        expect(connections2.length).toEqual(1)
+    // existing connection should be disposed and new one should be created
+    const connections2 = openConnectionFrom(driver)
+    expect(connections2.length).toEqual(1)
 
-        expect(connections1[0]).not.toEqual(connections2[0])
-
-        done()
-      })
-    })
+    expect(connections1[0]).not.toEqual(connections2[0])
   })
 
   it('should discard old connections', async () => {
@@ -298,7 +286,7 @@ describe('#integration driver', () => {
 
     const session1 = driver.session()
     await session1.run('CREATE () RETURN 42')
-    session1.close()
+    await session1.close()
 
     // one connection should be established
     const connections1 = openConnectionFrom(driver)
@@ -312,7 +300,7 @@ describe('#integration driver', () => {
 
       const session2 = driver.session()
       await session2.run('RETURN 1')
-      session2.close()
+      await session2.close()
 
       // old connection should be disposed and new one should be created
       const connections2 = openConnectionFrom(driver)
@@ -399,11 +387,13 @@ describe('#integration driver', () => {
     driver = neo4j.driver(url, sharedNeo4j.authToken)
 
     const session = driver.session()
-    session.run('RETURN 42').then(result => {
-      expect(result.records[0].get(0).toNumber()).toEqual(42)
-      session.close()
-      done()
-    })
+    session
+      .run('RETURN 42')
+      .then(result => {
+        expect(result.records[0].get(0).toNumber()).toEqual(42)
+      })
+      .then(() => session.close())
+      .then(() => done())
   }
 
   function testNumberInReturnedRecord (inputNumber, expectedNumber, done) {
@@ -415,8 +405,6 @@ describe('#integration driver', () => {
     session
       .run('RETURN $number AS n0, $number AS n1', { number: inputNumber })
       .then(result => {
-        session.close()
-
         const records = result.records
         expect(records.length).toEqual(1)
         const record = records[0]
@@ -431,9 +419,9 @@ describe('#integration driver', () => {
           n0: expectedNumber,
           n1: expectedNumber
         })
-
-        done()
       })
+      .then(() => session.close())
+      .then(() => done())
   }
 
   /**
@@ -449,16 +437,23 @@ describe('#integration driver', () => {
     return neo4j.auth.basic('neo4j', 'who would use such a password')
   }
 
-  function testConfigSanitizing (configProperty, defaultValue) {
-    validateConfigSanitizing({}, defaultValue)
-    validateConfigSanitizing({ [configProperty]: 42 }, 42)
-    validateConfigSanitizing({ [configProperty]: 0 }, 0)
-    validateConfigSanitizing({ [configProperty]: '42' }, 42)
-    validateConfigSanitizing({ [configProperty]: '042' }, 42)
-    validateConfigSanitizing({ [configProperty]: -42 }, Number.MAX_SAFE_INTEGER)
+  async function testConfigSanitizing (configProperty, defaultValue) {
+    await validateConfigSanitizing({}, defaultValue)
+    await validateConfigSanitizing({ [configProperty]: 42 }, 42)
+    await validateConfigSanitizing({ [configProperty]: 0 }, 0)
+    await validateConfigSanitizing({ [configProperty]: '42' }, 42)
+    await validateConfigSanitizing({ [configProperty]: '042' }, 42)
+    await validateConfigSanitizing(
+      { [configProperty]: -42 },
+      Number.MAX_SAFE_INTEGER
+    )
   }
 
-  function validateConfigSanitizing (config, configProperty, expectedValue) {
+  async function validateConfigSanitizing (
+    config,
+    configProperty,
+    expectedValue
+  ) {
     const driver = neo4j.driver(
       'bolt://localhost',
       sharedNeo4j.authToken,
@@ -467,7 +462,7 @@ describe('#integration driver', () => {
     try {
       expect(driver._config[configProperty]).toEqual(expectedValue)
     } finally {
-      driver.close()
+      await driver.close()
     }
   }
 

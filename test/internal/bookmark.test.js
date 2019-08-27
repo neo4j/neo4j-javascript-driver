@@ -23,7 +23,7 @@ describe('#unit Bookmark', () => {
     const bookmark = new Bookmark('neo4j:bookmark:v1:tx412')
 
     expect(bookmark.isEmpty()).toBeFalsy()
-    expect(bookmark.maxBookmarkAsString()).toEqual('neo4j:bookmark:v1:tx412')
+    expect(bookmark.values()).toEqual(['neo4j:bookmark:v1:tx412'])
   })
 
   it('should be possible to construct bookmark from string array', () => {
@@ -34,35 +34,84 @@ describe('#unit Bookmark', () => {
     ])
 
     expect(bookmark.isEmpty()).toBeFalsy()
-    expect(bookmark.maxBookmarkAsString()).toEqual('neo4j:bookmark:v1:tx3')
+    expect(bookmark.values()).toEqual([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2',
+      'neo4j:bookmark:v1:tx3'
+    ])
   })
 
   it('should be possible to construct bookmark from null', () => {
     const bookmark = new Bookmark(null)
 
     expect(bookmark.isEmpty()).toBeTruthy()
-    expect(bookmark.maxBookmarkAsString()).toBeNull()
+    expect(bookmark.values()).toEqual([])
   })
 
   it('should be possible to construct bookmark from undefined', () => {
     const bookmark = new Bookmark(undefined)
 
     expect(bookmark.isEmpty()).toBeTruthy()
-    expect(bookmark.maxBookmarkAsString()).toBeNull()
+    expect(bookmark.values()).toEqual([])
   })
 
   it('should be possible to construct bookmark from an empty string', () => {
     const bookmark = new Bookmark('')
 
     expect(bookmark.isEmpty()).toBeTruthy()
-    expect(bookmark.maxBookmarkAsString()).toBeNull()
+    expect(bookmark.values()).toEqual([])
   })
 
   it('should be possible to construct bookmark from empty array', () => {
     const bookmark = new Bookmark([])
 
     expect(bookmark.isEmpty()).toBeTruthy()
-    expect(bookmark.maxBookmarkAsString()).toBeNull()
+    expect(bookmark.values()).toEqual([])
+  })
+
+  it('should be possible to construct bookmark from nested arrays', () => {
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      ['neo4j:bookmark:v1:tx2'],
+      [
+        ['neo4j:bookmark:v1:tx3', 'neo4j:bookmark:v1:tx4'],
+        ['neo4j:bookmark:v1:tx5', 'neo4j:bookmark:v1:tx6']
+      ]
+    ])
+
+    expect(bookmark.isEmpty()).toBeFalsy()
+    expect(bookmark.values()).toEqual([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2',
+      'neo4j:bookmark:v1:tx3',
+      'neo4j:bookmark:v1:tx4',
+      'neo4j:bookmark:v1:tx5',
+      'neo4j:bookmark:v1:tx6'
+    ])
+  })
+
+  it('should be possible to construct bookmark from nested arrays with null and undefined elements', () => {
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      null,
+      undefined,
+      ['neo4j:bookmark:v1:tx2'],
+      [undefined],
+      [
+        ['neo4j:bookmark:v1:tx3', 'neo4j:bookmark:v1:tx4'],
+        [undefined, 'neo4j:bookmark:v1:tx5', 'neo4j:bookmark:v1:tx6', null]
+      ]
+    ])
+
+    expect(bookmark.isEmpty()).toBeFalsy()
+    expect(bookmark.values()).toEqual([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2',
+      'neo4j:bookmark:v1:tx3',
+      'neo4j:bookmark:v1:tx4',
+      'neo4j:bookmark:v1:tx5',
+      'neo4j:bookmark:v1:tx6'
+    ])
   })
 
   it('should not be possible to construct bookmark from object', () => {
@@ -86,10 +135,10 @@ describe('#unit Bookmark', () => {
     const bookmark = new Bookmark('neo4j:bookmark:v1:txWrong')
 
     expect(bookmark.isEmpty()).toBeFalsy()
-    expect(bookmark.maxBookmarkAsString()).toEqual('neo4j:bookmark:v1:txWrong')
+    expect(bookmark.values()).toEqual(['neo4j:bookmark:v1:txWrong'])
   })
 
-  it('should skip unparsable bookmarks', () => {
+  it('should keep unparsable bookmarks', () => {
     const bookmark = new Bookmark([
       'neo4j:bookmark:v1:tx42',
       'neo4j:bookmark:v1:txWrong',
@@ -97,7 +146,11 @@ describe('#unit Bookmark', () => {
     ])
 
     expect(bookmark.isEmpty()).toBeFalsy()
-    expect(bookmark.maxBookmarkAsString()).toEqual('neo4j:bookmark:v1:tx4242')
+    expect(bookmark.values()).toEqual([
+      'neo4j:bookmark:v1:tx42',
+      'neo4j:bookmark:v1:txWrong',
+      'neo4j:bookmark:v1:tx4242'
+    ])
   })
 
   it('should turn into empty transaction params when empty', () => {
@@ -112,7 +165,6 @@ describe('#unit Bookmark', () => {
 
     expect(bookmark.isEmpty()).toBeFalsy()
     expect(bookmark.asBeginTransactionParameters()).toEqual({
-      bookmark: 'neo4j:bookmark:v1:tx142',
       bookmarks: ['neo4j:bookmark:v1:tx142']
     })
   })
@@ -127,7 +179,6 @@ describe('#unit Bookmark', () => {
 
     expect(bookmark.isEmpty()).toBeFalsy()
     expect(bookmark.asBeginTransactionParameters()).toEqual({
-      bookmark: 'neo4j:bookmark:v1:tx42',
       bookmarks: [
         'neo4j:bookmark:v1:tx1',
         'neo4j:bookmark:v1:tx3',

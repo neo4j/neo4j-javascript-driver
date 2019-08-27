@@ -16,7 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import StreamObserver from './internal/stream-observer'
+import {
+  ResultStreamObserver,
+  FailedObserver
+} from './internal/stream-observers'
 import Result from './result'
 import Transaction from './transaction'
 import { newError } from './error'
@@ -28,25 +31,6 @@ import TransactionExecutor from './internal/transaction-executor'
 import Bookmark from './internal/bookmark'
 import TxConfig from './internal/tx-config'
 
-// Typedef for JSDoc. Declares TransactionConfig type and makes it possible to use in in method-level docs.
-/**
- * Configuration object containing settings for explicit and auto-commit transactions.
- * <p>
- * Configuration is supported for:
- * <ul>
- *   <li>queries executed in auto-commit transactions using {@link Session#run}</li>
- *   <li>transactions started by transaction functions using {@link Session#readTransaction} and {@link Session#writeTransaction}</li>
- *   <li>explicit transactions using {@link Session#beginTransaction}</li>
- * </ul>
- * @typedef {object} TransactionConfig
- * @property {number} timeout - the transaction timeout in **milliseconds**. Transactions that execute longer than the configured timeout will
- * be terminated by the database. This functionality allows to limit query/transaction execution time. Specified timeout overrides the default timeout
- * configured in the database using `dbms.transaction.timeout` setting. Value should not represent a duration of zero or negative duration.
- * @property {object} metadata - the transaction metadata. Specified metadata will be attached to the executing transaction and visible in the output of
- * `dbms.listQueries` and `dbms.listTransactions` procedures. It will also get logged to the `query.log`. This functionality makes it easier to tag
- * transactions and is equivalent to `dbms.setTXMetaData` procedure.
- */
-
 /**
  * A Session instance is used for handling the connection and
  * sending statements through the connection.
@@ -57,35 +41,51 @@ import TxConfig from './internal/tx-config'
 class Session {
   /**
    * @constructor
-   * @param {string} mode the default access mode for this session.
-   * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
-   * @param {Bookmark} bookmark - the initial bookmark for this session.
-   * @param {string} database the database name
-   * @param {Object} [config={}] - this driver configuration.
+   * @protected
+   * @param {Object} args
+   * @param {string} args.mode the default access mode for this session.
+   * @param {ConnectionProvider} args.connectionProvider - the connection provider to acquire connections from.
+   * @param {Bookmark} args.bookmark - the initial bookmark for this session.
+   * @param {string} args.database the database name
+   * @param {Object} args.config={} - this driver configuration.
+   * @param {boolean} args.reactive - whether this session should create reactive streams
    */
-  constructor ({ mode, connectionProvider, bookmark, database, config }) {
+  constructor ({
+    mode,
+    connectionProvider,
+    bookmark,
+    database,
+    config,
+    reactive
+  }) {
     this._mode = mode
     this._database = database
+    this._reactive = reactive
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
+      bookmark,
       connectionProvider
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
       database,
+      bookmark,
       connectionProvider
     })
     this._open = true
     this._hasTx = false
     this._lastBookmark = bookmark
     this._transactionExecutor = _createTransactionExecutor(config)
+    this._onComplete = this._onCompleteCallback.bind(this)
   }
 
   /**
    * Run Cypher statement
    * Could be called with a statement object i.e.: `{text: "MATCH ...", prameters: {param: 1}}`
    * or with the statement and parameters as separate arguments.
+   *
+   * @public
    * @param {mixed} statement - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
@@ -100,41 +100,40 @@ class Session {
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    return this._run(query, params, (connection, streamObserver) =>
-      connection.protocol().run(query, params, streamObserver, {
+    return this._run(query, params, connection =>
+      connection.protocol().run(query, params, {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
-        database: this._database
+        database: this._database,
+        afterComplete: this._onComplete,
+        reactive: this._reactive
       })
     )
   }
 
-  _run (statement, parameters, statementRunner) {
-    const streamObserver = new SessionStreamObserver(this)
+  _run (statement, parameters, customRunner) {
     const connectionHolder = this._connectionHolderWithMode(this._mode)
+
+    let observerPromise
     if (!this._hasTx) {
       connectionHolder.initializeConnection()
-      connectionHolder
-        .getConnection(streamObserver)
-        .then(connection => statementRunner(connection, streamObserver))
-        .catch(error => streamObserver.onError(error))
+      observerPromise = connectionHolder
+        .getConnection()
+        .then(connection => customRunner(connection))
+        .catch(error => Promise.resolve(new FailedObserver({ error })))
     } else {
-      streamObserver.onError(
-        newError(
-          'Statements cannot be run directly on a ' +
-            'session with an open transaction; either run from within the ' +
-            'transaction or use a different session.'
-        )
+      observerPromise = Promise.resolve(
+        new FailedObserver({
+          error: newError(
+            'Statements cannot be run directly on a ' +
+              'session with an open transaction; either run from within the ' +
+              'transaction or use a different session.'
+          )
+        })
       )
     }
-    return new Result(
-      streamObserver,
-      statement,
-      parameters,
-      () => streamObserver.serverMetadata(),
-      connectionHolder
-    )
+    return new Result(observerPromise, statement, parameters, connectionHolder)
   }
 
   /**
@@ -173,11 +172,12 @@ class Session {
     connectionHolder.initializeConnection()
     this._hasTx = true
 
-    const tx = new Transaction(
+    const tx = new Transaction({
       connectionHolder,
-      this._transactionClosed.bind(this),
-      this._updateBookmark.bind(this)
-    )
+      onClose: this._transactionClosed.bind(this),
+      onBookmark: this._updateBookmark.bind(this),
+      reactive: this._reactive
+    })
     tx._begin(this._lastBookmark, txConfig)
     return tx
   }
@@ -192,7 +192,7 @@ class Session {
    * @return {string|null} a reference to a previous transaction
    */
   lastBookmark () {
-    return this._lastBookmark.maxBookmarkAsString()
+    return this._lastBookmark.values()
   }
 
   /**
@@ -252,20 +252,15 @@ class Session {
 
   /**
    * Close this session.
-   * @param {function()} callback - Function to be called after the session has been closed
-   * @return
+   * @return {Promise}
    */
-  close (callback = () => null) {
+  async close () {
     if (this._open) {
       this._open = false
       this._transactionExecutor.close()
-      this._readConnectionHolder.close().then(() => {
-        this._writeConnectionHolder.close().then(() => {
-          callback()
-        })
-      })
-    } else {
-      callback()
+
+      await this._readConnectionHolder.close()
+      await this._writeConnectionHolder.close()
     }
   }
 
@@ -278,21 +273,9 @@ class Session {
       throw newError('Unknown access mode: ' + mode)
     }
   }
-}
 
-/**
- * @private
- */
-class SessionStreamObserver extends StreamObserver {
-  constructor (session) {
-    super()
-    this._session = session
-  }
-
-  onCompleted (meta) {
-    super.onCompleted(meta)
-    const bookmark = new Bookmark(meta.bookmark)
-    this._session._updateBookmark(bookmark)
+  _onCompleteCallback (meta) {
+    this._updateBookmark(new Bookmark(meta.bookmark))
   }
 }
 

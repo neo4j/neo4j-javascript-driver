@@ -19,6 +19,7 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion } from '../src/internal/server-version'
+import TxConfig from '../src/internal/tx-config'
 
 describe('#integration transaction', () => {
   let driver
@@ -27,7 +28,7 @@ describe('#integration transaction', () => {
   let serverVersion
   let originalTimeout
 
-  beforeEach(done => {
+  beforeEach(async () => {
     // make jasmine timeout high enough to test unreachable bookmarks
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000
@@ -35,15 +36,14 @@ describe('#integration transaction', () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
 
-    session.run('MATCH (n) DETACH DELETE n').then(result => {
-      serverVersion = ServerVersion.fromString(result.summary.server.version)
-      done()
-    })
+    const result = await session.run('MATCH (n) DETACH DELETE n')
+    serverVersion = ServerVersion.fromString(result.summary.server.version)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-    driver.close()
+    await session.close()
+    await driver.close()
   })
 
   it('should commit simple case', done => {
@@ -119,7 +119,6 @@ describe('#integration transaction', () => {
     const tx = session.beginTransaction()
     tx.run('THIS IS NOT CYPHER').catch(error => {
       expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
-      driver.close()
       done()
     })
   })
@@ -129,58 +128,69 @@ describe('#integration transaction', () => {
     tx.run('THIS IS NOT CYPHER').subscribe({
       onError: error => {
         expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
-        driver.close()
         done()
       }
     })
   })
 
-  it('should handle failures on commit', done => {
+  it('should handle failures on commit', async () => {
     // When
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)')
-      .then(() => {
-        tx.run('THIS IS NOT CYPHER').catch(statementError => {
-          expectSyntaxError(statementError)
-
-          tx.run('CREATE (:TXNode2)').catch(() => {
-            tx.commit().catch(commitError => {
-              expect(commitError.error).toBeDefined()
-              driver.close()
-              done()
-            })
-          })
-        })
+    await tx.run('CREATE (:TXNode1)')
+    await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
+      jasmine.objectContaining({
+        code: 'Neo.ClientError.Statement.SyntaxError'
       })
-      .catch(console.log)
+    )
+
+    await expectAsync(tx.run('CREATE (:TXNode2)')).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Cannot run statement in this transaction, because .* error/
+        )
+      })
+    )
+    await expectAsync(tx.commit()).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Cannot commit this transaction, because .* error/
+        )
+      })
+    )
   })
 
-  it('should fail when committing on a failed query', done => {
+  it('should fail when committing on a failed query', async () => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)')
-      .then(() => {
-        tx.run('THIS IS NOT CYPHER').catch(() => {
-          tx.commit().catch(error => {
-            expect(error.error).toBeDefined()
-            driver.close()
-            done()
-          })
-        })
+    await tx.run('CREATE (:TXNode1)')
+    await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
+      jasmine.objectContaining({
+        code: 'Neo.ClientError.Statement.SyntaxError'
       })
-      .catch(console.log)
+    )
+    await expectAsync(tx.commit()).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Cannot commit this transaction, because .* error/
+        )
+      })
+    )
   })
 
-  it('should handle when committing when another statement fails', done => {
+  it('should handle when committing when another statement fails', async () => {
     // When
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)').then(() => {
-      tx.commit().catch(error => {
-        expect(error).toBeDefined()
-        driver.close()
-        done()
+
+    await expectAsync(tx.run('CREATE (:TXNode1)')).toBeResolved()
+    await expectAsync(tx.run('THIS IS NOT CYHER')).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(/Invalid input/)
       })
-    })
-    tx.run('THIS IS NOT CYPHER')
+    )
+    await expectAsync(tx.commit()).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(/Cannot commit this transaction/)
+      })
+    )
   })
 
   it('should handle rollbacks', done => {
@@ -210,73 +220,69 @@ describe('#integration transaction', () => {
       .catch(console.log)
   })
 
-  it('should fail when committing on a rolled back query', done => {
+  it('should fail when committing on a rolled back query', async () => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)')
-      .then(() => {
-        tx.rollback()
-          .then(() => {
-            tx.commit().catch(error => {
-              expect(error.error).toBeDefined()
-              driver.close()
-              done()
-            })
-          })
-          .catch(console.log)
+    await tx.run('CREATE (:TXNode1)')
+    await tx.rollback()
+
+    await expectAsync(tx.commit()).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Cannot commit this transaction, because .* rolled back/
+        )
       })
-      .catch(console.log)
+    )
   })
 
-  it('should fail when running on a rolled back transaction', done => {
+  it('should fail when running on a rolled back transaction', async () => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)')
-      .then(() => {
-        tx.rollback()
-          .then(() => {
-            tx.run('RETURN 42').catch(error => {
-              expect(error.error).toBeDefined()
-              driver.close()
-              done()
-            })
-          })
-          .catch(console.log)
+    await tx.run('CREATE (:TXNode1)')
+    await tx.rollback()
+
+    await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Cannot run statement in this transaction, because .* rolled back/
+        )
       })
-      .catch(console.log)
+    )
   })
 
-  it('should fail when running when a previous statement failed', done => {
+  it('should fail running when a previous statement failed', async () => {
     const tx = session.beginTransaction()
-    tx.run('THIS IS NOT CYPHER').catch(() => {
-      tx.run('RETURN 42').catch(error => {
-        expect(error.error).toBeDefined()
-        driver.close()
-        done()
+
+    await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
+      jasmine.stringMatching(/Invalid input/)
+    )
+
+    await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Cannot run statement in this transaction, because .* an error/
+        )
       })
-    })
-    tx.rollback()
+    )
+    await tx.rollback()
   })
 
-  it('should fail when trying to roll back a rolled back transaction', done => {
+  it('should fail when trying to roll back a rolled back transaction', async () => {
     const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)')
-      .then(() => {
-        tx.rollback()
-          .then(() => {
-            tx.rollback().catch(error => {
-              expect(error.error).toBeDefined()
-              driver.close()
-              done()
-            })
-          })
-          .catch(console.log)
+    await tx.run('CREATE (:TXNode1)')
+    await tx.rollback()
+
+    await expectAsync(tx.rollback()).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(
+          /Cannot rollback this transaction, because .* rolled back/
+        )
       })
-      .catch(console.log)
+    )
   })
 
   it('should provide bookmark on commit', done => {
     // new session without initial bookmark
     session = driver.session()
-    expect(session.lastBookmark()).toBeNull()
+    expect(session.lastBookmark()).toEqual([])
 
     const tx = session.beginTransaction()
     tx.run('CREATE (:TXNode1)')
@@ -296,7 +302,7 @@ describe('#integration transaction', () => {
   it('should have bookmark when tx is rolled back', done => {
     // new session without initial bookmark
     session = driver.session()
-    expect(session.lastBookmark()).toBeNull()
+    expect(session.lastBookmark()).toEqual([])
 
     const tx1 = session.beginTransaction()
     tx1.run('CREATE ()').then(() => {
@@ -327,7 +333,7 @@ describe('#integration transaction', () => {
   it('should have no bookmark when tx fails', done => {
     // new session without initial bookmark
     session = driver.session()
-    expect(session.lastBookmark()).toBeNull()
+    expect(session.lastBookmark()).toEqual([])
 
     const tx1 = session.beginTransaction()
 
@@ -382,10 +388,7 @@ describe('#integration transaction', () => {
             const tx2 = session2.beginTransaction()
             tx2.run('CREATE ()').catch(error => {
               const message = error.message
-              const expectedPrefix =
-                message.indexOf('Database not up to the requested version') ===
-                0
-              expect(expectedPrefix).toBeTruthy()
+              expect(message).toContain('not up to the requested version')
               done()
             })
           })
@@ -422,26 +425,24 @@ describe('#integration transaction', () => {
     })
   })
 
-  it('should fail to commit transaction that had run failures', done => {
+  it('should fail to commit transaction that had run failures', async () => {
     const tx1 = session.beginTransaction()
-    tx1.run('CREATE (:Person)').then(() => {
-      tx1.run('RETURN foo').catch(error => {
-        expectSyntaxError(error)
-        tx1.commit().catch(error => {
-          const errorMessage = error.error
-          const index = errorMessage.indexOf(
-            'Cannot commit statements in this transaction'
-          )
-          expect(index).not.toBeLessThan(0)
 
-          const tx2 = session.beginTransaction()
-          tx2.run('MATCH (n:Person) RETURN count(n)').then(result => {
-            expect(result.records[0].get(0).toNumber()).toEqual(0)
-            done()
-          })
-        })
+    await expectAsync(tx1.run('CREATE (:Person)')).toBeResolved()
+    await expectAsync(tx1.run('RETURN foo')).toBeRejectedWith(
+      jasmine.objectContaining({
+        code: 'Neo.ClientError.Statement.SyntaxError'
       })
-    })
+    )
+    await expectAsync(tx1.commit()).toBeRejectedWith(
+      jasmine.objectContaining({
+        message: jasmine.stringMatching(/Cannot commit this transaction/)
+      })
+    )
+
+    const tx2 = session.beginTransaction()
+    const result = await tx2.run('MATCH (n:Person) RETURN count(n)')
+    expect(result.records[0].get(0).toNumber()).toEqual(0)
   })
 
   it('should expose server info on successful query', done => {
@@ -480,7 +481,7 @@ describe('#integration transaction', () => {
     })
   })
 
-  it('should fail nicely for illegal statement', () => {
+  it('should fail nicely for illegal statement', async () => {
     const tx = session.beginTransaction()
 
     expect(() => tx.run()).toThrowError(TypeError)
@@ -574,6 +575,20 @@ describe('#integration transaction', () => {
       })
   })
 
+  it('should return empty promise on commit', async () => {
+    const tx = session.beginTransaction()
+    const result = await tx.commit()
+
+    expect(result).toBeUndefined()
+  })
+
+  it('should return empty promise on rollback', async () => {
+    const tx = session.beginTransaction()
+    const result = await tx.rollback()
+
+    expect(result).toBeUndefined()
+  })
+
   function expectSyntaxError (error) {
     expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
   }
@@ -591,26 +606,29 @@ describe('#integration transaction', () => {
     const session = localDriver.session()
     const tx = session.beginTransaction()
     tx.run('RETURN 1')
-      .then(() => {
-        tx.rollback()
-        session.close()
-        done.fail('Query did not fail')
-      })
-      .catch(error => {
-        tx.rollback()
-        session.close()
+      .then(() =>
+        tx
+          .rollback()
+          .then(() => session.close())
+          .then(() => done.fail('Query did not fail'))
+      )
+      .catch(error =>
+        tx
+          .rollback()
+          .then(() => session.close())
+          .then(() => {
+            expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
 
-        expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
+            // in some environments non-routable address results in immediate 'connection refused' error and connect
+            // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
+            if (error.message.indexOf('Failed to establish connection') === 0) {
+              expect(error.message).toEqual(
+                'Failed to establish connection in 1000ms'
+              )
+            }
 
-        // in some environments non-routable address results in immediate 'connection refused' error and connect
-        // timeout is not fired; skip message assertion for such cases, it is important for connect attempt to not hang
-        if (error.message.indexOf('Failed to establish connection') === 0) {
-          expect(error.message).toEqual(
-            'Failed to establish connection in 1000ms'
-          )
-        }
-
-        done()
-      })
+            done()
+          })
+      )
   }
 })

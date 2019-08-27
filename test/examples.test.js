@@ -19,6 +19,7 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
+import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 
 /**
  * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
@@ -27,13 +28,17 @@ import sharedNeo4j from './internal/shared-neo4j'
  * DO NOT add tests to this file that are not for that exact purpose.
  * DO NOT modify these tests without ensuring they remain consistent with the equivalent examples in other drivers
  */
+
 describe('#integration examples', () => {
+  const originalConsole = console
+
   let driverGlobal
-  let console
+  let version
   let originalTimeout
 
-  let testResultPromise
-  let resolveTestResultPromise
+  let consoleOverride
+  let consoleOverridePromise
+  let consoleOverridePromiseResolve
 
   const user = sharedNeo4j.username
   const password = sharedNeo4j.password
@@ -46,70 +51,63 @@ describe('#integration examples', () => {
     driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken)
   })
 
-  beforeEach(done => {
-    testResultPromise = new Promise((resolve, reject) => {
-      resolveTestResultPromise = resolve
+  beforeEach(async () => {
+    consoleOverridePromise = new Promise((resolve, reject) => {
+      consoleOverridePromiseResolve = resolve
     })
+    consoleOverride = { log: msg => consoleOverridePromiseResolve(msg) }
 
-    // Override console.log, to assert on stdout output
-    console = { log: resolveTestResultPromise }
-
-    const session = driverGlobal.session()
-    session.run('MATCH (n) DETACH DELETE n').then(() => {
-      session.close(() => {
-        done()
-      })
-    })
+    version = await sharedNeo4j.cleanupAndGetVersion(driverGlobal)
   })
 
-  afterAll(() => {
+  afterAll(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-    driverGlobal.close()
+    await driverGlobal.close()
   })
 
-  it('autocommit transaction example', done => {
+  it('autocommit transaction example', async () => {
     const driver = driverGlobal
 
     // tag::autocommit-transaction[]
-    function addPerson (name) {
+    async function addPerson (name) {
       const session = driver.session()
-      return session
-        .run('CREATE (a:Person {name: $name})', { name: name })
-        .then(result => {
-          session.close()
-          return result
+      try {
+        return await session.run('CREATE (a:Person {name: $name})', {
+          name: name
         })
+      } finally {
+        await session.close()
+      }
     }
 
     // end::autocommit-transaction[]
 
-    addPerson('Alice').then(() => {
-      const session = driver.session()
-      session
-        .run('MATCH (a:Person {name: $name}) RETURN count(a) AS result', {
+    await addPerson('Alice')
+
+    const session = driver.session()
+    try {
+      const result = await session.run(
+        'MATCH (a:Person {name: $name}) RETURN count(a) AS result',
+        {
           name: 'Alice'
-        })
-        .then(result => {
-          session.close(() => {
-            expect(result.records[0].get('result').toInt()).toEqual(1)
-            done()
-          })
-        })
-    })
+        }
+      )
+      expect(result.records[0].get('result').toInt()).toEqual(1)
+    } finally {
+      await session.close()
+    }
   })
 
-  it('basic auth example', done => {
+  it('basic auth example', async () => {
     // tag::basic-auth[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
     // end::basic-auth[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config connection pool example', done => {
+  it('config connection pool example', async () => {
     // tag::config-connection-pool[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       maxConnectionLifetime: 3 * 60 * 60 * 1000, // 3 hours
@@ -118,26 +116,22 @@ describe('#integration examples', () => {
     })
     // end::config-connection-pool[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config connection timeout example', done => {
+  it('config connection timeout example', async () => {
     // tag::config-connection-timeout[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       connectionTimeout: 20 * 1000 // 20 seconds
     })
     // end::config-connection-timeout[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config max retry time example', done => {
+  it('config max retry time example', async () => {
     // tag::config-max-retry-time[]
     const maxRetryTimeMs = 15 * 1000 // 15 seconds
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
@@ -145,13 +139,11 @@ describe('#integration examples', () => {
     })
     // end::config-max-retry-time[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config trust example', done => {
+  it('config trust example', async () => {
     // tag::config-trust[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       encrypted: 'ENCRYPTION_ON',
@@ -159,23 +151,19 @@ describe('#integration examples', () => {
     })
     // end::config-trust[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('config unencrypted example', done => {
+  it('config unencrypted example', async () => {
     // tag::config-unencrypted[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
       encrypted: 'ENCRYPTION_OFF'
     })
     // end::config-unencrypted[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
   /* eslint-disable no-unused-vars */
@@ -197,10 +185,8 @@ describe('#integration examples', () => {
 
       session
         .run('CREATE (n:Person { name: $name })', { name: name })
-        .then(() => {
-          session.close()
-          driver.close()
-        })
+        .then(() => session.close())
+        .then(() => driver.close())
     }
     // end::config-custom-resolver[]
 
@@ -208,7 +194,7 @@ describe('#integration examples', () => {
   })
   /* eslint-enable no-unused-vars */
 
-  it('custom auth example', done => {
+  it('custom auth example', async () => {
     const principal = user
     const credentials = password
     const realm = undefined
@@ -222,286 +208,267 @@ describe('#integration examples', () => {
     )
     // end::custom-auth[]
 
-    driver.verifyConnectivity().then(() => {
-      driver.close()
-      done()
-    })
+    await driver.verifyConnectivity()
+    await driver.close()
   })
 
-  it('kerberos auth example', () => {
+  it('kerberos auth example', async () => {
     const ticket = 'a base64 encoded ticket'
 
     // tag::kerberos-auth[]
     const driver = neo4j.driver(uri, neo4j.auth.kerberos(ticket))
     // end::kerberos-auth[]
 
-    driver.close()
+    await driver.close()
   })
 
-  it('cypher error example', done => {
+  it('cypher error example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     const driver = driverGlobal
     const personName = 'Bob'
 
     // tag::cypher-error[]
     const session = driver.session()
-
-    const readTxPromise = session.readTransaction(tx =>
-      tx.run('SELECT * FROM Employees WHERE name = $name', { name: personName })
-    )
-
-    readTxPromise.catch(error => {
-      session.close()
+    try {
+      await session.readTransaction(tx =>
+        tx.run('SELECT * FROM Employees WHERE name = $name', {
+          name: personName
+        })
+      )
+    } catch (error) {
       console.log(error.message)
-    })
+    } finally {
+      await session.close()
+    }
     // end::cypher-error[]
 
-    testResultPromise.then(loggedMsg => {
-      expect(removeLineBreaks(loggedMsg)).toBe(
-        removeLineBreaks(
-          "Invalid input 'L': expected 't/T' (line 1, column 3 (offset: 2))\n" +
-            '"SELECT * FROM Employees WHERE name = $name"\n' +
-            '   ^'
-        )
+    expect(removeLineBreaks(await consoleLoggedMsg)).toBe(
+      removeLineBreaks(
+        "Invalid input 'L': expected 't/T' (line 1, column 3 (offset: 2))\n" +
+          '"SELECT * FROM Employees WHERE name = $name"\n' +
+          '   ^'
       )
-      done()
-    })
+    )
   })
 
-  it('driver lifecycle example', done => {
+  it('driver lifecycle example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
+
     // tag::driver-lifecycle[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
 
-    driver
-      .verifyConnectivity()
-      .then(() => {
-        console.log('Driver created')
-      })
-      .catch(error => {
-        console.log(`connectivity verification failed. ${error}`)
-      })
+    try {
+      await driver.verifyConnectivity()
+      console.log('Driver created')
+    } catch (error) {
+      console.log(`connectivity verification failed. ${error}`)
+    }
 
     const session = driver.session()
-    session
-      .run('CREATE (i:Item)')
-      .then(() => {
-        session.close()
+    try {
+      await session.run('CREATE (i:Item)')
+    } catch (error) {
+      console.log(`unable to execute statement. ${error}`)
+    } finally {
+      await session.close()
+    }
 
-        // ... on application exit:
-        driver.close()
-      })
-      .catch(error => {
-        console.log(`unable to execute statement. ${error}`)
-      })
+    // ... on application exit:
+    await driver.close()
     // end::driver-lifecycle[]
 
-    testResultPromise.then(loggedMsg => {
-      expect(loggedMsg).toEqual('Driver created')
-      done()
-    })
+    expect(await consoleLoggedMsg).toEqual('Driver created')
   })
 
-  it('hello world example', done => {
+  it('hello world example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     // tag::hello-world[]
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
     const session = driver.session()
 
-    const resultPromise = session.writeTransaction(tx =>
-      tx.run(
-        'CREATE (a:Greeting) SET a.message = $message RETURN a.message + ", from node " + id(a)',
-        { message: 'hello, world' }
+    try {
+      const result = await session.writeTransaction(tx =>
+        tx.run(
+          'CREATE (a:Greeting) SET a.message = $message RETURN a.message + ", from node " + id(a)',
+          { message: 'hello, world' }
+        )
       )
-    )
-
-    resultPromise.then(result => {
-      session.close()
 
       const singleRecord = result.records[0]
       const greeting = singleRecord.get(0)
 
       console.log(greeting)
+    } finally {
+      await session.close()
+    }
 
-      // on application exit:
-      driver.close()
-    })
+    // on application exit:
+    await driver.close()
     // end::hello-world[]
 
-    testResultPromise.then(loggedMsg => {
-      expect(loggedMsg.indexOf('hello, world, from node') === 0).toBeTruthy()
-      done()
-    })
+    expect(await consoleLoggedMsg).toContain('hello, world, from node')
   })
 
   const require = () => {
     return neo4j
   }
 
-  it('language guide page example', done => {
+  it('language guide page example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     // tag::language-guide-page[]
     const neo4j = require('neo4j-driver')
 
     const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
     const session = driver.session()
-
     const personName = 'Alice'
-    const resultPromise = session.run(
-      'CREATE (a:Person {name: $name}) RETURN a',
-      { name: personName }
-    )
 
-    resultPromise.then(result => {
-      session.close()
+    try {
+      const result = await session.run(
+        'CREATE (a:Person {name: $name}) RETURN a',
+        { name: personName }
+      )
 
       const singleRecord = result.records[0]
       const node = singleRecord.get(0)
 
       console.log(node.properties.name)
+    } finally {
+      await session.close()
+    }
 
-      // on application exit:
-      driver.close()
-    })
+    // on application exit:
+    await driver.close()
     // end::language-guide-page[]
 
-    testResultPromise.then(loggedMsg => {
-      expect(loggedMsg).toEqual(personName)
-      done()
-    })
+    expect(await consoleLoggedMsg).toEqual(personName)
   })
 
-  it('read write transaction example', done => {
+  it('read write transaction example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     const driver = driverGlobal
     const personName = 'Alice'
 
     // tag::read-write-transaction[]
     const session = driver.session()
 
-    const writeTxPromise = session.writeTransaction(tx =>
-      tx.run('CREATE (a:Person {name: $name})', { name: personName })
-    )
+    try {
+      await session.writeTransaction(tx =>
+        tx.run('CREATE (a:Person {name: $name})', { name: personName })
+      )
 
-    writeTxPromise.then(() => {
-      const readTxPromise = session.readTransaction(tx =>
+      const result = await session.readTransaction(tx =>
         tx.run('MATCH (a:Person {name: $name}) RETURN id(a)', {
           name: personName
         })
       )
 
-      readTxPromise.then(result => {
-        session.close()
+      const singleRecord = result.records[0]
+      const createdNodeId = singleRecord.get(0)
 
-        const singleRecord = result.records[0]
-        const createdNodeId = singleRecord.get(0)
-
-        console.log('Matched created node with id: ' + createdNodeId)
-      })
-    })
+      console.log('Matched created node with id: ' + createdNodeId)
+    } finally {
+      await session.close()
+    }
     // end::read-write-transaction[]
 
-    testResultPromise.then(loggedMsg => {
-      expect(
-        loggedMsg.indexOf('Matched created node with id') === 0
-      ).toBeTruthy()
-      done()
-    })
+    expect(await consoleLoggedMsg).toContain('Matched created node with id')
   })
 
-  it('result consume example', done => {
+  it('result consume example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     const driver = driverGlobal
     const names = { nameA: 'Alice', nameB: 'Bob' }
     const tmpSession = driver.session()
+    try {
+      await tmpSession.run(
+        'CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})',
+        names
+      )
+      // tag::result-consume[]
+      const session = driver.session()
+      const result = session.run(
+        'MATCH (a:Person) RETURN a.name ORDER BY a.name'
+      )
+      const collectedNames = []
 
-    tmpSession
-      .run('CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})', names)
-      .then(() => {
-        tmpSession.close(() => {
-          // tag::result-consume[]
-          const session = driver.session()
-          const result = session.run(
-            'MATCH (a:Person) RETURN a.name ORDER BY a.name'
-          )
-          const collectedNames = []
-
-          result.subscribe({
-            onNext: record => {
-              const name = record.get(0)
-              collectedNames.push(name)
-            },
-            onCompleted: () => {
-              session.close()
-
-              console.log('Names: ' + collectedNames.join(', '))
-            },
-            onError: error => {
-              console.log(error)
-            }
+      result.subscribe({
+        onNext: record => {
+          const name = record.get(0)
+          collectedNames.push(name)
+        },
+        onCompleted: () => {
+          session.close().then(() => {
+            console.log('Names: ' + collectedNames.join(', '))
           })
-          // end::result-consume[]
-        })
+        },
+        onError: error => {
+          console.log(error)
+        }
       })
+      // end::result-consume[]
+    } finally {
+      await tmpSession.close()
+    }
 
-    testResultPromise.then(loggedMsg => {
-      expect(loggedMsg).toEqual('Names: Alice, Bob')
-      done()
-    })
+    expect(await consoleLoggedMsg).toEqual('Names: Alice, Bob')
   })
 
-  it('result retain example', done => {
+  it('result retain example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     const driver = driverGlobal
     const companyName = 'Acme'
     const personNames = { nameA: 'Alice', nameB: 'Bob' }
     const tmpSession = driver.session()
 
-    tmpSession
-      .run(
+    try {
+      await tmpSession.run(
         'CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})',
         personNames
       )
-      .then(() => {
-        tmpSession.close(() => {
-          // tag::result-retain[]
-          const session = driver.session()
 
-          const readTxPromise = session.readTransaction(tx =>
-            tx.run('MATCH (a:Person) RETURN a.name AS name')
+      // tag::result-retain[]
+      const session = driver.session()
+      try {
+        const result = await session.readTransaction(tx =>
+          tx.run('MATCH (a:Person) RETURN a.name AS name')
+        )
+
+        const nameRecords = result.records
+        for (let i = 0; i < nameRecords.length; i++) {
+          const name = nameRecords[i].get('name')
+
+          await session.writeTransaction(tx =>
+            tx.run(
+              'MATCH (emp:Person {name: $person_name}) ' +
+                'MERGE (com:Company {name: $company_name}) ' +
+                'MERGE (emp)-[:WORKS_FOR]->(com)',
+              { person_name: name, company_name: companyName }
+            )
           )
+        }
 
-          const addEmployeesPromise = readTxPromise.then(result => {
-            const nameRecords = result.records
+        console.log(`Created ${nameRecords.length} employees`)
+      } finally {
+        await session.close()
+      }
+      // end::result-retain[]
+    } finally {
+      await tmpSession.close()
+    }
 
-            let writeTxsPromise = Promise.resolve()
-            for (let i = 0; i < nameRecords.length; i++) {
-              const name = nameRecords[i].get('name')
-
-              writeTxsPromise = writeTxsPromise.then(() =>
-                session.writeTransaction(tx =>
-                  tx.run(
-                    'MATCH (emp:Person {name: $person_name}) ' +
-                      'MERGE (com:Company {name: $company_name}) ' +
-                      'MERGE (emp)-[:WORKS_FOR]->(com)',
-                    { person_name: name, company_name: companyName }
-                  )
-                )
-              )
-            }
-
-            return writeTxsPromise.then(() => nameRecords.length)
-          })
-
-          addEmployeesPromise.then(employeesCreated => {
-            session.close()
-            console.log('Created ' + employeesCreated + ' employees')
-          })
-          // end::result-retain[]
-        })
-      })
-
-    testResultPromise.then(loggedMsg => {
-      driver.close()
-      expect(loggedMsg).toEqual('Created 2 employees')
-      done()
-    })
+    expect(await consoleLoggedMsg).toEqual('Created 2 employees')
   })
 
   it('service unavailable example', done => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     const uri = 'bolt://localhost:7688' // wrong port
     const password = 'wrongPassword'
 
@@ -522,60 +489,58 @@ describe('#integration examples', () => {
     })
     // end::service-unavailable[]
 
-    testResultPromise.then(loggedMsg => {
-      driver.close()
-      expect(loggedMsg).toBe(
-        'Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE
-      )
-      done()
-    })
+    consoleLoggedMsg
+      .then(loggedMsg => {
+        expect(loggedMsg).toBe(
+          'Unable to create node: ' + neo4j.error.SERVICE_UNAVAILABLE
+        )
+      })
+      .then(() => driver.close())
+      .then(() => done())
   })
 
-  it('session example', done => {
+  it('session example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     const driver = driverGlobal
     const personName = 'Alice'
 
     // tag::session[]
     const session = driver.session()
 
-    session
-      .run('CREATE (a:Person {name: $name})', { name: personName })
-      .then(() => {
-        session.close(() => {
-          console.log('Person created, session closed')
-        })
-      })
+    try {
+      await session.run('CREATE (a:Person {name: $name})', { name: personName })
+      console.log('Person created, session closed')
+    } finally {
+      await session.close()
+    }
     // end::session[]
 
-    testResultPromise.then(loggedMsg => {
-      expect(loggedMsg).toBe('Person created, session closed')
-      done()
-    })
+    expect(await consoleLoggedMsg).toBe('Person created, session closed')
   })
 
-  it('transaction function example', done => {
+  it('transaction function example', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
     const driver = driverGlobal
     const personName = 'Alice'
 
     // tag::transaction-function[]
     const session = driver.session()
-    const writeTxPromise = session.writeTransaction(tx =>
-      tx.run('CREATE (a:Person {name: $name})', { name: personName })
-    )
-
-    writeTxPromise.then(result => {
-      session.close()
+    try {
+      const result = await session.writeTransaction(tx =>
+        tx.run('CREATE (a:Person {name: $name})', { name: personName })
+      )
 
       if (result) {
         console.log('Person created')
       }
-    })
+    } finally {
+      await session.close()
+    }
     // end::transaction-function[]
 
-    testResultPromise.then(loggedMsg => {
-      expect(loggedMsg).toBe('Person created')
-      done()
-    })
+    expect(await consoleLoggedMsg).toBe('Person created')
   })
 
   it('pass bookmarks example', done => {
@@ -645,9 +610,8 @@ describe('#integration examples', () => {
       )
       .then(() => {
         savedBookmarks.push(session1.lastBookmark())
-
-        return session1.close()
       })
+      .then(() => session1.close())
 
     // Create the second person and employment relationship.
     const session2 = driver.session({ defaultAccessMode: neo4j.WRITE })
@@ -659,12 +623,11 @@ describe('#integration examples', () => {
       )
       .then(() => {
         savedBookmarks.push(session2.lastBookmark())
-
-        return session2.close()
       })
+      .then(() => session2.close())
 
     // Create a friendship between the two people created above.
-    const last = Promise.all([first, second]).then(ignore => {
+    const last = Promise.all([first, second]).then(() => {
       const session3 = driver.session({
         defaultAccessMode: neo4j.WRITE,
         bookmarks: savedBookmarks

@@ -50,7 +50,7 @@ class Record {
   /**
    * Create a new record object.
    * @constructor
-   * @access private
+   * @protected
    * @param {string[]} keys An array of field keys, in the order the fields appear in the record
    * @param {Array} fields An array of field values
    * @param {Object} fieldLookup An object of fieldName -> value index, used to map
@@ -58,7 +58,15 @@ class Record {
    *                            generated.
    */
   constructor (keys, fields, fieldLookup = null) {
+    /**
+     * Field keys, in the order the fields appear in the record.
+     * @type {string[]}
+     */
     this.keys = keys
+    /**
+     * Number of fields
+     * @type {Number}
+     */
     this.length = keys.length
     this._fields = fields
     this._fieldLookup = fieldLookup || generateFieldLookup(keys)

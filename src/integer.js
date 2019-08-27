@@ -854,7 +854,7 @@ Integer.toNumber = function (val) {
  * @access private
  * @param {!Integer|number|string|!{low: number, high: number}} val Value
  * @param {number} radix optional radix for string conversion, defaults to 10
- * @returns {String}
+ * @returns {string}
  * @expose
  */
 Integer.toString = function (val, radix) {
@@ -1007,7 +1007,7 @@ let toNumber = Integer.toNumber
  * @access public
  * @param {Mixed} value - The variable to convert
  * @param {number} radix - radix to use in string conversion, defaults to 10
- * @return {String} - returns a string representation of the integer
+ * @return {string} - returns a string representation of the integer
  */
 let toString = Integer.toString
 

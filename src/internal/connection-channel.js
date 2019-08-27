@@ -23,6 +23,8 @@ import { newError, PROTOCOL_ERROR } from '../error'
 import ChannelConfig from './channel-config'
 import ProtocolHandshaker from './protocol-handshaker'
 import Connection from './connection'
+import BoltProtocol from './bolt-protocol-v1'
+import { ResultStreamObserver } from './stream-observers'
 
 // Signature bytes for each response message type
 const SUCCESS = 0x70 // 0111 0000 // SUCCESS <metadata>
@@ -74,6 +76,10 @@ export default class ChannelConnection extends Connection {
     this._dbConnectionId = null
 
     // bolt protocol is initially not initialized
+    /**
+     * @private
+     * @type {BoltProtocol}
+     */
     this._protocol = null
 
     // error extracted from a FAILURE message
@@ -90,7 +96,7 @@ export default class ChannelConnection extends Connection {
   /**
    * Crete new connection to the provided address. Returned connection is not connected.
    * @param {ServerAddress} address - the Bolt endpoint to connect to.
-   * @param {object} config - the driver configuration.
+   * @param {Object} config - the driver configuration.
    * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
    * @param {Logger} log - configured logger.
    * @return {Connection} - new connection.
@@ -125,7 +131,7 @@ export default class ChannelConnection extends Connection {
   /**
    * Connect to the target address, negotiate Bolt protocol and send initialization message.
    * @param {string} userAgent the user agent for this driver.
-   * @param {object} authToken the object containing auth information.
+   * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
   connect (userAgent, authToken) {
@@ -193,13 +199,18 @@ export default class ChannelConnection extends Connection {
   /**
    * Perform protocol-specific initialization which includes authentication.
    * @param {string} userAgent the user agent for this driver.
-   * @param {object} authToken the object containing auth information.
+   * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if initialization is successful. Rejected promise otherwise.
    */
   _initialize (userAgent, authToken) {
+    const self = this
     return new Promise((resolve, reject) => {
-      const observer = new InitializationObserver(this, resolve, reject)
-      this._protocol.initialize(userAgent, authToken, observer)
+      this._protocol.initialize({
+        userAgent,
+        authToken,
+        onError: err => reject(err),
+        onComplete: () => resolve(self)
+      })
     })
   }
 
@@ -236,7 +247,7 @@ export default class ChannelConnection extends Connection {
   /**
    * Write a message to the network channel.
    * @param {RequestMessage} message the message to write.
-   * @param {StreamObserver} observer the response observer.
+   * @param {ResultStreamObserver} observer the response observer.
    * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
    */
   write (message, observer, flush) {
@@ -251,8 +262,7 @@ export default class ChannelConnection extends Connection {
         .packer()
         .packStruct(
           message.signature,
-          message.fields.map(field => this._packable(field)),
-          err => this._handleFatalError(err)
+          message.fields.map(field => this._packable(field))
         )
 
       this._chunker.messageBoundary()
@@ -365,12 +375,6 @@ export default class ChannelConnection extends Connection {
   resetAndFlush () {
     return new Promise((resolve, reject) => {
       this._protocol.reset({
-        onNext: record => {
-          const neo4jError = this._handleProtocolError(
-            'Received RECORD as a response for RESET: ' + JSON.stringify(record)
-          )
-          reject(neo4jError)
-        },
         onError: error => {
           if (this._isBroken) {
             // handling a fatal error, no need to raise a protocol violation
@@ -382,7 +386,7 @@ export default class ChannelConnection extends Connection {
             reject(neo4jError)
           }
         },
-        onCompleted: () => {
+        onComplete: () => {
           resolve()
         }
       })
@@ -391,16 +395,10 @@ export default class ChannelConnection extends Connection {
 
   _resetOnFailure () {
     this._protocol.reset({
-      onNext: record => {
-        this._handleProtocolError(
-          'Received RECORD as a response for RESET: ' + JSON.stringify(record)
-        )
-      },
-      // clear the current failure when response for RESET is received
       onError: () => {
         this._currentFailure = null
       },
-      onCompleted: () => {
+      onComplete: () => {
         this._currentFailure = null
       }
     })
@@ -440,9 +438,9 @@ export default class ChannelConnection extends Connection {
 
   /**
    * Call close on the channel.
-   * @param {function} cb - Function to call on close.
+   * @returns {Promise<void>} - A promise that will be resolved when the underlying channel is closed.
    */
-  close (cb = () => null) {
+  async close () {
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} closing`)
     }
@@ -450,15 +448,14 @@ export default class ChannelConnection extends Connection {
     if (this._protocol && this.isOpen()) {
       // protocol has been initialized and this connection is healthy
       // notify the database about the upcoming close of the connection
-      this._protocol.prepareToClose(NO_OP_OBSERVER)
+      this._protocol.prepareToClose()
     }
 
-    this._ch.close(() => {
-      if (this._log.isDebugEnabled()) {
-        this._log.debug(`${this} closed`)
-      }
-      cb()
-    })
+    await this._ch.close()
+
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${this} closed`)
+    }
   }
 
   toString () {
@@ -466,9 +463,7 @@ export default class ChannelConnection extends Connection {
   }
 
   _packable (value) {
-    return this._protocol
-      .packer()
-      .packable(value, err => this._handleFatalError(err))
+    return this._protocol.packer().packable(value)
   }
 
   _handleProtocolError (message) {
@@ -477,44 +472,5 @@ export default class ChannelConnection extends Connection {
     const error = newError(message, PROTOCOL_ERROR)
     this._handleFatalError(error)
     return error
-  }
-}
-
-class InitializationObserver {
-  constructor (connection, onSuccess, onError) {
-    this._connection = connection
-    this._onSuccess = onSuccess
-    this._onError = onError
-  }
-
-  onNext (record) {
-    this.onError(
-      newError('Received RECORD when initializing ' + JSON.stringify(record))
-    )
-  }
-
-  onError (error) {
-    this._connection._updateCurrentObserver() // make sure this exact observer will not be called again
-    this._connection._handleFatalError(error) // initialization errors are fatal
-
-    this._onError(error)
-  }
-
-  onCompleted (metadata) {
-    if (metadata) {
-      // read server version from the response metadata, if it is available
-      const serverVersion = metadata.server
-      if (!this._connection.version) {
-        this._connection.version = serverVersion
-      }
-
-      // read database connection id from the response metadata, if it is available
-      const dbConnectionId = metadata.connection_id
-      if (!this._connection.databaseId) {
-        this._connection.databaseId = dbConnectionId
-      }
-    }
-
-    this._onSuccess(this._connection)
   }
 }

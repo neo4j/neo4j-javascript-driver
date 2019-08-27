@@ -12,3 +12,7 @@ docs/build
 .npmrc
 *.iml
 /lib
+.nyc_output
+coverage
+.vscode
+*.code-workspace

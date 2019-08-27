@@ -27,22 +27,19 @@ describe('#integration Bolt V4 API', () => {
   let serverVersion
   let originalTimeout
 
-  beforeEach(done => {
+  beforeEach(async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
 
-    session.run('MATCH (n) DETACH DELETE n').then(result => {
-      serverVersion = ServerVersion.fromString(result.summary.server.version)
-      done()
-    })
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-    session.close()
-    driver.close()
+    await session.close()
+    await driver.close()
   })
 
   describe('multi-database', () => {
@@ -60,7 +57,6 @@ describe('#integration Bolt V4 API', () => {
           .then(() => done.fail('Failure expected'))
           .catch(error => {
             expectBoltV4NotSupportedError(error)
-            session.close()
             done()
           })
       })
@@ -78,7 +74,6 @@ describe('#integration Bolt V4 API', () => {
           .then(() => done.fail('Failure expected'))
           .catch(error => {
             expectBoltV4NotSupportedError(error)
-            session.close()
             done()
           })
       })
@@ -96,7 +91,6 @@ describe('#integration Bolt V4 API', () => {
           .then(() => done.fail('Failure expected'))
           .catch(error => {
             expectBoltV4NotSupportedError(error)
-            session.close()
             done()
           })
       })
@@ -114,7 +108,6 @@ describe('#integration Bolt V4 API', () => {
           .then(() => done.fail('Failure expected'))
           .catch(error => {
             expectBoltV4NotSupportedError(error)
-            session.close()
             done()
           })
       })
@@ -125,15 +118,10 @@ describe('#integration Bolt V4 API', () => {
         }
 
         const session = driver.session()
+        const result = await session.readTransaction(tx => tx.run('RETURN 1'))
 
-        try {
-          const result = await session.readTransaction(tx => tx.run('RETURN 1'))
-
-          expect(result.summary.database).toBeTruthy()
-          expect(result.summary.database.name).toBeNull()
-        } finally {
-          session.close()
-        }
+        expect(result.summary.database).toBeTruthy()
+        expect(result.summary.database.name).toBeNull()
       })
     })
 
@@ -151,7 +139,7 @@ describe('#integration Bolt V4 API', () => {
       } catch (error) {
         expect(error.code).toContain('DatabaseNotFound')
       } finally {
-        neoSession.close()
+        await neoSession.close()
       }
     })
 
@@ -182,7 +170,7 @@ describe('#integration Bolt V4 API', () => {
           expect(result.records.length).toBe(1)
           expect(result.records[0].get('n.name')).toBe('neo4j')
         } finally {
-          neoSession.close()
+          await neoSession.close()
         }
       })
 
@@ -206,8 +194,8 @@ describe('#integration Bolt V4 API', () => {
           expect(result.records.length).toBe(1)
           expect(result.records[0].get('n.name')).toBe('neo4j')
         } finally {
-          neoSession.close()
-          neoDriver.close()
+          await neoSession.close()
+          await neoDriver.close()
         }
       })
     })
@@ -230,7 +218,7 @@ describe('#integration Bolt V4 API', () => {
       expect(result.summary.database).toBeTruthy()
       expect(result.summary.database.name).toBe(database || 'neo4j')
     } finally {
-      neoSession.close()
+      await neoSession.close()
     }
   }
 

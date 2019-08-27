@@ -23,6 +23,7 @@ import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
 import utils from './test-utils'
+import { LoginObserver } from '../../src/internal/stream-observers'
 
 describe('#unit BoltProtocolV1', () => {
   beforeEach(() => {
@@ -56,11 +57,22 @@ describe('#unit BoltProtocolV1', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
+    const onError = error => {}
+    const onComplete = () => {}
     const clientName = 'js-driver/1.2.3'
     const authToken = { username: 'neo4j', password: 'secret' }
-    const observer = {}
 
-    protocol.initialize(clientName, authToken, observer)
+    const observer = protocol.initialize({
+      userAgent: clientName,
+      authToken,
+      onError,
+      onComplete
+    })
+
+    expect(observer).toBeTruthy()
+    expect(observer instanceof LoginObserver).toBeTruthy()
+    expect(observer._afterError).toBe(onError)
+    expect(observer._afterComplete).toBe(onComplete)
 
     recorder.verifyMessageCount(1)
     expect(recorder.messages[0]).toBeMessage(
@@ -76,9 +88,7 @@ describe('#unit BoltProtocolV1', () => {
 
     const statement = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
-    const observer = {}
-
-    protocol.run(statement, parameters, observer, {
+    const observer = protocol.run(statement, parameters, {
       bookmark: Bookmark.empty(),
       txConfig: TxConfig.empty(),
       mode: WRITE
@@ -98,9 +108,7 @@ describe('#unit BoltProtocolV1', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
-    const observer = {}
-
-    protocol.reset(observer)
+    const observer = protocol.reset()
 
     recorder.verifyMessageCount(1)
     expect(recorder.messages[0]).toBeMessage(RequestMessage.reset())
@@ -113,9 +121,8 @@ describe('#unit BoltProtocolV1', () => {
     const protocol = new BoltProtocolV1(recorder, null, false)
 
     const bookmark = new Bookmark('neo4j:bookmark:v1:tx42')
-    const observer = {}
 
-    protocol.beginTransaction(observer, {
+    const observer = protocol.beginTransaction({
       bookmark: bookmark,
       txConfig: TxConfig.empty(),
       mode: WRITE
@@ -135,9 +142,7 @@ describe('#unit BoltProtocolV1', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
-    const observer = {}
-
-    protocol.commitTransaction(observer)
+    const observer = protocol.commitTransaction()
 
     recorder.verifyMessageCount(2)
 
@@ -151,9 +156,7 @@ describe('#unit BoltProtocolV1', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
-    const observer = {}
-
-    protocol.rollbackTransaction(observer)
+    const observer = protocol.rollbackTransaction()
 
     recorder.verifyMessageCount(2)
 
@@ -164,14 +167,14 @@ describe('#unit BoltProtocolV1', () => {
   })
 
   describe('Bolt V3', () => {
+    /**
+     * @param {function(protocol: BoltProtocolV1)} fn
+     */
     function verifyError (fn) {
       const recorder = new utils.MessageRecordingConnection()
       const protocol = new BoltProtocolV1(recorder, null, false)
-      const observer = {
-        onError: () => {}
-      }
 
-      expect(() => fn(protocol, observer)).toThrowError(
+      expect(() => fn(protocol)).toThrowError(
         'Driver is connected to the database that does not support transaction configuration. ' +
           'Please upgrade to neo4j 3.5.0 or later in order to use this functionality'
       )
@@ -179,9 +182,7 @@ describe('#unit BoltProtocolV1', () => {
 
     describe('beginTransaction', () => {
       function verifyBeginTransaction (txConfig) {
-        verifyError((protocol, observer) =>
-          protocol.beginTransaction(observer, { txConfig })
-        )
+        verifyError(protocol => protocol.beginTransaction({ txConfig }))
       }
 
       it('should throw error when txConfig.timeout is set', () => {
@@ -202,7 +203,7 @@ describe('#unit BoltProtocolV1', () => {
     describe('run', () => {
       function verifyRun (txConfig) {
         verifyError((protocol, observer) =>
-          protocol.run('statement', {}, observer, { txConfig })
+          protocol.run('statement', {}, { txConfig })
         )
       }
 
@@ -221,14 +222,14 @@ describe('#unit BoltProtocolV1', () => {
   })
 
   describe('Bolt V4', () => {
+    /**
+     * @param {function(protocol: BoltProtocolV1)} fn
+     */
     function verifyError (fn) {
       const recorder = new utils.MessageRecordingConnection()
       const protocol = new BoltProtocolV1(recorder, null, false)
-      const observer = {
-        onError: () => {}
-      }
 
-      expect(() => fn(protocol, observer)).toThrowError(
+      expect(() => fn(protocol)).toThrowError(
         'Driver is connected to the database that does not support multiple databases. ' +
           'Please upgrade to neo4j 4.0.0 or later in order to use this functionality'
       )
@@ -236,9 +237,7 @@ describe('#unit BoltProtocolV1', () => {
 
     describe('beginTransaction', () => {
       function verifyBeginTransaction (database) {
-        verifyError((protocol, observer) =>
-          protocol.beginTransaction(observer, { database })
-        )
+        verifyError(protocol => protocol.beginTransaction({ database }))
       }
 
       it('should throw error when database is set', () => {
@@ -248,9 +247,7 @@ describe('#unit BoltProtocolV1', () => {
 
     describe('run', () => {
       function verifyRun (database) {
-        verifyError((protocol, observer) =>
-          protocol.run('statement', {}, observer, { database })
-        )
+        verifyError(protocol => protocol.run('statement', {}, { database }))
       }
 
       it('should throw error when database is set', () => {

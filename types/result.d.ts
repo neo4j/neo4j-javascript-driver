@@ -25,15 +25,16 @@ declare type StatementResult = {
   summary: ResultSummary
 }
 
-declare type Observer = {
+declare type ResultObserver = {
+  onKeys?(keys: string[]): void
   onNext?(record: Record): void
   onCompleted?(summary: ResultSummary): void
   onError?(error: Error): void
 }
 
 declare interface Result extends Promise<StatementResult> {
-  subscribe(observer: Observer): void
+  subscribe(observer: ResultObserver): void
 }
 
-export { StatementResult, Observer }
+export { StatementResult, ResultObserver }
 export default Result

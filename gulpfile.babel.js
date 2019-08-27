@@ -168,15 +168,13 @@ gulp.task('set', function () {
     .pipe(gulp.dest('./'))
 })
 
-const neo4jHome = path.resolve('./build/neo4j')
-
 gulp.task('start-neo4j', function (done) {
-  sharedNeo4j.start(neo4jHome, process.env.NEOCTRL_ARGS)
+  sharedNeo4j.start()
   done()
 })
 
 gulp.task('stop-neo4j', function (done) {
-  sharedNeo4j.stop(neo4jHome)
+  sharedNeo4j.stop()
   done()
 })
 
@@ -201,7 +199,9 @@ gulp.task('run-ts-declaration-tests', function (done) {
         target: 'es6',
         noImplicitAny: true,
         noImplicitReturns: true,
-        strictNullChecks: true
+        strictNullChecks: true,
+        moduleResolution: 'node',
+        types: []
       })
     )
     .pipe(gulp.dest('build/test/types'))

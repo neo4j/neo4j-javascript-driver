@@ -20,6 +20,7 @@
 import { newError } from '../error'
 import { assertString } from './util'
 import { ACCESS_MODE_WRITE } from './constants'
+import Bookmark from './bookmark'
 
 /**
  * Utility to lazily initialize connections and return them back to the pool when unused.
@@ -34,10 +35,12 @@ export default class ConnectionHolder {
   constructor ({
     mode = ACCESS_MODE_WRITE,
     database = '',
+    bookmark,
     connectionProvider
   } = {}) {
     this._mode = mode
     this._database = database ? assertString(database, 'database') : ''
+    this._bookmark = bookmark || Bookmark.empty()
     this._connectionProvider = connectionProvider
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
@@ -65,24 +68,21 @@ export default class ConnectionHolder {
    */
   initializeConnection () {
     if (this._referenceCount === 0) {
-      this._connectionPromise = this._connectionProvider.acquireConnection(
-        this._mode,
-        this._database
-      )
+      this._connectionPromise = this._connectionProvider.acquireConnection({
+        accessMode: this._mode,
+        database: this._database,
+        bookmark: this._bookmark
+      })
     }
     this._referenceCount++
   }
 
   /**
    * Get the current connection promise.
-   * @param {StreamObserver} streamObserver an observer for this connection.
    * @return {Promise<Connection>} promise resolved with the current connection.
    */
-  getConnection (streamObserver) {
-    return this._connectionPromise.then(connection => {
-      streamObserver.resolveConnection(connection)
-      return connection
-    })
+  getConnection () {
+    return this._connectionPromise
   }
 
   /**
@@ -143,7 +143,7 @@ class EmptyConnectionHolder extends ConnectionHolder {
     // nothing to initialize
   }
 
-  getConnection (streamObserver) {
+  getConnection () {
     return Promise.reject(
       newError('This connection holder does not serve connections')
     )

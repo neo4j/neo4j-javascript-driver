@@ -19,7 +19,7 @@
 
 import ConnectionHolder from './connection-holder'
 import { READ } from '../driver'
-import StreamObserver from './stream-observer'
+import { ResultStreamObserver } from './stream-observers'
 
 /**
  * Verifies connectivity using the given connection provider.
@@ -54,10 +54,9 @@ function acquireAndReleaseDummyConnection (connectionProvider, database) {
     connectionProvider
   })
   connectionHolder.initializeConnection()
-  const dummyObserver = new StreamObserver()
-  const connectionPromise = connectionHolder.getConnection(dummyObserver)
 
-  return connectionPromise
+  return connectionHolder
+    .getConnection()
     .then(connection => {
       // able to establish a connection
       return connectionHolder.close().then(() => connection.server)

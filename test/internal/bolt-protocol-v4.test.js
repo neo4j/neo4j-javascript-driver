@@ -44,9 +44,8 @@ describe('#unit BoltProtocolV4', () => {
 
     const statement = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
-    const observer = {}
 
-    protocol.run(statement, parameters, observer, {
+    const observer = protocol.run(statement, parameters, {
       bookmark,
       txConfig,
       database,
@@ -81,9 +80,7 @@ describe('#unit BoltProtocolV4', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV4(recorder, null, false)
 
-    const observer = {}
-
-    protocol.beginTransaction(observer, {
+    const observer = protocol.beginTransaction({
       bookmark,
       txConfig,
       database,

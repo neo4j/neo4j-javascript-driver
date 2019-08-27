@@ -18,6 +18,7 @@
  */
 
 import Connection from '../../src/internal/connection'
+import { textChangeRangeIsUnchanged } from 'typescript'
 
 /**
  * This class is like a mock of {@link Connection} that tracks invocations count.
@@ -39,6 +40,7 @@ export default class FakeConnection extends Connection {
     this.releaseInvoked = 0
     this.seenStatements = []
     this.seenParameters = []
+    this.seenProtocolOptions = []
     this._server = {}
   }
 
@@ -69,9 +71,10 @@ export default class FakeConnection extends Connection {
   protocol () {
     // return fake protocol object that simply records seen statements and parameters
     return {
-      run: (statement, parameters) => {
+      run: (statement, parameters, protocolOptions) => {
         this.seenStatements.push(statement)
         this.seenParameters.push(parameters)
+        this.seenProtocolOptions.push(protocolOptions)
       }
     }
   }
@@ -83,6 +86,7 @@ export default class FakeConnection extends Connection {
 
   _release () {
     this.releaseInvoked++
+    return Promise.resolve()
   }
 
   isOpen () {

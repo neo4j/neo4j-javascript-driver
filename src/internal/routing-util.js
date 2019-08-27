@@ -21,6 +21,7 @@ import { newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE } from '../error'
 import Integer, { int } from '../integer'
 import { ServerVersion, VERSION_4_0_0 } from './server-version'
 import Bookmark from './bookmark'
+import Session from '../session'
 import TxConfig from './tx-config'
 import ServerAddress from './server-address'
 
@@ -43,27 +44,31 @@ export default class RoutingUtil {
    * @return {Promise<Record[]>} promise resolved with records returned by the procedure call or null if
    * connection error happened.
    */
-  callRoutingProcedure (session, database, routerAddress) {
-    return this._callAvailableRoutingProcedure(session, database)
-      .then(result => {
-        session.close()
-        return result.records
-      })
-      .catch(error => {
-        if (error.code === DATABASE_NOT_FOUND_CODE) {
-          throw error
-        } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
-          // throw when getServers procedure not found because this is clearly a configuration issue
-          throw newError(
-            `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
-            SERVICE_UNAVAILABLE
-          )
-        } else {
-          // return nothing when failed to connect because code higher in the callstack is still able to retry with a
-          // different session towards a different router
-          return null
-        }
-      })
+  async callRoutingProcedure (session, database, routerAddress) {
+    try {
+      const result = await this._callAvailableRoutingProcedure(
+        session,
+        database
+      )
+
+      await session.close()
+
+      return result.records
+    } catch (error) {
+      if (error.code === DATABASE_NOT_FOUND_CODE) {
+        throw error
+      } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
+        // throw when getServers procedure not found because this is clearly a configuration issue
+        throw newError(
+          `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
+          SERVICE_UNAVAILABLE
+        )
+      } else {
+        // return nothing when failed to connect because code higher in the callstack is still able to retry with a
+        // different session towards a different router
+        return null
+      }
+    }
   }
 
   parseTtl (record, routerAddress) {
@@ -132,7 +137,7 @@ export default class RoutingUtil {
   }
 
   _callAvailableRoutingProcedure (session, database) {
-    return session._run(null, null, (connection, streamObserver) => {
+    return session._run(null, null, connection => {
       let query
       let params
 
@@ -148,11 +153,12 @@ export default class RoutingUtil {
         params = { context: this._routingContext }
       }
 
-      connection.protocol().run(query, params, streamObserver, {
-        bookmark: Bookmark.empty(),
+      return connection.protocol().run(query, params, {
+        bookmark: session._lastBookmark,
         txConfig: TxConfig.empty(),
         mode: session._mode,
-        database: session._database
+        database: session._database,
+        afterComplete: session._onComplete
       })
     })
   }

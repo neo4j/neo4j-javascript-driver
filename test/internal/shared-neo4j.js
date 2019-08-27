@@ -18,6 +18,7 @@
  */
 
 import neo4j from '../../src'
+import { ServerVersion } from '../../src/internal/server-version'
 
 class UnsupportedPlatform {
   pathJoin () {
@@ -36,8 +37,20 @@ class UnsupportedPlatform {
     throw new Error("Module 'fs' is not available on this platform")
   }
 
+  moveDir (from, to) {
+    throw new Error("Module 'fs' is not available on this platform")
+  }
+
   isDirectory (path) {
     throw new Error("Module 'fs' is not available on this platform")
+  }
+
+  env (key) {
+    throw new Error("Module 'process' is not available on this platform")
+  }
+
+  cwd () {
+    throw new Error("Module 'process' is not available on this platform")
   }
 }
 
@@ -47,6 +60,7 @@ class SupportedPlatform extends UnsupportedPlatform {
     this._path = require('path')
     this._childProcess = require('child_process')
     this._fs = require('fs-extra')
+    this._process = require('process')
   }
 
   static create () {
@@ -81,6 +95,10 @@ class SupportedPlatform extends UnsupportedPlatform {
     }
   }
 
+  moveDir (from, to) {
+    this._fs.moveSync(from, to, { overwrite: true })
+  }
+
   isDirectory (path) {
     try {
       this._fs.accessSync(path)
@@ -90,6 +108,14 @@ class SupportedPlatform extends UnsupportedPlatform {
       return false
     }
   }
+
+  env (key) {
+    return this._process.env[key]
+  }
+
+  cwd () {
+    return this._process.cwd()
+  }
 }
 
 const platform = SupportedPlatform.create() || new UnsupportedPlatform()
@@ -98,207 +124,192 @@ const username = 'neo4j'
 const password = 'password'
 const authToken = neo4j.auth.basic(username, password)
 
-const additionalConfig = {
+const tlsConfig = {
+  key: 'dbms.connector.bolt.tls_level',
+  levels: {
+    optional: 'OPTIONAL',
+    required: 'REQUIRED',
+    disabled: 'DISABLED'
+  }
+}
+
+const defaultConfig = {
+  // Turn off backup related ports, etc.
+  'dbms.backup.enabled': 'false',
+
   // tell neo4j to listen for IPv6 connections, only supported by 3.1+
   'dbms.connectors.default_listen_address': '::',
 
-  // HTTP server should keep listening on default address and create a self-signed certificate with host 'localhost'
+  // HTTP server should keep listening on default address
   'dbms.connector.http.listen_address': 'localhost:7474',
 
   // shorten the default time to wait for the bookmark from 30 to 5 seconds
   'dbms.transaction.bookmark_ready_timeout': '5s',
 
   // page cache size
-  'dbms.memory.pagecache.size': '512m'
+  'dbms.memory.pagecache.size': '512m',
+
+  // make TLS optional
+  'dbms.connector.bolt.tls_level': tlsConfig.levels.optional
 }
 
+const NEOCTRL_ARGS = 'NEOCTRL_ARGS'
 const neoCtrlVersionParam = '-e'
-const defaultNeo4jVersion = '3.5'
+const defaultNeo4jVersion = '4.0'
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`
 
-function neo4jCertPath (dir) {
-  const neo4jDir = findExistingNeo4jDirStrict(dir)
-  return platform.pathJoin(neo4jDir, 'certificates', 'neo4j.cert')
+function neoctrlArgs () {
+  return platform.env(NEOCTRL_ARGS) || defaultNeoCtrlArgs
 }
 
-function neo4jKeyPath (dir) {
-  const neo4jDir = findExistingNeo4jDirStrict(dir)
-  return platform.pathJoin(neo4jDir, 'certificates', 'neo4j.key')
+function neoctrlVersion () {
+  return neoctrlArgs()
+    .replace(/-e/, '')
+    .trim()
 }
 
-function start (dir, givenNeoCtrlArgs) {
+function neo4jDir () {
+  return platform.pathJoin(
+    platform.cwd(),
+    'build',
+    'neo4j',
+    neoctrlVersion(),
+    'neo4jHome'
+  )
+}
+
+function neo4jCertPath () {
+  return platform.pathJoin(neo4jDir(), 'certificates', 'neo4j.cert')
+}
+
+function neo4jKeyPath () {
+  return platform.pathJoin(neo4jDir(), 'certificates', 'neo4j.key')
+}
+
+function install () {
+  const targetDir = neo4jDir()
+
+  if (platform.isDirectory(targetDir)) {
+    console.log(
+      `Found existing Neo4j ${neoctrlVersion()} installation at "${targetDir}"`
+    )
+  } else {
+    const installDir = platform.pathJoin(targetDir, '..')
+    // first delete any existing data inside our target folder
+    platform.removeDir(installDir)
+
+    const installArgs = neoctrlArgs()
+      .split(' ')
+      .map(a => a.trim())
+    installArgs.push(installDir)
+
+    console.log(`Installing neo4j with arguments "${installArgs}"`)
+    const result = runCommand('neoctrl-install', installArgs)
+    if (!result.successful) {
+      throw new Error('Unable to install Neo4j.\n' + result.fullOutput)
+    }
+
+    const installedNeo4jDir = result.stdout
+    platform.moveDir(installedNeo4jDir, targetDir)
+    console.log(`Installed neo4j into "${targetDir}"`)
+  }
+}
+
+function configure (config) {
+  console.log(
+    `Configuring neo4j at "${neo4jDir()}" with "${JSON.stringify(config)}"`
+  )
+
+  const configEntries = Object.keys(config).map(key => `${key}=${config[key]}`)
+  if (configEntries.length > 0) {
+    const result = runCommand('neoctrl-configure', [
+      neo4jDir(),
+      ...configEntries
+    ])
+    if (!result.successful) {
+      throw new Error(`Unable to configure neo4j.\n${result.fullOutput}`)
+    }
+
+    console.log('Configuration complete.')
+  }
+}
+
+function createUser (username, password) {
+  console.log(`Creating user "${username}" on neo4j at "${neo4jDir()}".`)
+
+  const result = runCommand('neoctrl-create-user', [
+    neo4jDir(),
+    username,
+    password
+  ])
+  if (!result.successful) {
+    throw new Error(`Unable to create user on neo4j.\n${result.fullOutput}`)
+  }
+  console.log(`User created.`)
+}
+
+function startNeo4j () {
+  console.log(`Starting neo4j at "${neo4jDir()}".`)
+  const result = runCommand('neoctrl-start', [neo4jDir()])
+  if (!result.successful) {
+    throw new Error(`Unable to start.\n${result.fullOutput}`)
+  }
+  console.log(`Neo4j started.`)
+}
+
+function stopNeo4j () {
+  console.log(`Stopping neo4j at "${neo4jDir()}".`)
+  const result = runCommand('neoctrl-stop', [neo4jDir()])
+  if (!result.successful) {
+    throw new Error(`Unable to stop.\n${result.fullOutput}`)
+  }
+  console.log(`Neo4j stopped.`)
+}
+
+function start () {
   const boltKitCheckResult = runCommand('neoctrl-install', ['-h'])
 
   if (boltKitCheckResult.successful) {
-    const neo4jDir = installNeo4j(dir, givenNeoCtrlArgs)
-    configureNeo4j(neo4jDir)
-    createDefaultUser(neo4jDir)
-    startNeo4j(neo4jDir)
+    install()
+    configure(defaultConfig)
+    createUser(username, password)
+    startNeo4j()
   } else {
-    console.log(
+    console.warn(
       "Boltkit unavailable. Please install it by running 'pip install --upgrade boltkit."
     )
-    console.log('Integration tests will be skipped.')
-    console.log(
+    console.warn('Integration tests will be skipped.')
+    console.warn(
       "Command 'neoctrl-install -h' resulted in\n" +
         boltKitCheckResult.fullOutput
     )
   }
 }
 
-function stop (dir) {
-  const neo4jDir = findExistingNeo4jDirStrict(dir)
-  stopNeo4j(neo4jDir)
+function stop () {
+  stopNeo4j()
 }
 
-function restart (dir) {
-  const neo4jDir = findExistingNeo4jDirStrict(dir)
-  stopNeo4j(neo4jDir)
-  startNeo4j(neo4jDir)
-}
-
-function installNeo4j (dir, givenNeoCtrlArgs) {
-  const neoCtrlArgs = givenNeoCtrlArgs || defaultNeoCtrlArgs
-  const argsArray = neoCtrlArgs.split(' ').map(value => value.trim())
-  argsArray.push(dir)
-
-  const neo4jVersion = extractNeo4jVersion(argsArray)
-  const existingNeo4jDir = findExistingNeo4jDir(dir, neo4jVersion)
-  if (existingNeo4jDir) {
-    console.log(
-      'Found existing Neo4j ' +
-        neo4jVersion +
-        " installation at: '" +
-        existingNeo4jDir +
-        "'"
-    )
-    return existingNeo4jDir
-  } else {
-    platform.removeDir(dir)
-
-    console.log(
-      "Installing Neo4j with neoctrl arguments: '" + neoCtrlArgs + "'"
-    )
-    const result = runCommand('neoctrl-install', argsArray)
-    if (!result.successful) {
-      throw new Error('Unable to install Neo4j.\n' + result.fullOutput)
-    }
-
-    const installedNeo4jDir = result.stdout
-    console.log("Installed Neo4j to: '" + installedNeo4jDir + "'")
-    return installedNeo4jDir
-  }
-}
-
-function configureNeo4j (neo4jDir) {
-  console.log(
-    "Configuring Neo4j at: '" +
-      neo4jDir +
-      "' with " +
-      JSON.stringify(additionalConfig)
-  )
-
-  const configEntries = Object.keys(additionalConfig).map(
-    key => `${key}=${additionalConfig[key]}`
-  )
-  const configureResult = runCommand('neoctrl-configure', [
-    neo4jDir,
-    ...configEntries
-  ])
-  if (!configureResult.successful) {
-    throw new Error('Unable to configure Neo4j.\n' + configureResult.fullOutput)
-  }
-
-  console.log("Configured Neo4j at: '" + neo4jDir + "'")
-}
-
-function createDefaultUser (neo4jDir) {
-  console.log(
-    "Creating user '" + username + "' for Neo4j at: '" + neo4jDir + "'"
-  )
-  const result = runCommand('neoctrl-create-user', [
-    neo4jDir,
-    username,
-    password
-  ])
-  if (!result.successful) {
-    throw new Error(
-      "Unable to create user: '" +
-        username +
-        "' for Neo4j at: " +
-        neo4jDir +
-        "'\n" +
-        result.fullOutput
+function restart (configOverride) {
+  stopNeo4j()
+  const newConfig = Object.assign({}, defaultConfig)
+  if (configOverride) {
+    Object.keys(configOverride).forEach(
+      key => (newConfig[key] = configOverride[key])
     )
   }
-  console.log(
-    "Created user '" + username + "' for Neo4j at: '" + neo4jDir + "'"
-  )
+  configure(newConfig)
+  startNeo4j()
 }
 
-function startNeo4j (neo4jDir) {
-  console.log("Starting Neo4j at: '" + neo4jDir + "'")
-  const result = runCommand('neoctrl-start', [neo4jDir])
-  if (!result.successful) {
-    throw new Error('Unable to start Neo4j.\n' + result.fullOutput)
+async function cleanupAndGetVersion (driver) {
+  const session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
+  try {
+    const result = await session.run('MATCH (n) DETACH DELETE n')
+    return ServerVersion.fromString(result.summary.server.version)
+  } finally {
+    await session.close()
   }
-  console.log("Started Neo4j at: '" + neo4jDir + "'")
-}
-
-function stopNeo4j (neo4jDir) {
-  console.log("Stopping Neo4j at: '" + neo4jDir + "'")
-  const result = runCommand('neoctrl-stop', [neo4jDir])
-  if (!result.successful) {
-    throw new Error(
-      "Unable to stop Neo4j at: '" + neo4jDir + "'\n" + result.fullOutput
-    )
-  }
-}
-
-function findExistingNeo4jDirStrict (dir) {
-  const neo4jDir = findExistingNeo4jDir(dir, null)
-  if (!neo4jDir) {
-    throw new Error(`Unable to find Neo4j dir in: '${dir}'`)
-  }
-  return neo4jDir
-}
-
-function findExistingNeo4jDir (dir, neo4jVersion) {
-  if (!platform.isDirectory(dir)) {
-    return null
-  }
-
-  const dirs = platform
-    .listDir(dir)
-    .filter(entry => isNeo4jDir(entry, neo4jVersion))
-    .map(entry => platform.pathJoin(dir, entry))
-    .filter(entry => platform.isDirectory(entry))
-
-  return dirs.length === 1 ? dirs[0] : null
-}
-
-function isNeo4jDir (name, version) {
-  if (!name.startsWith('neo4j')) {
-    return false
-  }
-  if (version && name.indexOf(version) === -1) {
-    return false
-  }
-  return true
-}
-
-function extractNeo4jVersion (neoCtrlArgs) {
-  const index = neoCtrlArgs.indexOf(neoCtrlVersionParam)
-  if (index === -1) {
-    throw new Error(`No '${neoCtrlVersionParam}' parameter`)
-  }
-
-  const version = neoCtrlArgs[index + 1]
-  if (!version) {
-    throw new Error(`Version is undefined in: ${neoCtrlArgs}`)
-  }
-
-  return version.trim()
 }
 
 function runCommand (command, args) {
@@ -327,6 +338,11 @@ class RunCommandResult {
   }
 }
 
+const debugLogging = {
+  level: 'debug',
+  logger: (level, message) => console.warn(`${level}: ${message}`)
+}
+
 export default {
   start: start,
   stop: stop,
@@ -335,5 +351,8 @@ export default {
   neo4jKeyPath: neo4jKeyPath,
   username: username,
   password: password,
-  authToken: authToken
+  authToken: authToken,
+  logging: debugLogging,
+  cleanupAndGetVersion: cleanupAndGetVersion,
+  tlsConfig: tlsConfig
 }

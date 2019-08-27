@@ -181,7 +181,7 @@ function isEncrypted (config) {
     config.encrypted == null || config.encrypted === undefined
   if (encryptionNotConfigured) {
     // default to using encryption if trust-all-certificates is available
-    return true
+    return false
   }
   return config.encrypted === true || config.encrypted === ENCRYPTION_ON
 }
@@ -190,14 +190,14 @@ function trustStrategyName (config) {
   if (config.trust) {
     return config.trust
   }
-  return 'TRUST_ALL_CERTIFICATES'
+  return 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
 }
 
 /**
  * Create a new configuration options object for the {@code tls.connect()} call.
  * @param {string} hostname the target hostname.
  * @param {string|undefined} ca an optional CA.
- * @return {object} a new options object.
+ * @return {Object} a new options object.
  */
 function newTlsOptions (hostname, ca = undefined) {
   return {
@@ -278,6 +278,7 @@ export default class NodeChannel {
   }
 
   _handleConnectionTerminated () {
+    this._open = false
     this._error = newError(
       'Connection was closed by server',
       this._connectionErrorCode
@@ -290,7 +291,7 @@ export default class NodeChannel {
   /**
    * Setup connection timeout on the socket, if configured.
    * @param {ChannelConfig} config - configuration of this channel.
-   * @param {object} socket - `net.Socket` or `tls.TLSSocket` object.
+   * @param {Object} socket - `net.Socket` or `tls.TLSSocket` object.
    * @private
    */
   _setupConnectionTimeout (config, socket) {
@@ -334,16 +335,28 @@ export default class NodeChannel {
 
   /**
    * Close the connection
-   * @param {function} cb - Function to call on close.
+   * @returns {Promise} A promise that will be resolved after channel is closed
    */
-  close (cb = () => null) {
-    this._open = false
-    if (this._conn) {
-      this._conn.end()
-      this._conn.removeListener('end', this._handleConnectionTerminated)
-      this._conn.on('end', cb)
-    } else {
-      cb()
-    }
+  close () {
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        if (!this._conn.destroyed) {
+          this._conn.destroy()
+        }
+
+        resolve()
+      }
+
+      if (this._open) {
+        this._open = false
+        this._conn.removeListener('end', this._handleConnectionTerminated)
+        this._conn.on('end', () => cleanup())
+        this._conn.on('close', () => cleanup())
+        this._conn.end()
+        this._conn.destroy()
+      } else {
+        cleanup()
+      }
+    })
   }
 }

@@ -43,7 +43,7 @@ export default class ChannelConfig {
   /**
    * @constructor
    * @param {ServerAddress} address the address for the channel to connect to.
-   * @param {object} driverConfig the driver config provided by the user when driver is created.
+   * @param {Object} driverConfig the driver config provided by the user when driver is created.
    * @param {string} connectionErrorCode the default error code to use on connection errors.
    */
   constructor (address, driverConfig, connectionErrorCode) {

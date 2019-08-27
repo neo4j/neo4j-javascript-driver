@@ -36,7 +36,7 @@ module.exports = function (config) {
     reporters: ['spec'],
     port: 9876, // karma web server port
     colors: true,
-    logLevel: config.LOG_DEBUG,
+    logLevel: config.LOG_ERROR,
     browsers: ['FirefoxHeadless'],
     autoWatch: false,
     singleRun: true,

@@ -24,15 +24,15 @@ import utils from './internal/test-utils'
 describe('#integration result stream', () => {
   let driver, session
 
-  beforeEach(done => {
+  beforeEach(async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
 
-    session.run('MATCH (n) DETACH DELETE n').then(done)
+    await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(() => {
-    driver.close()
+  afterEach(async () => {
+    await driver.close()
   })
 
   it('should allow chaining `then`, returning a new thing in each', done => {

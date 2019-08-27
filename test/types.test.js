@@ -115,9 +115,9 @@ describe('#integration node values', () => {
         expect(node.properties).toEqual({ name: 'Lisa' })
         expect(node.labels).toEqual(['User'])
         expect(node.identity).toEqual(result.records[0].get('id(n)'))
-        driver.close()
-        done()
       })
+      .then(() => driver.close())
+      .then(() => done())
   })
 })
 
@@ -136,9 +136,9 @@ describe('#integration relationship values', () => {
         expect(rel.properties).toEqual({ name: 'Lisa' })
         expect(rel.type).toEqual('User')
         expect(rel.identity).toEqual(result.records[0].get('id(r)'))
-        driver.close()
-        done()
       })
+      .then(() => driver.close())
+      .then(() => done())
   })
 })
 
@@ -169,9 +169,9 @@ describe('#integration path values', () => {
           // Which is the inverse of the relationship itself!
           expect(segment.relationship.properties).toEqual({ since: 1234 })
         }
-        driver.close()
-        done()
       })
+      .then(() => driver.close())
+      .then(() => done())
       .catch(err => {
         console.log(err)
       })
@@ -180,17 +180,9 @@ describe('#integration path values', () => {
 
 describe('#integration byte arrays', () => {
   let originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-  let serverSupportsByteArrays = false
 
-  beforeAll(done => {
+  beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
-
-    const tmpDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    ServerVersion.fromDriver(tmpDriver).then(version => {
-      tmpDriver.close()
-      serverSupportsByteArrays = version.compareTo(VERSION_3_2_0) >= 0
-      done()
-    })
   })
 
   afterAll(() => {
@@ -198,67 +190,37 @@ describe('#integration byte arrays', () => {
   })
 
   it('should support returning empty byte array if server supports byte arrays', done => {
-    if (!serverSupportsByteArrays) {
-      done()
-      return
-    }
-
     testValue(new Int8Array(0))(done)
   })
 
   it('should support returning empty byte array if server supports byte arrays', done => {
-    if (!serverSupportsByteArrays) {
-      done()
-      return
-    }
-
     testValues([new Int8Array(0)])(done)
   })
 
   it('should support returning short byte arrays if server supports byte arrays', done => {
-    if (!serverSupportsByteArrays) {
-      done()
-      return
-    }
-
     testValues(randomByteArrays(100, 1, 255))(done)
   })
 
   it('should support returning medium byte arrays if server supports byte arrays', done => {
-    if (!serverSupportsByteArrays) {
-      done()
-      return
-    }
-
     testValues(randomByteArrays(50, 256, 65535))(done)
   })
 
   it('should support returning long byte arrays if server supports byte arrays', done => {
-    if (!serverSupportsByteArrays) {
-      done()
-      return
-    }
-
     testValues(randomByteArrays(10, 65536, 2 * 65536))(done)
   })
 
   it('should fail to return byte array if server does not support byte arrays', done => {
-    if (serverSupportsByteArrays) {
-      done()
-      return
-    }
-
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     const session = driver.session()
     session
       .run('RETURN {array}', { array: randomByteArray(42) })
       .catch(error => {
-        driver.close()
         expect(error.message).toEqual(
           'Byte arrays are not supported by the database this driver is connected to'
         )
-        done()
       })
+      .then(() => driver.close())
+      .then(() => done())
   })
 })
 
@@ -268,14 +230,9 @@ function testValue (actual, expected) {
     const queryPromise = runReturnQuery(driver, actual, expected)
 
     queryPromise
-      .then(() => {
-        driver.close()
-        done()
-      })
-      .catch(error => {
-        driver.close()
-        console.log(error)
-      })
+      .then(() => driver.close())
+      .then(() => done())
+      .catch(error => done.fail(error))
   }
 }
 
@@ -288,14 +245,9 @@ function testValues (values) {
     )
 
     queriesPromise
-      .then(() => {
-        driver.close()
-        done()
-      })
-      .catch(error => {
-        driver.close()
-        console.log(error)
-      })
+      .then(() => driver.close())
+      .then(() => done())
+      .catch(error => done.fail(error))
   }
 }
 
@@ -306,7 +258,9 @@ function runReturnQuery (driver, actual, expected) {
       .run('RETURN {val} as v', { val: actual })
       .then(result => {
         expect(result.records[0].get('v')).toEqual(expected || actual)
-        session.close()
+      })
+      .then(() => session.close())
+      .then(() => {
         resolve()
       })
       .catch(error => {

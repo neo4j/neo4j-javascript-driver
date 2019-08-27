@@ -19,19 +19,20 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
+import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 
 describe('#integration result summary', () => {
-  let driver, session
+  let driver, session, serverVersion
 
-  beforeEach(done => {
+  beforeEach(async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
 
-    session.run('MATCH (n) DETACH DELETE n').then(done)
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(() => {
-    driver.close()
+  afterEach(async () => {
+    await driver.close()
   })
 
   it('should get result summary', done => {
@@ -99,6 +100,10 @@ describe('#integration result summary', () => {
   })
 
   it('should get notifications from summary', done => {
+    if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
+      pending('seems to be flaky')
+    }
+
     session.run('EXPLAIN MATCH (n), (m) RETURN n, m').then(result => {
       let summary = result.summary
       expect(summary.notifications).toBeDefined()

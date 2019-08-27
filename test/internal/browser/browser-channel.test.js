@@ -23,27 +23,21 @@ import { SERVICE_UNAVAILABLE } from '../../../src/error'
 import { setTimeoutMock } from '../timers-util'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../../../src/internal/util'
 import ServerAddress from '../../../src/internal/server-address'
+import { read } from 'fs'
+
+const WS_CONNECTING = 0
+const WS_OPEN = 1
+const WS_CLOSING = 2
+const WS_CLOSED = 3
 
 /* eslint-disable no-global-assign */
 describe('#unit WebSocketChannel', () => {
-  let OriginalWebSocket
   let webSocketChannel
-  let originalConsoleWarn
 
-  beforeEach(() => {
-    OriginalWebSocket = WebSocket
-    originalConsoleWarn = console.warn
-    console.warn = () => {
-      // mute by default
-    }
-  })
-
-  afterEach(() => {
-    WebSocket = OriginalWebSocket
+  afterEach(async () => {
     if (webSocketChannel) {
-      webSocketChannel.close()
+      await webSocketChannel.close()
     }
-    console.warn = originalConsoleWarn
   })
 
   it('should fallback to literal IPv6 when SyntaxError is thrown', () => {
@@ -60,22 +54,11 @@ describe('#unit WebSocketChannel', () => {
     )
   })
 
-  it('should clear connection timeout when closed', () => {
+  it('should clear connection timeout when closed', async () => {
     const fakeSetTimeout = setTimeoutMock.install()
     try {
       // do not execute setTimeout callbacks
       fakeSetTimeout.pause()
-
-      let fakeWebSocketClosed = false
-
-      // replace real WebSocket with a function that does nothing
-      WebSocket = () => {
-        return {
-          close: () => {
-            fakeWebSocketClosed = true
-          }
-        }
-      }
 
       const address = ServerAddress.fromUrl('bolt://localhost:8989')
       const driverConfig = { connectionTimeout: 4242 }
@@ -85,15 +68,19 @@ describe('#unit WebSocketChannel', () => {
         SERVICE_UNAVAILABLE
       )
 
-      webSocketChannel = new WebSocketChannel(channelConfig)
+      webSocketChannel = new WebSocketChannel(
+        channelConfig,
+        undefined,
+        createWebSocketFactory(WS_OPEN)
+      )
 
-      expect(fakeWebSocketClosed).toBeFalsy()
+      expect(webSocketChannel._ws.readyState).toBe(WS_OPEN)
       expect(fakeSetTimeout.invocationDelays).toEqual([])
       expect(fakeSetTimeout.clearedTimeouts).toEqual([])
 
-      webSocketChannel.close()
+      await webSocketChannel.close()
 
-      expect(fakeWebSocketClosed).toBeTruthy()
+      expect(webSocketChannel._ws.readyState).toBe(WS_CLOSED)
       expect(fakeSetTimeout.invocationDelays).toEqual([])
       expect(fakeSetTimeout.clearedTimeouts).toEqual([0]) // cleared one timeout with id 0
     } finally {
@@ -127,13 +114,6 @@ describe('#unit WebSocketChannel', () => {
 
   it('should fail when encryption configured with unsupported trust strategy', () => {
     const protocolSupplier = () => 'http:'
-
-    WebSocket = () => {
-      return {
-        close: () => {}
-      }
-    }
-
     const address = ServerAddress.fromUrl('bolt://localhost:8989')
     const driverConfig = { encrypted: true, trust: 'TRUST_ALL_CERTIFICATES' }
     const channelConfig = new ChannelConfig(
@@ -142,7 +122,11 @@ describe('#unit WebSocketChannel', () => {
       SERVICE_UNAVAILABLE
     )
 
-    const channel = new WebSocketChannel(channelConfig, protocolSupplier)
+    const channel = new WebSocketChannel(
+      channelConfig,
+      protocolSupplier,
+      createWebSocketFactory(WS_CONNECTING)
+    )
 
     expect(channel._error).toBeDefined()
     expect(channel._error.name).toEqual('Neo4jError')
@@ -158,16 +142,39 @@ describe('#unit WebSocketChannel', () => {
     testWarningInMixedEnvironment(ENCRYPTION_OFF, 'https')
   })
 
+  it('should resolve close if websocket is already closed', async () => {
+    const address = ServerAddress.fromUrl('bolt://localhost:8989')
+    const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
+    const channel = new WebSocketChannel(
+      channelConfig,
+      undefined,
+      createWebSocketFactory(WS_CLOSED)
+    )
+
+    await expectAsync(channel.close()).toBeResolved()
+  })
+
+  it('should resolve close when websocket is closed', async () => {
+    const address = ServerAddress.fromUrl('bolt://localhost:8989')
+    const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
+
+    const channel = new WebSocketChannel(
+      channelConfig,
+      undefined,
+      createWebSocketFactory(WS_OPEN)
+    )
+
+    await expectAsync(channel.close()).toBeResolved()
+  })
+
   function testFallbackToLiteralIPv6 (boltAddress, expectedWsAddress) {
     // replace real WebSocket with a function that throws when IPv6 address is used
-    WebSocket = url => {
+    const socketFactory = url => {
       if (url.indexOf('[') !== -1) {
         throw new SyntaxError()
       }
-      return {
-        url: url,
-        close: () => {}
-      }
+      const fakeFactory = createWebSocketFactory(WS_OPEN)
+      return fakeFactory(url)
     }
 
     const address = ServerAddress.fromUrl(boltAddress)
@@ -179,7 +186,11 @@ describe('#unit WebSocketChannel', () => {
       SERVICE_UNAVAILABLE
     )
 
-    webSocketChannel = new WebSocketChannel(channelConfig)
+    webSocketChannel = new WebSocketChannel(
+      channelConfig,
+      undefined,
+      socketFactory
+    )
 
     expect(webSocketChannel._ws.url).toEqual(expectedWsAddress)
   }
@@ -190,50 +201,63 @@ describe('#unit WebSocketChannel', () => {
     expectedScheme
   ) {
     const protocolSupplier = () => windowLocationProtocol
-
-    // replace real WebSocket with a function that memorizes the url
-    WebSocket = url => {
-      return {
-        url: url,
-        close: () => {}
-      }
-    }
-
     const address = ServerAddress.fromUrl('bolt://localhost:8989')
     const channelConfig = new ChannelConfig(
       address,
       driverConfig,
       SERVICE_UNAVAILABLE
     )
-    const channel = new WebSocketChannel(channelConfig, protocolSupplier)
+    const channel = new WebSocketChannel(
+      channelConfig,
+      protocolSupplier,
+      createWebSocketFactory(WS_OPEN)
+    )
 
     expect(channel._ws.url).toEqual(expectedScheme + '://localhost:8989')
   }
 
   function testWarningInMixedEnvironment (encrypted, scheme) {
-    // replace real WebSocket with a function that memorizes the url
-    WebSocket = url => {
-      return {
-        url: url,
-        close: () => {}
+    const originalConsoleWarn = console.warn
+    try {
+      // replace console.warn with a function that memorizes the message
+      const warnMessages = []
+      console.warn = message => warnMessages.push(message)
+
+      const address = ServerAddress.fromUrl('bolt://localhost:8989')
+      const config = new ChannelConfig(
+        address,
+        { encrypted: encrypted },
+        SERVICE_UNAVAILABLE
+      )
+      const protocolSupplier = () => scheme + ':'
+
+      const channel = new WebSocketChannel(
+        config,
+        protocolSupplier,
+        createWebSocketFactory(WS_OPEN)
+      )
+
+      expect(channel).toBeDefined()
+      expect(warnMessages.length).toEqual(1)
+    } finally {
+      console.warn = originalConsoleWarn
+    }
+  }
+
+  function createWebSocketFactory (readyState) {
+    const ws = {}
+
+    ws.readyState = readyState
+    ws.close = () => {
+      ws.readyState = WS_CLOSED
+      if (ws.onclose && typeof ws.onclose === 'function') {
+        ws.onclose({ wasClean: true })
       }
     }
 
-    // replace console.warn with a function that memorizes the message
-    const warnMessages = []
-    console.warn = message => warnMessages.push(message)
-
-    const address = ServerAddress.fromUrl('bolt://localhost:8989')
-    const config = new ChannelConfig(
-      address,
-      { encrypted: encrypted },
-      SERVICE_UNAVAILABLE
-    )
-    const protocolSupplier = () => scheme + ':'
-
-    const channel = new WebSocketChannel(config, protocolSupplier)
-
-    expect(channel).toBeDefined()
-    expect(warnMessages.length).toEqual(1)
+    return url => {
+      ws.url = url
+      return ws
+    }
   }
 })

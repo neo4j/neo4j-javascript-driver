@@ -52,7 +52,7 @@ describe('#integration stress tests', () => {
   let originalTimeout
   let driver
 
-  beforeEach(done => {
+  beforeEach(async () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs
 
@@ -61,16 +61,13 @@ describe('#integration stress tests', () => {
     }
     driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken, config)
 
-    cleanupDb(driver).then(() => done())
+    await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(done => {
+  afterEach(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
 
-    cleanupDb(driver).then(() => {
-      driver.close()
-      done()
-    })
+    await driver.close()
   })
 
   it('basic', done => {
@@ -236,7 +233,7 @@ describe('#integration stress tests', () => {
           context.queryCompleted(result, accessMode)
           context.log(commandId, `Query completed successfully`)
 
-          session.close(() => {
+          return session.close().then(() => {
             const possibleError = verifyQueryResult(result)
             callback(possibleError)
           })
@@ -277,7 +274,7 @@ describe('#integration stress tests', () => {
           context.queryCompleted(result, accessMode, session.lastBookmark())
           context.log(commandId, `Transaction function executed successfully`)
 
-          session.close(() => {
+          return session.close().then(() => {
             const possibleError = verifyQueryResult(result)
             callback(possibleError)
           })
@@ -327,7 +324,7 @@ describe('#integration stress tests', () => {
               context.queryCompleted(result, accessMode, session.lastBookmark())
               context.log(commandId, `Transaction committed successfully`)
 
-              session.close(() => {
+              return session.close().then(() => {
                 callback(commandError)
               })
             })
@@ -458,15 +455,16 @@ describe('#integration stress tests', () => {
 
   function fetchClusterAddresses (context) {
     const session = context.driver.session()
-    return session.run('CALL dbms.cluster.overview()').then(result => {
-      session.close()
-      const records = result.records
+    return session.run('CALL dbms.cluster.overview()').then(result =>
+      session.close().then(() => {
+        const records = result.records
 
-      const followers = addressesWithRole(records, 'FOLLOWER')
-      const readReplicas = addressesWithRole(records, 'READ_REPLICA')
+        const followers = addressesWithRole(records, 'FOLLOWER')
+        const readReplicas = addressesWithRole(records, 'READ_REPLICA')
 
-      return new ClusterAddresses(followers, readReplicas)
-    })
+        return new ClusterAddresses(followers, readReplicas)
+      })
+    )
   }
 
   function addressesWithRole (records, role) {
@@ -556,9 +554,7 @@ describe('#integration stress tests', () => {
     const session = driver.session()
     return session
       .run('MATCH (n) DETACH DELETE n')
-      .then(() => {
-        session.close()
-      })
+      .then(() => session.close())
       .catch(error => {
         console.log('Error clearing the database: ', error)
       })

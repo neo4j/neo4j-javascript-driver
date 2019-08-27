@@ -17,19 +17,17 @@
  * limitations under the License.
  */
 
-import StreamObserver from '../../src/internal/stream-observer'
 import FakeConnection from './fake-connection'
+import { ResultStreamObserver } from '../../src/internal/stream-observers'
 
 const NO_OP = () => {}
 
-describe('#unit StreamObserver', () => {
+describe('#unit ResultStreamObserver', () => {
   it('remembers resolved connection', () => {
-    const streamObserver = newStreamObserver()
     const connection = new FakeConnection()
+    const streamObserver = newStreamObserver(connection)
 
-    streamObserver.resolveConnection(connection)
-
-    expect(streamObserver._conn).toBe(connection)
+    expect(streamObserver._connection).toBe(connection)
   })
 
   it('remembers subscriber', () => {
@@ -38,7 +36,7 @@ describe('#unit StreamObserver', () => {
 
     streamObserver.subscribe(subscriber)
 
-    expect(streamObserver._observer).toBe(subscriber)
+    expect(streamObserver._observers).toContain(subscriber)
   })
 
   it('passes received records to the subscriber', () => {
@@ -154,7 +152,7 @@ describe('#unit StreamObserver', () => {
 
   it('invokes subscribed observer only once of error', () => {
     const errors = []
-    const streamObserver = new StreamObserver()
+    const streamObserver = new ResultStreamObserver()
     streamObserver.subscribe({
       onError: error => errors.push(error)
     })
@@ -169,7 +167,7 @@ describe('#unit StreamObserver', () => {
   })
 
   it('should be able to handle a single response', done => {
-    const streamObserver = new StreamObserver()
+    const streamObserver = new ResultStreamObserver()
     streamObserver.prepareToHandleSingleResponse()
 
     streamObserver.subscribe({
@@ -183,7 +181,7 @@ describe('#unit StreamObserver', () => {
   })
 
   it('should mark as completed', done => {
-    const streamObserver = new StreamObserver()
+    const streamObserver = new ResultStreamObserver()
     streamObserver.markCompleted()
 
     streamObserver.subscribe({
@@ -195,8 +193,10 @@ describe('#unit StreamObserver', () => {
   })
 })
 
-function newStreamObserver () {
-  return new StreamObserver()
+function newStreamObserver (connection) {
+  return new ResultStreamObserver({
+    connection
+  })
 }
 
 function newObserver (onNext = NO_OP, onError = NO_OP, onCompleted = NO_OP) {

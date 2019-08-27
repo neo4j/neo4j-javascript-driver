@@ -55,7 +55,7 @@ describe('#integration temporal-types', () => {
   let session
   let serverVersion
 
-  beforeAll(done => {
+  beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
@@ -65,276 +65,256 @@ describe('#integration temporal-types', () => {
       sharedNeo4j.authToken,
       { disableLosslessIntegers: true }
     )
-
-    ServerVersion.fromDriver(driver).then(version => {
-      serverVersion = version
-      done()
-    })
   })
 
-  afterAll(() => {
+  afterAll(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
 
     if (driver) {
-      driver.close()
+      await driver.close()
       driver = null
     }
 
     if (driverWithNativeNumbers) {
-      driverWithNativeNumbers.close()
+      await driverWithNativeNumbers.close()
       driverWithNativeNumbers = null
     }
   })
 
-  beforeEach(done => {
+  beforeEach(async () => {
     session = driver.session()
-    session
-      .run('MATCH (n) DETACH DELETE n')
-      .then(() => {
-        done()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
+    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     if (session) {
-      session.close()
+      await session.close()
       session = null
     }
   })
 
-  it('should receive Duration', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should receive Duration', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const expectedValue = duration(27, 17, 91, 999)
-    testReceiveTemporalValue(
+    await testReceiveTemporalValue(
       'RETURN duration({years: 2, months: 3, days: 17, seconds: 91, nanoseconds: 999})',
-      expectedValue,
-      done
+      expectedValue
     )
   })
 
-  it('should send and receive random Duration', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive random Duration', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(() => randomDuration(), done)
+    await testSendAndReceiveRandomTemporalValues(() => randomDuration())
   })
 
-  it('should send and receive Duration when disableLosslessIntegers=true', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive Duration when disableLosslessIntegers=true', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(
-      new neo4j.types.Duration(4, 15, 931, 99953),
-      done
+    await testSendReceiveTemporalValue(
+      new neo4j.types.Duration(4, 15, 931, 99953)
     )
   })
 
-  it('should send and receive array of Duration', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive array of Duration', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(() => randomDuration(), done)
+    await testSendAndReceiveArrayOfRandomTemporalValues(() => randomDuration())
   })
 
-  it('should receive LocalTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should receive LocalTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const expectedValue = localTime(22, 59, 10, 999999)
-    testReceiveTemporalValue(
+    await testReceiveTemporalValue(
       'RETURN localtime({hour: 22, minute: 59, second: 10, nanosecond: 999999})',
-      expectedValue,
-      done
+      expectedValue
     )
   })
 
-  it('should send and receive max LocalTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive max LocalTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const maxLocalTime = localTime(23, 59, 59, MAX_NANO_OF_SECOND)
-    testSendReceiveTemporalValue(maxLocalTime, done)
+    await testSendReceiveTemporalValue(maxLocalTime)
   })
 
-  it('should send and receive min LocalTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive min LocalTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const minLocalTime = localTime(0, 0, 0, 0)
-    testSendReceiveTemporalValue(minLocalTime, done)
+    await testSendReceiveTemporalValue(minLocalTime)
   })
 
-  it('should send and receive LocalTime when disableLosslessIntegers=true', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive LocalTime when disableLosslessIntegers=true', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(
-      new neo4j.types.LocalTime(12, 32, 56, 12345),
-      done
+    await testSendReceiveTemporalValue(
+      new neo4j.types.LocalTime(12, 32, 56, 12345)
     )
   })
 
-  it('should send and receive random LocalTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive random LocalTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(() => randomLocalTime(), done)
+    await testSendAndReceiveRandomTemporalValues(() => randomLocalTime())
   })
 
-  it('should send and receive array of LocalTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive array of LocalTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(() => randomLocalTime(), done)
+    await testSendAndReceiveArrayOfRandomTemporalValues(() => randomLocalTime())
   })
 
-  it('should receive Time', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should receive Time', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const expectedValue = time(11, 42, 59, 9999, -30600)
-    testReceiveTemporalValue(
+    await testReceiveTemporalValue(
       'RETURN time({hour: 11, minute: 42, second: 59, nanosecond: 9999, timezone:"-08:30"})',
-      expectedValue,
-      done
+      expectedValue
     )
   })
 
-  it('should send and receive max Time', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive max Time', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const maxTime = time(23, 59, 59, MAX_NANO_OF_SECOND, MAX_TIME_ZONE_OFFSET)
-    testSendReceiveTemporalValue(maxTime, done)
+    await testSendReceiveTemporalValue(maxTime)
   })
 
-  it('should send and receive min Time', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive min Time', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const minTime = time(0, 0, 0, 0, MIN_TIME_ZONE_OFFSET)
-    testSendReceiveTemporalValue(minTime, done)
+    await testSendReceiveTemporalValue(minTime)
   })
 
-  it('should send and receive Time when disableLosslessIntegers=true', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive Time when disableLosslessIntegers=true', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(
-      new neo4j.types.Time(22, 19, 32, 18381, MAX_TIME_ZONE_OFFSET),
-      done
+    await testSendReceiveTemporalValue(
+      new neo4j.types.Time(22, 19, 32, 18381, MAX_TIME_ZONE_OFFSET)
     )
   })
 
-  it('should send and receive random Time', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive random Time', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(() => randomTime(), done)
+    await testSendAndReceiveRandomTemporalValues(() => randomTime())
   })
 
-  it('should send and receive array of Time', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive array of Time', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(() => randomTime(), done)
+    await testSendAndReceiveArrayOfRandomTemporalValues(() => randomTime())
   })
 
-  it('should receive Date', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should receive Date', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const expectedValue = date(1995, 7, 28)
-    testReceiveTemporalValue(
+    await testReceiveTemporalValue(
       'RETURN date({year: 1995, month: 7, day: 28})',
-      expectedValue,
-      done
+      expectedValue
     )
   })
 
-  it('should send and receive max Date', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive max Date', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const maxDate = date(MAX_YEAR, 12, 31)
-    testSendReceiveTemporalValue(maxDate, done)
+    await testSendReceiveTemporalValue(maxDate)
   })
 
-  it('should send and receive min Date', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive min Date', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const minDate = date(MIN_YEAR, 1, 1)
-    testSendReceiveTemporalValue(minDate, done)
+    await testSendReceiveTemporalValue(minDate)
   })
 
-  it('should send and receive Date when disableLosslessIntegers=true', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive Date when disableLosslessIntegers=true', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(new neo4j.types.Date(1923, 8, 14), done)
+    await testSendReceiveTemporalValue(new neo4j.types.Date(1923, 8, 14))
   })
 
-  it('should send and receive random Date', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive random Date', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(() => randomDate(), done)
+    await testSendAndReceiveRandomTemporalValues(() => randomDate())
   })
 
-  it('should send and receive array of Date', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive array of Date', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(() => randomDate(), done)
+    await testSendAndReceiveArrayOfRandomTemporalValues(() => randomDate())
   })
 
-  it('should receive LocalDateTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should receive LocalDateTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const expectedValue = localDateTime(1869, 9, 23, 18, 29, 59, 12349)
-    testReceiveTemporalValue(
+    await testReceiveTemporalValue(
       'RETURN localdatetime({year: 1869, month: 9, day: 23, hour: 18, minute: 29, second: 59, nanosecond: 12349})',
-      expectedValue,
-      done
+      expectedValue
     )
   })
 
-  it('should send and receive max LocalDateTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive max LocalDateTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -347,51 +327,49 @@ describe('#integration temporal-types', () => {
       59,
       MAX_NANO_OF_SECOND
     )
-    testSendReceiveTemporalValue(maxLocalDateTime, done)
+    await testSendReceiveTemporalValue(maxLocalDateTime)
   })
 
-  it('should send and receive min LocalDateTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive min LocalDateTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
     const minLocalDateTime = localDateTime(MIN_YEAR, 1, 1, 0, 0, 0, 0)
-    testSendReceiveTemporalValue(minLocalDateTime, done)
+    await testSendReceiveTemporalValue(minLocalDateTime)
   })
 
-  it('should send and receive LocalDateTime when disableLosslessIntegers=true', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive LocalDateTime when disableLosslessIntegers=true', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(
-      new neo4j.types.LocalDateTime(2045, 9, 1, 11, 25, 25, 911),
-      done
+    await testSendReceiveTemporalValue(
+      new neo4j.types.LocalDateTime(2045, 9, 1, 11, 25, 25, 911)
     )
   })
 
-  it('should send and receive random LocalDateTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive random LocalDateTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(() => randomLocalDateTime(), done)
+    await testSendAndReceiveRandomTemporalValues(() => randomLocalDateTime())
   })
 
-  it('should send and receive random LocalDateTime', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive random LocalDateTime', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(
-      () => randomLocalDateTime(),
-      done
+    await testSendAndReceiveArrayOfRandomTemporalValues(() =>
+      randomLocalDateTime()
     )
   })
 
-  it('should receive DateTime with time zone offset', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should receive DateTime with time zone offset', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -405,15 +383,14 @@ describe('#integration temporal-types', () => {
       999,
       18000
     )
-    testReceiveTemporalValue(
+    await testReceiveTemporalValue(
       'RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "+05:00"})',
-      expectedValue,
-      done
+      expectedValue
     )
   })
 
-  it('should send and receive max DateTime with zone offset', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive max DateTime with zone offset', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -427,11 +404,11 @@ describe('#integration temporal-types', () => {
       MAX_NANO_OF_SECOND,
       MAX_TIME_ZONE_OFFSET
     )
-    testSendReceiveTemporalValue(maxDateTime, done)
+    await testSendReceiveTemporalValue(maxDateTime)
   })
 
-  it('should send and receive min DateTime with zone offset', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive min DateTime with zone offset', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -445,16 +422,16 @@ describe('#integration temporal-types', () => {
       0,
       MAX_TIME_ZONE_OFFSET
     )
-    testSendReceiveTemporalValue(minDateTime, done)
+    await testSendReceiveTemporalValue(minDateTime)
   })
 
-  it('should send and receive DateTime with zone offset when disableLosslessIntegers=true', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive DateTime with zone offset when disableLosslessIntegers=true', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(
+    await testSendReceiveTemporalValue(
       new neo4j.types.DateTime(
         2022,
         2,
@@ -465,35 +442,32 @@ describe('#integration temporal-types', () => {
         12399,
         MAX_TIME_ZONE_OFFSET,
         null
-      ),
-      done
+      )
     )
   })
 
-  it('should send and receive random DateTime with zone offset', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive random DateTime with zone offset', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(
-      () => randomDateTimeWithZoneOffset(),
-      done
+    await testSendAndReceiveRandomTemporalValues(() =>
+      randomDateTimeWithZoneOffset()
     )
   })
 
-  it('should send and receive array of DateTime with zone offset', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive array of DateTime with zone offset', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(
-      () => randomDateTimeWithZoneOffset(),
-      done
+    await testSendAndReceiveArrayOfRandomTemporalValues(() =>
+      randomDateTimeWithZoneOffset()
     )
   })
 
-  it('should receive DateTime with zone id', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should receive DateTime with zone id', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -507,15 +481,14 @@ describe('#integration temporal-types', () => {
       999,
       'Europe/Stockholm'
     )
-    testReceiveTemporalValue(
+    await testReceiveTemporalValue(
       'RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "Europe/Stockholm"})',
-      expectedValue,
-      done
+      expectedValue
     )
   })
 
-  it('should send and receive max DateTime with zone id', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive max DateTime with zone id', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -529,11 +502,11 @@ describe('#integration temporal-types', () => {
       MAX_NANO_OF_SECOND,
       MAX_ZONE_ID
     )
-    testSendReceiveTemporalValue(maxDateTime, done)
+    await testSendReceiveTemporalValue(maxDateTime)
   })
 
-  it('should send and receive min DateTime with zone id', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive min DateTime with zone id', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -547,16 +520,16 @@ describe('#integration temporal-types', () => {
       0,
       MIN_ZONE_ID
     )
-    testSendReceiveTemporalValue(minDateTime, done)
+    await testSendReceiveTemporalValue(minDateTime)
   })
 
-  it('should send and receive DateTime with zone id when disableLosslessIntegers=true', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive DateTime with zone id when disableLosslessIntegers=true', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
     session = driverWithNativeNumbers.session()
 
-    testSendReceiveTemporalValue(
+    await testSendReceiveTemporalValue(
       new neo4j.types.DateTime(
         2011,
         11,
@@ -567,30 +540,27 @@ describe('#integration temporal-types', () => {
         192378,
         null,
         'Europe/Stockholm'
-      ),
-      done
+      )
     )
   })
 
-  it('should send and receive random DateTime with zone id', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive random DateTime with zone id', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveRandomTemporalValues(
-      () => randomDateTimeWithZoneId(),
-      done
+    await testSendAndReceiveRandomTemporalValues(() =>
+      randomDateTimeWithZoneId()
     )
   })
 
-  it('should send and receive array of DateTime with zone id', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive array of DateTime with zone id', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testSendAndReceiveArrayOfRandomTemporalValues(
-      () => randomDateTimeWithZoneId(),
-      done
+    await testSendAndReceiveArrayOfRandomTemporalValues(() =>
+      randomDateTimeWithZoneId()
     )
   })
 
@@ -748,125 +718,122 @@ describe('#integration temporal-types', () => {
     expect(zonedDateTime.nanosecond).toEqual(neo4j.int(9346458))
   })
 
-  it('should format duration to string', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should format duration to string', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    testDurationToString(
-      [
-        { duration: duration(0, 0, 0, 0), expectedString: 'P0M0DT0S' },
+    await testDurationToString([
+      { duration: duration(0, 0, 0, 0), expectedString: 'P0M0DT0S' },
 
-        { duration: duration(0, 0, 42, 0), expectedString: 'P0M0DT42S' },
-        { duration: duration(0, 0, -42, 0), expectedString: 'P0M0DT-42S' },
-        { duration: duration(0, 0, 1, 0), expectedString: 'P0M0DT1S' },
-        { duration: duration(0, 0, -1, 0), expectedString: 'P0M0DT-1S' },
+      { duration: duration(0, 0, 42, 0), expectedString: 'P0M0DT42S' },
+      { duration: duration(0, 0, -42, 0), expectedString: 'P0M0DT-42S' },
+      { duration: duration(0, 0, 1, 0), expectedString: 'P0M0DT1S' },
+      { duration: duration(0, 0, -1, 0), expectedString: 'P0M0DT-1S' },
 
-        {
-          duration: duration(0, 0, 0, 5),
-          expectedString: 'P0M0DT0.000000005S'
-        },
-        {
-          duration: duration(0, 0, 0, -5),
-          expectedString: 'P0M0DT-0.000000005S'
-        },
-        {
-          duration: duration(0, 0, 0, 999999999),
-          expectedString: 'P0M0DT0.999999999S'
-        },
-        {
-          duration: duration(0, 0, 0, -999999999),
-          expectedString: 'P0M0DT-0.999999999S'
-        },
+      {
+        duration: duration(0, 0, 0, 5),
+        expectedString: 'P0M0DT0.000000005S'
+      },
+      {
+        duration: duration(0, 0, 0, -5),
+        expectedString: 'P0M0DT-0.000000005S'
+      },
+      {
+        duration: duration(0, 0, 0, 999999999),
+        expectedString: 'P0M0DT0.999999999S'
+      },
+      {
+        duration: duration(0, 0, 0, -999999999),
+        expectedString: 'P0M0DT-0.999999999S'
+      },
 
-        {
-          duration: duration(0, 0, 1, 5),
-          expectedString: 'P0M0DT1.000000005S'
-        },
-        {
-          duration: duration(0, 0, -1, -5),
-          expectedString: 'P0M0DT-1.000000005S'
-        },
-        {
-          duration: duration(0, 0, 1, -5),
-          expectedString: 'P0M0DT0.999999995S'
-        },
-        {
-          duration: duration(0, 0, -1, 5),
-          expectedString: 'P0M0DT-0.999999995S'
-        },
-        {
-          duration: duration(0, 0, 1, 999999999),
-          expectedString: 'P0M0DT1.999999999S'
-        },
-        {
-          duration: duration(0, 0, -1, -999999999),
-          expectedString: 'P0M0DT-1.999999999S'
-        },
-        {
-          duration: duration(0, 0, 1, -999999999),
-          expectedString: 'P0M0DT0.000000001S'
-        },
-        {
-          duration: duration(0, 0, -1, 999999999),
-          expectedString: 'P0M0DT-0.000000001S'
-        },
+      {
+        duration: duration(0, 0, 1, 5),
+        expectedString: 'P0M0DT1.000000005S'
+      },
+      {
+        duration: duration(0, 0, -1, -5),
+        expectedString: 'P0M0DT-1.000000005S'
+      },
+      {
+        duration: duration(0, 0, 1, -5),
+        expectedString: 'P0M0DT0.999999995S'
+      },
+      {
+        duration: duration(0, 0, -1, 5),
+        expectedString: 'P0M0DT-0.999999995S'
+      },
+      {
+        duration: duration(0, 0, 1, 999999999),
+        expectedString: 'P0M0DT1.999999999S'
+      },
+      {
+        duration: duration(0, 0, -1, -999999999),
+        expectedString: 'P0M0DT-1.999999999S'
+      },
+      {
+        duration: duration(0, 0, 1, -999999999),
+        expectedString: 'P0M0DT0.000000001S'
+      },
+      {
+        duration: duration(0, 0, -1, 999999999),
+        expectedString: 'P0M0DT-0.000000001S'
+      },
 
-        {
-          duration: duration(0, 0, 28, 9),
-          expectedString: 'P0M0DT28.000000009S'
-        },
-        {
-          duration: duration(0, 0, -28, 9),
-          expectedString: 'P0M0DT-27.999999991S'
-        },
-        {
-          duration: duration(0, 0, 28, -9),
-          expectedString: 'P0M0DT27.999999991S'
-        },
-        {
-          duration: duration(0, 0, -28, -9),
-          expectedString: 'P0M0DT-28.000000009S'
-        },
+      {
+        duration: duration(0, 0, 28, 9),
+        expectedString: 'P0M0DT28.000000009S'
+      },
+      {
+        duration: duration(0, 0, -28, 9),
+        expectedString: 'P0M0DT-27.999999991S'
+      },
+      {
+        duration: duration(0, 0, 28, -9),
+        expectedString: 'P0M0DT27.999999991S'
+      },
+      {
+        duration: duration(0, 0, -28, -9),
+        expectedString: 'P0M0DT-28.000000009S'
+      },
 
-        {
-          duration: duration(0, 0, -78036, -143000000),
-          expectedString: 'P0M0DT-78036.143000000S'
-        },
+      {
+        duration: duration(0, 0, -78036, -143000000),
+        expectedString: 'P0M0DT-78036.143000000S'
+      },
 
-        { duration: duration(0, 0, 0, 1000000000), expectedString: 'P0M0DT1S' },
-        {
-          duration: duration(0, 0, 0, -1000000000),
-          expectedString: 'P0M0DT-1S'
-        },
-        {
-          duration: duration(0, 0, 0, 1000000007),
-          expectedString: 'P0M0DT1.000000007S'
-        },
-        {
-          duration: duration(0, 0, 0, -1000000007),
-          expectedString: 'P0M0DT-1.000000007S'
-        },
+      { duration: duration(0, 0, 0, 1000000000), expectedString: 'P0M0DT1S' },
+      {
+        duration: duration(0, 0, 0, -1000000000),
+        expectedString: 'P0M0DT-1S'
+      },
+      {
+        duration: duration(0, 0, 0, 1000000007),
+        expectedString: 'P0M0DT1.000000007S'
+      },
+      {
+        duration: duration(0, 0, 0, -1000000007),
+        expectedString: 'P0M0DT-1.000000007S'
+      },
 
-        {
-          duration: duration(0, 0, 40, 2123456789),
-          expectedString: 'P0M0DT42.123456789S'
-        },
-        {
-          duration: duration(0, 0, -40, 2123456789),
-          expectedString: 'P0M0DT-37.876543211S'
-        },
-        {
-          duration: duration(0, 0, 40, -2123456789),
-          expectedString: 'P0M0DT37.876543211S'
-        },
-        {
-          duration: duration(0, 0, -40, -2123456789),
-          expectedString: 'P0M0DT-42.123456789S'
-        }
-      ],
-      done
-    )
+      {
+        duration: duration(0, 0, 40, 2123456789),
+        expectedString: 'P0M0DT42.123456789S'
+      },
+      {
+        duration: duration(0, 0, -40, 2123456789),
+        expectedString: 'P0M0DT-37.876543211S'
+      },
+      {
+        duration: duration(0, 0, 40, -2123456789),
+        expectedString: 'P0M0DT37.876543211S'
+      },
+      {
+        duration: duration(0, 0, -40, -2123456789),
+        expectedString: 'P0M0DT-42.123456789S'
+      }
+    ])
   })
 
   it('should normalize created duration', () => {
@@ -1284,8 +1251,8 @@ describe('#integration temporal-types', () => {
     )
   })
 
-  it('should send and receive neo4j Date created from standard Date with zero month', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive neo4j Date created from standard Date with zero month', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -1294,11 +1261,11 @@ describe('#integration temporal-types', () => {
 
     const standardDate = new Date(2000, 0, 1)
     const neo4jDate = neo4j.types.Date.fromStandardDate(standardDate)
-    testSendReceiveTemporalValue(neo4jDate, done)
+    await testSendReceiveTemporalValue(neo4jDate)
   })
 
-  it('should send and receive neo4j LocalDateTime created from standard Date with zero month', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive neo4j LocalDateTime created from standard Date with zero month', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -1309,11 +1276,11 @@ describe('#integration temporal-types', () => {
     const neo4jLocalDateTime = neo4j.types.LocalDateTime.fromStandardDate(
       standardDate
     )
-    testSendReceiveTemporalValue(neo4jLocalDateTime, done)
+    await testSendReceiveTemporalValue(neo4jLocalDateTime)
   })
 
-  it('should send and receive neo4j DateTime created from standard Date with zero month', done => {
-    if (neo4jDoesNotSupportTemporalTypes(done)) {
+  it('should send and receive neo4j DateTime created from standard Date with zero month', async () => {
+    if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
@@ -1322,7 +1289,7 @@ describe('#integration temporal-types', () => {
 
     const standardDate = new Date(1756, 0, 29, 23, 15, 59, 12)
     const neo4jDateTime = neo4j.types.DateTime.fromStandardDate(standardDate)
-    testSendReceiveTemporalValue(neo4jDateTime, done)
+    await testSendReceiveTemporalValue(neo4jDateTime)
   })
 
   it('should fail to create LocalTime with out of range values', () => {
@@ -1440,91 +1407,84 @@ describe('#integration temporal-types', () => {
     verifyTimeZoneOffset(neo4jDateTime5, -1 * 150 * 60, '-02:30')
   })
 
-  function testSendAndReceiveRandomTemporalValues (valueGenerator, done) {
+  function testSendAndReceiveRandomTemporalValues (valueGenerator) {
     const asyncFunction = (index, callback) => {
-      const next = () => callback()
-      next.fail = error => callback(error)
-      testSendReceiveTemporalValue(valueGenerator(), next)
+      testSendReceiveTemporalValue(valueGenerator())
+        .then(() => callback())
+        .catch(error => callback(error))
     }
 
-    const doneFunction = error => {
-      if (error) {
-        done.fail(error)
-      } else {
-        done()
-      }
-    }
-
-    timesSeries(RANDOM_VALUES_TO_TEST, asyncFunction, doneFunction)
+    return new Promise((resolve, reject) => {
+      timesSeries(RANDOM_VALUES_TO_TEST, asyncFunction, (error, result) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      })
+    })
   }
 
-  function testSendAndReceiveArrayOfRandomTemporalValues (valueGenerator, done) {
+  async function testSendAndReceiveArrayOfRandomTemporalValues (valueGenerator) {
     const arrayLength = _.random(
       MIN_TEMPORAL_ARRAY_LENGTH,
       MAX_TEMPORAL_ARRAY_LENGTH
     )
     const values = _.range(arrayLength).map(() => valueGenerator())
-    testSendReceiveTemporalValue(values, done)
+
+    await testSendReceiveTemporalValue(values)
   }
 
-  function testReceiveTemporalValue (query, expectedValue, done) {
-    session
-      .run(query)
-      .then(result => {
-        const records = result.records
-        expect(records.length).toEqual(1)
+  async function testReceiveTemporalValue (query, expectedValue) {
+    try {
+      const result = await session.run(query)
 
-        const value = records[0].get(0)
-        expect(value).toEqual(expectedValue)
+      const records = result.records
+      expect(records.length).toEqual(1)
 
-        session.close()
-        done()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
+      const value = records[0].get(0)
+      expect(value).toEqual(expectedValue)
+    } finally {
+      await session.close()
+    }
   }
 
-  function testSendReceiveTemporalValue (value, done) {
-    session
-      .run('CREATE (n:Node {value: $value}) RETURN n.value', { value: value })
-      .then(result => {
-        const records = result.records
-        expect(records.length).toEqual(1)
+  async function testSendReceiveTemporalValue (value) {
+    const result = await session.run(
+      'CREATE (n:Node {value: $value}) RETURN n.value',
+      { value: value }
+    )
 
-        const receivedValue = records[0].get(0)
-        expect(receivedValue).toEqual(value)
+    const records = result.records
+    expect(records.length).toEqual(1)
 
-        session.close()
-        done()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
+    const receivedValue = records[0].get(0)
+    expect(receivedValue).toEqual(value)
+
+    await session.close()
   }
 
-  function testDurationToString (values, done) {
+  async function testDurationToString (values) {
     const durations = values.map(value => value.duration)
     const expectedDurationStrings = values.map(value => value.expectedString)
 
-    session
-      .run('UNWIND $durations AS d RETURN d', { durations: durations })
-      .then(result => {
-        const receivedDurationStrings = result.records
-          .map(record => record.get(0))
-          .map(duration => duration.toString())
+    try {
+      const result = await session.run('UNWIND $durations AS d RETURN d', {
+        durations: durations
+      })
 
-        expect(expectedDurationStrings).toEqual(receivedDurationStrings)
-        done()
-      })
-      .catch(error => {
-        done.fail(error)
-      })
+      const receivedDurationStrings = result.records
+        .map(record => record.get(0))
+        .map(duration => duration.toString())
+
+      expect(expectedDurationStrings).toEqual(receivedDurationStrings)
+    } finally {
+      await session.close()
+    }
   }
 
-  function neo4jDoesNotSupportTemporalTypes (done) {
+  function neo4jDoesNotSupportTemporalTypes () {
     if (serverVersion.compareTo(VERSION_3_4_0) < 0) {
-      done()
       return true
     }
     return false

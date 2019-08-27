@@ -21,6 +21,13 @@ import HeapBuffer from './browser-buf'
 import { newError } from '../../error'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../util'
 
+// Just to be sure that these values are with us even after WebSocket is injected
+// for tests.
+const WS_CONNECTING = 0
+const WS_OPEN = 1
+const WS_CLOSING = 2
+const WS_CLOSED = 3
+
 /**
  * Create a new WebSocketChannel to be used in web browsers.
  * @access private
@@ -31,7 +38,11 @@ export default class WebSocketChannel {
    * @param {ChannelConfig} config - configuration for this channel.
    * @param {function(): string} protocolSupplier - function that detects protocol of the web page. Should only be used in tests.
    */
-  constructor (config, protocolSupplier = detectWebPageProtocol) {
+  constructor (
+    config,
+    protocolSupplier = detectWebPageProtocol,
+    socketFactory = url => new WebSocket(url)
+  ) {
     this._open = true
     this._pending = []
     this._error = null
@@ -44,14 +55,14 @@ export default class WebSocketChannel {
       return
     }
 
-    this._ws = createWebSocket(scheme, config.address)
+    this._ws = createWebSocket(scheme, config.address, socketFactory)
     this._ws.binaryType = 'arraybuffer'
 
     let self = this
     // All connection errors are not sent to the error handler
     // we must also check for dirty close calls
     this._ws.onclose = function (e) {
-      if (!e.wasClean) {
+      if (e && !e.wasClean) {
         self._handleConnectionError()
       }
     }
@@ -131,13 +142,19 @@ export default class WebSocketChannel {
 
   /**
    * Close the connection
-   * @param {function} cb - Function to call on close.
+   * @returns {Promise} A promise that will be resolved after channel is closed
    */
-  close (cb = () => null) {
-    this._open = false
-    this._clearConnectionTimeout()
-    this._ws.close()
-    this._ws.onclose = cb
+  close () {
+    return new Promise((resolve, reject) => {
+      if (this._ws && this._ws.readyState !== WS_CLOSED) {
+        this._open = false
+        this._clearConnectionTimeout()
+        this._ws.onclose = () => resolve()
+        this._ws.close()
+      } else {
+        resolve()
+      }
+    })
   }
 
   /**
@@ -151,7 +168,7 @@ export default class WebSocketChannel {
       const webSocket = this._ws
 
       return setTimeout(() => {
-        if (webSocket.readyState !== WebSocket.OPEN) {
+        if (webSocket.readyState !== WS_OPEN) {
           this._connectionTimeoutFired = true
           webSocket.close()
         }
@@ -174,11 +191,11 @@ export default class WebSocketChannel {
   }
 }
 
-function createWebSocket (scheme, address) {
+function createWebSocket (scheme, address, socketFactory) {
   const url = scheme + '://' + address.asHostPort()
 
   try {
-    return new WebSocket(url)
+    return socketFactory(url)
   } catch (error) {
     if (isIPv6AddressIssueOnWindows(error, address)) {
       // WebSocket in IE and Edge browsers on Windows do not support regular IPv6 address syntax because they contain ':'.
@@ -195,7 +212,7 @@ function createWebSocket (scheme, address) {
       // That is why here we "catch" SyntaxError and rewrite IPv6 address if needed.
 
       const windowsFriendlyUrl = asWindowsFriendlyIPv6Address(scheme, address)
-      return new WebSocket(windowsFriendlyUrl)
+      return socketFactory(windowsFriendlyUrl)
     } else {
       throw error
     }
@@ -247,16 +264,16 @@ function determineWebSocketScheme (config, protocolSupplier) {
 
   if (encryptionOn) {
     // encryption explicitly requested in the config
-    if (!trust || trust === 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES') {
+    if (!trust || trust === 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES') {
       // trust strategy not specified or the only supported strategy is specified
       return { scheme: 'wss', error: null }
     } else {
       const error = newError(
         'The browser version of this driver only supports one trust ' +
-          "strategy, 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'. " +
+          "strategy, 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'. " +
           trust +
           ' is not supported. Please ' +
-          'either use TRUST_CUSTOM_CA_SIGNED_CERTIFICATES or disable encryption by setting ' +
+          'either use TRUST_SYSTEM_CA_SIGNED_CERTIFICATES or disable encryption by setting ' +
           '`encrypted:"' +
           ENCRYPTION_OFF +
           '"` in the driver configuration.'

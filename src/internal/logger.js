@@ -48,7 +48,7 @@ class Logger {
 
   /**
    * Create a new logger based on the given driver configuration.
-   * @param {object} driverConfig the driver configuration as supplied by the user.
+   * @param {Object} driverConfig the driver configuration as supplied by the user.
    * @return {Logger} a new logger instance or a no-op logger when not configured.
    */
   static create (driverConfig) {
@@ -186,7 +186,7 @@ function isLevelEnabled (configuredLevel, targetLevel) {
 
 /**
  * Extract the configured logging level from the driver's logging configuration.
- * @param {object} loggingConfig the logging configuration.
+ * @param {Object} loggingConfig the logging configuration.
  * @return {string} the configured log level or default when none configured.
  */
 function extractConfiguredLevel (loggingConfig) {
@@ -207,7 +207,7 @@ function extractConfiguredLevel (loggingConfig) {
 
 /**
  * Extract the configured logger function from the driver's logging configuration.
- * @param {object} loggingConfig the logging configuration.
+ * @param {Object} loggingConfig the logging configuration.
  * @return {function(level: string, message: string)} the configured logging function.
  */
 function extractConfiguredLogger (loggingConfig) {

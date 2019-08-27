@@ -17,11 +17,12 @@
  * limitations under the License.
  */
 import { newError } from '../error'
+import { ResultStreamObserver } from './stream-observers'
 
 /**
  * @param {TxConfig} txConfig the auto-commit transaction configuration.
  * @param {Connection} connection the connection.
- * @param {StreamObserver} observer the response observer.
+ * @param {ResultStreamObserver} observer the response observer.
  */
 function assertTxConfigIsEmpty (txConfig, connection, observer) {
   if (txConfig && !txConfig.isEmpty()) {
@@ -41,7 +42,6 @@ function assertTxConfigIsEmpty (txConfig, connection, observer) {
  * Asserts that the passed-in database name is empty.
  * @param {string} database
  * @param {Connection} connection
- * @param {StreamObserver} observer
  */
 function assertDatabaseIsEmpty (database, connection, observer) {
   if (database) {

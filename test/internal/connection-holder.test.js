@@ -23,11 +23,11 @@ import ConnectionHolder, {
 import SingleConnectionProvider from '../../src/internal/connection-provider-single'
 import { READ, WRITE } from '../../src/driver'
 import FakeConnection from './fake-connection'
-import StreamObserver from '../../src/internal/stream-observer'
+import Connection from '../../src/internal/connection'
 
 describe('#unit EmptyConnectionHolder', () => {
   it('should return rejected promise instead of connection', done => {
-    EMPTY_CONNECTION_HOLDER.getConnection(new StreamObserver()).catch(() => {
+    EMPTY_CONNECTION_HOLDER.getConnection().catch(() => {
       done()
     })
   })
@@ -60,7 +60,7 @@ describe('#unit ConnectionHolder', () => {
     expect(connectionProvider.acquireConnectionInvoked).toBe(1)
   })
 
-  it('should return acquired during initialization connection', done => {
+  it('should return connection promise', done => {
     const connection = new FakeConnection()
     const connectionProvider = newSingleConnectionProvider(connection)
     const connectionHolder = new ConnectionHolder({
@@ -70,25 +70,24 @@ describe('#unit ConnectionHolder', () => {
 
     connectionHolder.initializeConnection()
 
-    connectionHolder.getConnection(new StreamObserver()).then(conn => {
+    connectionHolder.getConnection().then(conn => {
       expect(conn).toBe(connection)
       done()
     })
   })
 
-  it('should make stream observer aware about connection when initialization successful', done => {
+  it('should return connection promise with version', done => {
     const connection = new FakeConnection().withServerVersion('Neo4j/9.9.9')
     const connectionProvider = newSingleConnectionProvider(connection)
     const connectionHolder = new ConnectionHolder({
       mode: READ,
       connectionProvider
     })
-    const streamObserver = new StreamObserver()
 
     connectionHolder.initializeConnection()
 
-    connectionHolder.getConnection(streamObserver).then(conn => {
-      verifyConnection(streamObserver, 'Neo4j/9.9.9')
+    connectionHolder.getConnection().then(conn => {
+      verifyConnection(conn, 'Neo4j/9.9.9')
       done()
     })
   })
@@ -101,11 +100,10 @@ describe('#unit ConnectionHolder', () => {
       mode: READ,
       connectionProvider
     })
-    const streamObserver = new StreamObserver()
 
     connectionHolder.initializeConnection()
 
-    connectionHolder.getConnection(streamObserver).catch(error => {
+    connectionHolder.getConnection().catch(error => {
       expect(error.message).toEqual(errorMessage)
       done()
     })
@@ -310,11 +308,12 @@ function newSingleConnectionProvider (connection) {
   return new SingleConnectionProvider(Promise.resolve(connection))
 }
 
-function verifyConnection (streamObserver, expectedServerVersion) {
-  expect(streamObserver._conn).toBeDefined()
-  expect(streamObserver._conn).not.toBeNull()
-
-  // server version is taken from connection, verify it as well
-  const metadata = streamObserver.serverMetadata()
-  expect(metadata.server.version).toEqual(expectedServerVersion)
+/**
+ * @param {Connection} connection
+ * @param {*} expectedServerVersion
+ */
+function verifyConnection (connection, expectedServerVersion) {
+  expect(connection).toBeDefined()
+  expect(connection.server).toBeDefined()
+  expect(connection.server.version).toEqual(expectedServerVersion)
 }

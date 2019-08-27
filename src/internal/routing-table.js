@@ -81,7 +81,7 @@ export default class RoutingTable {
 /**
  * Remove all occurrences of the element in the array.
  * @param {Array} array the array to filter.
- * @param {object} element the element to remove.
+ * @param {Object} element the element to remove.
  * @return {Array} new filtered array.
  */
 function removeFromArray (array, element) {

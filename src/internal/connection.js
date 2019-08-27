@@ -17,6 +17,9 @@
  * limitations under the License.
  */
 
+import { ResultStreamObserver } from './stream-observers'
+import BoltProtocol from './bolt-protocol-v1'
+
 export default class Connection {
   /**
    * @param {ConnectionErrorHandler} errorHandler the error handler
@@ -76,7 +79,7 @@ export default class Connection {
   /**
    * Connect to the target address, negotiate Bolt protocol and send initialization message.
    * @param {string} userAgent the user agent for this driver.
-   * @param {object} authToken the object containing auth information.
+   * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
   connect (userAgent, authToken) {
@@ -86,7 +89,7 @@ export default class Connection {
   /**
    * Write a message to the network channel.
    * @param {RequestMessage} message the message to write.
-   * @param {StreamObserver} observer the response observer.
+   * @param {ResultStreamObserver} observer the response observer.
    * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
    */
   write (message, observer, flush) {
@@ -103,9 +106,10 @@ export default class Connection {
 
   /**
    * Call close on the channel.
-   * @param {function} cb - Function to call on close.
+   * @returns {Promise<void>} - A promise that will be resolved when the connection is closed.
+   *
    */
-  close (cb = () => null) {
+  close () {
     throw new Error('not implemented')
   }
 
