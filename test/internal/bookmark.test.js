@@ -90,6 +90,30 @@ describe('#unit Bookmark', () => {
     ])
   })
 
+  it('should be possible to construct bookmark from nested arrays with null and undefined elements', () => {
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      null,
+      undefined,
+      ['neo4j:bookmark:v1:tx2'],
+      [undefined],
+      [
+        ['neo4j:bookmark:v1:tx3', 'neo4j:bookmark:v1:tx4'],
+        [undefined, 'neo4j:bookmark:v1:tx5', 'neo4j:bookmark:v1:tx6', null]
+      ]
+    ])
+
+    expect(bookmark.isEmpty()).toBeFalsy()
+    expect(bookmark.values()).toEqual([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2',
+      'neo4j:bookmark:v1:tx3',
+      'neo4j:bookmark:v1:tx4',
+      'neo4j:bookmark:v1:tx5',
+      'neo4j:bookmark:v1:tx6'
+    ])
+  })
+
   it('should not be possible to construct bookmark from object', () => {
     expect(() => new Bookmark({})).toThrowError(TypeError)
     expect(

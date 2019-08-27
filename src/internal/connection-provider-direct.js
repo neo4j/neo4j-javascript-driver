@@ -27,6 +27,10 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
     this._address = address
   }
 
+  /**
+   * See {@link ConnectionProvider} for more information about this method and
+   * its arguments.
+   */
   acquireConnection ({ accessMode, database, bookmarks } = {}) {
     return this._connectionPool
       .acquire(this._address)

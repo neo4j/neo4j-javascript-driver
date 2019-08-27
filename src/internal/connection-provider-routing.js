@@ -96,6 +96,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
   }
 
+  /**
+   * See {@link ConnectionProvider} for more information about this method and
+   * its arguments.
+   */
   async acquireConnection ({ accessMode, database, bookmark } = {}) {
     let name
     let address
