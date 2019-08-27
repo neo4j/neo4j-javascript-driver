@@ -153,13 +153,13 @@ const defaultConfig = {
   'dbms.connector.bolt.tls_level': tlsConfig.levels.optional
 }
 
-const NEOCTRLARGS = 'NEOCTRLARGS'
+const NEOCTRL_ARGS = 'NEOCTRL_ARGS'
 const neoCtrlVersionParam = '-e'
-const defaultNeo4jVersion = '3.5'
+const defaultNeo4jVersion = '4.0'
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`
 
 function neoctrlArgs () {
-  return platform.env(NEOCTRLARGS) || defaultNeoCtrlArgs
+  return platform.env(NEOCTRL_ARGS) || defaultNeoCtrlArgs
 }
 
 function neoctrlVersion () {
