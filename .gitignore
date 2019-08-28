@@ -12,3 +12,4 @@ docs/build
 .npmrc
 *.iml
 /lib
+*.code-workspace
