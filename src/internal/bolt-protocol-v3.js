@@ -29,13 +29,13 @@ const noOpObserver = new StreamObserver()
 
 export default class BoltProtocol extends BoltProtocolV2 {
   transformMetadata (metadata) {
-    if (metadata.t_first) {
+    if ('t_first' in metadata) {
       // Bolt V3 uses shorter key 't_first' to represent 'result_available_after'
       // adjust the key to be the same as in Bolt V1 so that ResultSummary can retrieve the value
       metadata.result_available_after = metadata.t_first
       delete metadata.t_first
     }
-    if (metadata.t_last) {
+    if ('t_last' in metadata) {
       // Bolt V3 uses shorter key 't_last' to represent 'result_consumed_after'
       // adjust the key to be the same as in Bolt V1 so that ResultSummary can retrieve the value
       metadata.result_consumed_after = metadata.t_last

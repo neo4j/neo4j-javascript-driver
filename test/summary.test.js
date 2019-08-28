@@ -19,26 +19,75 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 
 describe('#integration result summary', () => {
-  let driver, session, serverVersion
+  describe('default driver', () => {
+    let driver, session
 
-  beforeEach(async () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    session = driver.session()
+    beforeEach(done => {
+      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      session = driver.session()
 
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+      session.run('MATCH (n) DETACH DELETE n').then(done)
+    })
+
+    afterEach(() => {
+      driver.close()
+    })
+
+    it('should get result summary', done => {
+      verifySummary(session, done)
+    })
+
+    it('should get plan from summary', done => {
+      verifyPlan(session, done)
+    })
+
+    it('should get profile from summary', done => {
+      verifyProfile(session, done)
+    })
+
+    it('should get notifications from summary', done => {
+      verifyNotifications(session, 'EXPLAIN MATCH (n), (m) RETURN n, m', done)
+    })
   })
 
-  afterEach(async () => {
-    await driver.close()
+  describe('driver with lossless integers disabled', () => {
+    let driver, session
+
+    beforeEach(done => {
+      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+        disableLosslessIntegers: true
+      })
+      session = driver.session()
+
+      session.run('MATCH (n) DETACH DELETE n').then(done)
+    })
+
+    afterEach(() => {
+      driver.close()
+    })
+
+    it('should get result summary', done => {
+      verifySummary(session, done)
+    })
+
+    it('should get plan from summary', done => {
+      verifyPlan(session, done)
+    })
+
+    it('should get profile from summary', done => {
+      verifyProfile(session, done)
+    })
+
+    it('should get notifications from summary', done => {
+      verifyNotifications(session, 'EXPLAIN MATCH (n), (m) RETURN n, m', done)
+    })
   })
 
-  it('should get result summary', done => {
-    // When & Then
+  function verifySummary (session, done) {
     session.run("CREATE (p:Person { Name: 'Test'})").then(result => {
-      let summary = result.summary
+      const summary = result.summary
 
       expect(summary.statement.text).toBe("CREATE (p:Person { Name: 'Test'})")
       expect(summary.statement.parameters).toEqual({})
@@ -50,7 +99,7 @@ describe('#integration result summary', () => {
       expect(summary.resultConsumedAfter).toBeDefined()
       expect(summary.resultAvailableAfter).toBeDefined()
 
-      let counters = summary.counters
+      const counters = summary.counters
       expect(counters.nodesCreated()).toBe(1)
       expect(counters.nodesDeleted()).toBe(0)
       expect(counters.relationshipsCreated()).toBe(0)
@@ -64,31 +113,31 @@ describe('#integration result summary', () => {
       expect(counters.constraintsRemoved()).toBe(0)
       done()
     })
-  })
+  }
 
-  it('should get plan from summary', done => {
+  function verifyPlan (session, done) {
     session.run('EXPLAIN MATCH (n) RETURN 1').then(result => {
-      let summary = result.summary
+      const summary = result.summary
       expect(summary.plan).toBeDefined()
       expect(summary.profile).toBe(false)
 
-      let plan = summary.plan
+      const plan = summary.plan
       expect(plan.arguments).toBeDefined()
       expect(plan.children).toBeDefined()
       expect(plan.identifiers).toBeDefined()
       expect(plan.operatorType).toBeDefined()
       done()
     })
-  })
+  }
 
-  it('should get profile from summary', done => {
+  function verifyProfile (session, done) {
     session.run('PROFILE RETURN 1').then(result => {
-      let summary = result.summary
+      const summary = result.summary
       expect(summary.plan).toBeDefined()
       expect(summary.profile).toBeDefined()
 
-      let profile = summary.profile
-      let plan = summary.plan
+      const profile = summary.profile
+      const plan = summary.plan
 
       verifyProfileAndPlanAreEqual(profile, plan)
 
@@ -97,18 +146,14 @@ describe('#integration result summary', () => {
 
       done()
     })
-  })
+  }
 
-  it('should get notifications from summary', done => {
-    if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
-      pending('seems to be flaky')
-    }
-
-    session.run('EXPLAIN MATCH (n), (m) RETURN n, m').then(result => {
-      let summary = result.summary
+  function verifyNotifications (session, statement, done) {
+    session.run(statement).then(result => {
+      const summary = result.summary
       expect(summary.notifications).toBeDefined()
       expect(summary.notifications.length).toBe(1)
-      let notification = summary.notifications[0]
+      const notification = summary.notifications[0]
 
       expect(notification.code).toBeDefined()
       expect(notification.title).toBeDefined()
@@ -118,7 +163,7 @@ describe('#integration result summary', () => {
 
       done()
     })
-  })
+  }
 
   function verifyProfileAndPlanAreEqual (profile, plan) {
     expect(profile.arguments).toBe(plan.arguments)

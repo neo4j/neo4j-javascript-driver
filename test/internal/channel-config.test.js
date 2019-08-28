@@ -109,7 +109,7 @@ describe('#unit ChannelConfig', () => {
   it('should have connection timeout by default', () => {
     const config = new ChannelConfig(null, {}, '')
 
-    expect(config.connectionTimeout).toEqual(5000)
+    expect(config.connectionTimeout).toEqual(30000)
   })
 
   it('should respect configured connection timeout', () => {

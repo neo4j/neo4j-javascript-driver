@@ -188,8 +188,8 @@ const logging = {
  *
  *       // Specify socket connection timeout in milliseconds. Numeric values are expected. Negative and zero values
  *       // result in no timeout being applied. Connection establishment will be then bound by the timeout configured
- *       // on the operating system level. Default value is 5000, which is 5 seconds.
- *       connectionTimeout: 5000, // 5 seconds
+ *       // on the operating system level. Default value is 30000, which is 30 seconds.
+ *       connectionTimeout: 30000, // 30 seconds
  *
  *       // Make this driver always return native JavaScript numbers for integer values, instead of the
  *       // dedicated {@link Integer} class. Values that do not fit in native number bit range will be represented as
