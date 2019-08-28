@@ -1,11 +1,13 @@
-!: AUTO INIT
+!: BOLT 3
+!: AUTO HELLO
 !: AUTO RESET
 !: AUTO PULL_ALL
-!: AUTO RUN "COMMIT" {}
-!: AUTO RUN "ROLLBACK" {}
-!: AUTO RUN "BEGIN" {}
+!: AUTO COMMIT
+!: AUTO ROLLBACK
+!: AUTO BEGIN
+!: AUTO GOODBYE
 
-C: RUN "CREATE (n {name:'Bob'})" {}
+C: RUN "CREATE (n {name:'Bob'})" {} {}
    PULL_ALL
 S: SUCCESS {}
    SUCCESS {}

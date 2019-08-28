@@ -20,7 +20,7 @@
 import { newError, SERVICE_UNAVAILABLE } from '../error'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from './util'
 
-const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 5000 // 5 seconds by default
+const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 30000 // 30 seconds by default
 
 const ALLOWED_VALUES_ENCRYPTED = [
   null,

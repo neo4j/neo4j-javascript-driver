@@ -1,12 +1,14 @@
-!: AUTO INIT
+!: BOLT 3
+!: AUTO HELLO
 !: AUTO RESET
 !: AUTO PULL_ALL
+!: AUTO GOODBYE
 
-C: RUN "CREATE (n {name:'Bob'})" {}
+C: RUN "CREATE (n {name:'Bob'})" {} {}
    PULL_ALL
 S: SUCCESS {}
    SUCCESS {}
-C: RUN "CREATE ()" {}
+C: RUN "CREATE ()" {} {}
    PULL_ALL
 S: SUCCESS {}
    SUCCESS {}

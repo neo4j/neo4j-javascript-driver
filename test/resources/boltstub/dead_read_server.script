@@ -1,8 +1,10 @@
-!: AUTO INIT
+!: BOLT 3
+!: AUTO HELLO
 !: AUTO RESET
 !: AUTO PULL_ALL
-!: AUTO RUN "BEGIN" {}
+!: AUTO BEGIN
+!: AUTO GOODBYE
 
-C: RUN "MATCH (n) RETURN n.name" {}
+C: RUN "MATCH (n) RETURN n.name" {} {"mode": "r"}
 C: PULL_ALL
 S: <EXIT>

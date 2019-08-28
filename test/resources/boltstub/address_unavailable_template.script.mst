@@ -1,11 +1,13 @@
-!: AUTO INIT
+!: BOLT 3
+!: AUTO HELLO
 !: AUTO RESET
 !: AUTO PULL_ALL
-!: AUTO RUN "ROLLBACK" {}
-!: AUTO RUN "BEGIN" {}
-!: AUTO RUN "COMMIT" {}
+!: AUTO ROLLBACK
+!: AUTO BEGIN
+!: AUTO COMMIT
+!: AUTO GOODBYE
 
-C: RUN "{{{query}}}" {}
+C: RUN "{{{query}}}" {} { {{{mode}}} }
 C: PULL_ALL
 S: FAILURE {"code": "Neo.TransientError.General.DatabaseUnavailable", "message": "Database is busy doing store copy"}
 S: IGNORED

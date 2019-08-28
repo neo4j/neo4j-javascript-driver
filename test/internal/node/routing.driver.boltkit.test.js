@@ -503,7 +503,7 @@ describe('routing driver with stub server', () => {
       9001
     )
     const readServer = boltStub.start(
-      './test/resources/boltstub/dead_read_server.script',
+      './test/resources/boltstub/dead_write_server.script',
       9007
     )
 
@@ -511,7 +511,7 @@ describe('routing driver with stub server', () => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
       // When
       const session = driver.session(neo4j.session.WRITE)
-      session.run('MATCH (n) RETURN n.name').catch(err => {
+      session.run("CREATE (n {name:'Bob'})").catch(err => {
         expect(err.code).toEqual(neo4j.error.SESSION_EXPIRED)
         driver.close()
         seedServer.exit(code1 => {
@@ -1909,7 +1909,7 @@ describe('routing driver with stub server', () => {
 
     boltStub.run(() => {
       const driver = boltStub.newDriver('bolt+routing://127.0.0.1:9001')
-      const session = driver.session()
+      const session = driver.session(neo4j.session.READ)
       session.run('MATCH (n) RETURN n.name AS name').then(result => {
         const names = result.records.map(record => record.get('name'))
         expect(names).toEqual(['Alice', 'Bob', 'Eve'])
@@ -2758,7 +2758,7 @@ describe('routing driver with stub server', () => {
       './test/resources/boltstub/address_unavailable_template.script.mst'
     const server = boltStub.startWithTemplate(
       serverTemplateScript,
-      { query: query },
+      { query: query, mode: accessMode === READ ? '"mode": "r"' : '' },
       serverPort
     )
 
