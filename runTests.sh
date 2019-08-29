@@ -5,14 +5,11 @@ function finish {
 }
 trap finish EXIT
 
+
 npm install
 
-if [ "$1" == "" ]; then
-    npm run start-neo4j
-else
-    # Example: ./runTests.sh '-e 3.1.3'
-    NEOCTRL_ARGS="$1" npm run start-neo4j
+if [[ ! -z "$1" ]]; then
+  export NEOCTRL_ARGS="$1"
 fi
 
-sleep 2
-npm test
+npm run start-neo4j && npm test
