@@ -29,6 +29,10 @@ const int1 = new Integer()
 const int2 = new Integer(1)
 const int3 = new Integer(1, 2)
 
+const isInt1 = int1 instanceof Integer
+const isInt2 = int2 instanceof Integer
+const isInt3 = int3 instanceof Integer
+
 const high: number = int1.high
 const low: number = int1.low
 

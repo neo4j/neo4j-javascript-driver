@@ -106,6 +106,7 @@ declare const types: {
   Date: typeof Date
   LocalDateTime: typeof LocalDateTime
   DateTime: typeof DateTime
+  Integer: typeof Integer
 }
 
 declare const session: {

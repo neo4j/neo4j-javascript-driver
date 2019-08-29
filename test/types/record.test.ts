@@ -21,6 +21,8 @@ import Record from '../../types/record'
 
 const record1 = new Record(['name', 'age'], ['Alice', 20])
 const record2 = new Record(['name', 'age'], ['Bob', 22], { key: 'value' })
+const isRecord1: boolean = record1 instanceof Record
+const isRecord2: boolean = record2 instanceof Record
 
 const record1Keys: string[] = record1.keys
 const record1Length: number = record1.length
