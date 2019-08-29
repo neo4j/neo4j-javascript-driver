@@ -91,14 +91,14 @@ declare function driver(
 ): Driver
 
 declare const types: {
-  Node: Node
-  Relationship: Relationship
-  UnboundRelationship: UnboundRelationship
-  PathSegment: PathSegment
-  Path: Path
+  Node: typeof Node
+  Relationship: typeof Relationship
+  UnboundRelationship: typeof UnboundRelationship
+  PathSegment: typeof PathSegment
+  Path: typeof Path
   Result: Result
   ResultSummary: ResultSummary
-  Record: Record
+  Record: typeof Record
   Point: typeof Point
   Duration: typeof Duration
   LocalTime: typeof LocalTime
