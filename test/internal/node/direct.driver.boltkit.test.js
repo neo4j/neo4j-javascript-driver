@@ -332,7 +332,6 @@ describe('#stub-direct direct driver with stub server', () => {
   describe('should close connection if it dies sitting idle in connection pool', () => {
     async function verifyConnectionCleanup (version) {
       if (!boltStub.supported) {
-        done()
         return
       }
 

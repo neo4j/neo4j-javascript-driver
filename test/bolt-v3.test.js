@@ -295,7 +295,6 @@ describe('#integration Bolt V3 API', () => {
 
   it('should use bookmarks for auto commit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
-      done()
       return
     }
 
@@ -325,7 +324,6 @@ describe('#integration Bolt V3 API', () => {
 
   it('should use bookmarks for auto commit and explicit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
-      done()
       return
     }
 
