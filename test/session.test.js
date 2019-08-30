@@ -304,21 +304,17 @@ describe('#integration session', () => {
   })
 
   it('should expose cypher notifications ', done => {
-    if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
-      pending('seems to be flaky')
-    }
-
     // Given
-    const statement = 'EXPLAIN MATCH (n), (m) RETURN n, m'
+    const statement = 'EXPLAIN MATCH (n:ThisLabelDoesNotExist) RETURN n'
     // When & Then
     session.run(statement).then(result => {
       const sum = result.summary
       expect(sum.notifications.length).toBeGreaterThan(0)
       expect(sum.notifications[0].code).toBe(
-        'Neo.ClientNotification.Statement.CartesianProductWarning'
+        'Neo.ClientNotification.Statement.UnknownLabelWarning'
       )
       expect(sum.notifications[0].title).toBe(
-        'This query builds a cartesian product between disconnected patterns.'
+        'The provided label is not in the database.'
       )
       expect(sum.notifications[0].position.column).toBeGreaterThan(0)
       done()
@@ -1314,9 +1310,7 @@ describe('#integration session', () => {
       .run('RETURN $value', { value: value })
       .then(() => {
         done.fail(
-          `Should not be possible to send ${
-            value.constructor.name
-          } ${value} as a query parameter`
+          `Should not be possible to send ${value.constructor.name} ${value} as a query parameter`
         )
       })
       .catch(error => {
