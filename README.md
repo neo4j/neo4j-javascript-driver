@@ -10,15 +10,17 @@ Resources to get you started:
 
 ## What's New
 
-- Introduces a brand new reactive API (built on top of RxJS) available with 4.0 version server, which includes reactive protocol improvements.
+- Upcoming version is now named as `4.0.0` instead of `2.0.0` to better align with server versions.
+- Reactive API (built on top of RxJS) is now available with 4.0 version server, which includes reactive protocol improvements.
 - Session instances can now be acquired against a specific database against a multi-database server, which is available with 4.0 version server.
 - A new `driver.verifyConnectivity()` method is introduced for connectivity verification purposes.
+- Driver default configuration for `encrypted` is now `false` (meaning that driver will only attempt clear text connections by default), and when encryption is explicitly enabled the default trust mode is TRUST_SYSTEM_CA_SIGNED_CERTIFICATES which relies upon underlying system's certificate trust settings.
 
 ## Breaking Changes
 
 - Driver API is moved from `neo4j.v1` to `neo4j` namespace.
 - `driver#session()` method now makes use of object destructuring rather than positional arguments (see [Acquiring a Session](#acquiring-a-session) for examples).
-- `session#close()` now returns a `Promise` and no more accepts a callback function argument.
+- `session#close()` and `driver#close()` both now return `Promise`s and no more accept callback function arguments.
 - `driver.onError` and `driver.onCompleted` callbacks are completely removed. Errors should be monitored on related code paths (i.e. through `Promise#catch`, etc.).
 - `bolt+routing` scheme is now renamed to `neo4j`. `neo4j` scheme is designed to work work with all possible 4.0 server deployments, but `bolt` scheme is still available for explicit single instance connections.
 
