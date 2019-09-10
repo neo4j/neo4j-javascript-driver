@@ -48,7 +48,11 @@ describe('#integration result summary', () => {
     })
 
     it('should get notifications from summary', done => {
-      verifyNotifications(session, 'EXPLAIN MATCH (n), (m) RETURN n, m', done)
+      verifyNotifications(
+        session,
+        'EXPLAIN MATCH (n:ThisLabelDoesNotExist) RETURN n',
+        done
+      )
     })
   })
 
@@ -81,7 +85,11 @@ describe('#integration result summary', () => {
     })
 
     it('should get notifications from summary', done => {
-      verifyNotifications(session, 'EXPLAIN MATCH (n), (m) RETURN n, m', done)
+      verifyNotifications(
+        session,
+        'EXPLAIN MATCH (n:ThisLabelDoesNotExist) RETURN n',
+        done
+      )
     })
   })
 

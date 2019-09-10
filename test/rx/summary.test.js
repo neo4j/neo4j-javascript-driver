@@ -560,27 +560,25 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnNotification (version, runnable) {
-    pending('seems to be flaky')
-
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
     const summary = await runnable
-      .run('CYPHER runtime=interpreted EXPLAIN MATCH (n),(m) RETURN n,m')
+      .run('EXPLAIN MATCH (n:ThisLabelDoesNotExist) RETURN n')
       .summary()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.notifications).toBeTruthy()
     expect(summary.notifications.length).toBeGreaterThan(0)
     expect(summary.notifications[0].code).toBe(
-      'Neo.ClientNotification.Statement.CartesianProductWarning'
+      'Neo.ClientNotification.Statement.UnknownLabelWarning'
     )
     expect(summary.notifications[0].title).toBe(
-      'This query builds a cartesian product between disconnected patterns.'
+      'The provided label is not in the database.'
     )
     expect(summary.notifications[0].description).toBe(
-      'If a part of a query contains multiple disconnected patterns, this will build a cartesian product between all those parts. This may produce a large amount of data and slow down query processing. While occasionally intended, it may often be possible to reformulate the query that avoids the use of this cross product, perhaps by adding a relationship between the different parts or by using OPTIONAL MATCH (identifier is: (m))'
+      'One of the labels in your query is not available in the database, make sure you didn\'t misspell it or that the label is available when you run this statement in your application (the missing label name is: ThisLabelDoesNotExist)'
     )
     expect(summary.notifications[0].severity).toBe('WARNING')
   }
