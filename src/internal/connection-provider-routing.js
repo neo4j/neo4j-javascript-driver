@@ -32,7 +32,6 @@ import DelegateConnection from './connection-delegate'
 import LeastConnectedLoadBalancingStrategy from './least-connected-load-balancing-strategy'
 import Bookmark from './bookmark'
 import { int } from '../integer'
-import { ConsoleReporter } from 'jasmine'
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 const DATABASE_NOT_FOUND_ERROR_CODE =
