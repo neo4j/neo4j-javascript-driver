@@ -104,6 +104,19 @@ class Driver {
   }
 
   /**
+   * Returns whether the server supports multi database capabilities based on the handshaked protocol
+   * version.
+   *
+   * Note that this function call _always_ causes a round-trip to the server.
+   *
+   * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
+   */
+  supportsMultiDb () {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.supportsMultiDb()
+  }
+
+  /**
    * Acquire a session to communicate with the database. The session will
    * borrow connections from the underlying connection pool as required and
    * should be considered lightweight and disposable.

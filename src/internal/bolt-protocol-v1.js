@@ -16,24 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RequestMessage from './request-message'
-import * as v1 from './packstream-v1'
-import Bookmark from './bookmark'
-import TxConfig from './tx-config'
-import { ACCESS_MODE_WRITE } from './constants'
-import Connection from './connection'
-import { Chunker } from './chunking'
-import { Packer } from './packstream-v1'
 import {
   assertDatabaseIsEmpty,
   assertTxConfigIsEmpty
 } from './bolt-protocol-util'
+import Bookmark from './bookmark'
+import { Chunker } from './chunking'
+import Connection from './connection'
+import { ACCESS_MODE_WRITE, BOLT_PROTOCOL_V1 } from './constants'
+import * as v1 from './packstream-v1'
+import { Packer } from './packstream-v1'
+import RequestMessage from './request-message'
 import {
-  ResultStreamObserver,
   LoginObserver,
   ResetObserver,
+  ResultStreamObserver,
   StreamObserver
 } from './stream-observers'
+import TxConfig from './tx-config'
 
 export default class BoltProtocol {
   /**
@@ -46,6 +46,13 @@ export default class BoltProtocol {
     this._connection = connection
     this._packer = this._createPacker(chunker)
     this._unpacker = this._createUnpacker(disableLosslessIntegers)
+  }
+
+  /**
+   * Returns the numerical version identifier for this protocol
+   */
+  get version () {
+    return BOLT_PROTOCOL_V1
   }
 
   /**

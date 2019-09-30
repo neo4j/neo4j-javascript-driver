@@ -411,6 +411,42 @@ describe('#stub-direct direct driver with stub server', () => {
     it('v3', () => verifyFailureOnCommit('v3'))
   })
 
+  describe('should report whether multi db is supported', () => {
+    async function verifySupportsMultiDb (version, expected) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/supports_multi_db.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsMultiDb()).toBeResolvedTo(expected)
+
+      await driver.close()
+      await server.exit()
+    }
+
+    it('v1', () => verifySupportsMultiDb('v1', false))
+    it('v2', () => verifySupportsMultiDb('v2', false))
+    it('v3', () => verifySupportsMultiDb('v3', false))
+    it('v4', () => verifySupportsMultiDb('v4', true))
+    it('on error', async () => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsMultiDb()).toBeRejectedWith(
+        jasmine.objectContaining({
+          code: SERVICE_UNAVAILABLE
+        })
+      )
+
+      await driver.close()
+    })
+  })
+
   function connectionPool (driver, key) {
     return driver._connectionProvider._connectionPool._pools[key]
   }

@@ -94,4 +94,10 @@ describe('#unit BoltProtocolV4', () => {
     expect(recorder.observers).toEqual([observer])
     expect(recorder.flushes).toEqual([true])
   })
+
+  it('should return correct bolt version number', () => {
+    const protocol = new BoltProtocolV4(null, null, false)
+
+    expect(protocol.version).toBe(4)
+  })
 })

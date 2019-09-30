@@ -18,6 +18,7 @@
  */
 import BoltProtocolV1 from './bolt-protocol-v1'
 import * as v2 from './packstream-v2'
+import { BOLT_PROTOCOL_V2 } from './constants'
 
 export default class BoltProtocol extends BoltProtocolV1 {
   _createPacker (chunker) {
@@ -26,5 +27,9 @@ export default class BoltProtocol extends BoltProtocolV1 {
 
   _createUnpacker (disableLosslessIntegers) {
     return new v2.Unpacker(disableLosslessIntegers)
+  }
+
+  get version () {
+    return BOLT_PROTOCOL_V2
   }
 }
