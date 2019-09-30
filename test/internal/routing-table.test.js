@@ -201,8 +201,29 @@ describe('#unit RoutingTable', () => {
     }
   })
 
-  function expired () {
-    return Date.now() - 3600 // expired an hour ago
+  it('should report correct value when expired for is tested', () => {
+    const originalDateNow = Date.now
+    try {
+      Date.now = () => 50000
+      const table = createTable(
+        [server1, server2, server3],
+        [server2, server1, server5],
+        [server5, server1],
+        expired(7200)
+      )
+
+      expect(table.isStaleFor(READ)).toBeTruthy()
+      expect(table.isStaleFor(WRITE)).toBeTruthy()
+
+      expect(table.isExpiredFor(3600)).toBeTruthy()
+      expect(table.isExpiredFor(10800)).toBeFalsy()
+    } finally {
+      Date.now = originalDateNow
+    }
+  })
+
+  function expired (expiredFor) {
+    return Date.now() - (expiredFor || 3600) // expired an hour ago
   }
 
   function notExpired () {

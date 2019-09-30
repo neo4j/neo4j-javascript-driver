@@ -1723,6 +1723,92 @@ describe('#unit RoutingConnectionProvider', () => {
         [serverC]
       )
     })
+
+    it('should purge expired routing tables after specified duration on update', async () => {
+      var originalDateNow = Date.now
+      Date.now = () => 50000
+      try {
+        const routingTableToLoad = newRoutingTable(
+          'databaseC',
+          [server1, server2, server3],
+          [server2, server3],
+          [server1]
+        )
+        const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+          server1,
+          [server1],
+          [
+            newRoutingTable(
+              'databaseA',
+              [server1, server2, server3],
+              [server1, server2],
+              [server3],
+              int(Date.now() + 12000)
+            ),
+            newRoutingTable(
+              'databaseB',
+              [server1, server2, server3],
+              [server1, server3],
+              [server2],
+              int(Date.now() + 2000)
+            )
+          ],
+          {
+            databaseC: {
+              'server1:7687': routingTableToLoad
+            }
+          },
+          null,
+          4000
+        )
+
+        expectRoutingTable(
+          connectionProvider,
+          'databaseA',
+          [server1, server2, server3],
+          [server1, server2],
+          [server3]
+        )
+        expectRoutingTable(
+          connectionProvider,
+          'databaseB',
+          [server1, server2, server3],
+          [server1, server3],
+          [server2]
+        )
+
+        // make routing table for databaseA to report true for isExpiredFor(4000)
+        // call.
+        Date.now = () => 58000
+
+        // force a routing table update for databaseC
+        const conn1 = await connectionProvider.acquireConnection({
+          accessMode: WRITE,
+          database: 'databaseC'
+        })
+        expect(conn1).not.toBeNull()
+        expect(conn1.address).toBe(server1)
+
+        // Then
+        expectRoutingTable(
+          connectionProvider,
+          'databaseA',
+          [server1, server2, server3],
+          [server1, server2],
+          [server3]
+        )
+        expectRoutingTable(
+          connectionProvider,
+          'databaseC',
+          [server1, server2, server3],
+          [server2, server3],
+          [server1]
+        )
+        expectNoRoutingTable(connectionProvider, 'databaseB')
+      } finally {
+        Date.now = originalDateNow
+      }
+    })
   })
 })
 
@@ -1746,7 +1832,8 @@ function newRoutingConnectionProviderWithSeedRouter (
   seedRouterResolved,
   routingTables,
   routerToRoutingTable = { '': {} },
-  connectionPool = null
+  connectionPool = null,
+  routingTablePurgeDelay = null
 ) {
   const pool = connectionPool || newPool()
   const connectionProvider = new RoutingConnectionProvider({
@@ -1755,7 +1842,8 @@ function newRoutingConnectionProviderWithSeedRouter (
     routingContext: {},
     hostNameResolver: new SimpleHostNameResolver(),
     config: {},
-    log: Logger.noOp()
+    log: Logger.noOp(),
+    routingTablePurgeDelay: routingTablePurgeDelay
   })
   connectionProvider._connectionPool = pool
   routingTables.forEach(r => {
@@ -1819,6 +1907,10 @@ function expectRoutingTable (
   expect(connectionProvider._routingTables[database].routers).toEqual(routers)
   expect(connectionProvider._routingTables[database].readers).toEqual(readers)
   expect(connectionProvider._routingTables[database].writers).toEqual(writers)
+}
+
+function expectNoRoutingTable (connectionProvider, database) {
+  expect(connectionProvider._routingTables[database]).toBeFalsy()
 }
 
 function expectPoolToContain (pool, addresses) {

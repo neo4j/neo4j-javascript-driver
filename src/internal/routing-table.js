@@ -24,6 +24,7 @@ const MIN_ROUTERS = 1
 export default class RoutingTable {
   constructor ({ database, routers, readers, writers, expirationTime } = {}) {
     this.database = database
+    this.databaseName = database || 'default database'
     this.routers = routers || []
     this.readers = readers || []
     this.writers = writers || []
@@ -61,14 +62,24 @@ export default class RoutingTable {
     )
   }
 
+  /**
+   * Check if this routing table is expired for specified amount of duration
+   *
+   * @param {Integer} duration amount of duration in milliseconds to check for expiration
+   * @returns {boolean}
+   */
+  isExpiredFor (duration) {
+    return this.expirationTime.add(duration).lessThan(Date.now())
+  }
+
   allServers () {
     return [...this.routers, ...this.readers, ...this.writers]
   }
 
   toString () {
     return (
-      `RoutingTable[` +
-      `database=${this.database}, ` +
+      'RoutingTable[' +
+      `database=${this.databaseName}, ` +
       `expirationTime=${this.expirationTime}, ` +
       `currentTime=${Date.now()}, ` +
       `routers=[${this.routers}], ` +
