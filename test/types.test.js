@@ -179,7 +179,7 @@ describe('#integration path values', () => {
 })
 
 describe('#integration byte arrays', () => {
-  let originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
+  const originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
 
   beforeAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
@@ -213,7 +213,7 @@ describe('#integration byte arrays', () => {
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     const session = driver.session()
     session
-      .run('RETURN {array}', { array: randomByteArray(42) })
+      .run('RETURN $array', { array: randomByteArray(42) })
       .catch(error => {
         expect(error.message).toEqual(
           'Byte arrays are not supported by the database this driver is connected to'
@@ -255,7 +255,7 @@ function runReturnQuery (driver, actual, expected) {
   const session = driver.session()
   return new Promise((resolve, reject) => {
     session
-      .run('RETURN {val} as v', { val: actual })
+      .run('RETURN $val as v', { val: actual })
       .then(result => {
         expect(result.records[0].get('v')).toEqual(expected || actual)
       })

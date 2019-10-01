@@ -578,7 +578,7 @@ describe('#integration-rx summary', () => {
       'The provided label is not in the database.'
     )
     expect(summary.notifications[0].description).toBe(
-      'One of the labels in your query is not available in the database, make sure you didn\'t misspell it or that the label is available when you run this statement in your application (the missing label name is: ThisLabelDoesNotExist)'
+      "One of the labels in your query is not available in the database, make sure you didn't misspell it or that the label is available when you run this statement in your application (the missing label name is: ThisLabelDoesNotExist)"
     )
     expect(summary.notifications[0].severity).toBe('WARNING')
   }
@@ -652,20 +652,25 @@ describe('#integration-rx summary', () => {
   }
 
   async function dropConstraintsAndIndices (driver) {
+    function getName (record) {
+      const obj = record.toObject()
+      const name = obj.description || obj.name
+      if (!name) {
+        throw new Error('unable to identify name of the constraint/index')
+      }
+      return name
+    }
+
     const session = driver.session()
     try {
-      const constraints = await session.run(
-        "CALL db.constraints() yield description RETURN 'DROP ' + description"
-      )
+      const constraints = await session.run('CALL db.constraints()')
       for (let i = 0; i < constraints.records.length; i++) {
-        await session.run(constraints.records[0].get(0))
+        await session.run(`DROP ${getName(constraints.records[i])}`)
       }
 
-      const indices = await session.run(
-        "CALL db.indexes() yield description RETURN 'DROP ' + description"
-      )
+      const indices = await session.run('CALL db.indexes()')
       for (let i = 0; i < indices.records.length; i++) {
-        await session.run(indices.records[0].get(0))
+        await session.run(`DROP ${getName(indices.records[i])}`)
       }
     } finally {
       await session.close()

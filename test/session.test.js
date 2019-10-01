@@ -171,7 +171,7 @@ describe('#integration session', () => {
   it('should accept a statement object ', done => {
     // Given
     const statement = {
-      text: 'RETURN 1 = {param} AS a',
+      text: 'RETURN 1 = $param AS a',
       parameters: { param: 1 }
     }
 
@@ -215,7 +215,7 @@ describe('#integration session', () => {
 
   it('should expose summarize method for basic metadata ', done => {
     // Given
-    const statement = 'CREATE (n:Label {prop:{prop}}) RETURN n'
+    const statement = 'CREATE (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
     session.run(statement, params).then(result => {
@@ -269,7 +269,7 @@ describe('#integration session', () => {
 
   it('should expose plan ', done => {
     // Given
-    const statement = 'EXPLAIN CREATE (n:Label {prop:{prop}}) RETURN n'
+    const statement = 'EXPLAIN CREATE (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
     session.run(statement, params).then(result => {
@@ -286,7 +286,7 @@ describe('#integration session', () => {
 
   it('should expose profile ', done => {
     // Given
-    const statement = 'PROFILE MATCH (n:Label {prop:{prop}}) RETURN n'
+    const statement = 'PROFILE MATCH (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
     session.run(statement, params).then(result => {
@@ -403,7 +403,7 @@ describe('#integration session', () => {
       throw Error()
     }
 
-    const statement = 'RETURN {param}'
+    const statement = 'RETURN $param'
     const params = { param: unpackable }
     // When & Then
     session.run(statement, params).catch(ignore => {
@@ -883,20 +883,20 @@ describe('#integration session', () => {
   it('should be able to do nested queries', done => {
     session
       .run(
-        'CREATE (knight:Person:Knight {name: {name1}, castle: {castle}})' +
-          'CREATE (king:Person {name: {name2}, title: {title}})',
+        'CREATE (knight:Person:Knight {name: $name1, castle: $castle})' +
+          'CREATE (king:Person {name: $name2, title: $title})',
         { name1: 'Lancelot', castle: 'Camelot', name2: 'Arthur', title: 'King' }
       )
       .then(() => {
         session
           .run(
-            'MATCH (knight:Person:Knight) WHERE knight.castle = {castle} RETURN id(knight) AS knight_id',
+            'MATCH (knight:Person:Knight) WHERE knight.castle = $castle RETURN id(knight) AS knight_id',
             { castle: 'Camelot' }
           )
           .subscribe({
             onNext: record => {
               session.run(
-                'MATCH (knight) WHERE id(knight) = {id} MATCH (king:Person) WHERE king.name = {king} CREATE (knight)-[:DEFENDS]->(king)',
+                'MATCH (knight) WHERE id(knight) = $id MATCH (king:Person) WHERE king.name = $king CREATE (knight)-[:DEFENDS]->(king)',
                 { id: record.get('knight_id'), king: 'Arthur' }
               )
             },
