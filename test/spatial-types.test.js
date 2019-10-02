@@ -110,7 +110,7 @@ describe('#integration spatial-types', () => {
   it('should receive 2D points with crs', done => {
     testReceivingOfPoints(
       done,
-      `RETURN point({x: 2.3, y: 4.5, crs: 'WGS-84'})`,
+      'RETURN point({x: 2.3, y: 4.5, crs: \'WGS-84\'})',
       point => {
         expect(isPoint(point)).toBeTruthy()
         expect(point.srid).toEqual(WGS_84_2D_CRS_CODE)
@@ -138,7 +138,7 @@ describe('#integration spatial-types', () => {
   it('should receive 3D points with crs', done => {
     testReceivingOfPoints(
       done,
-      `RETURN point({x: 34.76, y: 11.9, z: -99.01, crs: 'WGS-84-3D'})`,
+      'RETURN point({x: 34.76, y: 11.9, z: -99.01, crs: \'WGS-84-3D\'})',
       point => {
         expect(isPoint(point)).toBeTruthy()
         expect(point.srid).toEqual(WGS_84_3D_CRS_CODE)
@@ -166,10 +166,10 @@ describe('#integration spatial-types', () => {
   it('should send and receive array of 2D points', done => {
     const arrayOfPoints = [
       new Point(WGS_84_2D_CRS_CODE, 12.3, 11.2),
-      new Point(WGS_84_2D_CRS_CODE, 2.45, 91.302),
-      new Point(WGS_84_2D_CRS_CODE, 0.12, -99.9),
-      new Point(WGS_84_2D_CRS_CODE, 93.75, 123.213),
-      new Point(WGS_84_2D_CRS_CODE, 111.13, -90.1),
+      new Point(WGS_84_2D_CRS_CODE, 2.45, 81.302),
+      new Point(WGS_84_2D_CRS_CODE, 0.12, -89.9),
+      new Point(WGS_84_2D_CRS_CODE, 93.75, 23.213),
+      new Point(WGS_84_2D_CRS_CODE, 111.13, -70.1),
       new Point(WGS_84_2D_CRS_CODE, 43.99, -1)
     ]
 

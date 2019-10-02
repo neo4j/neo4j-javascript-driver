@@ -31,12 +31,14 @@ import ConnectionErrorHandler from './connection-error-handler'
 import DelegateConnection from './connection-delegate'
 import LeastConnectedLoadBalancingStrategy from './least-connected-load-balancing-strategy'
 import Bookmark from './bookmark'
+import { int } from '../integer'
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 const DATABASE_NOT_FOUND_ERROR_CODE =
   'Neo.ClientError.Database.DatabaseNotFound'
 const SYSTEM_DB_NAME = 'system'
 const DEFAULT_DB_NAME = ''
+const DEFAULT_ROUTING_TABLE_PURGE_DELAY = int(30000)
 
 export default class RoutingConnectionProvider extends PooledConnectionProvider {
   constructor ({
@@ -47,7 +49,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     config,
     log,
     userAgent,
-    authToken
+    authToken,
+    routingTablePurgeDelay
   }) {
     super({ id, config, log, userAgent, authToken })
 
@@ -61,6 +64,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._dnsResolver = new HostNameResolver()
     this._log = log
     this._useSeedRouter = true
+    this._routingTablePurgeDelay = routingTablePurgeDelay
+      ? int(routingTablePurgeDelay)
+      : DEFAULT_ROUTING_TABLE_PURGE_DELAY
   }
 
   _createConnectionErrorHandler () {
@@ -71,11 +77,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   _handleUnavailability (error, address, database) {
     this._log.warn(
-      `Routing driver ${
-        this._id
-      } will forget ${address} for database '${database}' because of an error ${
-        error.code
-      } '${error.message}'`
+      `Routing driver ${this._id} will forget ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
     this.forget(address, database || '')
     return error
@@ -83,11 +85,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   _handleWriteFailure (error, address, database) {
     this._log.warn(
-      `Routing driver ${
-        this._id
-      } will forget writer ${address} for database '${database}' because of an error ${
-        error.code
-      } '${error.message}'`
+      `Routing driver ${this._id} will forget writer ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
     this.forgetWriter(address, database || '')
     return newError(
@@ -426,6 +424,13 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   async _updateRoutingTable (newRoutingTable) {
     // close old connections to servers not present in the new routing table
     await this._connectionPool.keepAll(newRoutingTable.allServers())
+
+    // filter out expired to purge (expired for a pre-configured amount of time) routing table entries
+    Object.values(this._routingTables).forEach(value => {
+      if (value.isExpiredFor(this._routingTablePurgeDelay)) {
+        delete this._routingTables[value.database]
+      }
+    })
 
     // make this driver instance aware of the new table
     this._routingTables[newRoutingTable.database] = newRoutingTable

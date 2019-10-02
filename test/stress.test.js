@@ -40,7 +40,7 @@ describe('#integration stress tests', () => {
 
   const READ_QUERY = 'MATCH (n) RETURN n LIMIT 1'
   const WRITE_QUERY =
-    'CREATE (person:Person:Employee {name: {name}, salary: {salary}}) RETURN person'
+    'CREATE (person:Person:Employee {name: $name, salary: $salary}) RETURN person'
 
   const TEST_MODE = modeFromEnvOrDefault('STRESS_TEST_MODE')
   const DATABASE_URI = fromEnvOrDefault(
@@ -231,7 +231,7 @@ describe('#integration stress tests', () => {
         .run(query, params)
         .then(result => {
           context.queryCompleted(result, accessMode)
-          context.log(commandId, `Query completed successfully`)
+          context.log(commandId, 'Query completed successfully')
 
           return session.close().then(() => {
             const possibleError = verifyQueryResult(result)
@@ -272,7 +272,7 @@ describe('#integration stress tests', () => {
       resultPromise
         .then(result => {
           context.queryCompleted(result, accessMode, session.lastBookmark())
-          context.log(commandId, `Transaction function executed successfully`)
+          context.log(commandId, 'Transaction function executed successfully')
 
           return session.close().then(() => {
             const possibleError = verifyQueryResult(result)
@@ -322,7 +322,7 @@ describe('#integration stress tests', () => {
             })
             .then(() => {
               context.queryCompleted(result, accessMode, session.lastBookmark())
-              context.log(commandId, `Transaction committed successfully`)
+              context.log(commandId, 'Transaction committed successfully')
 
               return session.close().then(() => {
                 callback(commandError)
@@ -341,7 +341,7 @@ describe('#integration stress tests', () => {
 
   function verifyQueryResult (result) {
     if (!result) {
-      return new Error(`Received undefined result`)
+      return new Error('Received undefined result')
     } else if (result.records.length === 0) {
       // it is ok to receive no nodes back for read queries at the beginning of the test
       return null

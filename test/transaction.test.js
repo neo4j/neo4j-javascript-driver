@@ -94,7 +94,7 @@ describe('#integration transaction', () => {
     const tx = session.beginTransaction()
     tx.run("RETURN 'foo' AS res")
       .then(result => {
-        tx.run('CREATE ({name: {param}})', {
+        tx.run('CREATE ({name: $param})', {
           param: result.records[0].get('res')
         })
           .then(() => {
