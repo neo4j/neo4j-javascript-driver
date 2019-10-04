@@ -25,6 +25,16 @@ const driver2: neo4j.Driver = neo4j.driver(
   neo4j.auth.basic('neo4j', 'password')
 )
 
+const address1 = 'db-1.internal:7687'
+const address2 = 'db-2.internal:7687'
+const driver3: neo4j.Driver = neo4j.driver(
+  'bolt://localhost',
+  neo4j.auth.basic('neo4j', 'password'),
+  {
+    resolver: address => Promise.resolve([address1, address2])
+  }
+)
+
 const sessionModeRead: string = neo4j.session.READ
 const sessionModeWrite: string = neo4j.session.WRITE
 
