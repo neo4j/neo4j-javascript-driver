@@ -55,6 +55,7 @@ declare interface Config {
   connectionTimeout?: number
   disableLosslessIntegers?: boolean
   logging?: LoggingConfig
+  resolver?: (address: string) => string[] | Promise<string[]>
 }
 
 declare type SessionMode = 'READ' | 'WRITE'

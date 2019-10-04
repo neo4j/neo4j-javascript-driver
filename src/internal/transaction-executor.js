@@ -17,7 +17,12 @@
  * limitations under the License.
  */
 
-import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../error'
+import {
+  newError,
+  Neo4jError,
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED
+} from '../error'
 
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds
 const DEFAULT_INITIAL_RETRY_DELAY_MS = 1000 // 1 seconds
@@ -199,6 +204,7 @@ export default class TransactionExecutor {
   static _canRetryOn (error) {
     return (
       error &&
+      error instanceof Neo4jError &&
       error.code &&
       (error.code === SERVICE_UNAVAILABLE ||
         error.code === SESSION_EXPIRED ||

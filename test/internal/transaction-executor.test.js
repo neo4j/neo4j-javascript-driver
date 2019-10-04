@@ -80,6 +80,23 @@ describe('#unit TransactionExecutor', () => {
     await testNoRetryOnUnknownError([LOCKS_TERMINATED_ERROR], 1)
   })
 
+  it('should not retry when transaction work returns promise rejected with unknown error type', async () => {
+    class MyTestError extends Error {
+      constructor (message, code) {
+        super(message)
+        this.code = code
+      }
+    }
+
+    const error = new MyTestError('an unexpected error', 504)
+    const executor = new TransactionExecutor()
+    const realWork = () => Promise.reject(error)
+
+    await expectAsync(
+      executor.execute(transactionCreator(), tx => realWork())
+    ).toBeRejectedWith(error)
+  })
+
   it('should stop retrying when time expires', async () => {
     let clock
     const usedTransactions = []

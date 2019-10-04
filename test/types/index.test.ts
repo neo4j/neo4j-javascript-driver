@@ -57,6 +57,16 @@ const driver1: Driver = driver('bolt://localhost:7687')
 const driver2: Driver = driver('bolt://localhost:7687', basicAuthToken1)
 const driver3: Driver = driver('bolt://localhost:7687', basicAuthToken1, config)
 
+const address1 = 'db-1.internal:7687'
+const address2 = 'db-2.internal:7687'
+const driver4: Driver = driver(
+  'bolt://localhost',
+  auth.basic('neo4j', 'password'),
+  {
+    resolver: address => Promise.resolve([address1, address2])
+  }
+)
+
 const readMode1: string = session.READ
 const writeMode1: string = session.WRITE
 
