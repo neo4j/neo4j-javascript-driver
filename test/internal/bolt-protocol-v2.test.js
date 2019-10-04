@@ -17,19 +17,17 @@
  * limitations under the License.
  */
 
-const ACCESS_MODE_READ = 'READ'
-const ACCESS_MODE_WRITE = 'WRITE'
+import BoltProtocolV2 from '../../src/internal/bolt-protocol-v2'
+import utils from './test-utils'
 
-const BOLT_PROTOCOL_V1 = 1
-const BOLT_PROTOCOL_V2 = 2
-const BOLT_PROTOCOL_V3 = 3
-const BOLT_PROTOCOL_V4 = 4
+describe('#unit BoltProtocolV2', () => {
+  beforeEach(() => {
+    jasmine.addMatchers(utils.matchers)
+  })
 
-export {
-  ACCESS_MODE_READ,
-  ACCESS_MODE_WRITE,
-  BOLT_PROTOCOL_V1,
-  BOLT_PROTOCOL_V2,
-  BOLT_PROTOCOL_V3,
-  BOLT_PROTOCOL_V4
-}
+  it('should return correct bolt version number', () => {
+    const protocol = new BoltProtocolV2(null, null, false)
+
+    expect(protocol.version).toBe(2)
+  })
+})

@@ -86,6 +86,8 @@ declare interface Driver {
   close(): Promise<void>
 
   verifyConnectivity(): Promise<ServerInfo>
+
+  supportsMultiDb(): Promise<boolean>
 }
 
 export {

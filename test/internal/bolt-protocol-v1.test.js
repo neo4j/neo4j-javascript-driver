@@ -57,7 +57,7 @@ describe('#unit BoltProtocolV1', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
-    const onError = error => {}
+    const onError = _error => {}
     const onComplete = () => {}
     const clientName = 'js-driver/1.2.3'
     const authToken = { username: 'neo4j', password: 'secret' }
@@ -166,6 +166,12 @@ describe('#unit BoltProtocolV1', () => {
     expect(recorder.flushes).toEqual([false, true])
   })
 
+  it('should return correct bolt version number', () => {
+    const protocol = new BoltProtocolV1(null, null, false)
+
+    expect(protocol.version).toBe(1)
+  })
+
   describe('Bolt V3', () => {
     /**
      * @param {function(protocol: BoltProtocolV1)} fn
@@ -202,7 +208,7 @@ describe('#unit BoltProtocolV1', () => {
 
     describe('run', () => {
       function verifyRun (txConfig) {
-        verifyError((protocol, observer) =>
+        verifyError((protocol, _observer) =>
           protocol.run('statement', {}, { txConfig })
         )
       }

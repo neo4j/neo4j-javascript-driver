@@ -1822,7 +1822,7 @@ describe('#stub-routing routing driver with stub server', () => {
     const session = driver.session({ defaultAccessMode: WRITE, bookmarks })
     const tx = session.beginTransaction()
 
-    await tx.run(`CREATE (n {name:'Bob'})`)
+    await tx.run("CREATE (n {name:'Bob'})")
     await tx.commit()
     expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx95'])
 
@@ -1835,14 +1835,14 @@ describe('#stub-routing routing driver with stub server', () => {
   it('should forget writer on database unavailable error', () =>
     testAddressPurgeOnDatabaseError(
       './test/resources/boltstub/v3/write_database_unavailable.script',
-      `CREATE (n {name:'Bob'})`,
+      "CREATE (n {name:'Bob'})",
       WRITE
     ))
 
   it('should forget reader on database unavailable error', () =>
     testAddressPurgeOnDatabaseError(
       './test/resources/boltstub/v3/read_database_unavailable.script',
-      `RETURN 1`,
+      'RETURN 1',
       READ
     ))
 
@@ -2196,7 +2196,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
       // Given
       const server = await boltStub.start(
-        `./test/resources/boltstub/v4/acquire_endpoints_db_not_found.script`,
+        './test/resources/boltstub/v4/acquire_endpoints_db_not_found.script',
         9001
       )
 
@@ -2223,15 +2223,15 @@ describe('#stub-routing routing driver with stub server', () => {
 
       // Given
       const router1 = await boltStub.start(
-        `./test/resources/boltstub/v4/acquire_endpoints_aDatabase_no_servers.script`,
+        './test/resources/boltstub/v4/acquire_endpoints_aDatabase_no_servers.script',
         9001
       )
       const router2 = await boltStub.start(
-        `./test/resources/boltstub/v4/acquire_endpoints_aDatabase.script`,
+        './test/resources/boltstub/v4/acquire_endpoints_aDatabase.script',
         9002
       )
       const reader1 = await boltStub.start(
-        `./test/resources/boltstub/v4/read_from_aDatabase.script`,
+        './test/resources/boltstub/v4/read_from_aDatabase.script',
         9005
       )
 
@@ -2272,7 +2272,7 @@ describe('#stub-routing routing driver with stub server', () => {
         9001
       )
       const readServer = await boltStub.start(
-        `./test/resources/boltstub/v4/read_from_aDatabase_with_bookmark.script`,
+        './test/resources/boltstub/v4/read_from_aDatabase_with_bookmark.script',
         9005
       )
 
@@ -2307,7 +2307,7 @@ describe('#stub-routing routing driver with stub server', () => {
         9001
       )
       const readServer = await boltStub.start(
-        `./test/resources/boltstub/v3/read_with_bookmark.script`,
+        './test/resources/boltstub/v3/read_with_bookmark.script',
         9005
       )
 
@@ -2328,6 +2328,70 @@ describe('#stub-routing routing driver with stub server', () => {
       await driver.close()
       await server.exit()
       await readServer.exit()
+    })
+  })
+
+  describe('should report whether multi db is supported', () => {
+    async function verifySupportsMultiDb (version, expected) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/supports_multi_db.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsMultiDb()).toBeResolvedTo(expected)
+
+      await driver.close()
+      await server.exit()
+    }
+
+    async function verifySupportsMultiDbWithResolver (version, expected) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/supports_multi_db.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:8000', {
+        resolver: address => [
+          'neo4j://127.0.0.1:9010',
+          'neo4j://127.0.0.1:9005',
+          'neo4j://127.0.0.1:9001'
+        ]
+      })
+
+      await expectAsync(driver.supportsMultiDb()).toBeResolvedTo(expected)
+
+      await driver.close()
+      await server.exit()
+    }
+
+    it('v1', () => verifySupportsMultiDb('v1', false))
+    it('v2', () => verifySupportsMultiDb('v2', false))
+    it('v3', () => verifySupportsMultiDb('v3', false))
+    it('v4', () => verifySupportsMultiDb('v4', true))
+    it('v1 with resolver', () => verifySupportsMultiDbWithResolver('v1', false))
+    it('v2 with resolver', () => verifySupportsMultiDbWithResolver('v2', false))
+    it('v3 with resolver', () => verifySupportsMultiDbWithResolver('v3', false))
+    it('v4 with resolver', () => verifySupportsMultiDbWithResolver('v4', true))
+    it('on error', async () => {
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsMultiDb()).toBeRejectedWith(
+        jasmine.objectContaining({
+          code: SESSION_EXPIRED
+        })
+      )
+
+      await driver.close()
     })
   })
 

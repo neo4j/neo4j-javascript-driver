@@ -145,6 +145,12 @@ describe('#unit BoltProtocolV3', () => {
     expect(recorder.flushes).toEqual([true])
   })
 
+  it('should return correct bolt version number', () => {
+    const protocol = new BoltProtocolV3(null, null, false)
+
+    expect(protocol.version).toBe(3)
+  })
+
   describe('Bolt V4', () => {
     /**
      * @param {function(protocol: BoltProtocolV3)} fn

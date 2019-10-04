@@ -24,10 +24,15 @@ import {
   LoginObserver,
   ResultStreamObserver
 } from './stream-observers'
+import { BOLT_PROTOCOL_V3 } from './constants'
 
 const noOpObserver = new StreamObserver()
 
 export default class BoltProtocol extends BoltProtocolV2 {
+  get version () {
+    return BOLT_PROTOCOL_V3
+  }
+
   transformMetadata (metadata) {
     if ('t_first' in metadata) {
       // Bolt V3 uses shorter key 't_first' to represent 'result_available_after'

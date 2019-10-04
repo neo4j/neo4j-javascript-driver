@@ -107,6 +107,10 @@ driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
   console.log(serverInfo.address)
 })
 
+driver.supportsMultiDb().then((supported: boolean) => {
+  console.log(`multi database is supported? => ${supported}`)
+})
+
 const rxSession1: RxSession = driver.rxSession()
 const rxSession2: RxSession = driver.rxSession({ defaultAccessMode: READ })
 const rxSession3: RxSession = driver.rxSession({ defaultAccessMode: 'READ' })
