@@ -19,6 +19,8 @@
 
 declare type Visitor = (value: any, key: string, record: Record) => void
 
+declare type MapVisitor<T> = (value: any, key: string, record: Record) => T
+
 declare class Record {
   keys: string[]
   length: number
@@ -30,6 +32,8 @@ declare class Record {
   )
 
   forEach(visitor: Visitor): void
+
+  map<T>(visitor: MapVisitor<T>): T[]
 
   toObject(): object
 

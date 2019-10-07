@@ -62,11 +62,11 @@ export class Point {
   toString () {
     return this.z || this.z === 0
       ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
-        this.x
-      )}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
+          this.x
+        )}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
       : `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
-        this.x
-      )}, y=${formatAsFloat(this.y)}}`
+          this.x
+        )}, y=${formatAsFloat(this.y)}}`
   }
 }
 
@@ -77,7 +77,8 @@ function formatAsFloat (number) {
 Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
   value: true,
   enumerable: false,
-  configurable: false
+  configurable: false,
+  writable: false
 })
 
 /**

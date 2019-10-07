@@ -17,6 +17,23 @@
  * limitations under the License.
  */
 
+const IDENTIFIER_PROPERTY_ATTRIBUTES = {
+  value: true,
+  enumerable: false,
+  configurable: false,
+  writable: false
+}
+
+const NODE_IDENTIFIER_PROPERTY = '__isNode__'
+const RELATIONSHIP_IDENTIFIER_PROPERTY = '__isRelationship__'
+const UNBOUND_RELATIONSHIP_IDENTIFIER_PROPERTY = '__isUnboundRelationship__'
+const PATH_IDENTIFIER_PROPERTY = '__isPath__'
+const PATH_SEGMENT_IDENTIFIER_PROPERTY = '__isPathSegment__'
+
+function hasIdentifierProperty (obj, property) {
+  return (obj && obj[property]) === true
+}
+
 /**
  * Class for Node Type.
  */
@@ -54,7 +71,7 @@ class Node {
     for (let i = 0; i < this.labels.length; i++) {
       s += ':' + this.labels[i]
     }
-    let keys = Object.keys(this.properties)
+    const keys = Object.keys(this.properties)
     if (keys.length > 0) {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
@@ -66,6 +83,21 @@ class Node {
     s += ')'
     return s
   }
+}
+
+Object.defineProperty(
+  Node.prototype,
+  NODE_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
+
+/**
+ * Test if given object is an instance of {@link Node} class.
+ * @param {Object} obj the object to test.
+ * @return {boolean} `true` if given object is a {@link Node}, `false` otherwise.
+ */
+function isNode (obj) {
+  return hasIdentifierProperty(obj, NODE_IDENTIFIER_PROPERTY)
 }
 
 /**
@@ -114,7 +146,7 @@ class Relationship {
    */
   toString () {
     let s = '(' + this.start + ')-[:' + this.type
-    let keys = Object.keys(this.properties)
+    const keys = Object.keys(this.properties)
     if (keys.length > 0) {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
@@ -126,6 +158,21 @@ class Relationship {
     s += ']->(' + this.end + ')'
     return s
   }
+}
+
+Object.defineProperty(
+  Relationship.prototype,
+  RELATIONSHIP_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
+
+/**
+ * Test if given object is an instance of {@link Relationship} class.
+ * @param {Object} obj the object to test.
+ * @return {boolean} `true` if given object is a {@link Relationship}, `false` otherwise.
+ */
+function isRelationship (obj) {
+  return hasIdentifierProperty(obj, RELATIONSHIP_IDENTIFIER_PROPERTY)
 }
 
 /**
@@ -181,7 +228,7 @@ class UnboundRelationship {
    */
   toString () {
     let s = '-[:' + this.type
-    let keys = Object.keys(this.properties)
+    const keys = Object.keys(this.properties)
     if (keys.length > 0) {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
@@ -193,6 +240,21 @@ class UnboundRelationship {
     s += ']->'
     return s
   }
+}
+
+Object.defineProperty(
+  UnboundRelationship.prototype,
+  UNBOUND_RELATIONSHIP_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
+
+/**
+ * Test if given object is an instance of {@link UnboundRelationship} class.
+ * @param {Object} obj the object to test.
+ * @return {boolean} `true` if given object is a {@link UnboundRelationship}, `false` otherwise.
+ */
+function isUnboundRelationship (obj) {
+  return hasIdentifierProperty(obj, UNBOUNT_RELATIONSHIP_IDENTIFIER_PROPERTY)
 }
 
 /**
@@ -223,6 +285,21 @@ class PathSegment {
      */
     this.end = end
   }
+}
+
+Object.defineProperty(
+  PathSegment.prototype,
+  PATH_SEGMENT_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
+
+/**
+ * Test if given object is an instance of {@link PathSegment} class.
+ * @param {Object} obj the object to test.
+ * @return {boolean} `true` if given object is a {@link PathSegment}, `false` otherwise.
+ */
+function isPathSegment (obj) {
+  return hasIdentifierProperty(obj, PATH_SEGMENT_IDENTIFIER_PROPERTY)
 }
 
 /**
@@ -260,4 +337,30 @@ class Path {
   }
 }
 
-export { Node, Relationship, UnboundRelationship, Path, PathSegment }
+Object.defineProperty(
+  Path.prototype,
+  PATH_IDENTIFIER_PROPERTY,
+  IDENTIFIER_PROPERTY_ATTRIBUTES
+)
+
+/**
+ * Test if given object is an instance of {@link Path} class.
+ * @param {Object} obj the object to test.
+ * @return {boolean} `true` if given object is a {@link Path}, `false` otherwise.
+ */
+function isPath (obj) {
+  return hasIdentifierProperty(obj, PATH_IDENTIFIER_PROPERTY)
+}
+
+export {
+  Node,
+  isNode,
+  Relationship,
+  isRelationship,
+  UnboundRelationship,
+  isUnboundRelationship,
+  Path,
+  isPath,
+  PathSegment,
+  isPathSegment
+}

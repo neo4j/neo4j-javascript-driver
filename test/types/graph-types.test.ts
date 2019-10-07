@@ -22,7 +22,12 @@ import {
   Path,
   PathSegment,
   Relationship,
-  UnboundRelationship
+  UnboundRelationship,
+  isNode,
+  isPath,
+  isPathSegment,
+  isRelationship,
+  isUnboundRelationship
 } from '../../types/graph-types'
 import Integer, { int } from '../../types/integer'
 
@@ -32,6 +37,7 @@ const node1Id: Integer = node1.identity
 const node1Labels: string[] = node1.labels
 const node1Props: object = node1.properties
 const isNode1: boolean = node1 instanceof Node
+const isNode1B: boolean = isNode(node1)
 
 const node2: Node<number> = new Node(2, ['Person', 'Employee'], {
   name: 'Alice'
@@ -48,6 +54,7 @@ const rel1End: Integer = rel1.end
 const rel1Type: string = rel1.type
 const rel1Props: object = rel1.properties
 const isRel1: boolean = rel1 instanceof Relationship
+const isRel1B: boolean = isRelationship(rel1)
 
 const rel2: UnboundRelationship = new UnboundRelationship(int(1), 'KNOWS', {
   since: 12345
@@ -58,6 +65,7 @@ const rel2Id: Integer = rel2.identity
 const rel2Type: string = rel2.type
 const rel2Props: object = rel2.properties
 const isRel2: boolean = rel2 instanceof UnboundRelationship
+const isRel2B: boolean = isUnboundRelationship(rel2)
 
 const rel4: Relationship<number> = new Relationship(2, 3, 4, 'KNOWS', {
   since: 12345
@@ -82,6 +90,7 @@ const pathSegment1Start: Node = pathSegment1.start
 const pathSegment1Rel: Relationship = pathSegment1.relationship
 const pathSegment1End: Node = pathSegment1.end
 const isPathSegment1: boolean = pathSegment1 instanceof PathSegment
+const isPathSegment1B: boolean = isPathSegment(pathSegment1)
 
 const pathSegment2: PathSegment<number> = new PathSegment(node2, rel4, node2)
 const pathSegment2Start: Node<number> = pathSegment2.start
@@ -94,6 +103,7 @@ const path1End: Node = path1.end
 const path1Segments: PathSegment[] = path1.segments
 const path1Length: number = path1.length
 const isPath1: boolean = path1 instanceof Path
+const isPath1B: boolean = isPath(path1)
 
 const path2: Path<number> = new Path(node2, node2, [pathSegment2])
 const path2Start: Node<number> = path2.start
