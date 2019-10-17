@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import BoltProtocolV3 from './bolt-protocol-v3'
-import RequestMessage from './request-message'
+import RequestMessage, { ALL } from './request-message'
 import { ResultStreamObserver } from './stream-observers'
 import { BOLT_PROTOCOL_V4 } from './constants'
 
@@ -69,7 +69,8 @@ export default class BoltProtocol extends BoltProtocolV3 {
       beforeComplete,
       afterComplete,
       flush = true,
-      reactive = false
+      reactive = false,
+      fetchSize = ALL
     } = {}
   ) {
     const observer = new ResultStreamObserver({

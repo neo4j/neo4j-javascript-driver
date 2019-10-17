@@ -21,8 +21,7 @@ import Connection from './connection'
 import { newError, PROTOCOL_ERROR } from '../error'
 import { isString } from './util'
 import Integer from '../integer'
-
-const DefaultBatchSize = 50
+import { ALL } from './request-message'
 
 class StreamObserver {
   onNext (rawRecord) {}
@@ -63,7 +62,7 @@ class ResultStreamObserver extends StreamObserver {
     reactive = false,
     moreFunction,
     discardFunction,
-    batchSize = DefaultBatchSize,
+    batchSize = ALL,
     beforeError,
     afterError,
     beforeKeys,
@@ -108,7 +107,7 @@ class ResultStreamObserver extends StreamObserver {
    * @param {Array} rawRecord - An array with the raw record
    */
   onNext (rawRecord) {
-    let record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
+    const record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
     if (this._observers.some(o => o.onNext)) {
       this._observers.forEach(o => {
         if (o.onNext) {
