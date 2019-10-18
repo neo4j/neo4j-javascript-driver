@@ -85,6 +85,7 @@ class Result {
   summary () {
     return new Promise((resolve, reject) => {
       this._streamObserverPromise.then(o => {
+        o.cancel()
         o.subscribe({
           onCompleted: metadata => resolve(metadata),
           onError: err => reject(err)
@@ -192,8 +193,8 @@ class Result {
    * @protected
    * @since 4.0.0
    */
-  _discard () {
-    this._streamObserverPromise.then(o => o.discard())
+  _cancel () {
+    this._streamObserverPromise.then(o => o.cancel())
   }
 }
 

@@ -1,0 +1,17 @@
+!: BOLT 4
+!: AUTO HELLO
+!: AUTO RESET
+!: AUTO GOODBYE
+
+C: BEGIN {"mode": "r"}
+   RUN "MATCH (n) RETURN n.name" {} {}
+   PULL {"n": 2}
+S: SUCCESS {}
+   SUCCESS {"fields": ["n.name"]}
+   RECORD ["Bob"]
+   RECORD ["Alice"]
+   SUCCESS {"has_more":true}
+C: DISCARD {"n": -1}
+S: SUCCESS {}
+C: COMMIT
+S: SUCCESS {"bookmark": "neo4j:bookmark:v1:tx4242"}

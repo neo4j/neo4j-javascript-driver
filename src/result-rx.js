@@ -134,7 +134,7 @@ export default class RxResult {
       })
 
       if (this._records.observers.length === 0) {
-        result._discard()
+        result._cancel()
       }
 
       result.subscribe({

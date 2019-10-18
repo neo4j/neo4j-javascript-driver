@@ -282,9 +282,9 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   /**
-   * Discard pending record stream
+   * Cancel pending record stream
    */
-  discard () {
+  cancel () {
     this._discard = true
   }
 

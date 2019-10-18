@@ -83,18 +83,10 @@ result4.subscribe({
   onCompleted: (summary: ResultSummary) => console.log(summary)
 })
 
-tx.commit()
-  .then((res: StatementResult) => {
-    console.log(res)
-  })
-  .catch((error: Error) => {
-    console.log(error)
-  })
+tx.commit().then(() => {
+  console.log('transaction committed')
+})
 
-tx.rollback()
-  .then((res: StatementResult) => {
-    console.log(res)
-  })
-  .catch((error: Error) => {
-    console.log(error)
-  })
+tx.rollback().then(() => {
+  console.log('transaction rolled back')
+})

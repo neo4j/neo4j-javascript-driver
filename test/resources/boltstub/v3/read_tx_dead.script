@@ -3,7 +3,7 @@
 !: AUTO RESET
 
 C: BEGIN {"mode": "r"}
-   RUN "MATCH (n) RETURN n.name" {} {"mode": "r"}
+   RUN "MATCH (n) RETURN n.name" {} {}
    PULL_ALL
 S: SUCCESS {"fields": []}
    <EXIT>
