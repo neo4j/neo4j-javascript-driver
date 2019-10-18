@@ -180,7 +180,8 @@ class Session {
       connectionHolder,
       onClose: this._transactionClosed.bind(this),
       onBookmark: this._updateBookmark.bind(this),
-      reactive: this._reactive
+      reactive: this._reactive,
+      fetchSize: this._fetchSize
     })
     tx._begin(this._lastBookmark, txConfig)
     return tx

@@ -76,8 +76,9 @@ export default class BoltProtocol extends BoltProtocolV3 {
     const observer = new ResultStreamObserver({
       connection: this._connection,
       reactive: reactive,
-      moreFunction: reactive ? this._requestMore : this._noOp,
-      discardFunction: reactive ? this._requestDiscard : this._noOp,
+      fetchSize: fetchSize,
+      moreFunction: this._requestMore,
+      discardFunction: this._requestDiscard,
       beforeKeys,
       afterKeys,
       beforeError,
@@ -99,7 +100,11 @@ export default class BoltProtocol extends BoltProtocolV3 {
     )
 
     if (!reactive) {
-      this._connection.write(RequestMessage.pull(), observer, flush)
+      this._connection.write(
+        RequestMessage.pull({ n: fetchSize }),
+        observer,
+        flush
+      )
     }
 
     return observer

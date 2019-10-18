@@ -5,7 +5,7 @@
 
 C: BEGIN {"bookmarks": ["neo4j:bookmark:v1:tx42"]}
 C: RUN "CREATE (n {name:'Bob'})" {} {}
-   PULL {"n": -1}
+   PULL {"n": 1000}
 S: SUCCESS {}
    SUCCESS {"fields": []}
    SUCCESS {}

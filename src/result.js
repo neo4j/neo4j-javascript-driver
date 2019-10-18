@@ -84,12 +84,12 @@ class Result {
    */
   summary () {
     return new Promise((resolve, reject) => {
-      this._streamObserverPromise.then(o =>
+      this._streamObserverPromise.then(o => {
         o.subscribe({
           onCompleted: metadata => resolve(metadata),
           onError: err => reject(err)
         })
-      )
+      })
     })
   }
 
@@ -102,8 +102,8 @@ class Result {
   _getOrCreatePromise () {
     if (!this._p) {
       this._p = new Promise((resolve, reject) => {
-        let records = []
-        let observer = {
+        const records = []
+        const observer = {
           onNext: record => {
             records.push(record)
           },

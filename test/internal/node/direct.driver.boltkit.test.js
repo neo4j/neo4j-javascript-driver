@@ -447,6 +447,144 @@ describe('#stub-direct direct driver with stub server', () => {
     })
   })
 
+  describe('should allow to change fetch size', () => {
+    async function verifyFailureOnCommit (version) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/read_in_batch.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {
+        fetchSize: 2
+      })
+      const session = driver.session({ defaultAccessMode: READ })
+
+      const result = await session.run('MATCH (n) RETURN n.name')
+      const records = result.records
+      expect(records.length).toEqual(3)
+      expect(records[0].get(0)).toBe('Bob')
+      expect(records[1].get(0)).toBe('Alice')
+      expect(records[2].get(0)).toBe('Tina')
+
+      const connectionKey = Object.keys(openConnections(driver))[0]
+      expect(connectionKey).toBeTruthy()
+
+      const connection = openConnections(driver, connectionKey)
+      await session.close()
+
+      // generate a fake fatal error
+      connection._handleFatalError(
+        newError('connection reset', SERVICE_UNAVAILABLE)
+      )
+
+      // expect that the connection to be removed from the pool
+      expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
+      expect(activeResources(driver, '127.0.0.1:9001')).toBeFalsy()
+      // expect that the connection to be unregistered from the open connections registry
+      expect(openConnections(driver, connectionKey)).toBeFalsy()
+
+      await driver.close()
+      await server.exit()
+    }
+
+    it('v4', () => verifyFailureOnCommit('v4'))
+  })
+
+  describe('should stream in many batches', () => {
+    async function verifyFailureOnCommit (version) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/read_in_batch.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session({ defaultAccessMode: READ, fetchSize: 2 })
+
+      const result = await session.run('MATCH (n) RETURN n.name')
+      const records = result.records
+      expect(records.length).toEqual(3)
+      expect(records[0].get(0)).toBe('Bob')
+      expect(records[1].get(0)).toBe('Alice')
+      expect(records[2].get(0)).toBe('Tina')
+
+      const connectionKey = Object.keys(openConnections(driver))[0]
+      expect(connectionKey).toBeTruthy()
+
+      const connection = openConnections(driver, connectionKey)
+      await session.close()
+
+      // generate a fake fatal error
+      connection._handleFatalError(
+        newError('connection reset', SERVICE_UNAVAILABLE)
+      )
+
+      // expect that the connection to be removed from the pool
+      expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
+      expect(activeResources(driver, '127.0.0.1:9001')).toBeFalsy()
+      // expect that the connection to be unregistered from the open connections registry
+      expect(openConnections(driver, connectionKey)).toBeFalsy()
+
+      await driver.close()
+      await server.exit()
+    }
+
+    it('v4', () => verifyFailureOnCommit('v4'))
+  })
+
+  describe('should ignore fetchSize setting', () => {
+    async function verifyFailureOnCommit (version) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/read.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session({ defaultAccessMode: READ, fetchSize: 2 })
+
+      const result = await session.run('MATCH (n) RETURN n.name')
+      const records = result.records
+      expect(records.length).toEqual(3)
+      expect(records[0].get(0)).toBe('Bob')
+      expect(records[1].get(0)).toBe('Alice')
+      expect(records[2].get(0)).toBe('Tina')
+
+      const connectionKey = Object.keys(openConnections(driver))[0]
+      expect(connectionKey).toBeTruthy()
+
+      const connection = openConnections(driver, connectionKey)
+      await session.close()
+
+      // generate a fake fatal error
+      connection._handleFatalError(
+        newError('connection reset', SERVICE_UNAVAILABLE)
+      )
+
+      // expect that the connection to be removed from the pool
+      expect(connectionPool(driver, '127.0.0.1:9001').length).toEqual(0)
+      expect(activeResources(driver, '127.0.0.1:9001')).toBeFalsy()
+      // expect that the connection to be unregistered from the open connections registry
+      expect(openConnections(driver, connectionKey)).toBeFalsy()
+
+      await driver.close()
+      await server.exit()
+    }
+
+    it('v3', () => verifyFailureOnCommit('v3'))
+    it('v2', () => verifyFailureOnCommit('v2'))
+  })
+
   function connectionPool (driver, key) {
     return driver._connectionProvider._connectionPool._pools[key]
   }

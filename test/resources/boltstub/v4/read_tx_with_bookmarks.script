@@ -5,7 +5,7 @@
 
 C: BEGIN {"bookmarks": ["neo4j:bookmark:v1:tx42"], "mode": "r"}
 C: RUN "MATCH (n) RETURN n.name AS name" {} {"mode": "r"}
-   PULL { "n": -1 }
+   PULL { "n": 1000 }
 S: SUCCESS {}
    SUCCESS {"fields": ["name"]}
    RECORD ["Bob"]

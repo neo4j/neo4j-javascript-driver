@@ -19,7 +19,6 @@
 import Record from '../record'
 import Connection from './connection'
 import { newError, PROTOCOL_ERROR } from '../error'
-import { isString } from './util'
 import Integer from '../integer'
 import { ALL } from './request-message'
 
@@ -49,7 +48,7 @@ class ResultStreamObserver extends StreamObserver {
    * @param {boolean} param.reactive
    * @param {function(connection: Connection, stmtId: number|Integer, n: number|Integer, observer: StreamObserver)} param.moreFunction -
    * @param {function(connection: Connection, stmtId: number|Integer, observer: StreamObserver)} param.discardFunction -
-   * @param {number|Integer} param.batchSize -
+   * @param {number|Integer} param.fetchSize -
    * @param {function(err: Error): Promise|void} param.beforeError -
    * @param {function(err: Error): Promise|void} param.afterError -
    * @param {function(keys: string[]): Promise|void} param.beforeKeys -
@@ -62,7 +61,7 @@ class ResultStreamObserver extends StreamObserver {
     reactive = false,
     moreFunction,
     discardFunction,
-    batchSize = ALL,
+    fetchSize = ALL,
     beforeError,
     afterError,
     beforeKeys,
@@ -97,7 +96,7 @@ class ResultStreamObserver extends StreamObserver {
     this._moreFunction = moreFunction
     this._discardFunction = discardFunction
     this._discard = false
-    this._batchSize = batchSize
+    this._fetchSize = fetchSize
   }
 
   /**
@@ -228,7 +227,6 @@ class ResultStreamObserver extends StreamObserver {
 
   _handleStreaming () {
     if (
-      this._reactive &&
       this._head &&
       this._observers.some(o => o.onNext || o.onCompleted) &&
       !this._streaming
@@ -241,7 +239,7 @@ class ResultStreamObserver extends StreamObserver {
         this._moreFunction(
           this._connection,
           this._statementId,
-          this._batchSize,
+          this._fetchSize,
           this
         )
       }

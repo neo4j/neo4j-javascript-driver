@@ -43,8 +43,9 @@ class Transaction {
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
    * @param {boolean} reactive whether this transaction generates reactive streams
+   * @param {number} fetchSize - the record fetch size in each pulling batch.
    */
-  constructor ({ connectionHolder, onClose, onBookmark, reactive }) {
+  constructor ({ connectionHolder, onClose, onBookmark, reactive, fetchSize }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
     this._state = _states.ACTIVE
@@ -52,6 +53,7 @@ class Transaction {
     this._onBookmark = onBookmark
     this._onError = this._onErrorCallback.bind(this)
     this._onComplete = this._onCompleteCallback.bind(this)
+    this._fetchSize = fetchSize
   }
 
   _begin (bookmark, txConfig) {
@@ -88,7 +90,8 @@ class Transaction {
       connectionHolder: this._connectionHolder,
       onError: this._onError,
       onComplete: this._onComplete,
-      reactive: this._reactive
+      reactive: this._reactive,
+      fetchSize: this._fetchSize
     })
   }
 
@@ -100,7 +103,7 @@ class Transaction {
    * @returns {Result} New Result
    */
   commit () {
-    let committed = this._state.commit({
+    const committed = this._state.commit({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
       onComplete: this._onComplete
@@ -124,7 +127,7 @@ class Transaction {
    * @returns {Result} New Result
    */
   rollback () {
-    let rolledback = this._state.rollback({
+    const rolledback = this._state.rollback({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
       onComplete: this._onComplete
@@ -164,7 +167,7 @@ class Transaction {
   }
 }
 
-let _states = {
+const _states = {
   // The transaction is running with no explicit success or failure marked
   ACTIVE: {
     commit: ({ connectionHolder, onError, onComplete }) => {
@@ -182,7 +185,7 @@ let _states = {
     run: (
       statement,
       parameters,
-      { connectionHolder, onError, onComplete, reactive }
+      { connectionHolder, onError, onComplete, reactive, fetchSize }
     ) => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
       const observerPromise = connectionHolder
@@ -195,7 +198,8 @@ let _states = {
             database: connectionHolder.database(),
             beforeError: onError,
             afterComplete: onComplete,
-            reactive: reactive
+            reactive: reactive,
+            fetchSize: fetchSize
           })
         )
         .catch(error => new FailedObserver({ error, onError }))
