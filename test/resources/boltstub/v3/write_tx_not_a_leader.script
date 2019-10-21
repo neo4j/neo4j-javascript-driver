@@ -9,5 +9,3 @@ C: BEGIN {}
 S: SUCCESS {}
    FAILURE {"code": "Neo.ClientError.Cluster.NotALeader", "message": "blabla"}
    IGNORED
-C: COMMIT
-S: IGNORED

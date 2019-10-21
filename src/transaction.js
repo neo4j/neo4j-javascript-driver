@@ -385,7 +385,7 @@ function finishTransaction (
   const observerPromise = connectionHolder
     .getConnection()
     .then(connection => {
-      pendingResults.forEach(r => r.summary())
+      pendingResults.forEach(r => r._cancel())
       return Promise.all(pendingResults).then(results => {
         if (commit) {
           return connection.protocol().commitTransaction({
