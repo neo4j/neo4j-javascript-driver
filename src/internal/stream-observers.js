@@ -97,6 +97,7 @@ class ResultStreamObserver extends StreamObserver {
     this._discardFunction = discardFunction
     this._discard = false
     this._fetchSize = fetchSize
+    this._finished = false
   }
 
   /**
@@ -188,6 +189,7 @@ class ResultStreamObserver extends StreamObserver {
 
         delete meta.has_more
       } else {
+        this._finished = true
         const completionMetadata = Object.assign(
           this._connection ? { server: this._connection.server } : {},
           this._meta,
@@ -279,6 +281,7 @@ class ResultStreamObserver extends StreamObserver {
     this._head = []
     this._fieldKeys = []
     this._tail = {}
+    this._finished = true
   }
 
   /**
@@ -299,6 +302,7 @@ class ResultStreamObserver extends StreamObserver {
       return
     }
 
+    this._finished = true
     this._hasFailed = true
     this._error = error
 
@@ -354,7 +358,7 @@ class ResultStreamObserver extends StreamObserver {
     }
     this._observers.push(observer)
 
-    if (this._reactive) {
+    if (this._reactive && !this._finished) {
       this._handleStreaming()
     }
   }

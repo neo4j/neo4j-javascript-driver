@@ -670,7 +670,7 @@ describe('#integration-rx summary', () => {
 
       const indices = await session.run('CALL db.indexes()')
       for (let i = 0; i < indices.records.length; i++) {
-        await session.run(`DROP ${getName(indices.records[i])}`)
+        await session.run(`DROP INDEX ${getName(indices.records[i])}`)
       }
     } finally {
       await session.close()
