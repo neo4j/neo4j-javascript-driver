@@ -19,10 +19,8 @@
 import Record from '../record'
 import Connection from './connection'
 import { newError, PROTOCOL_ERROR } from '../error'
-import { isString } from './util'
 import Integer from '../integer'
-
-const DefaultBatchSize = 50
+import { ALL } from './request-message'
 
 class StreamObserver {
   onNext (rawRecord) {}
@@ -50,7 +48,7 @@ class ResultStreamObserver extends StreamObserver {
    * @param {boolean} param.reactive
    * @param {function(connection: Connection, stmtId: number|Integer, n: number|Integer, observer: StreamObserver)} param.moreFunction -
    * @param {function(connection: Connection, stmtId: number|Integer, observer: StreamObserver)} param.discardFunction -
-   * @param {number|Integer} param.batchSize -
+   * @param {number|Integer} param.fetchSize -
    * @param {function(err: Error): Promise|void} param.beforeError -
    * @param {function(err: Error): Promise|void} param.afterError -
    * @param {function(keys: string[]): Promise|void} param.beforeKeys -
@@ -63,7 +61,7 @@ class ResultStreamObserver extends StreamObserver {
     reactive = false,
     moreFunction,
     discardFunction,
-    batchSize = DefaultBatchSize,
+    fetchSize = ALL,
     beforeError,
     afterError,
     beforeKeys,
@@ -98,7 +96,8 @@ class ResultStreamObserver extends StreamObserver {
     this._moreFunction = moreFunction
     this._discardFunction = discardFunction
     this._discard = false
-    this._batchSize = batchSize
+    this._fetchSize = fetchSize
+    this._finished = false
   }
 
   /**
@@ -108,7 +107,7 @@ class ResultStreamObserver extends StreamObserver {
    * @param {Array} rawRecord - An array with the raw record
    */
   onNext (rawRecord) {
-    let record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
+    const record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
     if (this._observers.some(o => o.onNext)) {
       this._observers.forEach(o => {
         if (o.onNext) {
@@ -190,6 +189,7 @@ class ResultStreamObserver extends StreamObserver {
 
         delete meta.has_more
       } else {
+        this._finished = true
         const completionMetadata = Object.assign(
           this._connection ? { server: this._connection.server } : {},
           this._meta,
@@ -229,7 +229,6 @@ class ResultStreamObserver extends StreamObserver {
 
   _handleStreaming () {
     if (
-      this._reactive &&
       this._head &&
       this._observers.some(o => o.onNext || o.onCompleted) &&
       !this._streaming
@@ -242,7 +241,7 @@ class ResultStreamObserver extends StreamObserver {
         this._moreFunction(
           this._connection,
           this._statementId,
-          this._batchSize,
+          this._fetchSize,
           this
         )
       }
@@ -282,12 +281,13 @@ class ResultStreamObserver extends StreamObserver {
     this._head = []
     this._fieldKeys = []
     this._tail = {}
+    this._finished = true
   }
 
   /**
-   * Discard pending record stream
+   * Cancel pending record stream
    */
-  discard () {
+  cancel () {
     this._discard = true
   }
 
@@ -302,6 +302,7 @@ class ResultStreamObserver extends StreamObserver {
       return
     }
 
+    this._finished = true
     this._hasFailed = true
     this._error = error
 
@@ -357,7 +358,7 @@ class ResultStreamObserver extends StreamObserver {
     }
     this._observers.push(observer)
 
-    if (this._reactive) {
+    if (this._reactive && !this._finished) {
       this._handleStreaming()
     }
   }

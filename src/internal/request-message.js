@@ -43,7 +43,7 @@ const READ_MODE = 'r'
 /* eslint-enable no-unused-vars */
 
 const NO_STATEMENT_ID = -1
-const ALL = -1
+export const ALL = -1
 
 export default class RequestMessage {
   constructor (signature, fields, toString) {
@@ -220,19 +220,19 @@ export default class RequestMessage {
 function buildTxMetadata (bookmark, txConfig, database, mode) {
   const metadata = {}
   if (!bookmark.isEmpty()) {
-    metadata['bookmarks'] = bookmark.values()
+    metadata.bookmarks = bookmark.values()
   }
   if (txConfig.timeout) {
-    metadata['tx_timeout'] = txConfig.timeout
+    metadata.tx_timeout = txConfig.timeout
   }
   if (txConfig.metadata) {
-    metadata['tx_metadata'] = txConfig.metadata
+    metadata.tx_metadata = txConfig.metadata
   }
   if (database) {
-    metadata['db'] = assertString(database, 'database')
+    metadata.db = assertString(database, 'database')
   }
   if (mode === ACCESS_MODE_READ) {
-    metadata['mode'] = READ_MODE
+    metadata.mode = READ_MODE
   }
   return metadata
 }
@@ -246,7 +246,7 @@ function buildTxMetadata (bookmark, txConfig, database, mode) {
 function buildStreamMetadata (stmtId, n) {
   const metadata = { n: int(n) }
   if (stmtId !== NO_STATEMENT_ID) {
-    metadata['qid'] = int(stmtId)
+    metadata.qid = int(stmtId)
   }
   return metadata
 }

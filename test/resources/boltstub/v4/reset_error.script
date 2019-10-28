@@ -3,7 +3,7 @@
 !: AUTO GOODBYE
 
 C: RUN "RETURN 42 AS answer" {} {}
-   PULL {"n": -1}
+   PULL {"n": 1000}
 S: SUCCESS {"fields": ["answer"]}
    RECORD [42]
    SUCCESS {}

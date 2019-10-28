@@ -5,7 +5,7 @@
 
 C: BEGIN {"mode": "r"}
 S: SUCCESS {}
-C: RUN "MATCH (n) RETURN n.name" {} {"mode": "r"}
+C: RUN "MATCH (n) RETURN n.name" {} {}
    PULL_ALL
 S: SUCCESS {"fields": ["n.name"]}
    RECORD ["Bob"]

@@ -49,9 +49,11 @@ declare interface Config {
   trust?: TrustStrategy
   trustedCertificates?: string[]
   knownHosts?: string
+  fetchSize?: number
   maxConnectionPoolSize?: number
   maxTransactionRetryTime?: number
   maxConnectionLifetime?: number
+  connectionAcquisitionTimeout?: number
   connectionTimeout?: number
   disableLosslessIntegers?: boolean
   logging?: LoggingConfig
@@ -71,6 +73,7 @@ declare interface Driver {
   }?: {
     defaultAccessMode?: SessionMode
     bookmarks?: string | string[]
+    fetchSize?: number
     database?: string
   }): Session
 

@@ -4,6 +4,6 @@
 !: AUTO GOODBYE
 
 C: RUN "CREATE (n {name:'Bob'})" {} {"db": "aDatabase"}
-   PULL {"n": -1}
+   PULL {"n": 1000}
 S: SUCCESS {"fields": []}
    SUCCESS {}

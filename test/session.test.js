@@ -250,6 +250,7 @@ describe('#integration session', () => {
 
     session.run(statement).then(result => {
       const sum = result.summary
+      expect(result.records.length).toBe(10000)
       expect(sum.resultAvailableAfter.toInt()).not.toBeLessThan(0)
       expect(sum.resultConsumedAfter.toInt()).not.toBeLessThan(0)
       done()

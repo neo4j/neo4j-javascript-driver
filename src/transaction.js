@@ -43,8 +43,9 @@ class Transaction {
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
    * @param {boolean} reactive whether this transaction generates reactive streams
+   * @param {number} fetchSize - the record fetch size in each pulling batch.
    */
-  constructor ({ connectionHolder, onClose, onBookmark, reactive }) {
+  constructor ({ connectionHolder, onClose, onBookmark, reactive, fetchSize }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
     this._state = _states.ACTIVE
@@ -52,6 +53,8 @@ class Transaction {
     this._onBookmark = onBookmark
     this._onError = this._onErrorCallback.bind(this)
     this._onComplete = this._onCompleteCallback.bind(this)
+    this._fetchSize = fetchSize
+    this._results = []
   }
 
   _begin (bookmark, txConfig) {
@@ -84,12 +87,15 @@ class Transaction {
       parameters
     )
 
-    return this._state.run(query, params, {
+    var result = this._state.run(query, params, {
       connectionHolder: this._connectionHolder,
       onError: this._onError,
       onComplete: this._onComplete,
-      reactive: this._reactive
+      reactive: this._reactive,
+      fetchSize: this._fetchSize
     })
+    this._results.push(result)
+    return result
   }
 
   /**
@@ -97,13 +103,14 @@ class Transaction {
    *
    * After committing the transaction can no longer be used.
    *
-   * @returns {Result} New Result
+   * @returns {Promise<void>} An empty promise if committed successfully or error if any error happened during commit.
    */
   commit () {
-    let committed = this._state.commit({
+    const committed = this._state.commit({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
-      onComplete: this._onComplete
+      onComplete: this._onComplete,
+      pendingResults: this._results
     })
     this._state = committed.state
     // clean up
@@ -121,13 +128,15 @@ class Transaction {
    *
    * After rolling back, the transaction can no longer be used.
    *
-   * @returns {Result} New Result
+   * @returns {Promise<void>} An empty promise if rolled back successfully or error if any error happened during
+   * rollback.
    */
   rollback () {
-    let rolledback = this._state.rollback({
+    const rolledback = this._state.rollback({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
-      onComplete: this._onComplete
+      onComplete: this._onComplete,
+      pendingResults: this._results
     })
     this._state = rolledback.state
     // clean up
@@ -164,38 +173,50 @@ class Transaction {
   }
 }
 
-let _states = {
+const _states = {
   // The transaction is running with no explicit success or failure marked
   ACTIVE: {
-    commit: ({ connectionHolder, onError, onComplete }) => {
+    commit: ({ connectionHolder, onError, onComplete, pendingResults }) => {
       return {
-        result: finishTransaction(true, connectionHolder, onError, onComplete),
+        result: finishTransaction(
+          true,
+          connectionHolder,
+          onError,
+          onComplete,
+          pendingResults
+        ),
         state: _states.SUCCEEDED
       }
     },
-    rollback: ({ connectionHolder, onError, onComplete }) => {
+    rollback: ({ connectionHolder, onError, onComplete, pendingResults }) => {
       return {
-        result: finishTransaction(false, connectionHolder, onError, onComplete),
+        result: finishTransaction(
+          false,
+          connectionHolder,
+          onError,
+          onComplete,
+          pendingResults
+        ),
         state: _states.ROLLED_BACK
       }
     },
     run: (
       statement,
       parameters,
-      { connectionHolder, onError, onComplete, reactive }
+      { connectionHolder, onError, onComplete, reactive, fetchSize }
     ) => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
+      // No need to include mode and database name as it shall be inclued in begin
       const observerPromise = connectionHolder
         .getConnection()
         .then(conn =>
           conn.protocol().run(statement, parameters, {
             bookmark: Bookmark.empty(),
             txConfig: TxConfig.empty(),
-            mode: connectionHolder.mode(),
-            database: connectionHolder.database(),
             beforeError: onError,
             afterComplete: onComplete,
-            reactive: reactive
+            reactive: reactive,
+            fetchSize: fetchSize
           })
         )
         .catch(error => new FailedObserver({ error, onError }))
@@ -352,22 +373,32 @@ let _states = {
  * @param {ConnectionHolder} connectionHolder
  * @param {function(err:Error): any} onError
  * @param {function(metadata:object): any} onComplete
+ * @param {list<Result>>}pendingResults all run results in this transaction
  */
-function finishTransaction (commit, connectionHolder, onError, onComplete) {
+function finishTransaction (
+  commit,
+  connectionHolder,
+  onError,
+  onComplete,
+  pendingResults
+) {
   const observerPromise = connectionHolder
     .getConnection()
     .then(connection => {
-      if (commit) {
-        return connection.protocol().commitTransaction({
-          beforeError: onError,
-          afterComplete: onComplete
-        })
-      } else {
-        return connection.protocol().rollbackTransaction({
-          beforeError: onError,
-          afterComplete: onComplete
-        })
-      }
+      pendingResults.forEach(r => r._cancel())
+      return Promise.all(pendingResults).then(results => {
+        if (commit) {
+          return connection.protocol().commitTransaction({
+            beforeError: onError,
+            afterComplete: onComplete
+          })
+        } else {
+          return connection.protocol().rollbackTransaction({
+            beforeError: onError,
+            afterComplete: onComplete
+          })
+        }
+      })
     })
     .catch(error => new FailedObserver({ error, onError }))
 

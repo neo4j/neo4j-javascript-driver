@@ -253,6 +253,28 @@ describe('#integration driver', () => {
     )
   })
 
+  it('should validate fetch size in the config', async () => {
+    await validateConfigSanitizing({}, 1000)
+    await validateConfigSanitizing({ fetchSize: 42 }, 42)
+    await validateConfigSanitizing({ fetchSize: -1 }, -1)
+    await validateConfigSanitizing({ fetchSize: '42' }, 42)
+    await validateConfigSanitizing({ fetchSize: '-1' }, -1)
+  })
+
+  it('should fail when fetch size is negative', () => {
+    expect(() =>
+      neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+        fetchSize: -77
+      })
+    ).toThrow()
+  })
+
+  it('should fail when fetch size is 0', () => {
+    expect(() =>
+      neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { fetchSize: 0 })
+    ).toThrow()
+  })
+
   it('should discard closed connections', async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
 

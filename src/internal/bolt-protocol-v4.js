@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import BoltProtocolV3 from './bolt-protocol-v3'
-import RequestMessage from './request-message'
+import RequestMessage, { ALL } from './request-message'
 import { ResultStreamObserver } from './stream-observers'
 import { BOLT_PROTOCOL_V4 } from './constants'
 
@@ -69,14 +69,16 @@ export default class BoltProtocol extends BoltProtocolV3 {
       beforeComplete,
       afterComplete,
       flush = true,
-      reactive = false
+      reactive = false,
+      fetchSize = ALL
     } = {}
   ) {
     const observer = new ResultStreamObserver({
       connection: this._connection,
       reactive: reactive,
-      moreFunction: reactive ? this._requestMore : this._noOp,
-      discardFunction: reactive ? this._requestDiscard : this._noOp,
+      fetchSize: fetchSize,
+      moreFunction: this._requestMore,
+      discardFunction: this._requestDiscard,
       beforeKeys,
       afterKeys,
       beforeError,
@@ -98,7 +100,11 @@ export default class BoltProtocol extends BoltProtocolV3 {
     )
 
     if (!reactive) {
-      this._connection.write(RequestMessage.pull(), observer, flush)
+      this._connection.write(
+        RequestMessage.pull({ n: fetchSize }),
+        observer,
+        flush
+      )
     }
 
     return observer

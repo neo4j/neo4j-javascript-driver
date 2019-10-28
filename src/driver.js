@@ -30,8 +30,15 @@ import {
 } from './internal/pool-config'
 import Session from './session'
 import RxSession from './session-rx'
+import { ALL } from './internal/request-message'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000 // 1 hour
+
+/**
+ * The default record fetch size. This is used in Bolt V4 protocol to pull query execution result in batches.
+ * @type {number}
+ */
+const DEFAULT_FETCH_SIZE = 1000
 
 /**
  * Constant that represents read session access mode.
@@ -132,19 +139,23 @@ class Driver {
    * @param {string} param.defaultAccessMode=WRITE - the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
    * @param {string|string[]} param.bookmarks - the initial reference or references to some previous
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
+   * @param {number} param.fetchSize - the record fetch size of each batch of this session.
+   * Use {@link ALL} to always pull all records in one batch. This will override the config value set on driver config.
    * @param {string} param.database - the database this session will operate on.
    * @return {Session} new session.
    */
   session ({
     defaultAccessMode = WRITE,
     bookmarks: bookmarkOrBookmarks,
-    database = ''
+    database = '',
+    fetchSize
   } = {}) {
     return this._newSession({
       defaultAccessMode,
       bookmarkOrBookmarks,
       database,
-      reactive: false
+      reactive: false,
+      fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize)
     })
   }
 
@@ -229,7 +240,13 @@ class Driver {
   /**
    * @private
    */
-  _newSession ({ defaultAccessMode, bookmarkOrBookmarks, database, reactive }) {
+  _newSession ({
+    defaultAccessMode,
+    bookmarkOrBookmarks,
+    database,
+    reactive,
+    fetchSize
+  }) {
     const sessionMode = Driver._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmark = bookmarkOrBookmarks
@@ -241,7 +258,8 @@ class Driver {
       connectionProvider,
       bookmark,
       config: this._config,
-      reactive
+      reactive,
+      fetchSize
     })
   }
 
@@ -277,6 +295,10 @@ function sanitizeConfig (config) {
     config.connectionAcquisitionTimeout,
     DEFAULT_ACQUISITION_TIMEOUT
   )
+  config.fetchSize = validateFetchSizeValue(
+    config.fetchSize,
+    DEFAULT_FETCH_SIZE
+  )
 }
 
 /**
@@ -288,6 +310,23 @@ function sanitizeIntValue (rawValue, defaultWhenAbsent) {
     return sanitizedValue
   } else if (sanitizedValue < 0) {
     return Number.MAX_SAFE_INTEGER
+  } else {
+    return defaultWhenAbsent
+  }
+}
+
+/**
+ * @private
+ */
+function validateFetchSizeValue (rawValue, defaultWhenAbsent) {
+  const fetchSize = parseInt(rawValue, 10)
+  if (fetchSize > 0 || fetchSize === ALL) {
+    return fetchSize
+  } else if (fetchSize === 0 || fetchSize < 0) {
+    throw new Error(
+      'The fetch size can only be a positive value or -1 for ALL. However fetchSize = ' +
+        fetchSize
+    )
   } else {
     return defaultWhenAbsent
   }

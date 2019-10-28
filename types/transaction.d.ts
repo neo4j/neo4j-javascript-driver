@@ -21,9 +21,9 @@ import Result from './result'
 import StatementRunner from './statement-runner'
 
 declare interface Transaction extends StatementRunner {
-  commit(): Result
+  commit(): Promise<void>
 
-  rollback(): Result
+  rollback(): Promise<void>
 
   isOpen(): boolean
 }

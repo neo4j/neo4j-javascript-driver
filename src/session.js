@@ -49,6 +49,7 @@ class Session {
    * @param {string} args.database the database name
    * @param {Object} args.config={} - this driver configuration.
    * @param {boolean} args.reactive - whether this session should create reactive streams
+   * @param {number} args.fetchSize - defines how many records is pulled in each pulling batch
    */
   constructor ({
     mode,
@@ -56,11 +57,13 @@ class Session {
     bookmark,
     database,
     config,
-    reactive
+    reactive,
+    fetchSize
   }) {
     this._mode = mode
     this._database = database
     this._reactive = reactive
+    this._fetchSize = fetchSize
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
@@ -107,7 +110,8 @@ class Session {
         mode: this._mode,
         database: this._database,
         afterComplete: this._onComplete,
-        reactive: this._reactive
+        reactive: this._reactive,
+        fetchSize: this._fetchSize
       })
     )
   }
@@ -176,7 +180,8 @@ class Session {
       connectionHolder,
       onClose: this._transactionClosed.bind(this),
       onBookmark: this._updateBookmark.bind(this),
-      reactive: this._reactive
+      reactive: this._reactive,
+      fetchSize: this._fetchSize
     })
     tx._begin(this._lastBookmark, txConfig)
     return tx
