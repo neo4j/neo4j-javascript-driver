@@ -223,7 +223,7 @@ describe('#integration session', () => {
       expect(sum.statement.text).toBe(statement)
       expect(sum.statement.parameters).toBe(params)
       expect(sum.counters.containsUpdates()).toBe(true)
-      expect(sum.counters.nodesCreated()).toBe(1)
+      expect(sum.counters.updates().nodesCreated).toBe(1)
       expect(sum.statementType).toBe(statementType.READ_WRITE)
       done()
     })
@@ -649,7 +649,7 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.nodesCreated()).toEqual(1)
+      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
 
       const bookmarkAfter = session.lastBookmark()
       verifyBookmark(bookmarkAfter)
@@ -715,7 +715,7 @@ describe('#integration session', () => {
 
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.nodesCreated()).toEqual(1)
+      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
 
       countNodes('Node', 'id', 42).then(count => {
         expect(count).toEqual(1)
@@ -768,7 +768,7 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.nodesCreated()).toEqual(1)
+      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
       expect(session.lastBookmark()).toBe(bookmarkBefore) // expect bookmark to not change
 
       countNodes('Node', 'id', 42).then(count => {

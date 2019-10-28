@@ -201,6 +201,43 @@ describe('#integration-rx summary', () => {
       shouldReturnNotification(serverVersion, txc))
   })
 
+  describe('system', () => {
+    let driver
+    /** @type {RxSession} */
+    let session
+    /** @type {ServerVersion} */
+    let serverVersion
+
+    beforeEach(async () => {
+      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      session = driver.rxSession({ database: 'system' })
+      //
+
+      const normalSession = driver.session()
+      try {
+        const result = await normalSession.run('MATCH (n) DETACH DELETE n')
+        serverVersion = ServerVersion.fromString(result.summary.server.version)
+      } finally {
+        await normalSession.close()
+      }
+
+      await dropConstraintsAndIndices(driver)
+    })
+
+    afterEach(async () => {
+      if (session) {
+        await session.close().toPromise()
+      }
+      await driver.close()
+    })
+
+    it('session should return summary with correct system updates for create', () =>
+      shouldReturnSummaryWithSystemUpdates(serverVersion, session))
+
+    it('transaction should return summary with correct system updates for create', () =>
+      shouldReturnSummaryWithSystemUpdates(serverVersion, session, true))
+  })
+
   /**
    * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
@@ -271,6 +308,37 @@ describe('#integration-rx summary', () => {
 
   /**
    * @param {ServerVersion} version
+   * @param {RxSession} session
+   * @param {boolean} useTransaction
+   */
+  async function shouldReturnSummaryWithSystemUpdates (
+    version,
+    session,
+    useTransaction = false
+  ) {
+    if (version.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
+    let runnable = session
+    if (useTransaction) {
+      runnable = await session.beginTransaction().toPromise()
+    }
+
+    try {
+      await verifySystemUpdates(
+        runnable,
+        "CREATE USER foo SET PASSWORD 'bar'",
+        {},
+        1
+      )
+    } finally {
+      await verifySystemUpdates(runnable, 'DROP USER foo', {}, 1)
+    }
+  }
+
+  /**
+   * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryWithUpdateStatisticsForCreate (
@@ -281,7 +349,7 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    await verifyCounters(
+    await verifyUpdates(
       runnable,
       'CREATE (n:Label1 {id: $id1})-[:KNOWS]->(m:Label2 {id: $id2}) RETURN n, m',
       { id1: 10, id2: 20 },
@@ -316,7 +384,7 @@ describe('#integration-rx summary', () => {
     // first create the to-be-deleted nodes
     await shouldReturnSummaryWithUpdateStatisticsForCreate(version, runnable)
 
-    await verifyCounters(
+    await verifyUpdates(
       runnable,
       'MATCH (n:Label1)-[r:KNOWS]->(m:Label2) DELETE n, r',
       null,
@@ -348,7 +416,7 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    await verifyCounters(runnable, 'CREATE INDEX on :Label(prop)', null, {
+    await verifyUpdates(runnable, 'CREATE INDEX on :Label(prop)', null, {
       nodesCreated: 0,
       nodesDeleted: 0,
       relationshipsCreated: 0,
@@ -384,7 +452,7 @@ describe('#integration-rx summary', () => {
       await session.close()
     }
 
-    await verifyCounters(runnable, 'DROP INDEX on :Label(prop)', null, {
+    await verifyUpdates(runnable, 'DROP INDEX on :Label(prop)', null, {
       nodesCreated: 0,
       nodesDeleted: 0,
       relationshipsCreated: 0,
@@ -411,7 +479,7 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    await verifyCounters(
+    await verifyUpdates(
       runnable,
       'CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE',
       null,
@@ -454,7 +522,7 @@ describe('#integration-rx summary', () => {
       await session.close()
     }
 
-    await verifyCounters(
+    await verifyUpdates(
       runnable,
       'DROP CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE',
       null,
@@ -628,27 +696,42 @@ describe('#integration-rx summary', () => {
    * @param {RxSession|RxTransaction} runnable
    * @param {string} statement
    * @param {*} parameters
-   * @param {*} counters
+   * @param {*} stats
    */
-  async function verifyCounters (runnable, statement, parameters, counters) {
+  async function verifyUpdates (runnable, statement, parameters, stats) {
     const summary = await runnable
       .run(statement, parameters)
       .summary()
       .toPromise()
     expect(summary).toBeDefined()
-    expect({
-      nodesCreated: summary.counters.nodesCreated(),
-      nodesDeleted: summary.counters.nodesDeleted(),
-      relationshipsCreated: summary.counters.relationshipsCreated(),
-      relationshipsDeleted: summary.counters.relationshipsDeleted(),
-      propertiesSet: summary.counters.propertiesSet(),
-      labelsAdded: summary.counters.labelsAdded(),
-      labelsRemoved: summary.counters.labelsRemoved(),
-      indexesAdded: summary.counters.indexesAdded(),
-      indexesRemoved: summary.counters.indexesRemoved(),
-      constraintsAdded: summary.counters.constraintsAdded(),
-      constraintsRemoved: summary.counters.constraintsRemoved()
-    }).toEqual(counters)
+    expect(summary.counters.containsUpdates()).toBeTruthy()
+    expect(summary.counters.updates()).toEqual(stats)
+    expect(summary.counters.containsSystemUpdates()).toBeFalsy()
+  }
+
+  /**
+   *
+   * @param {RxSession|RxTransaction} runnable
+   * @param {string} statement
+   * @param {*} parameters
+   * @param {number} systemUpdates
+   * @returns {Promise<void>}
+   */
+  async function verifySystemUpdates (
+    runnable,
+    statement,
+    parameters,
+    systemUpdates
+  ) {
+    const summary = await runnable
+      .run(statement, parameters)
+      .summary()
+      .toPromise()
+    expect(summary).toBeDefined()
+
+    expect(summary.counters.containsSystemUpdates()).toBeTruthy()
+    expect(summary.counters.systemUpdates()).toBe(systemUpdates)
+    expect(summary.counters.containsUpdates()).toBeFalsy()
   }
 
   async function dropConstraintsAndIndices (driver) {

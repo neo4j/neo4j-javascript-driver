@@ -40,17 +40,9 @@ const str: string = sum1.statementType
 const counters: StatementStatistic = sum1.counters
 
 const containsUpdates: boolean = counters.containsUpdates()
-const nodesCreated: number = counters.nodesCreated()
-const nodesDeleted: number = counters.nodesDeleted()
-const relationshipsCreated: number = counters.relationshipsCreated()
-const relationshipsDeleted: number = counters.relationshipsDeleted()
-const propertiesSet: number = counters.propertiesSet()
-const labelsAdded: number = counters.labelsAdded()
-const labelsRemoved: number = counters.labelsRemoved()
-const indexesAdded: number = counters.indexesAdded()
-const indexesRemoved: number = counters.indexesRemoved()
-const constraintsAdded: number = counters.constraintsAdded()
-const constraintsRemoved: number = counters.constraintsRemoved()
+const containsSystemUpdates: boolean = counters.containsSystemUpdates()
+const systemUpdates: number = counters.systemUpdates()
+const updates: { [key: string]: number } = counters.updates()
 
 const plan: Plan = sum1.plan
 const planOperatorType: string = plan.operatorType
