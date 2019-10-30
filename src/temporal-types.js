@@ -28,7 +28,8 @@ import { newError } from './error'
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,
   enumerable: false,
-  configurable: false
+  configurable: false,
+  writable: false
 }
 
 const DURATION_IDENTIFIER_PROPERTY = '__isDuration__'

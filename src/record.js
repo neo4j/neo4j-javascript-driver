@@ -20,7 +20,7 @@
 import { newError } from './error'
 
 function generateFieldLookup (keys) {
-  let lookup = {}
+  const lookup = {}
   keys.forEach((name, idx) => {
     lookup[name] = idx
   })
@@ -83,6 +83,26 @@ class Record {
     for (let i = 0; i < this.keys.length; i++) {
       visitor(this._fields[i], this.keys[i], this)
     }
+  }
+
+  /**
+   * Run the given function for each field in this record. The function
+   * will get three arguments - the value, the key and this record, in that
+   * order.
+   *
+   * @param {function(value: Object, key: string, record: Record)} visitor the function to apply on each field
+   * and return a value that is saved to the returned Array.
+   *
+   * @returns {Array}
+   */
+  map (visitor) {
+    const resultArray = []
+
+    for (let i = 0; i < this.keys.length; i++) {
+      resultArray.push(visitor(this._fields[i], this.keys[i], this))
+    }
+
+    return resultArray
   }
 
   /**

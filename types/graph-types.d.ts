@@ -73,12 +73,27 @@ declare class Path<T extends NumberOrInteger = Integer> {
   constructor(start: Node<T>, end: Node<T>, segments: PathSegment<T>[])
 }
 
+declare function isNode(obj: object): boolean
+
+declare function isRelationship(obj: object): boolean
+
+declare function isUnboundRelationship(obj: object): boolean
+
+declare function isPath(obj: object): boolean
+
+declare function isPathSegment(obj: object): boolean
+
 export {
   Node,
   Relationship,
   UnboundRelationship,
   Path,
   PathSegment,
+  isNode,
+  isRelationship,
+  isUnboundRelationship,
+  isPath,
+  isPathSegment,
   NumberOrInteger,
   StandardDate
 }

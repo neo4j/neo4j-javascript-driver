@@ -113,4 +113,17 @@ describe('#unit Record', () => {
     // Then
     expect(result).toEqual([['Bob', 'name', record], [45, 'age', record]])
   })
+
+  it('should allow map function for the record', () => {
+    // Given
+    const record = new Record(['name', 'age'], ['Bob', 45])
+
+    // When
+    const result = record.map((value, key, rec) => {
+      return [value, key, rec]
+    })
+
+    // Then
+    expect(result).toEqual([['Bob', 'name', record], [45, 'age', record]])
+  })
 })
