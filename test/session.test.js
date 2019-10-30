@@ -881,43 +881,6 @@ describe('#integration session', () => {
     })
   })
 
-  it('should be able to do nested queries', done => {
-    session
-      .run(
-        'CREATE (knight:Person:Knight {name: $name1, castle: $castle})' +
-          'CREATE (king:Person {name: $name2, title: $title})',
-        { name1: 'Lancelot', castle: 'Camelot', name2: 'Arthur', title: 'King' }
-      )
-      .then(() => {
-        session
-          .run(
-            'MATCH (knight:Person:Knight) WHERE knight.castle = $castle RETURN id(knight) AS knight_id',
-            { castle: 'Camelot' }
-          )
-          .subscribe({
-            onNext: record => {
-              session.run(
-                'MATCH (knight) WHERE id(knight) = $id MATCH (king:Person) WHERE king.name = $king CREATE (knight)-[:DEFENDS]->(king)',
-                { id: record.get('knight_id'), king: 'Arthur' }
-              )
-            },
-            onCompleted: () => {
-              session
-                .run('MATCH (:Knight)-[:DEFENDS]->() RETURN count(*)')
-                .then(result => {
-                  const count = result.records[0].get(0).toInt()
-                  expect(count).toEqual(1)
-                })
-                .then(() => session.close())
-                .then(() => done())
-            },
-            onError: error => {
-              console.log(error)
-            }
-          })
-      })
-  })
-
   it('should send multiple bookmarks', async () => {
     const nodeCount = 17
     const bookmarks = []

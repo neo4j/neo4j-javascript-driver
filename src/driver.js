@@ -178,13 +178,19 @@ class Driver {
    * @param {string} param.database - the database this session will operate on.
    * @returns {RxSession} new reactive session.
    */
-  rxSession ({ defaultAccessMode = WRITE, bookmarks, database = '' } = {}) {
+  rxSession ({
+    defaultAccessMode = WRITE,
+    bookmarks,
+    database = '',
+    fetchSize
+  } = {}) {
     return new RxSession({
       session: this._newSession({
         defaultAccessMode,
         bookmarks,
         database,
-        reactive: true
+        reactive: true,
+        fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize)
       }),
       config: this._config
     })
