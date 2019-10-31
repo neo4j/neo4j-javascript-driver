@@ -210,10 +210,14 @@ class StatementStatistics {
     Object.keys(statistics).forEach(index => {
       // To camelCase
       const camelCaseIndex = index.replace(/(-\w)/g, m => m[1].toUpperCase())
-      if (camelCaseIndex in this._stats) { this._stats[camelCaseIndex] = intValue(statistics[index]) } else if (camelCaseIndex === 'systemUpdates') {
+      if (camelCaseIndex in this._stats) {
+        this._stats[camelCaseIndex] = intValue(statistics[index])
+      } else if (camelCaseIndex === 'systemUpdates') {
         this._systemUpdates = intValue(statistics[index])
       }
     })
+
+    this._stats = Object.freeze(this._stats)
   }
 
   /**
