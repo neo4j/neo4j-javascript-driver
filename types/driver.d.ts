@@ -69,7 +69,8 @@ declare interface Driver {
   session({
     defaultAccessMode,
     bookmarks,
-    database
+    database,
+    fetchSize
   }?: {
     defaultAccessMode?: SessionMode
     bookmarks?: string | string[]
@@ -80,10 +81,12 @@ declare interface Driver {
   rxSession({
     defaultAccessMode,
     bookmarks,
-    database
+    database,
+    fetchSize
   }?: {
     defaultAccessMode?: SessionMode
     bookmarks?: string | string[]
+    fetchSize?: number
     database?: string
   }): RxSession
 

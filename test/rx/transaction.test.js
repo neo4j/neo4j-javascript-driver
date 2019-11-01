@@ -101,7 +101,7 @@ describe('#integration-rx transaction', () => {
             .run('CREATE (n:Node {id: 42}) RETURN n')
             .records()
             .pipe(
-              map(r => r.get('n').properties['id']),
+              map(r => r.get('n').properties.id),
               concat(txc.commit())
             )
         ),
@@ -130,7 +130,7 @@ describe('#integration-rx transaction', () => {
             .run('CREATE (n:Node {id: 42}) RETURN n')
             .records()
             .pipe(
-              map(r => r.get('n').properties['id']),
+              map(r => r.get('n').properties.id),
               concat(txc.rollback())
             )
         ),
@@ -539,43 +539,6 @@ describe('#integration-rx transaction', () => {
     expect(summary).toBeTruthy()
   })
 
-  it('should handle nested queries', async () => {
-    const size = 1024
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
-      return
-    }
-
-    const messages = await session
-      .beginTransaction()
-      .pipe(
-        flatMap(txc =>
-          txc
-            .run('UNWIND RANGE(1, $size) AS x RETURN x', { size })
-            .records()
-            .pipe(
-              map(r => r.get(0)),
-              bufferCount(50),
-              flatMap(x =>
-                txc
-                  .run('UNWIND $x AS id CREATE (n:Node {id: id}) RETURN n.id', {
-                    x
-                  })
-                  .records()
-              ),
-              map(r => r.get(0)),
-              concat(txc.commit()),
-              catchError(err => txc.rollback().pipe(concat(throwError(err)))),
-              materialize(),
-              toArray()
-            )
-        )
-      )
-      .toPromise()
-
-    expect(messages.length).toBe(size + 1)
-    expect(messages[size]).toEqual(Notification.createComplete())
-  })
-
   async function verifyNoFailureIfNotExecuted (commit) {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
@@ -732,7 +695,7 @@ describe('#integration-rx transaction', () => {
       .run('CREATE (n:Node {id: $id}) RETURN n', { id: neo4j.int(id) })
       .records()
       .pipe(
-        map(r => r.get('n').properties['id']),
+        map(r => r.get('n').properties.id),
         materialize(),
         toArray()
       )

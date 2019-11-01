@@ -120,8 +120,7 @@ class Session {
     const connectionHolder = this._connectionHolderWithMode(this._mode)
 
     let observerPromise
-    if (!this._hasTx) {
-      connectionHolder.initializeConnection()
+    if (!this._hasTx && connectionHolder.initializeConnection()) {
       observerPromise = connectionHolder
         .getConnection()
         .then(connection => customRunner(connection))

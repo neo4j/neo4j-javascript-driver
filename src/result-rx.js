@@ -127,8 +127,8 @@ export default class RxResult {
 
       subscriptions.push({
         unsubscribe: () => {
-          if (result.discard) {
-            result.discard()
+          if (result._cancel) {
+            result._cancel()
           }
         }
       })

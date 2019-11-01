@@ -64,7 +64,7 @@ export default class ConnectionHolder {
 
   /**
    * Make this holder initialize new connection if none exists already.
-   * @return {undefined}
+   * @return {boolean}
    */
   initializeConnection () {
     if (this._referenceCount === 0) {
@@ -73,8 +73,12 @@ export default class ConnectionHolder {
         database: this._database,
         bookmark: this._bookmark
       })
+    } else {
+      this._referenceCount++
+      return false
     }
     this._referenceCount++
+    return true
   }
 
   /**
@@ -141,6 +145,7 @@ export default class ConnectionHolder {
 class EmptyConnectionHolder extends ConnectionHolder {
   initializeConnection () {
     // nothing to initialize
+    return true
   }
 
   getConnection () {
