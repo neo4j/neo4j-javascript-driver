@@ -174,11 +174,23 @@ class ProfiledPlan {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
-    this.dbHits = intValue(profile.args.DbHits)
-    this.rows = intValue(profile.args.Rows)
+    this.dbHits = valueOrDefault('dbHits', profile)
+    this.rows = valueOrDefault('rows', profile)
+    this.pageCacheMisses = valueOrDefault('pageCacheMisses', profile)
+    this.pageCacheHits = valueOrDefault('pageCacheHits', profile)
+    this.pageCacheHitRatio = valueOrDefault('pageCacheHitRatio', profile)
+    this.time = valueOrDefault('time', profile)
     this.children = profile.children
       ? profile.children.map(child => new ProfiledPlan(child))
       : []
+  }
+
+  hasPageCacheStats () {
+    return (
+      this.pageCacheMisses > 0 ||
+      this.pageCacheHits > 0 ||
+      this.pageCacheHitRatio > 0
+    )
   }
 }
 
@@ -206,12 +218,18 @@ class StatementStatistics {
       constraintsAdded: 0,
       constraintsRemoved: 0
     }
+    this._systemUpdates = 0
     Object.keys(statistics).forEach(index => {
       // To camelCase
-      this._stats[index.replace(/(-\w)/g, m => m[1].toUpperCase())] = intValue(
-        statistics[index]
-      )
+      const camelCaseIndex = index.replace(/(-\w)/g, m => m[1].toUpperCase())
+      if (camelCaseIndex in this._stats) {
+        this._stats[camelCaseIndex] = intValue(statistics[index])
+      } else if (camelCaseIndex === 'systemUpdates') {
+        this._systemUpdates = intValue(statistics[index])
+      }
     })
+
+    this._stats = Object.freeze(this._stats)
   }
 
   /**
@@ -227,80 +245,26 @@ class StatementStatistics {
   }
 
   /**
-   * @return {Number} - Number of nodes created.
+   * Returns the statement statistics updates in a dictionary.
+   * @returns {*}
    */
-  nodesCreated () {
-    return this._stats.nodesCreated
+  updates () {
+    return this._stats
   }
 
   /**
-   * @return {Number} - Number of nodes deleted.
+   * Return true if the system database get updated, otherwise false
+   * @returns {boolean} - If the system database get updated or not.
    */
-  nodesDeleted () {
-    return this._stats.nodesDeleted
+  containsSystemUpdates () {
+    return this._systemUpdates > 0
   }
 
   /**
-   * @return {Number} - Number of relationships created.
+   * @returns {number} - Number of system updates
    */
-  relationshipsCreated () {
-    return this._stats.relationshipsCreated
-  }
-
-  /**
-   * @return {Number} - Number of nodes deleted.
-   */
-  relationshipsDeleted () {
-    return this._stats.relationshipsDeleted
-  }
-
-  /**
-   * @return {Number} - Number of properties set.
-   */
-  propertiesSet () {
-    return this._stats.propertiesSet
-  }
-
-  /**
-   * @return {Number} - Number of labels added.
-   */
-  labelsAdded () {
-    return this._stats.labelsAdded
-  }
-
-  /**
-   * @return {Number} - Number of labels removed.
-   */
-  labelsRemoved () {
-    return this._stats.labelsRemoved
-  }
-
-  /**
-   * @return {Number} - Number of indexes added.
-   */
-  indexesAdded () {
-    return this._stats.indexesAdded
-  }
-
-  /**
-   * @return {Number} - Number of indexes removed.
-   */
-  indexesRemoved () {
-    return this._stats.indexesRemoved
-  }
-
-  /**
-   * @return {Number} - Number of constraints added.
-   */
-  constraintsAdded () {
-    return this._stats.constraintsAdded
-  }
-
-  /**
-   * @return {Number} - Number of constraints removed.
-   */
-  constraintsRemoved () {
-    return this._stats.constraintsRemoved
+  systemUpdates () {
+    return this._systemUpdates
   }
 }
 
@@ -354,6 +318,15 @@ class ServerInfo {
 
 function intValue (value) {
   return isInt(value) ? value.toInt() : value
+}
+
+function valueOrDefault (key, values, defaultValue = 0) {
+  if (key in values) {
+    const value = values[key]
+    return isInt(value) ? value.toInt() : value
+  } else {
+    return defaultValue
+  }
 }
 
 const statementType = {

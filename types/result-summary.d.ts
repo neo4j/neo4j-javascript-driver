@@ -49,33 +49,24 @@ declare interface ProfiledPlan {
   arguments: { [key: string]: string }
   dbHits: number
   rows: number
+  pageCacheMisses: number
+  pageCacheHits: number
+  pageCacheHitRatio: number
+  time: number
+
+  hasPageCacheStats(): boolean
+
   children: ProfiledPlan[]
 }
 
 declare interface StatementStatistic {
   containsUpdates(): boolean
 
-  nodesCreated(): number
+  containsSystemUpdates(): boolean
 
-  nodesDeleted(): number
+  updates(): { [key: string]: number }
 
-  relationshipsCreated(): number
-
-  relationshipsDeleted(): number
-
-  propertiesSet(): number
-
-  labelsAdded(): number
-
-  labelsRemoved(): number
-
-  indexesAdded(): number
-
-  indexesRemoved(): number
-
-  constraintsAdded(): number
-
-  constraintsRemoved(): number
+  systemUpdates(): number
 }
 
 declare type NotificationPosition = {

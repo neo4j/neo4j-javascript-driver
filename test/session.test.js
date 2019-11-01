@@ -25,7 +25,6 @@ import SingleConnectionProvider from '../src/internal/connection-provider-single
 import FakeConnection from './internal/fake-connection'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
-import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import { isString } from '../src/internal/util'
 import testUtils from './internal/test-utils'
 import { newError, PROTOCOL_ERROR, SESSION_EXPIRED } from '../src/error'
@@ -223,7 +222,7 @@ describe('#integration session', () => {
       expect(sum.statement.text).toBe(statement)
       expect(sum.statement.parameters).toBe(params)
       expect(sum.counters.containsUpdates()).toBe(true)
-      expect(sum.counters.nodesCreated()).toBe(1)
+      expect(sum.counters.updates().nodesCreated).toBe(1)
       expect(sum.statementType).toBe(statementType.READ_WRITE)
       done()
     })
@@ -299,7 +298,6 @@ describe('#integration session', () => {
       expect(sum.profile.identifiers[0]).toBe('n')
       expect(sum.profile.children[0].operatorType).toBeDefined()
       expect(sum.profile.rows).toBe(0)
-      // expect(sum.profile.dbHits).toBeGreaterThan(0);
       done()
     })
   })
@@ -649,7 +647,7 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.nodesCreated()).toEqual(1)
+      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
 
       const bookmarkAfter = session.lastBookmark()
       verifyBookmark(bookmarkAfter)
@@ -715,7 +713,7 @@ describe('#integration session', () => {
 
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.nodesCreated()).toEqual(1)
+      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
 
       countNodes('Node', 'id', 42).then(count => {
         expect(count).toEqual(1)
@@ -768,7 +766,7 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(result.summary.counters.nodesCreated()).toEqual(1)
+      expect(result.summary.counters.updates().nodesCreated).toEqual(1)
       expect(session.lastBookmark()).toBe(bookmarkBefore) // expect bookmark to not change
 
       countNodes('Node', 'id', 42).then(count => {
