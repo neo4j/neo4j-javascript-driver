@@ -174,11 +174,23 @@ class ProfiledPlan {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
-    this.dbHits = intValue(profile.args.DbHits)
-    this.rows = intValue(profile.args.Rows)
+    this.dbHits = valueOrDefault('dbHits', profile)
+    this.rows = valueOrDefault('rows', profile)
+    this.pageCacheMisses = valueOrDefault('pageCacheMisses', profile)
+    this.pageCacheHits = valueOrDefault('pageCacheHits', profile)
+    this.pageCacheHitRatio = valueOrDefault('pageCacheHitRatio', profile)
+    this.time = valueOrDefault('time', profile)
     this.children = profile.children
       ? profile.children.map(child => new ProfiledPlan(child))
       : []
+  }
+
+  hasPageCacheStats () {
+    return (
+      this.pageCacheMisses > 0 ||
+      this.pageCacheHits > 0 ||
+      this.pageCacheHitRatio > 0
+    )
   }
 }
 
@@ -306,6 +318,15 @@ class ServerInfo {
 
 function intValue (value) {
   return isInt(value) ? value.toInt() : value
+}
+
+function valueOrDefault (key, values, defaultValue = 0) {
+  if (key in values) {
+    const value = values[key]
+    return isInt(value) ? value.toInt() : value
+  } else {
+    return defaultValue
+  }
 }
 
 const statementType = {

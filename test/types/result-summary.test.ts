@@ -56,6 +56,11 @@ const profileIdentifiers: string[] = profile.identifiers
 const profileArguments: { [key: string]: string } = profile.arguments
 const profileDbHits: number = profile.dbHits
 const profileRows: number = profile.rows
+const hasPageCacheStats: boolean = profile.hasPageCacheStats()
+const profilePageCacheMisses: number = profile.pageCacheMisses
+const profilePageCacheHits: number = profile.pageCacheHits
+const profilePageCacheHitRatio: number = profile.pageCacheHitRatio
+const time: number = profile.time
 const profileChildren: ProfiledPlan[] = profile.children
 
 const notifications: Notification[] = sum1.notifications

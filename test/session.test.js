@@ -25,7 +25,6 @@ import SingleConnectionProvider from '../src/internal/connection-provider-single
 import FakeConnection from './internal/fake-connection'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
-import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import { isString } from '../src/internal/util'
 import testUtils from './internal/test-utils'
 import { newError, PROTOCOL_ERROR, SESSION_EXPIRED } from '../src/error'
@@ -299,7 +298,6 @@ describe('#integration session', () => {
       expect(sum.profile.identifiers[0]).toBe('n')
       expect(sum.profile.children[0].operatorType).toBeDefined()
       expect(sum.profile.rows).toBe(0)
-      // expect(sum.profile.dbHits).toBeGreaterThan(0);
       done()
     })
   })

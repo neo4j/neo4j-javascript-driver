@@ -153,6 +153,8 @@ describe('#integration result summary', () => {
 
       expect(profile.dbHits).toBe(0)
       expect(profile.rows).toBe(1)
+      expect(profile.time).toBe(0)
+      expect(profile.hasPageCacheStats()).toBe(false)
 
       done()
     })

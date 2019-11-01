@@ -49,6 +49,13 @@ declare interface ProfiledPlan {
   arguments: { [key: string]: string }
   dbHits: number
   rows: number
+  pageCacheMisses: number
+  pageCacheHits: number
+  pageCacheHitRatio: number
+  time: number
+
+  hasPageCacheStats(): boolean
+
   children: ProfiledPlan[]
 }
 
