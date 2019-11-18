@@ -100,11 +100,19 @@ describe('#integration-rx navigation', () => {
     it('should fail on records when run fails', () =>
       shouldFailOnRecordsWhenRunFails(serverVersion, session))
 
+    it('should fail on subsequent records differently when run fails', () =>
+      shouldFailOnSubsequentRecordsWhenRunFails(serverVersion, session))
+
     it('should fail on summary when run fails', () =>
       shouldFailOnSummaryWhenRunFails(serverVersion, session))
 
     it('should fail on subsequent summary when run fails', () =>
-      shouldFailOnSubsequentKeysWhenRunFails(serverVersion, session))
+      shouldFailOnSubsequentSummaryWhenRunFails(serverVersion, session))
+
+    it('should fail on result when closed', () =>
+      shouldFailOnResultWhenClosed(serverVersion, session, () =>
+        session.close()
+      ))
   })
 
   describe('transaction', () => {
@@ -197,11 +205,20 @@ describe('#integration-rx navigation', () => {
     it('should fail on records when run fails', () =>
       shouldFailOnRecordsWhenRunFails(serverVersion, txc))
 
+    it('should fail on subsequent records differently when run fails', () =>
+      shouldFailOnSubsequentRecordsWhenRunFails(serverVersion, txc))
+
     it('should fail on summary when run fails', () =>
       shouldFailOnSummaryWhenRunFails(serverVersion, txc))
 
     it('should fail on subsequent summary when run fails', () =>
-      shouldFailOnSubsequentKeysWhenRunFails(serverVersion, txc))
+      shouldFailOnSubsequentSummaryWhenRunFails(serverVersion, txc))
+
+    it('should fail on result when committed', () =>
+      shouldFailOnResultWhenClosed(serverVersion, txc, () => txc.commit()))
+
+    it('should fail on result when rolled back', () =>
+      shouldFailOnResultWhenClosed(serverVersion, txc, () => txc.rollback()))
   })
 
   /**
@@ -310,7 +327,10 @@ describe('#integration-rx navigation', () => {
     await collectAndAssertKeys(result)
     await collectAndAssertSummary(result)
 
-    await collectAndAssertEmpty(result.records())
+    const expectedError = jasmine.objectContaining({
+      message: jasmine.stringMatching(/Streaming has already started/)
+    })
+    await collectAndAssertError(result.records(), expectedError)
   }
 
   /**
@@ -402,9 +422,13 @@ describe('#integration-rx navigation', () => {
     )
 
     await collectAndAssertRecords(result)
-    await collectAndAssertEmpty(result.records())
-    await collectAndAssertEmpty(result.records())
-    await collectAndAssertEmpty(result.records())
+
+    const expectedError = jasmine.objectContaining({
+      message: jasmine.stringMatching(/Streaming has already started/)
+    })
+    await collectAndAssertError(result.records(), expectedError)
+    await collectAndAssertError(result.records(), expectedError)
+    await collectAndAssertError(result.records(), expectedError)
   }
 
   /**
@@ -531,6 +555,32 @@ describe('#integration-rx navigation', () => {
    * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
    */
+  async function shouldFailOnSubsequentRecordsWhenRunFails (version, runnable) {
+    if (version.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
+    const result = runnable.run('THIS IS NOT A CYPHER')
+
+    await collectAndAssertError(
+      result.records(),
+      jasmine.objectContaining({
+        code: 'Neo.ClientError.Statement.SyntaxError',
+        message: jasmine.stringMatching(/Invalid input/)
+      })
+    )
+
+    const expectedError = jasmine.objectContaining({
+      message: jasmine.stringMatching(/Streaming has already started/)
+    })
+    await collectAndAssertError(result.records(), expectedError)
+    await collectAndAssertError(result.records(), expectedError)
+  }
+
+  /**
+   * @param {ServerVersion} version
+   * @param {RxSession|RxTransaction} runnable
+   */
   async function shouldFailOnSummaryWhenRunFails (version, runnable) {
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
@@ -539,7 +589,7 @@ describe('#integration-rx navigation', () => {
     const result = runnable.run('THIS IS NOT A CYPHER')
 
     await collectAndAssertError(
-      result.summary(),
+      result.consume(),
       jasmine.objectContaining({
         code: 'Neo.ClientError.Statement.SyntaxError',
         message: jasmine.stringMatching(/Invalid input/)
@@ -562,9 +612,30 @@ describe('#integration-rx navigation', () => {
       message: jasmine.stringMatching(/Invalid input/)
     })
 
-    await collectAndAssertError(result.summary(), expectedError)
-    await collectAndAssertError(result.summary(), expectedError)
-    await collectAndAssertError(result.summary(), expectedError)
+    await collectAndAssertError(result.consume(), expectedError)
+    await collectAndAssertError(result.consume(), expectedError)
+    await collectAndAssertError(result.consume(), expectedError)
+  }
+
+  /**
+   * @param {ServerVersion} version
+   * @param {RxSession|RxTransaction} runnable
+   * @param {function(): Observable} closeFunc
+   */
+  async function shouldFailOnResultWhenClosed (version, runnable, closeFunc) {
+    if (version.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
+    const result = runnable.run('RETURN 1')
+    await collectAndAssertEmpty(closeFunc())
+
+    const expectedError = jasmine.objectContaining({
+      message: jasmine.stringMatching(/Cannot run statement/)
+    })
+    await collectAndAssertError(result.keys(), expectedError)
+    await collectAndAssertError(result.records(), expectedError)
+    await collectAndAssertError(result.consume(), expectedError)
   }
 
   async function collectAndAssertKeys (result) {
@@ -602,7 +673,7 @@ describe('#integration-rx navigation', () => {
 
   async function collectAndAssertSummary (result, expectedStatementType = 'r') {
     const summary = await result
-      .summary()
+      .consume()
       .pipe(
         map(s => s.statementType),
         materialize(),

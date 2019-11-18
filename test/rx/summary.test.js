@@ -249,7 +249,7 @@ describe('#integration-rx summary', () => {
 
     const summary = await runnable
       .run('UNWIND RANGE(1,10) AS n RETURN n')
-      .summary()
+      .consume()
       .toPromise()
 
     expect(summary).toBeDefined()
@@ -553,7 +553,7 @@ describe('#integration-rx summary', () => {
 
     const summary = await runnable
       .run('CREATE (n) RETURN n')
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.hasPlan()).toBeFalsy()
@@ -573,7 +573,7 @@ describe('#integration-rx summary', () => {
 
     const summary = await runnable
       .run('EXPLAIN CREATE (n) RETURN n')
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.hasPlan()).toBeTruthy()
@@ -594,7 +594,7 @@ describe('#integration-rx summary', () => {
 
     const summary = await runnable
       .run('PROFILE CREATE (n) RETURN n')
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.hasPlan()).toBeTruthy()
@@ -616,7 +616,7 @@ describe('#integration-rx summary', () => {
 
     const summary = await runnable
       .run('CREATE (n) RETURN n')
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.notifications).toBeTruthy()
@@ -634,7 +634,7 @@ describe('#integration-rx summary', () => {
 
     const summary = await runnable
       .run('EXPLAIN MATCH (n:ThisLabelDoesNotExist) RETURN n')
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.notifications).toBeTruthy()
@@ -664,7 +664,7 @@ describe('#integration-rx summary', () => {
   ) {
     const summary = await runnable
       .run(statement, parameters)
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.statement).toBeDefined()
@@ -685,7 +685,7 @@ describe('#integration-rx summary', () => {
   ) {
     const summary = await runnable
       .run(statement)
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.statementType).toBe(expectedStatementType)
@@ -701,7 +701,7 @@ describe('#integration-rx summary', () => {
   async function verifyUpdates (runnable, statement, parameters, stats) {
     const summary = await runnable
       .run(statement, parameters)
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.counters.containsUpdates()).toBeTruthy()
@@ -725,7 +725,7 @@ describe('#integration-rx summary', () => {
   ) {
     const summary = await runnable
       .run(statement, parameters)
-      .summary()
+      .consume()
       .toPromise()
     expect(summary).toBeDefined()
 

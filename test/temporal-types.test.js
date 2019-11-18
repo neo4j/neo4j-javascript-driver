@@ -1460,8 +1460,6 @@ describe('#integration temporal-types', () => {
 
     const receivedValue = records[0].get(0)
     expect(receivedValue).toEqual(value)
-
-    await session.close()
   }
 
   async function testDurationToString (values) {

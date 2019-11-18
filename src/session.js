@@ -120,7 +120,13 @@ class Session {
     const connectionHolder = this._connectionHolderWithMode(this._mode)
 
     let observerPromise
-    if (!this._hasTx && connectionHolder.initializeConnection()) {
+    if (!this._open) {
+      observerPromise = Promise.resolve(
+        new FailedObserver({
+          error: newError('Cannot run statement in a closed session.')
+        })
+      )
+    } else if (!this._hasTx && connectionHolder.initializeConnection()) {
       observerPromise = connectionHolder
         .getConnection()
         .then(connection => customRunner(connection))
@@ -163,6 +169,9 @@ class Session {
   }
 
   _beginTransaction (accessMode, txConfig) {
+    if (!this._open) {
+      throw newError('Cannot begin a transaction on a closed session.')
+    }
     if (this._hasTx) {
       throw newError(
         'You cannot begin a transaction on a session with an open transaction; ' +
@@ -193,7 +202,7 @@ class Session {
   /**
    * Return the bookmark received following the last completed {@link Transaction}.
    *
-   * @return {string|null} a reference to a previous transaction
+   * @return {string[]} a reference to a previous transaction
    */
   lastBookmark () {
     return this._lastBookmark.values()

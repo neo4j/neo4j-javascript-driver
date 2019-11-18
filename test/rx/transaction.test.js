@@ -535,7 +535,7 @@ describe('#integration-rx transaction', () => {
       )
     ])
 
-    const summary = await result.summary().toPromise()
+    const summary = await result.consume().toPromise()
     expect(summary).toBeTruthy()
   })
 
@@ -588,15 +588,15 @@ describe('#integration-rx transaction', () => {
 
     await txc
       .run('CREATE (n:Node {id: 1})')
-      .summary()
+      .consume()
       .toPromise()
     await txc
       .run('CREATE (n:Node {id: 2})')
-      .summary()
+      .consume()
       .toPromise()
     await txc
       .run('CREATE (n:Node {id: 1})')
-      .summary()
+      .consume()
       .toPromise()
 
     await verifyCanCommitOrRollback(txc, commit)

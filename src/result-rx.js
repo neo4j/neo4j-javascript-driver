@@ -96,7 +96,7 @@ export default class RxResult {
    * @public
    * @returns {Observable<ResultSummary>} - An observable stream (with exactly one element) of result summary.
    */
-  summary () {
+  consume () {
     return this._result.pipe(
       flatMap(
         result =>
@@ -114,16 +114,16 @@ export default class RxResult {
   } = {}) {
     const subscriptions = []
 
-    if (recordsObserver) {
-      subscriptions.push(this._records.subscribe(recordsObserver))
-    }
-
     if (summaryObserver) {
       subscriptions.push(this._summary.subscribe(summaryObserver))
     }
 
     if (this._state < States.STREAMING) {
       this._state = States.STREAMING
+
+      if (recordsObserver) {
+        subscriptions.push(this._records.subscribe(recordsObserver))
+      }
 
       subscriptions.push({
         unsubscribe: () => {
@@ -156,10 +156,10 @@ export default class RxResult {
           this._state = States.COMPLETED
         }
       })
-    } else if (this._state === States.STREAMING && recordsObserver) {
+    } else if (recordsObserver) {
       recordsObserver.error(
         newError(
-          'Streaming has already started with a previous records or summary subscription.'
+          'Streaming has already started/consumed with a previous records or summary subscription.'
         )
       )
     }
