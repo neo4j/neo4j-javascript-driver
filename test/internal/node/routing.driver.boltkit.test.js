@@ -1477,7 +1477,7 @@ describe('#stub-routing routing driver with stub server', () => {
     const driver = boltStub.newDriver('neo4j://127.0.0.1:9010')
 
     // run a dummy query to force routing table initialization
-    const session = driver.session({ defaultAccessMode: READ })
+    var session = driver.session({ defaultAccessMode: READ })
     const result1 = await session.run('MATCH (n) RETURN n.name')
     expect(result1.records.length).toEqual(3)
     await session.close()
@@ -1491,6 +1491,7 @@ describe('#stub-routing routing driver with stub server', () => {
       9010
     )
 
+    session = driver.session({ defaultAccessMode: READ })
     const result2 = await session.readTransaction(tx =>
       tx.run('MATCH (n) RETURN n.name AS name')
     )
