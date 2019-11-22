@@ -523,11 +523,11 @@ describe('#unit RoutingUtil', () => {
       return new FakeSession(null, connection)
     }
 
-    _run (ignoreQuery, ignoreParameters, statementRunner) {
+    _run (ignoreQuery, ignoreParameters, queryRunner) {
       if (this._runResponse) {
         return this._runResponse
       }
-      statementRunner(this._fakeConnection)
+      queryRunner(this._fakeConnection)
       return Promise.resolve()
     }
 

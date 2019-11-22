@@ -187,13 +187,13 @@ describe('#integration-rx navigation', () => {
     it('should return records only once', () =>
       shouldReturnRecordsOnlyOnce(serverVersion, txc))
 
-    it('should return empty keys for statement without return', () =>
+    it('should return empty keys for query without return', () =>
       shouldReturnEmptyKeysForQueryWithNoReturn(serverVersion, txc))
 
-    it('should return no records for statement without return', () =>
+    it('should return no records for query without return', () =>
       shouldReturnNoRecordsForQueryWithNoReturn(serverVersion, txc))
 
-    it('should return summary for statement without return', () =>
+    it('should return summary for query without return', () =>
       shouldReturnSummaryForQueryWithNoReturn(serverVersion, txc))
 
     it('should fail on keys when run fails', () =>
@@ -622,7 +622,7 @@ describe('#integration-rx navigation', () => {
     await collectAndAssertEmpty(closeFunc())
 
     const expectedError = jasmine.objectContaining({
-      message: jasmine.stringMatching(/Cannot run statement/)
+      message: jasmine.stringMatching(/Cannot run query/)
     })
     await collectAndAssertError(result.keys(), expectedError)
     await collectAndAssertError(result.records(), expectedError)
@@ -666,7 +666,7 @@ describe('#integration-rx navigation', () => {
     const summary = await result
       .consume()
       .pipe(
-        map(s => s.statementType),
+        map(s => s.queryType),
         materialize(),
         toArray()
       )

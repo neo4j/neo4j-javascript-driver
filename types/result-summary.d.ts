@@ -21,8 +21,8 @@ import Integer from './integer'
 import { NumberOrInteger } from './graph-types'
 
 declare interface ResultSummary<T extends NumberOrInteger = Integer> {
-  statement: { text: string; parameters: { [key: string]: any } }
-  statementType: string
+  query: { text: string; parameters: { [key: string]: any } }
+  queryType: string
   counters: QueryStatistic
   plan: Plan
   profile: ProfiledPlan
@@ -88,7 +88,7 @@ declare interface ServerInfo {
   version: string
 }
 
-declare const statementType: {
+declare const queryType: {
   READ_ONLY: 'r'
   READ_WRITE: 'rw'
   WRITE_ONLY: 'w'
@@ -96,7 +96,7 @@ declare const statementType: {
 }
 
 export {
-  statementType,
+  queryType,
   Plan,
   ProfiledPlan,
   QueryStatistic,

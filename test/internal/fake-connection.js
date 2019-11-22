@@ -69,10 +69,10 @@ export default class FakeConnection extends Connection {
   }
 
   protocol () {
-    // return fake protocol object that simply records seen statements and parameters
+    // return fake protocol object that simply records seen queries and parameters
     return {
-      run: (statement, parameters, protocolOptions) => {
-        this.seenQueries.push(statement)
+      run: (query, parameters, protocolOptions) => {
+        this.seenQueries.push(query)
         this.seenParameters.push(parameters)
         this.seenProtocolOptions.push(protocolOptions)
       }

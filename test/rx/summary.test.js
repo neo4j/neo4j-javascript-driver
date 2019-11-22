@@ -147,13 +147,13 @@ describe('#integration-rx summary', () => {
     it('should return non-null summary', () =>
       shouldReturnNonNullSummary(serverVersion, txc))
 
-    it('should return summary with statement text', () =>
+    it('should return summary with query text', () =>
       shouldReturnSummaryWithQueryText(serverVersion, txc))
 
-    it('should return summary with statement text and parameters', () =>
+    it('should return summary with query text and parameters', () =>
       shouldReturnSummaryWithQueryTextAndParams(serverVersion, txc))
 
-    it('should return summary with statement type', () =>
+    it('should return summary with query type', () =>
       shouldReturnSummaryWithCorrectQueryType(serverVersion, txc))
 
     it('should return summary with correct counters for create', () =>
@@ -640,7 +640,9 @@ describe('#integration-rx summary', () => {
       'The provided label is not in the database.'
     )
     expect(summary.notifications[0].description).toBe(
-      "One of the labels in your query is not available in the database, make sure you didn't misspell it or that the label is available when you run this statement in your application (the missing label name is: ThisLabelDoesNotExist)"
+      "One of the labels in your query is not available in the database, make sure you didn't misspell it or that" +
+        ' the label is available when you run this statement in your application (the missing label name is:' +
+        ' ThisLabelDoesNotExist)'
     )
     expect(summary.notifications[0].severity).toBe('WARNING')
   }
@@ -648,33 +650,33 @@ describe('#integration-rx summary', () => {
   /**
    *
    * @param {RxSession|RxTransaction} runnable
-   * @param {string} statement
+   * @param {string} query
    * @param {*} parameters
    */
   async function verifyQueryTextAndParameters (
     runnable,
-    statement,
+    query,
     parameters = null
   ) {
     const summary = await runnable
-      .run(statement, parameters)
+      .run(query, parameters)
       .consume()
       .toPromise()
     expect(summary).toBeDefined()
-    expect(summary.statement).toBeDefined()
-    expect(summary.statement.text).toBe(statement)
-    expect(summary.statement.parameters).toEqual(parameters || {})
+    expect(summary.query).toBeDefined()
+    expect(summary.query.text).toBe(query)
+    expect(summary.query.parameters).toEqual(parameters || {})
   }
 
   /**
    *
    * @param {RxSession|RxTransaction} runnable
-   * @param {string} statement
+   * @param {string} query
    * @param {string} expectedQueryType
    */
-  async function verifyQueryType (runnable, statement, expectedQueryType) {
+  async function verifyQueryType (runnable, query, expectedQueryType) {
     const summary = await runnable
-      .run(statement)
+      .run(query)
       .consume()
       .toPromise()
     expect(summary).toBeDefined()
@@ -684,13 +686,13 @@ describe('#integration-rx summary', () => {
   /**
    *
    * @param {RxSession|RxTransaction} runnable
-   * @param {string} statement
+   * @param {string} query
    * @param {*} parameters
    * @param {*} stats
    */
-  async function verifyUpdates (runnable, statement, parameters, stats) {
+  async function verifyUpdates (runnable, query, parameters, stats) {
     const summary = await runnable
-      .run(statement, parameters)
+      .run(query, parameters)
       .consume()
       .toPromise()
     expect(summary).toBeDefined()
@@ -702,19 +704,19 @@ describe('#integration-rx summary', () => {
   /**
    *
    * @param {RxSession|RxTransaction} runnable
-   * @param {string} statement
+   * @param {string} query
    * @param {*} parameters
    * @param {number} systemUpdates
    * @returns {Promise<void>}
    */
   async function verifySystemUpdates (
     runnable,
-    statement,
+    query,
     parameters,
     systemUpdates
   ) {
     const summary = await runnable
-      .run(statement, parameters)
+      .run(query, parameters)
       .consume()
       .toPromise()
     expect(summary).toBeDefined()

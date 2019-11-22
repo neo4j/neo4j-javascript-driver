@@ -31,11 +31,11 @@ const dummy: any = null
 
 const sum1: ResultSummary = dummy
 
-const stmt = sum1.statement
+const stmt = sum1.query
 const stmtText: string = stmt.text
 const stmtParams: object = stmt.parameters
 
-const str: string = sum1.statementType
+const str: string = sum1.queryType
 
 const counters: QueryStatistic = sum1.counters
 

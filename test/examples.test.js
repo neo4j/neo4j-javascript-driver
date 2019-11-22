@@ -270,7 +270,7 @@ describe('#integration examples', () => {
     try {
       await session.run('CREATE (i:Item)')
     } catch (error) {
-      console.log(`unable to execute statement. ${error}`)
+      console.log(`unable to execute query. ${error}`)
     } finally {
       await session.close()
     }

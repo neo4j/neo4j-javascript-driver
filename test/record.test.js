@@ -88,7 +88,7 @@ describe('#unit Record', () => {
     }).toThrow(
       new Neo4jError(
         "This record has no field with index '1'. Remember that indexes start at `0`, " +
-          'and make sure your statement returns records in the shape you meant it to.'
+          'and make sure your query returns records in the shape you meant it to.'
       )
     )
   })

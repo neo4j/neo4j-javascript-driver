@@ -22,7 +22,7 @@ import Result from './result'
 declare type Parameters = { [key: string]: any }
 
 declare interface QueryRunner {
-  run(statement: string, parameters?: Parameters): Result
+  run(query: string, parameters?: Parameters): Result
 }
 
 export { Parameters }

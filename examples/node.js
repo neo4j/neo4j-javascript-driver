@@ -19,7 +19,7 @@
 
 var neo4j = require('neo4j')
 
-var statement = [
+var query = [
   'MERGE (alice:Person {name:{name_a},age:{age_a}})',
   'MERGE (bob:Person {name:{name_b},age:{age_b}})',
   'CREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)',
@@ -36,7 +36,7 @@ var params = {
 var driver = neo4j.driver('bolt://localhost')
 
 var streamSession = driver.session()
-var streamResult = streamSession.run(statement.join(' '), params)
+var streamResult = streamSession.run(query.join(' '), params)
 streamResult.subscribe({
   onNext: function (record) {
     // On receipt of RECORD
@@ -58,7 +58,7 @@ streamResult.subscribe({
 })
 
 var promiseSession = driver.session()
-var promiseResult = promiseSession.run(statement.join(' '), params)
+var promiseResult = promiseSession.run(query.join(' '), params)
 promiseResult
   .then(function (records) {
     records.forEach(function (record) {

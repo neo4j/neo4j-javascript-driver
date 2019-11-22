@@ -58,7 +58,7 @@ let idGenerator = 0
 
 /**
  * A driver maintains one or more {@link Session}s with a remote
- * Neo4j instance. Through the {@link Session}s you can send statements
+ * Neo4j instance. Through the {@link Session}s you can send queries
  * and retrieve results from the database.
  *
  * Drivers are reasonably expensive to create - you should strive to keep one

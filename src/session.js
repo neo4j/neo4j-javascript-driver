@@ -33,7 +33,7 @@ import TxConfig from './internal/tx-config'
 
 /**
  * A Session instance is used for handling the connection and
- * sending statements through the connection.
+ * sending queries through the connection.
  * In a single session, multiple queries will be executed serially.
  * In order to execute parallel queries, multiple sessions are required.
  * @access public
@@ -84,13 +84,13 @@ class Session {
   }
 
   /**
-   * Run Cypher statement
-   * Could be called with a statement object i.e.: `{text: "MATCH ...", prameters: {param: 1}}`
-   * or with the statement and parameters as separate arguments.
+   * Run Cypher query
+   * Could be called with a query object i.e.: `{text: "MATCH ...", prameters: {param: 1}}`
+   * or with the query and parameters as separate arguments.
    *
    * @public
-   * @param {mixed} query - Cypher statement to execute
-   * @param {Object} parameters - Map with parameters to use in statement
+   * @param {mixed} query - Cypher query to execute
+   * @param {Object} parameters - Map with parameters to use in query
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @return {Result} - New Result
    */
@@ -123,7 +123,7 @@ class Session {
     if (!this._open) {
       observerPromise = Promise.resolve(
         new FailedObserver({
-          error: newError('Cannot run statement in a closed session.')
+          error: newError('Cannot run query in a closed session.')
         })
       )
     } else if (!this._hasTx && connectionHolder.initializeConnection()) {
@@ -149,7 +149,7 @@ class Session {
    * Begin a new transaction in this session. A session can have at most one transaction running at a time, if you
    * want to run multiple concurrent transactions, you should use multiple concurrent sessions.
    *
-   * While a transaction is open the session cannot be used to run statements outside the transaction.
+   * While a transaction is open the session cannot be used to run queries outside the transaction.
    *
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @returns {Transaction} - New Transaction

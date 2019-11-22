@@ -88,7 +88,7 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([Notification.createComplete()])
   })
 
-  it('should run statement and commit', async () => {
+  it('should run query and commit', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -117,7 +117,7 @@ describe('#integration-rx transaction', () => {
     expect(await countNodes(42)).toBe(1)
   })
 
-  it('should run statement and rollback', async () => {
+  it('should run query and rollback', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -197,7 +197,7 @@ describe('#integration-rx transaction', () => {
     ])
   })
 
-  it('should succeed to rollback after a failed statement', async () => {
+  it('should succeed to rollback after a failed query', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -216,7 +216,7 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([Notification.createComplete()])
   })
 
-  it('should fail to commit after successful and failed statement', async () => {
+  it('should fail to commit after successful and failed query', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -245,7 +245,7 @@ describe('#integration-rx transaction', () => {
     ])
   })
 
-  it('should succeed to rollback after successful and failed statement', async () => {
+  it('should succeed to rollback after successful and failed query', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -266,7 +266,7 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([Notification.createComplete()])
   })
 
-  it('should fail to run another statement after a failed one', async () => {
+  it('should fail to run another query after a failed one', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -287,7 +287,7 @@ describe('#integration-rx transaction', () => {
       Notification.createError(
         jasmine.objectContaining({
           message: jasmine.stringMatching(
-            /Cannot run statement in this transaction, because .* of an error/
+            /Cannot run query in this transaction, because .* of an error/
           )
         })
       )
@@ -438,7 +438,7 @@ describe('#integration-rx transaction', () => {
     expect(bookmark2).not.toEqual(bookmark1)
   })
 
-  it('should propagate failures from statements', async () => {
+  it('should propagate failures from queries', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -572,7 +572,7 @@ describe('#integration-rx transaction', () => {
       Notification.createError(
         jasmine.objectContaining({
           message: jasmine.stringMatching(
-            /Cannot run statement in this transaction, because/
+            /Cannot run query in this transaction, because/
           )
         })
       )

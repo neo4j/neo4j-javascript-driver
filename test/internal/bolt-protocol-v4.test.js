@@ -29,7 +29,7 @@ describe('#unit BoltProtocolV4', () => {
     jasmine.addMatchers(utils.matchers)
   })
 
-  it('should run a statement', () => {
+  it('should run a query', () => {
     const database = 'testdb'
     const bookmark = new Bookmark([
       'neo4j:bookmark:v1:tx1',
@@ -42,10 +42,10 @@ describe('#unit BoltProtocolV4', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV4(recorder, null, false)
 
-    const statement = 'RETURN $x, $y'
+    const query = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
 
-    const observer = protocol.run(statement, parameters, {
+    const observer = protocol.run(query, parameters, {
       bookmark,
       txConfig,
       database,
@@ -55,7 +55,7 @@ describe('#unit BoltProtocolV4', () => {
     recorder.verifyMessageCount(2)
 
     expect(recorder.messages[0]).toBeMessage(
-      RequestMessage.runWithMetadata(statement, parameters, {
+      RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
         database,

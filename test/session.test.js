@@ -18,7 +18,7 @@
  */
 
 import neo4j from '../src'
-import { statementType } from '../src/result-summary'
+import { queryType } from '../src/result-summary'
 import Session from '../src/session'
 import { READ } from '../src/driver'
 import SingleConnectionProvider from '../src/internal/connection-provider-single'
@@ -167,16 +167,16 @@ describe('#integration session', () => {
     })
   })
 
-  it('should accept a statement object ', done => {
+  it('should accept a query object ', done => {
     // Given
-    const statement = {
+    const query = {
       text: 'RETURN 1 = $param AS a',
       parameters: { param: 1 }
     }
 
     // When & Then
     const records = []
-    session.run(statement).subscribe({
+    session.run(query).subscribe({
       onNext: record => {
         records.push(record)
       },
@@ -214,26 +214,26 @@ describe('#integration session', () => {
 
   it('should expose summarize method for basic metadata ', done => {
     // Given
-    const statement = 'CREATE (n:Label {prop: $prop}) RETURN n'
+    const query = 'CREATE (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
-    session.run(statement, params).then(result => {
+    session.run(query, params).then(result => {
       const sum = result.summary
-      expect(sum.statement.text).toBe(statement)
-      expect(sum.statement.parameters).toBe(params)
+      expect(sum.query.text).toBe(query)
+      expect(sum.query.parameters).toBe(params)
       expect(sum.counters.containsUpdates()).toBe(true)
       expect(sum.counters.updates().nodesCreated).toBe(1)
-      expect(sum.statementType).toBe(statementType.READ_WRITE)
+      expect(sum.queryType).toBe(queryType.READ_WRITE)
       done()
     })
   })
 
   it('should expose server info on successful query', done => {
     // Given
-    const statement = 'RETURN 1'
+    const query = 'RETURN 1'
 
     // When & Then
-    session.run(statement).then(result => {
+    session.run(query).then(result => {
       const sum = result.summary
       expect(sum.server).toBeDefined()
       expect(sum.server.address).toEqual('localhost:7687')
@@ -244,10 +244,10 @@ describe('#integration session', () => {
 
   it('should expose execution time information', done => {
     // Given
-    const statement = 'UNWIND range(1,10000) AS n RETURN n AS number'
+    const query = 'UNWIND range(1,10000) AS n RETURN n AS number'
     // When & Then
 
-    session.run(statement).then(result => {
+    session.run(query).then(result => {
       const sum = result.summary
       expect(result.records.length).toBe(10000)
       expect(sum.resultAvailableAfter.toInt()).not.toBeLessThan(0)
@@ -258,21 +258,21 @@ describe('#integration session', () => {
 
   it('should expose empty parameter map on call with no parameters', done => {
     // Given
-    const statement = "CREATE (n:Label {prop:'string'}) RETURN n"
+    const query = "CREATE (n:Label {prop:'string'}) RETURN n"
     // When & Then
-    session.run(statement).then(result => {
+    session.run(query).then(result => {
       const sum = result.summary
-      expect(sum.statement.parameters).toEqual({})
+      expect(sum.query.parameters).toEqual({})
       done()
     })
   })
 
   it('should expose plan ', done => {
     // Given
-    const statement = 'EXPLAIN CREATE (n:Label {prop: $prop}) RETURN n'
+    const query = 'EXPLAIN CREATE (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
-    session.run(statement, params).then(result => {
+    session.run(query, params).then(result => {
       const sum = result.summary
       expect(sum.hasPlan()).toBe(true)
       expect(sum.hasProfile()).toBe(false)
@@ -286,10 +286,10 @@ describe('#integration session', () => {
 
   it('should expose profile ', done => {
     // Given
-    const statement = 'PROFILE MATCH (n:Label {prop: $prop}) RETURN n'
+    const query = 'PROFILE MATCH (n:Label {prop: $prop}) RETURN n'
     const params = { prop: 'string' }
     // When & Then
-    session.run(statement, params).then(result => {
+    session.run(query, params).then(result => {
       const sum = result.summary
       expect(sum.hasPlan()).toBe(true) // When there's a profile, there's a plan
       expect(sum.hasProfile()).toBe(true)
@@ -304,9 +304,9 @@ describe('#integration session', () => {
 
   it('should expose cypher notifications ', done => {
     // Given
-    const statement = 'EXPLAIN MATCH (n:ThisLabelDoesNotExist) RETURN n'
+    const query = 'EXPLAIN MATCH (n:ThisLabelDoesNotExist) RETURN n'
     // When & Then
-    session.run(statement).then(result => {
+    session.run(query).then(result => {
       const sum = result.summary
       expect(sum.notifications.length).toBeGreaterThan(0)
       expect(sum.notifications[0].code).toBe(
@@ -402,15 +402,15 @@ describe('#integration session', () => {
       throw Error()
     }
 
-    const statement = 'RETURN $param'
+    const query = 'RETURN $param'
     const params = { param: unpackable }
     // When & Then
-    session.run(statement, params).catch(ignore => {
+    session.run(query, params).catch(ignore => {
       done()
     })
   })
 
-  it('should fail nicely for illegal statement', () => {
+  it('should fail nicely for illegal query', () => {
     expect(() => session.run()).toThrowError(TypeError)
     expect(() => session.run(null)).toThrowError(TypeError)
     expect(() => session.run({})).toThrowError(TypeError)
@@ -419,9 +419,7 @@ describe('#integration session', () => {
     expect(() => session.run('')).toThrowError(TypeError)
     expect(() => session.run(['CREATE ()'])).toThrowError(TypeError)
 
-    expect(() => session.run({ statement: 'CREATE ()' })).toThrowError(
-      TypeError
-    )
+    expect(() => session.run({ query: 'CREATE ()' })).toThrowError(TypeError)
     expect(() => session.run({ cypher: 'CREATE ()' })).toThrowError(TypeError)
   })
 

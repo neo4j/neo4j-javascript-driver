@@ -36,7 +36,7 @@ class ResultSummary {
      * @type {{text: string, parameters: Object}}
      * @public
      */
-    this.statement = { text: query, parameters }
+    this.query = { text: query, parameters }
 
     /**
      * The type of query executed. Can be "r" for read-only query, "rw" for read-write query,
@@ -77,9 +77,9 @@ class ResultSummary {
     this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false
 
     /**
-     * An array of notifications that might arise when executing the statement. Notifications can be warnings about
-     * problematic statements or other valuable information that can be presented in a client. Unlike failures
-     * or errors, notifications do not affect the execution of a statement.
+     * An array of notifications that might arise when executing the query. Notifications can be warnings about
+     * problematic queries or other valuable information that can be presented in a client. Unlike failures
+     * or errors, notifications do not affect the execution of a query.
      * @type {Array<Notification>}
      * @public
      */
@@ -245,7 +245,7 @@ class QueryStatistics {
   }
 
   /**
-   * Returns the statement statistics updates in a dictionary.
+   * Returns the query statistics updates in a dictionary.
    * @returns {*}
    */
   updates () {
@@ -329,13 +329,13 @@ function valueOrDefault (key, values, defaultValue = 0) {
   }
 }
 
-const statementType = {
+const queryType = {
   READ_ONLY: 'r',
   READ_WRITE: 'rw',
   WRITE_ONLY: 'w',
   SCHEMA_WRITE: 's'
 }
 
-export { statementType }
+export { queryType }
 
 export default ResultSummary

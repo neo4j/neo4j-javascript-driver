@@ -31,7 +31,7 @@ declare interface TransactionConfig {
 
 declare interface Session extends QueryRunner {
   run(
-    statement: string,
+    query: string,
     parameters?: Parameters,
     config?: TransactionConfig
   ): Result

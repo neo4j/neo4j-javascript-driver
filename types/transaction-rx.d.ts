@@ -21,7 +21,7 @@ import { Parameters } from './query-runner'
 import RxResult from './result-rx'
 
 declare interface RxTransaction {
-  run(statement: string, parameters?: Parameters): RxResult
+  run(query: string, parameters?: Parameters): RxResult
 
   commit(): Observable<any>
 

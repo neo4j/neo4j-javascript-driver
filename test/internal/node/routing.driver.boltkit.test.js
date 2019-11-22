@@ -1948,7 +1948,7 @@ describe('#stub-routing routing driver with stub server', () => {
       { disableLosslessIntegers: true }
     ))
 
-  it('should send read access mode on statement metadata', async () => {
+  it('should send read access mode on query metadata', async () => {
     if (!boltStub.supported) {
       return
     }
@@ -1978,7 +1978,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await readServer.exit()
   })
 
-  it('should send read access mode on statement metadata with read transaction', async () => {
+  it('should send read access mode on query metadata with read transaction', async () => {
     if (!boltStub.supported) {
       return
     }
@@ -2010,7 +2010,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await readServer.exit()
   })
 
-  it('should not send write access mode on statement metadata', async () => {
+  it('should not send write access mode on query metadata', async () => {
     if (!boltStub.supported) {
       return
     }
@@ -2035,7 +2035,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await writeServer.exit()
   })
 
-  it('should not send write access mode on statement metadata with write transaction', async () => {
+  it('should not send write access mode on query metadata with write transaction', async () => {
     if (!boltStub.supported) {
       return
     }

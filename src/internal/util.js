@@ -45,25 +45,25 @@ function isObject (obj) {
 }
 
 /**
- * Check and normalize given statement and parameters.
- * @param {string|{text: string, parameters: object}} statement the statement to check.
+ * Check and normalize given query and parameters.
+ * @param {string|{text: string, parameters: object}} query the query to check.
  * @param {Object} parameters
  * @return {{query: string, params: object}} the normalized query with parameters.
  * @throws TypeError when either given query or parameters are invalid.
  */
-function validateQueryAndParameters (statement, parameters) {
-  let query = statement
+function validateQueryAndParameters (query, parameters) {
+  let validatedQuery = query
   let params = parameters || {}
 
-  if (typeof statement === 'object' && statement.text) {
-    query = statement.text
-    params = statement.parameters || {}
+  if (typeof query === 'object' && query.text) {
+    validatedQuery = query.text
+    params = query.parameters || {}
   }
 
-  assertCypherQuery(query)
+  assertCypherQuery(validatedQuery)
   assertQueryParameters(params)
 
-  return { query, params }
+  return { validatedQuery, params }
 }
 
 function assertObject (obj, objName) {
@@ -123,11 +123,9 @@ function assertValidDate (obj, objName) {
 }
 
 function assertCypherQuery (obj) {
-  assertString(obj, 'Cypher statement')
+  assertString(obj, 'Cypher query')
   if (obj.trim().length === 0) {
-    throw new TypeError(
-      'Cypher statement is expected to be a non-empty string.'
-    )
+    throw new TypeError('Cypher query is expected to be a non-empty string.')
   }
 }
 

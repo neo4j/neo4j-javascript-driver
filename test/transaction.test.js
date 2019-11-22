@@ -146,7 +146,7 @@ describe('#integration transaction', () => {
     await expectAsync(tx.run('CREATE (:TXNode2)')).toBeRejectedWith(
       jasmine.objectContaining({
         message: jasmine.stringMatching(
-          /Cannot run statement in this transaction, because .* error/
+          /Cannot run query in this transaction, because .* error/
         )
       })
     )
@@ -176,7 +176,7 @@ describe('#integration transaction', () => {
     )
   })
 
-  it('should handle when committing when another statement fails', async () => {
+  it('should handle when committing when another query fails', async () => {
     // When
     const tx = session.beginTransaction()
 
@@ -242,13 +242,13 @@ describe('#integration transaction', () => {
     await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
       jasmine.objectContaining({
         message: jasmine.stringMatching(
-          /Cannot run statement in this transaction, because .* rolled back/
+          /Cannot run query in this transaction, because .* rolled back/
         )
       })
     )
   })
 
-  it('should fail running when a previous statement failed', async () => {
+  it('should fail running when a previous query failed', async () => {
     const tx = session.beginTransaction()
 
     await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
@@ -258,7 +258,7 @@ describe('#integration transaction', () => {
     await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
       jasmine.objectContaining({
         message: jasmine.stringMatching(
-          /Cannot run statement in this transaction, because .* an error/
+          /Cannot run query in this transaction, because .* an error/
         )
       })
     )
@@ -446,10 +446,10 @@ describe('#integration transaction', () => {
   })
 
   it('should expose server info on successful query', done => {
-    const statement = 'RETURN 1'
+    const query = 'RETURN 1'
 
     const tx = session.beginTransaction()
-    tx.run(statement)
+    tx.run(query)
       .then(result => {
         const sum = result.summary
         expect(sum.server).toBeDefined()
@@ -462,11 +462,11 @@ describe('#integration transaction', () => {
 
   it('should expose server info on successful query using observer', done => {
     // Given
-    const statement = 'RETURN 1'
+    const query = 'RETURN 1'
 
     // When & Then
     const tx = session.beginTransaction()
-    tx.run(statement).subscribe({
+    tx.run(query).subscribe({
       onNext: record => {},
       onError: () => {},
       onCompleted: summary => {
@@ -481,7 +481,7 @@ describe('#integration transaction', () => {
     })
   })
 
-  it('should fail nicely for illegal statement', async () => {
+  it('should fail nicely for illegal query', async () => {
     const tx = session.beginTransaction()
 
     expect(() => tx.run()).toThrowError(TypeError)
@@ -491,15 +491,15 @@ describe('#integration transaction', () => {
     expect(() => tx.run([])).toThrowError(TypeError)
     expect(() => tx.run(['CREATE ()'])).toThrowError(TypeError)
 
-    expect(() => tx.run({ statement: 'CREATE ()' })).toThrowError(TypeError)
+    expect(() => tx.run({ query: 'CREATE ()' })).toThrowError(TypeError)
     expect(() => tx.run({ cypher: 'CREATE ()' })).toThrowError(TypeError)
   })
 
-  it('should accept a statement object ', done => {
+  it('should accept a query object ', done => {
     const tx = session.beginTransaction()
-    const statement = { text: 'RETURN 1 AS a' }
+    const query = { text: 'RETURN 1 AS a' }
 
-    tx.run(statement)
+    tx.run(query)
       .then(result => {
         expect(result.records.length).toBe(1)
         expect(result.records[0].get('a').toInt()).toBe(1)

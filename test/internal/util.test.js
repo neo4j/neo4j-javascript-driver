@@ -55,7 +55,7 @@ describe('#unit Utils', () => {
     verifyInvalidString(console.log)
   })
 
-  it('should check cypher statements (non-empty strings)', () => {
+  it('should check cypher queries (non-empty strings)', () => {
     verifyValidString(new String('foo'))
     verifyValidString(String('foo'))
     verifyValidString('foo')

@@ -49,7 +49,7 @@ describe('#integration rx-session', () => {
     await driver.close()
   })
 
-  it('should be able to run a simple statement', async () => {
+  it('should be able to run a simple query', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -111,7 +111,7 @@ describe('#integration rx-session', () => {
     }
 
     const txcWork = new ConfigurableTransactionWork({
-      statement: 'CREATE (:WithoutRetry) RETURN 5'
+      query: 'CREATE (:WithoutRetry) RETURN 5'
     })
 
     const result = await session
@@ -136,7 +136,7 @@ describe('#integration rx-session', () => {
     }
 
     const txcWork = new ConfigurableTransactionWork({
-      statement: 'CREATE (:WithReactiveFailure) RETURN 7',
+      query: 'CREATE (:WithReactiveFailure) RETURN 7',
       reactiveFailures: [
         newError('service unavailable', SERVICE_UNAVAILABLE),
         newError('session expired', SESSION_EXPIRED),
@@ -166,7 +166,7 @@ describe('#integration rx-session', () => {
     }
 
     const txcWork = new ConfigurableTransactionWork({
-      statement: 'CREATE (:WithSyncFailure) RETURN 9',
+      query: 'CREATE (:WithSyncFailure) RETURN 9',
       syncFailures: [
         newError('service unavailable', SERVICE_UNAVAILABLE),
         newError('session expired', SESSION_EXPIRED),
@@ -196,7 +196,7 @@ describe('#integration rx-session', () => {
     }
 
     const txcWork = new ConfigurableTransactionWork({
-      statement: 'UNWIND [10, 5, 0] AS x CREATE (:Hi) RETURN 10/x'
+      query: 'UNWIND [10, 5, 0] AS x CREATE (:Hi) RETURN 10/x'
     })
 
     const result = await session
@@ -222,7 +222,7 @@ describe('#integration rx-session', () => {
     }
 
     const txcWork = new ConfigurableTransactionWork({
-      statement: 'CREATE (:Person) RETURN 1',
+      query: 'CREATE (:Person) RETURN 1',
       syncFailures: [
         newError(
           'a transient error',
@@ -261,8 +261,8 @@ describe('#integration rx-session', () => {
       .toPromise()
   }
   class ConfigurableTransactionWork {
-    constructor ({ statement, syncFailures = [], reactiveFailures = [] } = {}) {
-      this._statement = statement
+    constructor ({ query, syncFailures = [], reactiveFailures = [] } = {}) {
+      this._query = query
       this._syncFailures = syncFailures
       this._syncFailuresIndex = 0
       this._reactiveFailures = reactiveFailures
@@ -286,7 +286,7 @@ describe('#integration rx-session', () => {
       }
 
       return txc
-        .run(this._statement)
+        .run(this._query)
         .records()
         .pipe(map(r => r.get(0).toInt()))
     }

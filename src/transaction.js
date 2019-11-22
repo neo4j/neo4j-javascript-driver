@@ -74,17 +74,20 @@ class Transaction {
   }
 
   /**
-   * Run Cypher statement
-   * Could be called with a statement object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
-   * or with the statement and parameters as separate arguments.
-   * @param {mixed} statement - Cypher statement to execute
-   * @param {Object} parameters - Map with parameters to use in statement
+   * Run Cypher query
+   * Could be called with a query object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
+   * or with the query and parameters as separate arguments.
+   * @param {mixed} query - Cypher query to execute
+   * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run (statement, parameters) {
-    const { query, params } = validateQueryAndParameters(statement, parameters)
+  run (query, parameters) {
+    const { validatedQuery, params } = validateQueryAndParameters(
+      query,
+      parameters
+    )
 
-    var result = this._state.run(query, params, {
+    var result = this._state.run(validatedQuery, params, {
       connectionHolder: this._connectionHolder,
       onError: this._onError,
       onComplete: this._onComplete,
@@ -198,7 +201,7 @@ const _states = {
       }
     },
     run: (
-      statement,
+      query,
       parameters,
       { connectionHolder, onError, onComplete, reactive, fetchSize }
     ) => {
@@ -207,7 +210,7 @@ const _states = {
       const observerPromise = connectionHolder
         .getConnection()
         .then(conn =>
-          conn.protocol().run(statement, parameters, {
+          conn.protocol().run(query, parameters, {
             bookmark: Bookmark.empty(),
             txConfig: TxConfig.empty(),
             beforeError: onError,
@@ -218,7 +221,7 @@ const _states = {
         )
         .catch(error => new FailedObserver({ error, onError }))
 
-      return newCompletedResult(observerPromise, statement, parameters)
+      return newCompletedResult(observerPromise, query, parameters)
     }
   },
 
@@ -247,18 +250,18 @@ const _states = {
       }
     },
     run: (
-      statement,
+      query,
       parameters,
       { connectionHolder, onError, onComplete, reactive }
     ) => {
       return newCompletedResult(
         new FailedObserver({
           error: newError(
-            'Cannot run statement in this transaction, because it has been rolled back either because of an error or explicit termination.'
+            'Cannot run query in this transaction, because it has been rolled back either because of an error or explicit termination.'
           ),
           onError
         }),
-        statement,
+        query,
         parameters
       )
     }
@@ -297,18 +300,18 @@ const _states = {
       }
     },
     run: (
-      statement,
+      query,
       parameters,
       { connectionHolder, onError, onComplete, reactive }
     ) => {
       return newCompletedResult(
         new FailedObserver({
           error: newError(
-            'Cannot run statement in this transaction, because it has already been committed.'
+            'Cannot run query in this transaction, because it has already been committed.'
           ),
           onError
         }),
-        statement,
+        query,
         parameters
       )
     }
@@ -346,18 +349,18 @@ const _states = {
       }
     },
     run: (
-      statement,
+      query,
       parameters,
       { connectionHolder, onError, onComplete, reactive }
     ) => {
       return newCompletedResult(
         new FailedObserver({
           error: newError(
-            'Cannot run statement in this transaction, because it has already been rolled back.'
+            'Cannot run query in this transaction, because it has already been rolled back.'
           ),
           onError
         }),
-        statement,
+        query,
         parameters
       )
     }
@@ -414,15 +417,15 @@ function finishTransaction (
  * For cases when result represents an intermediate or failed action, does not require any metadata and does not
  * need to influence real connection holder to release connections.
  * @param {ResultStreamObserver} observer - an observer for the created result.
- * @param {string} statement - the cypher statement that produced the result.
- * @param {Object} parameters - the parameters for cypher statement that produced the result.
+ * @param {string} query - the cypher query that produced the result.
+ * @param {Object} parameters - the parameters for cypher query that produced the result.
  * @return {Result} new result.
  * @private
  */
-function newCompletedResult (observerPromise, statement, parameters) {
+function newCompletedResult (observerPromise, query, parameters) {
   return new Result(
     Promise.resolve(observerPromise),
-    statement,
+    query,
     parameters,
     EMPTY_CONNECTION_HOLDER
   )

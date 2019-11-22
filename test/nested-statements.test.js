@@ -18,7 +18,7 @@
  */
 
 import neo4j from '../src'
-import { statementType } from '../src/result-summary'
+import { queryType } from '../src/result-summary'
 import Session from '../src/session'
 import { READ } from '../src/driver'
 import SingleConnectionProvider from '../src/internal/connection-provider-single'

@@ -26,7 +26,7 @@ declare type RxTransactionWork<T> = (tx: RxTransaction) => Observable<T>
 
 declare interface RxSession {
   run(
-    statement: string,
+    query: string,
     parameters?: Parameters,
     config?: TransactionConfig
   ): RxResult

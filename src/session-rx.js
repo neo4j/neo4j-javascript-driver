@@ -42,7 +42,7 @@ export default class RxSession {
   }
 
   /**
-   * Creates a reactive result that will execute the  statement with the provided parameters and the provided
+   * Creates a reactive result that will execute the  query with the provided parameters and the provided
    * transaction configuration that applies to the underlying auto-commit transaction.
    *
    * @public
@@ -119,7 +119,7 @@ export default class RxSession {
   }
 
   /**
-   * Returns the bookmark received following the last successfully completed statement, which is executed
+   * Returns the bookmark received following the last successfully completed query, which is executed
    * either in an {@link RxTransaction} obtained from this session instance or directly through one of
    * the {@link RxSession#run} method of this session instance.
    *

@@ -60,7 +60,7 @@ describe('#unit BoltProtocolV3', () => {
     expect(recorder.flushes).toEqual([true])
   })
 
-  it('should run a statement', () => {
+  it('should run a query', () => {
     const bookmark = new Bookmark([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
@@ -72,10 +72,10 @@ describe('#unit BoltProtocolV3', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
 
-    const statement = 'RETURN $x, $y'
+    const query = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
 
-    const observer = protocol.run(statement, parameters, {
+    const observer = protocol.run(query, parameters, {
       bookmark,
       txConfig,
       mode: WRITE
@@ -84,7 +84,7 @@ describe('#unit BoltProtocolV3', () => {
     recorder.verifyMessageCount(2)
 
     expect(recorder.messages[0]).toBeMessage(
-      RequestMessage.runWithMetadata(statement, parameters, {
+      RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
         mode: WRITE
@@ -177,7 +177,7 @@ describe('#unit BoltProtocolV3', () => {
 
     describe('run', () => {
       function verifyRun (database) {
-        verifyError(protocol => protocol.run('statement', {}, { database }))
+        verifyError(protocol => protocol.run('query', {}, { database }))
       }
 
       it('should throw error when database is set', () => {
