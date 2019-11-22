@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import Result from './result'
-import { validateStatementAndParameters } from './internal/util'
+import { validateQueryAndParameters } from './internal/util'
 import ConnectionHolder, {
   EMPTY_CONNECTION_HOLDER
 } from './internal/connection-holder'
@@ -82,10 +82,7 @@ class Transaction {
    * @return {Result} New Result
    */
   run (statement, parameters) {
-    const { query, params } = validateStatementAndParameters(
-      statement,
-      parameters
-    )
+    const { query, params } = validateQueryAndParameters(statement, parameters)
 
     var result = this._state.run(query, params, {
       connectionHolder: this._connectionHolder,

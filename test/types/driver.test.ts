@@ -26,7 +26,7 @@ import Driver, {
   TrustStrategy,
   WRITE
 } from '../../types/driver'
-import { Parameters } from '../../types/statement-runner'
+import { Parameters } from '../../types/query-runner'
 import Session from '../../types/session'
 import { Neo4jError } from '../../types/error'
 import { ServerInfo } from '../../types/result-summary'

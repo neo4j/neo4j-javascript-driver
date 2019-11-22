@@ -48,14 +48,14 @@ describe('#integration-rx summary', () => {
     it('should return non-null summary', () =>
       shouldReturnNonNullSummary(serverVersion, session))
 
-    it('should return summary with statement text', () =>
-      shouldReturnSummaryWithStatementText(serverVersion, session))
+    it('should return summary with query text', () =>
+      shouldReturnSummaryWithQueryText(serverVersion, session))
 
-    it('should return summary with statement text and parameters', () =>
-      shouldReturnSummaryWithStatementTextAndParams(serverVersion, session))
+    it('should return summary with query text and parameters', () =>
+      shouldReturnSummaryWithQueryTextAndParams(serverVersion, session))
 
-    it('should return summary with statement type', () =>
-      shouldReturnSummaryWithCorrectStatementType(serverVersion, session))
+    it('should return summary with query type', () =>
+      shouldReturnSummaryWithCorrectQueryType(serverVersion, session))
 
     it('should return summary with correct counters for create', () =>
       shouldReturnSummaryWithUpdateStatisticsForCreate(serverVersion, session))
@@ -148,13 +148,13 @@ describe('#integration-rx summary', () => {
       shouldReturnNonNullSummary(serverVersion, txc))
 
     it('should return summary with statement text', () =>
-      shouldReturnSummaryWithStatementText(serverVersion, txc))
+      shouldReturnSummaryWithQueryText(serverVersion, txc))
 
     it('should return summary with statement text and parameters', () =>
-      shouldReturnSummaryWithStatementTextAndParams(serverVersion, txc))
+      shouldReturnSummaryWithQueryTextAndParams(serverVersion, txc))
 
     it('should return summary with statement type', () =>
-      shouldReturnSummaryWithCorrectStatementType(serverVersion, txc))
+      shouldReturnSummaryWithCorrectQueryType(serverVersion, txc))
 
     it('should return summary with correct counters for create', () =>
       shouldReturnSummaryWithUpdateStatisticsForCreate(serverVersion, txc))
@@ -259,12 +259,12 @@ describe('#integration-rx summary', () => {
    * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryWithStatementText (version, runnable) {
+  async function shouldReturnSummaryWithQueryText (version, runnable) {
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
-    await verifyStatementTextAndParameters(
+    await verifyQueryTextAndParameters(
       runnable,
       'UNWIND RANGE(1, 10) AS n RETURN n'
     )
@@ -274,15 +274,12 @@ describe('#integration-rx summary', () => {
    * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryWithStatementTextAndParams (
-    version,
-    runnable
-  ) {
+  async function shouldReturnSummaryWithQueryTextAndParams (version, runnable) {
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
-    await verifyStatementTextAndParameters(
+    await verifyQueryTextAndParameters(
       runnable,
       'UNWIND RANGE(1, $x) AS n RETURN n',
       { x: 100 }
@@ -293,17 +290,14 @@ describe('#integration-rx summary', () => {
    * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryWithCorrectStatementType (
-    version,
-    runnable
-  ) {
+  async function shouldReturnSummaryWithCorrectQueryType (version, runnable) {
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
-    await verifyStatementType(runnable, 'CREATE (n)', 'w')
-    await verifyStatementType(runnable, 'MATCH (n) RETURN n LIMIT 1', 'r')
-    await verifyStatementType(runnable, 'CREATE (n) RETURN n', 'rw')
+    await verifyQueryType(runnable, 'CREATE (n)', 'w')
+    await verifyQueryType(runnable, 'MATCH (n) RETURN n LIMIT 1', 'r')
+    await verifyQueryType(runnable, 'CREATE (n) RETURN n', 'rw')
   }
 
   /**
@@ -657,7 +651,7 @@ describe('#integration-rx summary', () => {
    * @param {string} statement
    * @param {*} parameters
    */
-  async function verifyStatementTextAndParameters (
+  async function verifyQueryTextAndParameters (
     runnable,
     statement,
     parameters = null
@@ -676,19 +670,15 @@ describe('#integration-rx summary', () => {
    *
    * @param {RxSession|RxTransaction} runnable
    * @param {string} statement
-   * @param {string} expectedStatementType
+   * @param {string} expectedQueryType
    */
-  async function verifyStatementType (
-    runnable,
-    statement,
-    expectedStatementType
-  ) {
+  async function verifyQueryType (runnable, statement, expectedQueryType) {
     const summary = await runnable
       .run(statement)
       .consume()
       .toPromise()
     expect(summary).toBeDefined()
-    expect(summary.statementType).toBe(expectedStatementType)
+    expect(summary.queryType).toBe(expectedQueryType)
   }
 
   /**

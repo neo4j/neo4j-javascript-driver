@@ -38,7 +38,7 @@ export default class FakeConnection extends Connection {
 
     this.resetInvoked = 0
     this.releaseInvoked = 0
-    this.seenStatements = []
+    this.seenQueries = []
     this.seenParameters = []
     this.seenProtocolOptions = []
     this._server = {}
@@ -72,7 +72,7 @@ export default class FakeConnection extends Connection {
     // return fake protocol object that simply records seen statements and parameters
     return {
       run: (statement, parameters, protocolOptions) => {
-        this.seenStatements.push(statement)
+        this.seenQueries.push(statement)
         this.seenParameters.push(parameters)
         this.seenProtocolOptions.push(protocolOptions)
       }

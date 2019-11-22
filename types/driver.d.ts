@@ -19,7 +19,7 @@
 
 import Session from './session'
 import RxSession from './session-rx'
-import { Parameters } from './statement-runner'
+import { Parameters } from './query-runner'
 import { Neo4jError } from './error'
 import { ServerInfo } from './result-summary'
 

@@ -23,7 +23,7 @@ import {
 import Result from './result'
 import Transaction from './transaction'
 import { newError } from './error'
-import { validateStatementAndParameters } from './internal/util'
+import { validateQueryAndParameters } from './internal/util'
 import ConnectionHolder from './internal/connection-holder'
 import Driver from './driver'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
@@ -89,22 +89,22 @@ class Session {
    * or with the statement and parameters as separate arguments.
    *
    * @public
-   * @param {mixed} statement - Cypher statement to execute
+   * @param {mixed} query - Cypher statement to execute
    * @param {Object} parameters - Map with parameters to use in statement
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @return {Result} - New Result
    */
-  run (statement, parameters, transactionConfig) {
-    const { query, params } = validateStatementAndParameters(
-      statement,
+  run (query, parameters, transactionConfig) {
+    const { validatedQuery, params } = validateQueryAndParameters(
+      query,
       parameters
     )
     const autoCommitTxConfig = transactionConfig
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    return this._run(query, params, connection =>
-      connection.protocol().run(query, params, {
+    return this._run(validatedQuery, params, connection =>
+      connection.protocol().run(validatedQuery, params, {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
@@ -116,7 +116,7 @@ class Session {
     )
   }
 
-  _run (statement, parameters, customRunner) {
+  _run (query, parameters, customRunner) {
     const connectionHolder = this._connectionHolderWithMode(this._mode)
 
     let observerPromise
@@ -135,14 +135,14 @@ class Session {
       observerPromise = Promise.resolve(
         new FailedObserver({
           error: newError(
-            'Statements cannot be run directly on a ' +
+            'Queries cannot be run directly on a ' +
               'session with an open transaction; either run from within the ' +
               'transaction or use a different session.'
           )
         })
       )
     }
-    return new Result(observerPromise, statement, parameters, connectionHolder)
+    return new Result(observerPromise, query, parameters, connectionHolder)
   }
 
   /**

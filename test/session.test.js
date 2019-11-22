@@ -327,7 +327,7 @@ describe('#integration session', () => {
     // Then
     session.run('RETURN 42').catch(error => {
       expect(error.message).toBe(
-        'Statements cannot be run directly on a ' +
+        'Queries cannot be run directly on a ' +
           'session with an open transaction; either run from within the ' +
           'transaction or use a different session.'
       )

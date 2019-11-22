@@ -18,7 +18,7 @@
  */
 
 import Transaction from './transaction'
-import StatementRunner, { Parameters } from './statement-runner'
+import QueryRunner, { Parameters } from './query-runner'
 import Result from './result'
 import { NumberOrInteger } from './graph-types'
 
@@ -29,7 +29,7 @@ declare interface TransactionConfig {
   metadata?: object
 }
 
-declare interface Session extends StatementRunner {
+declare interface Session extends QueryRunner {
   run(
     statement: string,
     parameters?: Parameters,

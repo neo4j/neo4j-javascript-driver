@@ -31,7 +31,7 @@ function isEmptyObjectOrNull (obj) {
     return false
   }
 
-  for (let prop in obj) {
+  for (const prop in obj) {
     if (obj.hasOwnProperty(prop)) {
       return false
     }
@@ -51,7 +51,7 @@ function isObject (obj) {
  * @return {{query: string, params: object}} the normalized query with parameters.
  * @throws TypeError when either given query or parameters are invalid.
  */
-function validateStatementAndParameters (statement, parameters) {
+function validateQueryAndParameters (statement, parameters) {
   let query = statement
   let params = parameters || {}
 
@@ -60,7 +60,7 @@ function validateStatementAndParameters (statement, parameters) {
     params = statement.parameters || {}
   }
 
-  assertCypherStatement(query)
+  assertCypherQuery(query)
   assertQueryParameters(params)
 
   return { query, params }
@@ -122,7 +122,7 @@ function assertValidDate (obj, objName) {
   return obj
 }
 
-function assertCypherStatement (obj) {
+function assertCypherQuery (obj) {
   assertString(obj, 'Cypher statement')
   if (obj.trim().length === 0) {
     throw new TypeError(
@@ -154,7 +154,7 @@ export {
   assertNumber,
   assertNumberOrInteger,
   assertValidDate,
-  validateStatementAndParameters,
+  validateQueryAndParameters,
   ENCRYPTION_ON,
   ENCRYPTION_OFF
 }

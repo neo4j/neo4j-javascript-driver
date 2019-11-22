@@ -60,18 +60,18 @@ describe('#unit Utils', () => {
     verifyValidString(String('foo'))
     verifyValidString('foo')
 
-    verifyInvalidCypherStatement('')
-    verifyInvalidCypherStatement('\n')
-    verifyInvalidCypherStatement('\t')
-    verifyInvalidCypherStatement('\r')
-    verifyInvalidCypherStatement('   ')
-    verifyInvalidCypherStatement(' \n\r')
-    verifyInvalidCypherStatement({})
-    verifyInvalidCypherStatement({ foo: 1 })
-    verifyInvalidCypherStatement([])
-    verifyInvalidCypherStatement(['1'])
-    verifyInvalidCypherStatement([1, '2'])
-    verifyInvalidCypherStatement(console.log)
+    verifyInvalidCypherQuery('')
+    verifyInvalidCypherQuery('\n')
+    verifyInvalidCypherQuery('\t')
+    verifyInvalidCypherQuery('\r')
+    verifyInvalidCypherQuery('   ')
+    verifyInvalidCypherQuery(' \n\r')
+    verifyInvalidCypherQuery({})
+    verifyInvalidCypherQuery({ foo: 1 })
+    verifyInvalidCypherQuery([])
+    verifyInvalidCypherQuery(['1'])
+    verifyInvalidCypherQuery([1, '2'])
+    verifyInvalidCypherQuery(console.log)
   })
 
   it('should check valid query parameters', () => {
@@ -198,22 +198,20 @@ describe('#unit Utils', () => {
     )
   }
 
-  function verifyInvalidCypherStatement (str) {
-    expect(() => util.validateStatementAndParameters(str, {})).toThrowError(
+  function verifyInvalidCypherQuery (str) {
+    expect(() => util.validateQueryAndParameters(str, {})).toThrowError(
       TypeError
     )
   }
 
   function verifyValidQueryParameters (obj) {
-    expect(() =>
-      util.validateStatementAndParameters('RETURN 1', obj)
-    ).not.toThrow()
+    expect(() => util.validateQueryAndParameters('RETURN 1', obj)).not.toThrow()
   }
 
   function verifyInvalidQueryParameters (obj) {
-    expect(() =>
-      util.validateStatementAndParameters('RETURN 1', obj)
-    ).toThrowError(TypeError)
+    expect(() => util.validateQueryAndParameters('RETURN 1', obj)).toThrowError(
+      TypeError
+    )
   }
 
   function verifyValidDate (obj) {

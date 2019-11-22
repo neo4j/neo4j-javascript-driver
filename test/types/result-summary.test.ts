@@ -23,7 +23,7 @@ import ResultSummary, {
   Plan,
   ProfiledPlan,
   ServerInfo,
-  StatementStatistic
+  QueryStatistic
 } from '../../types/result-summary'
 import Integer from '../../types/integer'
 
@@ -37,7 +37,7 @@ const stmtParams: object = stmt.parameters
 
 const str: string = sum1.statementType
 
-const counters: StatementStatistic = sum1.counters
+const counters: QueryStatistic = sum1.counters
 
 const containsUpdates: boolean = counters.containsUpdates()
 const containsSystemUpdates: boolean = counters.containsSystemUpdates()

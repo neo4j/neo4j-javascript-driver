@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { Observable } from 'rxjs'
-import { Parameters } from './statement-runner'
+import { Parameters } from './query-runner'
 import RxResult from './result-rx'
 
 declare interface RxTransaction {

@@ -46,14 +46,14 @@ import {
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED
 } from './error'
-import Result, { ResultObserver, StatementResult } from './result'
+import Result, { ResultObserver, QueryResult } from './result'
 import ResultSummary, {
   Notification,
   NotificationPosition,
   Plan,
   ProfiledPlan,
   ServerInfo,
-  StatementStatistic
+  QueryStatistic
 } from './result-summary'
 import Record from './record'
 import Session from './session'
@@ -68,7 +68,7 @@ import {
   WRITE
 } from './driver'
 import Transaction from './transaction'
-import { Parameters } from './statement-runner'
+import { Parameters } from './query-runner'
 
 declare const auth: {
   basic: (username: string, password: string, realm?: string) => AuthToken
@@ -174,12 +174,12 @@ declare const forExport: {
   Integer: Integer
   Record: Record
   Result: Result
-  StatementResult: StatementResult
+  QueryResult: QueryResult
   ResultObserver: ResultObserver
   ResultSummary: ResultSummary
   Plan: Plan
   ProfiledPlan: ProfiledPlan
-  StatementStatistic: StatementStatistic
+  QueryStatistic: QueryStatistic
   Notification: Notification
   ServerInfo: ServerInfo
   NotificationPosition: NotificationPosition
@@ -227,12 +227,12 @@ export {
   Integer,
   Record,
   Result,
-  StatementResult,
+  QueryResult,
   ResultObserver,
   ResultSummary,
   Plan,
   ProfiledPlan,
-  StatementStatistic,
+  QueryStatistic,
   Notification,
   ServerInfo,
   NotificationPosition,

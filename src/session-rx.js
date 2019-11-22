@@ -46,18 +46,16 @@ export default class RxSession {
    * transaction configuration that applies to the underlying auto-commit transaction.
    *
    * @public
-   * @param {string} statement - Statement to be executed.
-   * @param {Object} parameters - Parameter values to use in statement execution.
+   * @param {string} query - Query to be executed.
+   * @param {Object} parameters - Parameter values to use in query execution.
    * @param {TransactionConfig} transactionConfig - Configuration for the new auto-commit transaction.
    * @returns {RxResult} - A reactive result
    */
-  run (statement, parameters, transactionConfig) {
+  run (query, parameters, transactionConfig) {
     return new RxResult(
       new Observable(observer => {
         try {
-          observer.next(
-            this._session.run(statement, parameters, transactionConfig)
-          )
+          observer.next(this._session.run(query, parameters, transactionConfig))
           observer.complete()
         } catch (err) {
           observer.error(err)

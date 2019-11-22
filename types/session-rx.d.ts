@@ -19,7 +19,7 @@
 import RxResult from './result-rx'
 import RxTransaction from './transaction-rx'
 import { TransactionConfig } from './session'
-import { Parameters } from './statement-runner'
+import { Parameters } from './query-runner'
 import { Observable } from 'rxjs'
 
 declare type RxTransactionWork<T> = (tx: RxTransaction) => Observable<T>

@@ -116,7 +116,7 @@ describe('#integration session', () => {
         ).toBeRejectedWith(
           jasmine.objectContaining({
             message:
-              'Statements cannot be run directly on a session with an open transaction; ' +
+              'Queries cannot be run directly on a session with an open transaction; ' +
               'either run from within the transaction or use a different session.'
           })
         )

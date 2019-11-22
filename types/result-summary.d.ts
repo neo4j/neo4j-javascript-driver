@@ -23,7 +23,7 @@ import { NumberOrInteger } from './graph-types'
 declare interface ResultSummary<T extends NumberOrInteger = Integer> {
   statement: { text: string; parameters: { [key: string]: any } }
   statementType: string
-  counters: StatementStatistic
+  counters: QueryStatistic
   plan: Plan
   profile: ProfiledPlan
   notifications: Notification[]
@@ -59,7 +59,7 @@ declare interface ProfiledPlan {
   children: ProfiledPlan[]
 }
 
-declare interface StatementStatistic {
+declare interface QueryStatistic {
   containsUpdates(): boolean
 
   containsSystemUpdates(): boolean
@@ -99,7 +99,7 @@ export {
   statementType,
   Plan,
   ProfiledPlan,
-  StatementStatistic,
+  QueryStatistic,
   Notification,
   ServerInfo,
   NotificationPosition
