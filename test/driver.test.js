@@ -66,10 +66,13 @@ describe('#integration driver', () => {
     Promise.all([result1, result2]).then(results => {
       driver.close()
       beginTxWithoutCommit(driver).catch(() => {
-        var serverKey = Object.keys(driver._pool._activeResourceCounts)[0]
-        expect(driver._pool._activeResourceCounts[serverKey]).toEqual(2)
-        expect(driver._pool._pools[serverKey].length).toEqual(0)
-        expect(Object.keys(driver._openConnections).length).toEqual(2)
+        var pool = driver._connectionProvider._connectionPool
+        var serverKey = Object.keys(pool._activeResourceCounts)[0]
+        expect(pool._activeResourceCounts[serverKey]).toEqual(2)
+        expect(serverKey in pool._pools).toBeFalsy()
+        expect(
+          Object.keys(driver._connectionProvider._openConnections).length
+        ).toEqual(2)
         done()
       })
     })
