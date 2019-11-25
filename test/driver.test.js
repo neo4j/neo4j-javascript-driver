@@ -44,6 +44,40 @@ describe('#integration driver', () => {
     }
   })
 
+  it('should not decrease active connection count after driver close', done => {
+    // Given
+    const config = {
+      maxConnectionPoolSize: 2,
+      connectionAcquisitionTimeout: 0,
+      encrypted: false
+    }
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, config)
+
+    function beginTxWithoutCommit (driver) {
+      const session = driver.session()
+      const tx = session.beginTransaction()
+      return tx.run('RETURN 1')
+    }
+    // When
+
+    const result1 = beginTxWithoutCommit(driver)
+    const result2 = beginTxWithoutCommit(driver)
+
+    Promise.all([result1, result2]).then(results => {
+      driver.close()
+      beginTxWithoutCommit(driver).catch(() => {
+        var pool = driver._connectionProvider._connectionPool
+        var serverKey = Object.keys(pool._activeResourceCounts)[0]
+        expect(pool._activeResourceCounts[serverKey]).toEqual(2)
+        expect(serverKey in pool._pools).toBeFalsy()
+        expect(
+          Object.keys(driver._connectionProvider._openConnections).length
+        ).toEqual(2)
+        done()
+      })
+    })
+  }, 10000)
+
   it('should expose sessions', () => {
     // Given
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
