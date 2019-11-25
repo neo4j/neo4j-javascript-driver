@@ -73,11 +73,18 @@ class Pool {
       const key = address.asKey()
 
       if (resource) {
-        resourceAcquired(key, this._activeResourceCounts)
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} acquired from the pool ${key}`)
+        if (
+          this._maxSize &&
+          this.activeResourceCount(address) >= this._maxSize
+        ) {
+          this._destroy(resource)
+        } else {
+          resourceAcquired(key, this._activeResourceCounts)
+          if (this._log.isDebugEnabled()) {
+            this._log.debug(`${resource} acquired from the pool ${key}`)
+          }
+          return resource
         }
-        return resource
       }
 
       // We're out of resources and will try to acquire later on when an existing resource is released.
@@ -104,11 +111,11 @@ class Pool {
             // request already resolved/rejected by the release operation; nothing to do
           } else {
             // request is still pending and needs to be failed
+            const activeCount = this.activeResourceCount(address)
+            const idleCount = this.has(address) ? this._pools[key].length : 0
             request.reject(
               newError(
-                `Connection acquisition timed out in ${
-                  this._acquisitionTimeout
-                } ms.`
+                `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Poos status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
               )
             )
           }
@@ -218,7 +225,10 @@ class Pool {
       } else {
         if (this._installIdleObserver) {
           this._installIdleObserver(resource, {
-            onError: () => {
+            onError: error => {
+              this._log.debug(
+                `Idle connection ${resource} destroyed because of error: ${error}`
+              )
               const pool = this._pools[key]
               if (pool) {
                 this._pools[key] = pool.filter(r => r !== resource)
