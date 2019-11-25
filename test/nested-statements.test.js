@@ -18,7 +18,7 @@
  */
 
 import neo4j from '../src'
-import { statementType } from '../src/result-summary'
+import { queryType } from '../src/result-summary'
 import Session from '../src/session'
 import { READ } from '../src/driver'
 import SingleConnectionProvider from '../src/internal/connection-provider-single'
@@ -116,7 +116,7 @@ describe('#integration session', () => {
         ).toBeRejectedWith(
           jasmine.objectContaining({
             message:
-              'Statements cannot be run directly on a session with an open transaction; ' +
+              'Queries cannot be run directly on a session with an open transaction; ' +
               'either run from within the transaction or use a different session.'
           })
         )

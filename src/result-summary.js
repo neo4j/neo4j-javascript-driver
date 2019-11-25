@@ -26,39 +26,39 @@ import { isInt } from './integer'
 class ResultSummary {
   /**
    * @constructor
-   * @param {string} statement - The statement this summary is for
-   * @param {Object} parameters - Parameters for the statement
-   * @param {Object} metadata - Statement metadata
+   * @param {string} query - The query this summary is for
+   * @param {Object} parameters - Parameters for the query
+   * @param {Object} metadata - Query metadata
    */
-  constructor (statement, parameters, metadata) {
+  constructor (query, parameters, metadata) {
     /**
-     * The statement and parameters this summary is for.
+     * The query and parameters this summary is for.
      * @type {{text: string, parameters: Object}}
      * @public
      */
-    this.statement = { text: statement, parameters }
+    this.query = { text: query, parameters }
 
     /**
-     * The type of statement executed. Can be "r" for read-only statement, "rw" for read-write statement,
-     * "w" for write-only statement and "s" for schema-write statement.
-     * String constants are available in {@link statementType} object.
+     * The type of query executed. Can be "r" for read-only query, "rw" for read-write query,
+     * "w" for write-only query and "s" for schema-write query.
+     * String constants are available in {@link queryType} object.
      * @type {string}
      * @public
      */
-    this.statementType = metadata.type
+    this.queryType = metadata.type
 
     /**
-     * Counters for operations the statement triggered.
-     * @type {StatementStatistics}
+     * Counters for operations the query triggered.
+     * @type {QueryStatistics}
      * @public
      */
-    this.counters = new StatementStatistics(metadata.stats || {})
+    this.counters = new QueryStatistics(metadata.stats || {})
     // for backwards compatibility, remove in future version
     this.updateStatistics = this.counters
 
     /**
-     * This describes how the database will execute the statement.
-     * Statement plan for the executed statement if available, otherwise undefined.
+     * This describes how the database will execute the query.
+     * Query plan for the executed query if available, otherwise undefined.
      * Will only be populated for queries that start with "EXPLAIN".
      * @type {Plan}
      */
@@ -68,8 +68,8 @@ class ResultSummary {
         : false
 
     /**
-     * This describes how the database did execute your statement. This will contain detailed information about what
-     * each step of the plan did. Profiled statement plan for the executed statement if available, otherwise undefined.
+     * This describes how the database did execute your query. This will contain detailed information about what
+     * each step of the plan did. Profiled query plan for the executed query if available, otherwise undefined.
      * Will only be populated for queries that start with "PROFILE".
      * @type {ProfiledPlan}
      * @public
@@ -77,9 +77,9 @@ class ResultSummary {
     this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false
 
     /**
-     * An array of notifications that might arise when executing the statement. Notifications can be warnings about
-     * problematic statements or other valuable information that can be presented in a client. Unlike failures
-     * or errors, notifications do not affect the execution of a statement.
+     * An array of notifications that might arise when executing the query. Notifications can be warnings about
+     * problematic queries or other valuable information that can be presented in a client. Unlike failures
+     * or errors, notifications do not affect the execution of a query.
      * @type {Array<Notification>}
      * @public
      */
@@ -198,7 +198,7 @@ class ProfiledPlan {
  * Get statistical information for a {@link Result}.
  * @access public
  */
-class StatementStatistics {
+class QueryStatistics {
   /**
    * Structurize the statistics
    * @constructor
@@ -245,7 +245,7 @@ class StatementStatistics {
   }
 
   /**
-   * Returns the statement statistics updates in a dictionary.
+   * Returns the query statistics updates in a dictionary.
    * @returns {*}
    */
   updates () {
@@ -329,13 +329,13 @@ function valueOrDefault (key, values, defaultValue = 0) {
   }
 }
 
-const statementType = {
+const queryType = {
   READ_ONLY: 'r',
   READ_WRITE: 'rw',
   WRITE_ONLY: 'w',
   SCHEMA_WRITE: 's'
 }
 
-export { statementType }
+export { queryType }
 
 export default ResultSummary

@@ -119,7 +119,7 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([
       Notification.createError(
         jasmine.stringMatching(
-          /Statements cannot be run directly on a session with an open transaction/
+          /Queries cannot be run directly on a session with an open transaction/
         )
       )
     ])

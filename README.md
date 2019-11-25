@@ -173,7 +173,7 @@ var rxSession = driver.rxSession({
 })
 ```
 
-### Executing Statements
+### Executing Queries
 
 #### Consuming Records with Streaming API
 

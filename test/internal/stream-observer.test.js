@@ -80,7 +80,7 @@ describe('#unit ResultStreamObserver', () => {
 
   it('passes received error the subscriber', () => {
     const streamObserver = newStreamObserver()
-    const error = new Error('Invalid Cypher statement')
+    const error = new Error('Invalid Cypher query')
 
     let receivedError = null
     const observer = newObserver(NO_OP, error => {
@@ -95,7 +95,7 @@ describe('#unit ResultStreamObserver', () => {
 
   it('passes existing error to a new subscriber', () => {
     const streamObserver = newStreamObserver()
-    const error = new Error('Invalid Cypher statement')
+    const error = new Error('Invalid Cypher query')
 
     streamObserver.onError(error)
 

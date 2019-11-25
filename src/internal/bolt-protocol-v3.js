@@ -141,7 +141,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
   }
 
   run (
-    statement,
+    query,
     parameters,
     {
       bookmark,
@@ -171,7 +171,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     assertDatabaseIsEmpty(database, this._connection, observer)
 
     this._connection.write(
-      RequestMessage.runWithMetadata(statement, parameters, {
+      RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
         mode

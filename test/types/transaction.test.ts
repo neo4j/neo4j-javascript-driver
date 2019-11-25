@@ -19,7 +19,7 @@
 
 import Transaction from '../../types/transaction'
 import Record from '../../types/record'
-import Result, { StatementResult } from '../../types/result'
+import Result, { QueryResult } from '../../types/result'
 import ResultSummary from '../../types/result-summary'
 
 const dummy: any = null
@@ -31,7 +31,7 @@ console.log(isOpen)
 
 const result1: Result = tx.run('RETURN 1')
 result1
-  .then((res: StatementResult) => {
+  .then((res: QueryResult) => {
     const records: Record[] = res.records
     const summary: ResultSummary = res.summary
     console.log(records)
@@ -58,7 +58,7 @@ result2.subscribe({
 
 const result3: Result = tx.run('RETURN $value', { value: '42' })
 result3
-  .then((res: StatementResult) => {
+  .then((res: QueryResult) => {
     const records: Record[] = res.records
     const summary: ResultSummary = res.summary
     console.log(records)

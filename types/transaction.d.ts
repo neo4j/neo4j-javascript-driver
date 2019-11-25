@@ -18,9 +18,9 @@
  */
 
 import Result from './result'
-import StatementRunner from './statement-runner'
+import QueryRunner from './query-runner'
 
-declare interface Transaction extends StatementRunner {
+declare interface Transaction extends QueryRunner {
   commit(): Promise<void>
 
   rollback(): Promise<void>

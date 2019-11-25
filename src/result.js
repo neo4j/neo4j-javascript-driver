@@ -28,7 +28,7 @@ const DEFAULT_ON_COMPLETED = summary => {}
 const DEFAULT_METADATA_SUPPLIER = metadata => {}
 
 /**
- * A stream of {@link Record} representing the result of a statement.
+ * A stream of {@link Record} representing the result of a query.
  * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
  * summary, or rejected with error that contains {@link string} code and {@link string} message.
  * Alternatively can be consumed lazily using {@link Result#subscribe} function.
@@ -40,15 +40,15 @@ class Result {
    * @constructor
    * @access private
    * @param {Promise<ResultStreamObserver>} streamObserverPromise
-   * @param {mixed} statement - Cypher statement to execute
-   * @param {Object} parameters - Map with parameters to use in statement
+   * @param {mixed} query - Cypher query to execute
+   * @param {Object} parameters - Map with parameters to use in query
    * @param {ConnectionHolder} connectionHolder - to be notified when result is either fully consumed or error happened.
    */
-  constructor (streamObserverPromise, statement, parameters, connectionHolder) {
+  constructor (streamObserverPromise, query, parameters, connectionHolder) {
     this._stack = captureStacktrace()
     this._streamObserverPromise = streamObserverPromise
     this._p = null
-    this._statement = statement
+    this._query = query
     this._parameters = parameters || {}
     this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
   }
@@ -167,7 +167,7 @@ class Result {
       this._connectionHolder.releaseConnection().then(() => {
         onCompletedOriginal.call(
           observer,
-          new ResultSummary(this._statement, this._parameters, metadata)
+          new ResultSummary(this._query, this._parameters, metadata)
         )
       })
     }

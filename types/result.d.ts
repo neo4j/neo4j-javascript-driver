@@ -20,7 +20,7 @@
 import ResultSummary from './result-summary'
 import Record from './record'
 
-declare type StatementResult = {
+declare type QueryResult = {
   records: Record[]
   summary: ResultSummary
 }
@@ -32,9 +32,9 @@ declare type ResultObserver = {
   onError?(error: Error): void
 }
 
-declare interface Result extends Promise<StatementResult> {
+declare interface Result extends Promise<QueryResult> {
   subscribe(observer: ResultObserver): void
 }
 
-export { StatementResult, ResultObserver }
+export { QueryResult, ResultObserver }
 export default Result

@@ -82,14 +82,14 @@ describe('#integration-rx navigation', () => {
     it('should return records only once', () =>
       shouldReturnRecordsOnlyOnce(serverVersion, session))
 
-    it('should return empty keys for statement without return', () =>
-      shouldReturnEmptyKeysForStatementWithNoReturn(serverVersion, session))
+    it('should return empty keys for query without return', () =>
+      shouldReturnEmptyKeysForQueryWithNoReturn(serverVersion, session))
 
-    it('should return no records for statement without return', () =>
-      shouldReturnNoRecordsForStatementWithNoReturn(serverVersion, session))
+    it('should return no records for query without return', () =>
+      shouldReturnNoRecordsForQueryWithNoReturn(serverVersion, session))
 
-    it('should return summary for statement without return', () =>
-      shouldReturnSummaryForStatementWithNoReturn(serverVersion, session))
+    it('should return summary for query without return', () =>
+      shouldReturnSummaryForQueryWithNoReturn(serverVersion, session))
 
     it('should fail on keys when run fails', () =>
       shouldFailOnKeysWhenRunFails(serverVersion, session))
@@ -187,14 +187,14 @@ describe('#integration-rx navigation', () => {
     it('should return records only once', () =>
       shouldReturnRecordsOnlyOnce(serverVersion, txc))
 
-    it('should return empty keys for statement without return', () =>
-      shouldReturnEmptyKeysForStatementWithNoReturn(serverVersion, txc))
+    it('should return empty keys for query without return', () =>
+      shouldReturnEmptyKeysForQueryWithNoReturn(serverVersion, txc))
 
-    it('should return no records for statement without return', () =>
-      shouldReturnNoRecordsForStatementWithNoReturn(serverVersion, txc))
+    it('should return no records for query without return', () =>
+      shouldReturnNoRecordsForQueryWithNoReturn(serverVersion, txc))
 
-    it('should return summary for statement without return', () =>
-      shouldReturnSummaryForStatementWithNoReturn(serverVersion, txc))
+    it('should return summary for query without return', () =>
+      shouldReturnSummaryForQueryWithNoReturn(serverVersion, txc))
 
     it('should fail on keys when run fails', () =>
       shouldFailOnKeysWhenRunFails(serverVersion, txc))
@@ -435,10 +435,7 @@ describe('#integration-rx navigation', () => {
    * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnEmptyKeysForStatementWithNoReturn (
-    version,
-    runnable
-  ) {
+  async function shouldReturnEmptyKeysForQueryWithNoReturn (version, runnable) {
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -461,10 +458,7 @@ describe('#integration-rx navigation', () => {
    * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnNoRecordsForStatementWithNoReturn (
-    version,
-    runnable
-  ) {
+  async function shouldReturnNoRecordsForQueryWithNoReturn (version, runnable) {
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -478,10 +472,7 @@ describe('#integration-rx navigation', () => {
    * @param {ServerVersion} version
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryForStatementWithNoReturn (
-    version,
-    runnable
-  ) {
+  async function shouldReturnSummaryForQueryWithNoReturn (version, runnable) {
     if (version.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -631,7 +622,7 @@ describe('#integration-rx navigation', () => {
     await collectAndAssertEmpty(closeFunc())
 
     const expectedError = jasmine.objectContaining({
-      message: jasmine.stringMatching(/Cannot run statement/)
+      message: jasmine.stringMatching(/Cannot run query/)
     })
     await collectAndAssertError(result.keys(), expectedError)
     await collectAndAssertError(result.records(), expectedError)
@@ -671,17 +662,17 @@ describe('#integration-rx navigation', () => {
     ])
   }
 
-  async function collectAndAssertSummary (result, expectedStatementType = 'r') {
+  async function collectAndAssertSummary (result, expectedQueryType = 'r') {
     const summary = await result
       .consume()
       .pipe(
-        map(s => s.statementType),
+        map(s => s.queryType),
         materialize(),
         toArray()
       )
       .toPromise()
     expect(summary).toEqual([
-      Notification.createNext(expectedStatementType),
+      Notification.createNext(expectedQueryType),
       Notification.createComplete()
     ])
   }

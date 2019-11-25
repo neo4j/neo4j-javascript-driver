@@ -34,19 +34,19 @@ export default class RxTransaction {
   }
 
   /**
-   * Creates a reactive result that will execute the statement in this transaction, with the provided parameters.
+   * Creates a reactive result that will execute the query in this transaction, with the provided parameters.
    *
    * @public
-   * @param {string} statement - Statement to be executed.
-   * @param {Object} parameters - Parameter values to use in statement execution.
+   * @param {string} query - Query to be executed.
+   * @param {Object} parameters - Parameter values to use in query execution.
    * @returns {RxResult} - A reactive result
    */
 
-  run (statement, parameters) {
+  run (query, parameters) {
     return new RxResult(
       new Observable(observer => {
         try {
-          observer.next(this._txc.run(statement, parameters))
+          observer.next(this._txc.run(query, parameters))
           observer.complete()
         } catch (err) {
           observer.error(err)
@@ -75,7 +75,7 @@ export default class RxTransaction {
   }
 
   /**
-   *  Rollbacks the transaction.
+   *  Rolls back the transaction.
    *
    * @public
    * @returns {Observable} - An empty observable

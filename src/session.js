@@ -23,7 +23,7 @@ import {
 import Result from './result'
 import Transaction from './transaction'
 import { newError } from './error'
-import { validateStatementAndParameters } from './internal/util'
+import { validateQueryAndParameters } from './internal/util'
 import ConnectionHolder from './internal/connection-holder'
 import Driver from './driver'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
@@ -33,7 +33,7 @@ import TxConfig from './internal/tx-config'
 
 /**
  * A Session instance is used for handling the connection and
- * sending statements through the connection.
+ * sending queries through the connection.
  * In a single session, multiple queries will be executed serially.
  * In order to execute parallel queries, multiple sessions are required.
  * @access public
@@ -84,27 +84,27 @@ class Session {
   }
 
   /**
-   * Run Cypher statement
-   * Could be called with a statement object i.e.: `{text: "MATCH ...", prameters: {param: 1}}`
-   * or with the statement and parameters as separate arguments.
+   * Run Cypher query
+   * Could be called with a query object i.e.: `{text: "MATCH ...", prameters: {param: 1}}`
+   * or with the query and parameters as separate arguments.
    *
    * @public
-   * @param {mixed} statement - Cypher statement to execute
-   * @param {Object} parameters - Map with parameters to use in statement
+   * @param {mixed} query - Cypher query to execute
+   * @param {Object} parameters - Map with parameters to use in query
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @return {Result} - New Result
    */
-  run (statement, parameters, transactionConfig) {
-    const { query, params } = validateStatementAndParameters(
-      statement,
+  run (query, parameters, transactionConfig) {
+    const { validatedQuery, params } = validateQueryAndParameters(
+      query,
       parameters
     )
     const autoCommitTxConfig = transactionConfig
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    return this._run(query, params, connection =>
-      connection.protocol().run(query, params, {
+    return this._run(validatedQuery, params, connection =>
+      connection.protocol().run(validatedQuery, params, {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
@@ -116,14 +116,14 @@ class Session {
     )
   }
 
-  _run (statement, parameters, customRunner) {
+  _run (query, parameters, customRunner) {
     const connectionHolder = this._connectionHolderWithMode(this._mode)
 
     let observerPromise
     if (!this._open) {
       observerPromise = Promise.resolve(
         new FailedObserver({
-          error: newError('Cannot run statement in a closed session.')
+          error: newError('Cannot run query in a closed session.')
         })
       )
     } else if (!this._hasTx && connectionHolder.initializeConnection()) {
@@ -135,21 +135,21 @@ class Session {
       observerPromise = Promise.resolve(
         new FailedObserver({
           error: newError(
-            'Statements cannot be run directly on a ' +
+            'Queries cannot be run directly on a ' +
               'session with an open transaction; either run from within the ' +
               'transaction or use a different session.'
           )
         })
       )
     }
-    return new Result(observerPromise, statement, parameters, connectionHolder)
+    return new Result(observerPromise, query, parameters, connectionHolder)
   }
 
   /**
    * Begin a new transaction in this session. A session can have at most one transaction running at a time, if you
    * want to run multiple concurrent transactions, you should use multiple concurrent sessions.
    *
-   * While a transaction is open the session cannot be used to run statements outside the transaction.
+   * While a transaction is open the session cannot be used to run queries outside the transaction.
    *
    * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
    * @returns {Transaction} - New Transaction

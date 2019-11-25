@@ -26,7 +26,7 @@ import { assertString } from './util'
 const INIT = 0x01 // 0000 0001 // INIT <user_agent> <authentication_token>
 const ACK_FAILURE = 0x0e // 0000 1110 // ACK_FAILURE - unused
 const RESET = 0x0f // 0000 1111 // RESET
-const RUN = 0x10 // 0001 0000 // RUN <statement> <parameters>
+const RUN = 0x10 // 0001 0000 // RUN <query> <parameters>
 const DISCARD_ALL = 0x2f // 0010 1111 // DISCARD_ALL - unused
 const PULL_ALL = 0x3f // 0011 1111 // PULL_ALL
 
@@ -68,15 +68,15 @@ export default class RequestMessage {
 
   /**
    * Create a new RUN message.
-   * @param {string} statement the cypher statement.
-   * @param {Object} parameters the statement parameters.
+   * @param {string} query the cypher query.
+   * @param {Object} parameters the query parameters.
    * @return {RequestMessage} new RUN message.
    */
-  static run (statement, parameters) {
+  static run (query, parameters) {
     return new RequestMessage(
       RUN,
-      [statement, parameters],
-      () => `RUN ${statement} ${JSON.stringify(parameters)}`
+      [query, parameters],
+      () => `RUN ${query} ${JSON.stringify(parameters)}`
     )
   }
 
@@ -146,8 +146,8 @@ export default class RequestMessage {
 
   /**
    * Create a new RUN message with additional metadata.
-   * @param {string} statement the cypher statement.
-   * @param {Object} parameters the statement parameters.
+   * @param {string} query the cypher query.
+   * @param {Object} parameters the query parameters.
    * @param {Bookmark} bookmark the bookmark.
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
@@ -155,18 +155,16 @@ export default class RequestMessage {
    * @return {RequestMessage} new RUN message with additional metadata.
    */
   static runWithMetadata (
-    statement,
+    query,
     parameters,
     { bookmark, txConfig, database, mode } = {}
   ) {
     const metadata = buildTxMetadata(bookmark, txConfig, database, mode)
     return new RequestMessage(
       RUN,
-      [statement, parameters, metadata],
+      [query, parameters, metadata],
       () =>
-        `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(
-          metadata
-        )}`
+        `RUN ${query} ${JSON.stringify(parameters)} ${JSON.stringify(metadata)}`
     )
   }
 
@@ -239,7 +237,7 @@ function buildTxMetadata (bookmark, txConfig, database, mode) {
 
 /**
  * Create an object that represents streaming metadata.
- * @param {Integer|number} stmtId The statement id to stream its results.
+ * @param {Integer|number} stmtId The query id to stream its results.
  * @param {Integer|number} n The number of records to stream.
  * @returns {Object} a metadata object.
  */

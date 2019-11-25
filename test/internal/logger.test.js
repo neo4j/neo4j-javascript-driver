@@ -96,11 +96,11 @@ describe('#integration Logger', () => {
     expect(seenLevels).toContain('info')
     expect(seenLevels).toContain('debug')
 
-    // the executed statement should've been logged
-    const statementLogged = seenMessages.find(
+    // the executed query should've been logged
+    const queryLogged = seenMessages.find(
       message => message.indexOf('RETURN 42') !== -1
     )
-    expect(statementLogged).toBeTruthy()
+    expect(queryLogged).toBeTruthy()
 
     await session.close()
     await driver.close()
@@ -121,12 +121,12 @@ describe('#integration Logger', () => {
 
       expect(logged.length).toBeGreaterThan(0)
 
-      // the executed statement should've been logged
-      const statementLogged = logged.find(
+      // the executed query should've been logged
+      const queryLogged = logged.find(
         log =>
           log.indexOf('DEBUG') !== -1 && log.indexOf('RETURN 123456789') !== -1
       )
-      expect(statementLogged).toBeTruthy()
+      expect(queryLogged).toBeTruthy()
 
       // driver creation should've been logged because it is on info level
       const driverCreationLogged = logged.find(
@@ -153,11 +153,11 @@ describe('#integration Logger', () => {
       await session.run('RETURN 123456789')
       expect(logged.length).toBeGreaterThan(0)
 
-      // the executed statement should not be logged because it is in debug level
-      const statementLogged = logged.find(
+      // the executed query should not be logged because it is in debug level
+      const queryLogged = logged.find(
         log => log.indexOf('RETURN 123456789') !== -1
       )
-      expect(statementLogged).toBeFalsy()
+      expect(queryLogged).toBeFalsy()
 
       // driver creation should've been logged because it is on info level
       const driverCreationLogged = logged.find(

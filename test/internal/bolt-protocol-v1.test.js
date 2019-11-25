@@ -82,13 +82,13 @@ describe('#unit BoltProtocolV1', () => {
     expect(recorder.flushes).toEqual([true])
   })
 
-  it('should run a statement', () => {
+  it('should run a query', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV1(recorder, null, false)
 
-    const statement = 'RETURN $x, $y'
+    const query = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
-    const observer = protocol.run(statement, parameters, {
+    const observer = protocol.run(query, parameters, {
       bookmark: Bookmark.empty(),
       txConfig: TxConfig.empty(),
       mode: WRITE
@@ -97,7 +97,7 @@ describe('#unit BoltProtocolV1', () => {
     recorder.verifyMessageCount(2)
 
     expect(recorder.messages[0]).toBeMessage(
-      RequestMessage.run(statement, parameters)
+      RequestMessage.run(query, parameters)
     )
     expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
     expect(recorder.observers).toEqual([observer, observer])
@@ -209,7 +209,7 @@ describe('#unit BoltProtocolV1', () => {
     describe('run', () => {
       function verifyRun (txConfig) {
         verifyError((protocol, _observer) =>
-          protocol.run('statement', {}, { txConfig })
+          protocol.run('query', {}, { txConfig })
         )
       }
 
@@ -253,7 +253,7 @@ describe('#unit BoltProtocolV1', () => {
 
     describe('run', () => {
       function verifyRun (database) {
-        verifyError(protocol => protocol.run('statement', {}, { database }))
+        verifyError(protocol => protocol.run('query', {}, { database }))
       }
 
       it('should throw error when database is set', () => {

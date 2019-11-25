@@ -97,10 +97,10 @@ describe('#integration result summary', () => {
     session.run("CREATE (p:Person { Name: 'Test'})").then(result => {
       const summary = result.summary
 
-      expect(summary.statement.text).toBe("CREATE (p:Person { Name: 'Test'})")
-      expect(summary.statement.parameters).toEqual({})
+      expect(summary.query.text).toBe("CREATE (p:Person { Name: 'Test'})")
+      expect(summary.query.parameters).toEqual({})
 
-      expect(summary.statementType).toBe('w')
+      expect(summary.queryType).toBe('w')
       expect(summary.plan).toBe(false)
       expect(summary.profile).toBe(false)
       expect(summary.notifications).toEqual([])
@@ -160,8 +160,8 @@ describe('#integration result summary', () => {
     })
   }
 
-  function verifyNotifications (session, statement, done) {
-    session.run(statement).then(result => {
+  function verifyNotifications (session, query, done) {
+    session.run(query).then(result => {
       const summary = result.summary
       expect(summary.notifications).toBeDefined()
       expect(summary.notifications.length).toBe(1)

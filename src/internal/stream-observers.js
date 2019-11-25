@@ -92,7 +92,7 @@ class ResultStreamObserver extends StreamObserver {
     this._beforeComplete = beforeComplete
     this._afterComplete = afterComplete
 
-    this._statementId = null
+    this._queryId = null
     this._moreFunction = moreFunction
     this._discardFunction = discardFunction
     this._discard = false
@@ -140,7 +140,7 @@ class ResultStreamObserver extends StreamObserver {
       // Extract server generated query id for use in requestMore and discard
       // functions
       if (meta.qid) {
-        this._statementId = meta.qid
+        this._queryId = meta.qid
 
         // remove qid from metadata object
         delete meta.qid
@@ -236,11 +236,11 @@ class ResultStreamObserver extends StreamObserver {
       this._streaming = true
 
       if (this._discard) {
-        this._discardFunction(this._connection, this._statementId, this)
+        this._discardFunction(this._connection, this._queryId, this)
       } else {
         this._moreFunction(
           this._connection,
-          this._statementId,
+          this._queryId,
           this._fetchSize,
           this
         )
@@ -261,7 +261,7 @@ class ResultStreamObserver extends StreamObserver {
 
   /**
    * Stream observer defaults to handling responses for two messages: RUN + PULL_ALL or RUN + DISCARD_ALL.
-   * Response for RUN initializes statement keys. Response for PULL_ALL / DISCARD_ALL exposes the result stream.
+   * Response for RUN initializes query keys. Response for PULL_ALL / DISCARD_ALL exposes the result stream.
    *
    * However, some operations can be represented as a single message which receives full metadata in a single response.
    * For example, operations to begin, commit and rollback an explicit transaction use two messages in Bolt V1 but a single message in Bolt V3.

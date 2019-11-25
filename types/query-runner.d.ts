@@ -21,10 +21,10 @@ import Result from './result'
 
 declare type Parameters = { [key: string]: any }
 
-declare interface StatementRunner {
-  run(statement: string, parameters?: Parameters): Result
+declare interface QueryRunner {
+  run(query: string, parameters?: Parameters): Result
 }
 
 export { Parameters }
 
-export default StatementRunner
+export default QueryRunner

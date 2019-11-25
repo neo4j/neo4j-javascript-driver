@@ -20,7 +20,7 @@
 import Session, { TransactionConfig } from '../../types/session'
 import Transaction from '../../types/transaction'
 import Record from '../../types/record'
-import Result, { StatementResult } from '../../types/result'
+import Result, { QueryResult } from '../../types/result'
 import ResultSummary from '../../types/result-summary'
 import Integer from '../../types/integer'
 
@@ -80,7 +80,7 @@ const close2: Promise<void> = session.close().then(() => {
 
 const result1: Result = session.run('RETURN 1')
 result1
-  .then((res: StatementResult) => {
+  .then((res: QueryResult) => {
     const records: Record[] = res.records
     const summary: ResultSummary = res.summary
     console.log(records)
@@ -107,7 +107,7 @@ result2.subscribe({
 
 const result3: Result = session.run('RETURN $value', { value: '42' })
 result3
-  .then((res: StatementResult) => {
+  .then((res: QueryResult) => {
     const records: Record[] = res.records
     const summary: ResultSummary = res.summary
     console.log(records)
@@ -134,7 +134,7 @@ result4.subscribe({
 
 const result5: Result = session.run('RETURN $value', { value: '42' }, txConfig1)
 result5
-  .then((res: StatementResult) => {
+  .then((res: QueryResult) => {
     const records: Record[] = res.records
     const summary: ResultSummary = res.summary
     console.log(records)

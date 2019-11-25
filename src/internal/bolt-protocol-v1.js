@@ -217,9 +217,9 @@ export default class BoltProtocol {
   }
 
   /**
-   * Send a Cypher statement through the underlying connection.
-   * @param {string} statement the cypher statement.
-   * @param {Object} parameters the statement parameters.
+   * Send a Cypher query through the underlying connection.
+   * @param {string} query the cypher query.
+   * @param {Object} parameters the query parameters.
    * @param {Object} param
    * @param {Bookmark} param.bookmark the bookmark.
    * @param {TxConfig} param.txConfig the transaction configuration.
@@ -235,7 +235,7 @@ export default class BoltProtocol {
    * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
   run (
-    statement,
+    query,
     parameters,
     {
       bookmark,
@@ -267,7 +267,7 @@ export default class BoltProtocol {
     assertDatabaseIsEmpty(database, this._connection, observer)
 
     this._connection.write(
-      RequestMessage.run(statement, parameters),
+      RequestMessage.run(query, parameters),
       observer,
       false
     )

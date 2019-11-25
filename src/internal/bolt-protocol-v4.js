@@ -55,7 +55,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
   }
 
   run (
-    statement,
+    query,
     parameters,
     {
       bookmark,
@@ -89,7 +89,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
 
     const flushRun = reactive
     this._connection.write(
-      RequestMessage.runWithMetadata(statement, parameters, {
+      RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
         database,

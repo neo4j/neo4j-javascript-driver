@@ -29,13 +29,13 @@ function generateFieldLookup (keys) {
 
 /**
  * Records make up the contents of the {@link Result}, and is how you access
- * the output of a statement. A simple statement might yield a result stream
+ * the output of a query. A simple query might yield a result stream
  * with a single record, for instance:
  *
  *     MATCH (u:User) RETURN u.name, u.age
  *
  * This returns a stream of records with two fields, named `u.name` and `u.age`,
- * each record represents one user found by the statement above. You can access
+ * each record represents one user found by the query above. You can access
  * the values of each field either by name:
  *
  *     record.get("u.name")
@@ -147,7 +147,7 @@ class Record {
         "This record has no field with index '" +
           index +
           "'. Remember that indexes start at `0`, " +
-          'and make sure your statement returns records in the shape you meant it to.'
+          'and make sure your query returns records in the shape you meant it to.'
       )
     }
 

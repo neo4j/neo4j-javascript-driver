@@ -42,22 +42,20 @@ export default class RxSession {
   }
 
   /**
-   * Creates a reactive result that will execute the  statement with the provided parameters and the provided
+   * Creates a reactive result that will execute the  query with the provided parameters and the provided
    * transaction configuration that applies to the underlying auto-commit transaction.
    *
    * @public
-   * @param {string} statement - Statement to be executed.
-   * @param {Object} parameters - Parameter values to use in statement execution.
+   * @param {string} query - Query to be executed.
+   * @param {Object} parameters - Parameter values to use in query execution.
    * @param {TransactionConfig} transactionConfig - Configuration for the new auto-commit transaction.
    * @returns {RxResult} - A reactive result
    */
-  run (statement, parameters, transactionConfig) {
+  run (query, parameters, transactionConfig) {
     return new RxResult(
       new Observable(observer => {
         try {
-          observer.next(
-            this._session.run(statement, parameters, transactionConfig)
-          )
+          observer.next(this._session.run(query, parameters, transactionConfig))
           observer.complete()
         } catch (err) {
           observer.error(err)
@@ -121,7 +119,7 @@ export default class RxSession {
   }
 
   /**
-   * Returns the bookmark received following the last successfully completed statement, which is executed
+   * Returns the bookmark received following the last successfully completed query, which is executed
    * either in an {@link RxTransaction} obtained from this session instance or directly through one of
    * the {@link RxSession#run} method of this session instance.
    *

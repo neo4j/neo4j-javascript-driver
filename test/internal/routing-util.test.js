@@ -101,7 +101,7 @@ describe('#unit RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection)
 
     callRoutingProcedure(session, '', {}).then(() => {
-      expect(connection.seenStatements).toEqual([
+      expect(connection.seenQueries).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
       expect(connection.seenParameters).toEqual([{ context: {} }])
@@ -115,7 +115,7 @@ describe('#unit RoutingUtil', () => {
 
     callRoutingProcedure(session, '', { key1: 'value1', key2: 'value2' }).then(
       () => {
-        expect(connection.seenStatements).toEqual([
+        expect(connection.seenQueries).toEqual([
           'CALL dbms.cluster.routing.getRoutingTable($context)'
         ])
         expect(connection.seenParameters).toEqual([
@@ -131,7 +131,7 @@ describe('#unit RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection)
 
     callRoutingProcedure(session, '', {}).then(() => {
-      expect(connection.seenStatements).toEqual([
+      expect(connection.seenQueries).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
       expect(connection.seenParameters).toEqual([{ context: {} }])
@@ -144,7 +144,7 @@ describe('#unit RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection)
 
     callRoutingProcedure(session, '', { key1: 'foo', key2: 'bar' }).then(() => {
-      expect(connection.seenStatements).toEqual([
+      expect(connection.seenQueries).toEqual([
         'CALL dbms.cluster.routing.getRoutingTable($context)'
       ])
       expect(connection.seenParameters).toEqual([
@@ -181,7 +181,7 @@ describe('#unit RoutingUtil', () => {
 
       await callRoutingProcedure(session, '', {})
 
-      expect(connection.seenStatements).toEqual([
+      expect(connection.seenQueries).toEqual([
         'CALL dbms.routing.getRoutingTable($context, $database)'
       ])
       expect(connection.seenParameters).toEqual([
@@ -208,7 +208,7 @@ describe('#unit RoutingUtil', () => {
 
       await callRoutingProcedure(session, '', {})
 
-      expect(connection.seenStatements).toEqual([
+      expect(connection.seenQueries).toEqual([
         'CALL dbms.routing.getRoutingTable($context, $database)'
       ])
       expect(connection.seenParameters).toEqual([
@@ -234,7 +234,7 @@ describe('#unit RoutingUtil', () => {
 
       await callRoutingProcedure(session, '', {})
 
-      expect(connection.seenStatements).toEqual([
+      expect(connection.seenQueries).toEqual([
         'CALL dbms.routing.getRoutingTable($context, $database)'
       ])
       expect(connection.seenParameters).toEqual([
@@ -407,7 +407,7 @@ describe('#unit RoutingUtil', () => {
     const session = FakeSession.withFakeConnection(connection)
 
     callRoutingProcedure(session, database, context).then(() => {
-      expect(connection.seenStatements).toEqual([
+      expect(connection.seenQueries).toEqual([
         'CALL dbms.routing.getRoutingTable($context, $database)'
       ])
       expect(connection.seenParameters).toEqual([
@@ -523,11 +523,11 @@ describe('#unit RoutingUtil', () => {
       return new FakeSession(null, connection)
     }
 
-    _run (ignoreStatement, ignoreParameters, statementRunner) {
+    _run (ignoreQuery, ignoreParameters, queryRunner) {
       if (this._runResponse) {
         return this._runResponse
       }
-      statementRunner(this._fakeConnection)
+      queryRunner(this._fakeConnection)
       return Promise.resolve()
     }
 

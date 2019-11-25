@@ -36,15 +36,15 @@ describe('#unit RequestMessage', () => {
   })
 
   it('should create RUN message', () => {
-    const statement = 'RETURN $x'
+    const query = 'RETURN $x'
     const parameters = { x: 42 }
 
-    const message = RequestMessage.run(statement, parameters)
+    const message = RequestMessage.run(query, parameters)
 
     expect(message.signature).toEqual(0x10)
-    expect(message.fields).toEqual([statement, parameters])
+    expect(message.fields).toEqual([query, parameters])
     expect(message.toString()).toEqual(
-      `RUN ${statement} ${JSON.stringify(parameters)}`
+      `RUN ${query} ${JSON.stringify(parameters)}`
     )
   })
 
@@ -124,7 +124,7 @@ describe('#unit RequestMessage', () => {
 
   it('should create RUN with metadata message', () => {
     ;[READ, WRITE].forEach(mode => {
-      const statement = 'RETURN $x'
+      const query = 'RETURN $x'
       const parameters = { x: 42 }
       const bookmark = new Bookmark([
         'neo4j:bookmark:v1:tx1',
@@ -136,7 +136,7 @@ describe('#unit RequestMessage', () => {
         metadata: { a: 'a', b: 'b' }
       })
 
-      const message = RequestMessage.runWithMetadata(statement, parameters, {
+      const message = RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
         mode
@@ -152,9 +152,9 @@ describe('#unit RequestMessage', () => {
       }
 
       expect(message.signature).toEqual(0x10)
-      expect(message.fields).toEqual([statement, parameters, expectedMetadata])
+      expect(message.fields).toEqual([query, parameters, expectedMetadata])
       expect(message.toString()).toEqual(
-        `RUN ${statement} ${JSON.stringify(parameters)} ${JSON.stringify(
+        `RUN ${query} ${JSON.stringify(parameters)} ${JSON.stringify(
           expectedMetadata
         )}`
       )

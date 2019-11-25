@@ -88,7 +88,7 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([Notification.createComplete()])
   })
 
-  it('should run statement and commit', async () => {
+  it('should run query and commit', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -117,7 +117,7 @@ describe('#integration-rx transaction', () => {
     expect(await countNodes(42)).toBe(1)
   })
 
-  it('should run statement and rollback', async () => {
+  it('should run query and rollback', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -146,38 +146,38 @@ describe('#integration-rx transaction', () => {
     expect(await countNodes(42)).toBe(0)
   })
 
-  it('should run multiple statements and commit', async () => {
-    await verifyCanRunMultipleStatements(true)
+  it('should run multiple queries and commit', async () => {
+    await verifyCanRunMultipleQueries(true)
   })
 
-  it('should run multiple statements and rollback', async () => {
-    await verifyCanRunMultipleStatements(false)
+  it('should run multiple queries and rollback', async () => {
+    await verifyCanRunMultipleQueries(false)
   })
 
-  it('should run multiple statements without waiting and commit', async () => {
-    await verifyCanRunMultipleStatementsWithoutWaiting(true)
+  it('should run multiple queries without waiting and commit', async () => {
+    await verifyCanRunMultipleQueriesWithoutWaiting(true)
   })
 
-  it('should run multiple statements without waiting and rollback', async () => {
-    await verifyCanRunMultipleStatementsWithoutWaiting(false)
+  it('should run multiple queries without waiting and rollback', async () => {
+    await verifyCanRunMultipleQueriesWithoutWaiting(false)
   })
 
-  it('should run multiple statements without streaming and commit', async () => {
-    await verifyCanRunMultipleStatementsWithoutStreaming(true)
+  it('should run multiple queries without streaming and commit', async () => {
+    await verifyCanRunMultipleQueriesWithoutStreaming(true)
   })
 
-  it('should run multiple statements without streaming and rollback', async () => {
-    await verifyCanRunMultipleStatementsWithoutStreaming(false)
+  it('should run multiple queries without streaming and rollback', async () => {
+    await verifyCanRunMultipleQueriesWithoutStreaming(false)
   })
 
-  it('should fail to commit after a failed statement', async () => {
+  it('should fail to commit after a failed query', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
     const txc = await session.beginTransaction().toPromise()
 
-    await verifyFailsWithWrongStatement(txc)
+    await verifyFailsWithWrongQuery(txc)
 
     const result = await txc
       .commit()
@@ -197,14 +197,14 @@ describe('#integration-rx transaction', () => {
     ])
   })
 
-  it('should succeed to rollback after a failed statement', async () => {
+  it('should succeed to rollback after a failed query', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
     const txc = await session.beginTransaction().toPromise()
 
-    await verifyFailsWithWrongStatement(txc)
+    await verifyFailsWithWrongQuery(txc)
 
     const result = await txc
       .rollback()
@@ -216,7 +216,7 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([Notification.createComplete()])
   })
 
-  it('should fail to commit after successful and failed statement', async () => {
+  it('should fail to commit after successful and failed query', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -225,7 +225,7 @@ describe('#integration-rx transaction', () => {
 
     await verifyCanCreateNode(txc, 5)
     await verifyCanReturnOne(txc)
-    await verifyFailsWithWrongStatement(txc)
+    await verifyFailsWithWrongQuery(txc)
 
     const result = await txc
       .commit()
@@ -245,7 +245,7 @@ describe('#integration-rx transaction', () => {
     ])
   })
 
-  it('should succeed to rollback after successful and failed statement', async () => {
+  it('should succeed to rollback after successful and failed query', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -254,7 +254,7 @@ describe('#integration-rx transaction', () => {
 
     await verifyCanCreateNode(txc, 5)
     await verifyCanReturnOne(txc)
-    await verifyFailsWithWrongStatement(txc)
+    await verifyFailsWithWrongQuery(txc)
 
     const result = await txc
       .rollback()
@@ -266,14 +266,14 @@ describe('#integration-rx transaction', () => {
     expect(result).toEqual([Notification.createComplete()])
   })
 
-  it('should fail to run another statement after a failed one', async () => {
+  it('should fail to run another query after a failed one', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
 
     const txc = await session.beginTransaction().toPromise()
 
-    await verifyFailsWithWrongStatement(txc)
+    await verifyFailsWithWrongQuery(txc)
 
     const result = await txc
       .run('CREATE ()')
@@ -287,7 +287,7 @@ describe('#integration-rx transaction', () => {
       Notification.createError(
         jasmine.objectContaining({
           message: jasmine.stringMatching(
-            /Cannot run statement in this transaction, because .* of an error/
+            /Cannot run query in this transaction, because .* of an error/
           )
         })
       )
@@ -406,12 +406,12 @@ describe('#integration-rx transaction', () => {
     ])
   })
 
-  it('should fail to run statement after committed transaction', async () => {
-    await verifyFailToRunStatementAfterTxcIsComplete(true)
+  it('should fail to run query after committed transaction', async () => {
+    await verifyFailToRunQueryAfterTxcIsComplete(true)
   })
 
-  it('should fail to run statement after rollbacked transaction', async () => {
-    await verifyFailToRunStatementAfterTxcIsComplete(false)
+  it('should fail to run query after rolled back transaction', async () => {
+    await verifyFailToRunQueryAfterTxcIsComplete(false)
   })
 
   it('should update bookmark', async () => {
@@ -438,7 +438,7 @@ describe('#integration-rx transaction', () => {
     expect(bookmark2).not.toEqual(bookmark1)
   })
 
-  it('should propagate failures from statements', async () => {
+  it('should propagate failures from queries', async () => {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -551,7 +551,7 @@ describe('#integration-rx transaction', () => {
     await verifyCanCommitOrRollback(txc, commit)
   }
 
-  async function verifyFailToRunStatementAfterTxcIsComplete (commit) {
+  async function verifyFailToRunQueryAfterTxcIsComplete (commit) {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -572,14 +572,14 @@ describe('#integration-rx transaction', () => {
       Notification.createError(
         jasmine.objectContaining({
           message: jasmine.stringMatching(
-            /Cannot run statement in this transaction, because/
+            /Cannot run query in this transaction, because/
           )
         })
       )
     ])
   }
 
-  async function verifyCanRunMultipleStatements (commit) {
+  async function verifyCanRunMultipleQueries (commit) {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -603,7 +603,7 @@ describe('#integration-rx transaction', () => {
     await verifyCommittedOrRollbacked(commit)
   }
 
-  async function verifyCanRunMultipleStatementsWithoutWaiting (commit) {
+  async function verifyCanRunMultipleQueriesWithoutWaiting (commit) {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -629,7 +629,7 @@ describe('#integration-rx transaction', () => {
     await verifyCommittedOrRollbacked(commit)
   }
 
-  async function verifyCanRunMultipleStatementsWithoutStreaming (commit) {
+  async function verifyCanRunMultipleQueriesWithoutStreaming (commit) {
     if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
       return
     }
@@ -722,7 +722,7 @@ describe('#integration-rx transaction', () => {
     ])
   }
 
-  async function verifyFailsWithWrongStatement (txc) {
+  async function verifyFailsWithWrongQuery (txc) {
     const result = await txc
       .run('RETURN')
       .records()
