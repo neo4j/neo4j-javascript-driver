@@ -123,8 +123,14 @@ describe('#integration driver', () => {
       })
       .catch(error => {
         const doesNotContainAddress = error.message.indexOf(':80') < 0
+        const doesNotContainBetterErrorMessage =
+          error.message.indexOf('Failed to connect to server') < 0
         if (doesNotContainAddress) {
           done.fail(`Expected to contain ':80' but was: ${error.message}`)
+        } else if (doesNotContainBetterErrorMessage) {
+          done.fail(
+            `Expected to contain 'Failed to connect to server' but was: ${error.message}`
+          )
         } else {
           expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
           done()

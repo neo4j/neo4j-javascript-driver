@@ -228,7 +228,7 @@ export default class NodeChannel {
    * @param {ChannelConfig} config - configuration for this channel.
    */
   constructor (config) {
-    let self = this
+    const self = this
 
     this.id = _CONNECTION_IDGEN++
     this._pending = []
@@ -257,7 +257,7 @@ export default class NodeChannel {
         self._conn.on('end', self._handleConnectionTerminated)
 
         // Drain all pending messages
-        let pending = self._pending
+        const pending = self._pending
         self._pending = null
         for (let i = 0; i < pending.length; i++) {
           self.write(pending[i])
@@ -270,7 +270,12 @@ export default class NodeChannel {
   }
 
   _handleConnectionError (err) {
-    let msg = err.message || 'Failed to connect to server'
+    let msg =
+      'Failed to connect to server. ' +
+      'Please ensure that your database is listening on the correct host and port ' +
+      'and that you have compatible encryption settings both on Neo4j server and driver. ' +
+      'Note that the default encryption setting has changed in Neo4j 4.0.'
+    if (err.message) msg += ' Caused by: ' + err.message
     this._error = newError(msg, this._connectionErrorCode)
     if (this.onerror) {
       this.onerror(this._error)
