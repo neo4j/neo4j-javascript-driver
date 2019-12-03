@@ -307,7 +307,7 @@ var writeTxResultPromise = session.writeTransaction(async txc => {
   // used transaction will be committed automatically, no need for explicit commit/rollback
 
   var result = await txc.run(
-    "MERGE (alice:Person {name : 'Alice' }) RETURN alice.name AS name"
+    "MERGE (alice:Person {name : 'Alice'}) RETURN alice.name AS name"
   )
   // at this point it is possible to either return the result or process it and return the
   // result of processing it is also possible to run more statements in the same transaction
@@ -430,19 +430,19 @@ _**Any javascript number value passed as a parameter will be recognized as `Floa
 
 #### Writing integers
 
-Numbers written directly e.g. `session.run("CREATE (n:Node {age: {age}})", {age: 22})` will be of type `Float` in Neo4j.
+Numbers written directly e.g. `session.run("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
 var neo4j = require('neo4j-driver')
 
-session.run('CREATE (n {age: {myIntParam}})', { myIntParam: neo4j.int(22) })
+session.run('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
 ```
 
 To write integers larger than can be represented as JavaScript numbers, use a string argument to `neo4j.int`:
 
 ```javascript
-session.run('CREATE (n {age: {myIntParam}})', {
+session.run('CREATE (n {age: $myIntParam})', {
   myIntParam: neo4j.int('9223372036854775807')
 })
 ```
@@ -505,7 +505,7 @@ To run tests against "default" Neo4j version:
 
 To run tests against specified Neo4j version:
 
-./runTests.sh '-e 3.1.3'
+    ./runTests.sh '-e 4.0.0'
 
 Simple `npm test` can also be used if you already have a running version of a compatible Neo4j server.
 

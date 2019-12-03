@@ -44,12 +44,12 @@ class Session {
    * @protected
    * @param {Object} args
    * @param {string} args.mode the default access mode for this session.
-   * @param {ConnectionProvider} args.connectionProvider - the connection provider to acquire connections from.
-   * @param {Bookmark} args.bookmark - the initial bookmark for this session.
+   * @param {ConnectionProvider} args.connectionProvider - The connection provider to acquire connections from.
+   * @param {Bookmark} args.bookmark - The initial bookmark for this session.
    * @param {string} args.database the database name
-   * @param {Object} args.config={} - this driver configuration.
-   * @param {boolean} args.reactive - whether this session should create reactive streams
-   * @param {number} args.fetchSize - defines how many records is pulled in each pulling batch
+   * @param {Object} args.config={} - This driver configuration.
+   * @param {boolean} args.reactive - Whether this session should create reactive streams
+   * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
    */
   constructor ({
     mode,
@@ -91,8 +91,8 @@ class Session {
    * @public
    * @param {mixed} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in query
-   * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
-   * @return {Result} - New Result
+   * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
+   * @return {Result} New Result.
    */
   run (query, parameters, transactionConfig) {
     const { validatedQuery, params } = validateQueryAndParameters(
@@ -151,8 +151,8 @@ class Session {
    *
    * While a transaction is open the session cannot be used to run queries outside the transaction.
    *
-   * @param {TransactionConfig} [transactionConfig] - configuration for the new auto-commit transaction.
-   * @returns {Transaction} - New Transaction
+   * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
+   * @returns {Transaction} New Transaction.
    */
   beginTransaction (transactionConfig) {
     // this function needs to support bookmarks parameter for backwards compatibility
@@ -202,7 +202,7 @@ class Session {
   /**
    * Return the bookmark received following the last completed {@link Transaction}.
    *
-   * @return {string[]} a reference to a previous transaction
+   * @return {string[]} A reference to a previous transaction.
    */
   lastBookmark () {
     return this._lastBookmark.values()
@@ -216,10 +216,10 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
-   * @param {function(tx: Transaction): Promise} transactionWork - callback that executes operations against
+   * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
-   * @param {TransactionConfig} [transactionConfig] - configuration for all transactions started to execute the unit of work.
-   * @return {Promise} resolved promise as returned by the given function or rejected promise when given
+   * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
+   * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
   readTransaction (transactionWork, transactionConfig) {
@@ -235,10 +235,10 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
-   * @param {function(tx: Transaction): Promise} transactionWork - callback that executes operations against
+   * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
-   * @param {TransactionConfig} [transactionConfig] - configuration for all transactions started to execute the unit of work.
-   * @return {Promise} resolved promise as returned by the given function or rejected promise when given
+   * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
+   * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
   writeTransaction (transactionWork, transactionConfig) {
@@ -255,7 +255,7 @@ class Session {
 
   /**
    * Update value of the last bookmark.
-   * @param {Bookmark} newBookmark the new bookmark.
+   * @param {Bookmark} newBookmark - The new bookmark.
    */
   _updateBookmark (newBookmark) {
     if (newBookmark && !newBookmark.isEmpty()) {
