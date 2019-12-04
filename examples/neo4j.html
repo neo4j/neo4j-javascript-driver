@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Cypher Runner for Neo4j Bolt Protocol</title>
+    <title>example</title>
     <style>
       #main {
         width: 60%;
@@ -97,8 +97,12 @@
   </head>
   <body>
     <div id="main">
-      <h1>Cypher Runner for New Remoting</h1>
-
+      <h1>
+        <a href="https://github.com/neo4j/neo4j-javascript-driver"
+          >neo4j-javascript-driver</a
+        >
+        example
+      </h1>
       <table width="100%" border="0" cellspacing="0" cellpadding="0">
         <tr>
           <td id="console">
@@ -161,7 +165,7 @@
     </div>
 
     <script>
-      var authToken = neo4j.auth.basic('neo4j', 'neo4j')
+      var authToken = neo4j.auth.basic('neo4j', 'password')
       console.log(authToken)
       var driver = neo4j.driver('bolt://localhost', authToken, {
         encrypted: false
@@ -260,15 +264,14 @@
       document.getElementById('runButton').onclick = run
 
       if (document.location.href.indexOf('example') >= 0) {
-        //        document.getElementById("statement").textContent = "MERGE (alice:Person {name:{name_a},age:{age_a},married:{married_a}})\nMERGE (bob:Person {name:{name_b},age:{age_b},married:{married_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob";
         document.getElementById('statement').textContent =
-          'MERGE (alice:Person {name:{name_a},age:{age_a}})\nMERGE (bob:Person {name:{name_b},age:{age_b}})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob'
+          'MERGE (alice:Person {name: $name_a, age: $age_a})\nMERGE (bob:Person {name: $name_b, age: $age_b})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob'
+
         addParameter('name_a', 'Alice')
         addParameter('age_a', 33)
-        //addParameter("married_a", "true");
+
         addParameter('name_b', 'Bob')
         addParameter('age_b', 44)
-        //addParameter("married_b", "false");
       }
     </script>
   </body>
