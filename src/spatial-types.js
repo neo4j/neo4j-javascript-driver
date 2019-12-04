@@ -27,15 +27,15 @@ const POINT_IDENTIFIER_PROPERTY = '__isPoint__'
 export class Point {
   /**
    * @constructor
-   * @param {Integer|number} srid the coordinate reference system identifier.
-   * @param {number} x the `x` coordinate of the point.
-   * @param {number} y the `y` coordinate of the point.
-   * @param {number} [z=undefined] the `z` coordinate of the point or `undefined` if point has 2 dimensions.
+   * @param {Integer|number} srid - The coordinate reference system identifier.
+   * @param {number} x - The `x` coordinate of the point.
+   * @param {number} y - The `y` coordinate of the point.
+   * @param {number} [z=undefined] - The `z` coordinate of the point or `undefined` if point has 2 dimensions.
    */
   constructor (srid, x, y, z) {
     /**
      * The coordinate reference system identifier.
-     * @type {Integer|Number}
+     * @type {Integer|number}
      */
     this.srid = assertNumberOrInteger(srid, 'SRID')
     /**

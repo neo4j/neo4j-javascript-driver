@@ -46,10 +46,10 @@ const DATE_TIME_IDENTIFIER_PROPERTY = '__isDateTime__'
 export class Duration {
   /**
    * @constructor
-   * @param {Integer|number} months the number of months for the new duration.
-   * @param {Integer|number} days the number of days for the new duration.
-   * @param {Integer|number} seconds the number of seconds for the new duration.
-   * @param {Integer|number} nanoseconds the number of nanoseconds for the new duration.
+   * @param {Integer|number} months - The number of months for the new duration.
+   * @param {Integer|number} days - The number of days for the new duration.
+   * @param {Integer|number} seconds - The number of seconds for the new duration.
+   * @param {Integer|number} nanoseconds - The number of nanoseconds for the new duration.
    */
   constructor (months, days, seconds, nanoseconds) {
     /**
@@ -107,15 +107,15 @@ export function isDuration (obj) {
 
 /**
  * Represents an instant capturing the time of day, but not the date, nor the timezone.
- * Created `LocalTime` objects are frozen with `Object.freeze()` in constructor and thus immutable.
+ * Created {@link LocalTime} objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class LocalTime {
   /**
    * @constructor
-   * @param {Integer|number} hour the hour for the new local time.
-   * @param {Integer|number} minute the minute for the new local time.
-   * @param {Integer|number} second the second for the new local time.
-   * @param {Integer|number} nanosecond the nanosecond for the new local time.
+   * @param {Integer|number} hour - The hour for the new local time.
+   * @param {Integer|number} minute - The minute for the new local time.
+   * @param {Integer|number} second - The second for the new local time.
+   * @param {Integer|number} nanosecond - The nanosecond for the new local time.
    */
   constructor (hour, minute, second, nanosecond) {
     /**
@@ -142,11 +142,11 @@ export class LocalTime {
   }
 
   /**
-   * Create a local time object from the given standard JavaScript `Date` and optional nanoseconds.
+   * Create a {@link LocalTime} object from the given standard JavaScript `Date` and optional nanoseconds.
    * Year, month, day and time zone offset components of the given date are ignored.
-   * @param {global.Date} standardDate the standard JavaScript date to convert.
-   * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
-   * @return {LocalTime} new local time.
+   * @param {global.Date} standardDate - The standard JavaScript date to convert.
+   * @param {Integer|number|undefined} nanosecond - The optional amount of nanoseconds.
+   * @return {LocalTime} New LocalTime.
    */
   static fromStandardDate (standardDate, nanosecond) {
     verifyStandardDateAndNanos(standardDate, nanosecond)
@@ -189,16 +189,16 @@ export function isLocalTime (obj) {
 
 /**
  * Represents an instant capturing the time of day, and the timezone offset in seconds, but not the date.
- * Created `Time` objects are frozen with `Object.freeze()` in constructor and thus immutable.
+ * Created {@link Time} objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class Time {
   /**
    * @constructor
-   * @param {Integer|number} hour the hour for the new local time.
-   * @param {Integer|number} minute the minute for the new local time.
-   * @param {Integer|number} second the second for the new local time.
-   * @param {Integer|number} nanosecond the nanosecond for the new local time.
-   * @param {Integer|number} timeZoneOffsetSeconds the time zone offset in seconds. Value represents the difference, in seconds, from UTC to local time.
+   * @param {Integer|number} hour - The hour for the new local time.
+   * @param {Integer|number} minute - The minute for the new local time.
+   * @param {Integer|number} second - The second for the new local time.
+   * @param {Integer|number} nanosecond - The nanosecond for the new local time.
+   * @param {Integer|number} timeZoneOffsetSeconds - The time zone offset in seconds. Value represents the difference, in seconds, from UTC to local time.
    * This is different from standard JavaScript `Date.getTimezoneOffset()` which is the difference, in minutes, from local time to UTC.
    */
   constructor (hour, minute, second, nanosecond, timeZoneOffsetSeconds) {
@@ -234,11 +234,11 @@ export class Time {
   }
 
   /**
-   * Create a time object from the given standard JavaScript `Date` and optional nanoseconds.
+   * Create a {@link Time} object from the given standard JavaScript `Date` and optional nanoseconds.
    * Year, month and day components of the given date are ignored.
-   * @param {global.Date} standardDate the standard JavaScript date to convert.
-   * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
-   * @return {Time} new time.
+   * @param {global.Date} standardDate - The standard JavaScript date to convert.
+   * @param {Integer|number|undefined} nanosecond - The optional amount of nanoseconds.
+   * @return {Time} New Time.
    */
   static fromStandardDate (standardDate, nanosecond) {
     verifyStandardDateAndNanos(standardDate, nanosecond)
@@ -284,14 +284,14 @@ export function isTime (obj) {
 
 /**
  * Represents an instant capturing the date, but not the time, nor the timezone.
- * Created `Date` objects are frozen with `Object.freeze()` in constructor and thus immutable.
+ * Created {@link Date} objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class Date {
   /**
    * @constructor
-   * @param {Integer|number} year the year for the new local date.
-   * @param {Integer|number} month the month for the new local date.
-   * @param {Integer|number} day the day for the new local date.
+   * @param {Integer|number} year - The year for the new local date.
+   * @param {Integer|number} month - The month for the new local date.
+   * @param {Integer|number} day - The day for the new local date.
    */
   constructor (year, month, day) {
     /**
@@ -313,10 +313,10 @@ export class Date {
   }
 
   /**
-   * Create a date object from the given standard JavaScript `Date`.
+   * Create a {@link Date} object from the given standard JavaScript `Date`.
    * Hour, minute, second, millisecond and time zone offset components of the given date are ignored.
-   * @param {global.Date} standardDate the standard JavaScript date to convert.
-   * @return {Date} new date.
+   * @param {global.Date} standardDate - The standard JavaScript date to convert.
+   * @return {Date} New Date.
    */
   static fromStandardDate (standardDate) {
     verifyStandardDateAndNanos(standardDate, null)
@@ -344,7 +344,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link Date} class.
- * @param {Object} obj the object to test.
+ * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link Date}, `false` otherwise.
  */
 export function isDate (obj) {
@@ -353,18 +353,18 @@ export function isDate (obj) {
 
 /**
  * Represents an instant capturing the date and the time, but not the timezone.
- * Created `LocalDateTime` objects are frozen with `Object.freeze()` in constructor and thus immutable.
+ * Created {@link LocalDateTime} objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class LocalDateTime {
   /**
    * @constructor
-   * @param {Integer|number} year the year for the new local date.
-   * @param {Integer|number} month the month for the new local date.
-   * @param {Integer|number} day the day for the new local date.
-   * @param {Integer|number} hour the hour for the new local time.
-   * @param {Integer|number} minute the minute for the new local time.
-   * @param {Integer|number} second the second for the new local time.
-   * @param {Integer|number} nanosecond the nanosecond for the new local time.
+   * @param {Integer|number} year - The year for the new local date.
+   * @param {Integer|number} month - The month for the new local date.
+   * @param {Integer|number} day - The day for the new local date.
+   * @param {Integer|number} hour - The hour for the new local time.
+   * @param {Integer|number} minute - The minute for the new local time.
+   * @param {Integer|number} second - The second for the new local time.
+   * @param {Integer|number} nanosecond - The nanosecond for the new local time.
    */
   constructor (year, month, day, hour, minute, second, nanosecond) {
     /**
@@ -406,11 +406,11 @@ export class LocalDateTime {
   }
 
   /**
-   * Create a local date-time object from the given standard JavaScript `Date` and optional nanoseconds.
+   * Create a {@link LocalDateTime} object from the given standard JavaScript `Date` and optional nanoseconds.
    * Time zone offset component of the given date is ignored.
-   * @param {global.Date} standardDate the standard JavaScript date to convert.
-   * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
-   * @return {LocalDateTime} new local date-time.
+   * @param {global.Date} standardDate - The standard JavaScript date to convert.
+   * @param {Integer|number|undefined} nanosecond - The optional amount of nanoseconds.
+   * @return {LocalDateTime} New LocalDateTime.
    */
   static fromStandardDate (standardDate, nanosecond) {
     verifyStandardDateAndNanos(standardDate, nanosecond)
@@ -450,7 +450,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link LocalDateTime} class.
- * @param {Object} obj the object to test.
+ * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link LocalDateTime}, `false` otherwise.
  */
 export function isLocalDateTime (obj) {
@@ -459,22 +459,22 @@ export function isLocalDateTime (obj) {
 
 /**
  * Represents an instant capturing the date, the time and the timezone identifier.
- * Created `DateTime` objects are frozen with `Object.freeze()` in constructor and thus immutable.
+ * Created {@ DateTime} objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
 export class DateTime {
   /**
    * @constructor
-   * @param {Integer|number} year the year for the new date-time.
-   * @param {Integer|number} month the month for the new date-time.
-   * @param {Integer|number} day the day for the new date-time.
-   * @param {Integer|number} hour the hour for the new date-time.
-   * @param {Integer|number} minute the minute for the new date-time.
-   * @param {Integer|number} second the second for the new date-time.
-   * @param {Integer|number} nanosecond the nanosecond for the new date-time.
-   * @param {Integer|number} timeZoneOffsetSeconds the time zone offset in seconds. Either this argument or `timeZoneId` should be defined.
+   * @param {Integer|number} year - The year for the new date-time.
+   * @param {Integer|number} month - The month for the new date-time.
+   * @param {Integer|number} day - The day for the new date-time.
+   * @param {Integer|number} hour - The hour for the new date-time.
+   * @param {Integer|number} minute - The minute for the new date-time.
+   * @param {Integer|number} second - The second for the new date-time.
+   * @param {Integer|number} nanosecond - The nanosecond for the new date-time.
+   * @param {Integer|number} timeZoneOffsetSeconds - The time zone offset in seconds. Either this argument or `timeZoneId` should be defined.
    * Value represents the difference, in seconds, from UTC to local time.
    * This is different from standard JavaScript `Date.getTimezoneOffset()` which is the difference, in minutes, from local time to UTC.
-   * @param {string|null} timeZoneId the time zone id for the new date-time. Either this argument or `timeZoneOffsetSeconds` should be defined.
+   * @param {string|null} timeZoneId - The time zone id for the new date-time. Either this argument or `timeZoneOffsetSeconds` should be defined.
    */
   constructor (
     year,
@@ -548,10 +548,10 @@ export class DateTime {
   }
 
   /**
-   * Create a date-time object from the given standard JavaScript `Date` and optional nanoseconds.
-   * @param {global.Date} standardDate the standard JavaScript date to convert.
-   * @param {Integer|number|undefined} nanosecond the optional amount of nanoseconds.
-   * @return {DateTime} new date-time.
+   * Create a {@link DateTime} object from the given standard JavaScript `Date` and optional nanoseconds.
+   * @param {global.Date} standardDate - The standard JavaScript date to convert.
+   * @param {Integer|number|undefined} nanosecond - The optional amount of nanoseconds.
+   * @return {DateTime} New DateTime.
    */
   static fromStandardDate (standardDate, nanosecond) {
     verifyStandardDateAndNanos(standardDate, nanosecond)
@@ -597,7 +597,7 @@ Object.defineProperty(
 
 /**
  * Test if given object is an instance of {@link DateTime} class.
- * @param {Object} obj the object to test.
+ * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link DateTime}, `false` otherwise.
  */
 export function isDateTime (obj) {

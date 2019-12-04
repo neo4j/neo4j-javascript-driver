@@ -101,7 +101,7 @@ class Driver {
    *
    * @public
    * @param {Object} param - The object parameter
-   * @param {string} param.database - the target database to verify connectivity for.
+   * @param {string} param.database - The target database to verify connectivity for.
    * @returns {Promise} promise resolved with server info or rejected with error.
    */
   verifyConnectivity ({ database = '' } = {}) {
@@ -111,8 +111,8 @@ class Driver {
   }
 
   /**
-   * Returns whether the server supports multi database capabilities based on the handshaked protocol
-   * version.
+   * Returns whether the server supports multi database capabilities based on the protocol
+   * version negotiated via handshake.
    *
    * Note that this function call _always_ causes a round-trip to the server.
    *
@@ -136,12 +136,12 @@ class Driver {
    *
    * @public
    * @param {Object} param - The object parameter
-   * @param {string} param.defaultAccessMode=WRITE - the access mode of this session, allowed values are {@link READ} and {@link WRITE}.
-   * @param {string|string[]} param.bookmarks - the initial reference or references to some previous
+   * @param {string} param.defaultAccessMode=WRITE - The access mode of this session, allowed values are {@link READ} and {@link WRITE}.
+   * @param {string|string[]} param.bookmarks - The initial reference or references to some previous
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
-   * @param {number} param.fetchSize - the record fetch size of each batch of this session.
+   * @param {number} param.fetchSize - The record fetch size of each batch of this session.
    * Use {@link ALL} to always pull all records in one batch. This will override the config value set on driver config.
-   * @param {string} param.database - the database this session will operate on.
+   * @param {string} param.database - The database this session will operate on.
    * @return {Session} new session.
    */
   session ({
@@ -172,10 +172,10 @@ class Driver {
    *
    * @public
    * @param {Object} param
-   * @param {string} param.defaultAccessMode=WRITE - the access mode of this session, allowed values are {@link READ} and {@link WRITE}
-   * @param {string|string[]} param.bookmarks - the initial reference or references to some previous transactions. Value is optional and
+   * @param {string} param.defaultAccessMode=WRITE - The access mode of this session, allowed values are {@link READ} and {@link WRITE}.
+   * @param {string|string[]} param.bookmarks - The initial reference or references to some previous transactions. Value is optional and
    * absence indicates that the bookmarks do not exist or are unknown.
-   * @param {string} param.database - the database this session will operate on.
+   * @param {string} param.database - The database this session will operate on.
    * @returns {RxSession} new reactive session.
    */
   rxSession ({
