@@ -20,6 +20,8 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
+import { map, materialize, toArray } from 'rxjs/operators'
+import { Notification } from 'rxjs'
 
 /**
  * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
@@ -65,37 +67,89 @@ describe('#integration examples', () => {
     await driverGlobal.close()
   })
 
-  it('autocommit transaction example', async () => {
+  // tag::autocommit-transaction[]
+  // Not supported
+  // end::autocommit-transaction[]
+  it('async autocommit transaction example', async () => {
     const driver = driverGlobal
 
-    // tag::autocommit-transaction[]
-    async function addPerson (name) {
+    const session = driver.session()
+    try {
+      await session.run('CREATE (p:Product) SET p.id = $id, p.title = $title', {
+        id: 0,
+        title: 'Product-0'
+      })
+    } finally {
+      await session.close()
+    }
+
+    // tag::async-autocommit-transaction[]
+    async function readProductTitles () {
       const session = driver.session()
       try {
-        return await session.run('CREATE (a:Person {name: $name})', {
-          name: name
-        })
+        const result = await session.run(
+          'MATCH (p:Product) WHERE p.id = $id RETURN p.title',
+          {
+            id: 0
+          }
+        )
+        const records = result.records
+        const titles = []
+        for (let i = 0; i < records.length; i++) {
+          const title = records[i].get(0)
+          titles.push(title)
+        }
+        return titles
       } finally {
         await session.close()
       }
     }
 
-    // end::autocommit-transaction[]
+    // end::async-autocommit-transaction[]
 
-    await addPerson('Alice')
+    const titles = await readProductTitles()
+    expect(titles.length).toEqual(1)
+    expect(titles[0]).toEqual('Product-0')
+  })
 
+  it('rx autocommit transaction example', async () => {
+    if (version.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
+    const driver = driverGlobal
     const session = driver.session()
     try {
-      const result = await session.run(
-        'MATCH (a:Person {name: $name}) RETURN count(a) AS result',
-        {
-          name: 'Alice'
-        }
-      )
-      expect(result.records[0].get('result').toInt()).toEqual(1)
+      await session.run('CREATE (p:Product) SET p.id = $id, p.title = $title', {
+        id: 0,
+        title: 'Product-0'
+      })
     } finally {
       await session.close()
     }
+
+    // tag::rx-autocommit-transaction[]
+    function readProductTitles () {
+      const session = driver.rxSession()
+      return session
+        .run('MATCH (p:Product) WHERE p.id = $id RETURN p.title', {
+          id: 0
+        })
+        .records()
+        .pipe(
+          map(r => r.get(0)),
+          materialize(),
+          toArray()
+        )
+    }
+
+    // end::rx-autocommit-transaction[]
+    const result = await readProductTitles().toPromise()
+
+    expect(result).toEqual([
+      Notification.createNext('Product-0'),
+      Notification.createComplete()
+    ])
   })
 
   it('basic auth example', async () => {
@@ -379,46 +433,87 @@ describe('#integration examples', () => {
     expect(await consoleLoggedMsg).toContain('Matched created node with id')
   })
 
-  it('result consume example', async () => {
+  // tag::result-consume[]
+  // Not supported
+  // end::result-consume[]
+  it('async result consume example', async () => {
     const console = consoleOverride
     const consoleLoggedMsg = consoleOverridePromise
     const driver = driverGlobal
     const names = { nameA: 'Alice', nameB: 'Bob' }
-    const tmpSession = driver.session()
+    const tempSession = driver.session()
     try {
-      await tmpSession.run(
+      await tempSession.run(
         'CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})',
         names
       )
-      // tag::result-consume[]
-      const session = driver.session()
-      const result = session.run(
-        'MATCH (a:Person) RETURN a.name ORDER BY a.name'
-      )
-      const collectedNames = []
-
-      result.subscribe({
-        onNext: record => {
-          const name = record.get(0)
-          collectedNames.push(name)
-        },
-        onCompleted: () => {
-          session.close().then(() => {
-            console.log('Names: ' + collectedNames.join(', '))
-          })
-        },
-        onError: error => {
-          console.log(error)
-        }
-      })
-      // end::result-consume[]
     } finally {
-      await tmpSession.close()
+      await tempSession.close()
     }
+    // tag::async-result-consume[]
+    const session = driver.session()
+    const result = session.run('MATCH (a:Person) RETURN a.name ORDER BY a.name')
+    const collectedNames = []
+
+    result.subscribe({
+      onNext: record => {
+        const name = record.get(0)
+        collectedNames.push(name)
+      },
+      onCompleted: () => {
+        session.close().then(() => {
+          console.log('Names: ' + collectedNames.join(', '))
+        })
+      },
+      onError: error => {
+        console.log(error)
+      }
+    })
+    // end::async-result-consume[]
 
     expect(await consoleLoggedMsg).toEqual('Names: Alice, Bob')
   })
 
+  it('rx result consume example', async () => {
+    if (version.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
+    const driver = driverGlobal
+    const names = { nameA: 'Alice', nameB: 'Bob' }
+    const tempSession = driver.session()
+    try {
+      await tempSession.run(
+        'CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})',
+        names
+      )
+    } finally {
+      await tempSession.close()
+    }
+
+    // tag::rx-result-consume[]
+    const session = driver.rxSession()
+    const result = session
+      .run('MATCH (a:Person) RETURN a.name ORDER BY a.name')
+      .records()
+      .pipe(
+        map(r => r.get(0)),
+        materialize(),
+        toArray()
+      )
+    // end::rx-result-consume[]
+
+    const people = await result.toPromise()
+    expect(people).toEqual([
+      Notification.createNext('Alice'),
+      Notification.createNext('Bob'),
+      Notification.createComplete()
+    ])
+  })
+
+  // tag::result-retain[]
+  // Not supported
+  // end::result-retain[]
   it('result retain example', async () => {
     const console = consoleOverride
     const consoleLoggedMsg = consoleOverridePromise
@@ -433,7 +528,7 @@ describe('#integration examples', () => {
         personNames
       )
 
-      // tag::result-retain[]
+      // tag::async-result-retain[]
       const session = driver.session()
       try {
         const result = await session.readTransaction(tx =>
@@ -458,7 +553,7 @@ describe('#integration examples', () => {
       } finally {
         await session.close()
       }
-      // end::result-retain[]
+      // end::async-result-retain[]
     } finally {
       await tmpSession.close()
     }
@@ -519,28 +614,80 @@ describe('#integration examples', () => {
     expect(await consoleLoggedMsg).toBe('Person created, session closed')
   })
 
-  it('transaction function example', async () => {
-    const console = consoleOverride
-    const consoleLoggedMsg = consoleOverridePromise
+  // tag::transaction-function[]
+  // Not supported
+  // end::transaction-function[]
+  it('async transaction function example', async () => {
     const driver = driverGlobal
-    const personName = 'Alice'
-
-    // tag::transaction-function[]
-    const session = driver.session()
+    const tempSession = driver.session()
     try {
-      const result = await session.writeTransaction(tx =>
-        tx.run('CREATE (a:Person {name: $name})', { name: personName })
+      await tempSession.run(
+        "UNWIND ['Infinity Gauntlet', 'Mjölnir'] AS item " +
+          'CREATE (:Product {id: 0, title: item})'
+      )
+    } finally {
+      await tempSession.close()
+    }
+
+    // tag::async-transaction-function[]
+    const session = driver.session()
+    const titles = []
+    try {
+      const result = await session.readTransaction(tx =>
+        tx.run('MATCH (p:Product) WHERE p.id = $id RETURN p.title', { id: 0 })
       )
 
-      if (result) {
-        console.log('Person created')
+      const records = result.records
+      for (let i = 0; i < records.length; i++) {
+        const title = records[i].get(0)
+        titles.push(title)
       }
     } finally {
       await session.close()
     }
-    // end::transaction-function[]
+    // end::async-transaction-function[]
 
-    expect(await consoleLoggedMsg).toBe('Person created')
+    expect(titles.length).toEqual(2)
+    expect(titles[0]).toEqual('Infinity Gauntlet')
+    expect(titles[1]).toEqual('Mjölnir')
+  })
+
+  it('rx transaction function example', async () => {
+    if (version.compareTo(VERSION_4_0_0) < 0) {
+      return
+    }
+
+    const driver = driverGlobal
+    const tempSession = driver.session()
+    try {
+      await tempSession.run(
+        "UNWIND ['Infinity Gauntlet', 'Mjölnir'] AS item " +
+          'CREATE (:Product {id: 0, title: item})'
+      )
+    } finally {
+      await tempSession.close()
+    }
+
+    // tag::rx-transaction-function[]
+    const session = driver.rxSession()
+    const result = session.readTransaction(tx =>
+      tx
+        .run('MATCH (p:Product) WHERE p.id = $id RETURN p.title', { id: 0 })
+        .records()
+        .pipe(
+          map(r => r.get(0)),
+          materialize(),
+          toArray()
+        )
+    )
+    // end::rx-transaction-function[]
+
+    const people = await result.toPromise()
+    expect(people).toEqual([
+      Notification.createNext('Infinity Gauntlet'),
+      Notification.createNext('Mjölnir'),
+      Notification.createComplete()
+    ])
   })
 
   it('pass bookmarks example', done => {
