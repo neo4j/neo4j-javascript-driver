@@ -1480,7 +1480,6 @@ describe('temporal-types', () => {
         const value = records[0].get(0)
         expect(value).toEqual(expectedValue)
 
-        session.close()
         done()
       })
       .catch(error => {
@@ -1498,7 +1497,6 @@ describe('temporal-types', () => {
         const receivedValue = records[0].get(0)
         expect(receivedValue).toEqual(value)
 
-        session.close()
         done()
       })
       .catch(error => {

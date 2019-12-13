@@ -572,6 +572,27 @@ describe('transaction', () => {
       })
   })
 
+  it('should reset transaction', done => {
+    const RetryTimeoutLimit = 10000
+    const TransactionTimeout = 30000
+
+    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      maxTransactionRetryTime: RetryTimeoutLimit,
+      connectionTimeout: TransactionTimeout
+    })
+    const session = driver.session()
+    const runPromise = session
+      .readTransaction(transaction => transaction.run('RETURN 1'))
+      .catch(error => {
+        expect(error.message).toBe(
+          'You cannot run more transactions on a closed session.'
+        )
+        driver.close()
+        done()
+      })
+    session.close() // This will interrupt runPromise to reset the transaction
+  })
+
   function expectSyntaxError (error) {
     expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
   }

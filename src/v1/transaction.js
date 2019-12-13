@@ -34,12 +34,15 @@ class Transaction {
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
+   * @param onConnection callback invoked when a connection is obtained from connection holder. This need to be
+   * called to see if the connection is in the process of being released.
    */
-  constructor (connectionHolder, onClose, onBookmark) {
+  constructor (connectionHolder, onClose, onBookmark, onConnection) {
     this._connectionHolder = connectionHolder
     this._state = _states.ACTIVE
     this._onClose = onClose
     this._onBookmark = onBookmark
+    this._onConnection = onConnection
   }
 
   _begin (bookmark, txConfig) {
@@ -47,7 +50,8 @@ class Transaction {
 
     this._connectionHolder
       .getConnection(streamObserver)
-      .then(conn =>
+      .then(conn => {
+        this._onConnection()
         conn
           .protocol()
           .beginTransaction(
@@ -56,7 +60,7 @@ class Transaction {
             this._connectionHolder.mode(),
             streamObserver
           )
-      )
+      })
       .catch(error => streamObserver.onError(error))
   }
 
@@ -78,7 +82,8 @@ class Transaction {
       this._connectionHolder,
       new _TransactionStreamObserver(this),
       query,
-      params
+      params,
+      this._onConnection
     )
   }
 
@@ -90,9 +95,10 @@ class Transaction {
    * @returns {Result} New Result
    */
   commit () {
-    let committed = this._state.commit(
+    const committed = this._state.commit(
       this._connectionHolder,
-      new _TransactionStreamObserver(this)
+      new _TransactionStreamObserver(this),
+      this._onConnection
     )
     this._state = committed.state
     // clean up
@@ -108,9 +114,10 @@ class Transaction {
    * @returns {Result} New Result
    */
   rollback () {
-    let committed = this._state.rollback(
+    const committed = this._state.rollback(
       this._connectionHolder,
-      new _TransactionStreamObserver(this)
+      new _TransactionStreamObserver(this),
+      this._onConnection
     )
     this._state = committed.state
     // clean up
@@ -161,29 +168,40 @@ class _TransactionStreamObserver extends StreamObserver {
 }
 
 /** internal state machine of the transaction */
-let _states = {
+const _states = {
   // The transaction is running with no explicit success or failure marked
   ACTIVE: {
-    commit: (connectionHolder, observer) => {
+    commit: (connectionHolder, observer, onConnection) => {
       return {
-        result: finishTransaction(true, connectionHolder, observer),
+        result: finishTransaction(
+          true,
+          connectionHolder,
+          observer,
+          onConnection
+        ),
         state: _states.SUCCEEDED
       }
     },
-    rollback: (connectionHolder, observer) => {
+    rollback: (connectionHolder, observer, onConnection) => {
       return {
-        result: finishTransaction(false, connectionHolder, observer),
+        result: finishTransaction(
+          false,
+          connectionHolder,
+          observer,
+          onConnection
+        ),
         state: _states.ROLLED_BACK
       }
     },
-    run: (connectionHolder, observer, statement, parameters) => {
+    run: (connectionHolder, observer, statement, parameters, onConnection) => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
       const bookmark = Bookmark.empty()
       const txConfig = TxConfig.empty()
 
       connectionHolder
         .getConnection(observer)
-        .then(conn =>
+        .then(conn => {
+          onConnection()
           conn
             .protocol()
             .run(
@@ -194,7 +212,7 @@ let _states = {
               connectionHolder.mode(),
               observer
             )
-        )
+        })
         .catch(error => observer.onError(error))
 
       return _newRunResult(observer, statement, parameters, () =>
@@ -206,7 +224,7 @@ let _states = {
   // An error has occurred, transaction can no longer be used and no more messages will
   // be sent for this transaction.
   FAILED: {
-    commit: (connectionHolder, observer) => {
+    commit: (connectionHolder, observer, onConnection) => {
       observer.onError({
         error:
           'Cannot commit statements in this transaction, because previous statements in the ' +
@@ -218,14 +236,14 @@ let _states = {
         state: _states.FAILED
       }
     },
-    rollback: (connectionHolder, observer) => {
+    rollback: (connectionHolder, observer, onConnection) => {
       observer.markCompleted()
       return {
         result: _newDummyResult(observer, 'ROLLBACK', {}),
         state: _states.FAILED
       }
     },
-    run: (connectionHolder, observer, statement, parameters) => {
+    run: (connectionHolder, observer, statement, parameters, onConnection) => {
       observer.onError({
         error:
           'Cannot run statement, because previous statements in the ' +
@@ -237,7 +255,7 @@ let _states = {
 
   // This transaction has successfully committed
   SUCCEEDED: {
-    commit: (connectionHolder, observer) => {
+    commit: (connectionHolder, observer, onConnection) => {
       observer.onError({
         error:
           'Cannot commit statements in this transaction, because commit has already been successfully called on the transaction and transaction has been closed. Please start a new' +
@@ -248,7 +266,7 @@ let _states = {
         state: _states.SUCCEEDED
       }
     },
-    rollback: (connectionHolder, observer) => {
+    rollback: (connectionHolder, observer, onConnection) => {
       observer.onError({
         error:
           'Cannot rollback transaction, because transaction has already been successfully closed.'
@@ -258,7 +276,7 @@ let _states = {
         state: _states.SUCCEEDED
       }
     },
-    run: (connectionHolder, observer, statement, parameters) => {
+    run: (connectionHolder, observer, statement, parameters, onConnection) => {
       observer.onError({
         error:
           'Cannot run statement, because transaction has already been successfully closed.'
@@ -269,7 +287,7 @@ let _states = {
 
   // This transaction has been rolled back
   ROLLED_BACK: {
-    commit: (connectionHolder, observer) => {
+    commit: (connectionHolder, observer, onConnection) => {
       observer.onError({
         error:
           'Cannot commit this transaction, because it has already been rolled back.'
@@ -279,7 +297,7 @@ let _states = {
         state: _states.ROLLED_BACK
       }
     },
-    rollback: (connectionHolder, observer) => {
+    rollback: (connectionHolder, observer, onConnection) => {
       observer.onError({
         error:
           'Cannot rollback transaction, because transaction has already been rolled back.'
@@ -289,7 +307,7 @@ let _states = {
         state: _states.ROLLED_BACK
       }
     },
-    run: (connectionHolder, observer, statement, parameters) => {
+    run: (connectionHolder, observer, statement, parameters, onConnection) => {
       observer.onError({
         error:
           'Cannot run statement, because transaction has already been rolled back.'
@@ -299,10 +317,11 @@ let _states = {
   }
 }
 
-function finishTransaction (commit, connectionHolder, observer) {
+function finishTransaction (commit, connectionHolder, observer, onConnection) {
   connectionHolder
     .getConnection(observer)
     .then(connection => {
+      onConnection()
       if (commit) {
         return connection.protocol().commitTransaction(observer)
       } else {
