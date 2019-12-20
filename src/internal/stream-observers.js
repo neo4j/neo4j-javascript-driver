@@ -95,6 +95,7 @@ class ResultStreamObserver extends StreamObserver {
     this._discard = false
     this._fetchSize = fetchSize
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
+    this._setupAuoPull(fetchSize)
   }
 
   /**
@@ -113,6 +114,9 @@ class ResultStreamObserver extends StreamObserver {
       })
     } else {
       this._queuedRecords.push(record)
+      if (this._queuedRecords.length > this._highRecordWatermark) {
+        this._autoPull = false
+      }
     }
   }
 
@@ -182,6 +186,12 @@ class ResultStreamObserver extends StreamObserver {
     if (this._queuedRecords.length > 0 && observer.onNext) {
       for (let i = 0; i < this._queuedRecords.length; i++) {
         observer.onNext(this._queuedRecords[i])
+        if (this._queuedRecords.length - i - 1 <= this._lowRecordWatermark) {
+          this._autoPull = true
+          if (this._state === _states.READY) {
+            this._handleStreaming()
+          }
+        }
       }
     }
     if (this._tail && observer.onCompleted) {
@@ -334,15 +344,16 @@ class ResultStreamObserver extends StreamObserver {
     if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
       if (this._discard) {
         this._discardFunction(this._connection, this._queryId, this)
-      } else {
+        this._setState(_states.STREAMING)
+      } else if (this._autoPull) {
         this._moreFunction(
           this._connection,
           this._queryId,
           this._fetchSize,
           this
         )
+        this._setState(_states.STREAMING)
       }
-      this._setState(_states.STREAMING)
     }
   }
 
@@ -359,6 +370,17 @@ class ResultStreamObserver extends StreamObserver {
 
   _setState (state) {
     this._state = state
+  }
+
+  _setupAuoPull (fetchSize) {
+    this._autoPull = true
+    if (fetchSize === ALL) {
+      this._lowRecordWatermark = Number.MAX_VALUE // we shall always lower than this number to enable auto pull
+      this._highRecordWatermark = Number.MAX_VALUE // we shall never reach this number to disable auto pull
+    } else {
+      this._lowRecordWatermark = 0.3 * fetchSize
+      this._highRecordWatermark = 0.7 * fetchSize
+    }
   }
 }
 
