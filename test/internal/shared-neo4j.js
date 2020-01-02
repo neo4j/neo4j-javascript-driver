@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -245,7 +245,7 @@ function createUser (username, password) {
   if (!result.successful) {
     throw new Error(`Unable to create user on neo4j.\n${result.fullOutput}`)
   }
-  console.log(`User created.`)
+  console.log('User created.')
 }
 
 function startNeo4j () {
@@ -254,7 +254,7 @@ function startNeo4j () {
   if (!result.successful) {
     throw new Error(`Unable to start.\n${result.fullOutput}`)
   }
-  console.log(`Neo4j started.`)
+  console.log('Neo4j started.')
 }
 
 function stopNeo4j () {
@@ -263,7 +263,7 @@ function stopNeo4j () {
   if (!result.successful) {
     throw new Error(`Unable to stop.\n${result.fullOutput}`)
   }
-  console.log(`Neo4j stopped.`)
+  console.log('Neo4j stopped.')
 }
 
 function start () {

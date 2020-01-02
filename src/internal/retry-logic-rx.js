@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -84,9 +84,7 @@ export default class RxRetryLogic {
               Date.now() - startTime >= this._maxRetryTimeout
             ) {
               const error = newError(
-                `Failed after retried for ${retryCount} times in ${
-                  this._maxRetryTimeout
-                } ms. Make sure that your database is online and retry again.`,
+                `Failed after retried for ${retryCount} times in ${this._maxRetryTimeout} ms. Make sure that your database is online and retry again.`,
                 SERVICE_UNAVAILABLE
               )
 

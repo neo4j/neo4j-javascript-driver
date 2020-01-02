@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -260,7 +260,7 @@ export function epochDayToDate (epochDay) {
     )
   }
   year = year.add(adjust)
-  let marchDayOfYear = dayOfYearEst
+  const marchDayOfYear = dayOfYearEst
 
   const marchMonth = marchDayOfYear
     .multiply(5)
@@ -339,7 +339,7 @@ export function timeZoneOffsetToIsoString (offsetSeconds) {
     offsetSeconds.div(SECONDS_PER_MINUTE).modulo(MINUTES_PER_HOUR),
     2
   )
-  let secondsValue = offsetSeconds.modulo(SECONDS_PER_MINUTE)
+  const secondsValue = offsetSeconds.modulo(SECONDS_PER_MINUTE)
   const seconds = secondsValue.equals(0) ? null : formatNumber(secondsValue, 2)
 
   return seconds
@@ -397,7 +397,7 @@ export function totalNanoseconds (standardDate, nanoseconds) {
  * @return {number} the time zone offset in seconds.
  */
 export function timeZoneOffsetInSeconds (standardDate) {
-  let offsetInMinutes = standardDate.getTimezoneOffset()
+  const offsetInMinutes = standardDate.getTimezoneOffset()
   if (offsetInMinutes === 0) {
     return 0
   }
