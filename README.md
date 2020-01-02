@@ -421,8 +421,10 @@ rxSession
 
 ### Numbers and the Integer type
 
-The Neo4j type system includes 64-bit integer values.
-However, JavaScript can only safely represent integers between `-(2`<sup>`53`</sup>`- 1)` and `(2`<sup>`53`</sup>`- 1)`.
+The Neo4j type system uses 64-bit signed integer values. The range of values is between `-(2`<sup>`64`</sup>`- 1)` and `(2`<sup>`63`</sup>`- 1)`.
+
+However, JavaScript can only safely represent integers between `Number.MIN_SAFE_INTEGER` `-(2`<sup>`53`</sup>`- 1)` and `Number.MAX_SAFE_INTEGER` `(2`<sup>`53`</sup>`- 1)`.
+
 In order to support the full Neo4j type system, the driver will not automatically convert to javascript integers.
 Any time the driver receives an integer value from Neo4j, it will be represented with an internal integer type by the driver.
 
@@ -431,6 +433,7 @@ _**Any javascript number value passed as a parameter will be recognized as `Floa
 #### Writing integers
 
 Numbers written directly e.g. `session.run("CREATE (n:Node {age: $age})", {age: 22})` will be of type `Float` in Neo4j.
+
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
@@ -439,7 +442,7 @@ var neo4j = require('neo4j-driver')
 session.run('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
 ```
 
-To write integers larger than can be represented as JavaScript numbers, use a string argument to `neo4j.int`:
+To write an integer value that are not within the range of `Number.MIN_SAFE_INTEGER` `-(2`<sup>`53`</sup>`- 1)` and `Number.MAX_SAFE_INTEGER` `(2`<sup>`53`</sup>`- 1)`, use a string argument to `neo4j.int`:
 
 ```javascript
 session.run('CREATE (n {age: $myIntParam})', {
@@ -449,22 +452,25 @@ session.run('CREATE (n {age: $myIntParam})', {
 
 #### Reading integers
 
-Since Integers can be larger than can be represented as JavaScript numbers, it is only safe to convert to JavaScript numbers if you know that they will not exceed `(2`<sup>`53`</sup>`- 1)` in size.
+In Neo4j, the type Integer can be larger what can be represented safely as an integer with JavaScript Number.
+
+It is only safe to convert to a JavaScript Number if you know that the number will be in the range `Number.MIN_SAFE_INTEGER` `-(2`<sup>`53`</sup>`- 1)` and `Number.MAX_SAFE_INTEGER` `(2`<sup>`53`</sup>`- 1)`.
+
 In order to facilitate working with integers the driver include `neo4j.isInt`, `neo4j.integer.inSafeRange`, `neo4j.integer.toNumber`, and `neo4j.integer.toString`.
 
 ```javascript
-var aSmallInteger = neo4j.int(123)
-if (neo4j.integer.inSafeRange(aSmallInteger)) {
-  var aNumber = aSmallInteger.toNumber()
+var smallInteger = neo4j.int(123)
+if (neo4j.integer.inSafeRange(smallInteger)) {
+  var aNumber = smallInteger.toNumber()
 }
 ```
 
-If you will be handling integers larger than that, you should convert them to strings:
+If you will be handling integers that is not within the JavaScript safe range of integers, you should convert the value to a string:
 
 ```javascript
-var aLargerInteger = neo4j.int('9223372036854775807')
-if (!neo4j.integer.inSafeRange(aLargerInteger)) {
-  var integerAsString = aLargerInteger.toString()
+var largeInteger = neo4j.int('9223372036854775807')
+if (!neo4j.integer.inSafeRange(largeInteger)) {
+  var integerAsString = largeInteger.toString()
 }
 ```
 
