@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -294,7 +294,7 @@ export default class ChannelConnection extends Connection {
       this._currentObserver.onError(this._error)
     }
     while (this._pendingObservers.length > 0) {
-      let observer = this._pendingObservers.shift()
+      const observer = this._pendingObservers.shift()
       if (observer && observer.onError) {
         observer.onError(this._error)
       }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -70,11 +70,11 @@ function streamDecodeCombinedBuffer (combinedBuffers, length, decodeFn, endFn) {
       return ''
     } else {
       partBuffer._updatePos(position - partBuffer.position)
-      let bytesToRead = Math.min(
+      const bytesToRead = Math.min(
         partBuffer.length - position,
         remainingBytesToRead
       )
-      let lastSlice = partBuffer.readSlice(bytesToRead)
+      const lastSlice = partBuffer.readSlice(bytesToRead)
       partBuffer._updatePos(bytesToRead)
       remainingBytesToRead = Math.max(
         remainingBytesToRead - lastSlice.length,

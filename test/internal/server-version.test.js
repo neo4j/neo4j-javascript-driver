@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -79,7 +79,7 @@ describe('#unit ServerVersion', () => {
     verifyVersion(parse('Neo4j/2.3-SNAPSHOT'), 2, 3, 0)
     verifyVersion(parse('Neo4j/2.2-M09'), 2, 2, 0)
 
-    let maxVer = Number.MAX_SAFE_INTEGER
+    const maxVer = Number.MAX_SAFE_INTEGER
     verifyVersion(parse('Neo4j/dev'), maxVer, maxVer, maxVer)
     verifyVersion(parse('Neo4j/DEV'), maxVer, maxVer, maxVer)
     verifyVersion(parse('Neo4j/Dev'), maxVer, maxVer, maxVer)

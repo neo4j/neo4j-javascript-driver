@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -58,7 +58,7 @@ export default class WebSocketChannel {
     this._ws = createWebSocket(scheme, config.address, socketFactory)
     this._ws.binaryType = 'arraybuffer'
 
-    let self = this
+    const self = this
     // All connection errors are not sent to the error handler
     // we must also check for dirty close calls
     this._ws.onclose = function (e) {
@@ -71,7 +71,7 @@ export default class WebSocketChannel {
       self._clearConnectionTimeout()
 
       // Drain all pending messages
-      let pending = self._pending
+      const pending = self._pending
       self._pending = null
       for (let i = 0; i < pending.length; i++) {
         self.write(pending[i])

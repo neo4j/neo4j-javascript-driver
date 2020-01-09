@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -40,7 +40,7 @@ const matchers = {
           expected = []
         }
 
-        let result = {}
+        const result = {}
 
         result.pass = util.contains(expected, actual)
         if (result.pass) {
@@ -59,8 +59,8 @@ const matchers = {
           expected = {}
         }
 
-        let result = {}
-        let failures = []
+        const result = {}
+        const failures = []
 
         if (!util.equals(expected.signature, actual.signature)) {
           failures.push(

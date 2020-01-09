@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -21,9 +21,9 @@ import BaseBuffer from './buf/base-buf'
 import { alloc } from './node'
 import CombinedBuffer from './buf/combined-buf'
 
-let _CHUNK_HEADER_SIZE = 2
-let _MESSAGE_BOUNDARY = 0x00
-let _DEFAULT_BUFFER_SIZE = 1400 // http://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
+const _CHUNK_HEADER_SIZE = 2
+const _MESSAGE_BOUNDARY = 0x00
+const _DEFAULT_BUFFER_SIZE = 1400 // http://stackoverflow.com/questions/2613734/maximum-packet-size-for-a-tcp-connection
 
 /**
  * Looks like a writable buffer, chunks output transparently into a channel below.
@@ -75,7 +75,7 @@ class Chunker extends BaseBuffer {
       this._closeChunkIfOpen()
 
       // Local copy and clear the buffer field. This ensures that the buffer is not re-released if the flush call fails
-      let out = this._buffer
+      const out = this._buffer
       this._buffer = null
 
       this._ch.write(out.getSlice(0, out.position))
@@ -105,7 +105,7 @@ class Chunker extends BaseBuffer {
 
   /** Ensure at least the given size is available for writing */
   _ensure (size) {
-    let toWriteSize = this._chunkOpen ? size : size + _CHUNK_HEADER_SIZE
+    const toWriteSize = this._chunkOpen ? size : size + _CHUNK_HEADER_SIZE
     if (this._buffer.remaining() < toWriteSize) {
       this.flush()
     }
@@ -119,7 +119,7 @@ class Chunker extends BaseBuffer {
 
   _closeChunkIfOpen () {
     if (this._chunkOpen) {
-      let chunkSize =
+      const chunkSize =
         this._buffer.position - (this._currentChunkStart + _CHUNK_HEADER_SIZE)
       this._buffer.putUInt16(this._currentChunkStart, chunkSize)
       this._chunkOpen = false

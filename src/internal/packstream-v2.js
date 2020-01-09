@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -580,7 +580,7 @@ function convertIntegerPropsIfNeeded (obj, disableLosslessIntegers) {
   }
 
   const clone = Object.create(Object.getPrototypeOf(obj))
-  for (let prop in obj) {
+  for (const prop in obj) {
     if (obj.hasOwnProperty(prop)) {
       const value = obj[prop]
       clone[prop] = isInt(value) ? value.toNumberOrInfinity() : value

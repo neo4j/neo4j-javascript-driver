@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) 2002-2020 "Neo4j,"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -33,7 +33,7 @@ class UnsupportedBoltStub {
 }
 
 const verbose =
-  (process.env['NEOLOGLEVEL'] || 'error').toLowerCase() === 'debug' // for debugging purposes
+  (process.env.NEOLOGLEVEL || 'error').toLowerCase() === 'debug' // for debugging purposes
 
 class SupportedBoltStub extends UnsupportedBoltStub {
   constructor () {
@@ -157,7 +157,7 @@ class StubServer {
 function newDriver (url, config = {}) {
   // left here for debugging purposes
   const logging = {
-    level: (process.env['NEOLOGLEVEL'] || 'error').toLowerCase(),
+    level: (process.env.NEOLOGLEVEL || 'error').toLowerCase(),
     logger: (level, msg) => console.warn(`${level}: ${msg}`)
   }
   // boltstub currently does not support encryption, create driver with encryption turned off
