@@ -96,7 +96,8 @@ class Session {
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    return this._run(query, params, (connection, streamObserver) =>
+    return this._run(query, params, (connection, streamObserver) => {
+      this._assertSessionIsOpen()
       connection
         .protocol()
         .run(
@@ -107,7 +108,7 @@ class Session {
           this._mode,
           streamObserver
         )
-    )
+    })
   }
 
   _run (statement, parameters, statementRunner) {
@@ -185,10 +186,17 @@ class Session {
     const tx = new Transaction(
       connectionHolder,
       this._transactionClosed.bind(this),
-      this._updateBookmark.bind(this)
+      this._updateBookmark.bind(this),
+      this._assertSessionIsOpen.bind(this)
     )
     tx._begin(this._lastBookmark, txConfig)
     return tx
+  }
+
+  _assertSessionIsOpen () {
+    if (!this._open) {
+      throw newError('You cannot run more transactions on a closed session.')
+    }
   }
 
   _transactionClosed () {
