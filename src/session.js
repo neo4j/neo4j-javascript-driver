@@ -103,8 +103,9 @@ class Session {
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    return this._run(validatedQuery, params, connection =>
-      connection.protocol().run(validatedQuery, params, {
+    return this._run(validatedQuery, params, connection => {
+      this._assertSessionIsOpen()
+      return connection.protocol().run(validatedQuery, params, {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
@@ -113,7 +114,7 @@ class Session {
         reactive: this._reactive,
         fetchSize: this._fetchSize
       })
-    )
+    })
   }
 
   _run (query, parameters, customRunner) {
@@ -188,11 +189,18 @@ class Session {
       connectionHolder,
       onClose: this._transactionClosed.bind(this),
       onBookmark: this._updateBookmark.bind(this),
+      onConnection: this._assertSessionIsOpen.bind(this),
       reactive: this._reactive,
       fetchSize: this._fetchSize
     })
     tx._begin(this._lastBookmark, txConfig)
     return tx
+  }
+
+  _assertSessionIsOpen () {
+    if (!this._open) {
+      throw newError('You cannot run more transactions on a closed session.')
+    }
   }
 
   _transactionClosed () {

@@ -20,6 +20,7 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion } from '../src/internal/server-version'
 import TxConfig from '../src/internal/tx-config'
+import { READ } from '../src/driver'
 
 describe('#integration transaction', () => {
   let driver
@@ -587,6 +588,23 @@ describe('#integration transaction', () => {
     const result = await tx.rollback()
 
     expect(result).toBeUndefined()
+  })
+
+  it('should reset transaction', async done => {
+    const session = driver.session({ defaultAccessMode: READ })
+    const tx = session.beginTransaction()
+    await tx.run('RETURN 1')
+
+    const closePromise = session.close()
+    try {
+      await tx.run('Match (n:Person) RETURN n')
+    } catch (error) {
+      expect(error.message).toBe(
+        'You cannot run more transactions on a closed session.'
+      )
+      await closePromise
+      done()
+    }
   })
 
   function expectSyntaxError (error) {
