@@ -38,6 +38,13 @@ const SESSION_EXPIRED = 'SessionExpired'
  */
 const PROTOCOL_ERROR = 'ProtocolError'
 
+/**
+ * Create a new error from a message and error code
+ * @param message the error message
+ * @param code the error code
+ * @return {Neo4jError} an {@link Neo4jError}
+ * @private
+ */
 function newError (message, code = 'N/A') {
   // TODO: Idea is that we can check the code here and throw sub-classes
   // of Neo4jError as appropriate
@@ -55,8 +62,20 @@ class Neo4jError extends Error {
    */
   constructor (message, code = 'N/A') {
     super(message)
+    /**
+     * The error message
+     * @type {string}
+     */
     this.message = message
+    /**
+     * Optional error code. Will be populated when error originates in the database.
+     * @type {string}
+     */
     this.code = code
+    /**
+     * The name of the error.
+     * @type {string}
+     */
     this.name = 'Neo4jError'
   }
 }

@@ -57,70 +57,6 @@ import {
 import ServerAddress from './internal/server-address'
 
 /**
- * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
- * basic authentication token.
- * @property {function(base64EncodedTicket: string)} kerberos the function to create a Kerberos authentication token.
- * Accepts a single string argument - base64 encoded Kerberos ticket.
- * @property {function(principal: string, credentials: string, realm: string, scheme: string, parameters: ?object)} custom
- * the function to create a custom authentication token.
- */
-const auth = {
-  basic: (username, password, realm = undefined) => {
-    if (realm) {
-      return {
-        scheme: 'basic',
-        principal: username,
-        credentials: password,
-        realm: realm
-      }
-    } else {
-      return { scheme: 'basic', principal: username, credentials: password }
-    }
-  },
-  kerberos: base64EncodedTicket => {
-    return {
-      scheme: 'kerberos',
-      principal: '', // This empty string is required for backwards compatibility.
-      credentials: base64EncodedTicket
-    }
-  },
-  custom: (principal, credentials, realm, scheme, parameters = undefined) => {
-    if (parameters) {
-      return {
-        scheme: scheme,
-        principal: principal,
-        credentials: credentials,
-        realm: realm,
-        parameters: parameters
-      }
-    } else {
-      return {
-        scheme: scheme,
-        principal: principal,
-        credentials: credentials,
-        realm: realm
-      }
-    }
-  }
-}
-const USER_AGENT = 'neo4j-javascript/' + VERSION
-
-/**
- * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
- * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to `console.log` with
- * timestamp, level and message. It takes an optional `level` parameter which represents the maximum log level to be logged. Default value is 'info'.
- */
-const logging = {
-  console: level => {
-    return {
-      level: level,
-      logger: (level, message) =>
-        console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
-    }
-  }
-}
-
-/**
  * Construct a new Neo4j Driver. This is your main entry point for this
  * library.
  *
@@ -234,7 +170,7 @@ const logging = {
  *       },
  *     }
  *
- * @param {string} url The URL for the Neo4j database, for instance "bolt://localhost"
+ * @param {string} url The URL for the Neo4j database, for instance "neo4j://localhost" and/or "bolt://localhost"
  * @param {Map<string,string>} authToken Authentication credentials. See {@link auth} for helpers.
  * @param {Object} config Configuration object. See the configuration section above for details.
  * @returns {Driver}
@@ -264,6 +200,70 @@ function driver (url, authToken, config = {}) {
     )
   } else {
     throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
+  }
+}
+
+/**
+ * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
+ * basic authentication token.
+ * @property {function(base64EncodedTicket: string)} kerberos the function to create a Kerberos authentication token.
+ * Accepts a single string argument - base64 encoded Kerberos ticket.
+ * @property {function(principal: string, credentials: string, realm: string, scheme: string, parameters: ?object)} custom
+ * the function to create a custom authentication token.
+ */
+const auth = {
+  basic: (username, password, realm = undefined) => {
+    if (realm) {
+      return {
+        scheme: 'basic',
+        principal: username,
+        credentials: password,
+        realm: realm
+      }
+    } else {
+      return { scheme: 'basic', principal: username, credentials: password }
+    }
+  },
+  kerberos: base64EncodedTicket => {
+    return {
+      scheme: 'kerberos',
+      principal: '', // This empty string is required for backwards compatibility.
+      credentials: base64EncodedTicket
+    }
+  },
+  custom: (principal, credentials, realm, scheme, parameters = undefined) => {
+    if (parameters) {
+      return {
+        scheme: scheme,
+        principal: principal,
+        credentials: credentials,
+        realm: realm,
+        parameters: parameters
+      }
+    } else {
+      return {
+        scheme: scheme,
+        principal: principal,
+        credentials: credentials,
+        realm: realm
+      }
+    }
+  }
+}
+const USER_AGENT = 'neo4j-javascript/' + VERSION
+
+/**
+ * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
+ * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to `console.log` with
+ * timestamp, level and message. It takes an optional `level` parameter which represents the maximum log level to be logged. Default value is 'info'.
+ */
+const logging = {
+  console: level => {
+    return {
+      level: level,
+      logger: (level, message) =>
+        console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
+    }
   }
 }
 
