@@ -54,6 +54,11 @@ class ResultSummary {
      */
     this.counters = new QueryStatistics(metadata.stats || {})
     // for backwards compatibility, remove in future version
+    /**
+     * Use {@link ResultSummary.counters} instead.
+     * @type {QueryStatistics}
+     * @deprecated
+     */
     this.updateStatistics = this.counters
 
     /**
@@ -61,6 +66,7 @@ class ResultSummary {
      * Query plan for the executed query if available, otherwise undefined.
      * Will only be populated for queries that start with "EXPLAIN".
      * @type {Plan}
+     * @public
      */
     this.plan =
       metadata.plan || metadata.profile
@@ -329,6 +335,10 @@ function valueOrDefault (key, values, defaultValue = 0) {
   }
 }
 
+/**
+ * The constants for query types
+ * @type {{SCHEMA_WRITE: string, WRITE_ONLY: string, READ_ONLY: string, READ_WRITE: string}}
+ */
 const queryType = {
   READ_ONLY: 'r',
   READ_WRITE: 'rw',

@@ -102,7 +102,7 @@ class Driver {
    * @public
    * @param {Object} param - The object parameter
    * @param {string} param.database - The target database to verify connectivity for.
-   * @returns {Promise} promise resolved with server info or rejected with error.
+   * @returns {Promise<void>} promise resolved with server info or rejected with error.
    */
   verifyConnectivity ({ database = '' } = {}) {
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -200,6 +200,7 @@ class Driver {
    * Close all open sessions and other associated resources. You should
    * make sure to use this when you are done with this driver instance.
    * @public
+   * @return {Promise<void>} promise resolved when the driver is closed.
    */
   close () {
     this._log.info(`Driver ${this._id} closing`)

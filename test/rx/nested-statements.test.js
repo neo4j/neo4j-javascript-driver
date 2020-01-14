@@ -31,7 +31,6 @@ import neo4j from '../../src'
 import { ServerVersion, VERSION_4_0_0 } from '../../src/internal/server-version'
 import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
-import { newError } from '../../src/error'
 
 describe('#integration-rx transaction', () => {
   let driver
