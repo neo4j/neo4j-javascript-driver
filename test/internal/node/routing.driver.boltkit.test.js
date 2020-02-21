@@ -2339,7 +2339,7 @@ describe('#stub-routing routing driver with stub server', () => {
       }
 
       const server = await boltStub.start(
-        `./test/resources/boltstub/${version}/supports_multi_db.script`,
+        `./test/resources/boltstub/${version}/supports_protocol_version.script`,
         9001
       )
 
@@ -2357,7 +2357,7 @@ describe('#stub-routing routing driver with stub server', () => {
       }
 
       const server = await boltStub.start(
-        `./test/resources/boltstub/${version}/supports_multi_db.script`,
+        `./test/resources/boltstub/${version}/supports_protocol_version.script`,
         9001
       )
 
@@ -2387,6 +2387,81 @@ describe('#stub-routing routing driver with stub server', () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
       await expectAsync(driver.supportsMultiDb()).toBeRejectedWith(
+        jasmine.objectContaining({
+          code: SESSION_EXPIRED
+        })
+      )
+
+      await driver.close()
+    })
+  })
+
+  describe('should report whether transaction config is supported', () => {
+    async function verifySupportsTransactionConfig (version, expected) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/supports_protocol_version.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsTransactionConfig()).toBeResolvedTo(
+        expected
+      )
+
+      await driver.close()
+      await server.exit()
+    }
+
+    async function verifySupportsTransactionConfigWithResolver (
+      version,
+      expected
+    ) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/supports_protocol_version.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:8000', {
+        resolver: address => [
+          'neo4j://127.0.0.1:9010',
+          'neo4j://127.0.0.1:9005',
+          'neo4j://127.0.0.1:9001'
+        ]
+      })
+
+      await expectAsync(driver.supportsTransactionConfig()).toBeResolvedTo(
+        expected
+      )
+
+      await driver.close()
+      await server.exit()
+    }
+
+    it('v1', () => verifySupportsTransactionConfig('v1', false))
+    it('v2', () => verifySupportsTransactionConfig('v2', false))
+    it('v3', () => verifySupportsTransactionConfig('v3', true))
+    it('v4', () => verifySupportsTransactionConfig('v4', true))
+    it('v1 with resolver', () =>
+      verifySupportsTransactionConfigWithResolver('v1', false))
+    it('v2 with resolver', () =>
+      verifySupportsTransactionConfigWithResolver('v2', false))
+    it('v3 with resolver', () =>
+      verifySupportsTransactionConfigWithResolver('v3', true))
+    it('v4 with resolver', () =>
+      verifySupportsTransactionConfigWithResolver('v4', true))
+    it('on error', async () => {
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsTransactionConfig()).toBeRejectedWith(
         jasmine.objectContaining({
           code: SESSION_EXPIRED
         })

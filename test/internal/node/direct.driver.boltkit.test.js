@@ -418,7 +418,7 @@ describe('#stub-direct direct driver with stub server', () => {
       }
 
       const server = await boltStub.start(
-        `./test/resources/boltstub/${version}/supports_multi_db.script`,
+        `./test/resources/boltstub/${version}/supports_protocol_version.script`,
         9001
       )
 
@@ -438,6 +438,44 @@ describe('#stub-direct direct driver with stub server', () => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
 
       await expectAsync(driver.supportsMultiDb()).toBeRejectedWith(
+        jasmine.objectContaining({
+          code: SERVICE_UNAVAILABLE
+        })
+      )
+
+      await driver.close()
+    })
+  })
+
+  describe('should report whether transaction config is supported', () => {
+    async function verifySupportsTransactionConfig (version, expected) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/supports_protocol_version.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsTransactionConfig()).toBeResolvedTo(
+        expected
+      )
+
+      await driver.close()
+      await server.exit()
+    }
+
+    it('v1', () => verifySupportsTransactionConfig('v1', false))
+    it('v2', () => verifySupportsTransactionConfig('v2', false))
+    it('v3', () => verifySupportsTransactionConfig('v3', true))
+    it('v4', () => verifySupportsTransactionConfig('v4', true))
+    it('on error', async () => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsTransactionConfig()).toBeRejectedWith(
         jasmine.objectContaining({
           code: SERVICE_UNAVAILABLE
         })

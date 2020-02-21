@@ -111,6 +111,10 @@ driver.supportsMultiDb().then((supported: boolean) => {
   console.log(`multi database is supported? => ${supported}`)
 })
 
+driver.supportsTransactionConfig().then((supported: boolean) => {
+  console.log(`transaction config is supported? => ${supported}`)
+})
+
 const rxSession1: RxSession = driver.rxSession()
 const rxSession2: RxSession = driver.rxSession({ defaultAccessMode: READ })
 const rxSession3: RxSession = driver.rxSession({ defaultAccessMode: 'READ' })

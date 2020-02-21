@@ -95,6 +95,8 @@ declare interface Driver {
   verifyConnectivity(): Promise<ServerInfo>
 
   supportsMultiDb(): Promise<boolean>
+
+  supportsTransactionConfig(): Promise<boolean>
 }
 
 export {
