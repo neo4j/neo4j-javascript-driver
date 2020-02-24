@@ -49,6 +49,16 @@ export default class ConnectionProvider {
   }
 
   /**
+   * This method checks whether the backend database supports transaction config functionality
+   * by checking protocol handshake result.
+   *
+   * @returns {Promise<boolean>}
+   */
+  supportsTransactionConfig () {
+    throw new Error('not implemented')
+  }
+
+  /**
    * Closes this connection provider along with its internals (connections, pools, etc.)
    *
    * @returns {Promise<void>}

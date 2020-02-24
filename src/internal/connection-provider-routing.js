@@ -33,7 +33,7 @@ import LeastConnectedLoadBalancingStrategy from './least-connected-load-balancin
 import Bookmark from './bookmark'
 import ChannelConnection from './connection-channel'
 import { int } from '../integer'
-import { BOLT_PROTOCOL_V4 } from './constants'
+import { BOLT_PROTOCOL_V4, BOLT_PROTOCOL_V3 } from './constants'
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 const DATABASE_NOT_FOUND_ERROR_CODE =
@@ -152,7 +152,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
   }
 
-  async supportsMultiDb () {
+  async _hasProtocolVersion (versionPredicate) {
     const addresses = await this._resolveSeedRouter(this._seedRouter)
 
     let lastError
@@ -169,7 +169,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
         const protocol = connection.protocol()
         if (protocol) {
-          return protocol.version >= BOLT_PROTOCOL_V4
+          return versionPredicate(protocol.version)
         }
 
         return false
@@ -185,6 +185,18 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
 
     return false
+  }
+
+  async supportsMultiDb () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V4
+    )
+  }
+
+  async supportsTransactionConfig () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V3
+    )
   }
 
   forget (address, database) {

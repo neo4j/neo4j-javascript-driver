@@ -124,6 +124,19 @@ class Driver {
   }
 
   /**
+   * Returns whether the server supports transaction config capabilities based on the protocol
+   * version negotiated via handshake.
+   *
+   * Note that this function call _always_ causes a round-trip to the server.
+   *
+   * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
+   */
+  supportsTransactionConfig () {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.supportsTransactionConfig()
+  }
+
+  /**
    * Acquire a session to communicate with the database. The session will
    * borrow connections from the underlying connection pool as required and
    * should be considered lightweight and disposable.

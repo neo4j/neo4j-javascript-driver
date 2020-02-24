@@ -20,7 +20,7 @@
 import PooledConnectionProvider from './connection-provider-pooled'
 import DelegateConnection from './connection-delegate'
 import ChannelConnection from './connection-channel'
-import { BOLT_PROTOCOL_V4 } from './constants'
+import { BOLT_PROTOCOL_V4, BOLT_PROTOCOL_V3 } from './constants'
 
 export default class DirectConnectionProvider extends PooledConnectionProvider {
   constructor ({ id, config, log, address, userAgent, authToken }) {
@@ -39,7 +39,7 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
       .then(connection => new DelegateConnection(connection, null))
   }
 
-  async supportsMultiDb () {
+  async _hasProtocolVersion (versionPredicate) {
     const connection = ChannelConnection.create(
       this._address,
       this._config,
@@ -52,12 +52,24 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
 
       const protocol = connection.protocol()
       if (protocol) {
-        return protocol.version >= BOLT_PROTOCOL_V4
+        return versionPredicate(protocol.version)
       }
 
       return false
     } finally {
       await connection.close()
     }
+  }
+
+  async supportsMultiDb () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V4
+    )
+  }
+
+  async supportsTransactionConfig () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V3
+    )
   }
 }
