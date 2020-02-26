@@ -126,4 +126,67 @@ describe('#unit Record', () => {
     // Then
     expect(result).toEqual([['Bob', 'name', record], [45, 'age', record]])
   })
+
+  it('should allow taking values lazily', () => {
+    // Given
+    const record = new Record(['name', 'age'], ['Bob', 45])
+    const values = record.values()
+
+    // When
+    const first = values.next()
+    const second = values.next()
+    const third = values.next()
+
+    // Then
+    expect(first.value).toEqual('Bob')
+    expect(first.done).toBeFalsy()
+    expect(second.value).toEqual(45)
+    expect(second.done).toBeFalsy()
+    expect(third.value).toBeUndefined()
+    expect(third.done).toBeTruthy()
+  })
+
+  it('should allow taking key-value pairs lazily', () => {
+    // Given
+    const record = new Record(['name', 'age'], ['Bob', 45])
+    const entries = record.entries()
+
+    // When
+    const first = entries.next()
+    const second = entries.next()
+    const third = entries.next()
+
+    // Then
+    expect(first.value).toEqual(['name', 'Bob'])
+    expect(first.done).toBeFalsy()
+    expect(second.value).toEqual(['age', 45])
+    expect(second.done).toBeFalsy()
+    expect(third.value).toBeUndefined()
+    expect(third.done).toBeTruthy()
+  })
+
+  it('should allow directly creating array from record', () => {
+    // Given
+    const record = new Record(['name', 'age'], ['Bob', 45])
+
+    // When
+    const values = Array.from(record)
+
+    // Then
+    expect(values).toEqual(['Bob', 45])
+  })
+
+  it('should allow iterating over values using for..of loop', () => {
+    // Given
+    const record = new Record(['name', 'age'], ['Bob', 45])
+    const values = []
+
+    // When
+    for (const value of record) {
+      values.push(value)
+    }
+
+    // Then
+    expect(values).toEqual(['Bob', 45])
+  })
 })

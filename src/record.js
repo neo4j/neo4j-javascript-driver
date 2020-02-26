@@ -80,8 +80,8 @@ class Record {
    * @param {function(value: Object, key: string, record: Record)} visitor the function to apply to each field.
    */
   forEach (visitor) {
-    for (let i = 0; i < this.keys.length; i++) {
-      visitor(this._fields[i], this.keys[i], this)
+    for (const [key, value] of this.entries()) {
+      visitor(value, key, this)
     }
   }
 
@@ -98,11 +98,46 @@ class Record {
   map (visitor) {
     const resultArray = []
 
-    for (let i = 0; i < this.keys.length; i++) {
-      resultArray.push(visitor(this._fields[i], this.keys[i], this))
+    for (const [key, value] of this.entries()) {
+      resultArray.push(visitor(value, key, this))
     }
 
     return resultArray
+  }
+
+  /**
+   * Iterate over results. Each iteration will yield an array
+   * of exactly two items - the key, and the value (in order).
+   *
+   * @generator
+   * @returns {IterableIterator<[string, Object]>}
+   */
+  * entries () {
+    for (let i = 0; i < this.keys.length; i++) {
+      yield [this.keys[i], this._fields[i]]
+    }
+  }
+
+  /**
+   * Iterate over values.
+   *
+   * @generator
+   * @returns {IterableIterator<Object>}
+   */
+  * values () {
+    for (let i = 0; i < this.keys.length; i++) {
+      yield this._fields[i]
+    }
+  }
+
+  /**
+   * Iterate over values. Delegates to {@link Record#values}
+   *
+   * @generator
+   * @returns {IterableIterator<Object>}
+   */
+  * [Symbol.iterator] () {
+    yield * this.values()
   }
 
   /**
@@ -112,9 +147,10 @@ class Record {
    */
   toObject () {
     const object = {}
-    this.forEach((value, key) => {
+
+    for (const [key, value] of this.entries()) {
       object[key] = value
-    })
+    }
 
     return object
   }
