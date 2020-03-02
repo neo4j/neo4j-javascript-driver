@@ -36,6 +36,7 @@ describe('#integration examples', () => {
 
   let driverGlobal
   let version
+  let edition
   let originalTimeout
 
   let consoleOverride
@@ -60,6 +61,7 @@ describe('#integration examples', () => {
     consoleOverride = { log: msg => consoleOverridePromiseResolve(msg) }
 
     version = await sharedNeo4j.cleanupAndGetVersion(driverGlobal)
+    edition = await sharedNeo4j.getEdition(driverGlobal)
   })
 
   afterAll(async () => {
@@ -688,6 +690,66 @@ describe('#integration examples', () => {
       Notification.createNext('Mjölnir'),
       Notification.createComplete()
     ])
+  })
+
+  it('use another database example', async () => {
+    if (version.compareTo(VERSION_4_0_0) < 0 || edition !== 'enterprise') {
+      return
+    }
+
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
+
+    const driver = driverGlobal
+    const systemSession = driver.session({ database: 'system' })
+    try {
+      await systemSession.run('DROP DATABASE examples')
+    } catch (err) {
+      // Database probably didn't exists
+    }
+
+    try {
+      await systemSession.run('CREATE DATABASE examples')
+    } finally {
+      await systemSession.close()
+    }
+
+    // tag::database-selection[]
+    const session = driver.session({ database: 'examples' })
+    try {
+      const result = await session.writeTransaction(tx =>
+        tx.run(
+          'CREATE (a:Greeting {message: "Hello, Example-Database"}) RETURN a.message'
+        )
+      )
+
+      const singleRecord = result.records[0]
+      const greeting = singleRecord.get(0)
+
+      console.log(greeting)
+    } finally {
+      await session.close()
+    }
+
+    const readSession = driver.session({
+      database: 'examples',
+      defaultAccessMode: neo4j.READ
+    })
+    try {
+      const result = await readSession.writeTransaction(tx =>
+        tx.run('MATCH (a:Greeting) RETURN a.message')
+      )
+
+      const singleRecord = result.records[0]
+      const greeting = singleRecord.get(0)
+
+      console.log(greeting)
+    } finally {
+      await readSession.close()
+    }
+    // end::database-selection[]
+
+    expect(await consoleLoggedMsg).toContain('Hello, Example-Database')
   })
 
   it('pass bookmarks example', done => {

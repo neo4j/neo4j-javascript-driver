@@ -312,6 +312,17 @@ async function cleanupAndGetVersion (driver) {
   }
 }
 
+async function getEdition (driver) {
+  const session = driver.session({ defaultAccessMode: neo4j.session.READ })
+  try {
+    const result = await session.run('CALL dbms.components() YIELD edition')
+    const singleRecord = result.records[0]
+    return singleRecord.get(0)
+  } finally {
+    await session.close()
+  }
+}
+
 function runCommand (command, args) {
   const spawnResult = platform.spawn(command, args)
   return new RunCommandResult(spawnResult)
@@ -354,5 +365,6 @@ export default {
   authToken: authToken,
   logging: debugLogging,
   cleanupAndGetVersion: cleanupAndGetVersion,
-  tlsConfig: tlsConfig
+  tlsConfig: tlsConfig,
+  getEdition: getEdition
 }
