@@ -52,6 +52,10 @@ class RoutingDriver extends Driver {
       authToken: authToken
     })
   }
+
+  _supportsRouting () {
+    return true
+  }
 }
 
 /**
