@@ -58,14 +58,15 @@ import ResultSummary, {
 import Record from './record'
 import Session from './session'
 import {
+  Driver,
+  READ,
+  WRITE,
   AuthToken,
   Config,
-  Driver,
   EncryptionLevel,
-  READ,
-  SessionMode,
   TrustStrategy,
-  WRITE
+  SessionMode,
+  LoggingConfig
 } from './driver'
 import Transaction from './transaction'
 import { Parameters } from './query-runner'
@@ -100,12 +101,12 @@ declare const types: {
   ResultSummary: ResultSummary
   Record: Record
   Point: typeof Point
+  Date: typeof Date
+  DateTime: typeof DateTime
   Duration: typeof Duration
+  LocalDateTime: typeof LocalDateTime
   LocalTime: typeof LocalTime
   Time: typeof Time
-  Date: typeof Date
-  LocalDateTime: typeof LocalDateTime
-  DateTime: typeof DateTime
   Integer: typeof Integer
 }
 
@@ -150,108 +151,58 @@ declare const temporal: {
 
 declare const forExport: {
   driver: typeof driver
-  int: typeof int
-  isInt: typeof isInt
-  integer: typeof integer
-  auth: typeof auth
-  types: typeof types
-  session: typeof session
-  error: typeof error
-  spatial: typeof spatial
-  temporal: typeof temporal
   Driver: Driver
-  AuthToken: AuthToken
-  Config: Config
   EncryptionLevel: EncryptionLevel
   TrustStrategy: TrustStrategy
   SessionMode: SessionMode
-  Neo4jError: Neo4jError
-  Node: Node
-  Relationship: Relationship
-  UnboundRelationship: UnboundRelationship
-  PathSegment: PathSegment
-  Path: Path
-  Integer: Integer
-  Record: Record
-  Result: Result
-  QueryResult: QueryResult
-  ResultObserver: ResultObserver
-  ResultSummary: ResultSummary
-  Plan: Plan
-  ProfiledPlan: ProfiledPlan
-  QueryStatistic: QueryStatistic
-  Notification: Notification
-  ServerInfo: ServerInfo
-  NotificationPosition: NotificationPosition
-  Session: Session
-  Transaction: Transaction
-  Point: Point
+  LoggingConfig: LoggingConfig
+  int: typeof int
+  isInt: typeof isInt
   isPoint: typeof isPoint
-  Duration: Duration
-  LocalTime: LocalTime
-  Time: Time
-  Date: Date
-  LocalDateTime: LocalDateTime
-  DateTime: DateTime
   isDuration: typeof isDuration
   isLocalTime: typeof isLocalTime
   isTime: typeof isTime
   isDate: typeof isDate
   isLocalDateTime: typeof isLocalDateTime
   isDateTime: typeof isDateTime
+  integer: typeof integer
+  Neo4jError: Neo4jError
+  auth: typeof auth
+  AuthToken: AuthToken
+  types: typeof types
+  session: typeof session
+  error: typeof error
+  spatial: typeof spatial
+  temporal: typeof temporal
+  Config: Config
 }
 
 export {
   driver,
-  int,
-  isInt,
-  integer,
-  auth,
-  types,
-  session,
-  error,
-  spatial,
-  temporal,
   Driver,
-  AuthToken,
-  Config,
   EncryptionLevel,
   TrustStrategy,
   SessionMode,
-  Neo4jError,
-  Node,
-  Relationship,
-  UnboundRelationship,
-  PathSegment,
-  Path,
-  Integer,
-  Record,
-  Result,
-  QueryResult,
-  ResultObserver,
-  ResultSummary,
-  Plan,
-  ProfiledPlan,
-  QueryStatistic,
-  Notification,
-  ServerInfo,
-  NotificationPosition,
-  Session,
-  Transaction,
-  Point,
+  LoggingConfig,
+  int,
+  isInt,
   isPoint,
-  Duration,
-  LocalTime,
-  Time,
-  Date,
-  LocalDateTime,
-  DateTime,
   isDuration,
   isLocalTime,
   isTime,
   isDate,
   isLocalDateTime,
-  isDateTime
+  isDateTime,
+  integer,
+  Neo4jError,
+  auth,
+  AuthToken,
+  types,
+  session,
+  error,
+  spatial,
+  temporal,
+  Config
 }
 
 export default forExport

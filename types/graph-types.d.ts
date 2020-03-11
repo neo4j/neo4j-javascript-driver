@@ -85,14 +85,14 @@ declare function isPathSegment(obj: object): boolean
 
 export {
   Node,
-  Relationship,
-  UnboundRelationship,
-  Path,
-  PathSegment,
   isNode,
+  Relationship,
   isRelationship,
+  UnboundRelationship,
   isUnboundRelationship,
+  Path,
   isPath,
+  PathSegment,
   isPathSegment,
   NumberOrInteger,
   StandardDate
