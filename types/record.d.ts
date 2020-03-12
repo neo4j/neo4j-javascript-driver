@@ -35,6 +35,12 @@ declare class Record {
 
   map<T>(visitor: MapVisitor<T>): T[]
 
+  entries(): IterableIterator<[string, Object]>
+
+  values(): IterableIterator<Object>
+
+  [Symbol.iterator](): IterableIterator<Object>
+
   toObject(): object
 
   get(key: string | number): any

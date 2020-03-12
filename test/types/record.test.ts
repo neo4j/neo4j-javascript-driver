@@ -37,6 +37,15 @@ record1.forEach((value: any, key: string) => {})
 
 record1.forEach((value: any, key: string, record: Record) => {})
 
+const record1Entries: IterableIterator<[string, any]> = record1.entries()
+const record2Entries: IterableIterator<[string, any]> = record2.entries()
+
+const record1Values: IterableIterator<any> = record1.values()
+const record2Values: IterableIterator<any> = record2.values()
+
+const record1ToArray: any[] = [...record1]
+const record2ToArray: any[] = [...record2]
+
 const record1Has: boolean = record1.has(42)
 const record2Has: boolean = record1.has('key')
 
