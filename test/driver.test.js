@@ -27,6 +27,72 @@ import {
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
 
+// As long as driver creation doesn't touch the network it's fine to run
+// this as a unit test.
+describe('#unit driver', () => {
+  let driver
+
+  afterEach(async () => {
+    if (driver) {
+      await driver.close()
+    }
+  })
+
+  it('should create an unencrypted, non-routed driver for scheme: bolt', () => {
+    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    expect(driver._isEncrypted()).toBeFalsy()
+    expect(driver._supportsRouting()).toBeFalsy()
+  })
+
+  it('should create an encrypted, system CAs trusting, non-routed driver for scheme: bolt+s', () => {
+    driver = neo4j.driver('bolt+s://localhost', sharedNeo4j.authToken)
+    expect(driver._isEncrypted()).toBeTruthy()
+    expect(driver._getTrust()).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES')
+    expect(driver._supportsRouting()).toBeFalsy()
+  })
+
+  it('should create an encrypted, all trusting, non-routed driver for scheme: bolt+ssc', () => {
+    driver = neo4j.driver('bolt+ssc://localhost', sharedNeo4j.authToken)
+    expect(driver._isEncrypted()).toBeTruthy()
+    expect(driver._getTrust()).toEqual('TRUST_ALL_CERTIFICATES')
+    expect(driver._supportsRouting()).toBeFalsy()
+  })
+
+  it('should create an unencrypted, routed driver for scheme: neo4j', () => {
+    driver = neo4j.driver('neo4j://localhost', sharedNeo4j.authToken)
+    expect(driver._isEncrypted()).toBeFalsy()
+    expect(driver._supportsRouting()).toBeTruthy()
+  })
+
+  it('should create an encrypted, system CAs trusting, routed driver for scheme: neo4j+s', () => {
+    driver = neo4j.driver('neo4j+s://localhost', sharedNeo4j.authToken)
+    expect(driver._isEncrypted()).toBeTruthy()
+    expect(driver._getTrust()).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES')
+    expect(driver._supportsRouting()).toBeTruthy()
+  })
+
+  it('should create an encrypted, all trusting, routed driver for scheme: neo4j+ssc', () => {
+    driver = neo4j.driver('neo4j+ssc://localhost', sharedNeo4j.authToken)
+    expect(driver._isEncrypted()).toBeTruthy()
+    expect(driver._getTrust()).toEqual('TRUST_ALL_CERTIFICATES')
+    expect(driver._supportsRouting()).toBeTruthy()
+  })
+
+  it('should throw when encryption in url AND in config', () => {
+    expect(() =>
+      neo4j.driver('neo4j+ssc://localhost', sharedNeo4j.authToken, {
+        encrypted: 'ENCRYPTION_OFF'
+      })
+    ).toThrow()
+    // Throw even in case where there is no conflict
+    expect(() =>
+      neo4j.driver('neo4j+s://localhost', sharedNeo4j.authToken, {
+        encrypted: 'ENCRYPTION_ON'
+      })
+    ).toThrow()
+  })
+})
+
 describe('#integration driver', () => {
   let driver
   let serverVersion

@@ -37,7 +37,12 @@ import Record from './record'
 import { Driver, READ, WRITE } from './driver'
 import RoutingDriver from './routing-driver'
 import VERSION from './version'
-import { assertString, isEmptyObjectOrNull } from './internal/util'
+import {
+  ENCRYPTION_ON,
+  ENCRYPTION_OFF,
+  assertString,
+  isEmptyObjectOrNull
+} from './internal/util'
 import urlUtil from './internal/url-util'
 import { isPoint, Point } from './spatial-types'
 import {
@@ -178,7 +183,52 @@ import ServerAddress from './internal/server-address'
 function driver (url, authToken, config = {}) {
   assertString(url, 'Bolt URL')
   const parsedUrl = urlUtil.parseDatabaseUrl(url)
-  if (parsedUrl.scheme === 'neo4j') {
+
+  // Determine entryption/trust options from the URL.
+  let routing = false
+  let encrypted = false
+  let trust
+  switch (parsedUrl.scheme) {
+    case 'bolt':
+      break
+    case 'bolt+s':
+      encrypted = true
+      trust = 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+      break
+    case 'bolt+ssc':
+      encrypted = true
+      trust = 'TRUST_ALL_CERTIFICATES'
+      break
+    case 'neo4j':
+      routing = true
+      break
+    case 'neo4j+s':
+      encrypted = true
+      trust = 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+      routing = true
+      break
+    case 'neo4j+ssc':
+      encrypted = true
+      trust = 'TRUST_ALL_CERTIFICATES'
+      routing = true
+      break
+    default:
+      throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
+  }
+
+  // Encryption enabled on URL, propagate trust to the config.
+  if (encrypted) {
+    // Check for configuration conflict between URL and config.
+    if ('encrypted' in config || 'trust' in config) {
+      throw new Error(
+        'Encryption/trust can only be configured either through URL or config, not both'
+      )
+    }
+    config.encrypted = ENCRYPTION_ON
+    config.trust = trust
+  }
+
+  if (routing) {
     return new RoutingDriver(
       ServerAddress.fromUrl(parsedUrl.hostAndPort),
       parsedUrl.query,
@@ -186,10 +236,10 @@ function driver (url, authToken, config = {}) {
       authToken,
       config
     )
-  } else if (parsedUrl.scheme === 'bolt') {
+  } else {
     if (!isEmptyObjectOrNull(parsedUrl.query)) {
       throw new Error(
-        `Parameters are not supported with scheme 'bolt'. Given URL: '${url}'`
+        `Parameters are not supported with none routed scheme. Given URL: '${url}'`
       )
     }
     return new Driver(
@@ -198,8 +248,6 @@ function driver (url, authToken, config = {}) {
       authToken,
       config
     )
-  } else {
-    throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
   }
 }
 

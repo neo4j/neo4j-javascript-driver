@@ -31,6 +31,7 @@ import {
 import Session from './session'
 import RxSession from './session-rx'
 import { ALL } from './internal/request-message'
+import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000 // 1 hour
 
@@ -134,6 +135,34 @@ class Driver {
   supportsTransactionConfig () {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsTransactionConfig()
+  }
+
+  /**
+   * @protected
+   * @returns {boolean}
+   */
+  _supportsRouting () {
+    return false
+  }
+
+  /**
+   * Returns boolean to indicate if driver has been configured with encryption enabled.
+   *
+   * @protected
+   * @returns {boolean}
+   */
+  _isEncrypted () {
+    return this._config.encrypted === ENCRYPTION_ON
+  }
+
+  /**
+   * Returns the configured trust strategy that the driver has been configured with.
+   *
+   * @protected
+   * @returns {TrustStrategy}
+   */
+  _getTrust () {
+    return this._config.trust
   }
 
   /**

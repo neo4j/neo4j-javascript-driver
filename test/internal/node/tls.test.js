@@ -57,6 +57,20 @@ describe('#integration trust', () => {
           done()
         })
     })
+
+    it('should work with default certificate using URL scheme', done => {
+      // Given
+      driver = neo4j.driver('bolt+ssc://localhost', sharedNeo4j.authToken)
+
+      // When
+      driver
+        .session()
+        .run('RETURN 1')
+        .then(result => {
+          expect(result.records[0].get(0).toNumber()).toBe(1)
+          done()
+        })
+    })
   })
 
   describe('trust-custom-ca-signed-certificates', () => {
@@ -117,6 +131,20 @@ describe('#integration trust', () => {
         encrypted: true,
         trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
       })
+
+      // When
+      driver
+        .session()
+        .run('RETURN 1')
+        .catch(err => {
+          expect(err.message).toContain('Server certificate is not trusted')
+          done()
+        })
+    })
+
+    it('should reject unknown certificates using URL scheme', done => {
+      // Given
+      driver = neo4j.driver('bolt+s://localhost', sharedNeo4j.authToken)
 
       // When
       driver
