@@ -110,7 +110,7 @@ class Record {
    * of exactly two items - the key, and the value (in order).
    *
    * @generator
-   * @returns {IterableIterator<[string, Object]>}
+   * @returns {IterableIterator<Array>}
    */
   * entries () {
     for (let i = 0; i < this.keys.length; i++) {
