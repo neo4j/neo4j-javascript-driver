@@ -56,6 +56,7 @@ class Pool {
     this._maxSize = config.maxSize
     this._acquisitionTimeout = config.acquisitionTimeout
     this._pools = {}
+    this._pendingCreates = {}
     this._acquireRequests = {}
     this._activeResourceCounts = {}
     this._release = this._release.bind(this)
@@ -73,18 +74,11 @@ class Pool {
       const key = address.asKey()
 
       if (resource) {
-        if (
-          this._maxSize &&
-          this.activeResourceCount(address) >= this._maxSize
-        ) {
-          this._destroy(resource)
-        } else {
-          resourceAcquired(key, this._activeResourceCounts)
-          if (this._log.isDebugEnabled()) {
-            this._log.debug(`${resource} acquired from the pool ${key}`)
-          }
-          return resource
+        resourceAcquired(key, this._activeResourceCounts)
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${resource} acquired from the pool ${key}`)
         }
+        return resource
       }
 
       // We're out of resources and will try to acquire later on when an existing resource is released.
@@ -185,6 +179,7 @@ class Pool {
     if (!pool) {
       pool = []
       this._pools[key] = pool
+      this._pendingCreates[key] = 0
     }
     while (pool.length) {
       const resource = pool.pop()
@@ -201,12 +196,29 @@ class Pool {
       }
     }
 
-    if (this._maxSize && this.activeResourceCount(address) >= this._maxSize) {
-      return null
+    // Ensure requested max pool size
+    if (this._maxSize > 0) {
+      // Include pending creates when checking pool size since these probably will add
+      // to the number when fulfilled.
+      const numConnections =
+        this.activeResourceCount(address) + this._pendingCreates[key]
+      if (numConnections >= this._maxSize) {
+        // Will put this request in queue instead since the pool is full
+        return null
+      }
     }
 
     // there exist no idle valid resources, create a new one for acquisition
-    return await this._create(address, this._release)
+    // Keep track of how many pending creates there are to avoid making too many connections.
+    this._pendingCreates[key] = this._pendingCreates[key] + 1
+    let resource
+    try {
+      // Invoke callback that creates actual connection
+      resource = await this._create(address, this._release)
+    } finally {
+      this._pendingCreates[key] = this._pendingCreates[key] - 1
+    }
+    return resource
   }
 
   async _release (address, resource) {

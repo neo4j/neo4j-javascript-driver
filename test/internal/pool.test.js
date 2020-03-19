@@ -562,10 +562,59 @@ describe('#unit Pool', async () => {
     expectNumberOfAcquisitionRequests(pool, address, 0)
   })
 
+  const address = ServerAddress.fromUrl('bolt://localhost:7687')
+
+  it('should consider pending connects when evaluating max pool size', async () => {
+    const conns = []
+    const pool = new Pool({
+      // Hook into connection creation to track when and what connections that are
+      // created.
+      create: (server, release) => {
+        // Create a fake connection that makes it possible control when it's connected
+        // and released from the outer scope.
+        const conn = {
+          server: server,
+          release: release
+        }
+        const promise = new Promise((resolve, reject) => {
+          conn.resolve = resolve
+          conn.reject = reject
+        })
+        // Put the connection in a list in outer scope even though there only should be
+        // one when the test is succeeding.
+        conns.push(conn)
+        return promise
+      },
+      // Setup pool to only allow one connection
+      config: new PoolConfig(1, 100000)
+    })
+
+    // Make the first request for a connection, this will be hanging waiting for the
+    // connect promise to be resolved.
+    const req1 = pool.acquire(address)
+    expect(conns.length).toEqual(1)
+
+    // Make another request to the same server, this should not try to acquire another
+    // connection since the pool will be full when the connection for the first request
+    // is resolved.
+    const req2 = pool.acquire(address)
+    expect(conns.length).toEqual(1)
+
+    // Let's fulfill the connect promise belonging to the first request.
+    conns[0].resolve(conns[0])
+    await expectAsync(req1).toBeResolved()
+
+    // Release the connection, it should be picked up by the second request.
+    conns[0].release(address, conns[0])
+    await expectAsync(req2).toBeResolved()
+
+    // Just to make sure that there hasn't been any new connection.
+    expect(conns.length).toEqual(1)
+  })
+
   it('should not time out if max pool size is not set', async () => {
     let counter = 0
 
-    const address = ServerAddress.fromUrl('bolt://localhost:7687')
     const pool = new Pool({
       create: (server, release) =>
         Promise.resolve(new Resource(server, counter++, release)),
