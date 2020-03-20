@@ -228,6 +228,10 @@ function driver (url, authToken, config = {}) {
     config.trust = trust
   }
 
+  // Sanitize authority token. Nicer error from server when a scheme is set.
+  authToken = authToken || {}
+  authToken.scheme = authToken.scheme || 'none'
+
   if (routing) {
     return new RoutingDriver(
       ServerAddress.fromUrl(parsedUrl.hostAndPort),
