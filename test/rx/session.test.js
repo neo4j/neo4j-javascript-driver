@@ -34,7 +34,7 @@ describe('#integration rx-session', () => {
 
   beforeEach(async () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.rxSession()
 
