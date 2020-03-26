@@ -41,7 +41,7 @@ describe('#integration session', () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000
 
     serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
   })

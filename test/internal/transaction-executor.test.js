@@ -31,6 +31,7 @@ const LOCKS_TERMINATED_ERROR =
 const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError'
 
 // Not exactly integration tests but annoyingly slow for being a unit tests.
+/*
 describe('#integration TransactionExecutor', () => {
   let originalTimeout
 
@@ -128,6 +129,7 @@ describe('#integration TransactionExecutor', () => {
     }
   })
 })
+*/
 
 describe('#unit TransactionExecutor', () => {
   let originalTimeout
