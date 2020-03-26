@@ -49,7 +49,7 @@ describe('#integration examples', () => {
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
     driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken)
   })
@@ -650,8 +650,8 @@ describe('#integration examples', () => {
     // end::async-transaction-function[]
 
     expect(titles.length).toEqual(2)
-    expect(titles[0]).toEqual('Infinity Gauntlet')
-    expect(titles[1]).toEqual('Mjölnir')
+    expect(titles.includes('Infinity Gauntlet')).toBeTruthy()
+    expect(titles.includes('Mjölnir')).toBeTruthy()
   })
 
   it('rx transaction function example', async () => {
