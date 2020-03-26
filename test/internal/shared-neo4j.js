@@ -134,6 +134,9 @@ const tlsConfig = {
 }
 
 const defaultConfig = {
+  // Turn off backup related ports, etc.
+  'dbms.backup.enabled': 'false',
+
   // tell neo4j to listen for IPv6 connections, only supported by 3.1+
   'dbms.connectors.default_listen_address': '::',
 
@@ -142,6 +145,9 @@ const defaultConfig = {
 
   // shorten the default time to wait for the bookmark from 30 to 5 seconds
   'dbms.transaction.bookmark_ready_timeout': '5s',
+
+  // page cache size
+  'dbms.memory.pagecache.size': '512m',
 
   // make TLS optional
   'dbms.connector.bolt.tls_level': tlsConfig.levels.optional
