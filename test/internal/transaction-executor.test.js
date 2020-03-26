@@ -30,105 +30,6 @@ const LOCKS_TERMINATED_ERROR =
   'Neo.TransientError.Transaction.LockClientStopped'
 const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError'
 
-// Not exactly integration tests but annoyingly slow for being a unit tests.
-describe('#integration TransactionExecutor', () => {
-  let originalTimeout
-
-  beforeEach(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
-  })
-
-  afterEach(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-  })
-
-  it('should retry until database error happens', async () => {
-    await testNoRetryOnUnknownError(
-      [
-        SERVICE_UNAVAILABLE,
-        SERVICE_UNAVAILABLE,
-        TRANSIENT_ERROR_2,
-        SESSION_EXPIRED,
-        UNKNOWN_ERROR,
-        SESSION_EXPIRED
-      ],
-      5
-    )
-  })
-
-  it('should stop retrying when time expires', async () => {
-    let clock
-    const usedTransactions = []
-    try {
-      const executor = new TransactionExecutor()
-      const realWork = transactionWork(
-        [
-          SERVICE_UNAVAILABLE,
-          SESSION_EXPIRED,
-          TRANSIENT_ERROR_1,
-          TRANSIENT_ERROR_2
-        ],
-        42
-      )
-
-      await executor.execute(transactionCreator(), tx => {
-        expect(tx).toBeDefined()
-        usedTransactions.push(tx)
-        if (usedTransactions.length === 3) {
-          const currentTime = Date.now()
-          clock = lolex.install()
-          clock.setSystemTime(currentTime + 30001) // move `Date.now()` call forward by 30 seconds
-        }
-        return realWork()
-      })
-
-      expect(false).toBeTruthy('should have thrown an exception')
-    } catch (error) {
-      expect(usedTransactions.length).toEqual(3)
-      expectAllTransactionsToBeClosed(usedTransactions)
-      expect(error.code).toEqual(TRANSIENT_ERROR_1)
-    } finally {
-      if (clock) {
-        clock.uninstall()
-      }
-    }
-  })
-
-  it('should cancel in-flight timeouts when closed', async () => {
-    const fakeSetTimeout = setTimeoutMock.install()
-    try {
-      const executor = new TransactionExecutor()
-      // do not execute setTimeout callbacks
-      fakeSetTimeout.pause()
-
-      executor.execute(transactionCreator([SERVICE_UNAVAILABLE]), () =>
-        Promise.resolve(42)
-      )
-      executor.execute(transactionCreator([TRANSIENT_ERROR_1]), () =>
-        Promise.resolve(4242)
-      )
-      executor.execute(transactionCreator([SESSION_EXPIRED]), () =>
-        Promise.resolve(424242)
-      )
-
-      await new Promise((resolve, reject) => {
-        fakeSetTimeout.setTimeoutOriginal(() => {
-          try {
-            executor.close()
-            expect(fakeSetTimeout.clearedTimeouts.length).toEqual(3)
-            resolve()
-          } catch (error) {
-            reject(error)
-          }
-        }, 1000)
-      })
-    } finally {
-      fakeSetTimeout.uninstall()
-    }
-  })
-})
-
 describe('#unit TransactionExecutor', () => {
   let originalTimeout
 
@@ -196,6 +97,44 @@ describe('#unit TransactionExecutor', () => {
     ).toBeRejectedWith(error)
   })
 
+  it('should stop retrying when time expires', async () => {
+    let clock
+    const usedTransactions = []
+    try {
+      const executor = new TransactionExecutor()
+      const realWork = transactionWork(
+        [
+          SERVICE_UNAVAILABLE,
+          SESSION_EXPIRED,
+          TRANSIENT_ERROR_1,
+          TRANSIENT_ERROR_2
+        ],
+        42
+      )
+
+      await executor.execute(transactionCreator(), tx => {
+        expect(tx).toBeDefined()
+        usedTransactions.push(tx)
+        if (usedTransactions.length === 3) {
+          const currentTime = Date.now()
+          clock = lolex.install()
+          clock.setSystemTime(currentTime + 30001) // move `Date.now()` call forward by 30 seconds
+        }
+        return realWork()
+      })
+
+      expect(false).toBeTruthy('should have thrown an exception')
+    } catch (error) {
+      expect(usedTransactions.length).toEqual(3)
+      expectAllTransactionsToBeClosed(usedTransactions)
+      expect(error.code).toEqual(TRANSIENT_ERROR_1)
+    } finally {
+      if (clock) {
+        clock.uninstall()
+      }
+    }
+  })
+
   it('should retry when given transaction creator throws once', async () => {
     await testRetryWhenTransactionCreatorFails([SERVICE_UNAVAILABLE])
   })
@@ -251,6 +190,20 @@ describe('#unit TransactionExecutor', () => {
     ])
   })
 
+  it('should retry until database error happens', async () => {
+    await testNoRetryOnUnknownError(
+      [
+        SERVICE_UNAVAILABLE,
+        SERVICE_UNAVAILABLE,
+        TRANSIENT_ERROR_2,
+        SESSION_EXPIRED,
+        UNKNOWN_ERROR,
+        SESSION_EXPIRED
+      ],
+      5
+    )
+  })
+
   it('should retry when transaction work throws and rollback fails', async () => {
     await testRetryWhenTransactionWorkThrowsAndRollbackFails(
       [
@@ -261,6 +214,39 @@ describe('#unit TransactionExecutor', () => {
       ],
       [SESSION_EXPIRED, TRANSIENT_ERROR_1]
     )
+  })
+
+  it('should cancel in-flight timeouts when closed', async () => {
+    const fakeSetTimeout = setTimeoutMock.install()
+    try {
+      const executor = new TransactionExecutor()
+      // do not execute setTimeout callbacks
+      fakeSetTimeout.pause()
+
+      executor.execute(transactionCreator([SERVICE_UNAVAILABLE]), () =>
+        Promise.resolve(42)
+      )
+      executor.execute(transactionCreator([TRANSIENT_ERROR_1]), () =>
+        Promise.resolve(4242)
+      )
+      executor.execute(transactionCreator([SESSION_EXPIRED]), () =>
+        Promise.resolve(424242)
+      )
+
+      await new Promise((resolve, reject) => {
+        fakeSetTimeout.setTimeoutOriginal(() => {
+          try {
+            executor.close()
+            expect(fakeSetTimeout.clearedTimeouts.length).toEqual(3)
+            resolve()
+          } catch (error) {
+            reject(error)
+          }
+        }, 1000)
+      })
+    } finally {
+      fakeSetTimeout.uninstall()
+    }
   })
 
   it('should allow zero max retry time', () => {
@@ -410,35 +396,35 @@ describe('#unit TransactionExecutor', () => {
       fakeSetTimeout.uninstall()
     }
   }
-})
 
-async function testNoRetryOnUnknownError (
-  errorCodes,
-  expectedWorkInvocationCount
-) {
-  const executor = new TransactionExecutor()
-  const usedTransactions = []
-  const realWork = transactionWork(errorCodes, 42)
+  async function testNoRetryOnUnknownError (
+    errorCodes,
+    expectedWorkInvocationCount
+  ) {
+    const executor = new TransactionExecutor()
+    const usedTransactions = []
+    const realWork = transactionWork(errorCodes, 42)
 
-  try {
-    await executor.execute(transactionCreator(), tx => {
-      expect(tx).toBeDefined()
-      usedTransactions.push(tx)
-      return realWork()
-    })
-  } catch (error) {
-    expect(usedTransactions.length).toEqual(expectedWorkInvocationCount)
-    expectAllTransactionsToBeClosed(usedTransactions)
-    if (errorCodes.length === 1) {
-      expect(error.code).toEqual(errorCodes[0])
-    } else {
-      expect(error.code).toEqual(errorCodes[expectedWorkInvocationCount - 1])
+    try {
+      await executor.execute(transactionCreator(), tx => {
+        expect(tx).toBeDefined()
+        usedTransactions.push(tx)
+        return realWork()
+      })
+    } catch (error) {
+      expect(usedTransactions.length).toEqual(expectedWorkInvocationCount)
+      expectAllTransactionsToBeClosed(usedTransactions)
+      if (errorCodes.length === 1) {
+        expect(error.code).toEqual(errorCodes[0])
+      } else {
+        expect(error.code).toEqual(errorCodes[expectedWorkInvocationCount - 1])
+      }
+      return
     }
-    return
-  }
 
-  expect(false).toBeTruthy('exception expected')
-}
+    expect(false).toBeTruthy('exception expected')
+  }
+})
 
 function transactionCreator (commitErrorCodes, rollbackErrorCodes) {
   const remainingCommitErrorCodes = (commitErrorCodes || []).slice().reverse()
