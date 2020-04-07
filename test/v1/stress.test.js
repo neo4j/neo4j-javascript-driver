@@ -23,7 +23,8 @@ import parallelLimit from 'async/parallelLimit'
 import _ from 'lodash'
 import {
   ServerVersion,
-  VERSION_3_2_0
+  VERSION_3_2_0,
+  VERSION_4_0_0
 } from '../../src/v1/internal/server-version'
 import sharedNeo4j from '../internal/shared-neo4j'
 
@@ -43,12 +44,21 @@ describe('stress tests', () => {
 
   const READ_QUERY = 'MATCH (n) RETURN n LIMIT 1'
   const WRITE_QUERY =
-    'CREATE (person:Person:Employee {name: {name}, salary: {salary}}) RETURN person'
+    'CREATE (person:Person:Employee {name: $name, salary: $salary}) RETURN person'
 
   const TEST_MODE = modeFromEnvOrDefault('STRESS_TEST_MODE')
   const DATABASE_URI = fromEnvOrDefault(
     'STRESS_TEST_DATABASE_URI',
     'bolt://localhost'
+  )
+
+  const USERNAME = fromEnvOrDefault(
+    'NEO4J_USERNAME',
+    sharedNeo4j.authToken.principal
+  )
+  const PASSWORD = fromEnvOrDefault(
+    'NEO4J_PASSWORD',
+    sharedNeo4j.authToken.credentials
   )
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
 
@@ -62,7 +72,11 @@ describe('stress tests', () => {
     const config = {
       logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')
     }
-    driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken, config)
+    driver = neo4j.driver(
+      DATABASE_URI,
+      neo4j.auth.basic(USERNAME, PASSWORD),
+      config
+    )
 
     cleanupDb(driver).then(() => done())
   })
@@ -237,7 +251,7 @@ describe('stress tests', () => {
         .run(query, params)
         .then(result => {
           context.queryCompleted(result, accessMode)
-          context.log(commandId, `Query completed successfully`)
+          context.log(commandId, 'Query completed successfully')
 
           session.close(() => {
             const possibleError = verifyQueryResult(result)
@@ -278,7 +292,7 @@ describe('stress tests', () => {
       resultPromise
         .then(result => {
           context.queryCompleted(result, accessMode, session.lastBookmark())
-          context.log(commandId, `Transaction function executed successfully`)
+          context.log(commandId, 'Transaction function executed successfully')
 
           session.close(() => {
             const possibleError = verifyQueryResult(result)
@@ -328,7 +342,7 @@ describe('stress tests', () => {
             })
             .then(() => {
               context.queryCompleted(result, accessMode, session.lastBookmark())
-              context.log(commandId, `Transaction committed successfully`)
+              context.log(commandId, 'Transaction committed successfully')
 
               session.close(() => {
                 callback(commandError)
@@ -347,7 +361,7 @@ describe('stress tests', () => {
 
   function verifyQueryResult (result) {
     if (!result) {
-      return new Error(`Received undefined result`)
+      return new Error('Received undefined result')
     } else if (result.records.length === 0) {
       // it is ok to receive no nodes back for read queries at the beginning of the test
       return null
@@ -467,11 +481,25 @@ describe('stress tests', () => {
       session.close()
       const records = result.records
 
-      const followers = addressesWithRole(records, 'FOLLOWER')
-      const readReplicas = addressesWithRole(records, 'READ_REPLICA')
+      const version = ServerVersion.fromString(result.summary.server.version)
+      const supportsMultiDb = version.compareTo(VERSION_4_0_0) >= 0
+      const followers = supportsMultiDb
+        ? addressesForMultiDb(records, 'FOLLOWER')
+        : addressesWithRole(records, 'FOLLOWER')
+      const readReplicas = supportsMultiDb
+        ? addressesForMultiDb(records, 'READ_REPLICA')
+        : addressesWithRole(records, 'READ_REPLICA')
 
       return new ClusterAddresses(followers, readReplicas)
     })
+  }
+
+  function addressesForMultiDb (records, role, db = 'neo4j') {
+    return _.uniq(
+      records
+        .filter(record => record.get('databases')[db] === role)
+        .map(record => record.get('addresses')[0].replace('bolt://', ''))
+    )
   }
 
   function addressesWithRole (records, role) {
