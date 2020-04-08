@@ -21,7 +21,11 @@ import neo4j from '../src'
 import { READ, WRITE } from '../src/driver'
 import parallelLimit from 'async/parallelLimit'
 import _ from 'lodash'
-import { ServerVersion, VERSION_3_2_0 } from '../src/internal/server-version'
+import {
+  ServerVersion,
+  VERSION_3_2_0,
+  VERSION_4_0_0
+} from '../src/internal/server-version'
 import sharedNeo4j from './internal/shared-neo4j'
 
 describe('#integration stress tests', () => {
@@ -47,6 +51,15 @@ describe('#integration stress tests', () => {
     'STRESS_TEST_DATABASE_URI',
     'bolt://localhost'
   )
+
+  const USERNAME = fromEnvOrDefault(
+    'NEO4J_USERNAME',
+    sharedNeo4j.authToken.principal
+  )
+  const PASSWORD = fromEnvOrDefault(
+    'NEO4J_PASSWORD',
+    sharedNeo4j.authToken.credentials
+  )
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
 
   let originalTimeout
@@ -57,16 +70,20 @@ describe('#integration stress tests', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs
 
     const config = {
-      logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')
+      logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info'),
+      encrypted: true
     }
-    driver = neo4j.driver(DATABASE_URI, sharedNeo4j.authToken, config)
+    driver = neo4j.driver(
+      DATABASE_URI,
+      neo4j.auth.basic(USERNAME, PASSWORD),
+      config
+    )
 
     await sharedNeo4j.cleanupAndGetVersion(driver)
   })
 
   afterEach(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-
     await driver.close()
   })
 
@@ -459,11 +476,25 @@ describe('#integration stress tests', () => {
       session.close().then(() => {
         const records = result.records
 
-        const followers = addressesWithRole(records, 'FOLLOWER')
-        const readReplicas = addressesWithRole(records, 'READ_REPLICA')
+        const version = ServerVersion.fromString(result.summary.server.version)
+        const supportsMultiDb = version.compareTo(VERSION_4_0_0) >= 0
+        const followers = supportsMultiDb
+          ? addressesForMultiDb(records, 'FOLLOWER')
+          : addressesWithRole(records, 'FOLLOWER')
+        const readReplicas = supportsMultiDb
+          ? addressesForMultiDb(records, 'READ_REPLICA')
+          : addressesWithRole(records, 'READ_REPLICA')
 
         return new ClusterAddresses(followers, readReplicas)
       })
+    )
+  }
+
+  function addressesForMultiDb (records, role, db = 'neo4j') {
+    return _.uniq(
+      records
+        .filter(record => record.get('databases')[db] === role)
+        .map(record => record.get('addresses')[0].replace('bolt://', ''))
     )
   }
 
@@ -548,16 +579,6 @@ describe('#integration stress tests', () => {
       return process.env[envVariableName]
     }
     return defaultValue
-  }
-
-  function cleanupDb (driver) {
-    const session = driver.session()
-    return session
-      .run('MATCH (n) DETACH DELETE n')
-      .then(() => session.close())
-      .catch(error => {
-        console.log('Error clearing the database: ', error)
-      })
   }
 
   function arraysEqual (array1, array2) {
