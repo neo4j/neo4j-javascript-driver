@@ -60,6 +60,14 @@ describe('#integration stress tests', () => {
     'NEO4J_PASSWORD',
     sharedNeo4j.authToken.credentials
   )
+
+  function isRemoteCluster () {
+    return (
+      fromEnvOrDefault('STRESS_TEST_DATABASE_URI') !== undefined &&
+      fromEnvOrDefault('STRESS_TEST_DATABASE_URI') !== undefined
+    )
+  }
+
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
 
   let originalTimeout
@@ -71,7 +79,7 @@ describe('#integration stress tests', () => {
 
     const config = {
       logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info'),
-      encrypted: true
+      encrypted: isRemoteCluster()
     }
     driver = neo4j.driver(
       DATABASE_URI,
@@ -574,7 +582,7 @@ describe('#integration stress tests', () => {
     return mode
   }
 
-  function fromEnvOrDefault (envVariableName, defaultValue) {
+  function fromEnvOrDefault (envVariableName, defaultValue = undefined) {
     if (process && process.env && process.env[envVariableName]) {
       return process.env[envVariableName]
     }
