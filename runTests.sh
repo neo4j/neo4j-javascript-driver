@@ -6,7 +6,7 @@ function finish {
 trap finish EXIT
 
 
-npm install
+npm ci
 
 if [[ ! -z "$1" ]]; then
   export NEOCTRL_ARGS="$1"

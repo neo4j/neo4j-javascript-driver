@@ -1,4 +1,4 @@
-npm install
+npm ci
 
 $ErrorFound = $False
 
