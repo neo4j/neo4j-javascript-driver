@@ -85,7 +85,7 @@ class Session {
 
   /**
    * Run Cypher query
-   * Could be called with a query object i.e.: `{text: "MATCH ...", prameters: {param: 1}}`
+   * Could be called with a query object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
    * or with the query and parameters as separate arguments.
    *
    * @public
