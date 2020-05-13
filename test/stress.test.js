@@ -33,7 +33,7 @@ describe('#integration stress tests', () => {
     fast: {
       commandsCount: 5000,
       parallelism: 8,
-      maxRunTimeMs: 10 * 60000 // 10 minutes
+      maxRunTimeMs: 20 * 60000 // 10 minutes
     },
     extended: {
       commandsCount: 2000000,
