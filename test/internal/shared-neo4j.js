@@ -149,7 +149,7 @@ const defaultConfig = {
 
 const NEOCTRL_ARGS = 'NEOCTRL_ARGS'
 const neoCtrlVersionParam = '-e'
-const defaultNeo4jVersion = '4.0'
+const defaultNeo4jVersion = '4.1'
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`
 
 function neoctrlArgs () {
