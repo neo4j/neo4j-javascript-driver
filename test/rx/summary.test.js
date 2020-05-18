@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import neo4j from '../../src'
-import { ServerVersion, VERSION_4_0_0 } from '../../src/internal/server-version'
 import RxSession from '../../src/session-rx'
 import RxTransaction from '../../src/transaction-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
@@ -27,14 +26,14 @@ describe('#integration-rx summary', () => {
     let driver
     /** @type {RxSession} */
     let session
-    /** @type {ServerVersion} */
-    let serverVersion
+    /** @type {number} */
+    let protocolVersion
 
     beforeEach(async () => {
       driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
       session = driver.rxSession()
 
-      serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+      protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
       await dropConstraintsAndIndices(driver)
     })
 
@@ -46,63 +45,69 @@ describe('#integration-rx summary', () => {
     })
 
     it('should return non-null summary', () =>
-      shouldReturnNonNullSummary(serverVersion, session))
+      shouldReturnNonNullSummary(protocolVersion, session))
 
     it('should return summary with query text', () =>
-      shouldReturnSummaryWithQueryText(serverVersion, session))
+      shouldReturnSummaryWithQueryText(protocolVersion, session))
 
     it('should return summary with query text and parameters', () =>
-      shouldReturnSummaryWithQueryTextAndParams(serverVersion, session))
+      shouldReturnSummaryWithQueryTextAndParams(protocolVersion, session))
 
     it('should return summary with query type', () =>
-      shouldReturnSummaryWithCorrectQueryType(serverVersion, session))
+      shouldReturnSummaryWithCorrectQueryType(protocolVersion, session))
 
     it('should return summary with correct counters for create', () =>
-      shouldReturnSummaryWithUpdateStatisticsForCreate(serverVersion, session))
+      shouldReturnSummaryWithUpdateStatisticsForCreate(
+        protocolVersion,
+        session
+      ))
 
     it('should return summary with correct counters for delete', () =>
-      shouldReturnSummaryWithUpdateStatisticsForDelete(serverVersion, session))
+      shouldReturnSummaryWithUpdateStatisticsForDelete(
+        protocolVersion,
+        session
+      ))
 
     it('should return summary with correct counters for index create', () =>
       shouldReturnSummaryWithUpdateStatisticsForIndexCreate(
-        serverVersion,
+        protocolVersion,
         session
       ))
 
     it('should return summary with correct counters for index drop', () =>
       shouldReturnSummaryWithUpdateStatisticsForIndexDrop(
-        serverVersion,
+        protocolVersion,
         driver,
         session
       ))
 
     it('should return summary with correct counters for constraint create', () =>
       shouldReturnSummaryWithUpdateStatisticsForConstraintCreate(
-        serverVersion,
+        protocolVersion,
         session
       ))
 
     it('should return summary with correct counters for constraint drop', () =>
       shouldReturnSummaryWithUpdateStatisticsForConstraintDrop(
-        serverVersion,
+        protocolVersion,
         driver,
         session
       ))
 
     it('should not return plan or profile', () =>
-      shouldNotReturnPlanAndProfile(serverVersion, session))
+      shouldNotReturnPlanAndProfile(protocolVersion, session))
 
     it('should return plan but no profile', () =>
-      shouldReturnPlanButNoProfile(serverVersion, session))
+      shouldReturnPlanButNoProfile(protocolVersion, session))
 
     it('should return plan and profile', () =>
-      shouldReturnPlanAndProfile(serverVersion, session))
+      shouldReturnPlanAndProfile(protocolVersion, session))
 
     it('should not return notification', () =>
-      shouldNotReturnNotification(serverVersion, session))
+      shouldNotReturnNotification(protocolVersion, session))
 
     it('should return notification', () =>
-      shouldReturnNotification(serverVersion, session))
+      shouldReturnNotification(protocolVersion, session))
   })
 
   describe('transaction', () => {
@@ -111,8 +116,8 @@ describe('#integration-rx summary', () => {
     let session
     /** @type {RxTransaction} */
     let txc
-    /** @type {ServerVersion} */
-    let serverVersion
+    /** @type {number} */
+    let protocolVersion
 
     beforeEach(async () => {
       driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
@@ -122,7 +127,7 @@ describe('#integration-rx summary', () => {
       const normalSession = driver.session()
       try {
         const result = await normalSession.run('MATCH (n) DETACH DELETE n')
-        serverVersion = ServerVersion.fromString(result.summary.server.version)
+        protocolVersion = result.summary.server.protocolVersion
       } finally {
         await normalSession.close()
       }
@@ -145,68 +150,71 @@ describe('#integration-rx summary', () => {
     })
 
     it('should return non-null summary', () =>
-      shouldReturnNonNullSummary(serverVersion, txc))
+      shouldReturnNonNullSummary(protocolVersion, txc))
 
     it('should return summary with query text', () =>
-      shouldReturnSummaryWithQueryText(serverVersion, txc))
+      shouldReturnSummaryWithQueryText(protocolVersion, txc))
 
     it('should return summary with query text and parameters', () =>
-      shouldReturnSummaryWithQueryTextAndParams(serverVersion, txc))
+      shouldReturnSummaryWithQueryTextAndParams(protocolVersion, txc))
 
     it('should return summary with query type', () =>
-      shouldReturnSummaryWithCorrectQueryType(serverVersion, txc))
+      shouldReturnSummaryWithCorrectQueryType(protocolVersion, txc))
 
     it('should return summary with correct counters for create', () =>
-      shouldReturnSummaryWithUpdateStatisticsForCreate(serverVersion, txc))
+      shouldReturnSummaryWithUpdateStatisticsForCreate(protocolVersion, txc))
 
     it('should return summary with correct counters for delete', () =>
-      shouldReturnSummaryWithUpdateStatisticsForDelete(serverVersion, txc))
+      shouldReturnSummaryWithUpdateStatisticsForDelete(protocolVersion, txc))
 
     it('should return summary with correct counters for index create', () =>
-      shouldReturnSummaryWithUpdateStatisticsForIndexCreate(serverVersion, txc))
+      shouldReturnSummaryWithUpdateStatisticsForIndexCreate(
+        protocolVersion,
+        txc
+      ))
 
     it('should return summary with correct counters for index drop', () =>
       shouldReturnSummaryWithUpdateStatisticsForIndexDrop(
-        serverVersion,
+        protocolVersion,
         driver,
         txc
       ))
 
     it('should return summary with correct counters for constraint create', () =>
       shouldReturnSummaryWithUpdateStatisticsForConstraintCreate(
-        serverVersion,
+        protocolVersion,
         txc
       ))
 
     it('should return summary with correct counters for constraint drop', () =>
       shouldReturnSummaryWithUpdateStatisticsForConstraintDrop(
-        serverVersion,
+        protocolVersion,
         driver,
         txc
       ))
 
     it('should not return plan or profile', () =>
-      shouldNotReturnPlanAndProfile(serverVersion, txc))
+      shouldNotReturnPlanAndProfile(protocolVersion, txc))
 
     it('should return plan but no profile', () =>
-      shouldReturnPlanButNoProfile(serverVersion, txc))
+      shouldReturnPlanButNoProfile(protocolVersion, txc))
 
     it('should return plan and profile', () =>
-      shouldReturnPlanAndProfile(serverVersion, txc))
+      shouldReturnPlanAndProfile(protocolVersion, txc))
 
     it('should not return notification', () =>
-      shouldNotReturnNotification(serverVersion, txc))
+      shouldNotReturnNotification(protocolVersion, txc))
 
     it('should return notification', () =>
-      shouldReturnNotification(serverVersion, txc))
+      shouldReturnNotification(protocolVersion, txc))
   })
 
   describe('system', () => {
     let driver
     /** @type {RxSession} */
     let session
-    /** @type {ServerVersion} */
-    let serverVersion
+    /** @type {number} */
+    let protocolVersion
 
     beforeEach(async () => {
       driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
@@ -216,7 +224,7 @@ describe('#integration-rx summary', () => {
       const normalSession = driver.session()
       try {
         const result = await normalSession.run('MATCH (n) DETACH DELETE n')
-        serverVersion = ServerVersion.fromString(result.summary.server.version)
+        protocolVersion = result.summary.server.protocolVersion
       } finally {
         await normalSession.close()
       }
@@ -232,18 +240,18 @@ describe('#integration-rx summary', () => {
     })
 
     it('session should return summary with correct system updates for create', () =>
-      shouldReturnSummaryWithSystemUpdates(serverVersion, session))
+      shouldReturnSummaryWithSystemUpdates(protocolVersion, session))
 
     it('transaction should return summary with correct system updates for create', () =>
-      shouldReturnSummaryWithSystemUpdates(serverVersion, session, true))
+      shouldReturnSummaryWithSystemUpdates(protocolVersion, session, true))
   })
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnNonNullSummary (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnNonNullSummary (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -256,11 +264,11 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryWithQueryText (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnSummaryWithQueryText (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -271,11 +279,14 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryWithQueryTextAndParams (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnSummaryWithQueryTextAndParams (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -287,11 +298,14 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryWithCorrectQueryType (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnSummaryWithCorrectQueryType (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -301,16 +315,16 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession} session
    * @param {boolean} useTransaction
    */
   async function shouldReturnSummaryWithSystemUpdates (
-    version,
+    protocolVersion,
     session,
     useTransaction = false
   ) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -332,14 +346,14 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryWithUpdateStatisticsForCreate (
-    version,
+    protocolVersion,
     runnable
   ) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -364,19 +378,22 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryWithUpdateStatisticsForDelete (
-    version,
+    protocolVersion,
     runnable
   ) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
     // first create the to-be-deleted nodes
-    await shouldReturnSummaryWithUpdateStatisticsForCreate(version, runnable)
+    await shouldReturnSummaryWithUpdateStatisticsForCreate(
+      protocolVersion,
+      runnable
+    )
 
     await verifyUpdates(
       runnable,
@@ -399,14 +416,14 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryWithUpdateStatisticsForIndexCreate (
-    version,
+    protocolVersion,
     runnable
   ) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -426,15 +443,15 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryWithUpdateStatisticsForIndexDrop (
-    version,
+    protocolVersion,
     driver,
     runnable
   ) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -462,14 +479,14 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryWithUpdateStatisticsForConstraintCreate (
-    version,
+    protocolVersion,
     runnable
   ) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -494,15 +511,15 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnSummaryWithUpdateStatisticsForConstraintDrop (
-    version,
+    protocolVersion,
     driver,
     runnable
   ) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -537,11 +554,11 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldNotReturnPlanAndProfile (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldNotReturnPlanAndProfile (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -557,11 +574,11 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnPlanButNoProfile (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnPlanButNoProfile (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -578,11 +595,11 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnPlanAndProfile (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnPlanAndProfile (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -600,11 +617,11 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldNotReturnNotification (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldNotReturnNotification (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -618,11 +635,11 @@ describe('#integration-rx summary', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnNotification (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnNotification (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 

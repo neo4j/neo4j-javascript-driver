@@ -19,12 +19,11 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 
-describe('#integration Bolt V4 API', () => {
+describe('#integration Bolt V4.0 API', () => {
   let driver
   let session
-  let serverVersion
+  let protocolVersion
   let originalTimeout
 
   beforeEach(async () => {
@@ -33,7 +32,7 @@ describe('#integration Bolt V4 API', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
 
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -231,6 +230,6 @@ describe('#integration Bolt V4 API', () => {
   }
 
   function databaseSupportsBoltV4 () {
-    return serverVersion.compareTo(VERSION_4_0_0) >= 0
+    return protocolVersion >= 4.0
   }
 })

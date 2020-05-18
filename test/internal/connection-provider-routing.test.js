@@ -1891,7 +1891,7 @@ function newPool () {
   return new Pool({
     create: (address, release) =>
       Promise.resolve(
-        new FakeConnection(address, release, VERSION_IN_DEV.toString())
+        new FakeConnection(address, release, VERSION_IN_DEV.toString(), 4.0)
       )
   })
 }
@@ -1926,11 +1926,12 @@ function expectPoolToNotContain (pool, addresses) {
 }
 
 class FakeConnection extends Connection {
-  constructor (address, release, version) {
+  constructor (address, release, version, protocolVersion) {
     super(null)
 
     this._address = address
     this._version = version || VERSION_IN_DEV.toString()
+    this._protocolVersion = protocolVersion
     this.release = release
   }
 
@@ -1940,6 +1941,12 @@ class FakeConnection extends Connection {
 
   get version () {
     return this._version
+  }
+
+  protocol () {
+    return {
+      version: this._protocolVersion
+    }
   }
 }
 

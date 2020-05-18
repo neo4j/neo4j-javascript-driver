@@ -21,11 +21,6 @@ import neo4j from '../src'
 import { READ, WRITE } from '../src/driver'
 import parallelLimit from 'async/parallelLimit'
 import _ from 'lodash'
-import {
-  ServerVersion,
-  VERSION_3_2_0,
-  VERSION_4_0_0
-} from '../src/internal/server-version'
 import sharedNeo4j from './internal/shared-neo4j'
 
 describe('#integration stress tests', () => {
@@ -72,6 +67,7 @@ describe('#integration stress tests', () => {
 
   let originalTimeout
   let driver
+  let protocolVersion
 
   beforeEach(async () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
@@ -87,7 +83,7 @@ describe('#integration stress tests', () => {
       config
     )
 
-    await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -444,9 +440,10 @@ describe('#integration stress tests', () => {
 
   function verifyCausalClusterMembers (context) {
     return fetchClusterAddresses(context).then(clusterAddresses => {
-      // before 3.2.0 only read replicas serve reads
-      const readsOnFollowersEnabled =
-        context.serverVersion.compareTo(VERSION_3_2_0) >= 0
+      // Before 3.2.0 only read replicas serve reads.
+      // We round up this check to Bolt v2 and above
+      // to avoid sniffing the server agent string.
+      const readsOnFollowersEnabled = context.protocolVersion >= 2
 
       if (readsOnFollowersEnabled) {
         // expect all followers to serve more than zero read queries
@@ -484,8 +481,7 @@ describe('#integration stress tests', () => {
       session.close().then(() => {
         const records = result.records
 
-        const version = ServerVersion.fromString(result.summary.server.version)
-        const supportsMultiDb = version.compareTo(VERSION_4_0_0) >= 0
+        const supportsMultiDb = protocolVersion >= 4.0
         const followers = supportsMultiDb
           ? addressesForMultiDb(records, 'FOLLOWER')
           : addressesWithRole(records, 'FOLLOWER')
@@ -602,15 +598,12 @@ describe('#integration stress tests', () => {
       this._loggingEnabled = loggingEnabled
       this.readServersWithQueryCount = {}
       this.writeServersWithQueryCount = {}
-      this.serverVersion = null
+      this.protocolVersion = null
     }
 
     queryCompleted (result, accessMode, bookmark) {
       const serverInfo = result.summary.server
-
-      if (!this.serverVersion) {
-        this.serverVersion = ServerVersion.fromString(serverInfo.version)
-      }
+      this.protocolVersion = serverInfo.protocolVersion
 
       const serverAddress = serverInfo.address
       if (accessMode === WRITE) {

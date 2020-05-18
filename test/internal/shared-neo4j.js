@@ -18,7 +18,6 @@
  */
 
 import neo4j from '../../src'
-import { ServerVersion } from '../../src/internal/server-version'
 
 class UnsupportedPlatform {
   pathJoin () {
@@ -149,7 +148,7 @@ const defaultConfig = {
 
 const NEOCTRL_ARGS = 'NEOCTRL_ARGS'
 const neoCtrlVersionParam = '-e'
-const defaultNeo4jVersion = '4.1'
+const defaultNeo4jVersion = '4.0'
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`
 
 function neoctrlArgs () {
@@ -296,11 +295,11 @@ function restart (configOverride) {
   startNeo4j()
 }
 
-async function cleanupAndGetVersion (driver) {
+async function cleanupAndGetProtocolVersion (driver) {
   const session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
   try {
     const result = await session.run('MATCH (n) DETACH DELETE n')
-    return ServerVersion.fromString(result.summary.server.version)
+    return result.summary.server.protocolVersion
   } finally {
     await session.close()
   }
@@ -358,7 +357,7 @@ export default {
   password: password,
   authToken: authToken,
   logging: debugLogging,
-  cleanupAndGetVersion: cleanupAndGetVersion,
+  cleanupAndGetProtocolVersion: cleanupAndGetProtocolVersion,
   tlsConfig: tlsConfig,
   getEdition: getEdition
 }

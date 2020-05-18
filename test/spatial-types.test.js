@@ -19,7 +19,6 @@
 
 import neo4j, { int } from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import { ServerVersion, VERSION_3_4_0 } from '../src/internal/server-version'
 import { isPoint, Point } from '../src/spatial-types'
 import _ from 'lodash'
 
@@ -33,7 +32,7 @@ describe('#integration spatial-types', () => {
   let driver
   let driverWithNativeNumbers
   let session
-  let serverVersion
+  let protocolVersion
 
   beforeAll(() => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
@@ -58,7 +57,7 @@ describe('#integration spatial-types', () => {
 
   beforeEach(async () => {
     session = driver.session()
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -310,7 +309,7 @@ describe('#integration spatial-types', () => {
   }
 
   function neo4jDoesNotSupportPoints (done) {
-    if (serverVersion.compareTo(VERSION_3_4_0) < 0) {
+    if (protocolVersion < 2) {
       done()
       return true
     }

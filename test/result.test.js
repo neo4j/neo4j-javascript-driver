@@ -28,7 +28,7 @@ describe('#integration result stream', () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.session()
 
-    await sharedNeo4j.cleanupAndGetVersion(driver)
+    await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {

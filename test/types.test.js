@@ -20,7 +20,6 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
-import { ServerVersion, VERSION_3_2_0 } from '../src/internal/server-version'
 
 describe('#integration null value', () => {
   it('should support null', testValue(null))

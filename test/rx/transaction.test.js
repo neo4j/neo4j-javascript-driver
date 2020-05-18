@@ -28,7 +28,6 @@ import {
   catchError
 } from 'rxjs/operators'
 import neo4j from '../../src'
-import { ServerVersion, VERSION_4_0_0 } from '../../src/internal/server-version'
 import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { newError } from '../../src/error'
@@ -37,14 +36,14 @@ describe('#integration-rx transaction', () => {
   let driver
   /** @type {RxSession} */
   let session
-  /** @type {ServerVersion} */
-  let serverVersion
+  /** @type {number} */
+  let protocolVersion
 
   beforeEach(async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.rxSession()
 
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -55,7 +54,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should commit an empty transaction', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -72,7 +71,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should rollback an empty transaction', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -89,7 +88,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should run query and commit', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -118,7 +117,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should run query and rollback', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -171,7 +170,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after a failed query', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -181,10 +180,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -198,7 +194,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should succeed to rollback after a failed query', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -208,16 +204,13 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([Notification.createComplete()])
   })
 
   it('should fail to commit after successful and failed query', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -229,10 +222,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -246,7 +236,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should succeed to rollback after successful and failed query', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -258,16 +248,13 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([Notification.createComplete()])
   })
 
   it('should fail to run another query after a failed one', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -278,10 +265,7 @@ describe('#integration-rx transaction', () => {
     const result = await txc
       .run('CREATE ()')
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -295,7 +279,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not allow commit after commit', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -306,10 +290,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -323,7 +304,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not allow rollback after rollback', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -334,10 +315,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -351,7 +329,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to rollback after commit', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -362,10 +340,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -379,7 +354,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should fail to commit after rollback', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -390,10 +365,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -415,7 +387,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should update bookmark', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -439,7 +411,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should propagate failures from queries', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -471,7 +443,7 @@ describe('#integration-rx transaction', () => {
   })
 
   it('should not run until subscribed', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -515,7 +487,7 @@ describe('#integration-rx transaction', () => {
   it('should not propagate run failure from summary', async () => {
     pending('behaviour difference across drivers')
 
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -524,10 +496,7 @@ describe('#integration-rx transaction', () => {
 
     const messages = await result
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(messages).toEqual([
       Notification.createError(
@@ -540,7 +509,7 @@ describe('#integration-rx transaction', () => {
   })
 
   async function verifyNoFailureIfNotExecuted (commit) {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -552,7 +521,7 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyFailToRunQueryAfterTxcIsComplete (commit) {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -563,10 +532,7 @@ describe('#integration-rx transaction', () => {
     const result = await txc
       .run('CREATE ()')
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -580,7 +546,7 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanRunMultipleQueries (commit) {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -604,7 +570,7 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanRunMultipleQueriesWithoutWaiting (commit) {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -630,7 +596,7 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanRunMultipleQueriesWithoutStreaming (commit) {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -663,10 +629,7 @@ describe('#integration-rx transaction', () => {
   async function verifyCanCommit (txc) {
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([Notification.createComplete()])
   }
@@ -674,10 +637,7 @@ describe('#integration-rx transaction', () => {
   async function verifyCanRollback (txc) {
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([Notification.createComplete()])
   }
@@ -726,10 +686,7 @@ describe('#integration-rx transaction', () => {
     const result = await txc
       .run('RETURN')
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(

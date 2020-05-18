@@ -19,7 +19,6 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import { ServerVersion, VERSION_3_5_0 } from '../src/internal/server-version'
 
 const TX_CONFIG_WITH_METADATA = { metadata: { a: 1, b: 2 } }
 const TX_CONFIG_WITH_TIMEOUT = { timeout: 42 }
@@ -34,7 +33,7 @@ const INVALID_METADATA_VALUES = [
 describe('#integration Bolt V3 API', () => {
   let driver
   let session
-  let serverVersion
+  let protocolVersion
   let originalTimeout
 
   beforeEach(async () => {
@@ -43,7 +42,7 @@ describe('#integration Bolt V3 API', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
 
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -497,6 +496,6 @@ describe('#integration Bolt V3 API', () => {
   }
 
   function databaseSupportsBoltV3 () {
-    return serverVersion.compareTo(VERSION_3_5_0) >= 0
+    return protocolVersion >= 3
   }
 })

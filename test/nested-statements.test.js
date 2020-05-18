@@ -25,7 +25,6 @@ import SingleConnectionProvider from '../src/internal/connection-provider-single
 import FakeConnection from './internal/fake-connection'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
-import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import { isString } from '../src/internal/util'
 import testUtils from './internal/test-utils'
 import { newError, PROTOCOL_ERROR, SESSION_EXPIRED } from '../src/error'
@@ -45,7 +44,7 @@ describe('#integration session', () => {
   let driver
   let session
   // eslint-disable-next-line no-unused-vars
-  let serverVersion
+  let protocolVersion
   let originalTimeout
 
   beforeEach(async () => {
@@ -54,7 +53,7 @@ describe('#integration session', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {

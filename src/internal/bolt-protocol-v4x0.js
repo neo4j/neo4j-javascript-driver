@@ -19,11 +19,11 @@
 import BoltProtocolV3 from './bolt-protocol-v3'
 import RequestMessage, { ALL } from './request-message'
 import { ResultStreamObserver } from './stream-observers'
-import { BOLT_PROTOCOL_V4 } from './constants'
+import { BOLT_PROTOCOL_V4_0 } from './constants'
 
 export default class BoltProtocol extends BoltProtocolV3 {
   get version () {
-    return BOLT_PROTOCOL_V4
+    return BOLT_PROTOCOL_V4_0
   }
 
   beginTransaction ({

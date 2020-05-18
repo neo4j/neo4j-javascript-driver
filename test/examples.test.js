@@ -35,7 +35,7 @@ describe('#integration examples', () => {
   const originalConsole = console
 
   let driverGlobal
-  let version
+  let protocolVersion
   let edition
   let originalTimeout
 
@@ -60,7 +60,9 @@ describe('#integration examples', () => {
     })
     consoleOverride = { log: msg => consoleOverridePromiseResolve(msg) }
 
-    version = await sharedNeo4j.cleanupAndGetVersion(driverGlobal)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(
+      driverGlobal
+    )
     edition = await sharedNeo4j.getEdition(driverGlobal)
   })
 
@@ -115,7 +117,7 @@ describe('#integration examples', () => {
   })
 
   it('rx autocommit transaction example', async () => {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -477,7 +479,7 @@ describe('#integration examples', () => {
   })
 
   it('rx result consume example', async () => {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -655,7 +657,7 @@ describe('#integration examples', () => {
   })
 
   it('rx transaction function example', async () => {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -693,7 +695,7 @@ describe('#integration examples', () => {
   })
 
   it('use another database example', async () => {
-    if (version.compareTo(VERSION_4_0_0) < 0 || edition !== 'enterprise') {
+    if (protocolVersion < 4.0 || edition !== 'enterprise') {
       return
     }
 

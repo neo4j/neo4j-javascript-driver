@@ -95,11 +95,11 @@ describe('#unit driver', () => {
 
 describe('#integration driver', () => {
   let driver
-  let serverVersion
+  let protocolVersion
 
   beforeAll(async () => {
     const tmpDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(tmpDriver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(tmpDriver)
     await tmpDriver.close()
   })
 
@@ -601,6 +601,6 @@ describe('#integration driver', () => {
   }
 
   function routingProcedureOnlyAvailableOnCores () {
-    return serverVersion.compareTo(VERSION_4_0_0) < 0
+    return protocolVersion < 4.0
   }
 })

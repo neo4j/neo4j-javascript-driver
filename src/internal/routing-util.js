@@ -141,8 +141,8 @@ export default class RoutingUtil {
       let query
       let params
 
-      const version = ServerVersion.fromString(connection.version)
-      if (version.compareTo(VERSION_4_0_0) >= 0) {
+      const protocolVersion = connection.protocol().version
+      if (protocolVersion >= 4.0) {
         query = CALL_GET_ROUTING_TABLE_MULTI_DB
         params = {
           context: this._routingContext,

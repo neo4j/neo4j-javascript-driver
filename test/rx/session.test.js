@@ -20,7 +20,6 @@
 import { Notification, throwError } from 'rxjs'
 import { map, materialize, toArray, concat } from 'rxjs/operators'
 import neo4j from '../../src'
-import { ServerVersion, VERSION_4_0_0 } from '../../src/internal/server-version'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
 
@@ -29,8 +28,8 @@ describe('#integration rx-session', () => {
   let driver
   /** @type {RxSession} */
   let session
-  /** @type {ServerVersion} */
-  let serverVersion
+  /** @type {number} */
+  let protocolVersion
 
   beforeEach(async () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
@@ -38,7 +37,7 @@ describe('#integration rx-session', () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.rxSession()
 
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -50,7 +49,7 @@ describe('#integration rx-session', () => {
   })
 
   it('should be able to run a simple query', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -74,17 +73,14 @@ describe('#integration rx-session', () => {
   })
 
   it('should be able to reuse session after failure', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
     const result1 = await session
       .run('INVALID STATEMENT')
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result1).toEqual([
       Notification.createError(jasmine.stringMatching(/Invalid input/))
@@ -106,7 +102,7 @@ describe('#integration rx-session', () => {
   })
 
   it('should run transactions without retries', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -116,10 +112,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createNext(5),
@@ -131,7 +124,7 @@ describe('#integration rx-session', () => {
   })
 
   it('should run transaction with retries on reactive failures', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -146,10 +139,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createNext(7),
@@ -161,7 +151,7 @@ describe('#integration rx-session', () => {
   })
 
   it('should run transaction with retries on synchronous failures', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -176,10 +166,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createNext(9),
@@ -191,7 +178,7 @@ describe('#integration rx-session', () => {
   })
 
   it('should fail on transactions that cannot be retried', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -201,10 +188,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createNext(1),
@@ -217,7 +201,7 @@ describe('#integration rx-session', () => {
   })
 
   it('should fail even after a transient error', async () => {
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -236,10 +220,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(jasmine.stringMatching(/a database error/))

@@ -34,7 +34,7 @@ describe('#integration session', () => {
   let driver
   let session
   // eslint-disable-next-line no-unused-vars
-  let serverVersion
+  let protocolVersion
   let originalTimeout
 
   beforeEach(async () => {
@@ -43,7 +43,7 @@ describe('#integration session', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {

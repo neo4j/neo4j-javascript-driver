@@ -162,15 +162,34 @@ class Result {
   subscribe (observer) {
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
     const onCompletedWrapper = metadata => {
-      // notify connection holder that the used connection is not needed any more because result has
-      // been fully consumed; call the original onCompleted callback after that
-      this._connectionHolder.releaseConnection().then(() => {
-        onCompletedOriginal.call(
-          observer,
-          new ResultSummary(this._query, this._parameters, metadata)
-        )
-      })
+      const connectionHolder = this._connectionHolder
+      const query = this._query
+      const parameters = this._parameters
+
+      function release (protocolVersion) {
+        // notify connection holder that the used connection is not needed any more because result has
+        // been fully consumed; call the original onCompleted callback after that
+        connectionHolder.releaseConnection().then(() => {
+          onCompletedOriginal.call(
+            observer,
+            new ResultSummary(query, parameters, metadata, protocolVersion)
+          )
+        })
+      }
+
+      connectionHolder.getConnection().then(
+        // onFulfilled:
+        connection => {
+          release(connection ? connection.protocol().version : undefined)
+        },
+
+        // onRejected:
+        _ => {
+          release()
+        }
+      )
     }
+
     observer.onCompleted = onCompletedWrapper
 
     const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR

@@ -17,14 +17,14 @@
  * limitations under the License.
  */
 
-import BoltProtocolV4 from '../../src/internal/bolt-protocol-v4'
+import BoltProtocolV4x0 from '../../src/internal/bolt-protocol-v4x0'
 import RequestMessage from '../../src/internal/request-message'
 import utils from './test-utils'
 import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
 
-describe('#unit BoltProtocolV4', () => {
+describe('#unit BoltProtocolV4x0', () => {
   beforeEach(() => {
     jasmine.addMatchers(utils.matchers)
   })
@@ -40,7 +40,7 @@ describe('#unit BoltProtocolV4', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4(recorder, null, false)
+    const protocol = new BoltProtocolV4x0(recorder, null, false)
 
     const query = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
@@ -78,7 +78,7 @@ describe('#unit BoltProtocolV4', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4(recorder, null, false)
+    const protocol = new BoltProtocolV4x0(recorder, null, false)
 
     const observer = protocol.beginTransaction({
       bookmark,
@@ -96,7 +96,7 @@ describe('#unit BoltProtocolV4', () => {
   })
 
   it('should return correct bolt version number', () => {
-    const protocol = new BoltProtocolV4(null, null, false)
+    const protocol = new BoltProtocolV4x0(null, null, false)
 
     expect(protocol.version).toBe(4)
   })

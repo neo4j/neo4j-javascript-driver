@@ -28,7 +28,6 @@ import {
   catchError
 } from 'rxjs/operators'
 import neo4j from '../../src'
-import { ServerVersion, VERSION_4_0_0 } from '../../src/internal/server-version'
 import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 
@@ -36,14 +35,14 @@ describe('#integration-rx transaction', () => {
   let driver
   /** @type {RxSession} */
   let session
-  /** @type {ServerVersion} */
-  let serverVersion
+  /** @type {number} */
+  let protocolVersion
 
   beforeEach(async () => {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     session = driver.rxSession()
 
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -55,7 +54,7 @@ describe('#integration-rx transaction', () => {
 
   it('should handle nested queries within one transaction', async () => {
     const size = 1024
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -92,7 +91,7 @@ describe('#integration-rx transaction', () => {
 
   it('should give proper error when nesting queries within one session', async () => {
     const size = 1024
-    if (serverVersion.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 

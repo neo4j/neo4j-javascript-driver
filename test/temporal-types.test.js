@@ -23,7 +23,6 @@ import {
   timeZoneOffsetInSeconds,
   totalNanoseconds
 } from '../src/internal/temporal-util'
-import { ServerVersion, VERSION_3_4_0 } from '../src/internal/server-version'
 import timesSeries from 'async/timesSeries'
 import _ from 'lodash'
 import testUtils from './internal/test-utils'
@@ -53,7 +52,7 @@ describe('#integration temporal-types', () => {
   let driver
   let driverWithNativeNumbers
   let session
-  let serverVersion
+  let protocolVersion
 
   beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
@@ -83,7 +82,7 @@ describe('#integration temporal-types', () => {
 
   beforeEach(async () => {
     session = driver.session()
-    serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -1482,7 +1481,7 @@ describe('#integration temporal-types', () => {
   }
 
   function neo4jDoesNotSupportTemporalTypes () {
-    if (serverVersion.compareTo(VERSION_3_4_0) < 0) {
+    if (protocolVersion < 2) {
       return true
     }
     return false

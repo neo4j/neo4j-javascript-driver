@@ -18,14 +18,13 @@
  */
 
 import DummyChannel from './dummy-channel'
-import Connection from '../../src/internal/connection'
 import ChannelConnection from '../../src/internal/connection-channel'
 import { Packer } from '../../src/internal/packstream-v1'
 import { Chunker } from '../../src/internal/chunking'
 import { alloc } from '../../src/internal/node'
 import { Neo4jError, newError, SERVICE_UNAVAILABLE } from '../../src/error'
 import sharedNeo4j from '../internal/shared-neo4j'
-import { ServerVersion, VERSION_3_5_0 } from '../../src/internal/server-version'
+import { ServerVersion } from '../../src/internal/server-version'
 import lolex from 'lolex'
 import Logger from '../../src/internal/logger'
 import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
@@ -410,8 +409,8 @@ describe('#integration ChannelConnection', () => {
     expect(messages.length).toBeGreaterThan(0)
     expect(messages[0].signature).toEqual(0x01) // first message is either INIT or HELLO
 
-    const serverVersion = ServerVersion.fromString(connection.version)
-    if (serverVersion.compareTo(VERSION_3_5_0) >= 0) {
+    const protocolVersion = connection.protocol().version
+    if (protocolVersion >= 3) {
       expect(messages[messages.length - 1].signature).toEqual(0x02) // last message is GOODBYE in V3
     }
   })

@@ -21,12 +21,10 @@ import neo4j from '../../../src'
 import sharedNeo4j from '../shared-neo4j'
 
 describe('#integration trust', () => {
-  let serverVersion
-
   beforeAll(async () => {
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
     try {
-      serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+      await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
     } finally {
       await driver.close()
     }

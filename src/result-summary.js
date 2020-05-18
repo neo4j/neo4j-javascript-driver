@@ -29,8 +29,9 @@ class ResultSummary {
    * @param {string} query - The query this summary is for
    * @param {Object} parameters - Parameters for the query
    * @param {Object} metadata - Query metadata
+   * @param {number} protocolVersion - Bolt protocol version
    */
-  constructor (query, parameters, metadata) {
+  constructor (query, parameters, metadata, protocolVersion) {
     /**
      * The query and parameters this summary is for.
      * @type {{text: string, parameters: Object}}
@@ -96,7 +97,7 @@ class ResultSummary {
      * @type {ServerInfo}
      * @public
      */
-    this.server = new ServerInfo(metadata.server)
+    this.server = new ServerInfo(metadata.server, protocolVersion)
 
     /**
      * The time it took the server to consume the result.
@@ -313,12 +314,14 @@ class ServerInfo {
    * Create a ServerInfo instance
    * @constructor
    * @param {Object} serverMeta - Object with serverMeta data
+   * @param {number} protocolVersion - Bolt protocol version
    */
-  constructor (serverMeta) {
+  constructor (serverMeta, protocolVersion) {
     if (serverMeta) {
       this.address = serverMeta.address
       this.version = serverMeta.version
     }
+    this.protocolVersion = protocolVersion
   }
 }
 

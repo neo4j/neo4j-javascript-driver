@@ -22,9 +22,8 @@ import { newError } from '../error'
 import BoltProtocolV1 from './bolt-protocol-v1'
 import BoltProtocolV2 from './bolt-protocol-v2'
 import BoltProtocolV3 from './bolt-protocol-v3'
-import BoltProtocolV4 from './bolt-protocol-v4'
+import BoltProtocolV4x0 from './bolt-protocol-v4x0'
 
-const HTTP_MAGIC_PREAMBLE = 1213486160 // == 0x48545450 == "HTTP"
 const BOLT_MAGIC_PREAMBLE = 0x6060b017
 
 export default class ProtocolHandshaker {
@@ -58,7 +57,19 @@ export default class ProtocolHandshaker {
    * @throws {Neo4jError} when bolt protocol can't be instantiated.
    */
   createNegotiatedProtocol (buffer) {
-    const negotiatedVersion = buffer.readInt32()
+    const h = [
+      buffer.readUInt8(),
+      buffer.readUInt8(),
+      buffer.readUInt8(),
+      buffer.readUInt8()
+    ]
+    if (h[0] === 0x48 && h[1] === 0x54 && h[2] === 0x54 && h[3] === 0x50) {
+      throw newError(
+        'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
+          '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
+      )
+    }
+    const negotiatedVersion = Number(h[3] + '.' + h[2])
     if (this._log.isDebugEnabled()) {
       this._log.debug(
         `${this._connection} negotiated protocol version ${negotiatedVersion}`
@@ -91,16 +102,11 @@ export default class ProtocolHandshaker {
           this._chunker,
           this._disableLosslessIntegers
         )
-      case 4:
-        return new BoltProtocolV4(
+      case 4.0:
+        return new BoltProtocolV4x0(
           this._connection,
           this._chunker,
           this._disableLosslessIntegers
-        )
-      case HTTP_MAGIC_PREAMBLE:
-        throw newError(
-          'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
-            '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
         )
       default:
         throw newError('Unknown Bolt protocol version: ' + version)

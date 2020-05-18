@@ -18,7 +18,6 @@
  */
 import neo4j from '../../src'
 import sharedNeo4j from '../internal/shared-neo4j'
-import { ServerVersion, VERSION_4_0_0 } from '../../src/internal/server-version'
 import RxSession from '../../src/session-rx'
 import { Notification, Observable } from 'rxjs'
 import { materialize, toArray, map } from 'rxjs/operators'
@@ -29,8 +28,8 @@ describe('#integration-rx navigation', () => {
     let driver
     /** @type {RxSession} */
     let session
-    /** @type {ServerVersion} */
-    let serverVersion
+    /** @type {number} */
+    let protocolVersion
     let originalTimeout
 
     beforeEach(async () => {
@@ -39,7 +38,7 @@ describe('#integration-rx navigation', () => {
       originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
       jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
-      serverVersion = await sharedNeo4j.cleanupAndGetVersion(driver)
+      protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
     })
 
     afterEach(async () => {
@@ -50,67 +49,67 @@ describe('#integration-rx navigation', () => {
       await driver.close()
     })
 
-    it('should return keys', () => shouldReturnKeys(serverVersion, session))
+    it('should return keys', () => shouldReturnKeys(protocolVersion, session))
 
     it('should return summary', () =>
-      shouldReturnSummary(serverVersion, session))
+      shouldReturnSummary(protocolVersion, session))
 
     it('should return keys and records', () =>
-      shouldReturnKeysAndRecords(serverVersion, session))
+      shouldReturnKeysAndRecords(protocolVersion, session))
 
     it('should return records and summary', () =>
-      shouldReturnRecordsAndSummary(serverVersion, session))
+      shouldReturnRecordsAndSummary(protocolVersion, session))
 
     it('should return keys, records and summary', () =>
-      shouldReturnKeysRecordsAndSummary(serverVersion, session))
+      shouldReturnKeysRecordsAndSummary(protocolVersion, session))
 
     it('should return keys and summary but no records', () =>
-      shouldReturnKeysAndSummaryButRecords(serverVersion, session))
+      shouldReturnKeysAndSummaryButRecords(protocolVersion, session))
 
     it('should return keys even after records are complete', () =>
-      shouldReturnKeysEvenAfterRecordsAreComplete(serverVersion, session))
+      shouldReturnKeysEvenAfterRecordsAreComplete(protocolVersion, session))
 
     it('should return keys even after summary is complete', () =>
-      shouldReturnKeysEvenAfterSummaryIsComplete(serverVersion, session))
+      shouldReturnKeysEvenAfterSummaryIsComplete(protocolVersion, session))
 
     it('should return keys multiple times', () =>
-      shouldReturnKeysMultipleTimes(serverVersion, session))
+      shouldReturnKeysMultipleTimes(protocolVersion, session))
 
     it('should return summary multiple times', () =>
-      shouldReturnSummaryMultipleTimes(serverVersion, session))
+      shouldReturnSummaryMultipleTimes(protocolVersion, session))
 
     it('should return records only once', () =>
-      shouldReturnRecordsOnlyOnce(serverVersion, session))
+      shouldReturnRecordsOnlyOnce(protocolVersion, session))
 
     it('should return empty keys for query without return', () =>
-      shouldReturnEmptyKeysForQueryWithNoReturn(serverVersion, session))
+      shouldReturnEmptyKeysForQueryWithNoReturn(protocolVersion, session))
 
     it('should return no records for query without return', () =>
-      shouldReturnNoRecordsForQueryWithNoReturn(serverVersion, session))
+      shouldReturnNoRecordsForQueryWithNoReturn(protocolVersion, session))
 
     it('should return summary for query without return', () =>
-      shouldReturnSummaryForQueryWithNoReturn(serverVersion, session))
+      shouldReturnSummaryForQueryWithNoReturn(protocolVersion, session))
 
     it('should fail on keys when run fails', () =>
-      shouldFailOnKeysWhenRunFails(serverVersion, session))
+      shouldFailOnKeysWhenRunFails(protocolVersion, session))
 
     it('should fail on subsequent keys when run fails', () =>
-      shouldFailOnSubsequentKeysWhenRunFails(serverVersion, session))
+      shouldFailOnSubsequentKeysWhenRunFails(protocolVersion, session))
 
     it('should fail on records when run fails', () =>
-      shouldFailOnRecordsWhenRunFails(serverVersion, session))
+      shouldFailOnRecordsWhenRunFails(protocolVersion, session))
 
     it('should fail on subsequent records differently when run fails', () =>
-      shouldFailOnSubsequentRecordsWhenRunFails(serverVersion, session))
+      shouldFailOnSubsequentRecordsWhenRunFails(protocolVersion, session))
 
     it('should fail on summary when run fails', () =>
-      shouldFailOnSummaryWhenRunFails(serverVersion, session))
+      shouldFailOnSummaryWhenRunFails(protocolVersion, session))
 
     it('should fail on subsequent summary when run fails', () =>
-      shouldFailOnSubsequentSummaryWhenRunFails(serverVersion, session))
+      shouldFailOnSubsequentSummaryWhenRunFails(protocolVersion, session))
 
     it('should fail on result when closed', () =>
-      shouldFailOnResultWhenClosed(serverVersion, session, () =>
+      shouldFailOnResultWhenClosed(protocolVersion, session, () =>
         session.close()
       ))
   })
@@ -121,8 +120,8 @@ describe('#integration-rx navigation', () => {
     let session
     /** @type {RxTransaction} */
     let txc
-    /** @type {ServerVersion} */
-    let serverVersion
+    /** @type {number} */
+    let protocolVersion
     let originalTimeout
 
     beforeEach(async () => {
@@ -135,7 +134,7 @@ describe('#integration-rx navigation', () => {
       const normalSession = driver.session()
       try {
         const result = await normalSession.run('MATCH (n) DETACH DELETE n')
-        serverVersion = ServerVersion.fromString(result.summary.server.version)
+        protocolVersion = result.summary.server.protocolVersion
       } finally {
         await normalSession.close()
       }
@@ -156,87 +155,84 @@ describe('#integration-rx navigation', () => {
       await driver.close()
     })
 
-    it('should return keys', () => shouldReturnKeys(serverVersion, txc))
+    it('should return keys', () => shouldReturnKeys(protocolVersion, txc))
 
-    it('should return summary', () => shouldReturnSummary(serverVersion, txc))
+    it('should return summary', () => shouldReturnSummary(protocolVersion, txc))
 
     it('should return keys and records', () =>
-      shouldReturnKeysAndRecords(serverVersion, txc))
+      shouldReturnKeysAndRecords(protocolVersion, txc))
 
     it('should return records and summary', () =>
-      shouldReturnRecordsAndSummary(serverVersion, txc))
+      shouldReturnRecordsAndSummary(protocolVersion, txc))
 
     it('should return keys, records and summary', () =>
-      shouldReturnKeysRecordsAndSummary(serverVersion, txc))
+      shouldReturnKeysRecordsAndSummary(protocolVersion, txc))
 
     it('should return keys and summary but no records', () =>
-      shouldReturnKeysAndSummaryButRecords(serverVersion, txc))
+      shouldReturnKeysAndSummaryButRecords(protocolVersion, txc))
 
     it('should return keys even after records are complete', () =>
-      shouldReturnKeysEvenAfterRecordsAreComplete(serverVersion, txc))
+      shouldReturnKeysEvenAfterRecordsAreComplete(protocolVersion, txc))
 
     it('should return keys even after summary is complete', () =>
-      shouldReturnKeysEvenAfterSummaryIsComplete(serverVersion, txc))
+      shouldReturnKeysEvenAfterSummaryIsComplete(protocolVersion, txc))
 
     it('should return keys multiple times', () =>
-      shouldReturnKeysMultipleTimes(serverVersion, txc))
+      shouldReturnKeysMultipleTimes(protocolVersion, txc))
 
     it('should return summary multiple times', () =>
-      shouldReturnSummaryMultipleTimes(serverVersion, txc))
+      shouldReturnSummaryMultipleTimes(protocolVersion, txc))
 
     it('should return records only once', () =>
-      shouldReturnRecordsOnlyOnce(serverVersion, txc))
+      shouldReturnRecordsOnlyOnce(protocolVersion, txc))
 
     it('should return empty keys for query without return', () =>
-      shouldReturnEmptyKeysForQueryWithNoReturn(serverVersion, txc))
+      shouldReturnEmptyKeysForQueryWithNoReturn(protocolVersion, txc))
 
     it('should return no records for query without return', () =>
-      shouldReturnNoRecordsForQueryWithNoReturn(serverVersion, txc))
+      shouldReturnNoRecordsForQueryWithNoReturn(protocolVersion, txc))
 
     it('should return summary for query without return', () =>
-      shouldReturnSummaryForQueryWithNoReturn(serverVersion, txc))
+      shouldReturnSummaryForQueryWithNoReturn(protocolVersion, txc))
 
     it('should fail on keys when run fails', () =>
-      shouldFailOnKeysWhenRunFails(serverVersion, txc))
+      shouldFailOnKeysWhenRunFails(protocolVersion, txc))
 
     it('should fail on subsequent keys when run fails', () =>
-      shouldFailOnSubsequentKeysWhenRunFails(serverVersion, txc))
+      shouldFailOnSubsequentKeysWhenRunFails(protocolVersion, txc))
 
     it('should fail on records when run fails', () =>
-      shouldFailOnRecordsWhenRunFails(serverVersion, txc))
+      shouldFailOnRecordsWhenRunFails(protocolVersion, txc))
 
     it('should fail on subsequent records differently when run fails', () =>
-      shouldFailOnSubsequentRecordsWhenRunFails(serverVersion, txc))
+      shouldFailOnSubsequentRecordsWhenRunFails(protocolVersion, txc))
 
     it('should fail on summary when run fails', () =>
-      shouldFailOnSummaryWhenRunFails(serverVersion, txc))
+      shouldFailOnSummaryWhenRunFails(protocolVersion, txc))
 
     it('should fail on subsequent summary when run fails', () =>
-      shouldFailOnSubsequentSummaryWhenRunFails(serverVersion, txc))
+      shouldFailOnSubsequentSummaryWhenRunFails(protocolVersion, txc))
 
     it('should fail on result when committed', () =>
-      shouldFailOnResultWhenClosed(serverVersion, txc, () => txc.commit()))
+      shouldFailOnResultWhenClosed(protocolVersion, txc, () => txc.commit()))
 
     it('should fail on result when rolled back', () =>
-      shouldFailOnResultWhenClosed(serverVersion, txc, () => txc.rollback()))
+      shouldFailOnResultWhenClosed(protocolVersion, txc, () => txc.rollback()))
   })
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnKeys (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnKeys (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
     const result = await runnable
       .run("RETURN 1 as f1, true as f2, 'string' as f3")
       .keys()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
 
     expect(result).toEqual([
@@ -246,11 +242,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummary (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnSummary (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -260,11 +256,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnKeysAndRecords (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnKeysAndRecords (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -277,11 +273,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnRecordsAndSummary (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnRecordsAndSummary (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -294,11 +290,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnKeysRecordsAndSummary (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnKeysRecordsAndSummary (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -312,11 +308,14 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnKeysAndSummaryButRecords (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnKeysAndSummaryButRecords (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -334,14 +333,14 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
   async function shouldReturnKeysEvenAfterRecordsAreComplete (
-    version,
+    protocolVersion,
     runnable
   ) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -354,11 +353,14 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnKeysEvenAfterSummaryIsComplete (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnKeysEvenAfterSummaryIsComplete (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -371,11 +373,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnKeysMultipleTimes (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnKeysMultipleTimes (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -390,11 +392,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryMultipleTimes (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnSummaryMultipleTimes (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -409,11 +411,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnRecordsOnlyOnce (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnRecordsOnlyOnce (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -432,21 +434,21 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnEmptyKeysForQueryWithNoReturn (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnEmptyKeysForQueryWithNoReturn (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
     const keys = await runnable
       .run('CREATE ({id : $id})', { id: 5 })
       .keys()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(keys).toEqual([
       Notification.createNext([]),
@@ -455,11 +457,14 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnNoRecordsForQueryWithNoReturn (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnNoRecordsForQueryWithNoReturn (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -469,11 +474,14 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldReturnSummaryForQueryWithNoReturn (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldReturnSummaryForQueryWithNoReturn (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -484,11 +492,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldFailOnKeysWhenRunFails (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldFailOnKeysWhenRunFails (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -504,11 +512,14 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldFailOnSubsequentKeysWhenRunFails (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldFailOnSubsequentKeysWhenRunFails (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -523,11 +534,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldFailOnRecordsWhenRunFails (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldFailOnRecordsWhenRunFails (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -543,11 +554,14 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldFailOnSubsequentRecordsWhenRunFails (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldFailOnSubsequentRecordsWhenRunFails (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -569,11 +583,11 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldFailOnSummaryWhenRunFails (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldFailOnSummaryWhenRunFails (protocolVersion, runnable) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -589,11 +603,14 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    */
-  async function shouldFailOnSubsequentSummaryWhenRunFails (version, runnable) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldFailOnSubsequentSummaryWhenRunFails (
+    protocolVersion,
+    runnable
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -609,12 +626,16 @@ describe('#integration-rx navigation', () => {
   }
 
   /**
-   * @param {ServerVersion} version
+   * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
    * @param {function(): Observable} closeFunc
    */
-  async function shouldFailOnResultWhenClosed (version, runnable, closeFunc) {
-    if (version.compareTo(VERSION_4_0_0) < 0) {
+  async function shouldFailOnResultWhenClosed (
+    protocolVersion,
+    runnable,
+    closeFunc
+  ) {
+    if (protocolVersion < 4.0) {
       return
     }
 
@@ -632,10 +653,7 @@ describe('#integration-rx navigation', () => {
   async function collectAndAssertKeys (result) {
     const keys = await result
       .keys()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(keys).toEqual([
       Notification.createNext(['number', 'text']),
@@ -678,12 +696,7 @@ describe('#integration-rx navigation', () => {
   }
 
   async function collectAndAssertEmpty (stream) {
-    const result = await stream
-      .pipe(
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result = await stream.pipe(materialize(), toArray()).toPromise()
     expect(result).toEqual([Notification.createComplete()])
   }
 
@@ -693,12 +706,7 @@ describe('#integration-rx navigation', () => {
    * @param {function(err: Error): void} expectationFunc
    */
   async function collectAndAssertError (stream, expectedError) {
-    const result = await stream
-      .pipe(
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result = await stream.pipe(materialize(), toArray()).toPromise()
 
     expect(result).toEqual([Notification.createError(expectedError)])
   }

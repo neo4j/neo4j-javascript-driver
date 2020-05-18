@@ -25,7 +25,6 @@ import Rediscovery from './rediscovery'
 import RoutingUtil from './routing-util'
 import { HostNameResolver } from './node'
 import SingleConnectionProvider from './connection-provider-single'
-import { ServerVersion, VERSION_4_0_0 } from './server-version'
 import PooledConnectionProvider from './connection-provider-pooled'
 import ConnectionErrorHandler from './connection-error-handler'
 import DelegateConnection from './connection-delegate'
@@ -33,7 +32,7 @@ import LeastConnectedLoadBalancingStrategy from './least-connected-load-balancin
 import Bookmark from './bookmark'
 import ChannelConnection from './connection-channel'
 import { int } from '../integer'
-import { BOLT_PROTOCOL_V4, BOLT_PROTOCOL_V3 } from './constants'
+import { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0 } from './constants'
 
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 const DATABASE_NOT_FOUND_ERROR_CODE =
@@ -189,7 +188,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   async supportsMultiDb () {
     return await this._hasProtocolVersion(
-      version => version >= BOLT_PROTOCOL_V4
+      version => version >= BOLT_PROTOCOL_V4_0
     )
   }
 
@@ -424,8 +423,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       const connection = await this._connectionPool.acquire(routerAddress)
       const connectionProvider = new SingleConnectionProvider(connection)
 
-      const version = ServerVersion.fromString(connection.version)
-      if (version.compareTo(VERSION_4_0_0) < 0) {
+      const protocolVersion = connection.protocol().version
+      if (protocolVersion < 4.0) {
         return new Session({
           mode: WRITE,
           bookmark: Bookmark.empty(),
