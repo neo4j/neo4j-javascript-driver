@@ -571,7 +571,7 @@ describe('#integration-rx summary', () => {
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.hasPlan()).toBeTruthy()
-    expect(summary.plan.operatorType).toBe('ProduceResults')
+    expect(summary.plan.operatorType).toContain('ProduceResults')
     expect(summary.plan.identifiers).toEqual(['n'])
     expect(summary.hasProfile()).toBeFalsy()
     expect(summary.profile).toBeFalsy()
@@ -592,10 +592,10 @@ describe('#integration-rx summary', () => {
       .toPromise()
     expect(summary).toBeDefined()
     expect(summary.hasPlan()).toBeTruthy()
-    expect(summary.plan.operatorType).toBe('ProduceResults')
+    expect(summary.plan.operatorType).toContain('ProduceResults')
     expect(summary.plan.identifiers).toEqual(['n'])
     expect(summary.hasProfile()).toBeTruthy()
-    expect(summary.profile.operatorType).toBe('ProduceResults')
+    expect(summary.profile.operatorType).toContain('ProduceResults')
     expect(summary.profile.identifiers).toEqual(['n'])
   }
 
@@ -727,25 +727,18 @@ describe('#integration-rx summary', () => {
   }
 
   async function dropConstraintsAndIndices (driver) {
-    function getName (record) {
-      const obj = record.toObject()
-      const name = obj.description || obj.name
-      if (!name) {
-        throw new Error('unable to identify name of the constraint/index')
-      }
-      return name
-    }
-
     const session = driver.session()
     try {
       const constraints = await session.run('CALL db.constraints()')
       for (let i = 0; i < constraints.records.length; i++) {
-        await session.run(`DROP ${getName(constraints.records[i])}`)
+        const name = constraints.records[i].toObject().name
+        await session.run('DROP CONSTRAINT ' + name) // ${getName(constraints.records[i])}`)
       }
 
       const indices = await session.run('CALL db.indexes()')
       for (let i = 0; i < indices.records.length; i++) {
-        await session.run(`DROP INDEX ${getName(indices.records[i])}`)
+        const name = indices.records[i].toObject().name
+        await session.run('DROP INDEX ' + name) // ${getName(constraints.records[i])}`)
       }
     } finally {
       await session.close()
