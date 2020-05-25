@@ -688,7 +688,7 @@ describe('#integration session', () => {
   })
 
   it('should not commit already committed write transaction', done => {
-    const resultPromise = session.readTransaction(tx => {
+    const resultPromise = session.writeTransaction(tx => {
       return new Promise((resolve, reject) => {
         tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
           .then(result => {
@@ -747,7 +747,7 @@ describe('#integration session', () => {
 
   it('should not commit rolled back write transaction', done => {
     const bookmarkBefore = session.lastBookmark()
-    const resultPromise = session.readTransaction(tx => {
+    const resultPromise = session.writeTransaction(tx => {
       return new Promise((resolve, reject) => {
         tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
           .then(result => {
