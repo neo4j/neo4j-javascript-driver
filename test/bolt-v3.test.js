@@ -85,18 +85,21 @@ describe('#integration Bolt V3 API', () => {
     await tx.run('MATCH (n:Node) SET n.prop = 1') // lock dummy node but keep the transaction open
 
     // run a query in an auto-commit transaction with timeout and try to update the locked dummy node
-    await expectAsync(
-      session.run(
+    try {
+      await session.run(
         'MATCH (n:Node) SET n.prop = $newValue',
         { newValue: 2 },
         { timeout: 1 }
       )
-    ).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(/transaction has been terminated/)
-      })
-    )
-
+    } catch (e) {
+      // ClientError on 4.1 and later
+      if (
+        e.code != 'Neo.ClientError.Transaction.TransactionTimedOut' &&
+        e.code != 'Neo.TransientError.Transaction.LockClientStopped'
+      ) {
+        fail('Expected transaction timeout error but got: ' + e.code)
+      }
+    }
     await tx.rollback()
     await otherSession.close()
   })
@@ -175,13 +178,21 @@ describe('#integration Bolt V3 API', () => {
 
     // run a query in an explicit transaction with timeout and try to update the locked dummy node
     const tx = session.beginTransaction({ timeout: 1 })
-    await expectAsync(
-      tx.run('MATCH (n:Node) SET n.prop = $newValue', { newValue: 2 })
-    ).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(/transaction has been terminated/)
-      })
-    )
+    try {
+      await tx.run(
+        'MATCH (n:Node) SET n.prop = $newValue',
+        { newValue: 2 },
+        { timeout: 1 }
+      )
+    } catch (e) {
+      // ClientError on 4.1 and later
+      if (
+        e.code != 'Neo.ClientError.Transaction.TransactionTimedOut' &&
+        e.code != 'Neo.TransientError.Transaction.LockClientStopped'
+      ) {
+        fail('Expected transaction timeout error but got: ' + e.code)
+      }
+    }
 
     await otherTx.rollback()
     await otherSession.close()

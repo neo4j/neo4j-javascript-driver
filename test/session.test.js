@@ -312,9 +312,7 @@ describe('#integration session', () => {
       expect(sum.notifications[0].code).toBe(
         'Neo.ClientNotification.Statement.UnknownLabelWarning'
       )
-      expect(sum.notifications[0].title).toBe(
-        'The provided label is not in the database.'
-      )
+      expect(sum.notifications[0].title).toContain('label')
       expect(sum.notifications[0].position.column).toBeGreaterThan(0)
       done()
     })
