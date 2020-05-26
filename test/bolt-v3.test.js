@@ -93,7 +93,7 @@ describe('#integration Bolt V3 API', () => {
       )
     ).toBeRejectedWith(
       jasmine.objectContaining({
-        message: jasmine.stringMatching(/transaction has been terminated/)
+        message: jasmine.stringMatching(/terminated/)
       })
     )
 
@@ -179,7 +179,7 @@ describe('#integration Bolt V3 API', () => {
       tx.run('MATCH (n:Node) SET n.prop = $newValue', { newValue: 2 })
     ).toBeRejectedWith(
       jasmine.objectContaining({
-        message: jasmine.stringMatching(/transaction has been terminated/)
+        message: jasmine.stringMatching(/terminated/)
       })
     )
 

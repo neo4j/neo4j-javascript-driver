@@ -627,7 +627,7 @@ describe('#integration-rx summary', () => {
     }
 
     const summary = await runnable
-      .run('EXPLAIN MATCH (n:ThisLabelDoesNotExist) RETURN n')
+      .run('EXPLAIN MATCH (n:ThisLabelDoesNotExistRx) RETURN n')
       .consume()
       .toPromise()
     expect(summary).toBeDefined()
@@ -636,14 +636,8 @@ describe('#integration-rx summary', () => {
     expect(summary.notifications[0].code).toBe(
       'Neo.ClientNotification.Statement.UnknownLabelWarning'
     )
-    expect(summary.notifications[0].title).toBe(
-      'The provided label is not in the database.'
-    )
-    expect(summary.notifications[0].description).toBe(
-      "One of the labels in your query is not available in the database, make sure you didn't misspell it or that" +
-        ' the label is available when you run this statement in your application (the missing label name is:' +
-        ' ThisLabelDoesNotExist)'
-    )
+    expect(summary.notifications[0].title).toContain('label')
+    expect(summary.notifications[0].description).toContain('label')
     expect(summary.notifications[0].severity).toBe('WARNING')
   }
 
