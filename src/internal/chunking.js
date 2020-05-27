@@ -177,10 +177,18 @@ class Dechunker {
     if (header === 0) {
       // Message boundary
       let message
-      if (this._currentMessage.length === 1) {
-        message = this._currentMessage[0]
-      } else {
-        message = new CombinedBuffer(this._currentMessage)
+      switch (this._currentMessage.length) {
+        case 0:
+          // Keep alive chunk, sent by server to keep network alive.
+          return this.AWAITING_CHUNK
+        case 1:
+          // All data in one chunk, this signals the end of that chunk.
+          message = this._currentMessage[0]
+          break
+        default:
+          // A large chunk of data received, this signals that the last chunk has been received.
+          message = new CombinedBuffer(this._currentMessage)
+          break
       }
       this._currentMessage = []
       this.onmessage(message)
