@@ -65,7 +65,7 @@ describe('#unit Chunker', () => {
   })
 })
 
-describe('Dechunker', () => {
+describe('#unit Dechunker', () => {
   it('should unchunk a simple message', () => {
     // Given
     const messages = []
@@ -123,6 +123,26 @@ describe('Dechunker', () => {
       expect(messages.length).toBe(1)
       expect(messages[0].toHex()).toBe('01 00 02 00 00 00 03 04 00 00 00 05')
     }
+  })
+
+  it('should ignore empty chunks sent as keep alive', () => {
+    const messages = []
+    const dechunker = new Dechunker()
+    dechunker.onmessage = buffer => {
+      messages.push(buffer)
+    }
+
+    dechunker.write(bytes(0, 0)) // Empty
+    dechunker.write(bytes(0, 1, 10, 0, 0)) // Small message
+    dechunker.write(bytes(0, 0)) // Empty
+    dechunker.write(bytes(0, 1, 11, 0, 0)) // Small message
+    dechunker.write(bytes(0, 0)) // Empty
+
+    expect(messages.length).toBe(2)
+    expect(messages[0].length).toBe(1)
+    expect(messages[0].readInt8()).toBe(10)
+    expect(messages[1].length).toBe(1)
+    expect(messages[1].readInt8()).toBe(11)
   })
 })
 
