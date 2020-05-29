@@ -37,6 +37,58 @@ import {
 
 const ROUTER_ADDRESS = ServerAddress.fromUrl('test.router.com:4242')
 
+class FakeSession {
+  constructor (runResponse, fakeConnection) {
+    this._runResponse = runResponse
+    this._fakeConnection = fakeConnection
+    this._closed = false
+  }
+
+  static successful (result) {
+    return new FakeSession(Promise.resolve(result), null)
+  }
+
+  static failed (error) {
+    return new FakeSession(Promise.reject(error), null)
+  }
+
+  static withFakeConnection (connection) {
+    return new FakeSession(null, connection)
+  }
+
+  _run (ignoreQuery, ignoreParameters, queryRunner) {
+    if (this._runResponse) {
+      return this._runResponse
+    }
+    queryRunner(this._fakeConnection)
+    return Promise.resolve()
+  }
+
+  withBookmark (bookmark) {
+    this._lastBookmark = bookmark
+    return this
+  }
+
+  withDatabase (database) {
+    this._database = database || ''
+    return this
+  }
+
+  withMode (mode) {
+    this._mode = mode
+    return this
+  }
+
+  close () {
+    this._closed = true
+    return Promise.resolve()
+  }
+
+  isClosed () {
+    return this._closed
+  }
+}
+
 describe('#unit RoutingUtil', () => {
   it('should return retrieved records when query succeeds', done => {
     const session = FakeSession.successful({ records: ['foo', 'bar', 'baz'] })
@@ -259,6 +311,18 @@ describe('#unit RoutingUtil', () => {
       verifyBookmark(
         new Bookmark(['bookmark1', ['bookmark2'], ['bookmark3', 'bookmark4']])
       ))
+  })
+
+  it('should pass initial address while invoking routing procedure', async () => {
+    const connection = new FakeConnection().withServerVersion('Neo4j/4.1.0')
+    const session = FakeSession.withFakeConnection(connection)
+    const util = new RoutingUtil({}, 'initialAddr')
+
+    await util.callRoutingProcedure(session, '', ROUTER_ADDRESS)
+
+    expect(connection.seenParameters).toEqual([
+      { context: { address: 'initialAddr' }, database: null }
+    ])
   })
 
   it('should parse valid ttl', () => {
@@ -502,57 +566,5 @@ describe('#unit RoutingUtil', () => {
       expect(error.code).toBe(PROTOCOL_ERROR)
       done()
     })
-  }
-
-  class FakeSession {
-    constructor (runResponse, fakeConnection) {
-      this._runResponse = runResponse
-      this._fakeConnection = fakeConnection
-      this._closed = false
-    }
-
-    static successful (result) {
-      return new FakeSession(Promise.resolve(result), null)
-    }
-
-    static failed (error) {
-      return new FakeSession(Promise.reject(error), null)
-    }
-
-    static withFakeConnection (connection) {
-      return new FakeSession(null, connection)
-    }
-
-    _run (ignoreQuery, ignoreParameters, queryRunner) {
-      if (this._runResponse) {
-        return this._runResponse
-      }
-      queryRunner(this._fakeConnection)
-      return Promise.resolve()
-    }
-
-    withBookmark (bookmark) {
-      this._lastBookmark = bookmark
-      return this
-    }
-
-    withDatabase (database) {
-      this._database = database || ''
-      return this
-    }
-
-    withMode (mode) {
-      this._mode = mode
-      return this
-    }
-
-    close () {
-      this._closed = true
-      return Promise.resolve()
-    }
-
-    isClosed () {
-      return this._closed
-    }
   }
 })
