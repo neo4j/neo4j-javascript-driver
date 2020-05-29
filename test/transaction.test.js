@@ -389,7 +389,11 @@ describe('#integration transaction', () => {
             const tx2 = session2.beginTransaction()
             tx2.run('CREATE ()').catch(error => {
               const message = error.message
-              expect(message).toContain('not up to the requested version')
+              // Checking message text on  <= 4.0, check code for >= 4.1
+              expect(
+                error.message.includes('not up to the requested version') ||
+                  error.code == 'Neo.ClientError.Transaction.InvalidBookmark'
+              ).toBeTruthy()
               done()
             })
           })
