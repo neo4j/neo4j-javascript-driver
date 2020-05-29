@@ -58,7 +58,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
     this._seedRouter = address
     this._routingTables = {}
-    this._rediscovery = new Rediscovery(new RoutingUtil(routingContext))
+    this._rediscovery = new Rediscovery(
+      new RoutingUtil(routingContext, address.toString())
+    )
     this._loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(
       this._connectionPool
     )

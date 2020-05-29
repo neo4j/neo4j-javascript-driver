@@ -69,8 +69,10 @@ export default class FakeConnection extends Connection {
   }
 
   protocol () {
-    // return fake protocol object that simply records seen queries and parameters
+    // return fake protocol object that simply records seen queries and parameters and provide
+    // a protocol version
     return {
+      version: this.version === 'Neo4j/4.0.0' ? 4 : 3,
       run: (query, parameters, protocolOptions) => {
         this.seenQueries.push(query)
         this.seenParameters.push(parameters)
