@@ -33,8 +33,11 @@ const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
 
 export default class RoutingUtil {
-  constructor (routingContext) {
+  constructor (routingContext, initialAddress) {
     this._routingContext = routingContext
+    // The address that the driver is connecting to, used by routing as a fallback when routing
+    // and clustering isn't configured.
+    this._initialAddress = initialAddress
   }
 
   /**
@@ -147,6 +150,10 @@ export default class RoutingUtil {
         params = {
           context: this._routingContext,
           database: database || null
+        }
+        if (protocolVersion >= 4.1) {
+          params.context = params.context || {}
+          params.context.address = this._initialAddress
         }
       } else {
         query = CALL_GET_ROUTING_TABLE
