@@ -16,22 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import BoltProtocolV4 from './bolt-protocol-v4x0'
+import RequestMessage, { ALL } from './request-message'
+import { ResultStreamObserver } from './stream-observers'
+import { BOLT_PROTOCOL_V4_1 } from './constants'
 
-const ACCESS_MODE_READ = 'READ'
-const ACCESS_MODE_WRITE = 'WRITE'
-
-const BOLT_PROTOCOL_V1 = 1
-const BOLT_PROTOCOL_V2 = 2
-const BOLT_PROTOCOL_V3 = 3
-const BOLT_PROTOCOL_V4_0 = 4.0
-const BOLT_PROTOCOL_V4_1 = 4.1
-
-export {
-  ACCESS_MODE_READ,
-  ACCESS_MODE_WRITE,
-  BOLT_PROTOCOL_V1,
-  BOLT_PROTOCOL_V2,
-  BOLT_PROTOCOL_V3,
-  BOLT_PROTOCOL_V4_0,
-  BOLT_PROTOCOL_V4_1
+export default class BoltProtocol extends BoltProtocolV4 {
+  get version () {
+    return BOLT_PROTOCOL_V4_1
+  }
 }

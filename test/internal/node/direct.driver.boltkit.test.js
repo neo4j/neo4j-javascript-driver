@@ -430,7 +430,6 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v1', () => verifySupportsMultiDb('v1', false))
     it('v2', () => verifySupportsMultiDb('v2', false))
     it('v3', () => verifySupportsMultiDb('v3', false))
     it('v4', () => verifySupportsMultiDb('v4', true))
@@ -468,7 +467,6 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v1', () => verifySupportsTransactionConfig('v1', false))
     it('v2', () => verifySupportsTransactionConfig('v2', false))
     it('v3', () => verifySupportsTransactionConfig('v3', true))
     it('v4', () => verifySupportsTransactionConfig('v4', true))
