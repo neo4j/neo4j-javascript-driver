@@ -23,6 +23,7 @@ import BoltProtocolV1 from './bolt-protocol-v1'
 import BoltProtocolV2 from './bolt-protocol-v2'
 import BoltProtocolV3 from './bolt-protocol-v3'
 import BoltProtocolV4x0 from './bolt-protocol-v4x0'
+import BoltProtocolV4x1 from './bolt-protocol-v4x1'
 
 const BOLT_MAGIC_PREAMBLE = 0x6060b017
 
@@ -108,6 +109,12 @@ export default class ProtocolHandshaker {
           this._chunker,
           this._disableLosslessIntegers
         )
+      case 4.1:
+        return new BoltProtocolV4x1(
+          this._connection,
+          this._chunker,
+          this._disableLosslessIntegers
+        )
       default:
         throw newError('Unknown Bolt protocol version: ' + version)
     }
@@ -125,10 +132,10 @@ function newHandshakeBuffer () {
   handshakeBuffer.writeInt32(BOLT_MAGIC_PREAMBLE)
 
   // proposed versions
+  handshakeBuffer.writeInt32((1 << 8) | 4)
   handshakeBuffer.writeInt32(4)
   handshakeBuffer.writeInt32(3)
   handshakeBuffer.writeInt32(2)
-  handshakeBuffer.writeInt32(1)
 
   // reset the reader position
   handshakeBuffer.reset()

@@ -2375,11 +2375,9 @@ describe('#stub-routing routing driver with stub server', () => {
       await server.exit()
     }
 
-    it('v1', () => verifySupportsMultiDb('v1', false))
     it('v2', () => verifySupportsMultiDb('v2', false))
     it('v3', () => verifySupportsMultiDb('v3', false))
     it('v4', () => verifySupportsMultiDb('v4', true))
-    it('v1 with resolver', () => verifySupportsMultiDbWithResolver('v1', false))
     it('v2 with resolver', () => verifySupportsMultiDbWithResolver('v2', false))
     it('v3 with resolver', () => verifySupportsMultiDbWithResolver('v3', false))
     it('v4 with resolver', () => verifySupportsMultiDbWithResolver('v4', true))
@@ -2446,12 +2444,9 @@ describe('#stub-routing routing driver with stub server', () => {
       await server.exit()
     }
 
-    it('v1', () => verifySupportsTransactionConfig('v1', false))
     it('v2', () => verifySupportsTransactionConfig('v2', false))
     it('v3', () => verifySupportsTransactionConfig('v3', true))
     it('v4', () => verifySupportsTransactionConfig('v4', true))
-    it('v1 with resolver', () =>
-      verifySupportsTransactionConfigWithResolver('v1', false))
     it('v2 with resolver', () =>
       verifySupportsTransactionConfigWithResolver('v2', false))
     it('v3 with resolver', () =>
