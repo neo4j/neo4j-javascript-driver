@@ -18,11 +18,39 @@
  */
 import BoltProtocolV4 from './bolt-protocol-v4x0'
 import RequestMessage, { ALL } from './request-message'
-import { ResultStreamObserver } from './stream-observers'
 import { BOLT_PROTOCOL_V4_1 } from './constants'
+import { LoginObserver } from './stream-observers'
 
 export default class BoltProtocol extends BoltProtocolV4 {
+  /**
+   * @constructor
+   * @param {Connection} connection the connection.
+   * @param {Chunker} chunker the chunker.
+   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
+   * @param {Object} serversideRouting
+   */
+  constructor (connection, chunker, disableLosslessIntegers, serversideRouting) {
+    super(connection, chunker, disableLosslessIntegers)
+    this._serversideRouting = serversideRouting
+  }
+
   get version () {
     return BOLT_PROTOCOL_V4_1
+  }
+
+  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+    const observer = new LoginObserver({
+      connection: this._connection,
+      afterError: onError,
+      afterComplete: onComplete
+    })
+
+    this._connection.write(
+      RequestMessage.hello(userAgent, authToken, this._serversideRouting),
+      observer,
+      true
+    )
+
+    return observer
   }
 }

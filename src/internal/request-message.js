@@ -100,10 +100,14 @@ export default class RequestMessage {
    * Create a new HELLO message.
    * @param {string} userAgent the user agent.
    * @param {Object} authToken the authentication token.
+   * @param {Object} optional server side routing, set to routing context to turn on server side routing (> 4.1)
    * @return {RequestMessage} new HELLO message.
    */
-  static hello (userAgent, authToken) {
+  static hello (userAgent, authToken, routing = null) {
     const metadata = Object.assign({ user_agent: userAgent }, authToken)
+    if (routing != null) {
+      metadata.routing = routing
+    }
     return new RequestMessage(
       HELLO,
       [metadata],
