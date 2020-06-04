@@ -65,6 +65,29 @@ describe('#stub-direct direct driver with stub server', () => {
     it('v4', () => verifyShouldRunQuery('v4'))
   })
 
+  describe('should not send any routing with hello to disable server routing', () => {
+    async function verify (version) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const router = await boltStub.start(
+        `./test/resources/boltstub/${version}/hello_routing_disabled.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+      const session = driver.session()
+      const result = await session.run('MATCH (n) RETURN n.name')
+
+      await session.close()
+      await driver.close()
+      await router.exit()
+    }
+
+    it('v4.1', () => verify('v4.1'))
+  })
+
   describe('should send and receive bookmark for read transaction', () => {
     async function verifyBookmarkForReadTxc (version) {
       if (!boltStub.supported) {

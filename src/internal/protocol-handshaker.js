@@ -36,12 +36,20 @@ export default class ProtocolHandshaker {
    * @param {boolean} disableLosslessIntegers flag to use native JS numbers.
    * @param {Logger} log the logger.
    */
-  constructor (connection, channel, chunker, disableLosslessIntegers, log) {
+  constructor (
+    connection,
+    channel,
+    chunker,
+    disableLosslessIntegers,
+    log,
+    serversideRouting = null
+  ) {
     this._connection = connection
     this._channel = channel
     this._chunker = chunker
     this._disableLosslessIntegers = disableLosslessIntegers
     this._log = log
+    this._serversideRouting = serversideRouting
   }
 
   /**
@@ -113,7 +121,8 @@ export default class ProtocolHandshaker {
         return new BoltProtocolV4x1(
           this._connection,
           this._chunker,
-          this._disableLosslessIntegers
+          this._disableLosslessIntegers,
+          this._serversideRouting
         )
       default:
         throw newError('Unknown Bolt protocol version: ' + version)
