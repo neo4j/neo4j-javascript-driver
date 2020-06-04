@@ -32,8 +32,7 @@ class UnsupportedBoltStub {
   }
 }
 
-const verbose =
-  (process.env.NEOLOGLEVEL || 'error').toLowerCase() === 'debug' // for debugging purposes
+const verbose = (process.env.NEOLOGLEVEL || 'error').toLowerCase() === 'debug' // for debugging purposes
 
 class SupportedBoltStub extends UnsupportedBoltStub {
   constructor () {
@@ -54,7 +53,13 @@ class SupportedBoltStub extends UnsupportedBoltStub {
   }
 
   start (script, port) {
-    const boltStub = this._childProcess.spawn('boltstub', ['-v', port, script])
+    const boltStub = this._childProcess.spawn('bolt', [
+      'stub',
+      '-v',
+      '-l',
+      'localhost:' + port,
+      script
+    ])
 
     if (verbose) {
       boltStub.stdout.on('data', data => {
@@ -140,7 +145,7 @@ class StubServer {
           if (exitStatus.code === 0) {
             resolve()
           } else {
-            reject(`stub server exited with code: ${exitCode}`)
+            reject(`stub server exited with code: ${exitStatus.code}`)
           }
         } else {
           if (!timedOut) {

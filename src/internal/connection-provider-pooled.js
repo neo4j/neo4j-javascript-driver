@@ -25,7 +25,10 @@ import { SERVICE_UNAVAILABLE } from '../error'
 import ConnectionProvider from './connection-provider'
 
 export default class PooledConnectionProvider extends ConnectionProvider {
-  constructor ({ id, config, log, userAgent, authToken }) {
+  constructor (
+    { id, config, log, userAgent, authToken },
+    createChannelConnectionHook = null
+  ) {
     super()
 
     this._id = id
@@ -33,6 +36,16 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._log = log
     this._userAgent = userAgent
     this._authToken = authToken
+    this._createChannelConnection =
+      createChannelConnectionHook ||
+      (address => {
+        return ChannelConnection.create(
+          address,
+          this._config,
+          this._createConnectionErrorHandler(),
+          this._log
+        )
+      })
     this._connectionPool = new Pool({
       create: this._createConnection.bind(this),
       destroy: this._destroyConnection.bind(this),
@@ -59,12 +72,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    * @access private
    */
   _createConnection (address, release) {
-    const connection = ChannelConnection.create(
-      address,
-      this._config,
-      this._createConnectionErrorHandler(),
-      this._log
-    )
+    const connection = this._createChannelConnection(address)
     connection._release = () => release(address, connection)
     this._openConnections[connection.id] = connection
 

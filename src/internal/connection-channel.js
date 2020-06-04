@@ -56,7 +56,8 @@ export default class ChannelConnection extends Connection {
     errorHandler,
     address,
     log,
-    disableLosslessIntegers = false
+    disableLosslessIntegers = false,
+    serversideRouting = null
   ) {
     super(errorHandler)
 
@@ -71,6 +72,7 @@ export default class ChannelConnection extends Connection {
     this._dechunker = new Dechunker()
     this._chunker = new Chunker(channel)
     this._log = log
+    this._serversideRouting = serversideRouting
 
     // connection from the database, returned in response for HELLO message and might not be available
     this._dbConnectionId = null
@@ -101,7 +103,7 @@ export default class ChannelConnection extends Connection {
    * @param {Logger} log - configured logger.
    * @return {Connection} - new connection.
    */
-  static create (address, config, errorHandler, log) {
+  static create (address, config, errorHandler, log, serversideRouting = null) {
     const channelConfig = new ChannelConfig(
       address,
       config,
@@ -112,7 +114,8 @@ export default class ChannelConnection extends Connection {
       errorHandler,
       address,
       log,
-      config.disableLosslessIntegers
+      config.disableLosslessIntegers,
+      serversideRouting
     )
   }
 
@@ -150,7 +153,8 @@ export default class ChannelConnection extends Connection {
       this._ch,
       this._chunker,
       this._disableLosslessIntegers,
-      this._log
+      this._log,
+      this._serversideRouting
     )
 
     return new Promise((resolve, reject) => {

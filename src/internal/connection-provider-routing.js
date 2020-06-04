@@ -53,12 +53,20 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     authToken,
     routingTablePurgeDelay
   }) {
-    super({ id, config, log, userAgent, authToken })
+    super({ id, config, log, userAgent, authToken }, address => {
+      return ChannelConnection.create(
+        address,
+        this._config,
+        this._createConnectionErrorHandler(),
+        this._log,
+        routingContext || {}
+      )
+    })
 
     this._seedRouter = address
     this._routingTables = {}
     this._rediscovery = new Rediscovery(
-      new RoutingUtil(routingContext, address)
+      new RoutingUtil(routingContext, address.toString())
     )
     this._loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(
       this._connectionPool

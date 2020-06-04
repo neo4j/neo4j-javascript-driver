@@ -2394,6 +2394,79 @@ describe('#stub-routing routing driver with stub server', () => {
     })
   })
 
+  describe('should send address in routing context', () => {
+    async function verify (version) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const router = await boltStub.start(
+        `./test/resources/boltstub/${version}/acquire_endpoints_with_context.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver(
+        'neo4j://127.0.0.1:9001/?policy=my_policy&region=china'
+      )
+      const session = driver.session()
+      const result = await session.run('MATCH (n) RETURN n.name AS name')
+
+      await session.close()
+      await driver.close()
+      await router.exit()
+    }
+
+    it('v4.1', () => verify('v4.1'))
+  })
+
+  describe('should send routing context with hello to enable server routing', () => {
+    async function verify (version) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const router = await boltStub.start(
+        `./test/resources/boltstub/${version}/hello_routing_context.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver(
+        'neo4j://127.0.0.1:9001/?policy=my_policy&region=china'
+      )
+      const session = driver.session()
+      const result = await session.run('MATCH (n) RETURN n.name')
+
+      await session.close()
+      await driver.close()
+      await router.exit()
+    }
+
+    it('v4.1', () => verify('v4.1'))
+  })
+
+  describe('should send empty routing context with hello to enable server routing', () => {
+    async function verify (version) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const router = await boltStub.start(
+        `./test/resources/boltstub/${version}/hello_routing_enabled.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
+      const session = driver.session()
+      const result = await session.run('MATCH (n) RETURN n.name')
+
+      await session.close()
+      await driver.close()
+      await router.exit()
+    }
+
+    it('v4.1', () => verify('v4.1'))
+  })
+
   describe('should report whether transaction config is supported', () => {
     async function verifySupportsTransactionConfig (version, expected) {
       if (!boltStub.supported) {
