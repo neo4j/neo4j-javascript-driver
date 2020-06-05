@@ -53,7 +53,9 @@ class SupportedBoltStub extends UnsupportedBoltStub {
   }
 
   start (script, port) {
-    const boltStub = this._childProcess.spawn('bolt', [
+    const boltStub = this._childProcess.spawn('python3', [
+      '-m',
+      'boltkit',
       'stub',
       '-v',
       '-l',
