@@ -1,5 +1,6 @@
 !: BOLT 3
 !: AUTO HELLO
+!: AUTO RESET
 !: AUTO GOODBYE
 
 C: RUN "CALL dbms.cluster.routing.getRoutingTable($context)" {"context": {}} {}
@@ -7,6 +8,4 @@ C: RUN "CALL dbms.cluster.routing.getRoutingTable($context)" {"context": {}} {}
 S: SUCCESS {"fields": ["ttl", "servers"]}
    RECORD [9223372036854775807, [{"addresses": ["127.0.0.1:9001"],"role": "WRITE"}, {"addresses": ["127.0.0.1:9002","127.0.0.1:9003"], "role": "READ"},{"addresses": ["127.0.0.1:9001","127.0.0.1:9002","127.0.0.1:9003"], "role": "ROUTE"}]]
    SUCCESS {}
-C: RESET
-S: SUCCESS {}
    <EXIT>
