@@ -65,6 +65,23 @@ describe('#stub-direct direct driver with stub server', () => {
     it('v4', () => verifyShouldRunQuery('v4'))
   })
 
+  it('should use custom user agent', async () => {
+    if (!boltStub.supported) {
+      return
+    }
+    const server = await boltStub.start(
+      './test/resources/boltstub/v4/hello_custom_user_agent.script',
+      9001
+    )
+    const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {
+      userAgent: 'custom user agent'
+    })
+    const session = driver.session()
+    await session.run('MATCH (n) RETURN n.name')
+    await driver.close()
+    await server.exit()
+  })
+
   describe('should not send any routing with hello to disable server routing', () => {
     async function verify (version) {
       if (!boltStub.supported) {
