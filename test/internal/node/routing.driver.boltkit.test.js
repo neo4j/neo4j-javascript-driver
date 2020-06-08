@@ -38,6 +38,23 @@ describe('#stub-routing routing driver with stub server', () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
   })
 
+  it('should use custom user agent', async () => {
+    if (!boltStub.supported) {
+      return
+    }
+    const server = await boltStub.start(
+      './test/resources/boltstub/v4/hello_custom_user_agent.script',
+      9001
+    )
+    const driver = boltStub.newDriver('bolt://127.0.0.1:9001', {
+      userAgent: 'custom user agent'
+    })
+    const session = driver.session()
+    await session.run('MATCH (n) RETURN n.name')
+    await driver.close()
+    await server.exit()
+  })
+
   it('should discover servers', async () => {
     if (!boltStub.supported) {
       return

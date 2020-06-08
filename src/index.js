@@ -173,6 +173,9 @@ import ServerAddress from './internal/server-address'
  *       resolver: function(address) {
  *         return ['127.0.0.1:8888', 'fallback.db.com:7687'];
  *       },
+ *
+ *      // Optionally override the default user agent name.
+ *       userAgent: USER_AGENT
  *     }
  *
  * @param {string} url The URL for the Neo4j database, for instance "neo4j://localhost" and/or "bolt://localhost"
@@ -232,11 +235,14 @@ function driver (url, authToken, config = {}) {
   authToken = authToken || {}
   authToken.scheme = authToken.scheme || 'none'
 
+  // Use default user agent or user agent specified by user.
+  config.userAgent = config.userAgent || USER_AGENT
+
   if (routing) {
     return new RoutingDriver(
       ServerAddress.fromUrl(parsedUrl.hostAndPort),
       parsedUrl.query,
-      USER_AGENT,
+      config.userAgent,
       authToken,
       config
     )
@@ -248,7 +254,7 @@ function driver (url, authToken, config = {}) {
     }
     return new Driver(
       ServerAddress.fromUrl(parsedUrl.hostAndPort),
-      USER_AGENT,
+      config.userAgent,
       authToken,
       config
     )
