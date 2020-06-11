@@ -134,7 +134,17 @@ export default class WebSocketChannel {
     if (this._pending !== null) {
       this._pending.push(buffer)
     } else if (buffer instanceof HeapBuffer) {
-      this._ws.send(buffer._buffer)
+      try {
+        this._ws.send(buffer._buffer)
+      } catch (error) {
+        if (this._ws.readyState !== WS_OPEN) {
+          // Websocket has been closed
+          this._handleConnectionError()
+        } else {
+          // Some other error occured
+          throw error
+        }
+      }
     } else {
       throw newError("Don't know how to send buffer: " + buffer)
     }
