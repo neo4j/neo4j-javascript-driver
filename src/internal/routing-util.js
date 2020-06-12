@@ -148,13 +148,10 @@ export default class RoutingUtil {
       if (protocolVersion >= 4.0) {
         query = CALL_GET_ROUTING_TABLE_MULTI_DB
         params = {
-          context: this._routingContext,
+          context: this._routingContext || {},
           database: database || null
         }
-        if (protocolVersion >= 4.1) {
-          params.context = params.context || {}
-          params.context.address = this._initialAddress
-        }
+        params.context.address = this._initialAddress
       } else {
         query = CALL_GET_ROUTING_TABLE
         params = { context: this._routingContext }

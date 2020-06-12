@@ -237,7 +237,7 @@ describe('#unit RoutingUtil', () => {
         'CALL dbms.routing.getRoutingTable($context, $database)'
       ])
       expect(connection.seenParameters).toEqual([
-        { context: {}, database: null }
+        { context: { address: '127.0.0.1' }, database: null }
       ])
       expect(connection.seenProtocolOptions).toEqual([
         jasmine.objectContaining({
@@ -264,7 +264,7 @@ describe('#unit RoutingUtil', () => {
         'CALL dbms.routing.getRoutingTable($context, $database)'
       ])
       expect(connection.seenParameters).toEqual([
-        { context: {}, database: null }
+        { context: { address: '127.0.0.1' }, database: null }
       ])
       expect(connection.seenProtocolOptions).toEqual([
         jasmine.objectContaining({
@@ -290,7 +290,7 @@ describe('#unit RoutingUtil', () => {
         'CALL dbms.routing.getRoutingTable($context, $database)'
       ])
       expect(connection.seenParameters).toEqual([
-        { context: {}, database: null }
+        { context: { address: '127.0.0.1' }, database: null }
       ])
       expect(connection.seenProtocolOptions).toEqual([
         jasmine.objectContaining({
@@ -515,7 +515,7 @@ describe('#unit RoutingUtil', () => {
   }
 
   function callRoutingProcedure (session, database, routingContext) {
-    const util = new RoutingUtil(routingContext || {})
+    const util = new RoutingUtil(routingContext || {}, '127.0.0.1')
     return util.callRoutingProcedure(session, database, ROUTER_ADDRESS)
   }
 

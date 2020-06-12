@@ -2242,21 +2242,21 @@ describe('#stub-routing routing driver with stub server', () => {
       // Given
       const router1 = await boltStub.start(
         './test/resources/boltstub/v4/acquire_endpoints_aDatabase_no_servers.script',
-        9001
+        9002
       )
       const router2 = await boltStub.start(
         './test/resources/boltstub/v4/acquire_endpoints_aDatabase.script',
-        9002
+        9003
       )
       const reader1 = await boltStub.start(
         './test/resources/boltstub/v4/read_from_aDatabase.script',
         9005
       )
 
-      const driver = boltStub.newDriver('neo4j://127.0.0.1:9000', {
+      const driver = boltStub.newDriver('neo4j://127.0.0.1:9001', {
         resolver: address => [
-          'neo4j://127.0.0.1:9001',
-          'neo4j://127.0.0.1:9002'
+          'neo4j://127.0.0.1:9002',
+          'neo4j://127.0.0.1:9003'
         ]
       })
 
