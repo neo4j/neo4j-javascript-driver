@@ -48,6 +48,7 @@ describe('#integration session', () => {
 
   afterEach(async () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
+    await session.close()
     await driver.close()
   })
 
