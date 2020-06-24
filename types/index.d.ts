@@ -239,7 +239,7 @@ export {
   ServerInfo,
   NotificationPosition,
   Session,
-  RxSession
+  RxSession,
   Transaction,
   Point,
   isPoint,
