@@ -57,6 +57,7 @@ import ResultSummary, {
 } from './result-summary'
 import Record from './record'
 import Session from './session'
+import RxSession from './session-rx'
 import {
   AuthToken,
   Config,
@@ -184,6 +185,7 @@ declare const forExport: {
   ServerInfo: ServerInfo
   NotificationPosition: NotificationPosition
   Session: Session
+  RxSession: RxSession
   Transaction: Transaction
   Point: Point
   isPoint: typeof isPoint
@@ -237,6 +239,7 @@ export {
   ServerInfo,
   NotificationPosition,
   Session,
+  RxSession
   Transaction,
   Point,
   isPoint,
