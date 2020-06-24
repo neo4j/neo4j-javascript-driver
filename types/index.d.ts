@@ -47,6 +47,7 @@ import {
   SESSION_EXPIRED
 } from './error'
 import Result, { ResultObserver, QueryResult } from './result'
+import RxResult from './result-rx'
 import ResultSummary, {
   Notification,
   NotificationPosition,
@@ -97,7 +98,8 @@ declare const types: {
   UnboundRelationship: UnboundRelationship
   PathSegment: PathSegment
   Path: Path
-  Result: Result
+  Result: Result,
+  RxResult: Result,
   ResultSummary: ResultSummary
   Record: Record
   Point: typeof Point
@@ -175,6 +177,7 @@ declare const forExport: {
   Integer: Integer
   Record: Record
   Result: Result
+  RxResult: RxResult
   QueryResult: QueryResult
   ResultObserver: ResultObserver
   ResultSummary: ResultSummary
@@ -229,6 +232,7 @@ export {
   Integer,
   Record,
   Result,
+  RxResult,
   QueryResult,
   ResultObserver,
   ResultSummary,
