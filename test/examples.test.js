@@ -440,11 +440,11 @@ describe('#integration examples', () => {
       const writeResult = await session.writeTransaction(tx =>
         tx.run(writeQuery, { person1Name, person2Name })
       )
-      writeResult.records.forEach(row => {
+      writeResult.records.forEach(record => {
+        const person1Node = record.get('p1')
+        const person2Node = record.get('p2')
         console.log(
-          `Created friendship between: ${row.get('p1').properties.name}, ${
-            row.get('p2').properties.name
-          }`
+          `Created friendship between: ${person1Node.properties.name}, ${person2Node.properties.name}`
         )
       })
 
@@ -454,8 +454,8 @@ describe('#integration examples', () => {
       const readResult = await session.readTransaction(tx =>
         tx.run(readQuery, { personName: person1Name })
       )
-      readResult.records.forEach(row => {
-        console.log(`Found person: ${row.get('name')}`)
+      readResult.records.forEach(record => {
+        console.log(`Found person: ${record.get('name')}`)
       })
     } catch (error) {
       console.error('Something went wrong: ', error)
