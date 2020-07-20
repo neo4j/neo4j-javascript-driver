@@ -4,13 +4,13 @@ This is the official Neo4j driver for JavaScript.
 
 Resources to get you started:
 
-- Detailed docs _Not available yet_
+- [API Documentation](https://neo4j.com/docs/api/javascript-driver/4.1/)
 - [Neo4j Manual](https://neo4j.com/docs/)
 - [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
 ## What's New in 4.1
 
-- TODO
+- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/4.1-changelog)
 
 ## Including the Driver
 
@@ -63,12 +63,12 @@ It can be included in an HTML page using one of the following tags:
 <script src="https://cdn.jsdelivr.net/npm/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.min.js"></script>
 ```
 
-This will make a global `neo4j` object available, where you can access the driver API at `neo4j`\*:
+This will make a global `neo4j` object available, where you can create a driver instance with `neo4j.driver`:
 
 ```javascript
 var driver = neo4j.driver(
   'neo4j://localhost',
-  neo4j.auth.basic('neo4j', 'neo4j')
+  neo4j.auth.basic('neo4j', 'password')
 )
 ```
 
@@ -85,11 +85,11 @@ driver.close() // returns a Promise
 ### Constructing a Driver
 
 ```javascript
-// Create a driver instance, for the user neo4j with password neo4j.
+// Create a driver instance, for the user `neo4j` with password `password`.
 // It should be enough to have a single driver per database per application.
 var driver = neo4j.driver(
   'neo4j://localhost',
-  neo4j.auth.basic('neo4j', 'neo4j')
+  neo4j.auth.basic('neo4j', 'password')
 )
 
 // Close the driver when application exits.
@@ -238,7 +238,7 @@ rxSession
 // retries on network fluctuations and transient errors. Maximum retry time is
 // configured on the driver level and is 30 seconds by default:
 // Applies both to standard and reactive sessions.
-neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'neo4j'), {
+neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'password'), {
   maxTransactionRetryTime: 30000
 })
 ```
@@ -472,15 +472,17 @@ To enable potentially lossy integer values use the driver's configuration object
 ```javascript
 var driver = neo4j.driver(
   'neo4j://localhost',
-  neo4j.auth.basic('neo4j', 'neo4j'),
+  neo4j.auth.basic('neo4j', 'password'),
   { disableLosslessIntegers: true }
 )
 ```
 
 ## Building
 
-    npm install
-    npm run build
+```
+npm install
+npm run build
+```
 
 This produces browser-compatible standalone files under `lib/browser` and a Node.js module version under `lib/`.
 See files under `examples/` on how to use.
@@ -491,26 +493,36 @@ Tests **require** latest [Boltkit](https://github.com/neo4j-contrib/boltkit) and
 
 Boltkit is needed to start, stop and configure local test database. Boltkit can be installed with the following command:
 
-    pip3 install --upgrade boltkit
+```
+pip3 install --upgrade boltkit
+```
 
 To run tests against "default" Neo4j version:
 
-    ./runTests.sh
+```
+./runTests.sh
+```
 
 To run tests against specified Neo4j version:
 
-    ./runTests.sh '-e 4.1.0'
+```
+./runTests.sh '-e 4.1.0'
+```
 
 Simple `npm test` can also be used if you already have a running version of a compatible Neo4j server.
 
 For development, you can have the build tool rerun the tests each time you change
 the source code:
 
-    gulp watch-n-test
+```
+gulp watch-n-test
+```
 
 If the `gulp` command line tool is not available, you might need to install this globally:
 
-    npm install -g gulp-cli
+```
+npm install -g gulp-cli
+```
 
 ### Testing on windows
 
