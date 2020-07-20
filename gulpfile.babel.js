@@ -153,8 +153,11 @@ gulp.task(
 
 /** Set the project version, controls package.json and version.js */
 gulp.task('set', function () {
-  // Get the --version arg from command line
-  const version = minimist(process.argv.slice(2), { string: 'version' }).version
+  // example: gulp set --x 4.0.2
+
+  // Get the --x arg from command line
+  const command = minimist(process.argv.slice(2), { string: 'x' })
+  const version = command.x
 
   if (!semver.valid(version)) {
     throw new Error(`Invalid version "${version}"`)
