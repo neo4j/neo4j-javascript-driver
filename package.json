@@ -18,7 +18,7 @@
     "run-stress-tests": "gulp run-stress-tests",
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "esdoc -c esdoc.json",
-    "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version",
+    "versionRelease": "gulp set --x $VERSION && npm version $VERSION --no-git-tag-version",
     "browser": "gulp browser && gulp test-browser"
   },
   "husky": {

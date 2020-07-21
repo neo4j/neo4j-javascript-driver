@@ -19,7 +19,8 @@
 
 // DO NOT CHANGE THE VERSION BELOW HERE
 // This is set by the build system at release time, using
-//   gulp set --version <releaseversion>
+//
+// gulp set --x <releaseversion>
 //
 // This is set up this way to keep the version in the code in
 // sync with the npm package version, and to allow the build
