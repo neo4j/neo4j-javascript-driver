@@ -1,7 +1,7 @@
 {
   "name": "neo4j-driver",
-  "version": "2.0.0-dev",
-  "description": "Connect to Neo4j 3.0.0 and up from JavaScript",
+  "version": "4.0.0-dev",
+  "description": "Connect to Neo4j 3.4.0 and up from JavaScript",
   "author": "Neo4j",
   "license": "Apache-2.0",
   "repository": {
@@ -18,7 +18,7 @@
     "run-stress-tests": "gulp run-stress-tests",
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "esdoc -c esdoc.json",
-    "versionRelease": "gulp set --version $VERSION && npm version $VERSION --no-git-tag-version",
+    "versionRelease": "gulp set --x $VERSION && npm version $VERSION --no-git-tag-version",
     "browser": "gulp browser && gulp test-browser"
   },
   "husky": {
