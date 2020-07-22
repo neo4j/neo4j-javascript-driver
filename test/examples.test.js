@@ -299,13 +299,11 @@ describe('#integration examples', () => {
     }
     // end::cypher-error[]
 
-    expect(removeLineBreaks(await consoleLoggedMsg)).toBe(
-      removeLineBreaks(
-        "Invalid input 'L': expected 't/T' (line 1, column 3 (offset: 2))\n" +
-          '"SELECT * FROM Employees WHERE name = $name"\n' +
-          '   ^'
-      )
-    )
+    expect(
+      removeLineBreaks(await consoleLoggedMsg)
+        .toLowerCase()
+        .startsWith('invalid input')
+    ).toBeTruthy()
   })
 
   it('driver lifecycle example', async () => {
