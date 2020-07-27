@@ -58,14 +58,15 @@ import ResultSummary, {
 import Record from './record'
 import Session from './session'
 import {
+  Driver,
+  READ,
+  WRITE,
   AuthToken,
   Config,
-  Driver,
   EncryptionLevel,
-  READ,
-  SessionMode,
   TrustStrategy,
-  WRITE
+  SessionMode,
+  LoggingConfig
 } from './driver'
 import Transaction from './transaction'
 import { Parameters } from './query-runner'
@@ -152,106 +153,109 @@ declare const forExport: {
   driver: typeof driver
   int: typeof int
   isInt: typeof isInt
-  integer: typeof integer
-  auth: typeof auth
-  types: typeof types
-  session: typeof session
-  error: typeof error
-  spatial: typeof spatial
-  temporal: typeof temporal
-  Driver: Driver
-  AuthToken: AuthToken
-  Config: Config
-  EncryptionLevel: EncryptionLevel
-  TrustStrategy: TrustStrategy
-  SessionMode: SessionMode
-  Neo4jError: Neo4jError
-  Node: Node
-  Relationship: Relationship
-  UnboundRelationship: UnboundRelationship
-  PathSegment: PathSegment
-  Path: Path
-  Integer: Integer
-  Record: Record
-  Result: Result
-  QueryResult: QueryResult
-  ResultObserver: ResultObserver
-  ResultSummary: ResultSummary
-  Plan: Plan
-  ProfiledPlan: ProfiledPlan
-  QueryStatistic: QueryStatistic
-  Notification: Notification
-  ServerInfo: ServerInfo
-  NotificationPosition: NotificationPosition
-  Session: Session
-  Transaction: Transaction
-  Point: Point
   isPoint: typeof isPoint
-  Duration: Duration
-  LocalTime: LocalTime
-  Time: Time
-  Date: Date
-  LocalDateTime: LocalDateTime
-  DateTime: DateTime
   isDuration: typeof isDuration
   isLocalTime: typeof isLocalTime
   isTime: typeof isTime
   isDate: typeof isDate
   isLocalDateTime: typeof isLocalDateTime
   isDateTime: typeof isDateTime
+  integer: typeof integer
+  Neo4jError: Neo4jError
+  auth: typeof auth
+  // logging, missing
+  types: typeof types
+  session: typeof session
+  error: typeof error
+  spatial: typeof spatial
+  temporal: typeof temporal
+  Driver: Driver // remove in next major. index.js does not export this
+  AuthToken: AuthToken // remove in next major. index.js does not export this
+  Config: Config // remove in next major. index.js does not export this
+  EncryptionLevel: EncryptionLevel // remove in next major. index.js does not export this
+  TrustStrategy: TrustStrategy // remove in next major. index.js does not export this
+  SessionMode: SessionMode // remove in next major. index.js does not export this
+  LoggingConfig: LoggingConfig // remove in next major. index.js does not export this
+  Node: Node // remove in next major. index.js does not export this
+  Relationship: Relationship // remove in next major. index.js does not export this
+  UnboundRelationship: UnboundRelationship // remove in next major. index.js does not export this
+  PathSegment: PathSegment // remove in next major. index.js does not export this
+  Path: Path // remove in next major. index.js does not export this
+  Integer: Integer // remove in next major. index.js does not export this
+  Record: Record // remove in next major. index.js does not export this
+  Result: Result // remove in next major. index.js does not export this
+  QueryResult: QueryResult // remove in next major. index.js does not export this
+  ResultObserver: ResultObserver // remove in next major. index.js does not export this
+  ResultSummary: ResultSummary // remove in next major. index.js does not export this
+  Plan: Plan // remove in next major. index.js does not export this
+  ProfiledPlan: ProfiledPlan // remove in next major. index.js does not export this
+  QueryStatistic: QueryStatistic // remove in next major. index.js does not export this
+  Notification: Notification // remove in next major. index.js does not export this
+  ServerInfo: ServerInfo // remove in next major. index.js does not export this
+  NotificationPosition: NotificationPosition // remove in next major. index.js does not export this
+  Session: Session // remove in next major. index.js does not export this
+  Transaction: Transaction // remove in next major. index.js does not export this
+  Point: Point // remove in next major. index.js does not export this
+  Duration: Duration // remove in next major. index.js does not export this
+  LocalTime: LocalTime // remove in next major. index.js does not export this
+  Time: Time // remove in next major. index.js does not export this
+  Date: Date // remove in next major. index.js does not export this
+  LocalDateTime: LocalDateTime // remove in next major. index.js does not export this
+  DateTime: DateTime // remove in next major. index.js does not export this
 }
 
 export {
   driver,
   int,
   isInt,
-  integer,
-  auth,
-  types,
-  session,
-  error,
-  spatial,
-  temporal,
-  Driver,
-  AuthToken,
-  Config,
-  EncryptionLevel,
-  TrustStrategy,
-  SessionMode,
-  Neo4jError,
-  Node,
-  Relationship,
-  UnboundRelationship,
-  PathSegment,
-  Path,
-  Integer,
-  Record,
-  Result,
-  QueryResult,
-  ResultObserver,
-  ResultSummary,
-  Plan,
-  ProfiledPlan,
-  QueryStatistic,
-  Notification,
-  ServerInfo,
-  NotificationPosition,
-  Session,
-  Transaction,
-  Point,
   isPoint,
-  Duration,
-  LocalTime,
-  Time,
-  Date,
-  LocalDateTime,
-  DateTime,
   isDuration,
   isLocalTime,
   isTime,
   isDate,
   isLocalDateTime,
-  isDateTime
+  isDateTime,
+  integer,
+  Neo4jError,
+  auth,
+  // logging, missing
+  types,
+  session,
+  error,
+  spatial,
+  temporal,
+  Driver, // remove in next major. index.js does not export this
+  AuthToken, // remove in next major. index.js does not export this
+  Config, // remove in next major. index.js does not export this
+  EncryptionLevel, // remove in next major. index.js does not export this
+  TrustStrategy, // remove in next major. index.js does not export this
+  SessionMode, // remove in next major. index.js does not export this
+  Node, // remove in next major. index.js does not export this
+  Relationship, // remove in next major. index.js does not export this
+  UnboundRelationship, // remove in next major. index.js does not export this
+  PathSegment, // remove in next major. index.js does not export this
+  Path, // remove in next major. index.js does not export this
+  Integer, // remove in next major. index.js does not export this
+  Record, // remove in next major. index.js does not export this
+  Result, // remove in next major. index.js does not export this
+  QueryResult, // remove in next major. index.js does not export this
+  ResultObserver, // remove in next major. index.js does not export this
+  ResultSummary, // remove in next major. index.js does not export this
+  Plan, // remove in next major. index.js does not export this
+  ProfiledPlan, // remove in next major. index.js does not export this
+  QueryStatistic, // remove in next major. index.js does not export this
+  Notification, // remove in next major. index.js does not export this
+  ServerInfo, // remove in next major. index.js does not export this
+  NotificationPosition, // remove in next major. index.js does not export this
+  Session, // remove in next major. index.js does not export this
+  Transaction, // remove in next major. index.js does not export this
+  Point, // remove in next major. index.js does not export this
+  Duration, // remove in next major. index.js does not export this
+  LocalTime, // remove in next major. index.js does not export this
+  Time, // remove in next major. index.js does not export this
+  Date, // remove in next major. index.js does not export this
+  LocalDateTime, // remove in next major. index.js does not export this
+  DateTime // remove in next major. index.js does not export this
 }
 
 export default forExport

@@ -107,7 +107,8 @@ export {
   Config,
   EncryptionLevel,
   TrustStrategy,
-  SessionMode
+  SessionMode,
+  LoggingConfig
 }
 
 export default Driver
