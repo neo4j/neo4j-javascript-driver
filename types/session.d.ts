@@ -38,7 +38,7 @@ declare interface Session extends QueryRunner {
 
   beginTransaction(config?: TransactionConfig): Transaction
 
-  lastBookmark(): string | null
+  lastBookmark(): string[]
 
   readTransaction<T>(
     work: TransactionWork<T>,
