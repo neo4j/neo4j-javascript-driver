@@ -137,7 +137,8 @@ const defaultConfig = {
   'dbms.connectors.default_listen_address': '::',
 
   // HTTP server should keep listening on default address
-  'dbms.connector.http.listen_address': 'localhost:7474',
+  // 'dbms.connector.http.listen_address': 'localhost:7474',
+  'dbms.connector.http.listen_address': 'localhost:7687',
 
   // shorten the default time to wait for the bookmark from 30 to 5 seconds
   'dbms.transaction.bookmark_ready_timeout': '5s',
@@ -148,7 +149,7 @@ const defaultConfig = {
 
 const NEOCTRL_ARGS = 'NEOCTRL_ARGS'
 const neoCtrlVersionParam = '-e'
-const defaultNeo4jVersion = '4.0'
+const defaultNeo4jVersion = '4.1'
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`
 
 function neoctrlArgs () {
