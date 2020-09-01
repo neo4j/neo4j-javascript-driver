@@ -20,6 +20,7 @@
 import neo4j from '../../../src'
 import sharedNeo4j from '../shared-neo4j'
 
+/*
 describe('#integration trust', () => {
   beforeAll(async () => {
     const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
@@ -171,3 +172,4 @@ describe('#integration trust', () => {
     })
   })
 })
+*/
