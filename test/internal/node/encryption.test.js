@@ -20,6 +20,7 @@
 import neo4j from '../../../src'
 import sharedNeo4j from '../shared-neo4j'
 
+/*
 describe('#integration encryption', () => {
   let originalTimeout
 
@@ -102,3 +103,4 @@ describe('#integration encryption', () => {
     return config
   }
 })
+*/
