@@ -138,7 +138,7 @@ const defaultConfig = {
 
   // HTTP server should keep listening on default address
   // 'dbms.connector.http.listen_address': 'localhost:7474',
-  'dbms.connector.http.listen_address': 'localhost:7687',
+  'dbms.connector.http.listen_address': 'localhost:7474',
 
   // shorten the default time to wait for the bookmark from 30 to 5 seconds
   'dbms.transaction.bookmark_ready_timeout': '5s',
