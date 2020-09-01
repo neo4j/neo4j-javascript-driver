@@ -135,16 +135,13 @@ const tlsConfig = {
 const defaultConfig = {
   // tell neo4j to listen for IPv6 connections, only supported by 3.1+
   // 'dbms.connectors.default_listen_address': '::',
-
   // HTTP server should keep listening on default address
   // 'dbms.connector.http.listen_address': 'localhost:7474',
   // 'dbms.connector.http.listen_address': 'localhost:7474',
-
   // shorten the default time to wait for the bookmark from 30 to 5 seconds
   // 'dbms.transaction.bookmark_ready_timeout': '5s',
-
   // make TLS optional
-  'dbms.connector.bolt.tls_level': tlsConfig.levels.optional
+  // 'dbms.connector.bolt.tls_level': tlsConfig.levels.optional
 }
 
 const NEOCTRL_ARGS = 'NEOCTRL_ARGS'
@@ -361,6 +358,6 @@ export default {
   authToken: authToken,
   logging: debugLogging,
   cleanupAndGetProtocolVersion: cleanupAndGetProtocolVersion,
-  tlsConfig: tlsConfig,
+  // tlsConfig: tlsConfig,
   getEdition: getEdition
 }
