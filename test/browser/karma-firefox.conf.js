@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// http://karma-runner.github.io/5.0/config/configuration-file.html
 module.exports = function (config) {
   config.set({
     basePath: '../../',
@@ -33,7 +35,7 @@ module.exports = function (config) {
       'test/**/*.test.js': ['browserify']
     },
     frameworks: ['browserify', 'source-map-support', 'jasmine'],
-    reporters: ['spec'],
+    reporters: ['teamcity'], // teamcity: karma-teamcity-reporter, spec: karma-spec-reporter
     port: 9876, // karma web server port
     colors: true,
     logLevel: config.LOG_ERROR,
