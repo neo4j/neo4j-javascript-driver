@@ -134,21 +134,19 @@ const tlsConfig = {
 
 const defaultConfig = {
   // tell neo4j to listen for IPv6 connections, only supported by 3.1+
-  'dbms.connectors.default_listen_address': '::',
-
+  // 'dbms.connectors.default_listen_address': '::',
   // HTTP server should keep listening on default address
-  'dbms.connector.http.listen_address': 'localhost:7474',
-
+  // 'dbms.connector.http.listen_address': 'localhost:7474',
+  // 'dbms.connector.http.listen_address': 'localhost:7474',
   // shorten the default time to wait for the bookmark from 30 to 5 seconds
-  'dbms.transaction.bookmark_ready_timeout': '5s',
-
+  // 'dbms.transaction.bookmark_ready_timeout': '5s',
   // make TLS optional
-  'dbms.connector.bolt.tls_level': tlsConfig.levels.optional
+  // 'dbms.connector.bolt.tls_level': tlsConfig.levels.optional
 }
 
 const NEOCTRL_ARGS = 'NEOCTRL_ARGS'
 const neoCtrlVersionParam = '-e'
-const defaultNeo4jVersion = '4.0'
+const defaultNeo4jVersion = '4.1'
 const defaultNeoCtrlArgs = `${neoCtrlVersionParam} ${defaultNeo4jVersion}`
 
 function neoctrlArgs () {
@@ -283,6 +281,7 @@ function stop () {
   stopNeo4j()
 }
 
+/*
 function restart (configOverride) {
   stopNeo4j()
   const newConfig = Object.assign({}, defaultConfig)
@@ -294,6 +293,7 @@ function restart (configOverride) {
   configure(newConfig)
   startNeo4j()
 }
+*/
 
 async function cleanupAndGetProtocolVersion (driver) {
   const session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
@@ -350,7 +350,7 @@ const debugLogging = {
 export default {
   start: start,
   stop: stop,
-  restart: restart,
+  // restart: restart,
   neo4jCertPath: neo4jCertPath,
   neo4jKeyPath: neo4jKeyPath,
   username: username,
@@ -358,6 +358,6 @@ export default {
   authToken: authToken,
   logging: debugLogging,
   cleanupAndGetProtocolVersion: cleanupAndGetProtocolVersion,
-  tlsConfig: tlsConfig,
+  // tlsConfig: tlsConfig,
   getEdition: getEdition
 }

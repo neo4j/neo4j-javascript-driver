@@ -35,10 +35,11 @@ const file = require('gulp-file')
 const semver = require('semver')
 const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const ts = require('gulp-typescript')
-const JasmineReporter = require('jasmine-spec-reporter').SpecReporter
+const JasmineReporter = require('jasmine-spec-reporter').SpecReporter // Console reporter
 const karma = require('karma')
 const log = require('fancy-log')
 const JasmineExec = require('jasmine')
+const JasmineReporters = require('jasmine-reporters') // TeamCity reporter
 
 /**
  * Useful to investigate resource leaks in tests. Enable to see active sockets and file handles after the 'test' task.
@@ -274,7 +275,8 @@ function runJasmineTests (filterString) {
     jasmine.configureDefaultReporter({
       print: () => {}
     })
-    jasmine.addReporter(newJasmineConsoleReporter())
+    // jasmine.addReporter(newJasmineConsoleReporter())
+    jasmine.addReporter(new JasmineReporters.TeamCityReporter())
     jasmine.onComplete(passed => {
       if (passed) {
         resolve()

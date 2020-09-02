@@ -457,6 +457,7 @@ describe('#integration driver', () => {
     })
   })
 
+  /*
   it('should connect to IPv6 address without port', done => {
     testIPv6Connection('bolt://[::1]', done)
   })
@@ -464,6 +465,7 @@ describe('#integration driver', () => {
   it('should connect to IPv6 address with port', done => {
     testIPv6Connection('bolt://[::1]:7687', done)
   })
+  */
 
   const nativeNumbers = [
     Number.NEGATIVE_INFINITY,
@@ -511,6 +513,7 @@ describe('#integration driver', () => {
     })
   })
 
+  /*
   function testIPv6Connection (url, done) {
     driver = neo4j.driver(url, sharedNeo4j.authToken)
 
@@ -523,6 +526,7 @@ describe('#integration driver', () => {
       .then(() => session.close())
       .then(() => done())
   }
+  */
 
   function testNumberInReturnedRecord (inputNumber, expectedNumber, done) {
     driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
