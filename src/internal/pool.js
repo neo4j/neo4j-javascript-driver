@@ -74,10 +74,7 @@ class Pool {
       const key = address.asKey()
 
       if (resource) {
-        resourceAcquired(key, this._activeResourceCounts)
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} acquired from the pool ${key}`)
-        }
+        // New or existing resource acquired
         return resource
       }
 
@@ -190,7 +187,11 @@ class Pool {
         }
 
         // idle resource is valid and can be acquired
-        return Promise.resolve(resource)
+        resourceAcquired(key, this._activeResourceCounts)
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${resource} acquired from the pool ${key}`)
+        }
+        return resource
       } else {
         await this._destroy(resource)
       }
@@ -215,6 +216,11 @@ class Pool {
     try {
       // Invoke callback that creates actual connection
       resource = await this._create(address, this._release)
+
+      resourceAcquired(key, this._activeResourceCounts)
+      if (this._log.isDebugEnabled()) {
+        this._log.debug(`${resource} created for the pool ${key}`)
+      }
     } finally {
       this._pendingCreates[key] = this._pendingCreates[key] - 1
     }
@@ -307,7 +313,6 @@ class Pool {
                 this._release(address, resource)
               } else {
                 // request is still pending and can be resolved with the newly acquired resource
-                resourceAcquired(key, this._activeResourceCounts) // increment the active counter
                 pendingRequest.resolve(resource) // resolve the pending request with the acquired resource
               }
             }
