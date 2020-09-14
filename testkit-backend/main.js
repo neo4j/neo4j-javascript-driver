@@ -155,6 +155,7 @@ class Backend {
     this._sessions = {}
     this._resultObservers = {}
     this._errors = {}
+    this._txs = {}
   }
 
   // Called whenever a new line is received.
@@ -190,7 +191,7 @@ class Backend {
   _handleRequest (request) {
     request = JSON.parse(request)
     const { name, data } = request
-    console.log('Got request ' + name)
+    console.log('> Got request ' + name, data)
     switch (name) {
       case 'NewDriver':
         {
@@ -294,7 +295,69 @@ class Backend {
             })
         }
         break
-
+      case 'SessionReadTransaction':
+        {
+          const { sessionId } = data
+          const session = this._sessions[sessionId]
+          session
+            .readTransaction(
+              tx =>
+                new Promise((resolve, reject) => {
+                  const txId = this._id++
+                  this._txs[txId] = {
+                    sessionId,
+                    tx,
+                    resolve,
+                    reject,
+                    txId
+                  }
+                  this._writeResponse('RetryableTry', { id: txId })
+                })
+            )
+            .then(_ => this._writeResponse('RetryableDone', null))
+            .catch(error => this._writeError(error))
+        }
+        break
+      case 'TransactionRun':
+        {
+          const { txId, cypher, params } = data
+          const tx = this._txs[txId]
+          if (params) {
+            for (const [key, value] of Object.entries(params)) {
+              params[key] = cypherToNative(value)
+            }
+          }
+          const result = tx.tx.run(cypher, params)
+          this._id++
+          const resultObserver = new ResultObserver()
+          result.subscribe(resultObserver)
+          this._resultObservers[this._id] = resultObserver
+          this._writeResponse('Result', {
+            id: this._id
+          })
+        }
+        break
+      case 'RetryablePositive':
+        {
+          const { sessionId } = data
+          const tx = Object.values(this._txs).filter(
+            ({ sessionId: id }) => sessionId === id
+          )[0]
+          delete this._txs[tx.txId]
+          tx.resolve()
+        }
+        break
+      case 'RetryableNegative':
+        {
+          const { sessionId, errorId } = data
+          const tx = Object.values(this._txs).filter(
+            ({ sessionId: id }) => sessionId === id
+          )[0]
+          const error = this._errors[errorId] || new Error('Client error')
+          delete this._txs[tx.txId]
+          tx.reject(error)
+        }
+        break
       default:
         this._writeBackendError('Unknown request: ' + name)
         console.log('Unknown request: ' + name)
@@ -303,6 +366,7 @@ class Backend {
   }
 
   _writeResponse (name, data) {
+    console.log('> writing response', name, data)
     let response = {
       name: name,
       data: data
