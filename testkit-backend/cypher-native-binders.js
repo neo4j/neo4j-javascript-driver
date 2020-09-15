@@ -13,20 +13,18 @@ export function nativeToCypher (x) {
       if (Number.isInteger(x)) {
         return valueResponse('CypherInt', x)
       }
-      break
+      return valueResponse('CypherFloat', x)
     case 'string':
       return valueResponse('CypherString', x)
     case 'boolean':
       return valueResponse('CypherBool', x)
     case 'object':
-      console.log(x)
       if (neo4j.isInt(x)) {
         // TODO: Broken!!!
         console.log(x)
         return valueResponse('CypherInt', x.toInt())
       }
       if (Array.isArray(x)) {
-        const values = x.map(nativeToCypher)
         return valueResponse('CypherList', values)
       }
       if (x instanceof neo4j.types.Node) {
@@ -61,9 +59,13 @@ export function cypherToNative (c) {
     case 'CypherInt':
       return value
     case 'CypherFloat':
-      return value + 0.0
+      return value
     case 'CypherNull':
       return value
+    case 'CypherBool':
+      return value
+    case 'CypherList':
+      return value.map(cypherToNative)
   }
   console.log(`Type ${name} is not handle by cypherToNative`, c)
   const err = 'Unable to convert ' + c + ' to native type'
