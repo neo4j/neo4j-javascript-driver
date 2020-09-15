@@ -25,6 +25,7 @@ export function nativeToCypher (x) {
         return valueResponse('CypherInt', x.toInt())
       }
       if (Array.isArray(x)) {
+        const values = x.map(nativeToCypher)
         return valueResponse('CypherList', values)
       }
       if (x instanceof neo4j.types.Node) {
