@@ -25,7 +25,7 @@ declare interface RxResult {
 
   records(): Observable<Record>
 
-  summary(): Observable<ResultSummary>
+  consume(): Observable<ResultSummary>
 }
 
 export default RxResult
