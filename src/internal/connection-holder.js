@@ -67,6 +67,9 @@ export default class ConnectionHolder {
    * @return {boolean}
    */
   initializeConnection () {
+    console.log(
+      `> ConnectionHolder.initializeConnection: start { refecenceCount=${this._referenceCount} }`
+    )
     if (this._referenceCount === 0) {
       this._connectionPromise = this._connectionProvider.acquireConnection({
         accessMode: this._mode,
@@ -75,9 +78,15 @@ export default class ConnectionHolder {
       })
     } else {
       this._referenceCount++
+      console.log(
+        `> ConnectionHolder.initializeConnection: return false { refecenceCount=${this._referenceCount} }`
+      )
       return false
     }
     this._referenceCount++
+    console.log(
+      `> ConnectionHolder.initializeConnection: return true { refecenceCount=${this._referenceCount} }`
+    )
     return true
   }
 
@@ -94,14 +103,26 @@ export default class ConnectionHolder {
    * @return {Promise<Connection>} promise resolved with the current connection, never a rejected promise.
    */
   releaseConnection () {
+    console.log(
+      `> ConnectionHolder.releaseConnection: start { refecenceCount=${this._referenceCount} }`
+    )
     if (this._referenceCount === 0) {
+      console.log(
+        `> ConnectionHolder.releaseConnection: return _connectionPromise (referenceCount === 0) { refecenceCount=${this._referenceCount} }`
+      )
       return this._connectionPromise
     }
 
     this._referenceCount--
     if (this._referenceCount === 0) {
+      console.log(
+        `> ConnectionHolder.releaseConnection: return _releaseConnection (--referenceCount === 0) { refecenceCount=${this._referenceCount} }`
+      )
       return this._releaseConnection()
     }
+    console.log(
+      `> ConnectionHolder.releaseConnection: return _connectionPromise (--referenceCount > 0) { refecenceCount=${this._referenceCount} }`
+    )
     return this._connectionPromise
   }
 
@@ -110,10 +131,20 @@ export default class ConnectionHolder {
    * @return {Promise<Connection>} promise resolved when current connection is released to the pool.
    */
   close () {
+    console.log(
+      `> ConnectionHolder.close: start { refecenceCount=${this._referenceCount} }`
+    )
+
     if (this._referenceCount === 0) {
+      console.log(
+        `> ConnectionHolder.close: return _connectionPromise { refecenceCount=${this._referenceCount} }`
+      )
       return this._connectionPromise
     }
     this._referenceCount = 0
+    console.log(
+      `> ConnectionHolder.close: return _releaseConnection { refecenceCount=${this._referenceCount} }`
+    )
     return this._releaseConnection()
   }
 

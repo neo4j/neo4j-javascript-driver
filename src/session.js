@@ -118,6 +118,7 @@ class Session {
   }
 
   _run (query, parameters, customRunner) {
+    console.log('> Session._run : start')
     const connectionHolder = this._connectionHolderWithMode(this._mode)
 
     let observerPromise
@@ -130,9 +131,21 @@ class Session {
     } else if (!this._hasTx && connectionHolder.initializeConnection()) {
       observerPromise = connectionHolder
         .getConnection()
-        .then(connection => customRunner(connection))
-        .catch(error => Promise.resolve(new FailedObserver({ error })))
+        .then(connection => {
+          console.log(
+            '> Session._run : Promise<connectionHolder.getConnection()> .then'
+          )
+          return customRunner(connection)
+        })
+        .catch(error => {
+          console.log(
+            '> Session._run : Promise<connectionHolder.getConnection()> .catch',
+            error
+          )
+          return Promise.resolve(new FailedObserver({ error }))
+        })
     } else {
+      console.log(`> Session._run : flaking_error -> hasTx=${this._hasTx}`)
       observerPromise = Promise.resolve(
         new FailedObserver({
           error: newError(
