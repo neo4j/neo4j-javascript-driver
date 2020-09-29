@@ -1,0 +1,9 @@
+!: BOLT 4
+!: AUTO HELLO
+!: AUTO RESET
+!: AUTO GOODBYE
+
+C: RUN "CALL dbms.routing.getRoutingTable($context, $database)" {"context": {"address": "127.0.0.1:9001"}, "database": "aDatabase"} {"mode": "r", "db": "system"}
+   PULL {"n": -1}
+S: FAILURE {"code": "Neo.ClientError.Database.DatabaseNotFound", "message": "database not found"}
+   IGNORED

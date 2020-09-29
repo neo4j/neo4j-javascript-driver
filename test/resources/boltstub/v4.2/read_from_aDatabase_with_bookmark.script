@@ -1,0 +1,12 @@
+!: BOLT 4
+!: AUTO HELLO
+!: AUTO RESET
+!: AUTO GOODBYE
+
+C: RUN "MATCH (n) RETURN n.name" {} {"mode": "r", "db": "aDatabase", "bookmarks": ["system:1111", "aDatabase:5555"]}
+   PULL {"n": 1000}
+S: SUCCESS {"fields": ["n.name"]}
+   RECORD ["Bob"]
+   RECORD ["Alice"]
+   RECORD ["Tina"]
+   SUCCESS { "bookmark": "aDatabase:6666" }

@@ -58,11 +58,11 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyShouldRunQuery('v2'))
-
     it('v3', () => verifyShouldRunQuery('v3'))
 
     it('v4', () => verifyShouldRunQuery('v4'))
+
+    it('v4.2', () => verifyShouldRunQuery('v4.2'))
   })
 
   it('should use custom user agent', async () => {
@@ -103,6 +103,8 @@ describe('#stub-direct direct driver with stub server', () => {
     }
 
     it('v4.1', () => verify('v4.1'))
+
+    it('v4.2', () => verify('v4.2'))
   })
 
   describe('should send and receive bookmark for read transaction', () => {
@@ -136,11 +138,11 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyBookmarkForReadTxc('v2'))
-
     it('v3', () => verifyBookmarkForReadTxc('v3'))
 
     it('v4', () => verifyBookmarkForReadTxc('v4'))
+
+    it('v4.2', () => verifyBookmarkForReadTxc('v4.2'))
   })
 
   describe('should send and receive bookmark for write transaction', () => {
@@ -172,11 +174,11 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyBookmarkForWriteTxc('v2'))
-
     it('v3', () => verifyBookmarkForWriteTxc('v3'))
 
     it('v4', () => verifyBookmarkForWriteTxc('v4'))
+
+    it('v4.2', () => verifyBookmarkForWriteTxc('v4.2'))
   })
 
   describe('should send and receive bookmark between write and read transactions', () => {
@@ -217,11 +219,11 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyBookmark('v2'))
-
     it('v3', () => verifyBookmark('v3'))
 
     it('v4', () => verifyBookmark('v4'))
+
+    it('v4.2', () => verifyBookmark('v4.2'))
   })
 
   describe('should throw service unavailable when server dies', () => {
@@ -250,11 +252,11 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyServiceUnavailable('v2'))
-
     it('v3', () => verifyServiceUnavailable('v3'))
 
     it('v4', () => verifyServiceUnavailable('v4'))
+
+    it('v4.2', () => verifyServiceUnavailable('v4.2'))
   })
 
   describe('should close connection when RESET fails', () => {
@@ -283,11 +285,11 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyCloseConnection('v2'))
-
     it('v3', () => verifyCloseConnection('v3'))
 
     it('v4', () => verifyCloseConnection('v4'))
+
+    it('v4.2', () => verifyCloseConnection('v4.2'))
   })
 
   describe('should send RESET on error', () => {
@@ -316,11 +318,11 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyReset('v2'))
-
     it('v3', () => verifyReset('v3'))
 
     it('v4', () => verifyReset('v4'))
+
+    it('v4.2', () => verifyReset('v4.2'))
   })
 
   describe('should include database connection id in logs', () => {
@@ -367,6 +369,8 @@ describe('#stub-direct direct driver with stub server', () => {
     it('v3', () => verifyConnectionId('v3'))
 
     it('v4', () => verifyConnectionId('v4'))
+
+    it('v4.2', () => verifyConnectionId('v4.2'))
   })
 
   describe('should close connection if it dies sitting idle in connection pool', () => {
@@ -411,11 +415,11 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyConnectionCleanup('v2'))
-
     it('v3', () => verifyConnectionCleanup('v3'))
 
     it('v4', () => verifyConnectionCleanup('v4'))
+
+    it('v4.2', () => verifyConnectionCleanup('v4.2'))
   })
 
   describe('should fail if commit fails due to broken connection', () => {
@@ -446,8 +450,6 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifyFailureOnCommit('v2'))
-
     it('v3', () => verifyFailureOnCommit('v3'))
   })
 
@@ -470,9 +472,9 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifySupportsMultiDb('v2', false))
     it('v3', () => verifySupportsMultiDb('v3', false))
     it('v4', () => verifySupportsMultiDb('v4', true))
+    it('v4.2', () => verifySupportsMultiDb('v4.2', true))
     it('on error', async () => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
 
@@ -507,9 +509,9 @@ describe('#stub-direct direct driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifySupportsTransactionConfig('v2', false))
     it('v3', () => verifySupportsTransactionConfig('v3', true))
     it('v4', () => verifySupportsTransactionConfig('v4', true))
+    it('v4.2', () => verifySupportsTransactionConfig('v4.2', true))
     it('on error', async () => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
 
@@ -568,6 +570,7 @@ describe('#stub-direct direct driver with stub server', () => {
     }
 
     it('v4', () => verifyFailureOnCommit('v4'))
+    it('v4.2', () => verifyFailureOnCommit('v4.2'))
   })
 
   describe('should stream in many batches', () => {
@@ -613,6 +616,7 @@ describe('#stub-direct direct driver with stub server', () => {
     }
 
     it('v4', () => verifyFailureOnCommit('v4'))
+    it('v4.2', () => verifyFailureOnCommit('v4.2'))
   })
 
   describe('should ignore fetchSize setting', () => {
@@ -658,7 +662,6 @@ describe('#stub-direct direct driver with stub server', () => {
     }
 
     it('v3', () => verifyFailureOnCommit('v3'))
-    it('v2', () => verifyFailureOnCommit('v2'))
   })
 
   describe('should cancel stream with result summary method', () => {
@@ -704,6 +707,7 @@ describe('#stub-direct direct driver with stub server', () => {
     }
 
     it('v4', () => verifyFailureOnCommit('v4'))
+    it('v4.2', () => verifyFailureOnCommit('v4.2'))
   })
 
   describe('should cancel stream with tx commit', () => {
@@ -752,6 +756,7 @@ describe('#stub-direct direct driver with stub server', () => {
     }
 
     it('v4', () => verifyFailureOnCommit('v4'))
+    it('v4.2', () => verifyFailureOnCommit('v4.2'))
   })
 
   function connectionPool (driver, key) {

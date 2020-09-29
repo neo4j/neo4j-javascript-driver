@@ -1,0 +1,10 @@
+!: BOLT 4
+!: AUTO HELLO
+!: AUTO RESET
+!: AUTO GOODBYE
+
+C: RUN "CALL dbms.routing.getRoutingTable($context, $database)" {"context": {"address": "127.0.0.1:9001"}, "database": null} {"mode": "r", "db": "system"}
+   PULL {"n": -1}
+S: SUCCESS {"fields": ["ttl", "servers"]}
+   RECORD [9223372036854775807, [{"addresses": ["127.0.0.1:9007","127.0.0.1:9008"],"role": "WRITE"}, {"addresses": ["127.0.0.1:9005","127.0.0.1:9006"], "role": "READ"},{"addresses": ["127.0.0.1:9001","127.0.0.1:9002","127.0.0.1:9003"], "role": "ROUTE"}]]
+   SUCCESS {}

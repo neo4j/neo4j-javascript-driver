@@ -1,0 +1,23 @@
+!: BOLT 4
+!: AUTO HELLO
+!: AUTO RESET
+!: AUTO GOODBYE
+
+C: BEGIN {"bookmarks": ["neo4j:bookmark:v1:tx42"]}
+   RUN "CREATE (n {name:'Bob'})" {} {}
+   PULL {"n": 1000}
+S: SUCCESS {}
+   SUCCESS {"fields": []}
+   SUCCESS {}
+C: COMMIT
+S: SUCCESS {"bookmark": "neo4j:bookmark:v1:tx4242"}
+C: BEGIN {"bookmarks": ["neo4j:bookmark:v1:tx4242"]}
+   RUN "MATCH (n) RETURN n.name AS name" {} {}
+   PULL {"n": 1000}
+S: SUCCESS {}
+   SUCCESS {"fields": ["name"]}
+   RECORD ["Bob"]
+   SUCCESS {}
+C: COMMIT
+S: SUCCESS {"bookmark": "neo4j:bookmark:v1:tx424242"}
+

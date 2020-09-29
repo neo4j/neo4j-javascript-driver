@@ -1,0 +1,10 @@
+!: BOLT 4
+!: AUTO HELLO
+!: AUTO RESET
+!: AUTO GOODBYE
+
+C: RUN "RETURN $x" {"x": 1} {}
+   PULL { "n": 1000 }
+S: SUCCESS {"fields": ["x"]}
+   RECORD [1]
+   SUCCESS {}

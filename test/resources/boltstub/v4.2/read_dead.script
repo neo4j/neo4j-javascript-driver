@@ -1,0 +1,7 @@
+!: BOLT 4
+!: AUTO HELLO
+!: AUTO RESET
+
+C: RUN "MATCH (n) RETURN n.name" {} {"mode": "r"}
+C: PULL {"n": 1000}
+S: <EXIT>

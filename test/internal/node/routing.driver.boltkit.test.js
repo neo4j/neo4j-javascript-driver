@@ -2392,12 +2392,13 @@ describe('#stub-routing routing driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifySupportsMultiDb('v2', false))
     it('v3', () => verifySupportsMultiDb('v3', false))
     it('v4', () => verifySupportsMultiDb('v4', true))
-    it('v2 with resolver', () => verifySupportsMultiDbWithResolver('v2', false))
+    it('v4.2', () => verifySupportsMultiDb('v4.2', true))
     it('v3 with resolver', () => verifySupportsMultiDbWithResolver('v3', false))
     it('v4 with resolver', () => verifySupportsMultiDbWithResolver('v4', true))
+    it('v4.2 with resolver', () =>
+      verifySupportsMultiDbWithResolver('v4.2', true))
     it('on error', async () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
@@ -2434,6 +2435,7 @@ describe('#stub-routing routing driver with stub server', () => {
     }
 
     it('v4.1', () => verify('v4.1'))
+    it('v4.2', () => verify('v4.2'))
   })
 
   describe('should send routing context with hello to enable server routing', () => {
@@ -2459,6 +2461,7 @@ describe('#stub-routing routing driver with stub server', () => {
     }
 
     it('v4.1', () => verify('v4.1'))
+    it('v4.2', () => verify('v4.2'))
   })
 
   describe('should send empty routing context with hello to enable server routing', () => {
@@ -2482,6 +2485,7 @@ describe('#stub-routing routing driver with stub server', () => {
     }
 
     it('v4.1', () => verify('v4.1'))
+    it('v4.2', () => verify('v4.2'))
   })
 
   describe('should report whether transaction config is supported', () => {
@@ -2534,15 +2538,15 @@ describe('#stub-routing routing driver with stub server', () => {
       await server.exit()
     }
 
-    it('v2', () => verifySupportsTransactionConfig('v2', false))
     it('v3', () => verifySupportsTransactionConfig('v3', true))
     it('v4', () => verifySupportsTransactionConfig('v4', true))
-    it('v2 with resolver', () =>
-      verifySupportsTransactionConfigWithResolver('v2', false))
+    it('v4.2', () => verifySupportsTransactionConfig('v4.2', true))
     it('v3 with resolver', () =>
       verifySupportsTransactionConfigWithResolver('v3', true))
     it('v4 with resolver', () =>
       verifySupportsTransactionConfigWithResolver('v4', true))
+    it('v4.2 with resolver', () =>
+      verifySupportsTransactionConfigWithResolver('v4.2', true))
     it('on error', async () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
