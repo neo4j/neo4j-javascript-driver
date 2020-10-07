@@ -1,0 +1,17 @@
+!: BOLT 4.1
+!: AUTO RESET
+
+C: HELLO {"credentials": "password", "routing": {}, "scheme": "basic", "user_agent": "neo4j-javascript/0.0.0-dev", "principal": "neo4j"}
+S: SUCCESS {"server": "Neo4j/9.9.9", "connection_id": "bolt-123456789"}
+C: RUN "CALL dbms.routing.getRoutingTable($context, $database)" {"context": {"address": "127.0.0.1:9001"}, "database":null} {"db": "system", "mode": "r"}
+C: PULL {"n": -1 }
+S: SUCCESS {"fields": ["ttl", "servers"]}
+   RECORD [9223372036854775807, [{"addresses": ["127.0.0.1:9001", "127.0.0.1:9002"],"role": "WRITE"}, {"addresses": ["127.0.0.1:9001", "127.0.0.1:9002"], "role": "READ"},{"addresses": ["127.0.0.1:9001", "127.0.0.1:9002"], "role": "ROUTE"}]]
+   SUCCESS {}
+C: RUN "MATCH (n) RETURN n.name" {} {}
+   PULL {"n": 1000}
+S: SUCCESS {"fields": ["n.name"]}
+   RECORD ["Foo"]
+   RECORD ["Bar"]
+   SUCCESS {}
+S: <EXIT>

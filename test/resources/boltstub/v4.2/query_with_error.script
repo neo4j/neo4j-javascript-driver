@@ -1,8 +1,9 @@
-!: BOLT 2
-!: AUTO INIT
+!: BOLT 4
+!: AUTO HELLO
+!: AUTO GOODBYE
 
-C: RUN "RETURN 10 / 0" {}
-C: PULL_ALL
+C: RUN "RETURN 10 / 0" {} {}
+C: PULL {"n": 1000}
 S: FAILURE {"code": "Neo.ClientError.Statement.ArithmeticError", "message": "/ by zero"}
 S: IGNORED
 C: RESET
