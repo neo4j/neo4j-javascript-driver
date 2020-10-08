@@ -1,7 +1,11 @@
 {
   "presets": [
     [
-      "@babel/preset-env"
+      "@babel/preset-env",
+      {
+        "spec": true,
+        "loose": true
+      }
     ]
   ],
   "plugins": [
