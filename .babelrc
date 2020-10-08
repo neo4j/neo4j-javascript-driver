@@ -4,7 +4,8 @@
       "@babel/preset-env",
       {
         "spec": true,
-        "loose": true
+        "loose": true,
+        "bugfixes": true
       }
     ]
   ],
