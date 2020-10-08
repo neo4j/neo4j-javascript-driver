@@ -77,9 +77,20 @@ function parseDatabaseUrl (url) {
   const formattedHost = formatHost(host) // has square brackets for IPv6
   const port = extractPort(parsedUrl.port, scheme)
   const hostAndPort = `${formattedHost}:${port}`
-  const query = extractQuery(parsedUrl.query, url)
+  const query = extractQuery(
+    parsedUrl.query || extractResourceQueryString(parsedUrl.resourceName),
+    url
+  )
 
   return new Url(scheme, host, port, hostAndPort, query)
+}
+
+function extractResourceQueryString (resource) {
+  if (typeof resource !== 'string') {
+    return null
+  }
+  const [_, query] = resource.split('?')
+  return query
 }
 
 function sanitizeUrl (url) {

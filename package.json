@@ -107,6 +107,6 @@
     "@babel/runtime": "^7.5.5",
     "rxjs": "^6.6.3",
     "text-encoding-utf-8": "^1.0.2",
-    "uri-js": "^4.2.2"
+    "uri-js": "^4.4.0"
   }
 }
