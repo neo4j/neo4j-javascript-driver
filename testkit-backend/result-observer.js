@@ -1,7 +1,8 @@
 const neo4j = require('neo4j-driver')
 
 export class ResultObserver {
-  constructor () {
+  constructor ({ sessionId }) {
+    this.sessionId = sessionId
     this.keys = null
     this._stream = []
     this.summary = null
@@ -11,6 +12,7 @@ export class ResultObserver {
     this.onNext = this.onNext.bind(this)
     this.onCompleted = this.onCompleted.bind(this)
     this.onError = this.onError.bind(this)
+    this._completitionPromise = null
   }
 
   onKeys (keys) {
@@ -25,11 +27,15 @@ export class ResultObserver {
   onCompleted (summary) {
     this._summary = summary
     this._fulfill()
+    this._resolve(this._completitionPromise, summary)
+    this._completitionPromise = null
   }
 
   onError (e) {
     this._stream.push(e)
     this._fulfill()
+    this._reject(this._completitionPromise, e)
+    this._completitionPromise = null
   }
 
   // Returns a promise, only one outstanding next!
@@ -40,6 +46,21 @@ export class ResultObserver {
         reject: rejection
       }
       this._fulfill()
+    })
+  }
+
+  completitionPromise () {
+    return new Promise((resolve, reject) => {
+      if (this._summary) {
+        resolve(this._summary)
+      } else if (this._err) {
+        reject(this._err)
+      } else {
+        this._completitionPromise = {
+          resolve,
+          reject
+        }
+      }
     })
   }
 
@@ -74,6 +95,18 @@ export class ResultObserver {
     if (this._summary) {
       this._promise.resolve(null)
       this._promise = null
+    }
+  }
+
+  _resolve (promise, data) {
+    if (promise) {
+      promise.resolve(data)
+    }
+  }
+
+  _reject (promise, err) {
+    if (promise) {
+      promise.reject(err)
     }
   }
 }

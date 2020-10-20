@@ -124,14 +124,22 @@ class Backend {
               params[key] = cypherToNative(value)
             }
           }
-          const result = session.run(cypher, params)
-          this._id++
-          const resultObserver = new ResultObserver()
-          result.subscribe(resultObserver)
-          this._resultObservers[this._id] = resultObserver
-          this._writeResponse('Result', {
-            id: this._id
-          })
+
+          const observers = Object.values(this._resultObservers).filter(
+            obs => obs.sessionId === sessionId
+          )
+          Promise.all(observers.map(obs => obs.completitionPromise()))
+            .catch(_ => null)
+            .then(_ => {
+              this._id++
+              const result = session.run(cypher, params)
+              const resultObserver = new ResultObserver({ sessionId })
+              result.subscribe(resultObserver)
+              this._resultObservers[this._id] = resultObserver
+              this._writeResponse('Result', {
+                id: this._id
+              })
+            })
         }
         break
 
@@ -191,7 +199,7 @@ class Backend {
           }
           const result = tx.tx.run(cypher, params)
           this._id++
-          const resultObserver = new ResultObserver()
+          const resultObserver = new ResultObserver({})
           result.subscribe(resultObserver)
           this._resultObservers[this._id] = resultObserver
           this._writeResponse('Result', {
