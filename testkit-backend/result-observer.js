@@ -1,6 +1,6 @@
-const neo4j = require('neo4j-driver')
+import neo4j from 'neo4j-driver'
 
-export class ResultObserver {
+export default class ResultObserver {
   constructor ({ sessionId }) {
     this.sessionId = sessionId
     this.keys = null
@@ -40,10 +40,10 @@ export class ResultObserver {
 
   // Returns a promise, only one outstanding next!
   next () {
-    return new Promise((resolution, rejection) => {
+    return new Promise((resolve, reject) => {
       this._promise = {
-        resolve: resolution,
-        reject: rejection
+        resolve,
+        reject
       }
       this._fulfill()
     })

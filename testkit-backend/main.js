@@ -1,8 +1,9 @@
-var neo4j = require('neo4j-driver')
-var net = require('net')
-var readline = require('readline')
-const { nativeToCypher, cypherToNative } = require('./cypher-native-binders')
-const { ResultObserver } = require('./result-observer')
+import neo4j from 'neo4j-driver'
+import net from 'net'
+import readline from 'readline'
+import Context from './context.js'
+import ResultObserver from './result-observer.js'
+import { nativeToCypher, cypherToNative } from './cypher-native-binders.js'
 
 class Backend {
   constructor ({ writer }) {
@@ -11,13 +12,8 @@ class Backend {
     this._request = ''
     // Event handlers need to be bound to this instance
     this.onLine = this.onLine.bind(this)
-    this._id = 0
     this._writer = writer
-    this._drivers = {}
-    this._sessions = {}
-    this._resultObservers = {}
-    this._errors = {}
-    this._txs = {}
+    this._context = new Context()
   }
 
   // Called whenever a new line is received.
@@ -25,13 +21,13 @@ class Backend {
     switch (line) {
       case '#request begin':
         if (this._inRequest) {
-          throw 'Already in request'
+          throw new Error('Already in request')
         }
         this._inRequest = true
         break
       case '#request end':
         if (!this._inRequest) {
-          throw 'End while not in request'
+          throw new Error('End while not in request')
         }
         try {
           this._handleRequest(this._request)
@@ -43,7 +39,7 @@ class Backend {
         break
       default:
         if (!this._inRequest) {
-          throw 'Line while not in request'
+          throw new Error('Line while not in request')
         }
         this._request += line
         break
@@ -59,86 +55,90 @@ class Backend {
         {
           const {
             uri,
-            authorizationToken: { data: authToken }
+            authorizationToken: { data: authToken },
+            userAgent
           } = data
-          const driver = neo4j.driver(uri, authToken)
-          this._id++
-          this._drivers[this._id] = driver
-          this._writeResponse('Driver', { id: this._id })
+          const driver = neo4j.driver(uri, authToken, { userAgent })
+          const id = this._context.addDriver(driver)
+          this._writeResponse('Driver', { id })
         }
         break
 
       case 'DriverClose':
         {
           const { driverId } = data
-          const driver = this._drivers[driverId]
-          driver.close().then(() => {
-            this._writeResponse('Driver', { id: driverId })
-          })
+          const driver = this._context.getDriver(driverId)
+          driver
+            .close()
+            .then(() => {
+              this._writeResponse('Driver', { id: driverId })
+            })
+            .catch(err => this._writeError(err))
+          this._context.removeDriver(driverId)
         }
         break
 
       case 'NewSession':
         {
-          let { driverId, accessMode, bookmarks } = data
+          let { driverId, accessMode, bookmarks, database } = data
           switch (accessMode) {
             case 'r':
-              accessMode = neo4j.READ
+              accessMode = neo4j.session.READ
               break
             case 'w':
-              accessMode = neo4j.WRITE
+              accessMode = neo4j.session.WRITE
               break
             default:
               this._writeBackendError('Unknown accessmode: ' + accessMode)
               return
           }
-          const driver = this._drivers[driverId]
+          const driver = this._context.getDriver(driverId)
           const session = driver.session({
             defaultAccessMode: accessMode,
-            bookmarks: bookmarks
+            bookmarks,
+            database
           })
-          this._id++
-          this._sessions[this._id] = session
-          this._writeResponse('Session', { id: this._id })
+          const id = this._context.addSession(session)
+          this._writeResponse('Session', { id })
         }
         break
 
       case 'SessionClose':
         {
           const { sessionId } = data
-          const session = this._sessions[sessionId]
-          // TODO: Error handling
-          // TODO: Remove from map
-          session.close().then(() => {
-            this._writeResponse('Session', { id: sessionId })
-          })
+          const session = this._context.getSession(sessionId)
+          session
+            .close()
+            .then(() => {
+              this._writeResponse('Session', { id: sessionId })
+            })
+            .catch(err => this._writeError(err))
+          this._context.removeSession(sessionId)
         }
         break
 
       case 'SessionRun':
         {
           const { sessionId, cypher, params } = data
-          const session = this._sessions[sessionId]
+          const session = this._context.getSession(sessionId)
           if (params) {
             for (const [key, value] of Object.entries(params)) {
               params[key] = cypherToNative(value)
             }
           }
 
-          const observers = Object.values(this._resultObservers).filter(
-            obs => obs.sessionId === sessionId
+          const observers = this._context.getResultObserversBySessionId(
+            sessionId
           )
+
           Promise.all(observers.map(obs => obs.completitionPromise()))
             .catch(_ => null)
             .then(_ => {
-              this._id++
               const result = session.run(cypher, params)
               const resultObserver = new ResultObserver({ sessionId })
               result.subscribe(resultObserver)
-              this._resultObservers[this._id] = resultObserver
-              this._writeResponse('Result', {
-                id: this._id
-              })
+              const id = this._context.addResultObserver(resultObserver)
+              this._writeResponse('Result', { id })
             })
         }
         break
@@ -146,7 +146,7 @@ class Backend {
       case 'ResultNext':
         {
           const { resultId } = data
-          const resultObserver = this._resultObservers[resultId]
+          const resultObserver = this._context.getResultObserver(resultId)
           const nextPromise = resultObserver.next()
           nextPromise
             .then(rec => {
@@ -165,69 +165,87 @@ class Backend {
             })
         }
         break
+
       case 'SessionReadTransaction':
         {
           const { sessionId } = data
-          const session = this._sessions[sessionId]
+          const session = this._context.getSession(sessionId)
           session
             .readTransaction(
               tx =>
                 new Promise((resolve, reject) => {
-                  const txId = this._id++
-                  this._txs[txId] = {
-                    sessionId,
-                    tx,
-                    resolve,
-                    reject,
-                    txId
-                  }
-                  this._writeResponse('RetryableTry', { id: txId })
+                  const id = this._context.addTx(tx, sessionId, resolve, reject)
+                  this._writeResponse('RetryableTry', { id })
                 })
             )
             .then(_ => this._writeResponse('RetryableDone', null))
             .catch(error => this._writeError(error))
         }
         break
+
       case 'TransactionRun':
         {
           const { txId, cypher, params } = data
-          const tx = this._txs[txId]
+          const tx = this._context.getTx(txId)
           if (params) {
             for (const [key, value] of Object.entries(params)) {
               params[key] = cypherToNative(value)
             }
           }
           const result = tx.tx.run(cypher, params)
-          this._id++
           const resultObserver = new ResultObserver({})
           result.subscribe(resultObserver)
-          this._resultObservers[this._id] = resultObserver
-          this._writeResponse('Result', {
-            id: this._id
-          })
+          const id = this._context.addResultObserver(resultObserver)
+          this._writeResponse('Result', { id })
         }
         break
+
       case 'RetryablePositive':
         {
           const { sessionId } = data
-          const tx = Object.values(this._txs).filter(
-            ({ sessionId: id }) => sessionId === id
-          )[0]
-          delete this._txs[tx.txId]
-          tx.resolve()
+          this._context.getTxsBySessionId(sessionId).forEach(tx => {
+            tx.resolve()
+            this._context.removeTx(tx.id)
+          })
         }
         break
+
       case 'RetryableNegative':
         {
           const { sessionId, errorId } = data
-          const tx = Object.values(this._txs).filter(
-            ({ sessionId: id }) => sessionId === id
-          )[0]
-          const error = this._errors[errorId] || new Error('Client error')
-          delete this._txs[tx.txId]
-          tx.reject(error)
+          const error =
+            this._context.getError(errorId) || new Error('Client error')
+          this._context.getTxsBySessionId(sessionId).forEach(tx => {
+            tx.reject(error)
+            this._context.removeTx(tx.id)
+          })
         }
         break
+
+      case 'SessionBeginTransaction':
+        {
+          const { sessionId, txMeta: metadata, timeout } = data
+          const session = this._context.getSession(sessionId)
+          const tx = session.beginTransaction({ metadata, timeout })
+          const id = this._context.addTx(tx, sessionId)
+          this._writeResponse('Transaction', { id })
+        }
+        break
+
+      case 'TransactionCommit':
+        {
+          const { txId: id } = data
+          const { tx } = this._context.getTx(id)
+          tx.commit()
+            .then(() => this._writeResponse('Transaction', { id }))
+            .catch(e => {
+              console.log('got some err: ' + JSON.stringify(e))
+              this._writeError(e)
+            })
+          this._context.removeTx(id)
+        }
+        break
+
       default:
         this._writeBackendError('Unknown request: ' + name)
         console.log('Unknown request: ' + name)
@@ -252,10 +270,9 @@ class Backend {
 
   _writeError (e) {
     if (e.name) {
-      this._id++
-      this._errors[this._id] = e
+      const id = this._context.addError(e)
       this._writeResponse('DriverError', {
-        id: this._id,
+        id,
         msg: e.message + ' (' + e.code + ')'
       })
       return
