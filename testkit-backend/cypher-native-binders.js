@@ -1,4 +1,4 @@
-const neo4j = require('neo4j-driver')
+import neo4j from 'neo4j-driver'
 
 export function valueResponse (name, value) {
   return { name: name, data: { value: value } }
