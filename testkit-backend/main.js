@@ -80,7 +80,7 @@ class Backend {
 
       case 'NewSession':
         {
-          let { driverId, accessMode, bookmarks, database } = data
+          let { driverId, accessMode, bookmarks, database, fetchSize } = data
           switch (accessMode) {
             case 'r':
               accessMode = neo4j.session.READ
@@ -96,7 +96,8 @@ class Backend {
           const session = driver.session({
             defaultAccessMode: accessMode,
             bookmarks,
-            database
+            database,
+            fetchSize
           })
           const id = this._context.addSession(session)
           this._writeResponse('Session', { id })
@@ -119,7 +120,7 @@ class Backend {
 
       case 'SessionRun':
         {
-          const { sessionId, cypher, params } = data
+          const { sessionId, cypher, params, txMeta: metadata, timeout } = data
           const session = this._context.getSession(sessionId)
           if (params) {
             for (const [key, value] of Object.entries(params)) {
@@ -134,7 +135,7 @@ class Backend {
           Promise.all(observers.map(obs => obs.completitionPromise()))
             .catch(_ => null)
             .then(_ => {
-              const result = session.run(cypher, params)
+              const result = session.run(cypher, params, { metadata, timeout })
               const resultObserver = new ResultObserver({ sessionId })
               result.subscribe(resultObserver)
               const id = this._context.addResultObserver(resultObserver)
@@ -243,6 +244,32 @@ class Backend {
               this._writeError(e)
             })
           this._context.removeTx(id)
+        }
+        break
+
+      case 'SessionLastBookmarks':
+        {
+          const { sessionId } = data
+          const session = this._context.getSession(sessionId)
+          const bookmarks = session.lastBookmark()
+          this._writeResponse('Bookmarks', { bookmarks })
+        }
+        break
+
+      case 'SessionWriteTransaction':
+        {
+          const { sessionId } = data
+          const session = this._context.getSession(sessionId)
+          session
+            .writeTransaction(
+              tx =>
+                new Promise((resolve, reject) => {
+                  const id = this._context.addTx(tx, sessionId, resolve, reject)
+                  this._writeResponse('RetryableTry', { id })
+                })
+            )
+            .then(_ => this._writeResponse('RetryableDone', null))
+            .catch(error => this._writeError(error))
         }
         break
 
