@@ -40,7 +40,6 @@ export default class Context {
   }
 
   getSession (id) {
-    console.log(this._sessions)
     return this._sessions[id]
   }
 
