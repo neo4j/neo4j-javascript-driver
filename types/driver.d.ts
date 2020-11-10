@@ -58,6 +58,7 @@ declare interface Config {
   disableLosslessIntegers?: boolean
   logging?: LoggingConfig
   resolver?: (address: string) => string[] | Promise<string[]>
+  userAgent?: string
 }
 
 declare type SessionMode = 'READ' | 'WRITE'
