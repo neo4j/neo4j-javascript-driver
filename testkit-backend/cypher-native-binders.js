@@ -67,6 +67,11 @@ export function cypherToNative (c) {
       return value
     case 'CypherList':
       return value.map(cypherToNative)
+    case 'CypherMap':
+      return Object.entries(value).reduce((acc, [key, val]) => {
+        acc[key] = cypherToNative(val)
+        return acc
+      }, {})
   }
   console.log(`Type ${name} is not handle by cypherToNative`, c)
   const err = 'Unable to convert ' + c + ' to native type'
