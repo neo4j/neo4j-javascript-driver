@@ -8,9 +8,9 @@ Resources to get you started:
 - [Neo4j Manual](https://neo4j.com/docs/)
 - [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
-## What's New in 4.1
+## What's New in 4.2
 
-- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/4.1-changelog)
+- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/4.2-changelog)
 
 ## Including the Driver
 
@@ -506,7 +506,7 @@ To run tests against "default" Neo4j version:
 To run tests against specified Neo4j version:
 
 ```
-./runTests.sh '-e 4.1.0'
+./runTests.sh '-e 4.2.0'
 ```
 
 Simple `npm test` can also be used if you already have a running version of a compatible Neo4j server.
