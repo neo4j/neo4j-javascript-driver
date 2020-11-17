@@ -4,7 +4,7 @@ This is the official Neo4j driver for JavaScript.
 
 Resources to get you started:
 
-- [API Documentation](https://neo4j.com/docs/api/javascript-driver/4.1/)
+- [API Documentation](https://neo4j.com/docs/api/javascript-driver/4.2/)
 - [Neo4j Manual](https://neo4j.com/docs/)
 - [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
