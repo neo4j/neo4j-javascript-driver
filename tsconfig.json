@@ -2,9 +2,9 @@
   "compilerOptions": {
     "module": "es6",
     "target": "es6",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
+    "allowJs": true,
     "noImplicitReturns": true,
-    "moduleResolution": "node",
-    "types": []
+    "moduleResolution": "classic"
   }
 }

@@ -33,29 +33,77 @@ import RxSession from './session-rx'
 import { ALL } from './internal/request-message'
 import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
 
-const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000 // 1 hour
+const DEFAULT_MAX_CONNECTION_LIFETIME: number = 3600 * 60 * 1000 // 1 hour
+
+/** Types */
+
+interface AuthToken {
+  scheme: string
+  principal: string
+  credentials: string
+  realm?: string
+  parameters?: any
+}
+
+type EncryptionLevel = 'ENCRYPTION_ON' | 'ENCRYPTION_OFF'
+type TrustStrategy =
+  | 'TRUST_ALL_CERTIFICATES'
+  | 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
+  | 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+
+type LogLevel = 'error' | 'warn' | 'info' | 'debug'
+
+interface LoggingConfig {
+  level?: LogLevel
+  logger: (level: LogLevel, message: string) => void
+}
+
+interface Config {
+  encrypted?: boolean | EncryptionLevel
+  trust?: TrustStrategy
+  trustedCertificates?: string[]
+  knownHosts?: string
+  fetchSize?: number
+  maxConnectionPoolSize?: number
+  maxTransactionRetryTime?: number
+  maxConnectionLifetime?: number
+  connectionAcquisitionTimeout?: number
+  connectionTimeout?: number
+  disableLosslessIntegers?: boolean
+  logging?: LoggingConfig
+  resolver?: (address: string) => string[] | Promise<string[]>
+  userAgent?: string
+}
+
+type SessionMode = 'READ' | 'WRITE'
+
+/** End types */
 
 /**
  * The default record fetch size. This is used in Bolt V4 protocol to pull query execution result in batches.
  * @type {number}
  */
-const DEFAULT_FETCH_SIZE = 1000
+const DEFAULT_FETCH_SIZE: number = 1000
 
 /**
  * Constant that represents read session access mode.
  * Should be used like this: `driver.session({ defaultAccessMode: neo4j.session.READ })`.
- * @type {string}
+ * @type {SessionMode}
  */
-const READ = ACCESS_MODE_READ
+const READ: SessionMode = ACCESS_MODE_READ
 
 /**
  * Constant that represents write session access mode.
  * Should be used like this: `driver.session({ defaultAccessMode: neo4j.session.WRITE })`.
- * @type {string}
+ * @type {SessionMode}
  */
-const WRITE = ACCESS_MODE_WRITE
+const WRITE: SessionMode = ACCESS_MODE_WRITE
 
-let idGenerator = 0
+let idGenerator: number = 0
+
+interface VerifyConnectivityInput {
+  database?: string
+}
 
 /**
  * A driver maintains one or more {@link Session}s with a remote
@@ -68,6 +116,14 @@ let idGenerator = 0
  * @access public
  */
 class Driver {
+  private _id: number
+  private _address: any
+  private _userAgent: string
+  private _authToken: AuthToken
+  private _config: Config
+  private _log: any
+  private _connectionProvider: any
+
   /**
    * You should not be calling this directly, instead use {@link driver}.
    * @constructor
@@ -77,7 +133,12 @@ class Driver {
    * @param {Object} authToken
    * @param {Object} config
    */
-  constructor (address, userAgent, authToken = {}, config = {}) {
+  constructor(
+    address: any,
+    userAgent: string,
+    authToken: AuthToken,
+    config: Config = {}
+  ) {
     sanitizeConfig(config)
 
     this._id = idGenerator++
@@ -105,7 +166,9 @@ class Driver {
    * @param {string} param.database - The target database to verify connectivity for.
    * @returns {Promise<void>} promise resolved with server info or rejected with error.
    */
-  verifyConnectivity ({ database = '' } = {}) {
+  verifyConnectivity({ database = '' }: VerifyConnectivityInput = {}): Promise<
+    any
+  > {
     const connectionProvider = this._getOrCreateConnectionProvider()
     const connectivityVerifier = new ConnectivityVerifier(connectionProvider)
     return connectivityVerifier.verify({ database })
@@ -119,7 +182,7 @@ class Driver {
    *
    * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
    */
-  supportsMultiDb () {
+  supportsMultiDb(): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsMultiDb()
   }
@@ -132,7 +195,7 @@ class Driver {
    *
    * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
    */
-  supportsTransactionConfig () {
+  supportsTransactionConfig(): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsTransactionConfig()
   }
@@ -141,7 +204,7 @@ class Driver {
    * @protected
    * @returns {boolean}
    */
-  _supportsRouting () {
+  _supportsRouting(): boolean {
     return false
   }
 
@@ -151,7 +214,7 @@ class Driver {
    * @protected
    * @returns {boolean}
    */
-  _isEncrypted () {
+  _isEncrypted(): boolean {
     return this._config.encrypted === ENCRYPTION_ON
   }
 
@@ -161,7 +224,7 @@ class Driver {
    * @protected
    * @returns {TrustStrategy}
    */
-  _getTrust () {
+  _getTrust(): any {
     return this._config.trust
   }
 
@@ -186,12 +249,17 @@ class Driver {
    * @param {string} param.database - The database this session will operate on.
    * @return {Session} new session.
    */
-  session ({
+  session({
     defaultAccessMode = WRITE,
     bookmarks: bookmarkOrBookmarks,
     database = '',
     fetchSize
-  } = {}) {
+  }: {
+    defaultAccessMode?: SessionMode
+    bookmarks?: string | string[]
+    fetchSize?: number
+    database?: string
+  } = {}): any {
     return this._newSession({
       defaultAccessMode,
       bookmarkOrBookmarks,
@@ -220,16 +288,21 @@ class Driver {
    * @param {string} param.database - The database this session will operate on.
    * @returns {RxSession} new reactive session.
    */
-  rxSession ({
+  rxSession({
     defaultAccessMode = WRITE,
-    bookmarks,
+    bookmarks: bookmarkOrBookmarks,
     database = '',
     fetchSize
-  } = {}) {
+  }: {
+    defaultAccessMode?: SessionMode
+    bookmarks?: string | string[]
+    fetchSize?: number
+    database?: string
+  } = {}): any {
     return new RxSession({
       session: this._newSession({
         defaultAccessMode,
-        bookmarks,
+        bookmarkOrBookmarks,
         database,
         reactive: true,
         fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize)
@@ -244,7 +317,7 @@ class Driver {
    * @public
    * @return {Promise<void>} promise resolved when the driver is closed.
    */
-  close () {
+  close(): Promise<void> {
     this._log.info(`Driver ${this._id} closing`)
     if (this._connectionProvider) {
       return this._connectionProvider.close()
@@ -255,7 +328,7 @@ class Driver {
   /**
    * @protected
    */
-  _afterConstruction () {
+  _afterConstruction(): void {
     this._log.info(
       `Direct driver ${this._id} created for server address ${this._address}`
     )
@@ -264,7 +337,11 @@ class Driver {
   /**
    * @protected
    */
-  _createConnectionProvider (address, userAgent, authToken) {
+  _createConnectionProvider(
+    address: any,
+    userAgent: string,
+    authToken: AuthToken
+  ): any {
     return new DirectConnectionProvider({
       id: this._id,
       config: this._config,
@@ -278,7 +355,7 @@ class Driver {
   /**
    * @protected
    */
-  static _validateSessionMode (rawMode) {
+  static _validateSessionMode(rawMode?: SessionMode): SessionMode {
     const mode = rawMode || WRITE
     if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
       throw newError('Illegal session mode ' + mode)
@@ -289,14 +366,22 @@ class Driver {
   /**
    * @private
    */
-  _newSession ({
+  _newSession({
     defaultAccessMode,
     bookmarkOrBookmarks,
     database,
     reactive,
     fetchSize
+  }: {
+    defaultAccessMode?: SessionMode
+    bookmarkOrBookmarks?: string | string[]
+    fetchSize: number
+    database: string
+    reactive: boolean
   }) {
-    const sessionMode = Driver._validateSessionMode(defaultAccessMode)
+    const sessionMode: SessionMode = Driver._validateSessionMode(
+      defaultAccessMode
+    )
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmark = bookmarkOrBookmarks
       ? new Bookmark(bookmarkOrBookmarks)
@@ -315,7 +400,7 @@ class Driver {
   /**
    * @private
    */
-  _getOrCreateConnectionProvider () {
+  _getOrCreateConnectionProvider(): any {
     if (!this._connectionProvider) {
       this._connectionProvider = this._createConnectionProvider(
         this._address,
@@ -331,7 +416,7 @@ class Driver {
 /**
  * @private
  */
-function sanitizeConfig (config) {
+function sanitizeConfig(config: Config) {
   config.maxConnectionLifetime = sanitizeIntValue(
     config.maxConnectionLifetime,
     DEFAULT_MAX_CONNECTION_LIFETIME
@@ -353,7 +438,7 @@ function sanitizeConfig (config) {
 /**
  * @private
  */
-function sanitizeIntValue (rawValue, defaultWhenAbsent) {
+function sanitizeIntValue(rawValue: any, defaultWhenAbsent: number): number {
   const sanitizedValue = parseInt(rawValue, 10)
   if (sanitizedValue > 0 || sanitizedValue === 0) {
     return sanitizedValue
@@ -367,7 +452,10 @@ function sanitizeIntValue (rawValue, defaultWhenAbsent) {
 /**
  * @private
  */
-function validateFetchSizeValue (rawValue, defaultWhenAbsent) {
+function validateFetchSizeValue(
+  rawValue?: any,
+  defaultWhenAbsent?: number
+): number {
   const fetchSize = parseInt(rawValue, 10)
   if (fetchSize > 0 || fetchSize === ALL) {
     return fetchSize
@@ -377,10 +465,19 @@ function validateFetchSizeValue (rawValue, defaultWhenAbsent) {
         fetchSize
     )
   } else {
-    return defaultWhenAbsent
+    return defaultWhenAbsent || 0
   }
 }
 
-export { Driver, READ, WRITE }
+export {
+  Driver,
+  READ,
+  WRITE,
+  Config,
+  AuthToken,
+  EncryptionLevel,
+  TrustStrategy,
+  SessionMode
+}
 
 export default Driver

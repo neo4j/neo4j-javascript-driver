@@ -41,7 +41,7 @@ import TxConfig from './internal/tx-config'
 class Session {
   /**
    * @constructor
-   * @protected
+   * @package
    * @param {Object} args
    * @param {string} args.mode the default access mode for this session.
    * @param {ConnectionProvider} args.connectionProvider - The connection provider to acquire connections from.

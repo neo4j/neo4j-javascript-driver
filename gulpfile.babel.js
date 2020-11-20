@@ -33,7 +33,6 @@ const minimist = require('minimist')
 const install = require('gulp-install')
 const file = require('gulp-file')
 const semver = require('semver')
-const sharedNeo4j = require('./test/internal/shared-neo4j').default
 const ts = require('gulp-typescript')
 const JasmineReporter = require('jasmine-spec-reporter').SpecReporter
 const karma = require('karma')
@@ -50,7 +49,7 @@ gulp.task('browser', async function () {
   const browserOutput = 'lib/browser'
   // Our app bundler
   const appBundler = browserify({
-    entries: ['src/index.js'],
+    entries: ['lib/index.js'],
     cache: {},
     standalone: 'neo4j',
     packageCache: {},
@@ -73,7 +72,7 @@ gulp.task('browser', async function () {
 
 gulp.task('nodejs', function () {
   return gulp
-    .src('src/**/*.js')
+    .src('src/**/*.(j|t)s')
     .pipe(babel())
     .pipe(gulp.dest('lib'))
 })
@@ -102,7 +101,8 @@ gulp.task(
   'test-nodejs',
   gulp.series('install-driver-into-sandbox', function () {
     return gulp
-      .src(['./test/**/*.test.js', '!./test/**/browser/*.js'])
+      .src(['./src/**/*', './test/**/*.test.js', '!./test/**/browser/*.js'])
+      .pipe(babel())
       .pipe(
         jasmine({
           includeStackTrace: true,
@@ -137,7 +137,7 @@ gulp.task('run-browser-test', gulp.series('run-browser-test-firefox'))
 
 gulp.task('watch', function () {
   return watch(
-    'src/**/*.js',
+    'src/**/*.(j|t)s',
     batch(function (events, done) {
       gulp.start('all', done)
     })
@@ -147,7 +147,7 @@ gulp.task('watch', function () {
 gulp.task(
   'watch-n-test',
   gulp.series('test-nodejs', function () {
-    return gulp.watch(['src/**/*.js', 'test/**/*.js'], ['test-nodejs'])
+    return gulp.watch(['src/**/*.(j|t)s', 'test/**/*.js'], ['test-nodejs'])
   })
 )
 
@@ -172,11 +172,13 @@ gulp.task('set', function () {
 })
 
 gulp.task('start-neo4j', function (done) {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   sharedNeo4j.start()
   done()
 })
 
 gulp.task('stop-neo4j', function (done) {
+  const sharedNeo4j = require('./test/internal/shared-neo4j').default
   sharedNeo4j.stop()
   done()
 })
@@ -229,7 +231,7 @@ gulp.task('run-ts-declaration-tests', function (done) {
       ts({
         module: 'es6',
         target: 'es6',
-        noImplicitAny: true,
+        noImplicitAny: false,
         noImplicitReturns: true,
         strictNullChecks: true,
         moduleResolution: 'node',

@@ -32,9 +32,10 @@ export default class RxSession {
   /**
    * Constructs a reactive session with given default session instance and provided driver configuration.
    *
-   * @protected
+   * @package
    * @param {Object} param - Object parameter
    * @param {Session} param.session - The underlying session instance to relay requests
+   * @param {Object} param.config - The underlying session instance to relay requests
    */
   constructor ({ session, config } = {}) {
     this._session = session
