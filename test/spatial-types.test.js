@@ -35,9 +35,12 @@ describe('#integration spatial-types', () => {
   let protocolVersion
 
   beforeAll(() => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     driverWithNativeNumbers = neo4j.driver(
-      'bolt://localhost',
+      `bolt://${sharedNeo4j.hostname}`,
       sharedNeo4j.authToken,
       { disableLosslessIntegers: true }
     )

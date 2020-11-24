@@ -25,7 +25,10 @@ describe('#integration result summary', () => {
     let driver, session
 
     beforeEach(done => {
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
       session = driver.session()
 
       session.run('MATCH (n) DETACH DELETE n').then(done)
@@ -60,9 +63,13 @@ describe('#integration result summary', () => {
     let driver, session
 
     beforeEach(done => {
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-        disableLosslessIntegers: true
-      })
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken,
+        {
+          disableLosslessIntegers: true
+        }
+      )
       session = driver.session()
 
       session.run('MATCH (n) DETACH DELETE n').then(done)

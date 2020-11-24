@@ -102,7 +102,10 @@ describe('#integration map values', () => {
 describe('#integration node values', () => {
   it('should support returning nodes ', done => {
     // Given
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const session = driver.session()
 
     // When
@@ -123,7 +126,10 @@ describe('#integration node values', () => {
 describe('#integration relationship values', () => {
   it('should support returning relationships', done => {
     // Given
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const session = driver.session()
 
     // When
@@ -144,7 +150,10 @@ describe('#integration relationship values', () => {
 describe('#integration path values', () => {
   it('should support returning paths', done => {
     // Given
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const session = driver.session()
 
     // When
@@ -209,7 +218,10 @@ describe('#integration byte arrays', () => {
   })
 
   it('should fail to return byte array if server does not support byte arrays', done => {
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const session = driver.session()
     session
       .run('RETURN $array', { array: randomByteArray(42) })
@@ -225,7 +237,10 @@ describe('#integration byte arrays', () => {
 
 function testValue (actual, expected) {
   return done => {
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const queryPromise = runReturnQuery(driver, actual, expected)
 
     queryPromise
@@ -237,7 +252,10 @@ function testValue (actual, expected) {
 
 function testValues (values) {
   return done => {
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const queriesPromise = values.reduce(
       (acc, value) => acc.then(() => runReturnQuery(driver, value)),
       Promise.resolve()

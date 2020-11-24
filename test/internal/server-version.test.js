@@ -153,7 +153,10 @@ describe('#unit ServerVersion', () => {
 
 describe('#integration ServerVersion', () => {
   it('should fetch version using driver', async () => {
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const version = await ServerVersion.fromDriver(driver)
     await driver.close()
 
@@ -163,7 +166,10 @@ describe('#integration ServerVersion', () => {
   })
 
   it('should fail to fetch version using incorrect driver', async () => {
-    const driver = neo4j.driver('bolt://localhost:4242', sharedNeo4j.authToken) // use wrong port
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}:4242`,
+      sharedNeo4j.authToken
+    ) // use wrong port
 
     await expectAsync(ServerVersion.fromDriver(driver)).toBeRejected()
 

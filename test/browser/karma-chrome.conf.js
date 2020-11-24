@@ -41,6 +41,9 @@ module.exports = function (config) {
     autoWatch: false,
     singleRun: true,
     concurrency: 1,
-    browserNoActivityTimeout: 30 * 60 * 1000
+    browserNoActivityTimeout: 30 * 60 * 1000,
+    client: {
+      env: process.env
+    }
   })
 }
