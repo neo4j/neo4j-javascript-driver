@@ -39,40 +39,58 @@ describe('#unit driver', () => {
   })
 
   it('should create an unencrypted, non-routed driver for scheme: bolt', () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     expect(driver._isEncrypted()).toBeFalsy()
     expect(driver._supportsRouting()).toBeFalsy()
   })
 
   it('should create an encrypted, system CAs trusting, non-routed driver for scheme: bolt+s', () => {
-    driver = neo4j.driver('bolt+s://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt+s://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     expect(driver._isEncrypted()).toBeTruthy()
     expect(driver._getTrust()).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES')
     expect(driver._supportsRouting()).toBeFalsy()
   })
 
   it('should create an encrypted, all trusting, non-routed driver for scheme: bolt+ssc', () => {
-    driver = neo4j.driver('bolt+ssc://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt+ssc://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     expect(driver._isEncrypted()).toBeTruthy()
     expect(driver._getTrust()).toEqual('TRUST_ALL_CERTIFICATES')
     expect(driver._supportsRouting()).toBeFalsy()
   })
 
   it('should create an unencrypted, routed driver for scheme: neo4j', () => {
-    driver = neo4j.driver('neo4j://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `neo4j://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     expect(driver._isEncrypted()).toBeFalsy()
     expect(driver._supportsRouting()).toBeTruthy()
   })
 
   it('should create an encrypted, system CAs trusting, routed driver for scheme: neo4j+s', () => {
-    driver = neo4j.driver('neo4j+s://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `neo4j+s://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     expect(driver._isEncrypted()).toBeTruthy()
     expect(driver._getTrust()).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES')
     expect(driver._supportsRouting()).toBeTruthy()
   })
 
   it('should create an encrypted, all trusting, routed driver for scheme: neo4j+ssc', () => {
-    driver = neo4j.driver('neo4j+ssc://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `neo4j+ssc://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     expect(driver._isEncrypted()).toBeTruthy()
     expect(driver._getTrust()).toEqual('TRUST_ALL_CERTIFICATES')
     expect(driver._supportsRouting()).toBeTruthy()
@@ -80,13 +98,17 @@ describe('#unit driver', () => {
 
   it('should throw when encryption in url AND in config', () => {
     expect(() =>
-      neo4j.driver('neo4j+ssc://localhost', sharedNeo4j.authToken, {
-        encrypted: 'ENCRYPTION_OFF'
-      })
+      neo4j.driver(
+        `neo4j+ssc://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken,
+        {
+          encrypted: 'ENCRYPTION_OFF'
+        }
+      )
     ).toThrow()
     // Throw even in case where there is no conflict
     expect(() =>
-      neo4j.driver('neo4j+s://localhost', sharedNeo4j.authToken, {
+      neo4j.driver(`neo4j+s://${sharedNeo4j.hostname}`, sharedNeo4j.authToken, {
         encrypted: 'ENCRYPTION_ON'
       })
     ).toThrow()
@@ -98,7 +120,10 @@ describe('#integration driver', () => {
   let protocolVersion
 
   beforeAll(async () => {
-    const tmpDriver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const tmpDriver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(tmpDriver)
     await tmpDriver.close()
   })
@@ -117,7 +142,11 @@ describe('#integration driver', () => {
       connectionAcquisitionTimeout: 0,
       encrypted: false
     }
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, config)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken,
+      config
+    )
 
     function beginTxWithoutCommit (driver) {
       const session = driver.session()
@@ -146,7 +175,10 @@ describe('#integration driver', () => {
 
   it('should expose sessions', () => {
     // Given
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
 
     // When
     const session = driver.session()
@@ -177,7 +209,10 @@ describe('#integration driver', () => {
       return
     }
 
-    driver = neo4j.driver('bolt://localhost:80', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}:80`,
+      sharedNeo4j.authToken
+    )
 
     driver
       .session()
@@ -206,20 +241,22 @@ describe('#integration driver', () => {
 
   it('should handle wrong scheme', () => {
     expect(() =>
-      neo4j.driver('tank://localhost', sharedNeo4j.authToken)
+      neo4j.driver(`tank://${sharedNeo4j.hostname}`, sharedNeo4j.authToken)
     ).toThrow(new Error('Unknown scheme: tank'))
   })
 
   it('should handle URL parameter string', () => {
-    expect(() => neo4j.driver({ uri: 'bolt://localhost' })).toThrowError(
+    expect(() =>
+      neo4j.driver({ uri: `bolt://${sharedNeo4j.hostname}` })
+    ).toThrowError(TypeError)
+
+    expect(() => neo4j.driver([`bolt:${sharedNeo4j.hostname}`])).toThrowError(
       TypeError
     )
 
-    expect(() => neo4j.driver(['bolt:localhost'])).toThrowError(TypeError)
-
     expect(() => {
       const driver = neo4j.driver(
-        String('bolt://localhost'),
+        String(`bolt://${sharedNeo4j.hostname}`),
         sharedNeo4j.authToken
       )
       return driver.session()
@@ -228,7 +265,7 @@ describe('#integration driver', () => {
 
   it('should fail early on wrong credentials', async () => {
     // Given
-    driver = neo4j.driver('bolt://localhost', wrongCredentials())
+    driver = neo4j.driver(`bolt://${sharedNeo4j.hostname}`, wrongCredentials())
     const session = driver.session()
     const txc = session.beginTransaction()
 
@@ -242,7 +279,7 @@ describe('#integration driver', () => {
   })
 
   it('should fail queries on wrong credentials', done => {
-    driver = neo4j.driver('bolt://localhost', wrongCredentials())
+    driver = neo4j.driver(`bolt://${sharedNeo4j.hostname}`, wrongCredentials())
 
     const session = driver.session()
     session.run('RETURN 1').catch(error => {
@@ -253,7 +290,10 @@ describe('#integration driver', () => {
 
   it('should indicate success early on correct credentials', done => {
     // Given
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
 
     // Expect
     driver.verifyConnectivity().then(server => {
@@ -265,7 +305,7 @@ describe('#integration driver', () => {
   it('should be possible to pass a realm with basic auth tokens', done => {
     // Given
     driver = neo4j.driver(
-      'bolt://localhost',
+      `bolt://${sharedNeo4j.hostname}`,
       neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password, 'native')
     )
 
@@ -279,7 +319,7 @@ describe('#integration driver', () => {
   it('should be possible to create custom auth tokens', done => {
     // Given
     driver = neo4j.driver(
-      'bolt://localhost',
+      `bolt://${sharedNeo4j.hostname}`,
       neo4j.auth.custom(
         sharedNeo4j.username,
         sharedNeo4j.password,
@@ -298,7 +338,7 @@ describe('#integration driver', () => {
   it('should be possible to create custom auth tokens with additional parameters', done => {
     // Given
     driver = neo4j.driver(
-      'bolt://localhost',
+      `bolt://${sharedNeo4j.hostname}`,
       neo4j.auth.custom(
         sharedNeo4j.username,
         sharedNeo4j.password,
@@ -321,7 +361,10 @@ describe('#integration driver', () => {
     }
 
     // Given
-    driver = neo4j.driver('neo4j://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `neo4j://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const session = driver.session()
 
     await expectAsync(session.run('RETURN 1')).toBeRejectedWith(
@@ -335,18 +378,18 @@ describe('#integration driver', () => {
   })
 
   it('should have correct user agent', async () => {
-    const directDriver = neo4j.driver('bolt://localhost')
+    const directDriver = neo4j.driver(`bolt://${sharedNeo4j.hostname}`)
     expect(directDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
     await directDriver.close()
 
-    const routingDriver = neo4j.driver('neo4j://localhost')
+    const routingDriver = neo4j.driver(`neo4j://${sharedNeo4j.hostname}`)
     expect(routingDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
     await routingDriver.close()
   })
 
   it('should fail when bolt:// scheme used with routing params', () => {
     expect(() =>
-      neo4j.driver('bolt://localhost:7687/?policy=my_policy')
+      neo4j.driver(`bolt://${sharedNeo4j.hostname}:7687/?policy=my_policy`)
     ).toThrow()
   })
 
@@ -369,7 +412,7 @@ describe('#integration driver', () => {
 
   it('should fail when fetch size is negative', () => {
     expect(() =>
-      neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
+      neo4j.driver(`bolt://${sharedNeo4j.hostname}`, sharedNeo4j.authToken, {
         fetchSize: -77
       })
     ).toThrow()
@@ -377,12 +420,17 @@ describe('#integration driver', () => {
 
   it('should fail when fetch size is 0', () => {
     expect(() =>
-      neo4j.driver('bolt://localhost', sharedNeo4j.authToken, { fetchSize: 0 })
+      neo4j.driver(`bolt://${sharedNeo4j.hostname}`, sharedNeo4j.authToken, {
+        fetchSize: 0
+      })
     ).toThrow()
   })
 
   it('should discard closed connections', async () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
 
     const session1 = driver.session()
     await session1.run('CREATE () RETURN 42')
@@ -408,9 +456,13 @@ describe('#integration driver', () => {
 
   it('should discard old connections', async () => {
     const maxLifetime = 100000
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-      maxConnectionLifetime: maxLifetime
-    })
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken,
+      {
+        maxConnectionLifetime: maxLifetime
+      }
+    )
 
     const session1 = driver.session()
     await session1.run('CREATE () RETURN 42')
@@ -457,11 +509,13 @@ describe('#integration driver', () => {
     })
   })
 
-  it('should connect to IPv6 address without port', done => {
+  const itIpv6 = sharedNeo4j.ipv6Enabled ? it : xit
+
+  itIpv6('should connect to IPv6 address without port', done => {
     testIPv6Connection('bolt://[::1]', done)
   })
 
-  it('should connect to IPv6 address with port', done => {
+  itIpv6('should connect to IPv6 address with port', done => {
     testIPv6Connection('bolt://[::1]:7687', done)
   })
 
@@ -525,9 +579,13 @@ describe('#integration driver', () => {
   }
 
   function testNumberInReturnedRecord (inputNumber, expectedNumber, done) {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-      disableLosslessIntegers: true
-    })
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken,
+      {
+        disableLosslessIntegers: true
+      }
+    )
 
     const session = driver.session()
     session
@@ -583,7 +641,7 @@ describe('#integration driver', () => {
     expectedValue
   ) {
     const driver = neo4j.driver(
-      'bolt://localhost',
+      `bolt://${sharedNeo4j.hostname}`,
       sharedNeo4j.authToken,
       config
     )

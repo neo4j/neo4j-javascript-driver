@@ -38,7 +38,10 @@ describe('#integration session', () => {
   let originalTimeout
 
   beforeEach(async () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     session = driver.session()
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 70000
@@ -107,7 +110,10 @@ describe('#integration session', () => {
   })
 
   it('should be possible to close driver after closing session with failed tx ', done => {
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     const session = driver.session()
     const tx = session.beginTransaction()
     tx.run('INVALID QUERY').catch(() => {
@@ -236,7 +242,7 @@ describe('#integration session', () => {
     session.run(query).then(result => {
       const sum = result.summary
       expect(sum.server).toBeDefined()
-      expect(sum.server.address).toEqual('localhost:7687')
+      expect(sum.server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
       expect(sum.server.version).toBeDefined()
       done()
     })
@@ -1239,7 +1245,9 @@ describe('#integration session', () => {
 
   function numberOfAcquiredConnectionsFromPool () {
     const pool = driver._connectionProvider._connectionPool
-    return pool.activeResourceCount(ServerAddress.fromUrl('localhost:7687'))
+    return pool.activeResourceCount(
+      ServerAddress.fromUrl(`${sharedNeo4j.hostname}:7687`)
+    )
   }
 
   function testConnectionTimeout (encrypted, done) {

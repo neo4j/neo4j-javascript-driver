@@ -118,9 +118,16 @@ class SupportedPlatform extends UnsupportedPlatform {
 }
 
 const platform = SupportedPlatform.create() || new UnsupportedPlatform()
+const env = global.__karma__ ? global.__karma__.config.env : process.env
 
-const username = 'neo4j'
-const password = 'password'
+const username = env.TEST_NEO4J_USER || 'neo4j'
+const password = env.TEST_NEO4J_PASS || 'password'
+const hostname = env.TEST_NEO4J_HOST || 'localhost'
+const edition = env.TEST_NEO4J_EDITION || 'enterprise'
+const ipv6Enabled =
+  env.TEST_NEO4J_IPV6_ENABLED !== undefined
+    ? env.TEST_NEO4J_IPV6_ENABLED.toUpperCase() === 'TRUE'
+    : true
 const authToken = neo4j.auth.basic(username, password)
 
 const tlsConfig = {
@@ -359,5 +366,8 @@ export default {
   logging: debugLogging,
   cleanupAndGetProtocolVersion: cleanupAndGetProtocolVersion,
   tlsConfig: tlsConfig,
-  getEdition: getEdition
+  getEdition: getEdition,
+  hostname: hostname,
+  ipv6Enabled: ipv6Enabled,
+  edition: edition
 }

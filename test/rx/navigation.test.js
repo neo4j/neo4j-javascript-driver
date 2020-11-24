@@ -33,7 +33,10 @@ describe('#integration-rx navigation', () => {
     let originalTimeout
 
     beforeEach(async () => {
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
       session = driver.rxSession()
       originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
       jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
@@ -125,7 +128,10 @@ describe('#integration-rx navigation', () => {
     let originalTimeout
 
     beforeEach(async () => {
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
       session = driver.rxSession()
       txc = await session.beginTransaction().toPromise()
       originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL

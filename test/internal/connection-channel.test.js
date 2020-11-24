@@ -57,7 +57,7 @@ describe('#integration ChannelConnection', () => {
     try {
       clock.setSystemTime(424242)
 
-      connection = createConnection('bolt://localhost')
+      connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
       expect(connection.creationTimestamp).toEqual(424242)
     } finally {
@@ -66,7 +66,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should read/write basic messages', done => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection._negotiateProtocol().then(() => {
       connection.protocol().initialize({
@@ -82,7 +82,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should retrieve stream', done => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     const records = []
     const pullAllObserver = {
@@ -133,7 +133,9 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should provide error message when connecting to http-port', done => {
-    connection = createConnection('bolt://localhost:7474', { encrypted: false })
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}:7474`, {
+      encrypted: false
+    })
 
     connection.connect('mydriver/0.0.0', basicAuthToken()).catch(error => {
       expect(error).toBeDefined()
@@ -178,7 +180,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should notify when connection initialization completes', done => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection
       .connect('mydriver/0.0.0', basicAuthToken())
@@ -189,7 +191,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should notify when connection initialization fails', done => {
-    connection = createConnection('bolt://localhost:7474') // wrong port
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}:7474`) // wrong port
 
     connection
       .connect('mydriver/0.0.0', basicAuthToken())
@@ -201,7 +203,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should have server version after connection initialization completed', done => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection
       .connect('mydriver/0.0.0', basicAuthToken())
@@ -214,7 +216,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should fail all new observers after failure to connect', done => {
-    connection = createConnection('bolt://localhost:7474') // wrong port
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}:7474`) // wrong port
 
     connection
       .connect('mydriver/0.0.0', basicAuthToken())
@@ -274,7 +276,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should reset and flush when SUCCESS received', done => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
       connection
@@ -295,7 +297,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should fail to reset and flush when FAILURE received', done => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
       connection
@@ -320,7 +322,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should fail to reset and flush when RECORD received', done => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
       connection
@@ -345,7 +347,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should acknowledge failure with RESET when SUCCESS received', done => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
       connection._currentFailure = newError('Hello')
@@ -377,7 +379,7 @@ describe('#integration ChannelConnection', () => {
     )
 
     connection = ChannelConnection.create(
-      ServerAddress.fromUrl('bolt://localhost'),
+      ServerAddress.fromUrl(`bolt://${sharedNeo4j.hostname}`),
       {},
       errorHandler,
       Logger.noOp()
@@ -398,7 +400,7 @@ describe('#integration ChannelConnection', () => {
 
   it('should send INIT/HELLO and GOODBYE messages', async () => {
     const messages = []
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
     recordWrittenMessages(connection, messages)
 
     await connection.connect('mydriver/0.0.0', basicAuthToken())
@@ -416,7 +418,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should not prepare broken connection to close', async () => {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     await connection.connect('my-connection/9.9.9', basicAuthToken())
     expect(connection._protocol).toBeDefined()
@@ -503,7 +505,7 @@ describe('#integration ChannelConnection', () => {
   }
 
   function testQueueingOfObserversWithBrokenConnection (connectionAction, done) {
-    connection = createConnection('bolt://localhost')
+    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection._negotiateProtocol().then(() => {
       connection._handleMessage(ILLEGAL_MESSAGE)

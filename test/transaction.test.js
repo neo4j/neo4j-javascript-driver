@@ -34,7 +34,10 @@ describe('#integration transaction', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     session = driver.session()
 
     const result = await session.run('MATCH (n) DETACH DELETE n')
@@ -458,7 +461,7 @@ describe('#integration transaction', () => {
       .then(result => {
         const sum = result.summary
         expect(sum.server).toBeDefined()
-        expect(sum.server.address).toEqual('localhost:7687')
+        expect(sum.server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
         expect(sum.server.version).toBeDefined()
         tx.commit().then(done)
       })
@@ -478,7 +481,7 @@ describe('#integration transaction', () => {
         const server = summary.server
 
         expect(server).toBeDefined()
-        expect(server.address).toEqual('localhost:7687')
+        expect(server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
         expect(server.version).toBeDefined()
 
         done()
