@@ -132,6 +132,11 @@ export default class FakeConnection extends Connection {
     return this
   }
 
+  withProtocolVersion (version) {
+    this.protocolVersion = version
+    return this
+  }
+
   withCreationTimestamp (value) {
     this.creationTimestamp = value
     return this

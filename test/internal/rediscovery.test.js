@@ -18,247 +18,175 @@
  */
 
 import Rediscovery from '../../src/internal/rediscovery'
-import RoutingUtil from '../../src/internal/routing-util'
-import { newError, PROTOCOL_ERROR } from '../../src/error'
-import Record from '../../src/record'
-import { int } from '../../src/integer'
+import RoutingTable from '../../src/internal/routing-table'
 import ServerAddress from '../../src/internal/server-address'
 
-const ROUTER_ADDRESS = 'neo4j://test.router.com'
-
 describe('#unit Rediscovery', () => {
-  it('should return null when connection error happens', done => {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => null
+  it('should return the routing table when it available', async () => {
+    const expectedRoutingTable = new RoutingTable({
+      database: 'db',
+      expirationTime: 113,
+      routers: [ServerAddress.fromUrl('bolt://localhost:7687')],
+      writers: [ServerAddress.fromUrl('bolt://localhost:7686')],
+      readers: [ServerAddress.fromUrl('bolt://localhost:7683')]
     })
-
-    lookupRoutingTableOnRouter(util).then(routingTable => {
-      expect(routingTable).toBeNull()
-      done()
-    })
-  })
-
-  it('should throw when no records are returned', done => {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => []
-    })
-
-    lookupRoutingTableOnRouter(util).catch(error => {
-      expectProtocolError(error, 'Illegal response from router')
-      done()
-    })
-  })
-
-  it('should throw when multiple records are returned', done => {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => [
-        new Record(['a'], ['aaa']),
-        new Record(['b'], ['bbb'])
-      ]
-    })
-
-    lookupRoutingTableOnRouter(util).catch(error => {
-      expectProtocolError(error, 'Illegal response from router')
-      done()
-    })
-  })
-
-  it('should throw when ttl parsing throws', done => {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
-      parseTtl: () => {
-        throw newError('Unable to parse TTL', PROTOCOL_ERROR)
-      }
-    })
-
-    lookupRoutingTableOnRouter(util).catch(error => {
-      expectProtocolError(error, 'Unable to parse TTL')
-      done()
-    })
-  })
-
-  it('should throw when servers parsing throws', done => {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
-      parseTtl: () => int(42),
-      parseServers: () => {
-        throw newError('Unable to parse servers', PROTOCOL_ERROR)
-      }
-    })
-
-    lookupRoutingTableOnRouter(util).catch(error => {
-      expectProtocolError(error, 'Unable to parse servers')
-      done()
-    })
-  })
-
-  it('should throw when no routers', done => {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
-      parseTtl: () => int(42),
-      parseServers: () => {
-        return {
-          routers: [],
-          readers: ['reader1'],
-          writers: ['writer1']
-        }
-      }
-    })
-
-    lookupRoutingTableOnRouter(util).catch(error => {
-      expectProtocolError(error, 'Received no routers')
-      done()
-    })
-  })
-
-  it('should throw when no readers', done => {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
-      parseTtl: () => int(42),
-      parseServers: () => {
-        return {
-          routers: ['router1'],
-          readers: [],
-          writers: ['writer1']
-        }
-      }
-    })
-
-    lookupRoutingTableOnRouter(util).catch(error => {
-      expectProtocolError(error, 'Received no readers')
-      done()
-    })
-  })
-
-  it('should return routing table when no writers', done => {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
-      parseTtl: () => int(42),
-      parseServers: () => {
-        return {
-          routers: ['router1'],
-          readers: ['reader1'],
-          writers: []
-        }
-      }
-    })
-
-    lookupRoutingTableOnRouter(util).then(routingTable => {
-      expect(routingTable).toBeDefined()
-      expect(routingTable).not.toBeNull()
-      done()
-    })
-  })
-
-  it('should return valid routing table with 1 router, 1 reader and 1 writer', done => {
-    testValidRoutingTable(
-      ['router1:7687'],
-      ['reader1:7687'],
-      ['writer1:7687'],
-      int(42),
-      done
+    const routingTableGetter = new FakeRoutingTableGetter(
+      Promise.resolve(expectedRoutingTable)
     )
-  })
 
-  it('should return valid routing table with 2 routers, 2 readers and 2 writers', done => {
-    testValidRoutingTable(
-      ['router1:7687', 'router2:7687'],
-      ['reader1:7687', 'reader2:7687'],
-      ['writer1:7687', 'writer2:7687'],
-      int(Date.now()),
-      done
-    )
-  })
-
-  it('should return valid routing table with 1 router, 3 readers and 1 writer', done => {
-    testValidRoutingTable(
-      ['router1:7687'],
-      ['reader1:7687', 'reader2:7687', 'reader3:7687'],
-      ['writer1:7687'],
-      int(12345),
-      done
-    )
-  })
-
-  function testValidRoutingTable (
-    routerAddresses,
-    readerAddresses,
-    writerAddresses,
-    expires,
-    done
-  ) {
-    const util = new FakeRoutingUtil({
-      callRoutingProcedure: () => [new Record(['a'], ['aaa'])],
-      parseTtl: () => expires,
-      parseServers: () => {
-        return {
-          routers: routerAddresses.map(a => ServerAddress.fromUrl(a)),
-          readers: readerAddresses.map(a => ServerAddress.fromUrl(a)),
-          writers: writerAddresses.map(a => ServerAddress.fromUrl(a))
-        }
-      }
+    const routingTable = await lookupRoutingTableOnRouter({
+      routingTableGetter
     })
 
-    lookupRoutingTableOnRouter(util).then(routingTable => {
-      expect(routingTable).toBeDefined()
-      expect(routingTable).not.toBeNull()
+    expect(routingTable).toBe(expectedRoutingTable)
+  })
 
-      expect(routingTable.expirationTime).toEqual(expires)
+  it('should call getter once with correct arguments', async () => {
+    const expectedRoutingTable = new RoutingTable()
+    const connection = { connection: 'abc' }
+    const database = 'adb'
+    const session = new FakeSession(connection)
+    const routerAddress = ServerAddress.fromUrl('bolt://localhost:7682')
+    const routingTableGetter = new FakeRoutingTableGetter(
+      Promise.resolve(expectedRoutingTable)
+    )
 
-      const allServers = routingTable.allServers().sort()
-      const allExpectedServers = [
-        ...routerAddresses,
-        ...readerAddresses,
-        ...writerAddresses
-      ].sort()
-      expect(allServers.map(s => s.asHostPort())).toEqual(allExpectedServers)
-
-      done()
+    await lookupRoutingTableOnRouter({
+      routingTableGetter,
+      connection,
+      session,
+      database,
+      routerAddress
     })
-  }
 
-  function lookupRoutingTableOnRouter (routingUtil) {
-    const rediscovery = new Rediscovery(routingUtil)
-    return rediscovery.lookupRoutingTableOnRouter(null, null, ROUTER_ADDRESS)
-  }
+    expect(routingTableGetter._called).toEqual(1)
+    expect(routingTableGetter._arguments).toEqual([
+      connection,
+      database,
+      routerAddress,
+      session
+    ])
+  })
 
-  function expectProtocolError (error, messagePrefix) {
-    expect(error.code).toEqual(PROTOCOL_ERROR)
-    expect(error.message.indexOf(messagePrefix)).toEqual(0)
-  }
+  it('should acquire connection once', async () => {
+    const expectedRoutingTable = new RoutingTable()
+    const connection = { connection: 'abc' }
+    const database = 'adb'
+    const session = new FakeSession(connection)
+    const routerAddress = ServerAddress.fromUrl('bolt://localhost:7682')
+    const routingTableGetter = new FakeRoutingTableGetter(
+      Promise.resolve(expectedRoutingTable)
+    )
 
-  function shouldNotBeCalled () {
-    throw new Error('Should not be called')
-  }
+    await lookupRoutingTableOnRouter({
+      routingTableGetter,
+      connection,
+      session,
+      database,
+      routerAddress
+    })
 
-  class FakeRoutingUtil extends RoutingUtil {
-    constructor ({
-      callRoutingProcedure = shouldNotBeCalled,
-      parseTtl = shouldNotBeCalled,
-      parseServers = shouldNotBeCalled
-    }) {
-      super()
-      this._callAvailableRoutingProcedure = callRoutingProcedure
-      this._parseTtl = parseTtl
-      this._parseServers = parseServers
+    expect(session._called).toEqual(1)
+  })
+
+  it('should create the routingTableGetter with the correct arguments', async () => {
+    const routingTable = new RoutingTable()
+    const connection = { connection: 'abc' }
+    const routingTableGetter = new FakeRoutingTableGetter(
+      Promise.resolve(routingTable)
+    )
+    const factory = new FakeRoutingTableGetterFactory(routingTableGetter)
+
+    await lookupRoutingTableOnRouter({
+      routingTableGetter,
+      factory,
+      connection
+    })
+
+    expect(factory._called).toEqual(1)
+    expect(factory._arguments).toEqual([connection])
+  })
+
+  it('should return null when the getter resolves the table as null', async () => {
+    const routingTableGetter = new FakeRoutingTableGetter(Promise.resolve(null))
+
+    const routingTable = await lookupRoutingTableOnRouter({
+      routingTableGetter
+    })
+
+    expect(routingTable).toBeNull()
+  })
+
+  it('should fail when the getter fails', async () => {
+    const expectedError = 'error'
+    try {
+      const routingTableGetter = new FakeRoutingTableGetter(
+        Promise.reject(expectedError)
+      )
+      await lookupRoutingTableOnRouter({ routingTableGetter })
+      fail('should not complete with success')
+    } catch (error) {
+      expect(error).toBe(expectedError)
     }
-
-    callRoutingProcedure (session, routerAddress) {
-      return new Promise((resolve, reject) => {
-        try {
-          resolve(this._callAvailableRoutingProcedure())
-        } catch (error) {
-          reject(error)
-        }
-      })
-    }
-
-    parseTtl (record, routerAddress) {
-      return this._parseTtl()
-    }
-
-    parseServers (record, routerAddress) {
-      return this._parseServers()
-    }
-  }
+  })
 })
+
+function lookupRoutingTableOnRouter ({
+  database = 'db',
+  routerAddress = ServerAddress.fromUrl('bolt://localhost:7687'),
+  routingTableGetter = new FakeRoutingTableGetter(
+    Promise.resolve(new RoutingTable())
+  ),
+  session,
+  factory,
+  connection = {}
+} = {}) {
+  const _factory =
+    factory || new FakeRoutingTableGetterFactory(routingTableGetter)
+  const _session = session || new FakeSession(connection)
+  const rediscovery = new Rediscovery(_factory)
+
+  return rediscovery.lookupRoutingTableOnRouter(
+    _session,
+    database,
+    routerAddress
+  )
+}
+
+class FakeRoutingTableGetter {
+  constructor (result) {
+    this._result = result
+    this._called = 0
+  }
+
+  get () {
+    this._called++
+    this._arguments = [...arguments]
+    return this._result
+  }
+}
+
+class FakeRoutingTableGetterFactory {
+  constructor (routingTableGetter) {
+    this._routingTableGetter = routingTableGetter
+    this._called = 0
+  }
+
+  create () {
+    this._called++
+    this._arguments = [...arguments]
+    return this._routingTableGetter
+  }
+}
+
+class FakeSession {
+  constructor (connection) {
+    this._connection = connection
+    this._called = 0
+  }
+
+  _acquireConnection (callback) {
+    this._called++
+    return callback(this._connection)
+  }
+}

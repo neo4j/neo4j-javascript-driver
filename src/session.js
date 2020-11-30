@@ -146,6 +146,34 @@ class Session {
     return new Result(observerPromise, query, parameters, connectionHolder)
   }
 
+  async _acquireConnection (connectionConsumer) {
+    let promise
+    const connectionHolder = this._connectionHolderWithMode(this._mode)
+    if (!this._open) {
+      promise = Promise.reject(
+        newError('Cannot run query in a closed session.')
+      )
+    } else if (!this._hasTx && connectionHolder.initializeConnection()) {
+      promise = connectionHolder
+        .getConnection()
+        .then(connection => connectionConsumer(connection))
+        .then(async result => {
+          await connectionHolder.releaseConnection()
+          return result
+        })
+    } else {
+      promise = Promise.reject(
+        newError(
+          'Queries cannot be run directly on a ' +
+            'session with an open transaction; either run from within the ' +
+            'transaction or use a different session.'
+        )
+      )
+    }
+
+    return promise
+  }
+
   /**
    * Begin a new transaction in this session. A session can have at most one transaction running at a time, if you
    * want to run multiple concurrent transactions, you should use multiple concurrent sessions.
