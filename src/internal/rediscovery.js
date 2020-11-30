@@ -16,79 +16,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import RoutingTable from './routing-table'
-import RoutingUtil from './routing-util'
-import { newError, PROTOCOL_ERROR } from '../error'
+import Session from '../session'
+import { RoutingTableGetterFactory } from './routing-table-getter'
+import ServerAddress from './server-address'
 
 export default class Rediscovery {
   /**
    * @constructor
-   * @param {RoutingUtil} routingUtil the util to use.
+   * @param {RoutingTableGetterFactory} routingTableGetterFactory the util to use.
    */
-  constructor (routingUtil) {
-    this._routingUtil = routingUtil
+  constructor (routingTableGetterFactory) {
+    this._routingTableGetterFactory = routingTableGetterFactory
   }
 
   /**
    * Try to fetch new routing table from the given router.
    * @param {Session} session the session to use.
    * @param {string} database the database for which to lookup routing table.
-   * @param {string} routerAddress the URL of the router.
+   * @param {ServerAddress} routerAddress the URL of the router.
    * @return {Promise<RoutingTable>} promise resolved with new routing table or null when connection error happened.
    */
-  async lookupRoutingTableOnRouter (session, database, routerAddress) {
-    const records = await this._routingUtil.callRoutingProcedure(
-      session,
-      database,
-      routerAddress
-    )
-    if (records === null) {
-      // connection error happened, unable to retrieve routing table from this router, next one should be queried
-      return null
-    }
-
-    if (records.length !== 1) {
-      throw newError(
-        'Illegal response from router "' +
-          routerAddress +
-          '". ' +
-          'Received ' +
-          records.length +
-          ' records but expected only one.\n' +
-          JSON.stringify(records),
-        PROTOCOL_ERROR
+  lookupRoutingTableOnRouter (session, database, routerAddress) {
+    return session._acquireConnection(connection => {
+      const routingTableGetter = this._routingTableGetterFactory.create(
+        connection
       )
-    }
-
-    const record = records[0]
-
-    const expirationTime = this._routingUtil.parseTtl(record, routerAddress)
-    const { routers, readers, writers } = this._routingUtil.parseServers(
-      record,
-      routerAddress
-    )
-
-    Rediscovery._assertNonEmpty(routers, 'routers', routerAddress)
-    Rediscovery._assertNonEmpty(readers, 'readers', routerAddress)
-    // case with no writers is processed higher in the promise chain because only RoutingDriver knows
-    // how to deal with such table and how to treat router that returned such table
-
-    return new RoutingTable({
-      database,
-      routers,
-      readers,
-      writers,
-      expirationTime
+      return routingTableGetter.get(
+        connection,
+        database,
+        routerAddress,
+        session
+      )
     })
-  }
-
-  static _assertNonEmpty (serverAddressesArray, serversName, routerAddress) {
-    if (serverAddressesArray.length === 0) {
-      throw newError(
-        'Received no ' + serversName + ' from router ' + routerAddress,
-        PROTOCOL_ERROR
-      )
-    }
   }
 }

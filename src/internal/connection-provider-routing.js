@@ -22,7 +22,7 @@ import { READ, WRITE } from '../driver'
 import Session from '../session'
 import RoutingTable from './routing-table'
 import Rediscovery from './rediscovery'
-import RoutingUtil from './routing-util'
+import { RoutingTableGetterFactory } from './routing-table-getter'
 import { HostNameResolver } from './node'
 import SingleConnectionProvider from './connection-provider-single'
 import PooledConnectionProvider from './connection-provider-pooled'
@@ -66,7 +66,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._seedRouter = address
     this._routingTables = {}
     this._rediscovery = new Rediscovery(
-      new RoutingUtil(routingContext, address.toString())
+      new RoutingTableGetterFactory(routingContext, address.toString())
     )
     this._loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(
       this._connectionPool
@@ -417,6 +417,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
               `unable to fetch routing table because of an error ${error}`
             )
             return null
+          } finally {
+            session.close()
           }
         } else {
           // unable to acquire connection and create session towards the current router
