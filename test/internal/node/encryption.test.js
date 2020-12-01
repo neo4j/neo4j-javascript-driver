@@ -20,7 +20,8 @@
 import neo4j from '../../../src'
 import sharedNeo4j from '../shared-neo4j'
 
-describe('#integration encryption', () => {
+// Moved to testkit
+xdescribe('#integration encryption', () => {
   let originalTimeout
 
   beforeEach(() => {
@@ -80,7 +81,7 @@ describe('#integration encryption', () => {
       config.trust = trust
     }
     const driver = neo4j.driver(
-      'bolt://localhost',
+      `bolt://${sharedNeo4j.hostname}`,
       sharedNeo4j.authToken,
       config
     )

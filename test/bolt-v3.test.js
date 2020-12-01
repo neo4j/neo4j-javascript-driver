@@ -37,7 +37,10 @@ describe('#integration Bolt V3 API', () => {
   let originalTimeout
 
   beforeEach(async () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     session = driver.session()
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
@@ -52,7 +55,7 @@ describe('#integration Bolt V3 API', () => {
   })
 
   it('should set transaction metadata for auto-commit transaction', async () => {
-    if (!databaseSupportsBoltV3()) {
+    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
       return
     }
 
@@ -144,7 +147,7 @@ describe('#integration Bolt V3 API', () => {
     ))
 
   it('should set transaction metadata for explicit transactions', async () => {
-    if (!databaseSupportsBoltV3()) {
+    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
       return
     }
 
@@ -395,7 +398,7 @@ describe('#integration Bolt V3 API', () => {
   })
 
   async function testTransactionMetadataWithTransactionFunctions (read) {
-    if (!databaseSupportsBoltV3()) {
+    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
       return
     }
 
@@ -497,5 +500,9 @@ describe('#integration Bolt V3 API', () => {
 
   function databaseSupportsBoltV3 () {
     return protocolVersion >= 3
+  }
+
+  function databaseSupportsListTransaction () {
+    return sharedNeo4j.edition === 'enterprise'
   }
 })

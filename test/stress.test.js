@@ -44,7 +44,7 @@ describe('#integration stress tests', () => {
   const TEST_MODE = modeFromEnvOrDefault('STRESS_TEST_MODE')
   const DATABASE_URI = fromEnvOrDefault(
     'STRESS_TEST_DATABASE_URI',
-    'bolt://localhost'
+    `bolt://${sharedNeo4j.hostname}`
   )
 
   const USERNAME = fromEnvOrDefault(

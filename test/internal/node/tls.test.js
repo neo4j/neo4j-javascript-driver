@@ -20,9 +20,13 @@
 import neo4j from '../../../src'
 import sharedNeo4j from '../shared-neo4j'
 
-describe('#integration trust', () => {
+// It's alread covered by testkit
+xdescribe('#integration trust', () => {
   beforeAll(async () => {
-    const driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    const driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     try {
       await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
     } finally {
@@ -41,10 +45,14 @@ describe('#integration trust', () => {
 
     it('should work with default certificate', done => {
       // Given
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-        encrypted: 'ENCRYPTION_ON',
-        trust: 'TRUST_ALL_CERTIFICATES'
-      })
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken,
+        {
+          encrypted: 'ENCRYPTION_ON',
+          trust: 'TRUST_ALL_CERTIFICATES'
+        }
+      )
 
       // When
       driver
@@ -58,7 +66,10 @@ describe('#integration trust', () => {
 
     it('should work with default certificate using URL scheme', done => {
       // Given
-      driver = neo4j.driver('bolt+ssc://localhost', sharedNeo4j.authToken)
+      driver = neo4j.driver(
+        `bolt+ssc://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
 
       // When
       driver
@@ -82,11 +93,15 @@ describe('#integration trust', () => {
 
     it('should reject unknown certificates', done => {
       // Given
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-        encrypted: true,
-        trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES',
-        trustedCertificates: ['test/resources/random.certificate']
-      })
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken,
+        {
+          encrypted: true,
+          trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES',
+          trustedCertificates: ['test/resources/random.certificate']
+        }
+      )
 
       // When
       driver
@@ -100,11 +115,15 @@ describe('#integration trust', () => {
 
     it('should accept known certificates', done => {
       // Given
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-        encrypted: true,
-        trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES',
-        trustedCertificates: [sharedNeo4j.neo4jCertPath()]
-      })
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken,
+        {
+          encrypted: true,
+          trust: 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES',
+          trustedCertificates: [sharedNeo4j.neo4jCertPath()]
+        }
+      )
 
       // When
       driver
@@ -125,10 +144,14 @@ describe('#integration trust', () => {
 
     it('should reject unknown certificates', done => {
       // Given
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-        encrypted: true,
-        trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
-      })
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken,
+        {
+          encrypted: true,
+          trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+        }
+      )
 
       // When
       driver
@@ -142,7 +165,10 @@ describe('#integration trust', () => {
 
     it('should reject unknown certificates using URL scheme', done => {
       // Given
-      driver = neo4j.driver('bolt+s://localhost', sharedNeo4j.authToken)
+      driver = neo4j.driver(
+        `bolt+s://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
 
       // When
       driver
@@ -156,9 +182,13 @@ describe('#integration trust', () => {
 
     it('should reject unknown certificates if trust not specified', done => {
       // Given
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken, {
-        encrypted: true
-      })
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken,
+        {
+          encrypted: true
+        }
+      )
 
       // When
       driver

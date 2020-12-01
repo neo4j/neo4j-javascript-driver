@@ -30,7 +30,10 @@ describe('#integration-rx summary', () => {
     let protocolVersion
 
     beforeEach(async () => {
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
       session = driver.rxSession()
 
       protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
@@ -120,7 +123,10 @@ describe('#integration-rx summary', () => {
     let protocolVersion
 
     beforeEach(async () => {
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
       session = driver.rxSession()
       txc = await session.beginTransaction().toPromise()
 
@@ -217,7 +223,10 @@ describe('#integration-rx summary', () => {
     let protocolVersion
 
     beforeEach(async () => {
-      driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+      driver = neo4j.driver(
+        `bolt://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
       session = driver.rxSession({ database: 'system' })
       //
 

@@ -27,7 +27,10 @@ describe('#integration Bolt V4.0 API', () => {
   let originalTimeout
 
   beforeEach(async () => {
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     session = driver.session()
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
