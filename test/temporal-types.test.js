@@ -58,9 +58,12 @@ describe('#integration temporal-types', () => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
-    driver = neo4j.driver('bolt://localhost', sharedNeo4j.authToken)
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
     driverWithNativeNumbers = neo4j.driver(
-      'bolt://localhost',
+      `bolt://${sharedNeo4j.hostname}`,
       sharedNeo4j.authToken,
       { disableLosslessIntegers: true }
     )

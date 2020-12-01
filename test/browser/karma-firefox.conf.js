@@ -50,6 +50,9 @@ module.exports = function (config) {
           'network.websocket.max-connections': 256 // as in Chrome
         }
       }
+    },
+    client: {
+      env: process.env
     }
   })
 }
