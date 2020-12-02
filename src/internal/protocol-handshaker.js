@@ -25,7 +25,7 @@ import BoltProtocolV3 from './bolt-protocol-v3'
 import BoltProtocolV4x0 from './bolt-protocol-v4x0'
 import BoltProtocolV4x1 from './bolt-protocol-v4x1'
 import BoltProtocolV4x2 from './bolt-protocol-v4x2'
-
+import BoltProtocolV4x3 from './bolt-protocol-v4x3'
 const BOLT_MAGIC_PREAMBLE = 0x6060b017
 
 export default class ProtocolHandshaker {
@@ -132,6 +132,13 @@ export default class ProtocolHandshaker {
           this._disableLosslessIntegers,
           this._serversideRouting
         )
+      case 4.3:
+        return new BoltProtocolV4x3(
+          this._connection,
+          this._chunker,
+          this._disableLosslessIntegers,
+          this._serversideRouting
+        )
       default:
         throw newError('Unknown Bolt protocol version: ' + version)
     }
@@ -149,7 +156,7 @@ function newHandshakeBuffer () {
   handshakeBuffer.writeInt32(BOLT_MAGIC_PREAMBLE)
 
   // proposed versions
-  handshakeBuffer.writeInt32((2 << 8) | 4)
+  handshakeBuffer.writeInt32((3 << 8) | 4)
   handshakeBuffer.writeInt32((1 << 8) | 4)
   handshakeBuffer.writeInt32(4)
   handshakeBuffer.writeInt32(3)
