@@ -20,17 +20,6 @@ import BoltProtocolV41 from './bolt-protocol-v4x1'
 import { BOLT_PROTOCOL_V4_2 } from './constants'
 
 export default class BoltProtocol extends BoltProtocolV41 {
-  /**
-   * @constructor
-   * @param {Connection} connection the connection.
-   * @param {Chunker} chunker the chunker.
-   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
-   * @param {Object} serversideRouting
-   */
-  constructor (connection, chunker, disableLosslessIntegers, serversideRouting) {
-    super(connection, chunker, disableLosslessIntegers, serversideRouting)
-  }
-
   get version () {
     return BOLT_PROTOCOL_V4_2
   }
