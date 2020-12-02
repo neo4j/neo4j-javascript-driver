@@ -16,15 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError, PROTOCOL_ERROR, SERVICE_UNAVAILABLE } from '../../error'
+import { newError, PROTOCOL_ERROR } from '../../error'
 import ServerAddress from '../server-address'
 import RoutingTable from '../routing-table'
-import Integer, { int } from '../../integer'
 import Session from '../../session'
 import RoutingProcedureRunner from './routing-procedure-runner'
-
-const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
-const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
+import {
+  createValidRoutingTable,
+  RawRoutingTable,
+  runWithExceptionTreament
+} from './routing-table-factory'
 
 /**
  * Get the routing table by running the procedure
@@ -52,11 +53,8 @@ export default class ProcedureRoutingTableGetter {
    * @returns {Promise<RoutingTable>} The routing table
    */
   async get (connection, database, routerAddress, session) {
-    const records = await this._runProcedure(
-      connection,
-      database,
-      routerAddress,
-      session
+    const records = await runWithExceptionTreament(routerAddress, () =>
+      this._runProcedure(connection, database, session)
     )
     if (records === null) {
       return null // it should go to another layer to retry
@@ -76,23 +74,9 @@ export default class ProcedureRoutingTableGetter {
     }
 
     const record = records[0]
+    const rawRoutingTable = new RecordRawRoutingTable(record)
 
-    const expirationTime = this._parseTtl(record, routerAddress)
-    const { routers, readers, writers } = this._parseServers(
-      record,
-      routerAddress
-    )
-
-    assertNonEmpty(routers, 'routers', routerAddress)
-    assertNonEmpty(readers, 'readers', routerAddress)
-
-    return new RoutingTable({
-      database,
-      routers,
-      readers,
-      writers,
-      expirationTime
-    })
+    return createValidRoutingTable(database, routerAddress, rawRoutingTable)
   }
 
   /**
@@ -100,137 +84,36 @@ export default class ProcedureRoutingTableGetter {
    *
    * @param {Connection} connection the connection
    * @param {string} database the database
-   * @param {string} routerAddress the router address
    * @param {Session} session the session which was used to get the connection,
    *                 it will be used to get lastBookmark and other properties
    *
    * @returns {Promise<Record[]>} the list of records fetched
    */
-  async _runProcedure (connection, database, routerAddress, session) {
-    try {
-      const result = await this._runner.run(
-        connection,
-        database,
-        this._routingContext,
-        session
-      )
-      return result.records
-    } catch (error) {
-      if (error.code === DATABASE_NOT_FOUND_CODE) {
-        throw error
-      } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
-        // throw when getServers procedure not found because this is clearly a configuration issue
-        throw newError(
-          `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
-          SERVICE_UNAVAILABLE
-        )
-      } else {
-        // return nothing when failed to connect because code higher in the callstack is still able to retry with a
-        // different session towards a different router
-        return null
-      }
-    }
-  }
-
-  /**
-   * Parse the ttls from the record and return it
-   *
-   * @param {Record} record the record
-   * @param {string} routerAddress the router address
-   * @returns {number} the ttl
-   */
-  _parseTtl (record, routerAddress) {
-    try {
-      const now = int(Date.now())
-      const expires = int(record.get('ttl'))
-        .multiply(1000)
-        .add(now)
-      // if the server uses a really big expire time like Long.MAX_VALUE this may have overflowed
-      if (expires.lessThan(now)) {
-        return Integer.MAX_VALUE
-      }
-      return expires
-    } catch (error) {
-      throw newError(
-        `Unable to parse TTL entry from router ${routerAddress} from record:\n${JSON.stringify(
-          record
-        )}\nError message: ${error.message}`,
-        PROTOCOL_ERROR
-      )
-    }
-  }
-
-  /**
-   * Parse server from the Record.
-   *
-   * @param {Record} record the record
-   * @param {string} routerAddress the router address
-   * @returns {Object} The object with the list of routers, readers and writers
-   */
-  _parseServers (record, routerAddress) {
-    try {
-      const servers = record.get('servers')
-
-      let routers = []
-      let readers = []
-      let writers = []
-
-      servers.forEach(server => {
-        const role = server.role
-        const addresses = server.addresses
-
-        if (role === 'ROUTE') {
-          routers = parseArray(addresses).map(address =>
-            ServerAddress.fromUrl(address)
-          )
-        } else if (role === 'WRITE') {
-          writers = parseArray(addresses).map(address =>
-            ServerAddress.fromUrl(address)
-          )
-        } else if (role === 'READ') {
-          readers = parseArray(addresses).map(address =>
-            ServerAddress.fromUrl(address)
-          )
-        } else {
-          throw newError('Unknown server role "' + role + '"', PROTOCOL_ERROR)
-        }
-      })
-
-      return {
-        routers: routers,
-        readers: readers,
-        writers: writers
-      }
-    } catch (error) {
-      throw newError(
-        `Unable to parse servers entry from router ${routerAddress} from record:\n${JSON.stringify(
-          record
-        )}\nError message: ${error.message}`,
-        PROTOCOL_ERROR
-      )
-    }
+  async _runProcedure (connection, database, session) {
+    const result = await this._runner.run(
+      connection,
+      database,
+      this._routingContext,
+      session
+    )
+    return result.records
   }
 }
 
 /**
- * Assset if serverAddressesArray is not empty, throws and PROTOCOL_ERROR otherwise
- *
- * @param {string[]} serverAddressesArray array of addresses
- * @param {string} serversName the server name
- * @param {string} routerAddress the router address
+ * Get the raw routing table information from the record
  */
-function assertNonEmpty (serverAddressesArray, serversName, routerAddress) {
-  if (serverAddressesArray.length === 0) {
-    throw newError(
-      'Received no ' + serversName + ' from router ' + routerAddress,
-      PROTOCOL_ERROR
-    )
+class RecordRawRoutingTable extends RawRoutingTable {
+  constructor (record) {
+    super()
+    this._record = record
   }
-}
 
-function parseArray (addresses) {
-  if (!Array.isArray(addresses)) {
-    throw new TypeError('Array expected but got: ' + addresses)
+  get ttl () {
+    return this._record.get('ttl')
   }
-  return Array.from(addresses)
+
+  get servers () {
+    return this._record.get('servers')
+  }
 }
