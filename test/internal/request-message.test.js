@@ -215,4 +215,25 @@ describe('#unit RequestMessage', () => {
       )
     })
   })
+
+  describe('BoltV4.3', () => {
+    it('should create ROUTE message', () => {
+      const requestContext = { someValue: '1234' }
+      const database = 'user_db'
+
+      const message = RequestMessage.route(requestContext, database)
+
+      expect(message.signature).toEqual(0x66)
+      expect(message.fields).toEqual([requestContext, database])
+      expect(message.toString()).toEqual(`ROUTE ${requestContext} ${database}`)
+    })
+
+    it('should create ROUTE message with default values', () => {
+      const message = RequestMessage.route()
+
+      expect(message.signature).toEqual(0x66)
+      expect(message.fields).toEqual([{}, null])
+      expect(message.toString()).toEqual(`ROUTE ${{}} ${null}`)
+    })
+  })
 })
