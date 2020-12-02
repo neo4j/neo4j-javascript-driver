@@ -18,9 +18,44 @@
  */
 import BoltProtocolV42 from './bolt-protocol-v4x2'
 import { BOLT_PROTOCOL_V4_3 } from './constants'
+import RequestMessage from './request-message'
+import { RouteObserver } from './stream-observers'
 
 export default class BoltProtocol extends BoltProtocolV42 {
   get version () {
     return BOLT_PROTOCOL_V4_3
+  }
+
+  /**
+   * Request routing information
+   *
+   * @param {Object} param -
+   * @param {object} param.routingContext The routing context used to define the routing table.
+   *  Multi-datacenter deployments is one of its use cases
+   * @param {string} param.databaseName The database name
+   * @param {function(err: Error)} param.onError
+   * @param {function(metadata)} param.onComplete
+   * @returns {RouteObserver} the route observer
+   */
+
+  requestRoutingInformation ({
+    routingContext = {},
+    databaseName = null,
+    onError,
+    onComplete
+  }) {
+    const observer = new RouteObserver({
+      connection: this._connection,
+      onError,
+      onComplete
+    })
+
+    this._connection.write(
+      RequestMessage.route(routingContext, databaseName),
+      observer,
+      true
+    )
+
+    return observer
   }
 }

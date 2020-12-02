@@ -512,6 +512,49 @@ class CompletedObserver extends ResultStreamObserver {
   }
 }
 
+class RouteObserver extends StreamObserver {
+  /**
+   *
+   * @param {Object} param -
+   * @param {Connection} param.connection
+   * @param {function(err: Error)} param.onError
+   * @param {function(metadata)} param.onComplete
+   */
+  constructor ({ connection, onError, onComplete } = {}) {
+    super()
+
+    this._connection = connection
+    this._onError = onError
+    this._onComplete = onComplete
+  }
+
+  onNext (record) {
+    this.onError(
+      newError(
+        'Received RECORD when resetting: received record is: ' +
+          JSON.stringify(record),
+        PROTOCOL_ERROR
+      )
+    )
+  }
+
+  onError (error) {
+    if (error.code === PROTOCOL_ERROR) {
+      this._connection._handleProtocolError(error.message)
+    }
+
+    if (this._onError) {
+      this._onError(error)
+    }
+  }
+
+  onCompleted (metadata) {
+    if (this._onComplete) {
+      this._onComplete(metadata)
+    }
+  }
+}
+
 const _states = {
   READY_STREAMING: {
     // async start state
@@ -582,5 +625,6 @@ export {
   LoginObserver,
   ResetObserver,
   FailedObserver,
-  CompletedObserver
+  CompletedObserver,
+  RouteObserver
 }

@@ -29,6 +29,25 @@ describe('#unit BoltProtocolV4x3', () => {
     jasmine.addMatchers(utils.matchers)
   })
 
+  it('should request routing information', () => {
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const routingContext = { someContextParam: 'value' }
+    const databaseName = 'name'
+
+    const observer = protocol.requestRoutingInformation({
+      routingContext,
+      databaseName
+    })
+
+    recorder.verifyMessageCount(1)
+    expect(recorder.messages[0]).toBeMessage(
+      RequestMessage.route(routingContext, databaseName)
+    )
+    expect(recorder.observers).toEqual([observer])
+    expect(recorder.flushes).toEqual([true])
+  })
+
   it('should run a query', () => {
     const database = 'testdb'
     const bookmark = new Bookmark([

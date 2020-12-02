@@ -49,6 +49,8 @@ export default class FakeConnection extends Connection {
     this.seenProtocolOptions = []
     this._server = {}
     this.protocolVersion = undefined
+    this.protocolErrorsHandled = 0
+    this.seenProtocolErrors = []
   }
 
   get id () {
@@ -111,6 +113,11 @@ export default class FakeConnection extends Connection {
 
   isReleasedTimes (times) {
     return this.resetInvoked === times && this.releaseInvoked === times
+  }
+
+  _handleProtocolError (message) {
+    this.protocolErrorsHandled++
+    this.seenProtocolErrors.push(message)
   }
 
   withServerVersion (version) {
