@@ -18,6 +18,7 @@
  */
 import RoutingTableGetterFactory from '../../../src/internal/routing-table-getter/routing-table-getter-factory'
 import ProcedureRoutingTableGetter from '../../../src/internal/routing-table-getter/routing-table-getter-procedure'
+import RouteMessageRoutingTableGetter from '../../../src/internal/routing-table-getter/routing-table-getter-route-message'
 import MultiDatabaseRoutingProcedureRunner from '../../../src/internal/routing-table-getter/routing-procedure-runner-multi-database'
 import SingleDatabaseRoutingProcedureRunner from '../../../src/internal/routing-table-getter/routing-procedure-runner-single-database'
 import FakeConnection from '../fake-connection'
@@ -30,6 +31,8 @@ const multiDatabaseProcedureVersion = routingTableProcedureVersions.filter(
   version => version >= 4
 )
 
+const routingTableMessageVersions = [4.3]
+
 describe('#unit RoutingTableGetterFactory', () => {
   routingTableProcedureVersions.forEach(version => {
     it(`should create ProcedureRoutingTableGetter when the protocol version is ${version}`, () => {
@@ -39,7 +42,6 @@ describe('#unit RoutingTableGetterFactory', () => {
 
       expect(getter).toEqual(jasmine.any(ProcedureRoutingTableGetter))
       expect(getter._routingContext).toEqual(routingContext)
-      expect(getter._)
     })
   })
 
@@ -64,6 +66,23 @@ describe('#unit RoutingTableGetterFactory', () => {
         jasmine.any(MultiDatabaseRoutingProcedureRunner)
       )
       expect(getter._runner._initialAddress).toEqual(initialAddress)
+    })
+  })
+
+  routingTableMessageVersions.forEach(version => {
+    it(`should create RouteMessageRoutingTableGetter when the protocol version is ${version}`, () => {
+      const connection = new FakeConnection().withProtocolVersion(version)
+      const initialAddress = 'localhost'
+      const routingContext = { region: 'china' }
+      const getter = createRoutingTableGetter({
+        connection,
+        routingContext,
+        initialAddress
+      })
+
+      expect(getter).toEqual(jasmine.any(RouteMessageRoutingTableGetter))
+      expect(getter._routingContext).toEqual(routingContext)
+      expect(getter._initialAddress).toEqual(initialAddress)
     })
   })
 

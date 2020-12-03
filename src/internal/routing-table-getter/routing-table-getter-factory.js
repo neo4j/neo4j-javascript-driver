@@ -45,7 +45,7 @@ export default class RoutingTableGetterFactory {
    * @param {Connection} connection the connection to use
    * @param {string} database the database name
    * @param {string} routerAddress the URL of the router.
-   * @returns {ProcedureRoutingTableGetter} The routing table getter
+   * @returns {ProcedureRoutingTableGetter | RouteMessageRoutingTableGetter} The routing table getter
    */
   create (connection) {
     if (connection.protocol().version < BOLT_PROTOCOL_V4_3) {
