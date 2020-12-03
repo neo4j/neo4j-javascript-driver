@@ -91,7 +91,7 @@ export function createValidRoutingTable (
   routerAddress,
   rawRoutingTable
 ) {
-  const expirationTime = parseTtl(rawRoutingTable, routerAddress)
+  const expirationTime = calculateExpirationTime(rawRoutingTable, routerAddress)
   const { routers, readers, writers } = parseServers(
     rawRoutingTable,
     routerAddress
@@ -138,8 +138,6 @@ function parseServers (rawRoutingTable, routerAddress) {
         readers = parseArray(addresses).map(address =>
           ServerAddress.fromUrl(address)
         )
-      } else {
-        throw newError('Unknown server role "' + role + '"', PROTOCOL_ERROR)
       }
     })
 
@@ -159,13 +157,13 @@ function parseServers (rawRoutingTable, routerAddress) {
 }
 
 /**
- * Parse the ttls from the raw routing table and return it
+ * Call the expiration time using the ttls from the raw routing table and return it
  *
  * @param {RawRoutingTable} rawRoutingTable the routing table
  * @param {string} routerAddress the router address
  * @returns {number} the ttl
  */
-function parseTtl (rawRoutingTable, routerAddress) {
+function calculateExpirationTime (rawRoutingTable, routerAddress) {
   try {
     const now = int(Date.now())
     const expires = int(rawRoutingTable.ttl)
@@ -187,7 +185,7 @@ function parseTtl (rawRoutingTable, routerAddress) {
 }
 
 /**
- * Assset if serverAddressesArray is not empty, throws and PROTOCOL_ERROR otherwise
+ * Assert if serverAddressesArray is not empty, throws and PROTOCOL_ERROR otherwise
  *
  * @param {string[]} serverAddressesArray array of addresses
  * @param {string} serversName the server name

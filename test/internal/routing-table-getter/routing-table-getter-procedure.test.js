@@ -245,32 +245,28 @@ describe('#unit ProcedureRoutingTableGetter', () => {
     })
   })
 
-  it('should throw PROTOCOL_ERROR when it has an alien role', async () => {
-    try {
-      const routers = ['router:7699']
-      const readers = ['reader1:7699', 'reader2:7699']
-      const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
-      const alienRole = {
-        role: 'ALIEN_ROLE',
-        addresses: ['alien:7699']
-      }
-      const database = 'db'
-      await callProcedureRoutingTableGetter({
-        database,
-        runner: new FakeRoutingProcedureRunner({
-          run: () =>
-            fakeResolvedResult([
-              newRecord({ routers, readers, writers, extra: [alienRole] })
-            ])
-        })
-      })
-      fail('should not succeed')
-    } catch (error) {
-      expect(error.code).toEqual(PROTOCOL_ERROR)
-      expect(error.message).toContain(
-        'Unable to parse servers entry from router'
-      )
+  it('should return the known roles independent of the alien roles', async () => {
+    const routers = ['router:7699']
+    const readers = ['reader1:7699', 'reader2:7699']
+    const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+    const alienRole = {
+      role: 'ALIEN_ROLE',
+      addresses: ['alien:7699']
     }
+    const database = 'db'
+    const result = await callProcedureRoutingTableGetter({
+      database,
+      runner: new FakeRoutingProcedureRunner({
+        run: () =>
+          fakeResolvedResult([
+            newRecord({ routers, readers, writers, extra: [alienRole] })
+          ])
+      })
+    })
+
+    expect(result.readers).toEqual(readers.map(r => ServerAddress.fromUrl(r)))
+    expect(result.routers).toEqual(routers.map(r => ServerAddress.fromUrl(r)))
+    expect(result.writers).toEqual(writers.map(r => ServerAddress.fromUrl(r)))
   })
 
   it('should throw PROTOCOL_ERROR when there is no routers', async () => {
