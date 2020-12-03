@@ -16,9 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BOLT_PROTOCOL_V4_0 } from '../constants'
+import { BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V4_3 } from '../constants'
 import Connection from '../connection'
 import ProcedureRoutingTableGetter from './routing-table-getter-procedure'
+import RouteMessageRoutingTableGetter from './routing-table-getter-route-message'
+
 import SingleDatabaseRoutingProcedureRunner from './routing-procedure-runner-single-database'
 import MultiDatabaseRoutingProcedureRunner from './routing-procedure-runner-multi-database'
 
@@ -46,11 +48,17 @@ export default class RoutingTableGetterFactory {
    * @returns {ProcedureRoutingTableGetter} The routing table getter
    */
   create (connection) {
-    const runner =
-      connection.protocol().version < BOLT_PROTOCOL_V4_0
-        ? new SingleDatabaseRoutingProcedureRunner()
-        : new MultiDatabaseRoutingProcedureRunner(this._initialAddress)
+    if (connection.protocol().version < BOLT_PROTOCOL_V4_3) {
+      const runner =
+        connection.protocol().version < BOLT_PROTOCOL_V4_0
+          ? new SingleDatabaseRoutingProcedureRunner()
+          : new MultiDatabaseRoutingProcedureRunner(this._initialAddress)
 
-    return new ProcedureRoutingTableGetter(this._routingContext, runner)
+      return new ProcedureRoutingTableGetter(this._routingContext, runner)
+    }
+    return new RouteMessageRoutingTableGetter(
+      this._routingContext,
+      this._initialAddress
+    )
   }
 }

@@ -222,7 +222,7 @@ export default class RequestMessage {
     return new RequestMessage(
       ROUTE,
       [routingContext, databaseName],
-      () => `ROUTE ${routingContext} ${databaseName}`
+      () => `ROUTE ${JSON.stringify(routingContext)} ${databaseName}`
     )
   }
 }

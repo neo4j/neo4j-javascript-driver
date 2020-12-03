@@ -225,7 +225,9 @@ describe('#unit RequestMessage', () => {
 
       expect(message.signature).toEqual(0x66)
       expect(message.fields).toEqual([requestContext, database])
-      expect(message.toString()).toEqual(`ROUTE ${requestContext} ${database}`)
+      expect(message.toString()).toEqual(
+        `ROUTE ${JSON.stringify(requestContext)} ${database}`
+      )
     })
 
     it('should create ROUTE message with default values', () => {
@@ -233,7 +235,7 @@ describe('#unit RequestMessage', () => {
 
       expect(message.signature).toEqual(0x66)
       expect(message.fields).toEqual([{}, null])
-      expect(message.toString()).toEqual(`ROUTE ${{}} ${null}`)
+      expect(message.toString()).toEqual(`ROUTE ${JSON.stringify({})} ${null}`)
     })
   })
 })
