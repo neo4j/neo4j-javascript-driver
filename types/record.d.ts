@@ -17,23 +17,38 @@
  * limitations under the License.
  */
 
-declare type Visitor = (value: any, key: string, record: Record) => void
+declare type Dict<Key extends PropertyKey = PropertyKey, Value = any> = {
+  [K in Key]: Value
+}
 
-declare type MapVisitor<T> = (value: any, key: string, record: Record) => T
+declare type Visitor<
+  Entries extends Dict = Dict,
+  Key extends keyof Entries = keyof Entries
+> = MapVisitor<void, Entries, Key>
 
-declare class Record {
-  keys: string[]
+declare type MapVisitor<
+  ReturnType,
+  Entries extends Dict = Dict,
+  Key extends keyof Entries = keyof Entries
+> = (value: Entries[Key], key: Key, record: Record<Entries>) => ReturnType
+
+declare class Record<
+  Entries extends Dict = Dict,
+  Key extends keyof Entries = keyof Entries,
+  FieldLookup extends Dict<string, number> = Dict<string, number>
+> {
+  keys: Key[]
   length: number
 
   constructor(
-    keys: string[],
+    keys: Key[],
     fields: any[],
-    fieldLookup?: { [index: string]: string }
+    fieldLookup?: FieldLookup
   )
 
-  forEach(visitor: Visitor): void
+  forEach(visitor: Visitor<Entries, Key>): void
 
-  map<T>(visitor: MapVisitor<T>): T[]
+  map<Value>(visitor: MapVisitor<Value, Entries, Key>): Value[]
 
   entries(): IterableIterator<[string, Object]>
 
@@ -41,11 +56,13 @@ declare class Record {
 
   [Symbol.iterator](): IterableIterator<Object>
 
-  toObject(): object
+  toObject(): Entries
 
-  get(key: string | number): any
+  get<K extends Key>(key: K): Entries[K]
 
-  has(key: string | number): boolean
+  get(key: keyof FieldLookup | number): any
+
+  has(key: any): key is Key
 }
 
 export default Record
