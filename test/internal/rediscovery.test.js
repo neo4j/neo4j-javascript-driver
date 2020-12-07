@@ -25,6 +25,7 @@ import FakeConnection from './fake-connection'
 import lolex from 'lolex'
 import { int } from '../../src/integer'
 import { newError, SERVICE_UNAVAILABLE } from '../../lib/error'
+import { PROTOCOL_ERROR } from '../../src/error'
 
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
@@ -172,6 +173,37 @@ describe('#unit Rediscovery', () => {
     })
 
     expect(routingTable).toEqual(null)
+  })
+
+  it('should throw PROTOCOL_ERROR if the routing table is invalid', async () => {
+    runWithClockAt(Date.now(), async () => {
+      try {
+        const ttl = int(123)
+        const routers = ['bolt://localhost:7687']
+        const writers = ['bolt://localhost:7686']
+        const readers = []
+        const initialAddress = '127.0.0.1'
+        const routingContext = { context: '1234 ' }
+        const rawRoutingTable = RawRoutingTable.ofMessageResponse(
+          newMetadata({ ttl, routers, readers, writers })
+        )
+
+        await lookupRoutingTableOnRouter({
+          initialAddress,
+          routingContext,
+          rawRoutingTable
+        })
+
+        fail('should not succeed')
+      } catch (error) {
+        expect(error).toEqual(
+          newError(
+            'Received no readers from router localhost:7687',
+            PROTOCOL_ERROR
+          )
+        )
+      }
+    })
   })
 })
 
