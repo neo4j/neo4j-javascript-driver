@@ -20,12 +20,11 @@ import BoltProtocolV3 from './bolt-protocol-v3'
 import RequestMessage, { ALL } from './request-message'
 import {
   ResultStreamObserver,
-  ResultBasedRouteObserver
+  ProcedureRouteObserver
 } from './stream-observers'
 import { BOLT_PROTOCOL_V4_0 } from './constants'
 import Bookmark from './bookmark'
 import TxConfig from './tx-config'
-import Result from '../result'
 
 const CONTEXT = 'context'
 const DATABASE = 'database'
@@ -162,7 +161,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
       { ...sessionContext, txConfig: TxConfig.empty() }
     )
 
-    return new ResultBasedRouteObserver({
+    return new ProcedureRouteObserver({
       resultObserver,
       connection: this._connection,
       onError,

@@ -514,7 +514,7 @@ class CompletedObserver extends ResultStreamObserver {
   }
 }
 
-class ResultBasedRouteObserver extends StreamObserver {
+class ProcedureRouteObserver extends StreamObserver {
   constructor ({ resultObserver, connection, onError, onCompleted }) {
     super()
 
@@ -541,20 +541,17 @@ class ResultBasedRouteObserver extends StreamObserver {
   }
 
   onCompleted () {
-    console.log('OnCompleted')
     if (this._records !== null && this._records.length !== 1) {
       this.onError(
         newError(
-          'Illegal response from router "' +
-            'routerAddress' +
-            '". ' +
-            'Received ' +
+          'Illegal response from router. Received ' +
             this._records.length +
             ' records but expected only one.\n' +
             JSON.stringify(this._records),
           PROTOCOL_ERROR
         )
       )
+      return
     }
 
     if (this._onCompleted) {
@@ -679,5 +676,5 @@ export {
   FailedObserver,
   CompletedObserver,
   RouteObserver,
-  ResultBasedRouteObserver
+  ProcedureRouteObserver
 }

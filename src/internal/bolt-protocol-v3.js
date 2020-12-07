@@ -23,7 +23,7 @@ import {
   StreamObserver,
   LoginObserver,
   ResultStreamObserver,
-  ResultBasedRouteObserver
+  ProcedureRouteObserver
 } from './stream-observers'
 import { BOLT_PROTOCOL_V3 } from './constants'
 import Bookmark from './bookmark'
@@ -216,7 +216,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
       { ...sessionContext, txConfig: TxConfig.empty() }
     )
 
-    return new ResultBasedRouteObserver({
+    return new ProcedureRouteObserver({
       resultObserver,
       connection: this._connection,
       onError,
