@@ -16,7 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoutingTable, { NullRawRoutingTable } from './routing-table'
+import RoutingTable from './routing-table'
+import RawRoutingTable from './routing-table-raw'
 import Session from '../session'
 import ServerAddress from './server-address'
 import { newError, SERVICE_UNAVAILABLE } from '../error'
@@ -74,7 +75,7 @@ export default class Rediscovery {
           database: session._database,
           afterComplete: session._onComplete
         },
-        onComplete: resolve,
+        onCompleted: resolve,
         onError: error => {
           if (error.code === DATABASE_NOT_FOUND_CODE) {
             reject(error)
@@ -89,7 +90,7 @@ export default class Rediscovery {
           } else {
             // return nothing when failed to connect because code higher in the callstack is still able to retry with a
             // different session towards a different router
-            resolve(new NullRawRoutingTable())
+            resolve(RawRoutingTable.ofNull())
           }
         }
       })

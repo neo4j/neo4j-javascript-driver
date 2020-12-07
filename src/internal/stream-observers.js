@@ -21,6 +21,8 @@ import Connection from './connection'
 import { newError, PROTOCOL_ERROR } from '../error'
 import Integer from '../integer'
 import { ALL } from './request-message'
+import connection from '../../lib/internal/connection'
+import RawRoutingTable from './routing-table-raw'
 
 class StreamObserver {
   onNext (rawRecord) {}
@@ -512,20 +514,70 @@ class CompletedObserver extends ResultStreamObserver {
   }
 }
 
+class ResultBasedRouteObserver extends StreamObserver {
+  constructor ({ resultObserver, connection, onError, onCompleted }) {
+    super()
+
+    this._resultObserver = resultObserver
+    this._onError = onError
+    this._onCompleted = onCompleted
+    this._connection = connection
+    this._records = []
+    resultObserver.subscribe(this)
+  }
+
+  onNext (record) {
+    this._records.push(record)
+  }
+
+  onError (error) {
+    if (error.code === PROTOCOL_ERROR) {
+      this._connection._handleProtocolError(error.message)
+    }
+
+    if (this._onError) {
+      this._onError(error)
+    }
+  }
+
+  onCompleted () {
+    console.log('OnCompleted')
+    if (this._records !== null && this._records.length !== 1) {
+      this.onError(
+        newError(
+          'Illegal response from router "' +
+            'routerAddress' +
+            '". ' +
+            'Received ' +
+            this._records.length +
+            ' records but expected only one.\n' +
+            JSON.stringify(this._records),
+          PROTOCOL_ERROR
+        )
+      )
+    }
+
+    if (this._onCompleted) {
+      console.log('onCompeled exsits', this._records[0])
+      this._onCompleted(RawRoutingTable.ofRecord(this._records[0]))
+    }
+  }
+}
+
 class RouteObserver extends StreamObserver {
   /**
    *
    * @param {Object} param -
    * @param {Connection} param.connection
    * @param {function(err: Error)} param.onError
-   * @param {function(metadata)} param.onComplete
+   * @param {function(RawRoutingTable)} param.onCompleted
    */
-  constructor ({ connection, onError, onComplete } = {}) {
+  constructor ({ connection, onError, onCompleted } = {}) {
     super()
 
     this._connection = connection
     this._onError = onError
-    this._onComplete = onComplete
+    this._onCompleted = onCompleted
   }
 
   onNext (record) {
@@ -549,30 +601,9 @@ class RouteObserver extends StreamObserver {
   }
 
   onCompleted (metadata) {
-    if (this._onComplete) {
-      this._onComplete(new ResponseRawRoutingTable(metadata))
+    if (this._onCompleted) {
+      this._onCompleted(RawRoutingTable.ofMessageResponse(metadata))
     }
-  }
-}
-
-/**
- * Get the raw routing table information from route message response
- */
-export class ResponseRawRoutingTable {
-  constructor (response) {
-    this._response = response
-  }
-
-  get ttl () {
-    return this._response.rt.ttl
-  }
-
-  get servers () {
-    return this._response.rt.servers
-  }
-
-  get isNull () {
-    return this._response === null
   }
 }
 
@@ -647,5 +678,6 @@ export {
   ResetObserver,
   FailedObserver,
   CompletedObserver,
-  RouteObserver
+  RouteObserver,
+  ResultBasedRouteObserver
 }

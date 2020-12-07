@@ -34,7 +34,7 @@ export default class BoltProtocol extends BoltProtocolV42 {
    *  Multi-datacenter deployments is one of its use cases
    * @param {string} param.databaseName The database name
    * @param {function(err: Error)} param.onError
-   * @param {function(metadata)} param.onComplete
+   * @param {function(RawRoutingTable)} param.onCompleted
    * @returns {RouteObserver} the route observer
    */
 
@@ -43,12 +43,12 @@ export default class BoltProtocol extends BoltProtocolV42 {
     databaseName = null,
     initialAddress = null,
     onError,
-    onComplete
+    onCompleted
   }) {
     const observer = new RouteObserver({
       connection: this._connection,
       onError,
-      onComplete
+      onCompleted
     })
 
     this._connection.write(

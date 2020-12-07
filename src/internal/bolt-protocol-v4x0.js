@@ -16,14 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import BoltProtocolV3, { RecordRawRoutingTable } from './bolt-protocol-v3'
+import BoltProtocolV3 from './bolt-protocol-v3'
 import RequestMessage, { ALL } from './request-message'
-import { ResultStreamObserver, RouteObserver } from './stream-observers'
+import {
+  ResultStreamObserver,
+  ResultBasedRouteObserver
+} from './stream-observers'
 import { BOLT_PROTOCOL_V4_0 } from './constants'
 import Bookmark from './bookmark'
 import TxConfig from './tx-config'
 import Result from '../result'
-import { newError, PROTOCOL_ERROR } from '../../lib/error'
 
 const CONTEXT = 'context'
 const DATABASE = 'database'
@@ -140,7 +142,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
    * @param {string} params.sessionContext.database The database name used on the session
    * @param {function()} params.sessionContext.afterComplete The session param used after the session closed
    * @param {function(err: Error)} param.onError
-   * @param {function(metadata)} param.onComplete
+   * @param {function(RawRoutingTable)} param.onCompleted
    * @returns {RouteObserver} the route observer
    */
   requestRoutingInformation ({
@@ -149,15 +151,9 @@ export default class BoltProtocol extends BoltProtocolV3 {
     sessionContext = {},
     initialAddress = null,
     onError,
-    onComplete
+    onCompleted
   }) {
-    const observer = new RouteObserver({
-      connection: this._connection,
-      onError,
-      onComplete
-    })
-
-    const resultObserserver = this.run(
+    const resultObserver = this.run(
       CALL_GET_ROUTING_TABLE_MULTI_DB,
       {
         [CONTEXT]: { ...routingContext, address: initialAddress },
@@ -166,29 +162,11 @@ export default class BoltProtocol extends BoltProtocolV3 {
       { ...sessionContext, txConfig: TxConfig.empty() }
     )
 
-    new Result(Promise.resolve(resultObserserver))
-      .then(result => {
-        const records = result.records
-        if (records !== null && records.length !== 1) {
-          throw newError(
-            'Illegal response from router "' +
-              'routerAddress' +
-              '". ' +
-              'Received ' +
-              records.length +
-              ' records but expected only one.\n' +
-              JSON.stringify(records),
-            PROTOCOL_ERROR
-          )
-        }
-        if (onComplete) {
-          onComplete(
-            new RecordRawRoutingTable(records !== null ? records[0] : null)
-          )
-        }
-      })
-      .catch(observer.onError.bind(observer))
-
-    return observer
+    return new ResultBasedRouteObserver({
+      resultObserver,
+      connection: this._connection,
+      onError,
+      onCompleted
+    })
   }
 }

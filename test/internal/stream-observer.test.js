@@ -20,9 +20,9 @@
 import FakeConnection from './fake-connection'
 import {
   ResultStreamObserver,
-  RouteObserver,
-  ResponseRawRoutingTable
+  RouteObserver
 } from '../../src/internal/stream-observers'
+import RawRoutingTable from '../../src/internal/routing-table-raw'
 import { newError } from '../../lib/error'
 import { PROTOCOL_ERROR } from '../../src/error'
 import Record from '../../src/record'
@@ -201,14 +201,16 @@ describe('#unit ResultStreamObserver', () => {
 })
 
 describe('#unit RouteObserver', () => {
-  it('should call onComplete with the metadata', () => {
+  it('should call onCompleted with the metadata', () => {
     let onCompleteCalled = false
     const expectedMetadata = { someMeta: '134' }
 
     newRouteObserver({
-      onComplete: metadata => {
+      onCompleted: metadata => {
         onCompleteCalled = true
-        expect(metadata).toEqual(new ResponseRawRoutingTable(expectedMetadata))
+        expect(metadata).toEqual(
+          RawRoutingTable.ofMessageResponse(expectedMetadata)
+        )
       }
     }).onCompleted(expectedMetadata)
 
@@ -292,11 +294,11 @@ describe('#unit RouteObserver', () => {
   })
 
   function newRouteObserver ({
-    onComplete = shouldNotBeCalled('onComplete'),
+    onCompleted = shouldNotBeCalled('onComplete'),
     onError = shouldNotBeCalled('onError'),
     connection = new FakeConnection()
   } = {}) {
-    return new RouteObserver({ connection, onComplete, onError })
+    return new RouteObserver({ connection, onCompleted, onError })
   }
 
   function shouldNotBeCalled (methodName) {

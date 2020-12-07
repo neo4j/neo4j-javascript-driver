@@ -118,46 +118,6 @@ function removeFromArray (array, element) {
 }
 
 /**
- * Represente the raw version of the routing table
- */
-export class RawRoutingTable {
-  /**
-   * Get raw ttl
-   *
-   * @returns {number|string} ttl Time to live
-   */
-  get ttl () {
-    throw new Error('Not implemented')
-  }
-
-  /**
-   *
-   * @typedef {Object} ServerRole
-   * @property {string} role the role of the address on the cluster
-   * @property {string[]} addresses the address within the role
-   *
-   * @return {ServerRole[]} list of servers addresses
-   */
-  get servers () {
-    throw new Error('Not implemented')
-  }
-
-  /**
-   * Indicates the result is null
-   *
-   * @returns {boolean} Is null
-   */
-  get isNull () {
-    throw new Error('Not implemented')
-  }
-}
-
-export class NullRawRoutingTable extends RawRoutingTable {
-  get isNull () {
-    return true
-  }
-}
-/**
  * Create a valid routing table from a raw object
  *
  * @param {string} database the database name. It is used for logging purposes
