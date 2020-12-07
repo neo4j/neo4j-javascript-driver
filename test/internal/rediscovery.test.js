@@ -17,134 +17,223 @@
  * limitations under the License.
  */
 
+import RawRoutingTable from '../../src/internal/routing-table-raw'
 import Rediscovery from '../../src/internal/rediscovery'
 import RoutingTable from '../../src/internal/routing-table'
 import ServerAddress from '../../src/internal/server-address'
+import FakeConnection from './fake-connection'
+import lolex from 'lolex'
+import { int } from '../../src/integer'
+import { newError, SERVICE_UNAVAILABLE } from '../../lib/error'
 
-xdescribe('#unit Rediscovery', () => {
+const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
+const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
+
+describe('#unit Rediscovery', () => {
   it('should return the routing table when it available', async () => {
-    const expectedRoutingTable = new RoutingTable({
-      database: 'db',
-      expirationTime: 113,
-      routers: [ServerAddress.fromUrl('bolt://localhost:7687')],
-      writers: [ServerAddress.fromUrl('bolt://localhost:7686')],
-      readers: [ServerAddress.fromUrl('bolt://localhost:7683')]
+    runWithClockAt(Date.now(), async () => {
+      const ttl = int(123)
+      const routers = ['bolt://localhost:7687']
+      const writers = ['bolt://localhost:7686']
+      const readers = ['bolt://localhost:7683']
+      const initialAddress = '127.0.0.1'
+      const routingContext = { context: '1234 ' }
+      const rawRoutingTable = RawRoutingTable.ofMessageResponse(
+        newMetadata({ ttl, routers, readers, writers })
+      )
+
+      const expectedRoutingTable = new RoutingTable({
+        database: 'db',
+        expirationTime: calculateExpirationTime(Date.now(), ttl),
+        routers: [ServerAddress.fromUrl('bolt://localhost:7687')],
+        writers: [ServerAddress.fromUrl('bolt://localhost:7686')],
+        readers: [ServerAddress.fromUrl('bolt://localhost:7683')]
+      })
+
+      const routingTable = await lookupRoutingTableOnRouter({
+        initialAddress,
+        routingContext,
+        rawRoutingTable
+      })
+
+      expect(routingTable).toEqual(expectedRoutingTable)
     })
-    const routingTableGetter = new FakeRoutingTableGetter(
-      Promise.resolve(expectedRoutingTable)
-    )
+  })
+
+  it('should return the routing table null when it is not available', async () => {
+    const initialAddress = '127.0.0.1'
+    const routingContext = { context: '1234 ' }
+    const rawRoutingTable = RawRoutingTable.ofNull()
 
     const routingTable = await lookupRoutingTableOnRouter({
-      routingTableGetter
+      initialAddress,
+      routingContext,
+      rawRoutingTable
     })
 
-    expect(routingTable).toBe(expectedRoutingTable)
+    expect(routingTable).toEqual(null)
   })
 
-  it('should call getter once with correct arguments', async () => {
-    const expectedRoutingTable = new RoutingTable()
-    const connection = { connection: 'abc' }
-    const database = 'adb'
+  it('should call requestRoutingInformation with the correct params', async () => {
+    const ttl = int(123)
+    const routers = ['bolt://localhost:7687']
+    const writers = ['bolt://localhost:7686']
+    const readers = ['bolt://localhost:7683']
+    const initialAddress = '127.0.0.1:1245'
+    const routingContext = { context: '1234 ' }
+    const database = 'this db'
+    const rawRoutingTable = RawRoutingTable.ofMessageResponse(
+      newMetadata({ ttl, routers, readers, writers })
+    )
+    const connection = new FakeConnection().withRequestRoutingInformationMock(
+      fakeOnError(rawRoutingTable)
+    )
     const session = new FakeSession(connection)
-    const routerAddress = ServerAddress.fromUrl('bolt://localhost:7682')
-    const routingTableGetter = new FakeRoutingTableGetter(
-      Promise.resolve(expectedRoutingTable)
-    )
 
     await lookupRoutingTableOnRouter({
-      routingTableGetter,
-      connection,
-      session,
       database,
-      routerAddress
+      connection,
+      initialAddress,
+      routingContext,
+      rawRoutingTable
     })
 
-    expect(routingTableGetter._called).toEqual(1)
-    expect(routingTableGetter._arguments).toEqual([
-      connection,
-      database,
-      routerAddress,
-      session
-    ])
-  })
-
-  it('should acquire connection once', async () => {
-    const expectedRoutingTable = new RoutingTable()
-    const connection = { connection: 'abc' }
-    const database = 'adb'
-    const session = new FakeSession(connection)
-    const routerAddress = ServerAddress.fromUrl('bolt://localhost:7682')
-    const routingTableGetter = new FakeRoutingTableGetter(
-      Promise.resolve(expectedRoutingTable)
-    )
-
-    await lookupRoutingTableOnRouter({
-      routingTableGetter,
-      connection,
-      session,
-      database,
-      routerAddress
+    expect(connection.seenRequestRoutingInformation.length).toEqual(1)
+    const requestParams = connection.seenRequestRoutingInformation[0]
+    expect(requestParams.routingContext).toEqual(routingContext)
+    expect(requestParams.databaseName).toEqual(database)
+    expect(requestParams.initialAddress).toEqual(initialAddress)
+    expect(requestParams.sessionContext).toEqual({
+      bookmark: session._lastBookmark,
+      mode: session._mode,
+      database: session._database,
+      afterComplete: session._onComplete
     })
-
-    expect(session._called).toEqual(1)
   })
 
-  it('should create the routingTableGetter with the correct arguments', async () => {
-    const routingTable = new RoutingTable()
-    const connection = { connection: 'abc' }
-    const routingTableGetter = new FakeRoutingTableGetter(
-      Promise.resolve(routingTable)
-    )
-    const factory = new FakeRoutingTableGetterFactory(routingTableGetter)
+  it('should reject with DATABASE_NOT_FOUND_CODE when it happens ', async () => {
+    const expectedError = newError('Laia', DATABASE_NOT_FOUND_CODE)
+    try {
+      const initialAddress = '127.0.0.1'
+      const routingContext = { context: '1234 ' }
 
-    await lookupRoutingTableOnRouter({
-      routingTableGetter,
-      factory,
+      const connection = new FakeConnection().withRequestRoutingInformationMock(
+        fakeOnError(expectedError)
+      )
+      await lookupRoutingTableOnRouter({
+        initialAddress,
+        routingContext,
+        connection
+      })
+
+      fail('it should fail')
+    } catch (error) {
+      expect(error).toEqual(expectedError)
+    }
+  })
+
+  it('should reject with PROCEDURE_NOT_FOUND_CODE when it happens ', async () => {
+    const routerAddress = ServerAddress.fromUrl('bolt://localhost:1235')
+    const expectedError = newError(
+      `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
+      SERVICE_UNAVAILABLE
+    )
+    try {
+      const initialAddress = '127.0.0.1'
+      const routingContext = { context: '1234 ' }
+
+      const connection = new FakeConnection().withRequestRoutingInformationMock(
+        fakeOnError(newError('1de', PROCEDURE_NOT_FOUND_CODE))
+      )
+      await lookupRoutingTableOnRouter({
+        initialAddress,
+        routingContext,
+        connection,
+        routerAddress
+      })
+
+      fail('it should fail')
+    } catch (error) {
+      expect(error).toEqual(expectedError)
+    }
+  })
+
+  it('should return null when it happens an unexpected error ocorrus', async () => {
+    const initialAddress = '127.0.0.1'
+    const routingContext = { context: '1234 ' }
+
+    const connection = new FakeConnection().withRequestRoutingInformationMock(
+      fakeOnError(newError('1de', 'abc'))
+    )
+    const routingTable = await lookupRoutingTableOnRouter({
+      initialAddress,
+      routingContext,
       connection
     })
 
-    expect(factory._called).toEqual(1)
-    expect(factory._arguments).toEqual([connection])
-  })
-
-  it('should return null when the getter resolves the table as null', async () => {
-    const routingTableGetter = new FakeRoutingTableGetter(Promise.resolve(null))
-
-    const routingTable = await lookupRoutingTableOnRouter({
-      routingTableGetter
-    })
-
-    expect(routingTable).toBeNull()
-  })
-
-  it('should fail when the getter fails', async () => {
-    const expectedError = 'error'
-    try {
-      const routingTableGetter = new FakeRoutingTableGetter(
-        Promise.reject(expectedError)
-      )
-      await lookupRoutingTableOnRouter({ routingTableGetter })
-      fail('should not complete with success')
-    } catch (error) {
-      expect(error).toBe(expectedError)
-    }
+    expect(routingTable).toEqual(null)
   })
 })
+
+function newMetadata ({
+  ttl = int(42),
+  routers = [],
+  readers = [],
+  writers = [],
+  extra = []
+} = {}) {
+  const routersField = {
+    role: 'ROUTE',
+    addresses: routers
+  }
+  const readersField = {
+    role: 'READ',
+    addresses: readers
+  }
+  const writersField = {
+    role: 'WRITE',
+    addresses: writers
+  }
+  return {
+    rt: {
+      ttl,
+      servers: [routersField, readersField, writersField, ...extra]
+    }
+  }
+}
+
+async function runWithClockAt (currentTime, callback) {
+  const clock = lolex.install()
+  try {
+    clock.setSystemTime(currentTime)
+    return await callback(currentTime)
+  } finally {
+    clock.uninstall()
+  }
+}
+
+function calculateExpirationTime (currentTime, ttl) {
+  return int(currentTime + ttl.toNumber() * 1000)
+}
 
 function lookupRoutingTableOnRouter ({
   database = 'db',
   routerAddress = ServerAddress.fromUrl('bolt://localhost:7687'),
-  routingTableGetter = new FakeRoutingTableGetter(
-    Promise.resolve(new RoutingTable())
-  ),
+  routingContext = {},
+  initialAddress = 'localhost:1235',
   session,
-  factory,
-  connection = {}
+  connection = new FakeConnection(),
+  rawRoutingTable
 } = {}) {
-  const _factory =
-    factory || new FakeRoutingTableGetterFactory(routingTableGetter)
   const _session = session || new FakeSession(connection)
-  const rediscovery = new Rediscovery(_factory)
+
+  if (connection && rawRoutingTable) {
+    connection.withRequestRoutingInformationMock(
+      fakeOnCompleted(rawRoutingTable)
+    )
+  }
+
+  const rediscovery = new Rediscovery(routingContext, initialAddress)
 
   return rediscovery.lookupRoutingTableOnRouter(
     _session,
@@ -152,41 +241,26 @@ function lookupRoutingTableOnRouter ({
     routerAddress
   )
 }
-
-class FakeRoutingTableGetter {
-  constructor (result) {
-    this._result = result
-    this._called = 0
-  }
-
-  get () {
-    this._called++
-    this._arguments = [...arguments]
-    return this._result
-  }
-}
-
-class FakeRoutingTableGetterFactory {
-  constructor (routingTableGetter) {
-    this._routingTableGetter = routingTableGetter
-    this._called = 0
-  }
-
-  create () {
-    this._called++
-    this._arguments = [...arguments]
-    return this._routingTableGetter
-  }
-}
-
 class FakeSession {
   constructor (connection) {
     this._connection = connection
     this._called = 0
+    this._lastBookmark = 'lastBook'
+    this._mode = 'READ'
+    this._database = 'session db'
+    this._onComplete = 'moked'
   }
 
   _acquireConnection (callback) {
     this._called++
     return callback(this._connection)
   }
+}
+
+function fakeOnCompleted (raw = null) {
+  return ({ onCompleted }) => onCompleted(raw)
+}
+
+function fakeOnError (error) {
+  return ({ onError }) => onError(error)
 }
