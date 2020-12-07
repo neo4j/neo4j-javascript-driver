@@ -308,6 +308,14 @@ describe('#unit RouteObserver', () => {
 })
 
 describe('#unit ProcedureRouteObserver', () => {
+  it('should call resultObserver.subscribe on the constructor', () => {
+    const resultObserver = new FakeResultStreamObserver()
+    const observer = newRouteObserver({ resultObserver })
+
+    expect(resultObserver.subscribedObservers.length).toEqual(1)
+    expect(resultObserver.subscribedObservers[0]).toEqual(observer)
+  })
+
   it('should call onCompleted with the RawRoutingTable of Record if it has 1 records', () => {
     let onCompleteCalled = false
     const record = new Record(['a'], ['b'])
