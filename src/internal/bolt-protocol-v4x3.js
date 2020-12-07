@@ -41,6 +41,7 @@ export default class BoltProtocol extends BoltProtocolV42 {
   requestRoutingInformation ({
     routingContext = {},
     databaseName = null,
+    initialAddress = null,
     onError,
     onComplete
   }) {
@@ -51,7 +52,10 @@ export default class BoltProtocol extends BoltProtocolV42 {
     })
 
     this._connection.write(
-      RequestMessage.route(routingContext, databaseName),
+      RequestMessage.route(
+        { ...routingContext, address: initialAddress },
+        databaseName
+      ),
       observer,
       true
     )

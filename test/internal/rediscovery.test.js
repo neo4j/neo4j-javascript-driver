@@ -21,7 +21,7 @@ import Rediscovery from '../../src/internal/rediscovery'
 import RoutingTable from '../../src/internal/routing-table'
 import ServerAddress from '../../src/internal/server-address'
 
-describe('#unit Rediscovery', () => {
+xdescribe('#unit Rediscovery', () => {
   it('should return the routing table when it available', async () => {
     const expectedRoutingTable = new RoutingTable({
       database: 'db',

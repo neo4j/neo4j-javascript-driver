@@ -20,7 +20,8 @@
 import FakeConnection from './fake-connection'
 import {
   ResultStreamObserver,
-  RouteObserver
+  RouteObserver,
+  ResponseRawRoutingTable
 } from '../../src/internal/stream-observers'
 import { newError } from '../../lib/error'
 import { PROTOCOL_ERROR } from '../../src/error'
@@ -207,7 +208,7 @@ describe('#unit RouteObserver', () => {
     newRouteObserver({
       onComplete: metadata => {
         onCompleteCalled = true
-        expect(metadata).toBe(expectedMetadata)
+        expect(metadata).toEqual(new ResponseRawRoutingTable(expectedMetadata))
       }
     }).onCompleted(expectedMetadata)
 

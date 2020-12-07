@@ -23,6 +23,7 @@ import utils from './test-utils'
 import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
+import { RouteObserver } from '../../src/internal/stream-observers'
 
 describe('#unit BoltProtocolV4x3', () => {
   beforeEach(() => {
@@ -42,9 +43,10 @@ describe('#unit BoltProtocolV4x3', () => {
 
     recorder.verifyMessageCount(1)
     expect(recorder.messages[0]).toBeMessage(
-      RequestMessage.route(routingContext, databaseName)
+      RequestMessage.route({ ...routingContext, address: null }, databaseName)
     )
     expect(recorder.observers).toEqual([observer])
+    expect(observer).toEqual(jasmine.any(RouteObserver))
     expect(recorder.flushes).toEqual([true])
   })
 

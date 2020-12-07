@@ -16,11 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { int } from '../integer'
+import Integer, { int } from '../integer'
 import { READ, WRITE } from '../driver'
+import ServerAddress from './server-address'
+import { newError } from '../../lib/error'
+import { PROTOCOL_ERROR } from '../error'
 
 const MIN_ROUTERS = 1
 
+/**
+ * The routing table object used to determine the role of the servers in the driver.
+ */
 export default class RoutingTable {
   constructor ({ database, routers, readers, writers, expirationTime } = {}) {
     this.database = database
@@ -29,6 +35,18 @@ export default class RoutingTable {
     this.readers = readers || []
     this.writers = writers || []
     this.expirationTime = expirationTime || int(0)
+  }
+
+  /**
+   * Create a valid routing table from a raw object
+   *
+   * @param {string} database the database name. It is used for logging purposes
+   * @param {ServerAddress} routerAddress The router address, it is used for loggin purposes
+   * @param {RawRoutingTable} rawRoutingTable Method used to get the raw routing table to be processed
+   * @param {RoutingTable} The valid Routing Table
+   */
+  static fromRawRoutingTable (database, routerAddress, rawRoutingTable) {
+    return createValidRoutingTable(database, routerAddress, rawRoutingTable)
   }
 
   forget (address) {
@@ -97,4 +115,173 @@ export default class RoutingTable {
  */
 function removeFromArray (array, element) {
   return array.filter(item => item.asKey() !== element.asKey())
+}
+
+/**
+ * Represente the raw version of the routing table
+ */
+export class RawRoutingTable {
+  /**
+   * Get raw ttl
+   *
+   * @returns {number|string} ttl Time to live
+   */
+  get ttl () {
+    throw new Error('Not implemented')
+  }
+
+  /**
+   *
+   * @typedef {Object} ServerRole
+   * @property {string} role the role of the address on the cluster
+   * @property {string[]} addresses the address within the role
+   *
+   * @return {ServerRole[]} list of servers addresses
+   */
+  get servers () {
+    throw new Error('Not implemented')
+  }
+
+  /**
+   * Indicates the result is null
+   *
+   * @returns {boolean} Is null
+   */
+  get isNull () {
+    throw new Error('Not implemented')
+  }
+}
+
+export class NullRawRoutingTable extends RawRoutingTable {
+  get isNull () {
+    return true
+  }
+}
+/**
+ * Create a valid routing table from a raw object
+ *
+ * @param {string} database the database name. It is used for logging purposes
+ * @param {ServerAddress} routerAddress The router address, it is used for loggin purposes
+ * @param {RawRoutingTable} rawRoutingTable Method used to get the raw routing table to be processed
+ * @param {RoutingTable} The valid Routing Table
+ */
+export function createValidRoutingTable (
+  database,
+  routerAddress,
+  rawRoutingTable
+) {
+  const expirationTime = calculateExpirationTime(rawRoutingTable, routerAddress)
+  const { routers, readers, writers } = parseServers(
+    rawRoutingTable,
+    routerAddress
+  )
+
+  assertNonEmpty(routers, 'routers', routerAddress)
+  assertNonEmpty(readers, 'readers', routerAddress)
+
+  return new RoutingTable({
+    database,
+    routers,
+    readers,
+    writers,
+    expirationTime
+  })
+}
+
+/**
+ * Parse server from the RawRoutingTable.
+ *
+ * @param {RawRoutingTable} rawRoutingTable the raw routing table
+ * @param {string} routerAddress the router address
+ * @returns {Object} The object with the list of routers, readers and writers
+ */
+function parseServers (rawRoutingTable, routerAddress) {
+  try {
+    let routers = []
+    let readers = []
+    let writers = []
+
+    rawRoutingTable.servers.forEach(server => {
+      const role = server.role
+      const addresses = server.addresses
+
+      if (role === 'ROUTE') {
+        routers = parseArray(addresses).map(address =>
+          ServerAddress.fromUrl(address)
+        )
+      } else if (role === 'WRITE') {
+        writers = parseArray(addresses).map(address =>
+          ServerAddress.fromUrl(address)
+        )
+      } else if (role === 'READ') {
+        readers = parseArray(addresses).map(address =>
+          ServerAddress.fromUrl(address)
+        )
+      }
+    })
+
+    return {
+      routers: routers,
+      readers: readers,
+      writers: writers
+    }
+  } catch (error) {
+    throw newError(
+      `Unable to parse servers entry from router ${routerAddress} from addresses:\n${JSON.stringify(
+        rawRoutingTable.servers
+      )}\nError message: ${error.message}`,
+      PROTOCOL_ERROR
+    )
+  }
+}
+
+/**
+ * Call the expiration time using the ttls from the raw routing table and return it
+ *
+ * @param {RawRoutingTable} rawRoutingTable the routing table
+ * @param {string} routerAddress the router address
+ * @returns {number} the ttl
+ */
+function calculateExpirationTime (rawRoutingTable, routerAddress) {
+  try {
+    const now = int(Date.now())
+    const expires = int(rawRoutingTable.ttl)
+      .multiply(1000)
+      .add(now)
+    // if the server uses a really big expire time like Long.MAX_VALUE this may have overflowed
+    if (expires.lessThan(now)) {
+      return Integer.MAX_VALUE
+    }
+    return expires
+  } catch (error) {
+    throw newError(
+      `Unable to parse TTL entry from router ${routerAddress} from raw routing table:\n${JSON.stringify(
+        rawRoutingTable
+      )}\nError message: ${error.message}`,
+      PROTOCOL_ERROR
+    )
+  }
+}
+
+/**
+ * Assert if serverAddressesArray is not empty, throws and PROTOCOL_ERROR otherwise
+ *
+ * @param {string[]} serverAddressesArray array of addresses
+ * @param {string} serversName the server name
+ * @param {string} routerAddress the router address
+ */
+function assertNonEmpty (serverAddressesArray, serversName, routerAddress) {
+  if (serverAddressesArray.length === 0) {
+    throw newError(
+      'Received no ' + serversName + ' from router ' + routerAddress,
+      PROTOCOL_ERROR
+    )
+  }
+}
+
+function parseArray (addresses) {
+  if (!Array.isArray(addresses)) {
+    throw new TypeError('Array expected but got: ' + addresses)
+  }
+  return Array.from(addresses)
 }

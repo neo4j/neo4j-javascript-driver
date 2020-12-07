@@ -550,8 +550,29 @@ class RouteObserver extends StreamObserver {
 
   onCompleted (metadata) {
     if (this._onComplete) {
-      this._onComplete(metadata)
+      this._onComplete(new ResponseRawRoutingTable(metadata))
     }
+  }
+}
+
+/**
+ * Get the raw routing table information from route message response
+ */
+export class ResponseRawRoutingTable {
+  constructor (response) {
+    this._response = response
+  }
+
+  get ttl () {
+    return this._response.rt.ttl
+  }
+
+  get servers () {
+    return this._response.rt.servers
+  }
+
+  get isNull () {
+    return this._response === null
   }
 }
 

@@ -22,9 +22,16 @@ import { assertDatabaseIsEmpty } from './bolt-protocol-util'
 import {
   StreamObserver,
   LoginObserver,
-  ResultStreamObserver
+  ResultStreamObserver,
+  RouteObserver
 } from './stream-observers'
 import { BOLT_PROTOCOL_V3 } from './constants'
+import Bookmark from './bookmark'
+import TxConfig from './tx-config'
+import Result from '../result'
+import { newError, PROTOCOL_ERROR } from '../../lib/error'
+const CONTEXT = 'context'
+const CALL_GET_ROUTING_TABLE = `CALL dbms.cluster.routing.getRoutingTable($${CONTEXT})`
 
 const noOpObserver = new StreamObserver()
 
@@ -182,5 +189,85 @@ export default class BoltProtocol extends BoltProtocolV2 {
     this._connection.write(RequestMessage.pullAll(), observer, flush)
 
     return observer
+  }
+
+  /**
+   * Request routing information
+   *
+   * @param {Object} param -
+   * @param {object} param.routingContext The routing context used to define the routing table.
+   *  Multi-datacenter deployments is one of its use cases
+   * @param {string} param.databaseName The database name
+   * @param {Bookmark} params.sessionContext.bookmark The bookmark used for request the routing table
+   * @param {string} params.sessionContext.mode The session mode
+   * @param {string} params.sessionContext.database The database name used on the session
+   * @param {function()} params.sessionContext.afterComplete The session param used after the session closed
+   * @param {function(err: Error)} param.onError
+   * @param {function(metadata)} param.onComplete
+   * @returns {RouteObserver} the route observer
+   */
+  requestRoutingInformation ({
+    routingContext = {},
+    sessionContext = {},
+    onError,
+    onComplete
+  }) {
+    const observer = new RouteObserver({
+      connection: this._connection,
+      onError,
+      onComplete
+    })
+
+    const resultObserserver = this.run(
+      CALL_GET_ROUTING_TABLE,
+      { [CONTEXT]: routingContext },
+      { ...sessionContext, txConfig: TxConfig.empty() }
+    )
+
+    new Result(Promise.resolve(resultObserserver))
+      .then(result => {
+        const records = result.records
+        if (records !== null && records.length !== 1) {
+          throw newError(
+            'Illegal response from router "' +
+              'routerAddress' +
+              '". ' +
+              'Received ' +
+              records.length +
+              ' records but expected only one.\n' +
+              JSON.stringify(records),
+            PROTOCOL_ERROR
+          )
+        }
+        if (onComplete) {
+          onComplete(
+            new RecordRawRoutingTable(records !== null ? records[0] : null)
+          )
+        }
+      })
+      .catch(observer.onError.bind(observer))
+
+    return observer
+  }
+}
+
+/**
+ * Get the raw routing table information from the record
+ */
+export class RecordRawRoutingTable {
+  constructor (record) {
+    this._record = record
+  }
+
+  get ttl () {
+    return this._record.get('ttl')
+  }
+
+  get servers () {
+    return this._record.get('servers')
+  }
+
+  get isNull () {
+    return this._record === null
   }
 }
