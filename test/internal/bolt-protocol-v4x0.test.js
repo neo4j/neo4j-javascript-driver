@@ -23,6 +23,10 @@ import utils from './test-utils'
 import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
+import {
+  ProcedureRouteObserver,
+  ResultStreamObserver
+} from '../../src/internal/stream-observers'
 
 describe('#unit BoltProtocolV4x0', () => {
   beforeEach(() => {
@@ -100,4 +104,56 @@ describe('#unit BoltProtocolV4x0', () => {
 
     expect(protocol.version).toBe(4)
   })
+
+  it('should request the routing table from the correct procedure', () => {
+    const expectedResultObserver = new ResultStreamObserver()
+    const protocol = new SpiedBoltProtocolV4x0(expectedResultObserver)
+    const routingContext = { abc: 'context ' }
+    const sessionContext = { bookmark: 'book' }
+    const databaseName = 'the name'
+    const onError = () => {}
+    const onCompleted = () => {}
+    const initialAddress = 'localhost:1234'
+
+    const observer = protocol.requestRoutingInformation({
+      routingContext,
+      sessionContext,
+      databaseName,
+      initialAddress,
+      onError,
+      onCompleted
+    })
+
+    expect(observer).toEqual(
+      new ProcedureRouteObserver({
+        resultObserver: expectedResultObserver,
+        connection: null,
+        onCompleted,
+        onError
+      })
+    )
+
+    expect(protocol._run.length).toEqual(1)
+    expect(protocol._run[0]).toEqual([
+      'CALL dbms.routing.getRoutingTable($context, $database)',
+      {
+        context: { ...routingContext, address: initialAddress },
+        database: databaseName
+      },
+      { ...sessionContext, txConfig: TxConfig.empty() }
+    ])
+  })
 })
+
+class SpiedBoltProtocolV4x0 extends BoltProtocolV4x0 {
+  constructor (resultObserver) {
+    super(null, null, false)
+    this._run = []
+    this._resultObserver = resultObserver
+  }
+
+  run () {
+    this._run.push([...arguments])
+    return this._resultObserver
+  }
+}

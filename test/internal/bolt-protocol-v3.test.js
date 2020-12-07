@@ -23,6 +23,10 @@ import utils from './test-utils'
 import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
+import {
+  ProcedureRouteObserver,
+  ResultStreamObserver
+} from '../../src/internal/stream-observers'
 
 describe('#unit BoltProtocolV3', () => {
   beforeEach(() => {
@@ -151,6 +155,38 @@ describe('#unit BoltProtocolV3', () => {
     expect(protocol.version).toBe(3)
   })
 
+  it('should request the routing table from the correct procedure', () => {
+    const expectedResultObserver = new ResultStreamObserver()
+    const protocol = new SpiedBoltProtocolV3(expectedResultObserver)
+    const routingContext = { abc: 'context ' }
+    const sessionContext = { bookmark: 'book' }
+    const onError = () => {}
+    const onCompleted = () => {}
+
+    const observer = protocol.requestRoutingInformation({
+      routingContext,
+      sessionContext,
+      onError,
+      onCompleted
+    })
+
+    expect(observer).toEqual(
+      new ProcedureRouteObserver({
+        resultObserver: expectedResultObserver,
+        connection: null,
+        onCompleted,
+        onError
+      })
+    )
+
+    expect(protocol._run.length).toEqual(1)
+    expect(protocol._run[0]).toEqual([
+      'CALL dbms.cluster.routing.getRoutingTable($context)',
+      { context: routingContext },
+      { ...sessionContext, txConfig: TxConfig.empty() }
+    ])
+  })
+
   describe('Bolt V4', () => {
     /**
      * @param {function(protocol: BoltProtocolV3)} fn
@@ -186,3 +222,16 @@ describe('#unit BoltProtocolV3', () => {
     })
   })
 })
+
+class SpiedBoltProtocolV3 extends BoltProtocolV3 {
+  constructor (resultObserver) {
+    super(null, null, false)
+    this._run = []
+    this._resultObserver = resultObserver
+  }
+
+  run () {
+    this._run.push([...arguments])
+    return this._resultObserver
+  }
+}
