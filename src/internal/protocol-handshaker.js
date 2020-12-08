@@ -156,7 +156,7 @@ function newHandshakeBuffer () {
   handshakeBuffer.writeInt32(BOLT_MAGIC_PREAMBLE)
 
   // proposed versions
-  handshakeBuffer.writeInt32((3 << 8) | 4)
+  handshakeBuffer.writeInt32((1 << 16) | (3 << 8) | 4)
   handshakeBuffer.writeInt32((1 << 8) | 4)
   handshakeBuffer.writeInt32(4)
   handshakeBuffer.writeInt32(3)
