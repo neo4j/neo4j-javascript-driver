@@ -123,7 +123,7 @@ describe('#integration ChannelConnection', () => {
     connection._negotiateProtocol()
 
     const boltMagicPreamble = '60 60 b0 17'
-    const protocolVersion4x3 = '00 00 03 04'
+    const protocolVersion4x3 = '00 01 03 04'
     const protocolVersion4x1 = '00 00 01 04'
     const protocolVersion4x0 = '00 00 00 04'
     const protocolVersion3 = '00 00 00 03'
