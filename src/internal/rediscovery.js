@@ -17,17 +17,23 @@
  * limitations under the License.
  */
 import RoutingTable from './routing-table'
+import RawRoutingTable from './routing-table-raw'
 import Session from '../session'
-import { RoutingTableGetterFactory } from './routing-table-getter'
 import ServerAddress from './server-address'
+import { newError, SERVICE_UNAVAILABLE } from '../error'
+
+const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
+const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
 
 export default class Rediscovery {
   /**
    * @constructor
-   * @param {RoutingTableGetterFactory} routingTableGetterFactory the util to use.
+   * @param {object} routingContext
+   * @param {string} initialAddress
    */
-  constructor (routingTableGetterFactory) {
-    this._routingTableGetterFactory = routingTableGetterFactory
+  constructor (routingContext, initialAddress) {
+    this._routingContext = routingContext
+    this._initialAddress = initialAddress
   }
 
   /**
@@ -39,15 +45,55 @@ export default class Rediscovery {
    */
   lookupRoutingTableOnRouter (session, database, routerAddress) {
     return session._acquireConnection(connection => {
-      const routingTableGetter = this._routingTableGetterFactory.create(
-        connection
-      )
-      return routingTableGetter.get(
+      return this._requestRawRoutingTable(
         connection,
+        session,
         database,
-        routerAddress,
-        session
-      )
+        routerAddress
+      ).then(rawRoutingTable => {
+        if (rawRoutingTable.isNull) {
+          return null
+        }
+        return RoutingTable.fromRawRoutingTable(
+          database,
+          routerAddress,
+          rawRoutingTable
+        )
+      })
+    })
+  }
+
+  _requestRawRoutingTable (connection, session, database, routerAddress) {
+    return new Promise((resolve, reject) => {
+      connection.protocol().requestRoutingInformation({
+        routingContext: this._routingContext,
+        initialAddress: this._initialAddress,
+        databaseName: database,
+        sessionContext: {
+          bookmark: session._lastBookmark,
+          mode: session._mode,
+          database: session._database,
+          afterComplete: session._onComplete
+        },
+        onCompleted: resolve,
+        onError: error => {
+          if (error.code === DATABASE_NOT_FOUND_CODE) {
+            reject(error)
+          } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
+            // throw when getServers procedure not found because this is clearly a configuration issue
+            reject(
+              newError(
+                `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
+                SERVICE_UNAVAILABLE
+              )
+            )
+          } else {
+            // return nothing when failed to connect because code higher in the callstack is still able to retry with a
+            // different session towards a different router
+            resolve(RawRoutingTable.ofNull())
+          }
+        }
+      })
     })
   }
 }

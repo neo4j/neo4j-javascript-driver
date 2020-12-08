@@ -40,6 +40,7 @@ export default class FakeConnection extends Connection {
     this._open = true
     this._id = 0
     this._databaseId = null
+    this._requestRoutingInformationMock = null
     this.creationTimestamp = Date.now()
 
     this.resetInvoked = 0
@@ -49,6 +50,9 @@ export default class FakeConnection extends Connection {
     this.seenProtocolOptions = []
     this._server = {}
     this.protocolVersion = undefined
+    this.protocolErrorsHandled = 0
+    this.seenProtocolErrors = []
+    this.seenRequestRoutingInformation = []
   }
 
   get id () {
@@ -83,6 +87,12 @@ export default class FakeConnection extends Connection {
         this.seenParameters.push(parameters)
         this.seenProtocolOptions.push(protocolOptions)
       },
+      requestRoutingInformation: params => {
+        this.seenRequestRoutingInformation.push(params)
+        if (this._requestRoutingInformationMock) {
+          this._requestRoutingInformationMock(params)
+        }
+      },
       version: this.protocolVersion
     }
   }
@@ -113,6 +123,11 @@ export default class FakeConnection extends Connection {
     return this.resetInvoked === times && this.releaseInvoked === times
   }
 
+  _handleProtocolError (message) {
+    this.protocolErrorsHandled++
+    this.seenProtocolErrors.push(message)
+  }
+
   withServerVersion (version) {
     this.version = version
     const serverVersion = ServerVersion.fromString(version)
@@ -139,6 +154,11 @@ export default class FakeConnection extends Connection {
 
   withCreationTimestamp (value) {
     this.creationTimestamp = value
+    return this
+  }
+
+  withRequestRoutingInformationMock (requestRoutingInformationMock) {
+    this._requestRoutingInformationMock = requestRoutingInformationMock
     return this
   }
 

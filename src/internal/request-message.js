@@ -35,6 +35,7 @@ const GOODBYE = 0x02 // 0000 0010 // GOODBYE
 const BEGIN = 0x11 // 0001 0001 // BEGIN <metadata>
 const COMMIT = 0x12 // 0001 0010 // COMMIT
 const ROLLBACK = 0x13 // 0001 0011 // ROLLBACK
+const ROUTE = 0x66 // 0110 0110 // ROUTE
 
 const DISCARD = 0x2f // 0010 1111 // DISCARD
 const PULL = 0x3f // 0011 1111 // PULL
@@ -207,6 +208,21 @@ export default class RequestMessage {
       DISCARD,
       [metadata],
       () => `DISCARD ${JSON.stringify(metadata)}`
+    )
+  }
+
+  /**
+   * Generate the ROUTE message, this message is used to fetch the routing table from the server
+   *
+   * @param {object} routingContext The routing context used to define the routing table. Multi-datacenter deployments is one of its use cases
+   * @param {string} databaseName The name of the database to get the routing table for.
+   * @return {RequestMessage} the ROUTE message.
+   */
+  static route (routingContext = {}, databaseName = null) {
+    return new RequestMessage(
+      ROUTE,
+      [routingContext, databaseName],
+      () => `ROUTE ${JSON.stringify(routingContext)} ${databaseName}`
     )
   }
 }

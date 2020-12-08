@@ -20,6 +20,8 @@
 import ProtocolHandshaker from '../../src/internal/protocol-handshaker'
 import Logger from '../../src/internal/logger'
 import BoltProtocol from '../../src/internal/bolt-protocol-v1'
+import BoltProtocolV4x3 from '../../src/internal/bolt-protocol-v4x3'
+
 import { alloc } from '../../src/internal/node'
 
 describe('#unit ProtocolHandshaker', () => {
@@ -42,13 +44,13 @@ describe('#unit ProtocolHandshaker', () => {
     expect(writtenBuffers.length).toEqual(1)
 
     const boltMagicPreamble = '60 60 b0 17'
-    const protocolVersion4x2 = '00 00 02 04'
+    const protocolVersion4x3 = '00 00 03 04'
     const protocolVersion4x1 = '00 00 01 04'
     const protocolVersion4x0 = '00 00 00 04'
     const protocolVersion3 = '00 00 00 03'
 
     expect(writtenBuffers[0].toHex()).toEqual(
-      `${boltMagicPreamble} ${protocolVersion4x2} ${protocolVersion4x1} ${protocolVersion4x0} ${protocolVersion3}`
+      `${boltMagicPreamble} ${protocolVersion4x3} ${protocolVersion4x1} ${protocolVersion4x0} ${protocolVersion3}`
     )
   })
 
@@ -69,6 +71,26 @@ describe('#unit ProtocolHandshaker', () => {
     expect(protocol).toBeDefined()
     expect(protocol).not.toBeNull()
     expect(protocol instanceof BoltProtocol).toBeTruthy()
+  })
+
+  it('should create protocol 4.3', () => {
+    const handshaker = new ProtocolHandshaker(
+      null,
+      null,
+      null,
+      false,
+      Logger.noOp()
+    )
+
+    // buffer with Bolt V4.3
+    const buffer = handshakeResponse(4, 3)
+
+    const protocol = handshaker.createNegotiatedProtocol(buffer)
+
+    expect(protocol).toBeDefined()
+    expect(protocol).not.toBeNull()
+    expect(protocol.version).toEqual(4.3)
+    expect(protocol instanceof BoltProtocolV4x3).toBeTruthy()
   })
 
   it('should fail to create protocol from invalid version', () => {
@@ -106,9 +128,9 @@ describe('#unit ProtocolHandshaker', () => {
  * @param {number} version
  * @return {BaseBuffer}
  */
-function handshakeResponse (version) {
+function handshakeResponse (version, minor = 0) {
   const buffer = alloc(4)
-  buffer.writeInt32(version)
+  buffer.writeInt32((minor << 8) | version)
   buffer.reset()
   return buffer
 }

@@ -18,7 +18,14 @@
  */
 
 import FakeConnection from './fake-connection'
-import { ResultStreamObserver } from '../../src/internal/stream-observers'
+import {
+  ResultStreamObserver,
+  RouteObserver,
+  ProcedureRouteObserver
+} from '../../src/internal/stream-observers'
+import RawRoutingTable from '../../src/internal/routing-table-raw'
+import { PROTOCOL_ERROR, newError } from '../../src/error'
+import Record from '../../src/record'
 
 const NO_OP = () => {}
 
@@ -191,6 +198,283 @@ describe('#unit ResultStreamObserver', () => {
       }
     })
   })
+})
+
+describe('#unit RouteObserver', () => {
+  it('should call onCompleted with the metadata', () => {
+    let onCompleteCalled = false
+    const expectedMetadata = { someMeta: '134' }
+
+    newRouteObserver({
+      onCompleted: metadata => {
+        onCompleteCalled = true
+        expect(metadata).toEqual(
+          RawRoutingTable.ofMessageResponse(expectedMetadata)
+        )
+      }
+    }).onCompleted(expectedMetadata)
+
+    expect(onCompleteCalled).toEqual(true)
+  })
+
+  it('should call onError with the error', () => {
+    let onErrorCalled = false
+    const expectedError = newError('something wrong')
+
+    newRouteObserver({
+      onError: metadata => {
+        onErrorCalled = true
+        expect(metadata).toBe(expectedError)
+      }
+    }).onError(expectedError)
+
+    expect(onErrorCalled).toEqual(true)
+  })
+
+  it('should call onError with a protocol error', () => {
+    let onErrorCalled = false
+    const expectedError = newError('something wrong', PROTOCOL_ERROR)
+
+    newRouteObserver({
+      onError: metadata => {
+        onErrorCalled = true
+        expect(metadata).toBe(expectedError)
+      }
+    }).onError(expectedError)
+
+    expect(onErrorCalled).toEqual(true)
+  })
+
+  it('should call connection._handleProtocolError when a protocol error occurs', () => {
+    const connection = new FakeConnection()
+    const expectedError = newError('something wrong', PROTOCOL_ERROR)
+
+    newRouteObserver({
+      onError: null,
+      connection
+    }).onError(expectedError)
+
+    expect(connection.protocolErrorsHandled).toEqual(1)
+    expect(connection.seenProtocolErrors).toEqual([expectedError.message])
+  })
+
+  it('should call onError with a protocol error it receive a record', () => {
+    let onErrorCalled = false
+    const record = new Record(['a'], ['b'])
+    const expectedError = newError(
+      'Received RECORD when resetting: received record is: ' +
+        JSON.stringify(record),
+      PROTOCOL_ERROR
+    )
+
+    newRouteObserver({
+      onError: error => {
+        onErrorCalled = true
+        expect(error).toEqual(expectedError)
+      }
+    }).onNext(record)
+
+    expect(onErrorCalled).toEqual(true)
+  })
+
+  it('should call connection._handleProtocolError with a protocol error it receive a record', () => {
+    const connection = new FakeConnection()
+    const record = new Record(['a'], ['b'])
+    const expectedErrorMessage =
+      'Received RECORD when resetting: received record is: ' +
+      JSON.stringify(record)
+
+    newRouteObserver({
+      onError: null,
+      connection
+    }).onNext(record)
+
+    expect(connection.protocolErrorsHandled).toEqual(1)
+    expect(connection.seenProtocolErrors).toEqual([expectedErrorMessage])
+  })
+
+  function newRouteObserver ({
+    onCompleted = shouldNotBeCalled('onComplete'),
+    onError = shouldNotBeCalled('onError'),
+    connection = new FakeConnection()
+  } = {}) {
+    return new RouteObserver({ connection, onCompleted, onError })
+  }
+
+  function shouldNotBeCalled (methodName) {
+    return () => fail(`${methodName} should not be called`)
+  }
+})
+
+describe('#unit ProcedureRouteObserver', () => {
+  it('should call resultObserver.subscribe on the constructor', () => {
+    const resultObserver = new FakeResultStreamObserver()
+    const observer = newRouteObserver({ resultObserver })
+
+    expect(resultObserver.subscribedObservers.length).toEqual(1)
+    expect(resultObserver.subscribedObservers[0]).toEqual(observer)
+  })
+
+  it('should call onCompleted with the RawRoutingTable of Record if it has 1 records', () => {
+    let onCompleteCalled = false
+    const record = new Record(['a'], ['b'])
+    const observer = newRouteObserver({
+      onCompleted: metadata => {
+        onCompleteCalled = true
+        expect(metadata).toEqual(RawRoutingTable.ofRecord(record))
+      }
+    })
+
+    observer.onNext(record)
+    observer.onCompleted()
+
+    expect(onCompleteCalled).toEqual(true)
+  })
+
+  it('should call onError with a protocol error it receive 0 records', () => {
+    let onErrorCalled = false
+    const expectedError = newError(
+      'Illegal response from router. Received 0 records but expected only one.\n' +
+        JSON.stringify([]),
+      PROTOCOL_ERROR
+    )
+    const observer = newRouteObserver({
+      onError: error => {
+        onErrorCalled = true
+        expect(error).toEqual(expectedError)
+      }
+    })
+
+    observer.onCompleted()
+
+    expect(onErrorCalled).toEqual(true)
+  })
+
+  it('should call connection._handleProtocolError with a protocol error it receive 0 records', () => {
+    const connection = new FakeConnection()
+    const expectedErrorMessage =
+      'Illegal response from router. Received 0 records but expected only one.\n' +
+      JSON.stringify([])
+
+    newRouteObserver({
+      onError: null,
+      connection
+    }).onCompleted()
+
+    expect(connection.protocolErrorsHandled).toEqual(1)
+    expect(connection.seenProtocolErrors).toEqual([expectedErrorMessage])
+  })
+
+  it('should call onError with a protocol error it receive more than one record', () => {
+    let onErrorCalled = false
+    const record = new Record(['a'], ['b'])
+    const expectedError = newError(
+      'Illegal response from router. Received 2 records but expected only one.\n' +
+        JSON.stringify([record, record]),
+      PROTOCOL_ERROR
+    )
+    const observer = newRouteObserver({
+      onError: error => {
+        onErrorCalled = true
+        expect(error).toEqual(expectedError)
+      }
+    })
+
+    observer.onNext(record)
+    observer.onNext(record)
+    observer.onCompleted()
+
+    expect(onErrorCalled).toEqual(true)
+  })
+
+  it('should call connection._handleProtocolError with a protocol error it receive 0 records', () => {
+    const connection = new FakeConnection()
+    const record = new Record(['a'], ['b'])
+    const expectedErrorMessage =
+      'Illegal response from router. Received 2 records but expected only one.\n' +
+      JSON.stringify([record, record])
+
+    const observer = newRouteObserver({
+      onError: null,
+      connection
+    })
+
+    observer.onNext(record)
+    observer.onNext(record)
+    observer.onCompleted()
+
+    expect(connection.protocolErrorsHandled).toEqual(1)
+    expect(connection.seenProtocolErrors).toEqual([expectedErrorMessage])
+  })
+
+  it('should call onError with the error', () => {
+    let onErrorCalled = false
+    const expectedError = newError('something wrong')
+
+    newRouteObserver({
+      onError: metadata => {
+        onErrorCalled = true
+        expect(metadata).toBe(expectedError)
+      }
+    }).onError(expectedError)
+
+    expect(onErrorCalled).toEqual(true)
+  })
+
+  it('should call onError with a protocol error', () => {
+    let onErrorCalled = false
+    const expectedError = newError('something wrong', PROTOCOL_ERROR)
+
+    newRouteObserver({
+      onError: metadata => {
+        onErrorCalled = true
+        expect(metadata).toBe(expectedError)
+      }
+    }).onError(expectedError)
+
+    expect(onErrorCalled).toEqual(true)
+  })
+
+  it('should call connection._handleProtocolError when a protocol error occurs', () => {
+    const connection = new FakeConnection()
+    const expectedError = newError('something wrong', PROTOCOL_ERROR)
+
+    newRouteObserver({
+      onError: null,
+      connection
+    }).onError(expectedError)
+
+    expect(connection.protocolErrorsHandled).toEqual(1)
+    expect(connection.seenProtocolErrors).toEqual([expectedError.message])
+  })
+
+  function newRouteObserver ({
+    onCompleted = shouldNotBeCalled('onComplete'),
+    onError = shouldNotBeCalled('onError'),
+    connection = new FakeConnection(),
+    resultObserver = new FakeResultStreamObserver()
+  } = {}) {
+    return new ProcedureRouteObserver({
+      resultObserver,
+      connection,
+      onCompleted,
+      onError
+    })
+  }
+
+  function shouldNotBeCalled (methodName) {
+    return () => fail(`${methodName} should not be called`)
+  }
+
+  class FakeResultStreamObserver {
+    constructor () {
+      this.subscribedObservers = []
+    }
+
+    subscribe (observer) {
+      this.subscribedObservers.push(observer)
+    }
+  }
 })
 
 function newStreamObserver (connection) {

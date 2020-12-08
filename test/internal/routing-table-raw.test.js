@@ -1,0 +1,172 @@
+import RawRoutingTable from '../../src/internal/routing-table-raw'
+import Record from '../../src/record'
+
+describe('#unit RawRoutingTable', () => {
+  describe('ofNull', () => {
+    shouldReturnNullRawRoutingTable(() => RawRoutingTable.ofNull())
+  })
+
+  describe('ofRecord', () => {
+    describe('when record is null', () => {
+      shouldReturnNullRawRoutingTable(() => RawRoutingTable.ofRecord(null))
+    })
+
+    describe('when record has servers and ttl', () => {
+      it('should return isNull equals false', () => {
+        const record = newRecord({
+          ttl: 123,
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.isNull).toEqual(false)
+      })
+
+      it('should return the ttl', () => {
+        const record = newRecord({
+          ttl: 123,
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.ttl).toEqual(123)
+      })
+
+      it('should return the ttl', () => {
+        const record = newRecord({
+          ttl: 123,
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.servers).toEqual([
+          { role: 'READ', addresses: ['127.0.0.1'] }
+        ])
+      })
+    })
+
+    describe('when record has servers and but no ttl', () => {
+      it('should return isNull equals false', () => {
+        const record = newRecord({
+          noTtl: 123,
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.isNull).toEqual(false)
+      })
+
+      it('should throws when try to get ttl', () => {
+        const record = newRecord({
+          noTtl: 123,
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(() => result.ttl).toThrow()
+      })
+
+      it('should return the servers', () => {
+        const record = newRecord({
+          noTtl: 123,
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.servers).toEqual([
+          { role: 'READ', addresses: ['127.0.0.1'] }
+        ])
+      })
+    })
+
+    describe('when record has ttl and but no servers', () => {
+      it('should return isNull equals false', () => {
+        const record = newRecord({
+          ttl: 123,
+          noServers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.isNull).toEqual(false)
+      })
+
+      it('should return the ttl', () => {
+        const record = newRecord({
+          ttl: 123,
+          noServers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.ttl).toEqual(123)
+      })
+
+      it('should hrows when try to get servers', () => {
+        const record = newRecord({
+          ttl: 123,
+          noServers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(() => result.servers).toThrow()
+      })
+    })
+  })
+
+  describe('ofMessageResponse', () => {
+    shouldReturnNullRawRoutingTable(() =>
+      RawRoutingTable.ofMessageResponse(null)
+    )
+
+    it('should return isNull equals false', () => {
+      const response = newResponse({
+        ttl: 123,
+        servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+      })
+      const result = RawRoutingTable.ofMessageResponse(response)
+      expect(result.isNull).toEqual(false)
+    })
+
+    it('should return the ttl', () => {
+      const response = newResponse({
+        ttl: 123,
+        servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+      })
+      const result = RawRoutingTable.ofMessageResponse(response)
+      expect(result.ttl).toEqual(123)
+    })
+
+    it('should return the ttl', () => {
+      const response = newResponse({
+        ttl: 123,
+        servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+      })
+      const result = RawRoutingTable.ofMessageResponse(response)
+      expect(result.servers).toEqual([
+        { role: 'READ', addresses: ['127.0.0.1'] }
+      ])
+    })
+  })
+
+  function shouldReturnNullRawRoutingTable (subject) {
+    it('should create a null routing table', () => {
+      const result = subject()
+
+      expect(result.isNull).toEqual(true)
+    })
+
+    it('should not implement ttl', () => {
+      expect(() => {
+        const ttl = subject().ttl
+        fail(`it should not return ${ttl}`)
+      }).toThrow(new Error('Not implemented'))
+    })
+
+    it('should not implement servers', () => {
+      expect(() => {
+        const servers = subject().servers
+        fail(`it should not return ${servers}`)
+      }).toThrow(new Error('Not implemented'))
+    })
+  }
+
+  function newRecord (params = {}) {
+    return new Record(Object.keys(params), Object.values(params))
+  }
+
+  function newResponse (params = {}) {
+    return {
+      rt: { ...params }
+    }
+  }
+})

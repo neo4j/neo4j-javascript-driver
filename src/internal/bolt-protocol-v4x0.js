@@ -18,8 +18,17 @@
  */
 import BoltProtocolV3 from './bolt-protocol-v3'
 import RequestMessage, { ALL } from './request-message'
-import { ResultStreamObserver } from './stream-observers'
+import {
+  ResultStreamObserver,
+  ProcedureRouteObserver
+} from './stream-observers'
 import { BOLT_PROTOCOL_V4_0 } from './constants'
+import Bookmark from './bookmark'
+import TxConfig from './tx-config'
+
+const CONTEXT = 'context'
+const DATABASE = 'database'
+const CALL_GET_ROUTING_TABLE_MULTI_DB = `CALL dbms.routing.getRoutingTable($${CONTEXT}, $${DATABASE})`
 
 export default class BoltProtocol extends BoltProtocolV3 {
   get version () {
@@ -119,4 +128,44 @@ export default class BoltProtocol extends BoltProtocolV3 {
   }
 
   _noOp () {}
+
+  /**
+   * Request routing information
+   *
+   * @param {Object} param -
+   * @param {object} param.routingContext The routing context used to define the routing table.
+   *  Multi-datacenter deployments is one of its use cases
+   * @param {string} param.databaseName The database name
+   * @param {Bookmark} params.sessionContext.bookmark The bookmark used for request the routing table
+   * @param {string} params.sessionContext.mode The session mode
+   * @param {string} params.sessionContext.database The database name used on the session
+   * @param {function()} params.sessionContext.afterComplete The session param used after the session closed
+   * @param {function(err: Error)} param.onError
+   * @param {function(RawRoutingTable)} param.onCompleted
+   * @returns {RouteObserver} the route observer
+   */
+  requestRoutingInformation ({
+    routingContext = {},
+    databaseName = null,
+    sessionContext = {},
+    initialAddress = null,
+    onError,
+    onCompleted
+  }) {
+    const resultObserver = this.run(
+      CALL_GET_ROUTING_TABLE_MULTI_DB,
+      {
+        [CONTEXT]: { ...routingContext, address: initialAddress },
+        [DATABASE]: databaseName
+      },
+      { ...sessionContext, txConfig: TxConfig.empty() }
+    )
+
+    return new ProcedureRouteObserver({
+      resultObserver,
+      connection: this._connection,
+      onError,
+      onCompleted
+    })
+  }
 }

@@ -22,9 +22,14 @@ import { assertDatabaseIsEmpty } from './bolt-protocol-util'
 import {
   StreamObserver,
   LoginObserver,
-  ResultStreamObserver
+  ResultStreamObserver,
+  ProcedureRouteObserver
 } from './stream-observers'
 import { BOLT_PROTOCOL_V3 } from './constants'
+import Bookmark from './bookmark'
+import TxConfig from './tx-config'
+const CONTEXT = 'context'
+const CALL_GET_ROUTING_TABLE = `CALL dbms.cluster.routing.getRoutingTable($${CONTEXT})`
 
 const noOpObserver = new StreamObserver()
 
@@ -182,5 +187,40 @@ export default class BoltProtocol extends BoltProtocolV2 {
     this._connection.write(RequestMessage.pullAll(), observer, flush)
 
     return observer
+  }
+
+  /**
+   * Request routing information
+   *
+   * @param {Object} param -
+   * @param {object} param.routingContext The routing context used to define the routing table.
+   *  Multi-datacenter deployments is one of its use cases
+   * @param {string} param.databaseName The database name
+   * @param {Bookmark} params.sessionContext.bookmark The bookmark used for request the routing table
+   * @param {string} params.sessionContext.mode The session mode
+   * @param {string} params.sessionContext.database The database name used on the session
+   * @param {function()} params.sessionContext.afterComplete The session param used after the session closed
+   * @param {function(err: Error)} param.onError
+   * @param {function(RawRoutingTable)} param.onCompleted
+   * @returns {RouteObserver} the route observer
+   */
+  requestRoutingInformation ({
+    routingContext = {},
+    sessionContext = {},
+    onError,
+    onCompleted
+  }) {
+    const resultObserver = this.run(
+      CALL_GET_ROUTING_TABLE,
+      { [CONTEXT]: routingContext },
+      { ...sessionContext, txConfig: TxConfig.empty() }
+    )
+
+    return new ProcedureRouteObserver({
+      resultObserver,
+      connection: this._connection,
+      onError,
+      onCompleted
+    })
   }
 }

@@ -17,9 +17,21 @@
  * limitations under the License.
  */
 import RoutingTable from '../../src/internal/routing-table'
-import { int } from '../../src/integer'
+import Integer, { int } from '../../src/integer'
 import { READ, WRITE } from '../../src/driver'
 import ServerAddress from '../../src/internal/server-address'
+import RawRoutingTable from '../../src/internal/routing-table-raw'
+import { PROTOCOL_ERROR } from '../../src/error'
+import lolex from 'lolex'
+
+const invalidAddressesFieldValues = [
+  'localhost:1234',
+  [{ address: 'localhost:1244' }],
+  null,
+  23
+]
+
+const invalidTtlValues = [null, undefined]
 
 describe('#unit RoutingTable', () => {
   const server1 = ServerAddress.fromUrl('server1')
@@ -222,6 +234,282 @@ describe('#unit RoutingTable', () => {
     }
   })
 
+  describe('fromRawRoutingTable', () => {
+    it('should return the routing table', () =>
+      runWithClockAt(Date.now(), async currentTime => {
+        const ttl = int(42)
+        const routers = ['router:7699']
+        const readers = ['reader1:7699', 'reader2:7699']
+        const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+        const database = 'db'
+
+        const result = routingTable({
+          database,
+          metadata: newMetadata({ ttl, routers, readers, writers })
+        })
+
+        expect(result).toEqual(
+          new RoutingTable({
+            database,
+            readers: readers.map(r => ServerAddress.fromUrl(r)),
+            routers: routers.map(r => ServerAddress.fromUrl(r)),
+            writers: writers.map(w => ServerAddress.fromUrl(w)),
+            expirationTime: calculateExpirationTime(currentTime, ttl)
+          })
+        )
+      }))
+
+    it('should return Integer.MAX_VALUE as expirationTime when ttl overflowed', async () => {
+      const ttl = int(Integer.MAX_VALUE - 2)
+      const routers = ['router:7699']
+      const readers = ['reader1:7699', 'reader2:7699']
+      const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+      const database = 'db'
+
+      const result = routingTable({
+        database,
+        metadata: newMetadata({ ttl, routers, readers, writers })
+      })
+
+      expect(result.expirationTime).toEqual(Integer.MAX_VALUE)
+    })
+
+    it('should return Integer.MAX_VALUE as expirationTime when ttl is negative', async () => {
+      const ttl = int(-2)
+      const routers = ['router:7699']
+      const readers = ['reader1:7699', 'reader2:7699']
+      const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+      const database = 'db'
+
+      const result = routingTable({
+        database,
+        metadata: newMetadata({ ttl, routers, readers, writers })
+      })
+
+      expect(result.expirationTime).toEqual(Integer.MAX_VALUE)
+    })
+
+    invalidTtlValues.forEach(invalidTtlValue => {
+      it(`should throw PROTOCOL_ERROR when ttl is not valid [${invalidTtlValue}]`, async () => {
+        try {
+          const ttl = invalidTtlValue
+          const routers = ['router:7699']
+          const readers = ['reader1:7699', 'reader2:7699']
+          const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+          const database = 'db'
+
+          routingTable({
+            database,
+            metadata: newMetadata({ ttl, routers, readers, writers })
+          })
+        } catch (error) {
+          expect(error.code).toEqual(PROTOCOL_ERROR)
+          expect(error.message).toContain(
+            'Unable to parse TTL entry from router'
+          )
+        }
+      })
+    })
+
+    it('should throw PROTOCOL_ERROR when ttl is not in the metatadata', async () => {
+      try {
+        const database = 'db'
+
+        routingTable({ database, metadata: { rt: { noTtl: 123 } } })
+      } catch (error) {
+        expect(error.code).toEqual(PROTOCOL_ERROR)
+        expect(error.message).toContain('Unable to parse TTL entry from router')
+      }
+    })
+
+    invalidAddressesFieldValues.forEach(invalidAddressFieldValue => {
+      it(`should throw PROTOCOL_ERROR when routers is not valid [${invalidAddressFieldValue}]`, async () => {
+        try {
+          const routers = invalidAddressFieldValue
+          const readers = ['reader1:7699', 'reader2:7699']
+          const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+          const database = 'db'
+
+          routingTable({
+            database,
+            metadata: newMetadata({ routers, readers, writers })
+          })
+          fail('should not succeed')
+        } catch (error) {
+          expect(error.code).toEqual(PROTOCOL_ERROR)
+          expect(error.message).toContain(
+            'Unable to parse servers entry from router'
+          )
+        }
+      })
+
+      it(`should throw PROTOCOL_ERROR when readers is not valid [${invalidAddressFieldValue}]`, async () => {
+        try {
+          const routers = ['router:7699']
+          const readers = invalidAddressFieldValue
+          const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+          const database = 'db'
+
+          routingTable({
+            database,
+            metadata: newMetadata({ routers, readers, writers })
+          })
+          fail('should not succeed')
+        } catch (error) {
+          expect(error.code).toEqual(PROTOCOL_ERROR)
+          expect(error.message).toContain(
+            'Unable to parse servers entry from router'
+          )
+        }
+      })
+
+      it(`should throw PROTOCOL_ERROR when writers is not valid [${invalidAddressFieldValue}]`, async () => {
+        try {
+          const routers = ['router:7699']
+          const readers = ['reader1:7699', 'reader2:7699']
+          const writers = invalidAddressFieldValue
+          const database = 'db'
+
+          routingTable({
+            database,
+            metadata: newMetadata({ routers, readers, writers })
+          })
+          fail('should not succeed')
+        } catch (error) {
+          expect(error.code).toEqual(PROTOCOL_ERROR)
+          expect(error.message).toContain(
+            'Unable to parse servers entry from router'
+          )
+        }
+      })
+    })
+
+    it('should return the known roles independent of the alien roles', async () => {
+      const routers = ['router:7699']
+      const readers = ['reader1:7699', 'reader2:7699']
+      const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+      const alienRole = {
+        role: 'ALIEN_ROLE',
+        addresses: ['alien:7699']
+      }
+      const database = 'db'
+
+      const result = routingTable({
+        database,
+        metadata: newMetadata({ routers, readers, writers, extra: [alienRole] })
+      })
+
+      expect(result.readers).toEqual(readers.map(r => ServerAddress.fromUrl(r)))
+      expect(result.routers).toEqual(routers.map(r => ServerAddress.fromUrl(r)))
+      expect(result.writers).toEqual(writers.map(r => ServerAddress.fromUrl(r)))
+    })
+
+    it('should throw PROTOCOL_ERROR when there is no routers', async () => {
+      try {
+        const routers = []
+        const readers = ['reader1:7699', 'reader2:7699']
+        const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+        const database = 'db'
+
+        routingTable({
+          database,
+          metadata: newMetadata({ routers, readers, writers })
+        })
+
+        fail('should not succeed')
+      } catch (error) {
+        expect(error.code).toEqual(PROTOCOL_ERROR)
+        expect(error.message).toContain('Received no')
+      }
+    })
+
+    it('should throw PROTOCOL_ERROR when there is no readers', async () => {
+      try {
+        const routers = ['router:7699']
+        const readers = []
+        const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+        const database = 'db'
+
+        routingTable({
+          database,
+          metadata: newMetadata({ routers, readers, writers })
+        })
+
+        fail('should not succeed')
+      } catch (error) {
+        expect(error.code).toEqual(PROTOCOL_ERROR)
+        expect(error.message).toContain('Received no')
+      }
+    })
+
+    it('should return the routing when there is no writers', async () => {
+      const routers = ['router:7699']
+      const readers = ['reader1:7699', 'reader2:7699']
+      const writers = []
+      const database = 'db'
+      const result = routingTable({
+        database,
+        metadata: newMetadata({ routers, readers, writers })
+      })
+
+      expect(result.readers).toEqual(readers.map(r => ServerAddress.fromUrl(r)))
+      expect(result.routers).toEqual(routers.map(r => ServerAddress.fromUrl(r)))
+      expect(result.writers).toEqual(writers.map(r => ServerAddress.fromUrl(r)))
+    })
+
+    function routingTable ({
+      database = 'database',
+      serverAddress = 'localhost:7687',
+      metadata
+    } = {}) {
+      return RoutingTable.fromRawRoutingTable(
+        database,
+        ServerAddress.fromUrl(serverAddress),
+        RawRoutingTable.ofMessageResponse(metadata)
+      )
+    }
+
+    function newMetadata ({
+      ttl = int(42),
+      routers = [],
+      readers = [],
+      writers = [],
+      extra = []
+    } = {}) {
+      const routersField = {
+        role: 'ROUTE',
+        addresses: routers
+      }
+      const readersField = {
+        role: 'READ',
+        addresses: readers
+      }
+      const writersField = {
+        role: 'WRITE',
+        addresses: writers
+      }
+      return {
+        rt: {
+          ttl,
+          servers: [routersField, readersField, writersField, ...extra]
+        }
+      }
+    }
+
+    async function runWithClockAt (currentTime, callback) {
+      const clock = lolex.install()
+      try {
+        clock.setSystemTime(currentTime)
+        return await callback(currentTime)
+      } finally {
+        clock.uninstall()
+      }
+    }
+
+    function calculateExpirationTime (currentTime, ttl) {
+      return int(currentTime + ttl.toNumber() * 1000)
+    }
+  })
   function expired (expiredFor) {
     return Date.now() - (expiredFor || 3600) // expired an hour ago
   }

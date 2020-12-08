@@ -21,6 +21,7 @@ import Connection from './connection'
 import { newError, PROTOCOL_ERROR } from '../error'
 import Integer from '../integer'
 import { ALL } from './request-message'
+import RawRoutingTable from './routing-table-raw'
 
 class StreamObserver {
   onNext (rawRecord) {}
@@ -512,6 +513,96 @@ class CompletedObserver extends ResultStreamObserver {
   }
 }
 
+class ProcedureRouteObserver extends StreamObserver {
+  constructor ({ resultObserver, connection, onError, onCompleted }) {
+    super()
+
+    this._resultObserver = resultObserver
+    this._onError = onError
+    this._onCompleted = onCompleted
+    this._connection = connection
+    this._records = []
+    resultObserver.subscribe(this)
+  }
+
+  onNext (record) {
+    this._records.push(record)
+  }
+
+  onError (error) {
+    if (error.code === PROTOCOL_ERROR) {
+      this._connection._handleProtocolError(error.message)
+    }
+
+    if (this._onError) {
+      this._onError(error)
+    }
+  }
+
+  onCompleted () {
+    if (this._records !== null && this._records.length !== 1) {
+      this.onError(
+        newError(
+          'Illegal response from router. Received ' +
+            this._records.length +
+            ' records but expected only one.\n' +
+            JSON.stringify(this._records),
+          PROTOCOL_ERROR
+        )
+      )
+      return
+    }
+
+    if (this._onCompleted) {
+      console.log('onCompeled exsits', this._records[0])
+      this._onCompleted(RawRoutingTable.ofRecord(this._records[0]))
+    }
+  }
+}
+
+class RouteObserver extends StreamObserver {
+  /**
+   *
+   * @param {Object} param -
+   * @param {Connection} param.connection
+   * @param {function(err: Error)} param.onError
+   * @param {function(RawRoutingTable)} param.onCompleted
+   */
+  constructor ({ connection, onError, onCompleted } = {}) {
+    super()
+
+    this._connection = connection
+    this._onError = onError
+    this._onCompleted = onCompleted
+  }
+
+  onNext (record) {
+    this.onError(
+      newError(
+        'Received RECORD when resetting: received record is: ' +
+          JSON.stringify(record),
+        PROTOCOL_ERROR
+      )
+    )
+  }
+
+  onError (error) {
+    if (error.code === PROTOCOL_ERROR) {
+      this._connection._handleProtocolError(error.message)
+    }
+
+    if (this._onError) {
+      this._onError(error)
+    }
+  }
+
+  onCompleted (metadata) {
+    if (this._onCompleted) {
+      this._onCompleted(RawRoutingTable.ofMessageResponse(metadata))
+    }
+  }
+}
+
 const _states = {
   READY_STREAMING: {
     // async start state
@@ -582,5 +673,7 @@ export {
   LoginObserver,
   ResetObserver,
   FailedObserver,
-  CompletedObserver
+  CompletedObserver,
+  RouteObserver,
+  ProcedureRouteObserver
 }
