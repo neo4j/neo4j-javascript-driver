@@ -1,4 +1,4 @@
-import record from '../../lib/record'
+import Record from '../record'
 
 /**
  * Represente the raw version of the routing table

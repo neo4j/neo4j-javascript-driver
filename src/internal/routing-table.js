@@ -19,8 +19,7 @@
 import Integer, { int } from '../integer'
 import { READ, WRITE } from '../driver'
 import ServerAddress from './server-address'
-import { newError } from '../../lib/error'
-import { PROTOCOL_ERROR } from '../error'
+import { PROTOCOL_ERROR, newError } from '../error'
 
 const MIN_ROUTERS = 1
 

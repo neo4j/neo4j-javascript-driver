@@ -24,8 +24,7 @@ import {
   ProcedureRouteObserver
 } from '../../src/internal/stream-observers'
 import RawRoutingTable from '../../src/internal/routing-table-raw'
-import { newError } from '../../lib/error'
-import { PROTOCOL_ERROR } from '../../src/error'
+import { PROTOCOL_ERROR, newError } from '../../src/error'
 import Record from '../../src/record'
 
 const NO_OP = () => {}

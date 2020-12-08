@@ -21,7 +21,6 @@ import Connection from './connection'
 import { newError, PROTOCOL_ERROR } from '../error'
 import Integer from '../integer'
 import { ALL } from './request-message'
-import connection from '../../lib/internal/connection'
 import RawRoutingTable from './routing-table-raw'
 
 class StreamObserver {
