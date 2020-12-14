@@ -75,7 +75,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('can forget address', () => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
-        '',
+        null,
         [server1, server2],
         [server3, server2],
         [server2, server4]
@@ -86,7 +86,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
     expectRoutingTable(
       connectionProvider,
-      '',
+      null,
       [server1, server2],
       [server3],
       [server4]
@@ -96,7 +96,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('can not forget unknown address', () => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
-        '',
+        null,
         [server1, server2],
         [server3, server4],
         [server5, server6]
@@ -107,7 +107,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
     expectRoutingTable(
       connectionProvider,
-      '',
+      null,
       [server1, server2],
       [server3, server4],
       [server5, server6]
@@ -125,7 +125,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server2],
           [server2, server4]
@@ -144,7 +144,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('can forget writer address', () => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
-        '',
+        null,
         [server1, server2],
         [server3, server2],
         [server2, server4]
@@ -155,7 +155,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
     expectRoutingTable(
       connectionProvider,
-      '',
+      null,
       [server1, server2],
       [server3, server2],
       [server4]
@@ -165,7 +165,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('can not forget unknown writer address', () => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
-        '',
+        null,
         [server1, server2],
         [server3, server4],
         [server5, server6]
@@ -176,7 +176,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
     expectRoutingTable(
       connectionProvider,
-      '',
+      null,
       [server1, server2],
       [server3, server4],
       [server5, server6]
@@ -188,7 +188,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6]
@@ -199,13 +199,13 @@ describe('#unit RoutingConnectionProvider', () => {
 
     const conn1 = await connectionProvider.acquireConnection({
       accessMode: READ,
-      database: ''
+      database: null
     })
     expect(conn1 instanceof DelegateConnection).toBeTruthy()
 
     const conn2 = await connectionProvider.acquireConnection({
       accessMode: WRITE,
-      database: ''
+      database: null
     })
     expect(conn2 instanceof DelegateConnection).toBeTruthy()
   })
@@ -215,7 +215,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6]
@@ -225,13 +225,13 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(connection => {
         expect(connection.address).toEqual(server3)
         expect(pool.has(server3)).toBeTruthy()
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .then(connection => {
             expect(connection.address).toEqual(server4)
             expect(pool.has(server4)).toBeTruthy()
@@ -246,7 +246,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6]
@@ -256,13 +256,13 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .then(connection => {
         expect(connection.address).toEqual(server5)
         expect(pool.has(server5)).toBeTruthy()
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .then(connection => {
             expect(connection.address).toEqual(server6)
             expect(pool.has(server6)).toBeTruthy()
@@ -275,7 +275,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('throws for illegal access mode', done => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
-        '',
+        null,
         [server1, server2],
         [server3, server4],
         [server5, server6]
@@ -283,7 +283,7 @@ describe('#unit RoutingConnectionProvider', () => {
     ])
 
     connectionProvider
-      .acquireConnection({ accessMode: 'WRONG', database: '' })
+      .acquireConnection({ accessMode: 'WRONG', database: null })
       .catch(error => {
         expect(error.message).toEqual('Illegal mode WRONG')
         done()
@@ -293,7 +293,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('refreshes stale routing table to get read connection', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -301,7 +301,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -309,17 +309,17 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       pool,
-      { '': { 'server1:7687': updatedRoutingTable } }
+      { null: { 'server1:7687': updatedRoutingTable } }
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(connection => {
         expect(connection.address).toEqual(serverC)
         expect(pool.has(serverC)).toBeTruthy()
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .then(connection => {
             expect(connection.address).toEqual(serverD)
             expect(pool.has(serverD)).toBeTruthy()
@@ -332,7 +332,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('refreshes stale routing table to get write connection', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -340,7 +340,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -348,17 +348,17 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       pool,
-      { '': { 'server1:7687': updatedRoutingTable } }
+      { null: { 'server1:7687': updatedRoutingTable } }
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .then(connection => {
         expect(connection.address).toEqual(serverE)
         expect(pool.has(serverE)).toBeTruthy()
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .then(connection => {
             expect(connection.address).toEqual(serverF)
             expect(pool.has(serverF)).toBeTruthy()
@@ -371,7 +371,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('refreshes stale routing table to get read connection when one router fails', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -379,7 +379,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -388,7 +388,7 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       pool,
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': updatedRoutingTable
         }
@@ -396,13 +396,13 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(connection => {
         expect(connection.address).toEqual(serverC)
         expect(pool.has(serverC)).toBeTruthy()
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .then(connection => {
             expect(connection.address).toEqual(serverD)
             expect(pool.has(serverD)).toBeTruthy()
@@ -415,7 +415,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('refreshes stale routing table to get write connection when one router fails', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -423,7 +423,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -432,7 +432,7 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       pool,
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': updatedRoutingTable
         }
@@ -440,13 +440,13 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .then(connection => {
         expect(connection.address).toEqual(serverE)
         expect(pool.has(serverE)).toBeTruthy()
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .then(connection => {
             expect(connection.address).toEqual(serverF)
             expect(pool.has(serverF)).toBeTruthy()
@@ -459,7 +459,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('refreshes routing table without readers to get read connection', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -467,7 +467,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [], // no readers
           [server3, server4],
@@ -476,7 +476,7 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       pool,
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': updatedRoutingTable
         }
@@ -484,13 +484,13 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(connection => {
         expect(connection.address).toEqual(serverC)
         expect(pool.has(serverC)).toBeTruthy()
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .then(connection => {
             expect(connection.address).toEqual(serverD)
             expect(pool.has(serverD)).toBeTruthy()
@@ -503,7 +503,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('refreshes routing table without writers to get write connection', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -511,7 +511,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [], // no writers
@@ -520,7 +520,7 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       pool,
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': updatedRoutingTable
         }
@@ -528,13 +528,13 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .then(connection => {
         expect(connection.address).toEqual(serverE)
         expect(pool.has(serverE)).toBeTruthy()
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .then(connection => {
             expect(connection.address).toEqual(serverF)
             expect(pool.has(serverF)).toBeTruthy()
@@ -548,7 +548,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -557,7 +557,7 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       newPool(),
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': null // returns no routing table
         }
@@ -565,7 +565,7 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         done()
@@ -576,7 +576,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -585,7 +585,7 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       newPool(),
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': null // returns no routing table
         }
@@ -593,7 +593,7 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         done()
@@ -602,7 +602,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('throws when all routers return routing tables without readers while getting read connection', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [], // no readers - table can't satisfy connection requirement
       [serverC, serverD]
@@ -610,7 +610,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -619,7 +619,7 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       newPool(),
       {
-        '': {
+        null: {
           'server1:7687': updatedRoutingTable,
           'server2:7687': updatedRoutingTable
         }
@@ -627,7 +627,7 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .catch(error => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         done()
@@ -636,7 +636,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('throws when all routers return routing tables without writers while getting write connection', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [] // no writers - table can't satisfy connection requirement
@@ -644,7 +644,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -653,7 +653,7 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       newPool(),
       {
-        '': {
+        null: {
           'server1:7687': updatedRoutingTable,
           'server2:7687': updatedRoutingTable
         }
@@ -661,7 +661,7 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .catch(error => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         done()
@@ -672,7 +672,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [], // no routers
           [server3, server4],
           [server5, server6],
@@ -683,7 +683,7 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         done()
@@ -694,7 +694,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [], // no routers
           [server3, server4],
           [server5, server6],
@@ -705,7 +705,7 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         done()
@@ -715,7 +715,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('updates routing table after refresh', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -723,7 +723,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -732,18 +732,18 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       pool,
       {
-        '': {
+        null: {
           'server1:7687': updatedRoutingTable
         }
       }
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(() => {
         expectRoutingTable(
           connectionProvider,
-          '',
+          null,
           [serverA, serverB],
           [serverC, serverD],
           [serverE, serverF]
@@ -764,7 +764,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2, server3],
           [server4, server5],
           [server6, server7],
@@ -775,12 +775,12 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         expectRoutingTable(
           connectionProvider,
-          '',
+          null,
           [],
           [server4, server5],
           [server6, server7]
@@ -793,7 +793,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2, server3],
           [server4, server5],
           [server6, server7],
@@ -804,12 +804,12 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         expectRoutingTable(
           connectionProvider,
-          '',
+          null,
           [],
           [server4, server5],
           [server6, server7]
@@ -820,7 +820,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('uses seed router address when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB, serverC],
       [serverD, serverE],
       [serverF, serverG]
@@ -831,7 +831,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server0], // seed router address resolves just to itself
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2, server3],
           [server4, server5],
           [server6, server7],
@@ -839,7 +839,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': null, // returns no routing table
           'server3:7687': null, // returns no routing table
@@ -849,18 +849,18 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(connection1 => {
         expect(connection1.address).toEqual(serverD)
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .then(connection2 => {
             expect(connection2.address).toEqual(serverF)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [serverA, serverB, serverC],
               [serverD, serverE],
               [serverF, serverG]
@@ -872,7 +872,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('uses resolved seed router address when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -883,7 +883,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server01], // seed router address resolves to a different one
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2, server3],
           [server4, server5],
           [server6, server7],
@@ -891,7 +891,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': null, // returns no routing table
           'server3:7687': null, // returns no routing table
@@ -901,18 +901,18 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .then(connection1 => {
         expect(connection1.address).toEqual(serverE)
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .then(connection2 => {
             expect(connection2.address).toEqual(serverC)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [serverA, serverB],
               [serverC, serverD],
               [serverE, serverF]
@@ -924,7 +924,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('uses resolved seed router address that returns correct routing table when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC],
       [serverD, serverE]
@@ -935,7 +935,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server01, server02, server03], // seed router address resolves to 3 different addresses
       [
         newRoutingTable(
-          '',
+          null,
           [server1],
           [server2],
           [server3],
@@ -943,7 +943,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server01:7687': null, // returns no routing table
           'server02:7687': null, // returns no routing table
@@ -953,18 +953,18 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .then(connection1 => {
         expect(connection1.address).toEqual(serverD)
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .then(connection2 => {
             expect(connection2.address).toEqual(serverE)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [serverA, serverB],
               [serverC],
               [serverD, serverE]
@@ -980,7 +980,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server0], // seed router address resolves just to itself
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2, server3],
           [server4, server5],
           [server6],
@@ -988,7 +988,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': null, // returns no routing table
           'server3:7687': null, // returns no routing table
@@ -998,26 +998,26 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
         expectRoutingTable(
           connectionProvider,
-          '',
+          null,
           [], // all routers were forgotten because they failed
           [server4, server5],
           [server6]
         )
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .catch(error => {
             expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [], // all routers were forgotten because they failed
               [server4, server5],
               [server6]
@@ -1034,7 +1034,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server01], // seed router address resolves to a different one
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3],
           [server4],
@@ -1042,7 +1042,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': null, // returns no routing table
           'server01:7687': null // returns no routing table
@@ -1051,26 +1051,26 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
         expectRoutingTable(
           connectionProvider,
-          '',
+          null,
           [], // all routers were forgotten because they failed
           [server3],
           [server4]
         )
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .catch(error => {
             expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [], // all routers were forgotten because they failed
               [server3],
               [server4]
@@ -1087,7 +1087,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server02, server01], // seed router address resolves to 2 different addresses
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2, server3],
           [server4],
           [server5],
@@ -1095,7 +1095,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server2:7687': null, // returns no routing table
           'server3:7687': null, // returns no routing table
@@ -1106,26 +1106,26 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .catch(error => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
         expectRoutingTable(
           connectionProvider,
-          '',
+          null,
           [], // all known seed servers failed to return routing tables and were forgotten
           [server4],
           [server5]
         )
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .catch(error => {
             expect(error.code).toEqual(SERVICE_UNAVAILABLE)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [], // all known seed servers failed to return routing tables and were forgotten
               [server4],
               [server5]
@@ -1138,7 +1138,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('uses seed router when no existing routers', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC],
       [serverD]
@@ -1149,7 +1149,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server0], // seed router address resolves just to itself
       [
         newRoutingTable(
-          '',
+          null,
           [], // no routers in the known routing table
           [server1, server2],
           [server3],
@@ -1157,25 +1157,25 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server0:7687': updatedRoutingTable
         }
       }
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .then(connection1 => {
         expect(connection1.address).toEqual(serverD)
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .then(connection2 => {
             expect(connection2.address).toEqual(serverC)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [serverA, serverB],
               [serverC],
               [serverD]
@@ -1187,7 +1187,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('uses resolved seed router when no existing routers', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverF, serverE]
@@ -1198,7 +1198,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server01], // seed router address resolves to a different one
       [
         newRoutingTable(
-          '',
+          null,
           [], // no routers in the known routing table
           [server1, server2],
           [server3, server4],
@@ -1206,25 +1206,25 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server01:7687': updatedRoutingTable
         }
       }
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(connection1 => {
         expect(connection1.address).toEqual(serverC)
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .then(connection2 => {
             expect(connection2.address).toEqual(serverF)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [serverA, serverB],
               [serverC, serverD],
               [serverF, serverE]
@@ -1236,7 +1236,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('uses resolved seed router that returns routing table when no existing routers exist', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB, serverC],
       [serverD, serverE],
       [serverF]
@@ -1247,7 +1247,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server02, server01, server03], // seed router address resolves to 3 different addresses
       [
         newRoutingTable(
-          '',
+          null,
           [], // no routers in the known routing table
           [server1],
           [server2, server3],
@@ -1255,7 +1255,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server01:7687': null, // returns no routing table
           'server02:7687': null, // returns no routing table
           'server03:7687': updatedRoutingTable
@@ -1264,18 +1264,18 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .then(connection1 => {
         expect(connection1.address).toEqual(serverF)
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .then(connection2 => {
             expect(connection2.address).toEqual(serverD)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [serverA, serverB, serverC],
               [serverD, serverE],
               [serverF]
@@ -1287,7 +1287,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('ignores already probed routers after seed router resolution', done => {
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [serverE, serverF]
@@ -1298,7 +1298,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server1, server01, server2, server02], // seed router address resolves to 4 different addresses
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -1306,7 +1306,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server1:7687': null, // returns no routing table
           'server01:7687': null, // returns no routing table
           'server2:7687': null, // returns no routing table
@@ -1324,12 +1324,12 @@ describe('#unit RoutingConnectionProvider', () => {
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(connection1 => {
         expect(connection1.address).toEqual(serverC)
 
         connectionProvider
-          .acquireConnection({ accessMode: WRITE, database: '' })
+          .acquireConnection({ accessMode: WRITE, database: null })
           .then(connection2 => {
             expect(connection2.address).toEqual(serverE)
 
@@ -1342,7 +1342,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [serverA, serverB],
               [serverC, serverD],
               [serverE, serverF]
@@ -1355,7 +1355,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('throws session expired when refreshed routing table has no readers', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [], // no readers
       [serverC, serverD]
@@ -1363,7 +1363,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -1372,14 +1372,14 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       pool,
       {
-        '': {
+        null: {
           'server1:7687': updatedRoutingTable
         }
       }
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .catch(error => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         done()
@@ -1389,7 +1389,7 @@ describe('#unit RoutingConnectionProvider', () => {
   it('throws session expired when refreshed routing table has no writers', done => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [] // no writers
@@ -1397,7 +1397,7 @@ describe('#unit RoutingConnectionProvider', () => {
     const connectionProvider = newRoutingConnectionProvider(
       [
         newRoutingTable(
-          '',
+          null,
           [server1, server2],
           [server3, server4],
           [server5, server6],
@@ -1406,14 +1406,14 @@ describe('#unit RoutingConnectionProvider', () => {
       ],
       pool,
       {
-        '': {
+        null: {
           'server1:7687': updatedRoutingTable
         }
       }
     )
 
     connectionProvider
-      .acquireConnection({ accessMode: WRITE, database: '' })
+      .acquireConnection({ accessMode: WRITE, database: null })
       .catch(error => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         done()
@@ -1422,13 +1422,13 @@ describe('#unit RoutingConnectionProvider', () => {
 
   it('should use resolved seed router after accepting table with no writers', done => {
     const routingTable1 = newRoutingTable(
-      '',
+      null,
       [serverA, serverB],
       [serverC, serverD],
       [] // no writers
     )
     const routingTable2 = newRoutingTable(
-      '',
+      null,
       [serverAA, serverBB],
       [serverCC, serverDD],
       [serverEE]
@@ -1439,7 +1439,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server02, server01], // seed router address resolves to 2 different addresses
       [
         newRoutingTable(
-          '',
+          null,
           [server1],
           [server2, server3],
           [server4, server5],
@@ -1447,7 +1447,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
       ],
       {
-        '': {
+        null: {
           'server1:7687': routingTable1,
           'serverA:7687': routingTable1,
           'serverB:7687': routingTable1,
@@ -1460,31 +1460,31 @@ describe('#unit RoutingConnectionProvider', () => {
     connectionProvider._useSeedRouter = false
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: READ, database: null })
       .then(connection1 => {
         expect(connection1.address).toEqual(serverC)
 
         connectionProvider
-          .acquireConnection({ accessMode: READ, database: '' })
+          .acquireConnection({ accessMode: READ, database: null })
           .then(connection2 => {
             expect(connection2.address).toEqual(serverD)
 
             expectRoutingTable(
               connectionProvider,
-              '',
+              null,
               [serverA, serverB],
               [serverC, serverD],
               []
             )
 
             connectionProvider
-              .acquireConnection({ accessMode: WRITE, database: '' })
+              .acquireConnection({ accessMode: WRITE, database: null })
               .then(connection3 => {
                 expect(connection3.address).toEqual(serverEE)
 
                 expectRoutingTable(
                   connectionProvider,
-                  '',
+                  null,
                   [serverAA, serverBB],
                   [serverCC, serverDD],
                   [serverEE]
@@ -1815,7 +1815,7 @@ describe('#unit RoutingConnectionProvider', () => {
 function newRoutingConnectionProvider (
   routingTables,
   pool = null,
-  routerToRoutingTable = { '': {} }
+  routerToRoutingTable = { null: {} }
 ) {
   const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
   return newRoutingConnectionProviderWithSeedRouter(
@@ -1831,7 +1831,7 @@ function newRoutingConnectionProviderWithSeedRouter (
   seedRouter,
   seedRouterResolved,
   routingTables,
-  routerToRoutingTable = { '': {} },
+  routerToRoutingTable = { null: {} },
   connectionPool = null,
   routingTablePurgeDelay = null
 ) {
@@ -1956,7 +1956,7 @@ class FakeRediscovery {
   }
 
   lookupRoutingTableOnRouter (ignored, database, router) {
-    const table = this._routerToRoutingTable[database || '']
+    const table = this._routerToRoutingTable[database || null]
     if (table) {
       return Promise.resolve(table[router.asKey()])
     }

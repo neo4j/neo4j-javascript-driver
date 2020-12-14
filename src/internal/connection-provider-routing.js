@@ -37,7 +37,7 @@ const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 const DATABASE_NOT_FOUND_ERROR_CODE =
   'Neo.ClientError.Database.DatabaseNotFound'
 const SYSTEM_DB_NAME = 'system'
-const DEFAULT_DB_NAME = ''
+const DEFAULT_DB_NAME = null
 const DEFAULT_ROUTING_TABLE_PURGE_DELAY = int(30000)
 
 export default class RoutingConnectionProvider extends PooledConnectionProvider {
