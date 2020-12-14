@@ -428,16 +428,18 @@ describe('#integration stress tests', () => {
     const expectedNodeCount = context.createdNodesCount
 
     const session = context.driver.session()
-    return session.run('MATCH (n) RETURN count(n)').then(result => {
-      const record = result.records[0]
-      const count = record.get(0).toNumber()
+    return session
+      .readTransaction(tx => tx.run('MATCH (n) RETURN count(n)'))
+      .then(result => {
+        const record = result.records[0]
+        const count = record.get(0).toNumber()
 
-      if (count !== expectedNodeCount) {
-        throw new Error(
-          `Unexpected node count: ${count}, expected: ${expectedNodeCount}`
-        )
-      }
-    })
+        if (count !== expectedNodeCount) {
+          throw new Error(
+            `Unexpected node count: ${count}, expected: ${expectedNodeCount}`
+          )
+        }
+      })
   }
 
   function verifyServers (context) {
