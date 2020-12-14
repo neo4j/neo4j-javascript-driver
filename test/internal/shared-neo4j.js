@@ -123,6 +123,11 @@ const env = global.__karma__ ? global.__karma__.config.env : process.env
 const username = env.TEST_NEO4J_USER || 'neo4j'
 const password = env.TEST_NEO4J_PASS || 'password'
 const hostname = env.TEST_NEO4J_HOST || 'localhost'
+const scheme = env.TEST_NEO4J_SCHEME || 'bolt'
+const cluster =
+  env.TEST_NEO4J_IS_CLUSTER !== undefined
+    ? env.TEST_NEO4J_IS_CLUSTER === '1'
+    : false
 const edition = env.TEST_NEO4J_EDITION || 'enterprise'
 const ipv6Enabled =
   env.TEST_NEO4J_IPV6_ENABLED !== undefined
@@ -369,5 +374,7 @@ export default {
   getEdition: getEdition,
   hostname: hostname,
   ipv6Enabled: ipv6Enabled,
-  edition: edition
+  edition: edition,
+  scheme: scheme,
+  cluster: cluster
 }

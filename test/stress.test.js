@@ -25,6 +25,11 @@ import sharedNeo4j from './internal/shared-neo4j'
 
 describe('#integration stress tests', () => {
   const TEST_MODES = {
+    fastest: {
+      commandsCount: 10000,
+      parallelism: 24,
+      maxRunTimeMs: 3 * 60000 // 3 minutes
+    },
     fast: {
       commandsCount: 5000,
       parallelism: 8,
@@ -44,7 +49,7 @@ describe('#integration stress tests', () => {
   const TEST_MODE = modeFromEnvOrDefault('STRESS_TEST_MODE')
   const DATABASE_URI = fromEnvOrDefault(
     'STRESS_TEST_DATABASE_URI',
-    `bolt://${sharedNeo4j.hostname}`
+    `${sharedNeo4j.scheme}://${sharedNeo4j.hostname}:${sharedNeo4j.port}`
   )
 
   const USERNAME = fromEnvOrDefault(
@@ -57,10 +62,11 @@ describe('#integration stress tests', () => {
   )
 
   function isRemoteCluster () {
-    return (
-      fromEnvOrDefault('STRESS_TEST_DATABASE_URI') !== undefined &&
-      fromEnvOrDefault('STRESS_TEST_DATABASE_URI') !== undefined
-    )
+    return fromEnvOrDefault('STRESS_TEST_DATABASE_URI') !== undefined
+  }
+
+  function isCluster () {
+    return sharedNeo4j.cluster || isRemoteCluster()
   }
 
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
@@ -128,19 +134,27 @@ describe('#integration stress tests', () => {
   }
 
   function createUniqueCommands (context) {
+    const clusterSafeCommands = [
+      readQueryInTxFunctionCommand(context),
+      readQueryInTxFunctionWithBookmarkCommand(context),
+      writeQueryInTxFunctionWithBookmarkCommand(context),
+      writeQueryInTxFunctionCommand(context)
+    ]
+
+    if (isCluster()) {
+      return clusterSafeCommands
+    }
+
     return [
+      ...clusterSafeCommands,
       readQueryCommand(context),
       readQueryWithBookmarkCommand(context),
       readQueryInTxCommand(context),
-      readQueryInTxFunctionCommand(context),
       readQueryInTxWithBookmarkCommand(context),
-      readQueryInTxFunctionWithBookmarkCommand(context),
       writeQueryCommand(context),
       writeQueryWithBookmarkCommand(context),
       writeQueryInTxCommand(context),
-      writeQueryInTxFunctionCommand(context),
-      writeQueryInTxWithBookmarkCommand(context),
-      writeQueryInTxFunctionWithBookmarkCommand(context)
+      writeQueryInTxWithBookmarkCommand(context)
     ]
   }
 
@@ -243,6 +257,13 @@ describe('#integration stress tests', () => {
   ) {
     return callback => {
       const commandId = context.nextCommandId()
+      if (isCluster()) {
+        console.log(
+          'SKIPPED: session.run is not safe to in clusters environments'
+        )
+        callback()
+        return
+      }
       const session = newSession(context, accessMode, useBookmark)
       const params = paramsSupplier()
 
@@ -319,6 +340,13 @@ describe('#integration stress tests', () => {
   ) {
     return callback => {
       const commandId = context.nextCommandId()
+      if (isCluster()) {
+        console.log(
+          'SKIPPED: session.begintTransaction is not safe to in clusters environments'
+        )
+        callback()
+        return
+      }
       const session = newSession(context, accessMode, useBookmark)
       const tx = session.beginTransaction()
       const params = paramsSupplier()
@@ -415,7 +443,7 @@ describe('#integration stress tests', () => {
   function verifyServers (context) {
     const routing = DATABASE_URI.indexOf('neo4j') === 0
 
-    if (routing) {
+    if (routing && isCluster()) {
       return verifyCausalClusterMembers(context)
     }
     return verifySingleInstance(context)
