@@ -554,7 +554,6 @@ class ProcedureRouteObserver extends StreamObserver {
     }
 
     if (this._onCompleted) {
-      console.log('onCompeled exsits', this._records[0])
       this._onCompleted(RawRoutingTable.ofRecord(this._records[0]))
     }
   }
