@@ -21,18 +21,6 @@ import NodeHostNameResolver from '../../../src/internal/node/node-host-name-reso
 import ServerAddress from '../../../src/internal/server-address'
 
 describe('#unit NodeHostNameResolver', () => {
-  let originalTimeout
-
-  beforeEach(() => {
-    // it sometimes takes couple seconds to perform dns lookup, increase the async test timeout
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
-  })
-
-  afterEach(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-  })
-
   it('should resolve address', done => {
     const seedRouter = ServerAddress.fromUrl('neo4j.com')
     const resolver = new NodeHostNameResolver()
@@ -49,7 +37,7 @@ describe('#unit NodeHostNameResolver', () => {
 
       done()
     })
-  })
+  }, 20000)
 
   it('should resolve address with port', done => {
     const seedRouter = ServerAddress.fromUrl('neo4j.com:7474')
@@ -67,31 +55,31 @@ describe('#unit NodeHostNameResolver', () => {
 
       done()
     })
-  })
+  }, 20000)
 
   it('should resolve IPv4 address to itself', done => {
     const addressToResolve = ServerAddress.fromUrl('127.0.0.1')
     const expectedResolvedAddress = '127.0.0.1:7687' // includes default port
     testIpAddressResolution(addressToResolve, expectedResolvedAddress, done)
-  })
+  }, 20000)
 
   it('should resolve IPv4 address with port to itself', done => {
     const address = ServerAddress.fromUrl('127.0.0.1:7474')
     const expectedResolvedAddress = '127.0.0.1:7474' // includes default port
     testIpAddressResolution(address, expectedResolvedAddress, done)
-  })
+  }, 20000)
 
   it('should resolve IPv6 address to itself', done => {
     const addressToResolve = ServerAddress.fromUrl('[2001:4860:4860::8888]')
     const expectedResolvedAddress = '[2001:4860:4860::8888]:7687' // includes default port
     testIpAddressResolution(addressToResolve, expectedResolvedAddress, done)
-  })
+  }, 20000)
 
   it('should resolve IPv6 address with port to itself', done => {
     const address = ServerAddress.fromUrl('[2001:4860:4860::8888]:7474')
     const expectedResolvedAddress = '[2001:4860:4860::8888]:7474'
     testIpAddressResolution(address, expectedResolvedAddress, done)
-  })
+  }, 20000)
 })
 
 function testIpAddressResolution (address, expectedResolvedAddress, done) {

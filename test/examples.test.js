@@ -37,7 +37,6 @@ describe('#integration examples', () => {
   let driverGlobal
   let protocolVersion
   let edition
-  let originalTimeout
 
   let consoleOverride
   let consoleOverridePromise
@@ -48,9 +47,6 @@ describe('#integration examples', () => {
   const uri = `bolt://${sharedNeo4j.hostname}:7687`
 
   beforeAll(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
-
     driverGlobal = neo4j.driver(uri, sharedNeo4j.authToken)
   })
 
@@ -67,7 +63,6 @@ describe('#integration examples', () => {
   })
 
   afterAll(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     await driverGlobal.close()
   })
 
@@ -114,7 +109,7 @@ describe('#integration examples', () => {
     const titles = await readProductTitles()
     expect(titles.length).toEqual(1)
     expect(titles[0]).toEqual('Product-0')
-  })
+  }, 60000)
 
   it('rx autocommit transaction example', async () => {
     if (protocolVersion < 4.0) {
@@ -154,7 +149,7 @@ describe('#integration examples', () => {
       Notification.createNext('Product-0'),
       Notification.createComplete()
     ])
-  })
+  }, 60000)
 
   it('basic auth example', async () => {
     // tag::basic-auth[]
@@ -163,7 +158,7 @@ describe('#integration examples', () => {
 
     await driver.verifyConnectivity()
     await driver.close()
-  })
+  }, 60000)
 
   it('config connection pool example', async () => {
     // tag::config-connection-pool[]
@@ -176,7 +171,7 @@ describe('#integration examples', () => {
 
     await driver.verifyConnectivity()
     await driver.close()
-  })
+  }, 60000)
 
   it('config connection timeout example', async () => {
     // tag::config-connection-timeout[]
@@ -187,7 +182,7 @@ describe('#integration examples', () => {
 
     await driver.verifyConnectivity()
     await driver.close()
-  })
+  }, 60000)
 
   it('config max retry time example', async () => {
     // tag::config-max-retry-time[]
@@ -199,7 +194,7 @@ describe('#integration examples', () => {
 
     await driver.verifyConnectivity()
     await driver.close()
-  })
+  }, 60000)
 
   /// TODO: re-enable it
   xit('config trust example', async () => {
@@ -212,7 +207,7 @@ describe('#integration examples', () => {
 
     await driver.verifyConnectivity()
     await driver.close()
-  })
+  }, 60000)
 
   it('config unencrypted example', async () => {
     // tag::config-unencrypted[]
@@ -223,7 +218,7 @@ describe('#integration examples', () => {
 
     await driver.verifyConnectivity()
     await driver.close()
-  })
+  }, 60000)
 
   /* eslint-disable no-unused-vars */
   it('config custom resolver example', done => {
@@ -250,7 +245,7 @@ describe('#integration examples', () => {
     // end::config-custom-resolver[]
 
     done()
-  })
+  }, 60000)
   /* eslint-enable no-unused-vars */
 
   it('custom auth example', async () => {
@@ -269,7 +264,7 @@ describe('#integration examples', () => {
 
     await driver.verifyConnectivity()
     await driver.close()
-  })
+  }, 60000)
 
   it('kerberos auth example', async () => {
     const ticket = 'a base64 encoded ticket'
@@ -279,7 +274,7 @@ describe('#integration examples', () => {
     // end::kerberos-auth[]
 
     await driver.close()
-  })
+  }, 60000)
 
   it('cypher error example', async () => {
     const console = consoleOverride
@@ -307,7 +302,7 @@ describe('#integration examples', () => {
         .toLowerCase()
         .startsWith('invalid input')
     ).toBeTruthy()
-  })
+  }, 60000)
 
   it('driver lifecycle example', async () => {
     const console = consoleOverride
@@ -337,7 +332,7 @@ describe('#integration examples', () => {
     // end::driver-lifecycle[]
 
     expect(await consoleLoggedMsg).toEqual('Driver created')
-  })
+  }, 60000)
 
   it('hello world example', async () => {
     const console = consoleOverride
@@ -367,7 +362,7 @@ describe('#integration examples', () => {
     // end::hello-world[]
 
     expect(await consoleLoggedMsg).toContain('hello, world, from node')
-  })
+  }, 60000)
 
   const require = () => {
     return neo4j
@@ -402,7 +397,7 @@ describe('#integration examples', () => {
     // end::language-guide-page[]
 
     expect(await consoleLoggedMsg).toEqual(personName)
-  })
+  }, 60000)
 
   it('driver introduction example', async () => {
     const console = consoleOverride
@@ -469,7 +464,7 @@ describe('#integration examples', () => {
     expect(await consoleLoggedMsg).toEqual(
       `Created friendship between: ${person1Name}, ${person2Name}`
     )
-  })
+  }, 60000)
 
   it('read write transaction example', async () => {
     const console = consoleOverride
@@ -501,7 +496,7 @@ describe('#integration examples', () => {
     // end::read-write-transaction[]
 
     expect(await consoleLoggedMsg).toContain('Matched created node with id')
-  })
+  }, 60000)
 
   // tag::result-consume[]
   // Not supported
@@ -542,7 +537,7 @@ describe('#integration examples', () => {
     // end::async-result-consume[]
 
     expect(await consoleLoggedMsg).toEqual('Names: Alice, Bob')
-  })
+  }, 60000)
 
   it('rx result consume example', async () => {
     if (protocolVersion < 4.0) {
@@ -579,7 +574,7 @@ describe('#integration examples', () => {
       Notification.createNext('Bob'),
       Notification.createComplete()
     ])
-  })
+  }, 60000)
 
   // tag::result-retain[]
   // Not supported
@@ -629,7 +624,7 @@ describe('#integration examples', () => {
     }
 
     expect(await consoleLoggedMsg).toEqual('Created 2 employees')
-  })
+  }, 60000)
 
   it('service unavailable example', done => {
     const console = consoleOverride
@@ -662,7 +657,7 @@ describe('#integration examples', () => {
       })
       .then(() => driver.close())
       .then(() => done())
-  })
+  }, 60000)
 
   it('session example', async () => {
     const console = consoleOverride
@@ -682,7 +677,7 @@ describe('#integration examples', () => {
     // end::session[]
 
     expect(await consoleLoggedMsg).toBe('Person created, session closed')
-  })
+  }, 60000)
 
   // tag::transaction-function[]
   // Not supported
@@ -720,7 +715,7 @@ describe('#integration examples', () => {
     expect(titles.length).toEqual(2)
     expect(titles.includes('Infinity Gauntlet')).toBeTruthy()
     expect(titles.includes('Mjölnir')).toBeTruthy()
-  })
+  }, 60000)
 
   it('rx transaction function example', async () => {
     if (protocolVersion < 4.0) {
@@ -758,7 +753,7 @@ describe('#integration examples', () => {
       Notification.createNext('Mjölnir'),
       Notification.createComplete()
     ])
-  })
+  }, 60000)
 
   it('use another database example', async () => {
     if (protocolVersion < 4.0 || edition !== 'enterprise') {
@@ -818,7 +813,7 @@ describe('#integration examples', () => {
     // end::database-selection[]
 
     expect(await consoleLoggedMsg).toContain('Hello, Example-Database')
-  })
+  }, 60000)
 
   it('pass bookmarks example', done => {
     const driver = driverGlobal
@@ -925,7 +920,7 @@ describe('#integration examples', () => {
 
       done()
     })
-  })
+  }, 60000)
 })
 
 function removeLineBreaks (string) {

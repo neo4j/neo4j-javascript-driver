@@ -30,7 +30,6 @@ describe('#integration-rx navigation', () => {
     let session
     /** @type {number} */
     let protocolVersion
-    let originalTimeout
 
     beforeEach(async () => {
       driver = neo4j.driver(
@@ -38,83 +37,147 @@ describe('#integration-rx navigation', () => {
         sharedNeo4j.authToken
       )
       session = driver.rxSession()
-      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-      jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
       protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
     })
 
     afterEach(async () => {
-      jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
       if (session) {
         await session.close().toPromise()
       }
       await driver.close()
     })
 
-    it('should return keys', () => shouldReturnKeys(protocolVersion, session))
+    it(
+      'should return keys',
+      () => shouldReturnKeys(protocolVersion, session),
+      60000
+    )
 
-    it('should return summary', () =>
-      shouldReturnSummary(protocolVersion, session))
+    it(
+      'should return summary',
+      () => shouldReturnSummary(protocolVersion, session),
+      60000
+    )
 
-    it('should return keys and records', () =>
-      shouldReturnKeysAndRecords(protocolVersion, session))
+    it(
+      'should return keys and records',
+      () => shouldReturnKeysAndRecords(protocolVersion, session),
+      60000
+    )
 
-    it('should return records and summary', () =>
-      shouldReturnRecordsAndSummary(protocolVersion, session))
+    it(
+      'should return records and summary',
+      () => shouldReturnRecordsAndSummary(protocolVersion, session),
+      60000
+    )
 
-    it('should return keys, records and summary', () =>
-      shouldReturnKeysRecordsAndSummary(protocolVersion, session))
+    it(
+      'should return keys, records and summary',
+      () => shouldReturnKeysRecordsAndSummary(protocolVersion, session),
+      60000
+    )
 
-    it('should return keys and summary but no records', () =>
-      shouldReturnKeysAndSummaryButRecords(protocolVersion, session))
+    it(
+      'should return keys and summary but no records',
+      () => shouldReturnKeysAndSummaryButRecords(protocolVersion, session),
+      60000
+    )
 
-    it('should return keys even after records are complete', () =>
-      shouldReturnKeysEvenAfterRecordsAreComplete(protocolVersion, session))
+    it(
+      'should return keys even after records are complete',
+      () =>
+        shouldReturnKeysEvenAfterRecordsAreComplete(protocolVersion, session),
+      60000
+    )
 
-    it('should return keys even after summary is complete', () =>
-      shouldReturnKeysEvenAfterSummaryIsComplete(protocolVersion, session))
+    it(
+      'should return keys even after summary is complete',
+      () =>
+        shouldReturnKeysEvenAfterSummaryIsComplete(protocolVersion, session),
+      60000
+    )
 
-    it('should return keys multiple times', () =>
-      shouldReturnKeysMultipleTimes(protocolVersion, session))
+    it(
+      'should return keys multiple times',
+      () => shouldReturnKeysMultipleTimes(protocolVersion, session),
+      60000
+    )
 
-    it('should return summary multiple times', () =>
-      shouldReturnSummaryMultipleTimes(protocolVersion, session))
+    it(
+      'should return summary multiple times',
+      () => shouldReturnSummaryMultipleTimes(protocolVersion, session),
+      60000
+    )
 
-    it('should return records only once', () =>
-      shouldReturnRecordsOnlyOnce(protocolVersion, session))
+    it(
+      'should return records only once',
+      () => shouldReturnRecordsOnlyOnce(protocolVersion, session),
+      60000
+    )
 
-    it('should return empty keys for query without return', () =>
-      shouldReturnEmptyKeysForQueryWithNoReturn(protocolVersion, session))
+    it(
+      'should return empty keys for query without return',
+      () => shouldReturnEmptyKeysForQueryWithNoReturn(protocolVersion, session),
+      60000
+    )
 
-    it('should return no records for query without return', () =>
-      shouldReturnNoRecordsForQueryWithNoReturn(protocolVersion, session))
+    it(
+      'should return no records for query without return',
+      () => shouldReturnNoRecordsForQueryWithNoReturn(protocolVersion, session),
+      60000
+    )
 
-    it('should return summary for query without return', () =>
-      shouldReturnSummaryForQueryWithNoReturn(protocolVersion, session))
+    it(
+      'should return summary for query without return',
+      () => shouldReturnSummaryForQueryWithNoReturn(protocolVersion, session),
+      60000
+    )
 
-    it('should fail on keys when run fails', () =>
-      shouldFailOnKeysWhenRunFails(protocolVersion, session))
+    it(
+      'should fail on keys when run fails',
+      () => shouldFailOnKeysWhenRunFails(protocolVersion, session),
+      60000
+    )
 
-    it('should fail on subsequent keys when run fails', () =>
-      shouldFailOnSubsequentKeysWhenRunFails(protocolVersion, session))
+    it(
+      'should fail on subsequent keys when run fails',
+      () => shouldFailOnSubsequentKeysWhenRunFails(protocolVersion, session),
+      60000
+    )
 
-    it('should fail on records when run fails', () =>
-      shouldFailOnRecordsWhenRunFails(protocolVersion, session))
+    it(
+      'should fail on records when run fails',
+      () => shouldFailOnRecordsWhenRunFails(protocolVersion, session),
+      60000
+    )
 
-    it('should fail on subsequent records differently when run fails', () =>
-      shouldFailOnSubsequentRecordsWhenRunFails(protocolVersion, session))
+    it(
+      'should fail on subsequent records differently when run fails',
+      () => shouldFailOnSubsequentRecordsWhenRunFails(protocolVersion, session),
+      60000
+    )
 
-    it('should fail on summary when run fails', () =>
-      shouldFailOnSummaryWhenRunFails(protocolVersion, session))
+    it(
+      'should fail on summary when run fails',
+      () => shouldFailOnSummaryWhenRunFails(protocolVersion, session),
+      60000
+    )
 
-    it('should fail on subsequent summary when run fails', () =>
-      shouldFailOnSubsequentSummaryWhenRunFails(protocolVersion, session))
+    it(
+      'should fail on subsequent summary when run fails',
+      () => shouldFailOnSubsequentSummaryWhenRunFails(protocolVersion, session),
+      60000
+    )
 
-    it('should fail on result when closed', () =>
-      shouldFailOnResultWhenClosed(protocolVersion, session, () =>
-        session.close()
-      ))
+    it(
+      'should fail on result when closed',
+      () =>
+        shouldFailOnResultWhenClosed(protocolVersion, session, () =>
+          session.close()
+        ),
+      60000
+    )
   })
 
   describe('transaction', () => {
@@ -125,7 +188,6 @@ describe('#integration-rx navigation', () => {
     let txc
     /** @type {number} */
     let protocolVersion
-    let originalTimeout
 
     beforeEach(async () => {
       driver = neo4j.driver(
@@ -134,8 +196,6 @@ describe('#integration-rx navigation', () => {
       )
       session = driver.rxSession()
       txc = await session.beginTransaction().toPromise()
-      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-      jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
       const normalSession = driver.session()
       try {
@@ -147,7 +207,6 @@ describe('#integration-rx navigation', () => {
     })
 
     afterEach(async () => {
-      jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
       if (txc) {
         try {
           await txc.commit().toPromise()
@@ -161,69 +220,141 @@ describe('#integration-rx navigation', () => {
       await driver.close()
     })
 
-    it('should return keys', () => shouldReturnKeys(protocolVersion, txc))
+    it(
+      'should return keys',
+      () => shouldReturnKeys(protocolVersion, txc),
+      60000
+    )
 
-    it('should return summary', () => shouldReturnSummary(protocolVersion, txc))
+    it(
+      'should return summary',
+      () => shouldReturnSummary(protocolVersion, txc),
+      60000
+    )
 
-    it('should return keys and records', () =>
-      shouldReturnKeysAndRecords(protocolVersion, txc))
+    it(
+      'should return keys and records',
+      () => shouldReturnKeysAndRecords(protocolVersion, txc),
+      60000
+    )
 
-    it('should return records and summary', () =>
-      shouldReturnRecordsAndSummary(protocolVersion, txc))
+    it(
+      'should return records and summary',
+      () => shouldReturnRecordsAndSummary(protocolVersion, txc),
+      60000
+    )
 
-    it('should return keys, records and summary', () =>
-      shouldReturnKeysRecordsAndSummary(protocolVersion, txc))
+    it(
+      'should return keys, records and summary',
+      () => shouldReturnKeysRecordsAndSummary(protocolVersion, txc),
+      60000
+    )
 
-    it('should return keys and summary but no records', () =>
-      shouldReturnKeysAndSummaryButRecords(protocolVersion, txc))
+    it(
+      'should return keys and summary but no records',
+      () => shouldReturnKeysAndSummaryButRecords(protocolVersion, txc),
+      60000
+    )
 
-    it('should return keys even after records are complete', () =>
-      shouldReturnKeysEvenAfterRecordsAreComplete(protocolVersion, txc))
+    it(
+      'should return keys even after records are complete',
+      () => shouldReturnKeysEvenAfterRecordsAreComplete(protocolVersion, txc),
+      60000
+    )
 
-    it('should return keys even after summary is complete', () =>
-      shouldReturnKeysEvenAfterSummaryIsComplete(protocolVersion, txc))
+    it(
+      'should return keys even after summary is complete',
+      () => shouldReturnKeysEvenAfterSummaryIsComplete(protocolVersion, txc),
+      60000
+    )
 
-    it('should return keys multiple times', () =>
-      shouldReturnKeysMultipleTimes(protocolVersion, txc))
+    it(
+      'should return keys multiple times',
+      () => shouldReturnKeysMultipleTimes(protocolVersion, txc),
+      60000
+    )
 
-    it('should return summary multiple times', () =>
-      shouldReturnSummaryMultipleTimes(protocolVersion, txc))
+    it(
+      'should return summary multiple times',
+      () => shouldReturnSummaryMultipleTimes(protocolVersion, txc),
+      60000
+    )
 
-    it('should return records only once', () =>
-      shouldReturnRecordsOnlyOnce(protocolVersion, txc))
+    it(
+      'should return records only once',
+      () => shouldReturnRecordsOnlyOnce(protocolVersion, txc),
+      60000
+    )
 
-    it('should return empty keys for query without return', () =>
-      shouldReturnEmptyKeysForQueryWithNoReturn(protocolVersion, txc))
+    it(
+      'should return empty keys for query without return',
+      () => shouldReturnEmptyKeysForQueryWithNoReturn(protocolVersion, txc),
+      60000
+    )
 
-    it('should return no records for query without return', () =>
-      shouldReturnNoRecordsForQueryWithNoReturn(protocolVersion, txc))
+    it(
+      'should return no records for query without return',
+      () => shouldReturnNoRecordsForQueryWithNoReturn(protocolVersion, txc),
+      60000
+    )
 
-    it('should return summary for query without return', () =>
-      shouldReturnSummaryForQueryWithNoReturn(protocolVersion, txc))
+    it(
+      'should return summary for query without return',
+      () => shouldReturnSummaryForQueryWithNoReturn(protocolVersion, txc),
+      60000
+    )
 
-    it('should fail on keys when run fails', () =>
-      shouldFailOnKeysWhenRunFails(protocolVersion, txc))
+    it(
+      'should fail on keys when run fails',
+      () => shouldFailOnKeysWhenRunFails(protocolVersion, txc),
+      60000
+    )
 
-    it('should fail on subsequent keys when run fails', () =>
-      shouldFailOnSubsequentKeysWhenRunFails(protocolVersion, txc))
+    it(
+      'should fail on subsequent keys when run fails',
+      () => shouldFailOnSubsequentKeysWhenRunFails(protocolVersion, txc),
+      60000
+    )
 
-    it('should fail on records when run fails', () =>
-      shouldFailOnRecordsWhenRunFails(protocolVersion, txc))
+    it(
+      'should fail on records when run fails',
+      () => shouldFailOnRecordsWhenRunFails(protocolVersion, txc),
+      60000
+    )
 
-    it('should fail on subsequent records differently when run fails', () =>
-      shouldFailOnSubsequentRecordsWhenRunFails(protocolVersion, txc))
+    it(
+      'should fail on subsequent records differently when run fails',
+      () => shouldFailOnSubsequentRecordsWhenRunFails(protocolVersion, txc),
+      60000
+    )
 
-    it('should fail on summary when run fails', () =>
-      shouldFailOnSummaryWhenRunFails(protocolVersion, txc))
+    it(
+      'should fail on summary when run fails',
+      () => shouldFailOnSummaryWhenRunFails(protocolVersion, txc),
+      60000
+    )
 
-    it('should fail on subsequent summary when run fails', () =>
-      shouldFailOnSubsequentSummaryWhenRunFails(protocolVersion, txc))
+    it(
+      'should fail on subsequent summary when run fails',
+      () => shouldFailOnSubsequentSummaryWhenRunFails(protocolVersion, txc),
+      60000
+    )
 
-    it('should fail on result when committed', () =>
-      shouldFailOnResultWhenClosed(protocolVersion, txc, () => txc.commit()))
+    it(
+      'should fail on result when committed',
+      () =>
+        shouldFailOnResultWhenClosed(protocolVersion, txc, () => txc.commit()),
+      60000
+    )
 
-    it('should fail on result when rolled back', () =>
-      shouldFailOnResultWhenClosed(protocolVersion, txc, () => txc.rollback()))
+    it(
+      'should fail on result when rolled back',
+      () =>
+        shouldFailOnResultWhenClosed(protocolVersion, txc, () =>
+          txc.rollback()
+        ),
+      60000
+    )
   })
 
   /**

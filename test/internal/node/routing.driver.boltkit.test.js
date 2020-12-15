@@ -27,17 +27,6 @@ import ServerAddress from '../../../src/internal/server-address'
 import { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } from 'constants'
 
 describe('#stub-routing routing driver with stub server', () => {
-  let originalTimeout
-
-  beforeAll(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
-  })
-
-  afterAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-  })
-
   it('should use custom user agent', async () => {
     if (!boltStub.supported) {
       return
@@ -53,7 +42,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await session.run('MATCH (n) RETURN n.name')
     await driver.close()
     await server.exit()
-  })
+  }, 60000)
 
   it('should discover servers', async () => {
     if (!boltStub.supported) {
@@ -84,7 +73,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
     await driver.close()
     await server.exit()
-  })
+  }, 60000)
 
   it('should discover IPv6 servers', async () => {
     if (!boltStub.supported) {
@@ -125,7 +114,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
     await driver.close()
     await server.exit()
-  })
+  }, 60000)
 
   it('should purge connections to stale servers after routing table refresh', async () => {
     if (!boltStub.supported) {
@@ -152,7 +141,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await router.exit()
     await reader.exit()
-  })
+  }, 60000)
 
   it('should discover servers using subscribe', done => {
     if (!boltStub.supported) {
@@ -187,7 +176,7 @@ describe('#stub-routing routing driver with stub server', () => {
           }
         })
       })
-  })
+  }, 60000)
 
   it('should handle empty response from server', async () => {
     if (!boltStub.supported) {
@@ -213,7 +202,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await session.close()
     await driver.close()
     await server.exit()
-  })
+  }, 60000)
 
   it('should acquire read server', async () => {
     if (!boltStub.supported) {
@@ -246,7 +235,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should pick first available route-server', async () => {
     if (!boltStub.supported) {
@@ -293,7 +282,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await nextRouter.exit()
     await readServer1.exit()
     await readServer2.exit()
-  })
+  }, 60000)
 
   it('should round-robin among read servers', async () => {
     if (!boltStub.supported) {
@@ -335,7 +324,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await seedServer.exit()
     await readServer1.exit()
     await readServer2.exit()
-  })
+  }, 60000)
 
   it('should handle missing read server', async () => {
     if (!boltStub.supported) {
@@ -364,7 +353,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should acquire write server', async () => {
     if (!boltStub.supported) {
@@ -390,7 +379,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await writeServer.exit()
-  })
+  }, 60000)
 
   it('should round-robin among write servers', async () => {
     if (!boltStub.supported) {
@@ -423,7 +412,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await seedServer.exit()
     await writeServer1.exit()
     await writeServer2.exit()
-  })
+  }, 60000)
 
   it('should handle missing write server', async () => {
     if (!boltStub.supported) {
@@ -452,7 +441,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await writeServer.exit()
-  })
+  }, 60000)
 
   it('should remember endpoints', async () => {
     if (!boltStub.supported) {
@@ -484,7 +473,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should forget endpoints on failure', async () => {
     if (!boltStub.supported) {
@@ -521,7 +510,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should forget endpoints on session acquisition failure', async () => {
     if (!boltStub.supported) {
@@ -553,7 +542,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
     await driver.close()
     await seedServer.exit()
-  })
+  }, 60000)
 
   it('should rediscover if necessary', async () => {
     if (!boltStub.supported) {
@@ -581,7 +570,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should handle server not able to do routing', async () => {
     if (!boltStub.supported) {
@@ -609,7 +598,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await session.close()
     await driver.close()
     await server.exit()
-  })
+  }, 60000)
 
   it('should handle leader switch while writing', async () => {
     if (!boltStub.supported) {
@@ -639,7 +628,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should handle leader switch while writing on transaction', async () => {
     if (!boltStub.supported) {
@@ -672,7 +661,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should fail if missing write server', async () => {
     if (!boltStub.supported) {
@@ -695,7 +684,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
     await driver.close()
     await seedServer.exit()
-  })
+  }, 60000)
 
   it('should try next router when current router fails to return a routing table', async () => {
     if (!boltStub.supported) {
@@ -752,7 +741,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await server2.exit()
     await server3.exit()
     await server4.exit()
-  })
+  }, 60000)
 
   it('should re-use connections', async () => {
     if (!boltStub.supported) {
@@ -788,7 +777,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
     await seedServer.exit()
     await writeServer.exit()
-  })
+  }, 60000)
 
   it('should expose server info in cluster', async () => {
     if (!boltStub.supported) {
@@ -832,7 +821,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await routingServer.exit()
     await writeServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should expose server info in cluster using observer', done => {
     if (!boltStub.supported) {
@@ -899,7 +888,7 @@ describe('#stub-routing routing driver with stub server', () => {
               })
           )
       )
-  })
+  }, 60000)
 
   it('should forget routers when fails to connect', async () => {
     if (!boltStub.supported) {
@@ -940,7 +929,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
     await driver.close()
     await server.exit()
-  })
+  }, 60000)
 
   it('should close connection used for routing table refreshing', async () => {
     if (!boltStub.supported) {
@@ -978,127 +967,191 @@ describe('#stub-routing routing driver with stub server', () => {
     await session.close()
     await driver.close()
     await server.exit()
-  })
+  }, 60000)
 
-  it('should throw error when no records', () =>
-    testForProtocolError(
-      './test/resources/boltstub/v3/acquire_endpoints_no_records.script'
-    ))
+  it(
+    'should throw error when no records',
+    () =>
+      testForProtocolError(
+        './test/resources/boltstub/v3/acquire_endpoints_no_records.script'
+      ),
+    60000
+  )
 
-  it('should throw error when no TTL entry', () =>
-    testForProtocolError(
-      './test/resources/boltstub/v3/acquire_endpoints_no_ttl_field.script'
-    ))
+  it(
+    'should throw error when no TTL entry',
+    () =>
+      testForProtocolError(
+        './test/resources/boltstub/v3/acquire_endpoints_no_ttl_field.script'
+      ),
+    60000
+  )
 
-  it('should throw error when no servers entry', () =>
-    testForProtocolError(
-      './test/resources/boltstub/v3/acquire_endpoints_no_servers_field.script'
-    ))
+  it(
+    'should throw error when no servers entry',
+    () =>
+      testForProtocolError(
+        './test/resources/boltstub/v3/acquire_endpoints_no_servers_field.script'
+      ),
+    60000
+  )
 
-  it('should throw error when unparsable TTL entry', () =>
-    testForProtocolError(
-      './test/resources/boltstub/v3/acquire_endpoints_unparsable_ttl.script'
-    ))
+  it(
+    'should throw error when unparsable TTL entry',
+    () =>
+      testForProtocolError(
+        './test/resources/boltstub/v3/acquire_endpoints_unparsable_ttl.script'
+      ),
+    60000
+  )
 
-  it('should throw error when multiple records', () =>
-    testForProtocolError(
-      './test/resources/boltstub/v3/acquire_endpoints_multiple_records.script'
-    ))
+  it(
+    'should throw error when multiple records',
+    () =>
+      testForProtocolError(
+        './test/resources/boltstub/v3/acquire_endpoints_multiple_records.script'
+      ),
+    60000
+  )
 
-  it('should throw error on unparsable record', () =>
-    testForProtocolError(
-      './test/resources/boltstub/v3/acquire_endpoints_unparsable_servers.script'
-    ))
+  it(
+    'should throw error on unparsable record',
+    () =>
+      testForProtocolError(
+        './test/resources/boltstub/v3/acquire_endpoints_unparsable_servers.script'
+      ),
+    60000
+  )
 
-  it('should throw error when no routers', () =>
-    testForProtocolError(
-      './test/resources/boltstub/v3/acquire_endpoints_no_routers.script'
-    ))
+  it(
+    'should throw error when no routers',
+    () =>
+      testForProtocolError(
+        './test/resources/boltstub/v3/acquire_endpoints_no_routers.script'
+      ),
+    60000
+  )
 
-  it('should throw error when no readers', () =>
-    testForProtocolError(
-      './test/resources/boltstub/v3/acquire_endpoints_no_readers.script'
-    ))
+  it(
+    'should throw error when no readers',
+    () =>
+      testForProtocolError(
+        './test/resources/boltstub/v3/acquire_endpoints_no_readers.script'
+      ),
+    60000
+  )
 
-  it('should accept routing table with 1 router, 1 reader and 1 writer', () =>
-    testRoutingTableAcceptance(
-      {
-        routers: ['127.0.0.1:9091'],
-        readers: ['127.0.0.1:9092'],
-        writers: ['127.0.0.1:9999']
-      },
-      9999
-    ))
+  it(
+    'should accept routing table with 1 router, 1 reader and 1 writer',
+    () =>
+      testRoutingTableAcceptance(
+        {
+          routers: ['127.0.0.1:9091'],
+          readers: ['127.0.0.1:9092'],
+          writers: ['127.0.0.1:9999']
+        },
+        9999
+      ),
+    60000
+  )
 
-  it('should accept routing table with 2 routers, 1 reader and 1 writer', () =>
-    testRoutingTableAcceptance(
-      {
-        routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
-        readers: ['127.0.0.1:9092'],
-        writers: ['127.0.0.1:9999']
-      },
-      9999
-    ))
+  it(
+    'should accept routing table with 2 routers, 1 reader and 1 writer',
+    () =>
+      testRoutingTableAcceptance(
+        {
+          routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+          readers: ['127.0.0.1:9092'],
+          writers: ['127.0.0.1:9999']
+        },
+        9999
+      ),
+    60000
+  )
 
-  it('should accept routing table with 1 router, 2 readers and 1 writer', () =>
-    testRoutingTableAcceptance(
-      {
-        routers: ['127.0.0.1:9091'],
-        readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
-        writers: ['127.0.0.1:9999']
-      },
-      9999
-    ))
+  it(
+    'should accept routing table with 1 router, 2 readers and 1 writer',
+    () =>
+      testRoutingTableAcceptance(
+        {
+          routers: ['127.0.0.1:9091'],
+          readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
+          writers: ['127.0.0.1:9999']
+        },
+        9999
+      ),
+    60000
+  )
 
-  it('should accept routing table with 2 routers, 2 readers and 1 writer', () =>
-    testRoutingTableAcceptance(
-      {
-        routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
-        readers: ['127.0.0.1:9093', '127.0.0.1:9094'],
-        writers: ['127.0.0.1:9999']
-      },
-      9999
-    ))
+  it(
+    'should accept routing table with 2 routers, 2 readers and 1 writer',
+    () =>
+      testRoutingTableAcceptance(
+        {
+          routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+          readers: ['127.0.0.1:9093', '127.0.0.1:9094'],
+          writers: ['127.0.0.1:9999']
+        },
+        9999
+      ),
+    60000
+  )
 
-  it('should accept routing table with 1 router, 1 reader and 2 writers', () =>
-    testRoutingTableAcceptance(
-      {
-        routers: ['127.0.0.1:9091'],
-        readers: ['127.0.0.1:9092'],
-        writers: ['127.0.0.1:9999', '127.0.0.1:9093']
-      },
-      9999
-    ))
+  it(
+    'should accept routing table with 1 router, 1 reader and 2 writers',
+    () =>
+      testRoutingTableAcceptance(
+        {
+          routers: ['127.0.0.1:9091'],
+          readers: ['127.0.0.1:9092'],
+          writers: ['127.0.0.1:9999', '127.0.0.1:9093']
+        },
+        9999
+      ),
+    60000
+  )
 
-  it('should accept routing table with 2 routers, 1 reader and 2 writers', () =>
-    testRoutingTableAcceptance(
-      {
-        routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
-        readers: ['127.0.0.1:9093'],
-        writers: ['127.0.0.1:9999', '127.0.0.1:9094']
-      },
-      9999
-    ))
+  it(
+    'should accept routing table with 2 routers, 1 reader and 2 writers',
+    () =>
+      testRoutingTableAcceptance(
+        {
+          routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+          readers: ['127.0.0.1:9093'],
+          writers: ['127.0.0.1:9999', '127.0.0.1:9094']
+        },
+        9999
+      ),
+    60000
+  )
 
-  it('should accept routing table with 1 router, 2 readers and 2 writers', () =>
-    testRoutingTableAcceptance(
-      {
-        routers: ['127.0.0.1:9091'],
-        readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
-        writers: ['127.0.0.1:9999', '127.0.0.1:9094']
-      },
-      9999
-    ))
+  it(
+    'should accept routing table with 1 router, 2 readers and 2 writers',
+    () =>
+      testRoutingTableAcceptance(
+        {
+          routers: ['127.0.0.1:9091'],
+          readers: ['127.0.0.1:9092', '127.0.0.1:9093'],
+          writers: ['127.0.0.1:9999', '127.0.0.1:9094']
+        },
+        9999
+      ),
+    60000
+  )
 
-  it('should accept routing table with 2 routers, 2 readers and 2 writers', () =>
-    testRoutingTableAcceptance(
-      {
-        routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
-        readers: ['127.0.0.1:9093', '127.0.0.1:9094'],
-        writers: ['127.0.0.1:9999', '127.0.0.1:9095']
-      },
-      9999
-    ))
+  it(
+    'should accept routing table with 2 routers, 2 readers and 2 writers',
+    () =>
+      testRoutingTableAcceptance(
+        {
+          routers: ['127.0.0.1:9091', '127.0.0.1:9092'],
+          readers: ['127.0.0.1:9093', '127.0.0.1:9094'],
+          writers: ['127.0.0.1:9999', '127.0.0.1:9095']
+        },
+        9999
+      ),
+    60000
+  )
 
   it('should send and receive bookmark', async () => {
     if (!boltStub.supported) {
@@ -1129,13 +1182,24 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await router.exit()
     await writer.exit()
-  })
+  }, 60000)
 
-  it('should send initial bookmark without access mode', () =>
-    testWriteSessionWithAccessModeAndBookmark(null, 'neo4j:bookmark:v1:tx42'))
+  it(
+    'should send initial bookmark without access mode',
+    () =>
+      testWriteSessionWithAccessModeAndBookmark(null, 'neo4j:bookmark:v1:tx42'),
+    60000
+  )
 
-  it('should use write session mode and initial bookmark', () =>
-    testWriteSessionWithAccessModeAndBookmark(WRITE, 'neo4j:bookmark:v1:tx42'))
+  it(
+    'should use write session mode and initial bookmark',
+    () =>
+      testWriteSessionWithAccessModeAndBookmark(
+        WRITE,
+        'neo4j:bookmark:v1:tx42'
+      ),
+    60000
+  )
 
   it('should use read session mode and initial bookmark', async () => {
     if (!boltStub.supported) {
@@ -1171,7 +1235,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await router.exit()
     await writer.exit()
-  })
+  }, 60000)
 
   it('should pass bookmark from transaction to transaction', async () => {
     if (!boltStub.supported) {
@@ -1208,7 +1272,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await router.exit()
     await writer.exit()
-  })
+  }, 60000)
 
   it('should retry read transaction until success', async () => {
     if (!boltStub.supported) {
@@ -1245,7 +1309,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await router.exit()
     await brokenReader.exit()
     await reader.exit()
-  })
+  }, 60000)
 
   it('should retry write transaction until success', async () => {
     if (!boltStub.supported) {
@@ -1282,7 +1346,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await router.exit()
     await brokenWriter.exit()
     await writer.exit()
-  })
+  }, 60000)
 
   it('should retry read transaction until failure', async () => {
     if (!boltStub.supported) {
@@ -1331,7 +1395,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await router.exit()
     await brokenReader1.exit()
     await brokenReader2.exit()
-  })
+  }, 60000)
 
   it('should retry write transaction until failure', async () => {
     if (!boltStub.supported) {
@@ -1380,7 +1444,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await router.exit()
     await brokenWriter1.exit()
     await brokenWriter2.exit()
-  })
+  }, 60000)
 
   it('should retry read transaction and perform rediscovery until success', async () => {
     if (!boltStub.supported) {
@@ -1427,7 +1491,7 @@ describe('#stub-routing routing driver with stub server', () => {
         s.exit()
       )
     )
-  })
+  }, 60000)
 
   it('should retry write transaction and perform rediscovery until success', async () => {
     if (!boltStub.supported) {
@@ -1474,7 +1538,7 @@ describe('#stub-routing routing driver with stub server', () => {
         s.exit()
       )
     )
-  })
+  }, 60000)
 
   it('should use seed router for rediscovery when all other routers are dead', async () => {
     if (!boltStub.supported) {
@@ -1520,7 +1584,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await session.close()
     await driver.close()
     await router2.exit()
-  })
+  }, 60000)
 
   it('should use resolved seed router addresses for rediscovery when all other routers are dead', async () => {
     if (!boltStub.supported) {
@@ -1560,7 +1624,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await router1.exit()
     await router2.exit()
-  })
+  }, 60000)
 
   it('should send routing context to server', async () => {
     if (!boltStub.supported) {
@@ -1583,7 +1647,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await session.close()
     await driver.close()
     await router.exit()
-  })
+  }, 60000)
 
   it('should treat routing table with single router as valid', async () => {
     if (!boltStub.supported) {
@@ -1619,7 +1683,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await router.exit()
     await reader1.exit()
     await reader2.exit()
-  })
+  }, 60000)
 
   it('should use routing table without writers for reads', async () => {
     if (!boltStub.supported) {
@@ -1649,7 +1713,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await router.exit()
     await reader.exit()
-  })
+  }, 60000)
 
   it('should serve reads but fail writes when no writers available', async () => {
     if (!boltStub.supported) {
@@ -1693,7 +1757,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await router1.exit()
     await router2.exit()
     await reader.exit()
-  })
+  }, 60000)
 
   it('should accept routing table without writers and then rediscover', async () => {
     if (!boltStub.supported) {
@@ -1741,7 +1805,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
     await driver.close()
     await Promise.all([router1, router2, reader, writer].map(s => s.exit()))
-  })
+  }, 60000)
 
   it('should use resolved seed router for discovery after accepting a table without writers', async () => {
     if (!boltStub.supported) {
@@ -1787,7 +1851,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await Promise.all(
       [seedRouter, resolvedSeedRouter, reader, writer].map(s => s.exit())
     )
-  })
+  }, 60000)
 
   it('should fail rediscovery on auth error', async () => {
     if (!boltStub.supported) {
@@ -1811,7 +1875,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await session.close()
     await driver.close()
     await router.exit()
-  })
+  }, 60000)
 
   it('should send multiple bookmarks', async () => {
     if (!boltStub.supported) {
@@ -1848,52 +1912,79 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await router.exit()
     await writer.exit()
-  })
+  }, 60000)
 
-  it('should forget writer on database unavailable error', () =>
-    testAddressPurgeOnDatabaseError(
-      './test/resources/boltstub/v3/write_database_unavailable.script',
-      "CREATE (n {name:'Bob'})",
-      WRITE
-    ))
+  it(
+    'should forget writer on database unavailable error',
+    () =>
+      testAddressPurgeOnDatabaseError(
+        './test/resources/boltstub/v3/write_database_unavailable.script',
+        "CREATE (n {name:'Bob'})",
+        WRITE
+      ),
+    60000
+  )
 
-  it('should forget reader on database unavailable error', () =>
-    testAddressPurgeOnDatabaseError(
-      './test/resources/boltstub/v3/read_database_unavailable.script',
-      'RETURN 1',
-      READ
-    ))
+  it(
+    'should forget reader on database unavailable error',
+    () =>
+      testAddressPurgeOnDatabaseError(
+        './test/resources/boltstub/v3/read_database_unavailable.script',
+        'RETURN 1',
+        READ
+      ),
+    60000
+  )
 
-  it('should use resolver function that returns array during first discovery', () =>
-    testResolverFunctionDuringFirstDiscovery(['127.0.0.1:9010']))
+  it(
+    'should use resolver function that returns array during first discovery',
+    () => testResolverFunctionDuringFirstDiscovery(['127.0.0.1:9010']),
+    60000
+  )
 
-  it('should use resolver function that returns promise during first discovery', () =>
-    testResolverFunctionDuringFirstDiscovery(
-      Promise.resolve(['127.0.0.1:9010'])
-    ))
+  it(
+    'should use resolver function that returns promise during first discovery',
+    () =>
+      testResolverFunctionDuringFirstDiscovery(
+        Promise.resolve(['127.0.0.1:9010'])
+      ),
+    60000
+  )
 
-  it('should fail first discovery when configured resolver function throws', () =>
-    testResolverFunctionFailureDuringFirstDiscovery(
-      () => {
-        throw new Error('Broken resolver')
-      },
-      null,
-      'Broken resolver'
-    ))
+  it(
+    'should fail first discovery when configured resolver function throws',
+    () =>
+      testResolverFunctionFailureDuringFirstDiscovery(
+        () => {
+          throw new Error('Broken resolver')
+        },
+        null,
+        'Broken resolver'
+      ),
+    60000
+  )
 
-  it('should fail first discovery when configured resolver function returns no addresses', () =>
-    testResolverFunctionFailureDuringFirstDiscovery(
-      () => [],
-      SERVICE_UNAVAILABLE,
-      'No routing servers available'
-    ))
+  it(
+    'should fail first discovery when configured resolver function returns no addresses',
+    () =>
+      testResolverFunctionFailureDuringFirstDiscovery(
+        () => [],
+        SERVICE_UNAVAILABLE,
+        'No routing servers available'
+      ),
+    60000
+  )
 
-  it('should fail first discovery when configured resolver function returns a string instead of array of addresses', () =>
-    testResolverFunctionFailureDuringFirstDiscovery(
-      () => 'Hello',
-      null,
-      'Configured resolver function should either return an array of addresses'
-    ))
+  it(
+    'should fail first discovery when configured resolver function returns a string instead of array of addresses',
+    () =>
+      testResolverFunctionFailureDuringFirstDiscovery(
+        () => 'Hello',
+        null,
+        'Configured resolver function should either return an array of addresses'
+      ),
+    60000
+  )
 
   it('should use resolver function during rediscovery when existing routers fail', async () => {
     if (!boltStub.supported) {
@@ -1957,13 +2048,17 @@ describe('#stub-routing routing driver with stub server', () => {
     await router1.exit()
     await router2.exit()
     await reader.exit()
-  })
+  }, 60000)
 
-  it('should connect to cluster when disableLosslessIntegers is on', () =>
-    testDiscoveryAndReadQueryInAutoCommitTx(
-      './test/resources/boltstub/v3/acquire_endpoints.script',
-      { disableLosslessIntegers: true }
-    ))
+  it(
+    'should connect to cluster when disableLosslessIntegers is on',
+    () =>
+      testDiscoveryAndReadQueryInAutoCommitTx(
+        './test/resources/boltstub/v3/acquire_endpoints.script',
+        { disableLosslessIntegers: true }
+      ),
+    60000
+  )
 
   it('should send read access mode on query metadata', async () => {
     if (!boltStub.supported) {
@@ -1993,7 +2088,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should send read access mode on query metadata with read transaction', async () => {
     if (!boltStub.supported) {
@@ -2025,7 +2120,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await readServer.exit()
-  })
+  }, 60000)
 
   it('should not send write access mode on query metadata', async () => {
     if (!boltStub.supported) {
@@ -2050,7 +2145,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await writeServer.exit()
-  })
+  }, 60000)
 
   it('should not send write access mode on query metadata with write transaction', async () => {
     if (!boltStub.supported) {
@@ -2075,7 +2170,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await driver.close()
     await seedServer.exit()
     await writeServer.exit()
-  })
+  }, 60000)
 
   it('should revert to initial router if the only known router returns invalid routing table', async () => {
     if (!boltStub.supported) {
@@ -2115,7 +2210,7 @@ describe('#stub-routing routing driver with stub server', () => {
     await session.close()
     await driver.close()
     await Promise.all([router1, router2, router3, reader].map(s => s.exit()))
-  })
+  }, 60000)
 
   describe('multi-Database', () => {
     async function verifyDiscoverAndRead (script, database) {
@@ -2195,17 +2290,29 @@ describe('#stub-routing routing driver with stub server', () => {
       await writeServer.exit()
     }
 
-    it('should discover servers for default database and read', () =>
-      verifyDiscoverAndRead('read', ''))
+    it(
+      'should discover servers for default database and read',
+      () => verifyDiscoverAndRead('read', ''),
+      60000
+    )
 
-    it('should discover servers for aDatabase and read', () =>
-      verifyDiscoverAndRead('read_from_aDatabase', 'aDatabase'))
+    it(
+      'should discover servers for aDatabase and read',
+      () => verifyDiscoverAndRead('read_from_aDatabase', 'aDatabase'),
+      60000
+    )
 
-    it('should discover servers for default database and write', () =>
-      verifyDiscoverAndWrite('write', ''))
+    it(
+      'should discover servers for default database and write',
+      () => verifyDiscoverAndWrite('write', ''),
+      60000
+    )
 
-    it('should discover servers for aDatabase and write', () =>
-      verifyDiscoverAndWrite('write_to_aDatabase', 'aDatabase'))
+    it(
+      'should discover servers for aDatabase and write',
+      () => verifyDiscoverAndWrite('write_to_aDatabase', 'aDatabase'),
+      60000
+    )
 
     it('should fail discovery if database not found', async () => {
       if (!boltStub.supported) {
@@ -2232,7 +2339,7 @@ describe('#stub-routing routing driver with stub server', () => {
       await session.close()
       await driver.close()
       await server.exit()
-    })
+    }, 60000)
 
     it('should try next server for empty routing table response', async () => {
       if (!boltStub.supported) {
@@ -2277,7 +2384,7 @@ describe('#stub-routing routing driver with stub server', () => {
       await router1.exit()
       await router2.exit()
       await reader1.exit()
-    })
+    }, 60000)
 
     it('should use provided bookmarks for the discovery', async () => {
       if (!boltStub.supported) {
@@ -2312,7 +2419,7 @@ describe('#stub-routing routing driver with stub server', () => {
       await driver.close()
       await server.exit()
       await readServer.exit()
-    })
+    }, 60000)
 
     it('should ignore provided bookmarks for the discovery', async () => {
       if (!boltStub.supported) {
@@ -2347,7 +2454,7 @@ describe('#stub-routing routing driver with stub server', () => {
       await server.exit()
       await readServer.exit()
     })
-  })
+  }, 60000)
 
   describe('should report whether multi db is supported', () => {
     async function verifySupportsMultiDb (version, expected) {
@@ -2392,13 +2499,24 @@ describe('#stub-routing routing driver with stub server', () => {
       await server.exit()
     }
 
-    it('v3', () => verifySupportsMultiDb('v3', false))
-    it('v4', () => verifySupportsMultiDb('v4', true))
-    it('v4.2', () => verifySupportsMultiDb('v4.2', true))
-    it('v3 with resolver', () => verifySupportsMultiDbWithResolver('v3', false))
-    it('v4 with resolver', () => verifySupportsMultiDbWithResolver('v4', true))
-    it('v4.2 with resolver', () =>
-      verifySupportsMultiDbWithResolver('v4.2', true))
+    it('v3', () => verifySupportsMultiDb('v3', false), 60000)
+    it('v4', () => verifySupportsMultiDb('v4', true), 60000)
+    it('v4.2', () => verifySupportsMultiDb('v4.2', true), 60000)
+    it(
+      'v3 with resolver',
+      () => verifySupportsMultiDbWithResolver('v3', false),
+      60000
+    )
+    it(
+      'v4 with resolver',
+      () => verifySupportsMultiDbWithResolver('v4', true),
+      60000
+    )
+    it(
+      'v4.2 with resolver',
+      () => verifySupportsMultiDbWithResolver('v4.2', true),
+      60000
+    )
     it('on error', async () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
@@ -2409,7 +2527,7 @@ describe('#stub-routing routing driver with stub server', () => {
       )
 
       await driver.close()
-    })
+    }, 60000)
   })
 
   describe('should send address in routing context', () => {
@@ -2434,8 +2552,8 @@ describe('#stub-routing routing driver with stub server', () => {
       await router.exit()
     }
 
-    it('v4.1', () => verify('v4.1'))
-    it('v4.2', () => verify('v4.2'))
+    it('v4.1', () => verify('v4.1'), 60000)
+    it('v4.2', () => verify('v4.2'), 60000)
   })
 
   describe('should send routing context with hello to enable server routing', () => {
@@ -2460,8 +2578,8 @@ describe('#stub-routing routing driver with stub server', () => {
       await router.exit()
     }
 
-    it('v4.1', () => verify('v4.1'))
-    it('v4.2', () => verify('v4.2'))
+    it('v4.1', () => verify('v4.1'), 60000)
+    it('v4.2', () => verify('v4.2'), 60000)
   })
 
   describe('should send empty routing context with hello to enable server routing', () => {
@@ -2484,8 +2602,8 @@ describe('#stub-routing routing driver with stub server', () => {
       await router.exit()
     }
 
-    it('v4.1', () => verify('v4.1'))
-    it('v4.2', () => verify('v4.2'))
+    it('v4.1', () => verify('v4.1'), 60000)
+    it('v4.2', () => verify('v4.2'), 60000)
   })
 
   describe('should report whether transaction config is supported', () => {
@@ -2538,15 +2656,24 @@ describe('#stub-routing routing driver with stub server', () => {
       await server.exit()
     }
 
-    it('v3', () => verifySupportsTransactionConfig('v3', true))
-    it('v4', () => verifySupportsTransactionConfig('v4', true))
-    it('v4.2', () => verifySupportsTransactionConfig('v4.2', true))
-    it('v3 with resolver', () =>
-      verifySupportsTransactionConfigWithResolver('v3', true))
-    it('v4 with resolver', () =>
-      verifySupportsTransactionConfigWithResolver('v4', true))
-    it('v4.2 with resolver', () =>
-      verifySupportsTransactionConfigWithResolver('v4.2', true))
+    it('v3', () => verifySupportsTransactionConfig('v3', true), 60000)
+    it('v4', () => verifySupportsTransactionConfig('v4', true), 60000)
+    it('v4.2', () => verifySupportsTransactionConfig('v4.2', true), 60000)
+    it(
+      'v3 with resolver',
+      () => verifySupportsTransactionConfigWithResolver('v3', true),
+      60000
+    )
+    it(
+      'v4 with resolver',
+      () => verifySupportsTransactionConfigWithResolver('v4', true),
+      60000
+    )
+    it(
+      'v4.2 with resolver',
+      () => verifySupportsTransactionConfigWithResolver('v4.2', true),
+      60000
+    )
     it('on error', async () => {
       const driver = boltStub.newDriver('neo4j://127.0.0.1:9001')
 
@@ -2557,7 +2684,7 @@ describe('#stub-routing routing driver with stub server', () => {
       )
 
       await driver.close()
-    })
+    }, 60000)
   })
 
   async function testAddressPurgeOnDatabaseError (script, query, accessMode) {

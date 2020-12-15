@@ -24,7 +24,6 @@ import sharedNeo4j from '../internal/shared-neo4j'
 import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
 
 describe('#integration rx-session', () => {
-  let originalTimeout
   let driver
   /** @type {RxSession} */
   let session
@@ -32,8 +31,6 @@ describe('#integration rx-session', () => {
   let protocolVersion
 
   beforeEach(async () => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
     driver = neo4j.driver(
       `bolt://${sharedNeo4j.hostname}`,
       sharedNeo4j.authToken
@@ -44,7 +41,6 @@ describe('#integration rx-session', () => {
   })
 
   afterEach(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     if (session) {
       await session.close().toPromise()
     }
@@ -73,7 +69,7 @@ describe('#integration rx-session', () => {
       Notification.createNext(4),
       Notification.createComplete()
     ])
-  })
+  }, 60000)
 
   it('should be able to reuse session after failure', async () => {
     if (protocolVersion < 4.0) {
@@ -102,7 +98,7 @@ describe('#integration rx-session', () => {
       Notification.createNext(1),
       Notification.createComplete()
     ])
-  })
+  }, 60000)
 
   it('should run transactions without retries', async () => {
     if (protocolVersion < 4.0) {
@@ -124,7 +120,7 @@ describe('#integration rx-session', () => {
 
     expect(txcWork.invocations).toBe(1)
     expect(await countNodes('WithoutRetry')).toBe(1)
-  })
+  }, 60000)
 
   it('should run transaction with retries on reactive failures', async () => {
     if (protocolVersion < 4.0) {
@@ -151,7 +147,7 @@ describe('#integration rx-session', () => {
 
     expect(txcWork.invocations).toBe(4)
     expect(await countNodes('WithReactiveFailure')).toBe(1)
-  })
+  }, 60000)
 
   it('should run transaction with retries on synchronous failures', async () => {
     if (protocolVersion < 4.0) {
@@ -178,7 +174,7 @@ describe('#integration rx-session', () => {
 
     expect(txcWork.invocations).toBe(4)
     expect(await countNodes('WithSyncFailure')).toBe(1)
-  })
+  }, 60000)
 
   it('should fail on transactions that cannot be retried', async () => {
     if (protocolVersion < 4.0) {
@@ -201,7 +197,7 @@ describe('#integration rx-session', () => {
 
     expect(txcWork.invocations).toBe(1)
     expect(await countNodes('Hi')).toBe(0)
-  })
+  }, 60000)
 
   it('should fail even after a transient error', async () => {
     if (protocolVersion < 4.0) {
@@ -231,7 +227,7 @@ describe('#integration rx-session', () => {
 
     expect(txcWork.invocations).toBe(2)
     expect(await countNodes('Person')).toBe(0)
-  })
+  }, 60000)
 
   async function countNodes (label) {
     const session = driver.rxSession()
