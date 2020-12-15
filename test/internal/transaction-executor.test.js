@@ -32,17 +32,6 @@ const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError'
 
 // Not exactly integration tests but annoyingly slow for being a unit tests.
 describe('#integration TransactionExecutor', () => {
-  let originalTimeout
-
-  beforeEach(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
-  })
-
-  afterEach(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-  })
-
   it('should retry until database error happens', async () => {
     await testNoRetryOnUnknownError(
       [
@@ -55,7 +44,7 @@ describe('#integration TransactionExecutor', () => {
       ],
       5
     )
-  })
+  }, 60000)
 
   it('should stop retrying when time expires', async () => {
     let clock
@@ -93,7 +82,7 @@ describe('#integration TransactionExecutor', () => {
         clock.uninstall()
       }
     }
-  })
+  }, 60000)
 
   it('should cancel in-flight timeouts when closed', async () => {
     const fakeSetTimeout = setTimeoutMock.install()
@@ -126,58 +115,47 @@ describe('#integration TransactionExecutor', () => {
     } finally {
       fakeSetTimeout.uninstall()
     }
-  })
+  }, 60000)
 })
 
 describe('#unit TransactionExecutor', () => {
-  let originalTimeout
-
-  beforeEach(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 30000
-  })
-
-  afterEach(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-  })
-
   it('should retry when transaction work returns promise rejected with SERVICE_UNAVAILABLE', async () => {
     await testRetryWhenTransactionWorkReturnsRejectedPromise([
       SERVICE_UNAVAILABLE
     ])
-  })
+  }, 30000)
 
   it('should retry when transaction work returns promise rejected with SESSION_EXPIRED', async () => {
     await testRetryWhenTransactionWorkReturnsRejectedPromise([SESSION_EXPIRED])
-  })
+  }, 30000)
 
   it('should retry when transaction work returns promise rejected with deadlock error', async () => {
     await testRetryWhenTransactionWorkReturnsRejectedPromise([
       TRANSIENT_ERROR_1
     ])
-  })
+  }, 30000)
 
   it('should retry when transaction work returns promise rejected with communication error', async () => {
     await testRetryWhenTransactionWorkReturnsRejectedPromise([
       TRANSIENT_ERROR_2
     ])
-  })
+  }, 30000)
 
   it('should not retry when transaction work returns promise rejected with OOM error', async () => {
     await testNoRetryOnUnknownError([OOM_ERROR], 1)
-  })
+  }, 30000)
 
   it('should not retry when transaction work returns promise rejected with unknown error', async () => {
     await testNoRetryOnUnknownError([UNKNOWN_ERROR], 1)
-  })
+  }, 30000)
 
   it('should not retry when transaction work returns promise rejected with transaction termination error', async () => {
     await testNoRetryOnUnknownError([TX_TERMINATED_ERROR], 1)
-  })
+  }, 30000)
 
   it('should not retry when transaction work returns promise rejected with locks termination error', async () => {
     await testNoRetryOnUnknownError([LOCKS_TERMINATED_ERROR], 1)
-  })
+  }, 30000)
 
   it('should not retry when transaction work returns promise rejected with unknown error type', async () => {
     class MyTestError extends Error {
@@ -194,11 +172,11 @@ describe('#unit TransactionExecutor', () => {
     await expectAsync(
       executor.execute(transactionCreator(), tx => realWork())
     ).toBeRejectedWith(error)
-  })
+  }, 30000)
 
   it('should retry when given transaction creator throws once', async () => {
     await testRetryWhenTransactionCreatorFails([SERVICE_UNAVAILABLE])
-  })
+  }, 30000)
 
   it('should retry when given transaction creator throws many times', async () => {
     await testRetryWhenTransactionCreatorFails([
@@ -209,11 +187,11 @@ describe('#unit TransactionExecutor', () => {
       SERVICE_UNAVAILABLE,
       TRANSIENT_ERROR_1
     ])
-  })
+  }, 30000)
 
   it('should retry when given transaction work throws once', async () => {
     await testRetryWhenTransactionWorkThrows([SERVICE_UNAVAILABLE])
-  })
+  }, 30000)
 
   it('should retry when given transaction work throws many times', async () => {
     await testRetryWhenTransactionWorkThrows([
@@ -222,7 +200,7 @@ describe('#unit TransactionExecutor', () => {
       TRANSIENT_ERROR_2,
       SESSION_EXPIRED
     ])
-  })
+  }, 30000)
 
   it('should retry when given transaction work returns rejected promise many times', async () => {
     await testRetryWhenTransactionWorkReturnsRejectedPromise([
@@ -233,13 +211,13 @@ describe('#unit TransactionExecutor', () => {
       TRANSIENT_ERROR_1,
       SESSION_EXPIRED
     ])
-  })
+  }, 30000)
 
   it('should retry when transaction commit returns rejected promise once', async () => {
     await testRetryWhenTransactionCommitReturnsRejectedPromise([
       TRANSIENT_ERROR_1
     ])
-  })
+  }, 30000)
 
   it('should retry when transaction commit returns rejected promise multiple times', async () => {
     await testRetryWhenTransactionCommitReturnsRejectedPromise([
@@ -249,7 +227,7 @@ describe('#unit TransactionExecutor', () => {
       SERVICE_UNAVAILABLE,
       TRANSIENT_ERROR_2
     ])
-  })
+  }, 30000)
 
   it('should retry when transaction work throws and rollback fails', async () => {
     await testRetryWhenTransactionWorkThrowsAndRollbackFails(
@@ -261,26 +239,26 @@ describe('#unit TransactionExecutor', () => {
       ],
       [SESSION_EXPIRED, TRANSIENT_ERROR_1]
     )
-  })
+  }, 30000)
 
   it('should allow zero max retry time', () => {
     const executor = new TransactionExecutor(0)
     expect(executor._maxRetryTimeMs).toEqual(0)
-  })
+  }, 30000)
 
   it('should allow zero initial delay', () => {
     const executor = new TransactionExecutor(42, 0)
     expect(executor._initialRetryDelayMs).toEqual(0)
-  })
+  }, 30000)
 
   it('should disallow zero multiplier', () => {
     expect(() => new TransactionExecutor(42, 42, 0)).toThrow()
-  })
+  }, 30000)
 
   it('should allow zero jitter factor', () => {
     const executor = new TransactionExecutor(42, 42, 42, 0)
     expect(executor._jitterFactor).toEqual(0)
-  })
+  }, 30000)
 
   async function testRetryWhenTransactionCreatorFails (errorCodes) {
     const fakeSetTimeout = setTimeoutMock.install()

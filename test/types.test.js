@@ -187,35 +187,25 @@ describe('#integration path values', () => {
 })
 
 describe('#integration byte arrays', () => {
-  const originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-
-  beforeAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
-  })
-
-  afterAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-  })
-
   it('should support returning empty byte array if server supports byte arrays', done => {
     testValue(new Int8Array(0))(done)
-  })
+  }, 60000)
 
   it('should support returning empty byte array if server supports byte arrays', done => {
     testValues([new Int8Array(0)])(done)
-  })
+  }, 60000)
 
   it('should support returning short byte arrays if server supports byte arrays', done => {
     testValues(randomByteArrays(100, 1, 255))(done)
-  })
+  }, 60000)
 
   it('should support returning medium byte arrays if server supports byte arrays', done => {
     testValues(randomByteArrays(50, 256, 65535))(done)
-  })
+  }, 60000)
 
   it('should support returning long byte arrays if server supports byte arrays', done => {
     testValues(randomByteArrays(10, 65536, 2 * 65536))(done)
-  })
+  }, 60000)
 
   it('should fail to return byte array if server does not support byte arrays', done => {
     const driver = neo4j.driver(
@@ -232,7 +222,7 @@ describe('#integration byte arrays', () => {
       })
       .then(() => driver.close())
       .then(() => done())
-  })
+  }, 60000)
 })
 
 function testValue (actual, expected) {
