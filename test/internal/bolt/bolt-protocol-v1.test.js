@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 
-import BoltProtocolV1 from '../../src/internal/bolt-protocol-v1'
-import RequestMessage from '../../src/internal/request-message'
-import Bookmark from '../../src/internal/bookmark'
-import TxConfig from '../../src/internal/tx-config'
-import { WRITE } from '../../src/driver'
-import utils from './test-utils'
-import { LoginObserver } from '../../src/internal/stream-observers'
+import BoltProtocolV1 from '../../../src/internal/bolt/bolt-protocol-v1'
+import RequestMessage from '../../../src/internal/bolt/request-message'
+import Bookmark from '../../../src/internal/bookmark'
+import TxConfig from '../../../src/internal/tx-config'
+import { WRITE } from '../../../src/driver'
+import utils from '../test-utils'
+import { LoginObserver } from '../../../src/internal/bolt/stream-observers'
 
 describe('#unit BoltProtocolV1', () => {
   beforeEach(() => {
@@ -55,7 +55,9 @@ describe('#unit BoltProtocolV1', () => {
 
   it('should initialize the connection', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV1(recorder, null, false)
+    const protocol = utils.spyProtocolWrite(
+      new BoltProtocolV1(recorder, null, false)
+    )
 
     const onError = _error => {}
     const onComplete = () => {}
@@ -71,20 +73,20 @@ describe('#unit BoltProtocolV1', () => {
 
     expect(observer).toBeTruthy()
     expect(observer instanceof LoginObserver).toBeTruthy()
-    expect(observer._afterError).toBe(onError)
-    expect(observer._afterComplete).toBe(onComplete)
 
-    recorder.verifyMessageCount(1)
-    expect(recorder.messages[0]).toBeMessage(
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(
       RequestMessage.init(clientName, authToken)
     )
-    expect(recorder.observers).toEqual([observer])
-    expect(recorder.flushes).toEqual([true])
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
   })
 
   it('should run a query', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV1(recorder, null, false)
+    const protocol = utils.spyProtocolWrite(
+      new BoltProtocolV1(recorder, null, false)
+    )
 
     const query = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
@@ -94,31 +96,35 @@ describe('#unit BoltProtocolV1', () => {
       mode: WRITE
     })
 
-    recorder.verifyMessageCount(2)
+    protocol.verifyMessageCount(2)
 
-    expect(recorder.messages[0]).toBeMessage(
+    expect(protocol.messages[0]).toBeMessage(
       RequestMessage.run(query, parameters)
     )
-    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
-    expect(recorder.observers).toEqual([observer, observer])
-    expect(recorder.flushes).toEqual([false, true])
+    expect(protocol.messages[1]).toBeMessage(RequestMessage.pullAll())
+    expect(protocol.observers).toEqual([observer, observer])
+    expect(protocol.flushes).toEqual([false, true])
   })
 
   it('should reset the connection', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV1(recorder, null, false)
+    const protocol = utils.spyProtocolWrite(
+      new BoltProtocolV1(recorder, null, false)
+    )
 
     const observer = protocol.reset()
 
-    recorder.verifyMessageCount(1)
-    expect(recorder.messages[0]).toBeMessage(RequestMessage.reset())
-    expect(recorder.observers).toEqual([observer])
-    expect(recorder.flushes).toEqual([true])
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(RequestMessage.reset())
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
   })
 
   it('should begin a transaction', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV1(recorder, null, false)
+    const protocol = utils.spyProtocolWrite(
+      new BoltProtocolV1(recorder, null, false)
+    )
 
     const bookmark = new Bookmark('neo4j:bookmark:v1:tx42')
 
@@ -128,42 +134,46 @@ describe('#unit BoltProtocolV1', () => {
       mode: WRITE
     })
 
-    recorder.verifyMessageCount(2)
+    protocol.verifyMessageCount(2)
 
-    expect(recorder.messages[0]).toBeMessage(
+    expect(protocol.messages[0]).toBeMessage(
       RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters())
     )
-    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
-    expect(recorder.observers).toEqual([observer, observer])
-    expect(recorder.flushes).toEqual([false, false])
+    expect(protocol.messages[1]).toBeMessage(RequestMessage.pullAll())
+    expect(protocol.observers).toEqual([observer, observer])
+    expect(protocol.flushes).toEqual([false, false])
   })
 
   it('should commit a transaction', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV1(recorder, null, false)
+    const protocol = utils.spyProtocolWrite(
+      new BoltProtocolV1(recorder, null, false)
+    )
 
     const observer = protocol.commitTransaction()
 
-    recorder.verifyMessageCount(2)
+    protocol.verifyMessageCount(2)
 
-    expect(recorder.messages[0]).toBeMessage(RequestMessage.run('COMMIT', {}))
-    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
-    expect(recorder.observers).toEqual([observer, observer])
-    expect(recorder.flushes).toEqual([false, true])
+    expect(protocol.messages[0]).toBeMessage(RequestMessage.run('COMMIT', {}))
+    expect(protocol.messages[1]).toBeMessage(RequestMessage.pullAll())
+    expect(protocol.observers).toEqual([observer, observer])
+    expect(protocol.flushes).toEqual([false, true])
   })
 
   it('should rollback a transaction', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV1(recorder, null, false)
+    const protocol = utils.spyProtocolWrite(
+      new BoltProtocolV1(recorder, null, false)
+    )
 
     const observer = protocol.rollbackTransaction()
 
-    recorder.verifyMessageCount(2)
+    protocol.verifyMessageCount(2)
 
-    expect(recorder.messages[0]).toBeMessage(RequestMessage.run('ROLLBACK', {}))
-    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
-    expect(recorder.observers).toEqual([observer, observer])
-    expect(recorder.flushes).toEqual([false, true])
+    expect(protocol.messages[0]).toBeMessage(RequestMessage.run('ROLLBACK', {}))
+    expect(protocol.messages[1]).toBeMessage(RequestMessage.pullAll())
+    expect(protocol.observers).toEqual([observer, observer])
+    expect(protocol.flushes).toEqual([false, true])
   })
 
   it('should return correct bolt version number', () => {

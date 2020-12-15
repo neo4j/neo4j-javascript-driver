@@ -18,7 +18,7 @@
  */
 import DelegateConnection from '../../src/internal/connection-delegate'
 import Connection from '../../src/internal/connection'
-import BoltProtocol from '../../src/internal/bolt-protocol-v1'
+import { BoltProtocol } from '../../src/internal/bolt'
 import BoltAddress from '../../src/internal/server-address'
 import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
 

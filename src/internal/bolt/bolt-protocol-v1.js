@@ -20,12 +20,12 @@ import {
   assertDatabaseIsEmpty,
   assertTxConfigIsEmpty
 } from './bolt-protocol-util'
-import Bookmark from './bookmark'
-import { Chunker } from './chunking'
-import Connection from './connection'
-import { ACCESS_MODE_WRITE, BOLT_PROTOCOL_V1 } from './constants'
-import * as v1 from './packstream-v1'
-import { Packer } from './packstream-v1'
+import Bookmark from '../bookmark'
+import { Chunker } from '../chunking'
+import { ACCESS_MODE_WRITE, BOLT_PROTOCOL_V1 } from '../constants'
+import Logger from '../logger'
+import * as v1 from '../packstream-v1'
+import { Packer } from '../packstream-v1'
 import RequestMessage from './request-message'
 import {
   LoginObserver,
@@ -33,19 +33,43 @@ import {
   ResultStreamObserver,
   StreamObserver
 } from './stream-observers'
-import TxConfig from './tx-config'
+import TxConfig from '../tx-config'
 
 export default class BoltProtocol {
   /**
+   * @callback CreateResponseHandler Creates the response handler
+   * @param {BoltProtocol} protocol The bolt protocol
+   * @returns {ResponseHandler} The response handler
+   */
+  /**
+   * @callback OnProtocolError Handles protocol error
+   * @param {string} error The description
+   */
+  /**
    * @constructor
-   * @param {Connection} connection the connection.
+   * @param {Object} server the server informatio.
    * @param {Chunker} chunker the chunker.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
+   * @param {CreateResponseHandler} createResponseHandler Function which creates the response handler
+   * @param {Logger} log the logger
+   * @param {OnProtocolError} onProtocolError handles protocol errors
    */
-  constructor (connection, chunker, disableLosslessIntegers) {
-    this._connection = connection
+  constructor (
+    server,
+    chunker,
+    disableLosslessIntegers,
+    createResponseHandler = () => null,
+    log,
+    onProtocolError
+  ) {
+    this._server = server || {}
+    this._chunker = chunker
     this._packer = this._createPacker(chunker)
     this._unpacker = this._createUnpacker(disableLosslessIntegers)
+    this._responseHandler = createResponseHandler(this)
+    this._log = log
+    this._onProtocolError = onProtocolError
+    this._fatalError = null
   }
 
   /**
@@ -91,16 +115,11 @@ export default class BoltProtocol {
    */
   initialize ({ userAgent, authToken, onError, onComplete } = {}) {
     const observer = new LoginObserver({
-      connection: this._connection,
-      afterError: onError,
-      afterComplete: onComplete
+      onError: error => this._onLoginError(error, onError),
+      onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
     })
 
-    this._connection.write(
-      RequestMessage.init(userAgent, authToken),
-      observer,
-      true
-    )
+    this.write(RequestMessage.init(userAgent, authToken), observer, true)
 
     return observer
   }
@@ -252,7 +271,7 @@ export default class BoltProtocol {
     } = {}
   ) {
     const observer = new ResultStreamObserver({
-      connection: this._connection,
+      server: this._server,
       beforeKeys,
       afterKeys,
       beforeError,
@@ -262,16 +281,12 @@ export default class BoltProtocol {
     })
 
     // bookmark and mode are ignored in this version of the protocol
-    assertTxConfigIsEmpty(txConfig, this._connection, observer)
+    assertTxConfigIsEmpty(txConfig, this._onProtocolError, observer)
     // passing in a database name on this protocol version throws an error
-    assertDatabaseIsEmpty(database, this._connection, observer)
+    assertDatabaseIsEmpty(database, this._onProtocolError, observer)
 
-    this._connection.write(
-      RequestMessage.run(query, parameters),
-      observer,
-      false
-    )
-    this._connection.write(RequestMessage.pullAll(), observer, flush)
+    this.write(RequestMessage.run(query, parameters), observer, false)
+    this.write(RequestMessage.pullAll(), observer, flush)
 
     return observer
   }
@@ -285,12 +300,12 @@ export default class BoltProtocol {
    */
   reset ({ onError, onComplete } = {}) {
     const observer = new ResetObserver({
-      connection: this._connection,
+      onProtocolError: this._onProtocolError,
       onError,
       onComplete
     })
 
-    this._connection.write(RequestMessage.reset(), observer, true)
+    this.write(RequestMessage.reset(), observer, true)
 
     return observer
   }
@@ -301,5 +316,117 @@ export default class BoltProtocol {
 
   _createUnpacker (disableLosslessIntegers) {
     return new v1.Unpacker(disableLosslessIntegers)
+  }
+
+  /**
+   * Write a message to the network channel.
+   * @param {RequestMessage} message the message to write.
+   * @param {StreamObserver} observer the response observer.
+   * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
+   */
+  write (message, observer, flush) {
+    const queued = this.queueObserverIfProtocolIsNotBroken(observer)
+
+    if (queued) {
+      if (this._log.isDebugEnabled()) {
+        this._log.debug(`${this} C: ${message}`)
+      }
+
+      this.packer().packStruct(
+        message.signature,
+        message.fields.map(field => this.packer().packable(field))
+      )
+
+      this._chunker.messageBoundary()
+
+      if (flush) {
+        this._chunker.flush()
+      }
+    }
+  }
+
+  /**
+   * Notifies faltal erros to the observers and mark the protocol in the fatal error state.
+   * @param {Error} error The error
+   */
+  notifyFatalError (error) {
+    this._fatalError = error
+    return this._responseHandler._notifyErrorToObservers(error)
+  }
+
+  /**
+   * Updates the the current observer with the next one on the queue.
+   */
+  updateCurrentObserver () {
+    return this._responseHandler._updateCurrentObserver()
+  }
+
+  /**
+   * Checks if exist an ongoing observable requests
+   * @return {boolean}
+   */
+  hasOngoingObservableRequests () {
+    return this._responseHandler.hasOngoingObservableRequests()
+  }
+
+  /**
+   * Enqueue the observer if the protocol is not broken.
+   * In case it's broken, the observer will be notified about the error.
+   *
+   * @param {StreamObserver} observer The observer
+   * @returns {boolean} if it was queued
+   */
+  queueObserverIfProtocolIsNotBroken (observer) {
+    if (this.isBroken()) {
+      this.notifyFatalErrorToObserver(observer)
+      return false
+    }
+
+    return this._responseHandler._queueObserver(observer)
+  }
+
+  /**
+   * Veritfy the protocol is not broken.
+   * @returns {boolean}
+   */
+  isBroken () {
+    return !!this._fatalError
+  }
+
+  /**
+   * Notifies the current fatal error to the observer
+   *
+   * @param {StreamObserver} observer The observer
+   */
+  notifyFatalErrorToObserver (observer) {
+    if (observer && observer.onError) {
+      observer.onError(this._fatalError)
+    }
+  }
+
+  /**
+   * Reset current failure on the observable response handler to null.
+   */
+  resetFailure () {
+    this._responseHandler._resetFailure()
+  }
+
+  _onLoginCompleted (metadata, onCompleted) {
+    if (metadata) {
+      const serverVersion = metadata.server
+      if (!this._server.version) {
+        this._server.version = serverVersion
+      }
+    }
+    if (onCompleted) {
+      onCompleted(metadata)
+    }
+  }
+
+  _onLoginError (error, onError) {
+    this._onProtocolError(error.message)
+    if (onError) {
+      onError(error)
+    }
   }
 }

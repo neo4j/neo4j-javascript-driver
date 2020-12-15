@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import RawRoutingTable from '../../src/internal/routing-table-raw'
+import { RawRoutingTable } from '../../src/internal/bolt'
 import Rediscovery from '../../src/internal/rediscovery'
 import RoutingTable from '../../src/internal/routing-table'
 import ServerAddress from '../../src/internal/server-address'

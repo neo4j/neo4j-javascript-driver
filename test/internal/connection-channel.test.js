@@ -18,7 +18,9 @@
  */
 
 import DummyChannel from './dummy-channel'
-import ChannelConnection from '../../src/internal/connection-channel'
+import ChannelConnection, {
+  createChannelConnection
+} from '../../src/internal/connection-channel'
 import { Packer } from '../../src/internal/packstream-v1'
 import { Chunker } from '../../src/internal/chunking'
 import { alloc } from '../../src/internal/node'
@@ -33,7 +35,7 @@ import Bookmark from '../../src/internal/bookmark'
 import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
 import ServerAddress from '../../src/internal/server-address'
-import { ResultStreamObserver } from '../../src/internal/stream-observers'
+import { ResultStreamObserver } from '../../src/internal/bolt'
 
 const ILLEGAL_MESSAGE = { signature: 42, fields: [] }
 const SUCCESS_MESSAGE = { signature: 0x70, fields: [{}] }
@@ -52,12 +54,12 @@ describe('#integration ChannelConnection', () => {
     }
   })
 
-  it('should have correct creation timestamp', () => {
+  it('should have correct creation timestamp', async () => {
     const clock = lolex.install()
     try {
       clock.setSystemTime(424242)
 
-      connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+      connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
       expect(connection.creationTimestamp).toEqual(424242)
     } finally {
@@ -66,23 +68,23 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should read/write basic messages', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
-
-    connection._negotiateProtocol().then(() => {
-      connection.protocol().initialize({
-        userAgent: 'mydriver/0.0.0',
-        authToken: basicAuthToken(),
-        onComplete: metadata => {
-          expect(metadata).not.toBeNull()
-          done()
-        },
-        onError: console.log
+    createConnection(`bolt://${sharedNeo4j.hostname}`)
+      .then(connection => {
+        connection.protocol().initialize({
+          userAgent: 'mydriver/0.0.0',
+          authToken: basicAuthToken(),
+          onComplete: metadata => {
+            expect(metadata).not.toBeNull()
+            done()
+          },
+          onError: done.fail.bind(done)
+        })
       })
-    })
+      .catch(done.fail.bind(done))
   })
 
-  it('should retrieve stream', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+  it('should retrieve stream', async done => {
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     const records = []
     const pullAllObserver = {
@@ -92,95 +94,82 @@ describe('#integration ChannelConnection', () => {
       onCompleted: () => {
         expect(records[0].get(0)).toBe(1)
         done()
-      }
+      },
+      onError: done.fail.bind(done)
     }
 
-    connection.connect('mydriver/0.0.0', basicAuthToken()).then(() => {
-      connection
-        .protocol()
-        .run(
-          'RETURN 1.0',
-          {},
-          {
-            bookmark: Bookmark.empty(),
-            txConfig: TxConfig.empty(),
-            mode: WRITE
-          }
-        )
-        .subscribe(pullAllObserver)
-    })
+    connection
+      .connect('mydriver/0.0.0', basicAuthToken())
+      .then(() => {
+        connection
+          .protocol()
+          .run(
+            'RETURN 1.0',
+            {},
+            {
+              bookmark: Bookmark.empty(),
+              txConfig: TxConfig.empty(),
+              mode: WRITE
+            }
+          )
+          .subscribe(pullAllObserver)
+      })
+      .catch(done.fail.bind(done))
   })
 
-  it('should write protocol handshake', () => {
-    const channel = new DummyChannel()
-    connection = new ChannelConnection(
-      channel,
-      new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
-      ServerAddress.fromUrl('localhost:7687'),
-      Logger.noOp()
-    )
-
-    connection._negotiateProtocol()
-
-    const boltMagicPreamble = '60 60 b0 17'
-    const protocolVersion4x3 = '00 01 03 04'
-    const protocolVersion4x1 = '00 00 01 04'
-    const protocolVersion4x0 = '00 00 00 04'
-    const protocolVersion3 = '00 00 00 03'
-    expect(channel.toHex()).toBe(
-      `${boltMagicPreamble} ${protocolVersion4x3} ${protocolVersion4x1} ${protocolVersion4x0} ${protocolVersion3}`
-    )
-  })
-
-  it('should provide error message when connecting to http-port', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}:7474`, {
+  it('should provide error message when connecting to http-port', async done => {
+    await createConnection(`bolt://${sharedNeo4j.hostname}:7474`, {
       encrypted: false
     })
+      .then(done.fail.bind(done))
+      .catch(error => {
+        expect(error).toBeDefined()
+        expect(error).not.toBeNull()
 
-    connection.connect('mydriver/0.0.0', basicAuthToken()).catch(error => {
-      expect(error).toBeDefined()
-      expect(error).not.toBeNull()
-
-      if (testUtils.isServer()) {
-        // only node gets the pretty error message
-        expect(error.message).toBe(
-          'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
-            '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
-        )
-      }
-
-      done()
-    })
+        if (testUtils.isServer()) {
+          // only node gets the pretty error message
+          expect(error.message).toBe(
+            'Server responded HTTP. Make sure you are not trying to connect to the http endpoint ' +
+              '(HTTP defaults to port 7474 whereas BOLT defaults to port 7687)'
+          )
+        }
+        done()
+      })
   })
 
   it('should convert failure messages to errors', done => {
     const channel = new DummyChannel()
-    connection = new ChannelConnection(
-      channel,
-      new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
-      ServerAddress.fromUrl('localhost:7687'),
-      Logger.noOp()
-    )
-
-    connection._negotiateProtocol()
-
     const errorCode = 'Neo.ClientError.Schema.ConstraintValidationFailed'
     const errorMessage =
       'Node 0 already exists with label User and property "email"=[john@doe.com]'
 
-    connection._queueObserver({
-      onError: error => {
-        expectNeo4jError(error, errorCode, errorMessage)
-        done()
-      }
-    })
+    createChannelConnection(
+      ServerAddress.fromUrl('localhost:7687'),
+      {},
+      new ConnectionErrorHandler(SERVICE_UNAVAILABLE),
+      Logger.noOp(),
+      null,
+      () => channel
+    )
+      .then(c => {
+        connection = c
+        connection._queueObserver({
+          onCompleted: done.fail.bind(done),
+          onComplete: done.fail.bind(done),
+          onError: error => {
+            expectNeo4jError(error, errorCode, errorMessage)
+            done()
+          }
+        })
+        channel.onmessage(packedFailureMessage(errorCode, errorMessage))
+      })
+      .catch(done.fail.bind(done))
 
     channel.onmessage(packedHandshakeMessage())
-    channel.onmessage(packedFailureMessage(errorCode, errorMessage))
   })
 
-  it('should notify when connection initialization completes', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+  it('should notify when connection initialization completes', async done => {
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection
       .connect('mydriver/0.0.0', basicAuthToken())
@@ -188,13 +177,14 @@ describe('#integration ChannelConnection', () => {
         expect(initializedConnection).toBe(connection)
         done()
       })
+      .catch(done.fail.bind(done))
   })
 
-  it('should notify when connection initialization fails', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}:7474`) // wrong port
+  it('should notify when connection initialization fails', async done => {
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`) // wrong port
 
     connection
-      .connect('mydriver/0.0.0', basicAuthToken())
+      .connect('mydriver/0.0.0', basicWrongAuthToken())
       .then(() => done.fail('Should not initialize'))
       .catch(error => {
         expect(error).toBeDefined()
@@ -202,9 +192,8 @@ describe('#integration ChannelConnection', () => {
       })
   })
 
-  it('should have server version after connection initialization completed', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
-
+  it('should have server version after connection initialization completed', async done => {
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
     connection
       .connect('mydriver/0.0.0', basicAuthToken())
       .then(initializedConnection => {
@@ -213,13 +202,14 @@ describe('#integration ChannelConnection', () => {
         expect(serverVersion).toBeDefined()
         done()
       })
+      .catch(done.fail.bind(done))
   })
 
-  it('should fail all new observers after failure to connect', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}:7474`) // wrong port
+  it('should fail all new observers after failure to connect', async done => {
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     connection
-      .connect('mydriver/0.0.0', basicAuthToken())
+      .connect('mydriver/0.0.0', basicWrongAuthToken())
       .then(() => done.fail('Should not connect'))
       .catch(initialError => {
         expect(initialError).toBeDefined()
@@ -275,94 +265,113 @@ describe('#integration ChannelConnection', () => {
     testQueueingOfObserversWithBrokenConnection(resetAction, done)
   })
 
-  it('should reset and flush when SUCCESS received', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+  it('should reset and flush when SUCCESS received', async done => {
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
-    connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
-      connection
-        .resetAndFlush()
-        .then(() => {
-          expect(connection.isOpen()).toBeTruthy()
-          done()
+    connection
+      .connect('my-driver/1.2.3', basicAuthToken())
+      .then(() => {
+        connection
+          .resetAndFlush()
+          .then(() => {
+            expect(connection.isOpen()).toBeTruthy()
+            done()
+          })
+          .catch(error => done.fail(error))
+
+        // write a SUCCESS message for RESET before the actual response is received
+        connection.protocol()._responseHandler.handleResponse(SUCCESS_MESSAGE)
+        // enqueue a dummy observer to handle the real SUCCESS message
+        connection.protocol()._responseHandler._queueObserver({
+          onCompleted: () => {}
         })
-        .catch(error => done.fail(error))
-
-      // write a SUCCESS message for RESET before the actual response is received
-      connection._handleMessage(SUCCESS_MESSAGE)
-      // enqueue a dummy observer to handle the real SUCCESS message
-      connection._queueObserver({
-        onCompleted: () => {}
       })
-    })
+      .catch(done.fail.bind(done))
   })
 
-  it('should fail to reset and flush when FAILURE received', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+  it('should fail to reset and flush when FAILURE received', async done => {
+    createConnection(`bolt://${sharedNeo4j.hostname}`)
+      .then(connection => {
+        connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
+          connection
+            .resetAndFlush()
+            .then(() => done.fail('Should fail'))
+            .catch(error => {
+              expect(error.message).toEqual(
+                'Received FAILURE as a response for RESET: Neo4jError: Hello'
+              )
+              expect(connection._isBroken).toBeTruthy()
+              expect(connection.isOpen()).toBeFalsy()
+              done()
+            })
 
-    connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
-      connection
-        .resetAndFlush()
-        .then(() => done.fail('Should fail'))
-        .catch(error => {
-          expect(error.message).toEqual(
-            'Received FAILURE as a response for RESET: Neo4jError: Hello'
-          )
-          expect(connection._isBroken).toBeTruthy()
-          expect(connection.isOpen()).toBeFalsy()
-          done()
+          // write a FAILURE message for RESET before the actual response is received / white box test
+          connection.protocol()._responseHandler.handleResponse(FAILURE_MESSAGE)
+          // enqueue a dummy observer to handle the real SUCCESS message
+          connection.protocol()._responseHandler._queueObserver({
+            onCompleted: () => {}
+          })
         })
-
-      // write a FAILURE message for RESET before the actual response is received
-      connection._handleMessage(FAILURE_MESSAGE)
-      // enqueue a dummy observer to handle the real SUCCESS message
-      connection._queueObserver({
-        onCompleted: () => {}
       })
-    })
+      .catch(done.fail.bind(done))
   })
 
-  it('should fail to reset and flush when RECORD received', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+  it('should fail to reset and flush when RECORD received', async done => {
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
-    connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
-      connection
-        .resetAndFlush()
-        .then(() => done.fail('Should fail'))
-        .catch(error => {
-          expect(error.message).toEqual(
-            'Received RECORD when resetting: received record is: {"value":"Hello"}'
-          )
-          expect(connection._isBroken).toBeTruthy()
-          expect(connection.isOpen()).toBeFalsy()
-          done()
+    connection
+      .connect('my-driver/1.2.3', basicAuthToken())
+      .then(() => {
+        connection
+          .resetAndFlush()
+          .then(() => done.fail('Should fail'))
+          .catch(error => {
+            expect(error.message).toEqual(
+              'Received RECORD when resetting: received record is: {"value":"Hello"}'
+            )
+            expect(connection._isBroken).toBeTruthy()
+            expect(connection.isOpen()).toBeFalsy()
+            done()
+          })
+
+        // write a RECORD message for RESET before the actual response is received
+        connection.protocol()._responseHandler.handleResponse(RECORD_MESSAGE)
+        // enqueue a dummy observer to handle the real SUCCESS message
+        connection.protocol()._responseHandler._queueObserver({
+          onCompleted: () => {}
         })
-
-      // write a RECORD message for RESET before the actual response is received
-      connection._handleMessage(RECORD_MESSAGE)
-      // enqueue a dummy observer to handle the real SUCCESS message
-      connection._queueObserver({
-        onCompleted: () => {}
       })
-    })
+      .catch(done.fail.bind(done))
   })
 
-  it('should acknowledge failure with RESET when SUCCESS received', done => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+  it('should acknowledge failure with RESET when SUCCESS received', async done => {
+    createConnection(`bolt://${sharedNeo4j.hostname}`)
+      .then(connection => {
+        connection
+          .connect('my-driver/1.2.3', basicAuthToken())
+          .then(() => {
+            connection.protocol()._responseHandler._currentFailure = newError(
+              'Hello'
+            ) // white box test, not ideal
+            connection._resetOnFailure()
 
-    connection.connect('my-driver/1.2.3', basicAuthToken()).then(() => {
-      connection._currentFailure = newError('Hello')
-      connection._resetOnFailure()
+            // write a SUCCESS message for RESET before the actual response is received
+            connection
+              .protocol()
+              ._responseHandler.handleResponse(SUCCESS_MESSAGE)
+            // enqueue a dummy observer to handle the real SUCCESS message
+            connection.protocol()._responseHandler._queueObserver({
+              onCompleted: () => {}
+            })
 
-      // write a SUCCESS message for RESET before the actual response is received
-      connection._handleMessage(SUCCESS_MESSAGE)
-      // enqueue a dummy observer to handle the real SUCCESS message
-      connection._queueObserver({
-        onCompleted: () => {}
+            expect(
+              connection.protocol()._responseHandler._currentFailure
+            ).toBeNull()
+            done()
+          })
+          .catch(done.fail.bind(done))
       })
-
-      expect(connection._currentFailure).toBeNull()
-      done()
-    })
+      .catch(done.fail.bind(done))
   })
 
   it('should handle and transform fatal errors', done => {
@@ -378,30 +387,32 @@ describe('#integration ChannelConnection', () => {
       }
     )
 
-    connection = ChannelConnection.create(
+    createChannelConnection(
       ServerAddress.fromUrl(`bolt://${sharedNeo4j.hostname}`),
       {},
       errorHandler,
       Logger.noOp()
     )
-
-    connection._queueObserver({
-      onError: error => {
-        expect(error).toEqual(transformedError)
-        expect(errors.length).toEqual(1)
-        expect(errors[0].code).toEqual(SERVICE_UNAVAILABLE)
-        expect(addresses).toEqual([connection.address])
-        done()
-      }
-    })
-
-    connection._handleFatalError(newError('Hello', SERVICE_UNAVAILABLE))
+      .then(c => {
+        connection = c
+        connection._queueObserver({
+          onError: error => {
+            expect(error).toEqual(transformedError)
+            expect(errors.length).toEqual(1)
+            expect(errors[0].code).toEqual(SERVICE_UNAVAILABLE)
+            expect(addresses).toEqual([connection.address])
+            done()
+          }
+        })
+        connection._handleFatalError(newError('Hello', SERVICE_UNAVAILABLE))
+      })
+      .catch(done.fail.bind(done))
   })
 
   it('should send INIT/HELLO and GOODBYE messages', async () => {
     const messages = []
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
-    recordWrittenMessages(connection, messages)
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
+    recordWrittenMessages(connection._protocol, messages)
 
     await connection.connect('mydriver/0.0.0', basicAuthToken())
 
@@ -418,7 +429,7 @@ describe('#integration ChannelConnection', () => {
   })
 
   it('should not prepare broken connection to close', async () => {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+    connection = await createConnection(`bolt://${sharedNeo4j.hostname}`)
 
     await connection.connect('my-connection/9.9.9', basicAuthToken())
     expect(connection._protocol).toBeDefined()
@@ -470,21 +481,26 @@ describe('#integration ChannelConnection', () => {
     }
   }
 
+  function basicWrongAuthToken () {
+    return {
+      scheme: 'basic',
+      principal: sharedNeo4j.username + 'a',
+      credentials: sharedNeo4j.password + 'b'
+    }
+  }
+
   async function testConnectionTimeout (encrypted) {
     const clock = jasmine.clock()
     clock.install()
 
     try {
       const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
-      connection = createConnection(
+      setImmediate(() => clock.tick(1001))
+      connection = await createConnection(
         boltUri,
         { encrypted: encrypted, connectionTimeout: 1000 },
         'TestErrorCode'
       )
-
-      clock.tick(1001)
-
-      await connection.connect('mydriver/0.0.0', basicAuthToken())
     } catch (error) {
       expect(error.code).toEqual('TestErrorCode')
 
@@ -505,30 +521,34 @@ describe('#integration ChannelConnection', () => {
   }
 
   function testQueueingOfObserversWithBrokenConnection (connectionAction, done) {
-    connection = createConnection(`bolt://${sharedNeo4j.hostname}`)
+    createConnection(`bolt://${sharedNeo4j.hostname}`)
+      .then(connection => {
+        connection._handleProtocolError(ILLEGAL_MESSAGE)
+        expect(connection.isOpen()).toBeFalsy()
 
-    connection._negotiateProtocol().then(() => {
-      connection._handleMessage(ILLEGAL_MESSAGE)
-      expect(connection.isOpen()).toBeFalsy()
+        expect(connection.hasOngoingObservableRequests()).toBeFalsy()
+        connectionAction(connection)
+        expect(connection.hasOngoingObservableRequests()).toBeFalsy()
 
-      expect(connection._pendingObservers.length).toEqual(0)
-      connectionAction(connection)
-      expect(connection._pendingObservers.length).toEqual(0)
-
-      done()
-    })
+        done()
+      })
+      .catch(done.fail.bind(done))
   }
 
   /**
-   * @return {Connection}
+   * @return {Promise<Connection>}
    */
   function createConnection (url, config, errorCode = null) {
-    return ChannelConnection.create(
+    const _config = config || {}
+    return createChannelConnection(
       ServerAddress.fromUrl(url),
-      config || {},
+      _config,
       new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE),
       Logger.noOp()
-    )
+    ).then(c => {
+      connection = c
+      return connection
+    })
   }
 
   function recordWrittenMessages (connection, messages) {

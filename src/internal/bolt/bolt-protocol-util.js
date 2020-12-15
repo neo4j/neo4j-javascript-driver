@@ -16,15 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError } from '../error'
+import { newError } from '../../error'
 import { ResultStreamObserver } from './stream-observers'
 
 /**
  * @param {TxConfig} txConfig the auto-commit transaction configuration.
- * @param {Connection} connection the connection.
+ * @param {function(error: string)} onProtocolError called when the txConfig is not empty.
  * @param {ResultStreamObserver} observer the response observer.
  */
-function assertTxConfigIsEmpty (txConfig, connection, observer) {
+function assertTxConfigIsEmpty (txConfig, onProtocolError = () => {}, observer) {
   if (txConfig && !txConfig.isEmpty()) {
     const error = newError(
       'Driver is connected to the database that does not support transaction configuration. ' +
@@ -32,7 +32,7 @@ function assertTxConfigIsEmpty (txConfig, connection, observer) {
     )
 
     // unsupported API was used, consider this a fatal error for the current connection
-    connection._handleFatalError(error)
+    onProtocolError(error.message)
     observer.onError(error)
     throw error
   }
@@ -41,9 +41,9 @@ function assertTxConfigIsEmpty (txConfig, connection, observer) {
 /**
  * Asserts that the passed-in database name is empty.
  * @param {string} database
- * @param {Connection} connection
+ * @param {fuction(err: String)} onProtocolError Called when it doesn't have database set
  */
-function assertDatabaseIsEmpty (database, connection, observer) {
+function assertDatabaseIsEmpty (database, onProtocolError = () => {}, observer) {
   if (database) {
     const error = newError(
       'Driver is connected to the database that does not support multiple databases. ' +
@@ -51,7 +51,7 @@ function assertDatabaseIsEmpty (database, connection, observer) {
     )
 
     // unsupported API was used, consider this a fatal error for the current connection
-    connection._handleFatalError(error)
+    onProtocolError(error.message)
     observer.onError(error)
     throw error
   }

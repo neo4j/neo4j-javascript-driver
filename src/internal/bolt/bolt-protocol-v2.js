@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 import BoltProtocolV1 from './bolt-protocol-v1'
-import * as v2 from './packstream-v2'
-import { BOLT_PROTOCOL_V2 } from './constants'
+import * as v2 from '../packstream-v2'
+import { BOLT_PROTOCOL_V2 } from '../constants'
 
 export default class BoltProtocol extends BoltProtocolV1 {
   _createPacker (chunker) {

@@ -21,26 +21,81 @@ import { Channel } from './node'
 import { Chunker, Dechunker } from './chunking'
 import { newError, PROTOCOL_ERROR } from '../error'
 import ChannelConfig from './channel-config'
-import ProtocolHandshaker from './protocol-handshaker'
 import Connection from './connection'
-import BoltProtocol from './bolt-protocol-v1'
-import { ResultStreamObserver } from './stream-observers'
-
-// Signature bytes for each response message type
-const SUCCESS = 0x70 // 0111 0000 // SUCCESS <metadata>
-const RECORD = 0x71 // 0111 0001 // RECORD <value>
-const IGNORED = 0x7e // 0111 1110 // IGNORED <metadata>
-const FAILURE = 0x7f // 0111 1111 // FAILURE <metadata>
-
-function NO_OP () {}
-
-const NO_OP_OBSERVER = {
-  onNext: NO_OP,
-  onCompleted: NO_OP,
-  onError: NO_OP
-}
+import Bolt from './bolt'
 
 let idGenerator = 0
+
+/**
+ * Crete new connection to the provided address. Returned connection is not connected.
+ * @param {ServerAddress} address - the Bolt endpoint to connect to.
+ * @param {Object} config - the driver configuration.
+ * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
+ * @param {Logger} log - configured logger.
+ * @return {Connection} - new connection.
+ */
+export function createChannelConnection (
+  address,
+  config,
+  errorHandler,
+  log,
+  serversideRouting = null,
+  createChannel = channelConfig => new Channel(channelConfig)
+) {
+  const channelConfig = new ChannelConfig(
+    address,
+    config,
+    errorHandler.errorCode()
+  )
+
+  const channel = createChannel(channelConfig)
+
+  return Bolt.handshake(channel)
+    .then(({ protocolVersion: version, consumeRemainingBuffer }) => {
+      const chunker = new Chunker(channel)
+      const dechunker = new Dechunker()
+      const createProtocol = conn =>
+        Bolt.create({
+          version,
+          connection: conn,
+          channel,
+          chunker,
+          dechunker,
+          disableLosslessIntegers: config.disableLosslessIntegers,
+          serversideRouting,
+          server: conn.server,
+          log,
+          observer: {
+            onError: conn._handleFatalError.bind(conn),
+            onFailure: conn._resetOnFailure.bind(conn),
+            onProtocolError: conn._handleProtocolError.bind(conn),
+            onErrorApplyTransformation: error =>
+              conn.handleAndTransformError(error, conn._address)
+          }
+        })
+
+      const connection = new ChannelConnection(
+        channel,
+        errorHandler,
+        address,
+        log,
+        config.disableLosslessIntegers,
+        serversideRouting,
+        chunker,
+        createProtocol
+      )
+
+      // forward all pending bytes to the dechunker
+      consumeRemainingBuffer(buffer => dechunker.write(buffer))
+
+      return connection
+    })
+    .catch(reason =>
+      channel.close().then(() => {
+        throw reason
+      })
+    )
+}
 
 export default class ChannelConnection extends Connection {
   /**
@@ -50,6 +105,8 @@ export default class ChannelConnection extends Connection {
    * @param {ServerAddress} address - the server address to connect to.
    * @param {Logger} log - the configured logger.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
+   * @param {Chunker} chunker the chunker
+   * @param protocolSupplier Bolt protocol supplier
    */
   constructor (
     channel,
@@ -57,7 +114,9 @@ export default class ChannelConnection extends Connection {
     address,
     log,
     disableLosslessIntegers = false,
-    serversideRouting = null
+    serversideRouting = null,
+    chunker, // to be removed,
+    protocolSupplier
   ) {
     super(errorHandler)
 
@@ -66,11 +125,8 @@ export default class ChannelConnection extends Connection {
     this._server = { address: address.asHostPort() }
     this.creationTimestamp = Date.now()
     this._disableLosslessIntegers = disableLosslessIntegers
-    this._pendingObservers = []
-    this._currentObserver = undefined
     this._ch = channel
-    this._dechunker = new Dechunker()
-    this._chunker = new Chunker(channel)
+    this._chunker = chunker
     this._log = log
     this._serversideRouting = serversideRouting
 
@@ -82,10 +138,7 @@ export default class ChannelConnection extends Connection {
      * @private
      * @type {BoltProtocol}
      */
-    this._protocol = null
-
-    // error extracted from a FAILURE message
-    this._currentFailure = null
+    this._protocol = protocolSupplier(this)
 
     // Set to true on fatal errors, to get this out of connection pool.
     this._isBroken = false
@@ -93,30 +146,6 @@ export default class ChannelConnection extends Connection {
     if (this._log.isDebugEnabled()) {
       this._log.debug(`${this} created towards ${address}`)
     }
-  }
-
-  /**
-   * Crete new connection to the provided address. Returned connection is not connected.
-   * @param {ServerAddress} address - the Bolt endpoint to connect to.
-   * @param {Object} config - the driver configuration.
-   * @param {ConnectionErrorHandler} errorHandler - the error handler for connection errors.
-   * @param {Logger} log - configured logger.
-   * @return {Connection} - new connection.
-   */
-  static create (address, config, errorHandler, log, serversideRouting = null) {
-    const channelConfig = new ChannelConfig(
-      address,
-      config,
-      errorHandler.errorCode()
-    )
-    return new ChannelConnection(
-      new Channel(channelConfig),
-      errorHandler,
-      address,
-      log,
-      config.disableLosslessIntegers,
-      serversideRouting
-    )
   }
 
   get id () {
@@ -132,72 +161,13 @@ export default class ChannelConnection extends Connection {
   }
 
   /**
-   * Connect to the target address, negotiate Bolt protocol and send initialization message.
+   * Send initialization message.
    * @param {string} userAgent the user agent for this driver.
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
   connect (userAgent, authToken) {
-    return this._negotiateProtocol().then(() =>
-      this._initialize(userAgent, authToken)
-    )
-  }
-
-  /**
-   * Execute Bolt protocol handshake to initialize the protocol version.
-   * @return {Promise<Connection>} promise resolved with the current connection if handshake is successful. Rejected promise otherwise.
-   */
-  _negotiateProtocol () {
-    const protocolHandshaker = new ProtocolHandshaker(
-      this,
-      this._ch,
-      this._chunker,
-      this._disableLosslessIntegers,
-      this._log,
-      this._serversideRouting
-    )
-
-    return new Promise((resolve, reject) => {
-      const handshakeErrorHandler = error => {
-        this._handleFatalError(error)
-        reject(error)
-      }
-
-      this._ch.onerror = handshakeErrorHandler.bind(this)
-      if (this._ch._error) {
-        // channel is already broken
-        handshakeErrorHandler(this._ch._error)
-      }
-
-      this._ch.onmessage = buffer => {
-        try {
-          // read the response buffer and initialize the protocol
-          this._protocol = protocolHandshaker.createNegotiatedProtocol(buffer)
-
-          // reset the error handler to just handle errors and forget about the handshake promise
-          this._ch.onerror = this._handleFatalError.bind(this)
-
-          // Ok, protocol running. Simply forward all messages to the dechunker
-          this._ch.onmessage = buf => this._dechunker.write(buf)
-
-          // setup dechunker to dechunk messages and forward them to the message handler
-          this._dechunker.onmessage = buf => {
-            this._handleMessage(this._protocol.unpacker().unpack(buf))
-          }
-          // forward all pending bytes to the dechunker
-          if (buffer.hasRemaining()) {
-            this._dechunker.write(buffer.readSlice(buffer.remaining()))
-          }
-
-          resolve(this)
-        } catch (e) {
-          this._handleFatalError(e)
-          reject(e)
-        }
-      }
-
-      protocolHandshaker.writeHandshakeRequest()
-    })
+    return this._initialize(userAgent, authToken)
   }
 
   /**
@@ -213,7 +183,22 @@ export default class ChannelConnection extends Connection {
         userAgent,
         authToken,
         onError: err => reject(err),
-        onComplete: () => resolve(self)
+        onComplete: metadata => {
+          if (metadata) {
+            // read server version from the response metadata, if it is available
+            const serverVersion = metadata.server
+            if (!this.version) {
+              this.version = serverVersion
+            }
+
+            // read database connection id from the response metadata, if it is available
+            const dbConnectionId = metadata.connection_id
+            if (!this.databaseId) {
+              this.databaseId = dbConnectionId
+            }
+          }
+          resolve(self)
+        }
       })
     })
   }
@@ -249,35 +234,6 @@ export default class ChannelConnection extends Connection {
   }
 
   /**
-   * Write a message to the network channel.
-   * @param {RequestMessage} message the message to write.
-   * @param {ResultStreamObserver} observer the response observer.
-   * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
-   */
-  write (message, observer, flush) {
-    const queued = this._queueObserver(observer)
-
-    if (queued) {
-      if (this._log.isDebugEnabled()) {
-        this._log.debug(`${this} C: ${message}`)
-      }
-
-      this._protocol
-        .packer()
-        .packStruct(
-          message.signature,
-          message.fields.map(field => this._packable(field))
-        )
-
-      this._chunker.messageBoundary()
-
-      if (flush) {
-        this._chunker.flush()
-      }
-    }
-  }
-
-  /**
    * "Fatal" means the connection is dead. Only call this if something
    * happens that cannot be recovered from. This will lead to all subscribers
    * failing, and the connection getting ejected from the session pool.
@@ -294,82 +250,20 @@ export default class ChannelConnection extends Connection {
       )
     }
 
-    if (this._currentObserver && this._currentObserver.onError) {
-      this._currentObserver.onError(this._error)
-    }
-    while (this._pendingObservers.length > 0) {
-      const observer = this._pendingObservers.shift()
-      if (observer && observer.onError) {
-        observer.onError(this._error)
-      }
-    }
+    this._protocol.notifyFatalError(this._error)
   }
 
-  _handleMessage (msg) {
-    if (this._isBroken) {
-      // ignore all incoming messages when this connection is broken. all previously pending observers failed
-      // with the fatal error. all future observers will fail with same fatal error.
-      return
-    }
+  /**
+   * This method still here because it's used by the {@link PooledConnectionProvider}
+   *
+   * @param {any} observer
+   */
+  _queueObserver (observer) {
+    return this._protocol.queueObserverIfProtocolIsNotBroken(observer)
+  }
 
-    const payload = msg.fields[0]
-
-    switch (msg.signature) {
-      case RECORD:
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${this} S: RECORD ${JSON.stringify(msg)}`)
-        }
-        this._currentObserver.onNext(payload)
-        break
-      case SUCCESS:
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${this} S: SUCCESS ${JSON.stringify(msg)}`)
-        }
-        try {
-          const metadata = this._protocol.transformMetadata(payload)
-          this._currentObserver.onCompleted(metadata)
-        } finally {
-          this._updateCurrentObserver()
-        }
-        break
-      case FAILURE:
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${this} S: FAILURE ${JSON.stringify(msg)}`)
-        }
-        try {
-          const error = newError(payload.message, payload.code)
-          this._currentFailure = this.handleAndTransformError(
-            error,
-            this._address
-          )
-          this._currentObserver.onError(this._currentFailure)
-        } finally {
-          this._updateCurrentObserver()
-          // Things are now broken. Pending observers will get FAILURE messages routed until we are done handling this failure.
-          this._resetOnFailure()
-        }
-        break
-      case IGNORED:
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${this} S: IGNORED ${JSON.stringify(msg)}`)
-        }
-        try {
-          if (this._currentFailure && this._currentObserver.onError) {
-            this._currentObserver.onError(this._currentFailure)
-          } else if (this._currentObserver.onError) {
-            this._currentObserver.onError(
-              newError('Ignored either because of an error or RESET')
-            )
-          }
-        } finally {
-          this._updateCurrentObserver()
-        }
-        break
-      default:
-        this._handleFatalError(
-          newError('Unknown Bolt protocol message: ' + msg)
-        )
-    }
+  hasOngoingObservableRequests () {
+    return this._protocol.hasOngoingObservableRequests()
   }
 
   /**
@@ -400,31 +294,12 @@ export default class ChannelConnection extends Connection {
   _resetOnFailure () {
     this._protocol.reset({
       onError: () => {
-        this._currentFailure = null
+        this._protocol.resetFailure()
       },
       onComplete: () => {
-        this._currentFailure = null
+        this._protocol.resetFailure()
       }
     })
-  }
-
-  _queueObserver (observer) {
-    if (this._isBroken) {
-      if (observer && observer.onError) {
-        observer.onError(this._error)
-      }
-      return false
-    }
-    observer = observer || NO_OP_OBSERVER
-    observer.onCompleted = observer.onCompleted || NO_OP
-    observer.onError = observer.onError || NO_OP
-    observer.onNext = observer.onNext || NO_OP
-    if (this._currentObserver === undefined) {
-      this._currentObserver = observer
-    } else {
-      this._pendingObservers.push(observer)
-    }
-    return true
   }
 
   /*
@@ -432,7 +307,7 @@ export default class ChannelConnection extends Connection {
    * @protected
    */
   _updateCurrentObserver () {
-    this._currentObserver = this._pendingObservers.shift()
+    this._protocol.updateCurrentObserver()
   }
 
   /** Check if this connection is in working condition */
@@ -466,12 +341,8 @@ export default class ChannelConnection extends Connection {
     return `Connection [${this.id}][${this.databaseId || ''}]`
   }
 
-  _packable (value) {
-    return this._protocol.packer().packable(value)
-  }
-
   _handleProtocolError (message) {
-    this._currentFailure = null
+    this._protocol.resetFailure()
     this._updateCurrentObserver()
     const error = newError(message, PROTOCOL_ERROR)
     this._handleFatalError(error)

@@ -29,7 +29,7 @@ import ConnectionErrorHandler from './connection-error-handler'
 import DelegateConnection from './connection-delegate'
 import LeastConnectedLoadBalancingStrategy from './least-connected-load-balancing-strategy'
 import Bookmark from './bookmark'
-import ChannelConnection from './connection-channel'
+import { createChannelConnection } from './connection-channel'
 import { int } from '../integer'
 import { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0 } from './constants'
 
@@ -53,7 +53,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     routingTablePurgeDelay
   }) {
     super({ id, config, log, userAgent, authToken }, address => {
-      return ChannelConnection.create(
+      return createChannelConnection(
         address,
         this._config,
         this._createConnectionErrorHandler(),
@@ -164,27 +164,30 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
     let lastError
     for (let i = 0; i < addresses.length; i++) {
-      const connection = ChannelConnection.create(
-        addresses[i],
-        this._config,
-        this._createConnectionErrorHandler(),
-        this._log
-      )
-
       try {
-        await connection._negotiateProtocol()
+        const connection = await createChannelConnection(
+          this._address,
+          this._config,
+          this._createConnectionErrorHandler(),
+          this._log
+        )
 
-        const protocol = connection.protocol()
-        if (protocol) {
-          return versionPredicate(protocol.version)
+        const protocolVersion = connection.protocol()
+          ? connection.protocol().version
+          : null
+
+        await connection.close()
+
+        if (protocolVersion) {
+          return versionPredicate(protocolVersion)
         }
 
         return false
       } catch (error) {
         lastError = error
-      } finally {
-        await connection.close()
       }
+
+      return false
     }
 
     if (lastError) {

@@ -19,7 +19,7 @@
 
 import ResultSummary from './result-summary'
 import { EMPTY_CONNECTION_HOLDER } from './internal/connection-holder'
-import { ResultStreamObserver } from './internal/stream-observers'
+import { ResultStreamObserver } from './internal/bolt'
 
 const DEFAULT_ON_ERROR = error => {
   console.log('Uncaught error when processing result: ' + error)

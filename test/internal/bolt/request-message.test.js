@@ -17,11 +17,11 @@
  * limitations under the License.
  */
 
-import RequestMessage from '../../src/internal/request-message'
-import Bookmark from '../../src/internal/bookmark'
-import TxConfig from '../../src/internal/tx-config'
-import { int } from '../../src'
-import { READ, WRITE } from '../../src/driver'
+import RequestMessage from '../../../src/internal/bolt/request-message'
+import Bookmark from '../../../src/internal/bookmark'
+import TxConfig from '../../../src/internal/tx-config'
+import { int } from '../../../src'
+import { READ, WRITE } from '../../../src/driver'
 
 describe('#unit RequestMessage', () => {
   it('should create INIT message', () => {

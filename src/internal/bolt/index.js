@@ -16,11 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import BoltProtocolV41 from './bolt-protocol-v4x1'
-import { BOLT_PROTOCOL_V4_2 } from './constants'
+import handshake from './handshake'
+import create from './create'
+import _BoltProtocol from './bolt-protocol-v4x3'
+import _RawRoutingTable from './routing-table-raw'
 
-export default class BoltProtocol extends BoltProtocolV41 {
-  get version () {
-    return BOLT_PROTOCOL_V4_2
-  }
+export * from './stream-observers'
+export { ALL as FETCH_ALL } from './request-message'
+
+export const BoltProtocol = _BoltProtocol
+export const RawRoutingTable = _RawRoutingTable
+
+export default {
+  handshake,
+  create
 }

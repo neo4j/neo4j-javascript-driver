@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import BoltProtocolV42 from './bolt-protocol-v4x2'
-import { BOLT_PROTOCOL_V4_3 } from './constants'
+import { BOLT_PROTOCOL_V4_3 } from '../constants'
 import RequestMessage from './request-message'
 import { RouteObserver } from './stream-observers'
 
@@ -37,7 +37,6 @@ export default class BoltProtocol extends BoltProtocolV42 {
    * @param {function(RawRoutingTable)} param.onCompleted
    * @returns {RouteObserver} the route observer
    */
-
   requestRoutingInformation ({
     routingContext = {},
     databaseName = null,
@@ -46,12 +45,12 @@ export default class BoltProtocol extends BoltProtocolV42 {
     onCompleted
   }) {
     const observer = new RouteObserver({
-      connection: this._connection,
+      onProtocolError: this._onProtocolError,
       onError,
       onCompleted
     })
 
-    this._connection.write(
+    this.write(
       RequestMessage.route(
         { ...routingContext, address: initialAddress },
         databaseName

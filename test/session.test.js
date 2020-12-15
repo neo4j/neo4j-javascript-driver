@@ -392,7 +392,7 @@ describe('#integration session', () => {
 
     // wait some time than close the session with a long running query
     setTimeout(() => {
-      session.close()
+      session.close().catch(done.fail.bind(done))
     }, 1000)
   }, 70000)
 

@@ -25,9 +25,9 @@ import {
   ResultStreamObserver,
   ProcedureRouteObserver
 } from './stream-observers'
-import { BOLT_PROTOCOL_V3 } from './constants'
-import Bookmark from './bookmark'
-import TxConfig from './tx-config'
+import { BOLT_PROTOCOL_V3 } from '../constants'
+import Bookmark from '../bookmark'
+import TxConfig from '../tx-config'
 const CONTEXT = 'context'
 const CALL_GET_ROUTING_TABLE = `CALL dbms.cluster.routing.getRoutingTable($${CONTEXT})`
 
@@ -56,22 +56,17 @@ export default class BoltProtocol extends BoltProtocolV2 {
 
   initialize ({ userAgent, authToken, onError, onComplete } = {}) {
     const observer = new LoginObserver({
-      connection: this._connection,
-      afterError: onError,
-      afterComplete: onComplete
+      onError: error => this._onLoginError(error, onError),
+      onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
     })
 
-    this._connection.write(
-      RequestMessage.hello(userAgent, authToken),
-      observer,
-      true
-    )
+    this.write(RequestMessage.hello(userAgent, authToken), observer, true)
 
     return observer
   }
 
   prepareToClose () {
-    this._connection.write(RequestMessage.goodbye(), noOpObserver, true)
+    this.write(RequestMessage.goodbye(), noOpObserver, true)
   }
 
   beginTransaction ({
@@ -85,7 +80,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     afterComplete
   } = {}) {
     const observer = new ResultStreamObserver({
-      connection: this._connection,
+      server: this._server,
       beforeError,
       afterError,
       beforeComplete,
@@ -94,9 +89,9 @@ export default class BoltProtocol extends BoltProtocolV2 {
     observer.prepareToHandleSingleResponse()
 
     // passing in a database name on this protocol version throws an error
-    assertDatabaseIsEmpty(database, this._connection, observer)
+    assertDatabaseIsEmpty(database, this._onProtocolError, observer)
 
-    this._connection.write(
+    this.write(
       RequestMessage.begin({ bookmark, txConfig, mode }),
       observer,
       true
@@ -112,7 +107,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     afterComplete
   } = {}) {
     const observer = new ResultStreamObserver({
-      connection: this._connection,
+      server: this._server,
       beforeError,
       afterError,
       beforeComplete,
@@ -120,7 +115,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     })
     observer.prepareToHandleSingleResponse()
 
-    this._connection.write(RequestMessage.commit(), observer, true)
+    this.write(RequestMessage.commit(), observer, true)
 
     return observer
   }
@@ -132,7 +127,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     afterComplete
   } = {}) {
     const observer = new ResultStreamObserver({
-      connection: this._connection,
+      server: this._server,
       beforeError,
       afterError,
       beforeComplete,
@@ -140,7 +135,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     })
     observer.prepareToHandleSingleResponse()
 
-    this._connection.write(RequestMessage.rollback(), observer, true)
+    this.write(RequestMessage.rollback(), observer, true)
 
     return observer
   }
@@ -163,7 +158,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     } = {}
   ) {
     const observer = new ResultStreamObserver({
-      connection: this._connection,
+      server: this._server,
       beforeKeys,
       afterKeys,
       beforeError,
@@ -173,9 +168,9 @@ export default class BoltProtocol extends BoltProtocolV2 {
     })
 
     // passing in a database name on this protocol version throws an error
-    assertDatabaseIsEmpty(database, this._connection, observer)
+    assertDatabaseIsEmpty(database, this._onProtocolError, observer)
 
-    this._connection.write(
+    this.write(
       RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
@@ -184,7 +179,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
       observer,
       false
     )
-    this._connection.write(RequestMessage.pullAll(), observer, flush)
+    this.write(RequestMessage.pullAll(), observer, flush)
 
     return observer
   }
@@ -218,7 +213,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
 
     return new ProcedureRouteObserver({
       resultObserver,
-      connection: this._connection,
+      onProtocolError: this._onProtocolError,
       onError,
       onCompleted
     })
