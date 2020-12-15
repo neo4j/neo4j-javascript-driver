@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import RoutingTable from './routing-table'
-import RawRoutingTable from './routing-table-raw'
+import { RawRoutingTable } from './bolt'
 import Session from '../session'
 import ServerAddress from './server-address'
 import { newError, SERVICE_UNAVAILABLE } from '../error'

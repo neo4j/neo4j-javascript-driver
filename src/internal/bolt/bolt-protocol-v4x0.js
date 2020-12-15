@@ -22,9 +22,9 @@ import {
   ResultStreamObserver,
   ProcedureRouteObserver
 } from './stream-observers'
-import { BOLT_PROTOCOL_V4_0 } from './constants'
-import Bookmark from './bookmark'
-import TxConfig from './tx-config'
+import { BOLT_PROTOCOL_V4_0 } from '../constants'
+import Bookmark from '../bookmark'
+import TxConfig from '../tx-config'
 
 const CONTEXT = 'context'
 const DATABASE = 'database'
@@ -46,7 +46,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
     afterComplete
   } = {}) {
     const observer = new ResultStreamObserver({
-      connection: this._connection,
+      server: this._server,
       beforeError,
       afterError,
       beforeComplete,
@@ -54,7 +54,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
     })
     observer.prepareToHandleSingleResponse()
 
-    this._connection.write(
+    this.write(
       RequestMessage.begin({ bookmark, txConfig, database, mode }),
       observer,
       true
@@ -83,11 +83,11 @@ export default class BoltProtocol extends BoltProtocolV3 {
     } = {}
   ) {
     const observer = new ResultStreamObserver({
-      connection: this._connection,
+      server: this._server,
       reactive: reactive,
       fetchSize: fetchSize,
-      moreFunction: this._requestMore,
-      discardFunction: this._requestDiscard,
+      moreFunction: this._requestMore.bind(this),
+      discardFunction: this._requestDiscard.bind(this),
       beforeKeys,
       afterKeys,
       beforeError,
@@ -97,7 +97,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
     })
 
     const flushRun = reactive
-    this._connection.write(
+    this.write(
       RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
@@ -109,22 +109,18 @@ export default class BoltProtocol extends BoltProtocolV3 {
     )
 
     if (!reactive) {
-      this._connection.write(
-        RequestMessage.pull({ n: fetchSize }),
-        observer,
-        flush
-      )
+      this.write(RequestMessage.pull({ n: fetchSize }), observer, flush)
     }
 
     return observer
   }
 
-  _requestMore (connection, stmtId, n, observer) {
-    connection.write(RequestMessage.pull({ stmtId, n }), observer, true)
+  _requestMore (stmtId, n, observer) {
+    this.write(RequestMessage.pull({ stmtId, n }), observer, true)
   }
 
-  _requestDiscard (connection, stmtId, observer) {
-    connection.write(RequestMessage.discard({ stmtId }), observer, true)
+  _requestDiscard (stmtId, observer) {
+    this.write(RequestMessage.discard({ stmtId }), observer, true)
   }
 
   _noOp () {}
@@ -163,7 +159,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
 
     return new ProcedureRouteObserver({
       resultObserver,
-      connection: this._connection,
+      onProtocolError: this._onProtocolError,
       onError,
       onCompleted
     })

@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Chunker } from '../../src/internal/chunking'
 import Connection from '../../src/internal/connection'
 
 function isClient () {
@@ -115,10 +116,33 @@ class MessageRecordingConnection extends Connection {
   }
 }
 
+function spyProtocolWrite (protocol, callRealMethod = false) {
+  protocol.messages = []
+  protocol.observers = []
+  protocol.flushes = []
+
+  const write = callRealMethod ? protocol.write.bind(protocol) : () => true
+  protocol.write = (message, observer, flush) => {
+    protocol.messages.push(message)
+    protocol.observers.push(observer)
+    protocol.flushes.push(flush)
+    return write(message, observer, flush)
+  }
+
+  protocol.verifyMessageCount = expected => {
+    expect(protocol.messages.length).toEqual(expected)
+    expect(protocol.observers.length).toEqual(expected)
+    expect(protocol.flushes.length).toEqual(expected)
+  }
+
+  return protocol
+}
+
 export default {
   isClient,
   isServer,
   fakeStandardDateWithOffset,
   matchers,
-  MessageRecordingConnection
+  MessageRecordingConnection,
+  spyProtocolWrite
 }

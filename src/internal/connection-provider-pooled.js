@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import ChannelConnection from './connection-channel'
+import { createChannelConnection } from './connection-channel'
 import Pool from './pool'
 import PoolConfig from './pool-config'
 import ConnectionErrorHandler from './connection-error-handler'
@@ -39,7 +39,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
-        return ChannelConnection.create(
+        return createChannelConnection(
           address,
           this._config,
           this._createConnectionErrorHandler(),
@@ -72,15 +72,17 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    * @access private
    */
   _createConnection (address, release) {
-    const connection = this._createChannelConnection(address)
-    connection._release = () => release(address, connection)
-    this._openConnections[connection.id] = connection
-
-    return connection.connect(this._userAgent, this._authToken).catch(error => {
-      // let's destroy this connection
-      this._destroyConnection(connection)
-      // propagate the error because connection failed to connect / initialize
-      throw error
+    return this._createChannelConnection(address).then(connection => {
+      connection._release = () => release(address, connection)
+      this._openConnections[connection.id] = connection
+      return connection
+        .connect(this._userAgent, this._authToken)
+        .catch(error => {
+          // let's destroy this connection
+          this._destroyConnection(connection)
+          // propagate the error because connection failed to connect / initialize
+          throw error
+        })
     })
   }
 

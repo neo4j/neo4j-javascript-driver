@@ -18,19 +18,37 @@
  */
 import BoltProtocolV4 from './bolt-protocol-v4x0'
 import RequestMessage, { ALL } from './request-message'
-import { BOLT_PROTOCOL_V4_1 } from './constants'
+import { BOLT_PROTOCOL_V4_1 } from '../constants'
 import { LoginObserver } from './stream-observers'
 
 export default class BoltProtocol extends BoltProtocolV4 {
   /**
    * @constructor
-   * @param {Connection} connection the connection.
+   * @param {Object} server the server informatio.
    * @param {Chunker} chunker the chunker.
    * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
+   * @param {CreateResponseHandler} createResponseHandler Function which creates the response handler
+   * @param {Logger} log the logger
    * @param {Object} serversideRouting
+   *
    */
-  constructor (connection, chunker, disableLosslessIntegers, serversideRouting) {
-    super(connection, chunker, disableLosslessIntegers)
+  constructor (
+    server,
+    chunker,
+    disableLosslessIntegers,
+    createResponseHandler = () => null,
+    log,
+    onProtocolError,
+    serversideRouting
+  ) {
+    super(
+      server,
+      chunker,
+      disableLosslessIntegers,
+      createResponseHandler,
+      log,
+      onProtocolError
+    )
     this._serversideRouting = serversideRouting
   }
 
@@ -40,12 +58,11 @@ export default class BoltProtocol extends BoltProtocolV4 {
 
   initialize ({ userAgent, authToken, onError, onComplete } = {}) {
     const observer = new LoginObserver({
-      connection: this._connection,
-      afterError: onError,
-      afterComplete: onComplete
+      onError: error => this._onLoginError(error, onError),
+      onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
     })
 
-    this._connection.write(
+    this.write(
       RequestMessage.hello(userAgent, authToken, this._serversideRouting),
       observer,
       true

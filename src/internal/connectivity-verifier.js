@@ -19,7 +19,7 @@
 
 import ConnectionHolder from './connection-holder'
 import { READ } from '../driver'
-import { ResultStreamObserver } from './stream-observers'
+import { ResultStreamObserver } from './bolt'
 
 /**
  * Verifies connectivity using the given connection provider.

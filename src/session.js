@@ -16,10 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  ResultStreamObserver,
-  FailedObserver
-} from './internal/stream-observers'
+import { ResultStreamObserver, FailedObserver } from './internal/bolt'
 import Result from './result'
 import Transaction from './transaction'
 import { newError } from './error'

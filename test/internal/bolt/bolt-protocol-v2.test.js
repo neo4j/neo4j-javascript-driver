@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import BoltProtocolV2 from '../../src/internal/bolt-protocol-v2'
-import utils from './test-utils'
+import BoltProtocolV2 from '../../../src/internal/bolt/bolt-protocol-v2'
+import utils from '../test-utils'
 
 describe('#unit BoltProtocolV2', () => {
   beforeEach(() => {

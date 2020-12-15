@@ -17,16 +17,16 @@
  * limitations under the License.
  */
 
-import BoltProtocolV3 from '../../src/internal/bolt-protocol-v3'
-import RequestMessage from '../../src/internal/request-message'
-import utils from './test-utils'
-import Bookmark from '../../src/internal/bookmark'
-import TxConfig from '../../src/internal/tx-config'
-import { WRITE } from '../../src/driver'
+import BoltProtocolV3 from '../../../src/internal/bolt/bolt-protocol-v3'
+import RequestMessage from '../../../src/internal/bolt/request-message'
+import utils from '../test-utils'
+import Bookmark from '../../../src/internal/bookmark'
+import TxConfig from '../../../src/internal/tx-config'
+import { WRITE } from '../../../src/driver'
 import {
   ProcedureRouteObserver,
   ResultStreamObserver
-} from '../../src/internal/stream-observers'
+} from '../../../src/internal/bolt/stream-observers'
 
 describe('#unit BoltProtocolV3', () => {
   beforeEach(() => {
@@ -50,18 +50,19 @@ describe('#unit BoltProtocolV3', () => {
   it('should initialize connection', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
 
     const clientName = 'js-driver/1.2.3'
     const authToken = { username: 'neo4j', password: 'secret' }
 
     const observer = protocol.initialize({ userAgent: clientName, authToken })
 
-    recorder.verifyMessageCount(1)
-    expect(recorder.messages[0]).toBeMessage(
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(
       RequestMessage.hello(clientName, authToken)
     )
-    expect(recorder.observers).toEqual([observer])
-    expect(recorder.flushes).toEqual([true])
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
   })
 
   it('should run a query', () => {
@@ -75,6 +76,7 @@ describe('#unit BoltProtocolV3', () => {
     })
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
 
     const query = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
@@ -85,18 +87,18 @@ describe('#unit BoltProtocolV3', () => {
       mode: WRITE
     })
 
-    recorder.verifyMessageCount(2)
+    protocol.verifyMessageCount(2)
 
-    expect(recorder.messages[0]).toBeMessage(
+    expect(protocol.messages[0]).toBeMessage(
       RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
         mode: WRITE
       })
     )
-    expect(recorder.messages[1]).toBeMessage(RequestMessage.pullAll())
-    expect(recorder.observers).toEqual([observer, observer])
-    expect(recorder.flushes).toEqual([false, true])
+    expect(protocol.messages[1]).toBeMessage(RequestMessage.pullAll())
+    expect(protocol.observers).toEqual([observer, observer])
+    expect(protocol.flushes).toEqual([false, true])
   })
 
   it('should begin a transaction', () => {
@@ -110,6 +112,7 @@ describe('#unit BoltProtocolV3', () => {
     })
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
       bookmark,
@@ -117,36 +120,38 @@ describe('#unit BoltProtocolV3', () => {
       mode: WRITE
     })
 
-    recorder.verifyMessageCount(1)
-    expect(recorder.messages[0]).toBeMessage(
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(
       RequestMessage.begin({ bookmark, txConfig, mode: WRITE })
     )
-    expect(recorder.observers).toEqual([observer])
-    expect(recorder.flushes).toEqual([true])
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
   })
 
   it('should commit', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
 
     const observer = protocol.commitTransaction()
 
-    recorder.verifyMessageCount(1)
-    expect(recorder.messages[0]).toBeMessage(RequestMessage.commit())
-    expect(recorder.observers).toEqual([observer])
-    expect(recorder.flushes).toEqual([true])
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(RequestMessage.commit())
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
   })
 
   it('should rollback', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV3(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
 
     const observer = protocol.rollbackTransaction()
 
-    recorder.verifyMessageCount(1)
-    expect(recorder.messages[0]).toBeMessage(RequestMessage.rollback())
-    expect(recorder.observers).toEqual([observer])
-    expect(recorder.flushes).toEqual([true])
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(RequestMessage.rollback())
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
   })
 
   it('should return correct bolt version number', () => {
@@ -158,6 +163,7 @@ describe('#unit BoltProtocolV3', () => {
   it('should request the routing table from the correct procedure', () => {
     const expectedResultObserver = new ResultStreamObserver()
     const protocol = new SpiedBoltProtocolV3(expectedResultObserver)
+    utils.spyProtocolWrite(protocol)
     const routingContext = { abc: 'context ' }
     const sessionContext = { bookmark: 'book' }
     const onError = () => {}
@@ -194,6 +200,7 @@ describe('#unit BoltProtocolV3', () => {
     function verifyError (fn) {
       const recorder = new utils.MessageRecordingConnection()
       const protocol = new BoltProtocolV3(recorder, null, false)
+      utils.spyProtocolWrite(protocol)
 
       expect(() => fn(protocol)).toThrowError(
         'Driver is connected to the database that does not support multiple databases. ' +

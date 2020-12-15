@@ -30,7 +30,7 @@ import {
 } from './internal/pool-config'
 import Session from './session'
 import RxSession from './session-rx'
-import { ALL } from './internal/request-message'
+import { FETCH_ALL } from './internal/bolt'
 import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000 // 1 hour
@@ -182,7 +182,7 @@ class Driver {
    * @param {string|string[]} param.bookmarks - The initial reference or references to some previous
    * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
    * @param {number} param.fetchSize - The record fetch size of each batch of this session.
-   * Use {@link ALL} to always pull all records in one batch. This will override the config value set on driver config.
+   * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
    * @param {string} param.database - The database this session will operate on.
    * @return {Session} new session.
    */
@@ -369,12 +369,11 @@ function sanitizeIntValue (rawValue, defaultWhenAbsent) {
  */
 function validateFetchSizeValue (rawValue, defaultWhenAbsent) {
   const fetchSize = parseInt(rawValue, 10)
-  if (fetchSize > 0 || fetchSize === ALL) {
+  if (fetchSize > 0 || fetchSize === FETCH_ALL) {
     return fetchSize
   } else if (fetchSize === 0 || fetchSize < 0) {
     throw new Error(
-      'The fetch size can only be a positive value or -1 for ALL. However fetchSize = ' +
-        fetchSize
+      `The fetch size can only be a positive value or ${FETCH_ALL} for ALL. However fetchSize = ${fetchSize}`
     )
   } else {
     return defaultWhenAbsent

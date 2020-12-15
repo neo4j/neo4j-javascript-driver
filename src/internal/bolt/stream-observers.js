@@ -16,10 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Record from '../record'
-import Connection from './connection'
-import { newError, PROTOCOL_ERROR } from '../error'
-import Integer from '../integer'
+import Record from '../../record'
+import { newError, PROTOCOL_ERROR } from '../../error'
+import Integer from '../../integer'
 import { ALL } from './request-message'
 import RawRoutingTable from './routing-table-raw'
 
@@ -45,10 +44,10 @@ class ResultStreamObserver extends StreamObserver {
   /**
    *
    * @param {Object} param
-   * @param {Connection} param.connection
+   * @param {Object} param.server
    * @param {boolean} param.reactive
-   * @param {function(connection: Connection, stmtId: number|Integer, n: number|Integer, observer: StreamObserver)} param.moreFunction -
-   * @param {function(connection: Connection, stmtId: number|Integer, observer: StreamObserver)} param.discardFunction -
+   * @param {function(stmtId: number|Integer, n: number|Integer, observer: StreamObserver)} param.moreFunction -
+   * @param {function(stmtId: number|Integer, observer: StreamObserver)} param.discardFunction -
    * @param {number|Integer} param.fetchSize -
    * @param {function(err: Error): Promise|void} param.beforeError -
    * @param {function(err: Error): Promise|void} param.afterError -
@@ -58,7 +57,6 @@ class ResultStreamObserver extends StreamObserver {
    * @param {function(metadata: Object): Promise|void} param.afterComplete -
    */
   constructor ({
-    connection,
     reactive = false,
     moreFunction,
     discardFunction,
@@ -68,11 +66,10 @@ class ResultStreamObserver extends StreamObserver {
     beforeKeys,
     afterKeys,
     beforeComplete,
-    afterComplete
+    afterComplete,
+    server
   } = {}) {
     super()
-
-    this._connection = connection
 
     this._fieldKeys = null
     this._fieldLookup = null
@@ -82,6 +79,7 @@ class ResultStreamObserver extends StreamObserver {
     this._error = null
     this._observers = []
     this._meta = {}
+    this._server = server
 
     this._beforeError = beforeError
     this._afterError = afterError
@@ -217,7 +215,7 @@ class ResultStreamObserver extends StreamObserver {
   _handlePullSuccess (meta) {
     this._setState(_states.SUCCEEDED)
     const completionMetadata = Object.assign(
-      this._connection ? { server: this._connection.server } : {},
+      this._server ? { server: this._server } : {},
       this._meta,
       meta
     )
@@ -344,15 +342,10 @@ class ResultStreamObserver extends StreamObserver {
   _handleStreaming () {
     if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
       if (this._discard) {
-        this._discardFunction(this._connection, this._queryId, this)
+        this._discardFunction(this._queryId, this)
         this._setState(_states.STREAMING)
       } else if (this._autoPull) {
-        this._moreFunction(
-          this._connection,
-          this._queryId,
-          this._fetchSize,
-          this
-        )
+        this._moreFunction(this._queryId, this._fetchSize, this)
         this._setState(_states.STREAMING)
       }
     }
@@ -389,26 +382,13 @@ class LoginObserver extends StreamObserver {
   /**
    *
    * @param {Object} param -
-   * @param {Connection} param.connection
-   * @param {function(err: Error)} param.beforeError
-   * @param {function(err: Error)} param.afterError
-   * @param {function(metadata)} param.beforeComplete
-   * @param {function(metadata)} param.afterComplete
+   * @param {function(err: Error)} param.onError
+   * @param {function(metadata)} param.onCompleted
    */
-  constructor ({
-    connection,
-    beforeError,
-    afterError,
-    beforeComplete,
-    afterComplete
-  } = {}) {
+  constructor ({ onError, onCompleted } = {}) {
     super()
-
-    this._connection = connection
-    this._beforeError = beforeError
-    this._afterError = afterError
-    this._beforeComplete = beforeComplete
-    this._afterComplete = afterComplete
+    this._onError = onError
+    this._onCompleted = onCompleted
   }
 
   onNext (record) {
@@ -418,39 +398,14 @@ class LoginObserver extends StreamObserver {
   }
 
   onError (error) {
-    if (this._beforeError) {
-      this._beforeError(error)
-    }
-
-    this._connection._updateCurrentObserver() // make sure this exact observer will not be called again
-    this._connection._handleFatalError(error) // initialization errors are fatal
-
-    if (this._afterError) {
-      this._afterError(error)
+    if (this._onError) {
+      this._onError(error)
     }
   }
 
   onCompleted (metadata) {
-    if (this._beforeComplete) {
-      this._beforeComplete(metadata)
-    }
-
-    if (metadata) {
-      // read server version from the response metadata, if it is available
-      const serverVersion = metadata.server
-      if (!this._connection.version) {
-        this._connection.version = serverVersion
-      }
-
-      // read database connection id from the response metadata, if it is available
-      const dbConnectionId = metadata.connection_id
-      if (!this._connection.databaseId) {
-        this._connection.databaseId = dbConnectionId
-      }
-    }
-
-    if (this._afterComplete) {
-      this._afterComplete(metadata)
+    if (this._onCompleted) {
+      this._onCompleted(metadata)
     }
   }
 }
@@ -459,14 +414,14 @@ class ResetObserver extends StreamObserver {
   /**
    *
    * @param {Object} param -
-   * @param {Connection} param.connection
+   * @param {function(err: String)} param.onProtocolError
    * @param {function(err: Error)} param.onError
    * @param {function(metadata)} param.onComplete
    */
-  constructor ({ connection, onError, onComplete } = {}) {
+  constructor ({ onProtocolError, onError, onComplete } = {}) {
     super()
 
-    this._connection = connection
+    this._onProtocolError = onProtocolError
     this._onError = onError
     this._onComplete = onComplete
   }
@@ -482,8 +437,8 @@ class ResetObserver extends StreamObserver {
   }
 
   onError (error) {
-    if (error.code === PROTOCOL_ERROR) {
-      this._connection._handleProtocolError(error.message)
+    if (error.code === PROTOCOL_ERROR && this._onProtocolError) {
+      this._onProtocolError(error.message)
     }
 
     if (this._onError) {
@@ -514,14 +469,14 @@ class CompletedObserver extends ResultStreamObserver {
 }
 
 class ProcedureRouteObserver extends StreamObserver {
-  constructor ({ resultObserver, connection, onError, onCompleted }) {
+  constructor ({ resultObserver, onProtocolError, onError, onCompleted }) {
     super()
 
     this._resultObserver = resultObserver
     this._onError = onError
     this._onCompleted = onCompleted
-    this._connection = connection
     this._records = []
+    this._onProtocolError = onProtocolError
     resultObserver.subscribe(this)
   }
 
@@ -530,8 +485,8 @@ class ProcedureRouteObserver extends StreamObserver {
   }
 
   onError (error) {
-    if (error.code === PROTOCOL_ERROR) {
-      this._connection._handleProtocolError(error.message)
+    if (error.code === PROTOCOL_ERROR && this._onProtocolError) {
+      this._onProtocolError(error.message)
     }
 
     if (this._onError) {
@@ -563,14 +518,14 @@ class RouteObserver extends StreamObserver {
   /**
    *
    * @param {Object} param -
-   * @param {Connection} param.connection
+   * @param {function(err: String)} param.onProtocolError
    * @param {function(err: Error)} param.onError
    * @param {function(RawRoutingTable)} param.onCompleted
    */
-  constructor ({ connection, onError, onCompleted } = {}) {
+  constructor ({ onProtocolError, onError, onCompleted } = {}) {
     super()
 
-    this._connection = connection
+    this._onProtocolError = onProtocolError
     this._onError = onError
     this._onCompleted = onCompleted
   }
@@ -586,8 +541,8 @@ class RouteObserver extends StreamObserver {
   }
 
   onError (error) {
-    if (error.code === PROTOCOL_ERROR) {
-      this._connection._handleProtocolError(error.message)
+    if (error.code === PROTOCOL_ERROR && this._onProtocolError) {
+      this._onProtocolError(error.message)
     }
 
     if (this._onError) {

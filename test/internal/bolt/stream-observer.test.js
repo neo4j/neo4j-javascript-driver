@@ -17,24 +17,23 @@
  * limitations under the License.
  */
 
-import FakeConnection from './fake-connection'
 import {
   ResultStreamObserver,
   RouteObserver,
   ProcedureRouteObserver
-} from '../../src/internal/stream-observers'
-import RawRoutingTable from '../../src/internal/routing-table-raw'
-import { PROTOCOL_ERROR, newError } from '../../src/error'
-import Record from '../../src/record'
+} from '../../../src/internal/bolt/stream-observers'
+import { RawRoutingTable } from '../../../src/internal/bolt'
+import { PROTOCOL_ERROR, newError } from '../../../src/error'
+import Record from '../../../src/record'
 
 const NO_OP = () => {}
 
 describe('#unit ResultStreamObserver', () => {
-  it('remembers resolved connection', () => {
-    const connection = new FakeConnection()
-    const streamObserver = newStreamObserver(connection)
+  it('remembers resolved server', () => {
+    const server = { address: '192.168.0.1' }
+    const streamObserver = newStreamObserver(server)
 
-    expect(streamObserver._connection).toBe(connection)
+    expect(streamObserver._server).toBe(server)
   })
 
   it('remembers subscriber', () => {
@@ -239,23 +238,27 @@ describe('#unit RouteObserver', () => {
       onError: metadata => {
         onErrorCalled = true
         expect(metadata).toBe(expectedError)
-      }
+      },
+      onProtocolError: () => {}
     }).onError(expectedError)
 
     expect(onErrorCalled).toEqual(true)
   })
 
-  it('should call connection._handleProtocolError when a protocol error occurs', () => {
-    const connection = new FakeConnection()
+  it('should call onProtocolError when a protocol error occurs', () => {
+    let onProtocolErrorCalled = false
+
     const expectedError = newError('something wrong', PROTOCOL_ERROR)
 
     newRouteObserver({
       onError: null,
-      connection
+      onProtocolError: message => {
+        onProtocolErrorCalled = true
+        expect(message).toEqual(expectedError.message)
+      }
     }).onError(expectedError)
 
-    expect(connection.protocolErrorsHandled).toEqual(1)
-    expect(connection.seenProtocolErrors).toEqual([expectedError.message])
+    expect(onProtocolErrorCalled).toEqual(true)
   })
 
   it('should call onError with a protocol error it receive a record', () => {
@@ -271,14 +274,15 @@ describe('#unit RouteObserver', () => {
       onError: error => {
         onErrorCalled = true
         expect(error).toEqual(expectedError)
-      }
+      },
+      onProtocolError: () => {}
     }).onNext(record)
 
     expect(onErrorCalled).toEqual(true)
   })
 
-  it('should call connection._handleProtocolError with a protocol error it receive a record', () => {
-    const connection = new FakeConnection()
+  it('should call onProtocolError with a protocol error it receive a record', () => {
+    let onProtocolErrorCalled = false
     const record = new Record(['a'], ['b'])
     const expectedErrorMessage =
       'Received RECORD when resetting: received record is: ' +
@@ -286,19 +290,21 @@ describe('#unit RouteObserver', () => {
 
     newRouteObserver({
       onError: null,
-      connection
+      onProtocolError: message => {
+        onProtocolErrorCalled = true
+        expect(message).toEqual(expectedErrorMessage)
+      }
     }).onNext(record)
 
-    expect(connection.protocolErrorsHandled).toEqual(1)
-    expect(connection.seenProtocolErrors).toEqual([expectedErrorMessage])
+    expect(onProtocolErrorCalled).toEqual(true)
   })
 
   function newRouteObserver ({
     onCompleted = shouldNotBeCalled('onComplete'),
     onError = shouldNotBeCalled('onError'),
-    connection = new FakeConnection()
+    onProtocolError = shouldNotBeCalled('onProtocolError')
   } = {}) {
-    return new RouteObserver({ connection, onCompleted, onError })
+    return new RouteObserver({ onCompleted, onError, onProtocolError })
   }
 
   function shouldNotBeCalled (methodName) {
@@ -342,7 +348,8 @@ describe('#unit ProcedureRouteObserver', () => {
       onError: error => {
         onErrorCalled = true
         expect(error).toEqual(expectedError)
-      }
+      },
+      onProtocolError: () => {}
     })
 
     observer.onCompleted()
@@ -350,19 +357,21 @@ describe('#unit ProcedureRouteObserver', () => {
     expect(onErrorCalled).toEqual(true)
   })
 
-  it('should call connection._handleProtocolError with a protocol error it receive 0 records', () => {
-    const connection = new FakeConnection()
+  it('should call onProtocolError with a protocol error it receive 0 records', () => {
+    let onProtocolErrorCalled = false
     const expectedErrorMessage =
       'Illegal response from router. Received 0 records but expected only one.\n' +
       JSON.stringify([])
 
     newRouteObserver({
       onError: null,
-      connection
+      onProtocolError: message => {
+        onProtocolErrorCalled = true
+        expect(message).toEqual(expectedErrorMessage)
+      }
     }).onCompleted()
 
-    expect(connection.protocolErrorsHandled).toEqual(1)
-    expect(connection.seenProtocolErrors).toEqual([expectedErrorMessage])
+    expect(onProtocolErrorCalled).toEqual(true)
   })
 
   it('should call onError with a protocol error it receive more than one record', () => {
@@ -377,7 +386,8 @@ describe('#unit ProcedureRouteObserver', () => {
       onError: error => {
         onErrorCalled = true
         expect(error).toEqual(expectedError)
-      }
+      },
+      onProtocolError: () => {}
     })
 
     observer.onNext(record)
@@ -387,8 +397,8 @@ describe('#unit ProcedureRouteObserver', () => {
     expect(onErrorCalled).toEqual(true)
   })
 
-  it('should call connection._handleProtocolError with a protocol error it receive 0 records', () => {
-    const connection = new FakeConnection()
+  it('should call onProtocolError with a protocol error it receive 0 records', () => {
+    let onProtocolErrorCalled = false
     const record = new Record(['a'], ['b'])
     const expectedErrorMessage =
       'Illegal response from router. Received 2 records but expected only one.\n' +
@@ -396,15 +406,17 @@ describe('#unit ProcedureRouteObserver', () => {
 
     const observer = newRouteObserver({
       onError: null,
-      connection
+      onProtocolError: message => {
+        onProtocolErrorCalled = true
+        expect(message).toEqual(expectedErrorMessage)
+      }
     })
 
     observer.onNext(record)
     observer.onNext(record)
     observer.onCompleted()
 
-    expect(connection.protocolErrorsHandled).toEqual(1)
-    expect(connection.seenProtocolErrors).toEqual([expectedErrorMessage])
+    expect(onProtocolErrorCalled).toEqual(true)
   })
 
   it('should call onError with the error', () => {
@@ -429,34 +441,37 @@ describe('#unit ProcedureRouteObserver', () => {
       onError: metadata => {
         onErrorCalled = true
         expect(metadata).toBe(expectedError)
-      }
+      },
+      onProtocolError: null
     }).onError(expectedError)
 
     expect(onErrorCalled).toEqual(true)
   })
 
-  it('should call connection._handleProtocolError when a protocol error occurs', () => {
-    const connection = new FakeConnection()
+  it('should call onProtocolError when a protocol error occurs', () => {
+    let onProtocolErrorCalled = false
     const expectedError = newError('something wrong', PROTOCOL_ERROR)
 
     newRouteObserver({
       onError: null,
-      connection
+      onProtocolError: message => {
+        onProtocolErrorCalled = true
+        expect(message).toEqual(expectedError.message)
+      }
     }).onError(expectedError)
 
-    expect(connection.protocolErrorsHandled).toEqual(1)
-    expect(connection.seenProtocolErrors).toEqual([expectedError.message])
+    expect(onProtocolErrorCalled).toEqual(true)
   })
 
   function newRouteObserver ({
     onCompleted = shouldNotBeCalled('onComplete'),
     onError = shouldNotBeCalled('onError'),
-    connection = new FakeConnection(),
+    onProtocolError = shouldNotBeCalled('onProtocolError'),
     resultObserver = new FakeResultStreamObserver()
   } = {}) {
     return new ProcedureRouteObserver({
       resultObserver,
-      connection,
+      onProtocolError,
       onCompleted,
       onError
     })
@@ -477,9 +492,9 @@ describe('#unit ProcedureRouteObserver', () => {
   }
 })
 
-function newStreamObserver (connection) {
+function newStreamObserver (server) {
   return new ResultStreamObserver({
-    connection
+    server
   })
 }
 

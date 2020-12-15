@@ -28,7 +28,7 @@ import {
   ResultStreamObserver,
   FailedObserver,
   CompletedObserver
-} from './internal/stream-observers'
+} from './internal/bolt'
 import { newError } from './error'
 
 /**
