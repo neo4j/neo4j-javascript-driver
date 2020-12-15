@@ -34,7 +34,6 @@ describe('#integration Bolt V3 API', () => {
   let driver
   let session
   let protocolVersion
-  let originalTimeout
 
   beforeEach(async () => {
     driver = neo4j.driver(
@@ -42,14 +41,11 @@ describe('#integration Bolt V3 API', () => {
       sharedNeo4j.authToken
     )
     session = driver.session()
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
 
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     await session.close()
     await driver.close()
   })
@@ -73,7 +69,7 @@ describe('#integration Bolt V3 API', () => {
     )
     const receivedMetadatas = result.records.map(r => r.get('metaData'))
     expect(receivedMetadatas).toContain(metadata)
-  })
+  }, 20000)
 
   it('should set transaction timeout for auto-commit transaction', async () => {
     if (!databaseSupportsBoltV3()) {
@@ -104,47 +100,77 @@ describe('#integration Bolt V3 API', () => {
     }
     await tx.rollback()
     await otherSession.close()
-  })
+  }, 20000)
 
-  it('should set transaction metadata with read transaction function', () =>
-    testTransactionMetadataWithTransactionFunctions(true))
+  it(
+    'should set transaction metadata with read transaction function',
+    () => testTransactionMetadataWithTransactionFunctions(true),
+    20000
+  )
 
-  it('should set transaction metadata with write transaction function', () =>
-    testTransactionMetadataWithTransactionFunctions(false))
+  it(
+    'should set transaction metadata with write transaction function',
+    () => testTransactionMetadataWithTransactionFunctions(false),
+    20000
+  )
 
-  it('should fail auto-commit transaction with metadata when database does not support Bolt V3', () =>
-    testAutoCommitTransactionConfigWhenBoltV3NotSupported(
-      TX_CONFIG_WITH_METADATA
-    ))
+  it(
+    'should fail auto-commit transaction with metadata when database does not support Bolt V3',
+    () =>
+      testAutoCommitTransactionConfigWhenBoltV3NotSupported(
+        TX_CONFIG_WITH_METADATA
+      ),
+    20000
+  )
 
-  it('should fail auto-commit transaction with timeout when database does not support Bolt V3', () =>
-    testAutoCommitTransactionConfigWhenBoltV3NotSupported(
-      TX_CONFIG_WITH_TIMEOUT
-    ))
+  it(
+    'should fail auto-commit transaction with timeout when database does not support Bolt V3',
+    () =>
+      testAutoCommitTransactionConfigWhenBoltV3NotSupported(
+        TX_CONFIG_WITH_TIMEOUT
+      ),
+    20000
+  )
 
-  it('should fail read transaction function with metadata when database does not support Bolt V3', () =>
-    testTransactionFunctionConfigWhenBoltV3NotSupported(
-      true,
-      TX_CONFIG_WITH_METADATA
-    ))
+  it(
+    'should fail read transaction function with metadata when database does not support Bolt V3',
+    () =>
+      testTransactionFunctionConfigWhenBoltV3NotSupported(
+        true,
+        TX_CONFIG_WITH_METADATA
+      ),
+    20000
+  )
 
-  it('should fail read transaction function with timeout when database does not support Bolt V3', () =>
-    testTransactionFunctionConfigWhenBoltV3NotSupported(
-      true,
-      TX_CONFIG_WITH_TIMEOUT
-    ))
+  it(
+    'should fail read transaction function with timeout when database does not support Bolt V3',
+    () =>
+      testTransactionFunctionConfigWhenBoltV3NotSupported(
+        true,
+        TX_CONFIG_WITH_TIMEOUT
+      ),
+    20000
+  )
 
-  it('should fail write transaction function with metadata when database does not support Bolt V3', () =>
-    testTransactionFunctionConfigWhenBoltV3NotSupported(
-      false,
-      TX_CONFIG_WITH_METADATA
-    ))
+  it(
+    'should fail write transaction function with metadata when database does not support Bolt V3',
+    () =>
+      testTransactionFunctionConfigWhenBoltV3NotSupported(
+        false,
+        TX_CONFIG_WITH_METADATA
+      ),
+    20000
+  )
 
-  it('should fail write transaction function with timeout when database does not support Bolt V3', () =>
-    testTransactionFunctionConfigWhenBoltV3NotSupported(
-      false,
-      TX_CONFIG_WITH_TIMEOUT
-    ))
+  it(
+    'should fail write transaction function with timeout when database does not support Bolt V3',
+    () =>
+      testTransactionFunctionConfigWhenBoltV3NotSupported(
+        false,
+        TX_CONFIG_WITH_TIMEOUT
+      ),
+    20000
+  )
 
   it('should set transaction metadata for explicit transactions', async () => {
     if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
@@ -165,7 +191,7 @@ describe('#integration Bolt V3 API', () => {
     expect(receivedMetadatas).toContain(metadata)
 
     await tx.commit()
-  })
+  }, 20000)
 
   it('should set transaction timeout for explicit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
@@ -198,41 +224,65 @@ describe('#integration Bolt V3 API', () => {
 
     await otherTx.rollback()
     await otherSession.close()
-  })
+  }, 20000)
 
-  it('should fail to run in explicit transaction with metadata when database does not support Bolt V3', () =>
-    testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported(
-      TX_CONFIG_WITH_METADATA
-    ))
+  it(
+    'should fail to run in explicit transaction with metadata when database does not support Bolt V3',
+    () =>
+      testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported(
+        TX_CONFIG_WITH_METADATA
+      ),
+    20000
+  )
 
-  it('should fail to run in explicit transaction with timeout when database does not support Bolt V3', () =>
-    testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported(
-      TX_CONFIG_WITH_TIMEOUT
-    ))
+  it(
+    'should fail to run in explicit transaction with timeout when database does not support Bolt V3',
+    () =>
+      testRunInExplicitTransactionWithConfigWhenBoltV3NotSupported(
+        TX_CONFIG_WITH_TIMEOUT
+      ),
+    20000
+  )
 
-  it('should fail to commit explicit transaction with metadata when database does not support Bolt V3', () =>
-    testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
-      true,
-      TX_CONFIG_WITH_METADATA
-    ))
+  it(
+    'should fail to commit explicit transaction with metadata when database does not support Bolt V3',
+    () =>
+      testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
+        true,
+        TX_CONFIG_WITH_METADATA
+      ),
+    20000
+  )
 
-  it('should fail to commit explicit transaction with timeout when database does not support Bolt V3', () =>
-    testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
-      true,
-      TX_CONFIG_WITH_TIMEOUT
-    ))
+  it(
+    'should fail to commit explicit transaction with timeout when database does not support Bolt V3',
+    () =>
+      testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
+        true,
+        TX_CONFIG_WITH_TIMEOUT
+      ),
+    20000
+  )
 
-  it('should fail to rollback explicit transaction with metadata when database does not support Bolt V3', () =>
-    testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
-      false,
-      TX_CONFIG_WITH_METADATA
-    ))
+  it(
+    'should fail to rollback explicit transaction with metadata when database does not support Bolt V3',
+    () =>
+      testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
+        false,
+        TX_CONFIG_WITH_METADATA
+      ),
+    20000
+  )
 
-  it('should fail to rollback explicit transaction with timeout when database does not support Bolt V3', () =>
-    testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
-      false,
-      TX_CONFIG_WITH_TIMEOUT
-    ))
+  it(
+    'should fail to rollback explicit transaction with timeout when database does not support Bolt V3',
+    () =>
+      testCloseExplicitTransactionWithConfigWhenBoltV3NotSupported(
+        false,
+        TX_CONFIG_WITH_TIMEOUT
+      ),
+    20000
+  )
 
   it('should fail to run auto-commit transaction with invalid timeout', () => {
     INVALID_TIMEOUT_VALUES.forEach(invalidValue =>
@@ -240,7 +290,7 @@ describe('#integration Bolt V3 API', () => {
         session.run('RETURN $x', { x: 42 }, { timeout: invalidValue })
       ).toThrow()
     )
-  })
+  }, 20000)
 
   it('should fail to run auto-commit transaction with invalid metadata', () => {
     INVALID_METADATA_VALUES.forEach(invalidValue =>
@@ -248,7 +298,7 @@ describe('#integration Bolt V3 API', () => {
         session.run('RETURN $x', { x: 42 }, { metadata: invalidValue })
       ).toThrow()
     )
-  })
+  }, 20000)
 
   it('should fail to begin explicit transaction with invalid timeout', () => {
     INVALID_TIMEOUT_VALUES.forEach(invalidValue =>
@@ -256,7 +306,7 @@ describe('#integration Bolt V3 API', () => {
         session.beginTransaction({ timeout: invalidValue })
       ).toThrow()
     )
-  })
+  }, 20000)
 
   it('should fail to begin explicit transaction with invalid metadata', () => {
     INVALID_METADATA_VALUES.forEach(invalidValue =>
@@ -274,7 +324,7 @@ describe('#integration Bolt V3 API', () => {
         })
       ).toThrow()
     )
-  })
+  }, 20000)
 
   it('should fail to run read transaction function with invalid metadata', () => {
     INVALID_METADATA_VALUES.forEach(invalidValue =>
@@ -294,7 +344,7 @@ describe('#integration Bolt V3 API', () => {
         })
       ).toThrow()
     )
-  })
+  }, 20000)
 
   it('should fail to run write transaction function with invalid metadata', () => {
     INVALID_METADATA_VALUES.forEach(invalidValue =>
@@ -304,7 +354,7 @@ describe('#integration Bolt V3 API', () => {
         })
       ).toThrow()
     )
-  })
+  }, 20000)
 
   it('should use bookmarks for auto commit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
@@ -333,7 +383,7 @@ describe('#integration Bolt V3 API', () => {
     expect(bookmark3).not.toEqual(initialBookmark)
     expect(bookmark3).not.toEqual(bookmark1)
     expect(bookmark3).not.toEqual(bookmark2)
-  })
+  }, 20000)
 
   it('should use bookmarks for auto commit and explicit transactions', async () => {
     if (!databaseSupportsBoltV3()) {
@@ -366,7 +416,7 @@ describe('#integration Bolt V3 API', () => {
     expect(bookmark3).not.toEqual(initialBookmark)
     expect(bookmark3).not.toEqual(bookmark1)
     expect(bookmark3).not.toEqual(bookmark2)
-  })
+  }, 20000)
 
   it('should use bookmarks for auto commit transactions and transaction functions', async () => {
     if (!databaseSupportsBoltV3()) {
@@ -395,7 +445,7 @@ describe('#integration Bolt V3 API', () => {
     expect(bookmark3).not.toEqual(initialBookmark)
     expect(bookmark3).not.toEqual(bookmark1)
     expect(bookmark3).not.toEqual(bookmark2)
-  })
+  }, 20000)
 
   async function testTransactionMetadataWithTransactionFunctions (read) {
     if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {

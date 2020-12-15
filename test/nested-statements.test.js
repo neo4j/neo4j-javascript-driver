@@ -45,7 +45,6 @@ describe('#integration session', () => {
   let session
   // eslint-disable-next-line no-unused-vars
   let protocolVersion
-  let originalTimeout
 
   beforeEach(async () => {
     driver = neo4j.driver(
@@ -53,14 +52,11 @@ describe('#integration session', () => {
       sharedNeo4j.authToken
     )
     session = driver.session({ fetchSize: 2 })
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
 
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     await driver.close()
   })
 
@@ -102,7 +98,7 @@ describe('#integration session', () => {
         console.log(error)
       }
     })
-  })
+  }, 60000)
 
   it('should give proper error when nesting queries within one session', done => {
     const size = 20
@@ -130,7 +126,7 @@ describe('#integration session', () => {
         console.log(error)
       }
     })
-  })
+  }, 60000)
 
   it('should handle sequential query runs within one session', done => {
     const size = 20
@@ -151,5 +147,5 @@ describe('#integration session', () => {
         expect(count).toEqual(size)
         session.close().then(() => done())
       })
-  })
+  }, 60000)
 })

@@ -32,16 +32,6 @@ import DelegateConnection from '../../src/internal/connection-delegate'
 import { Neo4jError } from '../../src'
 
 describe('#unit RoutingConnectionProvider', () => {
-  let originalTimeout
-  beforeEach(function () {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000
-  })
-
-  afterEach(function () {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
-  })
-
   const server0 = ServerAddress.fromUrl('server0')
   const server1 = ServerAddress.fromUrl('server1')
   const server2 = ServerAddress.fromUrl('server2')
@@ -91,7 +81,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server3],
       [server4]
     )
-  })
+  }, 10000)
 
   it('can not forget unknown address', () => {
     const connectionProvider = newRoutingConnectionProvider([
@@ -112,7 +102,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server3, server4],
       [server5, server6]
     )
-  })
+  }, 10000)
 
   it('purges connections when address is forgotten', () => {
     const pool = newPool()
@@ -139,7 +129,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
     expectPoolToContain(pool, [server3])
     expectPoolToNotContain(pool, [server1, server5])
-  })
+  }, 10000)
 
   it('can forget writer address', () => {
     const connectionProvider = newRoutingConnectionProvider([
@@ -160,7 +150,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server3, server2],
       [server4]
     )
-  })
+  }, 10000)
 
   it('can not forget unknown writer address', () => {
     const connectionProvider = newRoutingConnectionProvider([
@@ -181,7 +171,7 @@ describe('#unit RoutingConnectionProvider', () => {
       [server3, server4],
       [server5, server6]
     )
-  })
+  }, 10000)
 
   it('acquires connection and returns a DelegateConnection', async () => {
     const pool = newPool()
@@ -208,7 +198,7 @@ describe('#unit RoutingConnectionProvider', () => {
       database: ''
     })
     expect(conn2 instanceof DelegateConnection).toBeTruthy()
-  })
+  }, 10000)
 
   it('acquires read connection with up-to-date routing table', done => {
     const pool = newPool()
@@ -239,7 +229,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('acquires write connection with up-to-date routing table', done => {
     const pool = newPool()
@@ -270,7 +260,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('throws for illegal access mode', done => {
     const connectionProvider = newRoutingConnectionProvider([
@@ -288,7 +278,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.message).toEqual('Illegal mode WRONG')
         done()
       })
-  })
+  }, 10000)
 
   it('refreshes stale routing table to get read connection', done => {
     const pool = newPool()
@@ -327,7 +317,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('refreshes stale routing table to get write connection', done => {
     const pool = newPool()
@@ -366,7 +356,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('refreshes stale routing table to get read connection when one router fails', done => {
     const pool = newPool()
@@ -410,7 +400,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('refreshes stale routing table to get write connection when one router fails', done => {
     const pool = newPool()
@@ -454,7 +444,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('refreshes routing table without readers to get read connection', done => {
     const pool = newPool()
@@ -498,7 +488,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('refreshes routing table without writers to get write connection', done => {
     const pool = newPool()
@@ -542,7 +532,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('throws when all routers return nothing while getting read connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
@@ -570,7 +560,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         done()
       })
-  })
+  }, 10000)
 
   it('throws when all routers return nothing while getting write connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
@@ -598,7 +588,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         done()
       })
-  })
+  }, 10000)
 
   it('throws when all routers return routing tables without readers while getting read connection', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -632,7 +622,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         done()
       })
-  })
+  }, 10000)
 
   it('throws when all routers return routing tables without writers while getting write connection', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -666,7 +656,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         done()
       })
-  })
+  }, 10000)
 
   it('throws when stale routing table without routers while getting read connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
@@ -688,7 +678,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         done()
       })
-  })
+  }, 10000)
 
   it('throws when stale routing table without routers while getting write connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
@@ -710,7 +700,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.code).toEqual(SERVICE_UNAVAILABLE)
         done()
       })
-  })
+  }, 10000)
 
   it('updates routing table after refresh', done => {
     const pool = newPool()
@@ -758,7 +748,7 @@ describe('#unit RoutingConnectionProvider', () => {
         ])
         done()
       })
-  })
+  }, 10000)
 
   it('forgets all routers when they fail while acquiring read connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
@@ -787,7 +777,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
         done()
       })
-  })
+  }, 10000)
 
   it('forgets all routers when they fail while acquiring write connection', done => {
     const connectionProvider = newRoutingConnectionProvider(
@@ -816,7 +806,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
         done()
       })
-  })
+  }, 10000)
 
   it('uses seed router address when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -868,7 +858,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('uses resolved seed router address when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -920,7 +910,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('uses resolved seed router address that returns correct routing table when all existing routers fail', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -972,7 +962,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('fails when both existing routers and seed router fail to return a routing table', done => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
@@ -1026,7 +1016,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('fails when both existing routers and resolved seed router fail to return a routing table', done => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
@@ -1079,7 +1069,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('fails when both existing routers and all resolved seed routers fail to return a routing table', done => {
     const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
@@ -1134,7 +1124,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('uses seed router when no existing routers', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -1183,7 +1173,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('uses resolved seed router when no existing routers', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -1232,7 +1222,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('uses resolved seed router that returns routing table when no existing routers exist', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -1283,7 +1273,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('ignores already probed routers after seed router resolution', done => {
     const updatedRoutingTable = newRoutingTable(
@@ -1350,7 +1340,7 @@ describe('#unit RoutingConnectionProvider', () => {
             done()
           })
       })
-  })
+  }, 10000)
 
   it('throws session expired when refreshed routing table has no readers', done => {
     const pool = newPool()
@@ -1384,7 +1374,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         done()
       })
-  })
+  }, 10000)
 
   it('throws session expired when refreshed routing table has no writers', done => {
     const pool = newPool()
@@ -1418,7 +1408,7 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(error.code).toEqual(SESSION_EXPIRED)
         done()
       })
-  })
+  }, 10000)
 
   it('should use resolved seed router after accepting table with no writers', done => {
     const routingTable1 = newRoutingTable(
@@ -1494,7 +1484,7 @@ describe('#unit RoutingConnectionProvider', () => {
               })
           })
       })
-  })
+  }, 10000)
 
   describe('multi-database', () => {
     it('should acquire read connection from correct routing table', async () => {
@@ -1525,7 +1515,7 @@ describe('#unit RoutingConnectionProvider', () => {
       })
       expect(conn2 instanceof DelegateConnection).toBeTruthy()
       expect(conn2.address).toBe(serverA)
-    })
+    }, 10000)
 
     it('should acquire write connection from correct routing table', async () => {
       const pool = newPool()
@@ -1555,7 +1545,7 @@ describe('#unit RoutingConnectionProvider', () => {
       })
       expect(conn2 instanceof DelegateConnection).toBeTruthy()
       expect(conn2.address).toBe(serverB)
-    })
+    }, 10000)
 
     it('should fail connection acquisition if database is not known', async () => {
       const pool = newPool()
@@ -1581,7 +1571,7 @@ describe('#unit RoutingConnectionProvider', () => {
       }
 
       expect(false).toBeTruthy('exception expected')
-    })
+    }, 10000)
 
     it('should forget read server from correct routing table on availability error', async () => {
       const pool = newPool()
@@ -1628,7 +1618,7 @@ describe('#unit RoutingConnectionProvider', () => {
         [serverB],
         [serverC]
       )
-    })
+    }, 10000)
 
     it('should forget write server from correct routing table on availability error', async () => {
       const pool = newPool()
@@ -1675,7 +1665,7 @@ describe('#unit RoutingConnectionProvider', () => {
         [serverB],
         [serverC]
       )
-    })
+    }, 10000)
 
     it('should forget write server from correct routing table on write error', async () => {
       const pool = newPool()
@@ -1722,7 +1712,7 @@ describe('#unit RoutingConnectionProvider', () => {
         [serverA, serverB],
         [serverC]
       )
-    })
+    }, 10000)
 
     it('should purge expired routing tables after specified duration on update', async () => {
       var originalDateNow = Date.now
@@ -1808,7 +1798,7 @@ describe('#unit RoutingConnectionProvider', () => {
       } finally {
         Date.now = originalDateNow
       }
-    })
+    }, 10000)
   })
 })
 

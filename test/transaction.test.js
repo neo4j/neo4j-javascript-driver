@@ -19,7 +19,6 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion } from '../src/internal/server-version'
-import TxConfig from '../src/internal/tx-config'
 import { READ } from '../src/driver'
 
 describe('#integration transaction', () => {
@@ -27,13 +26,8 @@ describe('#integration transaction', () => {
   let session
   // eslint-disable-next-line no-unused-vars
   let serverVersion
-  let originalTimeout
 
   beforeEach(async () => {
-    // make jasmine timeout high enough to test unreachable bookmarks
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000
-
     driver = neo4j.driver(
       `bolt://${sharedNeo4j.hostname}`,
       sharedNeo4j.authToken
@@ -45,7 +39,6 @@ describe('#integration transaction', () => {
   })
 
   afterEach(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     await session.close()
     await driver.close()
   })
@@ -75,7 +68,7 @@ describe('#integration transaction', () => {
           .catch(console.log)
       })
       .catch(console.log)
-  })
+  }, 60000)
 
   it('should populate resultAvailableAfter for transaction#run', done => {
     const tx = session.beginTransaction()
@@ -92,7 +85,7 @@ describe('#integration transaction', () => {
           .catch(console.log)
       })
       .catch(console.log)
-  })
+  }, 60000)
 
   it('should handle interactive session', done => {
     const tx = session.beginTransaction()
@@ -117,7 +110,7 @@ describe('#integration transaction', () => {
           .catch(console.log)
       })
       .catch(console.log)
-  })
+  }, 60000)
 
   it('should handle failures with subscribe', done => {
     const tx = session.beginTransaction()
@@ -125,7 +118,7 @@ describe('#integration transaction', () => {
       expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
       done()
     })
-  })
+  }, 60000)
 
   it('should handle failures with catch', done => {
     const tx = session.beginTransaction()
@@ -135,7 +128,7 @@ describe('#integration transaction', () => {
         done()
       }
     })
-  })
+  }, 60000)
 
   it('should handle failures on commit', async () => {
     // When
@@ -161,7 +154,7 @@ describe('#integration transaction', () => {
         )
       })
     )
-  })
+  }, 60000)
 
   it('should fail when committing on a failed query', async () => {
     const tx = session.beginTransaction()
@@ -178,7 +171,7 @@ describe('#integration transaction', () => {
         )
       })
     )
-  })
+  }, 60000)
 
   it('should handle when committing when another query fails', async () => {
     // When
@@ -195,7 +188,7 @@ describe('#integration transaction', () => {
         message: jasmine.stringMatching(/Cannot commit this transaction/)
       })
     )
-  })
+  }, 60000)
 
   it('should handle rollbacks', done => {
     const tx = session.beginTransaction()
@@ -222,7 +215,7 @@ describe('#integration transaction', () => {
           .catch(console.log)
       })
       .catch(console.log)
-  })
+  }, 60000)
 
   it('should fail when committing on a rolled back query', async () => {
     const tx = session.beginTransaction()
@@ -236,7 +229,7 @@ describe('#integration transaction', () => {
         )
       })
     )
-  })
+  }, 60000)
 
   it('should fail when running on a rolled back transaction', async () => {
     const tx = session.beginTransaction()
@@ -250,7 +243,7 @@ describe('#integration transaction', () => {
         )
       })
     )
-  })
+  }, 60000)
 
   it('should fail running when a previous query failed', async () => {
     const tx = session.beginTransaction()
@@ -267,7 +260,7 @@ describe('#integration transaction', () => {
       })
     )
     await tx.rollback()
-  })
+  }, 60000)
 
   it('should fail when trying to roll back a rolled back transaction', async () => {
     const tx = session.beginTransaction()
@@ -281,7 +274,7 @@ describe('#integration transaction', () => {
         )
       })
     )
-  })
+  }, 60000)
 
   it('should provide bookmark on commit', done => {
     // new session without initial bookmark
@@ -301,7 +294,7 @@ describe('#integration transaction', () => {
           .catch(console.log)
       })
       .catch(console.log)
-  })
+  }, 60000)
 
   it('should have bookmark when tx is rolled back', done => {
     // new session without initial bookmark
@@ -332,7 +325,7 @@ describe('#integration transaction', () => {
         })
       })
     })
-  })
+  }, 60000)
 
   it('should have no bookmark when tx fails', done => {
     // new session without initial bookmark
@@ -363,15 +356,15 @@ describe('#integration transaction', () => {
         })
       })
     })
-  })
+  }, 60000)
 
   it('should throw when provided string (bookmark) parameter', () => {
     expect(() => session.beginTransaction('bookmark')).toThrowError(TypeError)
-  })
+  }, 60000)
 
   it('should throw when provided string[] (bookmark) parameter', () => {
     expect(() => session.beginTransaction(['bookmark'])).toThrowError(TypeError)
-  })
+  }, 60000)
 
   it('should fail to run query for unreachable bookmark', done => {
     const tx1 = session.beginTransaction()
@@ -403,7 +396,7 @@ describe('#integration transaction', () => {
           .catch(console.log)
       })
       .catch(console.log)
-  })
+  }, 60000)
 
   it('should rollback when very first run fails', done => {
     const tx1 = session.beginTransaction()
@@ -416,7 +409,7 @@ describe('#integration transaction', () => {
         tx2.commit().then(done)
       })
     })
-  })
+  }, 60000)
 
   it('should rollback when some run fails', done => {
     const tx1 = session.beginTransaction()
@@ -431,7 +424,7 @@ describe('#integration transaction', () => {
         })
       })
     })
-  })
+  }, 60000)
 
   it('should fail to commit transaction that had run failures', async () => {
     const tx1 = session.beginTransaction()
@@ -451,7 +444,7 @@ describe('#integration transaction', () => {
     const tx2 = session.beginTransaction()
     const result = await tx2.run('MATCH (n:Person) RETURN count(n)')
     expect(result.records[0].get(0).toNumber()).toEqual(0)
-  })
+  }, 60000)
 
   it('should expose server info on successful query', done => {
     const query = 'RETURN 1'
@@ -466,7 +459,7 @@ describe('#integration transaction', () => {
         tx.commit().then(done)
       })
       .catch(console.log)
-  })
+  }, 60000)
 
   it('should expose server info on successful query using observer', done => {
     // Given
@@ -487,7 +480,7 @@ describe('#integration transaction', () => {
         done()
       }
     })
-  })
+  }, 60000)
 
   it('should fail nicely for illegal query', async () => {
     const tx = session.beginTransaction()
@@ -501,7 +494,7 @@ describe('#integration transaction', () => {
 
     expect(() => tx.run({ query: 'CREATE ()' })).toThrowError(TypeError)
     expect(() => tx.run({ cypher: 'CREATE ()' })).toThrowError(TypeError)
-  })
+  }, 60000)
 
   it('should accept a query object ', done => {
     const tx = session.beginTransaction()
@@ -514,12 +507,12 @@ describe('#integration transaction', () => {
         done()
       })
       .catch(console.log)
-  })
+  }, 60000)
 
   it('should be open when neither committed nor rolled back', () => {
     const tx = session.beginTransaction()
     expect(tx.isOpen()).toBeTruthy()
-  })
+  }, 60000)
 
   it('should not be open after commit', done => {
     const tx = session.beginTransaction()
@@ -530,7 +523,7 @@ describe('#integration transaction', () => {
         done()
       })
     })
-  })
+  }, 60000)
 
   it('should not be open after rollback', done => {
     const tx = session.beginTransaction()
@@ -541,7 +534,7 @@ describe('#integration transaction', () => {
         done()
       })
     })
-  })
+  }, 60000)
 
   it('should not be open after run error', done => {
     const tx = session.beginTransaction()
@@ -550,15 +543,15 @@ describe('#integration transaction', () => {
       expect(tx.isOpen()).toBeFalsy()
       done()
     })
-  })
+  }, 60000)
 
   it('should respect socket connection timeout', done => {
     testConnectionTimeout(false, done)
-  })
+  }, 60000)
 
   it('should respect TLS socket connection timeout', done => {
     testConnectionTimeout(true, done)
-  })
+  }, 60000)
 
   it('should fail for invalid query parameters', done => {
     const tx = session.beginTransaction()
@@ -568,7 +561,7 @@ describe('#integration transaction', () => {
     expect(() => tx.run('RETURN $value', () => 'Hello')).toThrowError(TypeError)
 
     tx.rollback().then(() => done())
-  })
+  }, 60000)
 
   it('should allow rollback after failure', done => {
     const tx = session.beginTransaction()
@@ -581,21 +574,21 @@ describe('#integration transaction', () => {
           .catch(error => done.fail(error))
           .then(() => done())
       })
-  })
+  }, 60000)
 
   it('should return empty promise on commit', async () => {
     const tx = session.beginTransaction()
     const result = await tx.commit()
 
     expect(result).toBeUndefined()
-  })
+  }, 60000)
 
   it('should return empty promise on rollback', async () => {
     const tx = session.beginTransaction()
     const result = await tx.rollback()
 
     expect(result).toBeUndefined()
-  })
+  }, 60000)
 
   it('should reset transaction', async done => {
     const session = driver.session({ defaultAccessMode: READ })
@@ -612,7 +605,7 @@ describe('#integration transaction', () => {
       await closePromise
       done()
     }
-  })
+  }, 60000)
 
   function expectSyntaxError (error) {
     expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
