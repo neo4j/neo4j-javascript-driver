@@ -110,6 +110,7 @@ describe('#integration stress tests', () => {
         }
 
         verifyServers(context)
+          .then(() => verifyCommandsRun(context, TEST_MODE.commandsCount))
           .then(() => verifyNodeCount(context))
           .then(() => done())
           .catch(error => done.fail(error))
@@ -275,7 +276,7 @@ describe('#integration stress tests', () => {
           context.log(commandId, 'Query completed successfully')
 
           return session.close().then(() => {
-            const possibleError = verifyQueryResult(result)
+            const possibleError = verifyQueryResult(result, context)
             callback(possibleError)
           })
         })
@@ -315,10 +316,19 @@ describe('#integration stress tests', () => {
           context.queryCompleted(result, accessMode, session.lastBookmark())
           context.log(commandId, 'Transaction function executed successfully')
 
-          return session.close().then(() => {
-            const possibleError = verifyQueryResult(result)
-            callback(possibleError)
-          })
+          return session
+            .close()
+            .then(() => {
+              const possibleError = verifyQueryResult(result, context)
+              callback(possibleError)
+            })
+            .catch(error => {
+              context.log(
+                commandId,
+                `Error closing the session ${JSON.stringify(error)}`
+              )
+              callback(error)
+            })
         })
         .catch(error => {
           context.log(
@@ -354,7 +364,7 @@ describe('#integration stress tests', () => {
 
       tx.run(query, params)
         .then(result => {
-          let commandError = verifyQueryResult(result)
+          let commandError = verifyQueryResult(result, context)
 
           tx.commit()
             .catch(commitError => {
@@ -387,10 +397,13 @@ describe('#integration stress tests', () => {
     }
   }
 
-  function verifyQueryResult (result) {
+  function verifyQueryResult (result, context) {
     if (!result) {
       return new Error('Received undefined result')
-    } else if (result.records.length === 0) {
+    } else if (
+      result.records.length === 0 &&
+      context.writeCommandsRun < TEST_MODE.parallelism
+    ) {
       // it is ok to receive no nodes back for read queries at the beginning of the test
       return null
     } else if (result.records.length === 1) {
@@ -421,6 +434,14 @@ describe('#integration stress tests', () => {
     }
 
     return null
+  }
+
+  function verifyCommandsRun (context, expectedCommandsRun) {
+    if (context.commandsRun !== expectedCommandsRun) {
+      throw new Error(
+        `Unexpected commands run: ${context.commandsRun}, expected: ${expectedCommandsRun}`
+      )
+    }
   }
 
   function verifyNodeCount (context) {
@@ -506,10 +527,10 @@ describe('#integration stress tests', () => {
 
   function fetchClusterAddresses (context) {
     const session = context.driver.session()
-    return session.run('CALL dbms.cluster.overview()').then(result =>
-      session.close().then(() => {
+    return session
+      .readTransaction(tx => tx.run('CALL dbms.cluster.overview()'))
+      .then(result => {
         const records = result.records
-
         const supportsMultiDb = protocolVersion >= 4.0
         const followers = supportsMultiDb
           ? addressesForMultiDb(records, 'FOLLOWER')
@@ -518,9 +539,10 @@ describe('#integration stress tests', () => {
           ? addressesForMultiDb(records, 'READ_REPLICA')
           : addressesWithRole(records, 'READ_REPLICA')
 
-        return new ClusterAddresses(followers, readReplicas)
+        return session
+          .close()
+          .then(() => new ClusterAddresses(followers, readReplicas))
       })
-    )
   }
 
   function addressesForMultiDb (records, role, db = 'neo4j') {
@@ -628,6 +650,20 @@ describe('#integration stress tests', () => {
       this.readServersWithQueryCount = {}
       this.writeServersWithQueryCount = {}
       this.protocolVersion = null
+    }
+
+    get commandsRun () {
+      return [
+        ...Object.values(this.readServersWithQueryCount),
+        ...Object.values(this.writeServersWithQueryCount)
+      ].reduce((a, b) => a + b, 0)
+    }
+
+    get writeCommandsRun () {
+      return [...Object.values(this.writeServersWithQueryCount)].reduce(
+        (a, b) => a + b,
+        0
+      )
     }
 
     queryCompleted (result, accessMode, bookmark) {
