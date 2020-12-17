@@ -1677,6 +1677,99 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     })
 
+    it('should forget write server from the default database routing table on availability error', async () => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2, server3],
+            [server1, server2],
+            [server3]
+          ),
+          newRoutingTable(
+            null,
+            [serverA, serverB, serverC],
+            [serverA, serverB],
+            [serverA, serverC]
+          )
+        ],
+        pool
+      )
+
+      const conn1 = await connectionProvider.acquireConnection({
+        accessMode: WRITE,
+        database: null
+      })
+
+      // when
+      conn1._errorHandler.handleAndTransformError(
+        newError('connection error', SERVICE_UNAVAILABLE),
+        conn1.address
+      )
+
+      expectRoutingTable(
+        connectionProvider,
+        'databaseA',
+        [server1, server2, server3],
+        [server1, server2],
+        [server3]
+      )
+      expectRoutingTable(
+        connectionProvider,
+        null,
+        [serverA, serverB, serverC],
+        [serverB],
+        [serverC]
+      )
+    })
+
+    it('should forget write server from the default database routing table on availability error when db not informed', async () => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2, server3],
+            [server1, server2],
+            [server3]
+          ),
+          newRoutingTable(
+            null,
+            [serverA, serverB, serverC],
+            [serverA, serverB],
+            [serverA, serverC]
+          )
+        ],
+        pool
+      )
+
+      const conn1 = await connectionProvider.acquireConnection({
+        accessMode: WRITE
+      })
+
+      // when
+      conn1._errorHandler.handleAndTransformError(
+        newError('connection error', SERVICE_UNAVAILABLE),
+        conn1.address
+      )
+
+      expectRoutingTable(
+        connectionProvider,
+        'databaseA',
+        [server1, server2, server3],
+        [server1, server2],
+        [server3]
+      )
+      expectRoutingTable(
+        connectionProvider,
+        null,
+        [serverA, serverB, serverC],
+        [serverB],
+        [serverC]
+      )
+    })
+
     it('should forget write server from correct routing table on write error', async () => {
       const pool = newPool()
       const connectionProvider = newRoutingConnectionProvider(
@@ -1847,7 +1940,7 @@ function newRoutingConnectionProviderWithSeedRouter (
   })
   connectionProvider._connectionPool = pool
   routingTables.forEach(r => {
-    connectionProvider._routingTables[r.database] = r
+    connectionProvider._routingTableRegistry.register(r.database, r)
   })
   connectionProvider._rediscovery = new FakeRediscovery(routerToRoutingTable)
   connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
@@ -1903,14 +1996,15 @@ function expectRoutingTable (
   readers,
   writers
 ) {
-  expect(connectionProvider._routingTables[database].database).toEqual(database)
-  expect(connectionProvider._routingTables[database].routers).toEqual(routers)
-  expect(connectionProvider._routingTables[database].readers).toEqual(readers)
-  expect(connectionProvider._routingTables[database].writers).toEqual(writers)
+  const routingTable = connectionProvider._routingTableRegistry.get(database)
+  expect(routingTable.database).toEqual(database)
+  expect(routingTable.routers).toEqual(routers)
+  expect(routingTable.readers).toEqual(readers)
+  expect(routingTable.writers).toEqual(writers)
 }
 
 function expectNoRoutingTable (connectionProvider, database) {
-  expect(connectionProvider._routingTables[database]).toBeFalsy()
+  expect(connectionProvider._routingTableRegistry.get(database)).toBeFalsy()
 }
 
 function expectPoolToContain (pool, addresses) {
