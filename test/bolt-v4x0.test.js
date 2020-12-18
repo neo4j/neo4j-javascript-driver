@@ -24,7 +24,6 @@ describe('#integration Bolt V4.0 API', () => {
   let driver
   let session
   let protocolVersion
-  let originalTimeout
 
   beforeEach(async () => {
     driver = neo4j.driver(
@@ -32,14 +31,11 @@ describe('#integration Bolt V4.0 API', () => {
       sharedNeo4j.authToken
     )
     session = driver.session()
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000
 
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     await session.close()
     await driver.close()
   })
@@ -61,7 +57,7 @@ describe('#integration Bolt V4.0 API', () => {
             expectBoltV4NotSupportedError(error)
             done()
           })
-      })
+      }, 20000)
 
       it('should fail beginTransaction if not supported', done => {
         if (databaseSupportsBoltV4()) {
@@ -78,7 +74,7 @@ describe('#integration Bolt V4.0 API', () => {
             expectBoltV4NotSupportedError(error)
             done()
           })
-      })
+      }, 20000)
 
       it('should fail readTransaction if not supported', done => {
         if (databaseSupportsBoltV4()) {
@@ -95,7 +91,7 @@ describe('#integration Bolt V4.0 API', () => {
             expectBoltV4NotSupportedError(error)
             done()
           })
-      })
+      }, 20000)
 
       it('should fail writeTransaction if not supported', done => {
         if (databaseSupportsBoltV4()) {
@@ -112,7 +108,7 @@ describe('#integration Bolt V4.0 API', () => {
             expectBoltV4NotSupportedError(error)
             done()
           })
-      })
+      }, 20000)
 
       it('should return database.name as null in result summary', async () => {
         if (databaseSupportsBoltV4()) {
@@ -124,7 +120,7 @@ describe('#integration Bolt V4.0 API', () => {
 
         expect(result.summary.database).toBeTruthy()
         expect(result.summary.database.name).toBeNull()
-      })
+      }, 20000)
     })
 
     it('should fail if connecting to a non-existing database', async () => {
@@ -143,18 +139,18 @@ describe('#integration Bolt V4.0 API', () => {
       } finally {
         await neoSession.close()
       }
-    })
+    }, 20000)
 
     describe('default database', function () {
       it('should return database name in summary', async () => {
         await testDatabaseNameInSummary(null)
-      })
+      }, 20000)
     })
 
     describe('neo4j database', () => {
       it('should return database name in summary', async () => {
         await testDatabaseNameInSummary('neo4j')
-      })
+      }, 20000)
 
       it('should be able to create a node', async () => {
         if (!databaseSupportsBoltV4()) {
@@ -174,7 +170,7 @@ describe('#integration Bolt V4.0 API', () => {
         } finally {
           await neoSession.close()
         }
-      })
+      }, 20000)
 
       it('should be able to connect single instance using neo4j scheme', async () => {
         if (!databaseSupportsBoltV4()) {
@@ -199,7 +195,7 @@ describe('#integration Bolt V4.0 API', () => {
           await neoSession.close()
           await neoDriver.close()
         }
-      })
+      }, 20000)
     })
   })
 

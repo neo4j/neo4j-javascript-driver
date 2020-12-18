@@ -71,14 +71,10 @@ describe('#integration stress tests', () => {
 
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
 
-  let originalTimeout
   let driver
   let protocolVersion
 
   beforeEach(async () => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = TEST_MODE.maxRunTimeMs
-
     const config = {
       logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info'),
       encrypted: isRemoteCluster()
@@ -93,7 +89,6 @@ describe('#integration stress tests', () => {
   })
 
   afterEach(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     await driver.close()
   })
 

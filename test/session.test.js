@@ -35,7 +35,6 @@ describe('#integration session', () => {
   let session
   // eslint-disable-next-line no-unused-vars
   let protocolVersion
-  let originalTimeout
 
   beforeEach(async () => {
     driver = neo4j.driver(
@@ -43,14 +42,11 @@ describe('#integration session', () => {
       sharedNeo4j.authToken
     )
     session = driver.session()
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 70000
 
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout
     await driver.close()
   })
 
@@ -59,7 +55,7 @@ describe('#integration session', () => {
     const session = newSessionWithConnection(connection)
 
     session.close().then(() => done())
-  })
+  }, 70000)
 
   it('close should return promise even when already closed ', done => {
     const connection = new FakeConnection()
@@ -72,7 +68,7 @@ describe('#integration session', () => {
         })
       })
     })
-  })
+  }, 70000)
 
   it('close should be idempotent ', done => {
     const connection = new FakeConnection()
@@ -90,7 +86,7 @@ describe('#integration session', () => {
         })
       })
     })
-  })
+  }, 70000)
 
   it('should close transaction executor', done => {
     const session = newSessionWithConnection(new FakeConnection())
@@ -107,7 +103,7 @@ describe('#integration session', () => {
       expect(closeCalledTimes).toEqual(1)
       done()
     })
-  })
+  }, 70000)
 
   it('should be possible to close driver after closing session with failed tx ', done => {
     const driver = neo4j.driver(
@@ -124,7 +120,7 @@ describe('#integration session', () => {
           .then(() => done())
       })
     })
-  })
+  }, 70000)
 
   it('should expose basic run/subscribe ', done => {
     // Given
@@ -141,7 +137,7 @@ describe('#integration session', () => {
         done()
       }
     })
-  })
+  }, 70000)
 
   it('should keep context in subscribe methods ', done => {
     // Given
@@ -161,7 +157,7 @@ describe('#integration session', () => {
 
     // When & Then
     session.run('RETURN 1.0 AS a').subscribe(new MyObserver())
-  })
+  }, 70000)
 
   it('should call observers onError on error ', done => {
     // When & Then
@@ -171,7 +167,7 @@ describe('#integration session', () => {
         done()
       }
     })
-  })
+  }, 70000)
 
   it('should accept a query object ', done => {
     // Given
@@ -192,7 +188,7 @@ describe('#integration session', () => {
         done()
       }
     })
-  })
+  }, 70000)
 
   it('should expose run/then/then/then ', done => {
     // When & Then
@@ -208,7 +204,7 @@ describe('#integration session', () => {
         expect(result.records[0].get('a')).toBe(1)
       })
       .then(done)
-  })
+  }, 70000)
 
   it('should expose basic run/catch ', done => {
     // When & Then
@@ -216,7 +212,7 @@ describe('#integration session', () => {
       expect(error.code).toEqual('Neo.ClientError.Statement.SyntaxError')
       done()
     })
-  })
+  }, 70000)
 
   it('should expose summarize method for basic metadata ', done => {
     // Given
@@ -232,7 +228,7 @@ describe('#integration session', () => {
       expect(sum.queryType).toBe(queryType.READ_WRITE)
       done()
     })
-  })
+  }, 70000)
 
   it('should expose server info on successful query', done => {
     // Given
@@ -246,7 +242,7 @@ describe('#integration session', () => {
       expect(sum.server.version).toBeDefined()
       done()
     })
-  })
+  }, 70000)
 
   it('should expose execution time information', done => {
     // Given
@@ -260,7 +256,7 @@ describe('#integration session', () => {
       expect(sum.resultConsumedAfter.toInt()).not.toBeLessThan(0)
       done()
     })
-  })
+  }, 70000)
 
   it('should expose empty parameter map on call with no parameters', done => {
     // Given
@@ -271,7 +267,7 @@ describe('#integration session', () => {
       expect(sum.query.parameters).toEqual({})
       done()
     })
-  })
+  }, 70000)
 
   it('should expose plan ', done => {
     // Given
@@ -288,7 +284,7 @@ describe('#integration session', () => {
       expect(sum.plan.children[0].operatorType).toBeDefined()
       done()
     })
-  })
+  }, 70000)
 
   it('should expose profile ', done => {
     // Given
@@ -306,7 +302,7 @@ describe('#integration session', () => {
       expect(sum.profile.rows).toBe(0)
       done()
     })
-  })
+  }, 70000)
 
   it('should expose cypher notifications ', done => {
     // Given
@@ -322,7 +318,7 @@ describe('#integration session', () => {
       expect(sum.notifications[0].position.column).toBeGreaterThan(0)
       done()
     })
-  })
+  }, 70000)
 
   it('should fail when using the session with an open transaction', done => {
     // When
@@ -337,7 +333,7 @@ describe('#integration session', () => {
       )
       done()
     })
-  })
+  }, 70000)
 
   it('should fail when opening multiple transactions', () => {
     // When
@@ -347,7 +343,7 @@ describe('#integration session', () => {
     expect(() => session.beginTransaction()).toThrowError(
       /You cannot begin a transaction on a session with an open transaction/
     )
-  })
+  }, 70000)
 
   it('should return lots of data', done => {
     session
@@ -367,7 +363,7 @@ describe('#integration session', () => {
           }
         })
       })
-  })
+  }, 70000)
 
   it('should be able to close a long running query ', done => {
     // given a long running query
@@ -398,7 +394,7 @@ describe('#integration session', () => {
     setTimeout(() => {
       session.close()
     }, 1000)
-  })
+  }, 70000)
 
   /* flaky
   it('should fail nicely on unpackable values ', done => {
@@ -427,7 +423,7 @@ describe('#integration session', () => {
 
     expect(() => session.run({ query: 'CREATE ()' })).toThrowError(TypeError)
     expect(() => session.run({ cypher: 'CREATE ()' })).toThrowError(TypeError)
-  })
+  }, 70000)
 
   it('should fail nicely for illegal bookmark', () => {
     expect(() => session.beginTransaction(42)).toThrowError(TypeError)
@@ -436,33 +432,41 @@ describe('#integration session', () => {
     expect(() =>
       session.beginTransaction(() => ['bookmark:1', 'bookmark:2', 'bookmark:3'])
     ).toThrowError(TypeError)
-  })
+  }, 70000)
 
-  it('should allow creation of a ' + neo4j.session.READ + ' session', done => {
-    const readSession = driver.session({
-      defaultAccessMode: neo4j.session.READ
-    })
-    readSession
-      .run('RETURN 1')
-      .then(() => readSession.close())
-      .then(() => done())
-  })
+  it(
+    'should allow creation of a ' + neo4j.session.READ + ' session',
+    done => {
+      const readSession = driver.session({
+        defaultAccessMode: neo4j.session.READ
+      })
+      readSession
+        .run('RETURN 1')
+        .then(() => readSession.close())
+        .then(() => done())
+    },
+    70000
+  )
 
-  it('should allow creation of a ' + neo4j.session.WRITE + ' session', done => {
-    const writeSession = driver.session({
-      defaultAccessMode: neo4j.session.WRITE
-    })
-    writeSession
-      .run('CREATE ()')
-      .then(() => writeSession.close())
-      .then(() => done())
-  })
+  it(
+    'should allow creation of a ' + neo4j.session.WRITE + ' session',
+    done => {
+      const writeSession = driver.session({
+        defaultAccessMode: neo4j.session.WRITE
+      })
+      writeSession
+        .run('CREATE ()')
+        .then(() => writeSession.close())
+        .then(() => done())
+    },
+    70000
+  )
 
   it('should fail for illegal session mode', () => {
     expect(() =>
       driver.session({ defaultAccessMode: 'ILLEGAL_MODE' })
     ).toThrow()
-  })
+  }, 70000)
 
   it('should release connection to the pool after run', done => {
     withQueryInTmpSession(driver, () => {
@@ -474,7 +478,7 @@ describe('#integration session', () => {
         done()
       })
     })
-  })
+  }, 70000)
 
   it('should release connection to the pool after run failure', done => {
     withQueryInTmpSession(driver, () => {
@@ -486,7 +490,7 @@ describe('#integration session', () => {
         done()
       })
     })
-  })
+  }, 70000)
 
   it('should release connection to the pool when result is consumed', done => {
     withQueryInTmpSession(driver, () => {
@@ -506,7 +510,7 @@ describe('#integration session', () => {
         }
       })
     })
-  })
+  }, 70000)
 
   it('should release connection to the pool when result fails', done => {
     withQueryInTmpSession(driver, () => {
@@ -524,7 +528,7 @@ describe('#integration session', () => {
         onCompleted: () => {}
       })
     })
-  })
+  }, 70000)
 
   it('should release connection to the pool when transaction commits', done => {
     withQueryInTmpSession(driver, () => {
@@ -549,7 +553,7 @@ describe('#integration session', () => {
         }
       })
     })
-  })
+  }, 70000)
 
   it('should release connection to the pool when transaction rolls back', done => {
     withQueryInTmpSession(driver, () => {
@@ -574,7 +578,7 @@ describe('#integration session', () => {
         }
       })
     })
-  })
+  }, 70000)
 
   it('should update last bookmark after every read tx commit', done => {
     // new session without initial bookmark
@@ -592,7 +596,7 @@ describe('#integration session', () => {
         done()
       })
     })
-  })
+  }, 70000)
 
   it('should update last bookmark after every write tx commit', done => {
     const bookmarkBefore = session.lastBookmark()
@@ -608,7 +612,7 @@ describe('#integration session', () => {
         done()
       })
     })
-  })
+  }, 70000)
 
   it('should not lose last bookmark after run', done => {
     const tx = session.beginTransaction()
@@ -623,7 +627,7 @@ describe('#integration session', () => {
         })
       })
     })
-  })
+  }, 70000)
 
   it('should commit read transaction', done => {
     // new session without initial bookmark
@@ -640,7 +644,7 @@ describe('#integration session', () => {
       verifyBookmark(session.lastBookmark())
       done()
     })
-  })
+  }, 70000)
 
   it('should commit write transaction', done => {
     const bookmarkBefore = session.lastBookmark()
@@ -662,7 +666,7 @@ describe('#integration session', () => {
         done()
       })
     })
-  })
+  }, 70000)
 
   it('should not commit already committed read transaction', done => {
     const resultPromise = session.readTransaction(tx => {
@@ -691,7 +695,7 @@ describe('#integration session', () => {
 
       done()
     })
-  })
+  }, 70000)
 
   it('should not commit already committed write transaction', done => {
     const resultPromise = session.writeTransaction(tx => {
@@ -724,7 +728,7 @@ describe('#integration session', () => {
         done()
       })
     })
-  })
+  }, 70000)
 
   it('should not commit rolled back read transaction', done => {
     const bookmarkBefore = session.lastBookmark()
@@ -749,7 +753,7 @@ describe('#integration session', () => {
 
       done()
     })
-  })
+  }, 70000)
 
   it('should not commit rolled back write transaction', done => {
     const bookmarkBefore = session.lastBookmark()
@@ -778,7 +782,7 @@ describe('#integration session', () => {
         done()
       })
     })
-  })
+  }, 70000)
 
   it('should interrupt query waiting on a lock when closed', done => {
     session.run('CREATE ()').then(() => {
@@ -812,7 +816,7 @@ describe('#integration session', () => {
         })
       })
     })
-  })
+  }, 70000)
 
   it('should interrupt transaction waiting on a lock when closed', done => {
     session.run('CREATE ()').then(() => {
@@ -845,7 +849,7 @@ describe('#integration session', () => {
         })
       })
     })
-  })
+  }, 70000)
 
   it('should interrupt transaction function waiting on a lock when closed', done => {
     session.run('CREATE ()').then(() => {
@@ -881,7 +885,7 @@ describe('#integration session', () => {
         })
       })
     })
-  })
+  }, 70000)
 
   it('should send multiple bookmarks', async () => {
     const nodeCount = 17
@@ -902,7 +906,7 @@ describe('#integration session', () => {
     } finally {
       await session.close()
     }
-  })
+  }, 70000)
 
   it('should acquire connection for transaction', done => {
     expect(numberOfAcquiredConnectionsFromPool()).toEqual(0)
@@ -943,7 +947,7 @@ describe('#integration session', () => {
               })
           })
       })
-  })
+  }, 70000)
 
   it('should acquire connection for query execution', done => {
     session.run('RETURN 42 AS answer').subscribe({
@@ -960,7 +964,7 @@ describe('#integration session', () => {
         console.log(error)
       }
     })
-  })
+  }, 70000)
 
   it('should acquire separate connections for transaction and query execution in different sessions', done => {
     const otherSession = driver.session()
@@ -978,15 +982,15 @@ describe('#integration session', () => {
         console.log(error)
       }
     })
-  })
+  }, 70000)
 
   it('should respect connection timeout', done => {
     testConnectionTimeout(false, done)
-  })
+  }, 70000)
 
   it('should respect encrypted connection timeout', done => {
     testConnectionTimeout(true, done)
-  })
+  }, 70000)
 
   it('should convert iterable to array', done => {
     const iterable = {}
@@ -1008,7 +1012,7 @@ describe('#integration session', () => {
       .catch(error => {
         done.fail(error)
       })
-  })
+  }, 70000)
 
   /* flaky
   it('should fail to convert illegal iterable to array', done => {
@@ -1036,7 +1040,7 @@ describe('#integration session', () => {
     expect(() => session.run('RETURN $value', '42')).toThrowError(TypeError)
     expect(() => session.run('RETURN $value', 42)).toThrowError(TypeError)
     expect(() => session.run('RETURN $value', () => 42)).toThrowError(TypeError)
-  })
+  }, 70000)
 
   /* flaky
   it('should fail to pass node as a query parameter', done => {
@@ -1078,7 +1082,7 @@ describe('#integration session', () => {
     testTransactionRetryUntilSuccess(() => {
       throw newError('Error that can be retried', SESSION_EXPIRED)
     }, done)
-  })
+  }, 70000)
 
   it('should retry transaction until success when function returns rejected promise', done => {
     testTransactionRetryUntilSuccess(
@@ -1086,13 +1090,13 @@ describe('#integration session', () => {
         Promise.reject(newError('Error that can be retried', SESSION_EXPIRED)),
       done
     )
-  })
+  }, 70000)
 
   it('should not retry transaction when function throws fatal error', done => {
     testTransactionRetryOnFatalError(() => {
       throw newError('Error that is fatal', PROTOCOL_ERROR)
     }, done)
-  })
+  }, 70000)
 
   it('should not retry transaction when function returns promise rejected with fatal error', done => {
     testTransactionRetryOnFatalError(
@@ -1100,7 +1104,7 @@ describe('#integration session', () => {
         Promise.reject(newError('Error that is fatal', 'ReallyFatalErrorCode')),
       done
     )
-  })
+  }, 70000)
 
   function testTransactionRetryUntilSuccess (failureResponseFunction, done) {
     const session = driver.session()
