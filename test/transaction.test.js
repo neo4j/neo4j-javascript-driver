@@ -87,6 +87,21 @@ describe('#integration transaction', () => {
       .catch(console.log)
   }, 60000)
 
+  it('should populate result.summary.server.protocolVersion for transaction#run', done => {
+    const tx = session.beginTransaction()
+    tx.run('CREATE (:TXNode1)')
+      .then(result => {
+        tx.commit()
+          .then(() => {
+            expect(result.summary.server.protocolVersion).toBeDefined()
+            expect(result.summary.server.protocolVersion).not.toBeLessThan(0)
+            done()
+          })
+          .catch(done.fail.bind(done))
+      })
+      .catch(done.fail.bind(done))
+  }, 60000)
+
   it('should handle interactive session', done => {
     const tx = session.beginTransaction()
     tx.run("RETURN 'foo' AS res")

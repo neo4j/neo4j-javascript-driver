@@ -166,26 +166,34 @@ class Result {
       const query = this._query
       const parameters = this._parameters
 
-      function release (protocolVersion) {
+      function complete (protocolVersion) {
+        onCompletedOriginal.call(
+          observer,
+          new ResultSummary(query, parameters, metadata, protocolVersion)
+        )
+      }
+
+      function release () {
         // notify connection holder that the used connection is not needed any more because result has
         // been fully consumed; call the original onCompleted callback after that
-        connectionHolder.releaseConnection().then(() => {
-          onCompletedOriginal.call(
-            observer,
-            new ResultSummary(query, parameters, metadata, protocolVersion)
-          )
-        })
+        return connectionHolder.releaseConnection()
       }
 
       connectionHolder.getConnection().then(
         // onFulfilled:
         connection => {
-          release(connection ? connection.protocol().version : undefined)
+          release().then(() =>
+            complete(
+              connection !== undefined
+                ? connection.protocol().version
+                : undefined
+            )
+          )
         },
 
         // onRejected:
         _ => {
-          release()
+          complete()
         }
       )
     }
