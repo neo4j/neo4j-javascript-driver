@@ -21,6 +21,7 @@ import { validateQueryAndParameters } from './internal/util'
 import ConnectionHolder, {
   EMPTY_CONNECTION_HOLDER
 } from './internal/connection-holder'
+import ReadOnlyConnectionHolder from './internal/connection-holder-readonly'
 import Bookmark from './internal/bookmark'
 import TxConfig from './internal/tx-config'
 
@@ -257,7 +258,12 @@ const _states = {
         })
         .catch(error => new FailedObserver({ error, onError }))
 
-      return newCompletedResult(observerPromise, query, parameters)
+      return newCompletedResult(
+        observerPromise,
+        query,
+        parameters,
+        connectionHolder
+      )
     }
   },
 
@@ -274,14 +280,20 @@ const _states = {
             onError
           }),
           'COMMIT',
-          {}
+          {},
+          connectionHolder
         ),
         state: _states.FAILED
       }
     },
     rollback: ({ connectionHolder, onError, onComplete }) => {
       return {
-        result: newCompletedResult(new CompletedObserver(), 'ROLLBACK', {}),
+        result: newCompletedResult(
+          new CompletedObserver(),
+          'ROLLBACK',
+          {},
+          connectionHolder
+        ),
         state: _states.FAILED
       }
     },
@@ -294,7 +306,8 @@ const _states = {
           onError
         }),
         query,
-        parameters
+        parameters,
+        connectionHolder
       )
     }
   },
@@ -313,7 +326,8 @@ const _states = {
           'COMMIT',
           {}
         ),
-        state: _states.SUCCEEDED
+        state: _states.SUCCEEDED,
+        connectionHolder
       }
     },
     rollback: ({ connectionHolder, onError, onComplete }) => {
@@ -328,7 +342,8 @@ const _states = {
           'ROLLBACK',
           {}
         ),
-        state: _states.SUCCEEDED
+        state: _states.SUCCEEDED,
+        connectionHolder
       }
     },
     run: (query, parameters, { connectionHolder, onError, onComplete }) => {
@@ -340,7 +355,8 @@ const _states = {
           onError
         }),
         query,
-        parameters
+        parameters,
+        connectionHolder
       )
     }
   },
@@ -357,7 +373,8 @@ const _states = {
             onError
           }),
           'COMMIT',
-          {}
+          {},
+          connectionHolder
         ),
         state: _states.ROLLED_BACK
       }
@@ -371,7 +388,8 @@ const _states = {
             )
           }),
           'ROLLBACK',
-          {}
+          {},
+          connectionHolder
         ),
         state: _states.ROLLED_BACK
       }
@@ -385,7 +403,8 @@ const _states = {
           onError
         }),
         query,
-        parameters
+        parameters,
+        connectionHolder
       )
     }
   }
@@ -446,15 +465,21 @@ function finishTransaction (
  * @param {ResultStreamObserver} observer - an observer for the created result.
  * @param {string} query - the cypher query that produced the result.
  * @param {Object} parameters - the parameters for cypher query that produced the result.
+ * @param {ConnectionHolder} connectionHolder - the connection holder used to get the result
  * @return {Result} new result.
  * @private
  */
-function newCompletedResult (observerPromise, query, parameters) {
+function newCompletedResult (
+  observerPromise,
+  query,
+  parameters,
+  connectionHolder = EMPTY_CONNECTION_HOLDER
+) {
   return new Result(
     Promise.resolve(observerPromise),
     query,
     parameters,
-    EMPTY_CONNECTION_HOLDER
+    new ReadOnlyConnectionHolder(connectionHolder || EMPTY_CONNECTION_HOLDER)
   )
 }
 
