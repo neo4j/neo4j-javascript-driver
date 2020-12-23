@@ -310,7 +310,9 @@ function restart (configOverride) {
 async function cleanupAndGetProtocolVersion (driver) {
   const session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
   try {
-    const result = await session.run('MATCH (n) DETACH DELETE n')
+    const result = await session.writeTransaction(tx =>
+      tx.run('MATCH (n) DETACH DELETE n')
+    )
     return result.summary.server.protocolVersion
   } finally {
     await session.close()
@@ -320,7 +322,9 @@ async function cleanupAndGetProtocolVersion (driver) {
 async function getEdition (driver) {
   const session = driver.session({ defaultAccessMode: neo4j.session.READ })
   try {
-    const result = await session.run('CALL dbms.components() YIELD edition')
+    const result = await session.readTransaction(tx =>
+      tx.run('CALL dbms.components() YIELD edition')
+    )
     const singleRecord = result.records[0]
     return singleRecord.get(0)
   } finally {
