@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import CombinedBuffer from '../buf/combined-buf'
 import NodeBuffer from './node-buf'
 import { newError } from '../../error'
 import node from 'buffer'
@@ -30,9 +29,9 @@ function encode (str) {
 }
 
 function decode (buffer, length) {
-  if (buffer instanceof NodeBuffer) {
+  if (Object.prototype.hasOwnProperty.call(buffer, '_buffer')) {
     return decodeNodeBuffer(buffer, length)
-  } else if (buffer instanceof CombinedBuffer) {
+  } else if (Object.prototype.hasOwnProperty.call(buffer, '_buffers')) {
     return decodeCombinedBuffer(buffer, length)
   } else {
     throw newError(`Don't know how to decode strings from '${buffer}'`)
