@@ -276,17 +276,6 @@ class Driver {
   }
 
   /**
-   * @protected
-   */
-  static _validateSessionMode (rawMode) {
-    const mode = rawMode || WRITE
-    if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
-      throw newError('Illegal session mode ' + mode)
-    }
-    return mode
-  }
-
-  /**
    * @private
    */
   _newSession ({
@@ -296,7 +285,7 @@ class Driver {
     reactive,
     fetchSize
   }) {
-    const sessionMode = Driver._validateSessionMode(defaultAccessMode)
+    const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmark = bookmarkOrBookmarks
       ? new Bookmark(bookmarkOrBookmarks)

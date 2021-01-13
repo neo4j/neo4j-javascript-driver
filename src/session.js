@@ -22,7 +22,6 @@ import Transaction from './transaction'
 import { newError } from './error'
 import { validateQueryAndParameters } from './internal/util'
 import ConnectionHolder from './internal/connection-holder'
-import Driver from './driver'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import TransactionExecutor from './internal/transaction-executor'
 import Bookmark from './internal/bookmark'
@@ -205,7 +204,7 @@ class Session {
       )
     }
 
-    const mode = Driver._validateSessionMode(accessMode)
+    const mode = Session._validateSessionMode(accessMode)
     const connectionHolder = this._connectionHolderWithMode(mode)
     connectionHolder.initializeConnection()
     this._hasTx = true
@@ -322,6 +321,17 @@ class Session {
 
   _onCompleteCallback (meta) {
     this._updateBookmark(new Bookmark(meta.bookmark))
+  }
+
+  /**
+   * @protected
+   */
+  static _validateSessionMode (rawMode) {
+    const mode = rawMode || ACCESS_MODE_WRITE
+    if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
+      throw newError('Illegal session mode ' + mode)
+    }
+    return mode
   }
 }
 
