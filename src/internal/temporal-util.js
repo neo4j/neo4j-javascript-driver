@@ -18,7 +18,6 @@
  */
 
 import { int, isInt } from '../integer'
-import { Date, LocalDateTime, LocalTime } from '../temporal-types'
 import { assertNumberOrInteger } from './util'
 import { newError } from '../error'
 
@@ -57,24 +56,24 @@ class ValueRange {
   }
 }
 
-const YEAR_RANGE = new ValueRange(-999999999, 999999999)
-const MONTH_OF_YEAR_RANGE = new ValueRange(1, 12)
-const DAY_OF_MONTH_RANGE = new ValueRange(1, 31)
-const HOUR_OF_DAY_RANGE = new ValueRange(0, 23)
-const MINUTE_OF_HOUR_RANGE = new ValueRange(0, 59)
-const SECOND_OF_MINUTE_RANGE = new ValueRange(0, 59)
-const NANOSECOND_OF_SECOND_RANGE = new ValueRange(0, 999999999)
+export const YEAR_RANGE = new ValueRange(-999999999, 999999999)
+export const MONTH_OF_YEAR_RANGE = new ValueRange(1, 12)
+export const DAY_OF_MONTH_RANGE = new ValueRange(1, 31)
+export const HOUR_OF_DAY_RANGE = new ValueRange(0, 23)
+export const MINUTE_OF_HOUR_RANGE = new ValueRange(0, 59)
+export const SECOND_OF_MINUTE_RANGE = new ValueRange(0, 59)
+export const NANOSECOND_OF_SECOND_RANGE = new ValueRange(0, 999999999)
 
-const MINUTES_PER_HOUR = 60
-const SECONDS_PER_MINUTE = 60
-const SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR
-const NANOS_PER_SECOND = 1000000000
-const NANOS_PER_MILLISECOND = 1000000
-const NANOS_PER_MINUTE = NANOS_PER_SECOND * SECONDS_PER_MINUTE
-const NANOS_PER_HOUR = NANOS_PER_MINUTE * MINUTES_PER_HOUR
-const DAYS_0000_TO_1970 = 719528
-const DAYS_PER_400_YEAR_CYCLE = 146097
-const SECONDS_PER_DAY = 86400
+export const MINUTES_PER_HOUR = 60
+export const SECONDS_PER_MINUTE = 60
+export const SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR
+export const NANOS_PER_SECOND = 1000000000
+export const NANOS_PER_MILLISECOND = 1000000
+export const NANOS_PER_MINUTE = NANOS_PER_SECOND * SECONDS_PER_MINUTE
+export const NANOS_PER_HOUR = NANOS_PER_MINUTE * MINUTES_PER_HOUR
+export const DAYS_0000_TO_1970 = 719528
+export const DAYS_PER_400_YEAR_CYCLE = 146097
+export const SECONDS_PER_DAY = 86400
 
 export function normalizeSecondsForDuration (seconds, nanoseconds) {
   return int(seconds).add(floorDiv(nanoseconds, NANOS_PER_SECOND))
@@ -105,26 +104,6 @@ export function localTimeToNanoOfDay (hour, minute, second, nanosecond) {
 }
 
 /**
- * Converts nanoseconds of the day into local time.
- * @param {Integer|number|string} nanoOfDay the nanoseconds of the day to convert.
- * @return {LocalTime} the local time representing given nanoseconds of the day.
- */
-export function nanoOfDayToLocalTime (nanoOfDay) {
-  nanoOfDay = int(nanoOfDay)
-
-  const hour = nanoOfDay.div(NANOS_PER_HOUR)
-  nanoOfDay = nanoOfDay.subtract(hour.multiply(NANOS_PER_HOUR))
-
-  const minute = nanoOfDay.div(NANOS_PER_MINUTE)
-  nanoOfDay = nanoOfDay.subtract(minute.multiply(NANOS_PER_MINUTE))
-
-  const second = nanoOfDay.div(NANOS_PER_SECOND)
-  const nanosecond = nanoOfDay.subtract(second.multiply(NANOS_PER_SECOND))
-
-  return new LocalTime(hour, minute, second, nanosecond)
-}
-
-/**
  * Converts given local date time into a single integer representing this same time in epoch seconds UTC.
  * @param {Integer|number|string} year the year of the local date-time to convert.
  * @param {Integer|number|string} month the month of the local date-time to convert.
@@ -147,30 +126,6 @@ export function localDateTimeToEpochSecond (
   const epochDay = dateToEpochDay(year, month, day)
   const localTimeSeconds = localTimeToSecondOfDay(hour, minute, second)
   return epochDay.multiply(SECONDS_PER_DAY).add(localTimeSeconds)
-}
-
-/**
- * Converts given epoch second and nanosecond adjustment into a local date time object.
- * @param {Integer|number|string} epochSecond the epoch second to use.
- * @param {Integer|number|string} nano the nanosecond to use.
- * @return {LocalDateTime} the local date time representing given epoch second and nano.
- */
-export function epochSecondAndNanoToLocalDateTime (epochSecond, nano) {
-  const epochDay = floorDiv(epochSecond, SECONDS_PER_DAY)
-  const secondsOfDay = floorMod(epochSecond, SECONDS_PER_DAY)
-  const nanoOfDay = secondsOfDay.multiply(NANOS_PER_SECOND).add(nano)
-
-  const localDate = epochDayToDate(epochDay)
-  const localTime = nanoOfDayToLocalTime(nanoOfDay)
-  return new LocalDateTime(
-    localDate.year,
-    localDate.month,
-    localDate.day,
-    localTime.hour,
-    localTime.minute,
-    localTime.second,
-    localTime.nanosecond
-  )
 }
 
 /**
@@ -218,69 +173,6 @@ export function dateToEpochDay (year, month, day) {
     }
   }
   return epochDay.subtract(DAYS_0000_TO_1970)
-}
-
-/**
- * Converts given epoch day to a local date.
- * @param {Integer|number|string} epochDay the epoch day to convert.
- * @return {Date} the date representing the epoch day in years, months and days.
- */
-export function epochDayToDate (epochDay) {
-  epochDay = int(epochDay)
-
-  let zeroDay = epochDay.add(DAYS_0000_TO_1970).subtract(60)
-  let adjust = int(0)
-  if (zeroDay.lessThan(0)) {
-    const adjustCycles = zeroDay
-      .add(1)
-      .div(DAYS_PER_400_YEAR_CYCLE)
-      .subtract(1)
-    adjust = adjustCycles.multiply(400)
-    zeroDay = zeroDay.add(adjustCycles.multiply(-DAYS_PER_400_YEAR_CYCLE))
-  }
-  let year = zeroDay
-    .multiply(400)
-    .add(591)
-    .div(DAYS_PER_400_YEAR_CYCLE)
-  let dayOfYearEst = zeroDay.subtract(
-    year
-      .multiply(365)
-      .add(year.div(4))
-      .subtract(year.div(100))
-      .add(year.div(400))
-  )
-  if (dayOfYearEst.lessThan(0)) {
-    year = year.subtract(1)
-    dayOfYearEst = zeroDay.subtract(
-      year
-        .multiply(365)
-        .add(year.div(4))
-        .subtract(year.div(100))
-        .add(year.div(400))
-    )
-  }
-  year = year.add(adjust)
-  const marchDayOfYear = dayOfYearEst
-
-  const marchMonth = marchDayOfYear
-    .multiply(5)
-    .add(2)
-    .div(153)
-  const month = marchMonth
-    .add(2)
-    .modulo(12)
-    .add(1)
-  const day = marchDayOfYear
-    .subtract(
-      marchMonth
-        .multiply(306)
-        .add(5)
-        .div(10)
-    )
-    .add(1)
-  year = year.add(marchMonth.div(10))
-
-  return new Date(year, month, day)
 }
 
 /**
@@ -529,7 +421,7 @@ function isLeapYear (year) {
  * @param {Integer|number|string} y the divisor.
  * @return {Integer} the result.
  */
-function floorDiv (x, y) {
+export function floorDiv (x, y) {
   x = int(x)
   y = int(y)
 
@@ -545,7 +437,7 @@ function floorDiv (x, y) {
  * @param {Integer|number|string} y the divisor.
  * @return {Integer} the result.
  */
-function floorMod (x, y) {
+export function floorMod (x, y) {
   x = int(x)
   y = int(y)
 

@@ -33,12 +33,15 @@ import {
 import { int, isInt } from '../integer'
 import {
   dateToEpochDay,
+  localDateTimeToEpochSecond,
+  localTimeToNanoOfDay
+} from './temporal-util'
+
+import {
   epochDayToDate,
   epochSecondAndNanoToLocalDateTime,
-  localDateTimeToEpochSecond,
-  localTimeToNanoOfDay,
   nanoOfDayToLocalTime
-} from './temporal-util'
+} from './temporal-factory'
 
 const POINT_2D = 0x58
 const POINT_2D_STRUCT_SIZE = 3
