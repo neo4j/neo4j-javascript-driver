@@ -104,6 +104,17 @@ export function ResultNext (context, data, wire) {
     })
 }
 
+export function ResultConsume (context, data, wire) {
+  const { resultId } = data
+  const resultObserver = context.getResultObserver(resultId)
+  resultObserver
+    .completitionPromise()
+    .then(summary => {
+      wire.writeResponse('Summary', null)
+    })
+    .catch(e => wire.writeError(e))
+}
+
 export function SessionReadTransaction (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
