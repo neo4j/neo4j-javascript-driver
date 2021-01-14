@@ -182,6 +182,15 @@ export function TransactionCommit (context, data, wire) {
   context.removeTx(id)
 }
 
+export function TransactionRollback (context, data, wire) {
+  const { txId: id } = data
+  const { tx } = context.getTx(id)
+  tx.rollback()
+    .then(() => wire.writeResponse('Transaction', { id }))
+    .catch(e => wire.writeError(e))
+  context.removeTx(id)
+}
+
 export function SessionLastBookmarks (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
