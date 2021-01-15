@@ -104,6 +104,17 @@ export function ResultNext (context, data, wire) {
     })
 }
 
+export function ResultConsume (context, data, wire) {
+  const { resultId } = data
+  const resultObserver = context.getResultObserver(resultId)
+  resultObserver
+    .completitionPromise()
+    .then(summary => {
+      wire.writeResponse('Summary', null)
+    })
+    .catch(e => wire.writeError(e))
+}
+
 export function SessionReadTransaction (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
@@ -168,6 +179,15 @@ export function TransactionCommit (context, data, wire) {
       console.log('got some err: ' + JSON.stringify(e))
       wire.writeError(e)
     })
+  context.removeTx(id)
+}
+
+export function TransactionRollback (context, data, wire) {
+  const { txId: id } = data
+  const { tx } = context.getTx(id)
+  tx.rollback()
+    .then(() => wire.writeResponse('Transaction', { id }))
+    .catch(e => wire.writeError(e))
   context.removeTx(id)
 }
 
