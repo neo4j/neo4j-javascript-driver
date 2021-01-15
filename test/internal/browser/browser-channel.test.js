@@ -142,6 +142,24 @@ describe('#unit WebSocketChannel', () => {
     testWarningInMixedEnvironment(ENCRYPTION_OFF, 'https')
   })
 
+  it('should generate not warning when encryption turned and the protocol could not be fetched', () => {
+    testWarningInMixedEnvironment(true, null, warnMessages =>
+      expect(warnMessages.length).toBe(0)
+    )
+    testWarningInMixedEnvironment(ENCRYPTION_ON, null, warnMessages =>
+      expect(warnMessages.length).toBe(0)
+    )
+  })
+
+  it('should generate a warning when encryption turned off and the protocol could not be fetched', () => {
+    testWarningInMixedEnvironment(false, null, warnMessages =>
+      expect(warnMessages.length).toBe(0)
+    )
+    testWarningInMixedEnvironment(ENCRYPTION_OFF, null, warnMessages =>
+      expect(warnMessages.length).toBe(0)
+    )
+  })
+
   it('should resolve close if websocket is already closed', async () => {
     const address = ServerAddress.fromUrl('bolt://localhost:8989')
     const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
@@ -216,7 +234,11 @@ describe('#unit WebSocketChannel', () => {
     expect(channel._ws.url).toEqual(expectedScheme + '://localhost:8989')
   }
 
-  function testWarningInMixedEnvironment (encrypted, scheme) {
+  function testWarningInMixedEnvironment (
+    encrypted,
+    scheme,
+    assertWarnMessage = warnMessages => expect(warnMessages.length).toEqual(1)
+  ) {
     const originalConsoleWarn = console.warn
     try {
       // replace console.warn with a function that memorizes the message
@@ -229,7 +251,7 @@ describe('#unit WebSocketChannel', () => {
         { encrypted: encrypted },
         SERVICE_UNAVAILABLE
       )
-      const protocolSupplier = () => scheme + ':'
+      const protocolSupplier = () => (scheme != null ? scheme + ':' : scheme)
 
       const channel = new WebSocketChannel(
         config,
@@ -238,7 +260,7 @@ describe('#unit WebSocketChannel', () => {
       )
 
       expect(channel).toBeDefined()
-      expect(warnMessages.length).toEqual(1)
+      assertWarnMessage(warnMessages)
     } finally {
       console.warn = originalConsoleWarn
     }

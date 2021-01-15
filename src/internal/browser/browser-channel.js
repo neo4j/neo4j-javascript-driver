@@ -323,7 +323,9 @@ function isProtocolSecure (protocolSupplier) {
 }
 
 function verifyEncryptionSettings (encryptionOn, encryptionOff, secureProtocol) {
-  if (encryptionOn && !secureProtocol) {
+  if (secureProtocol === null) {
+    // do nothing sice the protocol could not be identified
+  } else if (encryptionOn && !secureProtocol) {
     // encryption explicitly turned on for a driver used on a HTTP web page
     console.warn(
       'Neo4j driver is configured to use secure WebSocket on a HTTP web page. ' +
