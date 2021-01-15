@@ -18,7 +18,7 @@
  */
 
 import ConnectionHolder from './connection-holder'
-import { READ } from '../driver'
+import { ACCESS_MODE_READ } from './constants'
 import { ResultStreamObserver } from './bolt'
 
 /**
@@ -49,7 +49,7 @@ export default class ConnectivityVerifier {
  */
 function acquireAndReleaseDummyConnection (connectionProvider, database) {
   const connectionHolder = new ConnectionHolder({
-    mode: READ,
+    mode: ACCESS_MODE_READ,
     database,
     connectionProvider
   })

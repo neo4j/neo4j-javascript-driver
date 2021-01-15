@@ -165,38 +165,12 @@ describe('#unit temporal-util', () => {
     )
   })
 
-  it('should convert epoch day to cypher date', () => {
-    expect(util.epochDayToDate(-719528)).toEqual(date(0, 1, 1))
-    expect(util.epochDayToDate(-135153)).toEqual(date(1599, 12, 19))
-    expect(util.epochDayToDate(7905)).toEqual(date(1991, 8, 24))
-    expect(util.epochDayToDate(int(48210))).toEqual(date(2101, 12, 30))
-    expect(util.epochDayToDate(int(-4310226))).toEqual(date(-9831, 1, 1))
-  })
-
   it('should convert cypher date to epoch day', () => {
     expect(util.dateToEpochDay(-13, 12, 31)).toEqual(int(-723912))
     expect(util.dateToEpochDay(9, 9, 9)).toEqual(int(-715989))
     expect(util.dateToEpochDay(2015, 2, 17)).toEqual(int(16483))
     expect(util.dateToEpochDay(2189, 7, 19)).toEqual(int(80188))
     expect(util.dateToEpochDay(19999, 9, 28)).toEqual(int(6585227))
-  })
-
-  it('should convert epoch second with nano to cypher local date-time', () => {
-    expect(util.epochSecondAndNanoToLocalDateTime(653165977, 999)).toEqual(
-      localDateTime(1990, 9, 12, 18, 59, 37, 999)
-    )
-    expect(util.epochSecondAndNanoToLocalDateTime(-62703676801, 12345)).toEqual(
-      localDateTime(-18, 12, 31, 23, 59, 59, 12345)
-    )
-    expect(util.epochSecondAndNanoToLocalDateTime(2678400, int(1))).toEqual(
-      localDateTime(1970, 2, 1, 0, 0, 0, 1)
-    )
-    expect(
-      util.epochSecondAndNanoToLocalDateTime(int(3065493882737), int(1794673))
-    ).toEqual(localDateTime(99111, 8, 21, 6, 32, 17, 1794673))
-    expect(
-      util.epochSecondAndNanoToLocalDateTime(int(-37428234001), 999999111)
-    ).toEqual(localDateTime(783, 12, 12, 20, 19, 59, 999999111))
   })
 
   it('should convert cypher local date-time to epoch second', () => {
@@ -215,20 +189,6 @@ describe('#unit temporal-util', () => {
     expect(
       util.localDateTimeToEpochSecond(783, 12, 12, 20, 19, 59, 999999111)
     ).toEqual(int(-37428234001))
-  })
-
-  it('should convert nanosecond of the day to cypher local time', () => {
-    expect(util.nanoOfDayToLocalTime(68079000012399)).toEqual(
-      localTime(18, 54, 39, 12399)
-    )
-    expect(util.nanoOfDayToLocalTime(0)).toEqual(localTime(0, 0, 0, 0))
-    expect(util.nanoOfDayToLocalTime(1)).toEqual(localTime(0, 0, 0, 1))
-    expect(util.nanoOfDayToLocalTime(int(86399999999999))).toEqual(
-      localTime(23, 59, 59, 999999999)
-    )
-    expect(util.nanoOfDayToLocalTime(int(46277000808080))).toEqual(
-      localTime(12, 51, 17, 808080)
-    )
   })
 
   it('should convert cypher local time to nanosecond of the day', () => {
