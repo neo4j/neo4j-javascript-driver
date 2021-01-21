@@ -15,7 +15,7 @@
     "build": "gulp all",
     "start-neo4j": "gulp start-neo4j",
     "stop-neo4j": "gulp stop-neo4j",
-    "run-stress-tests": "gulp run-stress-tests",
+    "run-stress-tests": "gulp run-stress-tests-without-jasmine",
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --x $VERSION && npm version $VERSION --no-git-tag-version",
