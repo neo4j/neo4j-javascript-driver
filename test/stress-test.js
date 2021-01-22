@@ -48,7 +48,11 @@ const DATABASE_URI = fromEnvOrDefault(
   `${sharedNeo4j.scheme}://${sharedNeo4j.hostname}:${sharedNeo4j.port}`
 )
 
-export default function execute () {
+const RUNNING_TIME_IN_SECONDS = parseInt(
+  fromEnvOrDefault('RUNNING_TIME_IN_SECONDS', 0)
+)
+
+export default async function execute () {
   const USERNAME = fromEnvOrDefault(
     'NEO4J_USERNAME',
     sharedNeo4j.authToken.principal
@@ -70,50 +74,52 @@ export default function execute () {
     neo4j.auth.basic(USERNAME, PASSWORD),
     config
   )
+  const protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
+  console.time('Basic-stress-test')
+  const printStats = () => {
+    console.timeEnd('Basic-stress-test')
 
-  return sharedNeo4j
-    .cleanupAndGetProtocolVersion(driver)
-    .then(protocolVersion => {
-      const context = new Context(driver, LOGGING_ENABLED, protocolVersion)
+    console.log('Read statistics: ', context.readServersWithQueryCount)
+    console.log('Write statistics: ', context.writeServersWithQueryCount)
+  }
+
+  const context = new Context(driver, LOGGING_ENABLED, protocolVersion)
+
+  try {
+    await runWhileNotTimeout(async () => {
       const commands = createCommands(context)
+      await parallelLimit(commands, TEST_MODE.parallelism)
+      await verifyServers(context)
+      verifyCommandsRun(context)
+      await verifyNodeCount(context)
+    }, RUNNING_TIME_IN_SECONDS)
+  } catch (error) {
+    context.error = error
+  } finally {
+    printStats()
+    await closeDriver(driver)
+    if (context.error) {
+      console.error(context.error)
+      process.exit(1)
+    }
+  }
+}
 
-      console.time('Basic-stress-test')
-      const printStats = () => {
-        console.timeEnd('Basic-stress-test')
+function closeDriver (driver) {
+  return driver.close().catch(error => {
+    console.error('Could not close the connection', error)
+    return error
+  })
+}
 
-        console.log('Read statistics: ', context.readServersWithQueryCount)
-        console.log('Write statistics: ', context.writeServersWithQueryCount)
-      }
-      return parallelLimit(commands, TEST_MODE.parallelism)
-        .then(() => {
-          printStats()
-          return verifyServers(context)
-            .then(() => verifyCommandsRun(context, TEST_MODE.commandsCount))
-            .then(() => verifyNodeCount(context))
-        })
-        .catch(error => {
-          printStats()
-          throw error
-        })
-    })
-    .catch(error => {
-      return { error }
-    })
-    .then(result => {
-      const resultAction = () => {
-        if (result && result.error) {
-          console.error(result.error)
-          process.exit(1)
-        }
-      }
-      driver
-        .close()
-        .catch(error => {
-          console.error('Could not close the connection', error)
-          return error
-        })
-        .then(resultAction)
-    })
+async function runWhileNotTimeout (asyncFunc, timeoutInSeconds) {
+  let shoulKeepRunning = () => true
+  setTimeout(() => {
+    shoulKeepRunning = () => false
+  }, timeoutInSeconds * 1000)
+  do {
+    await asyncFunc()
+  } while (shoulKeepRunning())
 }
 
 function isRemoteCluster () {
@@ -133,6 +139,7 @@ function createCommands (context) {
     commands.push(randomCommand)
   }
 
+  context.expectedCommandsRun += TEST_MODE.commandsCount
   console.log(`Generated ${TEST_MODE.commandsCount} commands`)
 
   return commands
@@ -429,10 +436,10 @@ function verifyRecord (record) {
   return null
 }
 
-function verifyCommandsRun (context, expectedCommandsRun) {
-  if (context.commandsRun !== expectedCommandsRun) {
+function verifyCommandsRun (context) {
+  if (context.commandsRun !== context.expectedCommandsRun) {
     throw new Error(
-      `Unexpected commands run: ${context.commandsRun}, expected: ${expectedCommandsRun}`
+      `Unexpected commands run: ${context.commandsRun}, expected: ${context.expectedCommandsRun}`
     )
   }
 }
@@ -558,6 +565,7 @@ class Context {
     this.readServersWithQueryCount = {}
     this.writeServersWithQueryCount = {}
     this.protocolVersion = protocolVersion
+    this.expectedCommandsRun = 0
   }
 
   get commandsRun () {
