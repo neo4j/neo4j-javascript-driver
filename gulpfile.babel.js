@@ -222,6 +222,11 @@ gulp.task('run-stress-tests', function () {
     .on('end', logActiveNodeHandles)
 })
 
+gulp.task('run-stress-tests-without-jasmine', function () {
+  const stresstest = require('./test/stress-test')
+  return stresstest()
+})
+
 gulp.task('run-ts-declaration-tests', function (done) {
   return gulp
     .src(['test/types/**/*', 'types/**/*'], { base: '.' })
