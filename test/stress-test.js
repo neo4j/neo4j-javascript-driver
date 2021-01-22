@@ -22,23 +22,19 @@ import { READ, WRITE } from '../src/driver'
 import parallelLimit from 'async/parallelLimit'
 import _ from 'lodash'
 import sharedNeo4j from './internal/shared-neo4j'
-import { resolve } from 'uri-js'
 
 const TEST_MODES = {
   fastest: {
     commandsCount: 10000,
-    parallelism: 24,
-    maxRunTimeMs: 3 * 60000 // 3 minutes
+    parallelism: 24
   },
   fast: {
     commandsCount: 5000,
-    parallelism: 8,
-    maxRunTimeMs: 20 * 60000 // 10 minutes
+    parallelism: 8
   },
   extended: {
     commandsCount: 2000000,
-    parallelism: 16,
-    maxRunTimeMs: 60 * 60000 // 60 minutes
+    parallelism: 16
   }
 }
 
@@ -463,8 +459,9 @@ function verifyServers (context) {
   const routing = DATABASE_URI.indexOf('neo4j') === 0
 
   if (routing && isCluster()) {
-    return verifyCausalClusterMembers(context)
+    return Promise.resolve()
   }
+
   return verifySingleInstance(context)
 }
 
@@ -507,124 +504,6 @@ function verifySingleInstance (context) {
 
     resolve()
   })
-}
-
-function verifyCausalClusterMembers (context) {
-  return fetchClusterAddresses(context).then(clusterAddresses => {
-    // Before 3.2.0 only read replicas serve reads.
-    // We round up this check to Bolt v2 and above
-    // to avoid sniffing the server agent string.
-    const readsOnFollowersEnabled = context.protocolVersion >= 2
-
-    if (readsOnFollowersEnabled) {
-      // expect all followers to serve more than zero read queries
-      assertAllAddressesServedReadQueries(
-        clusterAddresses.followers,
-        context.readServersWithQueryCount
-      )
-    }
-
-    // expect all read replicas to serve more than zero read queries
-    assertAllAddressesServedReadQueries(
-      clusterAddresses.readReplicas,
-      context.readServersWithQueryCount
-    )
-
-    if (readsOnFollowersEnabled) {
-      // expect all followers to serve same order of magnitude read queries
-      assertAllAddressesServedSimilarAmountOfReadQueries(
-        clusterAddresses.followers,
-        context.readServersWithQueryCount
-      )
-    }
-
-    // expect all read replicas to serve same order of magnitude read queries
-    assertAllAddressesServedSimilarAmountOfReadQueries(
-      clusterAddresses.readReplicas,
-      context.readServersWithQueryCount
-    )
-  })
-}
-
-function fetchClusterAddresses (context) {
-  const session = context.driver.session()
-  return session
-    .readTransaction(tx => tx.run('CALL dbms.cluster.overview()'))
-    .then(result => {
-      const records = result.records
-      const supportsMultiDb = context.protocolVersion >= 4.0
-      const followers = supportsMultiDb
-        ? addressesForMultiDb(records, 'FOLLOWER')
-        : addressesWithRole(records, 'FOLLOWER')
-      const readReplicas = supportsMultiDb
-        ? addressesForMultiDb(records, 'READ_REPLICA')
-        : addressesWithRole(records, 'READ_REPLICA')
-
-      return session
-        .close()
-        .then(() => new ClusterAddresses(followers, readReplicas))
-    })
-}
-
-function addressesForMultiDb (records, role, db = 'neo4j') {
-  return _.uniq(
-    records
-      .filter(record => record.get('databases')[db] === role)
-      .map(record => record.get('addresses')[0].replace('bolt://', ''))
-  )
-}
-
-function addressesWithRole (records, role) {
-  return _.uniq(
-    records
-      .filter(record => record.get('role') === role)
-      .map(record => record.get('addresses')[0].replace('bolt://', ''))
-  )
-}
-
-function assertAllAddressesServedReadQueries (addresses, readQueriesByServer) {
-  addresses.forEach(address => {
-    const queries = readQueriesByServer[address]
-    if (queries <= 0) {
-      throw Error(`Expect queries to be greater then 0, but it is ${queries}`)
-    }
-  })
-}
-
-function assertAllAddressesServedSimilarAmountOfReadQueries (
-  addresses,
-  readQueriesByServer
-) {
-  const expectedOrderOfMagnitude = orderOfMagnitude(
-    readQueriesByServer[addresses[0]]
-  )
-
-  addresses.forEach(address => {
-    const queries = readQueriesByServer[address]
-    const currentOrderOfMagnitude = orderOfMagnitude(queries)
-
-    if (currentOrderOfMagnitude < expectedOrderOfMagnitude - 1) {
-      throw Error(
-        `Expect currentOrderOfMagnitude to be less or equal to ${expectedOrderOfMagnitude -
-          1}, but it is ${currentOrderOfMagnitude}`
-      )
-    }
-    if (currentOrderOfMagnitude > expectedOrderOfMagnitude + 1) {
-      throw Error(
-        `Expect currentOrderOfMagnitude to be greater or equal to ${expectedOrderOfMagnitude +
-          1}, but it is ${currentOrderOfMagnitude}`
-      )
-    }
-  })
-}
-
-function orderOfMagnitude (number) {
-  let result = 1
-  while (number >= 10) {
-    number /= 10
-    result++
-  }
-  return result
 }
 
 function randomParams () {
@@ -730,13 +609,6 @@ class Context {
     if (this._loggingEnabled) {
       console.log(`Command [${commandId}]: ${message}`)
     }
-  }
-}
-
-class ClusterAddresses {
-  constructor (followers, readReplicas) {
-    this.followers = followers
-    this.readReplicas = readReplicas
   }
 }
 
