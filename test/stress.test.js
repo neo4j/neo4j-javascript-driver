@@ -449,7 +449,7 @@ describe('#integration stress tests', () => {
 
     const session = context.driver.session()
     return session
-      .readTransaction(tx => tx.run('MATCH (n) RETURN count(n)'))
+      .writeTransaction(tx => tx.run('MATCH (n) RETURN count(n)'))
       .then(result => {
         const record = result.records[0]
         const count = record.get(0).toNumber()
