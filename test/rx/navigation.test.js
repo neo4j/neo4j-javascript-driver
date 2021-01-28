@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2020 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -233,10 +233,7 @@ describe('#integration-rx navigation', () => {
     const result = await runnable
       .run("RETURN 1 as f1, true as f2, 'string' as f3")
       .keys()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
 
     expect(result).toEqual([
@@ -443,10 +440,7 @@ describe('#integration-rx navigation', () => {
     const keys = await runnable
       .run('CREATE ({id : $id})', { id: 5 })
       .keys()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(keys).toEqual([
       Notification.createNext([]),
@@ -632,10 +626,7 @@ describe('#integration-rx navigation', () => {
   async function collectAndAssertKeys (result) {
     const keys = await result
       .keys()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(keys).toEqual([
       Notification.createNext(['number', 'text']),
@@ -678,12 +669,7 @@ describe('#integration-rx navigation', () => {
   }
 
   async function collectAndAssertEmpty (stream) {
-    const result = await stream
-      .pipe(
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result = await stream.pipe(materialize(), toArray()).toPromise()
     expect(result).toEqual([Notification.createComplete()])
   }
 
@@ -693,12 +679,7 @@ describe('#integration-rx navigation', () => {
    * @param {function(err: Error): void} expectationFunc
    */
   async function collectAndAssertError (stream, expectedError) {
-    const result = await stream
-      .pipe(
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result = await stream.pipe(materialize(), toArray()).toPromise()
 
     expect(result).toEqual([Notification.createError(expectedError)])
   }
