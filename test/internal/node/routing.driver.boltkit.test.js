@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -2329,7 +2329,7 @@ describe('routing driver with stub server', () => {
       const session = driver.session(WRITE, bookmarks)
       const tx = session.beginTransaction()
 
-      tx.run('CREATE (n {name:\'Bob\'})').then(() => {
+      tx.run("CREATE (n {name:'Bob'})").then(() => {
         tx.commit().then(() => {
           expect(session.lastBookmark()).toEqual('neo4j:bookmark:v1:tx95')
 
@@ -2349,7 +2349,7 @@ describe('routing driver with stub server', () => {
   })
 
   it('should forget writer on database unavailable error', done => {
-    testAddressPurgeOnDatabaseError('CREATE (n {name:\'Bob\'})', WRITE, done)
+    testAddressPurgeOnDatabaseError("CREATE (n {name:'Bob'})", WRITE, done)
   })
 
   it('should forget reader on database unavailable error', done => {

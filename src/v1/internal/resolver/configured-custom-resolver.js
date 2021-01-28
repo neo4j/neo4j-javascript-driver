@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -33,7 +33,7 @@ export default class ConfiguredCustomResolver {
     ).then(resolved => {
       if (!Array.isArray(resolved)) {
         throw new TypeError(
-          `Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.` +
+          'Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.' +
             `Each address is '<host>:<port>'. Got: ${resolved}`
         )
       }

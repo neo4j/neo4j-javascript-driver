@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -113,7 +113,7 @@ class StubServer {
 function newDriver (url, config = {}) {
   // left here for debugging purposes
   const logging = {
-    level: (process.env['NEOLOGLEVEL'] || 'error').toLowerCase(),
+    level: (process.env.NEOLOGLEVEL || 'error').toLowerCase(),
     logger: (level, msg) => console.log(`${level}: ${msg}`)
   }
   // boltstub currently does not support encryption, create driver with encryption turned off

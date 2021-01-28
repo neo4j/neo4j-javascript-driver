@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -182,7 +182,7 @@ describe('path values', () => {
 })
 
 describe('byte arrays', () => {
-  let originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
+  const originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL
   let serverSupportsByteArrays = false
 
   beforeAll(done => {

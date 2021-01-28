@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -124,7 +124,7 @@ describe('spatial-types', () => {
   it('should receive 2D points with crs', done => {
     testReceivingOfPoints(
       done,
-      `RETURN point({x: 2.3, y: 4.5, crs: 'WGS-84'})`,
+      'RETURN point({x: 2.3, y: 4.5, crs: \'WGS-84\'})',
       point => {
         expect(isPoint(point)).toBeTruthy()
         expect(point.srid).toEqual(WGS_84_2D_CRS_CODE)
@@ -152,7 +152,7 @@ describe('spatial-types', () => {
   it('should receive 3D points with crs', done => {
     testReceivingOfPoints(
       done,
-      `RETURN point({x: 34.76, y: 11.9, z: -99.01, crs: 'WGS-84-3D'})`,
+      'RETURN point({x: 34.76, y: 11.9, z: -99.01, crs: \'WGS-84-3D\'})',
       point => {
         expect(isPoint(point)).toBeTruthy()
         expect(point.srid).toEqual(WGS_84_3D_CRS_CODE)

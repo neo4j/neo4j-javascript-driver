@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -320,7 +320,7 @@ export default class BaseBuffer {
   }
 
   _updatePos (length) {
-    let p = this.position
+    const p = this.position
     this.position += length
     return p
   }

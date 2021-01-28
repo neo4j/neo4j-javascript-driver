@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -93,8 +93,8 @@ export default class RoutingUtil {
       let writers = []
 
       servers.forEach(server => {
-        const role = server['role']
-        const addresses = server['addresses']
+        const role = server.role
+        const addresses = server.addresses
 
         if (role === 'ROUTE') {
           routers = parseArray(addresses).map(address =>

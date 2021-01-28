@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -120,9 +120,7 @@ export class LoadBalancer extends ConnectionProvider {
     if (!address) {
       return Promise.reject(
         newError(
-          `Failed to obtain connection towards ${serverName} server. Known routing table is: ${
-            this._routingTable
-          }`,
+          `Failed to obtain connection towards ${serverName} server. Known routing table is: ${this._routingTable}`,
           SESSION_EXPIRED
         )
       )
@@ -318,9 +316,7 @@ export class LoadBalancer extends ConnectionProvider {
     if (!newRoutingTable) {
       // none of routing servers returned valid routing table, throw exception
       throw newError(
-        `Could not perform discovery. No routing servers available. Known routing table: ${
-          this._routingTable
-        }`,
+        `Could not perform discovery. No routing servers available. Known routing table: ${this._routingTable}`,
         SERVICE_UNAVAILABLE
       )
     }

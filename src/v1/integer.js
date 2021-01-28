@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -76,6 +76,7 @@ class Integer {
       this.lessThanOrEqual(Integer.MAX_SAFE_VALUE)
     )
   }
+
   /**
    * Converts the Integer to an exact javascript Number, assuming it is a 32 bit integer.
    * @returns {number}
@@ -695,7 +696,7 @@ Object.defineProperty(Integer.prototype, '__isInteger__', {
  * @expose
  */
 Integer.isInteger = function (obj) {
-  return (obj && obj['__isInteger__']) === true
+  return (obj && obj.__isInteger__) === true
 }
 
 /**
@@ -975,7 +976,7 @@ Integer.MAX_SAFE_VALUE = Integer.fromBits(0xffffffff | 0, 0x1fffff | 0)
  * @param {Mixed} value - The value to use.
  * @return {Integer} - An object of type Integer.
  */
-let int = Integer.fromValue
+const int = Integer.fromValue
 
 /**
  * Check if a variable is of Integer type.
@@ -983,7 +984,7 @@ let int = Integer.fromValue
  * @param {Mixed} value - The variable to check.
  * @return {Boolean} - Is it of the Integer type?
  */
-let isInt = Integer.isInteger
+const isInt = Integer.isInteger
 
 /**
  * Check if a variable can be safely converted to a number
@@ -991,7 +992,7 @@ let isInt = Integer.isInteger
  * @param {Mixed} value - The variable to check
  * @return {Boolean} - true if it is safe to call toNumber on variable otherwise false
  */
-let inSafeRange = Integer.inSafeRange
+const inSafeRange = Integer.inSafeRange
 
 /**
  * Converts a variable to a number
@@ -999,7 +1000,7 @@ let inSafeRange = Integer.inSafeRange
  * @param {Mixed} value - The variable to convert
  * @return {number} - the variable as a number
  */
-let toNumber = Integer.toNumber
+const toNumber = Integer.toNumber
 
 /**
  * Converts the integer to a string representation
@@ -1008,7 +1009,7 @@ let toNumber = Integer.toNumber
  * @param {number} radix - radix to use in string conversion, defaults to 10
  * @return {String} - returns a string representation of the integer
  */
-let toString = Integer.toString
+const toString = Integer.toString
 
 export { int, isInt, inSafeRange, toNumber, toString }
 

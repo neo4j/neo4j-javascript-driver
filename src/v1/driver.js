@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -279,7 +279,7 @@ class Driver {
     } finally {
       // then close all connections driver has ever created
       // it is needed to close connections that are active right now and are acquired from the pool
-      for (let connectionId in this._openConnections) {
+      for (const connectionId in this._openConnections) {
         if (this._openConnections.hasOwnProperty(connectionId)) {
           this._openConnections[connectionId].close()
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -48,7 +48,7 @@ class StreamObserver {
    * @param {Array} rawRecord - An array with the raw record
    */
   onNext (rawRecord) {
-    let record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
+    const record = new Record(this._fieldKeys, rawRecord, this._fieldLookup)
     if (this._observer) {
       this._observer.onNext(record)
     } else {

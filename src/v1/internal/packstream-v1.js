@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -158,7 +158,7 @@ class Packer {
       return () => this.packStruct(x.signature, packableFields)
     } else if (typeof x === 'object') {
       return () => {
-        let keys = Object.keys(x)
+        const keys = Object.keys(x)
 
         let count = 0
         for (let i = 0; i < keys.length; i++) {
@@ -168,7 +168,7 @@ class Packer {
         }
         this.packMapHeader(count, onError)
         for (let i = 0; i < keys.length; i++) {
-          let key = keys[i]
+          const key = keys[i]
           if (x[key] !== undefined) {
             this.packString(key)
             this.packable(x[key], onError)()
@@ -205,6 +205,7 @@ class Packer {
       packableFields[i]()
     }
   }
+
   packInteger (x) {
     var high = x.high
     var low = x.low
@@ -233,8 +234,8 @@ class Packer {
   }
 
   packString (x, onError) {
-    let bytes = utf8.encode(x)
-    let size = bytes.length
+    const bytes = utf8.encode(x)
+    const size = bytes.length
     if (size < 0x10) {
       this._ch.writeUInt8(TINY_STRING | size)
       this._ch.writeBytes(bytes)
@@ -466,7 +467,7 @@ class Unpacker {
     } else if (marker === INT_16) {
       return int(buffer.readInt16())
     } else if (marker === INT_32) {
-      let b = buffer.readInt32()
+      const b = buffer.readInt32()
       return int(b)
     } else if (marker === INT_64) {
       const high = buffer.readInt32()
@@ -506,7 +507,7 @@ class Unpacker {
   }
 
   _unpackListWithSize (size, buffer) {
-    let value = []
+    const value = []
     for (let i = 0; i < size; i++) {
       value.push(this.unpack(buffer))
     }
@@ -548,9 +549,9 @@ class Unpacker {
   }
 
   _unpackMapWithSize (size, buffer) {
-    let value = {}
+    const value = {}
     for (let i = 0; i < size; i++) {
-      let key = this.unpack(buffer)
+      const key = this.unpack(buffer)
       value[key] = this.unpack(buffer)
     }
     return value
@@ -631,7 +632,7 @@ class Unpacker {
 
     for (let i = 0; i < sequence.length; i += 2) {
       const nextNode = nodes[sequence[i + 1]]
-      let relIndex = sequence[i]
+      const relIndex = sequence[i]
       let rel
 
       if (relIndex > 0) {

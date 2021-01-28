@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -87,7 +87,7 @@ describe('result summary', () => {
 
   function verifySummary (session, done) {
     session.run("CREATE (p:Person { Name: 'Test'})").then(result => {
-      let summary = result.summary
+      const summary = result.summary
 
       expect(summary.statement.text).toBe("CREATE (p:Person { Name: 'Test'})")
       expect(summary.statement.parameters).toEqual({})
@@ -99,7 +99,7 @@ describe('result summary', () => {
       expect(summary.resultConsumedAfter).toBeDefined()
       expect(summary.resultAvailableAfter).toBeDefined()
 
-      let counters = summary.counters
+      const counters = summary.counters
       expect(counters.nodesCreated()).toBe(1)
       expect(counters.nodesDeleted()).toBe(0)
       expect(counters.relationshipsCreated()).toBe(0)
@@ -117,11 +117,11 @@ describe('result summary', () => {
 
   function verifyPlan (session, done) {
     session.run('EXPLAIN MATCH (n) RETURN 1').then(result => {
-      let summary = result.summary
+      const summary = result.summary
       expect(summary.plan).toBeDefined()
       expect(summary.profile).toBe(false)
 
-      let plan = summary.plan
+      const plan = summary.plan
       expect(plan.arguments).toBeDefined()
       expect(plan.children).toBeDefined()
       expect(plan.identifiers).toBeDefined()
@@ -132,12 +132,12 @@ describe('result summary', () => {
 
   function verifyProfile (session, done) {
     session.run('PROFILE RETURN 1').then(result => {
-      let summary = result.summary
+      const summary = result.summary
       expect(summary.plan).toBeDefined()
       expect(summary.profile).toBeDefined()
 
-      let profile = summary.profile
-      let plan = summary.plan
+      const profile = summary.profile
+      const plan = summary.plan
 
       verifyProfileAndPlanAreEqual(profile, plan)
 
@@ -150,10 +150,10 @@ describe('result summary', () => {
 
   function verifyNotifications (session, statement, done) {
     session.run(statement).then(result => {
-      let summary = result.summary
+      const summary = result.summary
       expect(summary.notifications).toBeDefined()
       expect(summary.notifications.length).toBe(1)
-      let notification = summary.notifications[0]
+      const notification = summary.notifications[0]
 
       expect(notification.code).toBeDefined()
       expect(notification.title).toBeDefined()

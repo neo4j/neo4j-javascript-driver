@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -74,9 +74,7 @@ class RoutingDriver extends Driver {
 
   _handleUnavailability (error, address) {
     this._log.warn(
-      `Routing driver ${this._id} will forget ${address} because of an error ${
-        error.code
-      } '${error.message}'`
+      `Routing driver ${this._id} will forget ${address} because of an error ${error.code} '${error.message}'`
     )
     this._connectionProvider.forget(address)
     return error
@@ -84,11 +82,7 @@ class RoutingDriver extends Driver {
 
   _handleWriteFailure (error, address) {
     this._log.warn(
-      `Routing driver ${
-        this._id
-      } will forget writer ${address} because of an error ${error.code} '${
-        error.message
-      }'`
+      `Routing driver ${this._id} will forget writer ${address} because of an error ${error.code} '${error.message}'`
     )
     this._connectionProvider.forgetWriter(address)
     return newError(

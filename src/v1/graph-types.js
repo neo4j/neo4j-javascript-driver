@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -38,7 +38,7 @@ class Node {
     for (let i = 0; i < this.labels.length; i++) {
       s += ':' + this.labels[i]
     }
-    let keys = Object.keys(this.properties)
+    const keys = Object.keys(this.properties)
     if (keys.length > 0) {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
@@ -74,7 +74,7 @@ class Relationship {
 
   toString () {
     let s = '(' + this.start + ')-[:' + this.type
-    let keys = Object.keys(this.properties)
+    const keys = Object.keys(this.properties)
     if (keys.length > 0) {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
@@ -123,7 +123,7 @@ class UnboundRelationship {
 
   toString () {
     let s = '-[:' + this.type
-    let keys = Object.keys(this.properties)
+    const keys = Object.keys(this.properties)
     if (keys.length > 0) {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
