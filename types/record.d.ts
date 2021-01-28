@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2020 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -40,11 +40,7 @@ declare class Record<
   keys: Key[]
   length: number
 
-  constructor(
-    keys: Key[],
-    fields: any[],
-    fieldLookup?: FieldLookup
-  )
+  constructor(keys: Key[], fields: any[], fieldLookup?: FieldLookup)
 
   forEach(visitor: Visitor<Entries, Key>): void
 
