@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -72,10 +72,10 @@ class Result {
     if (this._p) {
       return
     }
-    let self = this
+    const self = this
     this._p = new Promise((resolve, reject) => {
-      let records = []
-      let observer = {
+      const records = []
+      const observer = {
         onNext: record => {
           records.push(record)
         },
@@ -131,7 +131,7 @@ class Result {
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
     const onCompletedWrapper = metadata => {
       const additionalMeta = self._metaSupplier()
-      for (let key in additionalMeta) {
+      for (const key in additionalMeta) {
         if (additionalMeta.hasOwnProperty(key)) {
           metadata[key] = additionalMeta[key]
         }

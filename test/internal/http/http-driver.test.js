@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -170,24 +170,24 @@ describe('http driver', () => {
     }
 
     await runSetupQueries([
-      `CREATE (:Node1)`,
-      `CREATE (:Node2 {name: 'Node2'})`,
-      `CREATE (:Node3 {name: 'Node3', age: 42})`,
-      `CREATE (:Node4 {name: 'Node4', age: 4242, value: 42.05})`,
-      `CREATE (:Node5:Cat:Dog {name: 'Node5', age: 12, value: -0.006, scores: [0.25, -0.15, 100], likes: ['food', 'drinks']})`
+      'CREATE (:Node1)',
+      'CREATE (:Node2 {name: \'Node2\'})',
+      'CREATE (:Node3 {name: \'Node3\', age: 42})',
+      'CREATE (:Node4 {name: \'Node4\', age: 4242, value: 42.05})',
+      'CREATE (:Node5:Cat:Dog {name: \'Node5\', age: 12, value: -0.006, scores: [0.25, -0.15, 100], likes: [\'food\', \'drinks\']})'
     ])
 
     await testReceivingOfResults([
-      `MATCH (n:Node1) RETURN n`,
-      `MATCH (n:Node2) RETURN n`,
-      `MATCH (n:Node3) RETURN n`,
-      `MATCH (n:Node4) RETURN n`,
-      `MATCH (n:Node5) RETURN n`,
-      `MATCH (a:Node1), (b:Node2) RETURN a, b`,
-      `MATCH (a:Node1), (b:Node2), (c:Node3) RETURN a AS aaa, b AS bbb, c AS ccc`,
-      `MATCH (a:Node1), (b:Node2), (c:Node3), (d:Node4), (e:Node5) RETURN a, b, c, d, e AS eee`,
-      `MATCH (a:Node1), (b:Node2), (c:Node3), (d:Node4), (e:Node5) RETURN e, a, c, d, b`,
-      `MATCH (n) RETURN n`
+      'MATCH (n:Node1) RETURN n',
+      'MATCH (n:Node2) RETURN n',
+      'MATCH (n:Node3) RETURN n',
+      'MATCH (n:Node4) RETURN n',
+      'MATCH (n:Node5) RETURN n',
+      'MATCH (a:Node1), (b:Node2) RETURN a, b',
+      'MATCH (a:Node1), (b:Node2), (c:Node3) RETURN a AS aaa, b AS bbb, c AS ccc',
+      'MATCH (a:Node1), (b:Node2), (c:Node3), (d:Node4), (e:Node5) RETURN a, b, c, d, e AS eee',
+      'MATCH (a:Node1), (b:Node2), (c:Node3), (d:Node4), (e:Node5) RETURN e, a, c, d, b',
+      'MATCH (n) RETURN n'
     ])
   })
 
@@ -197,16 +197,16 @@ describe('http driver', () => {
     }
 
     await runSetupQueries([
-      `CREATE (:Node1)-[:KNOWS]->(:Node2)`,
-      `CREATE (:Node3)-[:KNOWS {name: 'foo'}]->(:Node4)`,
-      `CREATE (:Node5)-[:KNOWS {name: 'foo', value: 42, score: 12.5, values: [1,2,3, -42], strings: ['a','b','c']}]->(:Node6)`
+      'CREATE (:Node1)-[:KNOWS]->(:Node2)',
+      'CREATE (:Node3)-[:KNOWS {name: \'foo\'}]->(:Node4)',
+      'CREATE (:Node5)-[:KNOWS {name: \'foo\', value: 42, score: 12.5, values: [1,2,3, -42], strings: [\'a\',\'b\',\'c\']}]->(:Node6)'
     ])
 
     await testReceivingOfResults([
-      `MATCH (:Node1)-[r]->(:Node2) RETURN r`,
-      `MATCH (:Node3)-[r]->(:Node4) RETURN r`,
-      `MATCH (:Node5)-[r]->(:Node6) RETURN r`,
-      `MATCH ()-[r]-() RETURN r`
+      'MATCH (:Node1)-[r]->(:Node2) RETURN r',
+      'MATCH (:Node3)-[r]->(:Node4) RETURN r',
+      'MATCH (:Node5)-[r]->(:Node6) RETURN r',
+      'MATCH ()-[r]-() RETURN r'
     ])
   })
 
@@ -216,7 +216,7 @@ describe('http driver', () => {
     }
 
     await runSetupQueries([
-      `CREATE (:Person1 {name: 'Person1'})-[:KNOWS {value: 42}]->(:Person2 {name: 'Person2', surname: 'Person2', value: 1})`,
+      'CREATE (:Person1 {name: \'Person1\'})-[:KNOWS {value: 42}]->(:Person2 {name: \'Person2\', surname: \'Person2\', value: 1})',
       `CREATE (:Person3 {name: 'Person3'})-[:KNOWS {since: 123}]->
               (:Person4 {name: 'Person4'})<-[:LIKES {why: 'why!'}]-
               (:Person5 {name: 'Person5'})-[:KNOWS]->
@@ -224,13 +224,13 @@ describe('http driver', () => {
     ])
 
     await testReceivingOfResults([
-      `MATCH p=((:Person1)-[:KNOWS]->(:Person2)) RETURN p`,
-      `MATCH p=((:Person2)-[:KNOWS]-(:Person1)) RETURN p`,
-      `MATCH p=((:Person3)-[:KNOWS]-(:Person4)-[:LIKES]-(:Person5)) RETURN p`,
-      `MATCH p=((:Person3)-[*]-(:Person6)) RETURN p`,
-      `MATCH p=((:Person1)-[*]-()) RETURN p`,
-      `MATCH p=((:Person3)-[*]-()) RETURN p`,
-      `MATCH p=((:Person6)-[*]-()) RETURN p`
+      'MATCH p=((:Person1)-[:KNOWS]->(:Person2)) RETURN p',
+      'MATCH p=((:Person2)-[:KNOWS]-(:Person1)) RETURN p',
+      'MATCH p=((:Person3)-[:KNOWS]-(:Person4)-[:LIKES]-(:Person5)) RETURN p',
+      'MATCH p=((:Person3)-[*]-(:Person6)) RETURN p',
+      'MATCH p=((:Person1)-[*]-()) RETURN p',
+      'MATCH p=((:Person3)-[*]-()) RETURN p',
+      'MATCH p=((:Person6)-[*]-()) RETURN p'
     ])
   })
 
@@ -254,7 +254,7 @@ describe('http driver', () => {
       return
     }
 
-    const query = `CREATE (n1:Node1 {name: 'Node1'})-[r:LIKES {date: 12345}]->(n2:Node2 {name: 'Node2'}) RETURN n1, r, n2`
+    const query = 'CREATE (n1:Node1 {name: \'Node1\'})-[r:LIKES {date: 12345}]->(n2:Node2 {name: \'Node2\'}) RETURN n1, r, n2'
 
     const summary = await runQueryAndGetSummary(query, httpDriver)
     expect(summary.server.address).toEqual('localhost:7474')
@@ -265,7 +265,7 @@ describe('http driver', () => {
       return
     }
 
-    const query = `CREATE (n1:Node {value: 1}), (n2:Node {name: '2', value: 2}) WITH n1, n2 DELETE n1 RETURN n1, n2`
+    const query = 'CREATE (n1:Node {value: 1}), (n2:Node {name: \'2\', value: 2}) WITH n1, n2 DELETE n1 RETURN n1, n2'
 
     const boltStatementStatistics = await runQueryAndGetStatementStatistics(
       query,
@@ -306,10 +306,10 @@ describe('http driver', () => {
     const boltSession = boltDriver.session()
     let boltTx = null
     try {
-      await boltSession.run(`CREATE (:Node {name: 'foo'})`)
+      await boltSession.run('CREATE (:Node {name: \'foo\'})')
 
       boltTx = boltSession.beginTransaction()
-      await boltTx.run(`MATCH (n:Node {name: 'foo'}) SET n.name = 'bar'`)
+      await boltTx.run('MATCH (n:Node {name: \'foo\'}) SET n.name = \'bar\'')
       // node should now be locked
 
       const httpSession = httpDriver.session()
@@ -319,7 +319,7 @@ describe('http driver', () => {
 
       let failed = false
       try {
-        await httpSession.run(`MATCH (n:Node {name: 'foo'}) SET n.name = 'baz'`)
+        await httpSession.run('MATCH (n:Node {name: \'foo\'}) SET n.name = \'baz\'')
       } catch (error) {
         failed = true
         expect(error.name).toEqual('Neo4jError')

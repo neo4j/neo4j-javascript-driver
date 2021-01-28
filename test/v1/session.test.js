@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -1311,9 +1311,7 @@ describe('session', () => {
       .run('RETURN $value', { value: value })
       .then(() => {
         done.fail(
-          `Should not be possible to send ${
-            value.constructor.name
-          } ${value} as a query parameter`
+          `Should not be possible to send ${value.constructor.name} ${value} as a query parameter`
         )
       })
       .catch(error => {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -43,11 +43,11 @@ export class Point {
   toString () {
     return this.z || this.z === 0
       ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
-        this.x
-      )}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
+          this.x
+        )}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
       : `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
-        this.x
-      )}, y=${formatAsFloat(this.y)}}`
+          this.x
+        )}, y=${formatAsFloat(this.y)}}`
   }
 }
 

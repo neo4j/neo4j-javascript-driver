@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -20,7 +20,7 @@
 import { newError } from './error'
 
 function generateFieldLookup (keys) {
-  let lookup = {}
+  const lookup = {}
   keys.forEach((name, idx) => {
     lookup[name] = idx
   })

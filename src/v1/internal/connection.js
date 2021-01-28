@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -212,13 +212,11 @@ export default class Connection {
         this._log.debug(`${this} C: ${message}`)
       }
 
-      this._protocol
-        .packer()
-        .packStruct(
-          message.signature,
-          message.fields.map(field => this._packable(field)),
-          err => this._handleFatalError(err)
-        )
+      this._protocol.packer().packStruct(
+        message.signature,
+        message.fields.map(field => this._packable(field)),
+        err => this._handleFatalError(err)
+      )
 
       this._chunker.messageBoundary()
 
@@ -252,7 +250,7 @@ export default class Connection {
       this._currentObserver.onError(this._error)
     }
     while (this._pendingObservers.length > 0) {
-      let observer = this._pendingObservers.shift()
+      const observer = this._pendingObservers.shift()
       if (observer && observer.onError) {
         observer.onError(this._error)
       }

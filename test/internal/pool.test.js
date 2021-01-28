@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -117,7 +117,7 @@ describe('Pool', () => {
   it('frees if validate returns false', done => {
     // Given a pool that allocates
     let counter = 0
-    let destroyed = []
+    const destroyed = []
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     const pool = new Pool({
       create: (server, release) =>
@@ -833,10 +833,10 @@ describe('Pool', () => {
       destroy: resource => {},
       validate: resource => true,
       installIdleObserver: (resource, observer) => {
-        resource['observer'] = observer
+        resource.observer = observer
       },
       removeIdleObserver: resource => {
-        delete resource['observer']
+        delete resource.observer
       }
     })
 
@@ -852,10 +852,10 @@ describe('Pool', () => {
 
         expect(pool.has(address)).toBeTruthy()
 
-        resource1['observer'].onError(
+        resource1.observer.onError(
           newError('connection reset', SERVICE_UNAVAILABLE)
         )
-        resource2['observer'].onError(
+        resource2.observer.onError(
           newError('connection reset', SERVICE_UNAVAILABLE)
         )
 
@@ -877,10 +877,10 @@ describe('Pool', () => {
       destroy: resource => {},
       validate: resource => true,
       installIdleObserver: (resource, observer) => {
-        resource['observer'] = observer
+        resource.observer = observer
       },
       removeIdleObserver: resource => {
-        delete resource['observer']
+        delete resource.observer
       }
     })
 
@@ -891,8 +891,8 @@ describe('Pool', () => {
 
         pool.purge(address)
 
-        expect(resource1['observer']).toBeFalsy()
-        expect(resource2['observer']).toBeFalsy()
+        expect(resource1.observer).toBeFalsy()
+        expect(resource2.observer).toBeFalsy()
 
         done()
       })

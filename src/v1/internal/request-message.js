@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -175,16 +175,16 @@ export default class RequestMessage {
 function buildTxMetadata (bookmark, txConfig, mode) {
   const metadata = {}
   if (!bookmark.isEmpty()) {
-    metadata['bookmarks'] = bookmark.values()
+    metadata.bookmarks = bookmark.values()
   }
   if (txConfig.timeout) {
-    metadata['tx_timeout'] = txConfig.timeout
+    metadata.tx_timeout = txConfig.timeout
   }
   if (txConfig.metadata) {
-    metadata['tx_metadata'] = txConfig.metadata
+    metadata.tx_metadata = txConfig.metadata
   }
   if (mode === ACCESS_MODE_READ) {
-    metadata['mode'] = READ_MODE
+    metadata.mode = READ_MODE
   }
   return metadata
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2019 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -32,8 +32,8 @@ let _CONNECTION_IDGEN = 0
 function userHome () {
   // For some reason, Browserify chokes on shimming `process`. This code
   // will never get executed on the browser anyway, to just hack around it
-  let getOutOfHereBrowserifyYoureDrunk = require
-  let process = getOutOfHereBrowserifyYoureDrunk('process')
+  const getOutOfHereBrowserifyYoureDrunk = require
+  const process = getOutOfHereBrowserifyYoureDrunk('process')
 
   return process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME']
 }
@@ -423,7 +423,7 @@ export default class NodeChannel {
    * @param {ChannelConfig} config - configuration for this channel.
    */
   constructor (config) {
-    let self = this
+    const self = this
 
     this.id = _CONNECTION_IDGEN++
     this._pending = []
@@ -452,7 +452,7 @@ export default class NodeChannel {
         self._conn.on('end', self._handleConnectionTerminated)
 
         // Drain all pending messages
-        let pending = self._pending
+        const pending = self._pending
         self._pending = null
         for (let i = 0; i < pending.length; i++) {
           self.write(pending[i])
@@ -465,7 +465,7 @@ export default class NodeChannel {
   }
 
   _handleConnectionError (err) {
-    let msg = err.message || 'Failed to connect to server'
+    const msg = err.message || 'Failed to connect to server'
     this._error = newError(msg, this._connectionErrorCode)
     if (this.onerror) {
       this.onerror(this._error)
