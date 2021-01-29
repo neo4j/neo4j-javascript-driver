@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2020 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -181,10 +181,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -208,10 +205,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([Notification.createComplete()])
   })
@@ -229,10 +223,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -258,10 +249,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([Notification.createComplete()])
   })
@@ -278,10 +266,7 @@ describe('#integration-rx transaction', () => {
     const result = await txc
       .run('CREATE ()')
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -306,10 +291,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -334,10 +316,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -362,10 +341,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -390,10 +366,7 @@ describe('#integration-rx transaction', () => {
 
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -524,10 +497,7 @@ describe('#integration-rx transaction', () => {
 
     const messages = await result
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(messages).toEqual([
       Notification.createError(
@@ -563,10 +533,7 @@ describe('#integration-rx transaction', () => {
     const result = await txc
       .run('CREATE ()')
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
@@ -663,10 +630,7 @@ describe('#integration-rx transaction', () => {
   async function verifyCanCommit (txc) {
     const result = await txc
       .commit()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([Notification.createComplete()])
   }
@@ -674,10 +638,7 @@ describe('#integration-rx transaction', () => {
   async function verifyCanRollback (txc) {
     const result = await txc
       .rollback()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([Notification.createComplete()])
   }
@@ -726,10 +687,7 @@ describe('#integration-rx transaction', () => {
     const result = await txc
       .run('RETURN')
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(

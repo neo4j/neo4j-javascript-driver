@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2020 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -81,10 +81,7 @@ describe('#integration rx-session', () => {
     const result1 = await session
       .run('INVALID STATEMENT')
       .records()
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result1).toEqual([
       Notification.createError(jasmine.stringMatching(/Invalid input/))
@@ -116,10 +113,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createNext(5),
@@ -146,10 +140,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createNext(7),
@@ -176,10 +167,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createNext(9),
@@ -201,10 +189,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createNext(1),
@@ -236,10 +221,7 @@ describe('#integration rx-session', () => {
 
     const result = await session
       .writeTransaction(txc => txcWork.work(txc))
-      .pipe(
-        materialize(),
-        toArray()
-      )
+      .pipe(materialize(), toArray())
       .toPromise()
     expect(result).toEqual([
       Notification.createError(jasmine.stringMatching(/a database error/))

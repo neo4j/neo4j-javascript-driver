@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2002-2020 "Neo4j,"
+ * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
  *
  * This file is part of Neo4j.
@@ -258,12 +258,10 @@ export default class ChannelConnection extends Connection {
         this._log.debug(`${this} C: ${message}`)
       }
 
-      this._protocol
-        .packer()
-        .packStruct(
-          message.signature,
-          message.fields.map(field => this._packable(field))
-        )
+      this._protocol.packer().packStruct(
+        message.signature,
+        message.fields.map(field => this._packable(field))
+      )
 
       this._chunker.messageBoundary()
 
