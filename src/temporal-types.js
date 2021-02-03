@@ -23,7 +23,7 @@ import {
   assertString,
   assertValidDate
 } from './internal/util'
-import { newError } from './error'
+import { newError } from 'neo4j-driver-core'
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,

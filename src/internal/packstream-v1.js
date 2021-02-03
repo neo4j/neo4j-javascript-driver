@@ -18,7 +18,7 @@
  */
 import { utf8 } from './node'
 import Integer, { int, isInt } from '../integer'
-import { newError, PROTOCOL_ERROR } from '../error'
+import { newError, error } from 'neo4j-driver-core'
 import {
   Node,
   Path,
@@ -26,6 +26,8 @@ import {
   Relationship,
   UnboundRelationship
 } from '../graph-types'
+
+const { PROTOCOL_ERROR } = error
 
 const TINY_STRING = 0x80
 const TINY_LIST = 0x90

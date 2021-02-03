@@ -17,11 +17,12 @@
  * limitations under the License.
  */
 
-import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../error'
+import { newError, error } from 'neo4j-driver-core'
 import { Observable, throwError, of } from 'rxjs'
 import { retryWhen, flatMap, delay } from 'rxjs/operators'
 import Logger from './logger'
 
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds
 const DEFAULT_INITIAL_RETRY_DELAY_MS = 1000 // 1 seconds
 const DEFAULT_RETRY_DELAY_MULTIPLIER = 2.0

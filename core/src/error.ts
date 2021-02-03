@@ -24,19 +24,57 @@
  * Error code representing complete loss of service. Used by {@link Neo4jError#code}.
  * @type {string}
  */
-const SERVICE_UNAVAILABLE = 'ServiceUnavailable'
+const SERVICE_UNAVAILABLE: string = 'ServiceUnavailable'
 
 /**
  * Error code representing transient loss of service. Used by {@link Neo4jError#code}.
  * @type {string}
  */
-const SESSION_EXPIRED = 'SessionExpired'
+const SESSION_EXPIRED: string = 'SessionExpired'
 
 /**
  * Error code representing serialization/deserialization issue in the Bolt protocol. Used by {@link Neo4jError#code}.
  * @type {string}
  */
-const PROTOCOL_ERROR = 'ProtocolError'
+const PROTOCOL_ERROR: string = 'ProtocolError'
+
+/**
+ * Error code representing an no classified error. Used by {@link Neo4jError#code}.
+ * @type {string}
+ */
+const NOT_AVAILABLE: string = 'N/A'
+
+type Neo4jErrorCode =
+  typeof SERVICE_UNAVAILABLE |
+  typeof SESSION_EXPIRED |
+  typeof PROTOCOL_ERROR |
+  typeof NOT_AVAILABLE
+
+/// TODO: Remove definitions of this.constructor and this.__proto__
+/**
+ * Class for all errors thrown/returned by the driver.
+ */
+class Neo4jError extends Error {
+  /**
+   * Optional error code. Will be populated when error originates in the database.
+   */
+  code: Neo4jErrorCode
+  __proto__: Neo4jError
+
+  /**
+   * @constructor
+   * @param message - the error message
+   * @param code - Optional error code. Will be populated when error originates in the database.
+   */
+  constructor (message: string, code: Neo4jErrorCode) {
+    super(message)
+    this.constructor = Neo4jError
+    // eslint-disable-next-line no-proto
+    this.__proto__ = Neo4jError.prototype
+    this.code = code
+    this.name = 'Neo4jError'
+  }
+}
 
 /**
  * Create a new error from a message and error code
@@ -45,39 +83,8 @@ const PROTOCOL_ERROR = 'ProtocolError'
  * @return {Neo4jError} an {@link Neo4jError}
  * @private
  */
-function newError (message, code = 'N/A') {
-  // TODO: Idea is that we can check the code here and throw sub-classes
-  // of Neo4jError as appropriate
-  return new Neo4jError(message, code)
-}
-
-/**
- * Class for all errors thrown/returned by the driver.
- */
-class Neo4jError extends Error {
-  /**
-   * @constructor
-   * @param {string} message - The error message.
-   * @param {string} code - Optional error code. Will be populated when error originates in the database.
-   */
-  constructor (message, code = 'N/A') {
-    super(message)
-    /**
-     * The error message
-     * @type {string}
-     */
-    this.message = message
-    /**
-     * Optional error code. Will be populated when error originates in the database.
-     * @type {string}
-     */
-    this.code = code
-    /**
-     * The name of the error.
-     * @type {string}
-     */
-    this.name = 'Neo4jError'
-  }
+function newError (message: string, code?: Neo4jErrorCode): Neo4jError {
+  return new Neo4jError(message, code ?? NOT_AVAILABLE)
 }
 
 export {

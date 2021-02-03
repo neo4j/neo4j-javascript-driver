@@ -25,12 +25,7 @@ import {
   Relationship,
   UnboundRelationship
 } from './graph-types'
-import {
-  Neo4jError,
-  PROTOCOL_ERROR,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
-} from './error'
+import { Neo4jError, error } from 'neo4j-driver-core'
 import Result from './result'
 import ResultSummary from './result-summary'
 import Record from './record'
@@ -353,15 +348,6 @@ const types = {
 const session = {
   READ,
   WRITE
-}
-
-/**
- * Object containing string constants representing predefined {@link Neo4jError} codes.
- */
-const error = {
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED,
-  PROTOCOL_ERROR
 }
 
 /**

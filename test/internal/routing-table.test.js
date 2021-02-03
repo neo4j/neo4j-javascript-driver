@@ -21,8 +21,10 @@ import Integer, { int } from '../../src/integer'
 import { READ, WRITE } from '../../src/driver'
 import ServerAddress from '../../src/internal/server-address'
 import { RawRoutingTable } from '../../src/internal/bolt'
-import { PROTOCOL_ERROR } from '../../src/error'
+import { error } from 'neo4j-driver-core'
 import lolex from 'lolex'
+
+const { PROTOCOL_ERROR } = error
 
 const invalidAddressesFieldValues = [
   'localhost:1234',

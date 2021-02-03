@@ -18,9 +18,11 @@
  */
 import NodeChannel from '../../../src/internal/node/node-channel'
 import ChannelConfig from '../../../src/internal/channel-config'
-import { SERVICE_UNAVAILABLE } from '../../../src/error'
+import { error } from 'neo4j-driver-core'
 import ServerAddress from '../../../src/internal/server-address'
 import { connect } from 'net'
+
+const { SERVICE_UNAVAILABLE } = error
 
 describe('#unit NodeChannel', () => {
   it('should resolve close if websocket is already closed', () => {

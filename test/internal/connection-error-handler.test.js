@@ -18,8 +18,10 @@
  */
 
 import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
-import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
+import { newError, error } from 'neo4j-driver-core'
 import ServerAddress from '../../src/internal/server-address'
+
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 
 describe('#unit ConnectionErrorHandler', () => {
   it('should return error code', () => {

@@ -17,11 +17,12 @@
  * limitations under the License.
  */
 import Record from '../../record'
-import { newError, PROTOCOL_ERROR } from '../../error'
+import { newError, error } from 'neo4j-driver-core'
 import Integer from '../../integer'
 import { ALL } from './request-message'
 import RawRoutingTable from './routing-table-raw'
 
+const { PROTOCOL_ERROR } = error
 class StreamObserver {
   onNext (rawRecord) {}
 

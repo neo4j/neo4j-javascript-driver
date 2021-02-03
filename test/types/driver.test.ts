@@ -28,7 +28,6 @@ import Driver, {
 } from '../../types/driver'
 import { Parameters } from '../../types/query-runner'
 import Session from '../../types/session'
-import { Neo4jError } from '../../types/error'
 import { ServerInfo } from '../../types/result-summary'
 import RxSession from '../../types/session-rx'
 import { concat, map, catchError } from 'rxjs/operators'

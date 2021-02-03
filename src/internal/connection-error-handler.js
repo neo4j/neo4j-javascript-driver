@@ -17,8 +17,9 @@
  * limitations under the License.
  */
 
-import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../error'
+import { error } from 'neo4j-driver-core'
 
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 export default class ConnectionErrorHandler {
   constructor (errorCode, handleUnavailability, handleWriteFailure) {
     this._errorCode = errorCode

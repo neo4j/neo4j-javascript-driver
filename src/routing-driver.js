@@ -18,10 +18,7 @@
  */
 
 import { Driver } from './driver'
-import { newError, SESSION_EXPIRED } from './error'
 import RoutingConnectionProvider from './internal/connection-provider-routing'
-import LeastConnectedLoadBalancingStrategy from './internal/least-connected-load-balancing-strategy'
-import ConnectionErrorHandler from './internal/connection-error-handler'
 import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
 
 /**

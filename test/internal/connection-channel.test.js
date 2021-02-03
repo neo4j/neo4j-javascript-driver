@@ -24,7 +24,7 @@ import ChannelConnection, {
 import { Packer } from '../../src/internal/packstream-v1'
 import { Chunker } from '../../src/internal/chunking'
 import { alloc } from '../../src/internal/node'
-import { Neo4jError, newError, SERVICE_UNAVAILABLE } from '../../src/error'
+import { Neo4jError, newError, error } from 'neo4j-driver-core'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { ServerVersion } from '../../src/internal/server-version'
 import lolex from 'lolex'
@@ -36,6 +36,8 @@ import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
 import ServerAddress from '../../src/internal/server-address'
 import { ResultStreamObserver } from '../../src/internal/bolt'
+
+const { SERVICE_UNAVAILABLE } = error
 
 const ILLEGAL_MESSAGE = { signature: 42, fields: [] }
 const SUCCESS_MESSAGE = { signature: 0x70, fields: [{}] }

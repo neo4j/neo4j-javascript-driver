@@ -27,7 +27,6 @@ import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
 import { isString } from '../src/internal/util'
 import testUtils from './internal/test-utils'
-import { newError, PROTOCOL_ERROR, SESSION_EXPIRED } from '../src/error'
 import ServerAddress from '../src/internal/server-address'
 import {
   bufferCount,
@@ -39,6 +38,7 @@ import {
   toArray
 } from 'rxjs/operators'
 import { Notification, throwError } from 'rxjs'
+
 
 describe('#integration session', () => {
   let driver

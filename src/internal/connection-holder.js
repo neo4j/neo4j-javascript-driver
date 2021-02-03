@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError } from '../error'
+import { newError } from 'neo4j-driver-core'
 import { assertString } from './util'
 import { ACCESS_MODE_WRITE } from './constants'
 import Bookmark from './bookmark'

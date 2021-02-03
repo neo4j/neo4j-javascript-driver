@@ -21,7 +21,7 @@
 // https://github.com/dcodeIO/Long.js
 // License Apache 2
 
-import { newError } from './error'
+import { newError } from 'neo4j-driver-core'
 
 /**
  * Constructs a 64 bit two's-complement integer, given its low and high 32 bit values as *signed* integers.

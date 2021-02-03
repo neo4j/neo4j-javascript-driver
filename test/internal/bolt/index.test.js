@@ -19,7 +19,7 @@
 import Bolt from '../../../src/internal/bolt'
 import DummyChannel from '../dummy-channel'
 import { alloc } from '../../../src/internal/node'
-import { newError } from '../../../src/error'
+import { newError } from 'neo4j-driver-core'
 import { Chunker, Dechunker } from '../../../src/internal/chunking'
 import Logger from '../../../src/internal/logger'
 

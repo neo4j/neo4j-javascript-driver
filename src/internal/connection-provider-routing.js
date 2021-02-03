@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../error'
+import { newError, error } from 'neo4j-driver-core'
 import { READ, WRITE } from '../driver'
 import Session from '../session'
 import RoutingTable from './routing-table'
@@ -33,6 +33,7 @@ import { createChannelConnection } from './connection-channel'
 import { int } from '../integer'
 import { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0 } from './constants'
 
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
 const DATABASE_NOT_FOUND_ERROR_CODE =
   'Neo.ClientError.Database.DatabaseNotFound'

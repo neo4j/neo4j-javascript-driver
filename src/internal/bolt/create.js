@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError } from '../../error'
+import { newError } from 'neo4j-driver-core'
 import BoltProtocolV1 from './bolt-protocol-v1'
 import BoltProtocolV2 from './bolt-protocol-v2'
 import BoltProtocolV3 from './bolt-protocol-v3'

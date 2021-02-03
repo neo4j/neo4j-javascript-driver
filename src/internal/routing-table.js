@@ -19,7 +19,9 @@
 import Integer, { int } from '../integer'
 import { READ, WRITE } from '../driver'
 import ServerAddress from './server-address'
-import { PROTOCOL_ERROR, newError } from '../error'
+import { newError, error } from 'neo4j-driver-core'
+
+const { PROTOCOL_ERROR } = error
 
 const MIN_ROUTERS = 1
 

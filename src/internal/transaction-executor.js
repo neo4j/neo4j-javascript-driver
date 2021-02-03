@@ -20,10 +20,10 @@
 import {
   newError,
   Neo4jError,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
-} from '../error'
+  error
+} from 'neo4j-driver-core'
 
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds
 const DEFAULT_INITIAL_RETRY_DELAY_MS = 1000 // 1 seconds
 const DEFAULT_RETRY_DELAY_MULTIPLIER = 2.0

@@ -19,10 +19,12 @@
 
 import WebSocketChannel from '../../../src/internal/browser/browser-channel'
 import ChannelConfig from '../../../src/internal/channel-config'
-import { SERVICE_UNAVAILABLE } from '../../../src/error'
+import { error } from 'neo4j-driver-core'
 import { setTimeoutMock } from '../timers-util'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../../../src/internal/util'
 import ServerAddress from '../../../src/internal/server-address'
+
+const { SERVICE_UNAVAILABLE } = error
 
 const WS_CONNECTING = 0
 const WS_OPEN = 1

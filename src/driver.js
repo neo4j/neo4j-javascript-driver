@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import { newError } from './error'
 import ConnectionProvider from './internal/connection-provider'
 import Bookmark from './internal/bookmark'
 import DirectConnectionProvider from './internal/connection-provider-direct'

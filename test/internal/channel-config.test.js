@@ -18,9 +18,11 @@
  */
 
 import ChannelConfig from '../../src/internal/channel-config'
-import { SERVICE_UNAVAILABLE } from '../../src/error'
+import { error } from 'neo4j-driver-core'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../../src/internal/util'
 import ServerAddress from '../../src/internal/server-address'
+
+const { SERVICE_UNAVAILABLE } = error
 
 describe('#unit ChannelConfig', () => {
   it('should respect given Url', () => {

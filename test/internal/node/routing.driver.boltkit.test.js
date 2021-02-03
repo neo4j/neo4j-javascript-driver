@@ -21,10 +21,12 @@ import neo4j from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
 import RoutingTable from '../../../src/internal/routing-table'
-import { SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../../src/error'
+import { error } from 'neo4j-driver-core'
 import lolex from 'lolex'
 import ServerAddress from '../../../src/internal/server-address'
 import { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } from 'constants'
+
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 
 describe('#stub-routing routing driver with stub server', () => {
   it('should use custom user agent', async () => {

@@ -9,6 +9,7 @@
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
   },
   "scripts": {
+    "preinstall": "cd core && npm i && npm run build",
     "lint": "eslint --fix --ext .js ./",
     "format": "prettier-eslint '**/*.js' '**/*.json' '**/*.md' '**/*.ts' '**/*.html' --write",
     "test": "gulp test",
@@ -105,8 +106,12 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.5.5",
+    "neo4j-driver-core": "file:core",
     "rxjs": "^6.6.3",
     "text-encoding-utf-8": "^1.0.2",
     "uri-js": "^4.4.0"
-  }
+  },
+  "bundledDependencies": [
+    "neo4j-driver-core"
+  ]
 }

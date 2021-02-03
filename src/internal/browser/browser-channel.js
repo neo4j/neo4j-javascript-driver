@@ -18,7 +18,7 @@
  */
 
 import HeapBuffer from './browser-buf'
-import { newError } from '../../error'
+import { newError } from 'neo4j-driver-core'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../util'
 
 // Just to be sure that these values are with us even after WebSocket is injected

@@ -17,8 +17,10 @@
  * limitations under the License.
  */
 
-import { newError, SERVICE_UNAVAILABLE } from '../error'
+import { newError, error } from 'neo4j-driver-core'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from './util'
+
+const { SERVICE_UNAVAILABLE } = error
 
 const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 30000 // 30 seconds by default
 

@@ -40,12 +40,7 @@ import {
   LocalTime,
   Time
 } from './temporal-types'
-import {
-  Neo4jError,
-  PROTOCOL_ERROR,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
-} from './error'
+import { Neo4jError, error } from 'neo4j-driver-core'
 import Result, { ResultObserver, QueryResult } from './result'
 import ResultSummary, {
   Notification,
@@ -112,12 +107,6 @@ declare const types: {
 declare const session: {
   READ: typeof READ
   WRITE: typeof WRITE
-}
-
-declare const error: {
-  SERVICE_UNAVAILABLE: typeof SERVICE_UNAVAILABLE
-  SESSION_EXPIRED: typeof SESSION_EXPIRED
-  PROTOCOL_ERROR: typeof PROTOCOL_ERROR
 }
 
 declare const integer: {

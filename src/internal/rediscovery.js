@@ -20,8 +20,9 @@ import RoutingTable from './routing-table'
 import { RawRoutingTable } from './bolt'
 import Session from '../session'
 import ServerAddress from './server-address'
-import { newError, SERVICE_UNAVAILABLE } from '../error'
+import { newError, error } from 'neo4j-driver-core'
 
+const { SERVICE_UNAVAILABLE } = error
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
 

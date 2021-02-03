@@ -18,9 +18,11 @@
  */
 
 import TransactionExecutor from '../../src/internal/transaction-executor'
-import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
+import { newError, error as err } from 'neo4j-driver-core'
 import { setTimeoutMock } from './timers-util'
 import lolex from 'lolex'
+
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = err
 
 const TRANSIENT_ERROR_1 = 'Neo.TransientError.Transaction.DeadlockDetected'
 const TRANSIENT_ERROR_2 = 'Neo.TransientError.Network.CommunicationError'

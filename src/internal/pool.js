@@ -18,7 +18,7 @@
  */
 
 import PoolConfig from './pool-config'
-import { newError } from '../error'
+import { newError } from 'neo4j-driver-core'
 import Logger from './logger'
 
 class Pool {

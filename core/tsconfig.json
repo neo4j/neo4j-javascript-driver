@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+      "target": "ES5",
+      "lib": ["ES6"],
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "strictNullChecks": true,
+      "esModuleInterop": true,
+      "moduleResolution": "node",
+      "outDir": "lib",
+      "declaration": true,
+      "declarationDir": "types"
+  }
+}
+      

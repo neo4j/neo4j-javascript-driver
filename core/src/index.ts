@@ -18,19 +18,35 @@
  */
 
 import {
-  Neo4jError,
   newError,
+  Neo4jError,
   PROTOCOL_ERROR,
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED
-} from '../../types/error'
+} from './error'
 
-const serviceUnavailable: string = SERVICE_UNAVAILABLE
-const sessionExpired: string = SESSION_EXPIRED
-const protocolError: string = PROTOCOL_ERROR
+/**
+ * Object containing string constants representing predefined {@link Neo4jError} codes.
+ */
+const error = {
+  SERVICE_UNAVAILABLE,
+  SESSION_EXPIRED,
+  PROTOCOL_ERROR
+}
 
-const error1: Neo4jError = new Neo4jError('Message')
-const error2: Neo4jError = new Neo4jError('Message', 'Code')
+/**
+ * @private
+ */
+const forExport = {
+  newError,
+  Neo4jError,
+  error
+}
 
-const error3: Neo4jError = newError('Message')
-const error4: Neo4jError = newError('Message', 'Code')
+export {
+  newError,
+  Neo4jError,
+  error
+}
+
+export default forExport

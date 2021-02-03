@@ -24,7 +24,9 @@ import ServerAddress from '../../src/internal/server-address'
 import FakeConnection from './fake-connection'
 import lolex from 'lolex'
 import { int } from '../../src/integer'
-import { PROTOCOL_ERROR, newError, SERVICE_UNAVAILABLE } from '../../src/error'
+import { newError, error } from 'neo4j-driver-core'
+
+const { PROTOCOL_ERROR, SERVICE_UNAVAILABLE } = error
 
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'

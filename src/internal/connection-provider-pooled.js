@@ -21,9 +21,10 @@ import { createChannelConnection } from './connection-channel'
 import Pool from './pool'
 import PoolConfig from './pool-config'
 import ConnectionErrorHandler from './connection-error-handler'
-import { SERVICE_UNAVAILABLE } from '../error'
+import { error } from 'neo4j-driver-core'
 import ConnectionProvider from './connection-provider'
 
+const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
     { id, config, log, userAgent, authToken },

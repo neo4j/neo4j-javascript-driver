@@ -1,0 +1,6 @@
+docs/
+src/
+build/
+test/
+.gitignore
+node_modules/

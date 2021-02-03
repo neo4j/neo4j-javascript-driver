@@ -21,7 +21,7 @@ import tls from 'tls'
 import fs from 'fs'
 import NodeBuffer from './node-buf'
 import { ENCRYPTION_OFF, ENCRYPTION_ON, isEmptyObjectOrNull } from '../util'
-import { newError } from '../../error'
+import { newError } from 'neo4j-driver-core'
 
 let _CONNECTION_IDGEN = 0
 

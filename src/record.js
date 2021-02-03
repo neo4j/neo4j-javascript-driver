@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError } from './error'
+import { newError } from 'neo4j-driver-core'
 
 function generateFieldLookup (keys) {
   const lookup = {}

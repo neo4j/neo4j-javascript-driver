@@ -21,7 +21,9 @@ import { Notification, throwError } from 'rxjs'
 import { map, materialize, toArray, concat } from 'rxjs/operators'
 import neo4j from '../../src'
 import sharedNeo4j from '../internal/shared-neo4j'
-import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
+import { newError, error } from 'neo4j-driver-core'
+
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 
 describe('#integration rx-session', () => {
   let driver

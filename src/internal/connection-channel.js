@@ -19,10 +19,12 @@
 
 import { Channel } from './node'
 import { Chunker, Dechunker } from './chunking'
-import { newError, PROTOCOL_ERROR } from '../error'
+import { newError, error } from 'neo4j-driver-core'
 import ChannelConfig from './channel-config'
 import Connection from './connection'
 import Bolt from './bolt'
+
+const { PROTOCOL_ERROR } = error
 
 let idGenerator = 0
 

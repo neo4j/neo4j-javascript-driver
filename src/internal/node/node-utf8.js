@@ -18,7 +18,7 @@
  */
 
 import NodeBuffer from './node-buf'
-import { newError } from '../../error'
+import { newError } from 'neo4j-driver-core'
 import node from 'buffer'
 import { StringDecoder } from 'string_decoder'
 

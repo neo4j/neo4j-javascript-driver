@@ -19,7 +19,7 @@
 
 import { READ, WRITE } from '../../src/driver'
 import Integer, { int } from '../../src/integer'
-import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
+import { newError, error } from 'neo4j-driver-core'
 import RoutingTable from '../../src/internal/routing-table'
 import Pool from '../../src/internal/pool'
 import Logger from '../../src/internal/logger'
@@ -30,6 +30,8 @@ import { VERSION_IN_DEV } from '../../src/internal/server-version'
 import Connection from '../../src/internal/connection'
 import DelegateConnection from '../../src/internal/connection-delegate'
 import { Neo4jError } from '../../src'
+
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 
 describe('#unit RoutingConnectionProvider', () => {
   const server0 = ServerAddress.fromUrl('server0')
@@ -1562,6 +1564,7 @@ describe('#unit RoutingConnectionProvider', () => {
           database: 'databaseX'
         })
       } catch (error) {
+        console.error('Message', error)
         expect(error instanceof Neo4jError).toBeTruthy()
         expect(error.code).toBe(SERVICE_UNAVAILABLE)
         expect(error.message).toContain(

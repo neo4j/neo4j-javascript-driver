@@ -19,7 +19,7 @@
 
 import { int, isInt } from '../integer'
 import { assertNumberOrInteger } from './util'
-import { newError } from '../error'
+import { newError } from 'neo4j-driver-core'
 
 /*
   Code in this util should be compatible with code in the database that uses JSR-310 java.time APIs.

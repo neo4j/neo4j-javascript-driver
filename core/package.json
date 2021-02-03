@@ -1,0 +1,28 @@
+{
+  "name": "neo4j-driver-core",
+  "version": "4.3.0",
+  "description": "Internals of neo4j-driver",
+  "main": "lib/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
+  },
+  "keywords": [
+    "neo4j",
+    "driver"
+  ],
+  "author": "Neo4j",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/neo4j/neo4j-javascript-driver/issues"
+  },
+  "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
+  "dependencies": {
+    "typescript": "^4.1.3"
+  }
+}

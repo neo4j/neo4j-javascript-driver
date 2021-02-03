@@ -19,7 +19,7 @@
 import { ResultStreamObserver, FailedObserver } from './internal/bolt'
 import Result from './result'
 import Transaction from './transaction'
-import { newError } from './error'
+import { newError } from 'neo4j-driver-core'
 import { validateQueryAndParameters } from './internal/util'
 import ConnectionHolder from './internal/connection-holder'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'

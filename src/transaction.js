@@ -30,7 +30,7 @@ import {
   FailedObserver,
   CompletedObserver
 } from './internal/bolt'
-import { newError } from './error'
+import { newError } from 'neo4j-driver-core'
 
 /**
  * Represents a transaction in the Neo4j database.
