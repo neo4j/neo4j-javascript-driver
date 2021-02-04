@@ -44,11 +44,14 @@ const PROTOCOL_ERROR: string = 'ProtocolError'
  */
 const NOT_AVAILABLE: string = 'N/A'
 
+/**
+ * Possible error codes in the {@link Neo4jError}
+ */
 type Neo4jErrorCode =
-  typeof SERVICE_UNAVAILABLE |
-  typeof SESSION_EXPIRED |
-  typeof PROTOCOL_ERROR |
-  typeof NOT_AVAILABLE
+  | typeof SERVICE_UNAVAILABLE
+  | typeof SESSION_EXPIRED
+  | typeof PROTOCOL_ERROR
+  | typeof NOT_AVAILABLE
 
 /// TODO: Remove definitions of this.constructor and this.__proto__
 /**
@@ -63,8 +66,8 @@ class Neo4jError extends Error {
 
   /**
    * @constructor
-   * @param message - the error message
-   * @param code - Optional error code. Will be populated when error originates in the database.
+   * @param {string} message - the error message
+   * @param {string} code - Optional error code. Will be populated when error originates in the database.
    */
   constructor (message: string, code: Neo4jErrorCode) {
     super(message)
