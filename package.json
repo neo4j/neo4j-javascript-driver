@@ -18,6 +18,7 @@
     "stop-neo4j": "gulp stop-neo4j",
     "run-stress-tests": "gulp run-stress-tests-without-jasmine",
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
+    "predocs": "cd core && npm run docs",
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --x $VERSION && npm version $VERSION --no-git-tag-version",
     "browser": "gulp browser && gulp test-browser",

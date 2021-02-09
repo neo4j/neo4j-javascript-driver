@@ -40,6 +40,13 @@
           "repository": "https://github.com/neo4j/neo4j-javascript-driver"
         }
       }
+    },
+    {
+      "name": "./docs/embed-docs.plugin.js",
+      "option": {
+        "enabled": true,
+        "path": "./core/docs"
+      }
     }
   ]
 }
