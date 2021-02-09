@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { int } from '../../src/integer'
+import { int } from 'neo4j-driver-core'
 import * as util from '../../src/internal/temporal-util'
 import { types } from '../../src'
 import testUtils from './test-utils'

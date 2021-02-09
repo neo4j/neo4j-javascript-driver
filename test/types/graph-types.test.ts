@@ -29,7 +29,7 @@ import {
   isRelationship,
   isUnboundRelationship
 } from '../../types/graph-types'
-import Integer, { int } from '../../types/integer'
+import { int, Integer } from 'neo4j-driver-core'
 
 const node1: Node = new Node(int(1), ['Person', 'Employee'], { name: 'Alice' })
 const node1String: string = node1.toString()

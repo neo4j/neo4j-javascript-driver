@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import Integer, { inSafeRange, int, isInt, toNumber, toString } from './integer'
 import {
   Node,
   Path,
@@ -40,7 +39,16 @@ import {
   LocalTime,
   Time
 } from './temporal-types'
-import { Neo4jError, error } from 'neo4j-driver-core'
+import {
+  Neo4jError,
+  error,
+  Integer,
+  inSafeRange,
+  int,
+  isInt,
+  toNumber,
+  toString
+} from 'neo4j-driver-core'
 import Result, { ResultObserver, QueryResult } from './result'
 import ResultSummary, {
   Notification,

@@ -18,8 +18,7 @@
  */
 
 import { READ, WRITE } from '../../src/driver'
-import Integer, { int } from '../../src/integer'
-import { newError, error } from 'neo4j-driver-core'
+import { newError, error, Integer, int } from 'neo4j-driver-core'
 import RoutingTable from '../../src/internal/routing-table'
 import Pool from '../../src/internal/pool'
 import Logger from '../../src/internal/logger'

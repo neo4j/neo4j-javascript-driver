@@ -10,5 +10,6 @@
     "outDir": "lib",
     "declaration": true,
     "declarationDir": "types"
-  }
+  },
+  "include": ["src/**/*.ts"]
 }

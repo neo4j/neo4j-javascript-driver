@@ -17,9 +17,8 @@
  * limitations under the License.
  */
 
-import { int, isInt } from '../integer'
+import { int, isInt, newError } from 'neo4j-driver-core'
 import { assertNumberOrInteger } from './util'
-import { newError } from 'neo4j-driver-core'
 
 /*
   Code in this util should be compatible with code in the database that uses JSR-310 java.time APIs.

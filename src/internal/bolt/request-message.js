@@ -18,7 +18,7 @@
  */
 
 import { ACCESS_MODE_READ } from '../constants'
-import { int } from '../../integer'
+import { int } from 'neo4j-driver-core'
 import { assertString } from '../util'
 
 /* eslint-disable no-unused-vars */

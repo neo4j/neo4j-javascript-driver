@@ -25,6 +25,8 @@ import {
   SESSION_EXPIRED
 } from './error'
 
+import Integer, { int, isInt, inSafeRange, toNumber, toString } from './integer'
+
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
  */
@@ -40,13 +42,25 @@ const error = {
 const forExport = {
   newError,
   Neo4jError,
-  error
+  error,
+  Integer,
+  int,
+  isInt,
+  inSafeRange,
+  toNumber,
+  toString
 }
 
 export {
   newError,
   Neo4jError,
-  error
+  error,
+  Integer,
+  int,
+  isInt,
+  inSafeRange,
+  toNumber,
+  toString
 }
 
 export default forExport

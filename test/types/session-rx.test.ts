@@ -23,7 +23,7 @@ import RxTransaction from '../../types/transaction-rx'
 import Record from '../../types/record'
 import RxResult from '../../types/result-rx'
 import ResultSummary from '../../types/result-summary'
-import Integer from '../../types/integer'
+import { Integer } from 'neo4j-driver-core'
 import { Observable, of, Observer, throwError } from 'rxjs'
 import { concat, finalize, catchError } from 'rxjs/operators'
 

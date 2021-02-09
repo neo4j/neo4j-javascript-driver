@@ -18,7 +18,7 @@
  */
 
 import neo4j from '../src'
-import Integer from '../src/integer'
+import { Integer } from 'neo4j-driver-core'
 
 const int = neo4j.int
 const integer = neo4j.integer

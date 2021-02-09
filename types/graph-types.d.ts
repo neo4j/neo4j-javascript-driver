@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Integer from './integer'
+import { Integer } from 'neo4j-driver-core'
 
 declare type StandardDate = Date
 declare type NumberOrInteger = number | Integer

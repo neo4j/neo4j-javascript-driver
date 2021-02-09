@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { isInt } from '../integer'
+import { isInt } from 'neo4j-driver-core'
 
 const ENCRYPTION_ON = 'ENCRYPTION_ON'
 const ENCRYPTION_OFF = 'ENCRYPTION_OFF'

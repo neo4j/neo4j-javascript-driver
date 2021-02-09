@@ -21,7 +21,16 @@
 // https://github.com/dcodeIO/Long.js
 // License Apache 2
 
-import { newError } from 'neo4j-driver-core'
+import { newError } from './error'
+
+/**
+ * A cache of the Integer representations of small integer values.
+ * @type {!Object}
+ * @inner
+ * @private
+ */
+// eslint-disable-next-line no-use-before-define
+const INT_CACHE: Map<number, Integer> = new Map()
 
 /**
  * Constructs a 64 bit two's-complement integer, given its low and high 32 bit values as *signed* integers.
@@ -37,20 +46,23 @@ import { newError } from 'neo4j-driver-core'
  * @constructor
  */
 class Integer {
-  constructor (low, high) {
+  low: number
+  high: number
+
+  constructor (low?: number, high?: number) {
     /**
      * The low 32 bits as a signed value.
      * @type {number}
      * @expose
      */
-    this.low = low | 0
+    this.low = low || 0
 
     /**
      * The high 32 bits as a signed value.
      * @type {number}
      * @expose
      */
-    this.high = high | 0
+    this.high = high || 0
   }
 
   // The internal representation of an Integer is the two given signed, 32-bit values.
@@ -70,7 +82,7 @@ class Integer {
   // Common constant values ZERO, ONE, NEG_ONE, etc. are defined below the from*
   // methods on which they depend.
 
-  inSafeRange () {
+  inSafeRange (): boolean {
     return (
       this.greaterThanOrEqual(Integer.MIN_SAFE_VALUE) &&
       this.lessThanOrEqual(Integer.MAX_SAFE_VALUE)
@@ -82,7 +94,7 @@ class Integer {
    * @returns {number}
    * @expose
    */
-  toInt () {
+  toInt (): number {
     return this.low
   }
 
@@ -91,7 +103,7 @@ class Integer {
    * @returns {number}
    * @expose
    */
-  toNumber () {
+  toNumber (): number {
     return this.high * TWO_PWR_32_DBL + (this.low >>> 0)
   }
 
@@ -100,7 +112,7 @@ class Integer {
    * @return {number}
    * @package
    */
-  toNumberOrInfinity () {
+  toNumberOrInfinity (): number {
     if (this.lessThan(Integer.MIN_SAFE_VALUE)) {
       return Number.NEGATIVE_INFINITY
     } else if (this.greaterThan(Integer.MAX_SAFE_VALUE)) {
@@ -118,7 +130,7 @@ class Integer {
    * @throws {RangeError} If `radix` is out of range
    * @expose
    */
-  toString (radix) {
+  toString (radix?: number): string {
     radix = radix || 10
     if (radix < 2 || radix > 36) {
       throw RangeError('radix out of range: ' + radix)
@@ -126,7 +138,7 @@ class Integer {
     if (this.isZero()) {
       return '0'
     }
-    var rem
+    let rem: Integer
     if (this.isNegative()) {
       if (this.equals(Integer.MIN_VALUE)) {
         // We need to change the Integer value before it can be negated, so we remove
@@ -166,7 +178,7 @@ class Integer {
    * @returns {number} Signed high bits
    * @expose
    */
-  getHighBits () {
+  getHighBits (): number {
     return this.high
   }
 
@@ -175,7 +187,7 @@ class Integer {
    * @returns {number} Signed low bits
    * @expose
    */
-  getLowBits () {
+  getLowBits (): number {
     return this.low
   }
 
@@ -184,7 +196,7 @@ class Integer {
    * @returns {number}
    * @expose
    */
-  getNumBitsAbs () {
+  getNumBitsAbs (): number {
     if (this.isNegative()) {
       return this.equals(Integer.MIN_VALUE) ? 64 : this.negate().getNumBitsAbs()
     }
@@ -202,7 +214,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isZero () {
+  isZero (): boolean {
     return this.high === 0 && this.low === 0
   }
 
@@ -211,7 +223,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isNegative () {
+  isNegative (): boolean {
     return this.high < 0
   }
 
@@ -220,7 +232,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isPositive () {
+  isPositive (): boolean {
     return this.high >= 0
   }
 
@@ -229,7 +241,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isOdd () {
+  isOdd (): boolean {
     return (this.low & 1) === 1
   }
 
@@ -238,7 +250,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isEven () {
+  isEven (): boolean {
     return (this.low & 1) === 0
   }
 
@@ -248,11 +260,9 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  equals (other) {
-    if (!Integer.isInteger(other)) {
-      other = Integer.fromValue(other)
-    }
-    return this.high === other.high && this.low === other.low
+  equals (other: Integerable): boolean {
+    const theOther = Integer.fromValue(other)
+    return this.high === theOther.high && this.low === theOther.low
   }
 
   /**
@@ -261,7 +271,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  notEquals (other) {
+  notEquals (other: Integerable): boolean {
     return !this.equals(/* validates */ other)
   }
 
@@ -271,7 +281,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  lessThan (other) {
+  lessThan (other: Integerable): boolean {
     return this.compare(/* validates */ other) < 0
   }
 
@@ -281,7 +291,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  lessThanOrEqual (other) {
+  lessThanOrEqual (other: Integerable): boolean {
     return this.compare(/* validates */ other) <= 0
   }
 
@@ -291,7 +301,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  greaterThan (other) {
+  greaterThan (other: Integerable): boolean {
     return this.compare(/* validates */ other) > 0
   }
 
@@ -301,7 +311,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  greaterThanOrEqual (other) {
+  greaterThanOrEqual (other: Integerable): boolean {
     return this.compare(/* validates */ other) >= 0
   }
 
@@ -312,15 +322,14 @@ class Integer {
    *  if the given one is greater
    * @expose
    */
-  compare (other) {
-    if (!Integer.isInteger(other)) {
-      other = Integer.fromValue(other)
-    }
-    if (this.equals(other)) {
+  compare (other: Integerable): number {
+    const theOther = Integer.fromValue(other)
+
+    if (this.equals(theOther)) {
       return 0
     }
     var thisNeg = this.isNegative()
-    var otherNeg = other.isNegative()
+    var otherNeg = theOther.isNegative()
     if (thisNeg && !otherNeg) {
       return -1
     }
@@ -328,7 +337,7 @@ class Integer {
       return 1
     }
     // At this point the sign bits are the same
-    return this.subtract(other).isNegative() ? -1 : 1
+    return this.subtract(theOther).isNegative() ? -1 : 1
   }
 
   /**
@@ -336,7 +345,7 @@ class Integer {
    * @returns {!Integer} Negated Integer
    * @expose
    */
-  negate () {
+  negate (): Integer {
     if (this.equals(Integer.MIN_VALUE)) {
       return Integer.MIN_VALUE
     }
@@ -349,10 +358,8 @@ class Integer {
    * @returns {!Integer} Sum
    * @expose
    */
-  add (addend) {
-    if (!Integer.isInteger(addend)) {
-      addend = Integer.fromValue(addend)
-    }
+  add (addend: Integerable): Integer {
+    const theAddend = Integer.fromValue(addend)
 
     // Divide each number into 4 chunks of 16 bits, and then sum the chunks.
 
@@ -361,10 +368,10 @@ class Integer {
     var a16 = this.low >>> 16
     var a00 = this.low & 0xffff
 
-    var b48 = addend.high >>> 16
-    var b32 = addend.high & 0xffff
-    var b16 = addend.low >>> 16
-    var b00 = addend.low & 0xffff
+    var b48 = theAddend.high >>> 16
+    var b32 = theAddend.high & 0xffff
+    var b16 = theAddend.low >>> 16
+    var b00 = theAddend.low & 0xffff
 
     var c48 = 0
     var c32 = 0
@@ -390,11 +397,9 @@ class Integer {
    * @returns {!Integer} Difference
    * @expose
    */
-  subtract (subtrahend) {
-    if (!Integer.isInteger(subtrahend)) {
-      subtrahend = Integer.fromValue(subtrahend)
-    }
-    return this.add(subtrahend.negate())
+  subtract (subtrahend: Integerable): Integer {
+    const theSubtrahend = Integer.fromValue(subtrahend)
+    return this.add(theSubtrahend.negate())
   }
 
   /**
@@ -403,38 +408,38 @@ class Integer {
    * @returns {!Integer} Product
    * @expose
    */
-  multiply (multiplier) {
+  multiply (multiplier: Integerable): Integer {
     if (this.isZero()) {
       return Integer.ZERO
     }
-    if (!Integer.isInteger(multiplier)) {
-      multiplier = Integer.fromValue(multiplier)
-    }
-    if (multiplier.isZero()) {
+
+    const theMultiplier = Integer.fromValue(multiplier)
+
+    if (theMultiplier.isZero()) {
       return Integer.ZERO
     }
     if (this.equals(Integer.MIN_VALUE)) {
-      return multiplier.isOdd() ? Integer.MIN_VALUE : Integer.ZERO
+      return theMultiplier.isOdd() ? Integer.MIN_VALUE : Integer.ZERO
     }
-    if (multiplier.equals(Integer.MIN_VALUE)) {
+    if (theMultiplier.equals(Integer.MIN_VALUE)) {
       return this.isOdd() ? Integer.MIN_VALUE : Integer.ZERO
     }
 
     if (this.isNegative()) {
-      if (multiplier.isNegative()) {
-        return this.negate().multiply(multiplier.negate())
+      if (theMultiplier.isNegative()) {
+        return this.negate().multiply(theMultiplier.negate())
       } else {
         return this.negate()
-          .multiply(multiplier)
+          .multiply(theMultiplier)
           .negate()
       }
-    } else if (multiplier.isNegative()) {
-      return this.multiply(multiplier.negate()).negate()
+    } else if (theMultiplier.isNegative()) {
+      return this.multiply(theMultiplier.negate()).negate()
     }
 
     // If both longs are small, use float multiplication
-    if (this.lessThan(TWO_PWR_24) && multiplier.lessThan(TWO_PWR_24)) {
-      return Integer.fromNumber(this.toNumber() * multiplier.toNumber())
+    if (this.lessThan(TWO_PWR_24) && theMultiplier.lessThan(TWO_PWR_24)) {
+      return Integer.fromNumber(this.toNumber() * theMultiplier.toNumber())
     }
 
     // Divide each long into 4 chunks of 16 bits, and then add up 4x4 products.
@@ -445,10 +450,10 @@ class Integer {
     var a16 = this.low >>> 16
     var a00 = this.low & 0xffff
 
-    var b48 = multiplier.high >>> 16
-    var b32 = multiplier.high & 0xffff
-    var b16 = multiplier.low >>> 16
-    var b00 = multiplier.low & 0xffff
+    var b48 = theMultiplier.high >>> 16
+    var b32 = theMultiplier.high & 0xffff
+    var b16 = theMultiplier.low >>> 16
+    var b00 = theMultiplier.low & 0xffff
 
     var c48 = 0
     var c32 = 0
@@ -483,11 +488,10 @@ class Integer {
    * @returns {!Integer} Quotient
    * @expose
    */
-  div (divisor) {
-    if (!Integer.isInteger(divisor)) {
-      divisor = Integer.fromValue(divisor)
-    }
-    if (divisor.isZero()) {
+  div (divisor: Integerable): Integer {
+    const theDivisor = Integer.fromValue(divisor)
+
+    if (theDivisor.isZero()) {
       throw newError('division by zero')
     }
     if (this.isZero()) {
@@ -495,35 +499,38 @@ class Integer {
     }
     var approx, rem, res
     if (this.equals(Integer.MIN_VALUE)) {
-      if (divisor.equals(Integer.ONE) || divisor.equals(Integer.NEG_ONE)) {
+      if (
+        theDivisor.equals(Integer.ONE) ||
+        theDivisor.equals(Integer.NEG_ONE)
+      ) {
         return Integer.MIN_VALUE
       }
-      if (divisor.equals(Integer.MIN_VALUE)) {
+      if (theDivisor.equals(Integer.MIN_VALUE)) {
         return Integer.ONE
       } else {
         // At this point, we have |other| >= 2, so |this/other| < |MIN_VALUE|.
         var halfThis = this.shiftRight(1)
-        approx = halfThis.div(divisor).shiftLeft(1)
+        approx = halfThis.div(theDivisor).shiftLeft(1)
         if (approx.equals(Integer.ZERO)) {
-          return divisor.isNegative() ? Integer.ONE : Integer.NEG_ONE
+          return theDivisor.isNegative() ? Integer.ONE : Integer.NEG_ONE
         } else {
-          rem = this.subtract(divisor.multiply(approx))
-          res = approx.add(rem.div(divisor))
+          rem = this.subtract(theDivisor.multiply(approx))
+          res = approx.add(rem.div(theDivisor))
           return res
         }
       }
-    } else if (divisor.equals(Integer.MIN_VALUE)) {
+    } else if (theDivisor.equals(Integer.MIN_VALUE)) {
       return Integer.ZERO
     }
     if (this.isNegative()) {
-      if (divisor.isNegative()) {
-        return this.negate().div(divisor.negate())
+      if (theDivisor.isNegative()) {
+        return this.negate().div(theDivisor.negate())
       }
       return this.negate()
-        .div(divisor)
+        .div(theDivisor)
         .negate()
-    } else if (divisor.isNegative()) {
-      return this.div(divisor.negate()).negate()
+    } else if (theDivisor.isNegative()) {
+      return this.div(theDivisor.negate()).negate()
     }
 
     // Repeat the following until the remainder is less than other:  find a
@@ -533,10 +540,10 @@ class Integer {
     // remainder never becomes negative.
     res = Integer.ZERO
     rem = this
-    while (rem.greaterThanOrEqual(divisor)) {
+    while (rem.greaterThanOrEqual(theDivisor)) {
       // Approximate the result of division. This may be a little greater or
       // smaller than the actual value.
-      approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()))
+      approx = Math.max(1, Math.floor(rem.toNumber() / theDivisor.toNumber()))
 
       // We will tweak the approximate result by changing it in the 48-th digit or
       // the smallest non-fractional digit, whichever is larger.
@@ -546,11 +553,11 @@ class Integer {
       // Decrease the approximation until it is smaller than the remainder.  Note
       // that if it is too large, the product overflows and is negative.
       var approxRes = Integer.fromNumber(approx)
-      var approxRem = approxRes.multiply(divisor)
+      var approxRem = approxRes.multiply(theDivisor)
       while (approxRem.isNegative() || approxRem.greaterThan(rem)) {
         approx -= delta
         approxRes = Integer.fromNumber(approx)
-        approxRem = approxRes.multiply(divisor)
+        approxRem = approxRes.multiply(theDivisor)
       }
 
       // We know the answer can't be zero... and actually, zero would cause
@@ -571,11 +578,9 @@ class Integer {
    * @returns {!Integer} Remainder
    * @expose
    */
-  modulo (divisor) {
-    if (!Integer.isInteger(divisor)) {
-      divisor = Integer.fromValue(divisor)
-    }
-    return this.subtract(this.div(divisor).multiply(divisor))
+  modulo (divisor: Integerable): Integer {
+    const theDivisor = Integer.fromValue(divisor)
+    return this.subtract(this.div(theDivisor).multiply(theDivisor))
   }
 
   /**
@@ -583,7 +588,7 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  not () {
+  not (): Integer {
     return Integer.fromBits(~this.low, ~this.high)
   }
 
@@ -593,11 +598,9 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  and (other) {
-    if (!Integer.isInteger(other)) {
-      other = Integer.fromValue(other)
-    }
-    return Integer.fromBits(this.low & other.low, this.high & other.high)
+  and (other: Integerable): Integer {
+    const theOther = Integer.fromValue(other)
+    return Integer.fromBits(this.low & theOther.low, this.high & theOther.high)
   }
 
   /**
@@ -606,11 +609,9 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  or (other) {
-    if (!Integer.isInteger(other)) {
-      other = Integer.fromValue(other)
-    }
-    return Integer.fromBits(this.low | other.low, this.high | other.high)
+  or (other: Integerable): Integer {
+    const theOther = Integer.fromValue(other)
+    return Integer.fromBits(this.low | theOther.low, this.high | theOther.high)
   }
 
   /**
@@ -619,11 +620,9 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  xor (other) {
-    if (!Integer.isInteger(other)) {
-      other = Integer.fromValue(other)
-    }
-    return Integer.fromBits(this.low ^ other.low, this.high ^ other.high)
+  xor (other: Integerable): Integer {
+    const theOther = Integer.fromValue(other)
+    return Integer.fromBits(this.low ^ theOther.low, this.high ^ theOther.high)
   }
 
   /**
@@ -632,19 +631,17 @@ class Integer {
    * @returns {!Integer} Shifted Integer
    * @expose
    */
-  shiftLeft (numBits) {
-    if (Integer.isInteger(numBits)) {
-      numBits = numBits.toInt()
-    }
-    if ((numBits &= 63) === 0) {
+  shiftLeft (numBits: number | Integer): Integer {
+    let bitsCount = Integer.toNumber(numBits)
+    if ((bitsCount &= 63) === 0) {
       return this
-    } else if (numBits < 32) {
+    } else if (bitsCount < 32) {
       return Integer.fromBits(
-        this.low << numBits,
-        (this.high << numBits) | (this.low >>> (32 - numBits))
+        this.low << bitsCount,
+        (this.high << bitsCount) | (this.low >>> (32 - bitsCount))
       )
     } else {
-      return Integer.fromBits(0, this.low << (numBits - 32))
+      return Integer.fromBits(0, this.low << (bitsCount - 32))
     }
   }
 
@@ -654,225 +651,273 @@ class Integer {
    * @returns {!Integer} Shifted Integer
    * @expose
    */
-  shiftRight (numBits) {
-    if (Integer.isInteger(numBits)) {
-      numBits = numBits.toInt()
-    }
-    if ((numBits &= 63) === 0) {
+  shiftRight (numBits: number | Integer): Integer {
+    let bitsCount: number = Integer.toNumber(numBits)
+
+    if ((bitsCount &= 63) === 0) {
       return this
     } else if (numBits < 32) {
       return Integer.fromBits(
-        (this.low >>> numBits) | (this.high << (32 - numBits)),
-        this.high >> numBits
+        (this.low >>> bitsCount) | (this.high << (32 - bitsCount)),
+        this.high >> bitsCount
       )
     } else {
       return Integer.fromBits(
-        this.high >> (numBits - 32),
+        this.high >> (bitsCount - 32),
         this.high >= 0 ? 0 : -1
       )
     }
   }
+
+  /**
+   * Signed zero.
+   * @type {!Integer}
+   * @expose
+   */
+  static ZERO: Integer = Integer.fromInt(0)
+
+  /**
+   * Signed one.
+   * @type {!Integer}
+   * @expose
+   */
+  static ONE: Integer = Integer.fromInt(1)
+
+  /**
+   * Signed negative one.
+   * @type {!Integer}
+   * @expose
+   */
+  static NEG_ONE: Integer = Integer.fromInt(-1)
+
+  /**
+   * Maximum signed value.
+   * @type {!Integer}
+   * @expose
+   */
+  static MAX_VALUE: Integer = Integer.fromBits(0xffffffff | 0, 0x7fffffff | 0)
+
+  /**
+   * Minimum signed value.
+   * @type {!Integer}
+   * @expose
+   */
+  static MIN_VALUE: Integer = Integer.fromBits(0, 0x80000000 | 0)
+
+  /**
+   * Minimum safe value.
+   * @type {!Integer}
+   * @expose
+   */
+  static MIN_SAFE_VALUE: Integer = Integer.fromBits(
+    0x1 | 0,
+    0xffffffffffe00000 | 0
+  )
+
+  /**
+   * Maximum safe value.
+   * @type {!Integer}
+   * @expose
+   */
+  static MAX_SAFE_VALUE: Integer = Integer.fromBits(
+    0xffffffff | 0,
+    0x1fffff | 0
+  )
+
+  /**
+   * An indicator used to reliably determine if an object is a Integer or not.
+   * @type {boolean}
+   * @const
+   * @expose
+   * @private
+   */
+  static __isInteger__: boolean = true
+
+  /**
+   * Tests if the specified object is a Integer.
+   * @access private
+   * @param {*} obj Object
+   * @returns {boolean}
+   * @expose
+   */
+  static isInteger (obj: any): boolean {
+    return (obj && obj.__isInteger__) === true
+  }
+
+  /**
+   * Returns a Integer representing the given 32 bit integer value.
+   * @access private
+   * @param {number} value The 32 bit integer in question
+   * @returns {!Integer} The corresponding Integer value
+   * @expose
+   */
+  static fromInt (value: number): Integer {
+    var obj, cachedObj
+    value = value | 0
+    if (value >= -128 && value < 128) {
+      cachedObj = INT_CACHE.get(value)
+      if (cachedObj) {
+        return cachedObj
+      }
+    }
+    obj = new Integer(value, value < 0 ? -1 : 0)
+    if (value >= -128 && value < 128) {
+      INT_CACHE.set(value, obj)
+    }
+    return obj
+  }
+
+  /**
+   * Returns a Integer representing the 64 bit integer that comes by concatenating the given low and high bits. Each is
+   *  assumed to use 32 bits.
+   * @access private
+   * @param {number} lowBits The low 32 bits
+   * @param {number} highBits The high 32 bits
+   * @returns {!Integer} The corresponding Integer value
+   * @expose
+   */
+  static fromBits (lowBits: number, highBits: number): Integer {
+    return new Integer(lowBits, highBits)
+  }
+
+  /**
+   * Returns a Integer representing the given value, provided that it is a finite number. Otherwise, zero is returned.
+   * @access private
+   * @param {number} value The number in question
+   * @returns {!Integer} The corresponding Integer value
+   * @expose
+   */
+  static fromNumber (value: number): Integer {
+    if (isNaN(value) || !isFinite(value)) {
+      return Integer.ZERO
+    }
+    if (value <= -TWO_PWR_63_DBL) {
+      return Integer.MIN_VALUE
+    }
+    if (value + 1 >= TWO_PWR_63_DBL) {
+      return Integer.MAX_VALUE
+    }
+    if (value < 0) {
+      return Integer.fromNumber(-value).negate()
+    }
+    return new Integer(value % TWO_PWR_32_DBL | 0, (value / TWO_PWR_32_DBL) | 0)
+  }
+
+  /**
+   * Returns a Integer representation of the given string, written using the specified radix.
+   * @access private
+   * @param {string} str The textual representation of the Integer
+   * @param {number=} radix The radix in which the text is written (2-36), defaults to 10
+   * @returns {!Integer} The corresponding Integer value
+   * @expose
+   */
+  static fromString (str: string, radix?: number): Integer {
+    if (str.length === 0) {
+      throw newError('number format error: empty string')
+    }
+    if (
+      str === 'NaN' ||
+      str === 'Infinity' ||
+      str === '+Infinity' ||
+      str === '-Infinity'
+    ) {
+      return Integer.ZERO
+    }
+    radix = radix || 10
+    if (radix < 2 || radix > 36) {
+      throw newError('radix out of range: ' + radix)
+    }
+
+    let p: number
+    if ((p = str.indexOf('-')) > 0) {
+      throw newError('number format error: interior "-" character: ' + str)
+    } else if (p === 0) {
+      return Integer.fromString(str.substring(1), radix).negate()
+    }
+
+    // Do several (8) digits each time through the loop, so as to
+    // minimize the calls to the very expensive emulated div.
+    const radixToPower = Integer.fromNumber(Math.pow(radix, 8))
+
+    let result = Integer.ZERO
+    for (var i = 0; i < str.length; i += 8) {
+      var size = Math.min(8, str.length - i)
+      var value = parseInt(str.substring(i, i + size), radix)
+      if (size < 8) {
+        var power = Integer.fromNumber(Math.pow(radix, size))
+        result = result.multiply(power).add(Integer.fromNumber(value))
+      } else {
+        result = result.multiply(radixToPower)
+        result = result.add(Integer.fromNumber(value))
+      }
+    }
+    return result
+  }
+
+  /**
+   * Converts the specified value to a Integer.
+   * @access private
+   * @param {!Integer|number|string|!{low: number, high: number}} val Value
+   * @returns {!Integer}
+   * @expose
+   */
+  static fromValue (val: Integerable): Integer {
+    if (val /* is compatible */ instanceof Integer) {
+      return val
+    }
+    if (typeof val === 'number') {
+      return Integer.fromNumber(val)
+    }
+    if (typeof val === 'string') {
+      return Integer.fromString(val)
+    }
+    // Throws for non-objects, converts non-instanceof Integer:
+    return new Integer(val.low, val.high)
+  }
+
+  /**
+   * Converts the specified value to a number.
+   * @access private
+   * @param {!Integer|number|string|!{low: number, high: number}} val Value
+   * @returns {number}
+   * @expose
+   */
+  static toNumber (val: Integerable): number {
+    return Integer.fromValue(val).toNumber()
+  }
+
+  /**
+   * Converts the specified value to a string.
+   * @access private
+   * @param {!Integer|number|string|!{low: number, high: number}} val Value
+   * @param {number} radix optional radix for string conversion, defaults to 10
+   * @returns {string}
+   * @expose
+   */
+  static toString (val: Integerable, radix?: number): string {
+    return Integer.fromValue(val).toString(radix)
+  }
+
+  /**
+   * Checks if the given value is in the safe range in order to be converted to a native number
+   * @access private
+   * @param {!Integer|number|string|!{low: number, high: number}} val Value
+   * @param {number} radix optional radix for string conversion, defaults to 10
+   * @returns {boolean}
+   * @expose
+   */
+  static inSafeRange (val: Integerable): boolean {
+    return Integer.fromValue(val).inSafeRange()
+  }
 }
 
-/**
- * An indicator used to reliably determine if an object is a Integer or not.
- * @type {boolean}
- * @const
- * @expose
- * @private
- */
-Integer.__isInteger__ = true
+type Integerable = number | string | Integer | { low: number; high: number }
 
 Object.defineProperty(Integer.prototype, '__isInteger__', {
   value: true,
   enumerable: false,
   configurable: false
 })
-
-/**
- * Tests if the specified object is a Integer.
- * @access private
- * @param {*} obj Object
- * @returns {boolean}
- * @expose
- */
-Integer.isInteger = function (obj) {
-  return (obj && obj.__isInteger__) === true
-}
-
-/**
- * A cache of the Integer representations of small integer values.
- * @type {!Object}
- * @inner
- * @private
- */
-var INT_CACHE = {}
-
-/**
- * Returns a Integer representing the given 32 bit integer value.
- * @access private
- * @param {number} value The 32 bit integer in question
- * @returns {!Integer} The corresponding Integer value
- * @expose
- */
-Integer.fromInt = function (value) {
-  var obj, cachedObj
-  value = value | 0
-  if (value >= -128 && value < 128) {
-    cachedObj = INT_CACHE[value]
-    if (cachedObj) {
-      return cachedObj
-    }
-  }
-  obj = new Integer(value, value < 0 ? -1 : 0, false)
-  if (value >= -128 && value < 128) {
-    INT_CACHE[value] = obj
-  }
-  return obj
-}
-
-/**
- * Returns a Integer representing the given value, provided that it is a finite number. Otherwise, zero is returned.
- * @access private
- * @param {number} value The number in question
- * @returns {!Integer} The corresponding Integer value
- * @expose
- */
-Integer.fromNumber = function (value) {
-  if (isNaN(value) || !isFinite(value)) {
-    return Integer.ZERO
-  }
-  if (value <= -TWO_PWR_63_DBL) {
-    return Integer.MIN_VALUE
-  }
-  if (value + 1 >= TWO_PWR_63_DBL) {
-    return Integer.MAX_VALUE
-  }
-  if (value < 0) {
-    return Integer.fromNumber(-value).negate()
-  }
-  return new Integer(value % TWO_PWR_32_DBL | 0, (value / TWO_PWR_32_DBL) | 0)
-}
-
-/**
- * Returns a Integer representing the 64 bit integer that comes by concatenating the given low and high bits. Each is
- *  assumed to use 32 bits.
- * @access private
- * @param {number} lowBits The low 32 bits
- * @param {number} highBits The high 32 bits
- * @returns {!Integer} The corresponding Integer value
- * @expose
- */
-Integer.fromBits = function (lowBits, highBits) {
-  return new Integer(lowBits, highBits)
-}
-
-/**
- * Returns a Integer representation of the given string, written using the specified radix.
- * @access private
- * @param {string} str The textual representation of the Integer
- * @param {number=} radix The radix in which the text is written (2-36), defaults to 10
- * @returns {!Integer} The corresponding Integer value
- * @expose
- */
-Integer.fromString = function (str, radix) {
-  if (str.length === 0) {
-    throw newError('number format error: empty string')
-  }
-  if (
-    str === 'NaN' ||
-    str === 'Infinity' ||
-    str === '+Infinity' ||
-    str === '-Infinity'
-  ) {
-    return Integer.ZERO
-  }
-  radix = radix || 10
-  if (radix < 2 || radix > 36) {
-    throw newError('radix out of range: ' + radix)
-  }
-
-  var p
-  if ((p = str.indexOf('-')) > 0) {
-    throw newError('number format error: interior "-" character: ' + str)
-  } else if (p === 0) {
-    return Integer.fromString(str.substring(1), radix).negate()
-  }
-
-  // Do several (8) digits each time through the loop, so as to
-  // minimize the calls to the very expensive emulated div.
-  var radixToPower = Integer.fromNumber(Math.pow(radix, 8))
-
-  var result = Integer.ZERO
-  for (var i = 0; i < str.length; i += 8) {
-    var size = Math.min(8, str.length - i)
-    var value = parseInt(str.substring(i, i + size), radix)
-    if (size < 8) {
-      var power = Integer.fromNumber(Math.pow(radix, size))
-      result = result.multiply(power).add(Integer.fromNumber(value))
-    } else {
-      result = result.multiply(radixToPower)
-      result = result.add(Integer.fromNumber(value))
-    }
-  }
-  return result
-}
-
-/**
- * Converts the specified value to a Integer.
- * @access private
- * @param {!Integer|number|string|!{low: number, high: number}} val Value
- * @returns {!Integer}
- * @expose
- */
-Integer.fromValue = function (val) {
-  if (val /* is compatible */ instanceof Integer) {
-    return val
-  }
-  if (typeof val === 'number') {
-    return Integer.fromNumber(val)
-  }
-  if (typeof val === 'string') {
-    return Integer.fromString(val)
-  }
-  // Throws for non-objects, converts non-instanceof Integer:
-  return new Integer(val.low, val.high)
-}
-
-/**
- * Converts the specified value to a number.
- * @access private
- * @param {!Integer|number|string|!{low: number, high: number}} val Value
- * @returns {number}
- * @expose
- */
-Integer.toNumber = function (val) {
-  return Integer.fromValue(val).toNumber()
-}
-
-/**
- * Converts the specified value to a string.
- * @access private
- * @param {!Integer|number|string|!{low: number, high: number}} val Value
- * @param {number} radix optional radix for string conversion, defaults to 10
- * @returns {string}
- * @expose
- */
-Integer.toString = function (val, radix) {
-  return Integer.fromValue(val).toString(radix)
-}
-
-/**
- * Checks if the given value is in the safe range in order to be converted to a native number
- * @access private
- * @param {!Integer|number|string|!{low: number, high: number}} val Value
- * @param {number} radix optional radix for string conversion, defaults to 10
- * @returns {boolean}
- * @expose
- */
-Integer.inSafeRange = function (val) {
-  return Integer.fromValue(val).inSafeRange()
-}
 
 /**
  * @type {number}
@@ -921,55 +966,6 @@ var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2
  * @private
  */
 var TWO_PWR_24 = Integer.fromInt(TWO_PWR_24_DBL)
-
-/**
- * Signed zero.
- * @type {!Integer}
- * @expose
- */
-Integer.ZERO = Integer.fromInt(0)
-
-/**
- * Signed one.
- * @type {!Integer}
- * @expose
- */
-Integer.ONE = Integer.fromInt(1)
-
-/**
- * Signed negative one.
- * @type {!Integer}
- * @expose
- */
-Integer.NEG_ONE = Integer.fromInt(-1)
-
-/**
- * Maximum signed value.
- * @type {!Integer}
- * @expose
- */
-Integer.MAX_VALUE = Integer.fromBits(0xffffffff | 0, 0x7fffffff | 0, false)
-
-/**
- * Minimum signed value.
- * @type {!Integer}
- * @expose
- */
-Integer.MIN_VALUE = Integer.fromBits(0, 0x80000000 | 0, false)
-
-/**
- * Minimum safe value.
- * @type {!Integer}
- * @expose
- */
-Integer.MIN_SAFE_VALUE = Integer.fromBits(0x1 | 0, 0xffffffffffe00000 | 0)
-
-/**
- * Maximum safe value.
- * @type {!Integer}
- * @expose
- */
-Integer.MAX_SAFE_VALUE = Integer.fromBits(0xffffffff | 0, 0x1fffff | 0)
 
 /**
  * Cast value to Integer type.

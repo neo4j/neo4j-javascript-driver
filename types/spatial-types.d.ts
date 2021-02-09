@@ -18,7 +18,7 @@
  */
 
 import { NumberOrInteger } from './graph-types'
-import Integer from './integer'
+import { Integer } from 'neo4j-driver-core'
 
 declare class Point<T extends NumberOrInteger = Integer> {
   readonly srid: T

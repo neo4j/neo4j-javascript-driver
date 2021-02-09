@@ -17,13 +17,14 @@
  * limitations under the License.
  */
 
-import Integer, {
+import {
+  Integer,
   inSafeRange,
   int,
   isInt,
   toNumber,
   toString
-} from '../../types/integer'
+} from 'neo4j-driver-core'
 
 const int1 = new Integer()
 const int2 = new Integer(1)

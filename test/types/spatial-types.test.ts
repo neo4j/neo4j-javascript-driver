@@ -18,7 +18,7 @@
  */
 
 import { isPoint, Point } from '../../types/spatial-types'
-import Integer, { int } from '../../types/integer'
+import { int, Integer } from 'neo4j-driver-core'
 
 const point1: Point = new Point(int(1), 2, 3)
 const srid1: Integer = point1.srid

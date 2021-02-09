@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { isInt } from './integer'
+import { isInt } from 'neo4j-driver-core'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.

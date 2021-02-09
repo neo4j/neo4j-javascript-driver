@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import Integer, { inSafeRange, int, isInt, toNumber, toString } from './integer'
 import {
   Node,
   Path,
@@ -25,7 +24,16 @@ import {
   Relationship,
   UnboundRelationship
 } from './graph-types'
-import { Neo4jError, error } from 'neo4j-driver-core'
+import {
+  Neo4jError,
+  error,
+  Integer,
+  inSafeRange,
+  int,
+  isInt,
+  toNumber,
+  toString
+} from 'neo4j-driver-core'
 import Result from './result'
 import ResultSummary from './result-summary'
 import Record from './record'

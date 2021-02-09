@@ -17,11 +17,10 @@
  * limitations under the License.
  */
 import RoutingTable from '../../src/internal/routing-table'
-import Integer, { int } from '../../src/integer'
 import { READ, WRITE } from '../../src/driver'
 import ServerAddress from '../../src/internal/server-address'
 import { RawRoutingTable } from '../../src/internal/bolt'
-import { error } from 'neo4j-driver-core'
+import { error, Integer, int } from 'neo4j-driver-core'
 import lolex from 'lolex'
 
 const { PROTOCOL_ERROR } = error

@@ -30,7 +30,7 @@ import {
   isTime,
   Time
 } from '../temporal-types'
-import { int, isInt } from '../integer'
+import { int, isInt } from 'neo4j-driver-core'
 import {
   dateToEpochDay,
   localDateTimeToEpochSecond,

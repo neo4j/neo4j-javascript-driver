@@ -18,8 +18,7 @@
  */
 
 import * as util from './util'
-import { int } from '../integer'
-import { newError } from 'neo4j-driver-core'
+import { int, newError } from 'neo4j-driver-core'
 
 /**
  * Internal holder of the transaction configuration.

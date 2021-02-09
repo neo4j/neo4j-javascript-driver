@@ -18,7 +18,7 @@
  */
 
 import { NumberOrInteger, StandardDate } from './graph-types'
-import Integer from './integer'
+import { Integer } from 'neo4j-driver-core'
 
 declare class Duration<T extends NumberOrInteger = Integer> {
   readonly months: T

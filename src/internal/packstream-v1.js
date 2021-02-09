@@ -17,8 +17,7 @@
  * limitations under the License.
  */
 import { utf8 } from './node'
-import Integer, { int, isInt } from '../integer'
-import { newError, error } from 'neo4j-driver-core'
+import { newError, error, int, isInt, Integer } from 'neo4j-driver-core'
 import {
   Node,
   Path,

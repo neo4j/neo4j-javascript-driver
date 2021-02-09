@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Integer from './integer'
+import { Integer } from 'neo4j-driver-core'
 import { NumberOrInteger } from './graph-types'
 
 declare interface ResultSummary<T extends NumberOrInteger = Integer> {

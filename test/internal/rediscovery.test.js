@@ -23,8 +23,7 @@ import RoutingTable from '../../src/internal/routing-table'
 import ServerAddress from '../../src/internal/server-address'
 import FakeConnection from './fake-connection'
 import lolex from 'lolex'
-import { int } from '../../src/integer'
-import { newError, error } from 'neo4j-driver-core'
+import { newError, error, int } from 'neo4j-driver-core'
 
 const { PROTOCOL_ERROR, SERVICE_UNAVAILABLE } = error
 

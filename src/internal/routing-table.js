@@ -16,10 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Integer, { int } from '../integer'
 import { READ, WRITE } from '../driver'
 import ServerAddress from './server-address'
-import { newError, error } from 'neo4j-driver-core'
+import { newError, error, Integer, int } from 'neo4j-driver-core'
 
 const { PROTOCOL_ERROR } = error
 

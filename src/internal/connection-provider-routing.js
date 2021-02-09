@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError, error } from 'neo4j-driver-core'
+import { newError, error, int } from 'neo4j-driver-core'
 import { READ, WRITE } from '../driver'
 import Session from '../session'
 import RoutingTable from './routing-table'
@@ -30,7 +30,6 @@ import DelegateConnection from './connection-delegate'
 import LeastConnectedLoadBalancingStrategy from './least-connected-load-balancing-strategy'
 import Bookmark from './bookmark'
 import { createChannelConnection } from './connection-channel'
-import { int } from '../integer'
 import { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0 } from './constants'
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error

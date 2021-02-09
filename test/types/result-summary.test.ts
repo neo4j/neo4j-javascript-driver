@@ -25,7 +25,7 @@ import ResultSummary, {
   ServerInfo,
   QueryStatistic
 } from '../../types/result-summary'
-import Integer from '../../types/integer'
+import { Integer } from 'neo4j-driver-core'
 
 const dummy: any = null
 
