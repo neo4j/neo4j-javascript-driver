@@ -634,7 +634,7 @@ class Integer {
   shiftLeft (numBits: number | Integer): Integer {
     let bitsCount = Integer.toNumber(numBits)
     if ((bitsCount &= 63) === 0) {
-      return this
+      return Integer.ZERO
     } else if (bitsCount < 32) {
       return Integer.fromBits(
         this.low << bitsCount,
@@ -655,7 +655,7 @@ class Integer {
     let bitsCount: number = Integer.toNumber(numBits)
 
     if ((bitsCount &= 63) === 0) {
-      return this
+      return Integer.ZERO
     } else if (numBits < 32) {
       return Integer.fromBits(
         (this.low >>> bitsCount) | (this.high << (32 - bitsCount)),
