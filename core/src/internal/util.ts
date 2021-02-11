@@ -62,16 +62,20 @@ function isObject(obj: any): boolean {
  * @throws TypeError when either given query or parameters are invalid.
  */
 function validateQueryAndParameters(
-  query: string | { text: string; parameters: Object },
-  parameters: Object
+  query: string | String | { text: string; parameters?: any },
+  parameters?: any
 ): {
-  validatedQuery: string | { text: string; parameters: Object }
-  params: Object
+  validatedQuery: string
+  params: any
 } {
-  let validatedQuery = query
+  let validatedQuery: string = ''
   let params = parameters || {}
 
-  if (typeof query === 'object' && query.text) {
+  if (typeof query === 'string') {
+    validatedQuery = query
+  } else if (query instanceof String) {
+    validatedQuery = query.toString()
+  } else if (typeof query === 'object' && query.text) {
     validatedQuery = query.text
     params = query.parameters || {}
   }
