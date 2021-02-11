@@ -24,28 +24,12 @@ import {
   Relationship,
   UnboundRelationship
 } from './graph-types'
-import {
-  Neo4jError,
-  error,
-  Integer,
-  inSafeRange,
-  int,
-  isInt,
-  toNumber,
-  toString
-} from 'neo4j-driver-core'
 import Result from './result'
 import ResultSummary from './result-summary'
 import Record from './record'
 import { Driver, READ, WRITE } from './driver'
 import RoutingDriver from './routing-driver'
 import VERSION from './version'
-import {
-  ENCRYPTION_ON,
-  ENCRYPTION_OFF,
-  assertString,
-  isEmptyObjectOrNull
-} from './internal/util'
 import urlUtil from './internal/url-util'
 import { isPoint, Point } from './spatial-types'
 import {
@@ -63,6 +47,22 @@ import {
   Time
 } from './temporal-types'
 import ServerAddress from './internal/server-address'
+
+import {
+  Neo4jError,
+  error,
+  Integer,
+  inSafeRange,
+  int,
+  isInt,
+  toNumber,
+  toString,
+  internal
+} from 'neo4j-driver-core'
+
+const {
+  util: { ENCRYPTION_ON, ENCRYPTION_OFF, assertString, isEmptyObjectOrNull }
+} = internal
 
 /**
  * Construct a new Neo4j Driver. This is your main entry point for this

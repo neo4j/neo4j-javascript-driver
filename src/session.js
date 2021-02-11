@@ -19,13 +19,16 @@
 import { ResultStreamObserver, FailedObserver } from './internal/bolt'
 import Result from './result'
 import Transaction from './transaction'
-import { newError } from 'neo4j-driver-core'
-import { validateQueryAndParameters } from './internal/util'
+import { newError, internal } from 'neo4j-driver-core'
 import ConnectionHolder from './internal/connection-holder'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import TransactionExecutor from './internal/transaction-executor'
 import Bookmark from './internal/bookmark'
 import TxConfig from './internal/tx-config'
+
+const {
+  util: { validateQueryAndParameters }
+} = internal
 
 /**
  * A Session instance is used for handling the connection and

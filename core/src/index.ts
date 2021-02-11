@@ -26,6 +26,7 @@ import {
 } from './error'
 
 import Integer, { int, isInt, inSafeRange, toNumber, toString } from './integer'
+import * as internal from './internal' // todo: removed afterwards
 
 /**
  * Object containing string constants representing predefined {@link Neo4jError} codes.
@@ -48,7 +49,8 @@ const forExport = {
   isInt,
   inSafeRange,
   toNumber,
-  toString
+  toString,
+  internal
 }
 
 export {
@@ -60,7 +62,8 @@ export {
   isInt,
   inSafeRange,
   toNumber,
-  toString
+  toString,
+  internal
 }
 
 export default forExport

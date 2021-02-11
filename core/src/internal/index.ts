@@ -17,34 +17,6 @@
  * limitations under the License.
  */
 
-import { internal } from 'neo4j-driver-core'
+import * as util from './util'
 
-const {
-  util: {
-    isEmptyObjectOrNull,
-    isObject,
-    isString,
-    assertObject,
-    assertString,
-    assertNumber,
-    assertNumberOrInteger,
-    assertValidDate,
-    validateQueryAndParameters,
-    ENCRYPTION_ON,
-    ENCRYPTION_OFF
-  }
-} = internal
-
-export {
-  isEmptyObjectOrNull,
-  isObject,
-  isString,
-  assertObject,
-  assertString,
-  assertNumber,
-  assertNumberOrInteger,
-  assertValidDate,
-  validateQueryAndParameters,
-  ENCRYPTION_ON,
-  ENCRYPTION_OFF
-}
+export { util }
