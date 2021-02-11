@@ -24,7 +24,6 @@ import {
   Relationship,
   UnboundRelationship
 } from './graph-types'
-import { isPoint, Point } from './spatial-types'
 import {
   Date,
   DateTime,
@@ -47,7 +46,9 @@ import {
   int,
   isInt,
   toNumber,
-  toString
+  toString,
+  isPoint,
+  Point
 } from 'neo4j-driver-core'
 import Result, { ResultObserver, QueryResult } from './result'
 import ResultSummary, {

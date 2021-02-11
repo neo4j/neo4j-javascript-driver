@@ -31,7 +31,6 @@ import { Driver, READ, WRITE } from './driver'
 import RoutingDriver from './routing-driver'
 import VERSION from './version'
 import urlUtil from './internal/url-util'
-import { isPoint, Point } from './spatial-types'
 import {
   Date,
   DateTime,
@@ -57,7 +56,9 @@ import {
   isInt,
   toNumber,
   toString,
-  internal
+  internal,
+  isPoint,
+  Point
 } from 'neo4j-driver-core'
 
 const {

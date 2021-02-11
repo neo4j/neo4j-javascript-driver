@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { assertNumber, assertNumberOrInteger } from './internal/util'
+import Integer from './integer'
 
 const POINT_IDENTIFIER_PROPERTY = '__isPoint__'
 
@@ -24,15 +25,20 @@ const POINT_IDENTIFIER_PROPERTY = '__isPoint__'
  * Represents a single two or three-dimensional point in a particular coordinate reference system.
  * Created `Point` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
-export class Point {
+export class Point<T extends Integer | number = Integer> {
+  readonly srid: T
+  readonly x: number
+  readonly y: number
+  readonly z: number | undefined
+
   /**
    * @constructor
-   * @param {Integer|number} srid - The coordinate reference system identifier.
+   * @param {T} srid - The coordinate reference system identifier.
    * @param {number} x - The `x` coordinate of the point.
    * @param {number} y - The `y` coordinate of the point.
    * @param {number} [z=undefined] - The `z` coordinate of the point or `undefined` if point has 2 dimensions.
    */
-  constructor (srid, x, y, z) {
+  constructor(srid: T, x: number, y: number, z?: number) {
     /**
      * The coordinate reference system identifier.
      * @type {Integer|number}
@@ -59,7 +65,7 @@ export class Point {
   /**
    * @ignore
    */
-  toString () {
+  toString(): string {
     return this.z || this.z === 0
       ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
           this.x
@@ -70,7 +76,7 @@ export class Point {
   }
 }
 
-function formatAsFloat (number) {
+function formatAsFloat(number: number | Integer) {
   return Number.isInteger(number) ? number + '.0' : number.toString()
 }
 
@@ -86,6 +92,6 @@ Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
  */
-export function isPoint (obj) {
+export function isPoint(obj?: any): boolean {
   return (obj && obj[POINT_IDENTIFIER_PROPERTY]) === true
 }

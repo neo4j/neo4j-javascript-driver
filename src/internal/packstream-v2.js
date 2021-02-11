@@ -18,7 +18,6 @@
  */
 
 import * as v1 from './packstream-v1'
-import { isPoint, Point } from '../spatial-types'
 import {
   DateTime,
   Duration,
@@ -30,7 +29,7 @@ import {
   isTime,
   Time
 } from '../temporal-types'
-import { int, isInt } from 'neo4j-driver-core'
+import { int, isInt, isPoint, Point } from 'neo4j-driver-core'
 import {
   dateToEpochDay,
   localDateTimeToEpochSecond,

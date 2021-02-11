@@ -24,8 +24,8 @@ import {
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED
 } from './error'
-
 import Integer, { int, isInt, inSafeRange, toNumber, toString } from './integer'
+import { isPoint, Point } from './spatial-types'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -50,7 +50,9 @@ const forExport = {
   inSafeRange,
   toNumber,
   toString,
-  internal
+  internal,
+  isPoint,
+  Point
 }
 
 export {
@@ -63,7 +65,9 @@ export {
   inSafeRange,
   toNumber,
   toString,
-  internal
+  internal,
+  isPoint,
+  Point
 }
 
 export default forExport

@@ -125,7 +125,7 @@ function assertString(obj: any, objName: Object): string {
  * @returns {number} The number
  * @throws {TypeError} when the supplied param is not a number
  */
-function assertNumber(obj: any, objName: string): Number {
+function assertNumber(obj: any, objName: string): number {
   if (typeof obj !== 'number') {
     throw new TypeError(
       objName + ' expected to be a number but was: ' + JSON.stringify(obj)

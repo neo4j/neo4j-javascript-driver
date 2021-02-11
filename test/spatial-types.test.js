@@ -19,7 +19,7 @@
 
 import neo4j, { int } from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import { isPoint, Point } from '../src/spatial-types'
+import { isPoint, Point } from 'neo4j-driver-core'
 import _ from 'lodash'
 
 const WGS_84_2D_CRS_CODE = neo4j.int(4326)
