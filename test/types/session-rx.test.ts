@@ -20,10 +20,9 @@
 import RxSession from '../../types/session-rx'
 import { TransactionConfig } from '../../types/session'
 import RxTransaction from '../../types/transaction-rx'
-import Record from '../../types/record'
 import RxResult from '../../types/result-rx'
 import ResultSummary from '../../types/result-summary'
-import { Integer } from 'neo4j-driver-core'
+import { Integer, Record } from 'neo4j-driver-core'
 import { Observable, of, Observer, throwError } from 'rxjs'
 import { concat, finalize, catchError } from 'rxjs/operators'
 

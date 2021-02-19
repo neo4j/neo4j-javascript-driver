@@ -44,7 +44,8 @@ import {
   Path,
   PathSegment,
   Relationship,
-  UnboundRelationship
+  UnboundRelationship,
+  Record
 } from 'neo4j-driver-core'
 import Result, { ResultObserver, QueryResult } from './result'
 import ResultSummary, {
@@ -55,7 +56,6 @@ import ResultSummary, {
   ServerInfo,
   QueryStatistic
 } from './result-summary'
-import Record from './record'
 import Session from './session'
 import {
   AuthToken,

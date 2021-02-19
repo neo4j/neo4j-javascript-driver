@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Record from '../../types/record'
+import { Record } from 'neo4j-driver-core'
 
 interface Person {
   name: string
@@ -26,7 +26,7 @@ interface Person {
 
 const record1 = new Record(['name', 'age'], ['Alice', 20])
 const record2 = new Record(['name', 'age'], ['Bob', 22], { firstName: 0 })
-const record3 = new Record<Person>(['name', 'age'], ['Carl', 24])
+const record3: Record<Person> = new Record<Person>(['name', 'age'], ['Carl', 24])
 
 const isRecord1: boolean = record1 instanceof Record
 const isRecord2: boolean = record2 instanceof Record

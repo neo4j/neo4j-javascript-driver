@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import RawRoutingTable from '../../../src/internal/bolt/routing-table-raw'
-import Record from '../../../src/record'
+import { Record } from 'neo4j-driver-core'
 
 describe('#unit RawRoutingTable', () => {
   describe('ofNull', () => {

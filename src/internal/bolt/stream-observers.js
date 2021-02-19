@@ -16,8 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Record from '../../record'
-import { newError, error, Integer } from 'neo4j-driver-core'
+import { newError, error, Integer, Record } from 'neo4j-driver-core'
 import { ALL } from './request-message'
 import RawRoutingTable from './routing-table-raw'
 

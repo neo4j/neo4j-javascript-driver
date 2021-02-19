@@ -18,7 +18,7 @@
  */
 
 import Transaction from '../../types/transaction'
-import Record from '../../types/record'
+import { Record } from 'neo4j-driver-core'
 import Result, { QueryResult } from '../../types/result'
 import ResultSummary from '../../types/result-summary'
 

@@ -18,7 +18,6 @@
  */
 import Result from './result'
 import ResultSummary from './result-summary'
-import Record from './record'
 import { Driver, READ, WRITE } from './driver'
 import RoutingDriver from './routing-driver'
 import VERSION from './version'
@@ -53,7 +52,8 @@ import {
   Path,
   PathSegment,
   Relationship,
-  UnboundRelationship
+  UnboundRelationship,
+  Record
 } from 'neo4j-driver-core'
 
 const {

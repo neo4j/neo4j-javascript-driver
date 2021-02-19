@@ -18,7 +18,7 @@
  */
 
 import Result from '../../types/result'
-import Record from '../../types/record'
+import { Record } from 'neo4j-driver-core'
 import ResultSummary from '../../types/result-summary'
 
 const dummy: any = null

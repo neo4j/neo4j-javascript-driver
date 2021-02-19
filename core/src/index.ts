@@ -53,6 +53,7 @@ import {
   PathSegment,
   isPathSegment
 } from './graph-types'
+import Record from './record'
 import { isPoint, Point } from './spatial-types'
 import * as internal from './internal' // todo: removed afterwards
 
@@ -102,7 +103,8 @@ const forExport = {
   Path,
   isPath,
   PathSegment,
-  isPathSegment
+  isPathSegment,
+  Record
 }
 
 export {
@@ -141,7 +143,8 @@ export {
   Path,
   isPath,
   PathSegment,
-  isPathSegment
+  isPathSegment,
+  Record
 }
 
 export default forExport

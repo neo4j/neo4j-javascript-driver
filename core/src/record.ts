@@ -17,14 +17,33 @@
  * limitations under the License.
  */
 
-import { newError } from 'neo4j-driver-core'
+import { newError } from './error'
 
-function generateFieldLookup (keys) {
-  const lookup = {}
+type Dict<Key extends PropertyKey = PropertyKey, Value = any> = {
+  [K in Key]: Value
+}
+
+type Visitor<
+  Entries extends Dict = Dict,
+  Key extends keyof Entries = keyof Entries
+> = MapVisitor<void, Entries, Key>
+
+type MapVisitor<
+  ReturnType,
+  Entries extends Dict = Dict,
+  Key extends keyof Entries = keyof Entries
+> = (value: Entries[Key], key: Key, record: Record<Entries>) => ReturnType
+
+function generateFieldLookup<
+  Entries extends Dict = Dict,
+  Key extends keyof Entries = keyof Entries,
+  FieldLookup extends Dict<string, number> = Dict<string, number>
+> (keys: Key[]): FieldLookup {
+  const lookup: Dict<string, number> = {}
   keys.forEach((name, idx) => {
-    lookup[name] = idx
+    lookup[name as string] = idx
   })
-  return lookup
+  return lookup as FieldLookup
 }
 
 /**
@@ -46,7 +65,16 @@ function generateFieldLookup (keys) {
  *
  * @access public
  */
-class Record {
+class Record<
+  Entries extends Dict = Dict,
+  Key extends keyof Entries = keyof Entries,
+  FieldLookup extends Dict<string, number> = Dict<string, number>
+> {
+  keys: Key[]
+  length: number
+  private _fields: any[]
+  private _fieldLookup: FieldLookup
+
   /**
    * Create a new record object.
    * @constructor
@@ -57,7 +85,7 @@ class Record {
    *                            field names to values. If this is null, one will be
    *                            generated.
    */
-  constructor (keys, fields, fieldLookup = null) {
+  constructor (keys: Key[], fields: any[], fieldLookup?: FieldLookup) {
     /**
      * Field keys, in the order the fields appear in the record.
      * @type {string[]}
@@ -79,9 +107,9 @@ class Record {
    *
    * @param {function(value: Object, key: string, record: Record)} visitor the function to apply to each field.
    */
-  forEach (visitor) {
+  forEach (visitor: Visitor<Entries, Key>): void{
     for (const [key, value] of this.entries()) {
-      visitor(value, key, this)
+      visitor(value as any, key as any, this)
     }
   }
 
@@ -95,11 +123,11 @@ class Record {
    *
    * @returns {Array}
    */
-  map (visitor) {
+  map<Value> (visitor: MapVisitor<Value, Entries, Key>): Value[] {
     const resultArray = []
 
     for (const [key, value] of this.entries()) {
-      resultArray.push(visitor(value, key, this))
+      resultArray.push(visitor(value as any, key as any, this))
     }
 
     return resultArray
@@ -112,9 +140,9 @@ class Record {
    * @generator
    * @returns {IterableIterator<Array>}
    */
-  * entries () {
+  * entries (): IterableIterator<[string, any]> {
     for (let i = 0; i < this.keys.length; i++) {
-      yield [this.keys[i], this._fields[i]]
+      yield [this.keys[i] as string, this._fields[i]]
     }
   }
 
@@ -124,7 +152,7 @@ class Record {
    * @generator
    * @returns {IterableIterator<Object>}
    */
-  * values () {
+  * values (): IterableIterator<Object>{
     for (let i = 0; i < this.keys.length; i++) {
       yield this._fields[i]
     }
@@ -136,8 +164,10 @@ class Record {
    * @generator
    * @returns {IterableIterator<Object>}
    */
-  * [Symbol.iterator] () {
-    yield * this.values()
+  * [Symbol.iterator] (): IterableIterator<Object> {
+    for (let i = 0; i < this.keys.length; i++) {
+      yield this._fields[i]
+    }
   }
 
   /**
@@ -145,26 +175,30 @@ class Record {
    *
    * @returns {Object}
    */
-  toObject () {
-    const object = {}
+  toObject (): Entries {
+    const obj: Entries = {} as Entries
 
     for (const [key, value] of this.entries()) {
-      object[key] = value
+      obj[key as any] = value
     }
 
-    return object
+    return obj
   }
 
+  get<K extends Key> (key: K ): Entries[K];
+  get(key: keyof FieldLookup | number ): any;
+
+  
   /**
    * Get a value from this record, either by index or by field key.
    *
    * @param {string|Number} key Field key, or the index of the field.
    * @returns {*}
    */
-  get (key) {
+  get(key: string|number ): any {
     let index
     if (!(typeof key === 'number')) {
-      index = this._fieldLookup[key]
+      index = this._fieldLookup[key as string]
       if (index === undefined) {
         throw newError(
           "This record has no field with key '" +
@@ -196,14 +230,14 @@ class Record {
    * @param {string|Number} key Field key, or the index of the field.
    * @returns {boolean}
    */
-  has (key) {
+  has (key: Key|string|number): boolean {
     // if key is a number, we check if it is in the _fields array
     if (typeof key === 'number') {
       return key >= 0 && key < this._fields.length
     }
 
     // if it's not a number, we check _fieldLookup dictionary directly
-    return this._fieldLookup[key] !== undefined
+    return this._fieldLookup[key as string] !== undefined
   }
 }
 
