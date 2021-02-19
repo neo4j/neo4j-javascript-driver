@@ -387,13 +387,14 @@ describe('#integration session', () => {
               'Query failed after a long running query was terminated',
               error
             )
+            done.fail.bind(done)
           })
       })
 
     // wait some time than close the session with a long running query
     setTimeout(() => {
       session.close().catch(done.fail.bind(done))
-    }, 1000)
+    }, 200)
   }, 70000)
 
   /* flaky

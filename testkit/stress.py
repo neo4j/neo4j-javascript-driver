@@ -11,4 +11,4 @@ if __name__ == "__main__":
     os.environ['STRESS_TEST_MODE'] = 'fastest'
     os.environ['RUNNING_TIME_IN_SECONDS'] = \
         os.environ.get('TEST_NEO4J_STRESS_DURATION', 0)
-    run(["npm", "run", "run-stress-tests"])
+    run(["gulp", "run-stress-tests-without-jasmine"])
