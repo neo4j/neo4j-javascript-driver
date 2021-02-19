@@ -16,14 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {
-  Node,
-  Path,
-  PathSegment,
-  Relationship,
-  UnboundRelationship
-} from './graph-types'
 import Result from './result'
 import ResultSummary from './result-summary'
 import Record from './record'
@@ -56,7 +48,12 @@ import {
   isTime,
   LocalDateTime,
   LocalTime,
-  Time
+  Time,
+  Node,
+  Path,
+  PathSegment,
+  Relationship,
+  UnboundRelationship
 } from 'neo4j-driver-core'
 
 const {

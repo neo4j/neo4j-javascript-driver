@@ -17,14 +17,18 @@
  * limitations under the License.
  */
 import { utf8 } from './node'
-import { newError, error, int, isInt, Integer } from 'neo4j-driver-core'
 import {
+  newError,
+  error,
+  int,
+  isInt,
+  Integer,
   Node,
   Path,
   PathSegment,
   Relationship,
   UnboundRelationship
-} from '../graph-types'
+} from 'neo4j-driver-core'
 
 const { PROTOCOL_ERROR } = error
 

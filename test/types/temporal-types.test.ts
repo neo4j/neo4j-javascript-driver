@@ -31,10 +31,9 @@ import {
   isTime,
   LocalDateTime,
   LocalTime,
-  Time
+  Time,
+  StandardDate
 } from 'neo4j-driver-core'
-
-import { StandardDate } from '../../types/graph-types'
 
 const duration1: Duration = new Duration(int(1), int(1), int(1), int(1))
 const months1: Integer = duration1.months

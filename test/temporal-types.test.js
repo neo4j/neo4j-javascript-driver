@@ -23,6 +23,7 @@ import {
   timeZoneOffsetInSeconds,
   totalNanoseconds
 } from '../src/internal/temporal-util'
+import { toNumber } from 'neo4j-driver-core'
 import timesSeries from 'async/timesSeries'
 import _ from 'lodash'
 import testUtils from './internal/test-utils'
@@ -1706,7 +1707,7 @@ describe('#integration temporal-types', () => {
       date.getHours(),
       date.getMinutes(),
       date.getSeconds(),
-      totalNanoseconds(date, nanosecond)
+      toNumber(totalNanoseconds(date, nanosecond))
     )
     expect(converted).toEqual(expected)
   }
@@ -1717,7 +1718,7 @@ describe('#integration temporal-types', () => {
       date.getHours(),
       date.getMinutes(),
       date.getSeconds(),
-      totalNanoseconds(date, nanosecond),
+      toNumber(totalNanoseconds(date, nanosecond)),
       timeZoneOffsetInSeconds(date)
     )
     expect(converted).toEqual(expected)
@@ -1745,7 +1746,7 @@ describe('#integration temporal-types', () => {
       date.getHours(),
       date.getMinutes(),
       date.getSeconds(),
-      totalNanoseconds(date, nanosecond)
+      toNumber(totalNanoseconds(date, nanosecond))
     )
     expect(converted).toEqual(expected)
   }
@@ -1759,7 +1760,7 @@ describe('#integration temporal-types', () => {
       date.getHours(),
       date.getMinutes(),
       date.getSeconds(),
-      totalNanoseconds(date, nanosecond),
+      toNumber(totalNanoseconds(date, nanosecond)),
       timeZoneOffsetInSeconds(date)
     )
     expect(converted).toEqual(expected)

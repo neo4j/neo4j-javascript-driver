@@ -39,6 +39,20 @@ import {
   LocalTime,
   Time
 } from './temporal-types'
+import {
+  StandardDate,
+  NumberOrInteger,
+  Node,
+  isNode,
+  Relationship,
+  isRelationship,
+  UnboundRelationship,
+  isUnboundRelationship,
+  Path,
+  isPath,
+  PathSegment,
+  isPathSegment
+} from './graph-types'
 import { isPoint, Point } from './spatial-types'
 import * as internal from './internal' // todo: removed afterwards
 
@@ -78,7 +92,17 @@ const forExport = {
   isTime,
   LocalDateTime,
   LocalTime,
-  Time
+  Time,
+  Node,
+  isNode,
+  Relationship,
+  isRelationship,
+  UnboundRelationship,
+  isUnboundRelationship,
+  Path,
+  isPath,
+  PathSegment,
+  isPathSegment
 }
 
 export {
@@ -105,7 +129,19 @@ export {
   isTime,
   LocalDateTime,
   LocalTime,
-  Time
+  Time,
+  StandardDate,
+  NumberOrInteger,
+  Node,
+  isNode,
+  Relationship,
+  isRelationship,
+  UnboundRelationship,
+  isUnboundRelationship,
+  Path,
+  isPath,
+  PathSegment,
+  isPathSegment
 }
 
 export default forExport

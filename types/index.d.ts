@@ -18,14 +18,6 @@
  */
 
 import {
-  Node,
-  Path,
-  PathSegment,
-  Relationship,
-  UnboundRelationship
-} from './graph-types'
-
-import {
   Neo4jError,
   error,
   Integer,
@@ -47,7 +39,12 @@ import {
   isTime,
   LocalDateTime,
   LocalTime,
-  Time
+  Time,
+  Node,
+  Path,
+  PathSegment,
+  Relationship,
+  UnboundRelationship
 } from 'neo4j-driver-core'
 import Result, { ResultObserver, QueryResult } from './result'
 import ResultSummary, {
