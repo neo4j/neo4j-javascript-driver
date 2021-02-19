@@ -80,13 +80,15 @@ export const DAYS_PER_400_YEAR_CYCLE = 146097
 export const SECONDS_PER_DAY = 86400
 
 export function normalizeSecondsForDuration (
-  seconds: number,
-  nanoseconds: number
+  seconds: number | Integer,
+  nanoseconds: number | Integer
 ): Integer {
   return int(seconds).add(floorDiv(nanoseconds, NANOS_PER_SECOND))
 }
 
-export function normalizeNanosecondsForDuration (nanoseconds: number): Integer {
+export function normalizeNanosecondsForDuration (
+  nanoseconds: number | Integer
+): Integer {
   return floorMod(nanoseconds, NANOS_PER_SECOND)
 }
 

@@ -25,6 +25,20 @@ import {
   SESSION_EXPIRED
 } from './error'
 import Integer, { int, isInt, inSafeRange, toNumber, toString } from './integer'
+import {
+  Date,
+  DateTime,
+  Duration,
+  isDate,
+  isDateTime,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
+} from './temporal-types'
 import { isPoint, Point } from './spatial-types'
 import * as internal from './internal' // todo: removed afterwards
 
@@ -52,7 +66,19 @@ const forExport = {
   toString,
   internal,
   isPoint,
-  Point
+  Point,
+  Date,
+  DateTime,
+  Duration,
+  isDate,
+  isDateTime,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
 }
 
 export {
@@ -67,7 +93,19 @@ export {
   toString,
   internal,
   isPoint,
-  Point
+  Point,
+  Date,
+  DateTime,
+  Duration,
+  isDate,
+  isDateTime,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
 }
 
 export default forExport

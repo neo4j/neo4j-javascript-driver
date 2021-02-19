@@ -24,7 +24,18 @@ import {
   Relationship,
   UnboundRelationship
 } from './graph-types'
+
 import {
+  Neo4jError,
+  error,
+  Integer,
+  inSafeRange,
+  int,
+  isInt,
+  toNumber,
+  toString,
+  isPoint,
+  Point,
   Date,
   DateTime,
   Duration,
@@ -37,18 +48,6 @@ import {
   LocalDateTime,
   LocalTime,
   Time
-} from './temporal-types'
-import {
-  Neo4jError,
-  error,
-  Integer,
-  inSafeRange,
-  int,
-  isInt,
-  toNumber,
-  toString,
-  isPoint,
-  Point
 } from 'neo4j-driver-core'
 import Result, { ResultObserver, QueryResult } from './result'
 import ResultSummary, {

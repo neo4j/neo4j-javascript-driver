@@ -16,8 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Date, LocalDateTime, LocalTime } from '../temporal-types'
-import { int } from 'neo4j-driver-core'
+import { int, Date, LocalDateTime, LocalTime } from 'neo4j-driver-core'
 import {
   DAYS_0000_TO_1970,
   DAYS_PER_400_YEAR_CYCLE,

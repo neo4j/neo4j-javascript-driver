@@ -31,20 +31,6 @@ import { Driver, READ, WRITE } from './driver'
 import RoutingDriver from './routing-driver'
 import VERSION from './version'
 import urlUtil from './internal/url-util'
-import {
-  Date,
-  DateTime,
-  Duration,
-  isDate,
-  isDateTime,
-  isDuration,
-  isLocalDateTime,
-  isLocalTime,
-  isTime,
-  LocalDateTime,
-  LocalTime,
-  Time
-} from './temporal-types'
 import ServerAddress from './internal/server-address'
 
 import {
@@ -58,7 +44,19 @@ import {
   toString,
   internal,
   isPoint,
-  Point
+  Point,
+  Date,
+  DateTime,
+  Duration,
+  isDate,
+  isDateTime,
+  isDuration,
+  isLocalDateTime,
+  isLocalTime,
+  isTime,
+  LocalDateTime,
+  LocalTime,
+  Time
 } from 'neo4j-driver-core'
 
 const {
