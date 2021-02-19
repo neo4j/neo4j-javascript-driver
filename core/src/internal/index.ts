@@ -18,5 +18,6 @@
  */
 
 import * as util from './util'
+import * as temporalUtil from './temporal-util'
 
-export { util }
+export { util, temporalUtil }

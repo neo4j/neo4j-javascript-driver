@@ -41,9 +41,9 @@ export class Point<T extends Integer | number = Integer> {
   constructor(srid: T, x: number, y: number, z?: number) {
     /**
      * The coordinate reference system identifier.
-     * @type {Integer|number}
+     * @type {T}
      */
-    this.srid = assertNumberOrInteger(srid, 'SRID')
+    this.srid = <T>assertNumberOrInteger(srid, 'SRID')
     /**
      * The `x` coordinate of the point.
      * @type {number}
