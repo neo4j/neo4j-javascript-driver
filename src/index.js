@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import Result from './result'
-import ResultSummary from './result-summary'
 import { Driver, READ, WRITE } from './driver'
 import RoutingDriver from './routing-driver'
 import VERSION from './version'
@@ -53,7 +52,8 @@ import {
   PathSegment,
   Relationship,
   UnboundRelationship,
-  Record
+  Record,
+  ResultSummary
 } from 'neo4j-driver-core'
 
 const {

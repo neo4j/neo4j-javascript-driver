@@ -20,7 +20,7 @@
 import Session from './session'
 import RxSession from './session-rx'
 import { Parameters } from './query-runner'
-import { ServerInfo } from './result-summary'
+import { ServerInfo } from 'neo4j-driver-core'
 
 declare interface AuthToken {
   scheme: string

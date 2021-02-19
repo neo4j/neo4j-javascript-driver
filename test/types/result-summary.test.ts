@@ -17,15 +17,16 @@
  * limitations under the License.
  */
 
-import ResultSummary, {
+import {
+  Integer,
+  ResultSummary,
   Notification,
   NotificationPosition,
   Plan,
   ProfiledPlan,
   ServerInfo,
-  QueryStatistic
-} from '../../types/result-summary'
-import { Integer } from 'neo4j-driver-core'
+  QueryStatistics
+} from 'neo4j-driver-core'
 
 const dummy: any = null
 
@@ -37,31 +38,32 @@ const stmtParams: object = stmt.parameters
 
 const str: string = sum1.queryType
 
-const counters: QueryStatistic = sum1.counters
+const counters: QueryStatistics = sum1.counters
 
 const containsUpdates: boolean = counters.containsUpdates()
 const containsSystemUpdates: boolean = counters.containsSystemUpdates()
 const systemUpdates: number = counters.systemUpdates()
 const updates: { [key: string]: number } = counters.updates()
 
-const plan: Plan = sum1.plan
-const planOperatorType: string = plan.operatorType
-const planIdentifiers: string[] = plan.identifiers
-const planArguments: { [key: string]: string } = plan.arguments
-const planChildren: Plan[] = plan.children
+const plan: Plan | undefined = sum1.plan
+const planOperatorType: string | undefined = plan?.operatorType
+const planIdentifiers: string[] | undefined = plan?.identifiers
+const planArguments: { [key: string]: string } | undefined = plan?.arguments
+const planChildren: Plan[] | undefined = plan?.children
 
-const profile: ProfiledPlan = sum1.profile
-const profileOperatorType: string = profile.operatorType
-const profileIdentifiers: string[] = profile.identifiers
-const profileArguments: { [key: string]: string } = profile.arguments
-const profileDbHits: number = profile.dbHits
-const profileRows: number = profile.rows
-const hasPageCacheStats: boolean = profile.hasPageCacheStats()
-const profilePageCacheMisses: number = profile.pageCacheMisses
-const profilePageCacheHits: number = profile.pageCacheHits
-const profilePageCacheHitRatio: number = profile.pageCacheHitRatio
-const time: number = profile.time
-const profileChildren: ProfiledPlan[] = profile.children
+const profile: ProfiledPlan | undefined = sum1.profile
+const profileOperatorType: string | undefined = profile?.operatorType
+const profileIdentifiers: string[] | undefined = profile?.identifiers
+const profileArguments: { [key: string]: string } | undefined =
+  profile?.arguments
+const profileDbHits: number | undefined = profile?.dbHits
+const profileRows: number | undefined = profile?.rows
+const hasPageCacheStats: boolean | undefined = profile?.hasPageCacheStats()
+const profilePageCacheMisses: number | undefined = profile?.pageCacheMisses
+const profilePageCacheHits: number | undefined = profile?.pageCacheHits
+const profilePageCacheHitRatio: number | undefined = profile?.pageCacheHitRatio
+const time: number | undefined = profile?.time
+const profileChildren: ProfiledPlan[] | undefined = profile?.children
 
 const notifications: Notification[] = sum1.notifications
 const notification: Notification = notifications[0]

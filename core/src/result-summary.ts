@@ -17,13 +17,25 @@
  * limitations under the License.
  */
 
-import { isInt } from 'neo4j-driver-core'
+import Integer from './integer'
+import { NumberOrInteger } from './graph-types'
 
 /**
  * A ResultSummary instance contains structured metadata for a {@link Result}.
  * @access public
  */
-class ResultSummary {
+class ResultSummary<T extends NumberOrInteger = Integer> {
+  query: { text: string; parameters: { [key: string]: any } }
+  queryType: string
+  counters: QueryStatistics
+  updateStatistics: QueryStatistics
+  plan?: Plan
+  profile?: ProfiledPlan
+  notifications: Notification[]
+  server: ServerInfo
+  resultConsumedAfter: T
+  resultAvailableAfter: T
+  database: { name: string | undefined | null }
   /**
    * @constructor
    * @param {string} query - The query this summary is for
@@ -31,7 +43,12 @@ class ResultSummary {
    * @param {Object} metadata - Query metadata
    * @param {number} protocolVersion - Bolt protocol version
    */
-  constructor (query, parameters, metadata, protocolVersion) {
+  constructor(
+    query: string,
+    parameters: { [key: string]: any },
+    metadata: any,
+    protocolVersion: number
+  ) {
     /**
      * The query and parameters this summary is for.
      * @type {{text: string, parameters: Object}}
@@ -72,7 +89,7 @@ class ResultSummary {
     this.plan =
       metadata.plan || metadata.profile
         ? new Plan(metadata.plan || metadata.profile)
-        : false
+        : undefined
 
     /**
      * This describes how the database did execute your query. This will contain detailed information about what
@@ -81,7 +98,9 @@ class ResultSummary {
      * @type {ProfiledPlan}
      * @public
      */
-    this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false
+    this.profile = metadata.profile
+      ? new ProfiledPlan(metadata.profile)
+      : undefined
 
     /**
      * An array of notifications that might arise when executing the query. Notifications can be warnings about
@@ -121,11 +140,11 @@ class ResultSummary {
     this.database = { name: metadata.db || null }
   }
 
-  _buildNotifications (notifications) {
+  _buildNotifications(notifications: any[]): Notification[] {
     if (!notifications) {
       return []
     }
-    return notifications.map(function (n) {
+    return notifications.map(function(n: any): Notification {
       return new Notification(n)
     })
   }
@@ -134,7 +153,7 @@ class ResultSummary {
    * Check if the result summary has a plan
    * @return {boolean}
    */
-  hasPlan () {
+  hasPlan(): boolean {
     return this.plan instanceof Plan
   }
 
@@ -142,7 +161,7 @@ class ResultSummary {
    * Check if the result summary has a profile
    * @return {boolean}
    */
-  hasProfile () {
+  hasProfile(): boolean {
     return this.profile instanceof ProfiledPlan
   }
 }
@@ -152,17 +171,22 @@ class ResultSummary {
  * @access public
  */
 class Plan {
+  operatorType: string
+  identifiers: string[]
+  arguments: { [key: string]: string }
+  children: Plan[]
+
   /**
    * Create a Plan instance
    * @constructor
    * @param {Object} plan - Object with plan data
    */
-  constructor (plan) {
+  constructor(plan: any) {
     this.operatorType = plan.operatorType
     this.identifiers = plan.identifiers
     this.arguments = plan.args
     this.children = plan.children
-      ? plan.children.map(child => new Plan(child))
+      ? plan.children.map((child: any) => new Plan(child))
       : []
   }
 }
@@ -172,12 +196,23 @@ class Plan {
  * @access public
  */
 class ProfiledPlan {
+  operatorType: string
+  identifiers: string[]
+  arguments: { [key: string]: string }
+  dbHits: number
+  rows: number
+  pageCacheMisses: number
+  pageCacheHits: number
+  pageCacheHitRatio: number
+  time: number
+  children: ProfiledPlan[]
+
   /**
    * Create a ProfiledPlan instance
    * @constructor
    * @param {Object} profile - Object with profile data
    */
-  constructor (profile) {
+  constructor(profile: any) {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
@@ -188,11 +223,11 @@ class ProfiledPlan {
     this.pageCacheHitRatio = valueOrDefault('pageCacheHitRatio', profile)
     this.time = valueOrDefault('time', profile)
     this.children = profile.children
-      ? profile.children.map(child => new ProfiledPlan(child))
+      ? profile.children.map((child: any) => new ProfiledPlan(child))
       : []
   }
 
-  hasPageCacheStats () {
+  hasPageCacheStats(): boolean {
     return (
       this.pageCacheMisses > 0 ||
       this.pageCacheHits > 0 ||
@@ -201,17 +236,33 @@ class ProfiledPlan {
   }
 }
 
+interface Stats {
+  nodesCreated: number
+  nodesDeleted: number
+  relationshipsCreated: number
+  relationshipsDeleted: number
+  propertiesSet: number
+  labelsAdded: number
+  labelsRemoved: number
+  indexesAdded: number
+  indexesRemoved: number
+  constraintsAdded: number
+  constraintsRemoved: number
+  [key: string]: number
+}
 /**
  * Get statistical information for a {@link Result}.
  * @access public
  */
 class QueryStatistics {
+  private _stats: Stats
+  private _systemUpdates: number
   /**
    * Structurize the statistics
    * @constructor
    * @param {Object} statistics - Result statistics
    */
-  constructor (statistics) {
+  constructor(statistics: any) {
     this._stats = {
       nodesCreated: 0,
       nodesDeleted: 0,
@@ -243,7 +294,7 @@ class QueryStatistics {
    * Did the database get updated?
    * @return {boolean}
    */
-  containsUpdates () {
+  containsUpdates(): boolean {
     return (
       Object.keys(this._stats).reduce((last, current) => {
         return last + this._stats[current]
@@ -255,7 +306,7 @@ class QueryStatistics {
    * Returns the query statistics updates in a dictionary.
    * @returns {*}
    */
-  updates () {
+  updates(): Stats {
     return this._stats
   }
 
@@ -263,16 +314,22 @@ class QueryStatistics {
    * Return true if the system database get updated, otherwise false
    * @returns {boolean} - If the system database get updated or not.
    */
-  containsSystemUpdates () {
+  containsSystemUpdates(): boolean {
     return this._systemUpdates > 0
   }
 
   /**
    * @returns {number} - Number of system updates
    */
-  systemUpdates () {
+  systemUpdates(): number {
     return this._systemUpdates
   }
+}
+
+interface NotificationPosition {
+  offset: number
+  line: number
+  column: number
 }
 
 /**
@@ -280,12 +337,18 @@ class QueryStatistics {
  * @access public
  */
 class Notification {
+  code: string
+  title: string
+  description: string
+  severity: string
+  position: NotificationPosition | {}
+
   /**
    * Create a Notification instance
    * @constructor
    * @param {Object} notification - Object with notification data
    */
-  constructor (notification) {
+  constructor(notification: any) {
     this.code = notification.code
     this.title = notification.title
     this.description = notification.description
@@ -293,7 +356,7 @@ class Notification {
     this.position = Notification._constructPosition(notification.position)
   }
 
-  static _constructPosition (pos) {
+  static _constructPosition(pos: NotificationPosition) {
     if (!pos) {
       return {}
     }
@@ -310,13 +373,17 @@ class Notification {
  * @access public
  */
 class ServerInfo {
+  address: string
+  version: string
+  protocolVersion: number
+
   /**
    * Create a ServerInfo instance
    * @constructor
    * @param {Object} serverMeta - Object with serverMeta data
    * @param {number} protocolVersion - Bolt protocol version
    */
-  constructor (serverMeta, protocolVersion) {
+  constructor(serverMeta: any, protocolVersion: number) {
     if (serverMeta) {
       this.address = serverMeta.address
       this.version = serverMeta.version
@@ -325,14 +392,18 @@ class ServerInfo {
   }
 }
 
-function intValue (value) {
-  return isInt(value) ? value.toInt() : value
+function intValue(value: NumberOrInteger): number {
+  return value instanceof Integer ? value.toInt() : value
 }
 
-function valueOrDefault (key, values, defaultValue = 0) {
+function valueOrDefault(
+  key: string,
+  values: { [key: string]: NumberOrInteger },
+  defaultValue: number = 0
+): number {
   if (key in values) {
     const value = values[key]
-    return isInt(value) ? value.toInt() : value
+    return value instanceof Integer ? value.toInt() : value
   } else {
     return defaultValue
   }
@@ -349,6 +420,14 @@ const queryType = {
   SCHEMA_WRITE: 's'
 }
 
-export { queryType }
+export {
+  queryType,
+  ServerInfo,
+  Notification,
+  NotificationPosition,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics
+}
 
 export default ResultSummary

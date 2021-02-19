@@ -55,6 +55,15 @@ import {
 } from './graph-types'
 import Record from './record'
 import { isPoint, Point } from './spatial-types'
+import ResultSummary, {
+  queryType,
+  ServerInfo,
+  Notification,
+  NotificationPosition,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics
+} from './result-summary'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -104,7 +113,14 @@ const forExport = {
   isPath,
   PathSegment,
   isPathSegment,
-  Record
+  Record,
+  ResultSummary,
+  queryType,
+  ServerInfo,
+  Notification,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics
 }
 
 export {
@@ -144,7 +160,15 @@ export {
   isPath,
   PathSegment,
   isPathSegment,
-  Record
+  Record,
+  ResultSummary,
+  queryType,
+  ServerInfo,
+  Notification,
+  NotificationPosition,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics
 }
 
 export default forExport

@@ -18,9 +18,6 @@
  */
 
 import RxResult from '../../types/result-rx'
-import Record from 'neo4j-driver-core'
-import ResultSummary from '../../types/result-summary'
-import { Observer } from 'rxjs'
 
 const dummy: any = null
 

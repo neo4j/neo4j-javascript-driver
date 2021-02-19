@@ -45,17 +45,16 @@ import {
   PathSegment,
   Relationship,
   UnboundRelationship,
-  Record
-} from 'neo4j-driver-core'
-import Result, { ResultObserver, QueryResult } from './result'
-import ResultSummary, {
+  Record,
+  ResultSummary,
   Notification,
   NotificationPosition,
   Plan,
   ProfiledPlan,
   ServerInfo,
-  QueryStatistic
-} from './result-summary'
+  QueryStatistics
+} from 'neo4j-driver-core'
+import Result, { ResultObserver, QueryResult } from './result'
 import Session from './session'
 import {
   AuthToken,
@@ -173,7 +172,7 @@ declare const forExport: {
   ResultSummary: ResultSummary
   Plan: Plan
   ProfiledPlan: ProfiledPlan
-  QueryStatistic: QueryStatistic
+  QueryStatistic: QueryStatistics
   Notification: Notification
   ServerInfo: ServerInfo
   NotificationPosition: NotificationPosition
@@ -226,7 +225,7 @@ export {
   ResultSummary,
   Plan,
   ProfiledPlan,
-  QueryStatistic,
+  QueryStatistics,
   Notification,
   ServerInfo,
   NotificationPosition,

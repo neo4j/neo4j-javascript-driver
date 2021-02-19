@@ -18,9 +18,8 @@
  */
 
 import RxTransaction from '../../types/transaction-rx'
-import { Record } from 'neo4j-driver-core'
+import { Record, ResultSummary } from 'neo4j-driver-core'
 import RxResult from '../../types/result-rx'
-import ResultSummary from '../../types/result-summary'
 import { Observable, of, Observer, throwError } from 'rxjs'
 import { concat, finalize, catchError } from 'rxjs/operators'
 

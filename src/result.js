@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import ResultSummary from './result-summary'
+import { ResultSummary } from 'neo4j-driver-core'
 import { EMPTY_CONNECTION_HOLDER } from './internal/connection-holder'
 import { ResultStreamObserver } from './internal/bolt'
 
