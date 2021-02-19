@@ -693,7 +693,7 @@ describe('#integration-rx transaction', () => {
       .toPromise()
     expect(result).toEqual([
       Notification.createError(
-        jasmine.stringMatching(/Unexpected end of input/)
+        jasmine.stringMatching(/Unexpected end of input|Invalid input/)
       )
     ])
   }
