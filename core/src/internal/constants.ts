@@ -17,21 +17,16 @@
  * limitations under the License.
  */
 
-import { internal } from 'neo4j-driver-core'
+const ACCESS_MODE_READ: string = 'READ'
+const ACCESS_MODE_WRITE: string = 'WRITE'
 
-const {
-  constants: {
-    ACCESS_MODE_READ,
-    ACCESS_MODE_WRITE,
-    BOLT_PROTOCOL_V1,
-    BOLT_PROTOCOL_V2,
-    BOLT_PROTOCOL_V3,
-    BOLT_PROTOCOL_V4_0,
-    BOLT_PROTOCOL_V4_1,
-    BOLT_PROTOCOL_V4_2,
-    BOLT_PROTOCOL_V4_3
-  }
-} = internal
+const BOLT_PROTOCOL_V1: number = 1
+const BOLT_PROTOCOL_V2: number = 2
+const BOLT_PROTOCOL_V3: number = 3
+const BOLT_PROTOCOL_V4_0: number = 4.0
+const BOLT_PROTOCOL_V4_1: number = 4.1
+const BOLT_PROTOCOL_V4_2: number = 4.2
+const BOLT_PROTOCOL_V4_3: number = 4.3
 
 export {
   ACCESS_MODE_READ,

@@ -17,13 +17,11 @@
  * limitations under the License.
  */
 
-import { newError } from './error'
-
 /**
  * Interface which defines the raw connection with the database
  * @private
  */
-interface Connection {
+class Connection {
   id: string
   databaseId: string
   server: any
@@ -41,13 +39,17 @@ interface Connection {
   /**
    * @returns {boolean} whether this connection is in a working condition
    */
-  isOpen(): boolean
+  isOpen (): boolean {
+    return false
+  }
 
   /**
    * @todo be removed and internalize the methods
    * @returns {any} the underlying bolt protocol assigned to this connection
    */
-  protocol(): any
+  protocol (): any {
+    throw Error('Not implemented')
+  }
 
   /**
    * Connect to the target address, negotiate Bolt protocol and send initialization message.
@@ -55,7 +57,9 @@ interface Connection {
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
-  connect(userAgent: string, authToken: any): Promise<Connection>
+  connect (userAgent: string, authToken: any): Promise<Connection> {
+    throw Error('Not implemented')
+  }
 
   /**
    * Write a message to the network channel.
@@ -63,67 +67,33 @@ interface Connection {
    * @param {ResultStreamObserver} observer the response observer.
    * @param {boolean} flush `true` if flush should happen after the message is written to the buffer.
    */
-  write(message: any, observer: any, flush: boolean): void
+  write (message: any, observer: any, flush: boolean): void {
+    throw Error('Not implemented')
+  }
+
   /**
    * Send a RESET-message to the database. Message is immediately flushed to the network.
    * @return {Promise<void>} promise resolved when SUCCESS-message response arrives, or failed when other response messages arrives.
    */
-  resetAndFlush(): Promise<void>
+  resetAndFlush (): Promise<void> {
+    throw Error('Not implemented')
+  }
 
   /**
    * Call close on the channel.
    * @returns {Promise<void>} - A promise that will be resolved when the connection is closed.
    *
    */
-  close(): Promise<void>
-}
-
-/**
- * @private
- */
-interface ConnectionHolder {
-  mode(): string | undefined
-  database(): string | undefined
-  initializeConnection(): boolean
-  getConnection(): Promise<Connection>
-  releaseConnection(): Promise<Connection | void>
-  close(): Promise<Connection | void>
-}
-
-class EmptyConnectionHolder implements ConnectionHolder {
-  mode(): undefined {
-    return undefined
+  close (): Promise<void> {
+    throw Error('Not implemented')
   }
 
-  database(): undefined {
-    return undefined
-  }
-
-  initializeConnection() {
-    // nothing to initialize
-    return true
-  }
-
-  getConnection(): Promise<Connection> {
-    return Promise.reject(
-      newError('This connection holder does not serve connections')
-    )
-  }
-
-  releaseConnection(): Promise<void> {
-    return Promise.resolve()
-  }
-
-  close(): Promise<void> {
+  /**
+   * Called to release the connection
+   */
+  _release (): Promise<void> {
     return Promise.resolve()
   }
 }
-
-/**
- * Connection holder that does not manage any connections.
- * @type {ConnectionHolder}
- */
-const EMPTY_CONNECTION_HOLDER = new EmptyConnectionHolder()
 
 export default Connection
-export { ConnectionHolder, EMPTY_CONNECTION_HOLDER }

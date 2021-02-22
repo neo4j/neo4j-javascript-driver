@@ -19,13 +19,10 @@
 
 import ResultSummary from './result-summary'
 import Record from './record'
-import Connection, {
-  ConnectionHolder,
-  EMPTY_CONNECTION_HOLDER
-} from './connection'
 import { Query } from './types'
-import { observer } from './internal'
-import { validateQueryAndParameters } from './internal/util'
+import { observer, util, connectionHolder } from './internal'
+
+const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
 const DEFAULT_ON_ERROR = (error: Error) => {
   console.log('Uncaught error when processing result: ' + error)
@@ -85,7 +82,7 @@ class Result implements Promise<QueryResult> {
   private _p: Promise<QueryResult> | null
   private _query: Query
   private _parameters: any
-  private _connectionHolder: ConnectionHolder
+  private _connectionHolder: connectionHolder.ConnectionHolder
 
   /**
    * Inject the observer to be used.
@@ -100,7 +97,7 @@ class Result implements Promise<QueryResult> {
     streamObserverPromise: Promise<observer.ResultStreamObserver>,
     query: Query,
     parameters?: any,
-    connectionHolder?: ConnectionHolder
+    connectionHolder?: connectionHolder.ConnectionHolder
   ) {
     this._stack = captureStacktrace()
     this._streamObserverPromise = streamObserverPromise
@@ -242,7 +239,7 @@ class Result implements Promise<QueryResult> {
       const {
         validatedQuery: query,
         params: parameters
-      } = validateQueryAndParameters(this._query, this._parameters, {
+      } = util.validateQueryAndParameters(this._query, this._parameters, {
         skipAsserts: true
       })
 

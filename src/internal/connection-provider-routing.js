@@ -107,7 +107,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmark } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks } = {}) {
     let name
     let address
 
@@ -120,7 +120,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     const routingTable = await this._freshRoutingTable({
       accessMode,
       database: database || DEFAULT_DB_NAME,
-      bookmark
+      bookmark: bookmarks
     })
 
     // select a target server based on specified access mode

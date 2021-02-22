@@ -21,5 +21,7 @@ import * as util from './util'
 import * as temporalUtil from './temporal-util'
 import * as observer from './observers'
 import * as bookmark from './bookmark'
+import * as constants from './constants'
+import * as connectionHolder from './connection-holder'
 
-export { util, temporalUtil, observer, bookmark }
+export { util, temporalUtil, observer, bookmark, constants, connectionHolder }
