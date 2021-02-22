@@ -297,7 +297,7 @@ class Result implements Promise<QueryResult> {
    * @protected
    * @since 4.0.0
    */
-  private _cancel(): void {
+  _cancel(): void {
     this._streamObserverPromise.then(o => o.cancel())
   }
 }

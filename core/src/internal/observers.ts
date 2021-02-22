@@ -104,3 +104,5 @@ export interface ResultStreamObserver extends StreamObserver {
    */
   subscribe(observer: ResultObserver): void
 }
+
+// @todo implement observers
