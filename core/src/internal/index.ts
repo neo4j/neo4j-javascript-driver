@@ -23,5 +23,14 @@ import * as observer from './observers'
 import * as bookmark from './bookmark'
 import * as constants from './constants'
 import * as connectionHolder from './connection-holder'
+import * as txConfig from './tx-config'
 
-export { util, temporalUtil, observer, bookmark, constants, connectionHolder }
+export {
+  util,
+  temporalUtil,
+  observer,
+  bookmark,
+  constants,
+  connectionHolder,
+  txConfig
+}
