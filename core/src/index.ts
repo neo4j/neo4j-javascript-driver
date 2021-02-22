@@ -65,6 +65,7 @@ import ResultSummary, {
   QueryStatistics
 } from './result-summary'
 import Result, { QueryResult, ResultObserver } from './result'
+import ConnectionProvider from './connection-provider'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -173,7 +174,8 @@ export {
   QueryStatistics,
   Result,
   QueryResult,
-  ResultObserver
+  ResultObserver,
+  ConnectionProvider
 }
 
 export default forExport
