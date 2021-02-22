@@ -63,13 +63,15 @@ function isObject(obj: any): boolean {
  */
 function validateQueryAndParameters(
   query: string | String | { text: string; parameters?: any },
-  parameters?: any
+  parameters?: any,
+  opt?: { skipAsserts: boolean }
 ): {
   validatedQuery: string
   params: any
 } {
   let validatedQuery: string = ''
   let params = parameters || {}
+  const skipAsserts: boolean = opt?.skipAsserts || false
 
   if (typeof query === 'string') {
     validatedQuery = query
@@ -80,8 +82,10 @@ function validateQueryAndParameters(
     params = query.parameters || {}
   }
 
-  assertCypherQuery(validatedQuery)
-  assertQueryParameters(params)
+  if (!skipAsserts) {
+    assertCypherQuery(validatedQuery)
+    assertQueryParameters(params)
+  }
 
   return { validatedQuery, params }
 }

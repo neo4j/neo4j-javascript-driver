@@ -16,8 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import Result from './result'
 import QueryRunner from './query-runner'
 
 declare interface Transaction extends QueryRunner {

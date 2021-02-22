@@ -52,9 +52,11 @@ import {
   Plan,
   ProfiledPlan,
   ServerInfo,
-  QueryStatistics
+  QueryStatistics,
+  Result,
+  ResultObserver,
+  QueryResult
 } from 'neo4j-driver-core'
-import Result, { ResultObserver, QueryResult } from './result'
 import Session from './session'
 import {
   AuthToken,

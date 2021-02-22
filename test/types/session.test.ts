@@ -19,8 +19,13 @@
 
 import Session, { TransactionConfig } from '../../types/session'
 import Transaction from '../../types/transaction'
-import Result, { QueryResult } from '../../types/result'
-import { Integer, Record, ResultSummary } from 'neo4j-driver-core'
+import {
+  Integer,
+  Record,
+  ResultSummary,
+  QueryResult,
+  Result
+} from 'neo4j-driver-core'
 
 const dummy: any = null
 const intValue: Integer = Integer.fromInt(42)

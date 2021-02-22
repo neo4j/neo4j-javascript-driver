@@ -17,15 +17,60 @@
  * limitations under the License.
  */
 
-import { ResultSummary } from 'neo4j-driver-core'
-import { EMPTY_CONNECTION_HOLDER } from './internal/connection-holder'
-import { ResultStreamObserver } from './internal/bolt'
+import ResultSummary from './result-summary'
+import Record from './record'
+import Connection, {
+  ConnectionHolder,
+  EMPTY_CONNECTION_HOLDER
+} from './connection'
+import { Query } from './types'
+import { observer } from './internal'
+import { validateQueryAndParameters } from './internal/util'
 
-const DEFAULT_ON_ERROR = error => {
+const DEFAULT_ON_ERROR = (error: Error) => {
   console.log('Uncaught error when processing result: ' + error)
 }
-const DEFAULT_ON_COMPLETED = summary => {}
-const DEFAULT_METADATA_SUPPLIER = metadata => {}
+const DEFAULT_ON_COMPLETED = (summary: ResultSummary) => {}
+
+/**
+ * The query result is the combination of the {@link ResultSummary} and
+ * the array {@link Record[]} produced by the query
+ */
+interface QueryResult {
+  records: Record[]
+  summary: ResultSummary
+}
+
+/**
+ * Interface to observe updates on the Result which is being produced.
+ *
+ */
+interface ResultObserver {
+  /**
+   * Receive the keys present on the record whenever this information is available
+   *
+   * @param {string[]} keys The keys present on the {@link Record}
+   */
+  onKeys?: (keys: string[]) => void
+
+  /**
+   * Receive the each record present on the {@link @Result}
+   * @param {Record} record The {@link Record} produced
+   */
+  onNext?: (record: Record) => void
+
+  /**
+   * Called when the result is fully received
+   * @param {ResultSummary} summary The result summary
+   */
+  onCompleted?: (summary: ResultSummary) => void
+
+  /**
+   * Called when some error occurs during the result proccess or query execution
+   * @param {Error} error The error ocurred
+   */
+  onError?: (error: Error) => void
+}
 
 /**
  * A stream of {@link Record} representing the result of a query.
@@ -34,17 +79,29 @@ const DEFAULT_METADATA_SUPPLIER = metadata => {}
  * Alternatively can be consumed lazily using {@link Result#subscribe} function.
  * @access public
  */
-class Result {
+class Result implements Promise<QueryResult> {
+  private _stack: string | null
+  private _streamObserverPromise: Promise<observer.ResultStreamObserver>
+  private _p: Promise<QueryResult> | null
+  private _query: Query
+  private _parameters: any
+  private _connectionHolder: ConnectionHolder
+
   /**
    * Inject the observer to be used.
    * @constructor
    * @access private
-   * @param {Promise<ResultStreamObserver>} streamObserverPromise
+   * @param {Promise<observer.ResultStreamObserver>} streamObserverPromise
    * @param {mixed} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in query
    * @param {ConnectionHolder} connectionHolder - to be notified when result is either fully consumed or error happened.
    */
-  constructor (streamObserverPromise, query, parameters, connectionHolder) {
+  constructor(
+    streamObserverPromise: Promise<observer.ResultStreamObserver>,
+    query: Query,
+    parameters?: any,
+    connectionHolder?: ConnectionHolder
+  ) {
     this._stack = captureStacktrace()
     this._streamObserverPromise = streamObserverPromise
     this._p = null
@@ -62,7 +119,7 @@ class Result {
    * @returns {Promise<string[]>} - Field keys, in the order they will appear in records.
    }
    */
-  keys () {
+  keys(): Promise<string[]> {
     return new Promise((resolve, reject) => {
       this._streamObserverPromise.then(observer =>
         observer.subscribe({
@@ -82,7 +139,7 @@ class Result {
    * @returns {Promise<ResultSummary>} - Result summary.
    *
    */
-  summary () {
+  summary(): Promise<ResultSummary> {
     return new Promise((resolve, reject) => {
       this._streamObserverPromise.then(o => {
         o.cancel()
@@ -100,18 +157,18 @@ class Result {
    * @private
    * @return {Promise} new Promise.
    */
-  _getOrCreatePromise () {
+  private _getOrCreatePromise(): Promise<QueryResult> {
     if (!this._p) {
       this._p = new Promise((resolve, reject) => {
-        const records = []
+        const records: Record[] = []
         const observer = {
-          onNext: record => {
+          onNext: (record: Record) => {
             records.push(record)
           },
-          onCompleted: summary => {
+          onCompleted: (summary: ResultSummary) => {
             resolve({ records: records, summary: summary })
           },
-          onError: error => {
+          onError: (error: Error) => {
             reject(error)
           }
         }
@@ -132,7 +189,12 @@ class Result {
    * @param {function(error: {message:string, code:string})} onRejected - function to be called upon errors.
    * @return {Promise} promise.
    */
-  then (onFulfilled, onRejected) {
+  then<TResult1 = QueryResult, TResult2 = never>(
+    onFulfilled?:
+      | ((value: QueryResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
+  ): Promise<TResult1 | TResult2> {
     return this._getOrCreatePromise().then(onFulfilled, onRejected)
   }
 
@@ -144,8 +206,22 @@ class Result {
    * @param {function(error: Neo4jError)} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
-  catch (onRejected) {
+  catch<TResult = never>(
+    onRejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
+  ): Promise<QueryResult | TResult> {
     return this._getOrCreatePromise().catch(onRejected)
+  }
+
+  /**
+   * Called when finally the result is done
+   *
+   * *Should not be combined with {@link Result#subscribe} function.*
+   * @param {function()|null} onfinally - function when the promise finished
+   * @return {Promise} promise.
+   */
+  [Symbol.toStringTag]: string
+  finally(onfinally?: (() => void) | null): Promise<QueryResult> {
+    return this._getOrCreatePromise().finally(onfinally)
   }
 
   /**
@@ -159,21 +235,25 @@ class Result {
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return
    */
-  subscribe (observer) {
+  subscribe(observer: ResultObserver): void {
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
-    const onCompletedWrapper = metadata => {
+    const onCompletedWrapper = (metadata: any) => {
       const connectionHolder = this._connectionHolder
-      const query = this._query
-      const parameters = this._parameters
+      const {
+        validatedQuery: query,
+        params: parameters
+      } = validateQueryAndParameters(this._query, this._parameters, {
+        skipAsserts: true
+      })
 
-      function complete (protocolVersion) {
+      function complete(protocolVersion?: number) {
         onCompletedOriginal.call(
           observer,
           new ResultSummary(query, parameters, metadata, protocolVersion)
         )
       }
 
-      function release () {
+      function release() {
         // notify connection holder that the used connection is not needed any more because result has
         // been fully consumed; call the original onCompleted callback after that
         return connectionHolder.releaseConnection()
@@ -201,7 +281,7 @@ class Result {
     observer.onCompleted = onCompletedWrapper
 
     const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR
-    const onErrorWrapper = error => {
+    const onErrorWrapper = (error: Error) => {
       // notify connection holder that the used connection is not needed any more because error happened
       // and result can't bee consumed any further; call the original onError callback after that
       this._connectionHolder.releaseConnection().then(() => {
@@ -220,12 +300,12 @@ class Result {
    * @protected
    * @since 4.0.0
    */
-  _cancel () {
+  private _cancel(): void {
     this._streamObserverPromise.then(o => o.cancel())
   }
 }
 
-function captureStacktrace () {
+function captureStacktrace(): string | null {
   const error = new Error('')
   if (error.stack) {
     return error.stack.replace(/^Error(\n\r)*/, '') // we don't need the 'Error\n' part, if only it exists
@@ -233,7 +313,7 @@ function captureStacktrace () {
   return null
 }
 
-function replaceStacktrace (error, newStack) {
+function replaceStacktrace(error: Error, newStack?: string | null) {
   if (newStack) {
     // Error.prototype.toString() concatenates error.name and error.message nicely
     // then we add the rest of the stack trace
@@ -242,3 +322,4 @@ function replaceStacktrace (error, newStack) {
 }
 
 export default Result
+export { QueryResult, ResultObserver }

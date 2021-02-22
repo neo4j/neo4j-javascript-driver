@@ -19,8 +19,7 @@
 
 import Transaction from './transaction'
 import QueryRunner, { Parameters } from './query-runner'
-import Result from './result'
-import { NumberOrInteger } from 'neo4j-driver-core'
+import { NumberOrInteger, Result } from 'neo4j-driver-core'
 
 declare type TransactionWork<T> = (tx: Transaction) => T | Promise<T>
 

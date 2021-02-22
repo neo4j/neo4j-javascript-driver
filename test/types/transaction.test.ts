@@ -18,8 +18,7 @@
  */
 
 import Transaction from '../../types/transaction'
-import { Record, ResultSummary } from 'neo4j-driver-core'
-import Result, { QueryResult } from '../../types/result'
+import { Record, ResultSummary, Result, QueryResult } from 'neo4j-driver-core'
 
 const dummy: any = null
 

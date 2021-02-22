@@ -47,7 +47,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
     query: string,
     parameters: { [key: string]: any },
     metadata: any,
-    protocolVersion: number
+    protocolVersion?: number
   ) {
     /**
      * The query and parameters this summary is for.
@@ -373,7 +373,7 @@ class Notification {
 class ServerInfo {
   address: string
   version: string
-  protocolVersion: number
+  protocolVersion?: number
 
   /**
    * Create a ServerInfo instance
@@ -381,7 +381,7 @@ class ServerInfo {
    * @param {Object} serverMeta - Object with serverMeta data
    * @param {number} protocolVersion - Bolt protocol version
    */
-  constructor(serverMeta: any, protocolVersion: number) {
+  constructor(serverMeta: any, protocolVersion?: number) {
     if (serverMeta) {
       this.address = serverMeta.address
       this.version = serverMeta.version

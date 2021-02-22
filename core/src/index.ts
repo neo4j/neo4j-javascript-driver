@@ -64,6 +64,7 @@ import ResultSummary, {
   ProfiledPlan,
   QueryStatistics
 } from './result-summary'
+import Result, { QueryResult, ResultObserver } from './result'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -120,7 +121,8 @@ const forExport = {
   Notification,
   Plan,
   ProfiledPlan,
-  QueryStatistics
+  QueryStatistics,
+  Result
 }
 
 export {
@@ -168,7 +170,10 @@ export {
   NotificationPosition,
   Plan,
   ProfiledPlan,
-  QueryStatistics
+  QueryStatistics,
+  Result,
+  QueryResult,
+  ResultObserver
 }
 
 export default forExport
