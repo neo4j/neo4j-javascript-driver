@@ -29,8 +29,8 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
   queryType: string
   counters: QueryStatistics
   updateStatistics: QueryStatistics
-  plan?: Plan
-  profile?: ProfiledPlan
+  plan: Plan | false
+  profile: ProfiledPlan | false
   notifications: Notification[]
   server: ServerInfo
   resultConsumedAfter: T
@@ -83,13 +83,13 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * This describes how the database will execute the query.
      * Query plan for the executed query if available, otherwise undefined.
      * Will only be populated for queries that start with "EXPLAIN".
-     * @type {Plan}
+     * @type {Plan|false}
      * @public
      */
     this.plan =
       metadata.plan || metadata.profile
         ? new Plan(metadata.plan || metadata.profile)
-        : undefined
+        : false
 
     /**
      * This describes how the database did execute your query. This will contain detailed information about what
@@ -98,9 +98,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @type {ProfiledPlan}
      * @public
      */
-    this.profile = metadata.profile
-      ? new ProfiledPlan(metadata.profile)
-      : undefined
+    this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false
 
     /**
      * An array of notifications that might arise when executing the query. Notifications can be warnings about

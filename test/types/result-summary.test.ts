@@ -45,25 +45,42 @@ const containsSystemUpdates: boolean = counters.containsSystemUpdates()
 const systemUpdates: number = counters.systemUpdates()
 const updates: { [key: string]: number } = counters.updates()
 
-const plan: Plan | undefined = sum1.plan
-const planOperatorType: string | undefined = plan?.operatorType
-const planIdentifiers: string[] | undefined = plan?.identifiers
-const planArguments: { [key: string]: string } | undefined = plan?.arguments
-const planChildren: Plan[] | undefined = plan?.children
+const plan: Plan | false = sum1.plan
+const planOperatorType: string | false = plan ? plan.operatorType : false
+const planIdentifiers: string[] | false = plan ? plan.identifiers : false
+const planArguments: { [key: string]: string } | false = plan
+  ? plan.arguments
+  : false
+const planChildren: Plan[] | false = plan ? plan.children : false
 
-const profile: ProfiledPlan | undefined = sum1.profile
-const profileOperatorType: string | undefined = profile?.operatorType
-const profileIdentifiers: string[] | undefined = profile?.identifiers
-const profileArguments: { [key: string]: string } | undefined =
-  profile?.arguments
-const profileDbHits: number | undefined = profile?.dbHits
-const profileRows: number | undefined = profile?.rows
-const hasPageCacheStats: boolean | undefined = profile?.hasPageCacheStats()
-const profilePageCacheMisses: number | undefined = profile?.pageCacheMisses
-const profilePageCacheHits: number | undefined = profile?.pageCacheHits
-const profilePageCacheHitRatio: number | undefined = profile?.pageCacheHitRatio
-const time: number | undefined = profile?.time
-const profileChildren: ProfiledPlan[] | undefined = profile?.children
+const profile: ProfiledPlan | false = sum1.profile
+const profileOperatorType: string | false = profile
+  ? profile.operatorType
+  : false
+const profileIdentifiers: string[] | false = profile
+  ? profile.identifiers
+  : false
+const profileArguments: { [key: string]: string } | false = profile
+  ? profile.arguments
+  : false
+const profileDbHits: number | false = profile ? profile.dbHits : false
+const profileRows: number | false = profile ? profile.rows : false
+const hasPageCacheStats: boolean | false = profile
+  ? profile.hasPageCacheStats()
+  : false
+const profilePageCacheMisses: number | false = profile
+  ? profile.pageCacheMisses
+  : false
+const profilePageCacheHits: number | false = profile
+  ? profile.pageCacheHits
+  : false
+const profilePageCacheHitRatio: number | false = profile
+  ? profile.pageCacheHitRatio
+  : false
+const time: number | false = profile ? profile.time : false
+const profileChildren: ProfiledPlan[] | false = profile
+  ? profile.children
+  : false
 
 const notifications: Notification[] = sum1.notifications
 const notification: Notification = notifications[0]
