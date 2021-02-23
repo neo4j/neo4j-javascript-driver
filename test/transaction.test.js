@@ -644,6 +644,7 @@ describe('#integration transaction', () => {
           .rollback()
           .then(() => session.close())
           .then(() => done.fail('Query did not fail'))
+          .catch(done.fail.bind(done))
       )
       .catch(error =>
         tx
@@ -662,6 +663,7 @@ describe('#integration transaction', () => {
 
             done()
           })
+          .catch(done.fail.bind(done))
       )
   }
 })

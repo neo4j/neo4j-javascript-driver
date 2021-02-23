@@ -18,13 +18,13 @@
  */
 
 import Session, { TransactionConfig } from '../../types/session'
-import Transaction from '../../types/transaction'
 import {
   Integer,
   Record,
   ResultSummary,
   QueryResult,
-  Result
+  Result,
+  Transaction
 } from 'neo4j-driver-core'
 
 const dummy: any = null

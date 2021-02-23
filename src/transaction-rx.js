@@ -18,7 +18,7 @@
  */
 import { Observable } from 'rxjs'
 import RxResult from './result-rx'
-import Transaction from './transaction'
+import Transaction from 'neo4j-driver-core'
 
 /**
  * A reactive transaction, which provides the same functionality as {@link Transaction} but through a Reactive API.

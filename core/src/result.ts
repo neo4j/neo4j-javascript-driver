@@ -21,6 +21,7 @@ import ResultSummary from './result-summary'
 import Record from './record'
 import { Query } from './types'
 import { observer, util, connectionHolder } from './internal'
+import { CompletedObserver, FailedObserver } from './internal/observers'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
@@ -288,7 +289,9 @@ class Result implements Promise<QueryResult> {
     }
     observer.onError = onErrorWrapper
 
-    this._streamObserverPromise.then(o => o.subscribe(observer))
+    this._streamObserverPromise.then(o => {
+      return o.subscribe(observer)
+    })
   }
 
   /**

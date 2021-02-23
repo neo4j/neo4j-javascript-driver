@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 
+import { observer } from '.'
 import Record from '../record'
 import ResultSummary from '../result-summary'
 
@@ -34,7 +35,7 @@ interface StreamObserver {
    * to it's onError method, otherwise set instance variable _error.
    * @param {Object} error - An error object
    */
-  onError?: (error: Error) => void
+  onError: (error: Error) => void
   onCompleted?: (meta: any) => void
 }
 
@@ -58,9 +59,9 @@ interface ResultObserver {
 
   /**
    * Called when the result is fully received
-   * @param {ResultSummary} summary The result summary
+   * @param {ResultSummary| any} summary The result summary
    */
-  onCompleted?: (summary: ResultSummary) => void
+  onCompleted?: (summary: ResultSummary | any) => void
 
   /**
    * Called when some error occurs during the result proccess or query execution
@@ -105,4 +106,74 @@ export interface ResultStreamObserver extends StreamObserver {
   subscribe(observer: ResultObserver): void
 }
 
-// @todo implement observers
+export class CompletedObserver implements ResultStreamObserver {
+  subscribe(observer: ResultObserver): void {
+    apply(observer, observer.onKeys, [])
+    apply(observer, observer.onCompleted, {})
+  }
+
+  cancel(): void {
+    // do nothing
+  }
+
+  prepareToHandleSingleResponse(): void {
+    // do nothing
+  }
+
+  markCompleted(): void {
+    // do nothing
+  }
+
+  onError(error: Error): void {
+    // nothing to do, already finished
+    throw Error('CompletedObserver not supposed to call onError')
+  }
+}
+
+export class FailedObserver implements ResultStreamObserver {
+  private _error: Error
+  private _beforeError?: (error: Error) => void
+  private _observers: ResultObserver[]
+
+  constructor({
+    error,
+    onError
+  }: {
+    error: Error
+    onError?: (error: Error) => void | Promise<void>
+  }) {
+    this._error = error
+    this._beforeError = onError
+    this._observers = []
+    this.onError(error)
+  }
+
+  subscribe(observer: ResultObserver): void {
+    apply(observer, observer.onError, this._error)
+    this._observers.push(observer)
+  }
+
+  onError(error: Error): void {
+    Promise.resolve(apply(this, this._beforeError, error)).then(() =>
+      this._observers.forEach(o => apply(o, o.onError, error))
+    )
+  }
+
+  cancel(): void {
+    // do nothing
+  }
+
+  prepareToHandleSingleResponse(): void {
+    // do nothing
+  }
+
+  markCompleted(): void {
+    // do nothing
+  }
+}
+
+function apply<T>(thisArg: any, func?: (param: T) => void, param?: T): void {
+  if (func) {
+    func.bind(thisArg)(param)
+  }
+}

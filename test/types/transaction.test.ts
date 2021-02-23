@@ -17,8 +17,13 @@
  * limitations under the License.
  */
 
-import Transaction from '../../types/transaction'
-import { Record, ResultSummary, Result, QueryResult } from 'neo4j-driver-core'
+import {
+  Record,
+  ResultSummary,
+  Result,
+  QueryResult,
+  Transaction
+} from 'neo4j-driver-core'
 
 const dummy: any = null
 

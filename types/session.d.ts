@@ -17,9 +17,8 @@
  * limitations under the License.
  */
 
-import Transaction from './transaction'
 import QueryRunner, { Parameters } from './query-runner'
-import { NumberOrInteger, Result } from 'neo4j-driver-core'
+import { NumberOrInteger, Result, Transaction } from 'neo4j-driver-core'
 
 declare type TransactionWork<T> = (tx: Transaction) => T | Promise<T>
 

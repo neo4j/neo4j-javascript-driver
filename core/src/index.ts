@@ -66,6 +66,7 @@ import ResultSummary, {
 } from './result-summary'
 import Result, { QueryResult, ResultObserver } from './result'
 import ConnectionProvider from './connection-provider'
+import Transaction from './transaction'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -123,7 +124,8 @@ const forExport = {
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Result
+  Result,
+  Transaction
 }
 
 export {
@@ -175,7 +177,8 @@ export {
   Result,
   QueryResult,
   ResultObserver,
-  ConnectionProvider
+  ConnectionProvider,
+  Transaction
 }
 
 export default forExport

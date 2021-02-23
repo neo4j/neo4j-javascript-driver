@@ -17,8 +17,7 @@
  * limitations under the License.
  */
 import { ResultStreamObserver, FailedObserver } from './internal/bolt'
-import Transaction from './transaction'
-import { newError, internal, Result } from 'neo4j-driver-core'
+import { newError, internal, Result, Transaction } from 'neo4j-driver-core'
 import ConnectionHolder from './internal/connection-holder'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import TransactionExecutor from './internal/transaction-executor'

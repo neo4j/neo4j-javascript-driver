@@ -17,19 +17,24 @@
  * limitations under the License.
  */
 import { validateQueryAndParameters } from './internal/util'
-import ConnectionHolder, {
+import Connection from './connection'
+import {
+  ConnectionHolder,
+  ReadOnlyConnectionHolder,
   EMPTY_CONNECTION_HOLDER
 } from './internal/connection-holder'
-import ReadOnlyConnectionHolder from './internal/connection-holder-readonly'
-import Bookmark from './internal/bookmark'
-import TxConfig from './internal/tx-config'
+import { Bookmark } from './internal/bookmark'
+import { TxConfig } from './internal/tx-config'
 
 import {
   ResultStreamObserver,
   FailedObserver,
   CompletedObserver
-} from './internal/bolt'
-import { newError, Result } from 'neo4j-driver-core'
+} from './internal/observers'
+
+import { newError } from './error'
+import Result from './result'
+import { Query } from './types'
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -37,6 +42,17 @@ import { newError, Result } from 'neo4j-driver-core'
  * @access public
  */
 class Transaction {
+  private _connectionHolder: ConnectionHolder
+  private _reactive: boolean
+  private _state: any
+  private _onClose: () => void
+  private _onBookmark: (bookmark: Bookmark) => void
+  private _onConnection: () => void
+  private _onError: (error: Error) => Promise<Connection | void>
+  private _onComplete: (metadata: any) => void
+  private _fetchSize: number
+  private _results: any[]
+
   /**
    * @constructor
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
@@ -47,13 +63,20 @@ class Transaction {
    * @param {boolean} reactive whether this transaction generates reactive streams
    * @param {number} fetchSize - the record fetch size in each pulling batch.
    */
-  constructor ({
+  constructor({
     connectionHolder,
     onClose,
     onBookmark,
     onConnection,
     reactive,
     fetchSize
+  }: {
+    connectionHolder: ConnectionHolder
+    onClose: () => void
+    onBookmark: (bookmark: Bookmark) => void
+    onConnection: () => void
+    reactive: boolean
+    fetchSize: number
   }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
@@ -67,19 +90,23 @@ class Transaction {
     this._results = []
   }
 
-  _begin (bookmark, txConfig) {
+  _begin(bookmark: Bookmark | string | string[], txConfig: TxConfig) {
     this._connectionHolder
       .getConnection()
-      .then(conn => {
+      .then(connection => {
         this._onConnection()
-        return conn.protocol().beginTransaction({
-          bookmark: bookmark,
-          txConfig: txConfig,
-          mode: this._connectionHolder.mode(),
-          database: this._connectionHolder.database(),
-          beforeError: this._onError,
-          afterComplete: this._onComplete
-        })
+        if (connection) {
+          return connection.protocol().beginTransaction({
+            bookmark: bookmark,
+            txConfig: txConfig,
+            mode: this._connectionHolder.mode(),
+            database: this._connectionHolder.database(),
+            beforeError: this._onError,
+            afterComplete: this._onComplete
+          })
+        } else {
+          throw newError('No connection available')
+        }
       })
       .catch(error => this._onError(error))
   }
@@ -92,7 +119,7 @@ class Transaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run (query, parameters) {
+  run(query: Query, parameters?: any): Result {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters
@@ -117,7 +144,7 @@ class Transaction {
    *
    * @returns {Promise<void>} An empty promise if committed successfully or error if any error happened during commit.
    */
-  commit () {
+  commit(): Promise<void> {
     const committed = this._state.commit({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
@@ -131,7 +158,7 @@ class Transaction {
     return new Promise((resolve, reject) => {
       committed.result.subscribe({
         onCompleted: () => resolve(),
-        onError: error => reject(error)
+        onError: (error: any) => reject(error)
       })
     })
   }
@@ -144,7 +171,7 @@ class Transaction {
    * @returns {Promise<void>} An empty promise if rolled back successfully or error if any error happened during
    * rollback.
    */
-  rollback () {
+  rollback(): Promise<void> {
     const rolledback = this._state.rollback({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
@@ -158,7 +185,7 @@ class Transaction {
     return new Promise((resolve, reject) => {
       rolledback.result.subscribe({
         onCompleted: () => resolve(),
-        onError: error => reject(error)
+        onError: (error: any) => reject(error)
       })
     })
   }
@@ -167,11 +194,11 @@ class Transaction {
    * Check if this transaction is active, which means commit and rollback did not happen.
    * @return {boolean} `true` when not committed and not rolled back, `false` otherwise.
    */
-  isOpen () {
+  isOpen(): boolean {
     return this._state === _states.ACTIVE
   }
 
-  _onErrorCallback (err) {
+  _onErrorCallback(err: any): Promise<Connection | void> {
     // error will be "acknowledged" by sending a RESET message
     // database will then forget about this transaction and cleanup all corresponding resources
     // it is thus safe to move this transaction to a FAILED state and disallow any further interactions with it
@@ -182,9 +209,23 @@ class Transaction {
     return this._connectionHolder.releaseConnection()
   }
 
-  _onCompleteCallback (meta) {
+  _onCompleteCallback(meta: { bookmark?: string | string[] }): void {
     this._onBookmark(new Bookmark(meta.bookmark))
   }
+}
+
+/**
+ * Defines the structure of state transition function
+ * @private
+ */
+interface StateTransitionParams {
+  connectionHolder: ConnectionHolder
+  onError: (error: Error) => void
+  onComplete: (metadata: any) => void
+  onConnection: () => void
+  pendingResults: any[]
+  reactive: boolean
+  fetchSize: number
 }
 
 const _states = {
@@ -196,7 +237,7 @@ const _states = {
       onComplete,
       onConnection,
       pendingResults
-    }) => {
+    }: StateTransitionParams): any => {
       return {
         result: finishTransaction(
           true,
@@ -215,7 +256,7 @@ const _states = {
       onComplete,
       onConnection,
       pendingResults
-    }) => {
+    }: StateTransitionParams): any => {
       return {
         result: finishTransaction(
           false,
@@ -229,8 +270,8 @@ const _states = {
       }
     },
     run: (
-      query,
-      parameters,
+      query: Query,
+      parameters: any,
       {
         connectionHolder,
         onError,
@@ -238,22 +279,26 @@ const _states = {
         onConnection,
         reactive,
         fetchSize
-      }
-    ) => {
+      }: StateTransitionParams
+    ): any => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
       // No need to include mode and database name as it shall be inclued in begin
       const observerPromise = connectionHolder
         .getConnection()
         .then(conn => {
           onConnection()
-          return conn.protocol().run(query, parameters, {
-            bookmark: Bookmark.empty(),
-            txConfig: TxConfig.empty(),
-            beforeError: onError,
-            afterComplete: onComplete,
-            reactive: reactive,
-            fetchSize: fetchSize
-          })
+          if (conn) {
+            return conn.protocol().run(query, parameters, {
+              bookmark: Bookmark.empty(),
+              txConfig: TxConfig.empty(),
+              beforeError: onError,
+              afterComplete: onComplete,
+              reactive: reactive,
+              fetchSize: fetchSize
+            })
+          } else {
+            throw newError('No connection available')
+          }
         })
         .catch(error => new FailedObserver({ error, onError }))
 
@@ -269,7 +314,11 @@ const _states = {
   // An error has occurred, transaction can no longer be used and no more messages will
   // be sent for this transaction.
   FAILED: {
-    commit: ({ connectionHolder, onError, onComplete }) => {
+    commit: ({
+      connectionHolder,
+      onError,
+      onComplete
+    }: StateTransitionParams): any => {
       return {
         result: newCompletedResult(
           new FailedObserver({
@@ -285,7 +334,11 @@ const _states = {
         state: _states.FAILED
       }
     },
-    rollback: ({ connectionHolder, onError, onComplete }) => {
+    rollback: ({
+      connectionHolder,
+      onError,
+      onComplete
+    }: StateTransitionParams): any => {
       return {
         result: newCompletedResult(
           new CompletedObserver(),
@@ -296,7 +349,11 @@ const _states = {
         state: _states.FAILED
       }
     },
-    run: (query, parameters, { connectionHolder, onError, onComplete }) => {
+    run: (
+      query: Query,
+      parameters: any,
+      { connectionHolder, onError, onComplete }: StateTransitionParams
+    ): any => {
       return newCompletedResult(
         new FailedObserver({
           error: newError(
@@ -313,7 +370,11 @@ const _states = {
 
   // This transaction has successfully committed
   SUCCEEDED: {
-    commit: ({ connectionHolder, onError, onComplete }) => {
+    commit: ({
+      connectionHolder,
+      onError,
+      onComplete
+    }: StateTransitionParams): any => {
       return {
         result: newCompletedResult(
           new FailedObserver({
@@ -329,7 +390,11 @@ const _states = {
         connectionHolder
       }
     },
-    rollback: ({ connectionHolder, onError, onComplete }) => {
+    rollback: ({
+      connectionHolder,
+      onError,
+      onComplete
+    }: StateTransitionParams): any => {
       return {
         result: newCompletedResult(
           new FailedObserver({
@@ -345,7 +410,11 @@ const _states = {
         connectionHolder
       }
     },
-    run: (query, parameters, { connectionHolder, onError, onComplete }) => {
+    run: (
+      query: Query,
+      parameters: any,
+      { connectionHolder, onError, onComplete }: StateTransitionParams
+    ): any => {
       return newCompletedResult(
         new FailedObserver({
           error: newError(
@@ -362,7 +431,11 @@ const _states = {
 
   // This transaction has been rolled back
   ROLLED_BACK: {
-    commit: ({ connectionHolder, onError, onComplete }) => {
+    commit: ({
+      connectionHolder,
+      onError,
+      onComplete
+    }: StateTransitionParams): any => {
       return {
         result: newCompletedResult(
           new FailedObserver({
@@ -378,7 +451,11 @@ const _states = {
         state: _states.ROLLED_BACK
       }
     },
-    rollback: ({ connectionHolder, onError, onComplete }) => {
+    rollback: ({
+      connectionHolder,
+      onError,
+      onComplete
+    }: StateTransitionParams): any => {
       return {
         result: newCompletedResult(
           new FailedObserver({
@@ -393,7 +470,11 @@ const _states = {
         state: _states.ROLLED_BACK
       }
     },
-    run: (query, parameters, { connectionHolder, onError, onComplete }) => {
+    run: (
+      query: Query,
+      parameters: any,
+      { connectionHolder, onError, onComplete }: StateTransitionParams
+    ): any => {
       return newCompletedResult(
         new FailedObserver({
           error: newError(
@@ -418,30 +499,34 @@ const _states = {
  * @param {function() : any} onConnection
  * @param {list<Result>>}pendingResults all run results in this transaction
  */
-function finishTransaction (
-  commit,
-  connectionHolder,
-  onError,
-  onComplete,
-  onConnection,
-  pendingResults
-) {
+function finishTransaction(
+  commit: boolean,
+  connectionHolder: ConnectionHolder,
+  onError: (err: Error) => any,
+  onComplete: (metadata: any) => any,
+  onConnection: () => any,
+  pendingResults: Result[]
+): Result {
   const observerPromise = connectionHolder
     .getConnection()
     .then(connection => {
       onConnection()
       pendingResults.forEach(r => r._cancel())
       return Promise.all(pendingResults).then(results => {
-        if (commit) {
-          return connection.protocol().commitTransaction({
-            beforeError: onError,
-            afterComplete: onComplete
-          })
+        if (connection) {
+          if (commit) {
+            return connection.protocol().commitTransaction({
+              beforeError: onError,
+              afterComplete: onComplete
+            })
+          } else {
+            return connection.protocol().rollbackTransaction({
+              beforeError: onError,
+              afterComplete: onComplete
+            })
+          }
         } else {
-          return connection.protocol().rollbackTransaction({
-            beforeError: onError,
-            afterComplete: onComplete
-          })
+          throw newError('No connection available')
         }
       })
     })
@@ -468,12 +553,12 @@ function finishTransaction (
  * @return {Result} new result.
  * @private
  */
-function newCompletedResult (
-  observerPromise,
-  query,
-  parameters,
-  connectionHolder = EMPTY_CONNECTION_HOLDER
-) {
+function newCompletedResult(
+  observerPromise: ResultStreamObserver | Promise<ResultStreamObserver>,
+  query: Query,
+  parameters: any,
+  connectionHolder: ConnectionHolder = EMPTY_CONNECTION_HOLDER
+): Result {
   return new Result(
     Promise.resolve(observerPromise),
     query,

@@ -55,7 +55,8 @@ import {
   QueryStatistics,
   Result,
   ResultObserver,
-  QueryResult
+  QueryResult,
+  Transaction
 } from 'neo4j-driver-core'
 import Session from './session'
 import {
@@ -68,7 +69,6 @@ import {
   TrustStrategy,
   WRITE
 } from './driver'
-import Transaction from './transaction'
 import { Parameters } from './query-runner'
 
 declare const auth: {
