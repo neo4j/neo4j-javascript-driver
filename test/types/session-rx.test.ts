@@ -18,10 +18,14 @@
  */
 
 import RxSession from '../../types/session-rx'
-import { TransactionConfig } from '../../types/session'
 import RxTransaction from '../../types/transaction-rx'
 import RxResult from '../../types/result-rx'
-import { Integer, Record, ResultSummary } from 'neo4j-driver-core'
+import {
+  Integer,
+  Record,
+  ResultSummary,
+  TransactionConfig
+} from 'neo4j-driver-core'
 import { Observable, of, Observer, throwError } from 'rxjs'
 import { concat, finalize, catchError } from 'rxjs/operators'
 

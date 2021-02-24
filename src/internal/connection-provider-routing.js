@@ -17,9 +17,8 @@
  * limitations under the License.
  */
 
-import { newError, error, int } from 'neo4j-driver-core'
+import { newError, error, int, Session } from 'neo4j-driver-core'
 import { READ, WRITE } from '../driver'
-import Session from '../session'
 import RoutingTable from './routing-table'
 import Rediscovery from './rediscovery'
 import { HostNameResolver } from './node'

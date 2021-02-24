@@ -16,17 +16,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ResultStreamObserver, FailedObserver } from './internal/bolt'
-import { newError, internal, Result, Transaction } from 'neo4j-driver-core'
-import ConnectionHolder from './internal/connection-holder'
+import { ResultStreamObserver, FailedObserver } from './internal/observers'
+import { validateQueryAndParameters } from './internal/util'
+import { newError } from './error'
+import Result from './result'
+import Transaction from './transaction'
+import { ConnectionHolder } from './internal/connection-holder'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
-import TransactionExecutor from './internal/transaction-executor'
-import Bookmark from './internal/bookmark'
-import TxConfig from './internal/tx-config'
+import { TransactionExecutor } from './internal/transaction-executor'
+import { Bookmark } from './internal/bookmark'
+import { TxConfig } from './internal/tx-config'
+import ConnectionProvider from './connection-provider'
+import { Query } from './types'
+import Connection from './connection'
+import { NumberOrInteger } from './graph-types'
 
-const {
-  util: { validateQueryAndParameters }
-} = internal
+type ConnectionConsumer = (connection: Connection | void) => any | undefined
+type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
+
+interface TransactionConfig {
+  timeout?: NumberOrInteger
+  metadata?: object
+}
 
 /**
  * A Session instance is used for handling the connection and
@@ -36,6 +47,18 @@ const {
  * @access public
  */
 class Session {
+  private _mode: string
+  private _database: string
+  private _reactive: boolean
+  private _fetchSize: number
+  private _readConnectionHolder: ConnectionHolder
+  private _writeConnectionHolder: ConnectionHolder
+  private _open: boolean
+  private _hasTx: boolean
+  private _lastBookmark: Bookmark
+  private _transactionExecutor: TransactionExecutor
+  private _onComplete: (meta: any) => void
+
   /**
    * @constructor
    * @protected
@@ -48,7 +71,7 @@ class Session {
    * @param {boolean} args.reactive - Whether this session should create reactive streams
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
    */
-  constructor ({
+  constructor({
     mode,
     connectionProvider,
     bookmark,
@@ -56,6 +79,14 @@ class Session {
     config,
     reactive,
     fetchSize
+  }: {
+    mode: string
+    connectionProvider: ConnectionProvider
+    bookmark: Bookmark
+    database: string
+    config: any
+    reactive: boolean
+    fetchSize: number
   }) {
     this._mode = mode
     this._database = database
@@ -91,7 +122,11 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
    * @return {Result} New Result.
    */
-  run (query, parameters, transactionConfig) {
+  run(
+    query: Query,
+    parameters?: any,
+    transactionConfig?: TransactionConfig
+  ): Result {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters
@@ -102,7 +137,7 @@ class Session {
 
     return this._run(validatedQuery, params, connection => {
       this._assertSessionIsOpen()
-      return connection.protocol().run(validatedQuery, params, {
+      return (connection as Connection).protocol().run(validatedQuery, params, {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
@@ -114,7 +149,11 @@ class Session {
     })
   }
 
-  _run (query, parameters, customRunner) {
+  _run(
+    query: Query,
+    parameters: any,
+    customRunner: ConnectionConsumer
+  ): Result {
     const connectionHolder = this._connectionHolderWithMode(this._mode)
 
     let observerPromise
@@ -143,7 +182,7 @@ class Session {
     return new Result(observerPromise, query, parameters, connectionHolder)
   }
 
-  async _acquireConnection (connectionConsumer) {
+  async _acquireConnection(connectionConsumer: ConnectionConsumer) {
     let promise
     const connectionHolder = this._connectionHolderWithMode(this._mode)
     if (!this._open) {
@@ -180,7 +219,7 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
    * @returns {Transaction} New Transaction.
    */
-  beginTransaction (transactionConfig) {
+  beginTransaction(transactionConfig?: TransactionConfig): Transaction {
     // this function needs to support bookmarks parameter for backwards compatibility
     // parameter was of type {string|string[]} and represented either a single or multiple bookmarks
     // that's why we need to check parameter type and decide how to interpret the value
@@ -194,7 +233,7 @@ class Session {
     return this._beginTransaction(this._mode, txConfig)
   }
 
-  _beginTransaction (accessMode, txConfig) {
+  _beginTransaction(accessMode: string, txConfig: TxConfig): Transaction {
     if (!this._open) {
       throw newError('Cannot begin a transaction on a closed session.')
     }
@@ -222,13 +261,13 @@ class Session {
     return tx
   }
 
-  _assertSessionIsOpen () {
+  _assertSessionIsOpen() {
     if (!this._open) {
       throw newError('You cannot run more transactions on a closed session.')
     }
   }
 
-  _transactionClosed () {
+  _transactionClosed() {
     this._hasTx = false
   }
 
@@ -237,7 +276,7 @@ class Session {
    *
    * @return {string[]} A reference to a previous transaction.
    */
-  lastBookmark () {
+  lastBookmark(): string[] {
     return this._lastBookmark.values()
   }
 
@@ -255,7 +294,10 @@ class Session {
    * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
-  readTransaction (transactionWork, transactionConfig) {
+  readTransaction<T>(
+    transactionWork: TransactionWork<T>,
+    transactionConfig?: TransactionConfig
+  ): Promise<T> {
     const config = new TxConfig(transactionConfig)
     return this._runTransaction(ACCESS_MODE_READ, config, transactionWork)
   }
@@ -274,12 +316,19 @@ class Session {
    * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
-  writeTransaction (transactionWork, transactionConfig) {
+  writeTransaction<T>(
+    transactionWork: TransactionWork<T>,
+    transactionConfig?: TransactionConfig
+  ): Promise<T> {
     const config = new TxConfig(transactionConfig)
     return this._runTransaction(ACCESS_MODE_WRITE, config, transactionWork)
   }
 
-  _runTransaction (accessMode, transactionConfig, transactionWork) {
+  _runTransaction<T>(
+    accessMode: string,
+    transactionConfig: TxConfig,
+    transactionWork: TransactionWork<T>
+  ): Promise<T> {
     return this._transactionExecutor.execute(
       () => this._beginTransaction(accessMode, transactionConfig),
       transactionWork
@@ -290,7 +339,7 @@ class Session {
    * Update value of the last bookmark.
    * @param {Bookmark} newBookmark - The new bookmark.
    */
-  _updateBookmark (newBookmark) {
+  _updateBookmark(newBookmark?: Bookmark) {
     if (newBookmark && !newBookmark.isEmpty()) {
       this._lastBookmark = newBookmark
     }
@@ -300,7 +349,7 @@ class Session {
    * Close this session.
    * @return {Promise}
    */
-  async close () {
+  async close(): Promise<void> {
     if (this._open) {
       this._open = false
       this._transactionExecutor.close()
@@ -310,7 +359,7 @@ class Session {
     }
   }
 
-  _connectionHolderWithMode (mode) {
+  _connectionHolderWithMode(mode: string): ConnectionHolder {
     if (mode === ACCESS_MODE_READ) {
       return this._readConnectionHolder
     } else if (mode === ACCESS_MODE_WRITE) {
@@ -320,14 +369,14 @@ class Session {
     }
   }
 
-  _onCompleteCallback (meta) {
+  _onCompleteCallback(meta: any) {
     this._updateBookmark(new Bookmark(meta.bookmark))
   }
 
   /**
    * @protected
    */
-  static _validateSessionMode (rawMode) {
+  static _validateSessionMode(rawMode?: string): string {
     const mode = rawMode || ACCESS_MODE_WRITE
     if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
       throw newError('Illegal session mode ' + mode)
@@ -336,7 +385,7 @@ class Session {
   }
 }
 
-function _createTransactionExecutor (config) {
+function _createTransactionExecutor(config: any): TransactionExecutor {
   const maxRetryTimeMs =
     config && config.maxTransactionRetryTime
       ? config.maxTransactionRetryTime
@@ -345,3 +394,4 @@ function _createTransactionExecutor (config) {
 }
 
 export default Session
+export { TransactionConfig }

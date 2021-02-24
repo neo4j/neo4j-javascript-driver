@@ -18,7 +18,7 @@
  */
 import RxResult from './result-rx'
 import RxTransaction from './transaction-rx'
-import { TransactionConfig } from './session'
+import { TransactionConfig } from 'neo4j-driver-core'
 import { Parameters } from './query-runner'
 import { Observable } from 'rxjs'
 

@@ -19,7 +19,7 @@
 import { defer, Observable, throwError } from 'rxjs'
 import { flatMap, catchError, concat } from 'rxjs/operators'
 import RxResult from './result-rx'
-import Session from './session'
+import { Session } from 'neo4j-driver-core'
 import RxTransaction from './transaction-rx'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import TxConfig from './internal/tx-config'

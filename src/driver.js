@@ -27,7 +27,7 @@ import {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
 } from './internal/pool-config'
-import Session from './session'
+import { Session } from 'neo4j-driver-core'
 import RxSession from './session-rx'
 import { FETCH_ALL } from './internal/bolt'
 import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'

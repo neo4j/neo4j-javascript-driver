@@ -67,6 +67,7 @@ import ResultSummary, {
 import Result, { QueryResult, ResultObserver } from './result'
 import ConnectionProvider from './connection-provider'
 import Transaction from './transaction'
+import Session, { TransactionConfig } from './session'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -125,7 +126,8 @@ const forExport = {
   ProfiledPlan,
   QueryStatistics,
   Result,
-  Transaction
+  Transaction,
+  Session
 }
 
 export {
@@ -178,7 +180,9 @@ export {
   QueryResult,
   ResultObserver,
   ConnectionProvider,
-  Transaction
+  Transaction,
+  Session,
+  TransactionConfig
 }
 
 export default forExport

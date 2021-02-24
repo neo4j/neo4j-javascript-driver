@@ -27,8 +27,7 @@ import Driver, {
   WRITE
 } from '../../types/driver'
 import { Parameters } from '../../types/query-runner'
-import Session from '../../types/session'
-import { ServerInfo } from 'neo4j-driver-core'
+import { ServerInfo, Session } from 'neo4j-driver-core'
 import RxSession from '../../types/session-rx'
 import { concat, map, catchError } from 'rxjs/operators'
 import { throwError } from 'rxjs'

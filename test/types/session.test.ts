@@ -17,14 +17,15 @@
  * limitations under the License.
  */
 
-import Session, { TransactionConfig } from '../../types/session'
 import {
   Integer,
   Record,
   ResultSummary,
   QueryResult,
   Result,
-  Transaction
+  Transaction,
+  Session,
+  TransactionConfig
 } from 'neo4j-driver-core'
 
 const dummy: any = null
@@ -54,7 +55,7 @@ const txConfig7: TransactionConfig = {
 }
 
 const tx1: Transaction = session.beginTransaction()
-const bookmark: null | string = <null>session.lastBookmark()
+const bookmark: string[] = session.lastBookmark()
 
 const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
   return 10

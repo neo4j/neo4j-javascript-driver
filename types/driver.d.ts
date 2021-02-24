@@ -17,10 +17,9 @@
  * limitations under the License.
  */
 
-import Session from './session'
 import RxSession from './session-rx'
 import { Parameters } from './query-runner'
-import { ServerInfo } from 'neo4j-driver-core'
+import { ServerInfo, Session } from 'neo4j-driver-core'
 
 declare interface AuthToken {
   scheme: string

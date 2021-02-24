@@ -56,9 +56,9 @@ import {
   Result,
   ResultObserver,
   QueryResult,
-  Transaction
+  Transaction,
+  Session
 } from 'neo4j-driver-core'
-import Session from './session'
 import {
   AuthToken,
   Config,
