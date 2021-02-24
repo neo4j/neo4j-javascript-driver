@@ -24,6 +24,7 @@ import * as bookmark from './bookmark'
 import * as constants from './constants'
 import * as connectionHolder from './connection-holder'
 import * as txConfig from './tx-config'
+import * as transactionExecutor from './transaction-executor'
 
 export {
   util,
@@ -32,5 +33,6 @@ export {
   bookmark,
   constants,
   connectionHolder,
-  txConfig
+  txConfig,
+  transactionExecutor
 }
