@@ -24,6 +24,9 @@ import { setTimeoutMock } from '../timers-util'
 import { ENCRYPTION_OFF, ENCRYPTION_ON } from '../../../src/v1/internal/util'
 import ServerAddress from '../../../src/v1/internal/server-address'
 
+const WS_OPEN = 1
+const WS_CLOSED = 3
+
 /* eslint-disable no-global-assign */
 describe('WebSocketChannel', () => {
   let OriginalWebSocket
@@ -235,5 +238,44 @@ describe('WebSocketChannel', () => {
 
     expect(channel).toBeDefined()
     expect(warnMessages.length).toEqual(1)
+  }
+
+  it('should set _open to false when connection closes', async () => {
+    const fakeSetTimeout = setTimeoutMock.install()
+    try {
+      // do not execute setTimeout callbacks
+      fakeSetTimeout.pause()
+      const address = ServerAddress.fromUrl('bolt://localhost:8989')
+      const driverConfig = { connectionTimeout: 4242 }
+      const channelConfig = new ChannelConfig(
+        address,
+        driverConfig,
+        SERVICE_UNAVAILABLE
+      )
+      webSocketChannel = new WebSocketChannel(
+        channelConfig,
+        undefined,
+        createWebSocketFactory(WS_OPEN)
+      )
+      webSocketChannel._ws.close()
+      expect(webSocketChannel._open).toBe(false)
+    } finally {
+      fakeSetTimeout.uninstall()
+    }
+  })
+
+  function createWebSocketFactory (readyState) {
+    const ws = {}
+    ws.readyState = readyState
+    ws.close = () => {
+      ws.readyState = WS_CLOSED
+      if (ws.onclose && typeof ws.onclose === 'function') {
+        ws.onclose({ wasClean: true })
+      }
+    }
+    return url => {
+      ws.url = url
+      return ws
+    }
   }
 })

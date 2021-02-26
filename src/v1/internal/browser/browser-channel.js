@@ -47,20 +47,21 @@ export default class WebSocketChannel {
     this._ws = createWebSocket(scheme, config.address)
     this._ws.binaryType = 'arraybuffer'
 
-    let self = this
+    const self = this
     // All connection errors are not sent to the error handler
     // we must also check for dirty close calls
     this._ws.onclose = function (e) {
       if (!e.wasClean) {
         self._handleConnectionError()
       }
+      self._open = false
     }
     this._ws.onopen = function () {
       // Connected! Cancel the connection timeout
       self._clearConnectionTimeout()
 
       // Drain all pending messages
-      let pending = self._pending
+      const pending = self._pending
       self._pending = null
       for (let i = 0; i < pending.length; i++) {
         self.write(pending[i])
