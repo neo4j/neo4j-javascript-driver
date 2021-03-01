@@ -65,6 +65,7 @@ export default class WebSocketChannel {
       if (e && !e.wasClean) {
         self._handleConnectionError()
       }
+      self._open = false
     }
     this._ws.onopen = function () {
       // Connected! Cancel the connection timeout
