@@ -31,7 +31,11 @@ export default class WebSocketChannel {
    * @param {ChannelConfig} config - configuration for this channel.
    * @param {function(): string} protocolSupplier - function that detects protocol of the web page. Should only be used in tests.
    */
-  constructor (config, protocolSupplier = detectWebPageProtocol) {
+  constructor (
+    config,
+    protocolSupplier = detectWebPageProtocol,
+    socketFactory = createWebSocket
+  ) {
     this._open = true
     this._pending = []
     this._error = null
@@ -44,7 +48,7 @@ export default class WebSocketChannel {
       return
     }
 
-    this._ws = createWebSocket(scheme, config.address)
+    this._ws = socketFactory(scheme, config.address)
     this._ws.binaryType = 'arraybuffer'
 
     const self = this
@@ -54,6 +58,7 @@ export default class WebSocketChannel {
       if (!e.wasClean) {
         self._handleConnectionError()
       }
+      self._open = false
     }
     this._ws.onopen = function () {
       // Connected! Cancel the connection timeout
