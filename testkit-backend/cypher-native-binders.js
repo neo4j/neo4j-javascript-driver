@@ -1,4 +1,4 @@
-import neo4j from 'neo4j-driver'
+import neo4j, { int } from 'neo4j-driver'
 
 export function valueResponse (name, value) {
   return { name: name, data: { value: value } }
@@ -58,7 +58,7 @@ export function cypherToNative (c) {
     case 'CypherString':
       return value
     case 'CypherInt':
-      return value
+      return int(value)
     case 'CypherFloat':
       return value
     case 'CypherNull':
