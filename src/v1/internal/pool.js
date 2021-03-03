@@ -69,18 +69,7 @@ class Pool {
       const key = address.asKey()
 
       if (resource) {
-        if (
-          this._maxSize &&
-          this.activeResourceCount(address) >= this._maxSize
-        ) {
-          this._destroy(resource)
-        } else {
-          resourceAcquired(key, this._activeResourceCounts)
-          if (this._log.isDebugEnabled()) {
-            this._log.debug(`${resource} acquired from the pool ${key}`)
-          }
-          return resource
-        }
+        return resource
       }
 
       // We're out of resources and will try to acquire later on when an existing resource is released.
@@ -183,6 +172,10 @@ class Pool {
         }
 
         // idle resource is valid and can be acquired
+        resourceAcquired(key, this._activeResourceCounts)
+        if (this._log.isDebugEnabled()) {
+          this._log.debug(`${resource} acquired from the pool ${key}`)
+        }
         return Promise.resolve(resource)
       } else {
         this._destroy(resource)
@@ -194,7 +187,12 @@ class Pool {
     }
 
     // there exist no idle valid resources, create a new one for acquisition
-    return this._create(address, this._release)
+    const resource = this._create(address, this._release)
+    resourceAcquired(key, this._activeResourceCounts)
+    if (this._log.isDebugEnabled()) {
+      this._log.debug(`${resource} created for the pool ${key}`)
+    }
+    return resource
   }
 
   _release (address, resource) {
