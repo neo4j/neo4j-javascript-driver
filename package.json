@@ -9,7 +9,7 @@
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
   },
   "scripts": {
-    "preinstall": "cd core && npm i && npm run build || true",
+    "preinstall": "cd core && npm ci && npm run build || true",
     "lint": "eslint --fix --ext .js ./",
     "format": "prettier-eslint '**/*.js' '**/*.json' '**/*.md' '**/*.ts' '**/*.html' --write",
     "test": "gulp test",
