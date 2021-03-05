@@ -14,6 +14,8 @@ def run(args, env=None):
 
 if __name__ == "__main__":
     run(['rm', '-fr', 'node_modules', 'lib', 'build'])
+    run(['npm', '--prefix', 'core', 'ci'])
+    run(['npm', '--prefix', 'core', 'run', 'build'])
     run(["npm", "ci"])
     run(["gulp", "nodejs"])
     run(["gulp", "testkit-backend"])
