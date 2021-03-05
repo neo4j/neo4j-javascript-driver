@@ -22,7 +22,6 @@ import _BoltProtocol from './bolt-protocol-v4x3'
 import _RawRoutingTable from './routing-table-raw'
 
 export * from './stream-observers'
-export { ALL as FETCH_ALL } from './request-message'
 
 export const BoltProtocol = _BoltProtocol
 export const RawRoutingTable = _RawRoutingTable

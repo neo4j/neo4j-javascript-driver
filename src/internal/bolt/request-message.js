@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { ACCESS_MODE_READ } from '../constants'
+import { ACCESS_MODE_READ, FETCH_ALL } from '../constants'
 import { int } from 'neo4j-driver-core'
 import { assertString } from '../util'
 
@@ -44,7 +44,6 @@ const READ_MODE = 'r'
 /* eslint-enable no-unused-vars */
 
 const NO_STATEMENT_ID = -1
-export const ALL = -1
 
 export default class RequestMessage {
   constructor (signature, fields, toString) {
@@ -187,8 +186,11 @@ export default class RequestMessage {
    * @param {Integer|number} n
    * @return {RequestMessage} the PULL message.
    */
-  static pull ({ stmtId = NO_STATEMENT_ID, n = ALL } = {}) {
-    const metadata = buildStreamMetadata(stmtId || NO_STATEMENT_ID, n || ALL)
+  static pull ({ stmtId = NO_STATEMENT_ID, n = FETCH_ALL } = {}) {
+    const metadata = buildStreamMetadata(
+      stmtId || NO_STATEMENT_ID,
+      n || FETCH_ALL
+    )
     return new RequestMessage(
       PULL,
       [metadata],
@@ -202,8 +204,11 @@ export default class RequestMessage {
    * @param {Integer|number} n
    * @return {RequestMessage} the PULL message.
    */
-  static discard ({ stmtId = NO_STATEMENT_ID, n = ALL } = {}) {
-    const metadata = buildStreamMetadata(stmtId || NO_STATEMENT_ID, n || ALL)
+  static discard ({ stmtId = NO_STATEMENT_ID, n = FETCH_ALL } = {}) {
+    const metadata = buildStreamMetadata(
+      stmtId || NO_STATEMENT_ID,
+      n || FETCH_ALL
+    )
     return new RequestMessage(
       DISCARD,
       [metadata],

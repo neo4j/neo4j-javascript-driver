@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+const FETCH_ALL = -1
+
 const ACCESS_MODE_READ: string = 'READ'
 const ACCESS_MODE_WRITE: string = 'WRITE'
 
@@ -29,6 +31,7 @@ const BOLT_PROTOCOL_V4_2: number = 4.2
 const BOLT_PROTOCOL_V4_3: number = 4.3
 
 export {
+  FETCH_ALL,
   ACCESS_MODE_READ,
   ACCESS_MODE_WRITE,
   BOLT_PROTOCOL_V1,

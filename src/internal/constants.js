@@ -21,6 +21,7 @@ import { internal } from 'neo4j-driver-core'
 
 const {
   constants: {
+    FETCH_ALL,
     ACCESS_MODE_READ,
     ACCESS_MODE_WRITE,
     BOLT_PROTOCOL_V1,
@@ -34,6 +35,7 @@ const {
 } = internal
 
 export {
+  FETCH_ALL,
   ACCESS_MODE_READ,
   ACCESS_MODE_WRITE,
   BOLT_PROTOCOL_V1,

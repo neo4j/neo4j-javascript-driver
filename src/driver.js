@@ -21,7 +21,11 @@ import ConnectionProvider from './internal/connection-provider'
 import Bookmark from './internal/bookmark'
 import DirectConnectionProvider from './internal/connection-provider-direct'
 import ConnectivityVerifier from './internal/connectivity-verifier'
-import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
+import {
+  ACCESS_MODE_READ,
+  ACCESS_MODE_WRITE,
+  FETCH_ALL
+} from './internal/constants'
 import Logger from './internal/logger'
 import {
   DEFAULT_ACQUISITION_TIMEOUT,
@@ -29,7 +33,6 @@ import {
 } from './internal/pool-config'
 import { Session } from 'neo4j-driver-core'
 import RxSession from './session-rx'
-import { FETCH_ALL } from './internal/bolt'
 import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME = 60 * 60 * 1000 // 1 hour
