@@ -17,59 +17,10 @@
  * limitations under the License.
  */
 
-import ConnectionHolder from './connection-holder'
-import { ACCESS_MODE_READ } from './constants'
-import { ResultStreamObserver } from './bolt'
+import { internal } from 'neo4j-driver-core'
 
-/**
- * Verifies connectivity using the given connection provider.
- */
-export default class ConnectivityVerifier {
-  /**
-   * @constructor
-   * @param {ConnectionProvider} connectionProvider the provider to obtain connections from.
-   */
-  constructor (connectionProvider) {
-    this._connectionProvider = connectionProvider
-  }
+const {
+  connectivityVerifier: { ConnectivityVerifier }
+} = internal
 
-  /**
-   * Try to obtain a working connection from the connection provider.
-   * @returns {Promise<object>} promise resolved with server info or rejected with error.
-   */
-  verify ({ database = '' } = {}) {
-    return acquireAndReleaseDummyConnection(this._connectionProvider, database)
-  }
-}
-
-/**
- * @private
- * @param {ConnectionProvider} connectionProvider the provider to obtain connections from.
- * @return {Promise<object>} promise resolved with server info or rejected with error.
- */
-function acquireAndReleaseDummyConnection (connectionProvider, database) {
-  const connectionHolder = new ConnectionHolder({
-    mode: ACCESS_MODE_READ,
-    database,
-    connectionProvider
-  })
-  connectionHolder.initializeConnection()
-
-  return connectionHolder
-    .getConnection()
-    .then(connection => {
-      // able to establish a connection
-      return connectionHolder.close().then(() => connection.server)
-    })
-    .catch(error => {
-      // failed to establish a connection
-      return connectionHolder
-        .close()
-        .catch(ignoredError => {
-          // ignore connection release error
-        })
-        .then(() => {
-          return Promise.reject(error)
-        })
-    })
-}
+export default ConnectivityVerifier
