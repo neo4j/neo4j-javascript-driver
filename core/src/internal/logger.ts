@@ -21,7 +21,7 @@ import { newError } from '../error'
 export type LogLevel = 'warn' | 'error' | 'info' | 'debug'
 type LoggerFunction = (level: LogLevel, message: string) => unknown
 
-interface LoggingConfig {
+export interface LoggingConfig {
   level?: LogLevel
   logger: LoggerFunction
 }

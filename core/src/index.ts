@@ -68,6 +68,7 @@ import Result, { QueryResult, ResultObserver } from './result'
 import ConnectionProvider from './connection-provider'
 import Transaction from './transaction'
 import Session, { TransactionConfig } from './session'
+import Driver, * as driver from './driver'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -127,7 +128,9 @@ const forExport = {
   QueryStatistics,
   Result,
   Transaction,
-  Session
+  Session,
+  Driver,
+  driver
 }
 
 export {
@@ -182,7 +185,9 @@ export {
   ConnectionProvider,
   Transaction,
   Session,
-  TransactionConfig
+  TransactionConfig,
+  Driver,
+  driver
 }
 
 export default forExport
