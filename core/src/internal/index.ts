@@ -29,6 +29,7 @@ import * as connectivityVerifier from './connectivity-verifier'
 import * as logger from './logger'
 import * as urlUtil from './url-util'
 import * as serverAddress from './server-address'
+import * as resolver from './resolver'
 
 export {
   util,
@@ -42,5 +43,6 @@ export {
   connectivityVerifier,
   logger,
   urlUtil,
-  serverAddress
+  serverAddress,
+  resolver
 }

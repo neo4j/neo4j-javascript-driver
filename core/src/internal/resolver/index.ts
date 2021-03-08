@@ -16,11 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import BaseHostNameResolver from './base-host-name-resolver'
+import ConfiguredCustomResolver from './configured-custom-resolver'
 
-import { internal } from 'neo4j-driver-core'
-
-const {
-  resolver: { BaseHostNameResolver }
-} = internal
-
-export default BaseHostNameResolver
+export { BaseHostNameResolver, ConfiguredCustomResolver }

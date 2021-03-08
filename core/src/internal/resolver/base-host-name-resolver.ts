@@ -17,10 +17,17 @@
  * limitations under the License.
  */
 
-import { internal } from 'neo4j-driver-core'
+import { ServerAddress } from '../server-address'
 
-const {
-  resolver: { BaseHostNameResolver }
-} = internal
+export default class BaseHostNameResolver {
+  resolve (): Promise<ServerAddress[]> {
+    throw new Error('Abstract function')
+  }
 
-export default BaseHostNameResolver
+  /**
+   * @protected
+   */
+  _resolveToItself (address: ServerAddress): Promise<ServerAddress[]> {
+    return Promise.resolve([address])
+  }
+}

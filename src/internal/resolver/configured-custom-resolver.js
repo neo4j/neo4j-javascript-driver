@@ -16,28 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ServerAddress from '../server-address'
 
-function resolveToSelf (address) {
-  return Promise.resolve([address])
-}
+import { internal } from 'neo4j-driver-core'
 
-export default class ConfiguredCustomResolver {
-  constructor (resolverFunction) {
-    this._resolverFunction = resolverFunction || resolveToSelf
-  }
+const {
+  resolver: { ConfiguredCustomResolver }
+} = internal
 
-  resolve (seedRouter) {
-    return new Promise(resolve =>
-      resolve(this._resolverFunction(seedRouter.asHostPort()))
-    ).then(resolved => {
-      if (!Array.isArray(resolved)) {
-        throw new TypeError(
-          'Configured resolver function should either return an array of addresses or a Promise resolved with an array of addresses.' +
-            `Each address is '<host>:<port>'. Got: ${resolved}`
-        )
-      }
-      return resolved.map(r => ServerAddress.fromUrl(r))
-    })
-  }
-}
+export default ConfiguredCustomResolver
