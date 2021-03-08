@@ -16,53 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assertNumber, assertString } from './util'
-import urlUtil from './url-util'
+import { internal } from 'neo4j-driver-core'
 
-export default class ServerAddress {
-  constructor (host, resolved, port, hostPort) {
-    this._host = assertString(host, 'host')
-    this._resolved = resolved ? assertString(resolved, 'resolved') : null
-    this._port = assertNumber(port, 'port')
-    this._hostPort = hostPort
-    this._stringValue = resolved ? `${hostPort}(${resolved})` : `${hostPort}`
-  }
+const {
+  serverAddress: { ServerAddress }
+} = internal
 
-  host () {
-    return this._host
-  }
-
-  resolvedHost () {
-    return this._resolved ? this._resolved : this._host
-  }
-
-  port () {
-    return this._port
-  }
-
-  resolveWith (resolved) {
-    return new ServerAddress(this._host, resolved, this._port, this._hostPort)
-  }
-
-  asHostPort () {
-    return this._hostPort
-  }
-
-  asKey () {
-    return this._hostPort
-  }
-
-  toString () {
-    return this._stringValue
-  }
-
-  static fromUrl (url) {
-    const urlParsed = urlUtil.parseDatabaseUrl(url)
-    return new ServerAddress(
-      urlParsed.host,
-      null,
-      urlParsed.port,
-      urlParsed.hostAndPort
-    )
-  }
-}
+export default ServerAddress

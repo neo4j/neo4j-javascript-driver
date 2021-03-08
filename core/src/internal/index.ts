@@ -28,6 +28,7 @@ import * as transactionExecutor from './transaction-executor'
 import * as connectivityVerifier from './connectivity-verifier'
 import * as logger from './logger'
 import * as urlUtil from './url-util'
+import * as serverAddress from './server-address'
 
 export {
   util,
@@ -40,5 +41,6 @@ export {
   transactionExecutor,
   connectivityVerifier,
   logger,
-  urlUtil
+  urlUtil,
+  serverAddress
 }
