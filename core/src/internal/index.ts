@@ -27,6 +27,7 @@ import * as txConfig from './tx-config'
 import * as transactionExecutor from './transaction-executor'
 import * as connectivityVerifier from './connectivity-verifier'
 import * as logger from './logger'
+import * as urlUtil from './url-util'
 
 export {
   util,
@@ -38,5 +39,6 @@ export {
   txConfig,
   transactionExecutor,
   connectivityVerifier,
-  logger
+  logger,
+  urlUtil
 }
