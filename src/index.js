@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 import { Driver, READ, WRITE } from './driver'
-import RoutingDriver from './routing-driver'
 import VERSION from './version'
 import urlUtil from './internal/url-util'
 import ServerAddress from './internal/server-address'
@@ -55,6 +54,9 @@ import {
   ResultSummary,
   Result
 } from 'neo4j-driver-core'
+import { HostNameResolver } from './internal/node'
+import DirectConnectionProvider from './internal/connection-provider-direct'
+import RoutingConnectionProvider from './internal/connection-provider-routing'
 
 const {
   util: { ENCRYPTION_ON, ENCRYPTION_OFF, assertString, isEmptyObjectOrNull }
@@ -236,27 +238,46 @@ function driver (url, authToken, config = {}) {
 
   // Use default user agent or user agent specified by user.
   config.userAgent = config.userAgent || USER_AGENT
+  const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
-  if (routing) {
-    return new RoutingDriver(
-      ServerAddress.fromUrl(parsedUrl.hostAndPort),
-      parsedUrl.query,
-      config.userAgent,
-      authToken,
-      config
-    )
-  } else {
-    if (!isEmptyObjectOrNull(parsedUrl.query)) {
-      throw new Error(
-        `Parameters are not supported with none routed scheme. Given URL: '${url}'`
-      )
+  const meta = {
+    address,
+    typename: routing ? 'Routing' : 'Direct',
+    routing
+  }
+
+  return new Driver(meta, config, createConnectionProviderFunction())
+
+  function createConnectionProviderFunction () {
+    if (routing) {
+      return (id, config, log, hostNameResolver) =>
+        new RoutingConnectionProvider({
+          id,
+          config,
+          log,
+          hostNameResolver,
+          authToken,
+          address,
+          userAgent: config.userAgent,
+          routingContext: parsedUrl.query
+        })
+    } else {
+      if (!isEmptyObjectOrNull(parsedUrl.query)) {
+        throw new Error(
+          `Parameters are not supported with none routed scheme. Given URL: '${url}'`
+        )
+      }
+
+      return (id, config, log) =>
+        new DirectConnectionProvider({
+          id,
+          config,
+          log,
+          authToken,
+          address,
+          userAgent: config.userAgent
+        })
     }
-    return new Driver(
-      ServerAddress.fromUrl(parsedUrl.hostAndPort),
-      config.userAgent,
-      authToken,
-      config
-    )
   }
 }
 

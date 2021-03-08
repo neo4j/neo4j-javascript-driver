@@ -19,8 +19,9 @@
 
 import ConnectionProvider from './internal/connection-provider'
 import Bookmark from './internal/bookmark'
-import DirectConnectionProvider from './internal/connection-provider-direct'
 import ConnectivityVerifier from './internal/connectivity-verifier'
+import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
+
 import {
   ACCESS_MODE_READ,
   ACCESS_MODE_WRITE,
@@ -74,20 +75,23 @@ class Driver {
    * You should not be calling this directly, instead use {@link driver}.
    * @constructor
    * @protected
-   * @param {ServerAddress} address
-   * @param {string} userAgent
-   * @param {Object} authToken
+   * @param {Object} meta Metainformation about the driver
    * @param {Object} config
+   * @param {function(id: number, config:Object, log:Logger, hostNameResolver: ConfiguredCustomResolver): ConnectionProvider } createConnectonProvider Creates the connection provider
    */
-  constructor (address, userAgent, authToken = {}, config = {}) {
+  constructor (
+    meta,
+    config = {},
+    createConnectonProvider = (id, config, log, hostNameResolver) => {}
+  ) {
     sanitizeConfig(config)
+    validateConfig(config)
 
     this._id = idGenerator++
-    this._address = address
-    this._userAgent = userAgent
-    this._authToken = authToken
+    this._meta = meta
     this._config = config
     this._log = Logger.create(config)
+    this._createConnectionProvider = createConnectonProvider
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
@@ -144,7 +148,7 @@ class Driver {
    * @returns {boolean}
    */
   _supportsRouting () {
-    return false
+    return this._meta.routing
   }
 
   /**
@@ -259,22 +263,8 @@ class Driver {
    */
   _afterConstruction () {
     this._log.info(
-      `Direct driver ${this._id} created for server address ${this._address}`
+      `${this._meta.typename} driver ${this._id} created for server address ${this._meta.address}`
     )
-  }
-
-  /**
-   * @protected
-   */
-  _createConnectionProvider (address, userAgent, authToken) {
-    return new DirectConnectionProvider({
-      id: this._id,
-      config: this._config,
-      log: this._log,
-      address: address,
-      userAgent: userAgent,
-      authToken: authToken
-    })
   }
 
   /**
@@ -309,14 +299,29 @@ class Driver {
   _getOrCreateConnectionProvider () {
     if (!this._connectionProvider) {
       this._connectionProvider = this._createConnectionProvider(
-        this._address,
-        this._userAgent,
-        this._authToken
+        this._id,
+        this._config,
+        this._log,
+        createHostNameResolver(this._config)
       )
     }
 
     return this._connectionProvider
   }
+}
+
+/**
+ * @private
+ * @returns {Object} the given config.
+ */
+function validateConfig (config) {
+  const resolver = config.resolver
+  if (resolver && typeof resolver !== 'function') {
+    throw new TypeError(
+      `Configured resolver should be a function. Got: ${resolver}`
+    )
+  }
+  return config
 }
 
 /**
@@ -369,6 +374,15 @@ function validateFetchSizeValue (rawValue, defaultWhenAbsent) {
   } else {
     return defaultWhenAbsent
   }
+}
+
+/**
+ * @private
+ * @returns {ConfiguredCustomResolver} new custom resolver that wraps the passed-in resolver function.
+ *              If resolved function is not specified, it defaults to an identity resolver.
+ */
+function createHostNameResolver (config) {
+  return new ConfiguredCustomResolver(config.resolver)
 }
 
 export { Driver, READ, WRITE }

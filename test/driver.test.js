@@ -379,11 +379,15 @@ describe('#integration driver', () => {
 
   it('should have correct user agent', async () => {
     const directDriver = neo4j.driver(`bolt://${sharedNeo4j.hostname}`)
-    expect(directDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
+    expect(directDriver._getOrCreateConnectionProvider()._userAgent).toBe(
+      'neo4j-javascript/0.0.0-dev'
+    )
     await directDriver.close()
 
     const routingDriver = neo4j.driver(`neo4j://${sharedNeo4j.hostname}`)
-    expect(routingDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
+    expect(routingDriver._getOrCreateConnectionProvider()._userAgent).toBe(
+      'neo4j-javascript/0.0.0-dev'
+    )
     await routingDriver.close()
   })
 

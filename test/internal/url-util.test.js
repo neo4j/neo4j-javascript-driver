@@ -785,7 +785,6 @@ describe('#unit url-util', () => {
 
   function verifyUrl (urlString, expectedUrl) {
     const url = parse(urlString)
-
     if (expectedUrl.scheme) {
       expect(url.scheme).toEqual(expectedUrl.scheme)
     } else {
@@ -803,7 +802,6 @@ describe('#unit url-util', () => {
     }
 
     verifyHostAndPort(url, expectedUrl)
-
     if (expectedUrl.query) {
       expect(url.query).toEqual(expectedUrl.query)
     } else {
