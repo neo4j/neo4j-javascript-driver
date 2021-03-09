@@ -692,6 +692,12 @@ function localDateTimeToString(
   )
 }
 
+/**
+ * @private
+ * @param {NumberOrInteger} timeZoneOffsetSeconds
+ * @param {string | null } timeZoneId
+ * @returns {Array<NumberOrInteger | undefined | null, string | undefined | null>}
+ */
 function verifyTimeZoneArguments(
   timeZoneOffsetSeconds?: NumberOrInteger,
   timeZoneId?: string | null
@@ -716,6 +722,12 @@ function verifyTimeZoneArguments(
   }
 }
 
+/**
+ * @private
+ * @param {StandardDate} standardDate
+ * @param {NumberOrInteger} nanosecond
+ * @returns {void}
+ */
 function verifyStandardDateAndNanos(
   standardDate: StandardDate,
   nanosecond?: NumberOrInteger

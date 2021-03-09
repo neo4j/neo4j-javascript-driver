@@ -261,12 +261,20 @@ class Session {
     return tx
   }
 
+  /**
+   * @private
+   * @returns {void}
+   */
   _assertSessionIsOpen() {
     if (!this._open) {
       throw newError('You cannot run more transactions on a closed session.')
     }
   }
 
+  /**
+   * @private
+   * @returns {void}
+   */
   _transactionClosed() {
     this._hasTx = false
   }
@@ -337,9 +345,11 @@ class Session {
 
   /**
    * Update value of the last bookmark.
+   * @private
    * @param {Bookmark} newBookmark - The new bookmark.
+   * @returns {void}
    */
-  _updateBookmark(newBookmark?: Bookmark) {
+  _updateBookmark(newBookmark?: Bookmark): void {
     if (newBookmark && !newBookmark.isEmpty()) {
       this._lastBookmark = newBookmark
     }
@@ -369,7 +379,12 @@ class Session {
     }
   }
 
-  _onCompleteCallback(meta: any) {
+  /**
+   * @private
+   * @param {Object} meta Connection metadatada
+   * @returns {void}
+   */
+  _onCompleteCallback(meta: { bookmark: string | string[] }): void {
     this._updateBookmark(new Bookmark(meta.bookmark))
   }
 
@@ -385,7 +400,14 @@ class Session {
   }
 }
 
-function _createTransactionExecutor(config: any): TransactionExecutor {
+/**
+ * @private
+ * @param {object} config
+ * @returns {TransactionExecutor} The transaction executor
+ */
+function _createTransactionExecutor(config?: {
+  maxTransactionRetryTime: number | null
+}): TransactionExecutor {
   const maxRetryTimeMs =
     config && config.maxTransactionRetryTime
       ? config.maxTransactionRetryTime

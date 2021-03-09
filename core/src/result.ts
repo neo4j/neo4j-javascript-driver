@@ -25,9 +25,20 @@ import { CompletedObserver, FailedObserver } from './internal/observers'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
+/**
+ * @private
+ * @param {Error} error The error
+ * @returns {void}
+ */
 const DEFAULT_ON_ERROR = (error: Error) => {
   console.log('Uncaught error when processing result: ' + error)
 }
+
+/**
+ * @private
+ * @param {ResultSummary} summary
+ * @returns {void}
+ */
 const DEFAULT_ON_COMPLETED = (summary: ResultSummary) => {}
 
 /**
@@ -231,7 +242,7 @@ class Result implements Promise<QueryResult> {
    * @param {function(record: Record)} observer.onNext - handle records, one by one.
    * @param {function(summary: ResultSummary)} observer.onCompleted - handle stream tail, the result summary.
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
-   * @return
+   * @return {void}
    */
   subscribe(observer: ResultObserver): void {
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
@@ -299,6 +310,7 @@ class Result implements Promise<QueryResult> {
    *
    * @protected
    * @since 4.0.0
+   * @returns {void}
    */
   _cancel(): void {
     this._streamObserverPromise.then(o => o.cancel())
@@ -313,6 +325,12 @@ function captureStacktrace(): string | null {
   return null
 }
 
+/**
+ * @private
+ * @param {Error} error The error
+ * @param {string| null} newStack The newStack
+ * @returns {void}
+ */
 function replaceStacktrace(error: Error, newStack?: string | null) {
   if (newStack) {
     // Error.prototype.toString() concatenates error.name and error.message nicely

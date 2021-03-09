@@ -90,7 +90,13 @@ class Transaction {
     this._results = []
   }
 
-  _begin(bookmark: Bookmark | string | string[], txConfig: TxConfig) {
+  /**
+   * @private
+   * @param {Bookmark | string |  string []} bookmark
+   * @param {TxConfig} txConfig
+   * @returns {void}
+   */
+  _begin(bookmark: Bookmark | string | string[], txConfig: TxConfig): void {
     this._connectionHolder
       .getConnection()
       .then(connection => {
@@ -209,6 +215,11 @@ class Transaction {
     return this._connectionHolder.releaseConnection()
   }
 
+  /**
+   * @private
+   * @param {object} meta The meta with bookmark
+   * @returns {void}
+   */
   _onCompleteCallback(meta: { bookmark?: string | string[] }): void {
     this._onBookmark(new Bookmark(meta.bookmark))
   }

@@ -43,7 +43,7 @@ export class TransactionExecutor {
   private _inFlightTimeoutIds: NodeJS.Timeout[]
 
   constructor(
-    maxRetryTimeMs?: number,
+    maxRetryTimeMs?: number | null,
     initialRetryDelayMs?: number,
     multiplier?: number,
     jitterFactor?: number
@@ -280,7 +280,7 @@ export class TransactionExecutor {
 }
 
 function _valueOrDefault(
-  value: number | undefined,
+  value: number | undefined | null,
   defaultValue: number
 ): number {
   if (value || value === 0) {
