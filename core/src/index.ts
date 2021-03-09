@@ -62,7 +62,8 @@ import ResultSummary, {
   NotificationPosition,
   Plan,
   ProfiledPlan,
-  QueryStatistics
+  QueryStatistics,
+  Stats
 } from './result-summary'
 import Result, { QueryResult, ResultObserver } from './result'
 import ConnectionProvider from './connection-provider'
@@ -126,6 +127,7 @@ const forExport = {
   Plan,
   ProfiledPlan,
   QueryStatistics,
+  Stats,
   Result,
   Transaction,
   Session,
@@ -179,6 +181,7 @@ export {
   Plan,
   ProfiledPlan,
   QueryStatistics,
+  Stats,
   Result,
   QueryResult,
   ResultObserver,

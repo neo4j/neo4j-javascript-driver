@@ -234,7 +234,11 @@ class ProfiledPlan {
   }
 }
 
-interface Stats {
+/**
+ * Stats Query statistics dictionary for a {@link QueryStatistics}
+ * @public
+ */
+class Stats {
   nodesCreated: number
   nodesDeleted: number
   relationshipsCreated: number
@@ -245,9 +249,83 @@ interface Stats {
   indexesAdded: number
   indexesRemoved: number
   constraintsAdded: number
-  constraintsRemoved: number
+  constraintsRemoved: number;
   [key: string]: number
+
+  /**
+   * @constructor
+   * @private
+   */
+  constructor() {
+    /**
+     * nodes created
+     * @type {number}
+     * @public
+     */
+    this.nodesCreated = 0
+    /**
+     * nodes deleted
+     * @type {number}
+     * @public
+     */
+    this.nodesDeleted = 0
+    /**
+     * relationships created
+     * @type {number}
+     * @public
+     */
+    this.relationshipsCreated = 0
+    /**
+     * relationships deleted
+     * @type {number}
+     * @public
+     */
+    this.relationshipsDeleted = 0
+    /**
+     * properties set
+     * @type {number}
+     * @public
+     */
+    this.propertiesSet = 0
+    /**
+     * labels added
+     * @type {number}
+     * @public
+     */
+    this.labelsAdded = 0
+    /**
+     * labels removed
+     * @type {number}
+     * @public
+     */
+    this.labelsRemoved = 0
+    /**
+     * indexes added
+     * @type {number}
+     * @public
+     */
+    this.indexesAdded = 0
+    /**
+     * indexes removed
+     * @type {number}
+     * @public
+     */
+    this.indexesRemoved = 0
+    /**
+     * constraints added
+     * @type {number}
+     * @public
+     */
+    this.constraintsAdded = 0
+    /**
+     * constraints removed
+     * @type {number}
+     * @public
+     */
+    this.constraintsRemoved = 0
+  }
 }
+
 /**
  * Get statistical information for a {@link Result}.
  * @access public
@@ -261,19 +339,7 @@ class QueryStatistics {
    * @param {Object} statistics - Result statistics
    */
   constructor(statistics: any) {
-    this._stats = {
-      nodesCreated: 0,
-      nodesDeleted: 0,
-      relationshipsCreated: 0,
-      relationshipsDeleted: 0,
-      propertiesSet: 0,
-      labelsAdded: 0,
-      labelsRemoved: 0,
-      indexesAdded: 0,
-      indexesRemoved: 0,
-      constraintsAdded: 0,
-      constraintsRemoved: 0
-    }
+    this._stats = new Stats()
     this._systemUpdates = 0
     Object.keys(statistics).forEach(index => {
       // To camelCase
@@ -302,7 +368,7 @@ class QueryStatistics {
 
   /**
    * Returns the query statistics updates in a dictionary.
-   * @returns {*}
+   * @returns {Stats}
    */
   updates(): Stats {
     return this._stats
@@ -425,7 +491,8 @@ export {
   NotificationPosition,
   Plan,
   ProfiledPlan,
-  QueryStatistics
+  QueryStatistics,
+  Stats
 }
 
 export default ResultSummary
