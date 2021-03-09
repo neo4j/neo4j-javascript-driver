@@ -57,7 +57,8 @@ import {
   ResultObserver,
   QueryResult,
   Transaction,
-  Session
+  Session,
+  ConnectionProvider
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -69,6 +70,9 @@ import {
   TrustStrategy,
   WRITE
 } from './driver'
+import RxSession from './session-rx'
+import RxTransaction from './transaction-rx'
+import RxResult from './result-rx'
 import { Parameters } from './query-runner'
 
 declare const auth: {
@@ -108,6 +112,9 @@ declare const types: {
   LocalDateTime: typeof LocalDateTime
   DateTime: typeof DateTime
   Integer: typeof Integer
+  RxSession: RxSession
+  RxTransaction: RxTransaction
+  RxResult: RxResult
 }
 
 declare const session: {
@@ -188,6 +195,10 @@ declare const forExport: {
   Date: Date
   LocalDateTime: LocalDateTime
   DateTime: DateTime
+  RxSession: RxSession
+  RxTransaction: RxTransaction
+  RxResult: RxResult
+  ConnectionProvider: ConnectionProvider
   isDuration: typeof isDuration
   isLocalTime: typeof isLocalTime
   isTime: typeof isTime
@@ -241,6 +252,10 @@ export {
   Date,
   LocalDateTime,
   DateTime,
+  RxSession,
+  RxTransaction,
+  RxResult,
+  ConnectionProvider,
   isDuration,
   isLocalTime,
   isTime,

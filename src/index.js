@@ -52,9 +52,9 @@ import {
   UnboundRelationship,
   Record,
   ResultSummary,
-  Result
+  Result,
+  ConnectionProvider
 } from 'neo4j-driver-core'
-import { HostNameResolver } from './internal/node'
 import DirectConnectionProvider from './internal/connection-provider-direct'
 import RoutingConnectionProvider from './internal/connection-provider-routing'
 

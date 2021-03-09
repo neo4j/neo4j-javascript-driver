@@ -47,6 +47,7 @@ if (safe) {
 }
 
 const str: string = int2.toString(16)
+const str2: string = int2.toString()
 
 const highBits: number = int3.getHighBits()
 const lowBits: number = int3.getLowBits()

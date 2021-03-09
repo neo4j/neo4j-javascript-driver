@@ -172,3 +172,5 @@ const promise6: Promise<number> = session.writeTransaction(
   (tx: Transaction) => 42,
   txConfig4
 )
+
+const lastBookmark: string[] = session.lastBookmark()
