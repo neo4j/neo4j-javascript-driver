@@ -339,7 +339,19 @@ class QueryStatistics {
    * @param {Object} statistics - Result statistics
    */
   constructor(statistics: any) {
-    this._stats = new Stats()
+    this._stats = {
+      nodesCreated: 0,
+      nodesDeleted: 0,
+      relationshipsCreated: 0,
+      relationshipsDeleted: 0,
+      propertiesSet: 0,
+      labelsAdded: 0,
+      labelsRemoved: 0,
+      indexesAdded: 0,
+      indexesRemoved: 0,
+      constraintsAdded: 0,
+      constraintsRemoved: 0
+    }
     this._systemUpdates = 0
     Object.keys(statistics).forEach(index => {
       // To camelCase
