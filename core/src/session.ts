@@ -27,7 +27,7 @@ import { TransactionExecutor } from './internal/transaction-executor'
 import { Bookmark } from './internal/bookmark'
 import { TxConfig } from './internal/tx-config'
 import ConnectionProvider from './connection-provider'
-import { Query } from './types'
+import { Query, SessionMode } from './types'
 import Connection from './connection'
 import { NumberOrInteger } from './graph-types'
 
@@ -47,7 +47,7 @@ interface TransactionConfig {
  * @access public
  */
 class Session {
-  private _mode: string
+  private _mode: SessionMode
   private _database: string
   private _reactive: boolean
   private _fetchSize: number
@@ -80,9 +80,9 @@ class Session {
     reactive,
     fetchSize
   }: {
-    mode: string
+    mode: SessionMode
     connectionProvider: ConnectionProvider
-    bookmark: Bookmark
+    bookmark?: Bookmark
     database: string
     config: any
     reactive: boolean
@@ -106,7 +106,7 @@ class Session {
     })
     this._open = true
     this._hasTx = false
-    this._lastBookmark = bookmark
+    this._lastBookmark = bookmark || Bookmark.empty()
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
   }
@@ -233,7 +233,7 @@ class Session {
     return this._beginTransaction(this._mode, txConfig)
   }
 
-  _beginTransaction(accessMode: string, txConfig: TxConfig): Transaction {
+  _beginTransaction(accessMode: SessionMode, txConfig: TxConfig): Transaction {
     if (!this._open) {
       throw newError('Cannot begin a transaction on a closed session.')
     }
@@ -333,7 +333,7 @@ class Session {
   }
 
   _runTransaction<T>(
-    accessMode: string,
+    accessMode: SessionMode,
     transactionConfig: TxConfig,
     transactionWork: TransactionWork<T>
   ): Promise<T> {
@@ -369,7 +369,7 @@ class Session {
     }
   }
 
-  _connectionHolderWithMode(mode: string): ConnectionHolder {
+  _connectionHolderWithMode(mode: SessionMode): ConnectionHolder {
     if (mode === ACCESS_MODE_READ) {
       return this._readConnectionHolder
     } else if (mode === ACCESS_MODE_WRITE) {
@@ -391,7 +391,7 @@ class Session {
   /**
    * @protected
    */
-  static _validateSessionMode(rawMode?: string): string {
+  static _validateSessionMode(rawMode?: SessionMode): SessionMode {
     const mode = rawMode || ACCESS_MODE_WRITE
     if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
       throw newError('Illegal session mode ' + mode)

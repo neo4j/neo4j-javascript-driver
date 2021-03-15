@@ -18,48 +18,19 @@
  */
 
 import RxSession from './session-rx'
-import { Parameters } from './query-runner'
-import { ServerInfo, Session, Driver as CoreDriver } from 'neo4j-driver-core'
+import {
+  ServerInfo,
+  Session,
+  Driver as CoreDriver,
+  types
+} from 'neo4j-driver-core'
 
-declare interface AuthToken {
-  scheme: string
-  principal: string
-  credentials: string
-  realm?: string
-  parameters?: Parameters
-}
+declare type AuthToken = types.AuthToken
+declare type Config = types.Config
+declare type EncryptionLevel = types.EncryptionLevel
+declare type TrustStrategy = types.TrustStrategy
 
-declare type EncryptionLevel = 'ENCRYPTION_ON' | 'ENCRYPTION_OFF'
-declare type TrustStrategy =
-  | 'TRUST_ALL_CERTIFICATES'
-  | 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
-  | 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
-
-declare type LogLevel = 'error' | 'warn' | 'info' | 'debug'
-
-declare interface LoggingConfig {
-  level?: LogLevel
-  logger: (level: LogLevel, message: string) => void
-}
-
-declare interface Config {
-  encrypted?: boolean | EncryptionLevel
-  trust?: TrustStrategy
-  trustedCertificates?: string[]
-  knownHosts?: string
-  fetchSize?: number
-  maxConnectionPoolSize?: number
-  maxTransactionRetryTime?: number
-  maxConnectionLifetime?: number
-  connectionAcquisitionTimeout?: number
-  connectionTimeout?: number
-  disableLosslessIntegers?: boolean
-  logging?: LoggingConfig
-  resolver?: (address: string) => string[] | Promise<string[]>
-  userAgent?: string
-}
-
-declare type SessionMode = 'READ' | 'WRITE'
+declare type SessionMode = types.SessionMode
 
 declare const READ: SessionMode
 declare const WRITE: SessionMode

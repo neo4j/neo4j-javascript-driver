@@ -17,13 +17,12 @@
  * limitations under the License.
  */
 
-import { Result, types } from 'neo4j-driver-core'
-
-declare type Parameters = types.Parameters
-declare interface QueryRunner {
-  run(query: string, parameters?: Parameters): Result
-}
-
-export { Parameters }
-
-export default QueryRunner
+// DO NOT CHANGE THE VERSION BELOW HERE
+// This is set by the build system at release time, using
+//
+// gulp set --x <releaseversion>
+//
+// This is set up this way to keep the version in the code in
+// sync with the npm package version, and to allow the build
+// system to control version names at packaging time.
+export default '0.0.0-dev'

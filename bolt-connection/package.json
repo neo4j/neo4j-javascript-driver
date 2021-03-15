@@ -3,6 +3,7 @@
   "version": "4.3.0",
   "description": "Implements the connection with the Neo4j Database using the Bolt Protocol",
   "main": "lib/index.js",
+  "types": "types/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest --passWithNoTests",

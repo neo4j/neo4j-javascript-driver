@@ -1,4 +1,4 @@
-import neo4j, { int } from 'neo4j-driver'
+import neo4j, { int } from 'neo4j'
 
 export function valueResponse (name, value) {
   return { name: name, data: { value: value } }

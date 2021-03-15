@@ -1,0 +1,52 @@
+{
+  "name": "neo4j-driver-lite",
+  "version": "4.3.0",
+  "description": "Connect to Neo4j 3.5.0 and up from JavaScript",
+  "main": "lib/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:browser": "browserify --standalone  neo4j lib/index.js -o lib/browser/neo4j-lite-web.js && uglifyjs --mangle --compress -o lib/browser/neo4j-lite-web.min.js -- lib/browser/neo4j-lite-web.js ",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:it": "jest -c jest.integration.config.ts",
+    "test:it:browser": "jest -c jest.browser.config.ts",
+    "preinstall": "cd ../core && npm ci && npm run build && cd ../bolt-connection && npm ci && npm run build || true"
+  },
+  "unpkg": "lib/browser/neo4j-lite-web.js",
+  "jsdelivr": "lib/browser/neo4j-lite-web.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
+  },
+  "keywords": [
+    "neo4j",
+    "driver"
+  ],
+  "author": "Neo4j",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/neo4j/neo4j-javascript-driver/issues"
+  },
+  "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
+  "devDependencies": {
+    "@types/jest": "^26.0.20",
+    "browser-resolve": "^2.0.0",
+    "browserify": "^17.0.0",
+    "isomorphic-ws": "^4.0.1",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3",
+    "uglify-js": "^3.13.1",
+    "ws": "^7.4.4"
+  },
+  "dependencies": {
+    "neo4j-driver-bolt-connection": "file:../bolt-connection",
+    "neo4j-driver-core": "file:../core"
+  },
+  "bundledDependencies": [
+    "neo4j-driver-core",
+    "neo4j-driver-bolt-connection"
+  ]
+}

@@ -18,9 +18,10 @@
  */
 
 import Integer, { isInt } from '../integer'
+import { EncryptionLevel } from '../types'
 
-const ENCRYPTION_ON: string = 'ENCRYPTION_ON'
-const ENCRYPTION_OFF: string = 'ENCRYPTION_OFF'
+const ENCRYPTION_ON: EncryptionLevel = 'ENCRYPTION_ON'
+const ENCRYPTION_OFF: EncryptionLevel = 'ENCRYPTION_OFF'
 
 /**
  * Verifies if the object is null or empty

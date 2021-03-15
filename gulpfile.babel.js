@@ -181,35 +181,6 @@ gulp.task('stop-neo4j', function (done) {
   done()
 })
 
-gulp.task(
-  'install-driver-into-testkit-backend',
-  gulp.series('nodejs', function () {
-    const dir = path.join('build', 'testkit-backend')
-    fs.emptyDirSync(dir)
-
-    const packageJsonContent = JSON.stringify({
-      private: true,
-      dependencies: {
-        'neo4j-driver': __dirname
-      }
-    })
-
-    return file('package.json', packageJsonContent, { src: true })
-      .pipe(gulp.dest(dir))
-      .pipe(install())
-  })
-)
-
-gulp.task(
-  'testkit-backend',
-  gulp.series('install-driver-into-testkit-backend', function () {
-    return gulp
-      .src('testkit-backend/**/*.js')
-      .pipe(babel())
-      .pipe(gulp.dest('build/testkit-backend'))
-  })
-)
-
 gulp.task('run-stress-tests', function () {
   return gulp
     .src('test/**/stress.test.js')
