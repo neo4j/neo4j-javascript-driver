@@ -16,8 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TxConfig from '../../src/internal/tx-config'
 import { int } from '../../src'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  txConfig: { TxConfig }
+} = internal
 
 describe('#unit TxConfig', () => {
   it('should be possible to construct from null', () => {

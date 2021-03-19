@@ -17,9 +17,12 @@
  * limitations under the License.
  */
 
-import { FETCH_ALL } from './internal/constants'
-import { Driver as CoreDriver, driver } from 'neo4j-driver-core'
+import { Driver as CoreDriver, driver, internal } from 'neo4j-driver-core'
 import RxSession from './session-rx'
+
+const {
+  constants: { FETCH_ALL }
+} = internal
 
 const { READ, WRITE } = driver
 

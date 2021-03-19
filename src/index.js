@@ -18,8 +18,6 @@
  */
 import { Driver, READ, WRITE } from './driver'
 import VERSION from './version'
-import urlUtil from './internal/url-util'
-import ServerAddress from './internal/server-address'
 
 import {
   Neo4jError,
@@ -55,11 +53,15 @@ import {
   Result,
   ConnectionProvider
 } from 'neo4j-driver-core'
-import DirectConnectionProvider from './internal/connection-provider-direct'
-import RoutingConnectionProvider from './internal/connection-provider-routing'
+import {
+  DirectConnectionProvider,
+  RoutingConnectionProvider
+} from 'neo4j-driver-bolt-connection'
 
 const {
-  util: { ENCRYPTION_ON, ENCRYPTION_OFF, assertString, isEmptyObjectOrNull }
+  util: { ENCRYPTION_ON, ENCRYPTION_OFF, assertString, isEmptyObjectOrNull },
+  serverAddress: { ServerAddress },
+  urlUtil
 } = internal
 
 /**

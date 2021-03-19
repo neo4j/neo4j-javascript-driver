@@ -17,14 +17,19 @@
  * limitations under the License.
  */
 
-import ConnectionHolder, {
-  EMPTY_CONNECTION_HOLDER
-} from '../../src/internal/connection-holder'
-import SingleConnectionProvider from '../../src/internal/connection-provider-single'
+import SingleConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-single'
 import { READ, WRITE } from '../../src/driver'
 import FakeConnection from './fake-connection'
-import Connection from '../../src/internal/connection'
-import ReadOnlyConnectionHolder from '../../src/internal/connection-holder-readonly'
+import Connection from '../../bolt-connection/lib/connection/connection'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  connectionHolder: {
+    EMPTY_CONNECTION_HOLDER,
+    ReadOnlyConnectionHolder,
+    ConnectionHolder
+  }
+} = internal
 
 describe('#unit ReadOnlyConnectionHolder wrapping EmptyConnectionHolder', () => {
   it('should return rejected promise instead of connection', done => {

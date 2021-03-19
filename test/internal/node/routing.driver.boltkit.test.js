@@ -20,11 +20,13 @@
 import neo4j from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
-import RoutingTable from '../../../src/internal/routing-table'
-import { error } from 'neo4j-driver-core'
+import RoutingTable from '../../../bolt-connection/lib/rediscovery/routing-table'
+import { error, internal } from 'neo4j-driver-core'
 import lolex from 'lolex'
-import ServerAddress from '../../../src/internal/server-address'
-import { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } from 'constants'
+
+const {
+  serverAddress: { ServerAddress }
+} = internal
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 

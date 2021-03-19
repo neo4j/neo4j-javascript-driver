@@ -17,7 +17,9 @@
  * limitations under the License.
  */
 
-import urlUtil from '../../src/internal/url-util'
+import { internal } from 'neo4j-driver-core'
+
+const { urlUtil } = internal
 
 describe('#unit url-util', () => {
   it('should parse URL with just host name', () => {

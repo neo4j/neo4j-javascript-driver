@@ -19,11 +19,14 @@
 import { defer, Observable, throwError } from 'rxjs'
 import { flatMap, catchError, concat } from 'rxjs/operators'
 import RxResult from './result-rx'
-import { Session } from 'neo4j-driver-core'
+import { Session, internal } from 'neo4j-driver-core'
 import RxTransaction from './transaction-rx'
-import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
-import TxConfig from './internal/tx-config'
 import RxRetryLogic from './internal/retry-logic-rx'
+
+const {
+  constants: { ACCESS_MODE_READ, ACCESS_MODE_WRITE },
+  txConfig: { TxConfig }
+} = internal
 
 /**
  * A Reactive session, which provides the same functionality as {@link Session} but through a Reactive API.

@@ -17,10 +17,16 @@
  * limitations under the License.
  */
 
-import { newError, error } from 'neo4j-driver-core'
+import { newError, error, internal } from 'neo4j-driver-core'
 import { Observable, throwError, of } from 'rxjs'
 import { retryWhen, flatMap, delay } from 'rxjs/operators'
-import Logger from './logger'
+
+const {
+  logger: {
+    // eslint-disable-next-line no-unused-vars
+    Logger
+  }
+} = internal
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds

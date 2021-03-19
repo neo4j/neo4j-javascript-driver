@@ -230,14 +230,12 @@ export class TransactionExecutor {
   }
 
   static _canRetryOn(error: any): boolean {
-    return (
-      error &&
+    return (error &&
       error instanceof Neo4jError &&
       error.code &&
       (error.code === SERVICE_UNAVAILABLE ||
         error.code === SESSION_EXPIRED ||
-        this._isTransientError(error))
-    )
+        this._isTransientError(error))) as boolean
   }
 
   static _isTransientError(error: Neo4jError): boolean {

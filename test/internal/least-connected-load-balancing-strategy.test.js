@@ -16,9 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import LeastConnectedLoadBalancingStrategy from '../../src/internal/least-connected-load-balancing-strategy'
-import Pool from '../../src/internal/pool'
+import Pool from '../../bolt-connection/lib/pool/pool'
+import { loadBalancing } from 'neo4j-driver-bolt-connection'
+const { LeastConnectedLoadBalancingStrategy } = loadBalancing
 
 describe('#unit LeastConnectedLoadBalancingStrategy', () => {
   it('should return null when no readers', () => {

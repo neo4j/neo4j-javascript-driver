@@ -17,7 +17,11 @@
  * limitations under the License.
  */
 
-import { assertString } from './util'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  util: { assertString }
+} = internal
 
 const SERVER_VERSION_REGEX = new RegExp(
   '^(Neo4j/)?(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?$'

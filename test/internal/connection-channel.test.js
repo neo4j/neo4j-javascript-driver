@@ -20,22 +20,25 @@
 import DummyChannel from './dummy-channel'
 import ChannelConnection, {
   createChannelConnection
-} from '../../src/internal/connection-channel'
-import { Packer } from '../../src/internal/packstream-v1'
-import { Chunker } from '../../src/internal/chunking'
-import { alloc } from '../../src/internal/node'
-import { Neo4jError, newError, error } from 'neo4j-driver-core'
+} from '../../bolt-connection/lib/connection/connection-channel'
+import { Packer } from '../../bolt-connection/lib/packstream/packstream-v1'
+import { Chunker } from '../../bolt-connection/lib/channel/chunking'
+import { alloc } from '../../bolt-connection/lib/channel'
+import { Neo4jError, newError, error, internal } from 'neo4j-driver-core'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { ServerVersion } from '../../src/internal/server-version'
 import lolex from 'lolex'
-import Logger from '../../src/internal/logger'
-import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
+import ConnectionErrorHandler from '../../bolt-connection/lib/connection/connection-error-handler'
 import testUtils from '../internal/test-utils'
-import Bookmark from '../../src/internal/bookmark'
-import TxConfig from '../../src/internal/tx-config'
 import { WRITE } from '../../src/driver'
-import ServerAddress from '../../src/internal/server-address'
-import { ResultStreamObserver } from '../../src/internal/bolt'
+import { ResultStreamObserver } from '../../bolt-connection/lib/bolt'
+
+const {
+  logger: { Logger },
+  bookmark: { Bookmark },
+  txConfig: { TxConfig },
+  serverAddress: { ServerAddress }
+} = internal
 
 const { SERVICE_UNAVAILABLE } = error
 

@@ -19,14 +19,14 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import {
-  timeZoneOffsetInSeconds,
-  totalNanoseconds
-} from '../src/internal/temporal-util'
-import { toNumber } from 'neo4j-driver-core'
+import { toNumber, internal } from 'neo4j-driver-core'
 import timesSeries from 'async/timesSeries'
 import _ from 'lodash'
 import testUtils from './internal/test-utils'
+
+const {
+  temporalUtil: { timeZoneOffsetInSeconds, totalNanoseconds }
+} = internal
 
 const RANDOM_VALUES_TO_TEST = 2000
 const MIN_TEMPORAL_ARRAY_LENGTH = 20

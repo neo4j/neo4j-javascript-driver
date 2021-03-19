@@ -17,11 +17,15 @@
  * limitations under the License.
  */
 
-import RequestMessage from '../../../src/internal/bolt/request-message'
-import Bookmark from '../../../src/internal/bookmark'
-import TxConfig from '../../../src/internal/tx-config'
+import RequestMessage from '../../../bolt-connection/lib/bolt/request-message'
 import { int } from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  bookmark: { Bookmark },
+  txConfig: { TxConfig }
+} = internal
 
 describe('#unit RequestMessage', () => {
   it('should create INIT message', () => {

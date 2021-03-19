@@ -17,8 +17,10 @@
  * limitations under the License.
  */
 
-import * as util from '../../src/internal/util'
 import { int } from '../../src'
+import { internal } from 'neo4j-driver-core'
+
+const { util } = internal
 
 /* eslint-disable no-new-wrappers */
 describe('#unit Utils', () => {

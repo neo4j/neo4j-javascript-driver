@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import PooledConnectionProvider from '../../src/internal/connection-provider-pooled'
+import PooledConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-pooled'
 import FakeConnection from './fake-connection'
 import lolex from 'lolex'
 

@@ -16,11 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import DelegateConnection from '../../src/internal/connection-delegate'
-import Connection from '../../src/internal/connection'
-import { BoltProtocol } from '../../src/internal/bolt'
-import BoltAddress from '../../src/internal/server-address'
-import ConnectionErrorHandler from '../../src/internal/connection-error-handler'
+import DelegateConnection from '../../bolt-connection/lib/connection/connection-delegate'
+import Connection from '../../bolt-connection/lib/connection/connection'
+import { BoltProtocol } from '../../bolt-connection/lib/bolt'
+import ConnectionErrorHandler from '../../bolt-connection/lib/connection/connection-error-handler'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  serverAddress: { ServerAddress: BoltAddress }
+} = internal
 
 describe('#unit DelegateConnection', () => {
   it('should delegate get id', () => {

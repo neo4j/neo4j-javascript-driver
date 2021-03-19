@@ -17,10 +17,13 @@
  * limitations under the License.
  */
 
-import TransactionExecutor from '../../src/internal/transaction-executor'
-import { newError, error as err } from 'neo4j-driver-core'
+import { newError, error as err, internal } from 'neo4j-driver-core'
 import { setTimeoutMock } from './timers-util'
 import lolex from 'lolex'
+
+const {
+  transactionExecutor: { TransactionExecutor }
+} = internal
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = err
 

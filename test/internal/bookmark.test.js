@@ -16,7 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Bookmark from '../../src/internal/bookmark'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  bookmark: { Bookmark }
+} = internal
 
 describe('#unit Bookmark', () => {
   it('should be possible to construct bookmark from string', () => {

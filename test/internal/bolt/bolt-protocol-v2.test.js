@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import BoltProtocolV2 from '../../../src/internal/bolt/bolt-protocol-v2'
+import BoltProtocolV2 from '../../../bolt-connection/lib/bolt/bolt-protocol-v2'
 import utils from '../test-utils'
 
 describe('#unit BoltProtocolV2', () => {

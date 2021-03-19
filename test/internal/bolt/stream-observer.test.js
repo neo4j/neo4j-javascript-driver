@@ -21,8 +21,8 @@ import {
   ResultStreamObserver,
   RouteObserver,
   ProcedureRouteObserver
-} from '../../../src/internal/bolt/stream-observers'
-import { RawRoutingTable } from '../../../src/internal/bolt'
+} from '../../../bolt-connection/lib/bolt/stream-observers'
+import { RawRoutingTable } from '../../../bolt-connection/lib/bolt'
 import { error, newError, Record } from 'neo4j-driver-core'
 
 const { PROTOCOL_ERROR } = error

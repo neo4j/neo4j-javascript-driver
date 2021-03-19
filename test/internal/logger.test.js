@@ -19,7 +19,11 @@
 
 import neo4j from '../../src'
 import sharedNeo4j from '../../test/internal/shared-neo4j'
-import Logger from '../../src/internal/logger'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  logger: { Logger }
+} = internal
 
 describe('#unit Logger', () => {
   it('should create no-op logger when not configured', () => {

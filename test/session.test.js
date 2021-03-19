@@ -19,14 +19,23 @@
 
 import neo4j from '../src'
 import { READ } from '../src/driver'
-import SingleConnectionProvider from '../src/internal/connection-provider-single'
+import SingleConnectionProvider from '../bolt-connection/lib/connection-provider/connection-provider-single'
 import FakeConnection from './internal/fake-connection'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
-import { isString } from '../src/internal/util'
 import testUtils from './internal/test-utils'
-import { newError, error, queryType, Session } from 'neo4j-driver-core'
-import ServerAddress from '../src/internal/server-address'
+import {
+  newError,
+  error,
+  queryType,
+  Session,
+  internal
+} from 'neo4j-driver-core'
+
+const {
+  util: { isString },
+  serverAddress: { ServerAddress }
+} = internal
 
 const { PROTOCOL_ERROR, SESSION_EXPIRED } = error
 

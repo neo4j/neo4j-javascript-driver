@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoundRobinArrayIndex from '../../src/internal/round-robin-array-index'
+import RoundRobinArrayIndex from '../../bolt-connection/lib/load-balancing/round-robin-array-index'
 
 describe('#unit RoundRobinArrayIndex', () => {
   it('should return -1 for empty array', () => {
