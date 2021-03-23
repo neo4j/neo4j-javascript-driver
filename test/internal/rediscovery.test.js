@@ -17,14 +17,18 @@
  * limitations under the License.
  */
 
-import { RawRoutingTable } from '../../src/internal/bolt'
-import Rediscovery from '../../src/internal/rediscovery'
-import RoutingTable from '../../src/internal/routing-table'
-import ServerAddress from '../../src/internal/server-address'
+import { RawRoutingTable } from '../../bolt-connection/lib/bolt'
+import Rediscovery from '../../bolt-connection/lib/rediscovery'
+import RoutingTable from '../../bolt-connection/lib/rediscovery/routing-table'
 import FakeConnection from './fake-connection'
 import lolex from 'lolex'
-import { int } from '../../src/integer'
-import { PROTOCOL_ERROR, newError, SERVICE_UNAVAILABLE } from '../../src/error'
+import { newError, error, int, internal } from 'neo4j-driver-core'
+
+const {
+  serverAddress: { ServerAddress }
+} = internal
+
+const { PROTOCOL_ERROR, SERVICE_UNAVAILABLE } = error
 
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'

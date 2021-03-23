@@ -17,10 +17,15 @@
  * limitations under the License.
  */
 
-import Pool from '../../src/internal/pool'
-import PoolConfig from '../../src/internal/pool-config'
-import ServerAddress from '../../src/internal/server-address'
-import { newError, SERVICE_UNAVAILABLE } from '../../src/error'
+import Pool from '../../bolt-connection/lib/pool/pool'
+import PoolConfig from '../../bolt-connection/lib/pool/pool-config'
+import { newError, error, internal } from 'neo4j-driver-core'
+
+const {
+  serverAddress: { ServerAddress }
+} = internal
+
+const { SERVICE_UNAVAILABLE } = error
 
 describe('#unit Pool', async () => {
   it('allocates if pool is empty', async () => {

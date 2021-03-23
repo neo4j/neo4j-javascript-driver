@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import CombinedBuffer from '../../src/internal/buf/combined-buf'
-import { alloc, utf8 } from '../../src/internal/node'
+import CombinedBuffer from '../../bolt-connection/lib/channel/combined-buf'
+import { alloc, utf8 } from '../../bolt-connection/lib/channel'
 
 describe('#unit UTF8Encoding', () => {
   it('should have a nice clean buffer position after serializing', () => {

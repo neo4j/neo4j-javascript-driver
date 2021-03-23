@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import { int } from '../../src/integer'
-import * as factory from '../../src/internal/temporal-factory'
+import { int } from 'neo4j-driver-core'
+import * as factory from '../../bolt-connection/lib/packstream/temporal-factory'
 import { types } from '../../src'
 
 describe('#unit temporal-factory', () => {

@@ -25,7 +25,8 @@ import {
   error,
   session,
   spatial,
-  temporal
+  temporal,
+  DateTime
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -81,3 +82,4 @@ const isNeo4jDuration: boolean = temporal.isDuration({})
 const isNeo4jLocalDateTime: boolean = temporal.isLocalDateTime({})
 const isNeo4jLocalTime: boolean = temporal.isLocalTime({})
 const isNeo4jTime: boolean = temporal.isTime({})
+const dateTime = DateTime.fromStandardDate(new Date())

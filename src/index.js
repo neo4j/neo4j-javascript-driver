@@ -16,36 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Driver, READ, WRITE } from './driver'
+import VERSION from './version'
 
-import Integer, { inSafeRange, int, isInt, toNumber, toString } from './integer'
-import {
-  Node,
-  Path,
-  PathSegment,
-  Relationship,
-  UnboundRelationship
-} from './graph-types'
 import {
   Neo4jError,
-  PROTOCOL_ERROR,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
-} from './error'
-import Result from './result'
-import ResultSummary from './result-summary'
-import Record from './record'
-import { Driver, READ, WRITE } from './driver'
-import RoutingDriver from './routing-driver'
-import VERSION from './version'
-import {
-  ENCRYPTION_ON,
-  ENCRYPTION_OFF,
-  assertString,
-  isEmptyObjectOrNull
-} from './internal/util'
-import urlUtil from './internal/url-util'
-import { isPoint, Point } from './spatial-types'
-import {
+  error,
+  Integer,
+  inSafeRange,
+  int,
+  isInt,
+  toNumber,
+  toString,
+  internal,
+  isPoint,
+  Point,
   Date,
   DateTime,
   Duration,
@@ -57,9 +42,27 @@ import {
   isTime,
   LocalDateTime,
   LocalTime,
-  Time
-} from './temporal-types'
-import ServerAddress from './internal/server-address'
+  Time,
+  Node,
+  Path,
+  PathSegment,
+  Relationship,
+  UnboundRelationship,
+  Record,
+  ResultSummary,
+  Result,
+  ConnectionProvider
+} from 'neo4j-driver-core'
+import {
+  DirectConnectionProvider,
+  RoutingConnectionProvider
+} from 'neo4j-driver-bolt-connection'
+
+const {
+  util: { ENCRYPTION_ON, ENCRYPTION_OFF, assertString, isEmptyObjectOrNull },
+  serverAddress: { ServerAddress },
+  urlUtil
+} = internal
 
 /**
  * Construct a new Neo4j Driver. This is your main entry point for this
@@ -237,27 +240,46 @@ function driver (url, authToken, config = {}) {
 
   // Use default user agent or user agent specified by user.
   config.userAgent = config.userAgent || USER_AGENT
+  const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
-  if (routing) {
-    return new RoutingDriver(
-      ServerAddress.fromUrl(parsedUrl.hostAndPort),
-      parsedUrl.query,
-      config.userAgent,
-      authToken,
-      config
-    )
-  } else {
-    if (!isEmptyObjectOrNull(parsedUrl.query)) {
-      throw new Error(
-        `Parameters are not supported with none routed scheme. Given URL: '${url}'`
-      )
+  const meta = {
+    address,
+    typename: routing ? 'Routing' : 'Direct',
+    routing
+  }
+
+  return new Driver(meta, config, createConnectionProviderFunction())
+
+  function createConnectionProviderFunction () {
+    if (routing) {
+      return (id, config, log, hostNameResolver) =>
+        new RoutingConnectionProvider({
+          id,
+          config,
+          log,
+          hostNameResolver,
+          authToken,
+          address,
+          userAgent: config.userAgent,
+          routingContext: parsedUrl.query
+        })
+    } else {
+      if (!isEmptyObjectOrNull(parsedUrl.query)) {
+        throw new Error(
+          `Parameters are not supported with none routed scheme. Given URL: '${url}'`
+        )
+      }
+
+      return (id, config, log) =>
+        new DirectConnectionProvider({
+          id,
+          config,
+          log,
+          authToken,
+          address,
+          userAgent: config.userAgent
+        })
     }
-    return new Driver(
-      ServerAddress.fromUrl(parsedUrl.hostAndPort),
-      config.userAgent,
-      authToken,
-      config
-    )
   }
 }
 
@@ -353,15 +375,6 @@ const types = {
 const session = {
   READ,
   WRITE
-}
-
-/**
- * Object containing string constants representing predefined {@link Neo4jError} codes.
- */
-const error = {
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED,
-  PROTOCOL_ERROR
 }
 
 /**

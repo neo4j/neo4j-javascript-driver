@@ -1,0 +1,45 @@
+{
+  "source": "./lib6",
+  "destination": "./docs",
+  "includes": ["\\.js$"],
+  "excludes": ["external", "internal"],
+  "package": "./package.json",
+  "plugins": [
+    {
+      "name": "esdoc-importpath-plugin",
+      "option": {
+        "replaces": [
+          {
+            "from": "^lib6/",
+            "to": "lib/"
+          }
+        ]
+      }
+    },
+    {
+      "name": "esdoc-standard-plugin",
+      "option": {
+        "lint": {
+          "enable": false
+        },
+        "accessor": {
+          "access": ["public"],
+          "autoPrivate": true
+        },
+        "undocumentIdentifier": {
+          "enable": true
+        },
+        "unexportedIdentifier": {
+          "enable": false
+        },
+        "typeInference": {
+          "enable": true
+        },
+        "brand": {
+          "title": "Neo4j Bolt Driver 4.1 for JavaScript",
+          "repository": "https://github.com/neo4j/neo4j-javascript-driver"
+        }
+      }
+    }
+  ]
+}

@@ -17,8 +17,7 @@
  * limitations under the License.
  */
 
-import Record from '../src/record'
-import { Neo4jError } from '../src/error'
+import { Neo4jError, Record } from 'neo4j-driver-core'
 
 describe('#unit Record', () => {
   it('should allow getting fields by name', () => {

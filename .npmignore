@@ -1,5 +1,8 @@
 docs/
 src/
+core/
+testkit/
+testkit-backend/
 build/
 test/
 .gitignore

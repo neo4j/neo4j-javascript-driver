@@ -17,9 +17,13 @@
  * limitations under the License.
  */
 
-import ConnectivityVerifier from '../../src/internal/connectivity-verifier'
-import SingleConnectionProvider from '../../src/internal/connection-provider-single'
+import SingleConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-single'
 import FakeConnection from './fake-connection'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  connectivityVerifier: { ConnectivityVerifier }
+} = internal
 
 describe('#unit ConnectivityVerifier', () => {
   it('should call success callback when able to acquire and release a connection', done => {

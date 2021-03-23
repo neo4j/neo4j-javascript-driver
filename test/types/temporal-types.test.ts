@@ -18,6 +18,8 @@
  */
 
 import {
+  int,
+  Integer,
   Date,
   DateTime,
   Duration,
@@ -29,10 +31,9 @@ import {
   isTime,
   LocalDateTime,
   LocalTime,
-  Time
-} from '../../types/temporal-types'
-import Integer, { int } from '../../types/integer'
-import { StandardDate } from '../../types/graph-types'
+  Time,
+  StandardDate
+} from 'neo4j-driver-core'
 
 const duration1: Duration = new Duration(int(1), int(1), int(1), int(1))
 const months1: Integer = duration1.months

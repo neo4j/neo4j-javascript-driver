@@ -17,11 +17,16 @@
  * limitations under the License.
  */
 
-import { newError, SESSION_EXPIRED, SERVICE_UNAVAILABLE } from '../../src/error'
+import { newError, error, internal } from 'neo4j-driver-core'
 import RxRetryLogic from '../../src/internal/retry-logic-rx'
 import { defer, throwError, of } from 'rxjs'
 import { TestScheduler } from 'rxjs/testing'
-import Logger from '../../src/internal/logger'
+
+const {
+  logger: { Logger }
+} = internal
+
+const { SESSION_EXPIRED, SERVICE_UNAVAILABLE } = error
 
 describe('#unit-rx retrylogic', () => {
   let scheduler

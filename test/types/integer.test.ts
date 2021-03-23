@@ -17,13 +17,14 @@
  * limitations under the License.
  */
 
-import Integer, {
+import {
+  Integer,
   inSafeRange,
   int,
   isInt,
   toNumber,
   toString
-} from '../../types/integer'
+} from 'neo4j-driver-core'
 
 const int1 = new Integer()
 const int2 = new Integer(1)
@@ -46,6 +47,7 @@ if (safe) {
 }
 
 const str: string = int2.toString(16)
+const str2: string = int2.toString()
 
 const highBits: number = int3.getHighBits()
 const lowBits: number = int3.getLowBits()

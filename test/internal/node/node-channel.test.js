@@ -16,11 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NodeChannel from '../../../src/internal/node/node-channel'
-import ChannelConfig from '../../../src/internal/channel-config'
-import { SERVICE_UNAVAILABLE } from '../../../src/error'
-import ServerAddress from '../../../src/internal/server-address'
-import { connect } from 'net'
+import NodeChannel from '../../../bolt-connection/lib/channel/node/node-channel'
+import ChannelConfig from '../../../bolt-connection/lib/channel/channel-config'
+import { error, internal } from 'neo4j-driver-core'
+
+const {
+  serverAddress: { ServerAddress }
+} = internal
+
+const { SERVICE_UNAVAILABLE } = error
 
 describe('#unit NodeChannel', () => {
   it('should resolve close if websocket is already closed', () => {

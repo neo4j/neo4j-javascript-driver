@@ -20,7 +20,9 @@
 import neo4j from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
-import { newError, SERVICE_UNAVAILABLE } from '../../../src/error'
+import { newError, error } from 'neo4j-driver-core'
+
+const { SERVICE_UNAVAILABLE } = error
 
 describe('#stub-direct direct driver with stub server', () => {
   describe('should run query', () => {

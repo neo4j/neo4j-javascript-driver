@@ -23,7 +23,7 @@ import lolex from 'lolex'
 import {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
-} from '../src/internal/pool-config'
+} from '../bolt-connection/lib/pool/pool-config'
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
 
@@ -379,11 +379,15 @@ describe('#integration driver', () => {
 
   it('should have correct user agent', async () => {
     const directDriver = neo4j.driver(`bolt://${sharedNeo4j.hostname}`)
-    expect(directDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
+    expect(directDriver._getOrCreateConnectionProvider()._userAgent).toBe(
+      'neo4j-javascript/0.0.0-dev'
+    )
     await directDriver.close()
 
     const routingDriver = neo4j.driver(`neo4j://${sharedNeo4j.hostname}`)
-    expect(routingDriver._userAgent).toBe('neo4j-javascript/0.0.0-dev')
+    expect(routingDriver._getOrCreateConnectionProvider()._userAgent).toBe(
+      'neo4j-javascript/0.0.0-dev'
+    )
     await routingDriver.close()
   })
 

@@ -17,16 +17,21 @@
  * limitations under the License.
  */
 
-import BoltProtocolV4x0 from '../../../src/internal/bolt/bolt-protocol-v4x0'
-import RequestMessage from '../../../src/internal/bolt/request-message'
+import BoltProtocolV4x0 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x0'
+import RequestMessage from '../../../bolt-connection/lib/bolt/request-message'
 import utils from '../test-utils'
-import Bookmark from '../../../src/internal/bookmark'
-import TxConfig from '../../../src/internal/tx-config'
 import { WRITE } from '../../../src/driver'
 import {
   ProcedureRouteObserver,
   ResultStreamObserver
-} from '../../../src/internal/bolt/stream-observers'
+} from '../../../bolt-connection/lib/bolt/stream-observers'
+
+import { internal } from 'neo4j-driver-core'
+
+const {
+  txConfig: { TxConfig },
+  bookmark: { Bookmark }
+} = internal
 
 describe('#unit BoltProtocolV4x0', () => {
   beforeEach(() => {

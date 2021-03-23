@@ -30,7 +30,7 @@ import {
 import neo4j from '../../src'
 import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
-import { newError } from '../../src/error'
+import { newError } from 'neo4j-driver-core'
 
 describe('#integration-rx transaction', () => {
   let driver

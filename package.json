@@ -9,6 +9,7 @@
     "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
   },
   "scripts": {
+    "preinstall": "cd core && npm ci && npm run build && cd ../bolt-connection && npm ci && npm run build || true",
     "lint": "eslint --fix --ext .js ./",
     "format": "prettier-eslint '**/*.js' '**/*.json' '**/*.md' '**/*.ts' '**/*.html' --write",
     "test": "gulp test",
@@ -17,9 +18,11 @@
     "stop-neo4j": "gulp stop-neo4j",
     "run-stress-tests": "gulp run-stress-tests-without-jasmine",
     "run-ts-declaration-tests": "gulp run-ts-declaration-tests",
+    "predocs": "cd core && npm run docs",
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --x $VERSION && npm version $VERSION --no-git-tag-version",
-    "browser": "gulp browser && gulp test-browser"
+    "browser": "gulp browser && gulp test-browser",
+    "prepack": "cd core && npm pack && cd .. && npm i ./core/neo4j-driver-core-4.3.0.tgz && cd bolt-connection && npm pack && cd .. && npm i ./bolt-connection/neo4j-driver-bolt-connection-4.3.0.tgz"
   },
   "husky": {
     "hooks": {
@@ -105,8 +108,14 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.5.5",
+    "neo4j-driver-bolt-connection": "file:bolt-connection",
+    "neo4j-driver-core": "file:core",
     "rxjs": "^6.6.3",
     "text-encoding-utf-8": "^1.0.2",
     "uri-js": "^4.4.0"
-  }
+  },
+  "bundledDependencies": [
+    "neo4j-driver-core",
+    "neo4j-driver-bolt-connection"
+  ]
 }

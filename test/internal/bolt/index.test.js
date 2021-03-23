@@ -16,20 +16,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Bolt from '../../../src/internal/bolt'
+import Bolt from '../../../bolt-connection/lib/bolt'
 import DummyChannel from '../dummy-channel'
-import { alloc } from '../../../src/internal/node'
-import { newError } from '../../../src/error'
-import { Chunker, Dechunker } from '../../../src/internal/chunking'
-import Logger from '../../../src/internal/logger'
+import { alloc } from '../../../bolt-connection/lib/channel'
+import { newError, internal } from 'neo4j-driver-core'
+import {
+  Chunker,
+  Dechunker
+} from '../../../bolt-connection/lib/channel/chunking'
 
-import BoltProtocolV1 from '../../../src/internal/bolt/bolt-protocol-v1'
-import BoltProtocolV2 from '../../../src/internal/bolt/bolt-protocol-v2'
-import BoltProtocolV3 from '../../../src/internal/bolt/bolt-protocol-v3'
-import BoltProtocolV4x0 from '../../../src/internal/bolt/bolt-protocol-v4x0'
-import BoltProtocolV4x1 from '../../../src/internal/bolt/bolt-protocol-v4x1'
-import BoltProtocolV4x2 from '../../../src/internal/bolt/bolt-protocol-v4x2'
-import BoltProtocolV4x3 from '../../../src/internal/bolt/bolt-protocol-v4x3'
+import BoltProtocolV1 from '../../../bolt-connection/lib/bolt/bolt-protocol-v1'
+import BoltProtocolV2 from '../../../bolt-connection/lib/bolt/bolt-protocol-v2'
+import BoltProtocolV3 from '../../../bolt-connection/lib/bolt/bolt-protocol-v3'
+import BoltProtocolV4x0 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x0'
+import BoltProtocolV4x1 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x1'
+import BoltProtocolV4x2 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x2'
+import BoltProtocolV4x3 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x3'
+
+const {
+  logger: { Logger }
+} = internal
 
 describe('#unit Bolt', () => {
   describe('handshake', () => {

@@ -17,16 +17,17 @@
  * limitations under the License.
  */
 
-import Integer, { inSafeRange, int, isInt, toNumber, toString } from './integer'
 import {
-  Node,
-  Path,
-  PathSegment,
-  Relationship,
-  UnboundRelationship
-} from './graph-types'
-import { isPoint, Point } from './spatial-types'
-import {
+  Neo4jError,
+  error,
+  Integer,
+  inSafeRange,
+  int,
+  isInt,
+  toNumber,
+  toString,
+  isPoint,
+  Point,
   Date,
   DateTime,
   Duration,
@@ -38,25 +39,27 @@ import {
   isTime,
   LocalDateTime,
   LocalTime,
-  Time
-} from './temporal-types'
-import {
-  Neo4jError,
-  PROTOCOL_ERROR,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
-} from './error'
-import Result, { ResultObserver, QueryResult } from './result'
-import ResultSummary, {
+  Time,
+  Node,
+  Path,
+  PathSegment,
+  Relationship,
+  UnboundRelationship,
+  Record,
+  ResultSummary,
   Notification,
   NotificationPosition,
   Plan,
   ProfiledPlan,
   ServerInfo,
-  QueryStatistic
-} from './result-summary'
-import Record from './record'
-import Session from './session'
+  QueryStatistics,
+  Result,
+  ResultObserver,
+  QueryResult,
+  Transaction,
+  Session,
+  ConnectionProvider
+} from 'neo4j-driver-core'
 import {
   AuthToken,
   Config,
@@ -67,7 +70,9 @@ import {
   TrustStrategy,
   WRITE
 } from './driver'
-import Transaction from './transaction'
+import RxSession from './session-rx'
+import RxTransaction from './transaction-rx'
+import RxResult from './result-rx'
 import { Parameters } from './query-runner'
 
 declare const auth: {
@@ -107,17 +112,14 @@ declare const types: {
   LocalDateTime: typeof LocalDateTime
   DateTime: typeof DateTime
   Integer: typeof Integer
+  RxSession: RxSession
+  RxTransaction: RxTransaction
+  RxResult: RxResult
 }
 
 declare const session: {
   READ: typeof READ
   WRITE: typeof WRITE
-}
-
-declare const error: {
-  SERVICE_UNAVAILABLE: typeof SERVICE_UNAVAILABLE
-  SESSION_EXPIRED: typeof SESSION_EXPIRED
-  PROTOCOL_ERROR: typeof PROTOCOL_ERROR
 }
 
 declare const integer: {
@@ -179,7 +181,7 @@ declare const forExport: {
   ResultSummary: ResultSummary
   Plan: Plan
   ProfiledPlan: ProfiledPlan
-  QueryStatistic: QueryStatistic
+  QueryStatistic: QueryStatistics
   Notification: Notification
   ServerInfo: ServerInfo
   NotificationPosition: NotificationPosition
@@ -193,6 +195,10 @@ declare const forExport: {
   Date: Date
   LocalDateTime: LocalDateTime
   DateTime: DateTime
+  RxSession: RxSession
+  RxTransaction: RxTransaction
+  RxResult: RxResult
+  ConnectionProvider: ConnectionProvider
   isDuration: typeof isDuration
   isLocalTime: typeof isLocalTime
   isTime: typeof isTime
@@ -232,7 +238,7 @@ export {
   ResultSummary,
   Plan,
   ProfiledPlan,
-  QueryStatistic,
+  QueryStatistics,
   Notification,
   ServerInfo,
   NotificationPosition,
@@ -246,6 +252,10 @@ export {
   Date,
   LocalDateTime,
   DateTime,
+  RxSession,
+  RxTransaction,
+  RxResult,
+  ConnectionProvider,
   isDuration,
   isLocalTime,
   isTime,

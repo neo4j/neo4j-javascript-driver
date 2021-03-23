@@ -16,11 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError } from './error'
-import ResultSummary from './result-summary'
+import { newError, Record, ResultSummary } from 'neo4j-driver-core'
 import { Observable, Subject, ReplaySubject, from } from 'rxjs'
 import { flatMap, publishReplay, refCount, shareReplay } from 'rxjs/operators'
-import Record from './record'
 
 const States = {
   READY: 0,

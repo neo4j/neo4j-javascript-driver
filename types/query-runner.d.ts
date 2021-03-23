@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Result from './result'
+import { Result } from 'neo4j-driver-core'
 
 declare type Parameters = { [key: string]: any }
 

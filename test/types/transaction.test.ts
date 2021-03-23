@@ -17,10 +17,13 @@
  * limitations under the License.
  */
 
-import Transaction from '../../types/transaction'
-import Record from '../../types/record'
-import Result, { QueryResult } from '../../types/result'
-import ResultSummary from '../../types/result-summary'
+import {
+  Record,
+  ResultSummary,
+  Result,
+  QueryResult,
+  Transaction
+} from 'neo4j-driver-core'
 
 const dummy: any = null
 

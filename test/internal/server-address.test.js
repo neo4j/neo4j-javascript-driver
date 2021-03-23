@@ -17,7 +17,11 @@
  * limitations under the License.
  */
 
-import ServerAddress from '../../src/internal/server-address'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  serverAddress: { ServerAddress }
+} = internal
 
 describe('#unit ServerAddress', () => {
   it('should construct with correct values', () => {

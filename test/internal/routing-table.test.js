@@ -16,13 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoutingTable from '../../src/internal/routing-table'
-import Integer, { int } from '../../src/integer'
+import RoutingTable from '../../bolt-connection/lib/rediscovery/routing-table'
 import { READ, WRITE } from '../../src/driver'
-import ServerAddress from '../../src/internal/server-address'
-import { RawRoutingTable } from '../../src/internal/bolt'
-import { PROTOCOL_ERROR } from '../../src/error'
+import { RawRoutingTable } from '../../bolt-connection/lib/bolt'
+import { error, Integer, int, internal } from 'neo4j-driver-core'
 import lolex from 'lolex'
+
+const {
+  serverAddress: { ServerAddress }
+} = internal
+
+const { PROTOCOL_ERROR } = error
 
 const invalidAddressesFieldValues = [
   'localhost:1234',

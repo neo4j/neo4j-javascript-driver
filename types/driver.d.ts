@@ -17,11 +17,9 @@
  * limitations under the License.
  */
 
-import Session from './session'
 import RxSession from './session-rx'
 import { Parameters } from './query-runner'
-import { Neo4jError } from './error'
-import { ServerInfo } from './result-summary'
+import { ServerInfo, Session, Driver as CoreDriver } from 'neo4j-driver-core'
 
 declare interface AuthToken {
   scheme: string
@@ -66,19 +64,7 @@ declare type SessionMode = 'READ' | 'WRITE'
 declare const READ: SessionMode
 declare const WRITE: SessionMode
 
-declare interface Driver {
-  session({
-    defaultAccessMode,
-    bookmarks,
-    database,
-    fetchSize
-  }?: {
-    defaultAccessMode?: SessionMode
-    bookmarks?: string | string[]
-    fetchSize?: number
-    database?: string
-  }): Session
-
+declare interface Driver extends CoreDriver {
   rxSession({
     defaultAccessMode,
     bookmarks,
@@ -90,14 +76,6 @@ declare interface Driver {
     fetchSize?: number
     database?: string
   }): RxSession
-
-  close(): Promise<void>
-
-  verifyConnectivity(): Promise<ServerInfo>
-
-  supportsMultiDb(): Promise<boolean>
-
-  supportsTransactionConfig(): Promise<boolean>
 }
 
 export {

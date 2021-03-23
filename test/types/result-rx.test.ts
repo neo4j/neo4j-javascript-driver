@@ -18,9 +18,6 @@
  */
 
 import RxResult from '../../types/result-rx'
-import Record from '../../types/record'
-import ResultSummary from '../../types/result-summary'
-import { Observer } from 'rxjs'
 
 const dummy: any = null
 

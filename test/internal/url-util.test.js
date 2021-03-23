@@ -17,7 +17,9 @@
  * limitations under the License.
  */
 
-import urlUtil from '../../src/internal/url-util'
+import { internal } from 'neo4j-driver-core'
+
+const { urlUtil } = internal
 
 describe('#unit url-util', () => {
   it('should parse URL with just host name', () => {
@@ -785,7 +787,6 @@ describe('#unit url-util', () => {
 
   function verifyUrl (urlString, expectedUrl) {
     const url = parse(urlString)
-
     if (expectedUrl.scheme) {
       expect(url.scheme).toEqual(expectedUrl.scheme)
     } else {
@@ -803,7 +804,6 @@ describe('#unit url-util', () => {
     }
 
     verifyHostAndPort(url, expectedUrl)
-
     if (expectedUrl.query) {
       expect(url.query).toEqual(expectedUrl.query)
     } else {

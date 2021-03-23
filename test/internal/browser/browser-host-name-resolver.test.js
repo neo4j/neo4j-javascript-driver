@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import BrowserHostNameResolver from '../../../src/internal/browser/browser-host-name-resolver'
+import BrowserHostNameResolver from '../../../bolt-connection/lib/channel/browser/browser-host-name-resolver'
 
 describe('#unit BrowserHostNameResolver', () => {
   it('should resolve given address to itself', done => {

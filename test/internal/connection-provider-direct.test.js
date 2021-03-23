@@ -18,12 +18,16 @@
  */
 
 import { READ } from '../../src/driver'
-import DirectConnectionProvider from '../../src/internal/connection-provider-direct'
-import Pool from '../../src/internal/pool'
-import ServerAddress from '../../src/internal/server-address'
-import Connection from '../../src/internal/connection'
-import Logger from '../../src/internal/logger'
-import DelegateConnection from '../../src/internal/connection-delegate'
+import DirectConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-direct'
+import Pool from '../../bolt-connection/lib/pool/pool'
+import Connection from '../../bolt-connection/lib/connection/connection'
+import DelegateConnection from '../../bolt-connection/lib/connection/connection-delegate'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  serverAddress: { ServerAddress },
+  logger: { Logger }
+} = internal
 
 describe('#unit DirectConnectionProvider', () => {
   it('acquires connection from the pool', done => {

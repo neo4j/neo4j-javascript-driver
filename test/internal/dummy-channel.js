@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import CombinedBuffer from '../../src/internal/buf/combined-buf'
+import CombinedBuffer from '../../bolt-connection/lib/channel/combined-buf'
 
 export default class DummyChannel {
   /**

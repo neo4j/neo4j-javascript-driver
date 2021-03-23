@@ -17,10 +17,11 @@
  * limitations under the License.
  */
 
-import { int } from '../../src/integer'
-import * as util from '../../src/internal/temporal-util'
+import { int, internal } from 'neo4j-driver-core'
 import { types } from '../../src'
 import testUtils from './test-utils'
+
+const { temporalUtil: util } = internal
 
 describe('#unit temporal-util', () => {
   it('should normalize seconds for duration', () => {

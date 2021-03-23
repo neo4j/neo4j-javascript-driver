@@ -17,9 +17,7 @@
  * limitations under the License.
  */
 
-import Result from '../../types/result'
-import Record from '../../types/record'
-import ResultSummary from '../../types/result-summary'
+import { Record, ResultSummary, Result } from 'neo4j-driver-core'
 
 const dummy: any = null
 

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Connection from '../../src/internal/connection'
+import Connection from '../../bolt-connection/lib/connection/connection'
 import { textChangeRangeIsUnchanged } from 'typescript'
 import {
   ServerVersion,

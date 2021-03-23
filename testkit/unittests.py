@@ -12,5 +12,7 @@ def run(args):
 
 
 if __name__ == "__main__":
+    run(['npm', '--prefix', 'core', 'run', 'test'])
+    run(['npm', '--prefix', 'bolt-connection', 'run', 'test'])
     run(["gulp", "test-nodejs-unit"])
     run(["gulp", "run-ts-declaration-tests"])

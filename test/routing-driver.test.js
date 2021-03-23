@@ -17,9 +17,6 @@
  * limitations under the License.
  */
 
-import LeastConnectedLoadBalancingStrategy from '../src/internal/least-connected-load-balancing-strategy'
-import RoutingDriver from '../src/routing-driver'
-import Pool from '../src/internal/pool'
 import neo4j from '../src'
 
 describe('#unit RoutingDriver', () => {

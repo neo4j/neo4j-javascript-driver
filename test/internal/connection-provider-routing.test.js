@@ -18,18 +18,22 @@
  */
 
 import { READ, WRITE } from '../../src/driver'
-import Integer, { int } from '../../src/integer'
-import { newError, SERVICE_UNAVAILABLE, SESSION_EXPIRED } from '../../src/error'
-import RoutingTable from '../../src/internal/routing-table'
-import Pool from '../../src/internal/pool'
-import Logger from '../../src/internal/logger'
-import SimpleHostNameResolver from '../../src/internal/browser/browser-host-name-resolver'
-import ServerAddress from '../../src/internal/server-address'
-import RoutingConnectionProvider from '../../src/internal/connection-provider-routing'
+import { newError, error, Integer, int, internal } from 'neo4j-driver-core'
+import RoutingTable from '../../bolt-connection/lib/rediscovery/routing-table'
+import Pool from '../../bolt-connection/lib/pool/pool'
+import SimpleHostNameResolver from '../../bolt-connection/lib/channel/browser/browser-host-name-resolver'
+import RoutingConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-routing'
 import { VERSION_IN_DEV } from '../../src/internal/server-version'
-import Connection from '../../src/internal/connection'
-import DelegateConnection from '../../src/internal/connection-delegate'
+import Connection from '../../bolt-connection/lib/connection/connection'
+import DelegateConnection from '../../bolt-connection/lib/connection/connection-delegate'
 import { Neo4jError } from '../../src'
+
+const {
+  serverAddress: { ServerAddress },
+  logger: { Logger }
+} = internal
+
+const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 
 describe('#unit RoutingConnectionProvider', () => {
   const server0 = ServerAddress.fromUrl('server0')
@@ -1562,6 +1566,7 @@ describe('#unit RoutingConnectionProvider', () => {
           database: 'databaseX'
         })
       } catch (error) {
+        console.error('Message', error)
         expect(error instanceof Neo4jError).toBeTruthy()
         expect(error.code).toBe(SERVICE_UNAVAILABLE)
         expect(error.message).toContain(

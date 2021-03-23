@@ -17,12 +17,16 @@
  * limitations under the License.
  */
 
-import Session, { TransactionConfig } from '../../types/session'
-import Transaction from '../../types/transaction'
-import Record from '../../types/record'
-import Result, { QueryResult } from '../../types/result'
-import ResultSummary from '../../types/result-summary'
-import Integer from '../../types/integer'
+import {
+  Integer,
+  Record,
+  ResultSummary,
+  QueryResult,
+  Result,
+  Transaction,
+  Session,
+  TransactionConfig
+} from 'neo4j-driver-core'
 
 const dummy: any = null
 const intValue: Integer = Integer.fromInt(42)
@@ -51,7 +55,7 @@ const txConfig7: TransactionConfig = {
 }
 
 const tx1: Transaction = session.beginTransaction()
-const bookmark: null | string = <null>session.lastBookmark()
+const bookmark: string[] = session.lastBookmark()
 
 const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
   return 10
@@ -168,3 +172,5 @@ const promise6: Promise<number> = session.writeTransaction(
   (tx: Transaction) => 42,
   txConfig4
 )
+
+const lastBookmark: string[] = session.lastBookmark()
