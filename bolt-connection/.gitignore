@@ -15,7 +15,6 @@ docs/build
 .nyc_output
 coverage
 .vscode
-/types
 /docs
 /lib6
 *.code-workspace

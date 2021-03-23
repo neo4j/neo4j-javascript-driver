@@ -17,14 +17,7 @@
  * limitations under the License.
  */
 import { newError } from '../error'
-
-export type LogLevel = 'warn' | 'error' | 'info' | 'debug'
-type LoggerFunction = (level: LogLevel, message: string) => unknown
-
-export interface LoggingConfig {
-  level?: LogLevel
-  logger: LoggerFunction
-}
+import { LogLevel, LoggerFunction, LoggingConfig } from '../types'
 
 const ERROR: 'error' = 'error'
 const WARN: 'warn' = 'warn'
@@ -61,7 +54,7 @@ export class Logger {
    * @param {Object} driverConfig the driver configuration as supplied by the user.
    * @return {Logger} a new logger instance or a no-op logger when not configured.
    */
-  static create(driverConfig: { logging?: LoggingConfig }) {
+  static create(driverConfig: { logging?: LoggingConfig }): Logger {
     if (driverConfig && driverConfig.logging) {
       const loggingConfig = driverConfig.logging
       const level = extractConfiguredLevel(loggingConfig)

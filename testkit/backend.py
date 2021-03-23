@@ -6,10 +6,9 @@ Responsible for starting the test backend.
 import os
 import subprocess
 
+
 if __name__ == "__main__":
-    goPath = "/home/build"
-    backendPath = os.path.join(goPath, "bin", "testkit-backend")
+    npm = ["npm", "--prefix", "testkit-backend"]
     err = open("/artifacts/backenderr.log", "w")
     out = open("/artifacts/backendout.log", "w")
-    subprocess.check_call(
-        ["node", "build/testkit-backend/main.js"], stdout=out, stderr=err)
+    subprocess.check_call([*npm, "start"], stdout=out, stderr=err)

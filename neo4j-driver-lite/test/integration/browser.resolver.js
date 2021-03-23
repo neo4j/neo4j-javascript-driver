@@ -16,14 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const resolver = require('browser-resolve')
 
-import { Result, types } from 'neo4j-driver-core'
-
-declare type Parameters = types.Parameters
-declare interface QueryRunner {
-  run(query: string, parameters?: Parameters): Result
-}
-
-export { Parameters }
-
-export default QueryRunner
+module.exports = resolver.sync

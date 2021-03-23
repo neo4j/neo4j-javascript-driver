@@ -21,3 +21,46 @@
  * @private
  */
 export type Query = string | String | { text: string; parameters?: any }
+
+export type EncryptionLevel = 'ENCRYPTION_ON' | 'ENCRYPTION_OFF'
+
+export type LogLevel = 'error' | 'warn' | 'info' | 'debug'
+
+export type LoggerFunction = (level: LogLevel, message: string) => unknown
+
+export type SessionMode = 'READ' | 'WRITE'
+
+export interface LoggingConfig {
+  level?: LogLevel
+  logger: LoggerFunction
+}
+
+export type TrustStrategy =
+  | 'TRUST_ALL_CERTIFICATES'
+  | 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
+  | 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+
+export type Parameters = { [key: string]: any }
+export interface AuthToken {
+  scheme: string
+  principal: string
+  credentials: string
+  realm?: string
+  parameters?: Parameters
+}
+export interface Config {
+  encrypted?: boolean | EncryptionLevel
+  trust?: TrustStrategy
+  trustedCertificates?: string[]
+  knownHosts?: string
+  fetchSize?: number
+  maxConnectionPoolSize?: number
+  maxTransactionRetryTime?: number
+  maxConnectionLifetime?: number
+  connectionAcquisitionTimeout?: number
+  connectionTimeout?: number
+  disableLosslessIntegers?: boolean
+  logging?: LoggingConfig
+  resolver?: (address: string) => string[] | Promise<string[]>
+  userAgent?: string
+}

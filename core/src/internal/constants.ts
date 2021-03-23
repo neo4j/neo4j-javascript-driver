@@ -21,8 +21,8 @@ const FETCH_ALL = -1
 const DEFAULT_POOL_ACQUISITION_TIMEOUT = 60 * 1000 // 60 seconds
 const DEFAULT_POOL_MAX_SIZE = 100
 
-const ACCESS_MODE_READ: string = 'READ'
-const ACCESS_MODE_WRITE: string = 'WRITE'
+const ACCESS_MODE_READ: 'READ' = 'READ'
+const ACCESS_MODE_WRITE: 'WRITE' = 'WRITE'
 
 const BOLT_PROTOCOL_V1: number = 1
 const BOLT_PROTOCOL_V2: number = 2

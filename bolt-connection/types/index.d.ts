@@ -16,14 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { 
+  ConnectionProvider
+} from 'neo4j-driver-core'
 
-import { Result, types } from 'neo4j-driver-core'
-
-declare type Parameters = types.Parameters
-declare interface QueryRunner {
-  run(query: string, parameters?: Parameters): Result
+declare class DirectConnectionProvider extends ConnectionProvider {
+  constructor(config: any)
 }
 
-export { Parameters }
+declare class RoutingConnectionProvider extends ConnectionProvider {
+  constructor(config: any)
+}
 
-export default QueryRunner
+export {
+  DirectConnectionProvider,
+  RoutingConnectionProvider
+}

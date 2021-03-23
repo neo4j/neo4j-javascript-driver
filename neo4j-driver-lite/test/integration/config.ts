@@ -17,13 +17,18 @@
  * limitations under the License.
  */
 
-import { Result, types } from 'neo4j-driver-core'
+// @ts-ignore
+const env = process.env
 
-declare type Parameters = types.Parameters
-declare interface QueryRunner {
-  run(query: string, parameters?: Parameters): Result
-}
+const username = env.TEST_NEO4J_USER || 'neo4j'
+const password = env.TEST_NEO4J_PASS || 'password'
+const hostname = env.TEST_NEO4J_HOST || 'localhost'
+const scheme = env.TEST_NEO4J_SCHEME || 'bolt'
+const cluster =
+  env.TEST_NEO4J_IS_CLUSTER !== undefined
+    ? env.TEST_NEO4J_IS_CLUSTER === '1'
+    : false
 
-export { Parameters }
+const testNonClusterSafe = cluster ? test.skip.bind(test) : test
 
-export default QueryRunner
+export { username, password, hostname, scheme, cluster, testNonClusterSafe }

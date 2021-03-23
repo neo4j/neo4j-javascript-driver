@@ -16,14 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const NodeEnvironment = require('jest-environment-node')
+const WebSocket = require('isomorphic-ws')
 
-import { Result, types } from 'neo4j-driver-core'
+class BrowserEnvironment extends NodeEnvironment {
+  async setup () {
+    await super.setup()
+    this.global.WebSocket = WebSocket
+  }
 
-declare type Parameters = types.Parameters
-declare interface QueryRunner {
-  run(query: string, parameters?: Parameters): Result
+  async teardown () {
+    await super.teardown()
+  }
 }
 
-export { Parameters }
-
-export default QueryRunner
+module.exports = BrowserEnvironment

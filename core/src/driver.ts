@@ -29,10 +29,17 @@ import {
   DEFAULT_POOL_ACQUISITION_TIMEOUT,
   DEFAULT_POOL_MAX_SIZE
 } from './internal/constants'
-import { Logger, LoggingConfig } from './internal/logger'
+import { Logger } from './internal/logger'
 import Session from './session'
 import { ServerInfo } from './result-summary'
 import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
+import {
+  EncryptionLevel,
+  LoggingConfig,
+  TrustStrategy,
+  SessionMode
+} from './types'
+import { ServerAddress } from './internal/server-address'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -47,21 +54,21 @@ const DEFAULT_FETCH_SIZE: number = 1000
  * Should be used like this: `driver.session({ defaultAccessMode: neo4j.session.READ })`.
  * @type {string}
  */
-const READ: string = ACCESS_MODE_READ
+const READ: SessionMode = ACCESS_MODE_READ
 
 /**
  * Constant that represents write session access mode.
  * Should be used like this: `driver.session({ defaultAccessMode: neo4j.session.WRITE })`.
  * @type {string}
  */
-const WRITE: string = ACCESS_MODE_WRITE
+const WRITE: SessionMode = ACCESS_MODE_WRITE
 
 let idGenerator = 0
 
 interface MetaInfo {
   routing: boolean
   typename: string
-  address: string
+  address: string | ServerAddress
 }
 
 type CreateConnectionProvider = (
@@ -71,13 +78,8 @@ type CreateConnectionProvider = (
   hostNameResolver: ConfiguredCustomResolver
 ) => ConnectionProvider
 
-type TrustStrategy =
-  | 'TRUST_ALL_CERTIFICATES'
-  | 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
-  | 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
-
 interface DriverConfig {
-  encrypted?: string
+  encrypted?: EncryptionLevel | boolean
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
@@ -230,7 +232,7 @@ class Driver {
     database = '',
     fetchSize
   }: {
-    defaultAccessMode?: string
+    defaultAccessMode?: SessionMode
     bookmarks?: string | string[]
     database?: string
     fetchSize?: number
@@ -277,7 +279,7 @@ class Driver {
     reactive,
     fetchSize
   }: {
-    defaultAccessMode: string
+    defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
     database: string
     reactive: boolean
