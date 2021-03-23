@@ -17,10 +17,8 @@
  * limitations under the License.
  */
 
-import RequestMessage from '../../../bolt-connection/lib/bolt/request-message'
-import { int } from '../../../src'
-import { READ, WRITE } from '../../../src/driver'
-import { internal } from 'neo4j-driver-core'
+import RequestMessage from '../../src/bolt/request-message'
+import { internal, int } from 'neo4j-driver-core'
 
 const {
   bookmark: { Bookmark },
@@ -84,7 +82,7 @@ describe('#unit RequestMessage', () => {
   })
 
   it('should create BEGIN message', () => {
-    ;[READ, WRITE].forEach(mode => {
+    ;['READ', 'WRITE'].forEach(mode => {
       const bookmark = new Bookmark([
         'neo4j:bookmark:v1:tx1',
         'neo4j:bookmark:v1:tx10'
@@ -98,7 +96,7 @@ describe('#unit RequestMessage', () => {
         tx_timeout: int(42),
         tx_metadata: { key: 42 }
       }
-      if (mode === READ) {
+      if (mode === 'READ') {
         expectedMetadata.mode = 'r'
       }
 
@@ -127,7 +125,7 @@ describe('#unit RequestMessage', () => {
   })
 
   it('should create RUN with metadata message', () => {
-    ;[READ, WRITE].forEach(mode => {
+    ;['READ', 'WRITE'].forEach(mode => {
       const query = 'RETURN $x'
       const parameters = { x: 42 }
       const bookmark = new Bookmark([
@@ -151,7 +149,7 @@ describe('#unit RequestMessage', () => {
         tx_timeout: int(999),
         tx_metadata: { a: 'a', b: 'b' }
       }
-      if (mode === READ) {
+      if (mode === 'READ') {
         expectedMetadata.mode = 'r'
       }
 

@@ -17,15 +17,14 @@
  * limitations under the License.
  */
 
-import BoltProtocolV3 from '../../../bolt-connection/lib/bolt/bolt-protocol-v3'
-import RequestMessage from '../../../bolt-connection/lib/bolt/request-message'
+import BoltProtocolV3 from '../../src/bolt/bolt-protocol-v3'
+import RequestMessage from '../../src/bolt/request-message'
 import utils from '../test-utils'
-import { WRITE } from '../../../src/driver'
+import { internal } from 'neo4j-driver-core'
 import {
   ProcedureRouteObserver,
   ResultStreamObserver
-} from '../../../bolt-connection/lib/bolt/stream-observers'
-import { internal } from 'neo4j-driver-core'
+} from '../../src/bolt/stream-observers'
 
 const {
   bookmark: { Bookmark },
@@ -34,7 +33,7 @@ const {
 
 describe('#unit BoltProtocolV3', () => {
   beforeEach(() => {
-    jasmine.addMatchers(utils.matchers)
+    expect.extend(utils.matchers)
   })
 
   it('should update metadata', () => {
@@ -88,7 +87,7 @@ describe('#unit BoltProtocolV3', () => {
     const observer = protocol.run(query, parameters, {
       bookmark,
       txConfig,
-      mode: WRITE
+      mode: 'WRITE'
     })
 
     protocol.verifyMessageCount(2)
@@ -97,7 +96,7 @@ describe('#unit BoltProtocolV3', () => {
       RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
-        mode: WRITE
+        mode: 'WRITE'
       })
     )
     expect(protocol.messages[1]).toBeMessage(RequestMessage.pullAll())
@@ -121,12 +120,12 @@ describe('#unit BoltProtocolV3', () => {
     const observer = protocol.beginTransaction({
       bookmark,
       txConfig,
-      mode: WRITE
+      mode: 'WRITE'
     })
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.begin({ bookmark, txConfig, mode: WRITE })
+      RequestMessage.begin({ bookmark, txConfig, mode: 'WRITE' })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
@@ -231,6 +230,27 @@ describe('#unit BoltProtocolV3', () => {
         verifyRun('test')
       })
     })
+  })
+
+  describe('unpacker configuration', () => {
+    test.each([
+      [false, false],
+      [false, true],
+      [true, false],
+      [true, true]
+    ])(
+      'should create unpacker with disableLosslessIntegers=%p and useBigInt=%p',
+      (disableLosslessIntegers, useBigInt) => {
+        const protocol = new BoltProtocolV3(null, null, {
+          disableLosslessIntegers,
+          useBigInt
+        })
+        expect(protocol._unpacker._disableLosslessIntegers).toBe(
+          disableLosslessIntegers
+        )
+        expect(protocol._unpacker._useBigInt).toBe(useBigInt)
+      }
+    )
   })
 })
 

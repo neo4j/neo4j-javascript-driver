@@ -14,6 +14,8 @@ export function nativeToCypher (x) {
         return valueResponse('CypherInt', x)
       }
       return valueResponse('CypherFloat', x)
+    case 'bigint':
+      return valueResponse('CypherInt', neo4j.int(x).toNumber())
     case 'string':
       return valueResponse('CypherString', x)
     case 'boolean':
@@ -21,7 +23,6 @@ export function nativeToCypher (x) {
     case 'object':
       if (neo4j.isInt(x)) {
         // TODO: Broken!!!
-        console.log(x)
         return valueResponse('CypherInt', x.toInt())
       }
       if (Array.isArray(x)) {
@@ -58,7 +59,7 @@ export function cypherToNative (c) {
     case 'CypherString':
       return value
     case 'CypherInt':
-      return int(value)
+      return BigInt(value)
     case 'CypherFloat':
       return value
     case 'CypherNull':

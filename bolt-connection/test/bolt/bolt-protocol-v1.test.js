@@ -17,12 +17,11 @@
  * limitations under the License.
  */
 
-import BoltProtocolV1 from '../../../bolt-connection/lib/bolt/bolt-protocol-v1'
-import RequestMessage from '../../../bolt-connection/lib/bolt/request-message'
-import { WRITE } from '../../../src/driver'
-import utils from '../test-utils'
-import { LoginObserver } from '../../../bolt-connection/lib/bolt/stream-observers'
+import BoltProtocolV1 from '../../src/bolt/bolt-protocol-v1'
+import RequestMessage from '../../src/bolt/request-message'
 import { internal } from 'neo4j-driver-core'
+import utils from '../test-utils'
+import { LoginObserver } from '../../src/bolt/stream-observers'
 
 const {
   bookmark: { Bookmark },
@@ -31,7 +30,7 @@ const {
 
 describe('#unit BoltProtocolV1', () => {
   beforeEach(() => {
-    jasmine.addMatchers(utils.matchers)
+    expect.extend(utils.matchers)
   })
 
   it('should not change metadata', () => {
@@ -97,7 +96,7 @@ describe('#unit BoltProtocolV1', () => {
     const observer = protocol.run(query, parameters, {
       bookmark: Bookmark.empty(),
       txConfig: TxConfig.empty(),
-      mode: WRITE
+      mode: 'WRITE'
     })
 
     protocol.verifyMessageCount(2)
@@ -135,7 +134,7 @@ describe('#unit BoltProtocolV1', () => {
     const observer = protocol.beginTransaction({
       bookmark: bookmark,
       txConfig: TxConfig.empty(),
-      mode: WRITE
+      mode: 'WRITE'
     })
 
     protocol.verifyMessageCount(2)
@@ -274,5 +273,26 @@ describe('#unit BoltProtocolV1', () => {
         verifyRun('test')
       })
     })
+  })
+
+  describe('unpacker configuration', () => {
+    test.each([
+      [false, false],
+      [false, true],
+      [true, false],
+      [true, true]
+    ])(
+      'should create unpacker with disableLosslessIntegers=%p and useBigInt=%p',
+      (disableLosslessIntegers, useBigInt) => {
+        const protocol = new BoltProtocolV1(null, null, {
+          disableLosslessIntegers,
+          useBigInt
+        })
+        expect(protocol._unpacker._disableLosslessIntegers).toBe(
+          disableLosslessIntegers
+        )
+        expect(protocol._unpacker._useBigInt).toBe(useBigInt)
+      }
+    )
   })
 })

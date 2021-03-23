@@ -62,6 +62,7 @@ export function createChannelConnection (
           chunker,
           dechunker,
           disableLosslessIntegers: config.disableLosslessIntegers,
+          useBigInt: config.useBigInt,
           serversideRouting,
           server: conn.server,
           log,

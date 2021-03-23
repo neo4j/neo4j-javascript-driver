@@ -17,17 +17,38 @@
  * limitations under the License.
  */
 
-import BoltProtocolV2 from '../../../bolt-connection/lib/bolt/bolt-protocol-v2'
+import BoltProtocolV2 from '../../src/bolt/bolt-protocol-v2'
 import utils from '../test-utils'
 
 describe('#unit BoltProtocolV2', () => {
   beforeEach(() => {
-    jasmine.addMatchers(utils.matchers)
+    expect.extend(utils.matchers)
   })
 
   it('should return correct bolt version number', () => {
     const protocol = new BoltProtocolV2(null, null, false)
 
     expect(protocol.version).toBe(2)
+  })
+
+  describe('unpacker configuration', () => {
+    test.each([
+      [false, false],
+      [false, true],
+      [true, false],
+      [true, true]
+    ])(
+      'should create unpacker with disableLosslessIntegers=%p and useBigInt=%p',
+      (disableLosslessIntegers, useBigInt) => {
+        const protocol = new BoltProtocolV2(null, null, {
+          disableLosslessIntegers,
+          useBigInt
+        })
+        expect(protocol._unpacker._disableLosslessIntegers).toBe(
+          disableLosslessIntegers
+        )
+        expect(protocol._unpacker._useBigInt).toBe(useBigInt)
+      }
+    )
   })
 })

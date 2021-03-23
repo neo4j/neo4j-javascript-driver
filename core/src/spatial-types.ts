@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { assertNumber, assertNumberOrInteger } from './internal/util'
+import { NumberOrInteger } from './graph-types'
 import Integer from './integer'
 
 const POINT_IDENTIFIER_PROPERTY = '__isPoint__'
@@ -25,7 +26,7 @@ const POINT_IDENTIFIER_PROPERTY = '__isPoint__'
  * Represents a single two or three-dimensional point in a particular coordinate reference system.
  * Created `Point` objects are frozen with `Object.freeze()` in constructor and thus immutable.
  */
-export class Point<T extends Integer | number = Integer> {
+export class Point<T extends NumberOrInteger = Integer> {
   readonly srid: T
   readonly x: number
   readonly y: number
@@ -76,7 +77,7 @@ export class Point<T extends Integer | number = Integer> {
   }
 }
 
-function formatAsFloat(number: number | Integer) {
+function formatAsFloat(number: NumberOrInteger) {
   return Number.isInteger(number) ? number + '.0' : number.toString()
 }
 

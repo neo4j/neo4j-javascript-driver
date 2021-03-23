@@ -19,7 +19,7 @@
 import Integer from './integer'
 
 type StandardDate = Date
-type NumberOrInteger = number | Integer
+type NumberOrInteger = number | Integer | bigint
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,

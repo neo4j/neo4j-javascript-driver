@@ -18,6 +18,7 @@
  */
 
 import Integer, { isInt } from '../integer'
+import { NumberOrInteger } from '../graph-types'
 import { EncryptionLevel } from '../types'
 
 const ENCRYPTION_ON: EncryptionLevel = 'ENCRYPTION_ON'
@@ -146,8 +147,8 @@ function assertNumber(obj: any, objName: string): number {
  * @returns {number|Integer} The subject object
  * @throws {TypeError} when the supplied param is not a number or integer
  */
-function assertNumberOrInteger(obj: any, objName: string): number | Integer {
-  if (typeof obj !== 'number' && !isInt(obj)) {
+function assertNumberOrInteger(obj: any, objName: string): NumberOrInteger {
+  if (typeof obj !== 'number' && typeof obj !== 'bigint' && !isInt(obj)) {
     throw new TypeError(
       objName +
         ' expected to be either a number or an Integer object but was: ' +

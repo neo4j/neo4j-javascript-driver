@@ -8,7 +8,7 @@ export function NewDriver (context, data, { writeResponse }) {
     authorizationToken: { data: authToken },
     userAgent
   } = data
-  const driver = neo4j.driver(uri, authToken, { userAgent })
+  const driver = neo4j.driver(uri, authToken, { userAgent, useBigInt: true })
   const id = context.addDriver(driver)
   writeResponse('Driver', { id })
 }

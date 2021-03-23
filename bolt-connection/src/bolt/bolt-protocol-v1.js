@@ -52,7 +52,9 @@ export default class BoltProtocol {
    * @constructor
    * @param {Object} server the server informatio.
    * @param {Chunker} chunker the chunker.
-   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
+   * @param {Object} packstreamConfig Packstream configuration
+   * @param {boolean} packstreamConfig.disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
+   * @param {boolean} packstreamConfig.useBigInt if this connection should convert all received integers to native BigInt numbers.
    * @param {CreateResponseHandler} createResponseHandler Function which creates the response handler
    * @param {Logger} log the logger
    * @param {OnProtocolError} onProtocolError handles protocol errors
@@ -60,7 +62,7 @@ export default class BoltProtocol {
   constructor (
     server,
     chunker,
-    disableLosslessIntegers,
+    { disableLosslessIntegers, useBigInt } = {},
     createResponseHandler = () => null,
     log,
     onProtocolError
@@ -68,7 +70,7 @@ export default class BoltProtocol {
     this._server = server || {}
     this._chunker = chunker
     this._packer = this._createPacker(chunker)
-    this._unpacker = this._createUnpacker(disableLosslessIntegers)
+    this._unpacker = this._createUnpacker(disableLosslessIntegers, useBigInt)
     this._responseHandler = createResponseHandler(this)
     this._log = log
     this._onProtocolError = onProtocolError
@@ -317,8 +319,8 @@ export default class BoltProtocol {
     return new v1.Packer(chunker)
   }
 
-  _createUnpacker (disableLosslessIntegers) {
-    return new v1.Unpacker(disableLosslessIntegers)
+  _createUnpacker (disableLosslessIntegers, useBigInt) {
+    return new v1.Unpacker(disableLosslessIntegers, useBigInt)
   }
 
   /**

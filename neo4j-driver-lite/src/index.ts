@@ -171,6 +171,10 @@ const {
  *       // in loss of precision in the general case.
  *       disableLosslessIntegers: false,
  *
+ *       // Make this driver always return native Javascript {@link BigInt} for integer values, instead of the dedicated {@link Integer} class or {@link Number}.
+ *       // Default value for this option is `false` for backwards compatibility while {@link Integer} is not depreacted
+ *       useBigInt: false,
+ *
  *       // Specify the logging configuration for the driver. Object should have two properties `level` and `logger`.
  *       //
  *       // Property `level` represents the logging level which should be one of: 'error', 'warn', 'info' or 'debug'. This property is optional and

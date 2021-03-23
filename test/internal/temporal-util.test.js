@@ -249,6 +249,19 @@ describe('#unit temporal-util', () => {
     expect(
       util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999), int(111))
     ).toEqual(int(999000111))
+
+    expect(
+      util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), BigInt(1))
+    ).toEqual(BigInt(1))
+    expect(
+      util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 0), BigInt(999))
+    ).toEqual(BigInt(999))
+    expect(
+      util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 1), BigInt(999))
+    ).toEqual(BigInt(1000999))
+    expect(
+      util.totalNanoseconds(new Date(2000, 1, 1, 1, 1, 1, 999), BigInt(111))
+    ).toEqual(BigInt(999000111))
   })
 
   it('should get timezone offset in seconds from standard date', () => {
