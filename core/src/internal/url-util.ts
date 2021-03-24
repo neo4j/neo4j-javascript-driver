@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import { parse as uriJsParse } from 'uri-js'
 import { assertString } from './util'
 
 const DEFAULT_BOLT_PORT = 7687
@@ -74,6 +73,17 @@ class Url {
      */
     this.query = query
   }
+}
+
+interface ParsedUri {
+  scheme?: string
+  host?: string
+  port?: number | string
+  query?: string
+  fragment?: string
+  userInfo?: string
+  authority?: string
+  path?: string
 }
 
 function parseDatabaseUrl(url: string) {
@@ -230,9 +240,104 @@ function defaultPortForScheme(scheme: string | null): number {
   }
 }
 
+function uriJsParse(value: string) {
+  // JS version of Python partition function
+  function partition(s: string, delimiter: string): [string, string, string] {
+    const i = s.indexOf(delimiter)
+    if (i >= 0) return [s.substring(0, i), s[i], s.substring(i + 1)]
+    else return [s, '', '']
+  }
+
+  // JS version of Python rpartition function
+  function rpartition(s: string, delimiter: string): [string, string, string] {
+    const i = s.lastIndexOf(delimiter)
+    if (i >= 0) return [s.substring(0, i), s[i], s.substring(i + 1)]
+    else return ['', '', s]
+  }
+
+  function between(
+    s: string,
+    ldelimiter: string,
+    rdelimiter: string
+  ): [string, string] {
+    const lpartition = partition(s, ldelimiter)
+    const rpartition = partition(lpartition[2], rdelimiter)
+    return [rpartition[0], rpartition[2]]
+  }
+
+  // Parse an authority string into an object
+  // with the following keys:
+  // - userInfo (optional, might contain both user name and password)
+  // - host
+  // - port (optional, included only as a string)
+  function parseAuthority(value: string): ParsedUri {
+    let parsed: ParsedUri = {},
+      parts: [string, string, string]
+
+    // Parse user info
+    parts = rpartition(value, '@')
+    if (parts[1] === '@') {
+      parsed.userInfo = decodeURIComponent(parts[0])
+      value = parts[2]
+    }
+
+    // Parse host and port
+    const [ipv6Host, rest] = between(value, `[`, `]`)
+    if (ipv6Host !== '') {
+      parsed.host = ipv6Host
+      parts = partition(rest, ':')
+    } else {
+      parts = partition(value, ':')
+      parsed.host = parts[0]
+    }
+
+    if (parts[1] === ':') {
+      parsed.port = parts[2]
+    }
+
+    return parsed
+  }
+
+  let parsed: ParsedUri = {},
+    parts: string[]
+
+  // Parse scheme
+  parts = partition(value, ':')
+  if (parts[1] === ':') {
+    parsed.scheme = decodeURIComponent(parts[0])
+    value = parts[2]
+  }
+
+  // Parse fragment
+  parts = partition(value, '#')
+  if (parts[1] === '#') {
+    parsed.fragment = decodeURIComponent(parts[2])
+    value = parts[0]
+  }
+
+  // Parse query
+  parts = partition(value, '?')
+  if (parts[1] === '?') {
+    parsed.query = parts[2]
+    value = parts[0]
+  }
+
+  // Parse authority and path
+  if (value.startsWith('//')) {
+    parts = partition(value.substr(2), '/')
+    parsed = { ...parsed, ...parseAuthority(parts[0]) }
+    parsed.path = parts[1] + parts[2]
+  } else {
+    parsed.path = value
+  }
+
+  return parsed
+}
+
 export {
   parseDatabaseUrl,
   defaultPortForScheme,
   formatIPv4Address,
-  formatIPv6Address
+  formatIPv6Address,
+  Url
 }

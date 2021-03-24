@@ -17,9 +17,16 @@
  * limitations under the License.
  */
 
-import { internal } from 'neo4j-driver-core'
+import * as urlUtil from '../../src/internal/url-util'
 
-const { urlUtil } = internal
+interface PartialUrl {
+  readonly scheme?: string | null
+  readonly host?: string
+  readonly port?: number
+  readonly hostAndPort?: string
+  readonly query?: Object
+  readonly ipv6?: boolean
+}
 
 describe('#unit url-util', () => {
   it('should parse URL with just host name', () => {
@@ -785,7 +792,7 @@ describe('#unit url-util', () => {
     })
   })
 
-  function verifyUrl (urlString, expectedUrl) {
+  function verifyUrl(urlString: string, expectedUrl: PartialUrl) {
     const url = parse(urlString)
     if (expectedUrl.scheme) {
       expect(url.scheme).toEqual(expectedUrl.scheme)
@@ -800,7 +807,9 @@ describe('#unit url-util', () => {
     if (expectedUrl.port) {
       expect(url.port).toEqual(expectedUrl.port)
     } else {
-      expect(url.port).toEqual(urlUtil.defaultPortForScheme(expectedUrl.scheme))
+      expect(url.port).toEqual(
+        urlUtil.defaultPortForScheme(expectedUrl.scheme!!)
+      )
     }
 
     verifyHostAndPort(url, expectedUrl)
@@ -811,11 +820,11 @@ describe('#unit url-util', () => {
     }
   }
 
-  function verifyHostAndPort (url, expectedUrl) {
+  function verifyHostAndPort(url: urlUtil.Url, expectedUrl: PartialUrl) {
     const port =
       expectedUrl.port === 0 || expectedUrl.port
         ? expectedUrl.port
-        : urlUtil.defaultPortForScheme(expectedUrl.scheme)
+        : urlUtil.defaultPortForScheme(expectedUrl.scheme!!)
 
     if (expectedUrl.ipv6) {
       expect(url.hostAndPort).toEqual(`[${expectedUrl.host}]:${port}`)
@@ -824,7 +833,7 @@ describe('#unit url-util', () => {
     }
   }
 
-  function parse (url) {
+  function parse(url: any): urlUtil.Url {
     return urlUtil.parseDatabaseUrl(url)
   }
 })
