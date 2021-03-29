@@ -212,3 +212,8 @@ export function SessionWriteTransaction (context, data, wire) {
     .then(_ => wire.writeResponse('RetryableDone', null))
     .catch(error => wire.writeError(error))
 }
+
+export function StartTest (_, { testName }, wire) {
+  console.log(`>>> Starting test ${testName}`)
+  wire.writeResponse('RunTest', null)
+}
