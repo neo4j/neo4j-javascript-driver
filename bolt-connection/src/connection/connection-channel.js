@@ -18,7 +18,7 @@
  */
 
 import { Chunker, Dechunker, ChannelConfig, Channel } from '../channel'
-import { newError, error } from 'neo4j-driver-core'
+import { newError, error, json } from 'neo4j-driver-core'
 import Connection from './connection'
 import Bolt from '../bolt'
 
@@ -247,7 +247,7 @@ export default class ChannelConnection extends Connection {
 
     if (this._log.isErrorEnabled()) {
       this._log.error(
-        `${this} experienced a fatal error ${JSON.stringify(this._error)}`
+        `${this} experienced a fatal error ${json.stringify(this._error)}`
       )
     }
 

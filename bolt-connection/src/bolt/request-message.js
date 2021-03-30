@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { int, internal } from 'neo4j-driver-core'
+import { int, internal, json } from 'neo4j-driver-core'
 
 const {
   constants: { ACCESS_MODE_READ, FETCH_ALL },
@@ -79,7 +79,7 @@ export default class RequestMessage {
     return new RequestMessage(
       RUN,
       [query, parameters],
-      () => `RUN ${query} ${JSON.stringify(parameters)}`
+      () => `RUN ${query} ${json.stringify(parameters)}`
     )
   }
 
@@ -131,7 +131,7 @@ export default class RequestMessage {
     return new RequestMessage(
       BEGIN,
       [metadata],
-      () => `BEGIN ${JSON.stringify(metadata)}`
+      () => `BEGIN ${json.stringify(metadata)}`
     )
   }
 
@@ -171,7 +171,7 @@ export default class RequestMessage {
       RUN,
       [query, parameters, metadata],
       () =>
-        `RUN ${query} ${JSON.stringify(parameters)} ${JSON.stringify(metadata)}`
+        `RUN ${query} ${json.stringify(parameters)} ${json.stringify(metadata)}`
     )
   }
 
@@ -191,13 +191,13 @@ export default class RequestMessage {
    */
   static pull ({ stmtId = NO_STATEMENT_ID, n = FETCH_ALL } = {}) {
     const metadata = buildStreamMetadata(
-      stmtId || NO_STATEMENT_ID,
+      stmtId === null || stmtId === undefined ? NO_STATEMENT_ID : stmtId,
       n || FETCH_ALL
     )
     return new RequestMessage(
       PULL,
       [metadata],
-      () => `PULL ${JSON.stringify(metadata)}`
+      () => `PULL ${json.stringify(metadata)}`
     )
   }
 
@@ -209,13 +209,13 @@ export default class RequestMessage {
    */
   static discard ({ stmtId = NO_STATEMENT_ID, n = FETCH_ALL } = {}) {
     const metadata = buildStreamMetadata(
-      stmtId || NO_STATEMENT_ID,
+      stmtId === null || stmtId === undefined ? NO_STATEMENT_ID : stmtId,
       n || FETCH_ALL
     )
     return new RequestMessage(
       DISCARD,
       [metadata],
-      () => `DISCARD ${JSON.stringify(metadata)}`
+      () => `DISCARD ${json.stringify(metadata)}`
     )
   }
 
@@ -230,7 +230,7 @@ export default class RequestMessage {
     return new RequestMessage(
       ROUTE,
       [routingContext, databaseName],
-      () => `ROUTE ${JSON.stringify(routingContext)} ${databaseName}`
+      () => `ROUTE ${json.stringify(routingContext)} ${databaseName}`
     )
   }
 }

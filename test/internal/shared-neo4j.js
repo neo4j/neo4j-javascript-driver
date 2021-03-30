@@ -18,6 +18,7 @@
  */
 
 import neo4j from '../../src'
+import { json as JSON } from 'neo4j-driver-core'
 
 class UnsupportedPlatform {
   pathJoin () {

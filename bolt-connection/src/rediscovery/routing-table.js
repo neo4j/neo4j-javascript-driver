@@ -16,7 +16,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError, error, Integer, int, internal } from 'neo4j-driver-core'
+import {
+  newError,
+  error,
+  Integer,
+  int,
+  internal,
+  json
+} from 'neo4j-driver-core'
 
 const {
   constants: { ACCESS_MODE_WRITE: WRITE, ACCESS_MODE_READ: READ },
@@ -189,7 +196,7 @@ function parseServers (rawRoutingTable, routerAddress) {
     }
   } catch (error) {
     throw newError(
-      `Unable to parse servers entry from router ${routerAddress} from addresses:\n${JSON.stringify(
+      `Unable to parse servers entry from router ${routerAddress} from addresses:\n${json.stringify(
         rawRoutingTable.servers
       )}\nError message: ${error.message}`,
       PROTOCOL_ERROR
@@ -217,7 +224,7 @@ function calculateExpirationTime (rawRoutingTable, routerAddress) {
     return expires
   } catch (error) {
     throw newError(
-      `Unable to parse TTL entry from router ${routerAddress} from raw routing table:\n${JSON.stringify(
+      `Unable to parse TTL entry from router ${routerAddress} from raw routing table:\n${json.stringify(
         rawRoutingTable
       )}\nError message: ${error.message}`,
       PROTOCOL_ERROR

@@ -23,7 +23,7 @@ import {
   ProcedureRouteObserver
 } from '../../src/bolt/stream-observers'
 import { RawRoutingTable } from '../../src/bolt'
-import { error, newError, Record } from 'neo4j-driver-core'
+import { error, newError, Record, json } from 'neo4j-driver-core'
 
 const { PROTOCOL_ERROR } = error
 
@@ -267,7 +267,7 @@ describe('#unit RouteObserver', () => {
     const record = new Record(['a'], ['b'])
     const expectedError = newError(
       'Received RECORD when resetting: received record is: ' +
-        JSON.stringify(record),
+        json.stringify(record),
       PROTOCOL_ERROR
     )
 
@@ -287,7 +287,7 @@ describe('#unit RouteObserver', () => {
     const record = new Record(['a'], ['b'])
     const expectedErrorMessage =
       'Received RECORD when resetting: received record is: ' +
-      JSON.stringify(record)
+      json.stringify(record)
 
     newRouteObserver({
       onError: null,
@@ -342,7 +342,7 @@ describe('#unit ProcedureRouteObserver', () => {
     let onErrorCalled = false
     const expectedError = newError(
       'Illegal response from router. Received 0 records but expected only one.\n' +
-        JSON.stringify([]),
+        json.stringify([]),
       PROTOCOL_ERROR
     )
     const observer = newRouteObserver({
@@ -362,7 +362,7 @@ describe('#unit ProcedureRouteObserver', () => {
     let onProtocolErrorCalled = false
     const expectedErrorMessage =
       'Illegal response from router. Received 0 records but expected only one.\n' +
-      JSON.stringify([])
+      json.stringify([])
 
     newRouteObserver({
       onError: null,
@@ -380,7 +380,7 @@ describe('#unit ProcedureRouteObserver', () => {
     const record = new Record(['a'], ['b'])
     const expectedError = newError(
       'Illegal response from router. Received 2 records but expected only one.\n' +
-        JSON.stringify([record, record]),
+        json.stringify([record, record]),
       PROTOCOL_ERROR
     )
     const observer = newRouteObserver({
@@ -403,7 +403,7 @@ describe('#unit ProcedureRouteObserver', () => {
     const record = new Record(['a'], ['b'])
     const expectedErrorMessage =
       'Illegal response from router. Received 2 records but expected only one.\n' +
-      JSON.stringify([record, record])
+      json.stringify([record, record])
 
     const observer = newRouteObserver({
       onError: null,

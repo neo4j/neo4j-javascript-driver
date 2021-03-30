@@ -18,7 +18,7 @@
  */
 
 import RequestMessage from '../../src/bolt/request-message'
-import { internal, int } from 'neo4j-driver-core'
+import { internal, int, json } from 'neo4j-driver-core'
 
 const {
   bookmark: { Bookmark },
@@ -46,7 +46,7 @@ describe('#unit RequestMessage', () => {
     expect(message.signature).toEqual(0x10)
     expect(message.fields).toEqual([query, parameters])
     expect(message.toString()).toEqual(
-      `RUN ${query} ${JSON.stringify(parameters)}`
+      `RUN ${query} ${json.stringify(parameters)}`
     )
   })
 
@@ -103,7 +103,7 @@ describe('#unit RequestMessage', () => {
       expect(message.signature).toEqual(0x11)
       expect(message.fields).toEqual([expectedMetadata])
       expect(message.toString()).toEqual(
-        `BEGIN ${JSON.stringify(expectedMetadata)}`
+        `BEGIN ${json.stringify(expectedMetadata)}`
       )
     })
   })
@@ -156,7 +156,7 @@ describe('#unit RequestMessage', () => {
       expect(message.signature).toEqual(0x10)
       expect(message.fields).toEqual([query, parameters, expectedMetadata])
       expect(message.toString()).toEqual(
-        `RUN ${query} ${JSON.stringify(parameters)} ${JSON.stringify(
+        `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
           expectedMetadata
         )}`
       )
@@ -175,7 +175,7 @@ describe('#unit RequestMessage', () => {
     function verify (message, signature, metadata, name) {
       expect(message.signature).toEqual(signature)
       expect(message.fields).toEqual([metadata])
-      expect(message.toString()).toEqual(`${name} ${JSON.stringify(metadata)}`)
+      expect(message.toString()).toEqual(`${name} ${json.stringify(metadata)}`)
     }
 
     it('should create PULL message', () => {
@@ -191,6 +191,15 @@ describe('#unit RequestMessage', () => {
         RequestMessage.pull({ stmtId: 27, n: 1023 }),
         0x3f,
         { n: int(1023), qid: int(27) },
+        'PULL'
+      )
+    })
+
+    it('should create PULL message with qid=0n and n', () => {
+      verify(
+        RequestMessage.pull({ stmtId: 0n, n: 1023 }),
+        0x3f,
+        { n: int(1023), qid: int(0n) },
         'PULL'
       )
     })
@@ -216,6 +225,15 @@ describe('#unit RequestMessage', () => {
         'DISCARD'
       )
     })
+
+    it('should create DISCARD message with qid=0n and n', () => {
+      verify(
+        RequestMessage.discard({ stmtId: 0n, n: 1023 }),
+        0x2f,
+        { n: int(1023), qid: int(0n) },
+        'DISCARD'
+      )
+    })
   })
 
   describe('BoltV4.3', () => {
@@ -228,7 +246,7 @@ describe('#unit RequestMessage', () => {
       expect(message.signature).toEqual(0x66)
       expect(message.fields).toEqual([requestContext, database])
       expect(message.toString()).toEqual(
-        `ROUTE ${JSON.stringify(requestContext)} ${database}`
+        `ROUTE ${json.stringify(requestContext)} ${database}`
       )
     })
 
@@ -237,7 +255,7 @@ describe('#unit RequestMessage', () => {
 
       expect(message.signature).toEqual(0x66)
       expect(message.fields).toEqual([{}, null])
-      expect(message.toString()).toEqual(`ROUTE ${JSON.stringify({})} ${null}`)
+      expect(message.toString()).toEqual(`ROUTE ${json.stringify({})} ${null}`)
     })
   })
 })

@@ -29,7 +29,8 @@ import {
   error,
   queryType,
   Session,
-  internal
+  internal,
+  json as JSON
 } from 'neo4j-driver-core'
 
 const {

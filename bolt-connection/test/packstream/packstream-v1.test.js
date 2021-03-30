@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { int } from 'neo4j-driver-core'
+import { int, Integer } from 'neo4j-driver-core'
 import { alloc } from '../../src/channel'
 import { Packer, Structure, Unpacker } from '../../src/packstream/packstream-v1'
 
@@ -27,6 +27,21 @@ describe('#unit PackStreamV1', () => {
     // test small numbers
     for (n = -999; n <= 999; n += 1) {
       i = int(n)
+      expect(packAndUnpack(i).toString()).toBe(i.toString())
+      expect(
+        packAndUnpack(i, { disableLosslessIntegers: true }).toString()
+      ).toBe(i.toString())
+      expect(packAndUnpack(i, { useBigInt: true }).toString()).toBe(
+        i.toString()
+      )
+    }
+  })
+
+  it('should pack integers with small numbers created with Integer', () => {
+    let n, i
+    // test small numbers
+    for (n = -10; n <= 10; n += 1) {
+      i = new Integer(n, 0)
       expect(packAndUnpack(i).toString()).toBe(i.toString())
       expect(
         packAndUnpack(i, { disableLosslessIntegers: true }).toString()

@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import Connection from '../../bolt-connection/src/connection/connection'
+import { json } from 'neo4j-driver-core'
 
 function isClient () {
   return typeof window !== 'undefined' && window.document
@@ -61,11 +62,11 @@ const matchers = {
       )
     }
 
-    if (JSON.stringify(expected.fields) !== JSON.stringify(actual.fields)) {
+    if (json.stringify(expected.fields) !== json.stringify(actual.fields)) {
       failures.push(
-        `fields '[${JSON.stringify(
+        `fields '[${json.stringify(
           actual.fields
-        )}]' to match '[${JSON.stringify(expected.fields)}]'`
+        )}]' to match '[${json.stringify(expected.fields)}]'`
       )
     }
 
