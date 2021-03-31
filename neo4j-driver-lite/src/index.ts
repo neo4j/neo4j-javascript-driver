@@ -172,7 +172,11 @@ const {
  *       disableLosslessIntegers: false,
  *
  *       // Make this driver always return native Javascript {@link BigInt} for integer values, instead of the dedicated {@link Integer} class or {@link Number}.
- *       // Default value for this option is `false` for backwards compatibility while {@link Integer} is not depreacted
+ *       //
+ *       // Default value for this option is `false` for backwards compatibility.
+ *       //
+ *       // **Warning:** `BigInt` doesn't implement the method `toJSON`. In maner of serialize it as `json`, It's needed to add a custom implementation of the `toJSON` on the
+ *       // `BigInt.prototype` {@see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json}
  *       useBigInt: false,
  *
  *       // Specify the logging configuration for the driver. Object should have two properties `level` and `logger`.
