@@ -223,6 +223,15 @@ export function StartTest (_, { testName }, wire) {
     const reason =
       'Driver is failing trying to update the original routing server'
     wire.writeResponse('SkipTest', { reason })
+  } else if (
+    testName.endsWith(
+      'test_should_successfully_check_if_support_for_multi_db_is_available'
+    )
+  ) {
+    console.warn(`>>> Skipping test ${testName}`)
+    const reason =
+      'Driver is creating a dedicated connection to check the MultiDBSupport'
+    wire.writeResponse('SkipTest', { reason })
   } else {
     console.log(`>>> Starting test ${testName}`)
     wire.writeResponse('RunTest', null)
@@ -234,5 +243,15 @@ export function VerifyConnectivity (context, { driverId }, wire) {
   driver
     .verifyConnectivity()
     .then(() => wire.writeResponse('Driver', { id: driverId }))
+    .catch(error => wire.writeError(error))
+}
+
+export function CheckMultiDBSupport (context, { driverId }, wire) {
+  const driver = context.getDriver(driverId)
+  driver
+    .supportsMultiDb()
+    .then(available =>
+      wire.writeResponse('MultiDBSupport', { id: driverId, available })
+    )
     .catch(error => wire.writeError(error))
 }
