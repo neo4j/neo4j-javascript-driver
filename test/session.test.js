@@ -30,7 +30,7 @@ import {
   queryType,
   Session,
   internal,
-  json as JSON
+  json
 } from 'neo4j-driver-core'
 
 const {
@@ -1035,7 +1035,7 @@ describe('#integration session', () => {
       .then(result => {
         done.fail(
           'Failure expected but query returned ' +
-            JSON.stringify(result.records[0].get(0))
+            json.stringify(result.records[0].get(0))
         )
       })
       .catch(error => {
@@ -1160,7 +1160,7 @@ describe('#integration session', () => {
         session
           .close()
           .then(() =>
-            done.fail('Retries should not succeed: ' + JSON.stringify(result))
+            done.fail('Retries should not succeed: ' + json.stringify(result))
           )
       )
       .catch(error => {

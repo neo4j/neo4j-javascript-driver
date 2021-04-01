@@ -25,6 +25,9 @@ const {
   txConfig: { TxConfig }
 } = internal
 
+const WRITE = 'WRITE'
+const READ = 'READ'
+
 describe('#unit RequestMessage', () => {
   it('should create INIT message', () => {
     const userAgent = 'my-driver/1.0.2'
@@ -82,7 +85,7 @@ describe('#unit RequestMessage', () => {
   })
 
   it('should create BEGIN message', () => {
-    ;['READ', 'WRITE'].forEach(mode => {
+    ;[READ, WRITE].forEach(mode => {
       const bookmark = new Bookmark([
         'neo4j:bookmark:v1:tx1',
         'neo4j:bookmark:v1:tx10'
@@ -96,7 +99,7 @@ describe('#unit RequestMessage', () => {
         tx_timeout: int(42),
         tx_metadata: { key: 42 }
       }
-      if (mode === 'READ') {
+      if (mode === READ) {
         expectedMetadata.mode = 'r'
       }
 
@@ -125,7 +128,7 @@ describe('#unit RequestMessage', () => {
   })
 
   it('should create RUN with metadata message', () => {
-    ;['READ', 'WRITE'].forEach(mode => {
+    ;[READ, WRITE].forEach(mode => {
       const query = 'RETURN $x'
       const parameters = { x: 42 }
       const bookmark = new Bookmark([
@@ -149,7 +152,7 @@ describe('#unit RequestMessage', () => {
         tx_timeout: int(999),
         tx_metadata: { a: 'a', b: 'b' }
       }
-      if (mode === 'READ') {
+      if (mode === READ) {
         expectedMetadata.mode = 'r'
       }
 

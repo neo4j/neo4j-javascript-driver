@@ -23,6 +23,8 @@ import { internal } from 'neo4j-driver-core'
 import utils from '../test-utils'
 import { LoginObserver } from '../../src/bolt/stream-observers'
 
+const WRITE = 'WRITE'
+
 const {
   bookmark: { Bookmark },
   txConfig: { TxConfig }
@@ -96,7 +98,7 @@ describe('#unit BoltProtocolV1', () => {
     const observer = protocol.run(query, parameters, {
       bookmark: Bookmark.empty(),
       txConfig: TxConfig.empty(),
-      mode: 'WRITE'
+      mode: WRITE
     })
 
     protocol.verifyMessageCount(2)
@@ -134,7 +136,7 @@ describe('#unit BoltProtocolV1', () => {
     const observer = protocol.beginTransaction({
       bookmark: bookmark,
       txConfig: TxConfig.empty(),
-      mode: 'WRITE'
+      mode: WRITE
     })
 
     protocol.verifyMessageCount(2)

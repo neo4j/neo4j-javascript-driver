@@ -31,6 +31,8 @@ const {
   txConfig: { TxConfig }
 } = internal
 
+const WRITE = 'WRITE'
+
 describe('#unit BoltProtocolV3', () => {
   beforeEach(() => {
     expect.extend(utils.matchers)
@@ -87,7 +89,7 @@ describe('#unit BoltProtocolV3', () => {
     const observer = protocol.run(query, parameters, {
       bookmark,
       txConfig,
-      mode: 'WRITE'
+      mode: WRITE
     })
 
     protocol.verifyMessageCount(2)
@@ -96,7 +98,7 @@ describe('#unit BoltProtocolV3', () => {
       RequestMessage.runWithMetadata(query, parameters, {
         bookmark,
         txConfig,
-        mode: 'WRITE'
+        mode: WRITE
       })
     )
     expect(protocol.messages[1]).toBeMessage(RequestMessage.pullAll())
@@ -120,12 +122,12 @@ describe('#unit BoltProtocolV3', () => {
     const observer = protocol.beginTransaction({
       bookmark,
       txConfig,
-      mode: 'WRITE'
+      mode: WRITE
     })
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.begin({ bookmark, txConfig, mode: 'WRITE' })
+      RequestMessage.begin({ bookmark, txConfig, mode: WRITE })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])

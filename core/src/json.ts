@@ -18,13 +18,13 @@
  */
 
 /**
- * Provides a interface to serialize values which doesn't support serialization by JSON.stringify
+ * Custom version on JSON.stringify that can handle values that normally don't support serialization, such as BigInt.
  * @private
- * @param val The value to be serialized as JSON
- * @returns the json
+ * @param val A JavaScript value, usually an object or array, to be converted.
+ * @returns A JSON string representing the given value.
  */
 export function stringify (val: any) {
   return JSON.stringify(val, (_, value) =>
-    typeof value !== 'bigint' ? value : `${value}n`
+    typeof value === 'bigint' ? `${value}n` : value
   )
 }

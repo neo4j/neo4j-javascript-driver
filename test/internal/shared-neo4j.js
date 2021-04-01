@@ -18,7 +18,7 @@
  */
 
 import neo4j from '../../src'
-import { json as JSON } from 'neo4j-driver-core'
+import { json } from 'neo4j-driver-core'
 
 class UnsupportedPlatform {
   pathJoin () {
@@ -223,7 +223,7 @@ function install () {
 
 function configure (config) {
   console.log(
-    `Configuring neo4j at "${neo4jDir()}" with "${JSON.stringify(config)}"`
+    `Configuring neo4j at "${neo4jDir()}" with "${json.stringify(config)}"`
   )
 
   const configEntries = Object.keys(config).map(key => `${key}=${config[key]}`)
