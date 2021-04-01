@@ -6,9 +6,17 @@ export function NewDriver (context, data, { writeResponse }) {
   const {
     uri,
     authorizationToken: { data: authToken },
-    userAgent
+    userAgent,
+    resolverRegistered
   } = data
-  const driver = neo4j.driver(uri, authToken, { userAgent, useBigInt: true })
+  const resolver = resolverRegistered
+    ? address =>
+      new Promise((resolve, reject) => {
+        const id = context.addResolverRequest(resolve, reject)
+        writeResponse('ResolverResolutionRequired', { id, address })
+      })
+    : undefined
+  const driver = neo4j.driver(uri, authToken, { userAgent, resolver, useBigInt: true })
   const id = context.addDriver(driver)
   writeResponse('Driver', { id })
 }
@@ -254,4 +262,13 @@ export function CheckMultiDBSupport (context, { driverId }, wire) {
       wire.writeResponse('MultiDBSupport', { id: driverId, available })
     )
     .catch(error => wire.writeError(error))
+}
+
+export function ResolverResolutionCompleted (
+  context,
+  { requestId, addresses },
+  wire
+) {
+  const request = context.getResolverRequest(requestId)
+  request.resolve(addresses)
 }

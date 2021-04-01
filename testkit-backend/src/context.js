@@ -4,6 +4,7 @@ export default class Context {
     this._drivers = {}
     this._sessions = {}
     this._txs = {}
+    this._resolverRequests = {}
     this._resultObservers = {}
     this._errors = {}
   }
@@ -35,6 +36,14 @@ export default class Context {
     return this._add(this._resultObservers, observer)
   }
 
+  addResolverRequest (resolve, reject) {
+    const id = this._add(this._resolverRequests, {
+      resolve,
+      reject
+    })
+    return id
+  }
+
   getDriver (id) {
     return this._drivers[id]
   }
@@ -55,6 +64,10 @@ export default class Context {
     return this._errors[id]
   }
 
+  getResolverRequest (id) {
+    return this._resolverRequests[id]
+  }
+
   removeDriver (id) {
     delete this._drivers[id]
   }
@@ -69,6 +82,10 @@ export default class Context {
 
   removeResultObserver (id) {
     delete this._resultObservers[id]
+  }
+
+  removeResolverRequest (id) {
+    delete this._resolverRequests[id]
   }
 
   getResultObserversBySessionId (sessionId) {
