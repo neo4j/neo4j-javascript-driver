@@ -30,7 +30,9 @@ export default class BoltProtocol extends BoltProtocolV4 {
    * @constructor
    * @param {Object} server the server informatio.
    * @param {Chunker} chunker the chunker.
-   * @param {boolean} disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
+   * @param {Object} packstreamConfig Packstream configuration
+   * @param {boolean} packstreamConfig.disableLosslessIntegers if this connection should convert all received integers to native JS numbers.
+   * @param {boolean} packstreamConfig.useBigInt if this connection should convert all received integers to native BigInt numbers.
    * @param {CreateResponseHandler} createResponseHandler Function which creates the response handler
    * @param {Logger} log the logger
    * @param {Object} serversideRouting
@@ -39,7 +41,7 @@ export default class BoltProtocol extends BoltProtocolV4 {
   constructor (
     server,
     chunker,
-    disableLosslessIntegers,
+    packstreamConfig,
     createResponseHandler = () => null,
     log,
     onProtocolError,
@@ -48,7 +50,7 @@ export default class BoltProtocol extends BoltProtocolV4 {
     super(
       server,
       chunker,
-      disableLosslessIntegers,
+      packstreamConfig,
       createResponseHandler,
       log,
       onProtocolError

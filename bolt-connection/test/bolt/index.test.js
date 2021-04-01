@@ -16,22 +16,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Bolt from '../../../bolt-connection/lib/bolt'
+import Bolt from '../../src/bolt'
 import DummyChannel from '../dummy-channel'
-import { alloc } from '../../../bolt-connection/lib/channel'
+import { alloc } from '../../src/channel'
 import { newError, internal } from 'neo4j-driver-core'
-import {
-  Chunker,
-  Dechunker
-} from '../../../bolt-connection/lib/channel/chunking'
+import { Chunker, Dechunker } from '../../src/channel/chunking'
 
-import BoltProtocolV1 from '../../../bolt-connection/lib/bolt/bolt-protocol-v1'
-import BoltProtocolV2 from '../../../bolt-connection/lib/bolt/bolt-protocol-v2'
-import BoltProtocolV3 from '../../../bolt-connection/lib/bolt/bolt-protocol-v3'
-import BoltProtocolV4x0 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x0'
-import BoltProtocolV4x1 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x1'
-import BoltProtocolV4x2 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x2'
-import BoltProtocolV4x3 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x3'
+import BoltProtocolV1 from '../../src/bolt/bolt-protocol-v1'
+import BoltProtocolV2 from '../../src/bolt/bolt-protocol-v2'
+import BoltProtocolV3 from '../../src/bolt/bolt-protocol-v3'
+import BoltProtocolV4x0 from '../../src/bolt/bolt-protocol-v4x0'
+import BoltProtocolV4x1 from '../../src/bolt/bolt-protocol-v4x1'
+import BoltProtocolV4x2 from '../../src/bolt/bolt-protocol-v4x2'
+import BoltProtocolV4x3 from '../../src/bolt/bolt-protocol-v4x3'
 
 const {
   logger: { Logger }
@@ -183,7 +180,31 @@ describe('#unit Bolt', () => {
         expect(protocol._server).toBe(params.server)
         expect(protocol._packer).toEqual(protocol._createPacker(params.chunker))
         expect(protocol._unpacker).toEqual(
-          protocol._createUnpacker(params.disableLosslessIntegers)
+          protocol._createUnpacker(
+            params.disableLosslessIntegers,
+            params.useBigInt
+          )
+        )
+        expect(protocol._log).toEqual(params.log)
+        const expectedError = 'Some error'
+        protocol._onProtocolError(expectedError)
+        expect(params.observer.protocolErrors).toEqual([expectedError])
+      })
+
+      it(`it should create protocol ${version} with useBigInt=true`, () => {
+        const params = createBoltCreateParams({ version, useBigInt: true })
+
+        const protocol = Bolt.create(params)
+
+        expect(protocol.version).toEqual(version)
+        expect(protocol).toEqual(jasmine.any(protocolClass))
+        expect(protocol._server).toBe(params.server)
+        expect(protocol._packer).toEqual(protocol._createPacker(params.chunker))
+        expect(protocol._unpacker).toEqual(
+          protocol._createUnpacker(
+            params.disableLosslessIntegers,
+            params.useBigInt
+          )
         )
         expect(protocol._log).toEqual(params.log)
         const expectedError = 'Some error'

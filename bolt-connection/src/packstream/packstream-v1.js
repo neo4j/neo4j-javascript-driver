@@ -126,6 +126,8 @@ class Packer {
       return () => this.packFloat(x)
     } else if (typeof x === 'string') {
       return () => this.packString(x)
+    } else if (typeof x === 'bigint') {
+      return () => this.packInteger(int(x))
     } else if (isInt(x)) {
       return () => this.packInteger(x)
     } else if (x instanceof Int8Array) {
@@ -368,9 +370,11 @@ class Unpacker {
   /**
    * @constructor
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
+   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
    */
-  constructor (disableLosslessIntegers = false) {
+  constructor (disableLosslessIntegers = false, useBigInt = false) {
     this._disableLosslessIntegers = disableLosslessIntegers
+    this._useBigInt = useBigInt
   }
 
   unpack (buffer) {
@@ -389,8 +393,12 @@ class Unpacker {
 
     const numberOrInteger = this._unpackNumberOrInteger(marker, buffer)
     if (numberOrInteger !== null) {
-      if (this._disableLosslessIntegers && isInt(numberOrInteger)) {
-        return numberOrInteger.toNumberOrInfinity()
+      if (isInt(numberOrInteger)) {
+        if (this._useBigInt) {
+          return numberOrInteger.toBigInt()
+        } else if (this._disableLosslessIntegers) {
+          return numberOrInteger.toNumberOrInfinity()
+        }
       }
       return numberOrInteger
     }

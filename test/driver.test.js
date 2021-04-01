@@ -26,6 +26,7 @@ import {
 } from '../bolt-connection/lib/pool/pool-config'
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
+import { json } from 'neo4j-driver-core'
 
 // As long as driver creation doesn't touch the network it's fine to run
 // this as a unit test.
@@ -219,7 +220,7 @@ describe('#integration driver', () => {
       .run('RETURN 1')
       .then(result => {
         done.fail(
-          'Should not be able to connect. Result: ' + JSON.stringify(result)
+          'Should not be able to connect. Result: ' + json.stringify(result)
         )
       })
       .catch(error => {

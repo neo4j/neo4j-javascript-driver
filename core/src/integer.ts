@@ -108,6 +108,29 @@ class Integer {
   }
 
   /**
+   * Converts the Integer to a BigInt representation of this value
+   * @returns {bigint}
+   * @expose
+   */
+  toBigInt (): bigint {
+    if (this.isZero()) {
+      return BigInt(0)
+    } else if (this.isPositive()) {
+      return (
+        BigInt(this.high >>> 0) * BigInt(TWO_PWR_32_DBL) +
+        BigInt(this.low >>> 0)
+      )
+    } else {
+      const negate = this.negate()
+      return (
+        BigInt(-1) *
+        (BigInt(negate.high >>> 0) * BigInt(TWO_PWR_32_DBL) +
+          BigInt(negate.low >>> 0))
+      )
+    }
+  }
+
+  /**
    * Converts the Integer to native number or -Infinity/+Infinity when it does not fit.
    * @return {number}
    * @package
@@ -857,7 +880,7 @@ class Integer {
   /**
    * Converts the specified value to a Integer.
    * @access private
-   * @param {!Integer|number|string|!{low: number, high: number}} val Value
+   * @param {!Integer|number|string|bigint|!{low: number, high: number}} val Value
    * @returns {!Integer}
    * @expose
    */
@@ -870,6 +893,9 @@ class Integer {
     }
     if (typeof val === 'string') {
       return Integer.fromString(val)
+    }
+    if (typeof val === 'bigint') {
+      return Integer.fromString(val.toString())
     }
     // Throws for non-objects, converts non-instanceof Integer:
     return new Integer(val.low, val.high)
@@ -911,7 +937,12 @@ class Integer {
   }
 }
 
-type Integerable = number | string | Integer | { low: number; high: number }
+type Integerable =
+  | number
+  | string
+  | Integer
+  | { low: number; high: number }
+  | bigint
 
 Object.defineProperty(Integer.prototype, '__isInteger__', {
   value: true,

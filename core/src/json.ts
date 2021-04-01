@@ -17,17 +17,14 @@
  * limitations under the License.
  */
 
-import BoltProtocolV2 from '../../../bolt-connection/lib/bolt/bolt-protocol-v2'
-import utils from '../test-utils'
-
-describe('#unit BoltProtocolV2', () => {
-  beforeEach(() => {
-    jasmine.addMatchers(utils.matchers)
-  })
-
-  it('should return correct bolt version number', () => {
-    const protocol = new BoltProtocolV2(null, null, false)
-
-    expect(protocol.version).toBe(2)
-  })
-})
+/**
+ * Custom version on JSON.stringify that can handle values that normally don't support serialization, such as BigInt.
+ * @private
+ * @param val A JavaScript value, usually an object or array, to be converted.
+ * @returns A JSON string representing the given value.
+ */
+export function stringify (val: any) {
+  return JSON.stringify(val, (_, value) =>
+    typeof value === 'bigint' ? `${value}n` : value
+  )
+}

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Integer from './integer'
+import Integer, { int } from './integer'
 import { NumberOrInteger } from './graph-types'
 
 /**
@@ -469,7 +469,13 @@ class ServerInfo {
 }
 
 function intValue(value: NumberOrInteger): number {
-  return value instanceof Integer ? value.toInt() : value
+  if (value instanceof Integer) {
+    return value.toInt()
+  } else if (typeof value == 'bigint') {
+    return int(value).toInt()
+  } else {
+    return value
+  }
 }
 
 function valueOrDefault(
@@ -479,7 +485,7 @@ function valueOrDefault(
 ): number {
   if (key in values) {
     const value = values[key]
-    return value instanceof Integer ? value.toInt() : value
+    return intValue(value)
   } else {
     return defaultValue
   }

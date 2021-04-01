@@ -106,9 +106,10 @@ export class Unpacker extends v1.Unpacker {
   /**
    * @constructor
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
+   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
    */
-  constructor (disableLosslessIntegers = false) {
-    super(disableLosslessIntegers)
+  constructor (disableLosslessIntegers = false, useBigInt = false) {
+    super(disableLosslessIntegers, useBigInt)
   }
 
   _unpackUnknownStruct (signature, structSize, buffer) {
@@ -123,39 +124,56 @@ export class Unpacker extends v1.Unpacker {
         this,
         structSize,
         buffer,
-        this._disableLosslessIntegers
+        this._disableLosslessIntegers,
+        this._useBigInt
       )
     } else if (signature === TIME) {
-      return unpackTime(this, structSize, buffer, this._disableLosslessIntegers)
+      return unpackTime(
+        this,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers,
+        this._useBigInt
+      )
     } else if (signature === DATE) {
-      return unpackDate(this, structSize, buffer, this._disableLosslessIntegers)
+      return unpackDate(
+        this,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers,
+        this._useBigInt
+      )
     } else if (signature === LOCAL_DATE_TIME) {
       return unpackLocalDateTime(
         this,
         structSize,
         buffer,
-        this._disableLosslessIntegers
+        this._disableLosslessIntegers,
+        this._useBigInt
       )
     } else if (signature === DATE_TIME_WITH_ZONE_OFFSET) {
       return unpackDateTimeWithZoneOffset(
         this,
         structSize,
         buffer,
-        this._disableLosslessIntegers
+        this._disableLosslessIntegers,
+        this._useBigInt
       )
     } else if (signature === DATE_TIME_WITH_ZONE_ID) {
       return unpackDateTimeWithZoneId(
         this,
         structSize,
         buffer,
-        this._disableLosslessIntegers
+        this._disableLosslessIntegers,
+        this._useBigInt
       )
     } else {
       return super._unpackUnknownStruct(
         signature,
         structSize,
         buffer,
-        this._disableLosslessIntegers
+        this._disableLosslessIntegers,
+        this._useBigInt
       )
     }
   }
@@ -345,7 +363,13 @@ function packTime (value, packer) {
  * @param {boolean} disableLosslessIntegers if integer properties in the result time should be native JS numbers.
  * @return {Time} the unpacked time value.
  */
-function unpackTime (unpacker, structSize, buffer, disableLosslessIntegers) {
+function unpackTime (
+  unpacker,
+  structSize,
+  buffer,
+  disableLosslessIntegers,
+  useBigInt
+) {
   unpacker._verifyStructSize('Time', TIME_STRUCT_SIZE, structSize)
 
   const nanoOfDay = unpacker.unpackInteger(buffer)
@@ -359,7 +383,7 @@ function unpackTime (unpacker, structSize, buffer, disableLosslessIntegers) {
     localTime.nanosecond,
     offsetSeconds
   )
-  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
+  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt)
 }
 
 /**
@@ -382,12 +406,18 @@ function packDate (value, packer) {
  * @param {boolean} disableLosslessIntegers if integer properties in the result date should be native JS numbers.
  * @return {Date} the unpacked neo4j date value.
  */
-function unpackDate (unpacker, structSize, buffer, disableLosslessIntegers) {
+function unpackDate (
+  unpacker,
+  structSize,
+  buffer,
+  disableLosslessIntegers,
+  useBigInt
+) {
   unpacker._verifyStructSize('Date', DATE_STRUCT_SIZE, structSize)
 
   const epochDay = unpacker.unpackInteger(buffer)
   const result = epochDayToDate(epochDay)
-  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
+  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt)
 }
 
 /**
@@ -426,7 +456,8 @@ function unpackLocalDateTime (
   unpacker,
   structSize,
   buffer,
-  disableLosslessIntegers
+  disableLosslessIntegers,
+  useBigInt
 ) {
   unpacker._verifyStructSize(
     'LocalDateTime',
@@ -437,7 +468,7 @@ function unpackLocalDateTime (
   const epochSecond = unpacker.unpackInteger(buffer)
   const nano = unpacker.unpackInteger(buffer)
   const result = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
-  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
+  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt)
 }
 
 /**
@@ -491,7 +522,8 @@ function unpackDateTimeWithZoneOffset (
   unpacker,
   structSize,
   buffer,
-  disableLosslessIntegers
+  disableLosslessIntegers,
+  useBigInt
 ) {
   unpacker._verifyStructSize(
     'DateTimeWithZoneOffset',
@@ -515,7 +547,7 @@ function unpackDateTimeWithZoneOffset (
     timeZoneOffsetSeconds,
     null
   )
-  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
+  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt)
 }
 
 /**
@@ -556,7 +588,8 @@ function unpackDateTimeWithZoneId (
   unpacker,
   structSize,
   buffer,
-  disableLosslessIntegers
+  disableLosslessIntegers,
+  useBigInt
 ) {
   unpacker._verifyStructSize(
     'DateTimeWithZoneId',
@@ -580,19 +613,22 @@ function unpackDateTimeWithZoneId (
     null,
     timeZoneId
   )
-  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
+  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt)
 }
 
-function convertIntegerPropsIfNeeded (obj, disableLosslessIntegers) {
-  if (!disableLosslessIntegers) {
+function convertIntegerPropsIfNeeded (obj, disableLosslessIntegers, useBigInt) {
+  if (!disableLosslessIntegers && !useBigInt) {
     return obj
   }
+
+  const convert = value =>
+    useBigInt ? value.toBigInt() : value.toNumberOrInfinity()
 
   const clone = Object.create(Object.getPrototypeOf(obj))
   for (const prop in obj) {
     if (obj.hasOwnProperty(prop)) {
       const value = obj[prop]
-      clone[prop] = isInt(value) ? value.toNumberOrInfinity() : value
+      clone[prop] = isInt(value) ? convert(value) : value
     }
   }
   Object.freeze(clone)

@@ -17,16 +17,17 @@
  * limitations under the License.
  */
 
-import BoltProtocolV4x0 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x0'
-import RequestMessage from '../../../bolt-connection/lib/bolt/request-message'
+import BoltProtocolV4x0 from '../../src/bolt/bolt-protocol-v4x0'
+import RequestMessage from '../../src/bolt/request-message'
 import utils from '../test-utils'
-import { WRITE } from '../../../src/driver'
 import {
   ProcedureRouteObserver,
   ResultStreamObserver
-} from '../../../bolt-connection/lib/bolt/stream-observers'
+} from '../../src/bolt/stream-observers'
 
 import { internal } from 'neo4j-driver-core'
+
+const WRITE = 'WRITE'
 
 const {
   txConfig: { TxConfig },
@@ -35,7 +36,7 @@ const {
 
 describe('#unit BoltProtocolV4x0', () => {
   beforeEach(() => {
-    jasmine.addMatchers(utils.matchers)
+    expect.extend(utils.matchers)
   })
 
   it('should run a query', () => {
@@ -150,6 +151,27 @@ describe('#unit BoltProtocolV4x0', () => {
       },
       { ...sessionContext, txConfig: TxConfig.empty() }
     ])
+  })
+
+  describe('unpacker configuration', () => {
+    test.each([
+      [false, false],
+      [false, true],
+      [true, false],
+      [true, true]
+    ])(
+      'should create unpacker with disableLosslessIntegers=%p and useBigInt=%p',
+      (disableLosslessIntegers, useBigInt) => {
+        const protocol = new BoltProtocolV4x0(null, null, {
+          disableLosslessIntegers,
+          useBigInt
+        })
+        expect(protocol._unpacker._disableLosslessIntegers).toBe(
+          disableLosslessIntegers
+        )
+        expect(protocol._unpacker._useBigInt).toBe(useBigInt)
+      }
+    )
   })
 })
 

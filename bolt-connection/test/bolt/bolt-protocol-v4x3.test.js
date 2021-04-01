@@ -17,12 +17,13 @@
  * limitations under the License.
  */
 
-import BoltProtocolV4x3 from '../../../bolt-connection/lib/bolt/bolt-protocol-v4x3'
-import RequestMessage from '../../../bolt-connection/lib/bolt/request-message'
+import BoltProtocolV4x3 from '../../src/bolt/bolt-protocol-v4x3'
+import RequestMessage from '../../src/bolt/request-message'
 import utils from '../test-utils'
-import { WRITE } from '../../../src/driver'
-import { RouteObserver } from '../../../bolt-connection/lib/bolt/stream-observers'
+import { RouteObserver } from '../../src/bolt/stream-observers'
 import { internal } from 'neo4j-driver-core'
+
+const WRITE = 'WRITE'
 
 const {
   txConfig: { TxConfig },
@@ -31,7 +32,7 @@ const {
 
 describe('#unit BoltProtocolV4x3', () => {
   beforeEach(() => {
-    jasmine.addMatchers(utils.matchers)
+    expect.extend(utils.matchers)
   })
 
   it('should request routing information', () => {
@@ -211,5 +212,26 @@ describe('#unit BoltProtocolV4x3', () => {
     expect(protocol.messages[0]).toBeMessage(RequestMessage.rollback())
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
+  })
+
+  describe('unpacker configuration', () => {
+    test.each([
+      [false, false],
+      [false, true],
+      [true, false],
+      [true, true]
+    ])(
+      'should create unpacker with disableLosslessIntegers=%p and useBigInt=%p',
+      (disableLosslessIntegers, useBigInt) => {
+        const protocol = new BoltProtocolV4x3(null, null, {
+          disableLosslessIntegers,
+          useBigInt
+        })
+        expect(protocol._unpacker._disableLosslessIntegers).toBe(
+          disableLosslessIntegers
+        )
+        expect(protocol._unpacker._useBigInt).toBe(useBigInt)
+      }
+    )
   })
 })

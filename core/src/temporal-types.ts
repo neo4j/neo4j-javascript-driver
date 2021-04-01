@@ -25,7 +25,7 @@ import {
   assertValidDate
 } from './internal/util'
 import { newError } from './error'
-import Integer, { toNumber } from './integer'
+import Integer, { int, toNumber } from './integer'
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,
@@ -165,7 +165,7 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
   ): LocalTime<number> {
     verifyStandardDateAndNanos(standardDate, nanosecond)
 
-    const totalNanoseconds: number | Integer = util.totalNanoseconds(
+    const totalNanoseconds: number | Integer | bigint = util.totalNanoseconds(
       standardDate,
       nanosecond
     )
@@ -176,6 +176,8 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
       standardDate.getSeconds(),
       totalNanoseconds instanceof Integer
         ? totalNanoseconds.toInt()
+        : typeof totalNanoseconds === 'bigint'
+        ? int(totalNanoseconds).toInt()
         : totalNanoseconds
     )
   }

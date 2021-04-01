@@ -72,6 +72,7 @@ import Transaction from './transaction'
 import Session, { TransactionConfig } from './session'
 import Driver, * as driver from './driver'
 import * as types from './types'
+import * as json from './json'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -136,7 +137,8 @@ const forExport = {
   Driver,
   Connection,
   types,
-  driver
+  driver,
+  json
 }
 
 export {
@@ -196,7 +198,8 @@ export {
   TransactionConfig,
   Driver,
   types,
-  driver
+  driver,
+  json
 }
 
 export default forExport

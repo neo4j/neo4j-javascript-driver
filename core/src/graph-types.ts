@@ -17,9 +17,10 @@
  * limitations under the License.
  */
 import Integer from './integer'
+import { stringify } from './json'
 
 type StandardDate = Date
-type NumberOrInteger = number | Integer
+type NumberOrInteger = number | Integer | bigint
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,
@@ -84,7 +85,7 @@ class Node<T extends NumberOrInteger = Integer> {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
         if (i > 0) s += ','
-        s += keys[i] + ':' + JSON.stringify(this.properties[keys[i]])
+        s += keys[i] + ':' + stringify(this.properties[keys[i]])
       }
       s += '}'
     }
@@ -165,7 +166,7 @@ class Relationship<T extends NumberOrInteger = Integer> {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
         if (i > 0) s += ','
-        s += keys[i] + ':' + JSON.stringify(this.properties[keys[i]])
+        s += keys[i] + ':' + stringify(this.properties[keys[i]])
       }
       s += '}'
     }
@@ -251,7 +252,7 @@ class UnboundRelationship<T extends NumberOrInteger = Integer> {
       s += ' {'
       for (let i = 0; i < keys.length; i++) {
         if (i > 0) s += ','
-        s += keys[i] + ':' + JSON.stringify(this.properties[keys[i]])
+        s += keys[i] + ':' + stringify(this.properties[keys[i]])
       }
       s += '}'
     }

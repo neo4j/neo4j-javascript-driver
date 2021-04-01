@@ -299,6 +299,12 @@ describe('Integer', () => {
     test(`inSafeRange(${input}) toEqual ${expectedOutput}`, () =>
       expect(inSafeRange(input)).toEqual(expectedOutput))
   )
+
+  test('Integer.toBigInt', () => {
+    expect(Integer.MAX_SAFE_VALUE.toBigInt().toString()).toEqual(
+      Integer.MAX_SAFE_VALUE.toString()
+    )
+  })
 })
 
 function forEachToNumberOrInfinityScenarios(

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError, error, Integer, Record } from 'neo4j-driver-core'
+import { newError, error, Integer, Record, json } from 'neo4j-driver-core'
 import { ALL } from './request-message'
 import RawRoutingTable from './routing-table-raw'
 
@@ -268,7 +268,7 @@ class ResultStreamObserver extends StreamObserver {
 
       // Extract server generated query id for use in requestMore and discard
       // functions
-      if (meta.qid) {
+      if (meta.qid !== null && meta.qid !== undefined) {
         this._queryId = meta.qid
 
         // remove qid from metadata object
@@ -392,7 +392,7 @@ class LoginObserver extends StreamObserver {
 
   onNext (record) {
     this.onError(
-      newError('Received RECORD when initializing ' + JSON.stringify(record))
+      newError('Received RECORD when initializing ' + json.stringify(record))
     )
   }
 
@@ -429,7 +429,7 @@ class ResetObserver extends StreamObserver {
     this.onError(
       newError(
         'Received RECORD when resetting: received record is: ' +
-          JSON.stringify(record),
+          json.stringify(record),
         PROTOCOL_ERROR
       )
     )
@@ -500,7 +500,7 @@ class ProcedureRouteObserver extends StreamObserver {
           'Illegal response from router. Received ' +
             this._records.length +
             ' records but expected only one.\n' +
-            JSON.stringify(this._records),
+            json.stringify(this._records),
           PROTOCOL_ERROR
         )
       )
@@ -533,7 +533,7 @@ class RouteObserver extends StreamObserver {
     this.onError(
       newError(
         'Received RECORD when resetting: received record is: ' +
-          JSON.stringify(record),
+          json.stringify(record),
         PROTOCOL_ERROR
       )
     )

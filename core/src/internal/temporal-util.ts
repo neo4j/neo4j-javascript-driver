@@ -20,6 +20,7 @@
 import Integer, { int, isInt } from '../integer'
 import { newError } from '../error'
 import { assertNumberOrInteger } from './util'
+import { NumberOrInteger } from '../graph-types'
 
 /*
   Code in this util should be compatible with code in the database that uses JSR-310 java.time APIs.
@@ -44,11 +45,17 @@ class ValueRange {
     this._maxInteger = int(max)
   }
 
-  contains (value: number | Integer) {
+  contains (value: number | Integer | bigint) {
     if (isInt(value) && value instanceof Integer) {
       return (
         value.greaterThanOrEqual(this._minInteger) &&
         value.lessThanOrEqual(this._maxInteger)
+      )
+    } else if (typeof value === 'bigint') {
+      const intValue = int(value)
+      return (
+        intValue.greaterThanOrEqual(this._minInteger) &&
+        intValue.lessThanOrEqual(this._maxInteger)
       )
     } else {
       return value >= this._minNumber && value <= this._maxNumber
@@ -80,14 +87,14 @@ export const DAYS_PER_400_YEAR_CYCLE = 146097
 export const SECONDS_PER_DAY = 86400
 
 export function normalizeSecondsForDuration (
-  seconds: number | Integer,
-  nanoseconds: number | Integer
+  seconds: number | Integer | bigint,
+  nanoseconds: number | Integer | bigint
 ): Integer {
   return int(seconds).add(floorDiv(nanoseconds, NANOS_PER_SECOND))
 }
 
 export function normalizeNanosecondsForDuration (
-  nanoseconds: number | Integer
+  nanoseconds: number | Integer | bigint
 ): Integer {
   return floorMod(nanoseconds, NANOS_PER_SECOND)
 }
@@ -101,10 +108,10 @@ export function normalizeNanosecondsForDuration (
  * @return {Integer} nanoseconds representing the given local time.
  */
 export function localTimeToNanoOfDay (
-  hour: Integer | number | string,
-  minute: Integer | number | string,
-  second: Integer | number | string,
-  nanosecond: Integer | number | string
+  hour: NumberOrInteger | string,
+  minute: NumberOrInteger | string,
+  second: NumberOrInteger | string,
+  nanosecond: NumberOrInteger | string
 ): Integer {
   hour = int(hour)
   minute = int(minute)
@@ -129,13 +136,13 @@ export function localTimeToNanoOfDay (
  * @return {Integer} epoch second in UTC representing the given local date time.
  */
 export function localDateTimeToEpochSecond (
-  year: Integer | number | string,
-  month: Integer | number | string,
-  day: Integer | number | string,
-  hour: Integer | number | string,
-  minute: Integer | number | string,
-  second: Integer | number | string,
-  nanosecond: Integer | number | string
+  year: NumberOrInteger | string,
+  month: NumberOrInteger | string,
+  day: NumberOrInteger | string,
+  hour: NumberOrInteger | string,
+  minute: NumberOrInteger | string,
+  second: NumberOrInteger | string,
+  nanosecond: NumberOrInteger | string
 ): Integer {
   const epochDay = dateToEpochDay(year, month, day)
   const localTimeSeconds = localTimeToSecondOfDay(hour, minute, second)
@@ -150,9 +157,9 @@ export function localDateTimeToEpochSecond (
  * @return {Integer} epoch day representing the given date.
  */
 export function dateToEpochDay (
-  year: Integer | number | string,
-  month: Integer | number | string,
-  day: Integer | number | string
+  year: NumberOrInteger | string,
+  month: NumberOrInteger | string,
+  day: NumberOrInteger | string
 ): Integer {
   year = int(year)
   month = int(month)
@@ -202,10 +209,10 @@ export function dateToEpochDay (
  * @return {string} ISO string that represents given duration.
  */
 export function durationToIsoString (
-  months: Integer | number | string,
-  days: Integer | number | string,
-  seconds: Integer | number | string,
-  nanoseconds: Integer | number | string
+  months: NumberOrInteger | string,
+  days: NumberOrInteger | string,
+  seconds: NumberOrInteger | string,
+  nanoseconds: NumberOrInteger | string
 ): string {
   const monthsString = formatNumber(months)
   const daysString = formatNumber(days)
@@ -225,10 +232,10 @@ export function durationToIsoString (
  * @return {string} ISO string that represents given time.
  */
 export function timeToIsoString (
-  hour: Integer | number | string,
-  minute: Integer | number | string,
-  second: Integer | number | string,
-  nanosecond: Integer | number | string
+  hour: NumberOrInteger | string,
+  minute: NumberOrInteger | string,
+  second: NumberOrInteger | string,
+  nanosecond: NumberOrInteger | string
 ): string {
   const hourString = formatNumber(hour, 2)
   const minuteString = formatNumber(minute, 2)
@@ -243,7 +250,7 @@ export function timeToIsoString (
  * @return {string} ISO string that represents given offset.
  */
 export function timeZoneOffsetToIsoString (
-  offsetSeconds: Integer | number | string
+  offsetSeconds: NumberOrInteger | string
 ): string {
   offsetSeconds = int(offsetSeconds)
   if (offsetSeconds.equals(0)) {
@@ -277,9 +284,9 @@ export function timeZoneOffsetToIsoString (
  * @return {string} ISO string that represents given date.
  */
 export function dateToIsoString (
-  year: Integer | number | string,
-  month: Integer | number | string,
-  day: Integer | number | string
+  year: NumberOrInteger | string,
+  month: NumberOrInteger | string,
+  day: NumberOrInteger | string
 ): string {
   year = int(year)
   const isNegative = year.isNegative()
@@ -299,18 +306,16 @@ export function dateToIsoString (
 /**
  * Get the total number of nanoseconds from the milliseconds of the given standard JavaScript date and optional nanosecond part.
  * @param {global.Date} standardDate the standard JavaScript date.
- * @param {Integer|number|undefined} nanoseconds the optional number of nanoseconds.
- * @return {Integer|number} the total amount of nanoseconds.
+ * @param {Integer|number|bigint|undefined} nanoseconds the optional number of nanoseconds.
+ * @return {Integer|number|bigint} the total amount of nanoseconds.
  */
 export function totalNanoseconds (
   standardDate: Date,
-  nanoseconds?: Integer | number
-): Integer | number {
+  nanoseconds?: NumberOrInteger
+): NumberOrInteger {
   nanoseconds = nanoseconds || 0
   const nanosFromMillis = standardDate.getMilliseconds() * NANOS_PER_MILLISECOND
-  return nanoseconds instanceof Integer
-    ? nanoseconds.add(nanosFromMillis)
-    : nanoseconds + nanosFromMillis
+  return add(nanoseconds, nanosFromMillis)
 }
 
 /**
@@ -338,7 +343,7 @@ export function timeZoneOffsetInSeconds (standardDate: Date): number {
  * @param {Integer|number} year the value to check.
  * @return {Integer|number} the value of the year if it is valid. Exception is thrown otherwise.
  */
-export function assertValidYear (year: Integer | number): Integer | number {
+export function assertValidYear (year: NumberOrInteger): NumberOrInteger {
   return assertValidTemporalValue(year, YEAR_RANGE, 'Year')
 }
 
@@ -347,7 +352,7 @@ export function assertValidYear (year: Integer | number): Integer | number {
  * @param {Integer|number} month the value to check.
  * @return {Integer|number} the value of the month if it is valid. Exception is thrown otherwise.
  */
-export function assertValidMonth (month: Integer | number): Integer | number {
+export function assertValidMonth (month: NumberOrInteger): NumberOrInteger {
   return assertValidTemporalValue(month, MONTH_OF_YEAR_RANGE, 'Month')
 }
 
@@ -356,7 +361,7 @@ export function assertValidMonth (month: Integer | number): Integer | number {
  * @param {Integer|number} day the value to check.
  * @return {Integer|number} the value of the day if it is valid. Exception is thrown otherwise.
  */
-export function assertValidDay (day: Integer | number): Integer | number {
+export function assertValidDay (day: NumberOrInteger): NumberOrInteger {
   return assertValidTemporalValue(day, DAY_OF_MONTH_RANGE, 'Day')
 }
 
@@ -365,7 +370,7 @@ export function assertValidDay (day: Integer | number): Integer | number {
  * @param {Integer|number} hour the value to check.
  * @return {Integer|number} the value of the hour if it is valid. Exception is thrown otherwise.
  */
-export function assertValidHour (hour: Integer | number): Integer | number {
+export function assertValidHour (hour: NumberOrInteger): NumberOrInteger {
   return assertValidTemporalValue(hour, HOUR_OF_DAY_RANGE, 'Hour')
 }
 
@@ -374,7 +379,7 @@ export function assertValidHour (hour: Integer | number): Integer | number {
  * @param {Integer|number} minute the value to check.
  * @return {Integer|number} the value of the minute if it is valid. Exception is thrown otherwise.
  */
-export function assertValidMinute (minute: Integer | number): Integer | number {
+export function assertValidMinute (minute: NumberOrInteger): NumberOrInteger {
   return assertValidTemporalValue(minute, MINUTE_OF_HOUR_RANGE, 'Minute')
 }
 
@@ -383,7 +388,7 @@ export function assertValidMinute (minute: Integer | number): Integer | number {
  * @param {Integer|number} second the value to check.
  * @return {Integer|number} the value of the second if it is valid. Exception is thrown otherwise.
  */
-export function assertValidSecond (second: Integer | number): Integer | number {
+export function assertValidSecond (second: NumberOrInteger): NumberOrInteger {
   return assertValidTemporalValue(second, SECOND_OF_MINUTE_RANGE, 'Second')
 }
 
@@ -393,8 +398,8 @@ export function assertValidSecond (second: Integer | number): Integer | number {
  * @return {Integer|number} the value of the nanosecond if it is valid. Exception is thrown otherwise.
  */
 export function assertValidNanosecond (
-  nanosecond: Integer | number
-): Integer | number {
+  nanosecond: NumberOrInteger
+): NumberOrInteger {
   return assertValidTemporalValue(
     nanosecond,
     NANOSECOND_OF_SECOND_RANGE,
@@ -410,10 +415,10 @@ export function assertValidNanosecond (
  * @return {Integer|number} the value if valid. Exception is thrown otherwise.
  */
 function assertValidTemporalValue (
-  value: Integer | number,
+  value: NumberOrInteger,
   range: ValueRange,
   name: string
-): Integer | number {
+): NumberOrInteger {
   assertNumberOrInteger(value, name)
   if (!range.contains(value)) {
     throw newError(
@@ -431,9 +436,9 @@ function assertValidTemporalValue (
  * @return {Integer} seconds representing the given local time.
  */
 function localTimeToSecondOfDay (
-  hour: Integer | number | string,
-  minute: Integer | number | string,
-  second: Integer | number | string
+  hour: NumberOrInteger | string,
+  minute: NumberOrInteger | string,
+  second: NumberOrInteger | string
 ): Integer {
   hour = int(hour)
   minute = int(minute)
@@ -449,7 +454,7 @@ function localTimeToSecondOfDay (
  * @param {Integer|number|string} year the year to check. Will be converted to {@link Integer} for all calculations.
  * @return {boolean} `true` if given year is a leap year, `false` otherwise.
  */
-function isLeapYear (year: Integer | number | string): boolean {
+function isLeapYear (year: NumberOrInteger | string): boolean {
   year = int(year)
 
   if (!year.modulo(4).equals(0)) {
@@ -469,8 +474,8 @@ function isLeapYear (year: Integer | number | string): boolean {
  * @return {Integer} the result.
  */
 export function floorDiv (
-  x: Integer | number | string,
-  y: Integer | number | string
+  x: NumberOrInteger | string,
+  y: NumberOrInteger | string
 ): Integer {
   x = int(x)
   y = int(y)
@@ -488,8 +493,8 @@ export function floorDiv (
  * @return {Integer} the result.
  */
 export function floorMod (
-  x: Integer | number | string,
-  y: Integer | number | string
+  x: NumberOrInteger | string,
+  y: NumberOrInteger | string
 ): Integer {
   x = int(x)
   y = int(y)
@@ -503,8 +508,8 @@ export function floorMod (
  * @return {string} formatted value.
  */
 function formatSecondsAndNanosecondsForDuration (
-  seconds: Integer | number | string,
-  nanoseconds: Integer | number | string
+  seconds: NumberOrInteger | string,
+  nanoseconds: NumberOrInteger | string
 ): string {
   seconds = int(seconds)
   nanoseconds = int(nanoseconds)
@@ -546,7 +551,7 @@ function formatSecondsAndNanosecondsForDuration (
  * @param {Integer|number|string} value the number of nanoseconds to format.
  * @return {string} formatted and possibly left-padded nanoseconds part as string.
  */
-function formatNanosecond (value: Integer | number | string): string {
+function formatNanosecond (value: NumberOrInteger | string): string {
   value = int(value)
   return value.equals(0) ? '' : '.' + formatNumber(value, 9)
 }
@@ -557,7 +562,7 @@ function formatNanosecond (value: Integer | number | string): string {
  * @return {string} formatted and possibly left-padded number as string.
  */
 function formatNumber (
-  num: Integer | number | string,
+  num: NumberOrInteger | string,
   stringLength?: number
 ): string {
   num = int(num)
@@ -574,4 +579,13 @@ function formatNumber (
     }
   }
   return isNegative ? '-' + numString : numString
+}
+
+function add (x: NumberOrInteger, y: number): NumberOrInteger {
+  if (x instanceof Integer) {
+    return x.add(y)
+  } else if (typeof x === 'bigint') {
+    return x + BigInt(y)
+  }
+  return x + y
 }

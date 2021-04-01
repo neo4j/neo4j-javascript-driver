@@ -18,7 +18,9 @@
  */
 
 import Integer, { isInt } from '../integer'
+import { NumberOrInteger } from '../graph-types'
 import { EncryptionLevel } from '../types'
+import { stringify } from '../json'
 
 const ENCRYPTION_ON: EncryptionLevel = 'ENCRYPTION_ON'
 const ENCRYPTION_OFF: EncryptionLevel = 'ENCRYPTION_OFF'
@@ -101,7 +103,7 @@ function validateQueryAndParameters(
 function assertObject(obj: any, objName: string): Object {
   if (!isObject(obj)) {
     throw new TypeError(
-      objName + ' expected to be an object but was: ' + JSON.stringify(obj)
+      objName + ' expected to be an object but was: ' + stringify(obj)
     )
   }
   return obj
@@ -117,7 +119,7 @@ function assertObject(obj: any, objName: string): Object {
 function assertString(obj: any, objName: Object): string {
   if (!isString(obj)) {
     throw new TypeError(
-      objName + ' expected to be string but was: ' + JSON.stringify(obj)
+      objName + ' expected to be string but was: ' + stringify(obj)
     )
   }
   return obj
@@ -133,7 +135,7 @@ function assertString(obj: any, objName: Object): string {
 function assertNumber(obj: any, objName: string): number {
   if (typeof obj !== 'number') {
     throw new TypeError(
-      objName + ' expected to be a number but was: ' + JSON.stringify(obj)
+      objName + ' expected to be a number but was: ' + stringify(obj)
     )
   }
   return obj
@@ -146,12 +148,12 @@ function assertNumber(obj: any, objName: string): number {
  * @returns {number|Integer} The subject object
  * @throws {TypeError} when the supplied param is not a number or integer
  */
-function assertNumberOrInteger(obj: any, objName: string): number | Integer {
-  if (typeof obj !== 'number' && !isInt(obj)) {
+function assertNumberOrInteger(obj: any, objName: string): NumberOrInteger {
+  if (typeof obj !== 'number' && typeof obj !== 'bigint' && !isInt(obj)) {
     throw new TypeError(
       objName +
         ' expected to be either a number or an Integer object but was: ' +
-        JSON.stringify(obj)
+        stringify(obj)
     )
   }
   return obj
@@ -169,14 +171,14 @@ function assertValidDate(obj: any, objName: string): Date {
     throw new TypeError(
       objName +
         ' expected to be a standard JavaScript Date but was: ' +
-        JSON.stringify(obj)
+        stringify(obj)
     )
   }
   if (Number.isNaN(obj.getTime())) {
     throw new TypeError(
       objName +
         ' expected to be valid JavaScript Date but its time was NaN: ' +
-        JSON.stringify(obj)
+        stringify(obj)
     )
   }
   return obj

@@ -39,6 +39,7 @@ import ResponseHandler from './response-handler'
  * @param {Logger} config.log The logger
  * @param {ResponseHandler~Observer} config.observer Observer
  * @param {boolean} config.disableLosslessIntegers Disable the lossless integers
+ * @param {boolean} packstreamConfig.useBigInt if this connection should convert all received integers to native BigInt numbers.
  * @param {boolean} config.serversideRouting It's using server side routing
  */
 export default function create ({
@@ -47,6 +48,7 @@ export default function create ({
   dechunker,
   channel,
   disableLosslessIntegers,
+  useBigInt,
   serversideRouting,
   server, // server info
   log,
@@ -77,7 +79,7 @@ export default function create ({
     version,
     server,
     chunker,
-    disableLosslessIntegers,
+    { disableLosslessIntegers, useBigInt },
     serversideRouting,
     createResponseHandler,
     observer.onProtocolError.bind(observer),
@@ -89,7 +91,7 @@ function createProtocol (
   version,
   server,
   chunker,
-  disableLosslessIntegers,
+  packingConfig,
   serversideRouting,
   createResponseHandler,
   onProtocolError,
@@ -100,7 +102,7 @@ function createProtocol (
       return new BoltProtocolV1(
         server,
         chunker,
-        disableLosslessIntegers,
+        packingConfig,
         createResponseHandler,
         log,
         onProtocolError
@@ -109,7 +111,7 @@ function createProtocol (
       return new BoltProtocolV2(
         server,
         chunker,
-        disableLosslessIntegers,
+        packingConfig,
         createResponseHandler,
         log,
         onProtocolError
@@ -118,7 +120,7 @@ function createProtocol (
       return new BoltProtocolV3(
         server,
         chunker,
-        disableLosslessIntegers,
+        packingConfig,
         createResponseHandler,
         log,
         onProtocolError
@@ -127,7 +129,7 @@ function createProtocol (
       return new BoltProtocolV4x0(
         server,
         chunker,
-        disableLosslessIntegers,
+        packingConfig,
         createResponseHandler,
         log,
         onProtocolError
@@ -136,7 +138,7 @@ function createProtocol (
       return new BoltProtocolV4x1(
         server,
         chunker,
-        disableLosslessIntegers,
+        packingConfig,
         createResponseHandler,
         log,
         onProtocolError,
@@ -146,7 +148,7 @@ function createProtocol (
       return new BoltProtocolV4x2(
         server,
         chunker,
-        disableLosslessIntegers,
+        packingConfig,
         createResponseHandler,
         log,
         onProtocolError,
@@ -156,7 +158,7 @@ function createProtocol (
       return new BoltProtocolV4x3(
         server,
         chunker,
-        disableLosslessIntegers,
+        packingConfig,
         createResponseHandler,
         log,
         onProtocolError,
