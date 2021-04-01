@@ -1,6 +1,7 @@
 import neo4j from 'neo4j'
 import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
+import { shouldRunTest } from './skipped-tests'
 
 export function NewDriver (context, data, { writeResponse }) {
   const {
@@ -16,7 +17,11 @@ export function NewDriver (context, data, { writeResponse }) {
         writeResponse('ResolverResolutionRequired', { id, address })
       })
     : undefined
-  const driver = neo4j.driver(uri, authToken, { userAgent, resolver, useBigInt: true })
+  const driver = neo4j.driver(uri, authToken, {
+    userAgent,
+    resolver,
+    useBigInt: true
+  })
   const id = context.addDriver(driver)
   writeResponse('Driver', { id })
 }
@@ -222,28 +227,10 @@ export function SessionWriteTransaction (context, data, wire) {
 }
 
 export function StartTest (_, { testName }, wire) {
-  if (
-    testName.endsWith(
-      'test_should_use_initial_router_for_discovery_when_others_unavailable'
-    )
-  ) {
-    console.warn(`>>> Skipping test ${testName}`)
-    const reason =
-      'Driver is failing trying to update the original routing server'
-    wire.writeResponse('SkipTest', { reason })
-  } else if (
-    testName.endsWith(
-      'test_should_successfully_check_if_support_for_multi_db_is_available'
-    )
-  ) {
-    console.warn(`>>> Skipping test ${testName}`)
-    const reason =
-      'Driver is creating a dedicated connection to check the MultiDBSupport'
-    wire.writeResponse('SkipTest', { reason })
-  } else {
-    console.log(`>>> Starting test ${testName}`)
-    wire.writeResponse('RunTest', null)
-  }
+  shouldRunTest(testName, {
+    onRun: () => wire.writeResponse('RunTest', null),
+    onSkip: reason => wire.writeResponse('SkipTest', { reason })
+  })
 }
 
 export function VerifyConnectivity (context, { driverId }, wire) {
