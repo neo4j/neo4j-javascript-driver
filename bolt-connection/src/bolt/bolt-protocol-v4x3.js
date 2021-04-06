@@ -56,10 +56,7 @@ export default class BoltProtocol extends BoltProtocolV42 {
     })
 
     this.write(
-      RequestMessage.route(
-        { ...routingContext, address: initialAddress },
-        databaseName
-      ),
+      RequestMessage.route(routingContext, databaseName),
       observer,
       true
     )

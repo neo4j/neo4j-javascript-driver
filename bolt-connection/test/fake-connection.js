@@ -17,13 +17,7 @@
  * limitations under the License.
  */
 
-import Connection from '../../bolt-connection/lib/connection/connection'
-import {
-  ServerVersion,
-  VERSION_3_4_0,
-  VERSION_3_5_0,
-  VERSION_4_0_0
-} from '../../src/internal/server-version'
+import Connection from '../src/connection/connection'
 
 /**
  * This class is like a mock of {@link Connection} that tracks invocations count.
@@ -125,25 +119,6 @@ export default class FakeConnection extends Connection {
   _handleProtocolError (message) {
     this.protocolErrorsHandled++
     this.seenProtocolErrors.push(message)
-  }
-
-  withServerVersion (version) {
-    this.version = version
-    const serverVersion = ServerVersion.fromString(version)
-    if (serverVersion.compareTo(VERSION_4_0_0) >= 0) {
-      // from 4.0 onwards, the Bolt protocol version matches
-      // the Neo4j product version
-      this.protocolVersion = Number(
-        serverVersion.major + '.' + serverVersion.minor
-      )
-    } else if (serverVersion.compareTo(VERSION_3_5_0) >= 0) {
-      this.protocolVersion = 3
-    } else if (serverVersion.compareTo(VERSION_3_4_0) >= 0) {
-      this.protocolVersion = 2
-    } else {
-      this.protocolVersion = 1
-    }
-    return this
   }
 
   withProtocolVersion (version) {

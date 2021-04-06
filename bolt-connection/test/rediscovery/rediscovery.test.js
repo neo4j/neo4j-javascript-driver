@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-import { RawRoutingTable } from '../../bolt-connection/lib/bolt'
-import Rediscovery from '../../bolt-connection/lib/rediscovery'
-import RoutingTable from '../../bolt-connection/lib/rediscovery/routing-table'
-import FakeConnection from './fake-connection'
+import { RawRoutingTable } from '../../src/bolt'
+import Rediscovery from '../../src/rediscovery'
+import RoutingTable from '../../src/rediscovery/routing-table'
+import FakeConnection from '../fake-connection'
 import lolex from 'lolex'
 import { newError, error, int, internal } from 'neo4j-driver-core'
 
@@ -106,7 +106,6 @@ describe('#unit Rediscovery', () => {
     const requestParams = connection.seenRequestRoutingInformation[0]
     expect(requestParams.routingContext).toEqual(routingContext)
     expect(requestParams.databaseName).toEqual(database)
-    expect(requestParams.initialAddress).toEqual(initialAddress)
     expect(requestParams.sessionContext).toEqual({
       bookmark: session._lastBookmark,
       mode: session._mode,

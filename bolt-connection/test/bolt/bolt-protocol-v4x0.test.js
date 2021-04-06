@@ -146,7 +146,7 @@ describe('#unit BoltProtocolV4x0', () => {
     expect(protocol._run[0]).toEqual([
       'CALL dbms.routing.getRoutingTable($context, $database)',
       {
-        context: { ...routingContext, address: initialAddress },
+        context: routingContext,
         database: databaseName
       },
       { ...sessionContext, txConfig: TxConfig.empty() }

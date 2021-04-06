@@ -156,7 +156,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
     const resultObserver = this.run(
       CALL_GET_ROUTING_TABLE_MULTI_DB,
       {
-        [CONTEXT]: { ...routingContext, address: initialAddress },
+        [CONTEXT]: routingContext,
         [DATABASE]: databaseName
       },
       { ...sessionContext, txConfig: TxConfig.empty() }

@@ -28,11 +28,9 @@ export default class Rediscovery {
   /**
    * @constructor
    * @param {object} routingContext
-   * @param {string} initialAddress
    */
-  constructor (routingContext, initialAddress) {
+  constructor (routingContext) {
     this._routingContext = routingContext
-    this._initialAddress = initialAddress
   }
 
   /**
@@ -66,7 +64,6 @@ export default class Rediscovery {
     return new Promise((resolve, reject) => {
       connection.protocol().requestRoutingInformation({
         routingContext: this._routingContext,
-        initialAddress: this._initialAddress,
         databaseName: database,
         sessionContext: {
           bookmark: session._lastBookmark,

@@ -65,12 +65,13 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._config,
         this._createConnectionErrorHandler(),
         this._log,
-        routingContext || {}
+        this._routingContext
       )
     })
 
+    this._routingContext = { ...routingContext, address: address.toString() }
     this._seedRouter = address
-    this._rediscovery = new Rediscovery(routingContext, address.toString())
+    this._rediscovery = new Rediscovery(this._routingContext)
     this._loadBalancingStrategy = new LeastConnectedLoadBalancingStrategy(
       this._connectionPool
     )

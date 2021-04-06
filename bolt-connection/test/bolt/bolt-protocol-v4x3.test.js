@@ -49,7 +49,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.route({ ...routingContext, address: null }, databaseName)
+      RequestMessage.route(routingContext, databaseName)
     )
     expect(protocol.observers).toEqual([observer])
     expect(observer).toEqual(jasmine.any(RouteObserver))
