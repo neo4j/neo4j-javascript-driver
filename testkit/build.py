@@ -13,14 +13,14 @@ def run(args, env=None):
 
 
 def build_core():
-    npm = ["npm", "--prefix", "core"]
+    npm = ["npm", "--prefix", "./core/"]
     run(['rm', '-fr', 'core/node_modules', 'core/lib', 'core/types'])
     run([*npm, 'ci'])
     run([*npm, 'run', 'build'])
 
 
 def build_bolt_connection():
-    npm = ['npm', '--prefix', 'bolt-connection']
+    npm = ['npm', '--prefix', './bolt-connection/']
     run(['rm', '-fr', 'bolt-connection/node_modules', 'bolt-connection/lib'])
     run([*npm, 'ci'])
     run([*npm, 'run', 'build'])
@@ -33,14 +33,14 @@ def build_driver():
 
 
 def build_driver_lite():
-    npm = ['npm', '--prefix', 'neo4j-driver-lite']
+    npm = ['npm', '--prefix', './neo4j-driver-lite/']
     run(['rm', '-fr', 'neo4j-driver-lite/node_modules', 'neo4j-driver-lite/lib'])
     run([*npm, "ci"])
     run([*npm, "run", "build"])
 
 
 def build_testkit_backend(isLite):
-    npm = ["npm", "--prefix", "testkit-backend"]
+    npm = ["npm", "--prefix", "./testkit-backend/"]
     run(['rm', '-fr', 'testkit-backend/node_modules'])
     run([*npm, "install"])
     neo4jdriverPath = "neo4j@./"
