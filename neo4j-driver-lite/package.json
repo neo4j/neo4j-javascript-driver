@@ -10,8 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:it": "jest -c jest.integration.config.ts",
-    "test:it:browser": "jest -c jest.browser.config.ts",
-    "preinstall": "cd ../core && npm ci && npm run build && cd ../bolt-connection && npm ci && npm run build || true"
+    "test:it:browser": "jest -c jest.browser.config.ts"
   },
   "unpkg": "lib/browser/neo4j-lite-web.js",
   "jsdelivr": "lib/browser/neo4j-lite-web.js",
