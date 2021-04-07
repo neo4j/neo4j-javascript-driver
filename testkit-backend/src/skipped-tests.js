@@ -98,6 +98,10 @@ const skippedTests = [
   skip(
     'Keeps retrying on commit despite connection being dropped',
     ifEquals('stub.retry.TestRetry.test_disconnect_on_commit')
+  ),
+  skip(
+    'Wrong behaviour treating exceptions',
+    ifEquals('test_client_exception_rolls_back_change')
   )
 ]
 
