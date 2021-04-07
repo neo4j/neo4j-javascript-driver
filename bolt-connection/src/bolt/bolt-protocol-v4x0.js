@@ -149,7 +149,6 @@ export default class BoltProtocol extends BoltProtocolV3 {
     routingContext = {},
     databaseName = null,
     sessionContext = {},
-    initialAddress = null,
     onError,
     onCompleted
   }) {

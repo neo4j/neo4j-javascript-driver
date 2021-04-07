@@ -242,14 +242,17 @@ describe('#unit RequestMessage', () => {
   describe('BoltV4.3', () => {
     it('should create ROUTE message', () => {
       const requestContext = { someValue: '1234' }
+      const bookmarks = ['a', 'b']
       const database = 'user_db'
 
-      const message = RequestMessage.route(requestContext, database)
+      const message = RequestMessage.route(requestContext, bookmarks, database)
 
       expect(message.signature).toEqual(0x66)
-      expect(message.fields).toEqual([requestContext, database])
+      expect(message.fields).toEqual([requestContext, bookmarks, database])
       expect(message.toString()).toEqual(
-        `ROUTE ${json.stringify(requestContext)} ${database}`
+        `ROUTE ${json.stringify(requestContext)} ${json.stringify(
+          bookmarks
+        )} ${database}`
       )
     })
 
@@ -257,8 +260,10 @@ describe('#unit RequestMessage', () => {
       const message = RequestMessage.route()
 
       expect(message.signature).toEqual(0x66)
-      expect(message.fields).toEqual([{}, null])
-      expect(message.toString()).toEqual(`ROUTE ${json.stringify({})} ${null}`)
+      expect(message.fields).toEqual([{}, [], null])
+      expect(message.toString()).toEqual(
+        `ROUTE ${json.stringify({})} ${json.stringify([])} ${null}`
+      )
     })
   })
 })

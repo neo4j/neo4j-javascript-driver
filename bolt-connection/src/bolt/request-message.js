@@ -223,14 +223,18 @@ export default class RequestMessage {
    * Generate the ROUTE message, this message is used to fetch the routing table from the server
    *
    * @param {object} routingContext The routing context used to define the routing table. Multi-datacenter deployments is one of its use cases
+   * @param {string[]} bookmarks The list of the bookmark should be used
    * @param {string} databaseName The name of the database to get the routing table for.
    * @return {RequestMessage} the ROUTE message.
    */
-  static route (routingContext = {}, databaseName = null) {
+  static route (routingContext = {}, bookmarks = [], databaseName = null) {
     return new RequestMessage(
       ROUTE,
-      [routingContext, databaseName],
-      () => `ROUTE ${json.stringify(routingContext)} ${databaseName}`
+      [routingContext, bookmarks, databaseName],
+      () =>
+        `ROUTE ${json.stringify(routingContext)} ${json.stringify(
+          bookmarks
+        )} ${databaseName}`
     )
   }
 }
