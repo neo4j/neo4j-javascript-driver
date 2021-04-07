@@ -24,6 +24,10 @@ const skippedTests = [
     or(ifStartsWith('stub.routing'), ifStartsWith('stub.retry.TestRetry'))
   ),
   skip(
+    'The driver no support domain_name_resolver',
+    ifEndsWith('test_should_successfully_acquire_rt_when_router_ip_changes')
+  ),
+  skip(
     'Driver is failing trying to update the routing table using the original routing server',
     ifEndsWith(
       'test_should_use_initial_router_for_discovery_when_others_unavailable'

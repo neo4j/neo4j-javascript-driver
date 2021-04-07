@@ -49,7 +49,31 @@ describe('#unit BoltProtocolV4x3', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.route(routingContext, databaseName)
+      RequestMessage.route(routingContext, [], databaseName)
+    )
+    expect(protocol.observers).toEqual([observer])
+    expect(observer).toEqual(jasmine.any(RouteObserver))
+    expect(protocol.flushes).toEqual([true])
+  })
+
+  it('should request routing information sending bookmarks', () => {
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
+    const routingContext = { someContextParam: 'value' }
+    const listOfBookmarks = ['a', 'b', 'c']
+    const bookmark = new Bookmark(listOfBookmarks)
+    const databaseName = 'name'
+
+    const observer = protocol.requestRoutingInformation({
+      routingContext,
+      databaseName,
+      sessionContext: { bookmark }
+    })
+
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.route(routingContext, listOfBookmarks, databaseName)
     )
     expect(protocol.observers).toEqual([observer])
     expect(observer).toEqual(jasmine.any(RouteObserver))
