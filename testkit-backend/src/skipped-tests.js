@@ -20,12 +20,14 @@ function skip (reason, predicate) {
 
 const skippedTests = [
   skip(
-    'Routing tests are disabled until the fix on the test scenario be merged',
-    or(ifStartsWith('stub.routing'), ifStartsWith('stub.retry.TestRetry'))
-  ),
-  skip(
     'The driver no support domain_name_resolver',
     ifEndsWith('test_should_successfully_acquire_rt_when_router_ip_changes')
+  ),
+  skip(
+    'Driver is start to run tx_function before have a valid connection in hands',
+    ifEndsWith(
+      'test_should_retry_write_until_success_with_leader_shutdown_during_tx_using_tx_function'
+    )
   ),
   skip(
     'Driver is failing trying to update the routing table using the original routing server',
@@ -47,20 +49,6 @@ const skippedTests = [
       ),
       ifEndsWith(
         'test_should_use_resolver_during_rediscovery_when_existing_routers_fail'
-      )
-    )
-  ),
-  skip(
-    'Test are not consuming the values inside the try catch',
-    or(
-      ifEndsWith('test_should_retry_read_tx_and_rediscovery_until_success'),
-      ifEndsWith('test_should_retry_write_tx_and_rediscovery_until_success'),
-      ifEndsWith('test_should_retry_write_tx_until_success'),
-      ifEndsWith(
-        'test_should_read_successfully_from_reachable_db_after_trying_unreachable_db'
-      ),
-      ifEndsWith(
-        'test_should_retry_write_until_success_with_leader_shutdown_during_tx_using_tx_function'
       )
     )
   ),
@@ -98,10 +86,6 @@ const skippedTests = [
   skip(
     'Keeps retrying on commit despite connection being dropped',
     ifEquals('stub.retry.TestRetry.test_disconnect_on_commit')
-  ),
-  skip(
-    'Wrong behaviour treating exceptions',
-    ifEquals('test_client_exception_rolls_back_change')
   )
 ]
 
