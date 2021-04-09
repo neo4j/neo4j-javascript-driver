@@ -49,9 +49,6 @@ const skippedTests = [
       ),
       ifEndsWith(
         'test_should_fail_when_writing_on_unexpectedly_interrupting_writer_using_session_run'
-      ),
-      ifEndsWith(
-        'test_should_fail_with_routing_failure_on_db_not_found_discovery_failure'
       )
     )
   ),

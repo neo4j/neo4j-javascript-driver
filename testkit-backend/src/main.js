@@ -83,7 +83,8 @@ class Backend {
       const id = this._context.addError(e)
       this._writeResponse('DriverError', {
         id,
-        msg: e.message + ' (' + e.code + ')'
+        msg: e.message + ' (' + e.code + ')',
+        code: e.code
       })
       return
     }
