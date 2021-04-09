@@ -42,17 +42,6 @@ const skippedTests = [
     )
   ),
   skip(
-    'Requires investigation',
-    or(
-      ifEndsWith(
-        'test_should_fail_when_writing_without_explicit_consumption_on_writer_that_returns_not_a_leader_code'
-      ),
-      ifEndsWith(
-        'test_should_fail_when_writing_on_unexpectedly_interrupting_writer_using_session_run'
-      )
-    )
-  ),
-  skip(
     'Fails when runned with the full suite',
     ifEndsWith(
       '.test_should_revert_to_initial_router_if_known_router_throws_protocol_errors'
