@@ -14,8 +14,8 @@ function or () {
   return testName => [...arguments].find(predicate => predicate(testName))
 }
 
-function skip (reason, predicate) {
-  return { reason, predicate }
+function skip (reason, ...predicate) {
+  return { reason, predicate: or(...predicate) }
 }
 
 const skippedTests = [
@@ -53,8 +53,7 @@ const skippedTests = [
       ifEndsWith(
         'test_should_request_rt_from_all_initial_routers_until_successful'
       ),
-      ifEndsWith('test_should_pass_bookmark_from_tx_to_tx_using_tx_run'),
-      ifEndsWith('test_should_successfully_get_routing_table_with_context')
+      ifEndsWith('test_should_pass_bookmark_from_tx_to_tx_using_tx_run')
     )
   ),
   skip(
@@ -75,7 +74,8 @@ const skippedTests = [
     'Wait clarification about verifyConnectivity behaviour when no reader connection is available',
     ifEndsWith(
       '.test_should_use_initial_router_for_discovery_when_others_unavailable'
-    )
+    ),
+    ifEndsWith('.test_should_successfully_get_routing_table_with_context')
   )
 ]
 
