@@ -20,8 +20,11 @@ function skip (reason, ...predicate) {
 
 const skippedTests = [
   skip(
-    'The driver no support domain_name_resolver',
-    ifEndsWith('test_should_successfully_acquire_rt_when_router_ip_changes')
+    'The driver has no support domain_name_resolver',
+    ifEndsWith('test_should_successfully_acquire_rt_when_router_ip_changes'),
+    ifEndsWith(
+      'test_should_request_rt_from_all_initial_routers_until_successful'
+    )
   ),
   skip(
     'Driver is start to run tx_function before have a valid connection in hands',
@@ -49,9 +52,6 @@ const skippedTests = [
       ),
       ifEndsWith(
         'test_should_retry_write_until_success_with_leader_change_using_tx_function'
-      ),
-      ifEndsWith(
-        'test_should_request_rt_from_all_initial_routers_until_successful'
       )
     )
   ),
