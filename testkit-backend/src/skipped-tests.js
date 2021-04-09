@@ -59,10 +59,6 @@ const skippedTests = [
     )
   ),
   skip(
-    'Should implement result.consume',
-    ifEquals('neo4j.sessionrun.TestSessionRun.test_updates_last_bookmark')
-  ),
-  skip(
     'Fails when runned with the full suite',
     ifEndsWith(
       '.test_should_revert_to_initial_router_if_known_router_throws_protocol_errors'
@@ -77,7 +73,7 @@ const skippedTests = [
     ifEquals('stub.retry.TestRetry.test_disconnect_on_commit')
   ),
   skip(
-    'Wait clarification about verifyConnective behaviour when no reader connection is available',
+    'Wait clarification about verifyConnectivity behaviour when no reader connection is available',
     ifEndsWith(
       '.test_should_use_initial_router_for_discovery_when_others_unavailable'
     )
