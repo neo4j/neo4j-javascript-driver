@@ -42,17 +42,6 @@ const skippedTests = [
     )
   ),
   skip(
-    'Driver should implement resolver',
-    or(
-      ifEndsWith(
-        'test_should_revert_to_initial_router_if_known_router_throws_protocol_errors'
-      ),
-      ifEndsWith(
-        'test_should_use_resolver_during_rediscovery_when_existing_routers_fail'
-      )
-    )
-  ),
-  skip(
     'Requires investigation',
     or(
       ifEndsWith(
@@ -78,6 +67,12 @@ const skippedTests = [
   skip(
     'Should implement result.consume',
     ifEquals('neo4j.sessionrun.TestSessionRun.test_updates_last_bookmark')
+  ),
+  skip(
+    'Fails when runned with the full suite',
+    ifEndsWith(
+      '.test_should_revert_to_initial_router_if_known_router_throws_protocol_errors'
+    )
   ),
   skip(
     'It could not guarantee the order of records requests between in the nested transactions',
