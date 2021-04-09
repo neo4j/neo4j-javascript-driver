@@ -30,6 +30,9 @@ const skippedTests = [
     'Driver is start to run tx_function before have a valid connection in hands',
     ifEndsWith(
       'test_should_retry_write_until_success_with_leader_shutdown_during_tx_using_tx_function'
+    ),
+    ifEndsWith(
+      'test_should_retry_write_until_success_with_leader_change_using_tx_function'
     )
   ),
   skip(
@@ -49,9 +52,6 @@ const skippedTests = [
       ),
       ifEndsWith(
         'test_should_fail_with_routing_failure_on_db_not_found_discovery_failure'
-      ),
-      ifEndsWith(
-        'test_should_retry_write_until_success_with_leader_change_using_tx_function'
       )
     )
   ),
