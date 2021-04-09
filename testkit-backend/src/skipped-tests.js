@@ -52,8 +52,7 @@ const skippedTests = [
       ),
       ifEndsWith(
         'test_should_request_rt_from_all_initial_routers_until_successful'
-      ),
-      ifEndsWith('test_should_pass_bookmark_from_tx_to_tx_using_tx_run')
+      )
     )
   ),
   skip(
