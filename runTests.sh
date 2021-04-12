@@ -5,6 +5,12 @@ function finish {
 }
 trap finish EXIT
 
+npm --prefix ./core/ ci
+npm --prefix ./core/ test
+npm --prefix ./core/ run build
+npm --prefix ./bolt-connection/ ci
+npm --prefix ./bolt-connection/ test
+npm --prefix ./bolt-connection/ run build
 
 npm ci
 
