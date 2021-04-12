@@ -1,6 +1,8 @@
 docs/
 src/
 core/
+bolt-connection/
+neo4j-driver-lite/
 testkit/
 testkit-backend/
 build/
