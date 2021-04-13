@@ -1,6 +1,6 @@
 {
   "name": "neo4j-driver-lite",
-  "version": "4.3.0",
+  "version": "4.3.0-dev",
   "description": "Connect to Neo4j 3.5.0 and up from JavaScript",
   "main": "lib/index.js",
   "types": "types/index.d.ts",

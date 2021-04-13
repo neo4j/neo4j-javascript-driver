@@ -1,6 +1,6 @@
 {
   "name": "neo4j-driver-bolt-connection",
-  "version": "4.3.0",
+  "version": "4.3.0-dev",
   "description": "Implements the connection with the Neo4j Database using the Bolt Protocol",
   "main": "lib/index.js",
   "types": "types/index.d.ts",

@@ -12,4 +12,5 @@ esdoc.json
 gulpfile.babel.js
 runTests.sh
 runTests.ps1
+buildDependencies.sh
 node_modules/
