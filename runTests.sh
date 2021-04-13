@@ -5,6 +5,8 @@ function finish {
 }
 trap finish EXIT
 
+npm install -g gulp typescript jest
+
 npm --prefix ./core/ ci
 npm --prefix ./core/ run build
 npm --prefix ./bolt-connection/ ci
