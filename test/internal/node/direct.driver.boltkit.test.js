@@ -24,7 +24,7 @@ import { newError, error } from 'neo4j-driver-core'
 
 const { SERVICE_UNAVAILABLE } = error
 
-describe('#stub-direct direct driver with stub server', () => {
+xdescribe('#stub-direct direct driver with stub server', () => {
   describe('should run query', () => {
     async function verifyShouldRunQuery (version) {
       if (!boltStub.supported) {

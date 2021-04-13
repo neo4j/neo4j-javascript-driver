@@ -30,7 +30,7 @@ const {
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 
-describe('#stub-routing routing driver with stub server', () => {
+xdescribe('#stub-routing routing driver with stub server', () => {
   it('should use custom user agent', async () => {
     if (!boltStub.supported) {
       return
