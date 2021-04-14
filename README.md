@@ -8,9 +8,9 @@ Resources to get you started:
 - [Neo4j Manual](https://neo4j.com/docs/)
 - [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
-## What's New in 4.2
+## What's New in 4.3
 
-- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/4.2-changelog)
+- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/4.3-changelog)
 
 ## Including the Driver
 
