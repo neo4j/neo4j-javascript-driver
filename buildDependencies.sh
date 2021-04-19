@@ -1,6 +1,8 @@
 #!/bin/bash
 
-npm --prefix core ci
-npm --prefix core run build
-npm --prefix bolt-connection ci
-npm --prefix bolt-connection run build
+cd core 
+npm ci
+npm run build 
+cd ../bolt-connection
+npm ci
+npm run build
