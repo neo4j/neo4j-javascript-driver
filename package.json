@@ -99,7 +99,6 @@
     "run-sequence": "^2.2.1",
     "semver": "^6.3.0",
     "tmp": "0.1.0",
-    "ts-node": "^9.1.1",
     "typescript": "^3.9.7",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0",
