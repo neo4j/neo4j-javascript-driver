@@ -188,23 +188,6 @@ describe('#integration transaction', () => {
     )
   }, 60000)
 
-  it('should handle when committing when another query fails', async () => {
-    // When
-    const tx = session.beginTransaction()
-
-    await expectAsync(tx.run('CREATE (:TXNode1)')).toBeResolved()
-    await expectAsync(tx.run('THIS IS NOT CYHER')).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(/Invalid input/)
-      })
-    )
-    await expectAsync(tx.commit()).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(/Cannot commit this transaction/)
-      })
-    )
-  }, 60000)
-
   it('should handle rollbacks', done => {
     const tx = session.beginTransaction()
     tx.run('CREATE (:TXNode1)')
@@ -230,147 +213,6 @@ describe('#integration transaction', () => {
           .catch(console.log)
       })
       .catch(console.log)
-  }, 60000)
-
-  it('should fail when committing on a rolled back query', async () => {
-    const tx = session.beginTransaction()
-    await tx.run('CREATE (:TXNode1)')
-    await tx.rollback()
-
-    await expectAsync(tx.commit()).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Cannot commit this transaction, because .* rolled back/
-        )
-      })
-    )
-  }, 60000)
-
-  it('should fail when running on a rolled back transaction', async () => {
-    const tx = session.beginTransaction()
-    await tx.run('CREATE (:TXNode1)')
-    await tx.rollback()
-
-    await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Cannot run query in this transaction, because .* rolled back/
-        )
-      })
-    )
-  }, 60000)
-
-  it('should fail running when a previous query failed', async () => {
-    const tx = session.beginTransaction()
-
-    await expectAsync(tx.run('THIS IS NOT CYPHER')).toBeRejectedWith(
-      jasmine.stringMatching(/Invalid input/)
-    )
-
-    await expectAsync(tx.run('RETURN 42')).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Cannot run query in this transaction, because .* an error/
-        )
-      })
-    )
-    await tx.rollback()
-  }, 60000)
-
-  it('should fail when trying to roll back a rolled back transaction', async () => {
-    const tx = session.beginTransaction()
-    await tx.run('CREATE (:TXNode1)')
-    await tx.rollback()
-
-    await expectAsync(tx.rollback()).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(
-          /Cannot rollback this transaction, because .* rolled back/
-        )
-      })
-    )
-  }, 60000)
-
-  it('should provide bookmark on commit', done => {
-    // new session without initial bookmark
-    session = driver.session()
-    expect(session.lastBookmark()).toEqual([])
-
-    const tx = session.beginTransaction()
-    tx.run('CREATE (:TXNode1)')
-      .then(() => {
-        tx.run('CREATE (:TXNode2)')
-          .then(() => {
-            tx.commit().then(() => {
-              expectValidLastBookmark(session)
-              done()
-            })
-          })
-          .catch(console.log)
-      })
-      .catch(console.log)
-  }, 60000)
-
-  it('should have bookmark when tx is rolled back', done => {
-    // new session without initial bookmark
-    session = driver.session()
-    expect(session.lastBookmark()).toEqual([])
-
-    const tx1 = session.beginTransaction()
-    tx1.run('CREATE ()').then(() => {
-      tx1.commit().then(() => {
-        expectValidLastBookmark(session)
-        const bookmarkBefore = session.lastBookmark()
-
-        const tx2 = session.beginTransaction()
-        tx2.run('CREATE ()').then(() => {
-          tx2.rollback().then(() => {
-            expectValidLastBookmark(session)
-            const bookmarkAfter = session.lastBookmark()
-            expect(bookmarkAfter).toEqual(bookmarkBefore)
-
-            const tx3 = session.beginTransaction()
-            tx3.run('CREATE ()').then(() => {
-              tx3.commit().then(() => {
-                expectValidLastBookmark(session)
-                done()
-              })
-            })
-          })
-        })
-      })
-    })
-  }, 60000)
-
-  it('should have no bookmark when tx fails', done => {
-    // new session without initial bookmark
-    session = driver.session()
-    expect(session.lastBookmark()).toEqual([])
-
-    const tx1 = session.beginTransaction()
-
-    tx1.run('CREATE ()').then(() => {
-      tx1.commit().then(() => {
-        expectValidLastBookmark(session)
-        const bookmarkBefore = session.lastBookmark()
-
-        const tx2 = session.beginTransaction()
-
-        tx2.run('RETURN').catch(error => {
-          expectSyntaxError(error)
-          const bookmarkAfter = session.lastBookmark()
-          expect(bookmarkAfter).toEqual(bookmarkBefore)
-
-          const tx3 = session.beginTransaction()
-          tx3.run('CREATE ()').then(() => {
-            tx3.commit().then(() => {
-              expectValidLastBookmark(session)
-              done()
-            })
-          })
-        })
-      })
-    })
   }, 60000)
 
   it('should throw when provided string (bookmark) parameter', () => {
@@ -399,11 +241,10 @@ describe('#integration transaction', () => {
             })
             const tx2 = session2.beginTransaction()
             tx2.run('CREATE ()').catch(error => {
-              const message = error.message
               // Checking message text on  <= 4.0, check code for >= 4.1
               expect(
                 error.message.includes('not up to the requested version') ||
-                  error.code == 'Neo.ClientError.Transaction.InvalidBookmark'
+                  error.code === 'Neo.ClientError.Transaction.InvalidBookmark'
               ).toBeTruthy()
               done()
             })
