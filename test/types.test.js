@@ -35,9 +35,6 @@ describe('#integration floating point values', () => {
 })
 
 describe('#integration integer values', () => {
-  it('should support integer 1 ', testValue(neo4j.int(1)))
-  it('should support integer 0 ', testValue(neo4j.int(0)))
-  it('should support integer -1 ', testValue(neo4j.int(-1)))
   it(
     'should support integer larger than JS Numbers can model',
     testValue(neo4j.int('0x7fffffffffffffff'))
@@ -50,31 +47,17 @@ describe('#integration integer values', () => {
 
 describe('#integration boolean values', () => {
   it('should support true ', testValue(true))
-  it('should support false ', testValue(false))
 })
 
 describe('#integration string values', () => {
-  it('should support empty string ', testValue(''))
   it('should support simple string ', testValue('abcdefghijklmnopqrstuvwxyz'))
-  it(
-    'should support awesome string ',
-    testValue('All makt åt Tengil, vår befriare.')
-  )
-  it('should support long string', testValue('*'.repeat(10000)))
 })
 
 describe('#integration list values', () => {
   it('should support empty lists ', testValue([]))
   it('should support sparse lists ', testValue([undefined, 4], [null, 4]))
-  it('should support float lists ', testValue([1, 2, 3]))
-  it('should support boolean lists ', testValue([true, false]))
-  it('should support string lists ', testValue(['', 'hello!']))
   it('should support list lists ', testValue([[], [1, 2, 3]]))
   it('should support map lists ', testValue([{}, { a: 12 }]))
-  it(
-    'should support long list',
-    testValue(Array.from({ length: 1000 }, (v, i) => i))
-  )
 })
 
 describe('#integration map values', () => {
@@ -83,20 +66,6 @@ describe('#integration map values', () => {
     'should support basic maps ',
     testValue({ a: 1, b: {}, c: [], d: { e: 1 } })
   )
-  it(
-    'should support sparse maps ',
-    testValue({ foo: undefined, bar: null }, { bar: null })
-  )
-
-  function longMap () {
-    const map = {}
-    for (let i = 0; i < 1000; i++) {
-      map['key' + i] = i
-    }
-    return map
-  }
-
-  it('should support long maps', testValue(longMap()))
 })
 
 describe('#integration node values', () => {
