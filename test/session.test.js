@@ -40,26 +40,7 @@ const {
 
 const { PROTOCOL_ERROR, SESSION_EXPIRED } = error
 
-describe('#integration session', () => {
-  let driver
-  let session
-  // eslint-disable-next-line no-unused-vars
-  let protocolVersion
-
-  beforeEach(async () => {
-    driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
-      sharedNeo4j.authToken
-    )
-    session = driver.session()
-
-    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
-  })
-
-  afterEach(async () => {
-    await driver.close()
-  })
-
+describe('#unit session', () => {
   it('close should return promise', done => {
     const connection = new FakeConnection()
     const session = newSessionWithConnection(connection)
@@ -114,6 +95,27 @@ describe('#integration session', () => {
       done()
     })
   }, 70000)
+})
+
+describe('#integration session', () => {
+  let driver
+  let session
+  // eslint-disable-next-line no-unused-vars
+  let protocolVersion
+
+  beforeEach(async () => {
+    driver = neo4j.driver(
+      `bolt://${sharedNeo4j.hostname}`,
+      sharedNeo4j.authToken
+    )
+    session = driver.session()
+
+    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
+  })
+
+  afterEach(async () => {
+    await driver.close()
+  })
 
   it('should be possible to close driver after closing session with failed tx ', done => {
     const driver = neo4j.driver(
@@ -1194,15 +1196,6 @@ describe('#integration session', () => {
       .then(() => callback())
   }
 
-  function newSessionWithConnection (connection) {
-    const connectionProvider = new SingleConnectionProvider(
-      Promise.resolve(connection)
-    )
-    const session = new Session({ mode: READ, connectionProvider })
-    session.beginTransaction() // force session to acquire new connection
-    return session
-  }
-
   function idleConnectionCount (driver) {
     const connectionProvider = driver._connectionProvider
     const address = connectionProvider._address
@@ -1311,3 +1304,12 @@ describe('#integration session', () => {
       })
   }
 })
+
+function newSessionWithConnection (connection) {
+  const connectionProvider = new SingleConnectionProvider(
+    Promise.resolve(connection)
+  )
+  const session = new Session({ mode: READ, connectionProvider })
+  session.beginTransaction() // force session to acquire new connection
+  return session
+}
