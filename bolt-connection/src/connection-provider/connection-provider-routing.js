@@ -174,12 +174,11 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     for (let i = 0; i < addresses.length; i++) {
       try {
         const connection = await createChannelConnection(
-          this._address,
+          addresses[i],
           this._config,
           this._createConnectionErrorHandler(),
           this._log
         )
-
         const protocolVersion = connection.protocol()
           ? connection.protocol().version
           : null
@@ -194,8 +193,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       } catch (error) {
         lastError = error
       }
-
-      return false
     }
 
     if (lastError) {

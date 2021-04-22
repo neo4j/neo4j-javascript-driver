@@ -188,7 +188,7 @@ export default class ChannelConnection extends Connection {
           if (metadata) {
             // read server version from the response metadata, if it is available
             const serverVersion = metadata.server
-            if (!this.version) {
+            if (!this.version || serverVersion) {
               this.version = serverVersion
             }
 

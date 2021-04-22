@@ -617,7 +617,7 @@ describe('#stub-routing routing driver with stub server', () => {
 
   function getRoutingTable (driver, database) {
     const connectionProvider = driver._getOrCreateConnectionProvider()
-    return connectionProvider._routingTables[database || '']
+    return connectionProvider._routingTableRegistry.get(database || '', {})
   }
 
   function numberOfOpenConnections (driver) {
