@@ -2,6 +2,6 @@
 !: AUTO HELLO
 !: AUTO RESET
 
-C: RUN "CALL dbms.cluster.routing.getRoutingTable($context)" {"context": {}} {}
+C: RUN "CALL dbms.cluster.routing.getRoutingTable($context)" {"context": {"address": "127.0.0.1:9001"}} {}
    PULL_ALL
 S: <EXIT>
