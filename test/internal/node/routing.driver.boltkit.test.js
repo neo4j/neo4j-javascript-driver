@@ -52,7 +52,7 @@ describe('#stub-routing routing driver with stub server', () => {
     ])
     assertHasRouters(driver, [
       '[ff02::1]:9001',
-      '[684d:1111:222:3333:4444:5555:6:77]:9002',
+      '[684D:1111:222:3333:4444:5555:6:77]:9002',
       '[::1]:9003'
     ])
 
@@ -64,7 +64,7 @@ describe('#stub-routing routing driver with stub server', () => {
     ])
     assertHasRouters(driver, [
       '[ff02::1]:9001',
-      '[684d:1111:222:3333:4444:5555:6:77]:9002',
+      '[684D:1111:222:3333:4444:5555:6:77]:9002',
       '[::1]:9003'
     ])
 
@@ -615,9 +615,9 @@ describe('#stub-routing routing driver with stub server', () => {
     return connectionProvider._connectionPool
   }
 
-  function getRoutingTable (driver, database) {
+  function getRoutingTable (driver, database = null) {
     const connectionProvider = driver._getOrCreateConnectionProvider()
-    return connectionProvider._routingTableRegistry.get(database || '', {})
+    return connectionProvider._routingTableRegistry.get(database, {})
   }
 
   function numberOfOpenConnections (driver) {
