@@ -21,7 +21,6 @@ import ResultSummary from './result-summary'
 import Record from './record'
 import { Query } from './types'
 import { observer, util, connectionHolder } from './internal'
-import { CompletedObserver, FailedObserver } from './internal/observers'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
@@ -130,12 +129,14 @@ class Result implements Promise<QueryResult> {
    */
   keys(): Promise<string[]> {
     return new Promise((resolve, reject) => {
-      this._streamObserverPromise.then(observer =>
-        observer.subscribe({
-          onKeys: keys => resolve(keys),
-          onError: err => reject(err)
-        })
-      )
+      this._streamObserverPromise
+        .then(observer =>
+          observer.subscribe({
+            onKeys: keys => resolve(keys),
+            onError: err => reject(err)
+          })
+        )
+        .catch(reject)
     })
   }
 
@@ -150,13 +151,16 @@ class Result implements Promise<QueryResult> {
    */
   summary(): Promise<ResultSummary> {
     return new Promise((resolve, reject) => {
-      this._streamObserverPromise.then(o => {
-        o.cancel()
-        o.subscribe({
-          onCompleted: metadata => resolve(metadata),
-          onError: err => reject(err)
+      this._streamObserverPromise
+        .then(o => {
+          o.cancel()
+          o.subscribe({
+            onCompleted: metadata =>
+              this._createSummary(metadata).then(resolve, reject),
+            onError: err => reject(err)
+          })
         })
-      })
+        .catch(reject)
     })
   }
 
@@ -247,43 +251,8 @@ class Result implements Promise<QueryResult> {
   subscribe(observer: ResultObserver): void {
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
     const onCompletedWrapper = (metadata: any) => {
-      const connectionHolder = this._connectionHolder
-      const {
-        validatedQuery: query,
-        params: parameters
-      } = util.validateQueryAndParameters(this._query, this._parameters, {
-        skipAsserts: true
-      })
-
-      function complete(protocolVersion?: number) {
-        onCompletedOriginal.call(
-          observer,
-          new ResultSummary(query, parameters, metadata, protocolVersion)
-        )
-      }
-
-      function release() {
-        // notify connection holder that the used connection is not needed any more because result has
-        // been fully consumed; call the original onCompleted callback after that
-        return connectionHolder.releaseConnection()
-      }
-
-      connectionHolder.getConnection().then(
-        // onFulfilled:
-        connection => {
-          release().then(() =>
-            complete(
-              connection !== undefined
-                ? connection.protocol().version
-                : undefined
-            )
-          )
-        },
-
-        // onRejected:
-        _ => {
-          complete()
-        }
+      this._createSummary(metadata).then(summary =>
+        onCompletedOriginal.call(observer, summary)
       )
     }
 
@@ -300,9 +269,11 @@ class Result implements Promise<QueryResult> {
     }
     observer.onError = onErrorWrapper
 
-    this._streamObserverPromise.then(o => {
-      return o.subscribe(observer)
-    })
+    this._streamObserverPromise
+      .then(o => {
+        return o.subscribe(observer)
+      })
+      .catch(error => observer.onError!(error))
   }
 
   /**
@@ -314,6 +285,34 @@ class Result implements Promise<QueryResult> {
    */
   _cancel(): void {
     this._streamObserverPromise.then(o => o.cancel())
+  }
+
+  private _createSummary(metadata: any): Promise<ResultSummary> {
+    const {
+      validatedQuery: query,
+      params: parameters
+    } = util.validateQueryAndParameters(this._query, this._parameters, {
+      skipAsserts: true
+    })
+    const connectionHolder = this._connectionHolder
+
+    return connectionHolder
+      .getConnection()
+      .then(
+        // onFulfilled:
+        connection =>
+          connectionHolder
+            .releaseConnection()
+            .then(() =>
+              connection ? connection.protocol().version : undefined
+            ),
+        // onRejected:
+        _ => undefined
+      )
+      .then(
+        protocolVersion =>
+          new ResultSummary(query, parameters, metadata, protocolVersion)
+      )
   }
 }
 
