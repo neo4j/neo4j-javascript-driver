@@ -17,9 +17,10 @@
  * limitations under the License.
  */
 
-import { Neo4jError, Record } from 'neo4j-driver-core'
+import { newError } from '../src'
+import Record from '../src/record'
 
-describe('#unit Record', () => {
+describe('Record', () => {
   it('should allow getting fields by name', () => {
     // Given
     const record = new Record(['name'], ['Bob'])
@@ -63,7 +64,7 @@ describe('#unit Record', () => {
     expect(() => {
       record.get('age')
     }).toThrow(
-      new Neo4jError(
+      newError(
         "This record has no field with key 'age', available key are: [name]."
       )
     )
@@ -85,7 +86,7 @@ describe('#unit Record', () => {
     expect(() => {
       record.get(1)
     }).toThrow(
-      new Neo4jError(
+      newError(
         "This record has no field with index '1'. Remember that indexes start at `0`, " +
           'and make sure your query returns records in the shape you meant it to.'
       )
@@ -102,7 +103,7 @@ describe('#unit Record', () => {
   it('should allow forEach through the record', () => {
     // Given
     const record = new Record(['name', 'age'], ['Bob', 45])
-    const result = []
+    const result: [any, string, Record][] = []
 
     // When
     record.forEach((value, key, record) => {
