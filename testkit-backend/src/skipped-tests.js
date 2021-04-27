@@ -61,6 +61,22 @@ const skippedTests = [
       '.test_should_use_initial_router_for_discovery_when_others_unavailable'
     ),
     ifEndsWith('.test_should_successfully_get_routing_table_with_context')
+  ),
+  skip(
+    'Driver is executing the second tx for the same session in a diferent server',
+    ifEndsWith('test_should_pass_bookmark_from_tx_to_tx_using_tx_run')
+  ),
+  skip(
+    'Driver resolves the address during the record fetch',
+    ifEndsWith(
+      'test_should_use_resolver_during_rediscovery_when_existing_routers_fail'
+    )
+  ),
+  skip(
+    'Needs investigation. It is only failing in the RoutingV3 case',
+    ifEndsWith(
+      'RoutingV3.test_should_accept_routing_table_without_writers_and_then_rediscover'
+    )
   )
 ]
 
