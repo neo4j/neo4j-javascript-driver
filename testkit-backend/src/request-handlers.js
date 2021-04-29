@@ -20,7 +20,8 @@ export function NewDriver (context, data, { writeResponse }) {
   const driver = neo4j.driver(uri, authToken, {
     userAgent,
     resolver,
-    useBigInt: true
+    useBigInt: true,
+    logging: neo4j.logging.console(process.env.LOG_LEVEL)
   })
   const id = context.addDriver(driver)
   writeResponse('Driver', { id })
@@ -123,7 +124,13 @@ export function ResultConsume (context, data, wire) {
   resultObserver
     .completitionPromise()
     .then(summary => {
-      wire.writeResponse('Summary', null)
+      wire.writeResponse('Summary', {
+        ...summary,
+        serverInfo: {
+          agent: summary.server.agent,
+          protocolVersion: summary.server.protocolVersion.toFixed(1)
+        }
+      })
     })
     .catch(e => wire.writeError(e))
 }
@@ -192,7 +199,6 @@ export function TransactionCommit (context, data, wire) {
       console.log('got some err: ' + JSON.stringify(e))
       wire.writeError(e)
     })
-  context.removeTx(id)
 }
 
 export function TransactionRollback (context, data, wire) {
