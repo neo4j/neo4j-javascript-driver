@@ -60,7 +60,7 @@ class Backend {
 
     this._writeBackendError('Unknown request: ' + name)
     console.log('Unknown request: ' + name)
-    console.log(JSON.stringify(data))
+    console.log(stringify(data))
   }
 
   _writeResponse (name, data) {
@@ -69,7 +69,7 @@ class Backend {
       name: name,
       data: data
     }
-    response = JSON.stringify(response)
+    response = stringify(response)
     const lines = ['#response begin', response, '#response end']
     this._writer(lines)
   }
@@ -90,6 +90,12 @@ class Backend {
     }
     this._writeBackendError(e)
   }
+}
+
+function stringify (val) {
+  return JSON.stringify(val, (_, value) =>
+    typeof value === 'bigint' ? `${value}n` : value
+  )
 }
 
 function server () {

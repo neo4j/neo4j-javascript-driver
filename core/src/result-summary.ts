@@ -41,7 +41,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
    * @param {string} query - The query this summary is for
    * @param {Object} parameters - Parameters for the query
    * @param {Object} metadata - Query metadata
-   * @param {number} protocolVersion - Bolt protocol version
+   * @param {number|undefined} protocolVersion - Bolt Protocol Version
    */
   constructor(
     query: string,
@@ -449,21 +449,51 @@ class Notification {
  * @access public
  */
 class ServerInfo {
-  address: string
-  version: string
+  address?: string
+  version?: string
   protocolVersion?: number
+  agent?: string
 
   /**
    * Create a ServerInfo instance
    * @constructor
    * @param {Object} serverMeta - Object with serverMeta data
-   * @param {number} protocolVersion - Bolt protocol version
+   * @param {Object} connectionInfo - Bolt connection info
+   * @param {number} protocolVersion - Bolt Protocol Version
    */
-  constructor(serverMeta: any, protocolVersion?: number) {
+  constructor(serverMeta?: any, protocolVersion?: number) {
     if (serverMeta) {
+      /**
+       * The server adress
+       * @type {string}
+       * @public
+       */
       this.address = serverMeta.address
+      /**
+       * The server version string.
+       * 
+       * See {@link ServerInfo#protocolVersion} and {@link ServerInfo#agent}
+       * @type {string}
+       * @deprecated in 4.3, please use ServerInfo#agent, ServerInfo#protocolVersion, or call the <i>dbms.components</i> procedure instead.
+       * <b>Method might be removed in the next major release.</b>
+       
+       * @public
+       */
       this.version = serverMeta.version
+
+      /**
+       * The server user agent string
+       * @type {string}
+       * @public
+       */
+      this.agent = serverMeta.version
     }
+
+    /**
+     * The protocol version used by the connection
+     * @type {number}
+     * @public
+     */
     this.protocolVersion = protocolVersion
   }
 }
