@@ -109,7 +109,7 @@ const result1: RxResult = rxSession.run('RETURN 1')
 result1.keys().subscribe(keysObserver)
 result1.records().subscribe(recordsObserver)
 result1
-  .summary()
+  .consume()
   .pipe(
     concat(close1),
     catchError(err => close1.pipe(concat(throwError(err))))
@@ -120,7 +120,7 @@ const result2: RxResult = rxSession.run('RETURN $value', { value: '42' })
 result2.keys().subscribe(keysObserver)
 result2.records().subscribe(recordsObserver)
 result2
-  .summary()
+  .consume()
   .pipe(
     concat(close1),
     catchError(err => close1.pipe(concat(throwError(err))))
@@ -135,7 +135,7 @@ const result3: RxResult = rxSession.run(
 result3.keys().subscribe(keysObserver)
 result3.records().subscribe(recordsObserver)
 result3
-  .summary()
+  .consume()
   .pipe(
     concat(close1),
     catchError(err => close1.pipe(concat(throwError(err))))

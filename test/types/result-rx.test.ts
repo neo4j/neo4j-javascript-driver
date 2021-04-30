@@ -35,7 +35,7 @@ res.records().subscribe({
   error: error => console.log(`records error: ${error}`)
 })
 
-res.summary().subscribe({
+res.consume().subscribe({
   next: value => console.log(`summary: ${value}`),
   complete: () => console.log('summary complete'),
   error: error => console.log(`summary error: ${error}`)
