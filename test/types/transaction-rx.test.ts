@@ -54,12 +54,12 @@ const tx: RxTransaction = dummy
 const result1: RxResult = tx.run('RETURN 1')
 result1.keys().subscribe(keysObserver)
 result1.records().subscribe(recordsObserver)
-result1.summary().subscribe(summaryObserver)
+result1.consume().subscribe(summaryObserver)
 
 const result2: RxResult = tx.run('RETURN $value', { value: '42' })
 result2.keys().subscribe(keysObserver)
 result2.records().subscribe(recordsObserver)
-result2.summary().subscribe(summaryObserver)
+result2.consume().subscribe(summaryObserver)
 
 tx.commit()
   .pipe(concat(of('committed')))
