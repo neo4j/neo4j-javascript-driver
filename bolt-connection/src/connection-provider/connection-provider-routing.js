@@ -100,6 +100,14 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return error
   }
 
+  _handleAuthorizationExpired (error, address, database) {
+    this._log.warn(
+      `Routing driver ${this._id} will close connections to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
+    )
+    this._connectionPool.purge(address).catch(() => {})
+    return error
+  }
+
   _handleWriteFailure (error, address, database) {
     this._log.warn(
       `Routing driver ${this._id} will forget writer ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
@@ -122,7 +130,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
       SESSION_EXPIRED,
       (error, address) => this._handleUnavailability(error, address, database),
-      (error, address) => this._handleWriteFailure(error, address, database)
+      (error, address) => this._handleWriteFailure(error, address, database),
+      (error, address) =>
+        this._handleAuthorizationExpired(error, address, database)
     )
 
     const routingTable = await this._freshRoutingTable({

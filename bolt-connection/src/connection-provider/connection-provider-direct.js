@@ -18,12 +18,18 @@
  */
 
 import PooledConnectionProvider from './connection-provider-pooled'
-import { createChannelConnection, DelegateConnection } from '../connection'
-import { internal } from 'neo4j-driver-core'
+import {
+  createChannelConnection,
+  DelegateConnection,
+  ConnectionErrorHandler
+} from '../connection'
+import { internal, error } from 'neo4j-driver-core'
 
 const {
   constants: { BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V3 }
 } = internal
+
+const { SERVICE_UNAVAILABLE, newError } = error
 
 export default class DirectConnectionProvider extends PooledConnectionProvider {
   constructor ({ id, config, log, address, userAgent, authToken }) {
@@ -37,9 +43,26 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
    * its arguments.
    */
   acquireConnection ({ accessMode, database, bookmarks } = {}) {
+    const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
+      errorCode: SERVICE_UNAVAILABLE,
+      handleAuthorizationExpired: (error, address) =>
+        this._handleAuthorizationExpired(error, address, database)
+    })
+
     return this._connectionPool
       .acquire(this._address)
-      .then(connection => new DelegateConnection(connection, null))
+      .then(
+        connection =>
+          new DelegateConnection(connection, databaseSpecificErrorHandler)
+      )
+  }
+
+  _handleAuthorizationExpired (error, address, database) {
+    this._log.warn(
+      `Direct driver ${this._id} will close connection to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
+    )
+    this._connectionPool.purge(address).catch(() => {})
+    return error
   }
 
   async _hasProtocolVersion (versionPredicate) {
