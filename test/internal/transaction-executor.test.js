@@ -190,7 +190,8 @@ describe('#unit TransactionExecutor', () => {
       TRANSIENT_ERROR_2,
       SESSION_EXPIRED,
       SERVICE_UNAVAILABLE,
-      TRANSIENT_ERROR_1
+      TRANSIENT_ERROR_1,
+      'Neo.ClientError.Security.AuthorizationExpired'
     ])
   }, 30000)
 
@@ -203,7 +204,8 @@ describe('#unit TransactionExecutor', () => {
       SERVICE_UNAVAILABLE,
       TRANSIENT_ERROR_2,
       TRANSIENT_ERROR_2,
-      SESSION_EXPIRED
+      SESSION_EXPIRED,
+      'Neo.ClientError.Security.AuthorizationExpired'
     ])
   }, 30000)
 
@@ -214,7 +216,8 @@ describe('#unit TransactionExecutor', () => {
       TRANSIENT_ERROR_2,
       SESSION_EXPIRED,
       TRANSIENT_ERROR_1,
-      SESSION_EXPIRED
+      SESSION_EXPIRED,
+      'Neo.ClientError.Security.AuthorizationExpired'
     ])
   }, 30000)
 
@@ -230,7 +233,8 @@ describe('#unit TransactionExecutor', () => {
       TRANSIENT_ERROR_1,
       SESSION_EXPIRED,
       SERVICE_UNAVAILABLE,
-      TRANSIENT_ERROR_2
+      TRANSIENT_ERROR_2,
+      'Neo.ClientError.Security.AuthorizationExpired'
     ])
   }, 30000)
 
@@ -239,6 +243,7 @@ describe('#unit TransactionExecutor', () => {
       [
         SERVICE_UNAVAILABLE,
         TRANSIENT_ERROR_2,
+        'Neo.ClientError.Security.AuthorizationExpired',
         SESSION_EXPIRED,
         SESSION_EXPIRED
       ],

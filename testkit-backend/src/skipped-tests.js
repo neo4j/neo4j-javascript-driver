@@ -33,7 +33,8 @@ const skippedTests = [
     ),
     ifEndsWith(
       'test_should_retry_write_until_success_with_leader_change_using_tx_function'
-    )
+    ),
+    ifEndsWith('test_should_retry_on_auth_expired_on_begin_using_tx_function')
   ),
   skip(
     'Driver is creating a dedicated connection to check the MultiDBSupport',

@@ -17,13 +17,9 @@
  * limitations under the License.
  */
 
-import {
-  newError,
-  Neo4jError,
-  SERVICE_UNAVAILABLE,
-  SESSION_EXPIRED
-} from '../error'
+import { newError } from '../error'
 import Transaction from '../transaction'
+import { canRetryOn } from './retry-strategy'
 
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds
 const DEFAULT_INITIAL_RETRY_DELAY_MS = 1000 // 1 seconds
@@ -109,10 +105,7 @@ export class TransactionExecutor {
   ): Promise<T> {
     const elapsedTimeMs = Date.now() - retryStartTime
 
-    if (
-      elapsedTimeMs > this._maxRetryTimeMs ||
-      !TransactionExecutor._canRetryOn(error)
-    ) {
+    if (elapsedTimeMs > this._maxRetryTimeMs || !canRetryOn(error)) {
       return Promise.reject(error)
     }
 
@@ -227,34 +220,6 @@ export class TransactionExecutor {
     const min = delayMs - jitter
     const max = delayMs + jitter
     return Math.random() * (max - min) + min
-  }
-
-  static _canRetryOn(error: any): boolean {
-    return (error &&
-      error instanceof Neo4jError &&
-      error.code &&
-      (error.code === SERVICE_UNAVAILABLE ||
-        error.code === SESSION_EXPIRED ||
-        this._isTransientError(error))) as boolean
-  }
-
-  static _isTransientError(error: Neo4jError): boolean {
-    // Retries should not happen when transaction was explicitly terminated by the user.
-    // Termination of transaction might result in two different error codes depending on where it was
-    // terminated. These are really client errors but classification on the server is not entirely correct and
-    // they are classified as transient.
-
-    const code = error.code
-    if (code.indexOf('TransientError') >= 0) {
-      if (
-        code === 'Neo.TransientError.Transaction.Terminated' ||
-        code === 'Neo.TransientError.Transaction.LockClientStopped'
-      ) {
-        return false
-      }
-      return true
-    }
-    return false
   }
 
   _verifyAfterConstruction() {
