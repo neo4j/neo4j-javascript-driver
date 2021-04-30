@@ -109,6 +109,15 @@ describe('#unit-rx retrylogic', () => {
       verifyRetry(newError('service unavailable', SERVICE_UNAVAILABLE))
     })
 
+    it('a Neo.ClientError.Security.AuthorizationExpired error', () => {
+      verifyRetry(
+        newError(
+          'service unavailable',
+          'Neo.ClientError.Security.AuthorizationExpired'
+        )
+      )
+    })
+
     function verifyRetry (error) {
       scheduler.run(helpers => {
         const retryLogic = new RxRetryLogic({ maxRetryTimeout: 5000 })
