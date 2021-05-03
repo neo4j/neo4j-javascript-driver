@@ -11,7 +11,10 @@
     "test:watch": "jest --watch",
     "test:it": "jest -c jest.integration.config.ts",
     "test:it:browser": "jest -c jest.browser.config.ts",
-    "versionRelease": "npm version $VERSION --no-git-tag-version"
+    "versionRelease": "npm version $VERSION --no-git-tag-version",
+    "build::es6": "tsc --target ES6 --outdir lib6",
+    "predocs": "cd ../core && npm run docs && cd ../neo4j-driver-lite && npm run build && npm run build::es6",
+    "docs": "esdoc -c esdoc.json"
   },
   "unpkg": "lib/browser/neo4j-lite-web.js",
   "jsdelivr": "lib/browser/neo4j-lite-web.js",

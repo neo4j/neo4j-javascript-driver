@@ -1,6 +1,6 @@
 {
-  "source": "./src",
-  "destination": "./docs/build",
+  "source": "./lib6",
+  "destination": "./docs",
   "includes": ["\\.js$"],
   "excludes": ["external", "internal"],
   "package": "./package.json",
@@ -10,7 +10,7 @@
       "option": {
         "replaces": [
           {
-            "from": "^src/",
+            "from": "^lib6/",
             "to": "lib/"
           }
         ]
@@ -33,7 +33,7 @@
           "enable": false
         },
         "typeInference": {
-          "enable": true
+          "enable": false
         },
         "brand": {
           "title": "Neo4j Bolt Driver 4.3 for JavaScript",
@@ -42,10 +42,10 @@
       }
     },
     {
-      "name": "./docs/embed-docs.plugin.js",
+      "name": "../docs/embed-docs.plugin.js",
       "option": {
         "enabled": true,
-        "path": "./core/docs"
+        "path": "../core/docs"
       }
     }
   ]
