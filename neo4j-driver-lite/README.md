@@ -1,6 +1,6 @@
 # Neo4j Driver for JavaScript
 
-This is a lite version of the official Neo4j driver for JavaScript.
+This is the lite version of the official Neo4j driver for JavaScript.
 
 Resources to get you started:
 
