@@ -17,12 +17,10 @@
  * limitations under the License.
  */
 
-import { READ } from '../../src/driver'
-import DirectConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-direct'
-import Pool from '../../bolt-connection/lib/pool/pool'
-import Connection from '../../bolt-connection/lib/connection/connection'
-import DelegateConnection from '../../bolt-connection/lib/connection/connection-delegate'
-import { internal } from 'neo4j-driver-core'
+import DirectConnectionProvider from '../../src/connection-provider/connection-provider-direct'
+import { Pool } from '../../src/pool'
+import { Connection, DelegateConnection } from '../../src/connection'
+import { internal, newError } from 'neo4j-driver-core'
 
 const {
   serverAddress: { ServerAddress },
@@ -36,7 +34,7 @@ describe('#unit DirectConnectionProvider', () => {
     const connectionProvider = newDirectConnectionProvider(address, pool)
 
     connectionProvider
-      .acquireConnection({ accessMode: READ, database: '' })
+      .acquireConnection({ accessMode: 'READ', database: '' })
       .then(connection => {
         expect(connection).toBeDefined()
         expect(connection.address).toEqual(address)
@@ -52,10 +50,51 @@ describe('#unit DirectConnectionProvider', () => {
     const connectionProvider = newDirectConnectionProvider(address, pool)
 
     const conn = await connectionProvider.acquireConnection({
-      accessMode: READ,
+      accessMode: 'READ',
       database: ''
     })
     expect(conn instanceof DelegateConnection).toBeTruthy()
+  })
+
+  it('should purge connections for address when AuthorizationExpired happens', async () => {
+    const address = ServerAddress.fromUrl('localhost:123')
+    const pool = newPool()
+    jest.spyOn(pool, 'purge')
+    const connectionProvider = newDirectConnectionProvider(address, pool)
+
+    const conn = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: ''
+    })
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.AuthorizationExpired'
+    )
+
+    conn.handleAndTransformError(error, address)
+
+    expect(pool.purge).toHaveBeenCalledWith(address)
+  })
+
+  it('should purge not change error when AuthorizationExpired happens', async () => {
+    const address = ServerAddress.fromUrl('localhost:123')
+    const pool = newPool()
+    const connectionProvider = newDirectConnectionProvider(address, pool)
+
+    const conn = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: ''
+    })
+
+    const expectedError = newError(
+      'Message',
+      'Neo.ClientError.Security.AuthorizationExpired'
+    )
+
+    const error = conn.handleAndTransformError(expectedError, address)
+
+    expect(error).toBe(expectedError)
   })
 })
 
@@ -63,7 +102,7 @@ function newDirectConnectionProvider (address, pool) {
   const connectionProvider = new DirectConnectionProvider({
     id: 0,
     config: {},
-    logger: Logger.noOp(),
+    log: Logger.noOp(),
     address: address
   })
   connectionProvider._connectionPool = pool

@@ -22,10 +22,30 @@ import { error } from 'neo4j-driver-core'
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 
 export default class ConnectionErrorHandler {
-  constructor (errorCode, handleUnavailability, handleWriteFailure) {
+  constructor (
+    errorCode,
+    handleUnavailability,
+    handleWriteFailure,
+    handleAuthorizationExpired
+  ) {
     this._errorCode = errorCode
     this._handleUnavailability = handleUnavailability || noOpHandler
     this._handleWriteFailure = handleWriteFailure || noOpHandler
+    this._handleAuthorizationExpired = handleAuthorizationExpired || noOpHandler
+  }
+
+  static create ({
+    errorCode,
+    handleUnavailability,
+    handleWriteFailure,
+    handleAuthorizationExpired
+  }) {
+    return new ConnectionErrorHandler(
+      errorCode,
+      handleUnavailability,
+      handleWriteFailure,
+      handleAuthorizationExpired
+    )
   }
 
   /**
@@ -43,6 +63,9 @@ export default class ConnectionErrorHandler {
    * @return {Neo4jError} new error that should be propagated to the user.
    */
   handleAndTransformError (error, address) {
+    if (isAutorizationExpiredError(error)) {
+      return this._handleAuthorizationExpired(error, address)
+    }
     if (isAvailabilityError(error)) {
       return this._handleUnavailability(error, address)
     }
@@ -51,6 +74,10 @@ export default class ConnectionErrorHandler {
     }
     return error
   }
+}
+
+function isAutorizationExpiredError (error) {
+  return error && error.code === 'Neo.ClientError.Security.AuthorizationExpired'
 }
 
 function isAvailabilityError (error) {

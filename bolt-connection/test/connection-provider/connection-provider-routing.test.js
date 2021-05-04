@@ -17,16 +17,19 @@
  * limitations under the License.
  */
 
-import { READ, WRITE } from '../../src/driver'
-import { newError, error, Integer, int, internal } from 'neo4j-driver-core'
-import RoutingTable from '../../bolt-connection/lib/rediscovery/routing-table'
-import Pool from '../../bolt-connection/lib/pool/pool'
-import SimpleHostNameResolver from '../../bolt-connection/lib/channel/browser/browser-host-name-resolver'
-import RoutingConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-routing'
-import { VERSION_IN_DEV } from '../../src/internal/server-version'
-import Connection from '../../bolt-connection/lib/connection/connection'
-import DelegateConnection from '../../bolt-connection/lib/connection/connection-delegate'
-import { Neo4jError } from '../../src'
+import {
+  newError,
+  Neo4jError,
+  error,
+  Integer,
+  int,
+  internal
+} from 'neo4j-driver-core'
+import { RoutingTable } from '../../src/rediscovery/'
+import { Pool } from '../../src/pool'
+import SimpleHostNameResolver from '../../src/channel/browser/browser-host-name-resolver'
+import RoutingConnectionProvider from '../../src/connection-provider/connection-provider-routing'
+import { DelegateConnection, Connection } from '../../src/connection'
 
 const {
   serverAddress: { ServerAddress },
@@ -34,6 +37,8 @@ const {
 } = internal
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
+const READ = 'READ'
+const WRITE = 'WRITE'
 
 describe('#unit RoutingConnectionProvider', () => {
   const server0 = ServerAddress.fromUrl('server0')
@@ -1414,6 +1419,80 @@ describe('#unit RoutingConnectionProvider', () => {
       })
   }, 10000)
 
+  it('should purge connections for address when AuthorizationExpired happens', async () => {
+    const pool = newPool()
+
+    jest.spyOn(pool, 'purge')
+
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.AuthorizationExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null
+    })
+
+    server3Connection.handleAndTransformError(error, server3)
+    server2Connection.handleAndTransformError(error, server2)
+
+    expect(pool.purge).toHaveBeenCalledWith(server3)
+    expect(pool.purge).toHaveBeenCalledWith(server2)
+  })
+
+  it('should purge not change error when AuthorizationExpired happens', async () => {
+    const pool = newPool()
+
+    jest.spyOn(pool, 'purge')
+
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+
+    const expectedError = newError(
+      'Message',
+      'Neo.ClientError.Security.AuthorizationExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null
+    })
+
+    const error = server2Connection.handleAndTransformError(
+      expectedError,
+      server2
+    )
+
+    expect(error).toBe(expectedError)
+  })
+
   it('should use resolved seed router after accepting table with no writers', done => {
     const routingTable1 = newRoutingTable(
       null,
@@ -1520,6 +1599,80 @@ describe('#unit RoutingConnectionProvider', () => {
       expect(conn2 instanceof DelegateConnection).toBeTruthy()
       expect(conn2.address).toBe(serverA)
     }, 10000)
+
+    it('should purge connections for address when AuthorizationExpired happens', async () => {
+      const pool = newPool()
+
+      jest.spyOn(pool, 'purge')
+
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2],
+            [server1],
+            [server2]
+          ),
+          newRoutingTable('databaseB', [serverA, serverB], [serverA], [serverB])
+        ],
+        pool
+      )
+
+      const error = newError(
+        'Message',
+        'Neo.ClientError.Security.AuthorizationExpired'
+      )
+
+      const server2Connection = await connectionProvider.acquireConnection({
+        accessMode: 'WRITE',
+        database: 'databaseA'
+      })
+
+      const serverAConnection = await connectionProvider.acquireConnection({
+        accessMode: 'READ',
+        database: 'databaseB'
+      })
+
+      serverAConnection.handleAndTransformError(error, serverA)
+      server2Connection.handleAndTransformError(error, server2)
+
+      expect(pool.purge).toHaveBeenCalledWith(serverA)
+      expect(pool.purge).toHaveBeenCalledWith(server2)
+    })
+
+    it('should purge not change error when AuthorizationExpired happens', async () => {
+      const pool = newPool()
+
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2],
+            [server1],
+            [server2]
+          ),
+          newRoutingTable('databaseB', [serverA, serverB], [serverA], [serverB])
+        ],
+        pool
+      )
+
+      const expectedError = newError(
+        'Message',
+        'Neo.ClientError.Security.AuthorizationExpired'
+      )
+
+      const server2Connection = await connectionProvider.acquireConnection({
+        accessMode: 'WRITE',
+        database: 'databaseA'
+      })
+
+      const error = server2Connection.handleAndTransformError(
+        expectedError,
+        server2
+      )
+
+      expect(error).toBe(expectedError)
+    })
 
     it('should acquire write connection from correct routing table', async () => {
       const pool = newPool()
@@ -1978,9 +2131,7 @@ function setupRoutingConnectionProviderToRememberRouters (
 function newPool () {
   return new Pool({
     create: (address, release) =>
-      Promise.resolve(
-        new FakeConnection(address, release, VERSION_IN_DEV.toString(), 4.0)
-      )
+      Promise.resolve(new FakeConnection(address, release, 'version', 4.0))
   })
 }
 
