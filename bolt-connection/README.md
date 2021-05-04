@@ -15,7 +15,7 @@ This produces a Node.js module version under `lib/`.
 
 ## Testing
 
-The tests could be executed by running `npm test`. For development, you can have the build tool rerun the tests each time you change the source code:
+The tests can be executed by running `npm test`. For development, you can have the build tool rerun the tests each time you change the source code:
 
 ```
 npm run test::watch
