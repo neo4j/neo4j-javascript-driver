@@ -363,41 +363,50 @@ npn rub build:browser
 ```
 
 This produces browser-compatible standalone files under `lib/browser` and a Node.js module version under `lib/`.
-See files under `examples/` on how to use.
+See files under `../examples/` on how to use.
 
 ## Testing
 
-Tests **require** latest [Boltkit](https://github.com/neo4j-contrib/boltkit) and [Firefox](https://www.mozilla.org/firefox/) to be installed in the system.
+Tests **require** latest [Testkit 4.3](https://github.com/neo4j-drivers/testkit/tree/4.3), Python3 and Docker.
 
-Boltkit is needed to start, stop and configure local test database. Boltkit can be installed with the following command:
+Testkit is needed to be cloned and configured to run against the Javascript Lite Driver. Use the following steps to configure Testkit.
 
-```
-pip3 install --upgrade boltkit
-```
-
-To run tests against "default" Neo4j version:
+1. Clone the Testkit repository
 
 ```
-./runTests.sh
+git clone https://github.com/neo4j-drivers/testkit.git
 ```
 
-To run tests against specified Neo4j version:
+2. Under the Testkit folder, install the requirements.
 
 ```
-./runTests.sh '-e 4.2.0'
+pip3 install -r requirements.txt
 ```
 
-Simple `npm test` can also be used if you already have a running version of a compatible Neo4j server.
-
-For development, you can have the build tool rerun the tests each time you change
-the source code:
+3. Define some enviroment variables to configure Testkit
 
 ```
-gulp watch-n-test
+export TEST_DRIVER_NAME=javascript
+export TEST_DRIVER_REPO=<path for the root folder of driver repository>
+export TEST_DRIVER_LITE=1
 ```
 
-If the `gulp` command line tool is not available, you might need to install this globally:
+To run test against against some Neo4j version:
 
 ```
-npm install -g gulp-cli
+python3 main.py
 ```
+
+More details about how to use Teskit could be found on [its repository](https://github.com/neo4j-drivers/testkit/tree/4.3)
+
+Simple `npm test` can also be used if you want to run only the unit tests.
+
+For development, you can have the build tool rerun the tests each time you change the source code:
+
+```
+npm run test:watch
+```
+
+The guides about how to test the driver internal dependencies should be found on it own Readme files.
+
+See `../core` and `../bolt-connection`
