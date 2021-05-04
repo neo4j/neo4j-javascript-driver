@@ -1,10 +1,10 @@
 # Neo4j Driver for JavaScript
 
-This is the official Neo4j driver for JavaScript.
+This is the lite version of the official Neo4j driver for JavaScript.
 
 Resources to get you started:
 
-- [API Documentation](https://neo4j.com/docs/api/javascript-driver/4.2/)
+- [API Documentation](https://neo4j.com/docs/api/javascript-driver/4.3/)
 - [Neo4j Manual](https://neo4j.com/docs/)
 - [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
@@ -19,20 +19,20 @@ Resources to get you started:
 Stable channel:
 
 ```shell
-npm install neo4j-driver
+npm install neo4j-driver-lite
 ```
 
 Pre-release channel:
 
 ```shell
-npm install neo4j-driver@next
+npm install neo4j-driver-lite@next
 ```
 
 Please note that `@next` only points to pre-releases that are not suitable for production use.
 To get the latest stable release omit `@next` part altogether or use `@latest` instead.
 
 ```javascript
-var neo4j = require('neo4j-driver')
+var neo4j = require('neo4j-driver-lite')
 ```
 
 Driver instance should be closed when Node.js application exits:
@@ -41,7 +41,7 @@ Driver instance should be closed when Node.js application exits:
 driver.close() // returns a Promise
 ```
 
-otherwise application shutdown might hang or it might exit with a non-zero exit code.
+otherwise the application shutdown might hang or exit with a non-zero exit code.
 
 ### In web browser
 
@@ -50,17 +50,17 @@ It can be included in an HTML page using one of the following tags:
 
 ```html
 <!-- Direct reference -->
-<script src="lib/browser/neo4j-web.min.js"></script>
+<script src="lib/browser/neo4j-lite-web.min.js"></script>
 
 <!-- unpkg CDN non-minified -->
-<script src="https://unpkg.com/neo4j-driver"></script>
+<script src="https://unpkg.com/neo4j-driver-lite"></script>
 <!-- unpkg CDN minified for production use, version X.Y.Z -->
-<script src="https://unpkg.com/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.min.js"></script>
+<script src="https://unpkg.com/neo4j-driver-lite@X.Y.Z/lib/browser/neo4j-lite-web.min.js"></script>
 
 <!-- jsDelivr CDN non-minified -->
-<script src="https://cdn.jsdelivr.net/npm/neo4j-driver"></script>
+<script src="https://cdn.jsdelivr.net/npm/neo4j-driver-lite"></script>
 <!-- jsDelivr CDN minified for production use, version X.Y.Z -->
-<script src="https://cdn.jsdelivr.net/npm/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/neo4j-driver-lite@X.Y.Z/lib/browser/neo4j-lite-web.min.js"></script>
 ```
 
 This will make a global `neo4j` object available, where you can create a driver instance with `neo4j.driver`:
@@ -130,37 +130,6 @@ var session = driver.session({
 })
 ```
 
-#### Reactive Session
-
-```javascript
-// Create a reactive session to run Cypher statements in.
-// Note: Always make sure to close sessions when you are done using them!
-var rxSession = driver.rxSession()
-```
-
-##### with a Default Access Mode of `READ`
-
-```javascript
-var rxSession = driver.rxSession({ defaultAccessMode: neo4j.session.READ })
-```
-
-##### with Bookmarks
-
-```javascript
-var rxSession = driver.rxSession({
-  bookmarks: [bookmark1FromPreviousSession, bookmark2FromPreviousSession]
-})
-```
-
-##### against a Database
-
-```javascript
-var rxSession = driver.rxSession({
-  database: 'foo',
-  defaultAccessMode: neo4j.session.WRITE
-})
-```
-
 ### Executing Queries
 
 #### Consuming Records with Streaming API
@@ -212,25 +181,6 @@ session
   .then(() => session.close())
 ```
 
-#### Consuming Records with Reactive API
-
-```javascript
-rxSession
-  .run('MERGE (james:Person {name: $nameParam}) RETURN james.name AS name', {
-    nameParam: 'Bob'
-  })
-  .records()
-  .pipe(
-    map(record => record.get('name')),
-    concat(rxSession.close())
-  )
-  .subscribe({
-    next: data => console.log(data),
-    complete: () => console.log('completed'),
-    error: err => console.log(err)
-  })
-```
-
 ### Transaction functions
 
 ```javascript
@@ -269,23 +219,6 @@ readTxResultPromise
   .then(() => session.close())
 ```
 
-#### Reading with Reactive Session
-
-```javascript
-rxSession
-  .readTransaction(txc =>
-    txc
-      .run('MATCH (person:Person) RETURN person.name AS name')
-      .records()
-      .pipe(map(record => record.get('name')))
-  )
-  .subscribe({
-    next: data => console.log(data),
-    complete: () => console.log('completed'),
-    error: err => console.log(error)
-  })
-```
-
 #### Writing with Async Session
 
 ```javascript
@@ -311,23 +244,6 @@ writeTxResultPromise
     console.log(error)
   })
   .then(() => session.close())
-```
-
-#### Writing with Reactive Session
-
-```javascript
-rxSession
-  .writeTransaction(txc =>
-    txc
-      .run("MERGE (alice:Person {name: 'James'}) RETURN alice.name AS name")
-      .records()
-      .pipe(map(record => record.get('name')))
-  )
-  .subscribe({
-    next: data => console.log(data),
-    complete: () => console.log('completed'),
-    error: error => console.log(error)
-  })
 ```
 
 ### Explicit Transactions
@@ -367,46 +283,6 @@ try {
 }
 ```
 
-#### With Reactive Session
-
-```javascript
-rxSession
-  .beginTransaction()
-  .pipe(
-    flatMap(txc =>
-      concat(
-        txc
-          .run(
-            'MERGE (bob:Person {name: $nameParam}) RETURN bob.name AS name',
-            {
-              nameParam: 'Bob'
-            }
-          )
-          .records()
-          .pipe(map(r => r.get('name'))),
-        of('First query completed'),
-        txc
-          .run(
-            'MERGE (adam:Person {name: $nameParam}) RETURN adam.name AS name',
-            {
-              nameParam: 'Adam'
-            }
-          )
-          .records()
-          .pipe(map(r => r.get('name'))),
-        of('Second query completed'),
-        txc.commit(),
-        of('committed')
-      ).pipe(catchError(err => txc.rollback().pipe(throwError(err))))
-    )
-  )
-  .subscribe({
-    next: data => console.log(data),
-    complete: () => console.log('completed'),
-    error: error => console.log(error)
-  })
-```
-
 ### Numbers and the Integer type
 
 The Neo4j type system uses 64-bit signed integer values. The range of values is between `-(2`<sup>`64`</sup>`- 1)` and `(2`<sup>`63`</sup>`- 1)`.
@@ -425,7 +301,7 @@ Numbers written directly e.g. `session.run("CREATE (n:Node {age: $age})", {age: 
 To write the `age` as an integer the `neo4j.int` method should be used:
 
 ```javascript
-var neo4j = require('neo4j-driver')
+var neo4j = require('neo4j-driver-lite')
 
 session.run('CREATE (n {age: $myIntParam})', { myIntParam: neo4j.int(22) })
 ```
@@ -483,50 +359,54 @@ var driver = neo4j.driver(
 ./buildDependencies.sh
 npm install
 npm run build
+npn rub build:browser
 ```
 
 This produces browser-compatible standalone files under `lib/browser` and a Node.js module version under `lib/`.
-See files under `examples/` on how to use.
+See files under `../examples/` on how to use.
 
 ## Testing
 
-Tests **require** latest [Boltkit](https://github.com/neo4j-contrib/boltkit) and [Firefox](https://www.mozilla.org/firefox/) to be installed in the system.
+Tests **require** latest [Testkit 4.3](https://github.com/neo4j-drivers/testkit/tree/4.3), Python3 and Docker.
 
-Boltkit is needed to start, stop and configure local test database. Boltkit can be installed with the following command:
+Testkit is needed to be cloned and configured to run against the Javascript Lite Driver. Use the following steps to configure Testkit.
 
-```
-pip3 install --upgrade boltkit
-```
-
-To run tests against "default" Neo4j version:
+1. Clone the Testkit repository
 
 ```
-./runTests.sh
+git clone https://github.com/neo4j-drivers/testkit.git
 ```
 
-To run tests against specified Neo4j version:
+2. Under the Testkit folder, install the requirements.
 
 ```
-./runTests.sh '-e 4.2.0'
+pip3 install -r requirements.txt
 ```
 
-Simple `npm test` can also be used if you already have a running version of a compatible Neo4j server.
-
-For development, you can have the build tool rerun the tests each time you change
-the source code:
+3. Define some enviroment variables to configure Testkit
 
 ```
-gulp watch-n-test
+export TEST_DRIVER_NAME=javascript
+export TEST_DRIVER_REPO=<path for the root folder of driver repository>
+export TEST_DRIVER_LITE=1
 ```
 
-If the `gulp` command line tool is not available, you might need to install this globally:
+To run test against against some Neo4j version:
 
 ```
-npm install -g gulp-cli
+python3 main.py
 ```
 
-### Testing on windows
+More details about how to use Teskit could be found on [its repository](https://github.com/neo4j-drivers/testkit/tree/4.3)
 
-To run the same test suite, run `.\runTest.ps1` instead in powershell with admin right.
-The admin right is required to start/stop Neo4j properly as a system service.
-While there is no need to grab admin right if you are running tests against an existing Neo4j server using `npm test`.
+Simple `npm test` can also be used if you want to run only the unit tests.
+
+For development, you can have the build tool rerun the tests each time you change the source code:
+
+```
+npm run test:watch
+```
+
+The guides about how to test the driver internal dependencies should be found on it own Readme files.
+
+See `../core` and `../bolt-connection`
