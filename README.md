@@ -480,6 +480,7 @@ var driver = neo4j.driver(
 ## Building
 
 ```
+./buildDependencies.sh
 npm install
 npm run build
 ```
