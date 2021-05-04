@@ -41,7 +41,7 @@ Driver instance should be closed when Node.js application exits:
 driver.close() // returns a Promise
 ```
 
-otherwise application shutdown might hang or it might exit with a non-zero exit code.
+otherwise the application shutdown might hang or exit with a non-zero exit code.
 
 ### In web browser
 
