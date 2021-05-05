@@ -239,6 +239,12 @@ export function StartTest (_, { testName }, wire) {
   })
 }
 
+export function GetFeatures (_context, _params, wire) {
+  wire.writeResponse('FeatureList', {
+    features: ['AuthorizationExpiredTreatment']
+  })
+}
+
 export function VerifyConnectivity (context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
   driver
