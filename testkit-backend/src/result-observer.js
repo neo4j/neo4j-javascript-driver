@@ -1,8 +1,9 @@
 import neo4j from 'neo4j'
 
 export default class ResultObserver {
-  constructor ({ sessionId }) {
+  constructor ({ sessionId, result }) {
     this.sessionId = sessionId
+    this._result = result
     this.keys = null
     this._stream = []
     this.summary = null
