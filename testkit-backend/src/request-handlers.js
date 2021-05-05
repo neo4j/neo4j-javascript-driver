@@ -90,7 +90,7 @@ export function SessionRun (context, data, wire) {
     .catch(_ => null)
     .then(_ => {
       const result = session.run(cypher, params, { metadata, timeout })
-      const resultObserver = new ResultObserver({ sessionId })
+      const resultObserver = new ResultObserver({ sessionId, result })
       result.subscribe(resultObserver)
       const id = context.addResultObserver(resultObserver)
       wire.writeResponse('Result', { id })
@@ -159,7 +159,7 @@ export function TransactionRun (context, data, wire) {
     }
   }
   const result = tx.tx.run(cypher, params)
-  const resultObserver = new ResultObserver({})
+  const resultObserver = new ResultObserver({ result })
   result.subscribe(resultObserver)
   const id = context.addResultObserver(resultObserver)
   wire.writeResponse('Result', { id })
@@ -236,6 +236,12 @@ export function StartTest (_, { testName }, wire) {
   shouldRunTest(testName, {
     onRun: () => wire.writeResponse('RunTest', null),
     onSkip: reason => wire.writeResponse('SkipTest', { reason })
+  })
+}
+
+export function GetFeatures (_context, _params, wire) {
+  wire.writeResponse('FeatureList', {
+    features: ['AuthorizationExpiredTreatment']
   })
 }
 
