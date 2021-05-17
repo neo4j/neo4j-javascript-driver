@@ -72,7 +72,6 @@ export function SessionClose (context, data, wire) {
       wire.writeResponse('Session', { id: sessionId })
     })
     .catch(err => wire.writeError(err))
-  context.removeSession(sessionId)
 }
 
 export function SessionRun (context, data, wire) {
@@ -169,7 +168,6 @@ export function RetryablePositive (context, data, wire) {
   const { sessionId } = data
   context.getTxsBySessionId(sessionId).forEach(tx => {
     tx.resolve()
-    context.removeTx(tx.id)
   })
 }
 
@@ -178,7 +176,6 @@ export function RetryableNegative (context, data, wire) {
   const error = context.getError(errorId) || new Error('Client error')
   context.getTxsBySessionId(sessionId).forEach(tx => {
     tx.reject(error)
-    context.removeTx(tx.id)
   })
 }
 
@@ -207,7 +204,6 @@ export function TransactionRollback (context, data, wire) {
   tx.rollback()
     .then(() => wire.writeResponse('Transaction', { id }))
     .catch(e => wire.writeError(e))
-  context.removeTx(id)
 }
 
 export function SessionLastBookmarks (context, data, wire) {
