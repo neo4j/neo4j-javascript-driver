@@ -37,8 +37,5 @@
   "dependencies": {
     "neo4j-driver-core": "file:../core",
     "text-encoding-utf-8": "^1.0.2"
-  },
-  "bundledDependencies": [
-    "neo4j-driver-core"
-  ]
+  }
 }
