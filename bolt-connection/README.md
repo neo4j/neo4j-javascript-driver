@@ -1,6 +1,8 @@
 # Bolt connection module of the Neo4j Driver for JavaScript
 
-This is an internal package shared by the `neo4j-driver` and the `neo4j-driver-lite` drivers. This package is responsible for implementing the [Bolt Protocol](https://7687.org/) using the `Connection` and `ConnectionProvider` interfaces defined by `neo4j-driver-core` package.
+> :warning: **This package is not intended to be used by end users, it contains the basic tools used by the `neo4j-driver` to connect to `Neo4j`.**
+
+This is an internal package shared by the [neo4j-driver](https://www.npmjs.com/package/neo4j-driver) and the [neo4j-driver-lite](https://www.npmjs.com/package/neo4j-driver-lite) drivers. This package is responsible for implementing the [Bolt Protocol](https://7687.org/) using the `Connection` and `ConnectionProvider` interfaces defined by `neo4j-driver-core` package.
 
 ## Building
 
