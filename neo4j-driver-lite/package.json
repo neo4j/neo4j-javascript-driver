@@ -51,9 +51,5 @@
   "dependencies": {
     "neo4j-driver-bolt-connection": "file:../bolt-connection",
     "neo4j-driver-core": "file:../core"
-  },
-  "bundledDependencies": [
-    "neo4j-driver-core",
-    "neo4j-driver-bolt-connection"
-  ]
+  }
 }
