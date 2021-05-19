@@ -1,6 +1,8 @@
 # Core module of the Neo4j Driver for JavaScript
 
-This is a internal package shared by the `neo4j-driver` and the `neo4j-driver-lite` drivers. This package is responsible for high level pieces of the driver such as `Session`, `Result`, `Record`, some data types and the interface for `Connection` and `ConnectionProvider`.
+> :warning: **This package is not intended to be used by end users, it contains the abstractions used by the `neo4j-driver` to handle `Neo4j` connections.**
+
+This is a internal package shared by the [neo4j-driver](https://www.npmjs.com/package/neo4j-driver) and the [neo4j-driver-lite](https://www.npmjs.com/package/neo4j-driver-lite) drivers. This package is responsible for high level pieces of the driver such as `Session`, `Result`, `Record`, some data types and the interface for `Connection` and `ConnectionProvider`.
 
 ## Building
 
