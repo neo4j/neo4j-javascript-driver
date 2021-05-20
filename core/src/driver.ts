@@ -159,7 +159,7 @@ class Driver {
    *
    * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
    */
-  supportsMultiDb(): Promise<Boolean> {
+  supportsMultiDb(): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsMultiDb()
   }
@@ -172,7 +172,7 @@ class Driver {
    *
    * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
    */
-  supportsTransactionConfig() {
+  supportsTransactionConfig(): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsTransactionConfig()
   }
