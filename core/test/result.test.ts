@@ -586,7 +586,7 @@ describe('Result', () => {
     })
 
     describe('.subscribe(observer)', () => {
-      it('should invoke onCompleted with the expected result summary', async done => {
+      it('should invoke onCompleted with the expected result summary', done => {
         result.subscribe({
           onCompleted: summary => {
             expect(summary).toStrictEqual(expectedResultSummary)
@@ -595,7 +595,7 @@ describe('Result', () => {
         })
       })
 
-      it('should invoke onKeys with an empty list of keys', async done => {
+      it('should invoke onKeys with an empty list of keys', done => {
         result.subscribe({
           onKeys: keys => {
             expect(keys).toStrictEqual([])
@@ -604,14 +604,14 @@ describe('Result', () => {
         })
       })
 
-      it('should not invoke onError', async done => {
+      it('should not invoke onError', done => {
         result.subscribe({
           onCompleted: () => done(),
           onError: () => done.fail('should not invoke onError')
         })
       })
 
-      it('should not invoke onNext', async done => {
+      it('should not invoke onNext', done => {
         result.subscribe({
           onCompleted: () => done(),
           onNext: () => done.fail('should not invoke onNext')

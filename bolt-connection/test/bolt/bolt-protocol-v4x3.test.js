@@ -52,7 +52,7 @@ describe('#unit BoltProtocolV4x3', () => {
       RequestMessage.route(routingContext, [], databaseName)
     )
     expect(protocol.observers).toEqual([observer])
-    expect(observer).toEqual(jasmine.any(RouteObserver))
+    expect(observer).toEqual(expect.any(RouteObserver))
     expect(protocol.flushes).toEqual([true])
   })
 
@@ -76,7 +76,7 @@ describe('#unit BoltProtocolV4x3', () => {
       RequestMessage.route(routingContext, listOfBookmarks, databaseName)
     )
     expect(protocol.observers).toEqual([observer])
-    expect(observer).toEqual(jasmine.any(RouteObserver))
+    expect(observer).toEqual(expect.any(RouteObserver))
     expect(protocol.flushes).toEqual([true])
   })
 
