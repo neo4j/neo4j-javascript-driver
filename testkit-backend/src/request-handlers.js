@@ -127,7 +127,8 @@ export function ResultConsume (context, data, wire) {
         ...summary,
         serverInfo: {
           agent: summary.server.agent,
-          protocolVersion: summary.server.protocolVersion.toFixed(1)
+          protocolVersion: summary.server.protocolVersion.toFixed(1),
+          address: summary.server.address
         }
       })
     })
