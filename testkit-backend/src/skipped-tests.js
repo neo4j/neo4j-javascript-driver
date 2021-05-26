@@ -78,6 +78,12 @@ const skippedTests = [
     ifEndsWith(
       'RoutingV3.test_should_accept_routing_table_without_writers_and_then_rediscover'
     )
+  ),
+  skip(
+    'Needs investigation',
+    ifEndsWith(
+      'test_should_fail_when_reading_from_unexpectedly_interrupting_reader_using_session_run'
+    )
   )
 ]
 
