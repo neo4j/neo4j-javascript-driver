@@ -126,7 +126,7 @@ export function ResultConsume (context, data, wire) {
       wire.writeResponse('Summary', {
         ...summary,
         serverInfo: {
-          agent: summary.server.agent,
+          agent: summary.server.version,
           protocolVersion: summary.server.protocolVersion.toFixed(1)
         }
       })
