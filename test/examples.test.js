@@ -578,6 +578,10 @@ describe('#integration examples', () => {
         await session.close()
       }
       // end::async-multiple-tx[]
+
+      // tag::async-multiple-tx[]
+      // some other test
+      // end::async-multiple-tx[]
     } finally {
       await tmpSession.close()
     }
