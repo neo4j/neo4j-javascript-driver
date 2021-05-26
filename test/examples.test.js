@@ -539,6 +539,61 @@ describe('#integration examples', () => {
     expect(await consoleLoggedMsg).toEqual('Names: Alice, Bob')
   }, 60000)
 
+  it('async multiple transactions', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
+    const driver = driverGlobal
+    const companyName = 'Acme'
+    const personNames = { nameA: 'Alice', nameB: 'Bob' }
+    const tmpSession = driver.session()
+
+    try {
+      await tmpSession.run(
+        'CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})',
+        personNames
+      )
+
+      // tag::async-multiple-tx[]
+      const session = driver.session()
+      try {
+        const names = await session.readTransaction(async tx => {
+          const result = await tx.run('MATCH (a:Person) RETURN a.name AS name')
+          return result.records.map(record => record.get('name'))
+        })
+
+        const relationshipsCreated = await session.writeTransaction(tx =>
+          Promise.all(
+            names.map(name =>
+              tx
+                .run(
+                  'MATCH (emp:Person {name: $person_name}) ' +
+                    'MERGE (com:Company {name: $company_name}) ' +
+                    'MERGE (emp)-[:WORKS_FOR]->(com)',
+                  { person_name: name, company_name: companyName }
+                )
+                .then(
+                  result =>
+                    result.summary.counters.updates().relationshipsCreated
+                )
+                .then(relationshipsCreated =>
+                  neo4j.int(relationshipsCreated).toInt()
+                )
+            )
+          ).then(values => values.reduce((a, b) => a + b))
+        )
+
+        console.log(`Created ${relationshipsCreated} employees relationship`)
+      } finally {
+        await session.close()
+      }
+      // end::async-multiple-tx[]
+    } finally {
+      await tmpSession.close()
+    }
+
+    expect(await consoleLoggedMsg).toEqual('Created 2 employees relationship')
+  })
+
   it('rx result consume example', async () => {
     if (protocolVersion < 4.0) {
       return
