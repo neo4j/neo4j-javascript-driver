@@ -539,6 +539,52 @@ describe('#integration examples', () => {
     expect(await consoleLoggedMsg).toEqual('Names: Alice, Bob')
   }, 60000)
 
+  it('async multiple transactions', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
+    const driver = driverGlobal
+    const companyName = 'Acme'
+    const personNames = { nameA: 'Alice', nameB: 'Bob' }
+    const tmpSession = driver.session()
+
+    try {
+      await tmpSession.run(
+        'CREATE (a:Person {name: $nameA}), (b:Person {name: $nameB})',
+        personNames
+      )
+
+      // tag::async-multiple-tx[]
+      const session = driver.session()
+      try {
+        const result = await session.readTransaction(tx =>
+          tx.run('MATCH (a:Person) RETURN a.name AS name')
+        )
+        const nameRecords = result.records
+        const transactions = nameRecords
+          .map(record => record.get('name'))
+          .map(name =>
+            session.writeTransaction(tx =>
+              tx.run(
+                'MATCH (emp:Person {name: $person_name}) ' +
+                  'MERGE (com:Company {name: $company_name}) ' +
+                  'MERGE (emp)-[:WORKS_FOR]->(com)',
+                { person_name: name, company_name: companyName }
+              )
+            )
+          )
+        await Promise.all(transactions)
+        console.log(`Created ${nameRecords.length} employees`)
+      } finally {
+        await session.close()
+      }
+      // end::async-multiple-tx[]
+    } finally {
+      await tmpSession.close()
+    }
+
+    expect(await consoleLoggedMsg).toEqual('Created 2 employees')
+  })
+
   it('rx result consume example', async () => {
     if (protocolVersion < 4.0) {
       return
