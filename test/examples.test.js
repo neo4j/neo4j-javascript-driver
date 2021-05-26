@@ -556,37 +556,42 @@ describe('#integration examples', () => {
       // tag::async-multiple-tx[]
       const session = driver.session()
       try {
-        const result = await session.readTransaction(tx =>
-          tx.run('MATCH (a:Person) RETURN a.name AS name')
-        )
-        const nameRecords = result.records
-        const transactions = nameRecords
-          .map(record => record.get('name'))
-          .map(name =>
-            session.writeTransaction(tx =>
-              tx.run(
-                'MATCH (emp:Person {name: $person_name}) ' +
-                  'MERGE (com:Company {name: $company_name}) ' +
-                  'MERGE (emp)-[:WORKS_FOR]->(com)',
-                { person_name: name, company_name: companyName }
-              )
+        const names = await session.readTransaction(async tx => {
+          const result = await tx.run('MATCH (a:Person) RETURN a.name AS name')
+          return result.records.map(record => record.get('name'))
+        })
+
+        const relationshipsCreated = await session.writeTransaction(tx =>
+          Promise.all(
+            names.map(name =>
+              tx
+                .run(
+                  'MATCH (emp:Person {name: $person_name}) ' +
+                    'MERGE (com:Company {name: $company_name}) ' +
+                    'MERGE (emp)-[:WORKS_FOR]->(com)',
+                  { person_name: name, company_name: companyName }
+                )
+                .then(
+                  result =>
+                    result.summary.counters.updates().relationshipsCreated
+                )
+                .then(relationshipsCreated =>
+                  neo4j.int(relationshipsCreated).toInt()
+                )
             )
-          )
-        await Promise.all(transactions)
-        console.log(`Created ${nameRecords.length} employees`)
+          ).then(values => values.reduce((a, b) => a + b))
+        )
+
+        console.log(`Created ${relationshipsCreated} employees relationship`)
       } finally {
         await session.close()
       }
-      // end::async-multiple-tx[]
-
-      // tag::async-multiple-tx[]
-      // some other test
       // end::async-multiple-tx[]
     } finally {
       await tmpSession.close()
     }
 
-    expect(await consoleLoggedMsg).toEqual('Created 2 employees')
+    expect(await consoleLoggedMsg).toEqual('Created 2 employees relationship')
   })
 
   it('rx result consume example', async () => {
