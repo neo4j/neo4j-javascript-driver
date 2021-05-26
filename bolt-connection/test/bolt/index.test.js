@@ -64,7 +64,7 @@ describe('#unit Bolt', () => {
           )
           done()
         })
-        .catch(done.fail.bind(done))
+        .catch(e => done.fail(e))
 
       channel.onmessage(packedHandshakeMessage(expectedProtocolVersion))
     })
@@ -84,7 +84,7 @@ describe('#unit Bolt', () => {
           expect(consumeRemainingBufferCalled).toBeTruthy()
           done()
         })
-        .catch(done.fail.bind(done))
+        .catch(e => done.fail(e))
 
       channel.onmessage(
         packedHandshakeMessage(expectedProtocolVersion, expectedExtraBuffer)
@@ -176,7 +176,7 @@ describe('#unit Bolt', () => {
         const protocol = Bolt.create(params)
 
         expect(protocol.version).toEqual(version)
-        expect(protocol).toEqual(jasmine.any(protocolClass))
+        expect(protocol).toEqual(expect.any(protocolClass))
         expect(protocol._server).toBe(params.server)
         expect(protocol._packer).toEqual(protocol._createPacker(params.chunker))
         expect(protocol._unpacker).toEqual(
@@ -197,7 +197,7 @@ describe('#unit Bolt', () => {
         const protocol = Bolt.create(params)
 
         expect(protocol.version).toEqual(version)
-        expect(protocol).toEqual(jasmine.any(protocolClass))
+        expect(protocol).toEqual(expect.any(protocolClass))
         expect(protocol._server).toBe(params.server)
         expect(protocol._packer).toEqual(protocol._createPacker(params.chunker))
         expect(protocol._unpacker).toEqual(
