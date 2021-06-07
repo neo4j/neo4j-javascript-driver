@@ -976,6 +976,277 @@ describe('#integration examples', () => {
       done()
     })
   }, 60000)
+
+  describe('temporal types examples', () => {
+    it('Duration', async () => {
+      const driver = driverGlobal
+      const session = driver.session()
+
+      try {
+        // tag::temporal-types-duration[]
+        // Creating the Duration object
+        const duration = new neo4j.types.Duration(
+          3, // month
+          5, // days
+          7, // seconds
+          11 // nano seconds
+        )
+        // end::temporal-types-duration[]
+
+        const result = await session.run('RETURN $duration as fieldName', {
+          duration
+        })
+
+        const record = result.records[0]
+
+        // tag::temporal-types-duration[]
+
+        // Getting Duration field from record
+        const durationField = record.get('fieldName')
+
+        // Verifying if object is a Duration
+        neo4j.isDuration(durationField) // true
+
+        // Serializing as ISO String
+        durationField.toString() // P3M5DT7.000000011S
+        // end::temporal-types-duration[]
+
+        expect(neo4j.isDuration(durationField)).toEqual(true)
+        expect(durationField.months.toInt()).toEqual(duration.months)
+        expect(durationField.days.toInt()).toEqual(duration.days)
+        expect(durationField.seconds).toEqual(duration.seconds)
+        expect(durationField.nanoseconds).toEqual(duration.nanoseconds)
+      } finally {
+        await session.close()
+      }
+    }, 30000)
+
+    it('LocalTime', async () => {
+      const driver = driverGlobal
+      const session = driver.session()
+      const standardDate = new Date()
+
+      try {
+        // tag::temporal-types-localtime[]
+        // Creating LocalTime from standard javascript Date.
+        // Alternatively, the LocalTime could be created with
+        // new neo4j.types.LocalTime(hour, minute, second, nanosecond)
+        const localTime = neo4j.types.LocalTime.fromStandardDate(
+          standardDate,
+          200 // nanosecond (optional)
+        )
+        // end::temporal-types-localtime[]
+
+        const result = await session.run('RETURN $localTime as fieldName', {
+          localTime
+        })
+
+        const record = result.records[0]
+
+        // tag::temporal-types-localtime[]
+
+        // Getting LocalTime field from record
+        const fieldLocalTime = record.get('fieldName')
+
+        // Verifying if object is a LocalTime
+        neo4j.isLocalTime(fieldLocalTime) // true
+
+        // Serializing as ISO String
+        fieldLocalTime.toString() // 13:40:38.539000200
+        // end::temporal-types-localtime[]
+
+        expect(neo4j.isLocalTime(fieldLocalTime)).toBe(true)
+        expect(fieldLocalTime.hour.toInt()).toEqual(localTime.hour)
+        expect(fieldLocalTime.minute.toInt()).toEqual(localTime.minute)
+        expect(fieldLocalTime.second.toInt()).toEqual(localTime.second)
+        expect(fieldLocalTime.nanosecond.toInt()).toEqual(localTime.nanosecond)
+      } finally {
+        await session.close()
+      }
+    }, 30000)
+
+    it('Time', async () => {
+      const driver = driverGlobal
+      const session = driver.session()
+      const standardDate = new Date()
+
+      try {
+        // tag::temporal-types-time[]
+        // Creating Time from standard javascript Date.
+        // Alternatively, the Time could be created with
+        // new neo4j.types.Time(hour, minute, second, nanosecond, timeZoneOffsetSeconds)
+        const time = neo4j.types.Time.fromStandardDate(
+          standardDate,
+          200 // nanosecond (optional)
+        )
+        // end::temporal-types-time[]
+
+        const result = await session.run('RETURN $time as fieldName', { time })
+
+        const record = result.records[0]
+
+        // tag::temporal-types-time[]
+
+        // Getting Time field from record
+        const fieldTime = record.get('fieldName')
+
+        // Verifying if object is a Time
+        neo4j.isTime(fieldTime) // true
+
+        // Serializing as ISO String
+        fieldTime.toString() // 13:39:08.529000200+02:00
+        // end::temporal-types-time[]
+
+        expect(neo4j.isTime(fieldTime)).toBe(true)
+        expect(fieldTime.hour.toInt()).toEqual(time.hour)
+        expect(fieldTime.minute.toInt()).toEqual(time.minute)
+        expect(fieldTime.second.toInt()).toEqual(time.second)
+        expect(fieldTime.nanosecond.toInt()).toEqual(time.nanosecond)
+        expect(fieldTime.timeZoneOffsetSeconds.toInt()).toEqual(
+          time.timeZoneOffsetSeconds
+        )
+      } finally {
+        await session.close()
+      }
+    }, 30000)
+
+    it('Date', async () => {
+      const driver = driverGlobal
+      const session = driver.session()
+      const standardDate = new Date()
+
+      try {
+        // tag::temporal-types-date[]
+        // Creating Date from standard javascript Date.
+        // Alternatively, the Date could be created with
+        // new neo4j.types.Date(year, month, day)
+        const date = neo4j.types.Date.fromStandardDate(standardDate)
+        // end::temporal-types-date[]
+
+        const result = await session.run('RETURN $date as fieldName', { date })
+
+        const record = result.records[0]
+
+        // tag::temporal-types-date[]
+
+        // Getting Date field from record
+        const fieldDate = record.get('fieldName')
+
+        // Verifying if object is a Date
+        neo4j.isDate(fieldDate) // true
+
+        // Serializing as ISO String
+        fieldDate.toString() // 2021-06-07
+        // end::temporal-types-date[]
+
+        expect(neo4j.isDate(fieldDate)).toBe(true)
+        expect(fieldDate.year.toInt()).toEqual(date.year)
+        expect(fieldDate.month.toInt()).toEqual(date.month)
+        expect(fieldDate.day.toInt()).toEqual(date.day)
+      } finally {
+        await session.close()
+      }
+    }, 30000)
+
+    it('LocalDateTime', async () => {
+      const driver = driverGlobal
+      const session = driver.session()
+      const standardDate = new Date()
+
+      try {
+        // tag::temporal-types-localdatetime[]
+        // Creating LocalDateTime from standard javascript Date.
+        // Alternatively, the LocalDateTime could be created with
+        // new neo4j.types.LocalDateTime(year, month, day, hour, minute, second, nanosecond)
+        const localDateTime = neo4j.types.LocalDateTime.fromStandardDate(
+          standardDate,
+          200 // nanosecond (optional)
+        )
+        // end::temporal-types-localdatetime[]
+
+        const result = await session.run('RETURN $localDateTime as fieldName', {
+          localDateTime
+        })
+
+        const record = result.records[0]
+
+        // tag::temporal-types-localdatetime[]
+
+        // Getting LocalDateTime field from record
+        const fieldLocalDateTime = record.get('fieldName')
+
+        // Verifying if object is a LocalDateTime
+        neo4j.isLocalDateTime(fieldLocalDateTime) // true
+
+        // Serializing as ISO String
+        fieldLocalDateTime.toString() // 2021-06-07T13:35:46.344000200
+        // end::temporal-types-localdatetime[]
+
+        expect(neo4j.isLocalDateTime(fieldLocalDateTime)).toBe(true)
+        expect(fieldLocalDateTime.year.toInt()).toEqual(localDateTime.year)
+        expect(fieldLocalDateTime.month.toInt()).toEqual(localDateTime.month)
+        expect(fieldLocalDateTime.day.toInt()).toEqual(localDateTime.day)
+        expect(fieldLocalDateTime.hour.toInt()).toEqual(localDateTime.hour)
+        expect(fieldLocalDateTime.minute.toInt()).toEqual(localDateTime.minute)
+        expect(fieldLocalDateTime.second.toInt()).toEqual(localDateTime.second)
+        expect(fieldLocalDateTime.nanosecond.toInt()).toEqual(
+          localDateTime.nanosecond
+        )
+      } finally {
+        await session.close()
+      }
+    }, 30000)
+
+    it('DateTime', async () => {
+      const driver = driverGlobal
+      const session = driver.session()
+      const standardDate = new Date()
+
+      try {
+        // tag::temporal-types-datetime[]
+        // Creating DateTime from standard javascript Date.
+        // Alternatively, the DateTime could be created with
+        // new neo4j.types.DateTime(year, month, day, hour, minute, second, nanosecond, timeZoneOffsetSeconds)
+        const dateTime = neo4j.types.DateTime.fromStandardDate(
+          standardDate,
+          200 // nanosecond (optional)
+        )
+        // end::temporal-types-datetime[]
+
+        const result = await session.run('RETURN $dateTime as fieldName', {
+          dateTime
+        })
+
+        const record = result.records[0]
+
+        // tag::temporal-types-datetime[]
+
+        // Getting DateTime field from record
+        const fieldDateTime = record.get('fieldName')
+
+        // Verifying if object is a DateTime
+        neo4j.isDateTime(fieldDateTime) // true
+
+        // Serializing as ISO String
+        fieldDateTime.toString() // 2021-06-07T13:33:48.788000200+02:00
+        // end::temporal-types-datetime[]
+
+        expect(neo4j.isDateTime(fieldDateTime)).toBe(true)
+        expect(fieldDateTime.year.toInt()).toEqual(dateTime.year)
+        expect(fieldDateTime.month.toInt()).toEqual(dateTime.month)
+        expect(fieldDateTime.day.toInt()).toEqual(dateTime.day)
+        expect(fieldDateTime.hour.toInt()).toEqual(dateTime.hour)
+        expect(fieldDateTime.minute.toInt()).toEqual(dateTime.minute)
+        expect(fieldDateTime.second.toInt()).toEqual(dateTime.second)
+        expect(fieldDateTime.nanosecond.toInt()).toEqual(dateTime.nanosecond)
+        expect(fieldDateTime.timeZoneOffsetSeconds.toInt()).toEqual(
+          dateTime.timeZoneOffsetSeconds
+        )
+      } finally {
+        await session.close()
+      }
+    }, 30000)
+  })
 })
 
 function removeLineBreaks (string) {
