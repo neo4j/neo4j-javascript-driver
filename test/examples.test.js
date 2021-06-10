@@ -810,6 +810,66 @@ describe('#integration examples', () => {
     ])
   }, 60000)
 
+  it('configure transaction timeout', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
+    const driver = driverGlobal
+    const personName = 'Antonio'
+
+    // Create a person node
+    function addPerson (tx, name) {
+      return tx.run('CREATE (a:Person {name: $name}) RETURN a', { name: name })
+    }
+
+    // tag::transaction-timeout-config[]
+    const session = driver.session()
+    try {
+      const result = await session.writeTransaction(
+        tx => addPerson(tx, personName),
+        { timeout: 10 }
+      )
+
+      const singleRecord = result.records[0]
+      const createdNodeId = singleRecord.get(0)
+
+      console.log('Created node with id: ' + createdNodeId)
+    } finally {
+      await session.close()
+    }
+    // end::transaction-timeout-config[]
+    expect(await consoleLoggedMsg).toContain('Created node with id')
+  }, 60000)
+
+  it('configure transaction metadata', async () => {
+    const console = consoleOverride
+    const consoleLoggedMsg = consoleOverridePromise
+    const driver = driverGlobal
+    const personName = 'Antonio'
+
+    // Create a person node
+    function addPerson (tx, name) {
+      return tx.run('CREATE (a:Person {name: $name}) RETURN a', { name: name })
+    }
+
+    // tag::transaction-metadata-config[]
+    const session = driver.session()
+    try {
+      const result = await session.writeTransaction(
+        tx => addPerson(tx, personName),
+        { metadata: { applicationId: '123' } }
+      )
+
+      const singleRecord = result.records[0]
+      const createdNodeId = singleRecord.get(0)
+
+      console.log('Created node with id: ' + createdNodeId)
+    } finally {
+      await session.close()
+    }
+    // end::transaction-metadata-config[]
+    expect(await consoleLoggedMsg).toContain('Created node with id')
+  }, 60000)
+
   it('use another database example', async () => {
     if (protocolVersion < 4.0 || edition !== 'enterprise') {
       return
