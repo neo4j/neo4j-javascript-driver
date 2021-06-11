@@ -18,11 +18,14 @@
  */
 
 import { Chunker, Dechunker, ChannelConfig, Channel } from '../channel'
-import { newError, error, json } from 'neo4j-driver-core'
+import { newError, error, json, internal } from 'neo4j-driver-core'
 import Connection from './connection'
 import Bolt from '../bolt'
 
 const { PROTOCOL_ERROR } = error
+const {
+  logger: { Logger }
+} = internal
 
 let idGenerator = 0
 
@@ -57,7 +60,6 @@ export function createChannelConnection (
       const createProtocol = conn =>
         Bolt.create({
           version,
-          connection: conn,
           channel,
           chunker,
           dechunker,
@@ -65,7 +67,7 @@ export function createChannelConnection (
           useBigInt: config.useBigInt,
           serversideRouting,
           server: conn.server,
-          log,
+          log: conn.logger,
           observer: {
             onError: conn._handleFatalError.bind(conn),
             onFailure: conn._resetOnFailure.bind(conn),
@@ -97,7 +99,6 @@ export function createChannelConnection (
       })
     )
 }
-
 export default class ChannelConnection extends Connection {
   /**
    * @constructor
@@ -128,7 +129,7 @@ export default class ChannelConnection extends Connection {
     this._disableLosslessIntegers = disableLosslessIntegers
     this._ch = channel
     this._chunker = chunker
-    this._log = log
+    this._log = createConnectionLogger(this, log)
     this._serversideRouting = serversideRouting
 
     // connection from the database, returned in response for HELLO message and might not be available
@@ -145,7 +146,7 @@ export default class ChannelConnection extends Connection {
     this._isBroken = false
 
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} created towards ${address}`)
+      this._log.debug(`created towards ${address}`)
     }
   }
 
@@ -234,6 +235,10 @@ export default class ChannelConnection extends Connection {
     return this._server
   }
 
+  get logger () {
+    return this._log
+  }
+
   /**
    * "Fatal" means the connection is dead. Only call this if something
    * happens that cannot be recovered from. This will lead to all subscribers
@@ -247,7 +252,7 @@ export default class ChannelConnection extends Connection {
 
     if (this._log.isErrorEnabled()) {
       this._log.error(
-        `${this} experienced a fatal error ${json.stringify(this._error)}`
+        `experienced a fatal error ${json.stringify(this._error)}`
       )
     }
 
@@ -322,7 +327,7 @@ export default class ChannelConnection extends Connection {
    */
   async close () {
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} closing`)
+      this._log.debug('closing')
     }
 
     if (this._protocol && this.isOpen()) {
@@ -334,7 +339,7 @@ export default class ChannelConnection extends Connection {
     await this._ch.close()
 
     if (this._log.isDebugEnabled()) {
-      this._log.debug(`${this} closed`)
+      this._log.debug('closed')
     }
   }
 
@@ -349,4 +354,16 @@ export default class ChannelConnection extends Connection {
     this._handleFatalError(error)
     return error
   }
+}
+
+/**
+ * Creates a log with the connection info as prefix
+ * @param {Connection} connection The connection
+ * @param {Logger} logger The logger
+ * @returns {Logger} The new logger with enriched messages
+ */
+function createConnectionLogger (connection, logger) {
+  return new Logger(logger._level, (level, message) =>
+    logger._loggerFunction(level, `${connection} ${message}`)
+  )
 }
