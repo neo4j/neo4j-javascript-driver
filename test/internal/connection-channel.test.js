@@ -543,13 +543,19 @@ describe('#integration ChannelConnection', () => {
   /**
    * @return {Promise<Connection>}
    */
-  function createConnection (url, config, errorCode = null) {
+  function createConnection (
+    url,
+    config,
+    errorCode = null,
+    logger = createVerifyConnectionIdLogger()
+  ) {
     const _config = config || {}
+    connection = undefined
     return createChannelConnection(
       ServerAddress.fromUrl(url),
       _config,
       new ConnectionErrorHandler(errorCode || SERVICE_UNAVAILABLE),
-      Logger.noOp()
+      logger
     ).then(c => {
       connection = c
       return connection
@@ -562,5 +568,23 @@ describe('#integration ChannelConnection', () => {
       messages.push(message)
       originalWrite(message, observer, flush)
     }
+  }
+
+  function createVerifyConnectionIdLogger () {
+    return new Logger('debug', (_, message) => {
+      if (!connection) {
+        // the connection is not the context, so we could
+        // only assert if it starts with Connection [
+        expect(
+          message.startsWith('Connection ['),
+          `Log message "${message}" should starts with "Connection ["`
+        ).toBe(true)
+        return
+      }
+      expect(
+        message.startsWith(`${connection}`),
+        `Log message "${message}" should starts with "${connection}"`
+      ).toBe(true)
+    })
   }
 })

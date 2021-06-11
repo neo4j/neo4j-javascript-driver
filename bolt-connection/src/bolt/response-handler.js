@@ -92,13 +92,13 @@ export default class ResponseHandler {
     switch (msg.signature) {
       case RECORD:
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${this} S: RECORD ${json.stringify(msg)}`)
+          this._log.debug(`S: RECORD ${json.stringify(msg)}`)
         }
         this._currentObserver.onNext(payload)
         break
       case SUCCESS:
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${this} S: SUCCESS ${json.stringify(msg)}`)
+          this._log.debug(`S: SUCCESS ${json.stringify(msg)}`)
         }
         try {
           const metadata = this._transformMetadata(payload)
@@ -109,7 +109,7 @@ export default class ResponseHandler {
         break
       case FAILURE:
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${this} S: FAILURE ${json.stringify(msg)}`)
+          this._log.debug(`S: FAILURE ${json.stringify(msg)}`)
         }
         try {
           const error = newError(payload.message, payload.code)
@@ -125,7 +125,7 @@ export default class ResponseHandler {
         break
       case IGNORED:
         if (this._log.isDebugEnabled()) {
-          this._log.debug(`${this} S: IGNORED ${json.stringify(msg)}`)
+          this._log.debug(`S: IGNORED ${json.stringify(msg)}`)
         }
         try {
           if (this._currentFailure && this._currentObserver.onError) {
