@@ -490,6 +490,40 @@ See files under `examples/` on how to use.
 
 ## Testing
 
+Tests **require** latest [Testkit 4.3](https://github.com/neo4j-drivers/testkit/tree/4.3), Python3 and Docker.
+
+Testkit is needed to be cloned and configured to run against the Javascript Lite Driver. Use the following steps to configure Testkit.
+
+1. Clone the Testkit repository
+
+```
+git clone https://github.com/neo4j-drivers/testkit.git
+```
+
+2. Under the Testkit folder, install the requirements.
+
+```
+pip3 install -r requirements.txt
+```
+
+3. Define some enviroment variables to configure Testkit
+
+```
+export TEST_DRIVER_NAME=javascript
+export TEST_DRIVER_REPO=<path for the root folder of driver repository>
+unset TEST_DRIVER_LITE
+```
+
+To run test against against some Neo4j version:
+
+```
+python3 main.py
+```
+
+More details about how to use Teskit could be found on [its repository](https://github.com/neo4j-drivers/testkit/tree/4.3)
+
+## Testing (Legacy)
+
 Tests **require** latest [Boltkit](https://github.com/neo4j-contrib/boltkit) and [Firefox](https://www.mozilla.org/firefox/) to be installed in the system.
 
 Boltkit is needed to start, stop and configure local test database. Boltkit can be installed with the following command:
