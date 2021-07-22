@@ -35,7 +35,7 @@ const WS_CLOSING = 2
 const WS_CLOSED = 3
 
 /* eslint-disable no-global-assign */
-describe('#unit WebSocketChannel', () => {
+describe('WebSocketChannel', () => {
   let webSocketChannel
 
   afterEach(async () => {
@@ -292,6 +292,39 @@ describe('#unit WebSocketChannel', () => {
     } finally {
       fakeSetTimeout.uninstall()
     }
+  })
+
+  describe('.setupReceiveTimeout()', () => {
+    beforeEach(() => {
+      const address = ServerAddress.fromUrl('http://localhost:8989')
+      const channelConfig = new ChannelConfig(
+        address,
+        { connectionTimeout: 0 },
+        SERVICE_UNAVAILABLE
+      )
+      webSocketChannel = new WebSocketChannel(
+        channelConfig,
+        undefined,
+        createWebSocketFactory(WS_OPEN)
+      )
+    })
+
+    it('should exists', () => {
+      expect(webSocketChannel).toHaveProperty('setupReceiveTimeout')
+      expect(typeof webSocketChannel.setupReceiveTimeout).toBe('function')
+    })
+
+    it('should not setTimeout', () => {
+      const fakeSetTimeout = setTimeoutMock.install()
+      try {
+        webSocketChannel.setupReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(0)
+        expect(webSocketChannel._connectionTimeoutId).toBe(null)
+      } finally {
+        fakeSetTimeout.uninstall()
+      }
+    })
   })
 
   function createWebSocketFactory (readyState) {
