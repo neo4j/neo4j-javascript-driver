@@ -172,7 +172,12 @@ export default class WebSocketChannel {
   }
 
   /**
-   * @todo document it
+   * Setup the receive timeout for the channel.
+   *
+   * Not supported for the browser channel.
+   *
+   * @param {number} receiveTimeout The amount of time the channel will keep without receive any data before timeout (ms)
+   * @returns {void}
    */
   setupReceiveTimeout (receiveTimeout) {}
 
