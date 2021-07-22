@@ -148,7 +148,7 @@ const TrustStrategy = {
  * @param {function} onFailure - callback to execute on connection failure.
  * @return {*} socket connection.
  */
-function connect (config, onSuccess, onFailure = () => null) {
+function _connect (config, onSuccess, onFailure = () => null) {
   const trustStrategy = trustStrategyName(config)
   if (!isEncrypted(config)) {
     const socket = net.connect(
@@ -230,7 +230,7 @@ export default class NodeChannel {
    * Create new instance
    * @param {ChannelConfig} config - configuration for this channel.
    */
-  constructor (config) {
+  constructor (config, connect = _connect) {
     const self = this
 
     this.id = _CONNECTION_IDGEN++

@@ -18,7 +18,7 @@
  */
 import NodeChannel from '../../../src/channel/node/node-channel'
 import ChannelConfig from '../../../src/channel/channel-config'
-import { error, internal } from 'neo4j-driver-core'
+import { error, internal, newError } from 'neo4j-driver-core'
 
 const {
   serverAddress: { ServerAddress }
@@ -26,7 +26,7 @@ const {
 
 const { SERVICE_UNAVAILABLE } = error
 
-describe('#unit NodeChannel', () => {
+describe('NodeChannel', () => {
   it('should resolve close if websocket is already closed', () => {
     const address = ServerAddress.fromUrl('bolt://localhost:9999')
     const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
@@ -43,28 +43,96 @@ describe('#unit NodeChannel', () => {
 
     return expect(channel.close()).resolves.not.toThrow()
   })
+
+  describe('.setupReceiveTimeout()', () => {
+    it('should call socket.setTimeout(receiveTimeout)', () => {
+      const receiveTimeout = 42
+      const channel = createMockedChannel(true)
+
+      channel.setupReceiveTimeout(receiveTimeout)
+
+      expect(channel._conn.getCalls().setTimeout[1]).toEqual([receiveTimeout])
+    })
+
+    it('should unsubscribe to the on connect and on timeout created on the create socket', () => {
+      const receiveTimeout = 42
+      const channel = createMockedChannel(true)
+
+      channel.setupReceiveTimeout(receiveTimeout)
+
+      expect(channel._conn.getCalls().on.slice(0, 2)).toEqual(
+        channel._conn.getCalls().off
+      )
+    })
+
+    it('should destroy the connection when time out', () => {
+      const receiveTimeout = 42
+      const channel = createMockedChannel(true)
+
+      channel.setupReceiveTimeout(receiveTimeout)
+
+      const [event, listener] = channel._conn.getCalls().on[2]
+      expect(event).toEqual('timeout')
+      listener()
+
+      expect(channel._conn.getCalls().destroy).toEqual([
+        [
+          newError(
+            "Connection lost. Server didn't respond in 42ms",
+            SERVICE_UNAVAILABLE
+          )
+        ]
+      ])
+    })
+
+    it('should not unsubscribe to the any on connect or on timeout if connectionTimeout is not set', () => {
+      const receiveTimeout = 42
+      const channel = createMockedChannel(true, { connectionTimeout: 0 })
+
+      channel.setupReceiveTimeout(receiveTimeout)
+
+      expect(channel._conn.getCalls().off).toEqual([])
+    })
+  })
 })
 
-function createMockedChannel (connected) {
+function createMockedChannel (connected, config = {}) {
   let endCallback = null
   const address = ServerAddress.fromUrl('bolt://localhost:9999')
-  const channelConfig = new ChannelConfig(address, {}, SERVICE_UNAVAILABLE)
-  const channel = new NodeChannel(channelConfig)
-  const socket = {
-    destroyed: false,
-    destroy: () => {},
-    end: () => {
-      channel._open = false
-      endCallback()
-    },
-    removeListener: () => {},
-    on: (key, cb) => {
-      if (key === 'end') {
-        endCallback = cb
+  const channelConfig = new ChannelConfig(address, config, SERVICE_UNAVAILABLE)
+  const socketFactory = () => {
+    const on = []
+    const off = []
+    const setTimeout = []
+    const destroy = []
+    return {
+      destroyed: false,
+      destroy: () => {
+        destroy.push([...arguments])
+      },
+      end: () => {
+        channel._open = false
+        endCallback()
+      },
+      removeListener: () => {},
+      on: (key, cb) => {
+        on.push([...arguments])
+        if (key === 'end') {
+          endCallback = cb
+        }
+      },
+      off: () => {
+        off.push([...arguments])
+      },
+      setTimeout: () => {
+        setTimeout.push([...arguments])
+      },
+      getCalls: () => {
+        return { on, off, setTimeout, destroy }
       }
     }
   }
-  channel._conn = socket
+  const channel = new NodeChannel(channelConfig, socketFactory)
   channel._open = connected
   return channel
 }
