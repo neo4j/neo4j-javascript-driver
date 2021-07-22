@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-import WebSocketChannel from '../../../bolt-connection/lib/channel/browser/browser-channel'
-import ChannelConfig from '../../../bolt-connection/lib/channel/channel-config'
+import WebSocketChannel from '../../../src/channel/browser/browser-channel'
+import ChannelConfig from '../../../src/channel/channel-config'
 import { error, internal } from 'neo4j-driver-core'
-import { setTimeoutMock } from '../timers-util'
+import { setTimeoutMock } from '../../timers-util'
 
 const {
   serverAddress: { ServerAddress },
@@ -173,7 +173,7 @@ describe('#unit WebSocketChannel', () => {
       createWebSocketFactory(WS_CLOSED)
     )
 
-    await expectAsync(channel.close()).toBeResolved()
+    await expect(channel.close()).resolves.not.toThrow()
   })
 
   it('should resolve close when websocket is closed', async () => {
@@ -186,7 +186,7 @@ describe('#unit WebSocketChannel', () => {
       createWebSocketFactory(WS_OPEN)
     )
 
-    await expectAsync(channel.close()).toBeResolved()
+    await expect(channel.close()).resolves.not.toThrow()
   })
 
   function testFallbackToLiteralIPv6 (boltAddress, expectedWsAddress) {
