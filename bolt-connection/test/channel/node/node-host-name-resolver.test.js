@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import NodeHostNameResolver from '../../../bolt-connection/lib/channel/node/node-host-name-resolver'
+import NodeHostNameResolver from '../../../src/channel/node/node-host-name-resolver'
 import { internal } from 'neo4j-driver-core'
 
 const {

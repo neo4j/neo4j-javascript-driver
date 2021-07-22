@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NodeChannel from '../../../bolt-connection/lib/channel/node/node-channel'
-import ChannelConfig from '../../../bolt-connection/lib/channel/channel-config'
+import NodeChannel from '../../../src/channel/node/node-channel'
+import ChannelConfig from '../../../src/channel/channel-config'
 import { error, internal } from 'neo4j-driver-core'
 
 const {
@@ -35,13 +35,13 @@ describe('#unit NodeChannel', () => {
     // Modify the connection to be closed
     channel._open = false
 
-    return expectAsync(channel.close()).toBeResolved()
+    return expect(channel.close()).resolves.not.toThrow()
   })
 
   it('should resolve close when websocket is connected', () => {
     const channel = createMockedChannel(true)
 
-    return expectAsync(channel.close()).toBeResolved()
+    return expect(channel.close()).resolves.not.toThrow()
   })
 })
 
