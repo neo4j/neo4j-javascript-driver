@@ -909,7 +909,14 @@ class Integer {
    * @expose
    */
   static toNumber (val: Integerable): number {
-    return Integer.fromValue(val).toNumber()
+    switch (typeof val) {
+      case 'number':
+        return val
+      case 'bigint':
+        return Number(val)
+      default:
+        return Integer.fromValue(val).toNumber()
+    }
   }
 
   /**

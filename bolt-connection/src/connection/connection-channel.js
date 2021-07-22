@@ -18,7 +18,7 @@
  */
 
 import { Chunker, Dechunker, ChannelConfig, Channel } from '../channel'
-import { newError, error, json, internal } from 'neo4j-driver-core'
+import { newError, error, json, internal, toNumber } from 'neo4j-driver-core'
 import Connection from './connection'
 import Bolt from '../bolt'
 
@@ -197,6 +197,16 @@ export default class ChannelConnection extends Connection {
             const dbConnectionId = metadata.connection_id
             if (!this.databaseId) {
               this.databaseId = dbConnectionId
+            }
+
+            if (
+              metadata.hints &&
+              'connection.recv_timeout_seconds' in metadata.hints
+            ) {
+              const receiveTimeout =
+                toNumber(metadata.hints['connection.recv_timeout_seconds']) *
+                1000
+              this._ch.setupReceiveTimeout(receiveTimeout)
             }
           }
           resolve(self)

@@ -305,12 +305,12 @@ export default class NodeChannel {
   _setupConnectionTimeout (config, socket) {
     const timeout = config.connectionTimeout
     if (timeout) {
-      socket.on('connect', () => {
+      const connectListener = () => {
         // connected - clear connection timeout
         socket.setTimeout(0)
-      })
+      }
 
-      socket.on('timeout', () => {
+      const timeoutListener = () => {
         // timeout fired - not connected within configured time. cancel timeout and destroy socket
         socket.setTimeout(0)
         socket.destroy(
@@ -319,10 +319,38 @@ export default class NodeChannel {
             config.connectionErrorCode
           )
         )
-      })
+      }
+
+      socket.on('connect', connectListener)
+      socket.on('timeout', timeoutListener)
+
+      this._removeConnectionTimeoutListeners = () => {
+        this._conn.off('connect', connectListener)
+        this._conn.off('timeout', timeoutListener)
+      }
 
       socket.setTimeout(timeout)
     }
+  }
+
+  /**
+   * @todo document it
+   */
+  setupReceiveTimeout (receiveTimeout) {
+    if (this._removeConnectionTimeoutListeners) {
+      this._removeConnectionTimeoutListeners()
+    }
+
+    this._conn.on('timeout', () => {
+      this._conn.destroy(
+        newError(
+          `Connection lost. Server didn't respond in ${receiveTimeout}ms`,
+          this._connectionErrorCode
+        )
+      )
+    })
+
+    this._conn.setTimeout(receiveTimeout)
   }
 
   /**

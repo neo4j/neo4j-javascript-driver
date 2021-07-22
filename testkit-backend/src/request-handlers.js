@@ -237,7 +237,10 @@ export function StartTest (_, { testName }, wire) {
 
 export function GetFeatures (_context, _params, wire) {
   wire.writeResponse('FeatureList', {
-    features: ['AuthorizationExpiredTreatment']
+    features: [
+      'AuthorizationExpiredTreatment',
+      'ConfHint:connection.recv_timeout_seconds'
+    ]
   })
 }
 

@@ -172,6 +172,11 @@ export default class WebSocketChannel {
   }
 
   /**
+   * @todo document it
+   */
+  setupReceiveTimeout (receiveTimeout) {}
+
+  /**
    * Set connection timeout on the given WebSocket, if configured.
    * @return {number} the timeout id or null.
    * @private
