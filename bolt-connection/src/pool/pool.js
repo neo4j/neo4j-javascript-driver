@@ -109,7 +109,7 @@ class Pool {
             const idleCount = this.has(address) ? this._pools[key].length : 0
             request.reject(
               newError(
-                `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Poos status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
+                `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
               )
             )
           }
