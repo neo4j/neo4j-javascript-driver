@@ -84,12 +84,6 @@ const skippedTests = [
     ifEndsWith(
       'test_should_fail_when_reading_from_unexpectedly_interrupting_reader_using_session_run'
     )
-  ),
-  skip(
-    'Needs to implement GetRoutingTable tk protocol message',
-    ifStartsWith(
-      'stub.configuration_hints.test_connection_recv_timeout_seconds.TestRoutingConnectionRecvTimeout'
-    )
   )
 ]
 

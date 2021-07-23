@@ -37,13 +37,21 @@ const MIN_ROUTERS = 1
  * The routing table object used to determine the role of the servers in the driver.
  */
 export default class RoutingTable {
-  constructor ({ database, routers, readers, writers, expirationTime } = {}) {
+  constructor ({
+    database,
+    routers,
+    readers,
+    writers,
+    expirationTime,
+    ttl
+  } = {}) {
     this.database = database
     this.databaseName = database || 'default database'
     this.routers = routers || []
     this.readers = readers || []
     this.writers = writers || []
     this.expirationTime = expirationTime || int(0)
+    this.ttl = ttl
   }
 
   /**
@@ -139,6 +147,7 @@ export function createValidRoutingTable (
   routerAddress,
   rawRoutingTable
 ) {
+  const ttl = rawRoutingTable.ttl
   const expirationTime = calculateExpirationTime(rawRoutingTable, routerAddress)
   const { routers, readers, writers } = parseServers(
     rawRoutingTable,
@@ -153,7 +162,8 @@ export function createValidRoutingTable (
     routers,
     readers,
     writers,
-    expirationTime
+    expirationTime,
+    ttl
   })
 }
 
