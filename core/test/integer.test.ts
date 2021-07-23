@@ -329,7 +329,7 @@ function forEachToNumberOrInfinityScenarios(
 }
 
 function forEachToNumberScenarios(
-  func: Consumer<AssertionPair<number | string, number>>
+  func: Consumer<AssertionPair<number | string | bigint, number>>
 ) {
   ;[
     v('42', 42),
@@ -337,6 +337,7 @@ function forEachToNumberScenarios(
     v('-999', -999),
     v('1000000000', 1000000000),
     v(1000000000, 1000000000),
+    v(BigInt(42), 42),
     v(Integer.MIN_SAFE_VALUE.toString(), Integer.MIN_SAFE_VALUE.toNumber()),
     v(Integer.MAX_SAFE_VALUE.toString(), Integer.MAX_SAFE_VALUE.toNumber()),
     v(
@@ -988,7 +989,12 @@ function forEachFromStringScenarios(
   ].forEach(func)
 }
 
-type Interable = Integer | number | { low: number; high: number } | string
+type Interable =
+  | Integer
+  | number
+  | { low: number; high: number }
+  | string
+  | bigint
 function forEachFromValueScenarios(
   func: Consumer<AssertionPair<Interable, Integer>>
 ) {
@@ -1003,9 +1009,13 @@ function forEachFromValueScenarios(
 function forEachStaticToNumberScenarios(
   func: Consumer<AssertionPair<Interable, number>>
 ) {
-  ;[v(Integer.ONE, 1), v('1', 1), v(1, 1), v({ low: 1, high: 0 }, 1)].forEach(
-    func
-  )
+  ;[
+    v(Integer.ONE, 1),
+    v('1', 1),
+    v(1, 1),
+    v({ low: 1, high: 0 }, 1),
+    v(BigInt(10), 10)
+  ].forEach(func)
 }
 
 function forEachStaticToStringScenarios(
