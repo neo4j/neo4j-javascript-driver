@@ -119,7 +119,7 @@ describe('ChannelConnection', () => {
             connection._id
           }][] Server located at ${address.asHostPort()} ` +
             `supplied an invalid connection receive timeout value (${metadata.hints['connection.recv_timeout_seconds']}). ` +
-            'Please, verify the server configuration and status because this can a symptom of a bigger issue.'
+            'Please, verify the server configuration and status because this can be the symptom of a bigger issue.'
         )
       }
     )
