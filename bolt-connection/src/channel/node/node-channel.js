@@ -336,7 +336,7 @@ export default class NodeChannel {
   /**
    * Setup the receive timeout for the channel.
    *
-   * @param {number} receiveTimeout The amount of time the channel will keep without receive any data before timeout (ms)
+   * @param {number} receiveTimeout How long the channel will wait for receiving data before timing out (ms)
    * @returns {void}
    */
   setupReceiveTimeout (receiveTimeout) {
