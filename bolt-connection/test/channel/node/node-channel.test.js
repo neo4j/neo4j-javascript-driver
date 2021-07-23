@@ -85,7 +85,7 @@ describe('NodeChannel', () => {
       ])
     })
 
-    it('should not unsubscribe to the any on connect or on timeout if connectionTimeout is not set', () => {
+    it('should not unsubscribe from on connect nor from on timeout if connectionTimeout is not set', () => {
       const receiveTimeout = 42
       const channel = createMockedChannel(true, { connectionTimeout: 0 })
 
