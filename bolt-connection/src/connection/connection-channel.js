@@ -212,7 +212,7 @@ export default class ChannelConnection extends Connection {
                 } else {
                   this._log.info(
                     `Server located at ${this._address} supplied an invalid connection receive timeout value (${receiveTimeoutInSeconds}). ` +
-                      'Please, verify the server configuration and status because this can a symptom of a bigger issue.'
+                      'Please, verify the server configuration and status because this can be the symptom of a bigger issue.'
                   )
                 }
               }
