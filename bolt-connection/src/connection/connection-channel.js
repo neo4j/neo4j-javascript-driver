@@ -199,14 +199,23 @@ export default class ChannelConnection extends Connection {
               this.databaseId = dbConnectionId
             }
 
-            if (
-              metadata.hints &&
-              'connection.recv_timeout_seconds' in metadata.hints
-            ) {
-              const receiveTimeout =
-                toNumber(metadata.hints['connection.recv_timeout_seconds']) *
-                1000
-              this._ch.setupReceiveTimeout(receiveTimeout)
+            if (metadata.hints) {
+              const receiveTimeoutRaw =
+                metadata.hints['connection.recv_timeout_seconds']
+              if (
+                receiveTimeoutRaw !== null &&
+                receiveTimeoutRaw !== undefined
+              ) {
+                const receiveTimeoutInSeconds = toNumber(receiveTimeoutRaw)
+                if (receiveTimeoutInSeconds > 0) {
+                  this._ch.setupReceiveTimeout(receiveTimeoutInSeconds * 1000)
+                } else {
+                  this._log.info(
+                    `Server located at ${this._address} supplied an invalid connection receive timeout value (${receiveTimeoutInSeconds}). ` +
+                      'Please, verify the server configuration and status because this can a symptom of a bigger issue.'
+                  )
+                }
+              }
             }
           }
           resolve(self)

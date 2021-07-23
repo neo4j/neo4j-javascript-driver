@@ -19,6 +19,7 @@
 
 import ChannelConnection from '../../src/connection/connection-channel'
 import { int, internal } from 'neo4j-driver-core'
+import { add } from 'lodash'
 
 const {
   serverAddress: { ServerAddress },
@@ -53,7 +54,20 @@ describe('ChannelConnection', () => {
       }
     )
 
-    it.each([[undefined], [null], [{}], [{ hint: null }], [{ hint: {} }]])(
+    it.each([
+      [undefined],
+      [null],
+      [{}],
+      [{ hints: null }],
+      [{ hints: {} }],
+      [{ hints: { 'connection.recv_timeout_seconds': null } }],
+      [{ hints: { 'connection.recv_timeout_seconds': -1 } }],
+      [{ hints: { 'connection.recv_timeout_seconds': -1n } }],
+      [{ hints: { 'connection.recv_timeout_seconds': int(-1) } }],
+      [{ hints: { 'connection.recv_timeout_seconds': 0 } }],
+      [{ hints: { 'connection.recv_timeout_seconds': 0n } }],
+      [{ hints: { 'connection.recv_timeout_seconds': int(0) } }]
+    ])(
       'should call not call this._ch.setupReceiveTimeout() when onComplete metadata is %o',
       async metadata => {
         const channel = {
@@ -68,6 +82,45 @@ describe('ChannelConnection', () => {
         await connection.connect('userAgent', {})
 
         expect(channel.setupReceiveTimeout).not.toHaveBeenCalled()
+      }
+    )
+
+    it.each([
+      [{ hints: { 'connection.recv_timeout_seconds': -1 } }],
+      [{ hints: { 'connection.recv_timeout_seconds': -1n } }],
+      [{ hints: { 'connection.recv_timeout_seconds': int(-1) } }],
+      [{ hints: { 'connection.recv_timeout_seconds': 0 } }],
+      [{ hints: { 'connection.recv_timeout_seconds': 0n } }],
+      [{ hints: { 'connection.recv_timeout_seconds': int(0) } }]
+    ])(
+      'should call log an info when onComplete metadata is %o',
+      async metadata => {
+        const channel = {
+          setupReceiveTimeout: jest.fn().mockName('setupReceiveTimeout')
+        }
+        const protocol = {
+          initialize: jest.fn(observer => observer.onComplete(metadata))
+        }
+        const address = ServerAddress.fromUrl('bolt://localhost')
+        const protocolSupplier = () => protocol
+        const loggerFunction = jest.fn().mockName('logger')
+        const logger = new Logger('info', loggerFunction)
+        const connection = spyOnConnectionChannel({
+          channel,
+          protocolSupplier,
+          logger,
+          address
+        })
+
+        await connection.connect('userAgent', {})
+        expect(loggerFunction).toHaveBeenCalledWith(
+          'info',
+          `Connection [${
+            connection._id
+          }][] Server located at ${address.asHostPort()} ` +
+            `supplied an invalid connection receive timeout value (${metadata.hints['connection.recv_timeout_seconds']}). ` +
+            'Please, verify the server configuration and status because this can a symptom of a bigger issue.'
+        )
       }
     )
   })
