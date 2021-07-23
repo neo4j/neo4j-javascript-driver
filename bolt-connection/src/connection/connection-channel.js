@@ -207,7 +207,10 @@ export default class ChannelConnection extends Connection {
                 receiveTimeoutRaw !== undefined
               ) {
                 const receiveTimeoutInSeconds = toNumber(receiveTimeoutRaw)
-                if (receiveTimeoutInSeconds > 0) {
+                if (
+                  Number.isInteger(receiveTimeoutInSeconds) &&
+                  receiveTimeoutInSeconds > 0
+                ) {
                   this._ch.setupReceiveTimeout(receiveTimeoutInSeconds * 1000)
                 } else {
                   this._log.info(

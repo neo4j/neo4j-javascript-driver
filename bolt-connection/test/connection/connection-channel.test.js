@@ -86,12 +86,14 @@ describe('ChannelConnection', () => {
     )
 
     it.each([
+      [{ hints: { 'connection.recv_timeout_seconds': -1.5 } }],
       [{ hints: { 'connection.recv_timeout_seconds': -1 } }],
       [{ hints: { 'connection.recv_timeout_seconds': -1n } }],
       [{ hints: { 'connection.recv_timeout_seconds': int(-1) } }],
       [{ hints: { 'connection.recv_timeout_seconds': 0 } }],
       [{ hints: { 'connection.recv_timeout_seconds': 0n } }],
-      [{ hints: { 'connection.recv_timeout_seconds': int(0) } }]
+      [{ hints: { 'connection.recv_timeout_seconds': int(0) } }],
+      [{ hints: { 'connection.recv_timeout_seconds': 12.1 } }]
     ])(
       'should call log an info when onComplete metadata is %o',
       async metadata => {
