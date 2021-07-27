@@ -258,7 +258,8 @@ describe('#unit RoutingTable', () => {
             readers: readers.map(r => ServerAddress.fromUrl(r)),
             routers: routers.map(r => ServerAddress.fromUrl(r)),
             writers: writers.map(w => ServerAddress.fromUrl(w)),
-            expirationTime: calculateExpirationTime(currentTime, ttl)
+            expirationTime: calculateExpirationTime(currentTime, ttl),
+            ttl
           })
         )
       }))

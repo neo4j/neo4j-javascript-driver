@@ -1719,7 +1719,6 @@ describe('#unit RoutingConnectionProvider', () => {
           database: 'databaseX'
         })
       } catch (error) {
-        console.error('Message', error)
         expect(error instanceof Neo4jError).toBeTruthy()
         expect(error.code).toBe(SERVICE_UNAVAILABLE)
         expect(error.message).toContain(

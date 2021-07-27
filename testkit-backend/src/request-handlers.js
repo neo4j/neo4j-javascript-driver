@@ -237,7 +237,10 @@ export function StartTest (_, { testName }, wire) {
 
 export function GetFeatures (_context, _params, wire) {
   wire.writeResponse('FeatureList', {
-    features: ['AuthorizationExpiredTreatment']
+    features: [
+      'AuthorizationExpiredTreatment',
+      'ConfHint:connection.recv_timeout_seconds'
+    ]
   })
 }
 
@@ -266,4 +269,26 @@ export function ResolverResolutionCompleted (
 ) {
   const request = context.getResolverRequest(requestId)
   request.resolve(addresses)
+}
+
+export function GetRoutingTable (context, { driverId, database }, wire) {
+  const serverAddressToString = serverAddress => serverAddress.asHostPort()
+  const driver = context.getDriver(driverId)
+  const routingTable =
+    driver &&
+    driver._getOrCreateConnectionProvider() &&
+    driver._getOrCreateConnectionProvider()._routingTableRegistry &&
+    driver._getOrCreateConnectionProvider()._routingTableRegistry.get(database)
+
+  if (routingTable) {
+    wire.writeResponse('RoutingTable', {
+      database: routingTable.database,
+      ttl: routingTable.ttl,
+      readers: routingTable.readers.map(serverAddressToString),
+      writers: routingTable.writers.map(serverAddressToString),
+      routers: routingTable.routers.map(serverAddressToString)
+    })
+  } else {
+    wire.writeError('Could not find routing table')
+  }
 }

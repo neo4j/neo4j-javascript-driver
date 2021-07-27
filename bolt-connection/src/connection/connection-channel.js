@@ -18,7 +18,7 @@
  */
 
 import { Chunker, Dechunker, ChannelConfig, Channel } from '../channel'
-import { newError, error, json, internal } from 'neo4j-driver-core'
+import { newError, error, json, internal, toNumber } from 'neo4j-driver-core'
 import Connection from './connection'
 import Bolt from '../bolt'
 
@@ -197,6 +197,28 @@ export default class ChannelConnection extends Connection {
             const dbConnectionId = metadata.connection_id
             if (!this.databaseId) {
               this.databaseId = dbConnectionId
+            }
+
+            if (metadata.hints) {
+              const receiveTimeoutRaw =
+                metadata.hints['connection.recv_timeout_seconds']
+              if (
+                receiveTimeoutRaw !== null &&
+                receiveTimeoutRaw !== undefined
+              ) {
+                const receiveTimeoutInSeconds = toNumber(receiveTimeoutRaw)
+                if (
+                  Number.isInteger(receiveTimeoutInSeconds) &&
+                  receiveTimeoutInSeconds > 0
+                ) {
+                  this._ch.setupReceiveTimeout(receiveTimeoutInSeconds * 1000)
+                } else {
+                  this._log.info(
+                    `Server located at ${this._address} supplied an invalid connection receive timeout value (${receiveTimeoutInSeconds}). ` +
+                      'Please, verify the server configuration and status because this can be the symptom of a bigger issue.'
+                  )
+                }
+              }
             }
           }
           resolve(self)

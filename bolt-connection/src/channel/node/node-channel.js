@@ -148,7 +148,7 @@ const TrustStrategy = {
  * @param {function} onFailure - callback to execute on connection failure.
  * @return {*} socket connection.
  */
-function connect (config, onSuccess, onFailure = () => null) {
+function _connect (config, onSuccess, onFailure = () => null) {
   const trustStrategy = trustStrategyName(config)
   if (!isEncrypted(config)) {
     const socket = net.connect(
@@ -230,7 +230,7 @@ export default class NodeChannel {
    * Create new instance
    * @param {ChannelConfig} config - configuration for this channel.
    */
-  constructor (config) {
+  constructor (config, connect = _connect) {
     const self = this
 
     this.id = _CONNECTION_IDGEN++
@@ -305,12 +305,12 @@ export default class NodeChannel {
   _setupConnectionTimeout (config, socket) {
     const timeout = config.connectionTimeout
     if (timeout) {
-      socket.on('connect', () => {
+      const connectListener = () => {
         // connected - clear connection timeout
         socket.setTimeout(0)
-      })
+      }
 
-      socket.on('timeout', () => {
+      const timeoutListener = () => {
         // timeout fired - not connected within configured time. cancel timeout and destroy socket
         socket.setTimeout(0)
         socket.destroy(
@@ -319,10 +319,41 @@ export default class NodeChannel {
             config.connectionErrorCode
           )
         )
-      })
+      }
+
+      socket.on('connect', connectListener)
+      socket.on('timeout', timeoutListener)
+
+      this._removeConnectionTimeoutListeners = () => {
+        this._conn.off('connect', connectListener)
+        this._conn.off('timeout', timeoutListener)
+      }
 
       socket.setTimeout(timeout)
     }
+  }
+
+  /**
+   * Setup the receive timeout for the channel.
+   *
+   * @param {number} receiveTimeout How long the channel will wait for receiving data before timing out (ms)
+   * @returns {void}
+   */
+  setupReceiveTimeout (receiveTimeout) {
+    if (this._removeConnectionTimeoutListeners) {
+      this._removeConnectionTimeoutListeners()
+    }
+
+    this._conn.on('timeout', () => {
+      this._conn.destroy(
+        newError(
+          `Connection lost. Server didn't respond in ${receiveTimeout}ms`,
+          this._connectionErrorCode
+        )
+      )
+    })
+
+    this._conn.setTimeout(receiveTimeout)
   }
 
   /**
