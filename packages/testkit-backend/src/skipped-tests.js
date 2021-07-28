@@ -87,6 +87,12 @@ const skippedTests = [
     'Needs investigation',
     ifEndsWith(
       'test_should_fail_when_reading_from_unexpectedly_interrupting_reader_using_session_run'
+    ),
+    ifEquals(
+      'stub.tx_run.test_tx_run.TestTxRun.test_rollback_tx_on_session_close_unfinished_result'
+    ),
+    ifEquals(
+      'neo4j.sessionrun.TestSessionRun.test_partial_iteration'
     )
   )
 ]
