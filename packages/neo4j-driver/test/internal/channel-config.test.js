@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import ChannelConfig from '../../bolt-connection/lib/channel/channel-config'
+import ChannelConfig from '../../../bolt-connection/lib/channel/channel-config'
 import { error, internal } from 'neo4j-driver-core'
 
 const {

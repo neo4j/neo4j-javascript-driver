@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import Connection from '../../bolt-connection/lib/connection/connection'
+import Connection from '../../../bolt-connection/lib/connection/connection'
 import {
   ServerVersion,
   VERSION_3_4_0,

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Connection from '../../bolt-connection/lib/connection/connection'
+import Connection from '../../../bolt-connection/lib/connection/connection'
 
 function isClient () {
   return typeof window !== 'undefined' && window.document

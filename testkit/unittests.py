@@ -7,24 +7,24 @@ import subprocess
 import os
 
 
-def run(args):
+def run(args, cwd=None):
     subprocess.run(
-        args, universal_newlines=True, stderr=subprocess.STDOUT, check=True)
+        args, universal_newlines=True, stderr=subprocess.STDOUT, check=True, cwd=cwd)
 
 
 def test_driver():
-    run(["gulp", "test-nodejs-unit"])
-    run(["gulp", "run-ts-declaration-tests"])
+    run(["gulp", "test-nodejs-unit"], "./packages/neo4j-driver")
+    run(["gulp", "run-ts-declaration-tests"], "./packages/neo4j-driver")
 
 
 def test_driver_lite():
-    # to be implemented
+    run(["npm", "test"], "./packages/neo4j-driver-lite")
     return
 
 
 if __name__ == "__main__":
-    run(['npm', '--prefix', 'core', 'run', 'test'])
-    run(['npm', '--prefix', 'bolt-connection', 'run', 'test'])
+    run(["npm", "run", "test"], "./packages/core")
+    run(["npm", "run", "test"], "./packages/bolt-connection")
     if os.environ.get("TEST_DRIVER_LITE", False):
         test_driver_lite()
     else:

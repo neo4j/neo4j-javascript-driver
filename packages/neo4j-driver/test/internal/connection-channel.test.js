@@ -20,18 +20,18 @@
 import DummyChannel from './dummy-channel'
 import ChannelConnection, {
   createChannelConnection
-} from '../../bolt-connection/lib/connection/connection-channel'
-import { Packer } from '../../bolt-connection/lib/packstream/packstream-v1'
-import { Chunker } from '../../bolt-connection/lib/channel/chunking'
-import { alloc } from '../../bolt-connection/lib/channel'
+} from '../../../bolt-connection/lib/connection/connection-channel'
+import { Packer } from '../../../bolt-connection/lib/packstream/packstream-v1'
+import { Chunker } from '../../../bolt-connection/lib/channel/chunking'
+import { alloc } from '../../../bolt-connection/lib/channel'
 import { Neo4jError, newError, error, internal } from 'neo4j-driver-core'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { ServerVersion } from '../../src/internal/server-version'
 import lolex from 'lolex'
-import ConnectionErrorHandler from '../../bolt-connection/lib/connection/connection-error-handler'
+import ConnectionErrorHandler from '../../../bolt-connection/lib/connection/connection-error-handler'
 import testUtils from '../internal/test-utils'
 import { WRITE } from '../../src/driver'
-import { ResultStreamObserver } from '../../bolt-connection/lib/bolt'
+import { ResultStreamObserver } from '../../../bolt-connection/lib/bolt'
 
 const {
   logger: { Logger },

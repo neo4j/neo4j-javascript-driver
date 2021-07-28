@@ -16,10 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import DelegateConnection from '../../bolt-connection/lib/connection/connection-delegate'
-import Connection from '../../bolt-connection/lib/connection/connection'
-import { BoltProtocol } from '../../bolt-connection/lib/bolt'
-import ConnectionErrorHandler from '../../bolt-connection/lib/connection/connection-error-handler'
+import DelegateConnection from '../../../bolt-connection/lib/connection/connection-delegate'
+import Connection from '../../../bolt-connection/lib/connection/connection'
+import { BoltProtocol } from '../../../bolt-connection/lib/bolt'
+import ConnectionErrorHandler from '../../../bolt-connection/lib/connection/connection-error-handler'
 import { internal } from 'neo4j-driver-core'
 
 const {

@@ -8,7 +8,7 @@ import subprocess
 
 
 if __name__ == "__main__":
-    npm = ["npm", "--prefix", "testkit-backend"]
+    npm = ["npm", "--prefix", "packages/testkit-backend"]
     err = open("/artifacts/backenderr.log", "w")
     out = open("/artifacts/backendout.log", "w")
     subprocess.check_call([*npm, "start"], stdout=out, stderr=err)

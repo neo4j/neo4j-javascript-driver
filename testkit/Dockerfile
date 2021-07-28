@@ -15,7 +15,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g npm \
-    && /bin/bash -c 'hash -d npm'
+    && /bin/bash -c "hash -d npm"
 RUN npm install -g gulp
 
 # Enable tls v1.0

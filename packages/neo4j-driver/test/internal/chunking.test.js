@@ -17,8 +17,11 @@
  * limitations under the License.
  */
 
-import { Chunker, Dechunker } from '../../bolt-connection/lib/channel/chunking'
-import { alloc } from '../../bolt-connection/lib/channel'
+import {
+  Chunker,
+  Dechunker
+} from '../../../bolt-connection/lib/channel/chunking'
+import { alloc } from '../../../bolt-connection/lib/channel'
 import DummyChannel from './dummy-channel'
 
 describe('#unit Chunker', () => {

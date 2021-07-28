@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import SingleConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-single'
+import SingleConnectionProvider from '../../../bolt-connection/lib/connection-provider/connection-provider-single'
 import FakeConnection from './fake-connection'
 import { internal } from 'neo4j-driver-core'
 

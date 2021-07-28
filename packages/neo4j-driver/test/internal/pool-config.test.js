@@ -20,7 +20,7 @@
 import PoolConfig, {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
-} from '../../bolt-connection/lib/pool/pool-config'
+} from '../../../bolt-connection/lib/pool/pool-config'
 
 describe('#unit PoolConfig', () => {
   let originalConsoleWarn

@@ -19,7 +19,7 @@
 
 import neo4j from '../src'
 import { READ } from '../src/driver'
-import SingleConnectionProvider from '../bolt-connection/lib/connection-provider/connection-provider-single'
+import SingleConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-single'
 import FakeConnection from './internal/fake-connection'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'

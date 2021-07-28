@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import Pool from '../../bolt-connection/lib/pool/pool'
-import PoolConfig from '../../bolt-connection/lib/pool/pool-config'
+import Pool from '../../../bolt-connection/lib/pool/pool'
+import PoolConfig from '../../../bolt-connection/lib/pool/pool-config'
 import { newError, error, internal } from 'neo4j-driver-core'
 
 const {

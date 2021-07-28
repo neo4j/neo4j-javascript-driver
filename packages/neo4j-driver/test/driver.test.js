@@ -23,7 +23,7 @@ import lolex from 'lolex'
 import {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
-} from '../bolt-connection/lib/pool/pool-config'
+} from '../../bolt-connection/lib/pool/pool-config'
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
 import { json } from 'neo4j-driver-core'

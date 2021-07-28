@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Pool from '../../bolt-connection/lib/pool/pool'
+import Pool from '../../../bolt-connection/lib/pool/pool'
 import { loadBalancing } from 'neo4j-driver-bolt-connection'
 const { LeastConnectedLoadBalancingStrategy } = loadBalancing
 

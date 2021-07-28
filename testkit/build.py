@@ -7,46 +7,54 @@ import subprocess
 import shutil
 
 
-def run(args, env=None):
+def run(args, env=None, cwd=None):
     subprocess.run(
-        args, universal_newlines=True, stderr=subprocess.STDOUT, check=True, env=env)
+        args, universal_newlines=True, stderr=subprocess.STDOUT,
+        check=True, env=env, cwd=cwd)
+
+
+def run_in(cwd):
+    def _runIn(args, env=None):
+        return run(args, env, cwd)
+    return _runIn
 
 
 def build_core():
-    npm = ["npm", "--prefix", "./core/"]
-    run(['rm', '-fr', 'core/node_modules', 'core/lib', 'core/types'])
-    run([*npm, 'ci'])
-    run([*npm, 'run', 'build'])
+    run_in_core = run_in(cwd="./packages/core/")
+    run_in_core(["rm", "-fr", "node_modules", "lib", "types"])
+    run_in_core(["npm", "ci"])
+    run_in_core(["npm", "run", "build"])
 
 
 def build_bolt_connection():
-    npm = ['npm', '--prefix', './bolt-connection/']
-    run(['rm', '-fr', 'bolt-connection/node_modules', 'bolt-connection/lib'])
-    run([*npm, 'ci'])
-    run([*npm, 'run', 'build'])
+    run_in_bolt_connection = run_in(cwd="./packages/bolt-connection/")
+    run_in_bolt_connection(["rm", "-fr", "node_modules", "lib"])
+    run_in_bolt_connection(["npm", "ci"])
+    run_in_bolt_connection(["npm", "run", "build"])
 
 
 def build_driver():
-    run(['rm', '-fr', 'node_modules', 'lib', 'build'])
-    run(["npm", "ci"])
-    run(["gulp", "nodejs"])
+    run_in_driver = run_in(cwd="./packages/neo4j-driver/")
+    run_in_driver(["rm", "-fr", "node_modules", "lib", "build"])
+    run_in_driver(["npm", "ci"])
+    run_in_driver(["gulp", "nodejs"])
 
 
 def build_driver_lite():
-    npm = ['npm', '--prefix', './neo4j-driver-lite/']
-    run(['rm', '-fr', 'neo4j-driver-lite/node_modules', 'neo4j-driver-lite/lib'])
-    run([*npm, "ci"])
-    run([*npm, "run", "build"])
+    run_in_driver_lite = run_in(cwd="./packages/neo4j-driver-lite/")
+    run_in_driver_lite(["rm", "-fr", "node_modules", "lib"])
+    run_in_driver_lite(["npm", "ci"])
+    run_in_driver_lite(["npm", "run", "build"])
 
 
 def build_testkit_backend(isLite):
-    npm = ["npm", "--prefix", "./testkit-backend/"]
-    run(['rm', '-fr', 'testkit-backend/node_modules'])
-    run([*npm, "install"])
-    neo4jdriverPath = "neo4j@./"
-    if isLite: 
-        neo4jdriverPath = "neo4j@./neo4j-driver-lite"
-    run([*npm, "install", neo4jdriverPath])
+    run_in_testkit_backend = run_in(cwd="./packages/testkit-backend/")
+    run_in_testkit_backend(["rm", "-fr", "node_modules"])
+    run_in_testkit_backend(["npm", "install"])
+    neo4jdriverPath = "neo4j@../neo4j-driver"
+    if isLite:
+        neo4jdriverPath = "neo4j@../neo4j-driver-lite"
+    run_in_testkit_backend(["npm", "install", neo4jdriverPath])
 
 
 if __name__ == "__main__":

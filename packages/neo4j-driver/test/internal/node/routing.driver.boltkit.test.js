@@ -20,7 +20,7 @@
 import neo4j from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
-import RoutingTable from '../../../bolt-connection/lib/rediscovery/routing-table'
+import RoutingTable from '../../../../bolt-connection/lib/rediscovery/routing-table'
 import { error, internal } from 'neo4j-driver-core'
 import lolex from 'lolex'
 
