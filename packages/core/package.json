@@ -10,7 +10,8 @@
     "test": "jest",
     "test::watch": "jest --watch",
     "predocs": "npm run build && npm run build::es6",
-    "docs": "esdoc -c esdoc.json"
+    "docs": "esdoc -c esdoc.json",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",

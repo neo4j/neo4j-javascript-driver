@@ -15,7 +15,8 @@
     "versionRelease": "npm version $VERSION --no-git-tag-version && npm run version::set_version.ts",
     "build::es6": "tsc --target ES6 --outdir lib6",
     "predocs": "cd ../core && npm run docs && cd ../neo4j-driver-lite && npm run build && npm run build::es6",
-    "docs": "esdoc -c esdoc.json"
+    "docs": "esdoc -c esdoc.json",
+    "prepare": "npm run build && npm run build:browser"
   },
   "unpkg": "lib/browser/neo4j-lite-web.js",
   "jsdelivr": "lib/browser/neo4j-lite-web.js",
@@ -49,7 +50,7 @@
     "ws": "^7.4.6"
   },
   "dependencies": {
-    "neo4j-driver-bolt-connection": "file:../bolt-connection",
-    "neo4j-driver-core": "file:../core"
+    "neo4j-driver-bolt-connection": "4.3.0-dev",
+    "neo4j-driver-core": "4.3.0-dev"
   }
 }

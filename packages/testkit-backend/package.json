@@ -3,10 +3,10 @@
   "version": "4.3.0",
   "description": "Backend for the testkit test framework",
   "main": "src/main.js",
+  "private": true,
   "type": "module",
   "scripts": {
-    "start": "node -r esm src/main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node -r esm src/main.js"
   },
   "repository": {
     "type": "git",

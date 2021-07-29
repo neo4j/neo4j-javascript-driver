@@ -20,7 +20,8 @@
     "predocs": "cd core && npm run docs",
     "docs": "esdoc -c esdoc.json",
     "versionRelease": "gulp set --x $VERSION && npm version $VERSION --no-git-tag-version",
-    "browser": "gulp browser && gulp test-browser"
+    "browser": "gulp browser && gulp test-browser",
+    "prepare": "npm run build"
   },
   "husky": {
     "hooks": {
@@ -106,8 +107,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.5.5",
-    "neo4j-driver-bolt-connection": "file:../bolt-connection",
-    "neo4j-driver-core": "file:../core",
+    "neo4j-driver-bolt-connection": "4.3.0-dev",
+    "neo4j-driver-core": "4.3.0-dev",
     "rxjs": "^6.6.3"
   }
 }
