@@ -22,7 +22,10 @@ def test_driver_lite():
 
 if __name__ == "__main__":
     os.environ["TEST_NEO4J_IPV6_ENABLED"] = "False"
+
     if os.environ.get("TEST_DRIVER_LITE", False):
-        test_driver_lite()
+        ignore = "--ignore=neo4j-driver"
     else:
-        test_driver()
+        ignore = "--ignore=neo4j-driver-lite"
+
+    run(["npm", "run", "test::integration", "--", ignore])

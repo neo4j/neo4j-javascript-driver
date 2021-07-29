@@ -9,9 +9,11 @@
     "build::es6": "tsc --target ES6 --outdir lib6",
     "test": "jest",
     "test::watch": "jest --watch",
+    "test::unit": "npm run test",
     "predocs": "npm run build && npm run build::es6",
     "docs": "esdoc -c esdoc.json",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "clean": "rm -fr node_modules lib types"
   },
   "repository": {
     "type": "git",

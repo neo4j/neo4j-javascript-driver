@@ -8,7 +8,9 @@
     "build": "tsc",
     "test": "jest --passWithNoTests",
     "test::watch": "jest --watch",
-    "prepare": "npm run build"
+    "test::unit": "npm run test",
+    "prepare": "npm run build",
+    "clean": "rm -fr node_modules lib"
   },
   "repository": {
     "type": "git",

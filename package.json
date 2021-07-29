@@ -1,8 +1,14 @@
 {
   "name": "root",
   "private": true,
-  "workspaces": ["packages/*"],
   "devDependencies": {
     "lerna": "^4.0.0"
+  },
+  "scripts": {
+    "clean": "lerna clean -y && lerna run clean",
+    "build": "lerna bootstrap --ci",
+    "test::unit": "lerna run test::unit",
+    "test::integration": "lerna run test::integration",
+    "test::stress": "lerna run test::stress"
   }
 }

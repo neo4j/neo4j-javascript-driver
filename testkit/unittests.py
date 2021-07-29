@@ -12,20 +12,10 @@ def run(args, cwd=None):
         args, universal_newlines=True, stderr=subprocess.STDOUT, check=True, cwd=cwd)
 
 
-def test_driver():
-    run(["gulp", "test-nodejs-unit"], "./packages/neo4j-driver")
-    run(["gulp", "run-ts-declaration-tests"], "./packages/neo4j-driver")
-
-
-def test_driver_lite():
-    run(["npm", "test"], "./packages/neo4j-driver-lite")
-    return
-
-
 if __name__ == "__main__":
-    run(["npm", "run", "test"], "./packages/core")
-    run(["npm", "run", "test"], "./packages/bolt-connection")
     if os.environ.get("TEST_DRIVER_LITE", False):
-        test_driver_lite()
+        ignore = "--ignore=neo4j-driver"
     else:
-        test_driver()
+        ignore = "--ignore=neo4j-driver-lite"
+
+    run(["npm", "run", "test::unit", "--", ignore])

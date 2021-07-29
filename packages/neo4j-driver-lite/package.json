@@ -11,12 +11,15 @@
     "test:watch": "jest --watch",
     "test:it": "jest -c jest.integration.config.ts",
     "test:it:browser": "jest -c jest.browser.config.ts",
+    "test::integration": "npm run test:it && npm run test:it:browser",
+    "test::unit": "npm run test",
     "version::set_version.ts": "sed 's/0.0.0-dev/'$VERSION'/g' src/version.ts > src/version.tmp && mv src/version.tmp src/version.ts",
     "versionRelease": "npm version $VERSION --no-git-tag-version && npm run version::set_version.ts",
     "build::es6": "tsc --target ES6 --outdir lib6",
     "predocs": "cd ../core && npm run docs && cd ../neo4j-driver-lite && npm run build && npm run build::es6",
     "docs": "esdoc -c esdoc.json",
-    "prepare": "npm run build && npm run build:browser"
+    "prepare": "npm run build && npm run build:browser",
+    "clean": "rm -fr node_modules lib types"
   },
   "unpkg": "lib/browser/neo4j-lite-web.js",
   "jsdelivr": "lib/browser/neo4j-lite-web.js",

@@ -7,19 +7,14 @@ def run(args, cwd=None):
         args, universal_newlines=True, stderr=subprocess.STDOUT, check=True, cwd=cwd)
 
 
-def test_driver():
-    run(["gulp", "run-stress-tests-without-jasmine"], "./packages/neo4j-driver")
-
-
-def test_driver_lite():
-    return
-
-
 if __name__ == "__main__":
     os.environ["STRESS_TEST_MODE"] = "fastest"
     os.environ["RUNNING_TIME_IN_SECONDS"] = \
         os.environ.get("TEST_NEO4J_STRESS_DURATION", 0)
+
     if os.environ.get("TEST_DRIVER_LITE", False):
-        test_driver_lite()
+        ignore = "--ignore=neo4j-driver"
     else:
-        test_driver()
+        ignore = "--ignore=neo4j-driver-lite"
+
+    run(["npm", "run", "test::stress", "--", ignore])
