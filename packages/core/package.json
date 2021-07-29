@@ -1,6 +1,6 @@
 {
   "name": "neo4j-driver-core",
-  "version": "4.3.0-dev",
+  "version": "4.4.0-dev",
   "description": "Internals of neo4j-driver",
   "main": "lib/index.js",
   "types": "types/index.d.ts",

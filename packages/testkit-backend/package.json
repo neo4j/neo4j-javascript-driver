@@ -1,6 +1,6 @@
 {
   "name": "testkit-backend",
-  "version": "4.3.0",
+  "version": "4.4.0-dev",
   "description": "Backend for the testkit test framework",
   "main": "src/main.js",
   "private": true,
