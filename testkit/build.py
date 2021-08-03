@@ -41,6 +41,7 @@ def clean_and_build():
 
 if __name__ == "__main__":
     isLite = os.environ.get("TEST_DRIVER_LITE", False)
+    run(["ls", "-la"], cwd="/driver")
     init_monorepo()
     clean_and_build()
     build_testkit_backend(isLite)
