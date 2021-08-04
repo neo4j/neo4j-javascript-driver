@@ -192,6 +192,46 @@ class Result implements Promise<QueryResult> {
     return this._p
   }
 
+  async* ayncInterator(): any {
+    function createResolvablePromise (): any {
+      const resolvablePromise: any = {}
+      resolvablePromise.promise = new Promise((resolve, reject) => {
+        resolvablePromise.resolve = resolve
+        resolvablePromise.reject = reject
+      });
+      return resolvablePromise;
+    }
+
+    const observer = {
+      _buffer: [createResolvablePromise()],
+      onNext: (record: Record) => {
+        observer._buffer[observer._buffer.length - 1].resolve({ record, done: false });
+        observer._buffer.push(createResolvablePromise());
+      },
+      onCompleted: (summary: ResultSummary) => {
+        observer._buffer[observer._buffer.length - 1].resolve({ summary, done: true });
+      },
+      onError: (error: Error) => {
+        observer._buffer[observer._buffer.length - 1].reject(error);
+      },
+      consume: async () => {
+        const value = await observer._buffer[0].promise
+        observer._buffer.shift();
+        return value
+      }
+    }
+
+    this.subscribe(observer)
+
+    while(true) {
+      const value = await observer.consume()
+      if (value.done) {
+        return value.summary;
+      } 
+      yield value.record
+    }
+  }
+
   /**
    * Waits for all results and calls the passed in function with the results.
    *

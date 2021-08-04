@@ -8,6 +8,7 @@ export default class Context {
     this._resultObservers = {}
     this._errors = {}
     this._shouldRunTest = shouldRunTest
+    this._results = {}
   }
 
   addDriver (driver) {
@@ -43,6 +44,18 @@ export default class Context {
       reject
     })
     return id
+  }
+
+  addResult (result) {
+    return this._add(this._results, result)
+  }
+
+  removeResult (id) {
+    delete this._results[id]
+  }
+
+  getResult (id) {
+    return this._results[id]
   }
 
   getDriver (id) {

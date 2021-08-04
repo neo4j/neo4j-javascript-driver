@@ -2,6 +2,7 @@ import neo4j from './neo4j'
 import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
 import tls from 'tls'
+const USE_ASYNC = true
 
 const SUPPORTED_TLS = (() => {
   if (tls.DEFAULT_MAX_VERSION) {
@@ -161,48 +162,89 @@ export function SessionRun (context, data, wire) {
         wire.writeError(e)
         return
       }
-      const resultObserver = new ResultObserver({ sessionId, result })
-      const id = context.addResultObserver(resultObserver)
+      let id
+      if (USE_ASYNC) {
+        id = context.addResult(result)
+      } else {
+        const resultObserver = new ResultObserver({ sessionId, result })
+        result.subscribe(resultObserver)
+        id = context.addResultObserver(resultObserver)
+      }
       wire.writeResponse('Result', { id })
     })
 }
 
 export function ResultNext (context, data, wire) {
   const { resultId } = data
-  const resultObserver = context.getResultObserver(resultId)
-  const nextPromise = resultObserver.next()
-  nextPromise
-    .then(rec => {
-      if (rec) {
-        const values = Array.from(rec.values()).map(nativeToCypher)
+  if (USE_ASYNC) {
+    const result = context.getResult(resultId)
+    if (!("recordIt" in result)) {
+      result.recordIt = result.ayncInterator()
+    }
+    result.recordIt.next().then(({ value, done }) => {
+      if (done) {
+        wire.writeResponse('NullRecord', null)
+      } else {
+        const values = Array.from(value.values()).map(nativeToCypher)
         wire.writeResponse('Record', {
           values: values
         })
-      } else {
-        wire.writeResponse('NullRecord', null)
       }
-    })
-    .catch(e => {
+    }).catch(e => {
       console.log('got some err: ' + JSON.stringify(e))
       wire.writeError(e)
-    })
+    });
+  } else {
+    const resultObserver = context.getResultObserver(resultId)
+    const nextPromise = resultObserver.next()
+    nextPromise
+      .then(rec => {
+        if (rec) {
+          const values = Array.from(rec.values()).map(nativeToCypher)
+          wire.writeResponse('Record', {
+            values: values
+          })
+        } else {
+          wire.writeResponse('NullRecord', null)
+        }
+      })
+      .catch(e => {
+        console.log('got some err: ' + JSON.stringify(e))
+        wire.writeError(e)
+      })
+  }
+  
 }
 
 export function ResultConsume (context, data, wire) {
   const { resultId } = data
-  const resultObserver = context.getResultObserver(resultId)
-  resultObserver
-    .completitionPromise()
-    .then(summary => {
+  if (USE_ASYNC) {
+    const result = context.getResult(resultId)
+    result.summary().then(summary => {
+      console.log(summary);
       wire.writeResponse('Summary', {
         ...summary,
         serverInfo: {
           agent: summary.server.agent,
-          protocolVersion: summary.server.protocolVersion.toFixed(1)
+          protocolVersion: summary.server.protocolVersion? summary.server.protocolVersion.toFixed(1) : 0
         }
       })
-    })
-    .catch(e => wire.writeError(e))
+    }).catch(e => wire.writeError(e))
+  } else {
+    const resultObserver = context.getResultObserver(resultId)
+    resultObserver
+      .completitionPromise()
+      .then(summary => {
+        wire.writeResponse('Summary', {
+          ...summary,
+          serverInfo: {
+            agent: summary.server.agent,
+            protocolVersion: summary.server.protocolVersion.toFixed(1)
+          }
+        })
+      })
+      .catch(e => wire.writeError(e))
+  }
 }
 
 export function ResultList (context, data, wire) {
@@ -245,8 +287,15 @@ export function TransactionRun (context, data, wire) {
     }
   }
   const result = tx.tx.run(cypher, params)
-  const resultObserver = new ResultObserver({ result })
-  const id = context.addResultObserver(resultObserver)
+
+  let id
+  if (USE_ASYNC) {
+    id = context.addResult(result)
+  } else {
+    const resultObserver = new ResultObserver({ result })
+    result.subscribe(resultObserver)
+    id = context.addResultObserver(resultObserver)
+  }
   wire.writeResponse('Result', { id })
 }
 
