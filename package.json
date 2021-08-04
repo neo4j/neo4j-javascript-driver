@@ -7,8 +7,12 @@
   "scripts": {
     "clean": "lerna clean -y && lerna run clean",
     "build": "lerna bootstrap --ci",
-    "test::unit": "lerna run test::unit",
-    "test::integration": "lerna run test::integration",
-    "test::stress": "lerna run test::stress"
+    "test::unit": "lerna run test::unit --stream",
+    "test::integration": "lerna run test::integration --stream",
+    "test::stress": "lerna run test::stress  --stream",
+    "test": "lerna run test --stream",
+    "start-neo4j": "lerna run start-neo4j --scope neo4j-driver",
+    "stop-neo4j": "lerna run stop-neo4j --scope neo4j-driver",
+    "lerna": "lerna"
   }
 }

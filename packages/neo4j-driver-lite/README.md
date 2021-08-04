@@ -355,11 +355,20 @@ var driver = neo4j.driver(
 
 ## Building
 
+The build of this package is handled by the root package of this repository.
+
+First it is needed to install the mono-repo dependencies by running `npm ci` in the root of the repository. Then:
+
+* Build all could be performed with 
+
 ```
-./buildDependencies.sh
-npm install
 npm run build
-npn rub build:browser
+```
+* Build only the Core could be performed with
+Builind only Core:
+```
+npm run build -- --scope=neo4j-driver-lite
+
 ```
 
 This produces browser-compatible standalone files under `lib/browser` and a Node.js module version under `lib/`.
@@ -399,7 +408,7 @@ python3 main.py
 
 More details about how to use Teskit could be found on [its repository](https://github.com/neo4j-drivers/testkit/tree/4.3)
 
-Simple `npm test` can also be used if you want to run only the unit tests.
+Runing `npm test` in this package directory can also be used if you want to run only the unit tests.
 
 For development, you can have the build tool rerun the tests each time you change the source code:
 
@@ -407,6 +416,4 @@ For development, you can have the build tool rerun the tests each time you chang
 npm run test:watch
 ```
 
-The guides about how to test the driver internal dependencies should be found on it own Readme files.
-
-See `../core` and `../bolt-connection`
+The command `npm run test::unit` could be used in the root package for running the unit tests for all the packages in this project.

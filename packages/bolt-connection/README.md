@@ -6,18 +6,28 @@ This is an internal package shared by the [neo4j-driver](https://www.npmjs.com/p
 
 ## Building
 
-It's required to first build the `neo4j-driver-core` under the `../core` (see instruction on its folder). Then,
+The build of this package is handled by the root package of this repository.
+
+First it is needed to install the mono-repo dependencies by running `npm ci` in the root of the repository. Then:
+
+* Build all could be performed with 
+
 
 ```
-npm install
 npm run build
+```
+* Build only the Core could be performed with
+Builind only Core:
+```
+npm run build -- --scope=neo4j-driver-bolt-connection
+
 ```
 
 This produces a Node.js module version under `lib/`.
 
 ## Testing
 
-The tests can be executed by running `npm test`. For development, you can have the build tool rerun the tests each time you change the source code:
+The tests could be executed by running `npm test` in this package folder. For development, you can have the build tool rerun the tests each time you change the source code:
 
 ```
 npm run test::watch
