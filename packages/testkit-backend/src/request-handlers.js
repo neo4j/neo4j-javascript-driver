@@ -179,7 +179,7 @@ export function ResultNext (context, data, wire) {
   if (USE_ASYNC) {
     const result = context.getResult(resultId)
     if (!("recordIt" in result)) {
-      result.recordIt = result[Symbol.asyncIterator]
+      result.recordIt = result[Symbol.asyncIterator]()
     }
     result.recordIt.next().then(({ value, done }) => {
       if (done) {

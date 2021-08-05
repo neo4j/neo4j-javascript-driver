@@ -1511,6 +1511,24 @@ describe('#integration examples', () => {
       })
     }
   })
+
+  describe('async interators', () => {
+    it('should iterate over the values', async () => {
+      const driver = driverGlobal
+
+      const session = driver.session()
+      try {
+        const result = session.run('UNWIND RANGE(0, 10) AS x RETURN x')
+        const xs = []
+        for await (const record of result) {
+          xs.push(record.get('x').toInt())
+        }
+        expect(xs).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+      } finally {
+        await session.close()
+      }
+    })
+  })
 })
 
 function removeLineBreaks (string) {
