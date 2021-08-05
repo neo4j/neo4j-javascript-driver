@@ -192,8 +192,20 @@ class Result implements Promise<QueryResult> {
     return this._p
   }
 
-  async* ayncInterator(): any {
-    function createResolvablePromise (): any {
+  async* [Symbol.asyncIterator](): AsyncIterator<Record, ResultSummary> {
+    interface ConsumedValue {
+      done: boolean
+      record?: Record
+      summary?: ResultSummary
+    }
+
+    interface ResolvablePromise<T> {
+      promise: Promise<T>
+      resolve: (arg: T) => any | undefined
+      reject: (arg: Error) => any | undefined
+    }
+
+    function createResolvablePromise (): ResolvablePromise<ConsumedValue> {
       const resolvablePromise: any = {}
       resolvablePromise.promise = new Promise((resolve, reject) => {
         resolvablePromise.resolve = resolve
@@ -226,9 +238,9 @@ class Result implements Promise<QueryResult> {
     while(true) {
       const value = await observer.consume()
       if (value.done) {
-        return value.summary;
+        return value.summary!
       } 
-      yield value.record
+      yield value.record!
     }
   }
 

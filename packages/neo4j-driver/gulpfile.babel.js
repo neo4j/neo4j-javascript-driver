@@ -203,6 +203,7 @@ gulp.task('run-ts-declaration-tests', function (done) {
     .src(['test/types/**/*', 'types/**/*'], { base: '.' })
     .pipe(
       ts({
+        lib: ['es6', 'dom', 'esnext.asynciterable'],
         module: 'es6',
         target: 'es6',
         noImplicitAny: true,
