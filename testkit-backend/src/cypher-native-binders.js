@@ -37,6 +37,45 @@ export function nativeToCypher (x) {
         }
         return { name: 'CypherNode', data: node }
       }
+      if (x instanceof neo4j.types.Relationship) {
+        const relationship = {
+          id: nativeToCypher(x.identity),
+          startNodeId: nativeToCypher(x.start),
+          endNodeId: nativeToCypher(x.end),
+          type: nativeToCypher(x.type),
+          props: nativeToCypher(x.properties)
+        }
+        return { name: 'CypherRelationship', data: relationship }
+      }
+      if (x instanceof neo4j.types.Path) {
+        const path = x.segments
+          .map(segment => {
+            return {
+              nodes: [segment.end],
+              relationships: [segment.relationship]
+            }
+          })
+          .reduce(
+            (previous, current) => {
+              return {
+                nodes: [...previous.nodes, ...current.nodes],
+                relationships: [
+                  ...previous.relationships,
+                  ...current.relationships
+                ]
+              }
+            },
+            { nodes: [x.start], relationships: [] }
+          )
+
+        return {
+          name: 'CypherPath',
+          data: {
+            nodes: nativeToCypher(path.nodes),
+            relationships: nativeToCypher(path.relationships)
+          }
+        }
+      }
       // If all failed, interpret as a map
       const map = {}
       for (const [key, value] of Object.entries(x)) {

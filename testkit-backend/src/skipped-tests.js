@@ -20,6 +20,10 @@ function skip (reason, ...predicate) {
 
 const skippedTests = [
   skip(
+    'Not support by the JS driver',
+    ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration')
+  ),
+  skip(
     'The driver has no support domain_name_resolver',
     ifEndsWith('test_should_successfully_acquire_rt_when_router_ip_changes'),
     ifEndsWith(
