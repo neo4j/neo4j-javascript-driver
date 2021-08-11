@@ -23,6 +23,7 @@ import {
   int,
   isInt,
   Integer,
+  toNumber,
   Node,
   Path,
   PathSegment,
@@ -635,7 +636,7 @@ class Unpacker {
 
     for (let i = 0; i < sequence.length; i += 2) {
       const nextNode = nodes[sequence[i + 1]]
-      const relIndex = sequence[i]
+      const relIndex = toNumber(sequence[i])
       let rel
 
       if (relIndex > 0) {
