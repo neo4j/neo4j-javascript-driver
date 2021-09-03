@@ -110,7 +110,7 @@ class Record<
    */
   forEach(visitor: Visitor<Entries, Key>): void {
     for (const [key, value] of this.entries()) {
-      visitor(value as any, key as any, this)
+      visitor(value, key as Key, this)
     }
   }
 
@@ -128,7 +128,7 @@ class Record<
     const resultArray = []
 
     for (const [key, value] of this.entries()) {
-      resultArray.push(visitor(value as any, key as any, this))
+      resultArray.push(visitor(value, key as Key, this))
     }
 
     return resultArray
@@ -180,7 +180,7 @@ class Record<
     const obj: Entries = {} as Entries
 
     for (const [key, value] of this.entries()) {
-      obj[key as any] = value
+      obj[key as Key] = value
     }
 
     return obj

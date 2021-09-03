@@ -407,7 +407,7 @@ describe('Result', () => {
       it('should call finally on error', done => {
         streamObserverMock.onError(expectedError)
 
-        result.finally(done)
+        result.catch(() => {}).finally(done)
       })
 
       describe.each([
