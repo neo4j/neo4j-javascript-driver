@@ -8,7 +8,8 @@ def run(args):
 
 
 def test_driver():
-    if os.environ.get("TEST_DRIVER_SKIP_BROWSER", False):
+    if (os.environ.get("TEST_DRIVER_SKIP_BROWSER", "false").lower()
+            in ("y", "yes", "t", "true", "1", "on")):
         run(["gulp", "test-browser"])
     run(["gulp", "test-nodejs-integration"])
 
