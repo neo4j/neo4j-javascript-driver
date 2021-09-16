@@ -316,7 +316,7 @@ const auth = {
     return {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
-      credentials: base64EncodedTicket
+      ticket: base64EncodedTicket
     }
   },
   custom: (principal, credentials, realm, scheme, parameters = undefined) => {
