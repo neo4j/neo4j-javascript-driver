@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { Notification, throwError } from 'rxjs'
+import { lastValueFrom, Notification, throwError } from 'rxjs'
 import {
   mergeMap as flatMap,
   materialize,
@@ -50,7 +50,7 @@ describe('#integration-rx transaction', () => {
 
   afterEach(async () => {
     if (session) {
-      await session.close().toPromise()
+      await lastValueFrom(session.close(), { defaultValue: undefined })
     }
     await driver.close()
   })
@@ -61,9 +61,8 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const messages = await session
-      .beginTransaction()
-      .pipe(
+    const messages = await lastValueFrom(
+      session.beginTransaction().pipe(
         flatMap(txc =>
           txc
             .run('UNWIND RANGE(1, $size) AS x RETURN x', { size })
@@ -88,7 +87,7 @@ describe('#integration-rx transaction', () => {
             )
         )
       )
-      .toPromise()
+    )
 
     expect(messages.length).toBe(size + 1)
     expect(messages[size]).toEqual(Notification.createComplete())
@@ -100,24 +99,25 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const result = await session
-      .run('UNWIND RANGE(1, $size) AS x RETURN x', { size })
-      .records()
-      .pipe(
-        map(r => r.get(0)),
-        bufferCount(50),
-        flatMap(x =>
-          session
-            .run('UNWIND $x AS id CREATE (n:Node {id: id}) RETURN n.id', {
-              x
-            })
-            .records()
-        ),
-        map(r => r.get(0)),
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result = await lastValueFrom(
+      session
+        .run('UNWIND RANGE(1, $size) AS x RETURN x', { size })
+        .records()
+        .pipe(
+          map(r => r.get(0)),
+          bufferCount(50),
+          flatMap(x =>
+            session
+              .run('UNWIND $x AS id CREATE (n:Node {id: id}) RETURN n.id', {
+                x
+              })
+              .records()
+          ),
+          map(r => r.get(0)),
+          materialize(),
+          toArray()
+        )
+    )
 
     expect(result).toEqual([
       Notification.createError(

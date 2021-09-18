@@ -21,7 +21,7 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import { map, materialize, toArray } from 'rxjs/operators'
-import { Notification } from 'rxjs'
+import { Notification, lastValueFrom } from 'rxjs'
 
 /**
  * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
@@ -143,7 +143,7 @@ describe('#integration examples', () => {
     }
 
     // end::rx-autocommit-transaction[]
-    const result = await readProductTitles().toPromise()
+    const result = await lastValueFrom(readProductTitles())
 
     expect(result).toEqual([
       Notification.createNext('Product-0'),
@@ -623,7 +623,7 @@ describe('#integration examples', () => {
       )
     // end::rx-result-consume[]
 
-    const people = await result.toPromise()
+    const people = await lastValueFrom(result)
     expect(people).toEqual([
       Notification.createNext('Alice'),
       Notification.createNext('Bob'),
@@ -802,7 +802,7 @@ describe('#integration examples', () => {
     )
     // end::rx-transaction-function[]
 
-    const people = await result.toPromise()
+    const people = await lastValueFrom(result)
     expect(people).toEqual([
       Notification.createNext('Infinity Gauntlet'),
       Notification.createNext('Mjölnir'),

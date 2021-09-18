@@ -18,10 +18,8 @@
  */
 import neo4j from '../../src'
 import sharedNeo4j from '../internal/shared-neo4j'
-import RxSession from '../../src/session-rx'
-import { Notification, Observable } from 'rxjs'
+import { lastValueFrom, Notification } from 'rxjs'
 import { materialize, toArray, map } from 'rxjs/operators'
-import RxTransaction from '../../src/transaction-rx'
 
 describe('#integration-rx navigation', () => {
   describe('session', () => {
@@ -43,7 +41,7 @@ describe('#integration-rx navigation', () => {
 
     afterEach(async () => {
       if (session) {
-        await session.close().toPromise()
+        await lastValueFrom(session.close(), { defaultValue: undefined })
       }
       await driver.close()
     })
@@ -195,7 +193,7 @@ describe('#integration-rx navigation', () => {
         sharedNeo4j.authToken
       )
       session = driver.rxSession()
-      txc = await session.beginTransaction().toPromise()
+      txc = await lastValueFrom(session.beginTransaction())
 
       const normalSession = driver.session()
       try {
@@ -209,13 +207,13 @@ describe('#integration-rx navigation', () => {
     afterEach(async () => {
       if (txc) {
         try {
-          await txc.commit().toPromise()
+          await lastValueFrom(txc.commit(), { defaultValue: undefined })
         } catch (err) {
           // ignore
         }
       }
       if (session) {
-        await session.close().toPromise()
+        await lastValueFrom(session.close(), { defaultValue: undefined })
       }
       await driver.close()
     })
@@ -366,11 +364,12 @@ describe('#integration-rx navigation', () => {
       return
     }
 
-    const result = await runnable
-      .run("RETURN 1 as f1, true as f2, 'string' as f3")
-      .keys()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      runnable
+        .run("RETURN 1 as f1, true as f2, 'string' as f3")
+        .keys()
+        .pipe(materialize(), toArray())
+    )
 
     expect(result).toEqual([
       Notification.createNext(['f1', 'f2', 'f3']),
@@ -582,11 +581,12 @@ describe('#integration-rx navigation', () => {
       return
     }
 
-    const keys = await runnable
-      .run('CREATE ({id : $id})', { id: 5 })
-      .keys()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const keys = await lastValueFrom(
+      runnable
+        .run('CREATE ({id : $id})', { id: 5 })
+        .keys()
+        .pipe(materialize(), toArray())
+    )
     expect(keys).toEqual([
       Notification.createNext([]),
       Notification.createComplete()
@@ -788,10 +788,9 @@ describe('#integration-rx navigation', () => {
   }
 
   async function collectAndAssertKeys (result) {
-    const keys = await result
-      .keys()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const keys = await lastValueFrom(
+      result.keys().pipe(materialize(), toArray())
+    )
     expect(keys).toEqual([
       Notification.createNext(['number', 'text']),
       Notification.createComplete()
@@ -799,14 +798,13 @@ describe('#integration-rx navigation', () => {
   }
 
   async function collectAndAssertRecords (result) {
-    const records = await result
-      .records()
-      .pipe(
+    const records = await lastValueFrom(
+      result.records().pipe(
         map(r => [r.get(0), r.get(1)]),
         materialize(),
         toArray()
       )
-      .toPromise()
+    )
     expect(records).toEqual([
       Notification.createNext([neo4j.int(1), 't1']),
       Notification.createNext([neo4j.int(2), 't2']),
@@ -818,14 +816,13 @@ describe('#integration-rx navigation', () => {
   }
 
   async function collectAndAssertSummary (result, expectedQueryType = 'r') {
-    const summary = await result
-      .consume()
-      .pipe(
+    const summary = await lastValueFrom(
+      result.consume().pipe(
         map(s => s.queryType),
         materialize(),
         toArray()
       )
-      .toPromise()
+    )
     expect(summary).toEqual([
       Notification.createNext(expectedQueryType),
       Notification.createComplete()
@@ -833,7 +830,7 @@ describe('#integration-rx navigation', () => {
   }
 
   async function collectAndAssertEmpty (stream) {
-    const result = await stream.pipe(materialize(), toArray()).toPromise()
+    const result = await lastValueFrom(stream.pipe(materialize(), toArray()))
     expect(result).toEqual([Notification.createComplete()])
   }
 
@@ -843,7 +840,7 @@ describe('#integration-rx navigation', () => {
    * @param {function(err: Error): void} expectationFunc
    */
   async function collectAndAssertError (stream, expectedError) {
-    const result = await stream.pipe(materialize(), toArray()).toPromise()
+    const result = await lastValueFrom(stream.pipe(materialize(), toArray()))
 
     expect(result).toEqual([Notification.createError(expectedError)])
   }

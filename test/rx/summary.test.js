@@ -16,9 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { lastValueFrom } from 'rxjs'
 import neo4j from '../../src'
-import RxSession from '../../src/session-rx'
-import RxTransaction from '../../src/transaction-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 
 describe('#integration-rx summary', () => {
@@ -42,7 +41,7 @@ describe('#integration-rx summary', () => {
 
     afterEach(async () => {
       if (session) {
-        await session.close().toPromise()
+        await lastValueFrom(session.close(), { defaultValue: undefined })
       }
       await driver.close()
     })
@@ -128,7 +127,7 @@ describe('#integration-rx summary', () => {
         sharedNeo4j.authToken
       )
       session = driver.rxSession()
-      txc = await session.beginTransaction().toPromise()
+      txc = await lastValueFrom(session.beginTransaction())
 
       const normalSession = driver.session()
       try {
@@ -144,13 +143,13 @@ describe('#integration-rx summary', () => {
     afterEach(async () => {
       if (txc) {
         try {
-          await txc.commit().toPromise()
+          await lastValueFrom(txc.commit(), { defaultValue: undefined })
         } catch (err) {
           // ignore
         }
       }
       if (session) {
-        await session.close().toPromise()
+        await lastValueFrom(session.close(), { defaultValue: undefined })
       }
       await driver.close()
     })
@@ -243,7 +242,7 @@ describe('#integration-rx summary', () => {
 
     afterEach(async () => {
       if (session) {
-        await session.close().toPromise()
+        await lastValueFrom(session.close(), { defaultValue: undefined })
       }
       await driver.close()
     })
@@ -264,10 +263,9 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    const summary = await runnable
-      .run('UNWIND RANGE(1,10) AS n RETURN n')
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable.run('UNWIND RANGE(1,10) AS n RETURN n').consume()
+    )
 
     expect(summary).toBeDefined()
   }
@@ -339,7 +337,7 @@ describe('#integration-rx summary', () => {
 
     let runnable = session
     if (useTransaction) {
-      runnable = await session.beginTransaction().toPromise()
+      runnable = await lastValueFrom(session.beginTransaction())
     }
 
     try {
@@ -571,10 +569,9 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    const summary = await runnable
-      .run('CREATE (n) RETURN n')
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable.run('CREATE (n) RETURN n').consume()
+    )
     expect(summary).toBeDefined()
     expect(summary.hasPlan()).toBeFalsy()
     expect(summary.plan).toBeFalsy()
@@ -591,10 +588,9 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    const summary = await runnable
-      .run('EXPLAIN CREATE (n) RETURN n')
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable.run('EXPLAIN CREATE (n) RETURN n').consume()
+    )
     expect(summary).toBeDefined()
     expect(summary.hasPlan()).toBeTruthy()
     expect(summary.plan.operatorType).toContain('ProduceResults')
@@ -612,10 +608,9 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    const summary = await runnable
-      .run('PROFILE CREATE (n) RETURN n')
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable.run('PROFILE CREATE (n) RETURN n').consume()
+    )
     expect(summary).toBeDefined()
     expect(summary.hasPlan()).toBeTruthy()
     expect(summary.plan.operatorType).toContain('ProduceResults')
@@ -634,10 +629,9 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    const summary = await runnable
-      .run('CREATE (n) RETURN n')
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable.run('CREATE (n) RETURN n').consume()
+    )
     expect(summary).toBeDefined()
     expect(summary.notifications).toBeTruthy()
     expect(summary.notifications.length).toBe(0)
@@ -652,10 +646,11 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    const summary = await runnable
-      .run('EXPLAIN MATCH (n:ThisLabelDoesNotExistRx) RETURN n')
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable
+        .run('EXPLAIN MATCH (n:ThisLabelDoesNotExistRx) RETURN n')
+        .consume()
+    )
     expect(summary).toBeDefined()
     expect(summary.notifications).toBeTruthy()
     expect(summary.notifications.length).toBeGreaterThan(0)
@@ -678,10 +673,9 @@ describe('#integration-rx summary', () => {
     query,
     parameters = null
   ) {
-    const summary = await runnable
-      .run(query, parameters)
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable.run(query, parameters).consume()
+    )
     expect(summary).toBeDefined()
     expect(summary.query).toBeDefined()
     expect(summary.query.text).toBe(query)
@@ -695,10 +689,7 @@ describe('#integration-rx summary', () => {
    * @param {string} expectedQueryType
    */
   async function verifyQueryType (runnable, query, expectedQueryType) {
-    const summary = await runnable
-      .run(query)
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(runnable.run(query).consume())
     expect(summary).toBeDefined()
     expect(summary.queryType).toBe(expectedQueryType)
   }
@@ -711,10 +702,9 @@ describe('#integration-rx summary', () => {
    * @param {*} stats
    */
   async function verifyUpdates (runnable, query, parameters, stats) {
-    const summary = await runnable
-      .run(query, parameters)
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable.run(query, parameters).consume()
+    )
     expect(summary).toBeDefined()
     expect(summary.counters.containsUpdates()).toBeTruthy()
     expect(summary.counters.updates()).toEqual(stats)
@@ -735,10 +725,9 @@ describe('#integration-rx summary', () => {
     parameters,
     systemUpdates
   ) {
-    const summary = await runnable
-      .run(query, parameters)
-      .consume()
-      .toPromise()
+    const summary = await lastValueFrom(
+      runnable.run(query, parameters).consume()
+    )
     expect(summary).toBeDefined()
 
     expect(summary.counters.containsSystemUpdates()).toBeTruthy()

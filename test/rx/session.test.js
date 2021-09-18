@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { Notification, throwError } from 'rxjs'
+import { lastValueFrom, Notification, throwError } from 'rxjs'
 import { map, materialize, toArray, concatWith as concat } from 'rxjs/operators'
 import neo4j from '../../src'
 import sharedNeo4j from '../internal/shared-neo4j'
@@ -44,7 +44,7 @@ describe('#integration rx-session', () => {
 
   afterEach(async () => {
     if (session) {
-      await session.close().toPromise()
+      await lastValueFrom(session.close(), { defaultValue: undefined })
     }
     await driver.close()
   })
@@ -54,15 +54,16 @@ describe('#integration rx-session', () => {
       return
     }
 
-    const result = await session
-      .run('UNWIND [1,2,3,4] AS n RETURN n')
-      .records()
-      .pipe(
-        map(r => r.get('n').toInt()),
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result = await lastValueFrom(
+      session
+        .run('UNWIND [1,2,3,4] AS n RETURN n')
+        .records()
+        .pipe(
+          map(r => r.get('n').toInt()),
+          materialize(),
+          toArray()
+        )
+    )
 
     expect(result).toEqual([
       Notification.createNext(1),
@@ -78,24 +79,26 @@ describe('#integration rx-session', () => {
       return
     }
 
-    const result1 = await session
-      .run('INVALID STATEMENT')
-      .records()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result1 = await lastValueFrom(
+      session
+        .run('INVALID STATEMENT')
+        .records()
+        .pipe(materialize(), toArray())
+    )
     expect(result1).toEqual([
       Notification.createError(jasmine.stringMatching(/Invalid input/))
     ])
 
-    const result2 = await session
-      .run('RETURN 1')
-      .records()
-      .pipe(
-        map(r => r.get(0).toInt()),
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result2 = await lastValueFrom(
+      session
+        .run('RETURN 1')
+        .records()
+        .pipe(
+          map(r => r.get(0).toInt()),
+          materialize(),
+          toArray()
+        )
+    )
     expect(result2).toEqual([
       Notification.createNext(1),
       Notification.createComplete()
@@ -111,10 +114,11 @@ describe('#integration rx-session', () => {
       query: 'CREATE (:WithoutRetry) RETURN 5'
     })
 
-    const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      session
+        .writeTransaction(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createNext(5),
       Notification.createComplete()
@@ -138,10 +142,11 @@ describe('#integration rx-session', () => {
       ]
     })
 
-    const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      session
+        .writeTransaction(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createNext(7),
       Notification.createComplete()
@@ -165,10 +170,11 @@ describe('#integration rx-session', () => {
       ]
     })
 
-    const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      session
+        .writeTransaction(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createNext(9),
       Notification.createComplete()
@@ -187,10 +193,11 @@ describe('#integration rx-session', () => {
       query: 'UNWIND [10, 5, 0] AS x CREATE (:Hi) RETURN 10/x'
     })
 
-    const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      session
+        .writeTransaction(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createNext(1),
       Notification.createNext(2),
@@ -219,10 +226,11 @@ describe('#integration rx-session', () => {
       ]
     })
 
-    const result = await session
-      .writeTransaction(txc => txcWork.work(txc))
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      session
+        .writeTransaction(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(jasmine.stringMatching(/a database error/))
     ])
@@ -233,14 +241,15 @@ describe('#integration rx-session', () => {
 
   async function countNodes (label) {
     const session = driver.rxSession()
-    return await session
-      .run(`MATCH (n:${label}) RETURN count(n)`)
-      .records()
-      .pipe(
-        map(r => r.get(0).toInt()),
-        concat(session.close())
-      )
-      .toPromise()
+    return await lastValueFrom(
+      session
+        .run(`MATCH (n:${label}) RETURN count(n)`)
+        .records()
+        .pipe(
+          map(r => r.get(0).toInt()),
+          concat(session.close())
+        )
+    )
   }
   class ConfigurableTransactionWork {
     constructor ({ query, syncFailures = [], reactiveFailures = [] } = {}) {

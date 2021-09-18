@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { Notification } from 'rxjs'
+import { lastValueFrom, Notification } from 'rxjs'
 import {
   mergeMap as flatMap,
   materialize,
@@ -48,7 +48,7 @@ describe('#integration-rx transaction', () => {
 
   afterEach(async () => {
     if (session) {
-      await session.close().toPromise()
+      await lastValueFrom(session.close(), { defaultValue: undefined })
     }
     await driver.close()
   })
@@ -58,14 +58,13 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const result = await session
-      .beginTransaction()
-      .pipe(
+    const result = await lastValueFrom(
+      session.beginTransaction().pipe(
         flatMap(txc => txc.commit()),
         materialize(),
         toArray()
       )
-      .toPromise()
+    )
 
     expect(result).toEqual([Notification.createComplete()])
   })
@@ -75,14 +74,13 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const result = await session
-      .beginTransaction()
-      .pipe(
+    const result = await lastValueFrom(
+      session.beginTransaction().pipe(
         flatMap(txc => txc.rollback()),
         materialize(),
         toArray()
       )
-      .toPromise()
+    )
 
     expect(result).toEqual([Notification.createComplete()])
   })
@@ -92,9 +90,8 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const result = await session
-      .beginTransaction()
-      .pipe(
+    const result = await lastValueFrom(
+      session.beginTransaction().pipe(
         flatMap(txc =>
           txc
             .run('CREATE (n:Node {id: 42}) RETURN n')
@@ -107,7 +104,7 @@ describe('#integration-rx transaction', () => {
         materialize(),
         toArray()
       )
-      .toPromise()
+    )
     expect(result).toEqual([
       Notification.createNext(neo4j.int(42)),
       Notification.createComplete()
@@ -121,9 +118,8 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const result = await session
-      .beginTransaction()
-      .pipe(
+    const result = await lastValueFrom(
+      session.beginTransaction().pipe(
         flatMap(txc =>
           txc
             .run('CREATE (n:Node {id: 42}) RETURN n')
@@ -136,7 +132,7 @@ describe('#integration-rx transaction', () => {
         materialize(),
         toArray()
       )
-      .toPromise()
+    )
     expect(result).toEqual([
       Notification.createNext(neo4j.int(42)),
       Notification.createComplete()
@@ -174,14 +170,13 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyFailsWithWrongQuery(txc)
 
-    const result = await txc
-      .commit()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.commit().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
@@ -198,14 +193,13 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyFailsWithWrongQuery(txc)
 
-    const result = await txc
-      .rollback()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.rollback().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([Notification.createComplete()])
   })
 
@@ -214,16 +208,15 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyCanCreateNode(txc, 5)
     await verifyCanReturnOne(txc)
     await verifyFailsWithWrongQuery(txc)
 
-    const result = await txc
-      .commit()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.commit().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
@@ -240,16 +233,15 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyCanCreateNode(txc, 5)
     await verifyCanReturnOne(txc)
     await verifyFailsWithWrongQuery(txc)
 
-    const result = await txc
-      .rollback()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.rollback().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([Notification.createComplete()])
   })
 
@@ -258,15 +250,16 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyFailsWithWrongQuery(txc)
 
-    const result = await txc
-      .run('CREATE ()')
-      .records()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc
+        .run('CREATE ()')
+        .records()
+        .pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
@@ -283,15 +276,14 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyCanCreateNode(txc, 6)
     await verifyCanCommit(txc)
 
-    const result = await txc
-      .commit()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.commit().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
@@ -308,15 +300,14 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyCanCreateNode(txc, 6)
     await verifyCanRollback(txc)
 
-    const result = await txc
-      .rollback()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.rollback().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
@@ -333,15 +324,14 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyCanCreateNode(txc, 6)
     await verifyCanCommit(txc)
 
-    const result = await txc
-      .rollback()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.rollback().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
@@ -358,15 +348,14 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     await verifyCanCreateNode(txc, 6)
     await verifyCanRollback(txc)
 
-    const result = await txc
-      .commit()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.commit().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
@@ -393,12 +382,12 @@ describe('#integration-rx transaction', () => {
 
     const bookmark0 = session.lastBookmark()
 
-    const txc1 = await session.beginTransaction().toPromise()
+    const txc1 = await lastValueFrom(session.beginTransaction())
     await verifyCanCreateNode(txc1, 20)
     await verifyCanCommit(txc1)
     const bookmark1 = session.lastBookmark()
 
-    const txc2 = await session.beginTransaction().toPromise()
+    const txc2 = await lastValueFrom(session.beginTransaction())
     await verifyCanCreateNode(txc2, 21)
     await verifyCanCommit(txc2)
     const bookmark2 = session.lastBookmark()
@@ -415,16 +404,15 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     const result1 = txc.run('CREATE (:TestNode) RETURN 1 AS n')
     const result2 = txc.run('CREATE (:TestNode) RETURN 2 AS n')
     const result3 = txc.run('RETURN 10 / 0 AS n')
     const result4 = txc.run('CREATE (:TestNode) RETURN 3 AS n')
 
-    const result = await result1
-      .records()
-      .pipe(
+    const result = await lastValueFrom(
+      result1.records().pipe(
         concat(result2.records()),
         concat(result3.records()),
         concat(result4.records()),
@@ -432,7 +420,7 @@ describe('#integration-rx transaction', () => {
         materialize(),
         toArray()
       )
-      .toPromise()
+    )
     expect(result).toEqual([
       Notification.createNext(1),
       Notification.createNext(2),
@@ -447,16 +435,15 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     const result1 = txc.run('RETURN 1')
     const result2 = txc.run('RETURN 2')
     const result3 = txc.run('RETURN 3')
     const result4 = txc.run('RETURN 4')
 
-    const result = await result4
-      .records()
-      .pipe(
+    const result = await lastValueFrom(
+      result4.records().pipe(
         concat(result3.records()),
         concat(result2.records()),
         concat(result1.records()),
@@ -464,7 +451,7 @@ describe('#integration-rx transaction', () => {
         materialize(),
         toArray()
       )
-      .toPromise()
+    )
     expect(result).toEqual([
       Notification.createNext(4),
       Notification.createNext(3),
@@ -491,20 +478,19 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
     const result = txc.run('RETURN Wrong')
 
-    const messages = await result
-      .records()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const messages = await lastValueFrom(
+      result.records().pipe(materialize(), toArray())
+    )
     expect(messages).toEqual([
       Notification.createError(
         jasmine.stringMatching(/Variable `Wrong` not defined/)
       )
     ])
 
-    const summary = await result.consume().toPromise()
+    const summary = await lastValueFrom(result.consume())
     expect(summary).toBeTruthy()
   })
 
@@ -513,7 +499,7 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     txc.run('RETURN ILLEGAL')
 
@@ -525,15 +511,16 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
     await verifyCanCreateNode(txc, 15)
     await verifyCanCommitOrRollback(txc, commit)
 
-    const result = await txc
-      .run('CREATE ()')
-      .records()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc
+        .run('CREATE ()')
+        .records()
+        .pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.objectContaining({
@@ -550,20 +537,11 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
-    await txc
-      .run('CREATE (n:Node {id: 1})')
-      .consume()
-      .toPromise()
-    await txc
-      .run('CREATE (n:Node {id: 2})')
-      .consume()
-      .toPromise()
-    await txc
-      .run('CREATE (n:Node {id: 1})')
-      .consume()
-      .toPromise()
+    await lastValueFrom(txc.run('CREATE (n:Node {id: 1})').consume())
+    await lastValueFrom(txc.run('CREATE (n:Node {id: 2})').consume())
+    await lastValueFrom(txc.run('CREATE (n:Node {id: 1})').consume())
 
     await verifyCanCommitOrRollback(txc, commit)
     await verifyCommittedOrRollbacked(commit)
@@ -574,21 +552,22 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     const result1 = txc.run('CREATE (n:Node {id: 1})')
     const result2 = txc.run('CREATE (n:Node {id: 2})')
     const result3 = txc.run('CREATE (n:Node {id: 1})')
 
-    const results = await result1
-      .records()
-      .pipe(
-        concat(result2.records()),
-        concat(result3.records()),
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const results = await lastValueFrom(
+      result1
+        .records()
+        .pipe(
+          concat(result2.records()),
+          concat(result3.records()),
+          materialize(),
+          toArray()
+        )
+    )
     expect(results).toEqual([Notification.createComplete()])
 
     await verifyCanCommitOrRollback(txc, commit)
@@ -600,21 +579,22 @@ describe('#integration-rx transaction', () => {
       return
     }
 
-    const txc = await session.beginTransaction().toPromise()
+    const txc = await lastValueFrom(session.beginTransaction())
 
     const result1 = txc.run('CREATE (n:Node {id: 1})')
     const result2 = txc.run('CREATE (n:Node {id: 2})')
     const result3 = txc.run('CREATE (n:Node {id: 1})')
 
-    const results = await result1
-      .keys()
-      .pipe(
-        concat(result2.keys()),
-        concat(result3.keys()),
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const results = await lastValueFrom(
+      result1
+        .keys()
+        .pipe(
+          concat(result2.keys()),
+          concat(result3.keys()),
+          materialize(),
+          toArray()
+        )
+    )
     expect(results).toEqual([
       Notification.createNext([]),
       Notification.createNext([]),
@@ -627,18 +607,16 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanCommit (txc) {
-    const result = await txc
-      .commit()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.commit().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([Notification.createComplete()])
   }
 
   async function verifyCanRollback (txc) {
-    const result = await txc
-      .rollback()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc.rollback().pipe(materialize(), toArray())
+    )
     expect(result).toEqual([Notification.createComplete()])
   }
 
@@ -651,15 +629,16 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanCreateNode (txc, id) {
-    const result = await txc
-      .run('CREATE (n:Node {id: $id}) RETURN n', { id: neo4j.int(id) })
-      .records()
-      .pipe(
-        map(r => r.get('n').properties.id),
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result = await lastValueFrom(
+      txc
+        .run('CREATE (n:Node {id: $id}) RETURN n', { id: neo4j.int(id) })
+        .records()
+        .pipe(
+          map(r => r.get('n').properties.id),
+          materialize(),
+          toArray()
+        )
+    )
     expect(result).toEqual([
       Notification.createNext(neo4j.int(id)),
       Notification.createComplete()
@@ -667,15 +646,16 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyCanReturnOne (txc) {
-    const result = await txc
-      .run('RETURN 1')
-      .records()
-      .pipe(
-        map(r => r.get(0)),
-        materialize(),
-        toArray()
-      )
-      .toPromise()
+    const result = await lastValueFrom(
+      txc
+        .run('RETURN 1')
+        .records()
+        .pipe(
+          map(r => r.get(0)),
+          materialize(),
+          toArray()
+        )
+    )
     expect(result).toEqual([
       Notification.createNext(neo4j.int(1)),
       Notification.createComplete()
@@ -683,11 +663,12 @@ describe('#integration-rx transaction', () => {
   }
 
   async function verifyFailsWithWrongQuery (txc) {
-    const result = await txc
-      .run('RETURN')
-      .records()
-      .pipe(materialize(), toArray())
-      .toPromise()
+    const result = await lastValueFrom(
+      txc
+        .run('RETURN')
+        .records()
+        .pipe(materialize(), toArray())
+    )
     expect(result).toEqual([
       Notification.createError(
         jasmine.stringMatching(/Unexpected end of input|Invalid input/)
@@ -707,13 +688,14 @@ describe('#integration-rx transaction', () => {
 
   async function countNodes (id) {
     const session = driver.rxSession()
-    return await session
-      .run('MATCH (n:Node {id: $id}) RETURN count(n)', { id: id })
-      .records()
-      .pipe(
-        map(r => r.get(0).toInt()),
-        concat(session.close())
-      )
-      .toPromise()
+    return await lastValueFrom(
+      session
+        .run('MATCH (n:Node {id: $id}) RETURN count(n)', { id: id })
+        .records()
+        .pipe(
+          map(r => r.get(0).toInt()),
+          concat(session.close())
+        )
+    )
   }
 })
