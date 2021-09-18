@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { lastValueFrom, Notification, throwError } from 'rxjs'
+import { lastValueFrom, throwError } from 'rxjs'
 import { map, materialize, toArray, concatWith as concat } from 'rxjs/operators'
 import neo4j from '../../src'
 import sharedNeo4j from '../internal/shared-neo4j'
@@ -66,11 +66,11 @@ describe('#integration rx-session', () => {
     )
 
     expect(result).toEqual([
-      Notification.createNext(1),
-      Notification.createNext(2),
-      Notification.createNext(3),
-      Notification.createNext(4),
-      Notification.createComplete()
+      { kind: 'N', value: 1 },
+      { kind: 'N', value: 2 },
+      { kind: 'N', value: 3 },
+      { kind: 'N', value: 4 },
+      { kind: 'C' }
     ])
   }, 60000)
 
@@ -86,7 +86,7 @@ describe('#integration rx-session', () => {
         .pipe(materialize(), toArray())
     )
     expect(result1).toEqual([
-      Notification.createError(jasmine.stringMatching(/Invalid input/))
+      { kind: 'E', error: jasmine.stringMatching(/Invalid input/) }
     ])
 
     const result2 = await lastValueFrom(
@@ -99,10 +99,7 @@ describe('#integration rx-session', () => {
           toArray()
         )
     )
-    expect(result2).toEqual([
-      Notification.createNext(1),
-      Notification.createComplete()
-    ])
+    expect(result2).toEqual([{ kind: 'N', value: 1 }, { kind: 'C' }])
   }, 60000)
 
   it('should run transactions without retries', async () => {
@@ -119,10 +116,7 @@ describe('#integration rx-session', () => {
         .writeTransaction(txc => txcWork.work(txc))
         .pipe(materialize(), toArray())
     )
-    expect(result).toEqual([
-      Notification.createNext(5),
-      Notification.createComplete()
-    ])
+    expect(result).toEqual([{ kind: 'N', value: 5 }, { kind: 'C' }])
 
     expect(txcWork.invocations).toBe(1)
     expect(await countNodes('WithoutRetry')).toBe(1)
@@ -147,10 +141,7 @@ describe('#integration rx-session', () => {
         .writeTransaction(txc => txcWork.work(txc))
         .pipe(materialize(), toArray())
     )
-    expect(result).toEqual([
-      Notification.createNext(7),
-      Notification.createComplete()
-    ])
+    expect(result).toEqual([{ kind: 'N', value: 7 }, { kind: 'C' }])
 
     expect(txcWork.invocations).toBe(4)
     expect(await countNodes('WithReactiveFailure')).toBe(1)
@@ -175,10 +166,7 @@ describe('#integration rx-session', () => {
         .writeTransaction(txc => txcWork.work(txc))
         .pipe(materialize(), toArray())
     )
-    expect(result).toEqual([
-      Notification.createNext(9),
-      Notification.createComplete()
-    ])
+    expect(result).toEqual([{ kind: 'N', value: 9 }, { kind: 'C' }])
 
     expect(txcWork.invocations).toBe(4)
     expect(await countNodes('WithSyncFailure')).toBe(1)
@@ -199,9 +187,9 @@ describe('#integration rx-session', () => {
         .pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createNext(1),
-      Notification.createNext(2),
-      Notification.createError(jasmine.stringMatching(/\/ by zero/))
+      { kind: 'N', value: 1 },
+      { kind: 'N', value: 2 },
+      { kind: 'E', error: jasmine.stringMatching(/\/ by zero/) }
     ])
 
     expect(txcWork.invocations).toBe(1)
@@ -232,7 +220,7 @@ describe('#integration rx-session', () => {
         .pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(jasmine.stringMatching(/a database error/))
+      { kind: 'E', error: jasmine.stringMatching(/a database error/) }
     ])
 
     expect(txcWork.invocations).toBe(2)

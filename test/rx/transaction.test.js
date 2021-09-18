@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { lastValueFrom, Notification } from 'rxjs'
+import { lastValueFrom } from 'rxjs'
 import {
   mergeMap as flatMap,
   materialize,
@@ -66,7 +66,7 @@ describe('#integration-rx transaction', () => {
       )
     )
 
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([{ kind: 'C' }])
   })
 
   it('should rollback an empty transaction', async () => {
@@ -82,7 +82,7 @@ describe('#integration-rx transaction', () => {
       )
     )
 
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([{ kind: 'C' }])
   })
 
   it('should run query and commit', async () => {
@@ -105,10 +105,7 @@ describe('#integration-rx transaction', () => {
         toArray()
       )
     )
-    expect(result).toEqual([
-      Notification.createNext(neo4j.int(42)),
-      Notification.createComplete()
-    ])
+    expect(result).toEqual([{ kind: 'N', value: neo4j.int(42) }, { kind: 'C' }])
 
     expect(await countNodes(42)).toBe(1)
   })
@@ -133,10 +130,7 @@ describe('#integration-rx transaction', () => {
         toArray()
       )
     )
-    expect(result).toEqual([
-      Notification.createNext(neo4j.int(42)),
-      Notification.createComplete()
-    ])
+    expect(result).toEqual([{ kind: 'N', value: neo4j.int(42) }, { kind: 'C' }])
 
     expect(await countNodes(42)).toBe(0)
   })
@@ -178,13 +172,14 @@ describe('#integration-rx transaction', () => {
       txc.commit().pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
+      {
+        kind: 'E',
+        error: jasmine.objectContaining({
           message: jasmine.stringMatching(
             /Cannot commit this transaction, because .* of an error/
           )
         })
-      )
+      }
     ])
   })
 
@@ -200,7 +195,7 @@ describe('#integration-rx transaction', () => {
     const result = await lastValueFrom(
       txc.rollback().pipe(materialize(), toArray())
     )
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([{ kind: 'C' }])
   })
 
   it('should fail to commit after successful and failed query', async () => {
@@ -218,13 +213,14 @@ describe('#integration-rx transaction', () => {
       txc.commit().pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
+      {
+        kind: 'E',
+        error: jasmine.objectContaining({
           message: jasmine.stringMatching(
             /Cannot commit this transaction, because .* of an error/
           )
         })
-      )
+      }
     ])
   })
 
@@ -242,7 +238,7 @@ describe('#integration-rx transaction', () => {
     const result = await lastValueFrom(
       txc.rollback().pipe(materialize(), toArray())
     )
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([{ kind: 'C' }])
   })
 
   it('should fail to run another query after a failed one', async () => {
@@ -261,13 +257,14 @@ describe('#integration-rx transaction', () => {
         .pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
+      {
+        kind: 'E',
+        error: jasmine.objectContaining({
           message: jasmine.stringMatching(
             /Cannot run query in this transaction, because .* of an error/
           )
         })
-      )
+      }
     ])
   })
 
@@ -285,13 +282,14 @@ describe('#integration-rx transaction', () => {
       txc.commit().pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
+      {
+        kind: 'E',
+        error: jasmine.objectContaining({
           message: jasmine.stringMatching(
             /Cannot commit this transaction, because .* committed/
           )
         })
-      )
+      }
     ])
   })
 
@@ -309,13 +307,14 @@ describe('#integration-rx transaction', () => {
       txc.rollback().pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
+      {
+        kind: 'E',
+        error: jasmine.objectContaining({
           message: jasmine.stringMatching(
             /Cannot rollback this transaction, because .* rolled back/
           )
         })
-      )
+      }
     ])
   })
 
@@ -333,13 +332,14 @@ describe('#integration-rx transaction', () => {
       txc.rollback().pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
+      {
+        kind: 'E',
+        error: jasmine.objectContaining({
           message: jasmine.stringMatching(
             /Cannot rollback this transaction, because .* committed/
           )
         })
-      )
+      }
     ])
   })
 
@@ -357,13 +357,14 @@ describe('#integration-rx transaction', () => {
       txc.commit().pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
+      {
+        kind: 'E',
+        error: jasmine.objectContaining({
           message: jasmine.stringMatching(
             /Cannot commit this transaction, because .* rolled back/
           )
         })
-      )
+      }
     ])
   })
 
@@ -422,9 +423,9 @@ describe('#integration-rx transaction', () => {
       )
     )
     expect(result).toEqual([
-      Notification.createNext(1),
-      Notification.createNext(2),
-      Notification.createError(newError('/ by zero'))
+      { kind: 'N', value: 1 },
+      { kind: 'N', value: 2 },
+      { kind: 'E', error: newError('/ by zero') }
     ])
 
     await verifyCanRollback(txc)
@@ -453,11 +454,11 @@ describe('#integration-rx transaction', () => {
       )
     )
     expect(result).toEqual([
-      Notification.createNext(4),
-      Notification.createNext(3),
-      Notification.createNext(2),
-      Notification.createNext(1),
-      Notification.createComplete()
+      { kind: 'N', value: 4 },
+      { kind: 'N', value: 3 },
+      { kind: 'N', value: 2 },
+      { kind: 'N', value: 1 },
+      { kind: 'C' }
     ])
 
     await verifyCanCommit(txc)
@@ -485,9 +486,10 @@ describe('#integration-rx transaction', () => {
       result.records().pipe(materialize(), toArray())
     )
     expect(messages).toEqual([
-      Notification.createError(
-        jasmine.stringMatching(/Variable `Wrong` not defined/)
-      )
+      {
+        kind: 'E',
+        error: jasmine.stringMatching(/Variable `Wrong` not defined/)
+      }
     ])
 
     const summary = await lastValueFrom(result.consume())
@@ -522,13 +524,14 @@ describe('#integration-rx transaction', () => {
         .pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.objectContaining({
+      {
+        kind: 'E',
+        error: jasmine.objectContaining({
           message: jasmine.stringMatching(
             /Cannot run query in this transaction, because/
           )
         })
-      )
+      }
     ])
   }
 
@@ -568,7 +571,7 @@ describe('#integration-rx transaction', () => {
           toArray()
         )
     )
-    expect(results).toEqual([Notification.createComplete()])
+    expect(results).toEqual([{ kind: 'C' }])
 
     await verifyCanCommitOrRollback(txc, commit)
     await verifyCommittedOrRollbacked(commit)
@@ -596,10 +599,10 @@ describe('#integration-rx transaction', () => {
         )
     )
     expect(results).toEqual([
-      Notification.createNext([]),
-      Notification.createNext([]),
-      Notification.createNext([]),
-      Notification.createComplete()
+      { kind: 'N', value: [] },
+      { kind: 'N', value: [] },
+      { kind: 'N', value: [] },
+      { kind: 'C' }
     ])
 
     await verifyCanCommitOrRollback(txc, commit)
@@ -610,14 +613,14 @@ describe('#integration-rx transaction', () => {
     const result = await lastValueFrom(
       txc.commit().pipe(materialize(), toArray())
     )
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([{ kind: 'C' }])
   }
 
   async function verifyCanRollback (txc) {
     const result = await lastValueFrom(
       txc.rollback().pipe(materialize(), toArray())
     )
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([{ kind: 'C' }])
   }
 
   async function verifyCanCommitOrRollback (txc, commit) {
@@ -639,10 +642,7 @@ describe('#integration-rx transaction', () => {
           toArray()
         )
     )
-    expect(result).toEqual([
-      Notification.createNext(neo4j.int(id)),
-      Notification.createComplete()
-    ])
+    expect(result).toEqual([{ kind: 'N', value: neo4j.int(id) }, { kind: 'C' }])
   }
 
   async function verifyCanReturnOne (txc) {
@@ -656,10 +656,7 @@ describe('#integration-rx transaction', () => {
           toArray()
         )
     )
-    expect(result).toEqual([
-      Notification.createNext(neo4j.int(1)),
-      Notification.createComplete()
-    ])
+    expect(result).toEqual([{ kind: 'N', value: neo4j.int(1) }, { kind: 'C' }])
   }
 
   async function verifyFailsWithWrongQuery (txc) {
@@ -670,9 +667,10 @@ describe('#integration-rx transaction', () => {
         .pipe(materialize(), toArray())
     )
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.stringMatching(/Unexpected end of input|Invalid input/)
-      )
+      {
+        kind: 'E',
+        error: jasmine.stringMatching(/Unexpected end of input|Invalid input/)
+      }
     ])
   }
 

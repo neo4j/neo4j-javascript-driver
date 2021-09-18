@@ -21,7 +21,7 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import { map, materialize, toArray } from 'rxjs/operators'
-import { Notification, lastValueFrom } from 'rxjs'
+import { lastValueFrom } from 'rxjs'
 
 /**
  * The tests below are examples that get pulled into the Driver Manual using the tags inside the tests.
@@ -145,10 +145,7 @@ describe('#integration examples', () => {
     // end::rx-autocommit-transaction[]
     const result = await lastValueFrom(readProductTitles())
 
-    expect(result).toEqual([
-      Notification.createNext('Product-0'),
-      Notification.createComplete()
-    ])
+    expect(result).toEqual([{ kind: 'N', value: 'Product-0' }, { kind: 'C' }])
   }, 60000)
 
   it('basic auth example', async () => {
@@ -625,9 +622,9 @@ describe('#integration examples', () => {
 
     const people = await lastValueFrom(result)
     expect(people).toEqual([
-      Notification.createNext('Alice'),
-      Notification.createNext('Bob'),
-      Notification.createComplete()
+      { kind: 'N', value: 'Alice' },
+      { kind: 'N', value: 'Bob' },
+      { kind: 'C' }
     ])
   }, 60000)
 
@@ -804,9 +801,9 @@ describe('#integration examples', () => {
 
     const people = await lastValueFrom(result)
     expect(people).toEqual([
-      Notification.createNext('Infinity Gauntlet'),
-      Notification.createNext('Mjölnir'),
-      Notification.createComplete()
+      { kind: 'N', value: 'Infinity Gauntlet' },
+      { kind: 'N', value: 'Mjölnir' },
+      { kind: 'C' }
     ])
   }, 60000)
 

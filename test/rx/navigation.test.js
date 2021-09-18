@@ -18,7 +18,7 @@
  */
 import neo4j from '../../src'
 import sharedNeo4j from '../internal/shared-neo4j'
-import { lastValueFrom, Notification } from 'rxjs'
+import { lastValueFrom } from 'rxjs'
 import { materialize, toArray, map } from 'rxjs/operators'
 
 describe('#integration-rx navigation', () => {
@@ -372,8 +372,8 @@ describe('#integration-rx navigation', () => {
     )
 
     expect(result).toEqual([
-      Notification.createNext(['f1', 'f2', 'f3']),
-      Notification.createComplete()
+      { kind: 'N', value: ['f1', 'f2', 'f3'] },
+      { kind: 'C' }
     ])
   }
 
@@ -587,10 +587,7 @@ describe('#integration-rx navigation', () => {
         .keys()
         .pipe(materialize(), toArray())
     )
-    expect(keys).toEqual([
-      Notification.createNext([]),
-      Notification.createComplete()
-    ])
+    expect(keys).toEqual([{ kind: 'N', value: [] }, { kind: 'C' }])
   }
 
   /**
@@ -792,8 +789,8 @@ describe('#integration-rx navigation', () => {
       result.keys().pipe(materialize(), toArray())
     )
     expect(keys).toEqual([
-      Notification.createNext(['number', 'text']),
-      Notification.createComplete()
+      { kind: 'N', value: ['number', 'text'] },
+      { kind: 'C' }
     ])
   }
 
@@ -806,12 +803,12 @@ describe('#integration-rx navigation', () => {
       )
     )
     expect(records).toEqual([
-      Notification.createNext([neo4j.int(1), 't1']),
-      Notification.createNext([neo4j.int(2), 't2']),
-      Notification.createNext([neo4j.int(3), 't3']),
-      Notification.createNext([neo4j.int(4), 't4']),
-      Notification.createNext([neo4j.int(5), 't5']),
-      Notification.createComplete()
+      { kind: 'N', value: [neo4j.int(1), 't1'] },
+      { kind: 'N', value: [neo4j.int(2), 't2'] },
+      { kind: 'N', value: [neo4j.int(3), 't3'] },
+      { kind: 'N', value: [neo4j.int(4), 't4'] },
+      { kind: 'N', value: [neo4j.int(5), 't5'] },
+      { kind: 'C' }
     ])
   }
 
@@ -824,14 +821,14 @@ describe('#integration-rx navigation', () => {
       )
     )
     expect(summary).toEqual([
-      Notification.createNext(expectedQueryType),
-      Notification.createComplete()
+      { kind: 'N', value: expectedQueryType },
+      { kind: 'C' }
     ])
   }
 
   async function collectAndAssertEmpty (stream) {
     const result = await lastValueFrom(stream.pipe(materialize(), toArray()))
-    expect(result).toEqual([Notification.createComplete()])
+    expect(result).toEqual([{ kind: 'C' }])
   }
 
   /**
@@ -842,6 +839,6 @@ describe('#integration-rx navigation', () => {
   async function collectAndAssertError (stream, expectedError) {
     const result = await lastValueFrom(stream.pipe(materialize(), toArray()))
 
-    expect(result).toEqual([Notification.createError(expectedError)])
+    expect(result).toEqual([{ kind: 'E', error: expectedError }])
   }
 })

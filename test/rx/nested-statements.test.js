@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { lastValueFrom, Notification, throwError } from 'rxjs'
+import { lastValueFrom, throwError } from 'rxjs'
 import {
   mergeMap as flatMap,
   materialize,
@@ -28,7 +28,6 @@ import {
   catchError
 } from 'rxjs/operators'
 import neo4j from '../../src'
-import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 
 describe('#integration-rx transaction', () => {
@@ -90,7 +89,7 @@ describe('#integration-rx transaction', () => {
     )
 
     expect(messages.length).toBe(size + 1)
-    expect(messages[size]).toEqual(Notification.createComplete())
+    expect(messages[size]).toEqual({ kind: 'C' })
   })
 
   it('should give proper error when nesting queries within one session', async () => {
@@ -120,11 +119,12 @@ describe('#integration-rx transaction', () => {
     )
 
     expect(result).toEqual([
-      Notification.createError(
-        jasmine.stringMatching(
+      {
+        kind: 'E',
+        error: jasmine.stringMatching(
           /Queries cannot be run directly on a session with an open transaction/
         )
-      )
+      }
     ])
   })
 })
