@@ -245,7 +245,7 @@ describe('#unit-rx retrylogic', () => {
         clock.tick(delayBy)
       }
       if (index < errors.length) {
-        return throwError(errors[index++])
+        return throwError(() => errors[index++])
       } else {
         return of(value)
       }

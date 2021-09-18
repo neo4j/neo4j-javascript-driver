@@ -112,7 +112,7 @@ result1
   .consume()
   .pipe(
     concat(close1),
-    catchError(err => close1.pipe(concat(throwError(err))))
+    catchError(err => close1.pipe(concat(throwError(() => err))))
   )
   .subscribe(summaryObserver)
 
@@ -123,7 +123,7 @@ result2
   .consume()
   .pipe(
     concat(close1),
-    catchError(err => close1.pipe(concat(throwError(err))))
+    catchError(err => close1.pipe(concat(throwError(() => err))))
   )
   .subscribe(summaryObserver)
 
@@ -138,7 +138,7 @@ result3
   .consume()
   .pipe(
     concat(close1),
-    catchError(err => close1.pipe(concat(throwError(err))))
+    catchError(err => close1.pipe(concat(throwError(() => err))))
   )
   .subscribe(summaryObserver)
 

@@ -82,7 +82,7 @@ export default class RxRetryLogic {
         return failedWork.pipe(
           flatMap(err => {
             if (!canRetryOn(err)) {
-              return throwError(err)
+              return throwError(() => err)
             }
 
             handledExceptions.push(err)
@@ -98,7 +98,7 @@ export default class RxRetryLogic {
 
               error.seenErrors = handledExceptions
 
-              return throwError(error)
+              return throwError(() => error)
             }
 
             const nextDelayDuration = this._computeNextDelay(delayDuration)

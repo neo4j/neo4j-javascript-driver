@@ -80,7 +80,9 @@ describe('#integration-rx transaction', () => {
               ),
               map(r => r.get(0)),
               concat(txc.commit()),
-              catchError(err => txc.rollback().pipe(concat(throwError(err)))),
+              catchError(err =>
+                txc.rollback().pipe(concat(throwError(() => err)))
+              ),
               materialize(),
               toArray()
             )

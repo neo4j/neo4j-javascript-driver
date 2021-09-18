@@ -141,7 +141,7 @@ rxSession1
   .pipe(
     map(r => r.get(0)),
     concat(rxSession1.close()),
-    catchError(err => rxSession1.close().pipe(concat(throwError(err))))
+    catchError(err => rxSession1.close().pipe(concat(throwError(() => err))))
   )
   .subscribe({
     next: data => console.log(data),

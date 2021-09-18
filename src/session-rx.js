@@ -177,10 +177,12 @@ export default class RxSession {
             try {
               return work(txc)
             } catch (err) {
-              return throwError(err)
+              return throwError(() => err)
             }
           }).pipe(
-            catchError(err => txc.rollback().pipe(concat(throwError(err)))),
+            catchError(err =>
+              txc.rollback().pipe(concat(throwError(() => err)))
+            ),
             concat(txc.commit())
           )
         )

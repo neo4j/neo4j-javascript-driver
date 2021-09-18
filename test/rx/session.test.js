@@ -264,7 +264,9 @@ describe('#integration rx-session', () => {
       }
 
       if (this._reactiveFailuresIndex < this._reactiveFailures.length) {
-        return throwError(this._reactiveFailures[this._reactiveFailuresIndex++])
+        return throwError(
+          () => this._reactiveFailures[this._reactiveFailuresIndex++]
+        )
       }
 
       return txc
