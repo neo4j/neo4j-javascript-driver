@@ -128,10 +128,9 @@ export default class RxSession {
    * @private
    */
   _beginTransaction (accessMode, transactionConfig) {
-    let txConfig = TxConfig.empty()
-    if (transactionConfig) {
-      txConfig = new TxConfig(transactionConfig)
-    }
+    const txConfig = transactionConfig
+      ? new TxConfig(transactionConfig)
+      : TxConfig.empty()
 
     return defer(() => [
       new RxTransaction(this._session._beginTransaction(accessMode, txConfig))
@@ -142,11 +141,6 @@ export default class RxSession {
    * @private
    */
   _runTransaction (accessMode, work, transactionConfig) {
-    let txConfig = TxConfig.empty()
-    if (transactionConfig) {
-      txConfig = new TxConfig(transactionConfig)
-    }
-
     return this._retryLogic.retry(
       this._beginTransaction(accessMode, transactionConfig).pipe(
         flatMap(txc =>
