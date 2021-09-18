@@ -18,7 +18,7 @@
  */
 import { newError, Record, ResultSummary } from 'neo4j-driver-core'
 import { Observable, Subject, ReplaySubject, from } from 'rxjs'
-import { mergeMap as flatMap, publishReplay, refCount } from 'rxjs/operators'
+import { mergeMap as flatMap, shareReplay } from 'rxjs/operators'
 
 const States = {
   READY: 0,
@@ -36,13 +36,12 @@ export default class RxResult {
    * @param {Observable<Result>} result - An observable of single Result instance to relay requests.
    */
   constructor (result) {
-    const replayedResult = result.pipe(publishReplay(1), refCount())
+    const replayedResult = result.pipe(shareReplay(1))
 
     this._result = replayedResult
     this._keys = replayedResult.pipe(
       flatMap(r => from(r.keys())),
-      publishReplay(1),
-      refCount()
+      shareReplay(1)
     )
     this._records = new Subject()
     this._summary = new ReplaySubject()
