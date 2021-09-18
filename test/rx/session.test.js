@@ -18,7 +18,7 @@
  */
 
 import { Notification, throwError } from 'rxjs'
-import { map, materialize, toArray, concat } from 'rxjs/operators'
+import { map, materialize, toArray, concatWith as concat } from 'rxjs/operators'
 import neo4j from '../../src'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { newError, error } from 'neo4j-driver-core'

@@ -222,7 +222,7 @@ rxSession
   .records()
   .pipe(
     map(record => record.get('name')),
-    concat(rxSession.close())
+    concatWith(rxSession.close())
   )
   .subscribe({
     next: data => console.log(data),

@@ -29,7 +29,7 @@ import Driver, {
 import { Parameters } from '../../types/query-runner'
 import { ServerInfo, Session } from 'neo4j-driver-core'
 import RxSession from '../../types/session-rx'
-import { concat, map, catchError } from 'rxjs/operators'
+import { concatWith as concat, map, catchError } from 'rxjs/operators'
 import { throwError } from 'rxjs'
 
 const dummy: any = null

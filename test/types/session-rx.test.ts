@@ -27,7 +27,7 @@ import {
   TransactionConfig
 } from 'neo4j-driver-core'
 import { Observable, of, Observer, throwError } from 'rxjs'
-import { concat, finalize, catchError } from 'rxjs/operators'
+import { concatWith as concat, finalize, catchError } from 'rxjs/operators'
 
 const dummy: any = null
 const intValue: Integer = Integer.fromInt(42)

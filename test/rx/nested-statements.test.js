@@ -22,7 +22,7 @@ import {
   mergeMap as flatMap,
   materialize,
   toArray,
-  concat,
+  concatWith as concat,
   map,
   bufferCount,
   catchError

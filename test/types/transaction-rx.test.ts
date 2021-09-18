@@ -20,8 +20,8 @@
 import RxTransaction from '../../types/transaction-rx'
 import { Record, ResultSummary } from 'neo4j-driver-core'
 import RxResult from '../../types/result-rx'
-import { Observable, of, Observer, throwError } from 'rxjs'
-import { concat, finalize, catchError } from 'rxjs/operators'
+import { of, Observer } from 'rxjs'
+import { concatWith as concat } from 'rxjs/operators'
 
 const dummy: any = null
 
