@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defer, Observable, throwError } from 'rxjs'
+import { defer, from, Observable, throwError } from 'rxjs'
 import {
   mergeMap as flatMap,
   catchError,
@@ -60,16 +60,7 @@ export default class RxSession {
    */
   run (query, parameters, transactionConfig) {
     return new RxResult(
-      new Observable(observer => {
-        try {
-          observer.next(this._session.run(query, parameters, transactionConfig))
-          observer.complete()
-        } catch (err) {
-          observer.error(err)
-        }
-
-        return () => {}
-      })
+      defer(() => [this._session.run(query, parameters, transactionConfig)])
     )
   }
 
@@ -115,14 +106,7 @@ export default class RxSession {
    * @returns {Observable} - An empty reactive stream
    */
   close () {
-    return new Observable(observer => {
-      this._session
-        .close()
-        .then(() => {
-          observer.complete()
-        })
-        .catch(err => observer.error(err))
-    })
+    return from(this._session.close())
   }
 
   /**
@@ -149,20 +133,9 @@ export default class RxSession {
       txConfig = new TxConfig(transactionConfig)
     }
 
-    return new Observable(observer => {
-      try {
-        observer.next(
-          new RxTransaction(
-            this._session._beginTransaction(accessMode, txConfig)
-          )
-        )
-        observer.complete()
-      } catch (err) {
-        observer.error(err)
-      }
-
-      return () => {}
-    })
+    return defer(() => [
+      new RxTransaction(this._session._beginTransaction(accessMode, txConfig))
+    ])
   }
 
   /**
