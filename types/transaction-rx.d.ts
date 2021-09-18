@@ -23,9 +23,9 @@ import RxResult from './result-rx'
 declare interface RxTransaction {
   run(query: string, parameters?: Parameters): RxResult
 
-  commit(): Observable<any>
+  commit(): Observable<void>
 
-  rollback(): Observable<any>
+  rollback(): Observable<void>
 }
 
 export default RxTransaction

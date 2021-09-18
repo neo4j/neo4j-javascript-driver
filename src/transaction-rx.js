@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Observable } from 'rxjs'
+import { defer, from, Observable } from 'rxjs'
 import RxResult from './result-rx'
 import Transaction from 'neo4j-driver-core'
 
@@ -41,53 +41,27 @@ export default class RxTransaction {
    * @param {Object} parameters - Parameter values to use in query execution.
    * @returns {RxResult} - A reactive result
    */
-
   run (query, parameters) {
-    return new RxResult(
-      new Observable(observer => {
-        try {
-          observer.next(this._txc.run(query, parameters))
-          observer.complete()
-        } catch (err) {
-          observer.error(err)
-        }
-
-        return () => {}
-      })
-    )
+    return new RxResult(defer(() => [this._txc.run(query, parameters)]))
   }
 
   /**
    *  Commits the transaction.
    *
    * @public
-   * @returns {Observable} - An empty observable
+   * @returns {Observable<void>} - An empty observable
    */
   commit () {
-    return new Observable(observer => {
-      this._txc
-        .commit()
-        .then(() => {
-          observer.complete()
-        })
-        .catch(err => observer.error(err))
-    })
+    return from(this._txc.commit())
   }
 
   /**
    *  Rolls back the transaction.
    *
    * @public
-   * @returns {Observable} - An empty observable
+   * @returns {Observable<void>} - An empty observable
    */
   rollback () {
-    return new Observable(observer => {
-      this._txc
-        .rollback()
-        .then(() => {
-          observer.complete()
-        })
-        .catch(err => observer.error(err))
-    })
+    return from(this._txc.rollback())
   }
 }
