@@ -77,7 +77,7 @@ export default class RxSession {
    * Starts a new explicit transaction with the provided transaction configuration.
    *
    * @public
-   * @param {TransactionConfig} transactionConfig - Configuration for the new transaction.
+   * @param {TransactionConfig} [transactionConfig] - Configuration for the new transaction.
    * @returns {Observable<RxTransaction>} - A reactive stream that will generate at most **one** RxTransaction instance.
    */
   beginTransaction (transactionConfig) {
@@ -89,7 +89,7 @@ export default class RxSession {
    * transaction configuration.
    * @public
    * @param {function(txc: RxTransaction): Observable} work - A unit of work to be executed.
-   * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
+   * @param {TransactionConfig} [transactionConfig] - Configuration for the enclosing transaction created by the driver.
    * @returns {Observable} - A reactive stream returned by the unit of work.
    */
   readTransaction (work, transactionConfig) {
