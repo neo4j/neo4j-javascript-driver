@@ -373,7 +373,7 @@ try {
 rxSession
   .beginTransaction()
   .pipe(
-    flatMap(txc =>
+    mergeMap(txc =>
       concat(
         txc
           .run(

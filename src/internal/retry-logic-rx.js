@@ -19,7 +19,7 @@
 
 import { newError, error, internal } from 'neo4j-driver-core'
 import { Observable, throwError, of } from 'rxjs'
-import { retryWhen, flatMap, delay } from 'rxjs/operators'
+import { retryWhen, mergeMap as flatMap, delay } from 'rxjs/operators'
 
 const {
   logger: {

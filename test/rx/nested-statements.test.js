@@ -19,7 +19,7 @@
 
 import { Notification, throwError } from 'rxjs'
 import {
-  flatMap,
+  mergeMap as flatMap,
   materialize,
   toArray,
   concat,

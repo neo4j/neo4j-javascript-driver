@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { defer, Observable, throwError } from 'rxjs'
-import { flatMap, catchError, concat } from 'rxjs/operators'
+import { mergeMap as flatMap, catchError, concat } from 'rxjs/operators'
 import RxResult from './result-rx'
 import { Session, internal } from 'neo4j-driver-core'
 import RxTransaction from './transaction-rx'

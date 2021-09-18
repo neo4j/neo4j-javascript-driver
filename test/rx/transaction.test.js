@@ -17,18 +17,15 @@
  * limitations under the License.
  */
 
-import { Notification, throwError } from 'rxjs'
+import { Notification } from 'rxjs'
 import {
-  flatMap,
+  mergeMap as flatMap,
   materialize,
   toArray,
   concat,
-  map,
-  bufferCount,
-  catchError
+  map
 } from 'rxjs/operators'
 import neo4j from '../../src'
-import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { newError } from 'neo4j-driver-core'
 
