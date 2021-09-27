@@ -18,3 +18,4 @@ coverage
 .vscode
 *.code-workspace
 /testkit/CAs
+/testkit/CustomCAs

@@ -14,7 +14,7 @@ const SUPPORTED_TLS = (() => {
   return result;
 })();
 
-export function NewDriver (context, data, { writeResponse }) {
+export function NewDriver (context, data, wire) {
   const {
     uri,
     authorizationToken: { data: authToken },
@@ -48,17 +48,39 @@ export function NewDriver (context, data, { writeResponse }) {
     ? address =>
       new Promise((resolve, reject) => {
         const id = context.addResolverRequest(resolve, reject)
-        writeResponse('ResolverResolutionRequired', { id, address })
+        wire.writeResponse('ResolverResolutionRequired', { id, address })
       })
     : undefined
-  const driver = neo4j.driver(uri, parsedAuthToken, {
+  const config = {
     userAgent,
     resolver,
     useBigInt: true,
     logging: neo4j.logging.console(process.env.LOG_LEVEL)
-  })
+  }
+  if ('encrypted' in data) {
+    config.encrypted = data.encrypted ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF'
+  }
+  if ('trustedCertificates' in data) {
+    if (data.trustedCertificates === null) {
+      config.trust = 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+    } else if (data.trustedCertificates.length === 0) {
+      config.trust = 'TRUST_ALL_CERTIFICATES'
+    } else {
+      config.trust = 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
+      config.trustedCertificates = data.trustedCertificates.map(
+        e => '/usr/local/share/custom-ca-certificates/' + e
+      )
+    }
+  }
+  let driver
+  try {
+    driver = neo4j.driver(uri, parsedAuthToken, config)
+  } catch (err) {
+    wire.writeError(err)
+    return
+  }
   const id = context.addDriver(driver)
-  writeResponse('Driver', { id })
+  wire.writeResponse('Driver', { id })
 }
 
 export function DriverClose (context, data, wire) {
@@ -276,6 +298,8 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Auth:Custom',
       'Feature:Auth:Kerberos',
       'Feature:Auth:Bearer',
+      'Feature:API:SSLConfig',
+      'Feature:API:SSLSchemes',
       'AuthorizationExpiredTreatment',
       'ConfHint:connection.recv_timeout_seconds',
       'Feature:Impersonation',
