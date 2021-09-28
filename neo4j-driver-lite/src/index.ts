@@ -349,7 +349,7 @@ const auth = {
     return {
       scheme: 'kerberos',
       principal: '', // This empty string is required for backwards compatibility.
-      ticket: base64EncodedTicket
+      credentials: base64EncodedTicket
     }
   },
   custom: (

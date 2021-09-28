@@ -44,7 +44,7 @@ describe('#unit auth', () => {
     expect(token).toEqual({
       scheme: 'kerberos',
       principal: '',
-      ticket: 'my-ticket'
+      credentials: 'my-ticket'
     })
   })
 
