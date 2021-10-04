@@ -20,7 +20,7 @@ export function NewDriver (context, data, { writeResponse }) {
       )
       break
     case 'kerberos':
-      parsedAuthToken = neo4j.auth.kerberos(authToken.ticket)
+      parsedAuthToken = neo4j.auth.kerberos(authToken.credentials)
       break
     default:
       parsedAuthToken = neo4j.auth.custom(
