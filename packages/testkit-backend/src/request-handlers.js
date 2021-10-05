@@ -1,4 +1,4 @@
-import neo4j from 'neo4j'
+import neo4j from './neo4j'
 import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
 import { shouldRunTest } from './skipped-tests'

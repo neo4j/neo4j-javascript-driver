@@ -1,4 +1,4 @@
-import neo4j, { int } from 'neo4j'
+import neo4j from './neo4j'
 
 export function valueResponse (name, value) {
   return { name: name, data: { value: value } }

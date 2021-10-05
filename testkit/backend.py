@@ -3,8 +3,8 @@ Executed in Javascript driver container.
 Assumes driver and backend has been built.
 Responsible for starting the test backend.
 """
-from common import DRIVER_REPO, run
-
+from common import run_in_driver_repo
+import os
 
 if __name__ == "__main__":
-    run(["npm", "start"], cwd=DRIVER_REPO + "packages/testkit-backend")
+    run_in_driver_repo(["npm", "run", "start-testkit-backend"], env=os.environ)

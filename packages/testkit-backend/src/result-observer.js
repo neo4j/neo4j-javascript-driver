@@ -1,4 +1,4 @@
-import neo4j from 'neo4j'
+import neo4j from './neo4j'
 
 export default class ResultObserver {
   constructor ({ sessionId, result }) {
