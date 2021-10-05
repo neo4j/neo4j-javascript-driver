@@ -49,7 +49,7 @@ class Integer {
   low: number
   high: number
 
-  constructor (low?: number, high?: number) {
+  constructor(low?: number, high?: number) {
     /**
      * The low 32 bits as a signed value.
      * @type {number}
@@ -82,7 +82,7 @@ class Integer {
   // Common constant values ZERO, ONE, NEG_ONE, etc. are defined below the from*
   // methods on which they depend.
 
-  inSafeRange (): boolean {
+  inSafeRange(): boolean {
     return (
       this.greaterThanOrEqual(Integer.MIN_SAFE_VALUE) &&
       this.lessThanOrEqual(Integer.MAX_SAFE_VALUE)
@@ -94,7 +94,7 @@ class Integer {
    * @returns {number}
    * @expose
    */
-  toInt (): number {
+  toInt(): number {
     return this.low
   }
 
@@ -103,7 +103,7 @@ class Integer {
    * @returns {number}
    * @expose
    */
-  toNumber (): number {
+  toNumber(): number {
     return this.high * TWO_PWR_32_DBL + (this.low >>> 0)
   }
 
@@ -112,7 +112,7 @@ class Integer {
    * @returns {bigint}
    * @expose
    */
-  toBigInt (): bigint {
+  toBigInt(): bigint {
     if (this.isZero()) {
       return BigInt(0)
     } else if (this.isPositive()) {
@@ -135,7 +135,7 @@ class Integer {
    * @return {number}
    * @package
    */
-  toNumberOrInfinity (): number {
+  toNumberOrInfinity(): number {
     if (this.lessThan(Integer.MIN_SAFE_VALUE)) {
       return Number.NEGATIVE_INFINITY
     } else if (this.greaterThan(Integer.MAX_SAFE_VALUE)) {
@@ -153,7 +153,7 @@ class Integer {
    * @throws {RangeError} If `radix` is out of range
    * @expose
    */
-  toString (radix?: number): string {
+  toString(radix?: number): string {
     radix = radix || 10
     if (radix < 2 || radix > 36) {
       throw RangeError('radix out of range: ' + radix)
@@ -201,7 +201,7 @@ class Integer {
    * @returns {number} Signed high bits
    * @expose
    */
-  getHighBits (): number {
+  getHighBits(): number {
     return this.high
   }
 
@@ -210,7 +210,7 @@ class Integer {
    * @returns {number} Signed low bits
    * @expose
    */
-  getLowBits (): number {
+  getLowBits(): number {
     return this.low
   }
 
@@ -219,7 +219,7 @@ class Integer {
    * @returns {number}
    * @expose
    */
-  getNumBitsAbs (): number {
+  getNumBitsAbs(): number {
     if (this.isNegative()) {
       return this.equals(Integer.MIN_VALUE) ? 64 : this.negate().getNumBitsAbs()
     }
@@ -237,7 +237,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isZero (): boolean {
+  isZero(): boolean {
     return this.high === 0 && this.low === 0
   }
 
@@ -246,7 +246,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isNegative (): boolean {
+  isNegative(): boolean {
     return this.high < 0
   }
 
@@ -255,7 +255,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isPositive (): boolean {
+  isPositive(): boolean {
     return this.high >= 0
   }
 
@@ -264,7 +264,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isOdd (): boolean {
+  isOdd(): boolean {
     return (this.low & 1) === 1
   }
 
@@ -273,7 +273,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  isEven (): boolean {
+  isEven(): boolean {
     return (this.low & 1) === 0
   }
 
@@ -283,7 +283,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  equals (other: Integerable): boolean {
+  equals(other: Integerable): boolean {
     const theOther = Integer.fromValue(other)
     return this.high === theOther.high && this.low === theOther.low
   }
@@ -294,7 +294,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  notEquals (other: Integerable): boolean {
+  notEquals(other: Integerable): boolean {
     return !this.equals(/* validates */ other)
   }
 
@@ -304,7 +304,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  lessThan (other: Integerable): boolean {
+  lessThan(other: Integerable): boolean {
     return this.compare(/* validates */ other) < 0
   }
 
@@ -314,7 +314,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  lessThanOrEqual (other: Integerable): boolean {
+  lessThanOrEqual(other: Integerable): boolean {
     return this.compare(/* validates */ other) <= 0
   }
 
@@ -324,7 +324,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  greaterThan (other: Integerable): boolean {
+  greaterThan(other: Integerable): boolean {
     return this.compare(/* validates */ other) > 0
   }
 
@@ -334,7 +334,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  greaterThanOrEqual (other: Integerable): boolean {
+  greaterThanOrEqual(other: Integerable): boolean {
     return this.compare(/* validates */ other) >= 0
   }
 
@@ -345,7 +345,7 @@ class Integer {
    *  if the given one is greater
    * @expose
    */
-  compare (other: Integerable): number {
+  compare(other: Integerable): number {
     const theOther = Integer.fromValue(other)
 
     if (this.equals(theOther)) {
@@ -368,7 +368,7 @@ class Integer {
    * @returns {!Integer} Negated Integer
    * @expose
    */
-  negate (): Integer {
+  negate(): Integer {
     if (this.equals(Integer.MIN_VALUE)) {
       return Integer.MIN_VALUE
     }
@@ -381,7 +381,7 @@ class Integer {
    * @returns {!Integer} Sum
    * @expose
    */
-  add (addend: Integerable): Integer {
+  add(addend: Integerable): Integer {
     const theAddend = Integer.fromValue(addend)
 
     // Divide each number into 4 chunks of 16 bits, and then sum the chunks.
@@ -420,7 +420,7 @@ class Integer {
    * @returns {!Integer} Difference
    * @expose
    */
-  subtract (subtrahend: Integerable): Integer {
+  subtract(subtrahend: Integerable): Integer {
     const theSubtrahend = Integer.fromValue(subtrahend)
     return this.add(theSubtrahend.negate())
   }
@@ -431,7 +431,7 @@ class Integer {
    * @returns {!Integer} Product
    * @expose
    */
-  multiply (multiplier: Integerable): Integer {
+  multiply(multiplier: Integerable): Integer {
     if (this.isZero()) {
       return Integer.ZERO
     }
@@ -511,7 +511,7 @@ class Integer {
    * @returns {!Integer} Quotient
    * @expose
    */
-  div (divisor: Integerable): Integer {
+  div(divisor: Integerable): Integer {
     const theDivisor = Integer.fromValue(divisor)
 
     if (theDivisor.isZero()) {
@@ -601,7 +601,7 @@ class Integer {
    * @returns {!Integer} Remainder
    * @expose
    */
-  modulo (divisor: Integerable): Integer {
+  modulo(divisor: Integerable): Integer {
     const theDivisor = Integer.fromValue(divisor)
     return this.subtract(this.div(theDivisor).multiply(theDivisor))
   }
@@ -611,7 +611,7 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  not (): Integer {
+  not(): Integer {
     return Integer.fromBits(~this.low, ~this.high)
   }
 
@@ -621,7 +621,7 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  and (other: Integerable): Integer {
+  and(other: Integerable): Integer {
     const theOther = Integer.fromValue(other)
     return Integer.fromBits(this.low & theOther.low, this.high & theOther.high)
   }
@@ -632,7 +632,7 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  or (other: Integerable): Integer {
+  or(other: Integerable): Integer {
     const theOther = Integer.fromValue(other)
     return Integer.fromBits(this.low | theOther.low, this.high | theOther.high)
   }
@@ -643,7 +643,7 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  xor (other: Integerable): Integer {
+  xor(other: Integerable): Integer {
     const theOther = Integer.fromValue(other)
     return Integer.fromBits(this.low ^ theOther.low, this.high ^ theOther.high)
   }
@@ -654,7 +654,7 @@ class Integer {
    * @returns {!Integer} Shifted Integer
    * @expose
    */
-  shiftLeft (numBits: number | Integer): Integer {
+  shiftLeft(numBits: number | Integer): Integer {
     let bitsCount = Integer.toNumber(numBits)
     if ((bitsCount &= 63) === 0) {
       return Integer.ZERO
@@ -674,7 +674,7 @@ class Integer {
    * @returns {!Integer} Shifted Integer
    * @expose
    */
-  shiftRight (numBits: number | Integer): Integer {
+  shiftRight(numBits: number | Integer): Integer {
     let bitsCount: number = Integer.toNumber(numBits)
 
     if ((bitsCount &= 63) === 0) {
@@ -763,7 +763,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  static isInteger (obj: any): boolean {
+  static isInteger(obj: any): obj is Integer {
     return (obj && obj.__isInteger__) === true
   }
 
@@ -774,7 +774,7 @@ class Integer {
    * @returns {!Integer} The corresponding Integer value
    * @expose
    */
-  static fromInt (value: number): Integer {
+  static fromInt(value: number): Integer {
     var obj, cachedObj
     value = value | 0
     if (value >= -128 && value < 128) {
@@ -799,7 +799,7 @@ class Integer {
    * @returns {!Integer} The corresponding Integer value
    * @expose
    */
-  static fromBits (lowBits: number, highBits: number): Integer {
+  static fromBits(lowBits: number, highBits: number): Integer {
     return new Integer(lowBits, highBits)
   }
 
@@ -810,7 +810,7 @@ class Integer {
    * @returns {!Integer} The corresponding Integer value
    * @expose
    */
-  static fromNumber (value: number): Integer {
+  static fromNumber(value: number): Integer {
     if (isNaN(value) || !isFinite(value)) {
       return Integer.ZERO
     }
@@ -834,7 +834,7 @@ class Integer {
    * @returns {!Integer} The corresponding Integer value
    * @expose
    */
-  static fromString (str: string, radix?: number): Integer {
+  static fromString(str: string, radix?: number): Integer {
     if (str.length === 0) {
       throw newError('number format error: empty string')
     }
@@ -884,7 +884,7 @@ class Integer {
    * @returns {!Integer}
    * @expose
    */
-  static fromValue (val: Integerable): Integer {
+  static fromValue(val: Integerable): Integer {
     if (val /* is compatible */ instanceof Integer) {
       return val
     }
@@ -908,7 +908,7 @@ class Integer {
    * @returns {number}
    * @expose
    */
-  static toNumber (val: Integerable): number {
+  static toNumber(val: Integerable): number {
     switch (typeof val) {
       case 'number':
         return val
@@ -927,7 +927,7 @@ class Integer {
    * @returns {string}
    * @expose
    */
-  static toString (val: Integerable, radix?: number): string {
+  static toString(val: Integerable, radix?: number): string {
     return Integer.fromValue(val).toString(radix)
   }
 
@@ -939,7 +939,7 @@ class Integer {
    * @returns {boolean}
    * @expose
    */
-  static inSafeRange (val: Integerable): boolean {
+  static inSafeRange(val: Integerable): boolean {
     return Integer.fromValue(val).inSafeRange()
   }
 }

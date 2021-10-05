@@ -93,6 +93,6 @@ Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
  */
-export function isPoint(obj?: any): boolean {
+export function isPoint(obj?: any): obj is Point {
   return (obj && obj[POINT_IDENTIFIER_PROPERTY]) === true
 }
