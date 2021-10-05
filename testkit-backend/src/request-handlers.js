@@ -10,6 +10,27 @@ export function NewDriver (context, data, { writeResponse }) {
     userAgent,
     resolverRegistered
   } = data
+  let parsedAuthToken = authToken
+  switch (authToken.scheme) {
+    case 'basic':
+      parsedAuthToken = neo4j.auth.basic(
+        authToken.principal,
+        authToken.credentials,
+        authToken.realm
+      )
+      break
+    case 'kerberos':
+      parsedAuthToken = neo4j.auth.kerberos(authToken.credentials)
+      break
+    default:
+      parsedAuthToken = neo4j.auth.custom(
+        authToken.principal,
+        authToken.credentials,
+        authToken.realm,
+        authToken.scheme,
+        authToken.parameters
+      )
+  }
   const resolver = resolverRegistered
     ? address =>
       new Promise((resolve, reject) => {
@@ -17,7 +38,7 @@ export function NewDriver (context, data, { writeResponse }) {
         writeResponse('ResolverResolutionRequired', { id, address })
       })
     : undefined
-  const driver = neo4j.driver(uri, authToken, {
+  const driver = neo4j.driver(uri, parsedAuthToken, {
     userAgent,
     resolver,
     useBigInt: true,
@@ -238,6 +259,8 @@ export function StartTest (_, { testName }, wire) {
 export function GetFeatures (_context, _params, wire) {
   wire.writeResponse('FeatureList', {
     features: [
+      'Feature:Auth:Custom',
+      'Feature:Auth:Kerberos',
       'AuthorizationExpiredTreatment',
       'ConfHint:connection.recv_timeout_seconds'
     ]
