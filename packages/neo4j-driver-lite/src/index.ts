@@ -352,6 +352,12 @@ const auth = {
       credentials: base64EncodedTicket
     }
   },
+  bearer: (base64EncodedToken: string) => {
+    return {
+      scheme: 'bearer',
+      credentials: base64EncodedToken
+    }
+  },
   custom: (
     principal: string,
     credentials: string,

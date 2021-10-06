@@ -1493,6 +1493,80 @@ describe('#unit RoutingConnectionProvider', () => {
     expect(error).toBe(expectedError)
   })
 
+  it('should purge connections for address when TokenExpired happens', async () => {
+    const pool = newPool()
+
+    jest.spyOn(pool, 'purge')
+
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null
+    })
+
+    server3Connection.handleAndTransformError(error, server3)
+    server2Connection.handleAndTransformError(error, server2)
+
+    expect(pool.purge).toHaveBeenCalledWith(server3)
+    expect(pool.purge).toHaveBeenCalledWith(server2)
+  })
+
+  it('should purge not change error when TokenExpired happens', async () => {
+    const pool = newPool()
+
+    jest.spyOn(pool, 'purge')
+
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+
+    const expectedError = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null
+    })
+
+    const error = server2Connection.handleAndTransformError(
+      expectedError,
+      server2
+    )
+
+    expect(error).toBe(expectedError)
+  })
+
   it('should use resolved seed router after accepting table with no writers', done => {
     const routingTable1 = newRoutingTable(
       null,
@@ -1659,6 +1733,80 @@ describe('#unit RoutingConnectionProvider', () => {
       const expectedError = newError(
         'Message',
         'Neo.ClientError.Security.AuthorizationExpired'
+      )
+
+      const server2Connection = await connectionProvider.acquireConnection({
+        accessMode: 'WRITE',
+        database: 'databaseA'
+      })
+
+      const error = server2Connection.handleAndTransformError(
+        expectedError,
+        server2
+      )
+
+      expect(error).toBe(expectedError)
+    })
+
+    it('should purge connections for address when TokenExpired happens', async () => {
+      const pool = newPool()
+
+      jest.spyOn(pool, 'purge')
+
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2],
+            [server1],
+            [server2]
+          ),
+          newRoutingTable('databaseB', [serverA, serverB], [serverA], [serverB])
+        ],
+        pool
+      )
+
+      const error = newError(
+        'Message',
+        'Neo.ClientError.Security.TokenExpired'
+      )
+
+      const server2Connection = await connectionProvider.acquireConnection({
+        accessMode: 'WRITE',
+        database: 'databaseA'
+      })
+
+      const serverAConnection = await connectionProvider.acquireConnection({
+        accessMode: 'READ',
+        database: 'databaseB'
+      })
+
+      serverAConnection.handleAndTransformError(error, serverA)
+      server2Connection.handleAndTransformError(error, server2)
+
+      expect(pool.purge).toHaveBeenCalledWith(serverA)
+      expect(pool.purge).toHaveBeenCalledWith(server2)
+    })
+
+    it('should purge not change error when TokenExpired happens', async () => {
+      const pool = newPool()
+
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTable(
+            'databaseA',
+            [server1, server2],
+            [server1],
+            [server2]
+          ),
+          newRoutingTable('databaseB', [serverA, serverB], [serverA], [serverB])
+        ],
+        pool
+      )
+
+      const expectedError = newError(
+        'Message',
+        'Neo.ClientError.Security.TokenExpired'
       )
 
       const server2Connection = await connectionProvider.acquireConnection({

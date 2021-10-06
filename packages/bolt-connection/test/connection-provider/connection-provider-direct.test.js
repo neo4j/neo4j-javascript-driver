@@ -98,6 +98,47 @@ describe('#unit DirectConnectionProvider', () => {
   })
 })
 
+it('should purge connections for address when TokenExpired happens', async () => {
+  const address = ServerAddress.fromUrl('localhost:123')
+  const pool = newPool()
+  jest.spyOn(pool, 'purge')
+  const connectionProvider = newDirectConnectionProvider(address, pool)
+
+  const conn = await connectionProvider.acquireConnection({
+    accessMode: 'READ',
+    database: ''
+  })
+
+  const error = newError(
+    'Message',
+    'Neo.ClientError.Security.TokenExpired'
+  )
+
+  conn.handleAndTransformError(error, address)
+
+  expect(pool.purge).toHaveBeenCalledWith(address)
+})
+
+it('should purge not change error when TokenExpired happens', async () => {
+  const address = ServerAddress.fromUrl('localhost:123')
+  const pool = newPool()
+  const connectionProvider = newDirectConnectionProvider(address, pool)
+
+  const conn = await connectionProvider.acquireConnection({
+    accessMode: 'READ',
+    database: ''
+  })
+
+  const expectedError = newError(
+    'Message',
+    'Neo.ClientError.Security.TokenExpired'
+  )
+
+  const error = conn.handleAndTransformError(expectedError, address)
+
+  expect(error).toBe(expectedError)
+})
+
 function newDirectConnectionProvider (address, pool) {
   const connectionProvider = new DirectConnectionProvider({
     id: 0,

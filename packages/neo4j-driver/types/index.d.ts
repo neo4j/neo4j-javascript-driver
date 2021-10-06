@@ -80,6 +80,8 @@ declare const auth: {
 
   kerberos: (base64EncodedTicket: string) => AuthToken
 
+  bearer: (base64EncodedToken: string) => AuthToken
+
   custom: (
     principal: string,
     credentials: string,
