@@ -3,12 +3,8 @@ Executed in Javascript driver container.
 Assumes driver and backend has been built.
 Responsible for starting the test backend.
 """
+from common import run_in_driver_repo
 import os
-import subprocess
-
 
 if __name__ == "__main__":
-    npm = ["npm", "--prefix", "testkit-backend"]
-    err = open("/artifacts/backenderr.log", "w")
-    out = open("/artifacts/backendout.log", "w")
-    subprocess.check_call([*npm, "start"], stdout=out, stderr=err)
+    run_in_driver_repo(["npm", "run", "start-testkit-backend"], env=os.environ)

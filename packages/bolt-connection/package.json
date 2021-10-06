@@ -1,0 +1,44 @@
+{
+  "name": "neo4j-driver-bolt-connection",
+  "version": "4.4.0-dev",
+  "description": "Implements the connection with the Neo4j Database using the Bolt Protocol",
+  "main": "lib/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --passWithNoTests",
+    "test::watch": "jest --watch",
+    "test::unit": "npm run test",
+    "prepare": "npm run build",
+    "clean": "rm -fr node_modules lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/neo4j/neo4j-javascript-driver.git"
+  },
+  "keywords": [
+    "bolt",
+    "neo4j",
+    "driver"
+  ],
+  "browser": {
+    "./lib/channel/node/index.js": "./lib/channel/browser/index.js"
+  },
+  "author": "Neo4j",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/neo4j/neo4j-javascript-driver/issues"
+  },
+  "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
+  "devDependencies": {
+    "@types/jest": "^26.0.23",
+    "jest": "^27.0.1",
+    "lolex": "^6.0.0",
+    "ts-jest": "^27.0.0",
+    "typescript": "^4.1.3"
+  },
+  "dependencies": {
+    "neo4j-driver-core": "^4.4.0-dev",
+    "text-encoding-utf-8": "^1.0.2"
+  }
+}

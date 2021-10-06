@@ -7,15 +7,11 @@ trap finish EXIT
 
 npm install -g gulp typescript jest
 
-./buildDependencies.sh
-
 npm ci
+npm run build -- --no-private
 
 if [[ ! -z "$1" ]]; then
   export NEOCTRL_ARGS="$1"
 fi
 
-npm --prefix ./core/ test
-npm --prefix ./bolt-connection/ test
-
-npm run start-neo4j && npm test
+npm run start-neo4j && npm test -- --no-private

@@ -1,26 +1,23 @@
-import subprocess
+
 import os
+from common import run_in_driver_repo, is_lite
 
 
-def run(args):
-    subprocess.run(
-        args, universal_newlines=True, stderr=subprocess.STDOUT, check=True)
+def should_test_browser():
+    return os.environ.get("TEST_DRIVER_SKIP_BROWSER", "false").lower() not in (
+        "y", "yes", "t", "true", "1", "on"
+    )
 
-
-def test_driver():
-    if (os.environ.get("TEST_DRIVER_SKIP_BROWSER", "false").lower()
-            in ("y", "yes", "t", "true", "1", "on")):
-        run(["gulp", "test-browser"])
-    run(["gulp", "test-nodejs-integration"])
-
-
-def test_driver_lite():
-    run(['npm', '--prefix', 'neo4j-driver-lite', 'run', 'test:it'])
-    run(['npm', '--prefix', 'neo4j-driver-lite', 'run', 'test:it:browser'])
 
 if __name__ == "__main__":
     os.environ["TEST_NEO4J_IPV6_ENABLED"] = "False"
-    if os.environ.get("TEST_DRIVER_LITE", False):
-        test_driver_lite()
+
+    if is_lite():
+        ignore = "--ignore=neo4j-driver"
     else:
-        test_driver()
+        ignore = "--ignore=neo4j-driver-lite"
+
+    run_in_driver_repo(["npm", "run", "test::integration", "--", ignore])
+
+    if should_test_browser():
+        run_in_driver_repo(["npm", "run", "test::browser", "--", ignore])

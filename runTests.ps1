@@ -1,14 +1,7 @@
 npm install -g gulp typescript jest
 
-npm --prefix core ci
-npm --prefix core run build
-npm --prefix bolt-connection ci
-npm --prefix bolt-connection run build
-
 npm ci
-
-npm --prefix core test
-npm --prefix bolt-connection test
+npm run build -- --no-private
 
 $ErrorFound = $False
 
@@ -26,7 +19,7 @@ try
 		exit 1
 	}
 
-	npm test
+	npm test -- --no-private
 	if($LastExitCode -ne 0) #failed to execute npm test without error
 	{
 		$ErrorFound = $True
