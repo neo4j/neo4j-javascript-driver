@@ -296,6 +296,10 @@ export default class BoltProtocol {
     return observer
   }
 
+  get currentFailure () {
+    return this._responseHandler.currentFailure
+  }
+
   /**
    * Send a RESET through the underlying connection.
    * @param {Object} param

@@ -270,7 +270,7 @@ export default class ChannelConnection extends Connection {
    */
   _handleFatalError (error) {
     this._isBroken = true
-    this._error = this.handleAndTransformError(error, this._address)
+    this._error = this.handleAndTransformError(this._protocol.currentFailure || error, this._address)
 
     if (this._log.isErrorEnabled()) {
       this._log.error(
