@@ -76,7 +76,7 @@ function parseNegotiatedResponse (buffer) {
  */
 function newHandshakeBuffer () {
   return createHandshakeMessage([
-    [version(4, 3), version(4, 2)],
+    [version(4, 4), version(4, 2)],
     version(4, 1),
     version(4, 0),
     version(3, 0)
