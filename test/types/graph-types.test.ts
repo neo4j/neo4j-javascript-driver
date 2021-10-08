@@ -32,68 +32,69 @@ import {
   isUnboundRelationship
 } from 'neo4j-driver-core'
 
-type NodeProperties = { name: string }
-type RelationshipProperties = { since: number }
-
-const node1: Node<Integer, NodeProperties> = new Node(
-  int(1),
-  ['Person', 'Employee'],
-  { name: 'Alice' }
-)
+const node1: Node = new Node(int(1), ['Person', 'Employee'], { name: 'Alice' })
 const node1String: string = node1.toString()
 const node1Id: Integer = node1.identity
 const node1Labels: string[] = node1.labels
-const node1Props: NodeProperties = node1.properties
-const node1PropertyName: string = node1.properties.name
+const node1Props: object = node1.properties
 const isNode1: boolean = node1 instanceof Node
 const isNode1B: boolean = isNode(node1)
 
-const node2: Node<number, NodeProperties> = new Node(
-  2,
-  ['Person', 'Employee'],
-  {
-    name: 'Alice'
-  }
-)
+const node2: Node<number> = new Node(2, ['Person', 'Employee'], {
+  name: 'Alice'
+})
 const node2Id: number = node2.identity
-const node2Props: NodeProperties = node2.properties
-const node2PropertyName: string = node2.properties.name
 
-const rel1: Relationship<Integer, RelationshipProperties> = new Relationship(
-  int(1),
-  int(2),
-  int(3),
-  'KNOWS',
-  {
-    since: 12345
-  }
-)
+type NodeProps = { name: string }
+const node3: Node<number, NodeProps> = new Node(2, ['Person', 'Employee'], {
+  name: 'Alice'
+})
+const node3Props: NodeProps = node3.properties
+const node3PropertyName: string = node3.properties.name
+
+const rel1: Relationship = new Relationship(int(1), int(2), int(3), 'KNOWS', {
+  since: 12345
+})
 const rel1String: string = rel1.toString()
 const rel1Id: Integer = rel1.identity
 const rel1Start: Integer = rel1.start
 const rel1End: Integer = rel1.end
 const rel1Type: string = rel1.type
-const rel1Props: RelationshipProperties = rel1.properties
-const rel1PropertySince: number = rel1.properties.since
+const rel1Props: object = rel1.properties
 const isRel1: boolean = rel1 instanceof Relationship
 const isRel1B: boolean = isRelationship(rel1)
 
-const rel2: UnboundRelationship<
-  Integer,
-  RelationshipProperties
-> = new UnboundRelationship(int(1), 'KNOWS', {
+const rel2: UnboundRelationship = new UnboundRelationship(int(1), 'KNOWS', {
   since: 12345
 })
 const rel2String: string = rel2.toString()
 const rel3: Relationship = rel2.bind(int(1), int(2))
 const rel2Id: Integer = rel2.identity
 const rel2Type: string = rel2.type
-const rel2Props: RelationshipProperties = rel2.properties
-const rel2PropertySince: number = rel2.properties.since
+const rel2Props: object = rel2.properties
 const isRel2: boolean = rel2 instanceof UnboundRelationship
 const isRel2B: boolean = isUnboundRelationship(rel2)
 
-const rel4: Relationship<number, RelationshipProperties> = new Relationship(
+const rel4: Relationship<number> = new Relationship(2, 3, 4, 'KNOWS', {
+  since: 12345
+})
+const rel4Id: number = rel4.identity
+const rel4Start: number = rel4.start
+const rel4End: number = rel4.end
+const isRel4: boolean = rel4 instanceof Relationship
+
+const rel5: UnboundRelationship<number> = new UnboundRelationship(5, 'KNOWS', {
+  since: 12345
+})
+const rel5Id: number = rel5.identity
+const rel6 = rel5.bind(24, 42)
+const rel6Id: number = rel6.identity
+const rel6Start: number = rel6.start
+const rel6End: number = rel6.end
+const isRel6: boolean = rel6 instanceof UnboundRelationship
+
+type RelationshipProps = { since: number }
+const rel7: Relationship<number, RelationshipProps> = new Relationship(
   2,
   3,
   4,
@@ -102,27 +103,17 @@ const rel4: Relationship<number, RelationshipProperties> = new Relationship(
     since: 12345
   }
 )
-const rel4Id: number = rel4.identity
-const rel4Start: number = rel4.start
-const rel4End: number = rel4.end
-const isRel4: boolean = rel4 instanceof Relationship
-const rel4Props: RelationshipProperties = rel4.properties
-const rel4PropertySince: number = rel4.properties.since
+const rel7Props: RelationshipProps = rel7.properties
+const rel7PropertySince: number = rel7.properties.since
 
-const rel5: UnboundRelationship<
+const rel8: UnboundRelationship<
   number,
-  RelationshipProperties
+  RelationshipProps
 > = new UnboundRelationship(5, 'KNOWS', {
   since: 12345
 })
-const rel5Id: number = rel5.identity
-const rel5Props: RelationshipProperties = rel5.properties
-const rel5PropertySince: number = rel5.properties.since
-const rel6 = rel5.bind(24, 42)
-const rel6Id: number = rel6.identity
-const rel6Start: number = rel6.start
-const rel6End: number = rel6.end
-const isRel6: boolean = rel6 instanceof UnboundRelationship
+const rel8Props: RelationshipProps = rel8.properties
+const rel8PropertySince: number = rel8.properties.since
 
 const pathSegment1: PathSegment = new PathSegment(node1, rel1, node1)
 const pathSegment1Start: Node = pathSegment1.start
