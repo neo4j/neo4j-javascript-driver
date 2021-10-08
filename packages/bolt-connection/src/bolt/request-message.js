@@ -251,7 +251,16 @@ export default class RequestMessage {
    * @return {RequestMessage} the ROUTE message.
    */
    static routeV4x4 (routingContext = {}, bookmarks = [], databaseContext = {}) {
-    const dbContext = { db: databaseContext.databaseName, imp_user: databaseContext.impersonatedUser }
+    const dbContext = {}
+
+    if ( databaseContext.databaseName ) {
+      dbContext.db = databaseContext.databaseName
+    }
+    
+    if ( databaseContext.impersonatedUser ) {
+      dbContext.imp_user = databaseContext.impersonatedUser
+    }
+
     return new RequestMessage(
       ROUTE,
       [routingContext, bookmarks, dbContext],

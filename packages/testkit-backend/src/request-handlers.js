@@ -265,7 +265,8 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Auth:Kerberos',
       'Feature:Auth:Bearer',
       'AuthorizationExpiredTreatment',
-      'ConfHint:connection.recv_timeout_seconds'
+      'ConfHint:connection.recv_timeout_seconds',
+      'Feature:Bolt:4.4'
     ]
   })
 }

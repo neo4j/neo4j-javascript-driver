@@ -291,7 +291,7 @@ describe('#unit RequestMessage', () => {
       expect(message.signature).toEqual(0x66)
       expect(message.fields).toEqual([{}, [], {}])
       expect(message.toString()).toEqual(
-        `ROUTE ${json.stringify({})} ${json.stringify([])} ${json.stringify({})}`
+        `ROUTE ${json.stringify({})} ${json.stringify([])} ${json.stringify({ })}`
       )
     })
 
