@@ -124,10 +124,11 @@ export default class RequestMessage {
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
    * @param {string} mode the access mode.
+   * @param {string} impersonatedUser the impersonated user mode.
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin ({ bookmark, txConfig, database, mode } = {}) {
-    const metadata = buildTxMetadata(bookmark, txConfig, database, mode)
+  static begin ({ bookmark, txConfig, database, mode, impersonatedUser } = {}) {
+    const metadata = buildTxMetadata(bookmark, txConfig, database, mode, impersonatedUser)
     return new RequestMessage(
       BEGIN,
       [metadata],
@@ -159,14 +160,15 @@ export default class RequestMessage {
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
    * @param {string} mode the access mode.
+   * @param {string} impersonatedUser the impersonated user mode.
    * @return {RequestMessage} new RUN message with additional metadata.
    */
   static runWithMetadata (
     query,
     parameters,
-    { bookmark, txConfig, database, mode } = {}
+    { bookmark, txConfig, database, mode, impersonatedUser } = {}
   ) {
-    const metadata = buildTxMetadata(bookmark, txConfig, database, mode)
+    const metadata = buildTxMetadata(bookmark, txConfig, database, mode, impersonatedUser)
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
@@ -267,9 +269,10 @@ export default class RequestMessage {
  * @param {TxConfig} txConfig the configuration.
  * @param {string} database the database name.
  * @param {string} mode the access mode.
+ * @param {string} impersonatedUser the impersonated user mode.
  * @return {Object} a metadata object.
  */
-function buildTxMetadata (bookmark, txConfig, database, mode) {
+function buildTxMetadata (bookmark, txConfig, database, mode, impersonatedUser) {
   const metadata = {}
   if (!bookmark.isEmpty()) {
     metadata.bookmarks = bookmark.values()
@@ -282,6 +285,9 @@ function buildTxMetadata (bookmark, txConfig, database, mode) {
   }
   if (database) {
     metadata.db = assertString(database, 'database')
+  }
+  if (impersonatedUser) {
+    metadata.imp_user = assertString(impersonatedUser, 'impersonatedUser')
   }
   if (mode === ACCESS_MODE_READ) {
     metadata.mode = READ_MODE

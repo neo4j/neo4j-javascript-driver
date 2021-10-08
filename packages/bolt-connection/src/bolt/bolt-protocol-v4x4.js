@@ -19,8 +19,8 @@
  import BoltProtocolV43 from './bolt-protocol-v4x3'
  
  import { internal } from 'neo4j-driver-core'
- import RequestMessage from './request-message'
- import { RouteObserver } from './stream-observers'
+ import RequestMessage, { ALL }  from './request-message'
+ import { RouteObserver, ResultStreamObserver } from './stream-observers'
  
  const {
     constants: { BOLT_PROTOCOL_V4_4 },
@@ -66,5 +66,89 @@
 
     return observer
   }
+
+  run (
+    query,
+    parameters,
+    {
+      bookmark,
+      txConfig,
+      database,
+      mode,
+      impersonatedUser,
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete,
+      flush = true,
+      reactive = false,
+      fetchSize = ALL
+    } = {}
+  ) {
+    const observer = new ResultStreamObserver({
+      server: this._server,
+      reactive: reactive,
+      fetchSize: fetchSize,
+      moreFunction: this._requestMore.bind(this),
+      discardFunction: this._requestDiscard.bind(this),
+      beforeKeys,
+      afterKeys,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
+    })
+
+    const flushRun = reactive
+    this.write(
+      RequestMessage.runWithMetadata(query, parameters, {
+        bookmark,
+        txConfig,
+        database,
+        mode,
+        impersonatedUser
+      }),
+      observer,
+      flushRun && flush
+    )
+
+    if (!reactive) {
+      this.write(RequestMessage.pull({ n: fetchSize }), observer, flush)
+    }
+
+    return observer
+  }
+
+  beginTransaction ({
+    bookmark,
+    txConfig,
+    database,
+    mode,
+    impersonatedUser,
+    beforeError,
+    afterError,
+    beforeComplete,
+    afterComplete
+  } = {}) {
+    const observer = new ResultStreamObserver({
+      server: this._server,
+      beforeError,
+      afterError,
+      beforeComplete,
+      afterComplete
+    })
+    observer.prepareToHandleSingleResponse()
+
+    this.write(
+      RequestMessage.begin({ bookmark, txConfig, database, mode, impersonatedUser }),
+      observer,
+      true
+    )
+
+    return observer
+  }
+  
  }
  

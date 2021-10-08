@@ -139,6 +139,49 @@ describe('#unit BoltProtocolV4x4', () => {
     expect(protocol.observers).toEqual([observer, observer])
     expect(protocol.flushes).toEqual([false, true])
   })
+
+  it('should run a with impersonated user', () => {
+    const database = 'testdb'
+    const impersonatedUser = 'the impostor'
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2'
+    ])
+    const txConfig = new TxConfig({
+      timeout: 5000,
+      metadata: { x: 1, y: 'something' }
+    })
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
+
+    const query = 'RETURN $x, $y'
+    const parameters = { x: 'x', y: 'y' }
+
+    const observer = protocol.run(query, parameters, {
+      bookmark,
+      txConfig,
+      database,
+      mode: WRITE,
+      impersonatedUser
+    })
+
+    protocol.verifyMessageCount(2)
+
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.runWithMetadata(query, parameters, {
+        bookmark,
+        txConfig,
+        database,
+        mode: WRITE,
+        impersonatedUser
+      })
+    )
+    expect(protocol.messages[1]).toBeMessage(RequestMessage.pull())
+    expect(protocol.observers).toEqual([observer, observer])
+    expect(protocol.flushes).toEqual([false, true])
+  })
+
   it('should begin a transaction', () => {
     const database = 'testdb'
     const bookmark = new Bookmark([
@@ -163,6 +206,37 @@ describe('#unit BoltProtocolV4x4', () => {
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
       RequestMessage.begin({ bookmark, txConfig, database, mode: WRITE })
+    )
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
+  })
+
+  it('should begin a transaction with impersonated user', () => {
+    const database = 'testdb'
+    const impersonatedUser = 'the impostor'
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2'
+    ])
+    const txConfig = new TxConfig({
+      timeout: 5000,
+      metadata: { x: 1, y: 'something' }
+    })
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
+
+    const observer = protocol.beginTransaction({
+      bookmark,
+      txConfig,
+      database,
+      mode: WRITE,
+      impersonatedUser
+    })
+
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.begin({ bookmark, txConfig, database, mode: WRITE, impersonatedUser })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])

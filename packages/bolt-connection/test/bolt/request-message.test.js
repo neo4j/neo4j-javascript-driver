@@ -294,5 +294,139 @@ describe('#unit RequestMessage', () => {
         `ROUTE ${json.stringify({})} ${json.stringify([])} ${json.stringify({})}`
       )
     })
+
+    it('should create BEGIN message with impersonated user', () => {
+      ;[READ, WRITE].forEach(mode => {
+        const bookmark = new Bookmark([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10'
+        ])
+        const impersonatedUser = 'the impostor'
+        const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
+  
+        const message = RequestMessage.begin({ bookmark, txConfig, mode, impersonatedUser })
+  
+        const expectedMetadata = {
+          bookmarks: bookmark.values(),
+          tx_timeout: int(42),
+          tx_metadata: { key: 42 },
+          imp_user: impersonatedUser
+        }
+        if (mode === READ) {
+          expectedMetadata.mode = 'r'
+        }
+  
+        expect(message.signature).toEqual(0x11)
+        expect(message.fields).toEqual([expectedMetadata])
+        expect(message.toString()).toEqual(
+          `BEGIN ${json.stringify(expectedMetadata)}`
+        )
+      })
+    })
+
+    it('should create BEGIN message without impersonated user if it is not supplied or null', () => {
+      ;[undefined, null].forEach(impersonatedUser => {
+        const bookmark = new Bookmark([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10'
+        ])
+        const mode = WRITE
+        const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
+  
+        const message = RequestMessage.begin({ bookmark, txConfig, mode, impersonatedUser })
+  
+        const expectedMetadata = {
+          bookmarks: bookmark.values(),
+          tx_timeout: int(42),
+          tx_metadata: { key: 42 }
+        }
+  
+        expect(message.signature).toEqual(0x11)
+        expect(message.fields).toEqual([expectedMetadata])
+        expect(message.toString()).toEqual(
+          `BEGIN ${json.stringify(expectedMetadata)}`
+        )
+      })
+    })
+
+    it('should create RUN message with the impersonated user', () => {
+      ;[READ, WRITE].forEach(mode => {
+        const query = 'RETURN $x'
+        const parameters = { x: 42 }
+        const bookmark = new Bookmark([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10',
+          'neo4j:bookmark:v1:tx100'
+        ])
+        const txConfig = new TxConfig({
+          timeout: 999,
+          metadata: { a: 'a', b: 'b' }
+        })
+        const impersonatedUser = 'the impostor'
+  
+        const message = RequestMessage.runWithMetadata(query, parameters, {
+          bookmark,
+          txConfig,
+          mode,
+          impersonatedUser
+        })
+  
+        const expectedMetadata = {
+          bookmarks: bookmark.values(),
+          tx_timeout: int(999),
+          tx_metadata: { a: 'a', b: 'b' },
+          imp_user: impersonatedUser
+        }
+        if (mode === READ) {
+          expectedMetadata.mode = 'r'
+        }
+  
+        expect(message.signature).toEqual(0x10)
+        expect(message.fields).toEqual([query, parameters, expectedMetadata])
+        expect(message.toString()).toEqual(
+          `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+            expectedMetadata
+          )}`
+        )
+      })
   })
+
+  it('should create RUN message without impersonated user if it is not supplied or null', () => {
+    ;[undefined, null].forEach(impersonatedUser => {
+      const mode = WRITE
+      const query = 'RETURN $x'
+      const parameters = { x: 42 }
+      const bookmark = new Bookmark([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx10',
+        'neo4j:bookmark:v1:tx100'
+      ])
+      const txConfig = new TxConfig({
+        timeout: 999,
+        metadata: { a: 'a', b: 'b' }
+      })
+
+      const message = RequestMessage.runWithMetadata(query, parameters, {
+        bookmark,
+        txConfig,
+        mode,
+        impersonatedUser
+      })
+
+      const expectedMetadata = {
+        bookmarks: bookmark.values(),
+        tx_timeout: int(999),
+        tx_metadata: { a: 'a', b: 'b' }
+      }
+
+      expect(message.signature).toEqual(0x10)
+      expect(message.fields).toEqual([query, parameters, expectedMetadata])
+      expect(message.toString()).toEqual(
+        `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+          expectedMetadata
+        )}`
+      )
+    })
+})
+})
 })
