@@ -18,7 +18,7 @@
  */
 
 import ChannelConnection from '../../src/connection/connection-channel'
-import { int, internal } from 'neo4j-driver-core'
+import { int, internal, newError } from 'neo4j-driver-core'
 import { add } from 'lodash'
 
 const {
@@ -125,6 +125,80 @@ describe('ChannelConnection', () => {
         )
       }
     )
+  })
+
+  describe('._handleFatalError()', () => {
+    describe('when there is not current failure on going', () => {
+      const thrownError = newError('some error', 'C')
+      let notifyFatalError;
+      let connection;
+
+      beforeEach(() => {
+        notifyFatalError = jest.fn()
+        const protocol = {
+          notifyFatalError,
+          currentFailure: null
+        }
+        
+        const protocolSupplier = () => protocol
+        connection = spyOnConnectionChannel({ protocolSupplier })
+      })
+
+      it('should set connection state to broken', () => {
+        connection._handleFatalError(thrownError)
+
+        expect(connection._isBroken).toBe(true)
+      })
+
+      it('should set internal erro to the thrownError', () => {
+        connection._handleFatalError(thrownError)
+
+        expect(connection._error).toBe(thrownError)
+      })
+
+      it('should call notifyFatalError with the thrownError', () => {
+        connection._handleFatalError(thrownError)
+
+        expect(notifyFatalError).toHaveBeenCalledWith(thrownError)
+      })
+    })
+
+    describe('when there is current failure on going', () => {
+      const thrownError = newError('some error', 'C')
+      const currentFailure = newError('current failure', 'ongoing')
+      let notifyFatalError;
+      let connection;
+
+      beforeEach(() => {
+        notifyFatalError = jest.fn()
+        const protocol = {
+          notifyFatalError,
+          currentFailure
+        }
+        
+        const protocolSupplier = () => protocol
+        connection = spyOnConnectionChannel({ protocolSupplier })
+      })
+
+      it('should set connection state to broken', () => {
+        connection._handleFatalError(thrownError)
+
+        expect(connection._isBroken).toBe(true)
+      })
+
+      it('should set internal erro to the currentFailure', () => {
+        connection._handleFatalError(thrownError)
+
+        expect(connection._error).toBe(currentFailure)
+      })
+
+      it('should call notifyFatalError with the currentFailure', () => {
+        connection._handleFatalError(thrownError)
+
+        expect(notifyFatalError).toHaveBeenCalledWith(currentFailure)
+      })
+    })
+
   })
 
   function spyOnConnectionChannel ({

@@ -39,6 +39,7 @@ const basicAuthToken1: AuthToken = auth.basic('neo4j', 'password')
 const basicAuthToken2: AuthToken = auth.basic('neo4j', 'password', 'realm')
 
 const kerberosAuthToken1: AuthToken = auth.kerberos('base64EncodedTicket')
+const bearerAuthToken1: AuthToken = auth.bearer('base64EncodedToken')
 
 const customAuthToken1: AuthToken = auth.custom(
   'neo4j',

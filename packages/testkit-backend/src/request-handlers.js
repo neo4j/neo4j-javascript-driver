@@ -22,6 +22,8 @@ export function NewDriver (context, data, { writeResponse }) {
     case 'kerberos':
       parsedAuthToken = neo4j.auth.kerberos(authToken.credentials)
       break
+    case 'bearer':
+      parsedAuthToken = neo4j.auth.bearer(authToken.credentials)
     default:
       parsedAuthToken = neo4j.auth.custom(
         authToken.principal,
@@ -261,6 +263,7 @@ export function GetFeatures (_context, _params, wire) {
     features: [
       'Feature:Auth:Custom',
       'Feature:Auth:Kerberos',
+      'Feature:Auth:Bearer',
       'AuthorizationExpiredTreatment',
       'ConfHint:connection.recv_timeout_seconds'
     ]

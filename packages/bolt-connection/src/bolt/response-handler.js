@@ -86,6 +86,10 @@ export default class ResponseHandler {
     )
   }
 
+  get currentFailure () {
+    return this._currentFailure
+  }
+
   handleResponse (msg) {
     const payload = msg.fields[0]
 
@@ -186,4 +190,5 @@ export default class ResponseHandler {
   _resetFailure () {
     this._currentFailure = null
   }
+
 }

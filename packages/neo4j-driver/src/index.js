@@ -51,7 +51,8 @@ import {
   Record,
   ResultSummary,
   Result,
-  ConnectionProvider
+  ConnectionProvider,
+  auth
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -291,53 +292,6 @@ function driver (url, authToken, config = {}) {
   }
 }
 
-/**
- * @property {function(username: string, password: string, realm: ?string)} basic the function to create a
- * basic authentication token.
- * @property {function(base64EncodedTicket: string)} kerberos the function to create a Kerberos authentication token.
- * Accepts a single string argument - base64 encoded Kerberos ticket.
- * @property {function(principal: string, credentials: string, realm: string, scheme: string, parameters: ?object)} custom
- * the function to create a custom authentication token.
- */
-const auth = {
-  basic: (username, password, realm = undefined) => {
-    if (realm) {
-      return {
-        scheme: 'basic',
-        principal: username,
-        credentials: password,
-        realm: realm
-      }
-    } else {
-      return { scheme: 'basic', principal: username, credentials: password }
-    }
-  },
-  kerberos: base64EncodedTicket => {
-    return {
-      scheme: 'kerberos',
-      principal: '', // This empty string is required for backwards compatibility.
-      credentials: base64EncodedTicket
-    }
-  },
-  custom: (principal, credentials, realm, scheme, parameters = undefined) => {
-    if (parameters) {
-      return {
-        scheme: scheme,
-        principal: principal,
-        credentials: credentials,
-        realm: realm,
-        parameters: parameters
-      }
-    } else {
-      return {
-        scheme: scheme,
-        principal: principal,
-        credentials: credentials,
-        realm: realm
-      }
-    }
-  }
-}
 const USER_AGENT = 'neo4j-javascript/' + VERSION
 
 /**
