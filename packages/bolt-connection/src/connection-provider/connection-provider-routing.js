@@ -36,7 +36,8 @@ const {
     ACCESS_MODE_READ: READ,
     ACCESS_MODE_WRITE: WRITE,
     BOLT_PROTOCOL_V3,
-    BOLT_PROTOCOL_V4_0
+    BOLT_PROTOCOL_V4_0,
+    BOLT_PROTOCOL_V4_4
   }
 } = internal
 
@@ -223,6 +224,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       version => version >= BOLT_PROTOCOL_V3
     )
   }
+
+  async supportsUserImpersonation () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V4_4
+    )
+  }  
 
   forget (address, database) {
     this._routingTableRegistry.apply(database, {

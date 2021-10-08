@@ -158,6 +158,44 @@ describe('#stub-direct direct driver with stub server', () => {
     }, 60000)
   })
 
+  describe('should report whether usr impersonation is supported', () => {
+    async function verifySupportsUserImpersonation (version, expected) {
+      if (!boltStub.supported) {
+        return
+      }
+
+      const server = await boltStub.start(
+        `./test/resources/boltstub/${version}/supports_protocol_version.script`,
+        9001
+      )
+
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsUserImpersonation()).toBeResolvedTo(
+        expected
+      )
+
+      await driver.close()
+      await server.exit()
+    }
+
+    it('v3', () => verifySupportsUserImpersonation('v3', false), 60000)
+    it('v4', () => verifySupportsUserImpersonation('v4', false), 60000)
+    it('v4.2', () => verifySupportsUserImpersonation('v4.2', false), 60000)
+    it('v4.4', () => verifySupportsUserImpersonation('v4.4', true), 60000)
+    it('on error', async () => {
+      const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
+
+      await expectAsync(driver.supportsUserImpersonation()).toBeRejectedWith(
+        jasmine.objectContaining({
+          code: SERVICE_UNAVAILABLE
+        })
+      )
+
+      await driver.close()
+    }, 60000)
+  })
+
   describe('should cancel stream with result summary method', () => {
     async function verifyFailureOnCommit (version) {
       if (!boltStub.supported) {

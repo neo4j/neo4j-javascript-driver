@@ -57,6 +57,7 @@ class Session {
   private _hasTx: boolean
   private _lastBookmark: Bookmark
   private _transactionExecutor: TransactionExecutor
+  private _impersonatedUser?: string
   private _onComplete: (meta: any) => void
 
   /**
@@ -70,6 +71,7 @@ class Session {
    * @param {Object} args.config={} - This driver configuration.
    * @param {boolean} args.reactive - Whether this session should create reactive streams
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
+   * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
    */
   constructor({
     mode,
@@ -78,7 +80,8 @@ class Session {
     database,
     config,
     reactive,
-    fetchSize
+    fetchSize,
+    impersonatedUser
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -86,7 +89,8 @@ class Session {
     database: string
     config: any
     reactive: boolean
-    fetchSize: number
+    fetchSize: number,
+    impersonatedUser?: string
   }) {
     this._mode = mode
     this._database = database
@@ -106,6 +110,7 @@ class Session {
     })
     this._open = true
     this._hasTx = false
+    this._impersonatedUser = impersonatedUser
     this._lastBookmark = bookmark || Bookmark.empty()
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
@@ -142,6 +147,7 @@ class Session {
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
+        impersonatedUser: this._impersonatedUser,
         afterComplete: this._onComplete,
         reactive: this._reactive,
         fetchSize: this._fetchSize

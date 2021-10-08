@@ -52,6 +52,7 @@ class Transaction {
   private _onComplete: (metadata: any) => void
   private _fetchSize: number
   private _results: any[]
+  private _impersonatedUser?: string
 
   /**
    * @constructor
@@ -62,6 +63,7 @@ class Transaction {
    * is not yet released.
    * @param {boolean} reactive whether this transaction generates reactive streams
    * @param {number} fetchSize - the record fetch size in each pulling batch.
+   * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
    */
   constructor({
     connectionHolder,
@@ -69,7 +71,8 @@ class Transaction {
     onBookmark,
     onConnection,
     reactive,
-    fetchSize
+    fetchSize,
+    impersonatedUser
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -77,6 +80,7 @@ class Transaction {
     onConnection: () => void
     reactive: boolean
     fetchSize: number
+    impersonatedUser?: string
   }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
@@ -88,6 +92,7 @@ class Transaction {
     this._onComplete = this._onCompleteCallback.bind(this)
     this._fetchSize = fetchSize
     this._results = []
+    this._impersonatedUser = impersonatedUser
   }
 
   /**
@@ -107,6 +112,7 @@ class Transaction {
             txConfig: txConfig,
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
+            impersonatedUser: this._impersonatedUser,
             beforeError: this._onError,
             afterComplete: this._onComplete
           })
@@ -289,7 +295,7 @@ const _states = {
         onComplete,
         onConnection,
         reactive,
-        fetchSize
+        fetchSize,
       }: StateTransitionParams
     ): any => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
@@ -305,7 +311,7 @@ const _states = {
               beforeError: onError,
               afterComplete: onComplete,
               reactive: reactive,
-              fetchSize: fetchSize
+              fetchSize: fetchSize,
             })
           } else {
             throw newError('No connection available')

@@ -217,7 +217,8 @@ describe('index', () => {
         acquireConnection: () => Promise.reject(Error('something wrong')),
         close: () => Promise.resolve(),
         supportsMultiDb: () => Promise.resolve(true),
-        supportsTransactionConfig: () => Promise.resolve(true)
+        supportsTransactionConfig: () => Promise.resolve(true),
+        supportsUserImpersonation: () => Promise.resolve(true)
       }
     })
     expect(session).toBeDefined()
