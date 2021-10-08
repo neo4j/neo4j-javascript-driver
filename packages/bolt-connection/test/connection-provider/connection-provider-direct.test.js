@@ -119,7 +119,7 @@ it('should purge connections for address when TokenExpired happens', async () =>
   expect(pool.purge).toHaveBeenCalledWith(address)
 })
 
-it('should purge not change error when TokenExpired happens', async () => {
+it('should not change error when TokenExpired happens', async () => {
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
   const connectionProvider = newDirectConnectionProvider(address, pool)

@@ -1532,7 +1532,7 @@ describe('#unit RoutingConnectionProvider', () => {
     expect(pool.purge).toHaveBeenCalledWith(server2)
   })
 
-  it('should purge not change error when TokenExpired happens', async () => {
+  it('should not change error when TokenExpired happens', async () => {
     const pool = newPool()
 
     jest.spyOn(pool, 'purge')
@@ -1788,7 +1788,7 @@ describe('#unit RoutingConnectionProvider', () => {
       expect(pool.purge).toHaveBeenCalledWith(server2)
     })
 
-    it('should purge not change error when TokenExpired happens', async () => {
+    it('should not change error when TokenExpired happens', async () => {
       const pool = newPool()
 
       const connectionProvider = newRoutingConnectionProvider(
