@@ -146,7 +146,7 @@ class Session {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
-        database: this._database,
+        database: this._connectionHolderWithMode(this._mode).resolveDatabaseName(), // TODO: Cleanup it || BIGMONTZ
         impersonatedUser: this._impersonatedUser,
         afterComplete: this._onComplete,
         reactive: this._reactive,

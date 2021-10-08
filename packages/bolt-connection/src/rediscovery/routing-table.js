@@ -38,6 +38,7 @@ const MIN_ROUTERS = 1
  */
 export default class RoutingTable {
   constructor ({
+    routingTableDatabase,
     database,
     routers,
     readers,
@@ -45,6 +46,7 @@ export default class RoutingTable {
     expirationTime,
     ttl
   } = {}) {
+    this.routingTableDatabase = routingTableDatabase
     this.database = database
     this.databaseName = database || 'default database'
     this.routers = routers || []
@@ -137,7 +139,7 @@ function removeFromArray (array, element) {
 /**
  * Create a valid routing table from a raw object
  *
- * @param {string} database the database name. It is used for logging purposes
+ * @param {string} db the database name. It is used for logging purposes
  * @param {ServerAddress} routerAddress The router address, it is used for loggin purposes
  * @param {RawRoutingTable} rawRoutingTable Method used to get the raw routing table to be processed
  * @param {RoutingTable} The valid Routing Table
@@ -147,6 +149,7 @@ export function createValidRoutingTable (
   routerAddress,
   rawRoutingTable
 ) {
+  const routingTableDatabase = rawRoutingTable.db
   const ttl = rawRoutingTable.ttl
   const expirationTime = calculateExpirationTime(rawRoutingTable, routerAddress)
   const { routers, readers, writers } = parseServers(
@@ -158,6 +161,7 @@ export function createValidRoutingTable (
   assertNonEmpty(readers, 'readers', routerAddress)
 
   return new RoutingTable({
+    routingTableDatabase,
     database,
     routers,
     readers,

@@ -178,6 +178,15 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
   }
 
+  /**
+   * Resolve database name
+   * @param {string|undefined|null} database Database name
+   * @return {string} the resolved db name
+  **/
+  resolveDatabaseName(database) {
+    return this._routingTableRegistry.get(database || DEFAULT_DB_NAME, { routingTableDatabase: database }).routingTableDatabase
+  }
+
   async _hasProtocolVersion (versionPredicate) {
     const addresses = await this._resolveSeedRouter(this._seedRouter)
 

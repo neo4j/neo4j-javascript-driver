@@ -129,6 +129,14 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._referenceCount
   }
 
+  /**
+   * Resolve database name
+   * @return {string} the resolved db name
+   */
+  resolveDatabaseName(): string | undefined | null {
+    return this._connectionProvider?.resolveDatabaseName(this._database) || this._database
+  }
+
   initializeConnection(): boolean {
     if (this._referenceCount === 0 && this._connectionProvider) {
       this._connectionPromise = this._connectionProvider.acquireConnection({
@@ -288,6 +296,6 @@ class EmptyConnectionHolder extends ConnectionHolder {
 const EMPTY_CONNECTION_HOLDER: EmptyConnectionHolder = new EmptyConnectionHolder()
 
 // eslint-disable-next-line handle-callback-err
-function ignoreError(error: Error) {}
+function ignoreError(error: Error) { }
 
 export { ConnectionHolder, ReadOnlyConnectionHolder, EMPTY_CONNECTION_HOLDER }

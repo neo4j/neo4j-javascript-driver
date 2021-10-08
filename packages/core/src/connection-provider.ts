@@ -49,6 +49,15 @@ class ConnectionProvider {
   }
 
   /**
+   * Resolve database name
+   * @param {string|undefined|null} database Database name
+   * @return {string} the resolved db name
+   */
+  resolveDatabaseName(database?: string): string | undefined | null {
+    return database
+  }
+
+  /**
    * This method checks whether the backend database supports multi database functionality
    * by checking protocol handshake result.
    *
@@ -74,7 +83,7 @@ class ConnectionProvider {
    *
    * @returns {Promise<boolean>}
    */
-   supportsUserImpersonation(): Promise<boolean> {
+  supportsUserImpersonation(): Promise<boolean> {
     throw Error('Not implemented')
   }
 
