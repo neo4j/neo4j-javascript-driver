@@ -237,6 +237,28 @@ export default class RequestMessage {
         )} ${databaseName}`
     )
   }
+
+  /**
+   * Generate the ROUTE message, this message is used to fetch the routing table from the server
+   *
+   * @param {object} routingContext The routing context used to define the routing table. Multi-datacenter deployments is one of its use cases
+   * @param {string[]} bookmarks The list of the bookmark should be used
+   * @param {object} databaseContext The context inforamtion of the database to get the routing table for.
+   * @param {string} databaseContext.databaseName The name of the database to get the routing table.
+   * @param {string} databaseContext.impersonatedUser The name of the user it should it's impersonation to get the routing table.
+   * @return {RequestMessage} the ROUTE message.
+   */
+   static routeV4x4 (routingContext = {}, bookmarks = [], databaseContext = {}) {
+    const dbContext = { db: databaseContext.databaseName, imp_user: databaseContext.impersonatedUser }
+    return new RequestMessage(
+      ROUTE,
+      [routingContext, bookmarks, dbContext],
+      () =>
+        `ROUTE ${json.stringify(routingContext)} ${json.stringify(
+          bookmarks
+        )} ${json.stringify(dbContext)}`
+    )
+  }
 }
 
 /**

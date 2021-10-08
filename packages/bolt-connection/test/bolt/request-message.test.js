@@ -266,4 +266,33 @@ describe('#unit RequestMessage', () => {
       )
     })
   })
+
+  describe('BoltV4.4', () => {
+    it('should create ROUTE message', () => {
+      const requestContext = { someValue: '1234' }
+      const bookmarks = ['a', 'b']
+      const databaseName = 'user_db'
+      const impersonatedUser = "user"
+
+      const message = RequestMessage.routeV4x4(requestContext, bookmarks, { databaseName, impersonatedUser })
+
+      expect(message.signature).toEqual(0x66)
+      expect(message.fields).toEqual([requestContext, bookmarks, { db: databaseName, imp_user: impersonatedUser }])
+      expect(message.toString()).toEqual(
+        `ROUTE ${json.stringify(requestContext)} ${json.stringify(
+          bookmarks
+        )} ${json.stringify({ db: databaseName, imp_user: impersonatedUser })}`
+      )
+    })
+
+    it('should create ROUTE message with default values', () => {
+      const message = RequestMessage.routeV4x4()
+
+      expect(message.signature).toEqual(0x66)
+      expect(message.fields).toEqual([{}, [], {}])
+      expect(message.toString()).toEqual(
+        `ROUTE ${json.stringify({})} ${json.stringify([])} ${json.stringify({})}`
+      )
+    })
+  })
 })

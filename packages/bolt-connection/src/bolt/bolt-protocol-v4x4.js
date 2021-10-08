@@ -19,9 +19,12 @@
  import BoltProtocolV43 from './bolt-protocol-v4x3'
  
  import { internal } from 'neo4j-driver-core'
+ import RequestMessage from './request-message'
+ import { RouteObserver } from './stream-observers'
  
  const {
-   constants: { BOLT_PROTOCOL_V4_4 }
+    constants: { BOLT_PROTOCOL_V4_4 },
+    bookmark: { Bookmark },
  } = internal
  
  export default class BoltProtocol extends BoltProtocolV43 {
@@ -29,5 +32,39 @@
      return BOLT_PROTOCOL_V4_4
    }
   
+   /**
+   * Request routing information
+   *
+   * @param {Object} param -
+   * @param {object} param.routingContext The routing context used to define the routing table.
+   *  Multi-datacenter deployments is one of its use cases
+   * @param {string} param.databaseName The database name
+   * @param {Bookmark} params.sessionContext.bookmark The bookmark used for request the routing table
+   * @param {function(err: Error)} param.onError
+   * @param {function(RawRoutingTable)} param.onCompleted
+   * @returns {RouteObserver} the route observer
+   */
+  requestRoutingInformation ({
+    routingContext = {},
+    databaseName = null,
+    impersonatedUser = null,
+    sessionContext = {},
+    onError,
+    onCompleted
+  }) {
+    const observer = new RouteObserver({
+      onProtocolError: this._onProtocolError,
+      onError,
+      onCompleted
+    })
+    const bookmark = sessionContext.bookmark || Bookmark.empty()
+    this.write(
+      RequestMessage.routeV4x4(routingContext, bookmark.values(), { databaseName, impersonatedUser }),
+      observer,
+      true
+    )
+
+    return observer
+  }
  }
  
