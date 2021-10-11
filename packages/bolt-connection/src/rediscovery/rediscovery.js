@@ -38,15 +38,17 @@ export default class Rediscovery {
    * @param {Session} session the session to use.
    * @param {string} database the database for which to lookup routing table.
    * @param {ServerAddress} routerAddress the URL of the router.
+   * @param {string} impersonatedUser The impersonated user
    * @return {Promise<RoutingTable>} promise resolved with new routing table or null when connection error happened.
    */
-  lookupRoutingTableOnRouter (session, database, routerAddress) {
+  lookupRoutingTableOnRouter (session, database, routerAddress, impersonatedUser) {
     return session._acquireConnection(connection => {
       return this._requestRawRoutingTable(
         connection,
         session,
         database,
-        routerAddress
+        routerAddress,
+        impersonatedUser
       ).then(rawRoutingTable => {
         if (rawRoutingTable.isNull) {
           return null
@@ -60,11 +62,12 @@ export default class Rediscovery {
     })
   }
 
-  _requestRawRoutingTable (connection, session, database, routerAddress) {
+  _requestRawRoutingTable (connection, session, database, routerAddress, impersonatedUser) {
     return new Promise((resolve, reject) => {
       connection.protocol().requestRoutingInformation({
         routingContext: this._routingContext,
         databaseName: database,
+        impersonatedUser,
         sessionContext: {
           bookmark: session._lastBookmark,
           mode: session._mode,

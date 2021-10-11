@@ -307,7 +307,7 @@ export function GetRoutingTable (context, { driverId, database }, wire) {
     driver &&
     driver._getOrCreateConnectionProvider() &&
     driver._getOrCreateConnectionProvider()._routingTableRegistry &&
-    driver._getOrCreateConnectionProvider()._routingTableRegistry.get(database)
+    driver._getOrCreateConnectionProvider()._routingTableRegistry.get(null, database)
 
   if (routingTable) {
     wire.writeResponse('RoutingTable', {

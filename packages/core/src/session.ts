@@ -100,13 +100,15 @@ class Session {
       mode: ACCESS_MODE_READ,
       database,
       bookmark,
-      connectionProvider
+      connectionProvider,
+      impersonatedUser
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
       database,
       bookmark,
-      connectionProvider
+      connectionProvider,
+      impersonatedUser
     })
     this._open = true
     this._hasTx = false
@@ -257,6 +259,7 @@ class Session {
 
     const tx = new Transaction({
       connectionHolder,
+      impersonatedUser: this._impersonatedUser,
       onClose: this._transactionClosed.bind(this),
       onBookmark: this._updateBookmark.bind(this),
       onConnection: this._assertSessionIsOpen.bind(this),

@@ -39,21 +39,26 @@ class ConnectionProvider {
    * @param {string} param.accessMode - the access mode for the to-be-acquired connection
    * @param {string} param.database - the target database for the to-be-acquired connection
    * @param {Bookmark} param.bookmarks - the bookmarks to send to routing discovery
+   * @param {string} param.impersonatedUser - the impersonated user
    */
   acquireConnection(params?: {
     accessMode?: string
     database?: string
-    bookmarks: bookmark.Bookmark
+    bookmarks: bookmark.Bookmark,
+    impersonatedUser?: string
   }): Promise<Connection> {
     throw Error('Not implemented')
   }
 
   /**
    * Resolve database name
+   * 
+   * @param {object} param - object parameter
    * @param {string|undefined|null} database Database name
-   * @return {string} the resolved db name
+   * @param {string|undefined|null} impersonatedUser The user which is being impersonated
+   * @return {string|undefined|null} the resolved db name
    */
-  resolveDatabaseName(database?: string): string | undefined | null {
+  resolveDatabaseName({ database }: { database?: string, impersonatedUser?: string }): string | undefined | null {
     return database
   }
 

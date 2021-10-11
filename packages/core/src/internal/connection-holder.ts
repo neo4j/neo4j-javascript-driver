@@ -82,6 +82,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private _connectionProvider?: ConnectionProvider
   private _referenceCount: number
   private _connectionPromise: Promise<Connection | void>
+  private _impersonatedUser?: string
 
   /**
    * @constructor
@@ -89,22 +90,26 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @param {string} database - the target database name.
    * @param {Bookmark} bookmark - the last bookmark
    * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
+   * @param {string?} impersonatedUser - the user which will be impersonated
    */
   constructor({
     mode = ACCESS_MODE_WRITE,
     database = '',
     bookmark,
-    connectionProvider
+    connectionProvider,
+    impersonatedUser
   }: {
     mode?: string
     database?: string
     bookmark?: Bookmark
-    connectionProvider?: ConnectionProvider
+    connectionProvider?: ConnectionProvider,
+    impersonatedUser?: string
   } = {}) {
     this._mode = mode
     this._database = database ? assertString(database, 'database') : ''
     this._bookmark = bookmark || Bookmark.empty()
     this._connectionProvider = connectionProvider
+    this._impersonatedUser = impersonatedUser
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve()
   }
@@ -134,7 +139,10 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @return {string} the resolved db name
    */
   resolveDatabaseName(): string | undefined | null {
-    return this._connectionProvider?.resolveDatabaseName(this._database) || this._database
+    return this._connectionProvider?.resolveDatabaseName({ 
+      database: this._database, 
+      impersonatedUser: this._impersonatedUser 
+    }) || this._database
   }
 
   initializeConnection(): boolean {
@@ -142,7 +150,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
       this._connectionPromise = this._connectionProvider.acquireConnection({
         accessMode: this._mode,
         database: this._database,
-        bookmarks: this._bookmark
+        bookmarks: this._bookmark,
+        impersonatedUser: this._impersonatedUser
       })
     } else {
       this._referenceCount++

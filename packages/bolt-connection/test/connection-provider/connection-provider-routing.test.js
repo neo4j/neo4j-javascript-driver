@@ -81,7 +81,7 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     ])
 
-    connectionProvider.forget(server2)
+    connectionProvider.forget(null, server2)
 
     expectRoutingTable(
       connectionProvider,
@@ -102,7 +102,7 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     ])
 
-    connectionProvider.forget(server42)
+    connectionProvider.forget(null, server42)
 
     expectRoutingTable(
       connectionProvider,
@@ -133,8 +133,8 @@ describe('#unit RoutingConnectionProvider', () => {
       pool
     )
 
-    connectionProvider.forget(server1)
-    connectionProvider.forget(server5)
+    connectionProvider.forget(null, server1)
+    connectionProvider.forget(null, server5)
 
     expectPoolToContain(pool, [server3])
     expectPoolToNotContain(pool, [server1, server5])
@@ -150,7 +150,7 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     ])
 
-    connectionProvider.forgetWriter(server2)
+    connectionProvider.forgetWriter(null, server2)
 
     expectRoutingTable(
       connectionProvider,
@@ -171,7 +171,7 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     ])
 
-    connectionProvider.forgetWriter(server42)
+    connectionProvider.forgetWriter(null, server42)
 
     expectRoutingTable(
       connectionProvider,
@@ -2235,7 +2235,7 @@ function newRoutingConnectionProviderWithSeedRouter (
   })
   connectionProvider._connectionPool = pool
   routingTables.forEach(r => {
-    connectionProvider._routingTableRegistry.register(r.database, r)
+    connectionProvider._routingTableRegistry.register(null, r.database, r)
   })
   connectionProvider._rediscovery = new FakeRediscovery(routerToRoutingTable)
   connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
@@ -2289,7 +2289,7 @@ function expectRoutingTable (
   readers,
   writers
 ) {
-  const routingTable = connectionProvider._routingTableRegistry.get(database)
+  const routingTable = connectionProvider._routingTableRegistry.get(null, database)
   expect(routingTable.database).toEqual(database)
   expect(routingTable.routers).toEqual(routers)
   expect(routingTable.readers).toEqual(readers)
@@ -2297,7 +2297,7 @@ function expectRoutingTable (
 }
 
 function expectNoRoutingTable (connectionProvider, database) {
-  expect(connectionProvider._routingTableRegistry.get(database)).toBeFalsy()
+  expect(connectionProvider._routingTableRegistry.get(null, database)).toBeFalsy()
 }
 
 function expectPoolToContain (pool, addresses) {
