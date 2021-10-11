@@ -29,11 +29,12 @@ describe('#unit RawRoutingTable', () => {
       shouldReturnNullRawRoutingTable(() => RawRoutingTable.ofRecord(null))
     })
 
-    describe('when record has servers and ttl', () => {
+    describe('when record has servers, db and ttl', () => {
       it('should return isNull equals false', () => {
         const record = newRecord({
           ttl: 123,
-          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }],
+          db: 'homedb'
         })
         const result = RawRoutingTable.ofRecord(record)
         expect(result.isNull).toEqual(false)
@@ -42,21 +43,33 @@ describe('#unit RawRoutingTable', () => {
       it('should return the ttl', () => {
         const record = newRecord({
           ttl: 123,
-          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }],
+          db: 'homedb'
         })
         const result = RawRoutingTable.ofRecord(record)
         expect(result.ttl).toEqual(123)
       })
 
-      it('should return the ttl', () => {
+      it('should return the servers', () => {
         const record = newRecord({
           ttl: 123,
-          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }],
+          db: 'homedb'
         })
         const result = RawRoutingTable.ofRecord(record)
         expect(result.servers).toEqual([
           { role: 'READ', addresses: ['127.0.0.1'] }
         ])
+      })
+
+      it('should return the db', () => {
+        const record = newRecord({
+          ttl: 123,
+          servers: [{ role: 'READ', addresses: ['127.0.0.1'] }],
+          db: 'homedb'
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.db).toEqual('homedb')
       })
     })
 
@@ -119,6 +132,18 @@ describe('#unit RawRoutingTable', () => {
         expect(() => result.servers).toThrow()
       })
     })
+
+    describe('when record does not have db name', () => {
+      it('should return db equals null', () => {
+        const record = newRecord({
+          ttl: 123,
+          noServers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
+        })
+        const result = RawRoutingTable.ofRecord(record)
+        expect(result.db).toEqual(null)
+      })
+
+    })
   })
 
   describe('ofMessageResponse', () => {
@@ -144,7 +169,7 @@ describe('#unit RawRoutingTable', () => {
       expect(result.ttl).toEqual(123)
     })
 
-    it('should return the ttl', () => {
+    it('should return the servers', () => {
       const response = newResponse({
         ttl: 123,
         servers: [{ role: 'READ', addresses: ['127.0.0.1'] }]
@@ -153,6 +178,16 @@ describe('#unit RawRoutingTable', () => {
       expect(result.servers).toEqual([
         { role: 'READ', addresses: ['127.0.0.1'] }
       ])
+    })
+
+    it('should return the db', () => {
+      const response = newResponse({
+        ttl: 123,
+        servers: [{ role: 'READ', addresses: ['127.0.0.1'] }],
+        db: 'homedb'
+      })
+      const result = RawRoutingTable.ofMessageResponse(response)
+      expect(result.db).toEqual('homedb')
     })
   })
 
@@ -174,6 +209,13 @@ describe('#unit RawRoutingTable', () => {
       expect(() => {
         const servers = subject().servers
         fail(`it should not return ${servers}`)
+      }).toThrow(new Error('Not implemented'))
+    })
+
+    it('should not implement db', () => {
+      expect(() => {
+        const db = subject().db
+        fail(`it should not return ${db}`)
       }).toThrow(new Error('Not implemented'))
     })
   }

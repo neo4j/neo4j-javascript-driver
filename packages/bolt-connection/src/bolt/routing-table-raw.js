@@ -147,6 +147,10 @@ class RecordRawRoutingTable extends RawRoutingTable {
     return this._record.get('servers')
   }
 
+  get db () {
+    return this._record.has('db') ? this._record.get('db') : null
+  }
+
   get isNull () {
     return this._record === null
   }
