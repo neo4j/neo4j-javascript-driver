@@ -63,7 +63,7 @@ export function DriverClose (context, data, wire) {
 }
 
 export function NewSession (context, data, wire) {
-  let { driverId, accessMode, bookmarks, database, fetchSize } = data
+  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser } = data
   switch (accessMode) {
     case 'r':
       accessMode = neo4j.session.READ
@@ -80,7 +80,8 @@ export function NewSession (context, data, wire) {
     defaultAccessMode: accessMode,
     bookmarks,
     database,
-    fetchSize
+    fetchSize,
+    impersonatedUser
   })
   const id = context.addSession(session)
   wire.writeResponse('Session', { id })
@@ -266,7 +267,8 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Auth:Bearer',
       'AuthorizationExpiredTreatment',
       'ConfHint:connection.recv_timeout_seconds',
-      'Feature:Bolt:4.4'
+      'Feature:Bolt:4.4',
+      'Feature:Impersonation'
     ]
   })
 }
