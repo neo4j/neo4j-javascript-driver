@@ -158,7 +158,7 @@ describe('#stub-direct direct driver with stub server', () => {
     }, 60000)
   })
 
-  describe('should report whether usr impersonation is supported', () => {
+  describe('should report whether user impersonation is supported', () => {
     async function verifySupportsUserImpersonation (version, expected) {
       if (!boltStub.supported) {
         return
