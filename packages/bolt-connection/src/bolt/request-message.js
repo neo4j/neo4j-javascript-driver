@@ -160,7 +160,7 @@ export default class RequestMessage {
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
    * @param {string} mode the access mode.
-   * @param {string} impersonatedUser the impersonated user mode.
+   * @param {string} impersonatedUser the impersonated user.
    * @return {RequestMessage} new RUN message with additional metadata.
    */
   static runWithMetadata (
