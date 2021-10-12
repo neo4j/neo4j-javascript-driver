@@ -673,6 +673,6 @@ class DatabaseNameRegistry {
   }
 
   resolveName(impersonatedUser, database) {
-    return database === DEFAULT_DB_NAME? this._homedbs.get(impersonatedUser) : database
+    return database === DEFAULT_DB_NAME ? this._homedbs.get(impersonatedUser) : database
   }
 }
