@@ -63,7 +63,7 @@ class Transaction {
    * is not yet released.
    * @param {boolean} reactive whether this transaction generates reactive streams
    * @param {number} fetchSize - the record fetch size in each pulling batch.
-   * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
+   * @param {string} impersonatedUser - The name of the user which should be impersonated for the duration of the session.
    */
   constructor({
     connectionHolder,
