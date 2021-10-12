@@ -2275,7 +2275,6 @@ describe('#unit RoutingConnectionProvider', () => {
               writers: [server3],
               user,
               routingTableDatabase: 'homedb'
-
             }
           )
         ],
