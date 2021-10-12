@@ -69,7 +69,7 @@ export default class RawRoutingTable {
    *
    * @returns {string?} The database name
    */
-   get db () {
+  get db () {
     throw new Error('Not implemented')
   }
 

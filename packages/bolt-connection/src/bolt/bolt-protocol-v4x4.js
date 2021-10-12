@@ -16,34 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- import BoltProtocolV43 from './bolt-protocol-v4x3'
- 
- import { internal } from 'neo4j-driver-core'
- import RequestMessage, { ALL }  from './request-message'
- import { RouteObserver, ResultStreamObserver } from './stream-observers'
- 
- const {
-    constants: { BOLT_PROTOCOL_V4_4 },
-    bookmark: { Bookmark },
- } = internal
- 
- export default class BoltProtocol extends BoltProtocolV43 {
-   get version () {
-     return BOLT_PROTOCOL_V4_4
-   }
-  
-   /**
-   * Request routing information
-   *
-   * @param {Object} param -
-   * @param {object} param.routingContext The routing context used to define the routing table.
-   *  Multi-datacenter deployments is one of its use cases
-   * @param {string} param.databaseName The database name
-   * @param {Bookmark} params.sessionContext.bookmark The bookmark used for request the routing table
-   * @param {function(err: Error)} param.onError
-   * @param {function(RawRoutingTable)} param.onCompleted
-   * @returns {RouteObserver} the route observer
-   */
+import BoltProtocolV43 from './bolt-protocol-v4x3'
+
+import { internal } from 'neo4j-driver-core'
+import RequestMessage, { ALL } from './request-message'
+import { RouteObserver, ResultStreamObserver } from './stream-observers'
+
+const {
+  constants: { BOLT_PROTOCOL_V4_4 },
+  bookmark: { Bookmark },
+} = internal
+
+export default class BoltProtocol extends BoltProtocolV43 {
+  get version() {
+    return BOLT_PROTOCOL_V4_4
+  }
+
+  /**
+  * Request routing information
+  *
+  * @param {Object} param -
+  * @param {object} param.routingContext The routing context used to define the routing table.
+  *  Multi-datacenter deployments is one of its use cases
+  * @param {string} param.databaseName The database name
+  * @param {Bookmark} params.sessionContext.bookmark The bookmark used for request the routing table
+  * @param {function(err: Error)} param.onError
+  * @param {function(RawRoutingTable)} param.onCompleted
+  * @returns {RouteObserver} the route observer
+  */
   requestRoutingInformation ({
     routingContext = {},
     databaseName = null,
@@ -149,6 +149,5 @@
 
     return observer
   }
-  
- }
- 
+
+}
