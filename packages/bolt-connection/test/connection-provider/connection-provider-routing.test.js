@@ -2444,7 +2444,6 @@ describe('#unit RoutingConnectionProvider', () => {
         pool
       )
 
-
       const defaultConnToHomeDb1 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb1' })
       expect(defaultConnToHomeDb1.address).toEqual(server1)
       expect(pool.has(server1)).toBeTruthy()
