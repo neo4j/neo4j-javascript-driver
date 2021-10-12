@@ -2262,6 +2262,215 @@ describe('#unit RoutingConnectionProvider', () => {
         Date.now = originalDateNow
       }
     }, 10000)
+
+    it.each(usersDataSet)('should resolve the home database name for the user=%s', (user) => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTableWithUser(
+            {
+              database: null, 
+              routers: [server1, server2, server3],
+              readers: [server1, server2],
+              writers: [server3],
+              user,
+              routingTableDatabase: 'homedb'
+
+            }
+          )
+        ],
+        pool
+      )
+
+      const resolvedName = connectionProvider.resolveDatabaseName({ database: null, impersonatedUser: user })
+
+      expect(resolvedName).toBe('homedb')
+
+      expectRoutingTable(
+        connectionProvider,
+        null,
+        [server1, server2, server3],
+        [server1, server2],
+        [server3],
+        user,
+        'homedb'
+      )
+    })
+
+    it.each(usersDataSet)('should be able to acquire connection for homedb using it name', async (user) => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTableWithUser(
+            {
+              database: null, 
+              routers: [server1, server2, server3],
+              readers: [server1, server2],
+              writers: [server3],
+              user,
+              routingTableDatabase: 'homedb'
+
+            }
+          )
+        ],
+        pool
+      )
+
+      const connection = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb', impersonatedUser: user })
+
+      expect(connection.address).toEqual(server1)
+      expect(pool.has(server1)).toBeTruthy()
+    })
+
+    it('should resolve different dbs for different users', () => {
+      const user1 = 'the-impostor-number-1'
+      const user2 = 'the-impostor-number-2'
+      const defaultUser = undefined
+
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTableWithUser(
+            {
+              database: null, 
+              routers: [server1],
+              readers: [server1],
+              writers: [server1],
+              user: user1,
+              routingTableDatabase: 'homedb1'
+            }
+          ),
+
+          newRoutingTableWithUser(
+            {
+              database: null, 
+              routers: [server2],
+              readers: [server2],
+              writers: [server2],
+              user: user2,
+              routingTableDatabase: 'homedb2'
+            }
+          ),
+
+          newRoutingTableWithUser(
+            {
+              database: null, 
+              routers: [server3],
+              readers: [server3],
+              writers: [server3],
+              user: defaultUser,
+              routingTableDatabase: 'default-home-db'
+            }
+          )
+        ],
+        pool
+      )
+
+      expect(connectionProvider.resolveDatabaseName({ database: null, impersonatedUser: user1 })).toBe('homedb1')
+      expect(connectionProvider.resolveDatabaseName({ database: null, impersonatedUser: user2 })).toBe('homedb2')
+      expect(connectionProvider.resolveDatabaseName({ database: null, impersonatedUser: defaultUser })).toBe('default-home-db')
+
+      expectRoutingTable(
+        connectionProvider,
+        null,
+        [server1],
+        [server1],
+        [server1],
+        user1,
+        'homedb1'
+      )
+
+      expectRoutingTable(
+        connectionProvider,
+        null,
+        [server2],
+        [server2],
+        [server2],
+        user2,
+        'homedb2'
+      )
+
+      expectRoutingTable(
+        connectionProvider,
+        null,
+        [server3],
+        [server3],
+        [server3],
+        defaultUser,
+        'default-home-db'
+      )
+    })
+
+    it('should be to acquire connection other users homedb using it name', async () => {
+      const user1 = 'the-impostor-number-1'
+      const user2 = 'the-impostor-number-2'
+      const defaultUser = undefined
+
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTableWithUser(
+            {
+              database: null, 
+              routers: [server1],
+              readers: [server1],
+              writers: [server1],
+              user: user1,
+              routingTableDatabase: 'homedb1'
+            }
+          ),
+
+          newRoutingTableWithUser(
+            {
+              database: null, 
+              routers: [server2],
+              readers: [server2],
+              writers: [server2],
+              user: user2,
+              routingTableDatabase: 'homedb2'
+            }
+          ),
+
+          newRoutingTableWithUser(
+            {
+              database: null, 
+              routers: [server3],
+              readers: [server3],
+              writers: [server3],
+              user: defaultUser,
+              routingTableDatabase: 'default-home-db'
+            }
+          )
+        ],
+        pool
+      )
+
+
+      const defaultConnToHomeDb1 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb1' })
+      expect(defaultConnToHomeDb1.address).toEqual(server1)
+      expect(pool.has(server1)).toBeTruthy()
+
+      const defaultConnToHomeDb2 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb2' })
+      expect(defaultConnToHomeDb2.address).toEqual(server2)
+      expect(pool.has(server2)).toBeTruthy()
+
+      const user1ConnToDefaultHomeDb = await connectionProvider.acquireConnection({ accessMode: READ, database: 'default-home-db', impersonatedUser: user1 })
+      expect(user1ConnToDefaultHomeDb.address).toEqual(server3)
+      expect(pool.has(server3)).toBeTruthy()
+
+      const user1ConnToHomeDb2 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb2', impersonatedUser: user1 })
+      expect(user1ConnToHomeDb2.address).toEqual(server2)
+      expect(pool.has(server2)).toBeTruthy()
+
+      const user2ConnToDefaultHomeDb = await connectionProvider.acquireConnection({ accessMode: READ, database: 'default-home-db', impersonatedUser: user2 })
+      expect(user2ConnToDefaultHomeDb.address).toEqual(server3)
+      expect(pool.has(server3)).toBeTruthy()
+
+      const user2ConnToHomeDb1 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb1', impersonatedUser: user2 })
+      expect(user2ConnToHomeDb1.address).toEqual(server1)
+      expect(pool.has(server1)).toBeTruthy()
+    })
+
   })
 })
 
@@ -2300,7 +2509,7 @@ function newRoutingConnectionProviderWithSeedRouter (
   })
   connectionProvider._connectionPool = pool
   routingTables.forEach(r => {
-    connectionProvider._routingTableRegistry.register(null, r.database, r)
+    connectionProvider._routingTableRegistry.register(r.user, r.database, r)
   })
   connectionProvider._rediscovery = new FakeRediscovery(routerToRoutingTable)
   connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
@@ -2310,19 +2519,36 @@ function newRoutingConnectionProviderWithSeedRouter (
   return connectionProvider
 }
 
+function newRoutingTableWithUser ({
+  database,
+  routers,
+  readers,
+  writers,
+  expirationTime = Integer.MAX_VALUE,
+  routingTableDatabase,
+  user
+
+}) {
+  const routingTable = newRoutingTable(database, routers, readers, writers, expirationTime, routingTableDatabase)
+  routingTable.user = user
+  return routingTable
+}
+
 function newRoutingTable (
   database,
   routers,
   readers,
   writers,
-  expirationTime = Integer.MAX_VALUE
+  expirationTime = Integer.MAX_VALUE,
+  routingTableDatabase
 ) {
   return new RoutingTable({
     database,
     routers,
     readers,
     writers,
-    expirationTime
+    expirationTime,
+    routingTableDatabase
   })
 }
 
@@ -2353,13 +2579,15 @@ function expectRoutingTable (
   routers,
   readers,
   writers,
-  impersonatedUser 
+  impersonatedUser,
+  routingTableDatabase
 ) {
   const routingTable = connectionProvider._routingTableRegistry.get(impersonatedUser, database)
   expect(routingTable.database).toEqual(database)
   expect(routingTable.routers).toEqual(routers)
   expect(routingTable.readers).toEqual(readers)
   expect(routingTable.writers).toEqual(writers)
+  expect(routingTable.routingTableDatabase).toEqual(routingTableDatabase)
 }
 
 function expectNoRoutingTable (connectionProvider, database, impersonatedUser) {
