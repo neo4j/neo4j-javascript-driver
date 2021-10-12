@@ -247,7 +247,7 @@ export default class RequestMessage {
    * @param {string[]} bookmarks The list of the bookmark should be used
    * @param {object} databaseContext The context inforamtion of the database to get the routing table for.
    * @param {string} databaseContext.databaseName The name of the database to get the routing table.
-   * @param {string} databaseContext.impersonatedUser The name of the user it should it's impersonation to get the routing table.
+   * @param {string} databaseContext.impersonatedUser The name of the user to impersonation when getting the routing table.
    * @return {RequestMessage} the ROUTE message.
    */
    static routeV4x4 (routingContext = {}, bookmarks = [], databaseContext = {}) {
