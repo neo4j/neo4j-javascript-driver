@@ -166,7 +166,8 @@ function createProtocol (
         serversideRouting
       )
     case 4.4:
-      return new BoltProtocolV4x4(server,
+      return new BoltProtocolV4x4(
+        server,
         chunker,
         packingConfig,
         createResponseHandler,
