@@ -56,27 +56,6 @@ describe('#unit BoltProtocolV4x4', () => {
     expect(protocol.flushes).toEqual([true])
   })
 
-  it('should request routing information', () => {
-    const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x4(recorder, null, false)
-    utils.spyProtocolWrite(protocol)
-    const routingContext = { someContextParam: 'value' }
-    const databaseName = 'name'
-
-    const observer = protocol.requestRoutingInformation({
-      routingContext,
-      databaseName
-    })
-
-    protocol.verifyMessageCount(1)
-    expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.routeV4x4(routingContext, [], { databaseName, impersonatedUser: null })
-    )
-    expect(protocol.observers).toEqual([observer])
-    expect(observer).toEqual(expect.any(RouteObserver))
-    expect(protocol.flushes).toEqual([true])
-  })
-
   it('should request routing information sending bookmarks', () => {
     const recorder = new utils.MessageRecordingConnection()
     const protocol = new BoltProtocolV4x4(recorder, null, false)
