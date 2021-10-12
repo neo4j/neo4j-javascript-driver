@@ -26,7 +26,7 @@ import {
 import { internal, error } from 'neo4j-driver-core'
 
 const {
-  constants: { BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_4 }
+  constants: { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V4_4 }
 } = internal
 
 const { SERVICE_UNAVAILABLE, newError } = error
