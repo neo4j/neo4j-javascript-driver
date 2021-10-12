@@ -54,7 +54,7 @@ class Driver extends CoreDriver {
    * @param {string|string[]} param.bookmarks - The initial reference or references to some previous transactions. Value is optional and
    * absence indicates that the bookmarks do not exist or are unknown.
    * @param {string} param.database - The database this session will operate on.
-   * @param {string} param.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
+   * @param {string} param.impersonatedUser - The name of the user which should be impersonated for the duration of the session.
    * @returns {RxSession} new reactive session.
    */
   rxSession ({
