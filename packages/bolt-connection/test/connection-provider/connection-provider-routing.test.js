@@ -757,7 +757,8 @@ describe('#unit RoutingConnectionProvider', () => {
           null,
           [serverA, serverB],
           [serverC, serverD],
-          [serverE, serverF]
+          [serverE, serverF],
+          user
         )
         expectPoolToNotContain(pool, [
           server1,
@@ -794,7 +795,8 @@ describe('#unit RoutingConnectionProvider', () => {
           null,
           [],
           [server4, server5],
-          [server6, server7]
+          [server6, server7],
+          user
         )
         done()
       })
@@ -823,7 +825,8 @@ describe('#unit RoutingConnectionProvider', () => {
           null,
           [],
           [server4, server5],
-          [server6, server7]
+          [server6, server7],
+          user
         )
         done()
       })
@@ -874,7 +877,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB, serverC],
               [serverD, serverE],
-              [serverF, serverG]
+              [serverF, serverG],
+              user
             )
             done()
           })
@@ -926,7 +930,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC, serverD],
-              [serverE, serverF]
+              [serverE, serverF],
+              user
             )
             done()
           })
@@ -978,7 +983,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC],
-              [serverD, serverE]
+              [serverD, serverE],
+              user
             )
             done()
           })
@@ -1031,7 +1037,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [], // all routers were forgotten because they failed
               [server4, server5],
-              [server6]
+              [server6],
+              user
             )
 
             done()
@@ -1084,7 +1091,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [], // all routers were forgotten because they failed
               [server3],
-              [server4]
+              [server4],
+              user
             )
 
             done()
@@ -1126,7 +1134,8 @@ describe('#unit RoutingConnectionProvider', () => {
           null,
           [], // all known seed servers failed to return routing tables and were forgotten
           [server4],
-          [server5]
+          [server5],
+          user
         )
 
         connectionProvider
@@ -1139,7 +1148,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [], // all known seed servers failed to return routing tables and were forgotten
               [server4],
-              [server5]
+              [server5],
+              user
             )
 
             done()
@@ -1189,7 +1199,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC],
-              [serverD]
+              [serverD],
+              user
             )
             done()
           })
@@ -1238,7 +1249,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC, serverD],
-              [serverF, serverE]
+              [serverF, serverE],
+              user
             )
             done()
           })
@@ -1289,7 +1301,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB, serverC],
               [serverD, serverE],
-              [serverF]
+              [serverF],
+              user
             )
             done()
           })
@@ -1356,7 +1369,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC, serverD],
-              [serverE, serverF]
+              [serverE, serverF],
+              user
             )
             done()
           })
@@ -1639,7 +1653,8 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC, serverD],
-              []
+              [],
+              user
             )
 
             connectionProvider
@@ -1652,7 +1667,8 @@ describe('#unit RoutingConnectionProvider', () => {
                   null,
                   [serverAA, serverBB],
                   [serverCC, serverDD],
-                  [serverEE]
+                  [serverEE],
+                  user
                 )
 
                 done()
