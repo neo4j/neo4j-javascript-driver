@@ -111,7 +111,7 @@ class Transaction {
             bookmark: bookmark,
             txConfig: txConfig,
             mode: this._connectionHolder.mode(),
-            database: this._connectionHolder.resolveDatabaseName(), // TODO: Cleanup it || BIGMONTZ
+            database: this._connectionHolder.resolveDatabaseName(),
             impersonatedUser: this._impersonatedUser,
             beforeError: this._onError,
             afterComplete: this._onComplete
