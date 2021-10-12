@@ -2296,6 +2296,39 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     })
 
+    it.each(usersDataSet)('should resolve the non default database name for the user=%s with the informed name', (user) => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [
+          newRoutingTableWithUser(
+            {
+              database: 'databaseA', 
+              routers: [server1, server2, server3],
+              readers: [server1, server2],
+              writers: [server3],
+              user,
+              routingTableDatabase: 'homedb'
+            }
+          )
+        ],
+        pool
+      )
+
+      const resolvedName = connectionProvider.resolveDatabaseName({ database: 'databaseA', impersonatedUser: user })
+
+      expect(resolvedName).toBe('databaseA')
+
+      expectRoutingTable(
+        connectionProvider,
+        'databaseA',
+        [server1, server2, server3],
+        [server1, server2],
+        [server3],
+        user,
+        'homedb'
+      )
+    })
+
     it.each(usersDataSet)('should be able to acquire connection for homedb using it name', async (user) => {
       const pool = newPool()
       const connectionProvider = newRoutingConnectionProvider(
