@@ -105,7 +105,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Node}, `false` otherwise.
  */
-function isNode(obj: object): boolean {
+function isNode(obj: object): obj is Node {
   return hasIdentifierProperty(obj, NODE_IDENTIFIER_PROPERTY)
 }
 
@@ -186,7 +186,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Relationship}, `false` otherwise.
  */
-function isRelationship(obj: object): boolean {
+function isRelationship(obj: object): obj is Relationship {
   return hasIdentifierProperty(obj, RELATIONSHIP_IDENTIFIER_PROPERTY)
 }
 
@@ -272,7 +272,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link UnboundRelationship}, `false` otherwise.
  */
-function isUnboundRelationship(obj: object): boolean {
+function isUnboundRelationship(obj: object): obj is UnboundRelationship {
   return hasIdentifierProperty(obj, UNBOUND_RELATIONSHIP_IDENTIFIER_PROPERTY)
 }
 
@@ -320,7 +320,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link PathSegment}, `false` otherwise.
  */
-function isPathSegment(obj: object): boolean {
+function isPathSegment(obj: object): obj is PathSegment {
   return hasIdentifierProperty(obj, PATH_SEGMENT_IDENTIFIER_PROPERTY)
 }
 
@@ -374,7 +374,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Path}, `false` otherwise.
  */
-function isPath(obj: object): boolean {
+function isPath(obj: object): obj is Path {
   return hasIdentifierProperty(obj, PATH_IDENTIFIER_PROPERTY)
 }
 

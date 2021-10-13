@@ -108,7 +108,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Duration}, `false` otherwise.
  */
-export function isDuration(obj: object): boolean {
+export function isDuration(obj: object): obj is Duration {
   return hasIdentifierProperty(obj, DURATION_IDENTIFIER_PROPERTY)
 }
 
@@ -315,7 +315,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Time}, `false` otherwise.
  */
-export function isTime(obj: object): boolean {
+export function isTime(obj: object): obj is Time {
   return hasIdentifierProperty(obj, TIME_IDENTIFIER_PROPERTY)
 }
 
@@ -511,7 +511,7 @@ Object.defineProperty(
  * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link LocalDateTime}, `false` otherwise.
  */
-export function isLocalDateTime(obj: any): boolean {
+export function isLocalDateTime(obj: any): obj is LocalDateTime {
   return hasIdentifierProperty(obj, LOCAL_DATE_TIME_IDENTIFIER_PROPERTY)
 }
 
