@@ -563,8 +563,6 @@ class RoutingTableRegistry {
   /**
    * Put a routing table in the registry
    *
-   * @param {string|impersonatedUser} impersonatedUser The impersonated User
-   * @param {string} database The database name
    * @param {RoutingTable} table The routing table
    * @returns {RoutingTableRegistry} this
    */
@@ -577,7 +575,6 @@ class RoutingTableRegistry {
    * Apply function in the routing table for an specific database. If the database name is not defined, the function will
    * be applied for each element
    *
-   * @param {string|impersonatedUser} impersonatedUser The impersonated User
    * @param {string} database The database name
    * @param {object} callbacks The actions
    * @param {function (RoutingTable)} callbacks.applyWhenExists Call when the db exists or when the database property is not informed
@@ -587,7 +584,7 @@ class RoutingTableRegistry {
   apply (database, { applyWhenExists, applyWhenDontExists = () => {} } = {}) {
     if (this._tables.has(database)) {
       applyWhenExists(this._tables.get(database))
-    } else if (typeof db === 'string' || db === null) {
+    } else if (typeof database === 'string' || database === null) {
       applyWhenDontExists()
     } else {
       this._forEach(applyWhenExists)

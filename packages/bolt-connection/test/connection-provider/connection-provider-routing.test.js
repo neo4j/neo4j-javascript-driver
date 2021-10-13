@@ -77,7 +77,7 @@ describe('#unit RoutingConnectionProvider', () => {
     ['the-impostor']
   ]
 
-  it.each(usersDataSet)('can forget address [user=%s]', user => {
+  it('can forget address', () => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
         null,
@@ -87,19 +87,18 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     ])
 
-    connectionProvider.forget(user, server2)
+    connectionProvider.forget(server2)
 
     expectRoutingTable(
       connectionProvider,
       null,
       [server1, server2],
       [server3],
-      [server4],
-      user
+      [server4]
     )
   }, 10000)
 
-  it.each(usersDataSet)('can not forget unknown address [user=%s]', user => {
+  it('can not forget unknown address', () => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
         null,
@@ -109,19 +108,18 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     ])
 
-    connectionProvider.forget(user, server42)
+    connectionProvider.forget(server42)
 
     expectRoutingTable(
       connectionProvider,
       null,
       [server1, server2],
       [server3, server4],
-      [server5, server6],
-      user
+      [server5, server6]
     )
   }, 10000)
 
-  it.each(usersDataSet)('purges connections when address is forgotten [user=%s]', user => {
+  it('purges connections when address is forgotten', () => {
     const pool = newPool()
 
     pool.acquire(server1)
@@ -141,14 +139,14 @@ describe('#unit RoutingConnectionProvider', () => {
       pool
     )
 
-    connectionProvider.forget(user, server1)
-    connectionProvider.forget(user, server5)
+    connectionProvider.forget(server1)
+    connectionProvider.forget(server5)
 
     expectPoolToContain(pool, [server3])
     expectPoolToNotContain(pool, [server1, server5])
   }, 10000)
 
-  it.each(usersDataSet)('can forget writer address [user=%s]', user => {
+  it('can forget writer address', () => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
         null,
@@ -158,19 +156,18 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     ])
 
-    connectionProvider.forgetWriter(user, server2)
+    connectionProvider.forgetWriter(server2)
 
     expectRoutingTable(
       connectionProvider,
       null,
       [server1, server2],
       [server3, server2],
-      [server4],
-      user
+      [server4]
     )
   }, 10000)
 
-  it.each(usersDataSet)('can not forget unknown writer address [user=%s]', user => {
+  it('can not forget unknown writer address', () => {
     const connectionProvider = newRoutingConnectionProvider([
       newRoutingTable(
         null,
@@ -180,15 +177,14 @@ describe('#unit RoutingConnectionProvider', () => {
       )
     ])
 
-    connectionProvider.forgetWriter(user, server42)
+    connectionProvider.forgetWriter(server42)
 
     expectRoutingTable(
       connectionProvider,
       null,
       [server1, server2],
       [server3, server4],
-      [server5, server6],
-      user
+      [server5, server6]
     )
   }, 10000)
 
@@ -757,8 +753,7 @@ describe('#unit RoutingConnectionProvider', () => {
           null,
           [serverA, serverB],
           [serverC, serverD],
-          [serverE, serverF],
-          user
+          [serverE, serverF]
         )
         expectPoolToNotContain(pool, [
           server1,
@@ -795,8 +790,7 @@ describe('#unit RoutingConnectionProvider', () => {
           null,
           [],
           [server4, server5],
-          [server6, server7],
-          user
+          [server6, server7]
         )
         done()
       })
@@ -825,8 +819,7 @@ describe('#unit RoutingConnectionProvider', () => {
           null,
           [],
           [server4, server5],
-          [server6, server7],
-          user
+          [server6, server7]
         )
         done()
       })
@@ -877,8 +870,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB, serverC],
               [serverD, serverE],
-              [serverF, serverG],
-              user
+              [serverF, serverG]
             )
             done()
           })
@@ -930,8 +922,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC, serverD],
-              [serverE, serverF],
-              user
+              [serverE, serverF]
             )
             done()
           })
@@ -983,8 +974,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC],
-              [serverD, serverE],
-              user
+              [serverD, serverE]
             )
             done()
           })
@@ -1037,8 +1027,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [], // all routers were forgotten because they failed
               [server4, server5],
-              [server6],
-              user
+              [server6]
             )
 
             done()
@@ -1091,8 +1080,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [], // all routers were forgotten because they failed
               [server3],
-              [server4],
-              user
+              [server4]
             )
 
             done()
@@ -1134,8 +1122,7 @@ describe('#unit RoutingConnectionProvider', () => {
           null,
           [], // all known seed servers failed to return routing tables and were forgotten
           [server4],
-          [server5],
-          user
+          [server5]
         )
 
         connectionProvider
@@ -1148,8 +1135,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [], // all known seed servers failed to return routing tables and were forgotten
               [server4],
-              [server5],
-              user
+              [server5]
             )
 
             done()
@@ -1199,8 +1185,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC],
-              [serverD],
-              user
+              [serverD]
             )
             done()
           })
@@ -1249,8 +1234,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC, serverD],
-              [serverF, serverE],
-              user
+              [serverF, serverE]
             )
             done()
           })
@@ -1301,8 +1285,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB, serverC],
               [serverD, serverE],
-              [serverF],
-              user
+              [serverF]
             )
             done()
           })
@@ -1369,8 +1352,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC, serverD],
-              [serverE, serverF],
-              user
+              [serverE, serverF]
             )
             done()
           })
@@ -1653,8 +1635,7 @@ describe('#unit RoutingConnectionProvider', () => {
               null,
               [serverA, serverB],
               [serverC, serverD],
-              [],
-              user
+              []
             )
 
             connectionProvider
@@ -1667,8 +1648,7 @@ describe('#unit RoutingConnectionProvider', () => {
                   null,
                   [serverAA, serverBB],
                   [serverCC, serverDD],
-                  [serverEE],
-                  user
+                  [serverEE]
                 )
 
                 done()
@@ -1960,16 +1940,14 @@ describe('#unit RoutingConnectionProvider', () => {
         'databaseA',
         [server1, server2, server3],
         [server1, server2],
-        [server3],
-        user
+        [server3]
       )
       expectRoutingTable(
         connectionProvider,
         'databaseB',
         [serverA, serverB, serverC],
         [serverB],
-        [serverC],
-        user
+        [serverC]
       )
     }, 10000)
 
@@ -2010,16 +1988,14 @@ describe('#unit RoutingConnectionProvider', () => {
         'databaseA',
         [server1, server2, server3],
         [server1, server2],
-        [server3],
-        user
+        [server3]
       )
       expectRoutingTable(
         connectionProvider,
         'databaseB',
         [serverA, serverB, serverC],
         [serverB],
-        [serverC],
-        user
+        [serverC]
       )
     }, 10000)
 
@@ -2060,16 +2036,14 @@ describe('#unit RoutingConnectionProvider', () => {
         'databaseA',
         [server1, server2, server3],
         [server1, server2],
-        [server3],
-        user
+        [server3]
       )
       expectRoutingTable(
         connectionProvider,
         null,
         [serverA, serverB, serverC],
         [serverB],
-        [serverC],
-        user
+        [serverC]
       )
     })
 
@@ -2109,16 +2083,14 @@ describe('#unit RoutingConnectionProvider', () => {
         'databaseA',
         [server1, server2, server3],
         [server1, server2],
-        [server3],
-        user
+        [server3]
       )
       expectRoutingTable(
         connectionProvider,
         null,
         [serverA, serverB, serverC],
         [serverB],
-        [serverC],
-        user
+        [serverC]
       )
     })
 
@@ -2159,16 +2131,14 @@ describe('#unit RoutingConnectionProvider', () => {
         'databaseA',
         [server1, server2, server3],
         [server1, server2],
-        [server3],
-        user
+        [server3]
       )
       expectRoutingTable(
         connectionProvider,
         'databaseB',
         [serverA, serverB, serverC],
         [serverA, serverB],
-        [serverC],
-        user
+        [serverC]
       )
     }, 10000)
 
@@ -2215,16 +2185,14 @@ describe('#unit RoutingConnectionProvider', () => {
           'databaseA',
           [server1, server2, server3],
           [server1, server2],
-          [server3],
-          user
+          [server3]
         )
         expectRoutingTable(
           connectionProvider,
           'databaseB',
           [server1, server2, server3],
           [server1, server3],
-          [server2],
-          user
+          [server2]
         )
 
         // make routing table for databaseA to report true for isExpiredFor(4000)
@@ -2246,16 +2214,14 @@ describe('#unit RoutingConnectionProvider', () => {
           'databaseA',
           [server1, server2, server3],
           [server1, server2],
-          [server3],
-          user
+          [server3]
         )
         expectRoutingTable(
           connectionProvider,
           'databaseC',
           [server1, server2, server3],
           [server2, server3],
-          [server1],
-          user
+          [server1]
         )
         expectNoRoutingTable(connectionProvider, 'databaseB', user)
       } finally {
@@ -2263,219 +2229,177 @@ describe('#unit RoutingConnectionProvider', () => {
       }
     }, 10000)
 
-    it.each(usersDataSet)('should resolve the home database name for the user=%s', (user) => {
+    it.each(usersDataSet)('should resolve the home database name for the user=%s', async (user) => {
       const pool = newPool()
       const connectionProvider = newRoutingConnectionProvider(
-        [
-          newRoutingTableWithUser(
-            {
+        [],
+        pool,
+        { 
+          null: {
+            'server-non-existing-seed-router:7687': newRoutingTableWithUser(
+              {
+                database: null, 
               database: null, 
-              routers: [server1, server2, server3],
-              readers: [server1, server2],
-              writers: [server3],
-              user,
-              routingTableDatabase: 'homedb'
-            }
-          )
-        ],
-        pool
+                database: null, 
+                routers: [server1, server2, server3],
+                readers: [server1, server2],
+                writers: [server3],
+                user,
+                routingTableDatabase: 'homedb'
+              }
+            )
+          } 
+        }
       )
 
-      const resolvedName = connectionProvider.resolveDatabaseName({ database: null, impersonatedUser: user })
+      const connection = await connectionProvider.acquireConnection({ impersonatedUser: user, accessMode: READ })
 
-      expect(resolvedName).toBe('homedb')
+      expect(connection.address).toEqual(server1)
 
       expectRoutingTable(
         connectionProvider,
-        null,
+        'homedb',
         [server1, server2, server3],
         [server1, server2],
-        [server3],
-        user,
-        'homedb'
+        [server3]
       )
     })
 
-    it.each(usersDataSet)('should resolve the non default database name for the user=%s with the informed name', (user) => {
+    it.each(usersDataSet)('should acquire the non default database name for the user=%s with the informed name', async (user) => {
       const pool = newPool()
       const connectionProvider = newRoutingConnectionProvider(
-        [
-          newRoutingTableWithUser(
-            {
+        [],
+        pool,
+        { 
+          'databaseA': {
+            'server-non-existing-seed-router:7687': newRoutingTableWithUser(
+              {
+                database: 'databaseA', 
               database: 'databaseA', 
-              routers: [server1, server2, server3],
-              readers: [server1, server2],
-              writers: [server3],
-              user,
-              routingTableDatabase: 'homedb'
-            }
-          )
-        ],
-        pool
+                database: 'databaseA', 
+                routers: [server1, server3],
+                readers: [server1],
+                writers: [server3],
+                user,
+                routingTableDatabase: 'homedb'
+              }
+            )
+          },
+          'databaseB': {
+            'server-non-existing-seed-router:7687': newRoutingTableWithUser(
+              {
+                database: 'homedb', 
+                routers: [server2, server3],
+                readers: [server2],
+                writers: [server3],
+                user,
+                routingTableDatabase: 'homedb'
+              }
+            )
+          } 
+        }
       )
 
-      const resolvedName = connectionProvider.resolveDatabaseName({ database: 'databaseA', impersonatedUser: user })
+      const connection = await connectionProvider.acquireConnection({ database: 'databaseA', impersonatedUser: user, accessMode: READ })
 
-      expect(resolvedName).toBe('databaseA')
+      expect(connection.address).toEqual(server1)
 
       expectRoutingTable(
         connectionProvider,
         'databaseA',
-        [server1, server2, server3],
-        [server1, server2],
-        [server3],
-        user,
-        'homedb'
+        [server1, server3],
+        [server1],
+        [server3]
       )
     })
 
     it.each(usersDataSet)('should be able to acquire connection for homedb using it name', async (user) => {
       const pool = newPool()
       const connectionProvider = newRoutingConnectionProvider(
-        [
-          newRoutingTableWithUser(
-            {
+        [],
+        pool,
+        {
+          null: {
+            'server-non-existing-seed-router:7687': newRoutingTableWithUser({
+                database: null, 
               database: null, 
-              routers: [server1, server2, server3],
-              readers: [server1, server2],
-              writers: [server3],
-              user,
-              routingTableDatabase: 'homedb'
-
-            }
-          )
-        ],
-        pool
+                database: null, 
+                routers: [server1, server2, server3],
+                readers: [server1, server2],
+                writers: [server3],
+                user,
+                routingTableDatabase: 'homedb'
+            })
+          }
+        }
       )
 
+      await connectionProvider.acquireConnection({ accessMode: READ, impersonatedUser: user, accessMode: WRITE })
       const connection = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb', impersonatedUser: user })
 
       expect(connection.address).toEqual(server1)
       expect(pool.has(server1)).toBeTruthy()
     })
 
-    it('should resolve different dbs for different users', () => {
-      const user1 = 'the-impostor-number-1'
-      const user2 = 'the-impostor-number-2'
-      const defaultUser = undefined
-
-      const pool = newPool()
-      const connectionProvider = newRoutingConnectionProvider(
-        [
-          newRoutingTableWithUser(
-            {
-              database: null, 
-              routers: [server1],
-              readers: [server1],
-              writers: [server1],
-              user: user1,
-              routingTableDatabase: 'homedb1'
-            }
-          ),
-
-          newRoutingTableWithUser(
-            {
-              database: null, 
-              routers: [server2],
-              readers: [server2],
-              writers: [server2],
-              user: user2,
-              routingTableDatabase: 'homedb2'
-            }
-          ),
-
-          newRoutingTableWithUser(
-            {
-              database: null, 
-              routers: [server3],
-              readers: [server3],
-              writers: [server3],
-              user: defaultUser,
-              routingTableDatabase: 'default-home-db'
-            }
-          )
-        ],
-        pool
-      )
-
-      expect(connectionProvider.resolveDatabaseName({ database: null, impersonatedUser: user1 })).toBe('homedb1')
-      expect(connectionProvider.resolveDatabaseName({ database: null, impersonatedUser: user2 })).toBe('homedb2')
-      expect(connectionProvider.resolveDatabaseName({ database: null, impersonatedUser: defaultUser })).toBe('default-home-db')
-
-      expectRoutingTable(
-        connectionProvider,
-        null,
-        [server1],
-        [server1],
-        [server1],
-        user1,
-        'homedb1'
-      )
-
-      expectRoutingTable(
-        connectionProvider,
-        null,
-        [server2],
-        [server2],
-        [server2],
-        user2,
-        'homedb2'
-      )
-
-      expectRoutingTable(
-        connectionProvider,
-        null,
-        [server3],
-        [server3],
-        [server3],
-        defaultUser,
-        'default-home-db'
-      )
-    })
 
     it('should be to acquire connection other users homedb using it name', async () => {
       const user1 = 'the-impostor-number-1'
       const user2 = 'the-impostor-number-2'
       const defaultUser = undefined
+      const expirationTime = int(Date.now()).add(60000)
 
       const pool = newPool()
       const connectionProvider = newRoutingConnectionProvider(
-        [
-          newRoutingTableWithUser(
-            {
-              database: null, 
-              routers: [server1],
-              readers: [server1],
-              writers: [server1],
-              user: user1,
-              routingTableDatabase: 'homedb1'
-            }
-          ),
+        [],
+        pool,
+        {
+          null: {
+            'server-non-existing-seed-router:7687': [
+              newRoutingTableWithUser(
+                {
+                  database: null,
+                  routers: [server1],
+                  readers: [server1],
+                  writers: [server1],
+                  user: user1,
+                  expirationTime,
+                  routingTableDatabase: 'homedb1'
+                }
+              ),
 
-          newRoutingTableWithUser(
-            {
-              database: null, 
-              routers: [server2],
-              readers: [server2],
-              writers: [server2],
-              user: user2,
-              routingTableDatabase: 'homedb2'
-            }
-          ),
+              newRoutingTableWithUser(
+                {
+                  database: null,
+                  routers: [server2],
+                  readers: [server2],
+                  writers: [server2],
+                  expirationTime,
+                  user: user2,
+                  routingTableDatabase: 'homedb2'
+                }
+              ),
 
-          newRoutingTableWithUser(
-            {
-              database: null, 
-              routers: [server3],
-              readers: [server3],
-              writers: [server3],
-              user: defaultUser,
-              routingTableDatabase: 'default-home-db'
-            }
-          )
-        ],
-        pool
+              newRoutingTableWithUser(
+                {
+                  database: null,
+                  routers: [server3],
+                  readers: [server3],
+                  writers: [server3],
+                  expirationTime,
+                  user: defaultUser,
+                  routingTableDatabase: 'default-home-db'
+                }
+              )
+            ]
+          },
+          "kakakaka": {}
+        },
       )
+
+      await connectionProvider.acquireConnection({ accessMode: WRITE, impersonatedUser: user2 })
+      await connectionProvider.acquireConnection({ accessMode: WRITE, impersonatedUser: user1 })
+      await connectionProvider.acquireConnection({ accessMode: WRITE })
+
 
       const defaultConnToHomeDb1 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb1' })
       expect(defaultConnToHomeDb1.address).toEqual(server1)
@@ -2500,6 +2424,7 @@ describe('#unit RoutingConnectionProvider', () => {
       const user2ConnToHomeDb1 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb1', impersonatedUser: user2 })
       expect(user2ConnToHomeDb1.address).toEqual(server1)
       expect(pool.has(server1)).toBeTruthy()
+
     })
 
   })
@@ -2540,7 +2465,7 @@ function newRoutingConnectionProviderWithSeedRouter (
   })
   connectionProvider._connectionPool = pool
   routingTables.forEach(r => {
-    connectionProvider._routingTableRegistry.register(r.user, r.database, r)
+    connectionProvider._routingTableRegistry.register(r)
   })
   connectionProvider._rediscovery = new FakeRediscovery(routerToRoutingTable)
   connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
@@ -2558,7 +2483,6 @@ function newRoutingTableWithUser ({
   expirationTime = Integer.MAX_VALUE,
   routingTableDatabase,
   user
-
 }) {
   const routingTable = newRoutingTable(database, routers, readers, writers, expirationTime, routingTableDatabase)
   routingTable.user = user
@@ -2573,14 +2497,14 @@ function newRoutingTable (
   expirationTime = Integer.MAX_VALUE,
   routingTableDatabase
 ) {
-  return new RoutingTable({
-    database,
+  var routingTable = new  RoutingTable({
+    database: database || routingTableDatabase,
     routers,
     readers,
     writers,
-    expirationTime,
-    routingTableDatabase
+    expirationTime
   })
+  return routingTable
 }
 
 function setupRoutingConnectionProviderToRememberRouters (
@@ -2609,20 +2533,17 @@ function expectRoutingTable (
   database,
   routers,
   readers,
-  writers,
-  impersonatedUser,
-  routingTableDatabase
+  writers
 ) {
-  const routingTable = connectionProvider._routingTableRegistry.get(impersonatedUser, database)
+  const routingTable = connectionProvider._routingTableRegistry.get(database)
   expect(routingTable.database).toEqual(database)
   expect(routingTable.routers).toEqual(routers)
   expect(routingTable.readers).toEqual(readers)
   expect(routingTable.writers).toEqual(writers)
-  expect(routingTable.routingTableDatabase).toEqual(routingTableDatabase)
 }
 
-function expectNoRoutingTable (connectionProvider, database, impersonatedUser) {
-  expect(connectionProvider._routingTableRegistry.get(impersonatedUser, database)).toBeFalsy()
+function expectNoRoutingTable (connectionProvider, database) {
+  expect(connectionProvider._routingTableRegistry.get(database)).toBeFalsy()
 }
 
 function expectPoolToContain (pool, addresses) {
@@ -2667,10 +2588,15 @@ class FakeRediscovery {
     this._routerToRoutingTable = routerToRoutingTable
   }
 
-  lookupRoutingTableOnRouter (ignored, database, router) {
+  lookupRoutingTableOnRouter (ignored, database, router, user) {
     const table = this._routerToRoutingTable[database || null]
     if (table) {
-      return Promise.resolve(table[router.asKey()])
+      let routingTables = table[router.asKey()]
+      let routingTable = routingTables
+      if (routingTables instanceof Array) {
+        routingTable = routingTables.find(rt => rt.user === user)
+      }
+      return Promise.resolve(routingTable)
     }
     return Promise.resolve(null)
   }
