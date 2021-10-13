@@ -216,7 +216,6 @@ describe('index', () => {
       connectionProvider: {
         acquireConnection: () => Promise.reject(Error('something wrong')),
         close: () => Promise.resolve(),
-        resolveDatabaseName: ({ database }: { database?: string, impersonatedUser?: string }) => database,
         supportsMultiDb: () => Promise.resolve(true),
         supportsTransactionConfig: () => Promise.resolve(true),
         supportsUserImpersonation: () => Promise.resolve(true)
