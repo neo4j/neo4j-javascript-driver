@@ -278,6 +278,38 @@ describe('#unit RoutingTable', () => {
 
       expect(result.expirationTime).toEqual(Integer.MAX_VALUE)
     })
+    ;[
+      [undefined, undefined, null],
+      [undefined, null, null],
+      [undefined, 'homedb2', 'homedb2'],
+      [null, undefined, null],
+      [null, null, null],
+      [null, 'homedb2', 'homedb2'],
+      ['homedb', undefined, 'homedb'],
+      ['homedb', null, 'homedb'],
+      ['homedb', 'homedb2', 'homedb']
+    ].forEach(([database, databaseInMetadata, expected]) => {
+      it(`should return resolve correctly the database [database=${database}, databaseInMetadata=${databaseInMetadata}]`, () => {
+        const routers = ['router:7699']
+        const readers = ['reader1:7699', 'reader2:7699']
+        const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
+
+        const result = RoutingTable.fromRawRoutingTable(
+          database,
+          ServerAddress.fromUrl('localhost:7687'),
+          RawRoutingTable.ofMessageResponse(
+            newMetadata({
+              routers,
+              readers,
+              writers,
+              database: databaseInMetadata
+            })
+          )
+        )
+
+        expect(result.database).toEqual(expected)
+      })
+    })
 
     it('should return Integer.MAX_VALUE as expirationTime when ttl is negative', async () => {
       const ttl = int(-2)
@@ -479,7 +511,8 @@ describe('#unit RoutingTable', () => {
       routers = [],
       readers = [],
       writers = [],
-      extra = []
+      extra = [],
+      database = undefined
     } = {}) {
       const routersField = {
         role: 'ROUTE',
@@ -496,7 +529,8 @@ describe('#unit RoutingTable', () => {
       return {
         rt: {
           ttl,
-          servers: [routersField, readersField, writersField, ...extra]
+          servers: [routersField, readersField, writersField, ...extra],
+          db: database
         }
       }
     }

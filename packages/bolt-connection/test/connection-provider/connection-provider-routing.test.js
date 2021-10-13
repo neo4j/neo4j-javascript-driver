@@ -2239,8 +2239,6 @@ describe('#unit RoutingConnectionProvider', () => {
             'server-non-existing-seed-router:7687': newRoutingTableWithUser(
               {
                 database: null, 
-              database: null, 
-                database: null, 
                 routers: [server1, server2, server3],
                 readers: [server1, server2],
                 writers: [server3],
@@ -2274,8 +2272,6 @@ describe('#unit RoutingConnectionProvider', () => {
           'databaseA': {
             'server-non-existing-seed-router:7687': newRoutingTableWithUser(
               {
-                database: 'databaseA', 
-              database: 'databaseA', 
                 database: 'databaseA', 
                 routers: [server1, server3],
                 readers: [server1],
@@ -2425,6 +2421,58 @@ describe('#unit RoutingConnectionProvider', () => {
       expect(user2ConnToHomeDb1.address).toEqual(server1)
       expect(pool.has(server1)).toBeTruthy()
 
+    })
+
+
+    it.each(usersDataSet)('should call onDatabaseNameResolved with the resolved db acquiring home db [user=%s]', async (user) => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [],
+        pool,
+        {
+          null: {
+            'server-non-existing-seed-router:7687': newRoutingTableWithUser({
+                database: null, 
+                routers: [server1, server2, server3],
+                readers: [server1, server2],
+                writers: [server3],
+                user,
+                routingTableDatabase: 'homedb'
+            })
+          }
+        }
+      )
+      const onDatabaseNameResolved = jest.fn()
+
+      await connectionProvider.acquireConnection({ accessMode: READ, impersonatedUser: user, onDatabaseNameResolved })
+
+      expect(onDatabaseNameResolved).toHaveBeenCalledWith('homedb')
+    })
+
+    it.each(usersDataSet)('should call onDatabaseNameResolved with the resolved db acquiring named db [user=%s]', async (user) => {
+      const pool = newPool()
+      const connectionProvider = newRoutingConnectionProvider(
+        [],
+        pool,
+        {
+          'databaseA': {
+            'server-non-existing-seed-router:7687': newRoutingTableWithUser({
+                database: 'databaseA', 
+                routers: [server1, server2, server3],
+                readers: [server1, server2],
+                writers: [server3],
+                user,
+                routingTableDatabase: 'databaseB'
+            })
+          }
+        }
+      )
+
+      const onDatabaseNameResolved = jest.fn()
+
+      await connectionProvider.acquireConnection({ accessMode: READ, impersonatedUser: user, onDatabaseNameResolved, database: 'databaseA' })
+
+      expect(onDatabaseNameResolved).toHaveBeenCalledWith('databaseA')
     })
 
   })
