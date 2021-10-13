@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable no-unused-vars */
 
 import {
   int,
@@ -39,6 +40,10 @@ const node1Labels: string[] = node1.labels
 const node1Props: object = node1.properties
 const isNode1: boolean = node1 instanceof Node
 const isNode1B: boolean = isNode(node1)
+const nodeAsObj: object = node1
+if (isNode(nodeAsObj)) {
+  const test = nodeAsObj.properties
+}
 
 const node2: Node<number> = new Node(2, ['Person', 'Employee'], {
   name: 'Alice'
@@ -56,6 +61,10 @@ const rel1Type: string = rel1.type
 const rel1Props: object = rel1.properties
 const isRel1: boolean = rel1 instanceof Relationship
 const isRel1B: boolean = isRelationship(rel1)
+const relationshipAsObj: object = rel1
+if (isRelationship(relationshipAsObj)) {
+  const test = relationshipAsObj.properties
+}
 
 const rel2: UnboundRelationship = new UnboundRelationship(int(1), 'KNOWS', {
   since: 12345
@@ -67,6 +76,10 @@ const rel2Type: string = rel2.type
 const rel2Props: object = rel2.properties
 const isRel2: boolean = rel2 instanceof UnboundRelationship
 const isRel2B: boolean = isUnboundRelationship(rel2)
+const unboundRelationshipAsObj: object = rel2
+if (isUnboundRelationship(unboundRelationshipAsObj)) {
+  const test = unboundRelationshipAsObj.properties
+}
 
 const rel4: Relationship<number> = new Relationship(2, 3, 4, 'KNOWS', {
   since: 12345
@@ -92,6 +105,10 @@ const pathSegment1Rel: Relationship = pathSegment1.relationship
 const pathSegment1End: Node = pathSegment1.end
 const isPathSegment1: boolean = pathSegment1 instanceof PathSegment
 const isPathSegment1B: boolean = isPathSegment(pathSegment1)
+const pathSegmentAsObj: object = pathSegment1
+if (isPathSegment(pathSegmentAsObj)) {
+  const test = pathSegmentAsObj.start
+}
 
 const pathSegment2: PathSegment<number> = new PathSegment(node2, rel4, node2)
 const pathSegment2Start: Node<number> = pathSegment2.start
@@ -105,6 +122,10 @@ const path1Segments: PathSegment[] = path1.segments
 const path1Length: number = path1.length
 const isPath1: boolean = path1 instanceof Path
 const isPath1B: boolean = isPath(path1)
+const pathAsObj: object = path1
+if (isPath(pathAsObj)) {
+  const test = pathAsObj.segments
+}
 
 const path2: Path<number> = new Path(node2, node2, [pathSegment2])
 const path2Start: Node<number> = path2.start

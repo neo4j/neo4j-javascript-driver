@@ -219,7 +219,7 @@ function assertQueryParameters(obj: any): void {
  * @param str The string
  * @returns {boolean} True if the supplied object is an string
  */
-function isString(str: any): boolean {
+function isString(str: any): str is string {
   return Object.prototype.toString.call(str) === '[object String]'
 }
 
