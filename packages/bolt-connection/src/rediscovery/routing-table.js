@@ -38,7 +38,6 @@ const MIN_ROUTERS = 1
  */
 export default class RoutingTable {
   constructor ({
-    routingTableDatabase,
     database,
     routers,
     readers,
@@ -46,8 +45,7 @@ export default class RoutingTable {
     expirationTime,
     ttl
   } = {}) {
-    this.routingTableDatabase = routingTableDatabase
-    this.database = database
+    this.database = database || null
     this.databaseName = database || 'default database'
     this.routers = routers || []
     this.readers = readers || []
@@ -149,7 +147,6 @@ export function createValidRoutingTable (
   routerAddress,
   rawRoutingTable
 ) {
-  const routingTableDatabase = rawRoutingTable.db
   const ttl = rawRoutingTable.ttl
   const expirationTime = calculateExpirationTime(rawRoutingTable, routerAddress)
   const { routers, readers, writers } = parseServers(
@@ -161,8 +158,7 @@ export function createValidRoutingTable (
   assertNonEmpty(readers, 'readers', routerAddress)
 
   return new RoutingTable({
-    routingTableDatabase,
-    database,
+    database: database || rawRoutingTable.db,
     routers,
     readers,
     writers,

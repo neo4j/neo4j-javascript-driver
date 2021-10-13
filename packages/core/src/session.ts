@@ -59,6 +59,7 @@ class Session {
   private _transactionExecutor: TransactionExecutor
   private _impersonatedUser?: string
   private _onComplete: (meta: any) => void
+  private _databaseNameResolved: boolean
 
   /**
    * @constructor
@@ -96,19 +97,22 @@ class Session {
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
+    this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
       bookmark,
       connectionProvider,
-      impersonatedUser
+      impersonatedUser,
+      onDatabaseNameResolved: this._onDatabaseNameResolved
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
       database,
       bookmark,
       connectionProvider,
-      impersonatedUser
+      impersonatedUser,
+      onDatabaseNameResolved: this._onDatabaseNameResolved
     })
     this._open = true
     this._hasTx = false
@@ -116,6 +120,7 @@ class Session {
     this._lastBookmark = bookmark || Bookmark.empty()
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
+    this._databaseNameResolved = this._database !== ''
   }
 
   /**
@@ -148,7 +153,7 @@ class Session {
         bookmark: this._lastBookmark,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
-        database: this._connectionHolderWithMode(this._mode).resolveDatabaseName(),
+        database: this._database,
         impersonatedUser: this._impersonatedUser,
         afterComplete: this._onComplete,
         reactive: this._reactive,
@@ -350,6 +355,20 @@ class Session {
       () => this._beginTransaction(accessMode, transactionConfig),
       transactionWork
     )
+  }
+
+  /**
+   * @private
+   * @param {string|undefined} database The resolved database name
+   */
+  _onDatabaseNameResolved(database?: string): void{
+    if (!this._databaseNameResolved) {
+      const normalizedDatabase = database || ''
+      this._database = normalizedDatabase
+      this._readConnectionHolder.setDatabase(normalizedDatabase)
+      this._writeConnectionHolder.setDatabase(normalizedDatabase)
+      this._databaseNameResolved = true
+    }
   }
 
   /**

@@ -83,6 +83,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private _referenceCount: number
   private _connectionPromise: Promise<Connection | void>
   private _impersonatedUser?: string
+  private _onDatabaseNameResolved?: (databaseName?: string) => void
 
   /**
    * @constructor
@@ -97,13 +98,15 @@ class ConnectionHolder implements ConnectionHolderInterface {
     database = '',
     bookmark,
     connectionProvider,
-    impersonatedUser
+    impersonatedUser,
+    onDatabaseNameResolved
   }: {
     mode?: string
     database?: string
     bookmark?: Bookmark
     connectionProvider?: ConnectionProvider,
-    impersonatedUser?: string
+    impersonatedUser?: string,
+    onDatabaseNameResolved?: (databaseName?: string) => void
   } = {}) {
     this._mode = mode
     this._database = database ? assertString(database, 'database') : ''
@@ -112,6 +115,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._impersonatedUser = impersonatedUser
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve()
+    this._onDatabaseNameResolved = onDatabaseNameResolved
   }
 
   mode(): string | undefined {
@@ -120,6 +124,10 @@ class ConnectionHolder implements ConnectionHolderInterface {
 
   database(): string | undefined {
     return this._database
+  }
+
+  setDatabase(database?: string) {
+    this._database = database
   }
 
   bookmark(): Bookmark {
@@ -134,24 +142,14 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._referenceCount
   }
 
-  /**
-   * Resolve database name
-   * @return {string} the resolved db name
-   */
-  resolveDatabaseName(): string | undefined | null {
-    return this._connectionProvider?.resolveDatabaseName({ 
-      database: this._database, 
-      impersonatedUser: this._impersonatedUser 
-    }) || this._database
-  }
-
   initializeConnection(): boolean {
     if (this._referenceCount === 0 && this._connectionProvider) {
       this._connectionPromise = this._connectionProvider.acquireConnection({
         accessMode: this._mode,
         database: this._database,
         bookmarks: this._bookmark,
-        impersonatedUser: this._impersonatedUser
+        impersonatedUser: this._impersonatedUser,
+        onDatabaseNameResolved: this._onDatabaseNameResolved
       })
     } else {
       this._referenceCount++

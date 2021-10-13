@@ -20,6 +20,7 @@
 import Connection from './connection'
 import { bookmark } from './internal'
 
+
 /**
  * Inteface define a common way to acquire a connection
  *
@@ -40,26 +41,16 @@ class ConnectionProvider {
    * @param {string} param.database - the target database for the to-be-acquired connection
    * @param {Bookmark} param.bookmarks - the bookmarks to send to routing discovery
    * @param {string} param.impersonatedUser - the impersonated user
+   * @param {function (params:string?)} params.onDatabaseNameResolved - Callback called when the database name get resolved
    */
-  acquireConnection(params?: {
+  acquireConnection(param?: {
     accessMode?: string
     database?: string
     bookmarks: bookmark.Bookmark,
-    impersonatedUser?: string
+    impersonatedUser?: string,
+    onDatabaseNameResolved?: (databaseName?: string) => void
   }): Promise<Connection> {
     throw Error('Not implemented')
-  }
-
-  /**
-   * Resolve database name
-   * 
-   * @param {object} param - object parameter
-   * @param {string|undefined|null} database Database name
-   * @param {string|undefined|null} impersonatedUser The user which is being impersonated
-   * @return {string|undefined|null} the resolved db name
-   */
-  resolveDatabaseName({ database }: { database?: string, impersonatedUser?: string }): string | undefined | null {
-    return database
   }
 
   /**
