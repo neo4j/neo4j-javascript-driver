@@ -245,7 +245,7 @@ describe('#unit BoltProtocolV3', () => {
 
       expect(() => fn(protocol)).toThrowError(
         'Driver is connected to the database that does not support user impersonation. ' +
-          'Please upgrade to neo4j 4.0.0 or later in order to use this functionality. ' +
+          'Please upgrade to neo4j 4.4.0 or later in order to use this functionality. ' +
           `Trying to impersonate ${impersonatedUser}.`
       )
     }
