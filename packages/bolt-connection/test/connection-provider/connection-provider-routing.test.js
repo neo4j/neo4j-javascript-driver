@@ -2317,14 +2317,12 @@ describe('#unit RoutingConnectionProvider', () => {
         {
           null: {
             'server-non-existing-seed-router:7687': newRoutingTableWithUser({
-                database: null, 
-              database: null, 
-                database: null, 
-                routers: [server1, server2, server3],
-                readers: [server1, server2],
-                writers: [server3],
-                user,
-                routingTableDatabase: 'homedb'
+              database: null,
+              routers: [server1, server2, server3],
+              readers: [server1, server2],
+              writers: [server3],
+              user,
+              routingTableDatabase: 'homedb'
             })
           }
         }
