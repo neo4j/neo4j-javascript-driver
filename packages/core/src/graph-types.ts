@@ -21,6 +21,7 @@ import { stringify } from './json'
 
 type StandardDate = Date
 type NumberOrInteger = number | Integer | bigint
+type Properties = { [key: string]: any }
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,
@@ -43,18 +44,18 @@ function hasIdentifierProperty(obj: any, property: string): boolean {
 /**
  * Class for Node Type.
  */
-class Node<T extends NumberOrInteger = Integer> {
+class Node<T extends NumberOrInteger = Integer, P extends Properties = Properties> {
   identity: T
   labels: string[]
-  properties: any
+  properties: P
   /**
    * @constructor
    * @protected
    * @param {Integer|number} identity - Unique identity
    * @param {Array<string>} labels - Array for all labels
-   * @param {Object} properties - Map with node properties
+   * @param {Properties} properties - Map with node properties
    */
-  constructor(identity: T, labels: string[], properties: any) {
+  constructor(identity: T, labels: string[], properties: P) {
     /**
      * Identity of the node.
      * @type {Integer|number}
@@ -67,7 +68,7 @@ class Node<T extends NumberOrInteger = Integer> {
     this.labels = labels
     /**
      * Properties of the node.
-     * @type {Object}
+     * @type {Properties}
      */
     this.properties = properties
   }
@@ -112,12 +113,12 @@ function isNode(obj: object): obj is Node {
 /**
  * Class for Relationship Type.
  */
-class Relationship<T extends NumberOrInteger = Integer> {
+class Relationship<T extends NumberOrInteger = Integer, P extends Properties = Properties> {
   identity: T
   start: T
   end: T
   type: string
-  properties: any
+  properties: P
 
   /**
    * @constructor
@@ -126,9 +127,9 @@ class Relationship<T extends NumberOrInteger = Integer> {
    * @param {Integer|number} start - Identity of start Node
    * @param {Integer|number} end - Identity of end Node
    * @param {string} type - Relationship type
-   * @param {Object} properties - Map with relationship properties
+   * @param {Properties} properties - Map with relationship properties
    */
-  constructor(identity: T, start: T, end: T, type: string, properties: any) {
+  constructor(identity: T, start: T, end: T, type: string, properties: P) {
     /**
      * Identity of the relationship.
      * @type {Integer|number}
@@ -151,7 +152,7 @@ class Relationship<T extends NumberOrInteger = Integer> {
     this.type = type
     /**
      * Properties of the relationship.
-     * @type {Object}
+     * @type {Properties}
      */
     this.properties = properties
   }
@@ -194,17 +195,17 @@ function isRelationship(obj: object): obj is Relationship {
  * Class for UnboundRelationship Type.
  * @access private
  */
-class UnboundRelationship<T extends NumberOrInteger = Integer> {
+class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Properties = Properties> {
   identity: T
   type: string
-  properties: any
+  properties: P
 
   /**
    * @constructor
    * @protected
    * @param {Integer|number} identity - Unique identity
    * @param {string} type - Relationship type
-   * @param {Object} properties - Map with relationship properties
+   * @param {Properties} properties - Map with relationship properties
    */
   constructor(identity: T, type: string, properties: any) {
     /**
@@ -219,7 +220,7 @@ class UnboundRelationship<T extends NumberOrInteger = Integer> {
     this.type = type
     /**
      * Properties of the relationship.
-     * @type {Object}
+     * @type {Properties}
      */
     this.properties = properties
   }
