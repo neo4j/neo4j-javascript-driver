@@ -65,6 +65,15 @@ export default class RawRoutingTable {
   }
 
   /**
+   * Get raw db
+   *
+   * @returns {string?} The database name
+   */
+  get db () {
+    throw new Error('Not implemented')
+  }
+
+  /**
    *
    * @typedef {Object} ServerRole
    * @property {string} role the role of the address on the cluster
@@ -103,6 +112,10 @@ class ResponseRawRoutingTable extends RawRoutingTable {
     return this._response.rt.servers
   }
 
+  get db () {
+    return this._response.rt.db
+  }
+
   get isNull () {
     return this._response === null
   }
@@ -132,6 +145,10 @@ class RecordRawRoutingTable extends RawRoutingTable {
 
   get servers () {
     return this._record.get('servers')
+  }
+
+  get db () {
+    return this._record.has('db') ? this._record.get('db') : null
   }
 
   get isNull () {

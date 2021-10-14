@@ -78,6 +78,17 @@ type CreateConnectionProvider = (
   hostNameResolver: ConfiguredCustomResolver
 ) => ConnectionProvider
 
+type CreateSession = (args: {
+  mode: SessionMode
+  connectionProvider: ConnectionProvider
+  bookmark?: Bookmark
+  database: string
+  config: any
+  reactive: boolean
+  fetchSize: number,
+  impersonatedUser?: string
+}) => Session
+
 interface DriverConfig {
   encrypted?: EncryptionLevel | boolean
   trust?: TrustStrategy
@@ -102,6 +113,7 @@ class Driver {
   private readonly _log: Logger
   private readonly _createConnectionProvider: CreateConnectionProvider
   private _connectionProvider: ConnectionProvider | null
+  private readonly _createSession: CreateSession
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -110,11 +122,13 @@ class Driver {
    * @param {Object} meta Metainformation about the driver
    * @param {Object} config
    * @param {function(id: number, config:Object, log:Logger, hostNameResolver: ConfiguredCustomResolver): ConnectionProvider } createConnectonProvider Creates the connection provider
-   */
+   * @param {function(args): Session } createSession Creates the a session    
+  */
   constructor(
     meta: MetaInfo,
     config: DriverConfig = {},
-    createConnectonProvider: CreateConnectionProvider
+    createConnectonProvider: CreateConnectionProvider,
+    createSession: CreateSession = args => new Session(args)
   ) {
     sanitizeConfig(config)
     validateConfig(config)
@@ -124,6 +138,7 @@ class Driver {
     this._config = config
     this._log = Logger.create(config)
     this._createConnectionProvider = createConnectonProvider
+    this._createSession = createSession
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
@@ -178,6 +193,19 @@ class Driver {
   }
 
   /**
+   * Returns whether the server supports user impersonation capabilities based on the protocol
+   * version negotiated via handshake.
+   *
+   * Note that this function call _always_ causes a round-trip to the server.
+   *
+   * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
+   */
+   supportsUserImpersonation(): Promise<boolean> {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.supportsUserImpersonation()
+  }
+
+  /**
    * @protected
    * @returns {boolean}
    */
@@ -224,17 +252,20 @@ class Driver {
    * @param {number} param.fetchSize - The record fetch size of each batch of this session.
    * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
    * @param {string} param.database - The database this session will operate on.
+   * @param {string} param.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
    * @return {Session} new session.
    */
   session({
     defaultAccessMode = WRITE,
     bookmarks: bookmarkOrBookmarks,
     database = '',
+    impersonatedUser,
     fetchSize
   }: {
     defaultAccessMode?: SessionMode
     bookmarks?: string | string[]
     database?: string
+    impersonatedUser?: string
     fetchSize?: number
   } = {}): Session {
     return this._newSession({
@@ -242,6 +273,7 @@ class Driver {
       bookmarkOrBookmarks,
       database,
       reactive: false,
+      impersonatedUser,
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!!)
     })
   }
@@ -277,12 +309,14 @@ class Driver {
     bookmarkOrBookmarks,
     database,
     reactive,
+    impersonatedUser,
     fetchSize
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
     database: string
     reactive: boolean
+    impersonatedUser?: string
     fetchSize: number
   }) {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
@@ -290,13 +324,14 @@ class Driver {
     const bookmark = bookmarkOrBookmarks
       ? new Bookmark(bookmarkOrBookmarks)
       : Bookmark.empty()
-    return new Session({
+    return this._createSession({
       mode: sessionMode,
       database: database || '',
       connectionProvider,
       bookmark,
       config: this._config,
       reactive,
+      impersonatedUser,
       fetchSize
     })
   }

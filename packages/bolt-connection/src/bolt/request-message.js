@@ -124,10 +124,11 @@ export default class RequestMessage {
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
    * @param {string} mode the access mode.
+   * @param {string} impersonatedUser the impersonated user.
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin ({ bookmark, txConfig, database, mode } = {}) {
-    const metadata = buildTxMetadata(bookmark, txConfig, database, mode)
+  static begin ({ bookmark, txConfig, database, mode, impersonatedUser } = {}) {
+    const metadata = buildTxMetadata(bookmark, txConfig, database, mode, impersonatedUser)
     return new RequestMessage(
       BEGIN,
       [metadata],
@@ -159,14 +160,15 @@ export default class RequestMessage {
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
    * @param {string} mode the access mode.
+   * @param {string} impersonatedUser the impersonated user.
    * @return {RequestMessage} new RUN message with additional metadata.
    */
   static runWithMetadata (
     query,
     parameters,
-    { bookmark, txConfig, database, mode } = {}
+    { bookmark, txConfig, database, mode, impersonatedUser } = {}
   ) {
-    const metadata = buildTxMetadata(bookmark, txConfig, database, mode)
+    const metadata = buildTxMetadata(bookmark, txConfig, database, mode, impersonatedUser)
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
@@ -237,6 +239,37 @@ export default class RequestMessage {
         )} ${databaseName}`
     )
   }
+
+  /**
+   * Generate the ROUTE message, this message is used to fetch the routing table from the server
+   *
+   * @param {object} routingContext The routing context used to define the routing table. Multi-datacenter deployments is one of its use cases
+   * @param {string[]} bookmarks The list of the bookmark should be used
+   * @param {object} databaseContext The context inforamtion of the database to get the routing table for.
+   * @param {string} databaseContext.databaseName The name of the database to get the routing table.
+   * @param {string} databaseContext.impersonatedUser The name of the user to impersonation when getting the routing table.
+   * @return {RequestMessage} the ROUTE message.
+   */
+   static routeV4x4 (routingContext = {}, bookmarks = [], databaseContext = {}) {
+    const dbContext = {}
+
+    if ( databaseContext.databaseName ) {
+      dbContext.db = databaseContext.databaseName
+    }
+    
+    if ( databaseContext.impersonatedUser ) {
+      dbContext.imp_user = databaseContext.impersonatedUser
+    }
+
+    return new RequestMessage(
+      ROUTE,
+      [routingContext, bookmarks, dbContext],
+      () =>
+        `ROUTE ${json.stringify(routingContext)} ${json.stringify(
+          bookmarks
+        )} ${json.stringify(dbContext)}`
+    )
+  }
 }
 
 /**
@@ -245,9 +278,10 @@ export default class RequestMessage {
  * @param {TxConfig} txConfig the configuration.
  * @param {string} database the database name.
  * @param {string} mode the access mode.
+ * @param {string} impersonatedUser the impersonated user mode.
  * @return {Object} a metadata object.
  */
-function buildTxMetadata (bookmark, txConfig, database, mode) {
+function buildTxMetadata (bookmark, txConfig, database, mode, impersonatedUser) {
   const metadata = {}
   if (!bookmark.isEmpty()) {
     metadata.bookmarks = bookmark.values()
@@ -260,6 +294,9 @@ function buildTxMetadata (bookmark, txConfig, database, mode) {
   }
   if (database) {
     metadata.db = assertString(database, 'database')
+  }
+  if (impersonatedUser) {
+    metadata.imp_user = assertString(impersonatedUser, 'impersonatedUser')
   }
   if (mode === ACCESS_MODE_READ) {
     metadata.mode = READ_MODE

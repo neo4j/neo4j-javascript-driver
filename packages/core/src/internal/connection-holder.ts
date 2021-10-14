@@ -82,31 +82,42 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private _connectionProvider?: ConnectionProvider
   private _referenceCount: number
   private _connectionPromise: Promise<Connection | void>
+  private _impersonatedUser?: string
+  private _onDatabaseNameResolved?: (databaseName?: string) => void
 
   /**
    * @constructor
-   * @param {string} mode - the access mode for new connection holder.
-   * @param {string} database - the target database name.
-   * @param {Bookmark} bookmark - the last bookmark
-   * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
+   * @param {object} params
+   * @property {string} params.mode - the access mode for new connection holder.
+   * @property {string} params.database - the target database name.
+   * @property {Bookmark} params.bookmark - the last bookmark
+   * @property {ConnectionProvider} params.connectionProvider - the connection provider to acquire connections from.
+   * @property {string?} params.impersonatedUser - the user which will be impersonated
+   * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
    */
   constructor({
     mode = ACCESS_MODE_WRITE,
     database = '',
     bookmark,
-    connectionProvider
+    connectionProvider,
+    impersonatedUser,
+    onDatabaseNameResolved
   }: {
     mode?: string
     database?: string
     bookmark?: Bookmark
-    connectionProvider?: ConnectionProvider
+    connectionProvider?: ConnectionProvider,
+    impersonatedUser?: string,
+    onDatabaseNameResolved?: (databaseName?: string) => void
   } = {}) {
     this._mode = mode
     this._database = database ? assertString(database, 'database') : ''
     this._bookmark = bookmark || Bookmark.empty()
     this._connectionProvider = connectionProvider
+    this._impersonatedUser = impersonatedUser
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve()
+    this._onDatabaseNameResolved = onDatabaseNameResolved
   }
 
   mode(): string | undefined {
@@ -115,6 +126,10 @@ class ConnectionHolder implements ConnectionHolderInterface {
 
   database(): string | undefined {
     return this._database
+  }
+
+  setDatabase(database?: string) {
+    this._database = database
   }
 
   bookmark(): Bookmark {
@@ -134,7 +149,9 @@ class ConnectionHolder implements ConnectionHolderInterface {
       this._connectionPromise = this._connectionProvider.acquireConnection({
         accessMode: this._mode,
         database: this._database,
-        bookmarks: this._bookmark
+        bookmarks: this._bookmark,
+        impersonatedUser: this._impersonatedUser,
+        onDatabaseNameResolved: this._onDatabaseNameResolved
       })
     } else {
       this._referenceCount++
@@ -288,6 +305,6 @@ class EmptyConnectionHolder extends ConnectionHolder {
 const EMPTY_CONNECTION_HOLDER: EmptyConnectionHolder = new EmptyConnectionHolder()
 
 // eslint-disable-next-line handle-callback-err
-function ignoreError(error: Error) {}
+function ignoreError(error: Error) { }
 
 export { ConnectionHolder, ReadOnlyConnectionHolder, EMPTY_CONNECTION_HOLDER }

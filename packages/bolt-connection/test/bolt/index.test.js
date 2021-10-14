@@ -29,6 +29,7 @@ import BoltProtocolV4x0 from '../../src/bolt/bolt-protocol-v4x0'
 import BoltProtocolV4x1 from '../../src/bolt/bolt-protocol-v4x1'
 import BoltProtocolV4x2 from '../../src/bolt/bolt-protocol-v4x2'
 import BoltProtocolV4x3 from '../../src/bolt/bolt-protocol-v4x3'
+import BoltProtocolV4x4 from '../../src/bolt/bolt-protocol-v4x4'
 
 const {
   logger: { Logger }
@@ -42,13 +43,13 @@ describe('#unit Bolt', () => {
       const writtenBuffer = channel.written[0]
 
       const boltMagicPreamble = '60 60 b0 17'
-      const protocolVersion4x3to4x2 = '00 01 03 04'
+      const protocolVersion4x4to4x2 = '00 02 04 04'
       const protocolVersion4x1 = '00 00 01 04'
       const protocolVersion4x0 = '00 00 00 04'
       const protocolVersion3 = '00 00 00 03'
 
       expect(writtenBuffer.toHex()).toEqual(
-        `${boltMagicPreamble} ${protocolVersion4x3to4x2} ${protocolVersion4x1} ${protocolVersion4x0} ${protocolVersion3}`
+        `${boltMagicPreamble} ${protocolVersion4x4to4x2} ${protocolVersion4x1} ${protocolVersion4x0} ${protocolVersion3}`
       )
     })
 
@@ -301,7 +302,8 @@ describe('#unit Bolt', () => {
         v(4.0, BoltProtocolV4x0),
         v(4.1, BoltProtocolV4x1),
         v(4.2, BoltProtocolV4x2),
-        v(4.3, BoltProtocolV4x3)
+        v(4.3, BoltProtocolV4x3),
+        v(4.4, BoltProtocolV4x4)
       ]
 
       availableProtocols.forEach(lambda)

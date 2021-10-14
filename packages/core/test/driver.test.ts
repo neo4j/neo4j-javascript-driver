@@ -16,14 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, newError } from '../src'
+import { ConnectionProvider, newError, Session } from '../src'
 import Driver from '../src/driver'
+import { Bookmark } from '../src/internal/bookmark'
 import { Logger } from '../src/internal/logger'
 import { ConfiguredCustomResolver } from '../src/internal/resolver'
 
 describe('Driver', () => {
   let driver: Driver | null
   let connectionProvider: ConnectionProvider
+  let createSession: any 
   const META_INFO = {
     routing: false,
     typename: '',
@@ -34,10 +36,12 @@ describe('Driver', () => {
   beforeEach(() => {
     connectionProvider = new ConnectionProvider()
     connectionProvider.close = jest.fn(() => Promise.resolve())
+    createSession = jest.fn(args => new Session(args))
     driver = new Driver(
       META_INFO,
       CONFIG,
-      mockCreateConnectonProvider(connectionProvider)
+      mockCreateConnectonProvider(connectionProvider),
+      createSession
     )
   })
 
@@ -46,6 +50,26 @@ describe('Driver', () => {
       await driver.close()
       driver = null
     }
+  })
+
+
+  describe('.session()', () => {
+    it('should create the session with impersonated user', () => {
+      const impersonatedUser = 'the impostor'
+
+      const session = driver!.session({ impersonatedUser })
+
+      expect(session).not.toBeUndefined()
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ impersonatedUser }))
+    })
+
+
+    it('should create the session without impersonated user', () => {
+      const session = driver!.session()
+
+      expect(session).not.toBeUndefined()
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams())
+    })
   })
 
   it.each([
@@ -84,6 +108,25 @@ describe('Driver', () => {
     promise.catch(_ => 'Do nothing').finally(() => {})
   })
 
+  it.each([
+    ['Promise.resolve(true)', Promise.resolve(true)],
+    ['Promise.resolve(false)', Promise.resolve(false)],
+    [
+      "Promise.reject(newError('something went wrong'))",
+      Promise.reject(newError('something went wrong'))
+    ]
+  ])('.supportsUserImpersonation() => %s', (_, expectedPromise) => {
+    connectionProvider.supportsUserImpersonation = jest.fn(
+      () => expectedPromise
+    )
+
+    const promise: Promise<boolean> = driver!.supportsUserImpersonation()
+
+    expect(promise).toBe(expectedPromise)
+
+    promise.catch(_ => 'Do nothing').finally(() => {})
+  })
+
   function mockCreateConnectonProvider(connectionProvider: ConnectionProvider) {
     return (
       id: number,
@@ -91,5 +134,24 @@ describe('Driver', () => {
       log: Logger,
       hostNameResolver: ConfiguredCustomResolver
     ) => connectionProvider
+  }
+
+  function expectedSessionParams(extra: any = {}) {
+    return {
+      bookmark: Bookmark.empty(),
+      config: {
+        connectionAcquisitionTimeout: 60000,
+        fetchSize: 1000,
+        maxConnectionLifetime: 3600000,
+        maxConnectionPoolSize: 100,
+      },
+      connectionProvider,
+      database: '',
+      fetchSize: 1000,
+      mode: "WRITE",
+      reactive: false,
+      impersonatedUser: undefined,
+      ...extra
+    }
   }
 })

@@ -57,7 +57,9 @@ class Session {
   private _hasTx: boolean
   private _lastBookmark: Bookmark
   private _transactionExecutor: TransactionExecutor
+  private _impersonatedUser?: string
   private _onComplete: (meta: any) => void
+  private _databaseNameResolved: boolean
 
   /**
    * @constructor
@@ -70,6 +72,7 @@ class Session {
    * @param {Object} args.config={} - This driver configuration.
    * @param {boolean} args.reactive - Whether this session should create reactive streams
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
+   * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
    */
   constructor({
     mode,
@@ -78,7 +81,8 @@ class Session {
     database,
     config,
     reactive,
-    fetchSize
+    fetchSize,
+    impersonatedUser
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -86,29 +90,37 @@ class Session {
     database: string
     config: any
     reactive: boolean
-    fetchSize: number
+    fetchSize: number,
+    impersonatedUser?: string
   }) {
     this._mode = mode
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
+    this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
       bookmark,
-      connectionProvider
+      connectionProvider,
+      impersonatedUser,
+      onDatabaseNameResolved: this._onDatabaseNameResolved
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
       database,
       bookmark,
-      connectionProvider
+      connectionProvider,
+      impersonatedUser,
+      onDatabaseNameResolved: this._onDatabaseNameResolved
     })
     this._open = true
     this._hasTx = false
+    this._impersonatedUser = impersonatedUser
     this._lastBookmark = bookmark || Bookmark.empty()
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
+    this._databaseNameResolved = this._database !== ''
   }
 
   /**
@@ -142,6 +154,7 @@ class Session {
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
+        impersonatedUser: this._impersonatedUser,
         afterComplete: this._onComplete,
         reactive: this._reactive,
         fetchSize: this._fetchSize
@@ -251,6 +264,7 @@ class Session {
 
     const tx = new Transaction({
       connectionHolder,
+      impersonatedUser: this._impersonatedUser,
       onClose: this._transactionClosed.bind(this),
       onBookmark: this._updateBookmark.bind(this),
       onConnection: this._assertSessionIsOpen.bind(this),
@@ -341,6 +355,20 @@ class Session {
       () => this._beginTransaction(accessMode, transactionConfig),
       transactionWork
     )
+  }
+
+  /**
+   * @private
+   * @param {string|undefined} database The resolved database name
+   */
+  _onDatabaseNameResolved(database?: string): void{
+    if (!this._databaseNameResolved) {
+      const normalizedDatabase = database || ''
+      this._database = normalizedDatabase
+      this._readConnectionHolder.setDatabase(normalizedDatabase)
+      this._writeConnectionHolder.setDatabase(normalizedDatabase)
+      this._databaseNameResolved = true
+    }
   }
 
   /**

@@ -36,7 +36,8 @@ const {
     ACCESS_MODE_READ: READ,
     ACCESS_MODE_WRITE: WRITE,
     BOLT_PROTOCOL_V3,
-    BOLT_PROTOCOL_V4_0
+    BOLT_PROTOCOL_V4_0,
+    BOLT_PROTOCOL_V4_4
   }
 } = internal
 
@@ -123,22 +124,30 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmarks } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved } = {}) {
     let name
     let address
+    const context = { database: database || DEFAULT_DB_NAME }
 
     const databaseSpecificErrorHandler = new ConnectionErrorHandler(
       SESSION_EXPIRED,
-      (error, address) => this._handleUnavailability(error, address, database),
-      (error, address) => this._handleWriteFailure(error, address, database),
+      (error, address) => this._handleUnavailability(error, address, context.database),
+      (error, address) => this._handleWriteFailure(error, address, context.database),
       (error, address) =>
-        this._handleAuthorizationExpired(error, address, database)
+        this._handleAuthorizationExpired(error, address, context.database)
     )
 
     const routingTable = await this._freshRoutingTable({
       accessMode,
-      database: database || DEFAULT_DB_NAME,
-      bookmark: bookmarks
+      database: context.database,
+      bookmark: bookmarks,
+      impersonatedUser,
+      onDatabaseNameResolved: (databaseName) => {
+        context.database = context.database || databaseName
+        if (onDatabaseNameResolved) {
+          onDatabaseNameResolved(databaseName)
+        }
+      }
     })
 
     // select a target server based on specified access mode
@@ -224,6 +233,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
   }
 
+  async supportsUserImpersonation () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V4_4
+    )
+  }  
+
   forget (address, database) {
     this._routingTableRegistry.apply(database, {
       applyWhenExists: routingTable => routingTable.forget(address)
@@ -235,7 +250,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   }
 
   forgetWriter (address, database) {
-    this._routingTableRegistry.apply(database, {
+    this._routingTableRegistry.apply( database, {
       applyWhenExists: routingTable => routingTable.forgetWriter(address)
     })
   }
@@ -244,7 +259,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return this._connectionPool.acquire(address)
   }
 
-  _freshRoutingTable ({ accessMode, database, bookmark } = {}) {
+  _freshRoutingTable ({ accessMode, database, bookmark, impersonatedUser, onDatabaseNameResolved } = {}) {
     const currentRoutingTable = this._routingTableRegistry.get(
       database,
       () => new RoutingTable({ database })
@@ -256,30 +271,36 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._log.info(
       `Routing table is stale for database: "${database}" and access mode: "${accessMode}": ${currentRoutingTable}`
     )
-    return this._refreshRoutingTable(currentRoutingTable, bookmark)
+    return this._refreshRoutingTable(currentRoutingTable, bookmark, impersonatedUser, onDatabaseNameResolved)
   }
 
-  _refreshRoutingTable (currentRoutingTable, bookmark) {
+  _refreshRoutingTable (currentRoutingTable, bookmark, impersonatedUser, onDatabaseNameResolved) {
     const knownRouters = currentRoutingTable.routers
 
     if (this._useSeedRouter) {
       return this._fetchRoutingTableFromSeedRouterFallbackToKnownRouters(
         knownRouters,
         currentRoutingTable,
-        bookmark
+        bookmark,
+        impersonatedUser,
+        onDatabaseNameResolved
       )
     }
     return this._fetchRoutingTableFromKnownRoutersFallbackToSeedRouter(
       knownRouters,
       currentRoutingTable,
-      bookmark
+      bookmark,
+      impersonatedUser,
+      onDatabaseNameResolved
     )
   }
 
   async _fetchRoutingTableFromSeedRouterFallbackToKnownRouters (
     knownRouters,
     currentRoutingTable,
-    bookmark
+    bookmark,
+    impersonatedUser,
+    onDatabaseNameResolved
   ) {
     // we start with seed router, no routers were probed before
     const seenRouters = []
@@ -287,7 +308,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       seenRouters,
       this._seedRouter,
       currentRoutingTable,
-      bookmark
+      bookmark,
+      impersonatedUser
     )
 
     if (newRoutingTable) {
@@ -297,25 +319,30 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       newRoutingTable = await this._fetchRoutingTableUsingKnownRouters(
         knownRouters,
         currentRoutingTable,
-        bookmark
+        bookmark,
+        impersonatedUser
       )
     }
 
     return await this._applyRoutingTableIfPossible(
       currentRoutingTable,
-      newRoutingTable
+      newRoutingTable,
+      onDatabaseNameResolved
     )
   }
 
   async _fetchRoutingTableFromKnownRoutersFallbackToSeedRouter (
     knownRouters,
     currentRoutingTable,
-    bookmark
+    bookmark,
+    impersonatedUser,
+    onDatabaseNameResolved
   ) {
     let newRoutingTable = await this._fetchRoutingTableUsingKnownRouters(
       knownRouters,
       currentRoutingTable,
-      bookmark
+      bookmark,
+      impersonatedUser
     )
 
     if (!newRoutingTable) {
@@ -324,25 +351,29 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         knownRouters,
         this._seedRouter,
         currentRoutingTable,
-        bookmark
+        bookmark,
+        impersonatedUser
       )
     }
 
     return await this._applyRoutingTableIfPossible(
       currentRoutingTable,
-      newRoutingTable
+      newRoutingTable,
+      onDatabaseNameResolved
     )
   }
 
   async _fetchRoutingTableUsingKnownRouters (
     knownRouters,
     currentRoutingTable,
-    bookmark
+    bookmark,
+    impersonatedUser
   ) {
     const newRoutingTable = await this._fetchRoutingTable(
       knownRouters,
       currentRoutingTable,
-      bookmark
+      bookmark,
+      impersonatedUser
     )
 
     if (newRoutingTable) {
@@ -366,7 +397,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     seenRouters,
     seedRouter,
     routingTable,
-    bookmark
+    bookmark,
+    impersonatedUser
   ) {
     const resolvedAddresses = await this._resolveSeedRouter(seedRouter)
 
@@ -375,7 +407,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       address => seenRouters.indexOf(address) < 0
     )
 
-    return await this._fetchRoutingTable(newAddresses, routingTable, bookmark)
+    return await this._fetchRoutingTable(newAddresses, routingTable, bookmark, impersonatedUser)
   }
 
   async _resolveSeedRouter (seedRouter) {
@@ -387,7 +419,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return [].concat.apply([], dnsResolvedAddresses)
   }
 
-  _fetchRoutingTable (routerAddresses, routingTable, bookmark) {
+  _fetchRoutingTable (routerAddresses, routingTable, bookmark, impersonatedUser) {
     return routerAddresses.reduce(
       async (refreshedTablePromise, currentRouter, currentIndex) => {
         const newRoutingTable = await refreshedTablePromise
@@ -409,14 +441,16 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         // try next router
         const session = await this._createSessionForRediscovery(
           currentRouter,
-          bookmark
+          bookmark,
+          impersonatedUser
         )
         if (session) {
           try {
             return await this._rediscovery.lookupRoutingTableOnRouter(
               session,
               routingTable.database,
-              currentRouter
+              currentRouter,
+              impersonatedUser
             )
           } catch (error) {
             if (error && error.code === DATABASE_NOT_FOUND_ERROR_CODE) {
@@ -440,7 +474,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
   }
 
-  async _createSessionForRediscovery (routerAddress, bookmark) {
+  async _createSessionForRediscovery (routerAddress, bookmark, impersonatedUser) {
     try {
       const connection = await this._connectionPool.acquire(routerAddress)
       const connectionProvider = new SingleConnectionProvider(connection)
@@ -458,7 +492,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         mode: READ,
         database: SYSTEM_DB_NAME,
         bookmark,
-        connectionProvider
+        connectionProvider,
+        impersonatedUser
       })
     } catch (error) {
       // unable to acquire connection towards the given router
@@ -471,7 +506,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
   }
 
-  async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable) {
+  async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable, onDatabaseNameResolved) {
     if (!newRoutingTable) {
       // none of routing servers returned valid routing table, throw exception
       throw newError(
@@ -486,19 +521,21 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       this._useSeedRouter = true
     }
 
-    await this._updateRoutingTable(newRoutingTable)
+    await this._updateRoutingTable(newRoutingTable, onDatabaseNameResolved)
 
     return newRoutingTable
   }
 
-  async _updateRoutingTable (newRoutingTable) {
+  async _updateRoutingTable (newRoutingTable, onDatabaseNameResolved) {
     // close old connections to servers not present in the new routing table
     await this._connectionPool.keepAll(newRoutingTable.allServers())
     this._routingTableRegistry.removeExpired()
     this._routingTableRegistry.register(
-      newRoutingTable.database,
       newRoutingTable
     )
+    
+    onDatabaseNameResolved(newRoutingTable.database)
+    
     this._log.info(`Updated routing table ${newRoutingTable}`)
   }
 
@@ -526,12 +563,11 @@ class RoutingTableRegistry {
   /**
    * Put a routing table in the registry
    *
-   * @param {string} database The database name
    * @param {RoutingTable} table The routing table
    * @returns {RoutingTableRegistry} this
    */
-  register (database, table) {
-    this._tables.set(database, table)
+  register (table) {
+    this._tables.set(table.database, table)
     return this
   }
 
@@ -558,12 +594,14 @@ class RoutingTableRegistry {
 
   /**
    * Retrieves a routing table from a given database name
+   * 
+   * @param {string|impersonatedUser} impersonatedUser The impersonated User
    * @param {string} database The database name
    * @param {function()|RoutingTable} defaultSupplier The routing table supplier, if it's not a function or not exists, it will return itself as default value
    * @returns {RoutingTable} The routing table for the respective database
    */
   get (database, defaultSupplier) {
-    if (this._tables.has(database)) {
+    if (this._tables.has(database) ) {
       return this._tables.get(database)
     }
     return typeof defaultSupplier === 'function'

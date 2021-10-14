@@ -18,6 +18,7 @@
  */
 import BoltProtocolV3 from './bolt-protocol-v3'
 import RequestMessage, { ALL } from './request-message'
+import { assertImpersonatedUserIsEmpty } from './bolt-protocol-util'
 import {
   ResultStreamObserver,
   ProcedureRouteObserver
@@ -44,6 +45,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
     bookmark,
     txConfig,
     database,
+    impersonatedUser,
     mode,
     beforeError,
     afterError,
@@ -58,6 +60,9 @@ export default class BoltProtocol extends BoltProtocolV3 {
       afterComplete
     })
     observer.prepareToHandleSingleResponse()
+
+    // passing impersonated user on this protocol version throws an error
+    assertImpersonatedUserIsEmpty(impersonatedUser, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.begin({ bookmark, txConfig, database, mode }),
@@ -75,6 +80,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
       bookmark,
       txConfig,
       database,
+      impersonatedUser,
       mode,
       beforeKeys,
       afterKeys,
@@ -100,6 +106,9 @@ export default class BoltProtocol extends BoltProtocolV3 {
       beforeComplete,
       afterComplete
     })
+
+    // passing impersonated user on this protocol version throws an error
+    assertImpersonatedUserIsEmpty(impersonatedUser, this._onProtocolError, observer)
 
     const flushRun = reactive
     this.write(

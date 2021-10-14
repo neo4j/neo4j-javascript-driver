@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import BoltProtocolV4x3 from '../../src/bolt/bolt-protocol-v4x3'
+import BoltProtocolV4x4 from '../../src/bolt/bolt-protocol-v4x4'
 import RequestMessage from '../../src/bolt/request-message'
 import utils from '../test-utils'
 import { RouteObserver } from '../../src/bolt/stream-observers'
@@ -30,14 +30,14 @@ const {
   bookmark: { Bookmark }
 } = internal
 
-describe('#unit BoltProtocolV4x3', () => {
+describe('#unit BoltProtocolV4x4', () => {
   beforeEach(() => {
     expect.extend(utils.matchers)
   })
 
   it('should request routing information', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
     const routingContext = { someContextParam: 'value' }
     const databaseName = 'name'
@@ -49,7 +49,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.route(routingContext, [], databaseName)
+      RequestMessage.routeV4x4(routingContext, [], { databaseName, impersonatedUser: null })
     )
     expect(protocol.observers).toEqual([observer])
     expect(observer).toEqual(expect.any(RouteObserver))
@@ -58,7 +58,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
   it('should request routing information sending bookmarks', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
     const routingContext = { someContextParam: 'value' }
     const listOfBookmarks = ['a', 'b', 'c']
@@ -73,7 +73,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.route(routingContext, listOfBookmarks, databaseName)
+      RequestMessage.routeV4x4(routingContext, listOfBookmarks, { databaseName, impersonatedUser: null})
     )
     expect(protocol.observers).toEqual([observer])
     expect(observer).toEqual(expect.any(RouteObserver))
@@ -91,7 +91,7 @@ describe('#unit BoltProtocolV4x3', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const query = 'RETURN $x, $y'
@@ -118,6 +118,49 @@ describe('#unit BoltProtocolV4x3', () => {
     expect(protocol.observers).toEqual([observer, observer])
     expect(protocol.flushes).toEqual([false, true])
   })
+
+  it('should run a with impersonated user', () => {
+    const database = 'testdb'
+    const impersonatedUser = 'the impostor'
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2'
+    ])
+    const txConfig = new TxConfig({
+      timeout: 5000,
+      metadata: { x: 1, y: 'something' }
+    })
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
+
+    const query = 'RETURN $x, $y'
+    const parameters = { x: 'x', y: 'y' }
+
+    const observer = protocol.run(query, parameters, {
+      bookmark,
+      txConfig,
+      database,
+      mode: WRITE,
+      impersonatedUser
+    })
+
+    protocol.verifyMessageCount(2)
+
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.runWithMetadata(query, parameters, {
+        bookmark,
+        txConfig,
+        database,
+        mode: WRITE,
+        impersonatedUser
+      })
+    )
+    expect(protocol.messages[1]).toBeMessage(RequestMessage.pull())
+    expect(protocol.observers).toEqual([observer, observer])
+    expect(protocol.flushes).toEqual([false, true])
+  })
+
   it('should begin a transaction', () => {
     const database = 'testdb'
     const bookmark = new Bookmark([
@@ -129,7 +172,7 @@ describe('#unit BoltProtocolV4x3', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
@@ -147,15 +190,46 @@ describe('#unit BoltProtocolV4x3', () => {
     expect(protocol.flushes).toEqual([true])
   })
 
-  it('should return correct bolt version number', () => {
-    const protocol = new BoltProtocolV4x3(null, null, false)
+  it('should begin a transaction with impersonated user', () => {
+    const database = 'testdb'
+    const impersonatedUser = 'the impostor'
+    const bookmark = new Bookmark([
+      'neo4j:bookmark:v1:tx1',
+      'neo4j:bookmark:v1:tx2'
+    ])
+    const txConfig = new TxConfig({
+      timeout: 5000,
+      metadata: { x: 1, y: 'something' }
+    })
+    const recorder = new utils.MessageRecordingConnection()
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
+    utils.spyProtocolWrite(protocol)
 
-    expect(protocol.version).toBe(4.3)
+    const observer = protocol.beginTransaction({
+      bookmark,
+      txConfig,
+      database,
+      mode: WRITE,
+      impersonatedUser
+    })
+
+    protocol.verifyMessageCount(1)
+    expect(protocol.messages[0]).toBeMessage(
+      RequestMessage.begin({ bookmark, txConfig, database, mode: WRITE, impersonatedUser })
+    )
+    expect(protocol.observers).toEqual([observer])
+    expect(protocol.flushes).toEqual([true])
+  })
+
+  it('should return correct bolt version number', () => {
+    const protocol = new BoltProtocolV4x4(null, null, false)
+
+    expect(protocol.version).toBe(4.4)
   })
 
   it('should update metadata', () => {
     const metadata = { t_first: 1, t_last: 2, db_hits: 3, some_other_key: 4 }
-    const protocol = new BoltProtocolV4x3(null, null, false)
+    const protocol = new BoltProtocolV4x4(null, null, false)
 
     const transformedMetadata = protocol.transformMetadata(metadata)
 
@@ -169,7 +243,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
   it('should initialize connection', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const clientName = 'js-driver/1.2.3'
@@ -195,7 +269,7 @@ describe('#unit BoltProtocolV4x3', () => {
       metadata: { x: 1, y: 'something' }
     })
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
@@ -214,7 +288,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
   it('should commit', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.commitTransaction()
@@ -227,7 +301,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
   it('should rollback', () => {
     const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV4x3(recorder, null, false)
+    const protocol = new BoltProtocolV4x4(recorder, null, false)
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.rollbackTransaction()
@@ -236,47 +310,6 @@ describe('#unit BoltProtocolV4x3', () => {
     expect(protocol.messages[0]).toBeMessage(RequestMessage.rollback())
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
-  })
-
-  describe('Bolt v4.4', () => {
-    /**
-     * @param {string} impersonatedUser The impersonated user.
-     * @param {function(protocol: BoltProtocolV4x3)} fn 
-     */
-    function verifyImpersonationNotSupportedErrror (impersonatedUser, fn) {
-      const recorder = new utils.MessageRecordingConnection()
-      const protocol = new BoltProtocolV4x3(recorder, null, false)
-
-      expect(() => fn(protocol)).toThrowError(
-        'Driver is connected to the database that does not support user impersonation. ' +
-          'Please upgrade to neo4j 4.4.0 or later in order to use this functionality. ' +
-          `Trying to impersonate ${impersonatedUser}.`
-      )
-    }
-
-    describe('beginTransaction', () => {
-      function verifyBeginTransaction(impersonatedUser) {
-        verifyImpersonationNotSupportedErrror(
-          impersonatedUser,
-          protocol => protocol.beginTransaction({ impersonatedUser }))
-      }
-
-      it('should throw error when impersonatedUser is set', () => {
-        verifyBeginTransaction('test')
-      })
-    })
-
-    describe('run', () => {
-      function verifyRun (impersonatedUser) {
-        verifyImpersonationNotSupportedErrror(
-          impersonatedUser,
-          protocol => protocol.run('query', {}, { impersonatedUser }))
-      }
-
-      it('should throw error when impersonatedUser is set', () => {
-        verifyRun('test')
-      })
-    })
   })
 
   describe('unpacker configuration', () => {
@@ -288,7 +321,7 @@ describe('#unit BoltProtocolV4x3', () => {
     ])(
       'should create unpacker with disableLosslessIntegers=%p and useBigInt=%p',
       (disableLosslessIntegers, useBigInt) => {
-        const protocol = new BoltProtocolV4x3(null, null, {
+        const protocol = new BoltProtocolV4x4(null, null, {
           disableLosslessIntegers,
           useBigInt
         })

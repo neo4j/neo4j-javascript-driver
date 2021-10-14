@@ -48,6 +48,7 @@ describe('#unit Rediscovery', () => {
 
       const expectedRoutingTable = new RoutingTable({
         database: 'db',
+        ttl,
         expirationTime: calculateExpirationTime(Date.now(), ttl),
         routers: [ServerAddress.fromUrl('bolt://localhost:7687')],
         writers: [ServerAddress.fromUrl('bolt://localhost:7686')],

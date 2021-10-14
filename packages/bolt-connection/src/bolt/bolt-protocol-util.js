@@ -57,4 +57,25 @@ function assertDatabaseIsEmpty (database, onProtocolError = () => {}, observer) 
   }
 }
 
-export { assertDatabaseIsEmpty, assertTxConfigIsEmpty }
+/**
+ * Asserts that the passed-in impersonated user is empty
+ * @param {string} impersonatedUser 
+ * @param {function (err:Error)} onProtocolError Called when it does have impersonated user set
+ * @param {any} observer
+ */
+function assertImpersonatedUserIsEmpty (impersonatedUser, onProtocolError = () => {}, observer) {
+  if (impersonatedUser) {
+    const error = newError(
+      'Driver is connected to the database that does not support user impersonation. ' +
+        'Please upgrade to neo4j 4.4.0 or later in order to use this functionality. ' +
+        `Trying to impersonate ${impersonatedUser}.`
+    )
+
+    // unsupported API was used, consider this a fatal error for the current connection
+    onProtocolError(error.message)
+    observer.onError(error)
+    throw error
+  }
+}
+
+export { assertDatabaseIsEmpty, assertTxConfigIsEmpty, assertImpersonatedUserIsEmpty }
