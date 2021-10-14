@@ -5,8 +5,6 @@ function finish {
 }
 trap finish EXIT
 
-npm install -g gulp typescript jest
-
 npm ci
 npm run build -- --no-private
 
