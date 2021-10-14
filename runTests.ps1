@@ -1,14 +1,27 @@
-npm install -g gulp typescript jest
-
-npm --prefix core ci
-npm --prefix core run build
-npm --prefix bolt-connection ci
-npm --prefix bolt-connection run build
-
+npm install -g gulp typescript jest esdoc
+                    
+Set-Location -Path .\core
+npm ci
+npm run build
+Set-Location -Path ..\bolt-connection
+npm ci
+npm run build
+Set-Location -Path ..
 npm ci
 
-npm --prefix core test
-npm --prefix bolt-connection test
+Set-Location -Path .\core
+npm test 
+Set-Location -Path ..\bolt-connection
+npm test
+
+Set-Location -Path .\neo4j-driver-lite
+npm ci
+npm run build
+npm test
+
+Set-Location -Path ..
+
+npm ci
 
 $ErrorFound = $False
 
