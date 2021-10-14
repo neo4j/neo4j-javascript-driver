@@ -87,11 +87,13 @@ class ConnectionHolder implements ConnectionHolderInterface {
 
   /**
    * @constructor
-   * @param {string} mode - the access mode for new connection holder.
-   * @param {string} database - the target database name.
-   * @param {Bookmark} bookmark - the last bookmark
-   * @param {ConnectionProvider} connectionProvider - the connection provider to acquire connections from.
-   * @param {string?} impersonatedUser - the user which will be impersonated
+   * @param {object} params
+   * @property {string} params.mode - the access mode for new connection holder.
+   * @property {string} params.database - the target database name.
+   * @property {Bookmark} params.bookmark - the last bookmark
+   * @property {ConnectionProvider} params.connectionProvider - the connection provider to acquire connections from.
+   * @property {string?} params.impersonatedUser - the user which will be impersonated
+   * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
    */
   constructor({
     mode = ACCESS_MODE_WRITE,

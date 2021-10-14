@@ -37,11 +37,11 @@ class ConnectionProvider {
    * synchronize on creation of databases and is never used in direct drivers.
    *
    * @param {object} param - object parameter
-   * @param {string} param.accessMode - the access mode for the to-be-acquired connection
-   * @param {string} param.database - the target database for the to-be-acquired connection
-   * @param {Bookmark} param.bookmarks - the bookmarks to send to routing discovery
-   * @param {string} param.impersonatedUser - the impersonated user
-   * @param {function (params:string?)} params.onDatabaseNameResolved - Callback called when the database name get resolved
+   * @property {string} param.accessMode - the access mode for the to-be-acquired connection
+   * @property {string} param.database - the target database for the to-be-acquired connection
+   * @property {Bookmark} param.bookmarks - the bookmarks to send to routing discovery
+   * @property {string} param.impersonatedUser - the impersonated user
+   * @property {function (databaseName:string?)} param.onDatabaseNameResolved - Callback called when the database name get resolved
    */
   acquireConnection(param?: {
     accessMode?: string
