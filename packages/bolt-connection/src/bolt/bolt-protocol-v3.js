@@ -18,7 +18,7 @@
  */
 import BoltProtocolV2 from './bolt-protocol-v2'
 import RequestMessage from './request-message'
-import { assertDatabaseIsEmpty } from './bolt-protocol-util'
+import { assertDatabaseIsEmpty, assertImpersonatedUserIsEmpty } from './bolt-protocol-util'
 import {
   StreamObserver,
   LoginObserver,
@@ -78,6 +78,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     bookmark,
     txConfig,
     database,
+    impersonatedUser,
     mode,
     beforeError,
     afterError,
@@ -95,6 +96,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
 
     // passing in a database name on this protocol version throws an error
     assertDatabaseIsEmpty(database, this._onProtocolError, observer)
+    // passing impersonated user on this protocol version throws an error
+    assertImpersonatedUserIsEmpty(impersonatedUser, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.begin({ bookmark, txConfig, mode }),
@@ -152,6 +155,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
       bookmark,
       txConfig,
       database,
+      impersonatedUser,
       mode,
       beforeKeys,
       afterKeys,
@@ -174,6 +178,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
 
     // passing in a database name on this protocol version throws an error
     assertDatabaseIsEmpty(database, this._onProtocolError, observer)
+    // passing impersonated user on this protocol version throws an error
+    assertImpersonatedUserIsEmpty(impersonatedUser, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.runWithMetadata(query, parameters, {

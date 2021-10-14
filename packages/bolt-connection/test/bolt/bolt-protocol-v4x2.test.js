@@ -18,8 +18,49 @@
  */
 
 import BoltProtocolV4x2 from '../../src/bolt/bolt-protocol-v4x2'
+import utils from '../test-utils'
 
 describe('#unit BoltProtocolV4x2', () => {
+  describe('Bolt v4.4', () => {
+    /**
+     * @param {string} impersonatedUser The impersonated user.
+     * @param {function(protocol: BoltProtocolV4x2)} fn 
+     */
+    function verifyImpersonationNotSupportedErrror (impersonatedUser, fn) {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV4x2(recorder, null, false)
+
+      expect(() => fn(protocol)).toThrowError(
+        'Driver is connected to the database that does not support user impersonation. ' +
+          'Please upgrade to neo4j 4.0.0 or later in order to use this functionality. ' +
+          `Trying to impersonate ${impersonatedUser}.`
+      )
+    }
+
+    describe('beginTransaction', () => {
+      function verifyBeginTransaction(impersonatedUser) {
+        verifyImpersonationNotSupportedErrror(
+          impersonatedUser,
+          protocol => protocol.beginTransaction({ impersonatedUser }))
+      }
+
+      it('should throw error when impersonatedUser is set', () => {
+        verifyBeginTransaction('test')
+      })
+    })
+
+    describe('run', () => {
+      function verifyRun (impersonatedUser) {
+        verifyImpersonationNotSupportedErrror(
+          impersonatedUser,
+          protocol => protocol.run('query', {}, { impersonatedUser }))
+      }
+
+      it('should throw error when impersonatedUser is set', () => {
+        verifyRun('test')
+      })
+    })
+  })
   describe('unpacker configuration', () => {
     test.each([
       [false, false],
