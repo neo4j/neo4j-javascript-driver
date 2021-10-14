@@ -50,6 +50,13 @@ const node2: Node<number> = new Node(2, ['Person', 'Employee'], {
 })
 const node2Id: number = node2.identity
 
+type NodeProps = { name: string }
+const node3: Node<number, NodeProps> = new Node(2, ['Person', 'Employee'], {
+  name: 'Alice'
+})
+const node3Props: NodeProps = node3.properties
+const node3PropertyName: string = node3.properties.name
+
 const rel1: Relationship = new Relationship(int(1), int(2), int(3), 'KNOWS', {
   since: 12345
 })
@@ -98,6 +105,28 @@ const rel6Id: number = rel6.identity
 const rel6Start: number = rel6.start
 const rel6End: number = rel6.end
 const isRel6: boolean = rel6 instanceof UnboundRelationship
+
+type RelationshipProps = { since: number }
+const rel7: Relationship<number, RelationshipProps> = new Relationship(
+  2,
+  3,
+  4,
+  'KNOWS',
+  {
+    since: 12345
+  }
+)
+const rel7Props: RelationshipProps = rel7.properties
+const rel7PropertySince: number = rel7.properties.since
+
+const rel8: UnboundRelationship<
+  number,
+  RelationshipProps
+> = new UnboundRelationship(5, 'KNOWS', {
+  since: 12345
+})
+const rel8Props: RelationshipProps = rel8.properties
+const rel8PropertySince: number = rel8.properties.since
 
 const pathSegment1: PathSegment = new PathSegment(node1, rel1, node1)
 const pathSegment1Start: Node = pathSegment1.start
