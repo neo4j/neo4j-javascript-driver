@@ -7,7 +7,7 @@ trap finish EXIT
 
 npm ci
 npm run build -- --no-private
-npm run lerna -- prepare --no-private
+npm run lerna -- run prepare --no-private
 
 if [[ ! -z "$1" ]]; then
   export NEOCTRL_ARGS="$1"
