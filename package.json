@@ -6,7 +6,7 @@
   },
   "scripts": {
     "clean": "lerna clean -y && lerna run clean",
-    "build": "lerna bootstrap --ci --include-dependencies --stream",
+    "build": "lerna bootstrap --ci",
     "test::unit": "lerna run test::unit --stream",
     "test::integration": "lerna run test::integration --stream",
     "test::browser": "lerna run test::browser --stream",
