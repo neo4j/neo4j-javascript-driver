@@ -5,10 +5,16 @@ function finish {
 }
 trap finish EXIT
 
-npm install -g gulp typescript jest
-
 npm ci
 npm run build -- --no-private
+
+# root users could not run the lifecycle scripts
+# so it need will need to run the prepare script 
+if [ "$EUID" -eq 0 ]
+  then echo "Running prepare by manually"
+  npm run lerna -- run prepare --no-private  
+fi
+
 
 if [[ ! -z "$1" ]]; then
   export NEOCTRL_ARGS="$1"
