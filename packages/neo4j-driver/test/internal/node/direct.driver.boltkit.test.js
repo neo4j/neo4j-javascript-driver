@@ -182,7 +182,6 @@ describe('#stub-direct direct driver with stub server', () => {
     it('v3', () => verifySupportsUserImpersonation('v3', false), 60000)
     it('v4', () => verifySupportsUserImpersonation('v4', false), 60000)
     it('v4.2', () => verifySupportsUserImpersonation('v4.2', false), 60000)
-    it('v4.4', () => verifySupportsUserImpersonation('v4.4', true), 60000)
     it('on error', async () => {
       const driver = boltStub.newDriver('bolt://127.0.0.1:9001')
 
