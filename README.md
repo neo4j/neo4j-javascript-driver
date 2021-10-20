@@ -4,13 +4,13 @@ This is the official Neo4j driver for JavaScript.
 
 Resources to get you started:
 
-- [API Documentation](https://neo4j.com/docs/api/javascript-driver/4.3/)
+- [API Documentation](https://neo4j.com/docs/api/javascript-driver/current/)
 - [Neo4j Manual](https://neo4j.com/docs/)
 - [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
-## What's New in 4.3
+## What's New in 4.4
 
-- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/4.3-changelog)
+- [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/4.4-changelog)
 
 ## Including the Driver
 
