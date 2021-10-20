@@ -10,6 +10,7 @@ node_modules
 .idea
 docs/build
 .npmrc
+.npm
 *.iml
 /lib
 .nyc_output
