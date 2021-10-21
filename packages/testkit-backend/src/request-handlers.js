@@ -309,7 +309,6 @@ export function GetRoutingTable (context, { driverId, database }, wire) {
     driver._getOrCreateConnectionProvider()._routingTableRegistry &&
     driver._getOrCreateConnectionProvider()._routingTableRegistry.get(database)
 
-  console.log(driver._getOrCreateConnectionProvider()._routingTableRegistry)
   if (routingTable) {
     wire.writeResponse('RoutingTable', {
       database: routingTable.database,
