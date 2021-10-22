@@ -159,7 +159,7 @@ export function ResultConsume (context, data, wire) {
 }
 
 export function SessionReadTransaction (context, data, wire) {
-  const { sessionId } = data
+  const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
   session
     .readTransaction(
@@ -168,7 +168,7 @@ export function SessionReadTransaction (context, data, wire) {
           const id = context.addTx(tx, sessionId, resolve, reject)
           wire.writeResponse('RetryableTry', { id })
         })
-    )
+    , { metadata })
     .then(_ => wire.writeResponse('RetryableDone', null))
     .catch(error => wire.writeError(error))
 }
@@ -238,7 +238,7 @@ export function SessionLastBookmarks (context, data, wire) {
 }
 
 export function SessionWriteTransaction (context, data, wire) {
-  const { sessionId } = data
+  const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
   session
     .writeTransaction(
@@ -247,7 +247,7 @@ export function SessionWriteTransaction (context, data, wire) {
           const id = context.addTx(tx, sessionId, resolve, reject)
           wire.writeResponse('RetryableTry', { id })
         })
-    )
+    , { metadata })
     .then(_ => wire.writeResponse('RetryableDone', null))
     .catch(error => wire.writeError(error))
 }
