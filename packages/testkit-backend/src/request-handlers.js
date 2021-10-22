@@ -332,9 +332,12 @@ export function GetRoutingTable (context, { driverId, database }, wire) {
 
 export function ForcedRoutingTableUpdate (context, { driverId, database, bookmarks }, wire) {
   const driver = context.getDriver(driverId)
+  const provider = driver._getOrCreateConnectionProvider()
 
-  if (driver._getOrCreateConnectionProvider()._freshRoutingTable) {
-    driver._getOrCreateConnectionProvider()._freshRoutingTable ({
+  if (provider._freshRoutingTable) {
+    // Removing database from the routing table registry
+    provider._routingTableRegistry._remove(database)
+    provider._freshRoutingTable ({
         accessMode: 'READ',
         database,
         bookmark: bookmarks,
