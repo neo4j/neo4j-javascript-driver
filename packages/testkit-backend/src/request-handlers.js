@@ -307,17 +307,45 @@ export function GetRoutingTable (context, { driverId, database }, wire) {
     driver &&
     driver._getOrCreateConnectionProvider() &&
     driver._getOrCreateConnectionProvider()._routingTableRegistry &&
-    driver._getOrCreateConnectionProvider()._routingTableRegistry.get(database)
+    driver._getOrCreateConnectionProvider()._routingTableRegistry.get(database, () => {
+      return {
+        database,
+        ttl: 0,
+        readers: [],
+        writers: [],
+        routers: []
+      }
+    })
 
   if (routingTable) {
     wire.writeResponse('RoutingTable', {
       database: routingTable.database,
-      ttl: routingTable.ttl,
+      ttl: Number(routingTable.ttl),
       readers: routingTable.readers.map(serverAddressToString),
       writers: routingTable.writers.map(serverAddressToString),
       routers: routingTable.routers.map(serverAddressToString)
     })
   } else {
-    wire.writeError('Could not find routing table')
+    wire.writeError('Driver does not support routing')
+  }
+}
+
+export function ForcedRoutingTableUpdate (context, { driverId, database, bookmarks }, wire) {
+  const driver = context.getDriver(driverId)
+  const provider = driver._getOrCreateConnectionProvider()
+
+  if (provider._freshRoutingTable) {
+    // Removing database from the routing table registry
+    provider._routingTableRegistry._remove(database)
+    provider._freshRoutingTable ({
+        accessMode: 'READ',
+        database,
+        bookmark: bookmarks,
+        onDatabaseNameResolved: () => {}
+    })
+      .then(() => wire.writeResponse("Driver", { "id": driverId }))
+      .catch(error => wire.writeError(error))
+  } else {
+    wire.writeError('Driver does not support routing')
   }
 }
