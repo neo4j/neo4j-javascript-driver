@@ -6,7 +6,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node -r esm src/main.js",
+    "start": "node -r esm src/index.js",
     "clean": "rm -fr node_modules"
   },
   "repository": {
