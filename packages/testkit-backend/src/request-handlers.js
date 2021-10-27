@@ -2,6 +2,17 @@ import neo4j from './neo4j'
 import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
 import { shouldRunTest } from './skipped-tests'
+import tls from 'tls'
+
+const SUPPORTED_TLS = (() => {
+  const MIN = Number(tls.DEFAULT_MIN_VERSION.split('TLSv')[1])
+  const MAX = Number(tls.DEFAULT_MAX_VERSION.split('TLSv')[1])
+  const result = [];
+  for (let version = MIN; version <= MAX; version = Number((version + 0.1).toFixed(1)) ) {
+    result.push(`Feature:TLS:${version.toFixed(1)}`)
+  }
+  return result;
+})();
 
 export function NewDriver (context, data, { writeResponse }) {
   const {
@@ -268,7 +279,8 @@ export function GetFeatures (_context, _params, wire) {
       'AuthorizationExpiredTreatment',
       'ConfHint:connection.recv_timeout_seconds',
       'Feature:Bolt:4.4',
-      'Feature:Impersonation'
+      'Feature:Impersonation',
+      ...SUPPORTED_TLS
     ]
   })
 }
