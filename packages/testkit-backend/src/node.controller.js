@@ -20,7 +20,7 @@ export default class NodeController extends Controller {
   }
 
   
-  handle(contextId, name, data) {
+  handle(contextId, { name, data }) {
     if (!this._contexts.has(contextId)) {
       throw new Error(`Context ${contextId} does not exist`)
     } else if (!(name in this._requestHandlers)) {

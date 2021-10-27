@@ -1,16 +1,31 @@
-
+import readline from 'readline'
 import EventEmitter from 'events'
 
 export default class Protocol extends EventEmitter {
-  constructor () {
+  constructor (stream) {
     super()
-    console.log('Backend connected')
     this._inRequest = false
     this._request = ''
+    this._stream = stream
+    this._readlineInterface = null
+  }
+
+  start() {
+    if (!this._readlineInterface) {
+      this._readlineInterface = readline.createInterface(this._stream, null)
+      this._readlineInterface.on('line', this._processLine.bind(this))
+    }
+  }
+
+  stop () {
+    if (this._readlineInterface) {
+      this._readlineInterface.off('line', this._processLine.bind(this))
+      this._readlineInterface = null
+    }
   }
 
   // Called whenever a new line is received.
-  processLine (line) {
+  _processLine (line) {
     switch (line) {
       case '#request begin':
         if (this._inRequest) {
@@ -26,28 +41,28 @@ export default class Protocol extends EventEmitter {
           this._emitRequest()
         } catch (e) {
           console.log('error', e)
-          this.emit('error', e)
+          this._emitError(e)
         }
         this._request = ''
         this._inRequest = false
         break
       default:
         if (!this._inRequest) {
-          throw new Error('Line while not in request')
+          this._emitError(new Error('Line while not in request'))
         }
         this._request += line
         break
     }
   }
 
-  serializeResponse (name, data) {
-    console.log('> writing response', name, data)
-    let response = {
-      name: name,
-      data: data
-    }
-    response = this._stringify(response)
-    return  ['#response begin', response, '#response end'].join('\n') + '\n'
+  _emitError(e) {
+    this.emit('error', e)
+  }
+
+  serializeResponse (response) {
+    console.log('> writing response', response)
+    const responseStr = this._stringify(response)
+    return  ['#response begin', responseStr, '#response end'].join('\n') + '\n'
   }
 
   _emitRequest () {

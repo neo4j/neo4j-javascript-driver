@@ -7,7 +7,7 @@ export default class Backend {
     this._controller = newController()
 
     this._controller.on('response', ({ contextId, response }) => {
-      this._socketServer.writeResponse(contextId, response.name, response.data)
+      this._socketServer.writeResponse(contextId, response)
     })
 
     this._socketServer.on('contextOpen', ({ contextId }) => this._controller.onContextOpen(contextId))
@@ -15,7 +15,7 @@ export default class Backend {
 
     this._socketServer.on('request', ({ contextId, request }) => { 
       try {
-        this._controller.handle(contextId, request.name, request.data )
+        this._controller.handle(contextId, request)
       } catch (e) {
         this._socketServer.writeBackendError(contextId, e)
       }
@@ -33,4 +33,3 @@ export default class Backend {
   }
 
 }
-

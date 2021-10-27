@@ -1,5 +1,3 @@
-
-import readline from 'readline'
 import { EventEmitter } from 'events'
 import net from 'net'
 import { randomBytes } from 'crypto'
@@ -10,7 +8,7 @@ function generateRandomId () {
 }
 
 export default class SocketServer extends EventEmitter {
-  constructor(port, newProtocol = () => new Protocol(), newId = generateRandomId ) {
+  constructor(port, newProtocol = stream => new Protocol(stream), newId = generateRandomId ) {
     super()
     this._newProtocol = newProtocol
     this._server = null
@@ -21,28 +19,7 @@ export default class SocketServer extends EventEmitter {
 
   start () {
     if (!this._server) {
-      this._server = net.createServer(connection => {
-        const contextId = this._newId()
-        console.log(`[${contextId}] Creating connection`)
-        const protocol = this._newProtocol()
-
-        this._clients.set(contextId, {
-          protocol,
-          connection
-        })
-
-        this.emit('contextOpen', { contextId })
-        protocol.on('request', request => this.emit('request', { contextId, request }) )
-        protocol.on('error', e => this.writeBackendError(contextId, e))
-        
-        connection.on('end', () =>  { 
-          this._clients.delete(contextId)
-          this.emit('contextClose', { contextId })
-        })
-
-        const iface = readline.createInterface(connection, null)
-        iface.on('line', protocol.processLine.bind(protocol))
-      })
+      this._server = net.createServer(this._handleConnection.bind(this))
 
       this._server.listen(this._port, () => {
         console.log('Listening')
@@ -52,24 +29,50 @@ export default class SocketServer extends EventEmitter {
     }
   }
 
-  writeResponse (contextId, name, data) {
+  _handleConnection(connection) {
+    console.log('Backend connected')
+        
+    const contextId = this._newId()
+    const protocol = this._newProtocol(connection)
+
+    this._clients.set(contextId, {
+      protocol,
+      connection
+    })
+
+    this.emit('contextOpen', { contextId })
+    protocol.on('request', request => this.emit('request', { contextId, request }) )
+    protocol.on('error', e => this.writeBackendError(contextId, e))
+    
+    connection.on('end', () =>  { 
+      if (this._clients.has(contextId)) {
+        this._clients.get(contextId).protocol.stop()
+      }
+      this._clients.delete(contextId)
+      this.emit('contextClose', { contextId })
+    })
+
+    protocol.start()
+  }
+
+  writeResponse (contextId, response) {
     if (this._clients.has(contextId)) {
       const { protocol, connection } = this._clients.get(contextId)
-      const chunk = protocol.serializeResponse(name, data)
+      const chunk = protocol.serializeResponse(response)
       connection.write(chunk, 'utf8', () => {})
-      
     }
   }
 
   writeBackendError (contextId, error) {
-    this.writeResponse(contextId, 'BackendError', { msg: error})
+    this.writeResponse(contextId, { name: 'BackendError', data:  { msg: error } })
   }
 
   stop () {
     if (this._server) {
       this._server.close()
+      this._server = null
+      this._clients.forEach(client => client.protocol.stop())
       this._clients = new Map()
     }
   }
-
 }
