@@ -41,6 +41,7 @@ describe('#integration examples', () => {
   let consoleOverride
   let consoleOverridePromise
   let consoleOverridePromiseResolve
+  let consoleOverridePromiseReject
 
   const user = sharedNeo4j.username
   const password = sharedNeo4j.password
@@ -53,8 +54,12 @@ describe('#integration examples', () => {
   beforeEach(async () => {
     consoleOverridePromise = new Promise((resolve, reject) => {
       consoleOverridePromiseResolve = resolve
+      consoleOverridePromiseReject = reject
     })
-    consoleOverride = { log: msg => consoleOverridePromiseResolve(msg) }
+    consoleOverride = {
+      log: msg => consoleOverridePromiseResolve(msg),
+      error: msg => consoleOverridePromiseReject(msg)
+    }
 
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(
       driverGlobal
