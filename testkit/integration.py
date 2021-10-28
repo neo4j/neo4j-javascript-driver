@@ -17,7 +17,9 @@ if __name__ == "__main__":
     else:
         ignore = "--ignore=neo4j-driver-lite"
 
-    run_in_driver_repo(["npm", "run", "test::integration", "--", ignore])
+    run_in_driver_repo(["npm", "run", "test::integration",
+                        "--", ignore], env=os.environ)
 
     if should_test_browser():
-        run_in_driver_repo(["npm", "run", "test::browser", "--", ignore])
+        run_in_driver_repo(["npm", "run", "test::browser",
+                            "--", ignore], env=os.environ)

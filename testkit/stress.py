@@ -1,4 +1,5 @@
 import os
+from posix import environ
 from common import run_in_driver_repo, is_lite
 
 
@@ -12,4 +13,5 @@ if __name__ == "__main__":
     else:
         ignore = "--ignore=neo4j-driver-lite"
 
-    run_in_driver_repo(["npm", "run", "test::stress", "--", ignore])
+    run_in_driver_repo(["npm", "run", "test::stress",
+                        "--", ignore], env=os.environ)

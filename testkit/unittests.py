@@ -13,4 +13,5 @@ if __name__ == "__main__":
     else:
         ignore = "--ignore=neo4j-driver-lite"
 
-    run_in_driver_repo(["npm", "run", "test::unit", "--", ignore])
+    run_in_driver_repo(["npm", "run", "test::unit",
+                        "--", ignore], env=os.environ)

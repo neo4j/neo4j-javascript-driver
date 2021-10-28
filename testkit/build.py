@@ -2,10 +2,9 @@
 Executed in Javascript driver container.
 Responsible for building driver and test backend.
 """
-from common import run, run_in_driver_repo
+from common import run_in_driver_repo
 import os
 import pathlib
-
 
 
 def define_npm_home():
