@@ -438,7 +438,7 @@ describe('#integration examples', () => {
       const writeQuery = `MERGE (p1:Person { name: $person1Name })
                           MERGE (p2:Person { name: $person2Name })
                           MERGE (p1)-[k:KNOWS { from: $knowsFrom }]->(p2)
-                          RETURN p1, p2`
+                          RETURN p1, p2, k`
 
       // Write transactions allow the driver to handle retries and transient errors
       const writeResult = await session.writeTransaction(tx =>
