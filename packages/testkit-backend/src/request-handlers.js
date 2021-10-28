@@ -5,10 +5,10 @@ import { shouldRunTest } from './skipped-tests'
 import tls from 'tls'
 
 const SUPPORTED_TLS = (() => {
-  const MIN = Number(tls.DEFAULT_MIN_VERSION.split('TLSv')[1])
-  const MAX = Number(tls.DEFAULT_MAX_VERSION.split('TLSv')[1])
+  const min = Number(tls.DEFAULT_MIN_VERSION.split('TLSv')[1])
+  const max = Number(tls.DEFAULT_MAX_VERSION.split('TLSv')[1])
   const result = [];
-  for (let version = MIN; version <= MAX; version = Number((version + 0.1).toFixed(1)) ) {
+  for (let version = min; version <= max; version = Number((version + 0.1).toFixed(1)) ) {
     result.push(`Feature:TLS:${version.toFixed(1)}`)
   }
   return result;
