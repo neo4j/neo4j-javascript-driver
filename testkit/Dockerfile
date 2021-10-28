@@ -13,7 +13,7 @@ RUN apt-get update && \
         firefox \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g npm \
+RUN npm install -g npm@7 \
     && /bin/bash -c "hash -d npm"
 RUN npm install -g gulp
 
