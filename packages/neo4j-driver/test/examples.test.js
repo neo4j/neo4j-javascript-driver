@@ -463,7 +463,7 @@ describe('#integration examples', () => {
         console.log(`Found person: ${record.get('name')}`)
       })
     } catch (error) {
-      console.error('Something went wrong: ', error)
+      console.error(error)
     } finally {
       await session.close()
     }
