@@ -84,6 +84,10 @@ export default class BoltProtocol {
     return BOLT_PROTOCOL_V1
   }
 
+  get currentFailure () {
+    return this._responseHandler.currentFailure
+  }
+
   /**
    * Get the packer.
    * @return {Packer} the protocol's packer.

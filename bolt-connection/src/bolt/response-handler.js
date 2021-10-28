@@ -146,6 +146,10 @@ export default class ResponseHandler {
     }
   }
 
+  get currentFailure () {
+    return this._currentFailure
+  }
+
   /*
    * Pop next pending observer form the list of observers and make it current observer.
    * @protected
