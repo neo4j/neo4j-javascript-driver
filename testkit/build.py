@@ -2,14 +2,14 @@
 Executed in Javascript driver container.
 Responsible for building driver and test backend.
 """
-from common import run, run_in_driver_repo, DRIVER_REPO
+from common import run, run_in_driver_repo
 import os
+import pathlib
 
 
-def copy_files_to_workdir():
-    run(["mkdir", DRIVER_REPO])
-    run(["cp", "-fr", ".", DRIVER_REPO])
-    run(["chown", "-Rh", "driver:driver", DRIVER_REPO])
+
+def define_npm_home():
+    os.environ["HOME"] = str(pathlib.Path().resolve())
 
 
 def init_monorepo():
@@ -19,10 +19,13 @@ def init_monorepo():
 
 def clean_and_build():
     run_in_driver_repo(["npm", "run", "clean"], env=os.environ)
-    run_in_driver_repo(["npm", "run", "build"], env=os.environ)
+    run_in_driver_repo(["npm", "run", "build", "--",
+                        "--ignore-scripts"], env=os.environ)
+    run_in_driver_repo(["npm", "run", "lerna", "--",
+                        "run", "prepare"], env=os.environ)
 
 
 if __name__ == "__main__":
-    copy_files_to_workdir()
+    define_npm_home()
     init_monorepo()
     clean_and_build()

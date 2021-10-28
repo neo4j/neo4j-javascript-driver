@@ -21,7 +21,7 @@ def run_in(cwd):
 
 
 def run_in_driver_repo(args, env=None):
-    return run(args, env, DRIVER_REPO)
+    return run(args, env)
 
 
 def is_lite():

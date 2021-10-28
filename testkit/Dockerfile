@@ -31,13 +31,3 @@ CipherString = DEFAULT:@SECLEVEL=1" >> /etc/ssl/openssl.cnf
 # Assumes Linux Debian based image.
 COPY CAs/* /usr/local/share/ca-certificates/
 RUN update-ca-certificates
-
-# Creating an user for building the driver and running the tests
-RUN useradd -m driver && echo "driver:driver" | chpasswd && adduser driver sudo
-VOLUME /driver
-RUN chown -Rh driver:driver /driver
-USER driver
-WORKDIR /home/driver
-CMD /bin/bash
-RUN mkdir /home/driver/.npm_global
-RUN npm config set prefix /home/driver/.npm_global
