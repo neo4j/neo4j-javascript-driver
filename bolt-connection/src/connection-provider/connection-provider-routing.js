@@ -443,7 +443,14 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   async _createSessionForRediscovery (routerAddress, bookmark) {
     try {
       const connection = await this._connectionPool.acquire(routerAddress)
-      const connectionProvider = new SingleConnectionProvider(connection)
+
+      const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
+        errorCode: SESSION_EXPIRED,
+        handleAuthorizationExpired: (error, address) => this._handleAuthorizationExpired(error, address)
+      })
+      
+      const connectionProvider = new SingleConnectionProvider(
+        new DelegateConnection(connection, databaseSpecificErrorHandler))
 
       const protocolVersion = connection.protocol().version
       if (protocolVersion < 4.0) {
