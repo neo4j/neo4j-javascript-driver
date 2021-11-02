@@ -41,6 +41,7 @@ describe('#integration examples', () => {
   let consoleOverride
   let consoleOverridePromise
   let consoleOverridePromiseResolve
+  let consoleOverridePromiseReject
 
   const user = sharedNeo4j.username
   const password = sharedNeo4j.password
@@ -53,8 +54,12 @@ describe('#integration examples', () => {
   beforeEach(async () => {
     consoleOverridePromise = new Promise((resolve, reject) => {
       consoleOverridePromiseResolve = resolve
+      consoleOverridePromiseReject = reject
     })
-    consoleOverride = { log: msg => consoleOverridePromiseResolve(msg) }
+    consoleOverride = {
+      log: msg => consoleOverridePromiseResolve(msg),
+      error: msg => consoleOverridePromiseReject(msg)
+    }
 
     protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(
       driverGlobal
@@ -416,29 +421,35 @@ describe('#integration examples', () => {
     // end::driver-introduction-example-variables[]
 
     // tag::driver-introduction-example[]
-    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+      // Enabling driver logging info into the console.
+      // Supported levels: 'error', 'warn', 'info' and 'debug'
+      logging: neo4j.logging.console('info')
+    })
     const session = driver.session()
 
     const person1Name = 'Alice'
     const person2Name = 'David'
+    const knowsFrom = 'School'
 
     try {
       // To learn more about the Cypher syntax, see https://neo4j.com/docs/cypher-manual/current/
       // The Reference Card is also a good resource for keywords https://neo4j.com/docs/cypher-refcard/current/
       const writeQuery = `MERGE (p1:Person { name: $person1Name })
                           MERGE (p2:Person { name: $person2Name })
-                          MERGE (p1)-[:KNOWS]->(p2)
-                          RETURN p1, p2`
+                          MERGE (p1)-[k:KNOWS { from: $knowsFrom }]->(p2)
+                          RETURN p1, p2, k`
 
       // Write transactions allow the driver to handle retries and transient errors
       const writeResult = await session.writeTransaction(tx =>
-        tx.run(writeQuery, { person1Name, person2Name })
+        tx.run(writeQuery, { person1Name, person2Name, knowsFrom })
       )
       writeResult.records.forEach(record => {
         const person1Node = record.get('p1')
         const person2Node = record.get('p2')
+        const knowsRel = record.get('k')
         console.log(
-          `Created friendship between: ${person1Node.properties.name}, ${person2Node.properties.name}`
+          `Created friendship between: ${person1Node.properties.name}, ${person2Node.properties.name} from ${knowsRel.properties.from}`
         )
       })
 
@@ -452,7 +463,7 @@ describe('#integration examples', () => {
         console.log(`Found person: ${record.get('name')}`)
       })
     } catch (error) {
-      console.error('Something went wrong: ', error)
+      console.error(error)
     } finally {
       await session.close()
     }
@@ -462,7 +473,7 @@ describe('#integration examples', () => {
     // end::driver-introduction-example[]
 
     expect(await consoleLoggedMsg).toEqual(
-      `Created friendship between: ${person1Name}, ${person2Name}`
+      `Created friendship between: ${person1Name}, ${person2Name} from ${knowsFrom}`
     )
   }, 60000)
 
