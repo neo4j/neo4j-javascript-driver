@@ -74,7 +74,10 @@ export default async function execute () {
     neo4j.auth.basic(USERNAME, PASSWORD),
     config
   )
-  const protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
+  const [
+    protocolVersion,
+    bookmarks
+  ] = await sharedNeo4j.cleanupAndGetProtocolVersionAndBookmark(driver)
   console.time('Basic-stress-test')
   const printStats = () => {
     console.timeEnd('Basic-stress-test')
@@ -83,7 +86,12 @@ export default async function execute () {
     console.log('Write statistics: ', context.writeServersWithQueryCount)
   }
 
-  const context = new Context(driver, LOGGING_ENABLED, protocolVersion)
+  const context = new Context(
+    driver,
+    LOGGING_ENABLED,
+    protocolVersion,
+    bookmarks
+  )
 
   try {
     await runWhileNotTimeout(async () => {
@@ -525,10 +533,10 @@ function noParams () {
 }
 
 function newSession (context, accessMode, useBookmark) {
-  if (useBookmark) {
+  if (useBookmark || isCluster()) {
     return context.driver.session({
       defaultAccessMode: accessMode,
-      bookmarks: [context.bookmark]
+      bookmarks: context.bookmark
     })
   }
   return context.driver.session({ defaultAccessMode: accessMode })
@@ -556,9 +564,9 @@ function arraysEqual (array1, array2) {
 }
 
 class Context {
-  constructor (driver, loggingEnabled, protocolVersion) {
+  constructor (driver, loggingEnabled, protocolVersion, bookmark) {
     this.driver = driver
-    this.bookmark = null
+    this.bookmark = bookmark
     this.createdNodesCount = 0
     this._commandIdCouter = 0
     this._loggingEnabled = loggingEnabled
