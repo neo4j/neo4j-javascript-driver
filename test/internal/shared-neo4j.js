@@ -308,16 +308,23 @@ function restart (configOverride) {
   startNeo4j()
 }
 
-async function cleanupAndGetProtocolVersion (driver) {
+async function cleanupAndGetProtocolVersionAndBookmark (driver) {
   const session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
   try {
     const result = await session.writeTransaction(tx =>
       tx.run('MATCH (n) DETACH DELETE n')
     )
-    return result.summary.server.protocolVersion
+    return [result.summary.server.protocolVersion, session.lastBookmark()]
   } finally {
     await session.close()
   }
+}
+
+async function cleanupAndGetProtocolVersion (driver) {
+  const [protocolVersion] = await cleanupAndGetProtocolVersionAndBookmark(
+    driver
+  )
+  return protocolVersion
 }
 
 async function getEdition (driver) {
@@ -375,6 +382,7 @@ export default {
   authToken: authToken,
   logging: debugLogging,
   cleanupAndGetProtocolVersion: cleanupAndGetProtocolVersion,
+  cleanupAndGetProtocolVersionAndBookmark,
   tlsConfig: tlsConfig,
   getEdition: getEdition,
   hostname: hostname,
