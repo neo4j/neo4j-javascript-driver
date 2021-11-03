@@ -73,7 +73,7 @@ describe('#integration result stream', () => {
         done()
       },
       onError: error => {
-        console.log(error)
+        done.fail(error)
       }
     })
   })

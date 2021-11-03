@@ -179,10 +179,13 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._connectionPromise = this._connectionPromise
       .then((connection?: Connection) => {
         if (connection) {
-          return connection
-            .resetAndFlush()
-            .catch(ignoreError)
-            .then(() => connection._release())
+          if (connection.isOpen()) {
+            return connection
+              .resetAndFlush()
+              .catch(ignoreError)
+              .then(() => connection._release())
+          }
+          return connection._release()
         } else {
           return Promise.resolve()
         }
