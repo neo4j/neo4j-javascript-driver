@@ -36,7 +36,7 @@
           "enable": true
         },
         "brand": {
-          "title": "Neo4j Bolt Driver 4.3 for JavaScript",
+          "title": "Neo4j Bolt Driver 4.4 for JavaScript",
           "repository": "https://github.com/neo4j/neo4j-javascript-driver"
         }
       }
@@ -45,7 +45,7 @@
       "name": "./docs/embed-docs.plugin.js",
       "option": {
         "enabled": true,
-        "path": "./core/docs"
+        "path": "../core/docs"
       }
     }
   ]

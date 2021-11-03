@@ -358,10 +358,12 @@ class Session {
   }
 
   /**
+   * Sets the resolved database name in the session context.
    * @private
    * @param {string|undefined} database The resolved database name
+   * @returns {void}
    */
-  _onDatabaseNameResolved(database?: string): void{
+  _onDatabaseNameResolved(database?: string): void {
     if (!this._databaseNameResolved) {
       const normalizedDatabase = database || ''
       this._database = normalizedDatabase

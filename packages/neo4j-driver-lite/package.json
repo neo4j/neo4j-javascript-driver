@@ -17,7 +17,7 @@
     "version::set_version.ts": "sed 's/0.0.0-dev/'$VERSION'/g' src/version.ts > src/version.tmp && mv src/version.tmp src/version.ts",
     "versionRelease": "npm version $VERSION --no-git-tag-version && npm run version::set_version.ts",
     "build::es6": "tsc --target ES6 --outdir lib6",
-    "predocs": "cd ../core && npm run docs && cd ../neo4j-driver-lite && npm run build && npm run build::es6",
+    "predocs": "npm run build && npm run build::es6",
     "docs": "esdoc -c esdoc.json",
     "prepare": "npm run build && npm run build:browser",
     "clean": "rm -fr node_modules lib types"
