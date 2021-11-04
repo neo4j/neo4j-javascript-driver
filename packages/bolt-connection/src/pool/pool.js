@@ -134,9 +134,22 @@ class Pool {
    * Destroy all idle resources in this pool.
    * @returns {Promise<void>} A promise that is resolved when the resources are purged
    */
-  close () {
+  async close () {
     this._closed = true
-    return Promise.all(Object.keys(this._pools).map(key => this._purgeKey(key)))
+    /**
+     * The lack of Promise consuming was making the driver do not close properly in the scenario
+     * captured at result.test.js:it('should handle missing onCompleted'). The test was timing out
+     * because while wainting for the driver close.
+     *
+     * Consuming the Promise.all or by calling then or by awaiting in the result inside this method solved
+     * the issue somehow.
+     *
+     * PS: the return of this method was already awaited at PooledConnectionProvider.close, but the await bellow
+     * seems to be need also.
+     */
+    return await Promise.all(
+      Object.keys(this._pools).map(key => this._purgeKey(key))
+    )
   }
 
   /**
