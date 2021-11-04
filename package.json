@@ -7,6 +7,7 @@
   "scripts": {
     "clean": "lerna clean -y && lerna run clean",
     "build": "lerna bootstrap --ci",
+    "docs": "lerna run docs --stream --concurrency 1",
     "test::unit": "lerna run test::unit --stream",
     "test::integration": "lerna run test::integration --stream",
     "test::browser": "lerna run test::browser --stream",
