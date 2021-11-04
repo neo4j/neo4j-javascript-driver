@@ -44,6 +44,20 @@ describe('NodeChannel', () => {
     return expect(channel.close()).resolves.not.toThrow()
   })
 
+  describe('.close()', () => {
+    it('should set _open to false before resolve the promise', async () => {
+      const channel = createMockedChannel(true)
+
+      expect(channel._open).toBe(true)
+
+      const promise = channel.close()
+
+      expect(channel._open).toBe(false)
+
+      await promise
+    })
+  })
+
   describe('.setupReceiveTimeout()', () => {
     it('should call socket.setTimeout(receiveTimeout)', () => {
       const receiveTimeout = 42

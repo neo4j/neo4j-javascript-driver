@@ -292,6 +292,116 @@ describe('#unit ConnectionHolder', () => {
 
     expect(connectionHolder.database()).toBe('testdb')
   })
+
+  describe('.releaseConnection()', () => {
+    describe('when the connection is initialized', () => {
+      describe('and connection is open', () => {
+        let connection
+
+        beforeEach(async () => {
+          connection = new FakeConnection()
+          const connectionProvider = newSingleConnectionProvider(connection)
+          const connectionHolder = new ConnectionHolder({
+            mode: READ,
+            connectionProvider
+          })
+
+          connectionHolder.initializeConnection()
+
+          await connectionHolder.releaseConnection()
+        })
+
+        it('should call connection.resetAndFlush', () => {
+          expect(connection.resetInvoked).toBe(1)
+        })
+
+        it('should call connection._release()', () => {
+          expect(connection.releaseInvoked).toBe(1)
+        })
+      })
+
+      describe('and connection is not open', () => {
+        let connection
+
+        beforeEach(async () => {
+          connection = new FakeConnection()
+          connection._open = false
+          const connectionProvider = newSingleConnectionProvider(connection)
+          const connectionHolder = new ConnectionHolder({
+            mode: READ,
+            connectionProvider
+          })
+
+          connectionHolder.initializeConnection()
+
+          await connectionHolder.releaseConnection()
+        })
+
+        it('should not call connection.resetAndFlush', () => {
+          expect(connection.resetInvoked).toBe(0)
+        })
+
+        it('should call connection._release()', () => {
+          expect(connection.releaseInvoked).toBe(1)
+        })
+      })
+    })
+  })
+
+  describe('.close()', () => {
+    describe('when the connection is initialized', () => {
+      describe('and connection is open', () => {
+        let connection
+
+        beforeEach(async () => {
+          connection = new FakeConnection()
+          const connectionProvider = newSingleConnectionProvider(connection)
+          const connectionHolder = new ConnectionHolder({
+            mode: READ,
+            connectionProvider
+          })
+
+          connectionHolder.initializeConnection()
+
+          await connectionHolder.close()
+        })
+
+        it('should call connection.resetAndFlush', () => {
+          expect(connection.resetInvoked).toBe(1)
+        })
+
+        it('should call connection._release()', () => {
+          expect(connection.releaseInvoked).toBe(1)
+        })
+      })
+
+      describe('and connection is not open', () => {
+        let connection
+
+        beforeEach(async () => {
+          connection = new FakeConnection()
+          connection._open = false
+          const connectionProvider = newSingleConnectionProvider(connection)
+          const connectionHolder = new ConnectionHolder({
+            mode: READ,
+            connectionProvider
+          })
+
+          connectionHolder.initializeConnection()
+
+          await connectionHolder.close()
+        })
+
+        it('should not call connection.resetAndFlush', () => {
+          expect(connection.resetInvoked).toBe(0)
+        })
+
+        it('should call connection._release()', () => {
+          expect(connection.releaseInvoked).toBe(1)
+        })
+      })
+    })
+  })
 })
 
 class RecordingConnectionProvider extends SingleConnectionProvider {

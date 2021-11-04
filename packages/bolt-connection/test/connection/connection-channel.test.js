@@ -19,7 +19,6 @@
 
 import ChannelConnection from '../../src/connection/connection-channel'
 import { int, internal, newError } from 'neo4j-driver-core'
-import { add } from 'lodash'
 
 const {
   serverAddress: { ServerAddress },
@@ -198,7 +197,69 @@ describe('ChannelConnection', () => {
         expect(notifyFatalError).toHaveBeenCalledWith(currentFailure)
       })
     })
+  })
 
+  describe('._resetOnFailure()', () => {
+    describe('when connection isOpen', () => {
+      it('should call protocol.reset() and then protocol.resetFailure() onComplete', () => {
+        const channel = {
+          _open: true
+        }
+
+        const protocol = {
+          reset: jest.fn(observer => observer.onComplete()),
+          resetFailure: jest.fn()
+        }
+        const protocolSupplier = () => protocol
+        const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).toHaveBeenCalled()
+        expect(protocol.resetFailure).toHaveBeenCalled()
+      })
+
+      it('should call protocol.reset() and then protocol.resetFailure() onError', () => {
+        const channel = {
+          _open: true
+        }
+
+        const protocol = {
+          reset: jest.fn(observer => observer.onError()),
+          resetFailure: jest.fn()
+        }
+        const protocolSupplier = () => protocol
+        const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).toHaveBeenCalled()
+        expect(protocol.resetFailure).toHaveBeenCalled()
+      })
+    })
+
+    describe('when connection is not open', () => {
+      it('should not call protocol.reset() and protocol.resetFailure()', () => {
+        const channel = {
+          _open: false
+        }
+
+        const protocol = {
+          reset: jest.fn(observer => {
+            observer.onComplete()
+            observer.onError()
+          }),
+          resetFailure: jest.fn()
+        }
+        const protocolSupplier = () => protocol
+        const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).not.toHaveBeenCalled()
+        expect(protocol.resetFailure).not.toHaveBeenCalled()
+      })
+    })
   })
 
   function spyOnConnectionChannel ({

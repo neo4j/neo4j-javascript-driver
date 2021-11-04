@@ -270,7 +270,10 @@ export default class ChannelConnection extends Connection {
    */
   _handleFatalError (error) {
     this._isBroken = true
-    this._error = this.handleAndTransformError(this._protocol.currentFailure || error, this._address)
+    this._error = this.handleAndTransformError(
+      this._protocol.currentFailure || error,
+      this._address
+    )
 
     if (this._log.isErrorEnabled()) {
       this._log.error(
@@ -320,6 +323,10 @@ export default class ChannelConnection extends Connection {
   }
 
   _resetOnFailure () {
+    if (!this.isOpen()) {
+      return
+    }
+
     this._protocol.reset({
       onError: () => {
         this._protocol.resetFailure()
