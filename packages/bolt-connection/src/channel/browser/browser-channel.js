@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import HeapBuffer from './browser-buf'
+import ChannelBuffer from '../channel-buf'
 import { newError, internal } from 'neo4j-driver-core'
 
 const {
@@ -83,7 +83,7 @@ export default class WebSocketChannel {
     }
     this._ws.onmessage = event => {
       if (self.onmessage) {
-        const b = new HeapBuffer(event.data)
+        const b = new ChannelBuffer(event.data)
         self.onmessage(b)
       }
     }
@@ -130,14 +130,14 @@ export default class WebSocketChannel {
 
   /**
    * Write the passed in buffer to connection
-   * @param {HeapBuffer} buffer - Buffer to write
+   * @param {ChannelBuffer} buffer - Buffer to write
    */
   write (buffer) {
     // If there is a pending queue, push this on that queue. This means
     // we are not yet connected, so we queue things locally.
     if (this._pending !== null) {
       this._pending.push(buffer)
-    } else if (buffer instanceof HeapBuffer) {
+    } else if (buffer instanceof ChannelBuffer) {
       try {
         this._ws.send(buffer._buffer)
       } catch (error) {

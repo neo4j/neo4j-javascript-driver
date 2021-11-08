@@ -19,7 +19,7 @@
 import net from 'net'
 import tls from 'tls'
 import fs from 'fs'
-import NodeBuffer from './node-buf'
+import ChannelBuffer from '../channel-buf'
 import { newError, internal } from 'neo4j-driver-core'
 
 const {
@@ -252,7 +252,7 @@ export default class NodeChannel {
 
         self._conn.on('data', buffer => {
           if (self.onmessage) {
-            self.onmessage(new NodeBuffer(buffer))
+            self.onmessage(new ChannelBuffer(buffer))
           }
         })
 
@@ -358,14 +358,14 @@ export default class NodeChannel {
 
   /**
    * Write the passed in buffer to connection
-   * @param {NodeBuffer} buffer - Buffer to write
+   * @param {ChannelBuffer} buffer - Buffer to write
    */
   write (buffer) {
     // If there is a pending queue, push this on that queue. This means
     // we are not yet connected, so we queue things locally.
     if (this._pending !== null) {
       this._pending.push(buffer)
-    } else if (buffer instanceof NodeBuffer) {
+    } else if (buffer instanceof ChannelBuffer) {
       this._conn.write(buffer._buffer)
     } else {
       throw newError("Don't know how to write: " + buffer)

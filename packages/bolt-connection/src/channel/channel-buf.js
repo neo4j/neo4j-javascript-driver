@@ -17,12 +17,12 @@
  * limitations under the License.
  */
 
-import node from 'buffer'
-import BaseBuffer from '../../buf'
+import buffer from 'buffer'
+import BaseBuffer from '../buf'
 
-export default class NodeBuffer extends BaseBuffer {
+export default class ChannelBuffer extends BaseBuffer {
   constructor (arg) {
-    const buffer = newNodeJSBuffer(arg)
+    const buffer = newChannelJSBuffer(arg)
     super(buffer.length)
     this._buffer = buffer
   }
@@ -52,7 +52,7 @@ export default class NodeBuffer extends BaseBuffer {
   }
 
   putBytes (position, val) {
-    if (val instanceof NodeBuffer) {
+    if (val instanceof ChannelBuffer) {
       const bytesToCopy = Math.min(
         val.length - val.position,
         this.length - position
@@ -70,22 +70,33 @@ export default class NodeBuffer extends BaseBuffer {
   }
 
   getSlice (start, length) {
-    return new NodeBuffer(this._buffer.slice(start, start + length))
+    return new ChannelBuffer(this._buffer.slice(start, start + length))
   }
 }
 
-function newNodeJSBuffer (arg) {
-  if (arg instanceof node.Buffer) {
+/**
+ * Allocate a buffer
+ * 
+ * @param {number} size The buffer sizzer
+ * @returns {BaseBuffer} The buffer
+ */
+export function alloc (size) {
+  return new ChannelBuffer(size)
+}
+
+
+function newChannelJSBuffer (arg) {
+  if (arg instanceof buffer.Buffer) {
     return arg
   } else if (
     typeof arg === 'number' &&
-    typeof node.Buffer.alloc === 'function'
+    typeof buffer.Buffer.alloc === 'function'
   ) {
     // use static factory function present in newer NodeJS versions to allocate new buffer with specified size
-    return node.Buffer.alloc(arg)
+    return buffer.Buffer.alloc(arg)
   } else {
     // fallback to the old, potentially deprecated constructor
     // eslint-disable-next-line node/no-deprecated-api
-    return new node.Buffer(arg)
+    return new buffer.Buffer(arg)
   }
 }

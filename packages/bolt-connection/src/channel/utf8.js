@@ -17,20 +17,20 @@
  * limitations under the License.
  */
 
-import NodeBuffer from './node-buf'
+import ChannelBuffer from './channel-buf'
 import { newError } from 'neo4j-driver-core'
-import node from 'buffer'
+import buffer from 'buffer'
 import { StringDecoder } from 'string_decoder'
 
 const decoder = new StringDecoder('utf8')
 
 function encode (str) {
-  return new NodeBuffer(newNodeJSBuffer(str))
+  return new ChannelBuffer(newBuffer(str))
 }
 
 function decode (buffer, length) {
   if (Object.prototype.hasOwnProperty.call(buffer, '_buffer')) {
-    return decodeNodeBuffer(buffer, length)
+    return decodeChannelBuffer(buffer, length)
   } else if (Object.prototype.hasOwnProperty.call(buffer, '_buffers')) {
     return decodeCombinedBuffer(buffer, length)
   } else {
@@ -38,7 +38,7 @@ function decode (buffer, length) {
   }
 }
 
-function decodeNodeBuffer (buffer, length) {
+function decodeChannelBuffer (buffer, length) {
   const start = buffer.position
   const end = start + length
   buffer.position = Math.min(end, buffer.length)
@@ -86,15 +86,15 @@ function streamDecodeCombinedBuffer (combinedBuffers, length, decodeFn, endFn) {
   return out + endFn()
 }
 
-function newNodeJSBuffer (str) {
+function newBuffer (str) {
   // use static factory function present in newer NodeJS versions to create a buffer containing the given string
   // or fallback to the old, potentially deprecated constructor
 
-  if (typeof node.Buffer.from === 'function') {
-    return node.Buffer.from(str, 'utf8')
+  if (typeof buffer.Buffer.from === 'function') {
+    return buffer.Buffer.from(str, 'utf8')
   } else {
     // eslint-disable-next-line node/no-deprecated-api
-    return new node.Buffer(str, 'utf8')
+    return new buffer.Buffer(str, 'utf8')
   }
 }
 

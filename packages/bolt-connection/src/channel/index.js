@@ -1,5 +1,3 @@
-import ChannelConfig from './channel-config'
-
 /**
  * Copyright (c) "Neo4j"
  * Neo4j Sweden AB [http://neo4j.com]
@@ -18,6 +16,9 @@ import ChannelConfig from './channel-config'
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export * from './node'
 export * from './chunking'
 export { default as ChannelConfig } from './channel-config'
+export { alloc } from './channel-buf'
+export { default as utf8 } from './utf8'

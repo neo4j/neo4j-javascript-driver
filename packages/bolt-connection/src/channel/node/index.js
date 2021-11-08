@@ -17,10 +17,8 @@
  * limitations under the License.
  */
 
-import NodeBuffer from './node-buf'
 import NodeChannel from './node-channel'
 import NodeHostNameResolver from './node-host-name-resolver'
-import utf8Codec from './node-utf8'
 
 /*
 
@@ -33,7 +31,6 @@ NOTE: exports in this module should have exactly the same names/structure as exp
 
  */
 
-export const alloc = arg => new NodeBuffer(arg)
 export const Channel = NodeChannel
 export const HostNameResolver = NodeHostNameResolver
-export const utf8 = utf8Codec
+

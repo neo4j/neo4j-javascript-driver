@@ -17,18 +17,32 @@
  * limitations under the License.
  */
 
-import WebSocketChannel from './browser-channel'
-import BrowserHosNameResolver from './browser-host-name-resolver'
+import crypto from 'crypto'
+import { utf8 } from '../../src/channel'
 
-/*
+const { encode, decode } = utf8
 
-This module exports a set of components to be used in browser environment.
-They are not compatible with NodeJS environment.
-All files import/require APIs from `node/index.js` by default.
-Such imports are replaced at build time with `browser/index.js` when building a browser bundle.
+describe('uft8', () => {
+  it.each([
+    makeString(85000),
+    '1234567890',
+    '',
+    '±!@#$%^&*()_+~`\'|][{}=-+±§<>,."',
+    'àáâäæãåā',
+    'èéêëēėę',
+    'îïíīīįì',
+    'ôöòóœøōõ',
+    'ûüùúū'
+  ])('should decode encoded string', str => {
+    const encoded = encode(str)
+    
+    const encodedThenDecoded = decode(encoded, encoded.length)
 
-NOTE: exports in this module should have exactly the same names/structure as exports in `node/index.js`.
+    expect(encodedThenDecoded).toEqual(str)
+  })
+})
 
- */
-export const Channel = WebSocketChannel
-export const HostNameResolver = BrowserHosNameResolver
+
+function makeString ( len ) {
+  return crypto.randomBytes(len).toString('hex')
+}
