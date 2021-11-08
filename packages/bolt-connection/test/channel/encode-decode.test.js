@@ -40,6 +40,21 @@ describe('uft8', () => {
 
     expect(encodedThenDecoded).toEqual(str)
   })
+
+  it.each([
+    '1234567890',
+    '',
+    '±!@#$%^&*()_+~`\'|][{}=-+±§<>,."',
+    'àáâäæãåā',
+    'èéêëēėę',
+    'îïíīīįì',
+    'ôöòóœøōõ',
+    'ûüùúū'
+  ])('.encode("%s") should match snapshot', str => {
+    const encoded = encode(str)
+    
+    expect(encoded.toString()).toMatchSnapshot()
+  })
 })
 
 
