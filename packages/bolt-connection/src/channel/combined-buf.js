@@ -18,7 +18,7 @@
  */
 
 import { BaseBuffer } from '../buf'
-import { alloc } from './node'
+import { alloc } from './channel-buf'
 
 /**
  * Buffer that combines multiple buffers, exposing them as one single buffer.

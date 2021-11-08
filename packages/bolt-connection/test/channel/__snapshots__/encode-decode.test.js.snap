@@ -1,0 +1,46 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`uft8 .encode("") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  "
+`;
+
+exports[`uft8 .encode("1234567890") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  31 32 33 34 35 36 37 38 39 30"
+`;
+
+exports[`uft8 .encode("±!@#$%^&*()_+~\`'|][{}=-+±§<>,."") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  c2 b1 21 40 23 24 25 5e 26 2a 28 29 5f 2b 7e 60 27 7c 5d 5b 7b 7d 3d 2d 2b c2 b1 c2 a7 3c 3e 2c 2e 22"
+`;
+
+exports[`uft8 .encode("àáâäæãåā") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  c3 a0 c3 a1 c3 a2 c3 a4 c3 a6 c3 a3 c3 a5 c4 81"
+`;
+
+exports[`uft8 .encode("èéêëēėę") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  c3 a8 c3 a9 c3 aa c3 ab c4 93 c4 97 c4 99"
+`;
+
+exports[`uft8 .encode("îïíīīįì") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  c3 ae c3 af c3 ad c4 ab c4 ab c4 af c3 ac"
+`;
+
+exports[`uft8 .encode("ôöòóœøōõ") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  c3 b4 c3 b6 c3 b2 c3 b3 c5 93 c3 b8 c5 8d c3 b5"
+`;
+
+exports[`uft8 .encode("ûüùúū") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  c3 bb c3 bc c3 b9 c3 ba c5 ab"
+`;
+
+exports[`uft8 .encode("⚡ 🏃‍♀️") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  e2 9a a1 20 f0 9f 8f 83 e2 80 8d e2 99 80 ef b8 8f"
+`;

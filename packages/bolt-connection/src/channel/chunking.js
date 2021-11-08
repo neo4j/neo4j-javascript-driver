@@ -18,7 +18,7 @@
  */
 
 import BaseBuffer from '../buf/base-buf'
-import { alloc } from './node'
+import { alloc } from './channel-buf'
 import CombinedBuffer from './combined-buf'
 
 const _CHUNK_HEADER_SIZE = 2

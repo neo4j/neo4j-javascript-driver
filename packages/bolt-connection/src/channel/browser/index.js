@@ -17,10 +17,8 @@
  * limitations under the License.
  */
 
-import HeapBuffer from './browser-buf'
 import WebSocketChannel from './browser-channel'
 import BrowserHosNameResolver from './browser-host-name-resolver'
-import utf8Codec from './browser-utf8'
 
 /*
 
@@ -32,8 +30,5 @@ Such imports are replaced at build time with `browser/index.js` when building a 
 NOTE: exports in this module should have exactly the same names/structure as exports in `node/index.js`.
 
  */
-
-export const alloc = arg => new HeapBuffer(arg)
 export const Channel = WebSocketChannel
 export const HostNameResolver = BrowserHosNameResolver
-export const utf8 = utf8Codec
