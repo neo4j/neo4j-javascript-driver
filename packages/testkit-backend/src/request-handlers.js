@@ -278,8 +278,13 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Auth:Bearer',
       'AuthorizationExpiredTreatment',
       'ConfHint:connection.recv_timeout_seconds',
-      'Feature:Bolt:4.4',
       'Feature:Impersonation',
+      'Feature:Bolt:3.0',
+      'Feature:Bolt:4.0',
+      'Feature:Bolt:4.1',
+      'Feature:Bolt:4.2',
+      'Feature:Bolt:4.3',
+      'Feature:Bolt:4.4',
       ...SUPPORTED_TLS
     ]
   })
