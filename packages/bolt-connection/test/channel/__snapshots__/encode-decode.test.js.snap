@@ -39,3 +39,8 @@ exports[`uft8 .encode("ûüùúū") should match snapshot 1`] = `
 "ChannelBuffer( position=0 )
   c3 bb c3 bc c3 b9 c3 ba c5 ab"
 `;
+
+exports[`uft8 .encode("⚡ 🏃‍♀️") should match snapshot 1`] = `
+"ChannelBuffer( position=0 )
+  e2 9a a1 20 f0 9f 8f 83 e2 80 8d e2 99 80 ef b8 8f"
+`;

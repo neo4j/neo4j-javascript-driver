@@ -32,7 +32,8 @@ describe('uft8', () => {
     'èéêëēėę',
     'îïíīīįì',
     'ôöòóœøōõ',
-    'ûüùúū'
+    'ûüùúū',
+    '⚡ 🏃‍♀️'
   ])('should decode encoded string', str => {
     const encoded = encode(str)
     
@@ -49,7 +50,8 @@ describe('uft8', () => {
     'èéêëēėę',
     'îïíīīįì',
     'ôöòóœøōõ',
-    'ûüùúū'
+    'ûüùúū',
+    '⚡ 🏃‍♀️'
   ])('.encode("%s") should match snapshot', str => {
     const encoded = encode(str)
     
