@@ -129,6 +129,7 @@ describe('ChannelConnection', () => {
   describe('._handleFatalError()', () => {
     describe('when there is not current failure on going', () => {
       const thrownError = newError('some error', 'C')
+      let loggerFunction;
       let notifyFatalError;
       let connection;
 
@@ -138,9 +139,10 @@ describe('ChannelConnection', () => {
           notifyFatalError,
           currentFailure: null
         }
-        
+        loggerFunction = jest.fn()
+        const logger = new Logger('info', loggerFunction)
         const protocolSupplier = () => protocol
-        connection = spyOnConnectionChannel({ protocolSupplier })
+        connection = spyOnConnectionChannel({ protocolSupplier, logger })
       })
 
       it('should set connection state to broken', () => {
@@ -160,11 +162,22 @@ describe('ChannelConnection', () => {
 
         expect(notifyFatalError).toHaveBeenCalledWith(thrownError)
       })
+
+      it('should log the thrownError', () => {
+        connection._handleFatalError(thrownError)
+
+        expect(loggerFunction).toHaveBeenCalledWith(
+          'error',
+          `${connection} experienced a fatal error caused by Neo4jError: some error ` +
+            '({"code":"C","name":"Neo4jError"})'
+        )
+      })
     })
 
     describe('when there is current failure on going', () => {
       const thrownError = newError('some error', 'C')
       const currentFailure = newError('current failure', 'ongoing')
+      let loggerFunction;
       let notifyFatalError;
       let connection;
 
@@ -174,9 +187,10 @@ describe('ChannelConnection', () => {
           notifyFatalError,
           currentFailure
         }
-        
+        loggerFunction = jest.fn()
+        const logger = new Logger('info', loggerFunction)
         const protocolSupplier = () => protocol
-        connection = spyOnConnectionChannel({ protocolSupplier })
+        connection = spyOnConnectionChannel({ protocolSupplier, logger })
       })
 
       it('should set connection state to broken', () => {
@@ -195,6 +209,16 @@ describe('ChannelConnection', () => {
         connection._handleFatalError(thrownError)
 
         expect(notifyFatalError).toHaveBeenCalledWith(currentFailure)
+      })
+
+      it('should log the currentFailure', () => {
+        connection._handleFatalError(thrownError)
+
+        expect(loggerFunction).toHaveBeenCalledWith(
+          'error',
+          `${connection} experienced a fatal error caused by Neo4jError: current failure ` +
+            '({"code":"ongoing","name":"Neo4jError"})'
+        )
       })
     })
   })
