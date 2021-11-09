@@ -112,7 +112,9 @@ const skippedTests = [
     'Needs to implement "domain_name_resolver_fn"',
     ifEndsWith(
       'test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure',
-      '_test_should_request_rt_from_all_initial_routers_until_successful'
+    ),
+    ifEndsWith(
+      'test_should_request_rt_from_all_initial_routers_until_successful_on_authorization_expired'
     )
   ),
   skip(
