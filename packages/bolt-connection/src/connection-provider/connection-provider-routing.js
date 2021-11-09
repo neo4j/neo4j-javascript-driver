@@ -47,7 +47,6 @@ const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
 const INVALID_BOOKMARK_CODE = 'Neo.ClientError.Transaction.InvalidBookmark'
 const INVALID_BOOKMARK_MIXTURE_CODE = 
   'Neo.ClientError.Transaction.InvalidBookmarkMixture'
-const FORBIDEN_CODE = 'Neo.ClientError.Security.Forbidden'
 const AUTHORIZATION_EXPIRED_CODE = 
   'Neo.ClientError.Security.AuthorizationExpired'
 
@@ -489,7 +488,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
               impersonatedUser
             )
           } catch (error) {
-            return this._handleRediscoveryError(error)
+            return this._handleRediscoveryError(error, currentRouter)
           } finally {
             session.close()
           }
@@ -532,11 +531,11 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         impersonatedUser
       })
     } catch (error) {
-      return this._handleRediscoveryError(error)
+      return this._handleRediscoveryError(error, routerAddress)
     }
   }
 
-  _handleRediscoveryError(error) {
+  _handleRediscoveryError(error, routerAddress) {
     if (_isFailFastError(error) || _isFailFastSecurityError(error)) {
       throw error
     } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
@@ -690,7 +689,6 @@ class RoutingTableRegistry {
 function _isFailFastError (error) {
   return [
     DATABASE_NOT_FOUND_CODE,
-    FORBIDEN_CODE,
     INVALID_BOOKMARK_CODE,
     INVALID_BOOKMARK_MIXTURE_CODE,
   ].includes(error.code)

@@ -1658,6 +1658,86 @@ describe('#unit RoutingConnectionProvider', () => {
       })
   }, 10000)
 
+  describe('when rediscovery.lookupRoutingTableOnRouter fails', () => {
+    describe.each([
+      'Neo.ClientError.Database.DatabaseNotFound',
+      'Neo.ClientError.Transaction.InvalidBookmark',
+      'Neo.ClientError.Transaction.InvalidBookmarkMixture',
+      'Neo.ClientError.Security.Forbidden',
+      'Neo.ClientError.Security.IWontTellYou'
+    ])('with "%s"', errorCode => {
+      it('should fail without change the error ', async () => {
+        const error = newError('something wrong', errorCode)
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          new FakeRediscovery(null, error),
+          newPool()
+        )
+
+        let completed = false
+        try {
+          await connectionProvider.acquireConnection({ accessMode: READ })
+          completed = true
+        } catch (capturedError) {
+          expect(capturedError).toBe(error)
+        }
+
+        expect(completed).toBe(false)
+      })
+    })
+
+    describe('with "Neo.ClientError.Procedure.ProcedureNotFound"', () => {
+      it('should fail with SERVICE_UNAVAILABLE and a message about do not connect to cause cluster', async () => {
+        const error = newError('something wrong', 'Neo.ClientError.Procedure.ProcedureNotFound')
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          new FakeRediscovery(null, error),
+          newPool()
+        )
+
+        let completed = false
+        try {
+          await connectionProvider.acquireConnection({ accessMode: READ })
+          completed = true
+        } catch (capturedError) {
+          expect(capturedError.code).toBe(SERVICE_UNAVAILABLE)
+          expect(capturedError.message).toBe(
+            'Server at server-non-existing-seed-router:7687 can\'t '
+             + 'perform routing. Make sure you are connecting to a causal cluster'
+          )
+        }
+
+        expect(completed).toBe(false)
+      })
+    })
+
+    describe.each([
+      'Neo.ClientError.Security.AuthorizationExpired',
+      'Neo.ClientError.MadeUp.Error'
+    ])('with "%s"', errorCode => {
+      it('should fail with SERVICE_UNAVAILABLE and message about no routing servers available ', async () => {
+        const error = newError('something wrong', errorCode)
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          new FakeRediscovery(null, error),
+          newPool()
+        )
+
+        let completed = false
+        try {
+          await connectionProvider.acquireConnection({ accessMode: READ })
+          completed = true
+        } catch (capturedError) {
+          expect(capturedError.code).toBe(SERVICE_UNAVAILABLE)
+          expect(capturedError.message).toEqual(expect.stringContaining(
+            'Could not perform discovery. ' +
+            'No routing servers available. Known routing table: '
+          ))
+        }
+
+        expect(completed).toBe(false)
+      })
+
+    })
+  })
+
   describe('multi-database', () => {
     it.each(usersDataSet)('should acquire read connection from correct routing table [user=%s]', async (user) => {
       const pool = newPool()
@@ -2843,13 +2923,31 @@ function newRoutingConnectionProvider (
   )
 }
 
+function newRoutingConnectionProviderWithFakeRediscovery (
+  fakeRediscovery,
+  pool = null,
+  routerToRoutingTable = { null: {} }
+) {
+  const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
+  return newRoutingConnectionProviderWithSeedRouter(
+    seedRouter,
+    [seedRouter],
+    [],
+    routerToRoutingTable,
+    pool,
+    null,
+    fakeRediscovery
+  )
+}
+
 function newRoutingConnectionProviderWithSeedRouter (
   seedRouter,
   seedRouterResolved,
   routingTables,
   routerToRoutingTable = { null: {} },
   connectionPool = null,
-  routingTablePurgeDelay = null
+  routingTablePurgeDelay = null,
+  fakeRediscovery = null
 ) {
   const pool = connectionPool || newPool()
   const connectionProvider = new RoutingConnectionProvider({
@@ -2865,7 +2963,8 @@ function newRoutingConnectionProviderWithSeedRouter (
   routingTables.forEach(r => {
     connectionProvider._routingTableRegistry.register(r)
   })
-  connectionProvider._rediscovery = new FakeRediscovery(routerToRoutingTable)
+  connectionProvider._rediscovery =
+    fakeRediscovery || new FakeRediscovery(routerToRoutingTable)
   connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
   connectionProvider._useSeedRouter = routingTables.every(
     r => r.expirationTime !== Integer.ZERO
@@ -2999,11 +3098,15 @@ class FakeConnection extends Connection {
 }
 
 class FakeRediscovery {
-  constructor (routerToRoutingTable) {
+  constructor (routerToRoutingTable, error) {
     this._routerToRoutingTable = routerToRoutingTable
+    this._error = error
   }
 
   lookupRoutingTableOnRouter (ignored, database, router, user) {
+    if (this._error) {
+      return Promise.reject(this._error)
+    }
     const table = this._routerToRoutingTable[database || null]
     if (table) {
       let routingTables = table[router.asKey()]
