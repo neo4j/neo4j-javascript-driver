@@ -41,9 +41,15 @@ const {
   }
 } = internal
 
+
+const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
+const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
+const INVALID_BOOKMARK_CODE = 'Neo.ClientError.Transaction.InvalidBookmark'
+const INVALID_BOOKMARK_MIXTURE_CODE = 
+  'Neo.ClientError.Transaction.InvalidBookmarkMixture'
+const FORBIDEN_CODE = 'Neo.ClientError.Security.Forbidden'
 const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
-const DATABASE_NOT_FOUND_ERROR_CODE =
-  'Neo.ClientError.Database.DatabaseNotFound'
+
 const SYSTEM_DB_NAME = 'system'
 const DEFAULT_DB_NAME = null
 const DEFAULT_ROUTING_TABLE_PURGE_DELAY = int(30000)
@@ -482,14 +488,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
               impersonatedUser
             )
           } catch (error) {
-            if (error && error.code === DATABASE_NOT_FOUND_ERROR_CODE) {
-              // not finding the target database is a sign of a configuration issue
-              throw error
-            }
-            this._log.warn(
-              `unable to fetch routing table because of an error ${error}`
-            )
-            return null
+            return this._handleRediscoveryError(error)
           } finally {
             session.close()
           }
@@ -532,14 +531,24 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         impersonatedUser
       })
     } catch (error) {
-      // unable to acquire connection towards the given router
-      if (error && error.code === UNAUTHORIZED_ERROR_CODE) {
-        // auth error and not finding system database is a sign of a configuration issue
-        // discovery should not proceed
-        throw error
-      }
-      return null
+      return this._handleRediscoveryError(error)
     }
+  }
+
+  _handleRediscoveryError(error) {
+    if (_isFailFastError(error) || _isFailFastSecurityError(error)) {
+      throw error
+    } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
+      // throw when getServers procedure not found because this is clearly a configuration issue
+      throw newError(
+        `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
+        SERVICE_UNAVAILABLE
+      )
+    }
+    this._log.warn(
+      `unable to fetch routing table because of an error ${error}`
+    )
+    return null
   }
 
   async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable, onDatabaseNameResolved) {
@@ -676,3 +685,20 @@ class RoutingTableRegistry {
     return this
   }
 }
+
+function _isFailFastError (error) {
+  return [
+    DATABASE_NOT_FOUND_CODE,
+    FORBIDEN_CODE,
+    INVALID_BOOKMARK_CODE,
+    INVALID_BOOKMARK_MIXTURE_CODE,
+  ].includes(error.code)
+}
+
+function _isFailFastSecurityError (error) {
+  return error.code.startsWith('Neo.ClientError.Security.') && 
+    ![
+
+    ].includes(error.code)
+}
+

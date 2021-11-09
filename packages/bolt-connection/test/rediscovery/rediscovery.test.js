@@ -136,7 +136,7 @@ describe('#unit Rediscovery', () => {
     }
   })
 
-  it('should reject with PROCEDURE_NOT_FOUND_CODE when it happens ', async () => {
+  xit('should reject with PROCEDURE_NOT_FOUND_CODE when it happens ', async () => {
     const routerAddress = ServerAddress.fromUrl('bolt://localhost:1235')
     const expectedError = newError(
       `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
@@ -162,7 +162,7 @@ describe('#unit Rediscovery', () => {
     }
   })
 
-  it('should return null when it happens an unexpected error ocorrus', async () => {
+  xit('should return null when it happens an unexpected error ocorrus', async () => {
     const initialAddress = '127.0.0.1'
     const routingContext = { context: '1234 ' }
 

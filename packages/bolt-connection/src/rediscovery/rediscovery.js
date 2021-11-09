@@ -17,12 +17,7 @@
  * limitations under the License.
  */
 import RoutingTable from './routing-table'
-import { RawRoutingTable } from '../bolt'
-import { newError, error, Session } from 'neo4j-driver-core'
-
-const { SERVICE_UNAVAILABLE } = error
-const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
-const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
+import { Session, ServerAddress } from 'neo4j-driver-core'
 
 export default class Rediscovery {
   /**
@@ -75,23 +70,7 @@ export default class Rediscovery {
           afterComplete: session._onComplete
         },
         onCompleted: resolve,
-        onError: error => {
-          if (error.code === DATABASE_NOT_FOUND_CODE) {
-            reject(error)
-          } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
-            // throw when getServers procedure not found because this is clearly a configuration issue
-            reject(
-              newError(
-                `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
-                SERVICE_UNAVAILABLE
-              )
-            )
-          } else {
-            // return nothing when failed to connect because code higher in the callstack is still able to retry with a
-            // different session towards a different router
-            resolve(RawRoutingTable.ofNull())
-          }
-        }
+        onError: reject,
       })
     })
   }
