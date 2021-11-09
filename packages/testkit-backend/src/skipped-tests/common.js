@@ -109,6 +109,13 @@ const skippedTests = [
     )
   ),
   skip(
+    'Needs to implement "domain_name_resolver_fn"',
+    ifEndsWith(
+      'test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure',
+      '_test_should_request_rt_from_all_initial_routers_until_successful'
+    )
+  ),
+  skip(
     'Needs investigation. It is only failing in the RoutingV3 case',
     ifEndsWith(
       'RoutingV3.test_should_accept_routing_table_without_writers_and_then_rediscover'

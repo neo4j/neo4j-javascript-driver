@@ -48,7 +48,8 @@ const INVALID_BOOKMARK_CODE = 'Neo.ClientError.Transaction.InvalidBookmark'
 const INVALID_BOOKMARK_MIXTURE_CODE = 
   'Neo.ClientError.Transaction.InvalidBookmarkMixture'
 const FORBIDEN_CODE = 'Neo.ClientError.Security.Forbidden'
-const UNAUTHORIZED_ERROR_CODE = 'Neo.ClientError.Security.Unauthorized'
+const AUTHORIZATION_EXPIRED_CODE = 
+  'Neo.ClientError.Security.AuthorizationExpired'
 
 const SYSTEM_DB_NAME = 'system'
 const DEFAULT_DB_NAME = null
@@ -698,7 +699,7 @@ function _isFailFastError (error) {
 function _isFailFastSecurityError (error) {
   return error.code.startsWith('Neo.ClientError.Security.') && 
     ![
-
+      AUTHORIZATION_EXPIRED_CODE,
     ].includes(error.code)
 }
 
