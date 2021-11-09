@@ -401,7 +401,7 @@ describe('#integration driver', () => {
     await expectAsync(session.run('RETURN 1')).toBeRejectedWith(
       jasmine.objectContaining({
         code: neo4j.error.SERVICE_UNAVAILABLE,
-        message: jasmine.stringMatching(/No routing servers available/)
+        message: `Neo4jError: Server at ${sharedNeo4j.hostname}:7687 can't perform routing. Make sure you are connecting to a causal cluster.`
       })
     )
 
