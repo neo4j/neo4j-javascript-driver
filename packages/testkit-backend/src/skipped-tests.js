@@ -94,6 +94,18 @@ const skippedTests = [
     ifEquals(
       'neo4j.sessionrun.TestSessionRun.test_partial_iteration'
     )
+  ),
+  skip(
+    'Driver does not support mixing Result.subscribe with Result.then',
+    ifEquals(
+      'stub.iteration.test_result_list.TestResultList.test_tx_run_result_list_pulls_all_records_at_once_next_before_list'
+    ),
+    ifEquals(
+      'stub.iteration.test_result_list.TestResultList.test_tx_func_result_list_pulls_all_records_at_once_next_before_list'
+    ),
+    ifEquals(
+      'stub.iteration.test_result_list.TestResultList.test_session_run_result_list_pulls_all_records_at_once_next_before_list'
+    )
   )
 ]
 
