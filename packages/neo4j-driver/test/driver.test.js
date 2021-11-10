@@ -398,10 +398,14 @@ describe('#integration driver', () => {
     )
     const session = driver.session()
 
+    jasmine.objectContaining('')
+
     await expectAsync(session.run('RETURN 1')).toBeRejectedWith(
       jasmine.objectContaining({
         code: neo4j.error.SERVICE_UNAVAILABLE,
-        message: `Neo4jError: Server at ${sharedNeo4j.hostname}:7687 can't perform routing. Make sure you are connecting to a causal cluster.`
+        message: jasmine.stringMatching(
+          `Server at ${sharedNeo4j.hostname}:7687 can't perform routing. Make sure you are connecting to a causal cluster.`
+        )
       })
     )
 
