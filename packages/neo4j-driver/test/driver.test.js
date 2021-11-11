@@ -408,7 +408,7 @@ describe('#integration driver', () => {
       expect(error.code).toEqual(neo4j.error.SERVICE_UNAVAILABLE)
       expect(error.message).toEqual(
         `Server at ${sharedNeo4j.hostname}:7687 can't perform routing. ` +
-          'Make sure you are connecting to a causal cluster.'
+          'Make sure you are connecting to a causal cluster'
       )
     } finally {
       await session.close()

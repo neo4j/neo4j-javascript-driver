@@ -136,48 +136,6 @@ describe('#unit Rediscovery', () => {
     }
   })
 
-  xit('should reject with PROCEDURE_NOT_FOUND_CODE when it happens ', async () => {
-    const routerAddress = ServerAddress.fromUrl('bolt://localhost:1235')
-    const expectedError = newError(
-      `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
-      SERVICE_UNAVAILABLE
-    )
-    try {
-      const initialAddress = '127.0.0.1'
-      const routingContext = { context: '1234 ' }
-
-      const connection = new FakeConnection().withRequestRoutingInformationMock(
-        fakeOnError(newError('1de', PROCEDURE_NOT_FOUND_CODE))
-      )
-      await lookupRoutingTableOnRouter({
-        initialAddress,
-        routingContext,
-        connection,
-        routerAddress
-      })
-
-      fail('it should fail')
-    } catch (error) {
-      expect(error).toEqual(expectedError)
-    }
-  })
-
-  xit('should return null when it happens an unexpected error ocorrus', async () => {
-    const initialAddress = '127.0.0.1'
-    const routingContext = { context: '1234 ' }
-
-    const connection = new FakeConnection().withRequestRoutingInformationMock(
-      fakeOnError(newError('1de', 'abc'))
-    )
-    const routingTable = await lookupRoutingTableOnRouter({
-      initialAddress,
-      routingContext,
-      connection
-    })
-
-    expect(routingTable).toEqual(null)
-  })
-
   it('should throw PROTOCOL_ERROR if the routing table is invalid', async () => {
     runWithClockAt(Date.now(), async () => {
       try {
