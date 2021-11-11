@@ -1,8 +1,11 @@
 import Backend from './backend'
+import { SocketChannel } from './channel'
 import NodeController from './node.controller'
 
 function main( ) {
-  const backend = new Backend(process.env.BACKEND_PORT || 9876, () => new NodeController())
+  const newChannel = () => new SocketChannel(process.env.BACKEND_PORT || 9876)
+  const newController = () => new NodeController()
+  const backend = new Backend(newController, newChannel)
     
   backend.start()
 

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 import net from 'net'
 import { randomBytes } from 'crypto'
-import Protocol from './protocol'
+import Protocol from './testkit-protocol'
 
 function generateRandomId () {
   return randomBytes(16).toString()
@@ -42,7 +42,7 @@ export default class SocketServer extends EventEmitter {
 
     this.emit('contextOpen', { contextId })
     protocol.on('request', request => this.emit('request', { contextId, request }) )
-    protocol.on('error', e => this.writeBackendError(contextId, e))
+    protocol.on('error', e => this._writeBackendError(contextId, e))
     
     connection.on('end', () =>  { 
       if (this._clients.has(contextId)) {

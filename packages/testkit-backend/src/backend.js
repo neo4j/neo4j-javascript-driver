@@ -1,34 +1,42 @@
-import SocketServer from './socket.server'
+import Channel from './channel'
 import Controller from './controller'
 
+/**
+ * Binds Channel and Controller
+ */
 export default class Backend {
-  constructor (port, newController = () => new Controller(), newSocketServer = port => new SocketServer(port)) {
-    this._socketServer = newSocketServer(port)
+  /**
+   *
+   * @param {function():Controller} newController The controller factory function
+   * @param {function():Channel} newChannel The channel factory function
+   */
+  constructor (newController, newChannel) {
+    this._channel = newChannel()
     this._controller = newController()
 
     this._controller.on('response', ({ contextId, response }) => {
-      this._socketServer.writeResponse(contextId, response)
+      this._channel.writeResponse(contextId, response)
     })
 
-    this._socketServer.on('contextOpen', ({ contextId }) => this._controller.onContextOpen(contextId))
-    this._socketServer.on('contextClose', ({ contextId }) => this._controller.onContextClose(contextId))
+    this._channel.on('contextOpen', ({ contextId }) => this._controller.onContextOpen(contextId))
+    this._channel.on('contextClose', ({ contextId }) => this._controller.onContextClose(contextId))
 
-    this._socketServer.on('request', ({ contextId, request }) => { 
+    this._channel.on('request', ({ contextId, request }) => {
       try {
         this._controller.handle(contextId, request)
       } catch (e) {
-        this._socketServer.writeBackendError(contextId, e)
+        this._channel.writeBackendError(contextId, e)
       }
     })
   }
 
   start () {
     this._controller.start()
-    this._socketServer.start()
+    this._channel.start()
   }
 
   stop () {
-    this._socketServer.stop()
+    this._channel.stop()
     this._controller.stop()
   }
 
