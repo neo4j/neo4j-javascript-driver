@@ -1,11 +1,10 @@
-import Context from './context'
-import Controller from './controller'
-import * as _requestHandlers from './request-handlers'
+import Context from '../context'
+import Controller from './interface'
 
 
-export default class NodeController extends Controller {
+export default class LocalController extends Controller {
 
-  constructor(requestHandlers = _requestHandlers) {
+  constructor(requestHandlers = {}) {
     super()
     this._requestHandlers = requestHandlers
     this._contexts = new Map()
