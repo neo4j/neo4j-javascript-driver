@@ -1,17 +1,30 @@
 import Controller from "./interface"
 import { WebSocketServer } from "ws"
+import { createServer } from "http"
+import { Server } from "node-static"
 
 export default class RemoteController extends Controller {
   constructor(port) {
     super()
+    this._staticServer = new Server('./public')
     this._port = port
     this._wss = null
     this._ws = null
+    this._http = null
   }
 
   start () {
+    if (!this._http) {
+      this._http = createServer(safeRun((request, response) => {
+        request.addListener('end', safeRun(() => {
+          this._staticServer.serve(request, response)
+        })).resume()
+      }))
+
+      this._http.listen(this._port)
+    }
     if (!this._wss) {
-      this._wss = new WebSocketServer({ port: this._port })
+      this._wss = new WebSocketServer({ server: this._http })
       this._wss.on('connection', safeRun( ws => this._handleClientConnection(ws)))
       this._wss.on('error', safeRun(error => {
         console.error('[RemoteController] Server error', error)
@@ -29,6 +42,11 @@ export default class RemoteController extends Controller {
     if(this._wss) {
       this._wss.close()
       this._wss = null
+    }
+
+    if (this._http) {
+      this._http.close()
+      this._http = null
     }
   }
 

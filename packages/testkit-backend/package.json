@@ -4,8 +4,13 @@
   "description": "Backend for the testkit test framework",
   "main": "src/main.js",
   "private": true,
+  "browser": {
+    "./src/controller/remote.js": "./src/controller/interface.js",
+    "./src/channel/socket.js": "./src/controller/interface.js"
+  },
   "type": "module",
   "scripts": {
+    "build": "rollup src/index.js --config rollup.config.js",
     "start": "node -r esm src/index.js",
     "clean": "rm -fr node_modules"
   },
@@ -24,11 +29,20 @@
   },
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "dependencies": {
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
     "neo4j-driver": "4.4.0-dev",
     "neo4j-driver-lite": "4.4.0-dev",
+    "node-static": "^0.7.11",
+    "url": "^0.11.0",
     "ws": "^8.2.3"
   },
   "devDependencies": {
-    "esm": "^3.2.25"
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "esm": "^3.2.25",
+    "rollup": "^2.59.0",
+    "rollup-plugin-inject-process-env": "^1.3.1",
+    "rollup-plugin-polyfill-node": "^0.7.0"
   }
 }
