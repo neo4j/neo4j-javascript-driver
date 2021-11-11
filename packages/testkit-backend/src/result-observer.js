@@ -14,6 +14,7 @@ export default class ResultObserver {
     this.onCompleted = this.onCompleted.bind(this)
     this.onError = this.onError.bind(this)
     this._completitionPromise = null
+    this._subscribed = false
   }
 
   onKeys (keys) {
@@ -39,8 +40,13 @@ export default class ResultObserver {
     this._completitionPromise = null
   }
 
+  get result () {
+    return this._result
+  }
+
   // Returns a promise, only one outstanding next!
   next () {
+    this._subscribe()
     return new Promise((resolve, reject) => {
       this._promise = {
         resolve,
@@ -51,6 +57,7 @@ export default class ResultObserver {
   }
 
   completitionPromise () {
+    this._subscribe()
     return new Promise((resolve, reject) => {
       if (this._summary) {
         resolve(this._summary)
@@ -108,6 +115,13 @@ export default class ResultObserver {
   _reject (promise, err) {
     if (promise) {
       promise.reject(err)
+    }
+  }
+
+  _subscribe () {
+    if (!this._subscribed) {
+      this._result.subscribe(this)
+      this._subscribed = true
     }
   }
 }
