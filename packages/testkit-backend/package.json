@@ -24,8 +24,9 @@
   },
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "dependencies": {
+    "neo4j-driver": "4.4.0-dev",
     "neo4j-driver-lite": "4.4.0-dev",
-    "neo4j-driver": "4.4.0-dev"
+    "ws": "^8.2.3"
   },
   "devDependencies": {
     "esm": "^3.2.25"
