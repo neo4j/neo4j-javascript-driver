@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto'
 import Protocol from './testkit-protocol'
 
 function generateRandomId () {
-  return randomBytes(16).toString()
+  return randomBytes(16).toString('hex')
 }
 
 export default class SocketServer extends EventEmitter {

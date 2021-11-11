@@ -1,11 +1,22 @@
 import Backend from './backend'
 import { SocketChannel } from './channel'
-import { LocalController } from './controller'
-import * as request_handlers from './request-handlers'
+import { LocalController, RemoteController } from './controller'
+import * as REQUEST_HANDLERS from './request-handlers'
 
 function main( ) {
-  const newChannel = () => new SocketChannel(process.env.BACKEND_PORT || 9876)
-  const newController = () => new LocalController(request_handlers)
+  const testEnviroment = process.env.TEST_ENVIRONMENT || 'BROWSER'
+  const backendPort = process.env.BACKEND_PORT || 9876
+  const webserverPort = process.env.WEB_SERVER_PORT || 8000
+
+  const newChannel = () => new SocketChannel(backendPort)
+
+  const newController = () => {
+    if ( testEnviroment.toUpperCase() === 'BROWSER' ) {
+      return new RemoteController(webserverPort)
+    }
+    return new LocalController(REQUEST_HANDLERS)
+  }
+
   const backend = new Backend(newController, newChannel)
     
   backend.start()
