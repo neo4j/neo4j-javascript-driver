@@ -12,7 +12,8 @@
   "scripts": {
     "build": "rollup src/index.js --config rollup.config.js",
     "start": "node -r esm src/index.js",
-    "clean": "rm -fr node_modules public/index.js"  
+    "clean": "rm -fr node_modules public/index.js",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
