@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import Channel from './interface'
 import net from 'net'
 import { randomBytes } from 'crypto'
 import Protocol from './testkit-protocol'
@@ -7,7 +7,12 @@ function generateRandomId () {
   return randomBytes(16).toString('hex')
 }
 
-export default class SocketServer extends EventEmitter {
+/**
+ * This is communication channel handles the direct communcation with testkit using it own protocol.
+ *
+ * This implementatio is meant to be runned in the NodeJS, it doesn't support Browser.
+ */
+export default class SocketChannel extends Channel {
   constructor(port, newProtocol = stream => new Protocol(stream), newId = generateRandomId ) {
     super()
     this._newProtocol = newProtocol

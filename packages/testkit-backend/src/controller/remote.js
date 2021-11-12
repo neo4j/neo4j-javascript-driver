@@ -3,6 +3,14 @@ import { WebSocketServer } from "ws"
 import { createServer } from "http"
 import { Server } from "node-static"
 
+/**
+ * Remote controller handles the requests by send it to a remote client.
+ *
+ * This controller only support only on client connected at the same time and it will
+ * give an error response whenever any request came and it doesn't have any client connected.
+ *
+ * This controller could only be used in Node since it depends on {@link createServer}, {@link WebSocketServer} and {@link Server}
+ */
 export default class RemoteController extends Controller {
   constructor(port) {
     super()
@@ -50,11 +58,11 @@ export default class RemoteController extends Controller {
     }
   }
 
-  onContextOpen (contextId) {
+  openContext (contextId) {
     this._forwardToConnectedClient('contextOpen', contextId, { contextId })
   }
 
-  onContextClose (contextId) {
+  closeContext (contextId) {
     this._forwardToConnectedClient('contextClose', contextId, { contextId })
   }
 

@@ -18,8 +18,8 @@ export default class Backend {
       this._channel.writeResponse(contextId, response)
     })
 
-    this._channel.on('contextOpen', ({ contextId }) => this._controller.onContextOpen(contextId))
-    this._channel.on('contextClose', ({ contextId }) => this._controller.onContextClose(contextId))
+    this._channel.on('contextOpen', ({ contextId }) => this._controller.openContext(contextId))
+    this._channel.on('contextClose', ({ contextId }) => this._controller.closeContext(contextId))
 
     this._channel.on('request', ({ contextId, request }) => {
       try {

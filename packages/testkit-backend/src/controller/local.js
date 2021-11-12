@@ -2,6 +2,11 @@ import Context from '../context'
 import Controller from './interface'
 
 
+/**
+ * Local controller handles locally the requests by redirecting to the correct request handler/service.
+ *
+ * This controller when testing browser and locally.
+ */
 export default class LocalController extends Controller {
 
   constructor(requestHandlers = {}) {
@@ -10,16 +15,15 @@ export default class LocalController extends Controller {
     this._contexts = new Map()
   }
 
-  onContextOpen(contextId) {
+  openContext (contextId) {
     this._contexts.set(contextId, new Context())
   }
 
-  onContextClose(contextId) {
+  closeContext (contextId) {
     this._contexts.delete(contextId)
   }
-
   
-  handle(contextId, { name, data }) {
+  handle (contextId, { name, data }) {
     if (!this._contexts.has(contextId)) {
       throw new Error(`Context ${contextId} does not exist`)
     } else if (!(name in this._requestHandlers)) {

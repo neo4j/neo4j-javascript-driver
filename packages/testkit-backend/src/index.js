@@ -3,6 +3,9 @@ import { SocketChannel, WebSocketChannel } from './channel'
 import { LocalController, RemoteController } from './controller'
 import * as REQUEST_HANDLERS from './request-handlers'
 
+/**
+ * Responsabile for configure and run the backend server.
+ */
 function main( ) {
   const testEnviroment = process.env.TEST_ENVIRONMENT || 'LOCAL'
   const channelType = process.env.CHANNEL_TYPE || 'SOCKET'

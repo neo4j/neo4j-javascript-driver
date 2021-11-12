@@ -1,6 +1,10 @@
-// import WebSocket from "ws"
 import Channel from "./interface"
 
+/**
+ * This communication channels is meant to connect to other instances of the `testkit-backend` for receiving its events.
+ *
+ * This channel is only supported in browsers since it depends on WebSocket client be avaiable globaly.
+ */
 export default class WebSocketChannel extends Channel {
 
   constructor(address) {
@@ -12,8 +16,6 @@ export default class WebSocketChannel extends Channel {
   start () {
     if(!this._ws) {
       this._ws = new WebSocket(this._adddress)
-      // this._ws.on('message', buffer => {
-      //   const message = JSON.parse(buffer.toString())
       this._ws.onmessage = ({ data: message }) => {
         console.log(message)
         console.debug('[WebSocketChannel] Received messsage', message)
@@ -32,7 +34,6 @@ export default class WebSocketChannel extends Channel {
         }
       }
 
-      // this._ws.on('close', () => this.emit('close'))
       this._ws.onclose = () => this.emit('close')
     }
   }
