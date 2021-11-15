@@ -48,9 +48,15 @@ export default class WebSocketChannel extends Channel {
   writeResponse (contextId, response) {
     if (this._ws) {
       console.debug('[WebSocketChannel] Wring response', { contextId, response })
-      return this._ws.send(JSON.stringify({ contextId, response }))
+      return this._ws.send(this._serialize({ contextId, response }))
     }
     console.error('[WebSocketChannel] Websocket is not connected')
+  }
+
+  _serialize (val) {
+    return JSON.stringify(val, (_, value) =>
+      typeof value === 'bigint' ? `${value}n` : value
+    )
   }
 
 }
