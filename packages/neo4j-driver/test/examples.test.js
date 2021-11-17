@@ -281,6 +281,16 @@ describe('#integration examples', () => {
     await driver.close()
   }, 60000)
 
+  it('bearer auth example', async () => {
+    const token = 'a base64 encoded token'
+
+    // tag::bearer-auth[]
+    const driver = neo4j.driver(uri, neo4j.auth.bearer(token))
+    // end::bearer-auth[]
+
+    await driver.close()
+  }, 60000)
+
   it('cypher error example', async () => {
     const console = consoleOverride
     const consoleLoggedMsg = consoleOverridePromise
