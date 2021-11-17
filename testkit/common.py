@@ -3,6 +3,7 @@ Define common commands available for all the scripts
 """
 import subprocess
 import os
+import sys
 
 
 DRIVER_REPO = "/home/driver/repo/"
@@ -14,10 +15,9 @@ def is_enabled(value):
     )
 
 
-def run(args, env=None, cwd=None,
-        stderr=subprocess.STDOUT, stdout=None, check=True):
+def run(args, env=None, cwd=None, check=True):
     subprocess.run(
-        args, universal_newlines=True, stderr=stderr, stdout=stdout,
+        args, universal_newlines=True, stderr=sys.stderr, stdout=sys.stdout,
         check=check, env=env, cwd=cwd)
 
 
@@ -27,13 +27,13 @@ def run_in(cwd):
     return _runIn
 
 
-def run_in_driver_repo(args, env=None,
-                       stderr=subprocess.STDOUT, stdout=None, check=True):
-    return run(args, env, DRIVER_REPO, stdout=stdout, stderr=stderr, check=check)
+def run_in_driver_repo(args, env=None, check=True):
+    return run(args, env, DRIVER_REPO, check=check)
 
 
 def open_proccess_in_driver_repo(args, env=None):
-    return subprocess.Popen(args, cwd=DRIVER_REPO, env=env)
+    return subprocess.Popen(args, cwd=DRIVER_REPO, env=env, stderr=sys.stderr,
+                            stdout=sys.stdout)
 
 
 def is_lite():
