@@ -1,9 +1,9 @@
 import Channel from "./interface"
 
 /**
- * This communication channels is meant to connect to other instances of the `testkit-backend` for receiving its events.
+ * This communication channel is meant to connect to other instances of the `testkit-backend` for receiving its events.
  *
- * This channel is only supported in browsers since it depends on WebSocket client be avaiable globaly.
+ * This channel is only supported in browsers since it depends on WebSocket client to be available globally.
  */
 export default class WebSocketChannel extends Channel {
 
@@ -47,7 +47,7 @@ export default class WebSocketChannel extends Channel {
 
   writeResponse (contextId, response) {
     if (this._ws) {
-      console.debug('[WebSocketChannel] Wring response', { contextId, response })
+      console.debug('[WebSocketChannel] Writing response', { contextId, response })
       return this._ws.send(this._serialize({ contextId, response }))
     }
     console.error('[WebSocketChannel] Websocket is not connected')

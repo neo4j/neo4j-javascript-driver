@@ -4,12 +4,12 @@ import { createServer } from "http"
 import { Server } from "node-static"
 
 /**
- * Remote controller handles the requests by send it to a remote client.
+ * RemoteController handles the requests by sending them a remote client.
  *
- * This controller only support only on client connected at the same time and it will
- * give an error response whenever any request came and it doesn't have any client connected.
+ * This controller requires a client to be connected. Otherwise, it will reply with a BackendError
+ * to every incoming request.
  *
- * This controller could only be used in Node since it depends on {@link createServer}, {@link WebSocketServer} and {@link Server}
+ * This controller can only be used in Node since it depends on {@link createServer}, {@link WebSocketServer} and {@link Server}
  */
 export default class RemoteController extends Controller {
   constructor(port) {

@@ -2,7 +2,7 @@ import Channel from "./interface"
 import SocketChannel from "./socket"
 import WebSocketChannel from "./websocket"
 /**
- * Channels are the piece of code responsible for communicate with tesktit.
+ * Channels are the pieces of code responsible for communicating with testkit.
  *
  * {@link SocketChannel} is a server socket implementation meant to be used to talk directly to the
  * testkit server.

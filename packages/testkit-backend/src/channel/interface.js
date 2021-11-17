@@ -1,13 +1,13 @@
 import { EventEmitter } from "events"
 
 /**
- * Defines the interface used for receiving commands form the teskit.
+ * Defines the interface used for receiving commands form teskit.
  *
- * This is a thin layer only responsilbe for receive messages and send messages to testkit.
+ * This is a thin layer only responsible for receiving and sending messages from and to testkit.
  *
- * @event contextOpen This event is triggered when a new testkit client start its work.
- * @event contextClose This event is triggered when an existing client finish it work
- * @event request Thiis event is triggered when the channel receives a request
+ * @event contextOpen This event is triggered when a new testkit client starts its work.
+ * @event contextClose This event is triggered when an existing client finishes it work
+ * @event request This event is triggered when the channel receives a request
  */
 export default class Channel extends EventEmitter {
 

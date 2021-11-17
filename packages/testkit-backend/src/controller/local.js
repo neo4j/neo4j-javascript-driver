@@ -3,9 +3,9 @@ import Controller from './interface'
 
 
 /**
- * Local controller handles locally the requests by redirecting to the correct request handler/service.
+ * Local controller handles the requests locally by redirecting them to the correct request handler/service.
  *
- * This controller when testing browser and locally.
+ * This controller is used when testing browser and locally.
  */
 export default class LocalController extends Controller {
 

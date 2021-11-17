@@ -8,9 +8,9 @@ function generateRandomId () {
 }
 
 /**
- * This is communication channel handles the direct communcation with testkit using it own protocol.
+ * This is communication channel handles the direct communication with TestKit using its protocol.
  *
- * This implementatio is meant to be runned in the NodeJS, it doesn't support Browser.
+ * This implementation is meant to be run in NodeJS, it doesn't support Browser.
  */
 export default class SocketChannel extends Channel {
   constructor(port, newProtocol = stream => new Protocol(stream), newId = generateRandomId ) {

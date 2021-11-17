@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
 
 /**
- * Controller is the unit responsabile for redirecting the requests to the correct handler and managing the
+ * Controller is the unit responsible for redirecting the requests to the correct handler and managing the
  * creation and destruction of the request contexts.
  *
  * @event response Event triggered whith response to the request handled.
