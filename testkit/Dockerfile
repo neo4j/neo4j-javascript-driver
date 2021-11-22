@@ -39,4 +39,4 @@ USER driver
 WORKDIR /home/driver
 CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
-RUN npm config set prefix /home/driver/.npm_global
+#RUN npm config set prefix /home/driver/.npm_global
