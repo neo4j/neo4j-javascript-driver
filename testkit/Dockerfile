@@ -15,7 +15,6 @@ RUN apt-get update && \
 
 RUN npm install -g npm \
     && /bin/bash -c "hash -d npm"
-RUN npm install -g gulp
 
 # Enable tls v1.0
 RUN echo "openssl_conf = openssl_configuration\n"|cat - /etc/ssl/openssl.cnf > /tmp/openssl_conf.cnf \  
