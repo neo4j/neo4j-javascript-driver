@@ -277,7 +277,7 @@ export default class ChannelConnection extends Connection {
 
     if (this._log.isErrorEnabled()) {
       this._log.error(
-        `experienced a fatal error ${json.stringify(this._error)}`
+        `experienced a fatal error caused by ${this._error} (${json.stringify(this._error)})`
       )
     }
 

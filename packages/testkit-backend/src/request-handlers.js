@@ -5,13 +5,16 @@ import { shouldRunTest } from './skipped-tests'
 import tls from 'tls'
 
 const SUPPORTED_TLS = (() => {
-  const min = Number(tls.DEFAULT_MIN_VERSION.split('TLSv')[1])
-  const max = Number(tls.DEFAULT_MAX_VERSION.split('TLSv')[1])
-  const result = [];
-  for (let version = min > 1 ? min : 1.1; version <= max; version = Number((version + 0.1).toFixed(1)) ) {
-    result.push(`Feature:TLS:${version.toFixed(1)}`)
+  if (tls.DEFAULT_MAX_VERSION) {
+    const min = Number(tls.DEFAULT_MIN_VERSION.split('TLSv')[1])
+    const max = Number(tls.DEFAULT_MAX_VERSION.split('TLSv')[1])
+    const result = [];
+    for (let version = min > 1 ? min : 1.1; version <= max; version = Number((version + 0.1).toFixed(1)) ) {
+      result.push(`Feature:TLS:${version.toFixed(1)}`)
+    }
+    return result;
   }
-  return result;
+  return [];
 })();
 
 export function NewDriver (context, data, wire) {
@@ -147,7 +150,6 @@ export function SessionRun (context, data, wire) {
     .then(_ => {
       const result = session.run(cypher, params, { metadata, timeout })
       const resultObserver = new ResultObserver({ sessionId, result })
-      result.subscribe(resultObserver)
       const id = context.addResultObserver(resultObserver)
       wire.writeResponse('Result', { id })
     })
@@ -191,6 +193,22 @@ export function ResultConsume (context, data, wire) {
     .catch(e => wire.writeError(e))
 }
 
+export function ResultList (context, data, wire) {
+  const { resultId } = data
+
+  const resultObserver = context.getResultObserver(resultId)
+  const result = resultObserver.result
+
+  result
+    .then(({ records }) => {
+      const cypherRecords = records.map(rec => {
+        return { values: Array.from(rec.values()).map(nativeToCypher) }
+      })
+      wire.writeResponse('RecordList', { records: cypherRecords})
+    })
+    .catch(error => wire.writeError(error))
+}
+
 export function SessionReadTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
@@ -216,7 +234,6 @@ export function TransactionRun (context, data, wire) {
   }
   const result = tx.tx.run(cypher, params)
   const resultObserver = new ResultObserver({ result })
-  result.subscribe(resultObserver)
   const id = context.addResultObserver(resultObserver)
   wire.writeResponse('Result', { id })
 }
@@ -309,6 +326,7 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.2',
       'Feature:Bolt:4.3',
       'Feature:Bolt:4.4',
+      'Feature:API:Result.List',
       ...SUPPORTED_TLS
     ]
   })
