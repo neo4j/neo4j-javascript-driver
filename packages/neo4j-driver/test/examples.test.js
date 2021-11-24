@@ -1330,61 +1330,149 @@ describe('#integration examples', () => {
   })
 
   describe('geospartial types examples', () => {
-    it('Point', async () => {
-      const driver = driverGlobal
-      const session = driver.session()
+    describe('Point', () => {
+      it('Cartesian', async () => {
+        const driver = driverGlobal
+        const session = driver.session()
 
-      try {
-        // Creating a 2D point in Cartesian space
-        const CARTESIAN_2D_CRS_CODE = 7203n
-        const cartesianPoint2d = new neo4j.types.Point(7203n, 1, 5.1)
+        try {
+          // tag::geospatial-types-cartesian[]
 
-        // Or in 3d
-        const CARTESIAN_3D_CRS_CODE = 9157n
-        const cartesianPoint3d = new neo4j.types.Point(
-          CARTESIAN_3D_CRS_CODE,
-          1,
-          -2,
-          3.1
-        )
+          // Creating a 2D point in Cartesian space
+          const point2d = new neo4j.types.Point(
+            7203, // SRID
+            1, // x
+            5.1 // y
+          )
 
-        // Creating a 2D point in wgs84 space
-        const WGS_84_2D_CRS_CODE = 4326n
-        const wsg84Point2d = new neo4j.types.Point(WGS_84_2D_CRS_CODE, 1, 5.1)
+          //  Or in 3D
+          const point3d = new neo4j.types.Point(
+            9157, // SRID
+            1, // x
+            -2, // y
+            3.1 // z
+          )
+          // end::geospatial-types-cartesian[]
 
-        // Or in 3d
-        const WGS_84_3D_CRS_CODE = 4979n
-        const wsgPoint3d = new neo4j.types.Point(WGS_84_3D_CRS_CODE, 1, -2, 3.1)
+          const recordWith2dPoint = await echo(session, point2d)
+          const recordWith3dPoint = await echo(session, point3d)
 
-        const record = await echo(session, cartesianPoint2d)
+          // tag::geospatial-types-cartesian[]
 
-        // Getting point from the record
-        const fieldCartesianPoint2d = record.get('fieldName')
+          // Reading a 2D point from a record
+          const fieldPoint2d = recordWith2dPoint.get('fieldName')
 
-        // verifiying object is a Point
-        neo4j.isPoint(fieldCartesianPoint2d)
+          // Serializing
+          fieldPoint2d.toString() // Point{srid=7203, x=1, y=5.1}
 
-        // Serializing as string
-        fieldCartesianPoint2d.toString()
+          // Verifiying if object is a Pojnt
+          neo4j.isPoint(fieldPoint2d) // true
 
-        expect(neo4j.isPoint(fieldCartesianPoint2d)).toBe(true)
-        expect(fieldCartesianPoint2d.x).toBe(cartesianPoint2d.x)
-        expect(fieldCartesianPoint2d.y).toBe(cartesianPoint2d.y)
-        expect(fieldCartesianPoint2d.z).toBe(cartesianPoint2d.z)
-        expect(fieldCartesianPoint2d.srid.toInt()).toBe(
-          Number(cartesianPoint2d.srid)
-        )
-      } finally {
-        await session.close()
-      }
+          // Readning a 3D point from a record
+          const fieldPoint3d = recordWith3dPoint.get('fieldName')
+          fieldPoint3d.toString() // Point{srid=9157, x=1, y=-2, z=3.1}
+
+          // Verifiying if object is a Pojnt
+          neo4j.isPoint(fieldPoint3d) // true
+          // end::geospatial-types-cartesian[
+
+          expect(neo4j.isPoint(fieldPoint2d)).toBe(true)
+          expect(fieldPoint2d.x).toBe(point2d.x)
+          expect(fieldPoint2d.y).toBe(point2d.y)
+          expect(fieldPoint2d.z).toBe(point2d.z)
+          expect(fieldPoint2d.toString()).toEqual(
+            'Point{srid=7203, x=1, y=5.1}'
+          )
+          expect(fieldPoint2d.srid.toInt()).toBe(Number(point2d.srid))
+
+          expect(neo4j.isPoint(fieldPoint3d)).toBe(true)
+          expect(fieldPoint3d.x).toBe(point3d.x)
+          expect(fieldPoint3d.y).toBe(point3d.y)
+          expect(fieldPoint3d.z).toBe(point3d.z)
+          expect(fieldPoint3d.toString()).toEqual(
+            'Point{srid=9157, x=1, y=-2, z=3.1}'
+          )
+          expect(fieldPoint3d.srid.toInt()).toBe(Number(point3d.srid))
+        } finally {
+          await session.close()
+        }
+      })
+
+      it('WGS84', async () => {
+        const driver = driverGlobal
+        const session = driver.session()
+
+        try {
+          // tag::geospatial-types-wgs84[]
+
+          // Creating a 2D point in WGS84 space
+          const point2d = new neo4j.types.Point(
+            4326, // SRID
+            1, // x
+            5.1 // y
+          )
+
+          //  Or in 3D
+          const point3d = new neo4j.types.Point(
+            4979, // SRID
+            1, // x
+            -2, // y
+            3.1 // z
+          )
+          // end::geospatial-types-wgs84[]
+
+          const recordWith2dPoint = await echo(session, point2d)
+          const recordWith3dPoint = await echo(session, point3d)
+
+          // tag::geospatial-types-wgs84[]
+
+          // Reading a 2D point from a record
+          const fieldPoint2d = recordWith2dPoint.get('fieldName')
+
+          // Serializing
+          fieldPoint2d.toString() // Point{srid=4326, x=1, y=5.1}
+
+          // Verifiying if object is a Pojnt
+          neo4j.isPoint(fieldPoint2d) // true
+
+          // Readning a 3D point from a record
+          const fieldPoint3d = recordWith3dPoint.get('fieldName')
+          fieldPoint3d.toString() // Point{srid=4979, x=1, y=-2, z=3.1}
+
+          // Verifiying if object is a Pojnt
+          neo4j.isPoint(fieldPoint3d) // true
+          // end::geospatial-types-wgs84[
+
+          expect(neo4j.isPoint(fieldPoint2d)).toBe(true)
+          expect(fieldPoint2d.x).toBe(point2d.x)
+          expect(fieldPoint2d.y).toBe(point2d.y)
+          expect(fieldPoint2d.z).toBe(point2d.z)
+          expect(fieldPoint2d.toString()).toEqual(
+            'Point{srid=4326, x=1, y=5.1}'
+          )
+          expect(fieldPoint2d.srid.toInt()).toBe(Number(point2d.srid))
+
+          expect(neo4j.isPoint(fieldPoint3d)).toBe(true)
+          expect(fieldPoint3d.x).toBe(point3d.x)
+          expect(fieldPoint3d.y).toBe(point3d.y)
+          expect(fieldPoint3d.z).toBe(point3d.z)
+          expect(fieldPoint3d.toString()).toEqual(
+            'Point{srid=4979, x=1, y=-2, z=3.1}'
+          )
+          expect(fieldPoint3d.srid.toInt()).toBe(Number(point3d.srid))
+        } finally {
+          await session.close()
+        }
+      })
     })
 
     async function echo (session, value) {
-      const result = await session.run('RETURN $value as fieldName', {
-        value
+      return await session.readTransaction(async tx => {
+        const result = tx.run('RETURN $value as fieldName', {
+          value
+        })
+        return result.records[0]
       })
-
-      return result.records[0]
     }
   })
 })
