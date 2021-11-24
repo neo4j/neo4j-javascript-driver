@@ -1337,11 +1337,7 @@ describe('#integration examples', () => {
       try {
         // Creating a 2D point in Cartesian space
         const CARTESIAN_2D_CRS_CODE = 7203n
-        const cartesianPoint2d = new neo4j.types.Point(
-          CARTESIAN_2D_CRS_CODE,
-          1,
-          5.1
-        )
+        const cartesianPoint2d = new neo4j.types.Point(7203n, 1, 5.1)
 
         // Or in 3d
         const CARTESIAN_3D_CRS_CODE = 9157n
@@ -1375,7 +1371,9 @@ describe('#integration examples', () => {
         expect(fieldCartesianPoint2d.x).toBe(cartesianPoint2d.x)
         expect(fieldCartesianPoint2d.y).toBe(cartesianPoint2d.y)
         expect(fieldCartesianPoint2d.z).toBe(cartesianPoint2d.z)
-        expect(fieldCartesianPoint2d.srid).toBe(cartesianPoint2d.srid)
+        expect(fieldCartesianPoint2d.srid.toInt()).toBe(
+          Number(cartesianPoint2d.srid)
+        )
       } finally {
         await session.close()
       }
