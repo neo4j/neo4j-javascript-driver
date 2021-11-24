@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import neo4j from '../src'
+import neo4j, { session } from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import { map, materialize, toArray } from 'rxjs/operators'
@@ -1327,6 +1327,67 @@ describe('#integration examples', () => {
         await session.close()
       }
     }, 30000)
+  })
+
+  describe('geospartial types examples', () => {
+    it('Point', async () => {
+      const driver = driverGlobal
+      const session = driver.session()
+
+      try {
+        // Creating a 2D point in Cartesian space
+        const CARTESIAN_2D_CRS_CODE = 7203n
+        const cartesianPoint2d = new neo4j.types.Point(
+          CARTESIAN_2D_CRS_CODE,
+          1,
+          5.1
+        )
+
+        // Or in 3d
+        const CARTESIAN_3D_CRS_CODE = 9157n
+        const cartesianPoint3d = new neo4j.types.Point(
+          CARTESIAN_3D_CRS_CODE,
+          1,
+          -2,
+          3.1
+        )
+
+        // Creating a 2D point in wgs84 space
+        const WGS_84_2D_CRS_CODE = 4326n
+        const wsg84Point2d = new neo4j.types.Point(WGS_84_2D_CRS_CODE, 1, 5.1)
+
+        // Or in 3d
+        const WGS_84_3D_CRS_CODE = 4979n
+        const wsgPoint3d = new neo4j.types.Point(WGS_84_3D_CRS_CODE, 1, -2, 3.1)
+
+        const record = await echo(session, cartesianPoint2d)
+
+        // Getting point from the record
+        const fieldCartesianPoint2d = record.get('fieldName')
+
+        // verifiying object is a Point
+        neo4j.isPoint(fieldCartesianPoint2d)
+
+        // Serializing as string
+        fieldCartesianPoint2d.toString()
+
+        expect(neo4j.isPoint(fieldCartesianPoint2d)).toBe(true)
+        expect(fieldCartesianPoint2d.x).toBe(cartesianPoint2d.x)
+        expect(fieldCartesianPoint2d.y).toBe(cartesianPoint2d.y)
+        expect(fieldCartesianPoint2d.z).toBe(cartesianPoint2d.z)
+        expect(fieldCartesianPoint2d.srid).toBe(cartesianPoint2d.srid)
+      } finally {
+        await session.close()
+      }
+    })
+
+    async function echo (session, value) {
+      const result = await session.run('RETURN $value as fieldName', {
+        value
+      })
+
+      return result.records[0]
+    }
   })
 })
 
