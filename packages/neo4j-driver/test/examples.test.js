@@ -1374,7 +1374,7 @@ describe('#integration examples', () => {
 
           // Verifiying if object is a Pojnt
           neo4j.isPoint(fieldPoint3d) // true
-          // end::geospatial-types-cartesian[
+          // end::geospatial-types-cartesian[]
 
           expect(neo4j.isPoint(fieldPoint2d)).toBe(true)
           expect(fieldPoint2d.x).toBe(point2d.x)
@@ -1441,7 +1441,7 @@ describe('#integration examples', () => {
 
           // Verifiying if object is a Pojnt
           neo4j.isPoint(fieldPoint3d) // true
-          // end::geospatial-types-wgs84[
+          // end::geospatial-types-wgs84[]
 
           expect(neo4j.isPoint(fieldPoint2d)).toBe(true)
           expect(fieldPoint2d.x).toBe(point2d.x)
