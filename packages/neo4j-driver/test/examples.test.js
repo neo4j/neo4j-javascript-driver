@@ -1332,6 +1332,7 @@ describe('#integration examples', () => {
   describe('geospartial types examples', () => {
     describe('Point', () => {
       it('Cartesian', async () => {
+        const console = jasmine.createSpyObj('console', ['log'])
         const driver = driverGlobal
         const session = driver.session()
 
@@ -1364,12 +1365,24 @@ describe('#integration examples', () => {
           // Serializing
           fieldPoint2d.toString() // Point{srid=7203, x=1, y=5.1}
 
+          // Accessing fields
+          console.log(
+            `Point with x=${fieldPoint2d.x}, y=${fieldPoint2d.y}, srid=${fieldPoint2d.srid}`
+          )
+
           // Verifiying if object is a Pojnt
           neo4j.isPoint(fieldPoint2d) // true
 
           // Readning a 3D point from a record
           const fieldPoint3d = recordWith3dPoint.get('fieldName')
+
+          // Serializing
           fieldPoint3d.toString() // Point{srid=9157, x=1, y=-2, z=3.1}
+
+          // Accessing fields
+          console.log(
+            `Point with x=${fieldPoint2d.x}, y=${fieldPoint2d.y}, z=${fieldPoint2d.z}, srid=${fieldPoint2d.srid}`
+          )
 
           // Verifiying if object is a Pojnt
           neo4j.isPoint(fieldPoint3d) // true
@@ -1382,6 +1395,9 @@ describe('#integration examples', () => {
           expect(fieldPoint2d.toString()).toEqual(
             'Point{srid=7203, x=1, y=5.1}'
           )
+          expect(console.log).toHaveBeenCalledWith(
+            'Point with x=1, y=5.1, srid=7203'
+          )
           expect(fieldPoint2d.srid.toInt()).toBe(Number(point2d.srid))
 
           expect(neo4j.isPoint(fieldPoint3d)).toBe(true)
@@ -1391,6 +1407,9 @@ describe('#integration examples', () => {
           expect(fieldPoint3d.toString()).toEqual(
             'Point{srid=9157, x=1, y=-2, z=3.1}'
           )
+          expect(console.log).toHaveBeenCalledWith(
+            'Point with x=1, y=-2, z=3.1, srid=9157'
+          )
           expect(fieldPoint3d.srid.toInt()).toBe(Number(point3d.srid))
         } finally {
           await session.close()
@@ -1398,6 +1417,7 @@ describe('#integration examples', () => {
       })
 
       it('WGS84', async () => {
+        const console = jasmine.createSpyObj('console', ['log'])
         const driver = driverGlobal
         const session = driver.session()
 
@@ -1430,12 +1450,24 @@ describe('#integration examples', () => {
           // Serializing
           fieldPoint2d.toString() // Point{srid=4326, x=1, y=5.1}
 
+          // Accessing fields
+          console.log(
+            `Point with x=${fieldPoint2d.x}, y=${fieldPoint2d.y}, srid=${fieldPoint2d.srid}`
+          )
+
           // Verifiying if object is a Pojnt
           neo4j.isPoint(fieldPoint2d) // true
 
           // Readning a 3D point from a record
           const fieldPoint3d = recordWith3dPoint.get('fieldName')
+
+          // Serializing
           fieldPoint3d.toString() // Point{srid=4979, x=1, y=-2, z=3.1}
+
+          // Accessing fields
+          console.log(
+            `Point with x=${fieldPoint2d.x}, y=${fieldPoint2d.y}, z=${fieldPoint2d.z}, srid=${fieldPoint2d.srid}`
+          )
 
           // Verifiying if object is a Pojnt
           neo4j.isPoint(fieldPoint3d) // true
@@ -1448,6 +1480,9 @@ describe('#integration examples', () => {
           expect(fieldPoint2d.toString()).toEqual(
             'Point{srid=4326, x=1, y=5.1}'
           )
+          expect(console.log).toHaveBeenCalledWith(
+            'Point with x=1, y=5.1, srid=4326'
+          )
           expect(fieldPoint2d.srid.toInt()).toBe(Number(point2d.srid))
 
           expect(neo4j.isPoint(fieldPoint3d)).toBe(true)
@@ -1456,6 +1491,9 @@ describe('#integration examples', () => {
           expect(fieldPoint3d.z).toBe(point3d.z)
           expect(fieldPoint3d.toString()).toEqual(
             'Point{srid=4979, x=1, y=-2, z=3.1}'
+          )
+          expect(console.log).toHaveBeenCalledWith(
+            'Point with x=1, y=-2, z=3.1, srid=4979'
           )
           expect(fieldPoint3d.srid.toInt()).toBe(Number(point3d.srid))
         } finally {
