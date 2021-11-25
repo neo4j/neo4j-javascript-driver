@@ -1468,7 +1468,7 @@ describe('#integration examples', () => {
 
     async function echo (session, value) {
       return await session.readTransaction(async tx => {
-        const result = tx.run('RETURN $value as fieldName', {
+        const result = await tx.run('RETURN $value as fieldName', {
           value
         })
         return result.records[0]
