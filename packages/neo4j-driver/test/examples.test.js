@@ -1337,7 +1337,6 @@ describe('#integration examples', () => {
 
         try {
           // tag::geospatial-types-cartesian[]
-
           // Creating a 2D point in Cartesian space
           const point2d = new neo4j.types.Point(
             7203, // SRID
@@ -1404,7 +1403,6 @@ describe('#integration examples', () => {
 
         try {
           // tag::geospatial-types-wgs84[]
-
           // Creating a 2D point in WGS84 space
           const point2d = new neo4j.types.Point(
             4326, // SRID
