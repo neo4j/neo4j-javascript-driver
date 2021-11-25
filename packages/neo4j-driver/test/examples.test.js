@@ -1381,7 +1381,7 @@ describe('#integration examples', () => {
 
           // Accessing fields
           console.log(
-            `Point with x=${fieldPoint2d.x}, y=${fieldPoint2d.y}, z=${fieldPoint2d.z}, srid=${fieldPoint2d.srid}`
+            `Point with x=${fieldPoint3d.x}, y=${fieldPoint3d.y}, z=${fieldPoint3d.z}, srid=${fieldPoint3d.srid}`
           )
 
           // Verifiying if object is a Pojnt
@@ -1466,7 +1466,7 @@ describe('#integration examples', () => {
 
           // Accessing fields
           console.log(
-            `Point with x=${fieldPoint2d.x}, y=${fieldPoint2d.y}, z=${fieldPoint2d.z}, srid=${fieldPoint2d.srid}`
+            `Point with x=${fieldPoint3d.x}, y=${fieldPoint3d.y}, z=${fieldPoint3d.z}, srid=${fieldPoint3d.srid}`
           )
 
           // Verifiying if object is a Pojnt
