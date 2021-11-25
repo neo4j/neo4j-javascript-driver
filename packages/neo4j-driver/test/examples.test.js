@@ -1363,7 +1363,7 @@ describe('#integration examples', () => {
           const fieldPoint2d = recordWith2dPoint.get('fieldName')
 
           // Serializing
-          fieldPoint2d.toString() // Point{srid=7203, x=1, y=5.1}
+          fieldPoint2d.toString() // Point{srid=7203, x=1.0, y=5.1}
 
           // Accessing fields
           console.log(
@@ -1377,7 +1377,7 @@ describe('#integration examples', () => {
           const fieldPoint3d = recordWith3dPoint.get('fieldName')
 
           // Serializing
-          fieldPoint3d.toString() // Point{srid=9157, x=1, y=-2, z=3.1}
+          fieldPoint3d.toString() // Point{srid=9157, x=1.0, y=-2.0, z=3.1}
 
           // Accessing fields
           console.log(
@@ -1393,7 +1393,7 @@ describe('#integration examples', () => {
           expect(fieldPoint2d.y).toBe(point2d.y)
           expect(fieldPoint2d.z).toBe(point2d.z)
           expect(fieldPoint2d.toString()).toEqual(
-            'Point{srid=7203, x=1, y=5.1}'
+            'Point{srid=7203, x=1.0, y=5.1}'
           )
           expect(console.log).toHaveBeenCalledWith(
             'Point with x=1, y=5.1, srid=7203'
@@ -1405,7 +1405,7 @@ describe('#integration examples', () => {
           expect(fieldPoint3d.y).toBe(point3d.y)
           expect(fieldPoint3d.z).toBe(point3d.z)
           expect(fieldPoint3d.toString()).toEqual(
-            'Point{srid=9157, x=1, y=-2, z=3.1}'
+            'Point{srid=9157, x=1.0, y=-2.0, z=3.1}'
           )
           expect(console.log).toHaveBeenCalledWith(
             'Point with x=1, y=-2, z=3.1, srid=9157'
@@ -1448,7 +1448,7 @@ describe('#integration examples', () => {
           const fieldPoint2d = recordWith2dPoint.get('fieldName')
 
           // Serializing
-          fieldPoint2d.toString() // Point{srid=4326, x=1, y=5.1}
+          fieldPoint2d.toString() // Point{srid=4326, x=1.0, y=5.1}
 
           // Accessing fields
           console.log(
@@ -1462,7 +1462,7 @@ describe('#integration examples', () => {
           const fieldPoint3d = recordWith3dPoint.get('fieldName')
 
           // Serializing
-          fieldPoint3d.toString() // Point{srid=4979, x=1, y=-2, z=3.1}
+          fieldPoint3d.toString() // Point{srid=4979, x=1.0, y=-2.0, z=3.1}
 
           // Accessing fields
           console.log(
@@ -1478,7 +1478,7 @@ describe('#integration examples', () => {
           expect(fieldPoint2d.y).toBe(point2d.y)
           expect(fieldPoint2d.z).toBe(point2d.z)
           expect(fieldPoint2d.toString()).toEqual(
-            'Point{srid=4326, x=1, y=5.1}'
+            'Point{srid=4326, x=1.0, y=5.1}'
           )
           expect(console.log).toHaveBeenCalledWith(
             'Point with x=1, y=5.1, srid=4326'
@@ -1490,7 +1490,7 @@ describe('#integration examples', () => {
           expect(fieldPoint3d.y).toBe(point3d.y)
           expect(fieldPoint3d.z).toBe(point3d.z)
           expect(fieldPoint3d.toString()).toEqual(
-            'Point{srid=4979, x=1, y=-2, z=3.1}'
+            'Point{srid=4979, x=1.0, y=-2.0, z=3.1}'
           )
           expect(console.log).toHaveBeenCalledWith(
             'Point with x=1, y=-2, z=3.1, srid=4979'
