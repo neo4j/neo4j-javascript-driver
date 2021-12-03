@@ -1,5 +1,5 @@
 export default class Context {
-  constructor () {
+  constructor (shouldRunTest) {
     this._id = 0
     this._drivers = {}
     this._sessions = {}
@@ -7,6 +7,7 @@ export default class Context {
     this._resolverRequests = {}
     this._resultObservers = {}
     this._errors = {}
+    this._shouldRunTest = shouldRunTest
   }
 
   addDriver (driver) {
@@ -96,6 +97,10 @@ export default class Context {
 
   getTxsBySessionId (sessionId) {
     return Object.values(this._txs).filter(tx => tx.sessionId === sessionId)
+  }
+
+  getShouldRunTestFunction() {
+    return this._shouldRunTest
   }
 
   _add (map, object) {

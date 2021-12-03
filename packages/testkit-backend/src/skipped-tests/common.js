@@ -1,22 +1,4 @@
-function ifEndsWith (suffix) {
-  return testName => testName.endsWith(suffix)
-}
-
-function ifStartsWith (prefix) {
-  return testName => testName.startsWith(prefix)
-}
-
-function ifEquals (expectedName) {
-  return testName => testName === expectedName
-}
-
-function or () {
-  return testName => [...arguments].find(predicate => predicate(testName))
-}
-
-function skip (reason, ...predicate) {
-  return { reason, predicate: or(...predicate) }
-}
+import skip, { ifEquals, ifEndsWith } from './skip'
 
 const skippedTests = [
   skip(
@@ -109,8 +91,4 @@ const skippedTests = [
   )
 ]
 
-export function shouldRunTest (testName, { onRun, onSkip }) {
-  const { reason } =
-    skippedTests.find(({ predicate }) => predicate(testName)) || {}
-  !reason ? onRun() : onSkip(reason)
-}
+export default skippedTests

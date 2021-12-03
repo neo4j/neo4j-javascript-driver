@@ -1,7 +1,6 @@
 import neo4j from './neo4j'
 import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
-import { shouldRunTest } from './skipped-tests'
 import tls from 'tls'
 
 const SUPPORTED_TLS = (() => {
@@ -302,7 +301,8 @@ export function SessionWriteTransaction (context, data, wire) {
     .catch(error => wire.writeError(error))
 }
 
-export function StartTest (_, { testName }, wire) {
+export function StartTest (context, { testName }, wire) {
+  const shouldRunTest = context.getShouldRunTestFunction()
   shouldRunTest(testName, {
     onRun: () => wire.writeResponse('RunTest', null),
     onSkip: reason => wire.writeResponse('SkipTest', { reason })

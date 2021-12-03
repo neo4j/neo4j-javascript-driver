@@ -9,14 +9,15 @@ import Controller from './interface'
  */
 export default class LocalController extends Controller {
 
-  constructor(requestHandlers = {}) {
+  constructor(requestHandlers = {}, shouldRunTest = () => {}) {
     super()
     this._requestHandlers = requestHandlers
+    this._shouldRunTest = shouldRunTest
     this._contexts = new Map()
   }
 
   openContext (contextId) {
-    this._contexts.set(contextId, new Context())
+    this._contexts.set(contextId, new Context(this._shouldRunTest))
   }
 
   closeContext (contextId) {
