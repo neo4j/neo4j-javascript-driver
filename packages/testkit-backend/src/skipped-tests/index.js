@@ -1,9 +1,9 @@
 import commonSkippedTests from './common'
 import browserSkippedTests from './browser'
 
-const skippedTestsByContext = new Map({
-  'browser': browserSkippedTests
-})
+const skippedTestsByContext = new Map([
+  ['browser', browserSkippedTests]
+])
 
 export function getShouldRunTest (contexts) {
   const skippedTests = contexts
