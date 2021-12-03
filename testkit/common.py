@@ -27,13 +27,11 @@ def run_in(cwd):
     return _runIn
 
 
-def run_in_driver_repo(args, env=os.environ, check=True):
-    env = {**env, "DRIVER_DESCRIPTOR": get_driver_descriptor()}
+def run_in_driver_repo(args, env=None, check=True):
     return run(args, env, DRIVER_REPO, check=check)
 
 
-def open_proccess_in_driver_repo(args, env=os.environ):
-    env = {**env, "DRIVER_DESCRIPTOR": get_driver_descriptor()}
+def open_proccess_in_driver_repo(args, env=None):
     return subprocess.Popen(args, cwd=DRIVER_REPO, env=env, stderr=sys.stderr,
                             stdout=sys.stdout)
 
@@ -44,9 +42,3 @@ def is_lite():
 
 def is_browser():
     return is_enabled(os.environ.get("TEST_DRIVER_BROWSER", "false"))
-
-
-def get_driver_descriptor():
-    descriptor = "lite" if is_lite() else "full"
-    descriptor += ",browser" if is_browser() else ",node"
-    return descriptor
