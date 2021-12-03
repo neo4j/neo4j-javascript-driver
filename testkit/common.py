@@ -27,12 +27,12 @@ def run_in(cwd):
     return _runIn
 
 
-def run_in_driver_repo(args, env={}, check=True):
+def run_in_driver_repo(args, env=os.environ, check=True):
     env = {**env, "DRIVER_DESCRIPTOR": get_driver_descriptor()}
     return run(args, env, DRIVER_REPO, check=check)
 
 
-def open_proccess_in_driver_repo(args, env={}):
+def open_proccess_in_driver_repo(args, env=os.environ):
     env = {**env, "DRIVER_DESCRIPTOR": get_driver_descriptor()}
     return subprocess.Popen(args, cwd=DRIVER_REPO, env=env, stderr=sys.stderr,
                             stdout=sys.stdout)
