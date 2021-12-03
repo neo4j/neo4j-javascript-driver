@@ -17,7 +17,7 @@ export default class LocalController extends Controller {
   }
 
   openContext (contextId) {
-    this._contexts.set(contextId, new Context(shouldRunTest))
+    this._contexts.set(contextId, new Context(this._shouldRunTest))
   }
 
   closeContext (contextId) {

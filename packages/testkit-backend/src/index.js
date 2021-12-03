@@ -30,7 +30,7 @@ function main( ) {
     if ( testEnviroment.toUpperCase() === 'REMOTE' ) {
       return new RemoteController(webserverPort)
     }
-    return new LocalController(REQUEST_HANDLERS)
+    return new LocalController(REQUEST_HANDLERS, shouldRunTest)
   }
 
   const backend = new Backend(newController, newChannel)
@@ -45,7 +45,10 @@ function main( ) {
     process.on('SIGINT', process.exit.bind(process));
     process.on('SIGUSR1', process.exit.bind(process));
     process.on('SIGUSR2', process.exit.bind(process));
-    process.on('uncaughtException', process.exit.bind(process));
+    process.on('uncaughtException', exception => {
+      console.error('UncaughtException', exception)
+      process.exit()
+    });
   }
 }
 
