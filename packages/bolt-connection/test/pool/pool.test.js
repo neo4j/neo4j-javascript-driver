@@ -259,7 +259,7 @@ describe('#unit Pool', () => {
     expect(pool.has(address)).toBeFalsy()
     expect(r0.destroyed).toBeFalsy()
 
-    // Acquiring second resolve should recreate the pool
+    // Acquiring second resource should recreate the pool
     const r1 = await pool.acquire(address)
     expect(pool.has(address)).toBeTruthy()
     expect(r1.id).toEqual(1)
