@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-import Pool from '../../../bolt-connection/lib/pool/pool'
-import PoolConfig from '../../../bolt-connection/lib/pool/pool-config'
+import Pool from '../../src/pool/pool'
+import PoolConfig from '../../src/pool/pool-config'
 import { newError, error, internal } from 'neo4j-driver-core'
 
 const {
@@ -27,7 +27,7 @@ const {
 
 const { SERVICE_UNAVAILABLE } = error
 
-describe('#unit Pool', async () => {
+describe('#unit Pool', () => {
   it('allocates if pool is empty', async () => {
     // Given
     let counter = 0
@@ -282,11 +282,9 @@ describe('#unit Pool', async () => {
     // Close the pool
     await pool.close()
 
-    await expectAsync(pool.acquire(address)).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(/Pool is closed/)
-      })
-    )
+    await expect(pool.acquire(address)).rejects.toMatchObject({
+      message: expect.stringMatching('Pool is closed')
+    })
   })
 
   it('should fail to acquire when closed with idle connections', async () => {
@@ -307,11 +305,9 @@ describe('#unit Pool', async () => {
     // Close the pool
     await pool.close()
 
-    await expectAsync(pool.acquire(address)).toBeRejectedWith(
-      jasmine.objectContaining({
-        message: jasmine.stringMatching(/Pool is closed/)
-      })
-    )
+    await expect(pool.acquire(address)).rejects.toMatchObject({
+      message: expect.stringMatching('Pool is closed')
+    })
   })
   it('purges keys other than the ones to keep', async () => {
     let counter = 0
@@ -561,9 +557,9 @@ describe('#unit Pool', async () => {
     await pool.acquire(address)
     await pool.acquire(address)
 
-    await expectAsync(pool.acquire(address)).toBeRejectedWith(
-      jasmine.stringMatching('acquisition timed out')
-    )
+    await expect(pool.acquire(address)).rejects.toMatchObject({
+      message: expect.stringMatching('acquisition timed out')
+    })
     expectNumberOfAcquisitionRequests(pool, address, 0)
   })
 
@@ -607,11 +603,11 @@ describe('#unit Pool', async () => {
 
     // Let's fulfill the connect promise belonging to the first request.
     conns[0].resolve(conns[0])
-    await expectAsync(req1).toBeResolved()
+    await expect(req1).resolves.toBeDefined()
 
     // Release the connection, it should be picked up by the second request.
     conns[0].release(address, conns[0])
-    await expectAsync(req2).toBeResolved()
+    await expect(req2).resolves.toBeDefined()
 
     // Just to make sure that there hasn't been any new connection.
     expect(conns.length).toEqual(1)
