@@ -237,6 +237,44 @@ describe('#unit Pool', () => {
     expect(r0.destroyed).toBeTruthy()
   })
 
+  it('destroys resource when key was purged event when key is acquired again', async () => {
+    let counter = 0
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        res.destroyed = true
+        return Promise.resolve()
+      }
+    })
+
+    // Acquire resource
+    const r0 = await pool.acquire(address)
+    expect(pool.has(address)).toBeTruthy()
+    expect(r0.id).toEqual(0)
+
+    // Purging the key
+    await pool.purge(address)
+    expect(pool.has(address)).toBeFalsy()
+    expect(r0.destroyed).toBeFalsy()
+
+    // Acquiring second resolve should recreate the pool
+    const r1 = await pool.acquire(address)
+    expect(pool.has(address)).toBeTruthy()
+    expect(r1.id).toEqual(1)
+
+    // Closing the first resource should destroy it
+    await r0.close()
+    expect(pool.has(address)).toBeTruthy()
+    expect(r0.destroyed).toBeTruthy()
+
+    // Closing the second resource should not destroy it
+    await r1.close()
+    expect(pool.has(address)).toBeTruthy()
+    expect(r1.destroyed).toBeFalsy()
+  })
+
   it('close purges all keys', async () => {
     let counter = 0
 
