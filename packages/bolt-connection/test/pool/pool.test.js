@@ -237,7 +237,7 @@ describe('#unit Pool', () => {
     expect(r0.destroyed).toBeTruthy()
   })
 
-  it('destroys resource when key was purged event when key is acquired again', async () => {
+  it('destroys resource when pool is purged even if a new pool is created for the same address', async () => {
     let counter = 0
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     const pool = new Pool({
