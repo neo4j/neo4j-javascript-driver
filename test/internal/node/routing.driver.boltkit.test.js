@@ -581,8 +581,8 @@ describe('#stub-routing routing driver with stub server', () => {
 
     // make connection pool remember all released connections
     const originalRelease = connectionPool._release
-    const rememberingRelease = (key, resource) => {
-      originalRelease(key, resource)
+    const rememberingRelease = (poolState, key, resource) => {
+      originalRelease(poolState, key, resource)
       releasedConnections.push(resource)
     }
     connectionPool._release = rememberingRelease
