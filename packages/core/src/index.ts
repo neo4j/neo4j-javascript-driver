@@ -168,8 +168,6 @@ export {
   LocalDateTime,
   LocalTime,
   Time,
-  StandardDate,
-  NumberOrInteger,
   Node,
   isNode,
   Relationship,
@@ -185,24 +183,29 @@ export {
   queryType,
   ServerInfo,
   Notification,
-  NotificationPosition,
   Plan,
   ProfiledPlan,
   QueryStatistics,
   Stats,
   Result,
-  QueryResult,
-  ResultObserver,
   ConnectionProvider,
   Connection,
   Transaction,
   Session,
-  TransactionConfig,
   Driver,
   types,
   driver,
   json,
   auth
 }
+
+export type {
+  StandardDate,
+  NumberOrInteger,
+  NotificationPosition,
+  QueryResult,
+  ResultObserver,
+  TransactionConfig,
+};
 
 export default forExport

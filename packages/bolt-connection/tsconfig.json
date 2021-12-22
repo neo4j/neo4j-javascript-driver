@@ -9,7 +9,8 @@
     "moduleResolution": "node",
     "downlevelIteration": true,
     "outDir": "lib",
-    "allowJs": true
+    "allowJs": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*.js"]
 }

@@ -446,4 +446,4 @@ function _createTransactionExecutor(config?: {
 }
 
 export default Session
-export { TransactionConfig }
+export type { TransactionConfig }

@@ -10,7 +10,8 @@
     "downlevelIteration": true,
     "outDir": "lib",
     "declaration": true,
-    "declarationDir": "types"
+    "declarationDir": "types",
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts"]
 }
