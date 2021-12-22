@@ -339,4 +339,4 @@ function replaceStacktrace(error: Error, newStack?: string | null) {
 }
 
 export default Result
-export { QueryResult, ResultObserver }
+export type { QueryResult, ResultObserver }

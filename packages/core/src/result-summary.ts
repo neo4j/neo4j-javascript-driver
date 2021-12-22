@@ -536,11 +536,13 @@ export {
   queryType,
   ServerInfo,
   Notification,
-  NotificationPosition,
   Plan,
   ProfiledPlan,
   QueryStatistics,
   Stats
+}
+export type {
+  NotificationPosition,
 }
 
 export default ResultSummary
