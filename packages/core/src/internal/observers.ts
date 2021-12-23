@@ -174,6 +174,6 @@ export class FailedObserver implements ResultStreamObserver {
 
 function apply<T>(thisArg: any, func?: (param: T) => void, param?: T): void {
   if (func) {
-    func.bind(thisArg)(param)
+    func.bind(thisArg)(param as any)
   }
 }
