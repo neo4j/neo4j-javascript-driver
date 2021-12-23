@@ -19,11 +19,11 @@
 import BoltProtocolV43 from './bolt-protocol-v4x3'
 
 import { internal } from 'neo4j-driver-core'
-import RequestMessage, { ALL } from './request-message'
+import RequestMessage from './request-message'
 import { RouteObserver, ResultStreamObserver } from './stream-observers'
 
 const {
-  constants: { BOLT_PROTOCOL_V4_4 },
+  constants: { BOLT_PROTOCOL_V4_4, FETCH_ALL },
   bookmark: { Bookmark },
 } = internal
 
@@ -84,7 +84,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
       afterComplete,
       flush = true,
       reactive = false,
-      fetchSize = ALL
+      fetchSize = FETCH_ALL
     } = {}
   ) {
     const observer = new ResultStreamObserver({

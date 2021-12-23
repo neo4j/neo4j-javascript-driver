@@ -16,10 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError, error, Integer, Record, json } from 'neo4j-driver-core'
-import { ALL } from './request-message'
+import { newError, error, Integer, Record, json, internal } from 'neo4j-driver-core'
 import RawRoutingTable from './routing-table-raw'
 
+const {
+  constants: { FETCH_ALL },
+} = internal
 const { PROTOCOL_ERROR } = error
 class StreamObserver {
   onNext (rawRecord) {}
@@ -59,7 +61,7 @@ class ResultStreamObserver extends StreamObserver {
     reactive = false,
     moreFunction,
     discardFunction,
-    fetchSize = ALL,
+    fetchSize = FETCH_ALL,
     beforeError,
     afterError,
     beforeKeys,
@@ -367,7 +369,7 @@ class ResultStreamObserver extends StreamObserver {
 
   _setupAuoPull (fetchSize) {
     this._autoPull = true
-    if (fetchSize === ALL) {
+    if (fetchSize === FETCH_ALL) {
       this._lowRecordWatermark = Number.MAX_VALUE // we shall always lower than this number to enable auto pull
       this._highRecordWatermark = Number.MAX_VALUE // we shall never reach this number to disable auto pull
     } else {
