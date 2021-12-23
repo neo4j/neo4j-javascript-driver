@@ -30,13 +30,14 @@ type TransactionCreator = () => Transaction
 type TransactionWork<T> = (tx: Transaction) => T | Promise<T>
 type Resolve<T> = (value: T | PromiseLike<T>) => void
 type Reject = (value: any) => void
+type Timeout = ReturnType<typeof setTimeout>
 
 export class TransactionExecutor {
   private _maxRetryTimeMs: number
   private _initialRetryDelayMs: number
   private _multiplier: number
   private _jitterFactor: number
-  private _inFlightTimeoutIds: NodeJS.Timeout[]
+  private _inFlightTimeoutIds: Timeout[]
 
   constructor(
     maxRetryTimeMs?: number | null,
