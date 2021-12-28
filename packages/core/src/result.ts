@@ -230,6 +230,9 @@ class Result implements Promise<QueryResult> {
         const value = await observer._buffer[0].promise
         observer._buffer.shift();
         return value
+      },
+      get queueSize (): number {
+        return observer._buffer.length - 1
       }
     }
 

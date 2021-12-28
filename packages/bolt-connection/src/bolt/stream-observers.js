@@ -346,8 +346,13 @@ class ResultStreamObserver extends StreamObserver {
         this._discardFunction(this._queryId, this)
         this._setState(_states.STREAMING)
       } else if (this._autoPull) {
-        this._moreFunction(this._queryId, this._fetchSize, this)
-        this._setState(_states.STREAMING)
+        const queueSize = Math.max.apply(null, this._observers.map(o => o.queueSize || 0))
+        if (queueSize < this._lowRecordWatermark) {
+          this._moreFunction(this._queryId, this._fetchSize, this)
+          this._setState(_states.STREAMING)
+        } else {
+          setTimeout(this._handleStreaming.bind(this), 1)
+        }
       }
     }
   }
