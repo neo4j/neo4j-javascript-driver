@@ -1,4 +1,4 @@
-import skip, { ifEquals, ifEndsWith } from './skip'
+import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
 
 const skippedTests = [
   skip(
@@ -92,7 +92,8 @@ const skippedTests = [
   skip(
     'Skipped during the AsyncIterator implementation',
     ifEndsWith('.test_session_reuse'),
-    ifEndsWith('.test_iteration_nested')
+    ifEndsWith('.test_iteration_nested'),
+    ifStartsWith('stub.iteration.test_result_list.TestResultList')
   )
 ]
 
