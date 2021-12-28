@@ -96,6 +96,26 @@ class ResultStreamObserver extends StreamObserver {
     this._fetchSize = fetchSize
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
     this._setupAuoPull(fetchSize)
+    this._pullMode = false;
+  }
+
+  setPullMode(pullMode) {
+    this._pullMode = pullMode;
+  }
+
+  pull() {
+    return this._state.pull(this)
+  }
+
+  isReady() {
+    return this._state === _states.READY
+  }
+
+  getWatermaks () {
+    return {
+      high: this._highRecordWatermark,
+      low: this._lowRecordWatermark
+    }
   }
 
   /**
@@ -342,18 +362,18 @@ class ResultStreamObserver extends StreamObserver {
 
   _handleStreaming () {
     if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
-      if (this._discard) {
-        this._discardFunction(this._queryId, this)
-        this._setState(_states.STREAMING)
-      } else if (this._autoPull) {
-        const queueSize = Math.max.apply(null, this._observers.map(o => o.queueSize || 0))
-        if (queueSize < this._lowRecordWatermark) {
-          this._moreFunction(this._queryId, this._fetchSize, this)
-          this._setState(_states.STREAMING)
-        } else {
-          setTimeout(this._handleStreaming.bind(this), 1)
-        }
+      if (!this._pullMode && (this._discard || this._autoPull)) {
+        this._more()
       }
+      this._setState(_states.STREAMING)
+    }
+  }
+
+  _more () {
+    if (this._discard) {
+      this._discardFunction(this._queryId, this)
+    } else {
+      this._moreFunction(this._queryId, this._fetchSize, this)
     }
   }
 
@@ -580,7 +600,8 @@ const _states = {
     },
     name: () => {
       return 'READY_STREAMING'
-    }
+    },
+    pull: streamObserver => streamObserver._more()
   },
   READY: {
     // reactive start state
@@ -595,7 +616,8 @@ const _states = {
     },
     name: () => {
       return 'READY'
-    }
+    },
+    pull: streamObserver => streamObserver._more()
   },
   STREAMING: {
     onSuccess: (streamObserver, meta) => {
@@ -610,7 +632,8 @@ const _states = {
     },
     name: () => {
       return 'STREAMING'
-    }
+    },
+    pull: streamObserver => streamObserver._more()
   },
   FAILED: {
     onError: error => {
@@ -618,12 +641,14 @@ const _states = {
     },
     name: () => {
       return 'FAILED'
-    }
+    },
+    pull: () => {}
   },
   SUCCEEDED: {
     name: () => {
       return 'SUCCEEDED'
-    }
+    },
+    pull: () => {}
   }
 }
 

@@ -236,14 +236,22 @@ class Result implements Promise<QueryResult> {
       }
     }
 
-    this.subscribe(observer)
+    const streaming = await this._subscribe(observer, true)
+    const watermarks = streaming.getWatermaks()
+
+    if (streaming.isReady()) {
+      streaming.pull()
+    }
 
     while(true) {
       const value = await observer.consume()
       if (value.done) {
         return value.summary!
-      } 
+      }
       yield value.record!
+      if (observer.queueSize < watermarks.low) {
+        streaming.pull()
+      }
     }
   }
 
@@ -304,6 +312,11 @@ class Result implements Promise<QueryResult> {
    * @return {void}
    */
   subscribe(observer: ResultObserver): void {
+    this._subscribe(observer)
+      .catch(() => {})
+  }
+
+  _subscribe(observer: ResultObserver, pullMode: boolean = false): Promise<observer.ResultStreamObserver> {
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
     const onCompletedWrapper = (metadata: any) => {
       this._createSummary(metadata).then(summary =>
@@ -324,11 +337,16 @@ class Result implements Promise<QueryResult> {
     }
     observer.onError = onErrorWrapper
 
-    this._streamObserverPromise
+    return this._streamObserverPromise
       .then(o => {
-        return o.subscribe(observer)
+        o.setPullMode(pullMode)
+        o.subscribe(observer)
+        return o
       })
-      .catch(error => observer.onError!(error))
+      .catch(error => { 
+        observer.onError!(error)
+        return Promise.reject(error)
+      })
   }
 
   /**
