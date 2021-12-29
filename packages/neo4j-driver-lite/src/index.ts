@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import VERSION from './version'
+import { logging } from './logging'
 
 import {
   Neo4jError,
@@ -79,7 +80,6 @@ type EncryptionLevel = coreTypes.EncryptionLevel
 type SessionMode = coreTypes.SessionMode
 type Logger = internal.logger.Logger
 type ConfiguredCustomResolver = internal.resolver.ConfiguredCustomResolver
-type LogLevel = coreTypes.LogLevel
 
 const { READ, WRITE } = coreDriver
 
@@ -326,21 +326,6 @@ function driver (
 }
 
 const USER_AGENT: string = 'neo4j-javascript/' + VERSION
-
-/**
- * Object containing predefined logging configurations. These are expected to be used as values of the driver config's `logging` property.
- * @property {function(level: ?string): object} console the function to create a logging config that prints all messages to `console.log` with
- * timestamp, level and message. It takes an optional `level` parameter which represents the maximum log level to be logged. Default value is 'info'.
- */
-const logging = {
-  console: (level: LogLevel) => {
-    return {
-      level: level,
-      logger: (level: LogLevel, message: string) =>
-        console.log(`${globalThis.Date.now()} ${level.toUpperCase()} ${message}`)
-    }
-  }
-}
 
 /**
  * Object containing constructors for all neo4j types.
