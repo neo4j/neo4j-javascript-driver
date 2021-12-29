@@ -41,6 +41,13 @@ const DEFAULT_ON_ERROR = (error: Error) => {
 const DEFAULT_ON_COMPLETED = (summary: ResultSummary) => {}
 
 /**
+ * @private
+ * @param {string[]} keys List of keys of the record in the result
+ * @return {void} 
+ */
+const DEFAULT_ON_KEYS = (_keys: string[]) => {}
+
+/**
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
  */
@@ -94,6 +101,8 @@ class Result implements Promise<QueryResult> {
   private _query: Query
   private _parameters: any
   private _connectionHolder: connectionHolder.ConnectionHolder
+  private _keys: string[] | null
+  private _summary: ResultSummary | null
 
   /**
    * Inject the observer to be used.
@@ -116,6 +125,8 @@ class Result implements Promise<QueryResult> {
     this._query = query
     this._parameters = parameters || {}
     this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
+    this._keys = null
+    this._summary = null
   }
 
   /**
@@ -128,13 +139,16 @@ class Result implements Promise<QueryResult> {
    }
    */
   keys(): Promise<string[]> {
+    if (this._keys != null) {
+      return Promise.resolve(this._keys)
+    }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
         .then(observer =>
-          observer.subscribe({
+          observer.subscribe(this._decorateObserver({
             onKeys: keys => resolve(keys),
             onError: err => reject(err)
-          })
+          }))
         )
         .catch(reject)
     })
@@ -150,15 +164,17 @@ class Result implements Promise<QueryResult> {
    *
    */
   summary(): Promise<ResultSummary> {
+    if (this._summary != null) {
+      return Promise.resolve(this._summary)
+    }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
         .then(o => {
           o.cancel()
-          o.subscribe({
-            onCompleted: metadata =>
-              this._createSummary(metadata).then(resolve, reject),
+          o.subscribe(this._decorateObserver({
+            onCompleted: summary => resolve(summary),
             onError: err => reject(err)
-          })
+          }))
         })
         .catch(reject)
     })
@@ -317,14 +333,29 @@ class Result implements Promise<QueryResult> {
   }
 
   _subscribe(observer: ResultObserver, pullMode: boolean = false): Promise<observer.ResultStreamObserver> {
+    const _observer = this._decorateObserver(observer)
+
+    return this._streamObserverPromise
+      .then(o => {
+        o.setPullMode(pullMode)
+        o.subscribe(_observer)
+        return o
+      })
+      .catch(error => { 
+        _observer.onError!(error)
+        return Promise.reject(error)
+      })
+  }
+
+  _decorateObserver(observer: ResultObserver): ResultObserver {
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
     const onCompletedWrapper = (metadata: any) => {
-      this._createSummary(metadata).then(summary =>
-        onCompletedOriginal.call(observer, summary)
-      )
-    }
 
-    observer.onCompleted = onCompletedWrapper
+      this._createSummary(metadata).then(summary => {
+        this._summary = summary
+        return onCompletedOriginal.call(observer, summary)
+      })
+    }
 
     const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR
     const onErrorWrapper = (error: Error) => {
@@ -335,18 +366,19 @@ class Result implements Promise<QueryResult> {
         onErrorOriginal.call(observer, error)
       })
     }
-    observer.onError = onErrorWrapper
 
-    return this._streamObserverPromise
-      .then(o => {
-        o.setPullMode(pullMode)
-        o.subscribe(observer)
-        return o
-      })
-      .catch(error => { 
-        observer.onError!(error)
-        return Promise.reject(error)
-      })
+    const onKeysOriginal = observer.onKeys || DEFAULT_ON_KEYS
+    const onKeysWrapper = (keys: string[]) => {
+      this._keys = keys
+      return onKeysOriginal.call(observer, keys)
+    }
+
+    return {
+      onNext: observer.onNext? observer.onNext.bind(observer) : undefined,
+      onKeys: onKeysWrapper,
+      onCompleted: onCompletedWrapper,
+      onError: onErrorWrapper
+    }
   }
 
   /**
