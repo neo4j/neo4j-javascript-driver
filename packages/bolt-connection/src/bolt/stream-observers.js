@@ -601,7 +601,7 @@ const _states = {
     name: () => {
       return 'READY_STREAMING'
     },
-    pull: streamObserver => streamObserver._more()
+    pull: () => {}
   },
   READY: {
     // reactive start state
