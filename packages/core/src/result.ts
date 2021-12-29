@@ -249,7 +249,7 @@ class Result implements Promise<QueryResult> {
         return value.summary!
       }
       yield value.record!
-      if (observer.queueSize < watermarks.low) {
+      if (observer.queueSize <= watermarks.high) {
         streaming.pull()
       }
     }

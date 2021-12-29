@@ -365,7 +365,6 @@ class ResultStreamObserver extends StreamObserver {
       if (!this._pullMode && (this._discard || this._autoPull)) {
         this._more()
       }
-      this._setState(_states.STREAMING)
     }
   }
 
@@ -375,6 +374,7 @@ class ResultStreamObserver extends StreamObserver {
     } else {
       this._moreFunction(this._queryId, this._fetchSize, this)
     }
+    this._setState(_states.STREAMING)
   }
 
   _storeMetadataForCompletion (meta) {
@@ -633,7 +633,7 @@ const _states = {
     name: () => {
       return 'STREAMING'
     },
-    pull: streamObserver => streamObserver._more()
+    pull: () => {}
   },
   FAILED: {
     onError: error => {
