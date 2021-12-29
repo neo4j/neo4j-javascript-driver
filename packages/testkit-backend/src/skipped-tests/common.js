@@ -35,10 +35,6 @@ const skippedTests = [
     )
   ),
   skip(
-    'It could not guarantee the order of records requests between in the nested transactions',
-    ifEquals('stub.iteration.TxRun.test_nested')
-  ),
-  skip(
     'Keeps retrying on commit despite connection being dropped',
     ifEquals('stub.retry.TestRetry.test_disconnect_on_commit')
   ),
@@ -88,13 +84,7 @@ const skippedTests = [
     ifEquals(
       'stub.iteration.test_result_list.TestResultList.test_session_run_result_list_pulls_all_records_at_once_next_before_list'
     )
-  ),
-  skip(
-    'Skipped during the AsyncIterator implementation',
-    ifEndsWith('.test_session_reuse'),
-    ifEndsWith('.test_iteration_nested'),
-    ifStartsWith('stub.iteration.test_result_list.TestResultList')
-  )
+  )å
 ]
 
 export default skippedTests

@@ -5,7 +5,6 @@ export default class Context {
     this._sessions = {}
     this._txs = {}
     this._resolverRequests = {}
-    this._resultObservers = {}
     this._errors = {}
     this._shouldRunTest = shouldRunTest
     this._results = {}
@@ -32,10 +31,6 @@ export default class Context {
 
   addError (error) {
     return this._add(this._errors, error)
-  }
-
-  addResultObserver (observer) {
-    return this._add(this._resultObservers, observer)
   }
 
   addResolverRequest (resolve, reject) {
@@ -94,18 +89,8 @@ export default class Context {
     delete this._txs[id]
   }
 
-  removeResultObserver (id) {
-    delete this._resultObservers[id]
-  }
-
   removeResolverRequest (id) {
     delete this._resolverRequests[id]
-  }
-
-  getResultObserversBySessionId (sessionId) {
-    return Object.values(this._resultObservers).filter(
-      obs => obs.sessionId === sessionId
-    )
   }
 
   getTxsBySessionId (sessionId) {

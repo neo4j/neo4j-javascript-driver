@@ -1,8 +1,6 @@
 import neo4j from './neo4j'
-import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
 import tls from 'tls'
-const USE_ASYNC = true
 
 const SUPPORTED_TLS = (() => {
   if (tls.DEFAULT_MAX_VERSION) {
@@ -149,109 +147,60 @@ export function SessionRun (context, data, wire) {
     }
   }
 
-  const observers = context.getResultObserversBySessionId(sessionId)
+  let result
+  try {
+    result = session.run(cypher, params, { metadata, timeout })
+  } catch (e) {
+    console.log('got some err: ' + JSON.stringify(e))
+    wire.writeError(e)
+    return
+  }
 
-  Promise.all(observers.map(obs => obs.completitionPromise()))
-    .catch(_ => null)
-    .then(_ => {
-      let result
-      try {
-        result = session.run(cypher, params, { metadata, timeout })
-      } catch (e) {
-        console.log('got some err: ' + JSON.stringify(e))
-        wire.writeError(e)
-        return
-      }
-      let id
-      if (USE_ASYNC) {
-        id = context.addResult(result)
-      } else {
-        const resultObserver = new ResultObserver({ sessionId, result })
-        result.subscribe(resultObserver)
-        id = context.addResultObserver(resultObserver)
-      }
-      wire.writeResponse('Result', { id })
-    })
+  let id = context.addResult(result)
+
+  wire.writeResponse('Result', { id })
 }
 
 export function ResultNext (context, data, wire) {
   const { resultId } = data
-  if (USE_ASYNC) {
-    const result = context.getResult(resultId)
-    if (!("recordIt" in result)) {
-      result.recordIt = result[Symbol.asyncIterator]()
-    }
-    result.recordIt.next().then(({ value, done }) => {
-      if (done) {
-        wire.writeResponse('NullRecord', null)
-      } else {
-        const values = Array.from(value.values()).map(nativeToCypher)
-        wire.writeResponse('Record', {
-          values: values
-        })
-      }
-    }).catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
-      wire.writeError(e)
-    });
-  } else {
-    const resultObserver = context.getResultObserver(resultId)
-    const nextPromise = resultObserver.next()
-    nextPromise
-      .then(rec => {
-        if (rec) {
-          const values = Array.from(rec.values()).map(nativeToCypher)
-          wire.writeResponse('Record', {
-            values: values
-          })
-        } else {
-          wire.writeResponse('NullRecord', null)
-        }
-      })
-      .catch(e => {
-        console.log('got some err: ' + JSON.stringify(e))
-        wire.writeError(e)
-      })
+  const result = context.getResult(resultId)
+  if (!("recordIt" in result)) {
+    result.recordIt = result[Symbol.asyncIterator]()
   }
-  
+  result.recordIt.next().then(({ value, done }) => {
+    if (done) {
+      wire.writeResponse('NullRecord', null)
+    } else {
+      const values = Array.from(value.values()).map(nativeToCypher)
+      wire.writeResponse('Record', {
+        values: values
+      })
+    }
+  }).catch(e => {
+    console.log('got some err: ' + JSON.stringify(e))
+    wire.writeError(e)
+  });
 }
 
 export function ResultConsume (context, data, wire) {
   const { resultId } = data
-  if (USE_ASYNC) {
-    const result = context.getResult(resultId)
-    result.summary().then(summary => {
-      console.log(summary);
-      wire.writeResponse('Summary', {
-        ...summary,
-        serverInfo: {
-          agent: summary.server.agent,
-          protocolVersion: summary.server.protocolVersion? summary.server.protocolVersion.toFixed(1) : 0
-        }
-      })
-    }).catch(e => wire.writeError(e))
-  } else {
-    const resultObserver = context.getResultObserver(resultId)
-    resultObserver
-      .completitionPromise()
-      .then(summary => {
-        wire.writeResponse('Summary', {
-          ...summary,
-          serverInfo: {
-            agent: summary.server.agent,
-            protocolVersion: summary.server.protocolVersion.toFixed(1)
-          }
-        })
-      })
-      .catch(e => wire.writeError(e))
-  }
+  const result = context.getResult(resultId)
+  result.summary().then(summary => {
+    console.log(summary);
+    wire.writeResponse('Summary', {
+      ...summary,
+      serverInfo: {
+        agent: summary.server.agent,
+        protocolVersion: summary.server.protocolVersion.toFixed(1) 
+      }
+    })
+  }).catch(e => wire.writeError(e))
 }
 
 export function ResultList (context, data, wire) {
   const { resultId } = data
 
-  const resultObserver = context.getResultObserver(resultId)
-  const result = resultObserver.result
+  const result = context.getResult(resultId)
 
   result
     .then(({ records }) => {
@@ -287,15 +236,8 @@ export function TransactionRun (context, data, wire) {
     }
   }
   const result = tx.tx.run(cypher, params)
+  const id = context.addResult(result)
 
-  let id
-  if (USE_ASYNC) {
-    id = context.addResult(result)
-  } else {
-    const resultObserver = new ResultObserver({ result })
-    result.subscribe(resultObserver)
-    id = context.addResultObserver(resultObserver)
-  }
   wire.writeResponse('Result', { id })
 }
 
