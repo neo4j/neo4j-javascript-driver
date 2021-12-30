@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import BoltProtocolV3 from './bolt-protocol-v3'
-import RequestMessage, { ALL } from './request-message'
+import RequestMessage from './request-message'
 import { assertImpersonatedUserIsEmpty } from './bolt-protocol-util'
 import {
   ResultStreamObserver,
@@ -28,7 +28,7 @@ import { internal } from 'neo4j-driver-core'
 
 const {
   bookmark: { Bookmark },
-  constants: { BOLT_PROTOCOL_V4_0 },
+  constants: { BOLT_PROTOCOL_V4_0, FETCH_ALL },
   txConfig: { TxConfig }
 } = internal
 
@@ -90,7 +90,7 @@ export default class BoltProtocol extends BoltProtocolV3 {
       afterComplete,
       flush = true,
       reactive = false,
-      fetchSize = ALL
+      fetchSize = FETCH_ALL
     } = {}
   ) {
     const observer = new ResultStreamObserver({

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import BoltProtocolV4 from './bolt-protocol-v4x0'
-import RequestMessage, { ALL } from './request-message'
+import RequestMessage from './request-message'
 import { LoginObserver } from './stream-observers'
 import { internal } from 'neo4j-driver-core'
 

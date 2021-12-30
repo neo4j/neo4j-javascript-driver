@@ -21,7 +21,7 @@ import {
   assertTxConfigIsEmpty,
   assertImpersonatedUserIsEmpty
 } from './bolt-protocol-util'
-import { Chunker } from '../chunking'
+import { Chunker } from '../channel'
 import { v1 } from '../packstream'
 import RequestMessage from './request-message'
 import {

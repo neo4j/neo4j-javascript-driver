@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-import { observer } from '.'
 import Record from '../record'
 import ResultSummary from '../result-summary'
 

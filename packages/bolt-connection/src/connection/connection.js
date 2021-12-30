@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { ResultStreamObserver, BoltProtocol } from '..bolt'
+import { ResultStreamObserver, BoltProtocol } from '../bolt'
 
 export default class Connection {
   /**
