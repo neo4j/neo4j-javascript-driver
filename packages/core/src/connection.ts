@@ -22,8 +22,8 @@
  * @private
  */
 class Connection {
-  id: string
-  databaseId: string
+  id: string = ""
+  databaseId: string = ""
   server: any
 
   /**
