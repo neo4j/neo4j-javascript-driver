@@ -254,20 +254,21 @@ class Result implements Promise<QueryResult> {
 
     const streaming = await this._subscribe(observer, true)
     const watermarks = streaming.getWatermaks()
-
-    if (streaming.isReady()) {
-      streaming.pull()
+    const pullIfNeeded = () => {
+      if (observer.queueSize <= watermarks.high) {
+        streaming.pull()
+      }
     }
 
+
     while(true) {
+      pullIfNeeded()
       const value = await observer.consume()
       if (value.done) {
         return value.summary!
       }
+      pullIfNeeded()
       yield value.record!
-      if (observer.queueSize <= watermarks.high) {
-        streaming.pull()
-      }
     }
   }
 
