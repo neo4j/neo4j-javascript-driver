@@ -2,8 +2,10 @@ import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
 
 const skippedTests = [
   skip(
-    'Not support by the JS driver',
-    ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration')
+    'Partial session iteration is not supported by the js driver',
+    ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_session_reuse'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_nested'),
   ),
   skip(
     'The driver has no support domain_name_resolver',

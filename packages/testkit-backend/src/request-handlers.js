@@ -186,7 +186,6 @@ export function ResultConsume (context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
   result.summary().then(summary => {
-    console.log(summary);
     wire.writeResponse('Summary', {
       ...summary,
       serverInfo: {
