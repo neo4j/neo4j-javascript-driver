@@ -74,6 +74,12 @@ export function NewDriver (context, data, wire) {
       )
     }
   }
+  if ('maxConnectionPoolSize' in data) {
+    config.maxConnectionPoolSize = data.maxConnectionPoolSize
+  }
+  if ('connectionAcquisitionTimeoutMs' in data) {
+    config.connectionAcquisitionTimeout = data.connectionAcquisitionTimeoutMs
+  }
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)
@@ -327,6 +333,7 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.3',
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
+      'Temporary:ConnectionAcquisitionTimeout',
       ...SUPPORTED_TLS
     ]
   })
