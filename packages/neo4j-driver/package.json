@@ -1,6 +1,6 @@
 {
   "name": "neo4j-driver",
-  "version": "4.4.0-dev",
+  "version": "5.0.0-dev",
   "description": "Connect to Neo4j 3.5.0 and up from JavaScript",
   "author": "Neo4j",
   "license": "Apache-2.0",
@@ -111,8 +111,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.5.5",
-    "neo4j-driver-bolt-connection": "^4.4.0-dev",
-    "neo4j-driver-core": "^4.4.0-dev",
+    "neo4j-driver-bolt-connection": "5.0.0-dev",
+    "neo4j-driver-core": "5.0.0-dev",
     "rxjs": "^6.6.3"
   }
 }
