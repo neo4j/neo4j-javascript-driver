@@ -93,10 +93,6 @@ export interface ResultStreamObserver extends StreamObserver {
 
   pull(): void
 
-  isReady(): boolean
-
-  getWatermaks(): { high: number; low: number }
-
   /**
    * Mark this observer as if it has completed with no metadata.
    */
@@ -129,14 +125,6 @@ export class CompletedObserver implements ResultStreamObserver {
 
   markCompleted(): void {
     // do nothing
-  }
-
-  isReady(): boolean {
-    return false;
-  }
-
-  getWatermaks(): { high: number; low: number } {
-    return { high: 0, low: 0 };
   }
 
   setPullMode(_: boolean): void {
@@ -192,14 +180,6 @@ export class FailedObserver implements ResultStreamObserver {
 
   markCompleted(): void {
     // do nothing
-  }
-
-  isReady(): boolean {
-    return false;
-  }
-
-  getWatermaks(): { high: number; low: number } {
-    return { high: 0, low: 0 };
   }
 
   setPullMode(_: boolean): void {

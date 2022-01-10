@@ -766,14 +766,6 @@ class ResultStreamObserverMock implements observer.ResultStreamObserver {
       .forEach(o => o.onCompleted!(meta))
   }
 
-  isReady(): boolean {
-    return false;
-  }
-
-  getWatermaks(): { high: number; low: number } {
-    return { high: 0, low: 0 };
-  }
-
   setPullMode(_: boolean): void {
     // do nothing
   }

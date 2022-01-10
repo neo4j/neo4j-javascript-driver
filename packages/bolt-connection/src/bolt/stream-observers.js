@@ -68,7 +68,9 @@ class ResultStreamObserver extends StreamObserver {
     afterKeys,
     beforeComplete,
     afterComplete,
-    server
+    server,
+    highRecordWatermark = Number.MAX_VALUE,
+    lowRecordWatermark = Number.MAX_VALUE
   } = {}) {
     super()
 
@@ -94,8 +96,10 @@ class ResultStreamObserver extends StreamObserver {
     this._discardFunction = discardFunction
     this._discard = false
     this._fetchSize = fetchSize
+    this._lowRecordWatermark = lowRecordWatermark
+    this._highRecordWatermark = highRecordWatermark
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
-    this._setupAuoPull(fetchSize)
+    this._setupAuoPull()
     this._pullMode = false;
   }
 
@@ -105,17 +109,6 @@ class ResultStreamObserver extends StreamObserver {
 
   pull() {
     return this._state.pull(this)
-  }
-
-  isReady() {
-    return this._state === _states.READY
-  }
-
-  getWatermaks () {
-    return {
-      high: this._highRecordWatermark,
-      low: this._lowRecordWatermark
-    }
   }
 
   /**
@@ -392,15 +385,8 @@ class ResultStreamObserver extends StreamObserver {
     this._state = state
   }
 
-  _setupAuoPull (fetchSize) {
+  _setupAuoPull () {
     this._autoPull = true
-    if (fetchSize === FETCH_ALL) {
-      this._lowRecordWatermark = Number.MAX_VALUE // we shall always lower than this number to enable auto pull
-      this._highRecordWatermark = Number.MAX_VALUE // we shall never reach this number to disable auto pull
-    } else {
-      this._lowRecordWatermark = 0.3 * fetchSize
-      this._highRecordWatermark = 0.7 * fetchSize
-    }
   }
 }
 

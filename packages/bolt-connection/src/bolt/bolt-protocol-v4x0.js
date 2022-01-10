@@ -90,7 +90,9 @@ export default class BoltProtocol extends BoltProtocolV3 {
       afterComplete,
       flush = true,
       reactive = false,
-      fetchSize = FETCH_ALL
+      fetchSize = FETCH_ALL,
+      highRecordWatermark = Number.MAX_VALUE,
+      lowRecordWatermark = Number.MAX_VALUE
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -104,7 +106,9 @@ export default class BoltProtocol extends BoltProtocolV3 {
       beforeError,
       afterError,
       beforeComplete,
-      afterComplete
+      afterComplete,
+      highRecordWatermark,
+      lowRecordWatermark
     })
 
     // passing impersonated user on this protocol version throws an error

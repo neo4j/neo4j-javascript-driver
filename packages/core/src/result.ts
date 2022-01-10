@@ -103,6 +103,7 @@ class Result implements Promise<QueryResult> {
   private _connectionHolder: connectionHolder.ConnectionHolder
   private _keys: string[] | null
   private _summary: ResultSummary | null
+  private _watermarks: { high: number; low: number }
 
   /**
    * Inject the observer to be used.
@@ -117,7 +118,8 @@ class Result implements Promise<QueryResult> {
     streamObserverPromise: Promise<observer.ResultStreamObserver>,
     query: Query,
     parameters?: any,
-    connectionHolder?: connectionHolder.ConnectionHolder
+    connectionHolder?: connectionHolder.ConnectionHolder,
+    watermarks: { high: number; low: number } = { high: Number.MAX_VALUE, low: Number.MAX_VALUE }
   ) {
     this._stack = captureStacktrace()
     this._streamObserverPromise = streamObserverPromise
@@ -127,6 +129,7 @@ class Result implements Promise<QueryResult> {
     this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
     this._keys = null
     this._summary = null
+    this._watermarks = watermarks
   }
 
   /**
@@ -253,9 +256,9 @@ class Result implements Promise<QueryResult> {
     }
 
     const streaming = await this._subscribe(observer, true)
-    const watermarks = streaming.getWatermaks()
+    
     const pullIfNeeded = () => {
-      if (observer.queueSize <= watermarks.high) {
+      if (observer.queueSize <= this._watermarks.high) {
         streaming.pull()
       }
     }
