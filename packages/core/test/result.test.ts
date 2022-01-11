@@ -33,10 +33,11 @@ describe('Result', () => {
   describe('new Result(Promise.resolve(new ResultStreamObserverMock()), query, parameters, connectionHolder)', () => {
     let streamObserverMock: ResultStreamObserverMock
     let result: Result
+    const watermarks = { high: 10, low: 3 }
 
     beforeEach(() => {
       streamObserverMock = new ResultStreamObserverMock()
-      result = new Result(Promise.resolve(streamObserverMock), 'query')
+      result = new Result(Promise.resolve(streamObserverMock), 'query', undefined, undefined, watermarks)
     })
 
     describe('.keys()', () => {
@@ -554,6 +555,145 @@ describe('Result', () => {
         )
       })
     })
+
+    describe('asyncIterator', () => {
+      it('should subscribe to the observer', async () => {
+        const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+        streamObserverMock.onCompleted({})
+
+        for await (const _ of result) {
+          // do nothing
+        }
+
+        expect(subscribe).toHaveBeenCalled()
+      })
+
+      it('should set the observer to explicity pull', async () => {
+        const setExplicityPull = jest.spyOn(streamObserverMock, 'setExplicityPull')
+        streamObserverMock.onCompleted({})
+
+        for await (const _ of result) {
+          // do nothing
+        }
+
+        expect(setExplicityPull).toHaveBeenCalledWith(true)
+      })
+
+      it('should set the observer to explicity pull before subscribe', async () => {
+        const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+        const setExplicityPull = jest.spyOn(streamObserverMock, 'setExplicityPull')
+        streamObserverMock.onCompleted({})
+
+        for await (const _ of result) {
+          // do nothing
+        }
+
+        expect(setExplicityPull.mock.invocationCallOrder[0])
+          .toBeLessThan(subscribe.mock.invocationCallOrder[0])
+      })
+
+      it('should not call pull if queue is bigger than high watermark', async () => {
+        const pull = jest.spyOn(streamObserverMock, 'pull')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i <= watermarks.high; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        await it.next()
+
+        expect(pull).toBeCalledTimes(0)
+      })
+
+      it('should call pull if queue is smaller than low watermark', async () => {
+        const pull = jest.spyOn(streamObserverMock, 'pull')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i < watermarks.low - 1; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        await it.next()
+
+        expect(pull).toBeCalledTimes(1)
+      })
+
+      it('should call pull if queue is between lower and high if it never highter then high watermark', async () => {
+        const pull = jest.spyOn(streamObserverMock, 'pull')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i < watermarks.high - 1; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        for (let i = 0; i < watermarks.high - watermarks.low; i++) {
+          await it.next()
+        }
+
+        expect(pull).toBeCalledTimes(watermarks.high - watermarks.low)
+      })
+
+      it('should call pull if queue is between lower and high if it get highter then high watermark', async () => {
+        const pull = jest.spyOn(streamObserverMock, 'pull')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i < watermarks.high; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        for (let i = 0; i < watermarks.high - watermarks.low; i++) {
+          await it.next()
+        }
+
+        expect(pull).toBeCalledTimes(0)
+      })
+
+      it('should recover from high watermark limit after went to low watermark', async () => {
+        const pull = jest.spyOn(streamObserverMock, 'pull')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i < watermarks.high; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        for (let i = 0; i < watermarks.high - watermarks.low; i++) {
+          await it.next()
+        }
+
+        for (let i = 0; i < 2; i++) {
+          await it.next()
+        }
+
+        expect(pull).toBeCalledTimes(2)
+      })
+
+      it('should iterate over record', async () => {
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+
+        streamObserverMock.onKeys(keys)
+        streamObserverMock.onNext(rawRecord1)
+        streamObserverMock.onNext(rawRecord2)
+
+        streamObserverMock.onCompleted({})
+
+        const records = []
+        for await (const record of result) {
+          records.push(record)
+        }
+
+        expect(records).toEqual([
+          new Record(keys, rawRecord1),
+          new Record(keys, rawRecord2)
+        ])
+      })
+    })
   })
 
   describe.each([
@@ -638,6 +778,26 @@ describe('Result', () => {
         expect(Object.keys(queryResult).sort()).toEqual(['records', 'summary'])
       })
     })
+
+    describe('asyncIterator', () => {
+      it('should be resolved with an empty array of records', async () => {
+        const records = []
+
+        for await (const record of result) {
+          records.push(record)
+        }
+
+        expect(records).toStrictEqual([])
+      })
+
+      it('should be resolved with expected result summary', async () => {
+        const it = result[Symbol.asyncIterator]()
+        const next = await it.next()
+
+        expect(next.done).toBe(true)
+        expect(next.value).toStrictEqual(expectedResultSummary)
+      })
+    })
   })
 
   describe.each([
@@ -682,6 +842,14 @@ describe('Result', () => {
             done()
           }
         })
+      })
+    })
+
+    describe('asyncIterator', () => {
+      shouldReturnRejectedPromiseWithTheExpectedError(async () => {
+        for await (const _ of result) {
+          // do nothing
+        }
       })
     })
 

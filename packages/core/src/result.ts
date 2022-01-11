@@ -255,14 +255,26 @@ class Result implements Promise<QueryResult> {
       }
     }
 
-    const streaming = await this._subscribe(observer, true)
-    
+    const status = { paused: false }
+
+    let streaming: observer.ResultStreamObserver | null = null
+
+    try {
+      streaming = await this._subscribe(observer, true)
+    } catch (e) {
+      // ignore, we will handle it in consume since the error is notifies in the onError callback
+    }
+
     const pullIfNeeded = () => {
-      if (observer.queueSize <= this._watermarks.high) {
+      if (observer.queueSize >= this._watermarks.high) {
+        status.paused = true
+      } else if (observer.queueSize <= this._watermarks.low) {
+        status.paused = false
+      }
+      if (!status.paused && observer.queueSize < this._watermarks.high && streaming) {
         streaming.pull()
       }
     }
-
 
     while(true) {
       pullIfNeeded()
@@ -270,7 +282,6 @@ class Result implements Promise<QueryResult> {
       if (value.done) {
         return value.summary!
       }
-      pullIfNeeded()
       yield value.record!
     }
   }
