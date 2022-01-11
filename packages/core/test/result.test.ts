@@ -766,7 +766,7 @@ class ResultStreamObserverMock implements observer.ResultStreamObserver {
       .forEach(o => o.onCompleted!(meta))
   }
 
-  setPullMode(_: boolean): void {
+  setExplicityPull(_: boolean): void {
     // do nothing
   }
 

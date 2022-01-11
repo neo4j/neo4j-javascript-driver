@@ -99,12 +99,12 @@ class ResultStreamObserver extends StreamObserver {
     this._lowRecordWatermark = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
-    this._setupAuoPull()
-    this._pullMode = false;
+    this._setupAutoPull()
+    this._explicityPull = false;
   }
 
-  setPullMode(pullMode) {
-    this._pullMode = pullMode;
+  setExplicityPull(explicityPull) {
+    this._explicityPull = explicityPull;
   }
 
   pull() {
@@ -355,7 +355,7 @@ class ResultStreamObserver extends StreamObserver {
 
   _handleStreaming () {
     if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
-      if (!this._pullMode && (this._discard || this._autoPull)) {
+      if (!this._explicityPull && (this._discard || this._autoPull)) {
         this._more()
       }
     }
@@ -385,7 +385,7 @@ class ResultStreamObserver extends StreamObserver {
     this._state = state
   }
 
-  _setupAuoPull () {
+  _setupAutoPull () {
     this._autoPull = true
   }
 }

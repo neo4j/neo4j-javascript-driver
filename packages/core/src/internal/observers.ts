@@ -89,7 +89,7 @@ export interface ResultStreamObserver extends StreamObserver {
    */
   prepareToHandleSingleResponse(): void
 
-  setPullMode(pullMode: boolean): void
+  setExplicityPull(explicityPull: boolean): void
 
   pull(): void
 
@@ -127,7 +127,7 @@ export class CompletedObserver implements ResultStreamObserver {
     // do nothing
   }
 
-  setPullMode(_: boolean): void {
+  setExplicityPull(_: boolean): void {
     // do nothing
   }
 
@@ -182,7 +182,7 @@ export class FailedObserver implements ResultStreamObserver {
     // do nothing
   }
 
-  setPullMode(_: boolean): void {
+  setExplicityPull(_: boolean): void {
     // do nothing
   }
 

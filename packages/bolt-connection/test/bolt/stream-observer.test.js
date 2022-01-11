@@ -198,6 +198,276 @@ describe('#unit ResultStreamObserver', () => {
       }
     })
   })
+
+  describe('when is not explicity pull (default)', () => {
+    it('should ask for more records when the stream is completed and has more', () => {
+      // Setup
+      const queryId = 123
+      const fetchSize = 2000
+
+      const more = jest.fn()
+      const streamObserver = new ResultStreamObserver({
+        moreFunction: more,
+        fetchSize: 2000
+      })
+
+      // action
+      streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+      streamObserver.subscribe(newObserver())
+
+      streamObserver.onNext([1, 2, 3])
+      streamObserver.onNext([11, 22, 33])
+      streamObserver.onCompleted({ has_more: true })
+
+      streamObserver.onNext([111, 222, 333])
+      streamObserver.onCompleted({ has_more: false })
+
+      // verification
+      expect(more).toBeCalledTimes(1)
+      expect(more).toBeCalledWith(queryId, fetchSize, streamObserver)
+    })
+  })
+
+  describe('when is explicity pull enabled', () => {
+    it('should not ask for more records when the stream is completed and has more', () => {
+      // Setup
+      const queryId = 123
+
+      const more = jest.fn()
+      const streamObserver = new ResultStreamObserver({
+        moreFunction: more,
+        fetchSize: 2000
+      })
+      streamObserver.setExplicityPull(true)
+
+      // action
+      streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+      streamObserver.subscribe(newObserver())
+
+      streamObserver.onNext([1, 2, 3])
+      streamObserver.onNext([11, 22, 33])
+      streamObserver.onCompleted({ has_more: true })
+
+      // verification
+      expect(more).toBeCalledTimes(0)
+    })
+
+    describe('pull()', () => {
+      it('should ask for more records when the stream is completed and has more', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize
+        })
+        streamObserver.setExplicityPull(true)
+
+        // Scenario
+        streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+        streamObserver.subscribe(newObserver())
+
+        streamObserver.onNext([1, 2, 3])
+        streamObserver.onNext([11, 22, 33])
+        streamObserver.onCompleted({ has_more: true })
+
+        // Action
+        streamObserver.pull()
+
+        // verification
+        expect(more).toBeCalledTimes(1)
+        expect(more).toBeCalledWith(queryId, fetchSize, streamObserver)
+      })
+
+      it('should ask for more records when the stream is a new reactive stream', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize,
+          reactive: true
+        })
+        streamObserver.setExplicityPull(true)
+
+        // Scenario
+        streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+        // Action
+        streamObserver.pull()
+
+        // verification
+        expect(more).toBeCalledTimes(1)
+        expect(more).toBeCalledWith(queryId, fetchSize, streamObserver)
+      })
+
+
+      it('should ask for more records when the stream is a new reactive stream and not run success come yet', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize,
+          reactive: true
+        })
+        streamObserver.setExplicityPull(true)
+
+        // Action
+        streamObserver.pull()
+
+        // verification
+        expect(more).toBeCalledTimes(1)
+        expect(more).toBeCalledWith(null, fetchSize, streamObserver)
+      })
+
+      it('should not ask for more records when the stream is a new stream', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize,
+          reactive: false
+        })
+        streamObserver.setExplicityPull(true)
+
+        // Scenario
+        streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+        // Action
+        streamObserver.pull()
+
+        // verification
+        expect(more).toBeCalledTimes(0)
+      })
+
+
+      it('should not ask for more records when the stream is a new stream', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize
+        })
+
+        streamObserver.setExplicityPull(true)
+
+        // Scenario
+        streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+        // Action
+        streamObserver.pull()
+
+        // verification
+        expect(more).toBeCalledTimes(0)
+      })
+
+      it('should not ask for more records when it is streaming', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize
+        })
+
+        streamObserver.setExplicityPull(true)
+
+        // Scenario
+        streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+        streamObserver.subscribe(newObserver())
+
+        streamObserver.onNext([1, 2, 3])
+        streamObserver.onNext([11, 22, 33])
+        streamObserver.onCompleted({ has_more: true })
+
+        streamObserver.pull() // should actual call
+
+        streamObserver.onNext([111, 222, 333])
+
+        // Action
+        streamObserver.pull()
+
+        // verification
+        expect(more).toBeCalledTimes(1)
+      })
+
+      it('should not ask for more records when result is completed', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize
+        })
+
+        streamObserver.setExplicityPull(true)
+
+        // Scenario
+        streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+        streamObserver.subscribe(newObserver())
+
+        streamObserver.onNext([1, 2, 3])
+        streamObserver.onNext([11, 22, 33])
+        streamObserver.onCompleted({ has_more: false })
+
+        // Action
+        streamObserver.pull()
+
+        // verification
+        expect(more).toBeCalledTimes(0)
+      })
+
+      it('should not ask for more records when stream failed', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize
+        })
+
+        streamObserver.setExplicityPull(true)
+
+        // Scenario
+        streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+        streamObserver.subscribe(newObserver())
+
+        streamObserver.onNext([1, 2, 3])
+        streamObserver.onError(new Error('error'))
+
+        // Action
+        streamObserver.pull()
+
+        // verification
+        expect(more).toBeCalledTimes(0)
+      })
+    })
+  })
 })
 
 describe('#unit RouteObserver', () => {

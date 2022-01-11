@@ -336,12 +336,12 @@ class Result implements Promise<QueryResult> {
       .catch(() => {})
   }
 
-  _subscribe(observer: ResultObserver, pullMode: boolean = false): Promise<observer.ResultStreamObserver> {
+  _subscribe(observer: ResultObserver, explicityPull: boolean = false): Promise<observer.ResultStreamObserver> {
     const _observer = this._decorateObserver(observer)
 
     return this._streamObserverPromise
       .then(o => {
-        o.setPullMode(pullMode)
+        o.setExplicityPull(explicityPull)
         o.subscribe(_observer)
         return o
       })
