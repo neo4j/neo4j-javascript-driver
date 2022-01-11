@@ -153,7 +153,14 @@ export function SessionRun (context, data, wire) {
   Promise.all(observers.map(obs => obs.completitionPromise()))
     .catch(_ => null)
     .then(_ => {
-      const result = session.run(cypher, params, { metadata, timeout })
+      let result
+      try {
+        result = session.run(cypher, params, { metadata, timeout })
+      } catch (e) {
+        console.log('got some err: ' + JSON.stringify(e))
+        wire.writeError(e)
+        return
+      }
       const resultObserver = new ResultObserver({ sessionId, result })
       const id = context.addResultObserver(resultObserver)
       wire.writeResponse('Result', { id })
@@ -261,7 +268,14 @@ export function RetryableNegative (context, data, wire) {
 export function SessionBeginTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
-  const tx = session.beginTransaction({ metadata, timeout })
+  let tx
+  try {
+    tx = session.beginTransaction({ metadata, timeout })
+  } catch (e) {
+    console.log('got some err: ' + JSON.stringify(e))
+    wire.writeError(e)
+    return
+  }
   const id = context.addTx(tx, sessionId)
   wire.writeResponse('Transaction', { id })
 }
