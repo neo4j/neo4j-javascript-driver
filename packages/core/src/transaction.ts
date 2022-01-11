@@ -151,7 +151,9 @@ class Transaction {
       onComplete: this._onComplete,
       onConnection: this._onConnection,
       reactive: this._reactive,
-      fetchSize: this._fetchSize
+      fetchSize: this._fetchSize,
+      highRecordWatermark: this._highRecordWatermark,
+      lowRecordWatermark: this._lowRecordWatermak
     })
     this._results.push(result)
     return result
