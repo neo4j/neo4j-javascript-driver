@@ -124,6 +124,7 @@ class Session {
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
     this._databaseNameResolved = this._database !== ''
+    this._setupWatermark()
   }
 
   /**

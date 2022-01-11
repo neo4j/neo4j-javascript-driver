@@ -17,7 +17,8 @@
  * limitations under the License.
  */
 
-import { Connection } from '../../src'
+import { Connection, ResultObserver, Record, ResultSummary } from '../../src'
+import { ResultStreamObserver } from '../../src/internal/observers'
 
 
 /**
@@ -32,17 +33,17 @@ export default class FakeConnection extends Connection {
   private _id: number
   private _databaseId: string | null
   private _requestRoutingInformationMock: ((params: any) => void) | null
-  private creationTimestamp: number
-  private resetInvoked: number
-  private releaseInvoked: number
-  private seenQueries: string[]
-  private seenParameters: any[]
-  private seenProtocolOptions: any[]
+  public creationTimestamp: number
+  public resetInvoked: number
+  public releaseInvoked: number
+  public seenQueries: string[]
+  public seenParameters: any[]
+  public seenProtocolOptions: any[]
   private _server: any
-  private protocolVersion: number | undefined
-  private protocolErrorsHandled: number
-  private seenProtocolErrors: string[]
-  private seenRequestRoutingInformation: any[]
+  public protocolVersion: number | undefined
+  public protocolErrorsHandled: number
+  public seenProtocolErrors: string[]
+  public seenRequestRoutingInformation: any[]
 
   constructor() {
     super()
@@ -92,10 +93,17 @@ export default class FakeConnection extends Connection {
   protocol() {
     // return fake protocol object that simply records seen queries and parameters
     return {
-      run: (query: string, parameters: any | undefined, protocolOptions: any | undefined) => {
+      run: (query: string, parameters: any | undefined, protocolOptions: any | undefined): ResultStreamObserver => {
         this.seenQueries.push(query)
         this.seenParameters.push(parameters)
         this.seenProtocolOptions.push(protocolOptions)
+        return mockResultStreamObserver(query, parameters)
+      },
+      commitTransaction: () => {
+        return mockResultStreamObserver('COMMIT', {})
+      },
+      beginTransaction: () => {
+        return Promise.resolve()
       },
       requestRoutingInformation: (params: any | undefined) => {
         this.seenRequestRoutingInformation.push(params)
@@ -156,5 +164,24 @@ export default class FakeConnection extends Connection {
   closed() {
     this._open = false
     return this
+  }
+}
+
+function mockResultStreamObserver(query: string, parameters: any | undefined): ResultStreamObserver {
+  return {
+    onError: (error: any) => { },
+    onCompleted: () => { },
+    onNext: (result: any) => { },
+    cancel: () => { },
+    prepareToHandleSingleResponse: () => { },
+    pull: () => { },
+    markCompleted: () => { },
+    setExplicityPull: (_: boolean) => { },
+    subscribe: (observer: ResultObserver) => {
+      if (observer && observer.onCompleted) {
+        observer.onCompleted(new ResultSummary(query, parameters, {}))
+      }
+
+    }
   }
 }
