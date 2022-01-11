@@ -17,24 +17,38 @@
  * limitations under the License.
  */
 
+import { ServerAddress } from "./internal/server-address"
+
 /**
  * Interface which defines the raw connection with the database
  * @private
  */
 class Connection {
-  id: string = ""
-  databaseId: string = ""
-  server: any
+  get id (): string {
+    return ""
+  }
+
+  get databaseId(): string {
+    return ""
+  }
+
+  get server(): any {
+    return {}
+  }
 
   /**
    * @property {ServerAddress} the server address this connection is opened against
    */
-  address: any
+  get address(): ServerAddress | undefined {
+    return undefined
+  }
 
   /**
    * @property {ServerVersion} the version of the server this connection is connected to
    */
-  version: any
+  get version(): any {
+    return undefined
+  }
 
   /**
    * @returns {boolean} whether this connection is in a working condition
