@@ -23,7 +23,7 @@ import sharedNeo4j from './internal/shared-neo4j'
 const TX_CONFIG_WITH_METADATA = { metadata: { a: 1, b: 2 } }
 const TX_CONFIG_WITH_TIMEOUT = { timeout: 42 }
 
-const INVALID_TIMEOUT_VALUES = [0, -1, -42, '15 seconds', [1, 2, 3]]
+const INVALID_TIMEOUT_VALUES = [-1, -42, '15 seconds', [1, 2, 3]]
 const INVALID_METADATA_VALUES = [
   'metadata',
   ['1', '2', '3'],

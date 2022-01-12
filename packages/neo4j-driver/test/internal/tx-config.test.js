@@ -52,7 +52,7 @@ describe('#unit TxConfig', () => {
   })
 
   it('should fail to construct with invalid timeout', () => {
-    const invalidTimeoutValues = ['15s', [15], {}, 0, int(0), -42, int(-42)]
+    const invalidTimeoutValues = ['15s', [15], {}, -42, int(-42)]
 
     invalidTimeoutValues.forEach(invalidValue =>
       expect(() => new TxConfig({ timeout: invalidValue })).toThrow()
@@ -60,9 +60,11 @@ describe('#unit TxConfig', () => {
   })
 
   it('should construct with valid timeout', () => {
+    testConfigCreationWithTimeout(0)
     testConfigCreationWithTimeout(1)
     testConfigCreationWithTimeout(42000)
 
+    testConfigCreationWithTimeout(int(0))
     testConfigCreationWithTimeout(int(1))
     testConfigCreationWithTimeout(int(424242))
   })
