@@ -693,6 +693,101 @@ describe('Result', () => {
           new Record(keys, rawRecord2)
         ])
       })
+
+      describe('onError', () => {
+        it('should throws an exception while iterate over records', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+          const expectedError = new Error('test')
+          let observedError: Error | undefined
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          const records = []
+
+          try {
+            for await (const record of result) {
+              records.push(record)
+              streamObserverMock.onError(expectedError)
+            }
+          } catch (err) {
+            observedError = err
+          }
+
+          expect(observedError).toEqual(expectedError)
+        })
+
+        it('should resolve the already received records', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+          const expectedError = new Error('test')
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          const records = []
+
+          try {
+            for await (const record of result) {
+              records.push(record)
+              streamObserverMock.onError(expectedError)
+            }
+          } catch (err) {
+            // do nothing
+          }
+
+          expect(records).toEqual([
+            new Record(keys, rawRecord1),
+            new Record(keys, rawRecord2)
+          ])
+
+        })
+
+        it('should throws it when it is the event after onKeys', async () => {
+          const keys = ['a', 'b']
+          const expectedError = new Error('test')
+          let observedError: Error | undefined
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onError(expectedError)
+
+          const records = []
+
+          try {
+            for await (const record of result) {
+              records.push(record)
+            }
+          } catch (err) {
+            observedError = err
+          }
+
+          expect(observedError).toEqual(expectedError)
+        })
+
+        it('should throws it when it is the first and unique event', async () => {
+          const expectedError = new Error('test')
+          let observedError: Error | undefined
+
+          streamObserverMock.onError(expectedError)
+
+          const records = []
+
+          try {
+            for await (const record of result) {
+              records.push(record)
+            }
+          } catch (err) {
+            observedError = err
+          }
+
+          expect(observedError).toEqual(expectedError)
+        })
+      })
     })
   })
 
