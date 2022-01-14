@@ -304,6 +304,16 @@ export function dateToIsoString (
 }
 
 /**
+ * Convert the given iso date string to a JavaScript Date object
+ *
+ * @param {string} isoString The iso date string
+ * @returns {Date} the date
+ */
+ export function isoStringToStandardDate(isoString: string): Date {
+  return new Date(isoString)
+}
+
+/**
  * Get the total number of nanoseconds from the milliseconds of the given standard JavaScript date and optional nanosecond part.
  * @param {global.Date} standardDate the standard JavaScript date.
  * @param {Integer|number|bigint|undefined} nanoseconds the optional number of nanoseconds.

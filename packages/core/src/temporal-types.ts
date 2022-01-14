@@ -369,6 +369,18 @@ export class Date<T extends NumberOrInteger = Integer> {
   }
 
   /**
+   * Convert date to standard JavaScript `Date`.
+   *
+   * The time component of the returned `Date` is set to midnight
+   * and the time zone is set to UTC.
+   *
+   * @returns {StandardDate} Standard JavaScript `Date` at `00:00:00.000` UTC.
+   */
+  toStandardDate(): StandardDate {
+    return util.isoStringToStandardDate(this.toString())
+  }
+
+  /**
    * @ignore
    */
   toString() {
@@ -482,6 +494,15 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
       standardDate.getSeconds(),
       toNumber(util.totalNanoseconds(standardDate, nanosecond))
     )
+  }
+
+  /**
+   * Convert date to standard JavaScript `Date`.
+   *
+   * @returns {StandardDate} Standard JavaScript `Date` at the local timezone
+   */
+  toStandardDate(): StandardDate {
+    return util.isoStringToStandardDate(this.toString())
   }
 
   /**
@@ -637,6 +658,19 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       util.timeZoneOffsetInSeconds(standardDate),
       null /* no time zone id */
     )
+  }
+
+  /**
+   * Convert date to standard JavaScript `Date`.
+   *
+   * @returns {StandardDate} Standard JavaScript `Date` at the defined time zone offset
+   * @throws {Error} If the time zone offset is not defined in the object.
+   */
+  toStandardDate(): StandardDate {
+    if (this.timeZoneOffsetSeconds === undefined) {
+      throw new Error('Requires DateTime created with time zone offset')
+    }
+    return util.isoStringToStandardDate(this.toString())
   }
 
   /**
