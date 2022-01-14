@@ -124,7 +124,9 @@ class Session {
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
     this._databaseNameResolved = this._database !== ''
-    this._setupWatermark()
+    const calculatedWatermaks = this._calculateWatermaks()
+    this._lowRecordWatermark = calculatedWatermaks.low
+    this._highRecordWatermark = calculatedWatermaks.high
   }
 
   /**
@@ -431,13 +433,16 @@ class Session {
    * @private 
    * @returns {void}
    */
-  private _setupWatermark(): void {
+  private _calculateWatermaks(): { low: number; high: number } {
     if (this._fetchSize === FETCH_ALL) {
-      this._lowRecordWatermark = Number.MAX_VALUE // we shall always lower than this number to enable auto pull
-      this._highRecordWatermark = Number.MAX_VALUE // we shall never reach this number to disable auto pull
-    } else {
-      this._lowRecordWatermark = 0.3 * this._fetchSize
-      this._highRecordWatermark = 0.7 * this._fetchSize
+      return { 
+        low: Number.MAX_VALUE, // we shall always lower than this number to enable auto pull
+        high: Number.MAX_VALUE // we shall never reach this number to disable auto pull
+      }
+    }
+    return {
+      low: 0.3 * this._fetchSize,
+      high: 0.7 * this._fetchSize
     }
   }
 

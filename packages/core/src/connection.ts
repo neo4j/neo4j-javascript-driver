@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { ServerAddress } from "./internal/server-address"
+import { ServerAddress } from './internal/server-address'
 
 /**
  * Interface which defines the raw connection with the database
