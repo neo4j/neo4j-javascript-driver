@@ -67,9 +67,6 @@ function extractTimeout(config: any): Integer | null {
   if (util.isObject(config) && (config.timeout || config.timeout === 0)) {
     util.assertNumberOrInteger(config.timeout, 'Transaction timeout')
     const timeout = int(config.timeout)
-    if (timeout.isZero()) {
-      throw newError('Transaction timeout should not be zero')
-    }
     if (timeout.isNegative()) {
       throw newError('Transaction timeout should not be negative')
     }

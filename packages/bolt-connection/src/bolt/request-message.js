@@ -256,7 +256,7 @@ export default class RequestMessage {
     if ( databaseContext.databaseName ) {
       dbContext.db = databaseContext.databaseName
     }
-    
+
     if ( databaseContext.impersonatedUser ) {
       dbContext.imp_user = databaseContext.impersonatedUser
     }
@@ -286,7 +286,7 @@ function buildTxMetadata (bookmark, txConfig, database, mode, impersonatedUser) 
   if (!bookmark.isEmpty()) {
     metadata.bookmarks = bookmark.values()
   }
-  if (txConfig.timeout) {
+  if (txConfig.timeout !== null) {
     metadata.tx_timeout = txConfig.timeout
   }
   if (txConfig.metadata) {
