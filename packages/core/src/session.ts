@@ -55,7 +55,8 @@ class Session {
   private _writeConnectionHolder: ConnectionHolder
   private _open: boolean
   private _hasTx: boolean
-  private _lastBookmark: Bookmark
+  private _bookmarkIn: Bookmark
+  private _bookmarkOut?: string
   private _transactionExecutor: TransactionExecutor
   private _impersonatedUser?: string
   private _onComplete: (meta: any) => void
@@ -117,7 +118,7 @@ class Session {
     this._open = true
     this._hasTx = false
     this._impersonatedUser = impersonatedUser
-    this._lastBookmark = bookmark || Bookmark.empty()
+    this._bookmarkIn = bookmark || Bookmark.empty()
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
     this._databaseNameResolved = this._database !== ''
@@ -150,7 +151,7 @@ class Session {
     return this._run(validatedQuery, params, connection => {
       this._assertSessionIsOpen()
       return (connection as Connection).protocol().run(validatedQuery, params, {
-        bookmark: this._lastBookmark,
+        bookmark: this._bookmarkIn,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
@@ -271,7 +272,7 @@ class Session {
       reactive: this._reactive,
       fetchSize: this._fetchSize
     })
-    tx._begin(this._lastBookmark, txConfig)
+    tx._begin(this._bookmarkIn, txConfig)
     return tx
   }
 
@@ -296,10 +297,10 @@ class Session {
   /**
    * Return the bookmark received following the last completed {@link Transaction}.
    *
-   * @return {string[]} A reference to a previous transaction.
+   * @return {string | undefined} A reference to a previous transaction if present.
    */
-  lastBookmark(): string[] {
-    return this._lastBookmark.values()
+  lastBookmark(): string | undefined {
+    return this._bookmarkOut
   }
 
   /**
@@ -360,7 +361,7 @@ class Session {
   /**
    * Sets the resolved database name in the session context.
    * @private
-   * @param {string|undefined} database The resolved database name
+   * @param {string | undefined} database The resolved database name
    * @returns {void}
    */
   _onDatabaseNameResolved(database?: string): void {
@@ -376,12 +377,13 @@ class Session {
   /**
    * Update value of the last bookmark.
    * @private
-   * @param {Bookmark} newBookmark - The new bookmark.
+   * @param {string | undefined} newBookmark - The new bookmark.
    * @returns {void}
    */
-  _updateBookmark(newBookmark?: Bookmark): void {
-    if (newBookmark && !newBookmark.isEmpty()) {
-      this._lastBookmark = newBookmark
+  _updateBookmark(newBookmark?: string): void {
+    if (newBookmark !== undefined) {
+      this._bookmarkIn = new Bookmark(newBookmark)
+      this._bookmarkOut = newBookmark
     }
   }
 
@@ -414,8 +416,8 @@ class Session {
    * @param {Object} meta Connection metadatada
    * @returns {void}
    */
-  _onCompleteCallback(meta: { bookmark: string | string[] }): void {
-    this._updateBookmark(new Bookmark(meta.bookmark))
+  _onCompleteCallback(meta: { bookmark: string }): void {
+    this._updateBookmark(meta.bookmark)
   }
 
   /**

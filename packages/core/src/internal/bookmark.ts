@@ -79,7 +79,7 @@ const EMPTY_BOOKMARK = new Bookmark(null)
  * @return {string[]} value converted to an array.
  */
 function asStringArray(
-  value?: string | string[] | Array<string> | null
+  value?: string | (string | undefined)[] | Array<string | undefined> | null
 ): string[] {
   if (!value) {
     return []

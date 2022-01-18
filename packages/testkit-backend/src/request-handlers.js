@@ -288,7 +288,11 @@ export function TransactionRollback (context, data, wire) {
 export function SessionLastBookmarks (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
-  const bookmarks = session.lastBookmark()
+  const bookmark = session.lastBookmark()
+  const bookmarks = []
+  if (bookmark !== undefined) {
+    bookmarks.push(bookmark)
+  }
   wire.writeResponse('Bookmarks', { bookmarks })
 }
 

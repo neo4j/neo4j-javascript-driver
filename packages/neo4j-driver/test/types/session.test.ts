@@ -55,7 +55,7 @@ const txConfig7: TransactionConfig = {
 }
 
 const tx1: Transaction = session.beginTransaction()
-const bookmark: string[] = session.lastBookmark()
+const bookmark: string | undefined = session.lastBookmark()
 
 const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
   return 10
@@ -173,4 +173,4 @@ const promise6: Promise<number> = session.writeTransaction(
   txConfig4
 )
 
-const lastBookmark: string[] = session.lastBookmark()
+const lastBookmark: string | undefined = session.lastBookmark()

@@ -46,7 +46,7 @@ class Transaction {
   private _reactive: boolean
   private _state: any
   private _onClose: () => void
-  private _onBookmark: (bookmark: Bookmark) => void
+  private _onBookmark: (bookmark: string | undefined ) => void
   private _onConnection: () => void
   private _onError: (error: Error) => Promise<Connection | void>
   private _onComplete: (metadata: any) => void
@@ -58,7 +58,7 @@ class Transaction {
    * @constructor
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
-   * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
+   * @param {function(bookmark: string | undefined)} onBookmark callback invoked when new bookmark is produced.
    * * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the conneciton
    * is not yet released.
    * @param {boolean} reactive whether this transaction generates reactive streams
@@ -76,7 +76,7 @@ class Transaction {
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
-    onBookmark: (bookmark: Bookmark) => void
+    onBookmark: (bookmark: string | undefined) => void
     onConnection: () => void
     reactive: boolean
     fetchSize: number
@@ -226,8 +226,8 @@ class Transaction {
    * @param {object} meta The meta with bookmark
    * @returns {void}
    */
-  _onCompleteCallback(meta: { bookmark?: string | string[] }): void {
-    this._onBookmark(new Bookmark(meta.bookmark))
+  _onCompleteCallback(meta: { bookmark?: string }): void {
+    this._onBookmark(meta.bookmark)
   }
 }
 
