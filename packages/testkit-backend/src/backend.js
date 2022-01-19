@@ -21,9 +21,9 @@ export default class Backend {
     this._channel.on('contextOpen', ({ contextId }) => this._controller.openContext(contextId))
     this._channel.on('contextClose', ({ contextId }) => this._controller.closeContext(contextId))
 
-    this._channel.on('request', ({ contextId, request }) => {
+    this._channel.on('request', async ({ contextId, request }) => {
       try {
-        this._controller.handle(contextId, request)
+        await this._controller.handle(contextId, request)
       } catch (e) {
         this._channel.writeBackendError(contextId, e.message)
       }

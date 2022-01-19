@@ -24,7 +24,7 @@ export default class Controller extends EventEmitter {
     throw new Error('not implemented')
   }
 
-  handle(contextId, request) {
+  async handle(contextId, request) {
     throw new Error('not implemented')
   }
 }

@@ -93,13 +93,13 @@ export function NewDriver (context, data, wire) {
 export function DriverClose (context, data, wire) {
   const { driverId } = data
   const driver = context.getDriver(driverId)
-  driver
+  return driver
     .close()
     .then(() => {
       wire.writeResponse('Driver', { id: driverId })
     })
-    .catch(err => wire.writeError(err))
-  context.removeDriver(driverId)
+    .catch(err => wire.writeError(err)) 
+    .finally(() => context.removeDriver(driverId))
 }
 
 export function NewSession (context, data, wire) {
@@ -130,7 +130,7 @@ export function NewSession (context, data, wire) {
 export function SessionClose (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
-  session
+  return session
     .close()
     .then(() => {
       wire.writeResponse('Session', { id: sessionId })
@@ -167,7 +167,7 @@ export function ResultNext (context, data, wire) {
   if (!("recordIt" in result)) {
     result.recordIt = result[Symbol.asyncIterator]()
   }
-  result.recordIt.next().then(({ value, done }) => {
+  return result.recordIt.next().then(({ value, done }) => {
     if (done) {
       wire.writeResponse('NullRecord', null)
     } else {
@@ -185,7 +185,7 @@ export function ResultNext (context, data, wire) {
 export function ResultConsume (context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
-  result.summary().then(summary => {
+  return result.summary().then(summary => {
     wire.writeResponse('Summary', {
       ...summary,
       serverInfo: {
@@ -201,7 +201,7 @@ export function ResultList (context, data, wire) {
 
   const result = context.getResult(resultId)
 
-  result
+  return result
     .then(({ records }) => {
       const cypherRecords = records.map(rec => {
         return { values: Array.from(rec.values()).map(nativeToCypher) }
@@ -214,7 +214,7 @@ export function ResultList (context, data, wire) {
 export function SessionReadTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
-  session
+  return session
     .readTransaction(
       tx =>
         new Promise((resolve, reject) => {
@@ -273,7 +273,7 @@ export function SessionBeginTransaction (context, data, wire) {
 export function TransactionCommit (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
-  tx.commit()
+  return tx.commit()
     .then(() => wire.writeResponse('Transaction', { id }))
     .catch(e => {
       console.log('got some err: ' + JSON.stringify(e))
@@ -284,7 +284,7 @@ export function TransactionCommit (context, data, wire) {
 export function TransactionRollback (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
-  tx.rollback()
+  return tx.rollback()
     .then(() => wire.writeResponse('Transaction', { id }))
     .catch(e => wire.writeError(e))
 }
@@ -299,7 +299,7 @@ export function SessionLastBookmarks (context, data, wire) {
 export function SessionWriteTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
-  session
+  return session
     .writeTransaction(
       tx =>
         new Promise((resolve, reject) => {
@@ -345,7 +345,7 @@ export function GetFeatures (_context, _params, wire) {
 
 export function VerifyConnectivity (context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
-  driver
+  return driver
     .verifyConnectivity()
     .then(() => wire.writeResponse('Driver', { id: driverId }))
     .catch(error => wire.writeError(error))
@@ -353,7 +353,7 @@ export function VerifyConnectivity (context, { driverId }, wire) {
 
 export function CheckMultiDBSupport (context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
-  driver
+  return driver
     .supportsMultiDb()
     .then(available =>
       wire.writeResponse('MultiDBSupport', { id: driverId, available })
@@ -407,7 +407,7 @@ export function ForcedRoutingTableUpdate (context, { driverId, database, bookmar
   if (provider._freshRoutingTable) {
     // Removing database from the routing table registry
     provider._routingTableRegistry._remove(database)
-    provider._freshRoutingTable ({
+    return provider._freshRoutingTable ({
         accessMode: 'READ',
         database,
         bookmark: bookmarks,

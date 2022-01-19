@@ -25,7 +25,7 @@ export default class LocalController extends Controller {
     this._contexts.delete(contextId)
   }
   
-  handle (contextId, { name, data }) {
+  async handle (contextId, { name, data }) {
     if (!this._contexts.has(contextId)) {
       throw new Error(`Context ${contextId} does not exist`)
     } else if (!(name in this._requestHandlers)) {
@@ -34,7 +34,7 @@ export default class LocalController extends Controller {
       throw new Error(`Unknown request: ${name}`)
     }
 
-    this._requestHandlers[name](this._contexts.get(contextId), data, {
+    return await this._requestHandlers[name](this._contexts.get(contextId), data, {
       writeResponse: (name, data) => this._writeResponse(contextId, name, data),
       writeError: (e) => this._writeError(contextId, e),
       writeBackendError: (msg) => this._writeBackendError(contextId, msg)
