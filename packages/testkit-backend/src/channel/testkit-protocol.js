@@ -1,5 +1,6 @@
 import readline from 'readline'
 import EventEmitter from 'events'
+import stringify from '../stringify'
 
 export default class Protocol extends EventEmitter {
   constructor (stream) {
@@ -61,7 +62,7 @@ export default class Protocol extends EventEmitter {
 
   serializeResponse (response) {
     console.log('> writing response', response)
-    const responseStr = this._stringify(response)
+    const responseStr = stringify(response)
     return  ['#response begin', responseStr, '#response end'].join('\n') + '\n'
   }
 
@@ -72,9 +73,4 @@ export default class Protocol extends EventEmitter {
     this.emit('request', { name, data })
   }
   
-  _stringify (val) {
-    return JSON.stringify(val, (_, value) =>
-      typeof value === 'bigint' ? `${value}n` : value
-    )
-  }
 }

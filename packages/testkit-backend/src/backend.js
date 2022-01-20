@@ -25,7 +25,7 @@ export default class Backend {
       try {
         this._controller.handle(contextId, request)
       } catch (e) {
-        this._channel.writeBackendError(contextId, e)
+        this._channel.writeBackendError(contextId, e.message)
       }
     })
   }
