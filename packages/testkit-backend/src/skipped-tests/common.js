@@ -8,6 +8,10 @@ const skippedTests = [
     ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_nested'),
   ),
   skip(
+    'Nested calls does not garauntee order in the records pulling',
+    ifEquals('stub.iteration.test_iteration_tx_run.TestIterationTxRun.test_nested'),
+  ),
+  skip(
     'The driver has no support domain_name_resolver',
     ifEndsWith('test_should_successfully_acquire_rt_when_router_ip_changes'),
     ifEndsWith(

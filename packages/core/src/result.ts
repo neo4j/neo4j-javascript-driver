@@ -462,29 +462,56 @@ class Result implements Promise<QueryResult> {
       return resolvablePromise;
     }
 
+    type QueuedResultElementOrError = QueuedResultElement | Error
+
+    function isError(elementOrError: QueuedResultElementOrError): elementOrError is Error {
+      return elementOrError instanceof Error
+    }
+
+    const buffer: QueuedResultElementOrError[] = []
+    const promiseHolder: { resolvable: ResolvablePromise<QueuedResultElement> | null } = { resolvable: null }
+
+
     const observer = {
-      _buffer: [createResolvablePromise()],
       onNext: (record: Record) => {
-        observer._buffer[observer._buffer.length - 1].resolve({ done: false, record })
-        observer._buffer.push(createResolvablePromise())
+        observer._push({ done: false, record })
       },
       onCompleted: (summary: ResultSummary) => {
-        observer._buffer[observer._buffer.length - 1].resolve({ done: true, summary })
+        observer._push({ done: true, summary })
       },
       onError: (error: Error) => {
-        observer._buffer[observer._buffer.length - 1].reject(error)
+        observer._push(error)
+      },
+      _push(element: QueuedResultElementOrError) {
+        if (promiseHolder.resolvable !== null) {
+          const resolvable = promiseHolder.resolvable
+          promiseHolder.resolvable = null
+          if (isError(element)) {
+            resolvable.reject(element)
+          } else {
+            resolvable.resolve(element)
+          }
+        } else {
+          buffer.push(element)
+        }
       },
       dequeue: async () => {
-        const value = await observer._buffer[0].promise
-        observer._buffer.shift();
-        return value
+        if (buffer.length > 0) {
+          const element = buffer.shift()!
+          if (isError(element)) {
+              throw element
+          }
+          return element
+        }
+        promiseHolder.resolvable = createResolvablePromise()
+        return await promiseHolder.resolvable.promise
       },
       get size (): number {
-        return observer._buffer.length - 1
+        return buffer.length
       }
     }
 
-    return observer;
+    return observer
   }
 }
 
