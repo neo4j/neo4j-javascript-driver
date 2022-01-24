@@ -77,6 +77,22 @@ export interface ResultStreamObserver extends StreamObserver {
    * Cancel pending record stream
    */
   cancel(): void
+
+  /**
+   * Pause the record consuming
+   *
+   * This function will supend the record consuming. It will not cancel the stream and the already
+   * requested records will be sent to the subscriber.
+   */
+  pause(): void
+
+  /**
+   * Resume the record consuming
+   *
+   * This function will resume the record consuming fetching more records from the server.
+   */
+  resume(): void
+
   /**
    * Stream observer defaults to handling responses for two messages: RUN + PULL_ALL or RUN + DISCARD_ALL.
    * Response for RUN initializes query keys. Response for PULL_ALL / DISCARD_ALL exposes the result stream.
@@ -88,10 +104,6 @@ export interface ResultStreamObserver extends StreamObserver {
    * This function prepares the observer to only handle a single response message.
    */
   prepareToHandleSingleResponse(): void
-
-  setExplicityPull(explicityPull: boolean): void
-
-  pull(): boolean
 
   /**
    * Mark this observer as if it has completed with no metadata.
@@ -119,21 +131,20 @@ export class CompletedObserver implements ResultStreamObserver {
     // do nothing
   }
 
+  pause(): void {
+    // do nothing
+  }
+
+  resume(): void {
+    // do nothing
+  }
+
   prepareToHandleSingleResponse(): void {
     // do nothing
   }
 
   markCompleted(): void {
     // do nothing
-  }
-
-  setExplicityPull(_: boolean): void {
-    // do nothing
-  }
-
-  pull(): boolean {
-    // do nothing
-    return false
   }
 
   onError(error: Error): void {
@@ -175,7 +186,11 @@ export class FailedObserver implements ResultStreamObserver {
     // do nothing
   }
 
-  prepareToHandleSingleResponse(): void {
+  pause(): void {
+    // do nothing
+  }
+
+  resume(): void {
     // do nothing
   }
 
@@ -183,13 +198,8 @@ export class FailedObserver implements ResultStreamObserver {
     // do nothing
   }
 
-  setExplicityPull(_: boolean): void {
+  prepareToHandleSingleResponse(): void {
     // do nothing
-  }
-
-  pull(): boolean {
-    // do nothing
-    return false
   }
 
 }

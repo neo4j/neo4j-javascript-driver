@@ -569,32 +569,36 @@ describe('Result', () => {
         expect(subscribe).toHaveBeenCalled()
       })
 
-      it('should set the observer to explicity pull', async () => {
-        const setExplicityPull = jest.spyOn(streamObserverMock, 'setExplicityPull')
+      it('should pause the stream and then resume the stream', async () => {
+        const pause = jest.spyOn(streamObserverMock, 'pause')
+        const resume = jest.spyOn(streamObserverMock, 'resume')
         streamObserverMock.onCompleted({})
 
         for await (const _ of result) {
           // do nothing
         }
 
-        expect(setExplicityPull).toHaveBeenCalledWith(true)
+        expect(pause).toHaveBeenCalledTimes(1)
+        expect(resume).toHaveBeenCalledTimes(1)
+        expect(pause.mock.invocationCallOrder[0])
+          .toBeLessThan(resume.mock.invocationCallOrder[0])
       })
 
-      it('should set the observer to explicity pull before subscribe', async () => {
+      it('should pause the stream before subscribe', async () => {
         const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
-        const setExplicityPull = jest.spyOn(streamObserverMock, 'setExplicityPull')
+        const pause = jest.spyOn(streamObserverMock, 'pause')
         streamObserverMock.onCompleted({})
 
         for await (const _ of result) {
           // do nothing
         }
 
-        expect(setExplicityPull.mock.invocationCallOrder[0])
+        expect(pause.mock.invocationCallOrder[0])
           .toBeLessThan(subscribe.mock.invocationCallOrder[0])
       })
 
-      it('should not call pull if queue is bigger than high watermark', async () => {
-        const pull = jest.spyOn(streamObserverMock, 'pull')
+      it('should pause the stream if queue is bigger than high watermark', async () => {
+        const pause = jest.spyOn(streamObserverMock, 'pause')
         streamObserverMock.onKeys(['a'])
 
         for (let i = 0; i <= watermarks.high; i++) {
@@ -604,11 +608,11 @@ describe('Result', () => {
         const it = result[Symbol.asyncIterator]()
         await it.next()
 
-        expect(pull).toBeCalledTimes(0)
+        expect(pause).toBeCalledTimes(1)
       })
 
-      it('should call pull if queue is smaller than low watermark', async () => {
-        const pull = jest.spyOn(streamObserverMock, 'pull')
+      it('should call resume if queue is smaller than low watermark', async () => {
+        const resume = jest.spyOn(streamObserverMock, 'resume')
         streamObserverMock.onKeys(['a'])
 
         for (let i = 0; i < watermarks.low - 1; i++) {
@@ -618,11 +622,12 @@ describe('Result', () => {
         const it = result[Symbol.asyncIterator]()
         await it.next()
 
-        expect(pull).toBeCalledTimes(1)
+        expect(resume).toBeCalledTimes(1)
       })
 
-      it('should call pull if queue is between lower and high if it never highter then high watermark', async () => {
-        const pull = jest.spyOn(streamObserverMock, 'pull')
+      it('should not pause after resume if queue is between lower and high if it never highter then high watermark', async () => {
+        const pause = jest.spyOn(streamObserverMock, 'pause')
+        const resume = jest.spyOn(streamObserverMock, 'resume')
         streamObserverMock.onKeys(['a'])
 
         for (let i = 0; i < watermarks.high - 1; i++) {
@@ -634,11 +639,13 @@ describe('Result', () => {
           await it.next()
         }
 
-        expect(pull).toBeCalledTimes(watermarks.high - watermarks.low)
+        expect(pause).toBeCalledTimes(1)
+        expect(pause.mock.invocationCallOrder[0])
+          .toBeLessThan(resume.mock.invocationCallOrder[0])
       })
 
-      it('should call pull if queue is between lower and high if it get highter then high watermark', async () => {
-        const pull = jest.spyOn(streamObserverMock, 'pull')
+      it('should resume once if queue is between lower and high if it get highter then high watermark', async () => {
+        const resume = jest.spyOn(streamObserverMock, 'resume')
         streamObserverMock.onKeys(['a'])
 
         for (let i = 0; i < watermarks.high; i++) {
@@ -650,11 +657,11 @@ describe('Result', () => {
           await it.next()
         }
 
-        expect(pull).toBeCalledTimes(0)
+        expect(resume).toBeCalledTimes(1)
       })
 
       it('should recover from high watermark limit after went to low watermark', async () => {
-        const pull = jest.spyOn(streamObserverMock, 'pull')
+        const resume = jest.spyOn(streamObserverMock, 'resume')
         streamObserverMock.onKeys(['a'])
 
         for (let i = 0; i < watermarks.high; i++) {
@@ -670,7 +677,7 @@ describe('Result', () => {
           await it.next()
         }
 
-        expect(pull).toBeCalledTimes(2)
+        expect(resume).toBeCalledTimes(1)
       })
 
       it('should iterate over record', async () => {
@@ -720,9 +727,14 @@ describe('Result', () => {
           rawRecord5,
           rawRecord6
         ]
+
+        const simuatedStream = simulateStream(queue, observer, fetchSize, 2)
         
-        jest.spyOn(observer, 'pull')
-          .mockImplementation(simulatePull(queue, observer, fetchSize, 2))
+        jest.spyOn(observer, 'resume')
+          .mockImplementation(simuatedStream.resume.bind(simuatedStream))
+        
+        jest.spyOn(observer, 'pause')
+          .mockImplementation(simuatedStream.pause.bind(simuatedStream))
 
         observer.onKeys(keys)
         observer.onNext(rawRecord1)
@@ -1080,33 +1092,37 @@ class ResultStreamObserverMock implements observer.ResultStreamObserver {
       .forEach(o => o.onCompleted!(meta))
   }
 
-  setExplicityPull(_: boolean): void {
+  pause (): void {
     // do nothing
   }
 
-  pull(): boolean {
+  resume(): void {
     // do nothing
-    return true
   }
 }
 
-function simulatePull(
+function simulateStream(
   records: any[][],
   observer: ResultStreamObserverMock,
   fetchSize: number,
-  timeout: number = 1): () => boolean {
+  timeout: number = 1): {
+    resume: () => void,
+    pause: () => void
+  } {
   const state = {
+    paused: false,
     streaming: false,
     finished: false,
     consumed: 0
   }
-  return () => {
-    
+
+  const streaming = () => {
     if (state.streaming || state.finished) {
-      return false
+      return
     }
     state.streaming = true
     state.consumed = 0
+    
     const interval = setInterval(() => {
       state.streaming = state.consumed < fetchSize
       state.finished = records.length === 0
@@ -1119,6 +1135,9 @@ function simulatePull(
 
       if (!state.streaming) {
         clearInterval(interval)
+        if (!state.paused) {
+          streaming()
+        }
         return
       } 
 
@@ -1129,8 +1148,25 @@ function simulatePull(
       state.consumed++
       
     }, timeout)
+  }
+
+  return {
+    pause: () => {
+      state.paused = true
+    },
+    resume: () => {
+      state.paused = false
+      streaming()
+    }
+  }
+  
+  /*
+  return () => {
+    
+    
     return true
   }
+  */
 }
 
 function asConnection(value: any): Connection {

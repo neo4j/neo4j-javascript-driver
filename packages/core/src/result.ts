@@ -244,25 +244,25 @@ class Result implements Promise<QueryResult> {
   async* [Symbol.asyncIterator](): AsyncIterator<Record, ResultSummary> {
     const queuedObserver = this._createQueuedResultObserver()
 
-    const status = { paused: false }
+    const status = { paused: true, firstRun: true }
 
     const streaming: observer.ResultStreamObserver | null =
       // the error will be send to the onError callback
       await this._subscribe(queuedObserver, true).catch(() => null) 
 
-    const pullIfNeeded = () => {
-      if (queuedObserver.size >= this._watermarks.high) {
+    const controlFlow = () => {
+      if (queuedObserver.size >= this._watermarks.high && !status.paused) {
         status.paused = true
-      } else if (queuedObserver.size <= this._watermarks.low) {
+        streaming?.pause()
+      } else if (queuedObserver.size <= this._watermarks.low && status.paused || status.firstRun) {
+        status.firstRun = false
         status.paused = false
-      }
-      if (!status.paused && queuedObserver.size < this._watermarks.high && streaming) {
-        streaming.pull()
+        streaming?.resume()
       }
     }
 
     while(true) {
-      pullIfNeeded()
+      controlFlow()
       const next = await queuedObserver.dequeue()
       if (next.done) {
         return next.summary
@@ -338,15 +338,17 @@ class Result implements Promise<QueryResult> {
    *
    * @access private
    * @param {ResultObserver} observer The observer to send records to.
-   * @param {boolean} explicityPull The flag to indicate if the pull should be called explicitly.
+   * @param {boolean} paused The flag to indicate if the stream should be started paused
    * @returns {Promise<observer.ResultStreamObserver>} The result stream observer.
    */
-  _subscribe(observer: ResultObserver, explicityPull: boolean = false): Promise<observer.ResultStreamObserver> {
+  _subscribe(observer: ResultObserver, paused: boolean = false): Promise<observer.ResultStreamObserver> {
     const _observer = this._decorateObserver(observer)
 
     return this._streamObserverPromise
       .then(o => {
-        o.setExplicityPull(explicityPull)
+        if (paused) {
+          o.pause()
+        }
         o.subscribe(_observer)
         return o
       })
@@ -462,7 +464,6 @@ class Result implements Promise<QueryResult> {
 
     const observer = {
       _buffer: [createResolvablePromise()],
-      _completedCalls: 0,
       onNext: (record: Record) => {
         observer._buffer[observer._buffer.length - 1].resolve({ done: false, record })
         observer._buffer.push(createResolvablePromise())

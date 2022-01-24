@@ -199,7 +199,7 @@ describe('#unit ResultStreamObserver', () => {
     })
   })
 
-  describe('when is not explicity pull (default)', () => {
+  describe('when is not paused (default)', () => {
     it('should ask for more records when the stream is completed and has more', () => {
       // Setup
       const queryId = 123
@@ -229,7 +229,7 @@ describe('#unit ResultStreamObserver', () => {
     })
   })
 
-  describe('when is explicity pull enabled', () => {
+  describe('when is paused', () => {
     it('should not ask for more records when the stream is completed and has more', () => {
       // Setup
       const queryId = 123
@@ -239,7 +239,8 @@ describe('#unit ResultStreamObserver', () => {
         moreFunction: more,
         fetchSize: 2000
       })
-      streamObserver.setExplicityPull(true)
+
+      streamObserver.pause()
 
       // action
       streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
@@ -254,7 +255,7 @@ describe('#unit ResultStreamObserver', () => {
       expect(more).toBeCalledTimes(0)
     })
 
-    describe('pull()', () => {
+    describe('resume()', () => {
       it('should ask for more records when the stream is completed and has more', () => {
         // Setup
         const queryId = 123
@@ -265,7 +266,8 @@ describe('#unit ResultStreamObserver', () => {
           moreFunction: more,
           fetchSize: fetchSize
         })
-        streamObserver.setExplicityPull(true)
+
+        streamObserver.pause()
 
         // Scenario
         streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
@@ -277,7 +279,7 @@ describe('#unit ResultStreamObserver', () => {
         streamObserver.onCompleted({ has_more: true })
 
         // Action
-        streamObserver.pull()
+        streamObserver.resume()
 
         // verification
         expect(more).toBeCalledTimes(1)
@@ -295,13 +297,13 @@ describe('#unit ResultStreamObserver', () => {
           fetchSize: fetchSize,
           reactive: true
         })
-        streamObserver.setExplicityPull(true)
+        streamObserver.pause()
 
         // Scenario
         streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
 
         // Action
-        streamObserver.pull()
+        streamObserver.resume()
 
         // verification
         expect(more).toBeCalledTimes(1)
@@ -320,10 +322,10 @@ describe('#unit ResultStreamObserver', () => {
           fetchSize: fetchSize,
           reactive: true
         })
-        streamObserver.setExplicityPull(true)
+        streamObserver.pause()
 
         // Action
-        streamObserver.pull()
+        streamObserver.resume()
 
         // verification
         expect(more).toBeCalledTimes(1)
@@ -341,13 +343,13 @@ describe('#unit ResultStreamObserver', () => {
           fetchSize: fetchSize,
           reactive: false
         })
-        streamObserver.setExplicityPull(true)
+        streamObserver.pause()
 
         // Scenario
         streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
 
         // Action
-        streamObserver.pull()
+        streamObserver.resume()
 
         // verification
         expect(more).toBeCalledTimes(0)
@@ -365,13 +367,13 @@ describe('#unit ResultStreamObserver', () => {
           fetchSize: fetchSize
         })
 
-        streamObserver.setExplicityPull(true)
+        streamObserver.pause()
 
         // Scenario
         streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
 
         // Action
-        streamObserver.pull()
+        streamObserver.resume()
 
         // verification
         expect(more).toBeCalledTimes(0)
@@ -388,7 +390,7 @@ describe('#unit ResultStreamObserver', () => {
           fetchSize: fetchSize
         })
 
-        streamObserver.setExplicityPull(true)
+        streamObserver.pause()
 
         // Scenario
         streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
@@ -399,12 +401,12 @@ describe('#unit ResultStreamObserver', () => {
         streamObserver.onNext([11, 22, 33])
         streamObserver.onCompleted({ has_more: true })
 
-        streamObserver.pull() // should actual call
+        streamObserver.resume() // should actual call
 
         streamObserver.onNext([111, 222, 333])
 
         // Action
-        streamObserver.pull()
+        streamObserver.resume()
 
         // verification
         expect(more).toBeCalledTimes(1)
@@ -421,7 +423,7 @@ describe('#unit ResultStreamObserver', () => {
           fetchSize: fetchSize
         })
 
-        streamObserver.setExplicityPull(true)
+        streamObserver.pause()
 
         // Scenario
         streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
@@ -433,10 +435,51 @@ describe('#unit ResultStreamObserver', () => {
         streamObserver.onCompleted({ has_more: false })
 
         // Action
-        streamObserver.pull()
+        streamObserver.resume()
 
         // verification
         expect(more).toBeCalledTimes(0)
+      })
+
+
+      it('should resume the stream consumption until the end', () => {
+        // Setup
+        const queryId = 123
+        const fetchSize = 2000
+
+        const more = jest.fn()
+        const streamObserver = new ResultStreamObserver({
+          moreFunction: more,
+          fetchSize: fetchSize
+        })
+
+        streamObserver.pause()
+
+        // Scenario
+        streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
+
+        streamObserver.subscribe(newObserver())
+
+        streamObserver.onNext([1, 2, 3])
+        streamObserver.onNext([11, 22, 33])
+        streamObserver.onCompleted({ has_more: true })
+
+        // Action
+        streamObserver.resume()
+
+        // Streaming until the end
+        streamObserver.onNext([1, 2, 3])
+        streamObserver.onNext([11, 22, 33])
+        streamObserver.onCompleted({ has_more: true })
+        streamObserver.onNext([1, 2, 3])
+        streamObserver.onNext([11, 22, 33])
+        streamObserver.onCompleted({ has_more: true })
+        streamObserver.onNext([1, 2, 3])
+        streamObserver.onNext([11, 22, 33])
+        streamObserver.onCompleted({ has_more: false })
+
+        // verification
+        expect(more).toBeCalledTimes(3)
       })
 
       it('should not ask for more records when stream failed', () => {
@@ -450,7 +493,7 @@ describe('#unit ResultStreamObserver', () => {
           fetchSize: fetchSize
         })
 
-        streamObserver.setExplicityPull(true)
+        streamObserver.pause()
 
         // Scenario
         streamObserver.onCompleted({ fields: ['A', 'B', 'C'], qid: queryId })
@@ -461,7 +504,7 @@ describe('#unit ResultStreamObserver', () => {
         streamObserver.onError(new Error('error'))
 
         // Action
-        streamObserver.pull()
+        streamObserver.resume()
 
         // verification
         expect(more).toBeCalledTimes(0)

@@ -100,15 +100,28 @@ class ResultStreamObserver extends StreamObserver {
     this._highRecordWatermark = highRecordWatermark
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
     this._setupAutoPull()
-    this._explicityPull = false;
+    this._paused = false;
   }
 
-  setExplicityPull(explicityPull) {
-    this._explicityPull = explicityPull;
+  /**
+   * Pause the record consuming
+   *
+   * This function will supend the record consuming. It will not cancel the stream and the already
+   * requested records will be sent to the subscriber.
+   */
+  pause () {
+    this._paused = true
   }
 
-  pull() {
-    return this._state.pull(this)
+  /**
+   * Resume the record consuming
+   *
+   * This function will resume the record consuming fetching more records from the server.
+   */
+  resume () {
+    this._paused = false
+    this._setupAutoPull(true)
+    this._state.pull(this)
   }
 
   /**
@@ -355,7 +368,7 @@ class ResultStreamObserver extends StreamObserver {
 
   _handleStreaming () {
     if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
-      if (!this._explicityPull && (this._discard || this._autoPull)) {
+      if (!this._paused && (this._discard || this._autoPull)) {
         this._more()
       }
     }
