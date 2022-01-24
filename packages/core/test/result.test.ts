@@ -19,6 +19,7 @@
 import { observer, connectionHolder } from '../src/internal'
 import {
   Connection,
+  internal,
   newError,
   Record,
   ResultObserver,
@@ -694,6 +695,56 @@ describe('Result', () => {
         ])
       })
 
+      it('should end full batch', async () => {
+        const fetchSize = 3
+        const observer = new ResultStreamObserverMock()
+        const res = new Result(
+          Promise.resolve(observer), 
+          'query', undefined, undefined, 
+          {
+            low: fetchSize * 0.3, // Same as calculate in the session.ts
+            high: fetchSize * 0.7
+          }
+        )
+
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+        const rawRecord3 = [5, 6]
+        const rawRecord4 = [7, 8]
+        const rawRecord5 = [9, 10]
+        const rawRecord6 = [11, 12]
+        const queue: any[][] = [
+          rawRecord3,
+          rawRecord4,
+          rawRecord5,
+          rawRecord6
+        ]
+        
+        jest.spyOn(observer, 'pull')
+          .mockImplementation(simulatePull(queue, observer, fetchSize, 2))
+
+        observer.onKeys(keys)
+        observer.onNext(rawRecord1)
+        observer.onNext(rawRecord2)
+
+        const records = []
+        
+        for await (const record of res) {
+          records.push(record)
+          await new Promise(r => setTimeout(r, 0.1))
+        }
+
+        expect(records).toEqual([
+          new Record(keys, rawRecord1),
+          new Record(keys, rawRecord2),
+          new Record(keys, rawRecord3),
+          new Record(keys, rawRecord4),
+          new Record(keys, rawRecord5),
+          new Record(keys, rawRecord6)
+        ])
+      })
+
       describe('onError', () => {
         it('should throws an exception while iterate over records', async () => {
           const keys = ['a', 'b']
@@ -898,14 +949,14 @@ describe('Result', () => {
   describe.each([
     [
       'Promise.resolve(new observer.FailedObserver({ error: expectedError }))',
-      Promise.resolve(new observer.FailedObserver({ error: expectedError }))
+      () => Promise.resolve(new observer.FailedObserver({ error: expectedError }))
     ],
-    ['Promise.reject(expectedError)', Promise.reject(expectedError)]
-  ])('new Result(%s, "query") ', (_, promise) => {
+    ['Promise.reject(expectedError)', () => Promise.reject(expectedError)]
+  ])('new Result(%s, "query") ', (_, getPromise) => {
     let result: Result
 
     beforeEach(() => {
-      result = new Result(promise, 'query')
+      result = new Result(getPromise(), 'query')
     })
 
     describe('.keys()', () => {
@@ -1033,8 +1084,52 @@ class ResultStreamObserverMock implements observer.ResultStreamObserver {
     // do nothing
   }
 
-  pull(): void {
+  pull(): boolean {
     // do nothing
+    return true
+  }
+}
+
+function simulatePull(
+  records: any[][],
+  observer: ResultStreamObserverMock,
+  fetchSize: number,
+  timeout: number = 1): () => boolean {
+  const state = {
+    streaming: false,
+    finished: false,
+    consumed: 0
+  }
+  return () => {
+    
+    if (state.streaming || state.finished) {
+      return false
+    }
+    state.streaming = true
+    state.consumed = 0
+    const interval = setInterval(() => {
+      state.streaming = state.consumed < fetchSize
+      state.finished = records.length === 0
+
+      if (state.finished) {
+        observer.onCompleted({})
+        clearInterval(interval)
+        return
+      }
+
+      if (!state.streaming) {
+        clearInterval(interval)
+        return
+      } 
+
+      const record = records.shift()
+      if (record !== undefined) {
+        observer.onNext(record)
+      }
+      state.consumed++
+      
+    }, timeout)
+    return true
   }
 }
 

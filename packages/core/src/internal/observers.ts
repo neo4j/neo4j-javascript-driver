@@ -91,7 +91,7 @@ export interface ResultStreamObserver extends StreamObserver {
 
   setExplicityPull(explicityPull: boolean): void
 
-  pull(): void
+  pull(): boolean
 
   /**
    * Mark this observer as if it has completed with no metadata.
@@ -131,8 +131,9 @@ export class CompletedObserver implements ResultStreamObserver {
     // do nothing
   }
 
-  pull(): void {
+  pull(): boolean {
     // do nothing
+    return false
   }
 
   onError(error: Error): void {
@@ -186,8 +187,9 @@ export class FailedObserver implements ResultStreamObserver {
     // do nothing
   }
 
-  pull(): void {
+  pull(): boolean {
     // do nothing
+    return false
   }
 
 }

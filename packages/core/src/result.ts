@@ -246,13 +246,9 @@ class Result implements Promise<QueryResult> {
 
     const status = { paused: false }
 
-    let streaming: observer.ResultStreamObserver | null = null
-
-    try {
-      streaming = await this._subscribe(queuedObserver, true)
-    } catch (e) {
-      // ignore, we will handle it in consume since the error is notifies in the onError callback
-    }
+    const streaming: observer.ResultStreamObserver | null =
+      // the error will be send to the onError callback
+      await this._subscribe(queuedObserver, true).catch(() => null) 
 
     const pullIfNeeded = () => {
       if (queuedObserver.size >= this._watermarks.high) {
@@ -466,15 +462,16 @@ class Result implements Promise<QueryResult> {
 
     const observer = {
       _buffer: [createResolvablePromise()],
+      _completedCalls: 0,
       onNext: (record: Record) => {
-        observer._buffer[observer._buffer.length - 1].resolve({ done: false, record });
-        observer._buffer.push(createResolvablePromise());
+        observer._buffer[observer._buffer.length - 1].resolve({ done: false, record })
+        observer._buffer.push(createResolvablePromise())
       },
       onCompleted: (summary: ResultSummary) => {
-        observer._buffer[observer._buffer.length - 1].resolve({ done: true, summary });
+        observer._buffer[observer._buffer.length - 1].resolve({ done: true, summary })
       },
       onError: (error: Error) => {
-        observer._buffer[observer._buffer.length - 1].reject(error);
+        observer._buffer[observer._buffer.length - 1].reject(error)
       },
       dequeue: async () => {
         const value = await observer._buffer[0].promise

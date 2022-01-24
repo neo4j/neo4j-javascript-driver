@@ -174,7 +174,7 @@ function mockResultStreamObserver(query: string, parameters: any | undefined): R
     onNext: (result: any) => { },
     cancel: () => { },
     prepareToHandleSingleResponse: () => { },
-    pull: () => { },
+    pull: () => { return true },
     markCompleted: () => { },
     setExplicityPull: (_: boolean) => { },
     subscribe: (observer: ResultObserver) => {
