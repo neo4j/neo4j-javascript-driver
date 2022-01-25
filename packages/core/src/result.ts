@@ -87,17 +87,6 @@ interface ResultObserver {
   onError?: (error: Error) => void
 }
 
-/**
- * Defines the elements in the queue result observer
- * @access private
- */
- type QueuedResultElement = {
-  done: false
-  record: Record
-} | {
-  done: true
-  summary: ResultSummary
-}
 
 /**
  * Defines a ResultObserver interface which can be used to enqueue records and dequeue 
@@ -105,8 +94,8 @@ interface ResultObserver {
  * @access private
  */
  interface QueuedResultObserver extends ResultObserver {
-  dequeue (): Promise<QueuedResultElement>
-  head (): Promise<QueuedResultElement>
+  dequeue (): Promise<IteratorResult<Record, ResultSummary>>
+  head (): Promise<IteratorResult<Record, ResultSummary>>
   get size (): number
 }
 
@@ -268,13 +257,6 @@ class Result implements Promise<QueryResult> {
       }
     }
 
-    const toIterableResult = (element: QueuedResultElement): IteratorResult<Record, ResultSummary> => {
-      if (element.done) {
-        return { done: true, value: element.summary }
-      }
-      return { done: false, value: element.record }
-    }
-
     return {
       next: async () => {
         if (state.finished) {
@@ -284,9 +266,9 @@ class Result implements Promise<QueryResult> {
         const next = await state.queuedObserver!!.dequeue()
         if (next.done) {
           state.finished = next.done
-          state.summary = next.summary
+          state.summary = next.value
         }
-        return toIterableResult(next)
+        return next
       },
       return: async (value: ResultSummary) => {
         state.finished = true
@@ -299,8 +281,7 @@ class Result implements Promise<QueryResult> {
           return { done: true, value: state.summary!! }
         }
         await controlFlow()
-        const head = await state.queuedObserver!!.head()
-        return toIterableResult(head)
+        return await state.queuedObserver!!.head()
       }
     }
   }
@@ -487,7 +468,7 @@ class Result implements Promise<QueryResult> {
       reject: (arg: Error) => any | undefined
     }
 
-    function createResolvablePromise (): ResolvablePromise<QueuedResultElement> {
+    function createResolvablePromise (): ResolvablePromise<IteratorResult<Record, ResultSummary>> {
       const resolvablePromise: any = {}
       resolvablePromise.promise = new Promise((resolve, reject) => {
         resolvablePromise.resolve = resolve
@@ -496,22 +477,23 @@ class Result implements Promise<QueryResult> {
       return resolvablePromise;
     }
 
-    type QueuedResultElementOrError = QueuedResultElement | Error
+    type QueuedResultElementOrError = IteratorResult<Record, ResultSummary> | Error
 
     function isError(elementOrError: QueuedResultElementOrError): elementOrError is Error {
       return elementOrError instanceof Error
     }
 
     const buffer: QueuedResultElementOrError[] = []
-    const promiseHolder: { resolvable: ResolvablePromise<QueuedResultElement> | null } = { resolvable: null }
-
+    const promiseHolder: {
+      resolvable: ResolvablePromise<IteratorResult<Record, ResultSummary>> | null
+    } = { resolvable: null }
 
     const observer = {
       onNext: (record: Record) => {
-        observer._push({ done: false, record })
+        observer._push({ done: false, value: record })
       },
       onCompleted: (summary: ResultSummary) => {
-        observer._push({ done: true, summary })
+        observer._push({ done: true, value: summary })
       },
       onError: (error: Error) => {
         observer._push(error)
