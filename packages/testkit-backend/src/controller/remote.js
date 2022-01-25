@@ -66,7 +66,7 @@ export default class RemoteController extends Controller {
     this._forwardToConnectedClient('contextClose', contextId, { contextId })
   }
 
-  handle (contextId, request) {
+  async handle (contextId, request) {
     this._forwardToConnectedClient('request', contextId, request)
   }
 

@@ -68,7 +68,9 @@ class ResultStreamObserver extends StreamObserver {
     afterKeys,
     beforeComplete,
     afterComplete,
-    server
+    server,
+    highRecordWatermark = Number.MAX_VALUE,
+    lowRecordWatermark = Number.MAX_VALUE
   } = {}) {
     super()
 
@@ -94,8 +96,32 @@ class ResultStreamObserver extends StreamObserver {
     this._discardFunction = discardFunction
     this._discard = false
     this._fetchSize = fetchSize
+    this._lowRecordWatermark = lowRecordWatermark
+    this._highRecordWatermark = highRecordWatermark
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
-    this._setupAuoPull(fetchSize)
+    this._setupAutoPull()
+    this._paused = false;
+  }
+
+  /**
+   * Pause the record consuming
+   *
+   * This function will supend the record consuming. It will not cancel the stream and the already
+   * requested records will be sent to the subscriber.
+   */
+  pause () {
+    this._paused = true
+  }
+
+  /**
+   * Resume the record consuming
+   *
+   * This function will resume the record consuming fetching more records from the server.
+   */
+  resume () {
+    this._paused = false
+    this._setupAutoPull(true)
+    this._state.pull(this)
   }
 
   /**
@@ -342,14 +368,19 @@ class ResultStreamObserver extends StreamObserver {
 
   _handleStreaming () {
     if (this._head && this._observers.some(o => o.onNext || o.onCompleted)) {
-      if (this._discard) {
-        this._discardFunction(this._queryId, this)
-        this._setState(_states.STREAMING)
-      } else if (this._autoPull) {
-        this._moreFunction(this._queryId, this._fetchSize, this)
-        this._setState(_states.STREAMING)
+      if (!this._paused && (this._discard || this._autoPull)) {
+        this._more()
       }
     }
+  }
+
+  _more () {
+    if (this._discard) {
+      this._discardFunction(this._queryId, this)
+    } else {
+      this._moreFunction(this._queryId, this._fetchSize, this)
+    }
+    this._setState(_states.STREAMING)
   }
 
   _storeMetadataForCompletion (meta) {
@@ -367,15 +398,8 @@ class ResultStreamObserver extends StreamObserver {
     this._state = state
   }
 
-  _setupAuoPull (fetchSize) {
+  _setupAutoPull () {
     this._autoPull = true
-    if (fetchSize === FETCH_ALL) {
-      this._lowRecordWatermark = Number.MAX_VALUE // we shall always lower than this number to enable auto pull
-      this._highRecordWatermark = Number.MAX_VALUE // we shall never reach this number to disable auto pull
-    } else {
-      this._lowRecordWatermark = 0.3 * fetchSize
-      this._highRecordWatermark = 0.7 * fetchSize
-    }
   }
 }
 
@@ -575,7 +599,8 @@ const _states = {
     },
     name: () => {
       return 'READY_STREAMING'
-    }
+    },
+    pull: () => {}
   },
   READY: {
     // reactive start state
@@ -590,7 +615,8 @@ const _states = {
     },
     name: () => {
       return 'READY'
-    }
+    },
+    pull: streamObserver => streamObserver._more()
   },
   STREAMING: {
     onSuccess: (streamObserver, meta) => {
@@ -605,7 +631,8 @@ const _states = {
     },
     name: () => {
       return 'STREAMING'
-    }
+    },
+    pull: () => {}
   },
   FAILED: {
     onError: error => {
@@ -613,12 +640,14 @@ const _states = {
     },
     name: () => {
       return 'FAILED'
-    }
+    },
+    pull: () => {}
   },
   SUCCEEDED: {
     name: () => {
       return 'SUCCEEDED'
-    }
+    },
+    pull: () => {}
   }
 }
 

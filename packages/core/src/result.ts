@@ -41,6 +41,13 @@ const DEFAULT_ON_ERROR = (error: Error) => {
 const DEFAULT_ON_COMPLETED = (summary: ResultSummary) => {}
 
 /**
+ * @private
+ * @param {string[]} keys List of keys of the record in the result
+ * @return {void} 
+ */
+const DEFAULT_ON_KEYS = (_keys: string[]) => {}
+
+/**
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
  */
@@ -81,6 +88,28 @@ interface ResultObserver {
 }
 
 /**
+ * Defines the elements in the queue result observer
+ * @access private
+ */
+ type QueuedResultElement = {
+  done: false
+  record: Record
+} | {
+  done: true
+  summary: ResultSummary
+}
+
+/**
+ * Defines a ResultObserver interface which can be used to enqueue records and dequeue 
+ * them until the result is fully received.
+ * @access private
+ */
+ interface QueuedResultObserver extends ResultObserver {
+  dequeue (): Promise<QueuedResultElement>
+  get size (): number
+}
+
+/**
  * A stream of {@link Record} representing the result of a query.
  * Can be consumed eagerly as {@link Promise} resolved with array of records and {@link ResultSummary}
  * summary, or rejected with error that contains {@link string} code and {@link string} message.
@@ -94,6 +123,9 @@ class Result implements Promise<QueryResult> {
   private _query: Query
   private _parameters: any
   private _connectionHolder: connectionHolder.ConnectionHolder
+  private _keys: string[] | null
+  private _summary: ResultSummary | null
+  private _watermarks: { high: number; low: number }
 
   /**
    * Inject the observer to be used.
@@ -108,7 +140,8 @@ class Result implements Promise<QueryResult> {
     streamObserverPromise: Promise<observer.ResultStreamObserver>,
     query: Query,
     parameters?: any,
-    connectionHolder?: connectionHolder.ConnectionHolder
+    connectionHolder?: connectionHolder.ConnectionHolder,
+    watermarks: { high: number; low: number } = { high: Number.MAX_VALUE, low: Number.MAX_VALUE }
   ) {
     this._stack = captureStacktrace()
     this._streamObserverPromise = streamObserverPromise
@@ -116,6 +149,9 @@ class Result implements Promise<QueryResult> {
     this._query = query
     this._parameters = parameters || {}
     this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
+    this._keys = null
+    this._summary = null
+    this._watermarks = watermarks
   }
 
   /**
@@ -128,13 +164,16 @@ class Result implements Promise<QueryResult> {
    }
    */
   keys(): Promise<string[]> {
+    if (this._keys != null) {
+      return Promise.resolve(this._keys)
+    }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
         .then(observer =>
-          observer.subscribe({
+          observer.subscribe(this._decorateObserver({
             onKeys: keys => resolve(keys),
             onError: err => reject(err)
-          })
+          }))
         )
         .catch(reject)
     })
@@ -150,15 +189,17 @@ class Result implements Promise<QueryResult> {
    *
    */
   summary(): Promise<ResultSummary> {
+    if (this._summary != null) {
+      return Promise.resolve(this._summary)
+    }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
         .then(o => {
           o.cancel()
-          o.subscribe({
-            onCompleted: metadata =>
-              this._createSummary(metadata).then(resolve, reject),
+          o.subscribe(this._decorateObserver({
+            onCompleted: summary => resolve(summary),
             onError: err => reject(err)
-          })
+          }))
         })
         .catch(reject)
     })
@@ -190,6 +231,44 @@ class Result implements Promise<QueryResult> {
     }
 
     return this._p
+  }
+
+  /**
+   * Provides a async iterator over the records in the result.
+   *
+   * *Should not be combined with {@link Result#subscribe} or ${@link Result#then} functions.*
+   *
+   * @public
+   * @returns {AsyncIterator<Record, ResultSummary>} The async iterator for the Results
+   */
+  async* [Symbol.asyncIterator](): AsyncIterator<Record, ResultSummary> {
+    const queuedObserver = this._createQueuedResultObserver()
+
+    const status = { paused: true, firstRun: true }
+
+    const streaming: observer.ResultStreamObserver | null =
+      // the error will be send to the onError callback
+      await this._subscribe(queuedObserver, true).catch(() => null) 
+
+    const controlFlow = () => {
+      if (queuedObserver.size >= this._watermarks.high && !status.paused) {
+        status.paused = true
+        streaming?.pause()
+      } else if (queuedObserver.size <= this._watermarks.low && status.paused || status.firstRun) {
+        status.firstRun = false
+        status.paused = false
+        streaming?.resume()
+      }
+    }
+
+    while(true) {
+      controlFlow()
+      const next = await queuedObserver.dequeue()
+      if (next.done) {
+        return next.summary
+      }
+      yield next.record
+    }
   }
 
   /**
@@ -249,14 +328,52 @@ class Result implements Promise<QueryResult> {
    * @return {void}
    */
   subscribe(observer: ResultObserver): void {
+    this._subscribe(observer)
+      .catch(() => {})
+  }
+
+  /**
+   * Stream records to observer as they come in, this is a more efficient method
+   * of handling the results, and allows you to handle arbitrarily large results.
+   *
+   * @access private
+   * @param {ResultObserver} observer The observer to send records to.
+   * @param {boolean} paused The flag to indicate if the stream should be started paused
+   * @returns {Promise<observer.ResultStreamObserver>} The result stream observer.
+   */
+  _subscribe(observer: ResultObserver, paused: boolean = false): Promise<observer.ResultStreamObserver> {
+    const _observer = this._decorateObserver(observer)
+
+    return this._streamObserverPromise
+      .then(o => {
+        if (paused) {
+          o.pause()
+        }
+        o.subscribe(_observer)
+        return o
+      })
+      .catch(error => { 
+        _observer.onError!(error)
+        return Promise.reject(error)
+      })
+  }
+
+  /**
+   * Decorates the ResultObserver with the necessary methods.
+   *
+   * @access private
+   * @param {ResultObserver} observer The ResultObserver to decorate.
+   * @returns The decorated result observer
+   */
+  _decorateObserver(observer: ResultObserver): ResultObserver {
     const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
     const onCompletedWrapper = (metadata: any) => {
-      this._createSummary(metadata).then(summary =>
-        onCompletedOriginal.call(observer, summary)
-      )
-    }
 
-    observer.onCompleted = onCompletedWrapper
+      this._createSummary(metadata).then(summary => {
+        this._summary = summary
+        return onCompletedOriginal.call(observer, summary)
+      })
+    }
 
     const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR
     const onErrorWrapper = (error: Error) => {
@@ -267,13 +384,19 @@ class Result implements Promise<QueryResult> {
         onErrorOriginal.call(observer, error)
       })
     }
-    observer.onError = onErrorWrapper
 
-    this._streamObserverPromise
-      .then(o => {
-        return o.subscribe(observer)
-      })
-      .catch(error => observer.onError!(error))
+    const onKeysOriginal = observer.onKeys || DEFAULT_ON_KEYS
+    const onKeysWrapper = (keys: string[]) => {
+      this._keys = keys
+      return onKeysOriginal.call(observer, keys)
+    }
+
+    return {
+      onNext: observer.onNext? observer.onNext.bind(observer) : undefined,
+      onKeys: onKeysWrapper,
+      onCompleted: onCompletedWrapper,
+      onError: onErrorWrapper
+    }
   }
 
   /**
@@ -287,6 +410,11 @@ class Result implements Promise<QueryResult> {
     this._streamObserverPromise.then(o => o.cancel())
   }
 
+  /**
+   * @access private
+   * @param metadata
+   * @returns
+   */
   private _createSummary(metadata: any): Promise<ResultSummary> {
     const {
       validatedQuery: query,
@@ -313,6 +441,77 @@ class Result implements Promise<QueryResult> {
         protocolVersion =>
           new ResultSummary(query, parameters, metadata, protocolVersion)
       )
+  }
+
+  /**
+   * @access private
+   */
+   private _createQueuedResultObserver (): QueuedResultObserver {
+    interface ResolvablePromise<T> {
+      promise: Promise<T>
+      resolve: (arg: T) => any | undefined
+      reject: (arg: Error) => any | undefined
+    }
+
+    function createResolvablePromise (): ResolvablePromise<QueuedResultElement> {
+      const resolvablePromise: any = {}
+      resolvablePromise.promise = new Promise((resolve, reject) => {
+        resolvablePromise.resolve = resolve
+        resolvablePromise.reject = reject
+      });
+      return resolvablePromise;
+    }
+
+    type QueuedResultElementOrError = QueuedResultElement | Error
+
+    function isError(elementOrError: QueuedResultElementOrError): elementOrError is Error {
+      return elementOrError instanceof Error
+    }
+
+    const buffer: QueuedResultElementOrError[] = []
+    const promiseHolder: { resolvable: ResolvablePromise<QueuedResultElement> | null } = { resolvable: null }
+
+
+    const observer = {
+      onNext: (record: Record) => {
+        observer._push({ done: false, record })
+      },
+      onCompleted: (summary: ResultSummary) => {
+        observer._push({ done: true, summary })
+      },
+      onError: (error: Error) => {
+        observer._push(error)
+      },
+      _push(element: QueuedResultElementOrError) {
+        if (promiseHolder.resolvable !== null) {
+          const resolvable = promiseHolder.resolvable
+          promiseHolder.resolvable = null
+          if (isError(element)) {
+            resolvable.reject(element)
+          } else {
+            resolvable.resolve(element)
+          }
+        } else {
+          buffer.push(element)
+        }
+      },
+      dequeue: async () => {
+        if (buffer.length > 0) {
+          const element = buffer.shift()!
+          if (isError(element)) {
+              throw element
+          }
+          return element
+        }
+        promiseHolder.resolvable = createResolvablePromise()
+        return await promiseHolder.resolvable.promise
+      },
+      get size (): number {
+        return buffer.length
+      }
+    }
+
+    return observer
   }
 }
 

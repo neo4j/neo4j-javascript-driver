@@ -278,7 +278,9 @@ export default class BoltProtocol {
       afterError,
       beforeComplete,
       afterComplete,
-      flush = true
+      flush = true,
+      highRecordWatermark = Number.MAX_VALUE,
+      lowRecordWatermark = Number.MAX_VALUE
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -288,7 +290,9 @@ export default class BoltProtocol {
       beforeError,
       afterError,
       beforeComplete,
-      afterComplete
+      afterComplete,
+      highRecordWatermark,
+      lowRecordWatermark
     })
 
     // bookmark and mode are ignored in this version of the protocol

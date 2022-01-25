@@ -1,9 +1,15 @@
-import skip, { ifEquals, ifEndsWith } from './skip'
+import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
 
 const skippedTests = [
   skip(
-    'Not support by the JS driver',
-    ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration')
+    'Partial session iteration is not supported by the js driver',
+    ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_session_reuse'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_nested'),
+  ),
+  skip(
+    'Nested calls does not garauntee order in the records pulling',
+    ifEquals('stub.iteration.test_iteration_tx_run.TestIterationTxRun.test_nested'),
   ),
   skip(
     'The driver has no support domain_name_resolver',
@@ -33,10 +39,6 @@ const skippedTests = [
     ifEndsWith(
       '.test_should_revert_to_initial_router_if_known_router_throws_protocol_errors'
     )
-  ),
-  skip(
-    'It could not guarantee the order of records requests between in the nested transactions',
-    ifEquals('stub.iteration.TxRun.test_nested')
   ),
   skip(
     'Keeps retrying on commit despite connection being dropped',

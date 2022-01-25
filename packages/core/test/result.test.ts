@@ -19,6 +19,7 @@
 import { observer, connectionHolder } from '../src/internal'
 import {
   Connection,
+  internal,
   newError,
   Record,
   ResultObserver,
@@ -33,10 +34,11 @@ describe('Result', () => {
   describe('new Result(Promise.resolve(new ResultStreamObserverMock()), query, parameters, connectionHolder)', () => {
     let streamObserverMock: ResultStreamObserverMock
     let result: Result
+    const watermarks = { high: 10, low: 3 }
 
     beforeEach(() => {
       streamObserverMock = new ResultStreamObserverMock()
-      result = new Result(Promise.resolve(streamObserverMock), 'query')
+      result = new Result(Promise.resolve(streamObserverMock), 'query', undefined, undefined, watermarks)
     })
 
     describe('.keys()', () => {
@@ -554,6 +556,302 @@ describe('Result', () => {
         )
       })
     })
+
+    describe('asyncIterator', () => {
+      it('should subscribe to the observer', async () => {
+        const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+        streamObserverMock.onCompleted({})
+
+        for await (const _ of result) {
+          // do nothing
+        }
+
+        expect(subscribe).toHaveBeenCalled()
+      })
+
+      it('should pause the stream and then resume the stream', async () => {
+        const pause = jest.spyOn(streamObserverMock, 'pause')
+        const resume = jest.spyOn(streamObserverMock, 'resume')
+        streamObserverMock.onCompleted({})
+
+        for await (const _ of result) {
+          // do nothing
+        }
+
+        expect(pause).toHaveBeenCalledTimes(1)
+        expect(resume).toHaveBeenCalledTimes(1)
+        expect(pause.mock.invocationCallOrder[0])
+          .toBeLessThan(resume.mock.invocationCallOrder[0])
+      })
+
+      it('should pause the stream before subscribe', async () => {
+        const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+        const pause = jest.spyOn(streamObserverMock, 'pause')
+        streamObserverMock.onCompleted({})
+
+        for await (const _ of result) {
+          // do nothing
+        }
+
+        expect(pause.mock.invocationCallOrder[0])
+          .toBeLessThan(subscribe.mock.invocationCallOrder[0])
+      })
+
+      it('should pause the stream if queue is bigger than high watermark', async () => {
+        const pause = jest.spyOn(streamObserverMock, 'pause')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i <= watermarks.high; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        await it.next()
+
+        expect(pause).toBeCalledTimes(1)
+      })
+
+      it('should call resume if queue is smaller than low watermark', async () => {
+        const resume = jest.spyOn(streamObserverMock, 'resume')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i < watermarks.low - 1; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        await it.next()
+
+        expect(resume).toBeCalledTimes(1)
+      })
+
+      it('should not pause after resume if queue is between lower and high if it never highter then high watermark', async () => {
+        const pause = jest.spyOn(streamObserverMock, 'pause')
+        const resume = jest.spyOn(streamObserverMock, 'resume')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i < watermarks.high - 1; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        for (let i = 0; i < watermarks.high - watermarks.low; i++) {
+          await it.next()
+        }
+
+        expect(pause).toBeCalledTimes(1)
+        expect(pause.mock.invocationCallOrder[0])
+          .toBeLessThan(resume.mock.invocationCallOrder[0])
+      })
+
+      it('should resume once if queue is between lower and high if it get highter then high watermark', async () => {
+        const resume = jest.spyOn(streamObserverMock, 'resume')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i < watermarks.high; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        for (let i = 0; i < watermarks.high - watermarks.low; i++) {
+          await it.next()
+        }
+
+        expect(resume).toBeCalledTimes(1)
+      })
+
+      it('should recover from high watermark limit after went to low watermark', async () => {
+        const resume = jest.spyOn(streamObserverMock, 'resume')
+        streamObserverMock.onKeys(['a'])
+
+        for (let i = 0; i < watermarks.high; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        const it = result[Symbol.asyncIterator]()
+        for (let i = 0; i < watermarks.high - watermarks.low; i++) {
+          await it.next()
+        }
+
+        for (let i = 0; i < 2; i++) {
+          await it.next()
+        }
+
+        expect(resume).toBeCalledTimes(1)
+      })
+
+      it('should iterate over record', async () => {
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+
+        streamObserverMock.onKeys(keys)
+        streamObserverMock.onNext(rawRecord1)
+        streamObserverMock.onNext(rawRecord2)
+
+        streamObserverMock.onCompleted({})
+
+        const records = []
+        for await (const record of result) {
+          records.push(record)
+        }
+
+        expect(records).toEqual([
+          new Record(keys, rawRecord1),
+          new Record(keys, rawRecord2)
+        ])
+      })
+
+      it('should end full batch', async () => {
+        const fetchSize = 3
+        const observer = new ResultStreamObserverMock()
+        const res = new Result(
+          Promise.resolve(observer), 
+          'query', undefined, undefined, 
+          {
+            low: fetchSize * 0.3, // Same as calculate in the session.ts
+            high: fetchSize * 0.7
+          }
+        )
+
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+        const rawRecord3 = [5, 6]
+        const rawRecord4 = [7, 8]
+        const rawRecord5 = [9, 10]
+        const rawRecord6 = [11, 12]
+        const queue: any[][] = [
+          rawRecord3,
+          rawRecord4,
+          rawRecord5,
+          rawRecord6
+        ]
+
+        const simuatedStream = simulateStream(queue, observer, fetchSize, 2)
+        
+        jest.spyOn(observer, 'resume')
+          .mockImplementation(simuatedStream.resume.bind(simuatedStream))
+        
+        jest.spyOn(observer, 'pause')
+          .mockImplementation(simuatedStream.pause.bind(simuatedStream))
+
+        observer.onKeys(keys)
+        observer.onNext(rawRecord1)
+        observer.onNext(rawRecord2)
+
+        const records = []
+        
+        for await (const record of res) {
+          records.push(record)
+          await new Promise(r => setTimeout(r, 0.1))
+        }
+
+        expect(records).toEqual([
+          new Record(keys, rawRecord1),
+          new Record(keys, rawRecord2),
+          new Record(keys, rawRecord3),
+          new Record(keys, rawRecord4),
+          new Record(keys, rawRecord5),
+          new Record(keys, rawRecord6)
+        ])
+      })
+
+      describe('onError', () => {
+        it('should throws an exception while iterate over records', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+          const expectedError = new Error('test')
+          let observedError: Error | undefined
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          const records = []
+
+          try {
+            for await (const record of result) {
+              records.push(record)
+              streamObserverMock.onError(expectedError)
+            }
+          } catch (err) {
+            observedError = err
+          }
+
+          expect(observedError).toEqual(expectedError)
+        })
+
+        it('should resolve the already received records', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+          const expectedError = new Error('test')
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          const records = []
+
+          try {
+            for await (const record of result) {
+              records.push(record)
+              streamObserverMock.onError(expectedError)
+            }
+          } catch (err) {
+            // do nothing
+          }
+
+          expect(records).toEqual([
+            new Record(keys, rawRecord1),
+            new Record(keys, rawRecord2)
+          ])
+
+        })
+
+        it('should throws it when it is the event after onKeys', async () => {
+          const keys = ['a', 'b']
+          const expectedError = new Error('test')
+          let observedError: Error | undefined
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onError(expectedError)
+
+          const records = []
+
+          try {
+            for await (const record of result) {
+              records.push(record)
+            }
+          } catch (err) {
+            observedError = err
+          }
+
+          expect(observedError).toEqual(expectedError)
+        })
+
+        it('should throws it when it is the first and unique event', async () => {
+          const expectedError = new Error('test')
+          let observedError: Error | undefined
+
+          streamObserverMock.onError(expectedError)
+
+          const records = []
+
+          try {
+            for await (const record of result) {
+              records.push(record)
+            }
+          } catch (err) {
+            observedError = err
+          }
+
+          expect(observedError).toEqual(expectedError)
+        })
+      })
+    })
   })
 
   describe.each([
@@ -638,19 +936,39 @@ describe('Result', () => {
         expect(Object.keys(queryResult).sort()).toEqual(['records', 'summary'])
       })
     })
+
+    describe('asyncIterator', () => {
+      it('should be resolved with an empty array of records', async () => {
+        const records = []
+
+        for await (const record of result) {
+          records.push(record)
+        }
+
+        expect(records).toStrictEqual([])
+      })
+
+      it('should be resolved with expected result summary', async () => {
+        const it = result[Symbol.asyncIterator]()
+        const next = await it.next()
+
+        expect(next.done).toBe(true)
+        expect(next.value).toStrictEqual(expectedResultSummary)
+      })
+    })
   })
 
   describe.each([
     [
       'Promise.resolve(new observer.FailedObserver({ error: expectedError }))',
-      Promise.resolve(new observer.FailedObserver({ error: expectedError }))
+      () => Promise.resolve(new observer.FailedObserver({ error: expectedError }))
     ],
-    ['Promise.reject(expectedError)', Promise.reject(expectedError)]
-  ])('new Result(%s, "query") ', (_, promise) => {
+    ['Promise.reject(expectedError)', () => Promise.reject(expectedError)]
+  ])('new Result(%s, "query") ', (_, getPromise) => {
     let result: Result
 
     beforeEach(() => {
-      result = new Result(promise, 'query')
+      result = new Result(getPromise(), 'query')
     })
 
     describe('.keys()', () => {
@@ -682,6 +1000,14 @@ describe('Result', () => {
             done()
           }
         })
+      })
+    })
+
+    describe('asyncIterator', () => {
+      shouldReturnRejectedPromiseWithTheExpectedError(async () => {
+        for await (const _ of result) {
+          // do nothing
+        }
       })
     })
 
@@ -765,6 +1091,82 @@ class ResultStreamObserverMock implements observer.ResultStreamObserver {
       .filter(o => o.onCompleted)
       .forEach(o => o.onCompleted!(meta))
   }
+
+  pause (): void {
+    // do nothing
+  }
+
+  resume(): void {
+    // do nothing
+  }
+}
+
+function simulateStream(
+  records: any[][],
+  observer: ResultStreamObserverMock,
+  fetchSize: number,
+  timeout: number = 1): {
+    resume: () => void,
+    pause: () => void
+  } {
+  const state = {
+    paused: false,
+    streaming: false,
+    finished: false,
+    consumed: 0
+  }
+
+  const streaming = () => {
+    if (state.streaming || state.finished) {
+      return
+    }
+    state.streaming = true
+    state.consumed = 0
+    
+    const interval = setInterval(() => {
+      state.streaming = state.consumed < fetchSize
+      state.finished = records.length === 0
+
+      if (state.finished) {
+        observer.onCompleted({})
+        clearInterval(interval)
+        return
+      }
+
+      if (!state.streaming) {
+        clearInterval(interval)
+        if (!state.paused) {
+          streaming()
+        }
+        return
+      } 
+
+      const record = records.shift()
+      if (record !== undefined) {
+        observer.onNext(record)
+      }
+      state.consumed++
+      
+    }, timeout)
+  }
+
+  return {
+    pause: () => {
+      state.paused = true
+    },
+    resume: () => {
+      state.paused = false
+      streaming()
+    }
+  }
+  
+  /*
+  return () => {
+    
+    
+    return true
+  }
+  */
 }
 
 function asConnection(value: any): Connection {

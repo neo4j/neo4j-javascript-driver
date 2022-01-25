@@ -19,6 +19,12 @@
 
 import BoltProtocolV4x1 from '../../src/bolt/bolt-protocol-v4x1'
 import utils from '../test-utils'
+import { internal } from 'neo4j-driver-core'
+
+const {
+  txConfig: { TxConfig },
+  bookmark: { Bookmark }
+} = internal
 
 describe('#unit BoltProtocolV4x1', () => {
   describe('Bolt v4.4', () => {
@@ -81,5 +87,26 @@ describe('#unit BoltProtocolV4x1', () => {
         expect(protocol._unpacker._useBigInt).toBe(useBigInt)
       }
     )
+  })
+
+  describe('watermarks', () => {
+    it('.run() should configure watermarks', () => {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = utils.spyProtocolWrite(
+        new BoltProtocolV4x1(recorder, null, false)
+      )
+
+      const query = 'RETURN $x, $y'
+      const parameters = { x: 'x', y: 'y' }
+      const observer = protocol.run(query, parameters, {
+        bookmark: Bookmark.empty(),
+        txConfig: TxConfig.empty(),
+        lowRecordWatermark: 100,
+        highRecordWatermark: 200,
+      })
+
+      expect(observer._lowRecordWatermark).toEqual(100)
+      expect(observer._highRecordWatermark).toEqual(200)
+    })
   })
 })

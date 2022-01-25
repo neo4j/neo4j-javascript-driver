@@ -18,6 +18,7 @@
  */
 import { ResultStreamObserver, FailedObserver } from './internal/observers'
 import { validateQueryAndParameters } from './internal/util'
+import { FETCH_ALL } from './internal/constants'
 import { newError } from './error'
 import Result from './result'
 import Transaction from './transaction'
@@ -60,6 +61,8 @@ class Session {
   private _impersonatedUser?: string
   private _onComplete: (meta: any) => void
   private _databaseNameResolved: boolean
+  private _lowRecordWatermark: number
+  private _highRecordWatermark: number
 
   /**
    * @constructor
@@ -121,6 +124,9 @@ class Session {
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
     this._databaseNameResolved = this._database !== ''
+    const calculatedWatermaks = this._calculateWatermaks()
+    this._lowRecordWatermark = calculatedWatermaks.low
+    this._highRecordWatermark = calculatedWatermaks.high
   }
 
   /**
@@ -157,7 +163,9 @@ class Session {
         impersonatedUser: this._impersonatedUser,
         afterComplete: this._onComplete,
         reactive: this._reactive,
-        fetchSize: this._fetchSize
+        fetchSize: this._fetchSize,
+        lowRecordWatermark: this._lowRecordWatermark,
+        highRecordWatermark: this._highRecordWatermark
       })
     })
   }
@@ -192,7 +200,8 @@ class Session {
         })
       )
     }
-    return new Result(observerPromise, query, parameters, connectionHolder)
+    const watermarks = { high: this._highRecordWatermark, low: this._lowRecordWatermark }
+    return new Result(observerPromise, query, parameters, connectionHolder, watermarks)
   }
 
   async _acquireConnection(connectionConsumer: ConnectionConsumer) {
@@ -269,7 +278,9 @@ class Session {
       onBookmark: this._updateBookmark.bind(this),
       onConnection: this._assertSessionIsOpen.bind(this),
       reactive: this._reactive,
-      fetchSize: this._fetchSize
+      fetchSize: this._fetchSize,
+      lowRecordWatermark: this._lowRecordWatermark,
+      highRecordWatermark: this._highRecordWatermark
     })
     tx._begin(this._lastBookmark, txConfig)
     return tx
@@ -416,6 +427,23 @@ class Session {
    */
   _onCompleteCallback(meta: { bookmark: string | string[] }): void {
     this._updateBookmark(new Bookmark(meta.bookmark))
+  }
+
+  /**
+   * @private 
+   * @returns {void}
+   */
+  private _calculateWatermaks(): { low: number; high: number } {
+    if (this._fetchSize === FETCH_ALL) {
+      return { 
+        low: Number.MAX_VALUE, // we shall always lower than this number to enable auto pull
+        high: Number.MAX_VALUE // we shall never reach this number to disable auto pull
+      }
+    }
+    return {
+      low: 0.3 * this._fetchSize,
+      high: 0.7 * this._fetchSize
+    }
   }
 
   /**

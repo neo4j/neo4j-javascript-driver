@@ -84,7 +84,9 @@ export default class BoltProtocol extends BoltProtocolV43 {
       afterComplete,
       flush = true,
       reactive = false,
-      fetchSize = FETCH_ALL
+      fetchSize = FETCH_ALL,
+      highRecordWatermark = Number.MAX_VALUE,
+      lowRecordWatermark = Number.MAX_VALUE
     } = {}
   ) {
     const observer = new ResultStreamObserver({
@@ -98,7 +100,9 @@ export default class BoltProtocol extends BoltProtocolV43 {
       beforeError,
       afterError,
       beforeComplete,
-      afterComplete
+      afterComplete,
+      highRecordWatermark,
+      lowRecordWatermark
     })
 
     const flushRun = reactive

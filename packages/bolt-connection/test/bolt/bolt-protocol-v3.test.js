@@ -295,6 +295,27 @@ describe('#unit BoltProtocolV3', () => {
       }
     )
   })
+
+  describe('watermarks', () => {
+    it('.run() should configure watermarks', () => {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = utils.spyProtocolWrite(
+        new BoltProtocolV3(recorder, null, false)
+      )
+
+      const query = 'RETURN $x, $y'
+      const parameters = { x: 'x', y: 'y' }
+      const observer = protocol.run(query, parameters, {
+        bookmark: Bookmark.empty(),
+        txConfig: TxConfig.empty(),
+        lowRecordWatermark: 100,
+        highRecordWatermark: 200,
+      })
+
+      expect(observer._lowRecordWatermark).toEqual(100)
+      expect(observer._highRecordWatermark).toEqual(200)
+    })
+  })
 })
 
 class SpiedBoltProtocolV3 extends BoltProtocolV3 {

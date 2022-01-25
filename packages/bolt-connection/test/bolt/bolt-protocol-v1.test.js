@@ -338,4 +338,26 @@ describe('#unit BoltProtocolV1', () => {
       }
     )
   })
+
+  describe('watermarks', () => {
+    it('.run() should configure watermarks', () => {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = utils.spyProtocolWrite(
+        new BoltProtocolV1(recorder, null, false)
+      )
+
+      const query = 'RETURN $x, $y'
+      const parameters = { x: 'x', y: 'y' }
+      const observer = protocol.run(query, parameters, {
+        bookmark: Bookmark.empty(),
+        txConfig: TxConfig.empty(),
+        mode: WRITE,
+        lowRecordWatermark: 100,
+        highRecordWatermark: 200,
+      })
+
+      expect(observer._lowRecordWatermark).toEqual(100)
+      expect(observer._highRecordWatermark).toEqual(200)
+    })
+  })
 })

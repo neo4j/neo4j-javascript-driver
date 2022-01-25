@@ -53,6 +53,8 @@ class Transaction {
   private _fetchSize: number
   private _results: any[]
   private _impersonatedUser?: string
+  private _lowRecordWatermak: number
+  private _highRecordWatermark: number
 
   /**
    * @constructor
@@ -72,7 +74,9 @@ class Transaction {
     onConnection,
     reactive,
     fetchSize,
-    impersonatedUser
+    impersonatedUser,
+    highRecordWatermark,
+    lowRecordWatermark
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -80,7 +84,9 @@ class Transaction {
     onConnection: () => void
     reactive: boolean
     fetchSize: number
-    impersonatedUser?: string
+    impersonatedUser?: string,
+    highRecordWatermark: number,
+    lowRecordWatermark: number
   }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
@@ -93,6 +99,8 @@ class Transaction {
     this._fetchSize = fetchSize
     this._results = []
     this._impersonatedUser = impersonatedUser
+    this._lowRecordWatermak = lowRecordWatermark
+    this._highRecordWatermark = highRecordWatermark
   }
 
   /**
@@ -143,7 +151,9 @@ class Transaction {
       onComplete: this._onComplete,
       onConnection: this._onConnection,
       reactive: this._reactive,
-      fetchSize: this._fetchSize
+      fetchSize: this._fetchSize,
+      highRecordWatermark: this._highRecordWatermark,
+      lowRecordWatermark: this._lowRecordWatermak
     })
     this._results.push(result)
     return result
@@ -243,6 +253,8 @@ interface StateTransitionParams {
   pendingResults: any[]
   reactive: boolean
   fetchSize: number
+  highRecordWatermark: number
+  lowRecordWatermark: number
 }
 
 const _states = {
@@ -296,6 +308,8 @@ const _states = {
         onConnection,
         reactive,
         fetchSize,
+        highRecordWatermark,
+        lowRecordWatermark
       }: StateTransitionParams
     ): any => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
@@ -312,6 +326,8 @@ const _states = {
               afterComplete: onComplete,
               reactive: reactive,
               fetchSize: fetchSize,
+              highRecordWatermark: highRecordWatermark,
+              lowRecordWatermark: lowRecordWatermark
             })
           } else {
             throw newError('No connection available')
@@ -323,7 +339,9 @@ const _states = {
         observerPromise,
         query,
         parameters,
-        connectionHolder
+        connectionHolder,
+        highRecordWatermark,
+        lowRecordWatermark
       )
     }
   },
@@ -346,7 +364,9 @@ const _states = {
           }),
           'COMMIT',
           {},
-          connectionHolder
+          connectionHolder,
+          0, // high watermark
+          0 // low watermark
         ),
         state: _states.FAILED
       }
@@ -361,7 +381,9 @@ const _states = {
           new CompletedObserver(),
           'ROLLBACK',
           {},
-          connectionHolder
+          connectionHolder,
+          0, // high watermark
+          0 // low watermark
         ),
         state: _states.FAILED
       }
@@ -380,7 +402,9 @@ const _states = {
         }),
         query,
         parameters,
-        connectionHolder
+        connectionHolder,
+          0, // high watermark
+          0 // low watermark
       )
     }
   },
@@ -401,7 +425,10 @@ const _states = {
             onError
           }),
           'COMMIT',
-          {}
+          {},
+          EMPTY_CONNECTION_HOLDER,
+          0, // high watermark
+          0 // low watermark
         ),
         state: _states.SUCCEEDED,
         connectionHolder
@@ -421,7 +448,10 @@ const _states = {
             onError
           }),
           'ROLLBACK',
-          {}
+          {},
+          EMPTY_CONNECTION_HOLDER,
+          0, // high watermark
+          0 // low watermark
         ),
         state: _states.SUCCEEDED,
         connectionHolder
@@ -441,7 +471,9 @@ const _states = {
         }),
         query,
         parameters,
-        connectionHolder
+        connectionHolder,
+        0, // high watermark
+        0 // low watermark
       )
     }
   },
@@ -463,7 +495,9 @@ const _states = {
           }),
           'COMMIT',
           {},
-          connectionHolder
+          connectionHolder,
+          0, // high watermark
+          0 // low watermark
         ),
         state: _states.ROLLED_BACK
       }
@@ -482,7 +516,9 @@ const _states = {
           }),
           'ROLLBACK',
           {},
-          connectionHolder
+          connectionHolder,
+          0, // high watermark
+          0 // low watermark
         ),
         state: _states.ROLLED_BACK
       }
@@ -501,7 +537,9 @@ const _states = {
         }),
         query,
         parameters,
-        connectionHolder
+        connectionHolder,
+        0, // high watermark
+        0 // low watermark
       )
     }
   }
@@ -555,7 +593,11 @@ function finishTransaction(
     observerPromise,
     commit ? 'COMMIT' : 'ROLLBACK',
     {},
-    connectionHolder
+    connectionHolder,
+    {
+      high: Number.MAX_VALUE,
+      low: Number.MAX_VALUE
+    },
   )
 }
 
@@ -574,13 +616,19 @@ function newCompletedResult(
   observerPromise: ResultStreamObserver | Promise<ResultStreamObserver>,
   query: Query,
   parameters: any,
-  connectionHolder: ConnectionHolder = EMPTY_CONNECTION_HOLDER
+  connectionHolder: ConnectionHolder = EMPTY_CONNECTION_HOLDER,
+  highRecordWatermark: number,
+  lowRecordWatermark: number
 ): Result {
   return new Result(
     Promise.resolve(observerPromise),
     query,
     parameters,
-    new ReadOnlyConnectionHolder(connectionHolder || EMPTY_CONNECTION_HOLDER)
+    new ReadOnlyConnectionHolder(connectionHolder || EMPTY_CONNECTION_HOLDER),
+    {
+      low: lowRecordWatermark,
+      high: highRecordWatermark
+    }
   )
 }
 

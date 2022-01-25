@@ -20,7 +20,6 @@
 import neo4j from '../src'
 import { READ } from '../src/driver'
 import SingleConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-single'
-import FakeConnection from './internal/fake-connection'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
 import testUtils from './internal/test-utils'
@@ -39,63 +38,6 @@ const {
 } = internal
 
 const { PROTOCOL_ERROR, SESSION_EXPIRED } = error
-
-describe('#unit session', () => {
-  it('close should return promise', done => {
-    const connection = new FakeConnection()
-    const session = newSessionWithConnection(connection)
-
-    session.close().then(() => done())
-  }, 70000)
-
-  it('close should return promise even when already closed ', done => {
-    const connection = new FakeConnection()
-    const session = newSessionWithConnection(connection)
-
-    session.close().then(() => {
-      session.close().then(() => {
-        session.close().then(() => {
-          done()
-        })
-      })
-    })
-  }, 70000)
-
-  it('close should be idempotent ', done => {
-    const connection = new FakeConnection()
-    const session = newSessionWithConnection(connection)
-
-    session.close().then(() => {
-      expect(connection.isReleasedOnce()).toBeTruthy()
-
-      session.close().then(() => {
-        expect(connection.isReleasedOnce()).toBeTruthy()
-
-        session.close().then(() => {
-          expect(connection.isReleasedOnce()).toBeTruthy()
-          done()
-        })
-      })
-    })
-  }, 70000)
-
-  it('should close transaction executor', done => {
-    const session = newSessionWithConnection(new FakeConnection())
-
-    let closeCalledTimes = 0
-    const transactionExecutor = session._transactionExecutor
-    const originalClose = transactionExecutor.close
-    transactionExecutor.close = () => {
-      closeCalledTimes++
-      originalClose.call(transactionExecutor)
-    }
-
-    session.close().then(() => {
-      expect(closeCalledTimes).toEqual(1)
-      done()
-    })
-  }, 70000)
-})
 
 describe('#integration session', () => {
   let driver
@@ -1304,12 +1246,3 @@ describe('#integration session', () => {
       })
   }
 })
-
-function newSessionWithConnection (connection) {
-  const connectionProvider = new SingleConnectionProvider(
-    Promise.resolve(connection)
-  )
-  const session = new Session({ mode: READ, connectionProvider })
-  session.beginTransaction() // force session to acquire new connection
-  return session
-}

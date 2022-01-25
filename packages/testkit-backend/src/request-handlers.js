@@ -1,5 +1,4 @@
 import neo4j from './neo4j'
-import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
 import tls from 'tls'
 
@@ -94,13 +93,13 @@ export function NewDriver (context, data, wire) {
 export function DriverClose (context, data, wire) {
   const { driverId } = data
   const driver = context.getDriver(driverId)
-  driver
+  return driver
     .close()
     .then(() => {
       wire.writeResponse('Driver', { id: driverId })
     })
-    .catch(err => wire.writeError(err))
-  context.removeDriver(driverId)
+    .catch(err => wire.writeError(err)) 
+    .finally(() => context.removeDriver(driverId))
 }
 
 export function NewSession (context, data, wire) {
@@ -131,7 +130,7 @@ export function NewSession (context, data, wire) {
 export function SessionClose (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
-  session
+  return session
     .close()
     .then(() => {
       wire.writeResponse('Session', { id: sessionId })
@@ -148,70 +147,61 @@ export function SessionRun (context, data, wire) {
     }
   }
 
-  const observers = context.getResultObserversBySessionId(sessionId)
+  let result
+  try {
+    result = session.run(cypher, params, { metadata, timeout })
+  } catch (e) {
+    console.log('got some err: ' + JSON.stringify(e))
+    wire.writeError(e)
+    return
+  }
 
-  Promise.all(observers.map(obs => obs.completitionPromise()))
-    .catch(_ => null)
-    .then(_ => {
-      let result
-      try {
-        result = session.run(cypher, params, { metadata, timeout })
-      } catch (e) {
-        console.log('got some err: ' + JSON.stringify(e))
-        wire.writeError(e)
-        return
-      }
-      const resultObserver = new ResultObserver({ sessionId, result })
-      const id = context.addResultObserver(resultObserver)
-      wire.writeResponse('Result', { id })
-    })
+  let id = context.addResult(result)
+
+  wire.writeResponse('Result', { id })
 }
 
 export function ResultNext (context, data, wire) {
   const { resultId } = data
-  const resultObserver = context.getResultObserver(resultId)
-  const nextPromise = resultObserver.next()
-  nextPromise
-    .then(rec => {
-      if (rec) {
-        const values = Array.from(rec.values()).map(nativeToCypher)
-        wire.writeResponse('Record', {
-          values: values
-        })
-      } else {
-        wire.writeResponse('NullRecord', null)
-      }
-    })
-    .catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
-      wire.writeError(e)
-    })
+  const result = context.getResult(resultId)
+  if (!("recordIt" in result)) {
+    result.recordIt = result[Symbol.asyncIterator]()
+  }
+  return result.recordIt.next().then(({ value, done }) => {
+    if (done) {
+      wire.writeResponse('NullRecord', null)
+    } else {
+      const values = Array.from(value.values()).map(nativeToCypher)
+      wire.writeResponse('Record', {
+        values: values
+      })
+    }
+  }).catch(e => {
+    console.log('got some err: ' + JSON.stringify(e))
+    wire.writeError(e)
+  });
 }
 
 export function ResultConsume (context, data, wire) {
   const { resultId } = data
-  const resultObserver = context.getResultObserver(resultId)
-  resultObserver
-    .completitionPromise()
-    .then(summary => {
-      wire.writeResponse('Summary', {
-        ...summary,
-        serverInfo: {
-          agent: summary.server.agent,
-          protocolVersion: summary.server.protocolVersion.toFixed(1)
-        }
-      })
+  const result = context.getResult(resultId)
+  return result.summary().then(summary => {
+    wire.writeResponse('Summary', {
+      ...summary,
+      serverInfo: {
+        agent: summary.server.agent,
+        protocolVersion: summary.server.protocolVersion.toFixed(1) 
+      }
     })
-    .catch(e => wire.writeError(e))
+  }).catch(e => wire.writeError(e))
 }
 
 export function ResultList (context, data, wire) {
   const { resultId } = data
 
-  const resultObserver = context.getResultObserver(resultId)
-  const result = resultObserver.result
+  const result = context.getResult(resultId)
 
-  result
+  return result
     .then(({ records }) => {
       const cypherRecords = records.map(rec => {
         return { values: Array.from(rec.values()).map(nativeToCypher) }
@@ -224,7 +214,7 @@ export function ResultList (context, data, wire) {
 export function SessionReadTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
-  session
+  return session
     .readTransaction(
       tx =>
         new Promise((resolve, reject) => {
@@ -245,8 +235,8 @@ export function TransactionRun (context, data, wire) {
     }
   }
   const result = tx.tx.run(cypher, params)
-  const resultObserver = new ResultObserver({ result })
-  const id = context.addResultObserver(resultObserver)
+  const id = context.addResult(result)
+
   wire.writeResponse('Result', { id })
 }
 
@@ -283,7 +273,7 @@ export function SessionBeginTransaction (context, data, wire) {
 export function TransactionCommit (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
-  tx.commit()
+  return tx.commit()
     .then(() => wire.writeResponse('Transaction', { id }))
     .catch(e => {
       console.log('got some err: ' + JSON.stringify(e))
@@ -294,7 +284,7 @@ export function TransactionCommit (context, data, wire) {
 export function TransactionRollback (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
-  tx.rollback()
+  return tx.rollback()
     .then(() => wire.writeResponse('Transaction', { id }))
     .catch(e => wire.writeError(e))
 }
@@ -309,7 +299,7 @@ export function SessionLastBookmarks (context, data, wire) {
 export function SessionWriteTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
-  session
+  return session
     .writeTransaction(
       tx =>
         new Promise((resolve, reject) => {
@@ -355,7 +345,7 @@ export function GetFeatures (_context, _params, wire) {
 
 export function VerifyConnectivity (context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
-  driver
+  return driver
     .verifyConnectivity()
     .then(() => wire.writeResponse('Driver', { id: driverId }))
     .catch(error => wire.writeError(error))
@@ -363,7 +353,7 @@ export function VerifyConnectivity (context, { driverId }, wire) {
 
 export function CheckMultiDBSupport (context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
-  driver
+  return driver
     .supportsMultiDb()
     .then(available =>
       wire.writeResponse('MultiDBSupport', { id: driverId, available })
@@ -417,7 +407,7 @@ export function ForcedRoutingTableUpdate (context, { driverId, database, bookmar
   if (provider._freshRoutingTable) {
     // Removing database from the routing table registry
     provider._routingTableRegistry._remove(database)
-    provider._freshRoutingTable ({
+    return provider._freshRoutingTable ({
         accessMode: 'READ',
         database,
         bookmark: bookmarks,

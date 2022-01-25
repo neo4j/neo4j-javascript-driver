@@ -13,7 +13,8 @@
     "build": "rollup src/index.js --config rollup.config.js",
     "start": "node --version | grep -q v10. && node -r esm src/index.js || node --experimental-specifier-resolution=node src/index.js",
     "clean": "rm -fr node_modules public/index.js",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "node": "node"
   },
   "repository": {
     "type": "git",

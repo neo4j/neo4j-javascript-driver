@@ -5,9 +5,9 @@ export default class Context {
     this._sessions = {}
     this._txs = {}
     this._resolverRequests = {}
-    this._resultObservers = {}
     this._errors = {}
     this._shouldRunTest = shouldRunTest
+    this._results = {}
   }
 
   addDriver (driver) {
@@ -33,16 +33,24 @@ export default class Context {
     return this._add(this._errors, error)
   }
 
-  addResultObserver (observer) {
-    return this._add(this._resultObservers, observer)
-  }
-
   addResolverRequest (resolve, reject) {
     const id = this._add(this._resolverRequests, {
       resolve,
       reject
     })
     return id
+  }
+
+  addResult (result) {
+    return this._add(this._results, result)
+  }
+
+  removeResult (id) {
+    delete this._results[id]
+  }
+
+  getResult (id) {
+    return this._results[id]
   }
 
   getDriver (id) {
@@ -81,18 +89,8 @@ export default class Context {
     delete this._txs[id]
   }
 
-  removeResultObserver (id) {
-    delete this._resultObservers[id]
-  }
-
   removeResolverRequest (id) {
     delete this._resolverRequests[id]
-  }
-
-  getResultObserversBySessionId (sessionId) {
-    return Object.values(this._resultObservers).filter(
-      obs => obs.sessionId === sessionId
-    )
   }
 
   getTxsBySessionId (sessionId) {
