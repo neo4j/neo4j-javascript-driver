@@ -65,3 +65,17 @@ export interface Config {
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
 }
+
+/**
+ * Extension interface for {@link AsyncIterator} with peek capabilities.
+ *
+ * @public
+ */
+export interface PeekableAsyncIterator<T, TReturn = any, TNext = undefined> extends AsyncIterator<T, TReturn, TNext> {
+  /**
+   * Returns the next element in the iteration without advancing the iterator.
+   *
+   * @return {IteratorResult<T, TReturn} The next element in the iteration.
+   */
+  peek(): Promise<IteratorResult<T, TReturn>>
+}

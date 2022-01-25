@@ -19,7 +19,6 @@
 import { observer, connectionHolder } from '../src/internal'
 import {
   Connection,
-  internal,
   newError,
   Record,
   ResultObserver,
@@ -409,7 +408,7 @@ describe('Result', () => {
       it('should call finally on error', done => {
         streamObserverMock.onError(expectedError)
 
-        result.catch(() => {}).finally(done)
+        result.catch(() => { }).finally(done)
       })
 
       describe.each([
@@ -702,12 +701,53 @@ describe('Result', () => {
         ])
       })
 
+      it('should return summary when it finishes', async () => {
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+
+        streamObserverMock.onKeys(keys)
+        streamObserverMock.onNext(rawRecord1)
+        streamObserverMock.onNext(rawRecord2)
+
+        streamObserverMock.onCompleted({})
+
+        const it = result[Symbol.asyncIterator]()
+        await it.next()
+        await it.next()
+        const { value, done } = await it.next()
+
+        expect(value).toEqual(new ResultSummary('query', {}, {}))
+        expect(done).toEqual(true)
+      })
+
+      it('should return summary value when it gets called second time after finish', async () => {
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+
+        streamObserverMock.onKeys(keys)
+        streamObserverMock.onNext(rawRecord1)
+        streamObserverMock.onNext(rawRecord2)
+
+        streamObserverMock.onCompleted({})
+
+        const it = result[Symbol.asyncIterator]()
+        await it.next()
+        await it.next()
+        await it.next()
+        const { value, done } = await it.next()
+
+        expect(value).toEqual(new ResultSummary('query', {}, {}))
+        expect(done).toEqual(true)
+      })
+
       it('should end full batch', async () => {
         const fetchSize = 3
         const observer = new ResultStreamObserverMock()
         const res = new Result(
-          Promise.resolve(observer), 
-          'query', undefined, undefined, 
+          Promise.resolve(observer),
+          'query', undefined, undefined,
           {
             low: fetchSize * 0.3, // Same as calculate in the session.ts
             high: fetchSize * 0.7
@@ -729,10 +769,10 @@ describe('Result', () => {
         ]
 
         const simuatedStream = simulateStream(queue, observer, fetchSize, 2)
-        
+
         jest.spyOn(observer, 'resume')
           .mockImplementation(simuatedStream.resume.bind(simuatedStream))
-        
+
         jest.spyOn(observer, 'pause')
           .mockImplementation(simuatedStream.pause.bind(simuatedStream))
 
@@ -741,7 +781,7 @@ describe('Result', () => {
         observer.onNext(rawRecord2)
 
         const records = []
-        
+
         for await (const record of res) {
           records.push(record)
           await new Promise(r => setTimeout(r, 0.1))
@@ -755,6 +795,256 @@ describe('Result', () => {
           new Record(keys, rawRecord5),
           new Record(keys, rawRecord6)
         ])
+      })
+
+      describe('.return()', () => {
+        it('should finished the operator when it get called', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+          const summary = new ResultSummary('query', {}, {})
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          const it = result[Symbol.asyncIterator]()
+          await it.next()
+          const { value, done } = await it.return!!(summary)
+
+          expect(value).toEqual(summary)
+          expect(done).toEqual(true)
+        })
+
+        it('should return value in the next call', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          const it = result[Symbol.asyncIterator]()
+
+          await it.next()
+          await it.return!!(new ResultSummary('query', {}, {}))
+
+          const { value, done } = await it.next()
+
+          expect(value).toEqual(new ResultSummary('query', {}, {}))
+          expect(done).toEqual(true)
+        })
+
+        it('should not subscribe to the observer when it is the first api called', async () => {
+          const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+
+          const it = result[Symbol.asyncIterator]()
+
+          await it.return!!(new ResultSummary('query', {}, {}))
+
+          await it.next()
+
+          expect(subscribe).not.toBeCalled()
+        })
+
+        it('should not canceld stream when it is the first api called', async () => {
+          const cancel = jest.spyOn(streamObserverMock, 'cancel')
+
+          const it = result[Symbol.asyncIterator]()
+
+          await it.return!!(new ResultSummary('query', {}, {}))
+
+          await it.next()
+
+          expect(cancel).not.toBeCalled()
+        })
+
+        it('should not cancel stream when the stream is already initialized ', async () => {
+          const cancel = jest.spyOn(streamObserverMock, 'cancel')
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+
+          const it = result[Symbol.asyncIterator]()
+
+          await it.next()
+          await it.return!!(new ResultSummary('query', {}, {}))
+
+
+          expect(cancel).toBeCalled()
+        })
+
+        it('should prevent following next requests to subscribe to the stream', async () => {
+          const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+
+          const it = result[Symbol.asyncIterator]()
+
+          await it.return!!(new ResultSummary('query', {}, {}))
+          await it.next()
+
+          expect(subscribe).not.toBeCalled()
+        })
+
+        it('should prevent following peek requests to subscribe to the stream', async () => {
+          const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+
+          const it = result[Symbol.asyncIterator]()
+
+          await it.return!!(new ResultSummary('query', {}, {}))
+          await it.peek()
+
+          expect(subscribe).not.toBeCalled()
+        })
+      })
+
+      describe('.peek()', () => {
+        it('should pause the stream and then resume the stream', async () => {
+          const pause = jest.spyOn(streamObserverMock, 'pause')
+          const resume = jest.spyOn(streamObserverMock, 'resume')
+          streamObserverMock.onCompleted({})
+
+          const it = result[Symbol.asyncIterator]()
+          await it.peek()
+
+          expect(pause).toHaveBeenCalledTimes(1)
+          expect(resume).toHaveBeenCalledTimes(1)
+          expect(pause.mock.invocationCallOrder[0])
+            .toBeLessThan(resume.mock.invocationCallOrder[0])
+        })
+
+        it('should pause the stream before subscribe', async () => {
+          const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+          const pause = jest.spyOn(streamObserverMock, 'pause')
+          streamObserverMock.onCompleted({})
+
+          const it = result[Symbol.asyncIterator]()
+          await it.peek()
+
+          expect(pause.mock.invocationCallOrder[0])
+            .toBeLessThan(subscribe.mock.invocationCallOrder[0])
+        })
+
+        it('should pause the stream if queue is bigger than high watermark', async () => {
+          const pause = jest.spyOn(streamObserverMock, 'pause')
+          streamObserverMock.onKeys(['a'])
+
+          for (let i = 0; i <= watermarks.high; i++) {
+            streamObserverMock.onNext([i])
+          }
+
+          const it = result[Symbol.asyncIterator]()
+          await it.peek()
+
+          expect(pause).toBeCalledTimes(1)
+        })
+
+        it('should call resume if queue is smaller than low watermark', async () => {
+          const resume = jest.spyOn(streamObserverMock, 'resume')
+          streamObserverMock.onKeys(['a'])
+
+          for (let i = 0; i < watermarks.low - 1; i++) {
+            streamObserverMock.onNext([i])
+          }
+
+          const it = result[Symbol.asyncIterator]()
+          await it.peek()
+
+          expect(resume).toBeCalledTimes(1)
+        })
+
+
+        it('should return the first record', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          streamObserverMock.onCompleted({})
+
+          const it = result[Symbol.asyncIterator]()
+          const { value: record } = await it.peek()
+
+          expect(record).toEqual(new Record(keys, rawRecord1))
+        })
+
+        it('should not move the cursor ', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          streamObserverMock.onCompleted({})
+
+          const it = result[Symbol.asyncIterator]()
+          const { value: record } = await it.peek()
+          const { value: nextRecord } = await it.next()
+
+          expect(record).toEqual(new Record(keys, rawRecord1))
+          expect(record).toEqual(nextRecord)
+        })
+
+        it('should not move the cursor when buffer is empty ', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+
+          streamObserverMock.onKeys(keys)
+
+          setTimeout(() => {
+            streamObserverMock.onNext(rawRecord1)
+            streamObserverMock.onNext(rawRecord2)
+
+            streamObserverMock.onCompleted({})
+          }, 100)
+
+          const it = result[Symbol.asyncIterator]()
+          const { value: record } = await it.peek()
+          const { value: nextRecord } = await it.next()
+
+          expect(record).toEqual(new Record(keys, rawRecord1))
+          expect(record).toEqual(nextRecord)
+        })
+
+        it('should not move the cursor when buffer is empty next element is error ', async () => {
+          const keys = ['a', 'b']
+
+          streamObserverMock.onKeys(keys)
+
+          setTimeout(() => {
+            streamObserverMock.onError(expectedError)
+          }, 100)
+
+          const it = result[Symbol.asyncIterator]()
+          let peekError: Error | null = null
+          let nextError: Error | null = null
+
+          try {
+            await it.peek()
+          } catch (e) {
+            peekError = e
+          }
+
+          try {
+            await it.next()
+          } catch (e) {
+            nextError = e
+          }
+
+          expect(peekError).toEqual(expectedError)
+          expect(peekError).toEqual(nextError)
+        })
       })
 
       describe('onError', () => {
@@ -955,6 +1245,16 @@ describe('Result', () => {
         expect(next.done).toBe(true)
         expect(next.value).toStrictEqual(expectedResultSummary)
       })
+
+      describe('.peek()', () => {
+        it('should be resolved with expected result summary', async () => {
+          const it = result[Symbol.asyncIterator]()
+          const next = await it.peek()
+
+          expect(next.done).toBe(true)
+          expect(next.value).toStrictEqual(expectedResultSummary)
+        })
+      })
     })
   })
 
@@ -1008,6 +1308,13 @@ describe('Result', () => {
         for await (const _ of result) {
           // do nothing
         }
+      })
+
+      describe('.peek()', () => {
+        shouldReturnRejectedPromiseWithTheExpectedError(async () => {
+          const it = result[Symbol.asyncIterator]()
+          await it.peek()
+        })
       })
     })
 
@@ -1122,7 +1429,7 @@ function simulateStream(
     }
     state.streaming = true
     state.consumed = 0
-    
+
     const interval = setInterval(() => {
       state.streaming = state.consumed < fetchSize
       state.finished = records.length === 0
@@ -1139,14 +1446,14 @@ function simulateStream(
           streaming()
         }
         return
-      } 
+      }
 
       const record = records.shift()
       if (record !== undefined) {
         observer.onNext(record)
       }
       state.consumed++
-      
+
     }, timeout)
   }
 
@@ -1159,7 +1466,7 @@ function simulateStream(
       streaming()
     }
   }
-  
+
   /*
   return () => {
     
