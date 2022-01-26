@@ -223,12 +223,12 @@ class Transaction {
   /**
    * Closes the transaction
    *
-   * This method will rollback the transaction if it is not committed or rolled back.
+   * This method will roll back the transaction if it is not already committed or rolled back.
    *
    * @returns {Promise<void>} An empty promise if closed successfully or error if any error happened during
    */
   async close(): Promise<void> {
-    if(this.isOpen()) {
+    if (this.isOpen()) {
       await this.rollback()
     }
   }

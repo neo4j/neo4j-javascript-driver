@@ -62,7 +62,7 @@ describe('Transaction', () => {
 
   describe('.close()', () => {
     describe('when transaction is open', () => {
-      it('should rollback the transaction', async () => {
+      it('should roll back the transaction', async () => {
         const connection = newFakeConnection()
         const tx = newTransaction({ connection })
 
@@ -100,7 +100,7 @@ describe('Transaction', () => {
         ['commmited', commit],
         ['rolled back', rollback],
         ['with error', error]
-      ])('should not rollback the connection', async (_, operation) => {
+      ])('should not roll back the connection', async (_, operation) => {
         const connection = newFakeConnection()
         const tx = newTransaction({ connection })
 

@@ -94,7 +94,7 @@ export default class RxTransaction {
   /**
    * Closes the transaction
    *
-   * This method will rollback the transaction if it is not committed or rolled back.
+   * This method will roll back the transaction if it is not already committed or rolled back.
    *
    * @returns {Observable} - An empty observable
    */
