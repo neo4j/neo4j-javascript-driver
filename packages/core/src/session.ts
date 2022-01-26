@@ -25,7 +25,7 @@ import Transaction from './transaction'
 import { ConnectionHolder } from './internal/connection-holder'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import { TransactionExecutor } from './internal/transaction-executor'
-import { Bookmark } from './internal/bookmark'
+import { Bookmarks } from './internal/bookmarks'
 import { TxConfig } from './internal/tx-config'
 import ConnectionProvider from './connection-provider'
 import { Query, SessionMode } from './types'
@@ -56,7 +56,7 @@ class Session {
   private _writeConnectionHolder: ConnectionHolder
   private _open: boolean
   private _hasTx: boolean
-  private _lastBookmark: Bookmark
+  private _lastBookmarks: Bookmarks
   private _transactionExecutor: TransactionExecutor
   private _impersonatedUser?: string
   private _onComplete: (meta: any) => void
@@ -70,7 +70,7 @@ class Session {
    * @param {Object} args
    * @param {string} args.mode the default access mode for this session.
    * @param {ConnectionProvider} args.connectionProvider - The connection provider to acquire connections from.
-   * @param {Bookmark} args.bookmark - The initial bookmark for this session.
+   * @param {Bookmarks} args.bookmarks - The initial bookmarks for this session.
    * @param {string} args.database the database name
    * @param {Object} args.config={} - This driver configuration.
    * @param {boolean} args.reactive - Whether this session should create reactive streams
@@ -80,7 +80,7 @@ class Session {
   constructor({
     mode,
     connectionProvider,
-    bookmark,
+    bookmarks,
     database,
     config,
     reactive,
@@ -89,7 +89,7 @@ class Session {
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
-    bookmark?: Bookmark
+    bookmarks?: Bookmarks
     database: string
     config: any
     reactive: boolean
@@ -104,7 +104,7 @@ class Session {
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
-      bookmark,
+      bookmarks,
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved
@@ -112,7 +112,7 @@ class Session {
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
       database,
-      bookmark,
+      bookmarks,
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved
@@ -120,7 +120,7 @@ class Session {
     this._open = true
     this._hasTx = false
     this._impersonatedUser = impersonatedUser
-    this._lastBookmark = bookmark || Bookmark.empty()
+    this._lastBookmarks = bookmarks || Bookmarks.empty()
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
     this._databaseNameResolved = this._database !== ''
@@ -156,7 +156,7 @@ class Session {
     return this._run(validatedQuery, params, connection => {
       this._assertSessionIsOpen()
       return (connection as Connection).protocol().run(validatedQuery, params, {
-        bookmark: this._lastBookmark,
+        bookmarks: this._lastBookmarks,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
@@ -275,14 +275,14 @@ class Session {
       connectionHolder,
       impersonatedUser: this._impersonatedUser,
       onClose: this._transactionClosed.bind(this),
-      onBookmark: this._updateBookmark.bind(this),
+      onBookmarks: this._updateBookmarks.bind(this),
       onConnection: this._assertSessionIsOpen.bind(this),
       reactive: this._reactive,
       fetchSize: this._fetchSize,
       lowRecordWatermark: this._lowRecordWatermark,
       highRecordWatermark: this._highRecordWatermark
     })
-    tx._begin(this._lastBookmark, txConfig)
+    tx._begin(this._lastBookmarks, txConfig)
     return tx
   }
 
@@ -305,12 +305,12 @@ class Session {
   }
 
   /**
-   * Return the bookmark received following the last completed {@link Transaction}.
+   * Return the bookmarks received following the last completed {@link Transaction}.
    *
    * @return {string[]} A reference to a previous transaction.
    */
-  lastBookmark(): string[] {
-    return this._lastBookmark.values()
+  lastBookmarks(): string[] {
+    return this._lastBookmarks.values()
   }
 
   /**
@@ -385,14 +385,14 @@ class Session {
   }
 
   /**
-   * Update value of the last bookmark.
+   * Update value of the last bookmarks.
    * @private
-   * @param {Bookmark} newBookmark - The new bookmark.
+   * @param {Bookmarks} newBookmarks - The new bookmarks.
    * @returns {void}
    */
-  _updateBookmark(newBookmark?: Bookmark): void {
-    if (newBookmark && !newBookmark.isEmpty()) {
-      this._lastBookmark = newBookmark
+  _updateBookmarks(newBookmarks?: Bookmarks): void {
+    if (newBookmarks && !newBookmarks.isEmpty()) {
+      this._lastBookmarks = newBookmarks
     }
   }
 
@@ -426,16 +426,16 @@ class Session {
    * @returns {void}
    */
   _onCompleteCallback(meta: { bookmark: string | string[] }): void {
-    this._updateBookmark(new Bookmark(meta.bookmark))
+    this._updateBookmarks(new Bookmarks(meta.bookmark))
   }
 
   /**
-   * @private 
+   * @private
    * @returns {void}
    */
   private _calculateWatermaks(): { low: number; high: number } {
     if (this._fetchSize === FETCH_ALL) {
-      return { 
+      return {
         low: Number.MAX_VALUE, // we shall always lower than this number to enable auto pull
         high: Number.MAX_VALUE // we shall never reach this number to disable auto pull
       }

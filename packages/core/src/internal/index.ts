@@ -20,7 +20,7 @@
 import * as util from './util'
 import * as temporalUtil from './temporal-util'
 import * as observer from './observers'
-import * as bookmark from './bookmark'
+import * as bookmarks from './bookmarks'
 import * as constants from './constants'
 import * as connectionHolder from './connection-holder'
 import * as txConfig from './tx-config'
@@ -36,7 +36,7 @@ export {
   util,
   temporalUtil,
   observer,
-  bookmark,
+  bookmarks,
   constants,
   connectionHolder,
   txConfig,

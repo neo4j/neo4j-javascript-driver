@@ -292,7 +292,7 @@ export function TransactionRollback (context, data, wire) {
 export function SessionLastBookmarks (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
-  const bookmarks = session.lastBookmark()
+  const bookmarks = session.lastBookmarks()
   wire.writeResponse('Bookmarks', { bookmarks })
 }
 
@@ -410,7 +410,7 @@ export function ForcedRoutingTableUpdate (context, { driverId, database, bookmar
     return provider._freshRoutingTable ({
         accessMode: 'READ',
         database,
-        bookmark: bookmarks,
+        bookmarks: bookmarks,
         onDatabaseNameResolved: () => {}
     })
       .then(() => wire.writeResponse("Driver", { "id": driverId }))

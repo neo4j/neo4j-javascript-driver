@@ -18,14 +18,14 @@
  */
 import { ConnectionProvider, newError, Session } from '../src'
 import Driver from '../src/driver'
-import { Bookmark } from '../src/internal/bookmark'
+import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
 import { ConfiguredCustomResolver } from '../src/internal/resolver'
 
 describe('Driver', () => {
   let driver: Driver | null
   let connectionProvider: ConnectionProvider
-  let createSession: any 
+  let createSession: any
   const META_INFO = {
     routing: false,
     typename: '',
@@ -138,7 +138,7 @@ describe('Driver', () => {
 
   function expectedSessionParams(extra: any = {}) {
     return {
-      bookmark: Bookmark.empty(),
+      bookmarks: Bookmarks.empty(),
       config: {
         connectionAcquisitionTimeout: 60000,
         fetchSize: 1000,

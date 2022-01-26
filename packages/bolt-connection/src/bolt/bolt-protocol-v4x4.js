@@ -24,7 +24,7 @@ import { RouteObserver, ResultStreamObserver } from './stream-observers'
 
 const {
   constants: { BOLT_PROTOCOL_V4_4, FETCH_ALL },
-  bookmark: { Bookmark },
+  bookmarks: { Bookmarks },
 } = internal
 
 export default class BoltProtocol extends BoltProtocolV43 {
@@ -39,7 +39,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
   * @param {object} param.routingContext The routing context used to define the routing table.
   *  Multi-datacenter deployments is one of its use cases
   * @param {string} param.databaseName The database name
-  * @param {Bookmark} params.sessionContext.bookmark The bookmark used for request the routing table
+  * @param {Bookmarks} params.sessionContext.bookmarks The bookmarks used for requesting the routing table
   * @param {function(err: Error)} param.onError
   * @param {function(RawRoutingTable)} param.onCompleted
   * @returns {RouteObserver} the route observer
@@ -57,9 +57,9 @@ export default class BoltProtocol extends BoltProtocolV43 {
       onError,
       onCompleted
     })
-    const bookmark = sessionContext.bookmark || Bookmark.empty()
+    const bookmarks = sessionContext.bookmarks || Bookmarks.empty()
     this.write(
-      RequestMessage.routeV4x4(routingContext, bookmark.values(), { databaseName, impersonatedUser }),
+      RequestMessage.routeV4x4(routingContext, bookmarks.values(), { databaseName, impersonatedUser }),
       observer,
       true
     )
@@ -71,7 +71,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
     query,
     parameters,
     {
-      bookmark,
+      bookmarks,
       txConfig,
       database,
       mode,
@@ -108,7 +108,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
     const flushRun = reactive
     this.write(
       RequestMessage.runWithMetadata(query, parameters, {
-        bookmark,
+        bookmarks,
         txConfig,
         database,
         mode,
@@ -126,7 +126,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
   }
 
   beginTransaction ({
-    bookmark,
+    bookmarks,
     txConfig,
     database,
     mode,
@@ -146,7 +146,7 @@ export default class BoltProtocol extends BoltProtocolV43 {
     observer.prepareToHandleSingleResponse()
 
     this.write(
-      RequestMessage.begin({ bookmark, txConfig, database, mode, impersonatedUser }),
+      RequestMessage.begin({ bookmarks, txConfig, database, mode, impersonatedUser }),
       observer,
       true
     )

@@ -108,7 +108,7 @@ describe('#unit Rediscovery', () => {
     expect(requestParams.routingContext).toEqual(routingContext)
     expect(requestParams.databaseName).toEqual(database)
     expect(requestParams.sessionContext).toEqual({
-      bookmark: session._lastBookmark,
+      bookmarks: session._lastBookmarks,
       mode: session._mode,
       database: session._database,
       afterComplete: session._onComplete
@@ -280,7 +280,7 @@ class FakeSession {
   constructor (connection) {
     this._connection = connection
     this._called = 0
-    this._lastBookmark = 'lastBook'
+    this._lastBookmarks = ['lastBook']
     this._mode = 'READ'
     this._database = 'session db'
     this._onComplete = 'moked'

@@ -28,7 +28,7 @@ import {
 import { internal } from 'neo4j-driver-core'
 
 const {
-  bookmark: { Bookmark },
+  bookmarks: { Bookmarks },
   constants: { BOLT_PROTOCOL_V3 },
   txConfig: { TxConfig }
 } = internal
@@ -75,7 +75,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
   }
 
   beginTransaction ({
-    bookmark,
+    bookmarks,
     txConfig,
     database,
     impersonatedUser,
@@ -100,7 +100,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     assertImpersonatedUserIsEmpty(impersonatedUser, this._onProtocolError, observer)
 
     this.write(
-      RequestMessage.begin({ bookmark, txConfig, mode }),
+      RequestMessage.begin({ bookmarks, txConfig, mode }),
       observer,
       true
     )
@@ -152,7 +152,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     query,
     parameters,
     {
-      bookmark,
+      bookmarks,
       txConfig,
       database,
       impersonatedUser,
@@ -187,7 +187,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
 
     this.write(
       RequestMessage.runWithMetadata(query, parameters, {
-        bookmark,
+        bookmarks,
         txConfig,
         mode
       }),
@@ -206,7 +206,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
    * @param {object} param.routingContext The routing context used to define the routing table.
    *  Multi-datacenter deployments is one of its use cases
    * @param {string} param.databaseName The database name
-   * @param {Bookmark} params.sessionContext.bookmark The bookmark used for request the routing table
+   * @param {Bookmarks} params.sessionContext.bookmarks The bookmarks used for requesting the routing table
    * @param {string} params.sessionContext.mode The session mode
    * @param {string} params.sessionContext.database The database name used on the session
    * @param {function()} params.sessionContext.afterComplete The session param used after the session closed

@@ -1017,7 +1017,7 @@ describe('#integration examples', () => {
         )
       )
       .then(() => {
-        savedBookmarks.push(session1.lastBookmark())
+        savedBookmarks.push(session1.lastBookmarks())
       })
       .then(() => session1.close())
 
@@ -1030,7 +1030,7 @@ describe('#integration examples', () => {
         session2.writeTransaction(tx => addEmployee(tx, 'Bob', 'LexCorp'))
       )
       .then(() => {
-        savedBookmarks.push(session2.lastBookmark())
+        savedBookmarks.push(session2.lastBookmarks())
       })
       .then(() => session2.close())
 

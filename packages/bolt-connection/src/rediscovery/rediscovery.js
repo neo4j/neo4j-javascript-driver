@@ -69,7 +69,7 @@ export default class Rediscovery {
         databaseName: database,
         impersonatedUser,
         sessionContext: {
-          bookmark: session._lastBookmark,
+          bookmarks: session._lastBookmarks,
           mode: session._mode,
           database: session._database,
           afterComplete: session._onComplete

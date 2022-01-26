@@ -23,7 +23,7 @@ import { internal } from 'neo4j-driver-core'
 
 const {
   txConfig: { TxConfig },
-  bookmark: { Bookmark }
+  bookmarks: { Bookmarks }
 } = internal
 
 describe('#unit BoltProtocolV4x1', () => {
@@ -99,7 +99,7 @@ describe('#unit BoltProtocolV4x1', () => {
       const query = 'RETURN $x, $y'
       const parameters = { x: 'x', y: 'y' }
       const observer = protocol.run(query, parameters, {
-        bookmark: Bookmark.empty(),
+        bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         lowRecordWatermark: 100,
         highRecordWatermark: 200,

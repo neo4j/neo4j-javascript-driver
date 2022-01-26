@@ -18,7 +18,7 @@
  */
 
 import Connection from './connection'
-import { bookmark } from './internal'
+import { bookmarks } from './internal'
 
 
 /**
@@ -39,14 +39,14 @@ class ConnectionProvider {
    * @param {object} param - object parameter
    * @property {string} param.accessMode - the access mode for the to-be-acquired connection
    * @property {string} param.database - the target database for the to-be-acquired connection
-   * @property {Bookmark} param.bookmarks - the bookmarks to send to routing discovery
+   * @property {Bookmarks} param.bookmarks - the bookmarks to send to routing discovery
    * @property {string} param.impersonatedUser - the impersonated user
    * @property {function (databaseName:string?)} param.onDatabaseNameResolved - Callback called when the database name get resolved
    */
   acquireConnection(param?: {
     accessMode?: string
     database?: string
-    bookmarks: bookmark.Bookmark,
+    bookmarks: bookmarks.Bookmarks,
     impersonatedUser?: string,
     onDatabaseNameResolved?: (databaseName?: string) => void
   }): Promise<Connection> {

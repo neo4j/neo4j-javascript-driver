@@ -380,7 +380,7 @@ describe('#integration session', () => {
     expect(() => session.run({ cypher: 'CREATE ()' })).toThrowError(TypeError)
   }, 70000)
 
-  it('should fail nicely for illegal bookmark', () => {
+  it('should fail nicely for illegal bookmarks', () => {
     expect(() => session.beginTransaction(42)).toThrowError(TypeError)
     expect(() => session.beginTransaction(42)).toThrowError(TypeError)
     expect(() => session.beginTransaction([42.0, 42.0])).toThrowError(TypeError)
@@ -535,10 +535,10 @@ describe('#integration session', () => {
     })
   }, 70000)
 
-  it('should update last bookmark after every read tx commit', done => {
-    // new session without initial bookmark
+  it('should update last bookmarks after every read tx commit', done => {
+    // new session without initial bookmarks
     session = driver.session()
-    expect(session.lastBookmark()).toEqual([])
+    expect(session.lastBookmarks()).toEqual([])
 
     const tx = session.beginTransaction()
     tx.run('RETURN 42 as answer').then(result => {
@@ -547,37 +547,37 @@ describe('#integration session', () => {
       expect(records[0].get('answer').toNumber()).toEqual(42)
 
       tx.commit().then(() => {
-        verifyBookmark(session.lastBookmark())
+        verifyBookmarks(session.lastBookmarks())
         done()
       })
     })
   }, 70000)
 
-  it('should update last bookmark after every write tx commit', done => {
-    const bookmarkBefore = session.lastBookmark()
+  it('should update last bookmarks after every write tx commit', done => {
+    const bookmarksBefore = session.lastBookmarks()
 
     const tx = session.beginTransaction()
     tx.run('CREATE ()').then(() => {
       tx.commit().then(() => {
-        const bookmarkAfter = session.lastBookmark()
-        expect(bookmarkAfter).toBeDefined()
-        expect(bookmarkAfter).not.toBeNull()
-        expect(bookmarkAfter).not.toEqual(bookmarkBefore)
+        const bookmarksAfter = session.lastBookmarks()
+        expect(bookmarksAfter).toBeDefined()
+        expect(bookmarksAfter).not.toBeNull()
+        expect(bookmarksAfter).not.toEqual(bookmarksBefore)
 
         done()
       })
     })
   }, 70000)
 
-  it('should not lose last bookmark after run', done => {
+  it('should not lose last bookmarks after run', done => {
     const tx = session.beginTransaction()
     tx.run('CREATE ()').then(() => {
       tx.commit().then(() => {
-        const bookmarkBefore = session.lastBookmark()
-        verifyBookmark(bookmarkBefore)
+        const bookmarksBefore = session.lastBookmarks()
+        verifyBookmarks(bookmarksBefore)
 
         session.run('CREATE ()').then(() => {
-          verifyBookmark(session.lastBookmark())
+          verifyBookmarks(session.lastBookmarks())
           done()
         })
       })
@@ -585,9 +585,9 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should commit read transaction', done => {
-    // new session without initial bookmark
+    // new session without initial bookmarks
     session = driver.session()
-    expect(session.lastBookmark()).toEqual([])
+    expect(session.lastBookmarks()).toEqual([])
 
     const resultPromise = session.readTransaction(tx =>
       tx.run('RETURN 42 AS answer')
@@ -596,13 +596,13 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      verifyBookmark(session.lastBookmark())
+      verifyBookmarks(session.lastBookmarks())
       done()
     })
   }, 70000)
 
   it('should commit write transaction', done => {
-    const bookmarkBefore = session.lastBookmark()
+    const bookmarksBefore = session.lastBookmarks()
     const resultPromise = session.writeTransaction(tx =>
       tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
     )
@@ -612,9 +612,9 @@ describe('#integration session', () => {
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
       expect(result.summary.counters.updates().nodesCreated).toEqual(1)
 
-      const bookmarkAfter = session.lastBookmark()
-      verifyBookmark(bookmarkAfter)
-      expect(bookmarkAfter).not.toEqual(bookmarkBefore)
+      const bookmarksAfter = session.lastBookmarks()
+      verifyBookmarks(bookmarksAfter)
+      expect(bookmarksAfter).not.toEqual(bookmarksBefore)
 
       countNodes('Node', 'id', 42).then(count => {
         expect(count).toEqual(1)
@@ -630,7 +630,7 @@ describe('#integration session', () => {
           .then(result => {
             tx.commit()
               .then(() => {
-                resolve({ result: result, bookmark: session.lastBookmark() })
+                resolve({ result: result, bookmarks: session.lastBookmarks() })
               })
               .catch(error => reject(error))
           })
@@ -639,11 +639,11 @@ describe('#integration session', () => {
     })
 
     resultPromise.then(outcome => {
-      const bookmark = outcome.bookmark
+      const bookmarks = outcome.bookmarks
       const result = outcome.result
 
-      verifyBookmark(bookmark)
-      expect(session.lastBookmark()).toEqual(bookmark) // expect bookmark to not change
+      verifyBookmarks(bookmarks)
+      expect(session.lastBookmarks()).toEqual(bookmarks) // expect bookmarks to not change
 
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
@@ -659,7 +659,7 @@ describe('#integration session', () => {
           .then(result => {
             tx.commit()
               .then(() => {
-                resolve({ result: result, bookmark: session.lastBookmark() })
+                resolve({ result: result, bookmarks: session.lastBookmarks() })
               })
               .catch(error => reject(error))
           })
@@ -668,11 +668,11 @@ describe('#integration session', () => {
     })
 
     resultPromise.then(outcome => {
-      const bookmark = outcome.bookmark
+      const bookmarks = outcome.bookmarks
       const result = outcome.result
 
-      verifyBookmark(bookmark)
-      expect(session.lastBookmark()).toEqual(bookmark) // expect bookmark to not change
+      verifyBookmarks(bookmarks)
+      expect(session.lastBookmarks()).toEqual(bookmarks) // expect bookmarks to not change
 
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
@@ -686,7 +686,7 @@ describe('#integration session', () => {
   }, 70000)
 
   it('should not commit rolled back read transaction', done => {
-    const bookmarkBefore = session.lastBookmark()
+    const bookmarksBefore = session.lastBookmarks()
     const resultPromise = session.readTransaction(tx => {
       return new Promise((resolve, reject) => {
         tx.run('RETURN 42 AS answer')
@@ -704,14 +704,14 @@ describe('#integration session', () => {
     resultPromise.then(result => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
-      expect(session.lastBookmark()).toBe(bookmarkBefore) // expect bookmark to not change
+      expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
 
       done()
     })
   }, 70000)
 
   it('should not commit rolled back write transaction', done => {
-    const bookmarkBefore = session.lastBookmark()
+    const bookmarksBefore = session.lastBookmarks()
     const resultPromise = session.writeTransaction(tx => {
       return new Promise((resolve, reject) => {
         tx.run('CREATE (n:Node {id: 42}) RETURN n.id AS answer')
@@ -730,7 +730,7 @@ describe('#integration session', () => {
       expect(result.records.length).toEqual(1)
       expect(result.records[0].get('answer').toNumber()).toEqual(42)
       expect(result.summary.counters.updates().nodesCreated).toEqual(1)
-      expect(session.lastBookmark()).toBe(bookmarkBefore) // expect bookmark to not change
+      expect(session.lastBookmarks()).toBe(bookmarksBefore) // expect bookmarks to not change
 
       countNodes('Node', 'id', 42).then(count => {
         expect(count).toEqual(0)
@@ -844,16 +844,19 @@ describe('#integration session', () => {
 
   it('should send multiple bookmarks', async () => {
     const nodeCount = 17
-    const bookmarks = []
+    const allBookmarks = []
     for (let i = 0; i < nodeCount; i++) {
-      const bookmark = await runQueryAndGetBookmark(driver)
-      bookmarks.push(bookmark)
+      const bookmarks = await runQueryAndGetBookmarks(driver)
+      allBookmarks.push(bookmarks)
     }
 
-    expect(_.uniq(bookmarks).length).toEqual(nodeCount)
-    bookmarks.forEach(bookmark => expect(_.isArray(bookmark)).toBeTruthy())
+    expect(_.uniq(allBookmarks).length).toEqual(nodeCount)
+    allBookmarks.forEach(bookmarks => expect(_.isArray(bookmarks)).toBeTruthy())
 
-    const session = driver.session({ defaultAccessMode: READ, bookmarks })
+    const session = driver.session({
+      defaultAccessMode: READ,
+      bookmarks: allBookmarks
+    })
     try {
       const result = await session.run('MATCH (n) RETURN count(n)')
       const count = result.records[0].get(0).toInt()
@@ -1146,9 +1149,9 @@ describe('#integration session', () => {
     return idleConnections.length
   }
 
-  function verifyBookmark (bookmark) {
-    expect(bookmark).toBeDefined()
-    expect(bookmark).not.toBeNull()
+  function verifyBookmarks (bookmarks) {
+    expect(bookmarks).toBeDefined()
+    expect(bookmarks).not.toBeNull()
   }
 
   function expectTransactionTerminatedError (error) {
@@ -1173,7 +1176,7 @@ describe('#integration session', () => {
     })
   }
 
-  function runQueryAndGetBookmark (driver) {
+  function runQueryAndGetBookmarks (driver) {
     const session = driver.session()
     const tx = session.beginTransaction()
 
@@ -1182,9 +1185,9 @@ describe('#integration session', () => {
         .then(() => {
           tx.commit()
             .then(() => {
-              const bookmark = session.lastBookmark()
+              const bookmarks = session.lastBookmarks()
               session.close().then(() => {
-                resolve(bookmark)
+                resolve(bookmarks)
               })
             })
             .catch(error => reject(error))
