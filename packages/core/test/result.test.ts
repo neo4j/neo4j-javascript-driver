@@ -810,7 +810,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
           await it.next()
-          const { value, done } = await it.return!!(summary)
+          const { value, done } = await it.return!(summary)
 
           expect(value).toEqual(summary)
           expect(done).toEqual(true)
@@ -828,7 +828,7 @@ describe('Result', () => {
           const it = result[Symbol.asyncIterator]()
 
           await it.next()
-          await it.return!!(new ResultSummary('query', {}, {}))
+          await it.return!(new ResultSummary('query', {}, {}))
 
           const { value, done } = await it.next()
 
@@ -841,7 +841,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
 
-          await it.return!!(new ResultSummary('query', {}, {}))
+          await it.return!(new ResultSummary('query', {}, {}))
 
           await it.next()
 
@@ -853,7 +853,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
 
-          await it.return!!(new ResultSummary('query', {}, {}))
+          await it.return!(new ResultSummary('query', {}, {}))
 
           await it.next()
 
@@ -874,7 +874,7 @@ describe('Result', () => {
           const it = result[Symbol.asyncIterator]()
 
           await it.next()
-          await it.return!!(new ResultSummary('query', {}, {}))
+          await it.return!(new ResultSummary('query', {}, {}))
 
 
           expect(cancel).toBeCalled()
@@ -885,7 +885,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
 
-          await it.return!!(new ResultSummary('query', {}, {}))
+          await it.return!(new ResultSummary('query', {}, {}))
           await it.next()
 
           expect(subscribe).not.toBeCalled()
@@ -896,7 +896,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
 
-          await it.return!!(new ResultSummary('query', {}, {}))
+          await it.return!(new ResultSummary('query', {}, {}))
           await it.peek()
 
           expect(subscribe).not.toBeCalled()

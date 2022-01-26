@@ -260,10 +260,10 @@ class Result implements Promise<QueryResult> {
     return {
       next: async () => {
         if (state.finished) {
-          return { done: true, value: state.summary!! }
+          return { done: true, value: state.summary! }
         }
         await controlFlow()
-        const next = await state.queuedObserver!!.dequeue()
+        const next = await state.queuedObserver!.dequeue()
         if (next.done) {
           state.finished = next.done
           state.summary = next.value
@@ -278,10 +278,10 @@ class Result implements Promise<QueryResult> {
       },
       peek: async () => {
         if (state.finished) {
-          return { done: true, value: state.summary!! }
+          return { done: true, value: state.summary! }
         }
         await controlFlow()
-        return await state.queuedObserver!!.head()
+        return await state.queuedObserver!.head()
       }
     }
   }
