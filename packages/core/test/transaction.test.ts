@@ -60,6 +60,59 @@ describe('Transaction', () => {
 
   })
 
+  describe('.close()', () => {
+    describe('when transaction is open', () => {
+      it('should rollback the transaction', async () => {
+        const connection = newFakeConnection()
+        const tx = newTransaction({ connection })
+
+        await tx.run('RETURN 1')
+        await tx.close()
+
+        expect(connection.rollbackInvoked).toEqual(1)
+      })
+
+      it('should surface errors during the rollback', async () => {
+        const expectedError = new Error('rollback error')
+        const connection = newFakeConnection().withRollbackError(expectedError)
+        const tx = newTransaction({ connection })
+
+        await tx.run('RETURN 1')
+
+        try {
+          await tx.close()
+          fail('should have thrown')
+        } catch (error) {
+          expect(error).toEqual(expectedError)
+        }
+      })
+    })
+
+    describe('when transaction is closed', () => {
+      const commit = async (tx: Transaction) => tx.commit()
+      const rollback = async (tx: Transaction) => tx.rollback()
+      const error = async (tx: Transaction, conn: FakeConnection) => {
+        conn.withRollbackError(new Error('rollback error'))
+        return tx.rollback().catch(() => { })
+      }
+
+      it.each([
+        ['commmited', commit],
+        ['rolled back', rollback],
+        ['with error', error]
+      ])('should not rollback the connection', async (_, operation) => {
+        const connection = newFakeConnection()
+        const tx = newTransaction({ connection })
+
+        await operation(tx, connection)
+        const rollbackInvokedAfterOperation = connection.rollbackInvoked
+
+        await tx.close()
+
+        expect(connection.rollbackInvoked).toEqual(rollbackInvokedAfterOperation)
+      })
+    })
+  })
 })
 
 function newTransaction({
@@ -69,9 +122,9 @@ function newTransaction({
   lowRecordWatermark = 300
 }: {
   connection: FakeConnection
-  fetchSize: number
-  highRecordWatermark: number,
-  lowRecordWatermark: number
+  fetchSize?: number
+  highRecordWatermark?: number,
+  lowRecordWatermark?: number
 }): Transaction {
   const connectionProvider = new ConnectionProvider()
   connectionProvider.acquireConnection = () => Promise.resolve(connection)

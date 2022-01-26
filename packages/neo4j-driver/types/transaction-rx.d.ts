@@ -26,6 +26,8 @@ declare interface RxTransaction {
   commit(): Observable<any>
 
   rollback(): Observable<any>
+
+  close(): Observable<any>
 }
 
 export default RxTransaction

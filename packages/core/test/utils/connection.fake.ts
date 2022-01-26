@@ -44,6 +44,8 @@ export default class FakeConnection extends Connection {
   public protocolErrorsHandled: number
   public seenProtocolErrors: string[]
   public seenRequestRoutingInformation: any[]
+  public rollbackInvoked: number
+  public _rollbackError: Error | null
 
   constructor() {
     super()
@@ -64,6 +66,8 @@ export default class FakeConnection extends Connection {
     this.protocolErrorsHandled = 0
     this.seenProtocolErrors = []
     this.seenRequestRoutingInformation = []
+    this.rollbackInvoked = 0
+    this._rollbackError = null
   }
 
   get id(): string {
@@ -104,6 +108,13 @@ export default class FakeConnection extends Connection {
       },
       beginTransaction: () => {
         return Promise.resolve()
+      },
+      rollbackTransaction: () => {
+        this.rollbackInvoked ++
+        if (this._rollbackError !== null) {
+          return mockResultStreamObserverWithError('ROLLBACK', {}, this._rollbackError)
+        }
+        return mockResultStreamObserver('ROLLBACK', {})
       },
       requestRoutingInformation: (params: any | undefined) => {
         this.seenRequestRoutingInformation.push(params)
@@ -161,10 +172,25 @@ export default class FakeConnection extends Connection {
     return this
   }
 
+  withRollbackError(error: Error) {
+    this._rollbackError = error
+    return this
+  }
+
   closed() {
     this._open = false
     return this
   }
+}
+
+function mockResultStreamObserverWithError (query: string, parameters: any | undefined, error: Error) {
+  const observer = mockResultStreamObserver(query, parameters)
+  observer.subscribe = (observer: ResultObserver) => {
+    if (observer && observer.onError) {
+      observer.onError(error)
+    }
+  }
+  return observer
 }
 
 function mockResultStreamObserver(query: string, parameters: any | undefined): ResultStreamObserver {
