@@ -285,6 +285,14 @@ export function TransactionRollback (context, data, wire) {
     .catch(e => wire.writeError(e))
 }
 
+export function TransactionClose (context, data, wire) {
+  const { txId: id } = data
+  const { tx } = context.getTx(id)
+  return tx.close()
+    .then(() => wire.writeResponse('Transaction', { id }))
+    .catch(e => wire.writeError(e))
+}
+
 export function SessionLastBookmarks (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
@@ -337,6 +345,7 @@ export function GetFeatures (_context, _params, wire) {
       'Temporary:DriverMaxConnectionPoolSize',
       'Temporary:FastFailingDiscovery',
       'Temporary:ResultKeys',
+      'Temporary:TransactionClose',
       ...SUPPORTED_TLS
     ]
   })
