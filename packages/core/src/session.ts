@@ -411,9 +411,8 @@ class Session {
     if (this._open) {
       try {
         await Promise.all(this._results.map(r => r.close()))
-        this._results = []
         if (this._hasTx) {
-          this._tx?.close()
+          await this._tx?.close()
         }
         this._transactionExecutor.close()
 
