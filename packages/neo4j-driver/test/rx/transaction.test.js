@@ -29,6 +29,7 @@ import {
 } from 'rxjs/operators'
 import neo4j from '../../src'
 import RxSession from '../../src/session-rx'
+import RxTransaction from '../../src/transaction-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 import { newError } from 'neo4j-driver-core'
 
@@ -134,6 +135,35 @@ describe('#integration-rx transaction', () => {
             .pipe(
               map(r => r.get('n').properties.id),
               concat(txc.rollback())
+            )
+        ),
+        materialize(),
+        toArray()
+      )
+      .toPromise()
+    expect(result).toEqual([
+      Notification.createNext(neo4j.int(42)),
+      Notification.createComplete()
+    ])
+
+    expect(await countNodes(42)).toBe(0)
+  })
+
+  it('should run query and close', async () => {
+    if (protocolVersion < 4.0) {
+      return
+    }
+
+    const result = await session
+      .beginTransaction()
+      .pipe(
+        flatMap(txc =>
+          txc
+            .run('CREATE (n:Node {id: 42}) RETURN n')
+            .records()
+            .pipe(
+              map(r => r.get('n').properties.id),
+              concat(txc.close())
             )
         ),
         materialize(),
@@ -719,4 +749,38 @@ describe('#integration-rx transaction', () => {
       )
       .toPromise()
   }
+})
+
+describe('#unit', () => {
+  describe('.close()', () => {
+    it('should delegate to the original Transaction', async () => {
+      const txc = {
+        close: jasmine.createSpy('close').and.returnValue(Promise.resolve())
+      }
+
+      const transaction = new RxTransaction(txc)
+
+      await transaction.close().toPromise()
+
+      expect(txc.close).toHaveBeenCalled()
+    })
+
+    it('should fail if to the original Transaction.close call fails', async () => {
+      const expectedError = new Error('expected')
+      const txc = {
+        close: jasmine
+          .createSpy('close')
+          .and.returnValue(Promise.reject(expectedError))
+      }
+
+      const transaction = new RxTransaction(txc)
+
+      try {
+        await transaction.close().toPromise()
+        fail('should have thrown')
+      } catch (error) {
+        expect(error).toBe(expectedError)
+      }
+    })
+  })
 })
