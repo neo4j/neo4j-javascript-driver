@@ -1142,6 +1142,92 @@ describe('Result', () => {
         })
       })
     })
+
+    describe('.close()', () => {
+      it('should close the stream', async () => {
+        const close = jest.spyOn(streamObserverMock, 'close')
+        const result = new Result(
+          Promise.resolve(streamObserverMock), 'query', undefined, undefined
+        )
+
+        await result.close()
+
+        expect(close).toBeCalledTimes(1)
+      })
+
+      it('should should redirect error on close', async () => {
+        const expectedError = new Error('test')
+        const close = jest.spyOn(streamObserverMock, 'close')
+          .mockRejectedValue(expectedError)
+        const result = new Result(
+          Promise.resolve(streamObserverMock), 'query', undefined, undefined
+        )
+
+        try {
+          await result.close()
+          fail('should throws an error')
+        } catch (error) {
+          expect(error).toEqual(expectedError)
+        }
+
+        expect(close).toBeCalledTimes(1)
+      })
+      
+
+      const then = async (result: Result) => result
+      const iterator = async (result: Result) => {
+        for await (const record of result) {
+          // do nothing
+        }
+      }
+      const summary = async (result: Result) => result.summary()
+
+      it.each([
+        ['resolve', then],
+        ['iterator', iterator],
+        ['summary', summary]
+      ])('should not close if already consumed the result [%s]', async (_, operation) => {
+        const close = jest.spyOn(streamObserverMock, 'close')
+        const result = new Result(
+          Promise.resolve(streamObserverMock), 'query', undefined, undefined
+        )
+
+        streamObserverMock.onKeys(['a', 'b'])
+        streamObserverMock.onNext([1, 2])
+        streamObserverMock.onNext([3, 4])
+        streamObserverMock.onCompleted({})
+
+        await operation(result)
+        await result.close()
+
+        expect(close).toBeCalledTimes(0)
+      })
+
+      it.each([
+        ['resolve', then],
+        ['iterator', iterator],
+        ['summary', summary]
+      ])('should not close if get an error during the result consumption [%s]', async (_, operation) => {
+        const close = jest.spyOn(streamObserverMock, 'close')
+        const result = new Result(
+          Promise.resolve(streamObserverMock), 'query', undefined, undefined
+        )
+
+        streamObserverMock.onKeys(['a', 'b'])
+        streamObserverMock.onNext([1, 2])
+        streamObserverMock.onError(new Error('test'))
+
+        try {
+          await operation(result)
+        } catch (_) {
+          // this is fine
+        }
+
+        await result.close()
+
+        expect(close).toBeCalledTimes(0)
+      })
+    })
   })
 
   describe.each([
@@ -1256,6 +1342,17 @@ describe('Result', () => {
         })
       })
     })
+
+    describe('close', () => {
+      it('should close the stream anyway since it is a noop', async () => {
+        const observer = await promise
+        const close = jest.spyOn(observer, 'close')
+
+        await result.close()
+
+        expect(close).toBeCalledTimes(1)
+      })
+    })
   })
 
   describe.each([
@@ -1318,6 +1415,12 @@ describe('Result', () => {
       })
     })
 
+    describe('.close()', () => {
+      it('should not thrown', async () => {
+        await expect(result.close()).resolves.toBeUndefined()
+      })
+    })
+
     function shouldReturnRejectedPromiseWithTheExpectedError<T>(
       supplier: () => Promise<T>
     ) {
@@ -1339,6 +1442,10 @@ class ResultStreamObserverMock implements observer.ResultStreamObserver {
     this._observers = []
   }
 
+  close(): Promise<void> {
+    return Promise.resolve()
+  }
+  
   cancel(): void {}
 
   prepareToHandleSingleResponse(): void {}

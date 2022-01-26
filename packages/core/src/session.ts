@@ -63,7 +63,8 @@ class Session {
   private _databaseNameResolved: boolean
   private _lowRecordWatermark: number
   private _highRecordWatermark: number
-
+  private _results: Result[]
+  private _tx: Transaction | null
   /**
    * @constructor
    * @protected
@@ -127,6 +128,8 @@ class Session {
     const calculatedWatermaks = this._calculateWatermaks()
     this._lowRecordWatermark = calculatedWatermaks.low
     this._highRecordWatermark = calculatedWatermaks.high
+    this._results = []
+    this._tx = null
   }
 
   /**
@@ -201,7 +204,9 @@ class Session {
       )
     }
     const watermarks = { high: this._highRecordWatermark, low: this._lowRecordWatermark }
-    return new Result(observerPromise, query, parameters, connectionHolder, watermarks)
+    const result = new Result(observerPromise, query, parameters, connectionHolder, watermarks)
+    this._results.push(result)
+    return result
   }
 
   async _acquireConnection(connectionConsumer: ConnectionConsumer) {
@@ -283,6 +288,7 @@ class Session {
       highRecordWatermark: this._highRecordWatermark
     })
     tx._begin(this._lastBookmark, txConfig)
+    this._tx = tx
     return tx
   }
 
@@ -301,6 +307,7 @@ class Session {
    * @returns {void}
    */
   _transactionClosed() {
+    this._tx = null
     this._hasTx = false
   }
 
@@ -402,11 +409,24 @@ class Session {
    */
   async close(): Promise<void> {
     if (this._open) {
-      this._open = false
-      this._transactionExecutor.close()
+      try {
+        await Promise.all(this._results.map(r => r.close()))
+        this._results = []
+        if (this._hasTx) {
+          this._tx?.close()
+        }
+        this._transactionExecutor.close()
 
-      await this._readConnectionHolder.close()
-      await this._writeConnectionHolder.close()
+        await this._readConnectionHolder.close()
+        await this._writeConnectionHolder.close()
+      } finally {
+        // clean up
+        this._open = false
+        this._hasTx = false
+        this._results = []
+        this._tx = null
+      }
+      
     }
   }
 

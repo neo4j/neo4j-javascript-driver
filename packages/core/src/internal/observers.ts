@@ -79,6 +79,11 @@ export interface ResultStreamObserver extends StreamObserver {
   cancel(): void
 
   /**
+   * Close the stream
+   */
+  close(): Promise<void>
+
+  /**
    * Pause the record consuming
    *
    * This function will supend the record consuming. It will not cancel the stream and the already
@@ -125,6 +130,10 @@ export class CompletedObserver implements ResultStreamObserver {
   subscribe(observer: ResultObserver): void {
     apply(observer, observer.onKeys, [])
     apply(observer, observer.onCompleted, {})
+  }
+
+  close(): Promise<void> {
+    return Promise.resolve()
   }
 
   cancel(): void {
@@ -180,6 +189,10 @@ export class FailedObserver implements ResultStreamObserver {
     Promise.resolve(apply(this, this._beforeError, error)).then(() =>
       this._observers.forEach(o => apply(o, o.onError, error))
     )
+  }
+
+  close(): Promise<void> {
+    return Promise.resolve()
   }
 
   cancel(): void {

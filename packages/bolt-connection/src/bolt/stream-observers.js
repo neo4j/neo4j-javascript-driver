@@ -101,6 +101,7 @@ class ResultStreamObserver extends StreamObserver {
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
     this._setupAutoPull()
     this._paused = false;
+    this._closePromise = null;
   }
 
   /**
@@ -122,6 +123,14 @@ class ResultStreamObserver extends StreamObserver {
     this._paused = false
     this._setupAutoPull(true)
     this._state.pull(this)
+  }
+
+  close () {
+    this._discard = true
+    if (this._closePromise) {
+      return this._closePromise.promise
+    }
+    return this._state.close(this)
   }
 
   /**
@@ -267,6 +276,10 @@ class ResultStreamObserver extends StreamObserver {
       if (this._afterComplete) {
         this._afterComplete(completionMetadata)
       }
+
+      if (this._closePromise !== null) {
+        this._closePromise.resolve()
+      }
     }
 
     if (beforeHandlerResult) {
@@ -354,6 +367,10 @@ class ResultStreamObserver extends StreamObserver {
         })
       }
 
+      if (this._closePromise !== null) {
+        this._closePromise.reject(error)
+      }
+
       if (this._afterError) {
         this._afterError(error)
       }
@@ -400,6 +417,17 @@ class ResultStreamObserver extends StreamObserver {
 
   _setupAutoPull () {
     this._autoPull = true
+  }
+
+  _setupClosePromise() {
+    if (this._closePromise === null) {
+      this._closePromise = {}
+      this._closePromise.promise = new Promise((resolve, reject) => {
+        this._closePromise.resolve = resolve
+        this._closePromise.reject = reject
+      })
+    }
+    return this._closePromise.promise
   }
 }
 
@@ -600,7 +628,8 @@ const _states = {
     name: () => {
       return 'READY_STREAMING'
     },
-    pull: () => {}
+    pull: () => {},
+    close: streamObserver => streamObserver._setupClosePromise()
   },
   READY: {
     // reactive start state
@@ -616,7 +645,8 @@ const _states = {
     name: () => {
       return 'READY'
     },
-    pull: streamObserver => streamObserver._more()
+    pull: streamObserver => streamObserver._more(),
+    close: streamObserver => streamObserver._setupClosePromise()
   },
   STREAMING: {
     onSuccess: (streamObserver, meta) => {
@@ -632,7 +662,8 @@ const _states = {
     name: () => {
       return 'STREAMING'
     },
-    pull: () => {}
+    pull: () => {},
+    close: streamObserver => streamObserver._setupClosePromise()
   },
   FAILED: {
     onError: error => {
@@ -641,13 +672,19 @@ const _states = {
     name: () => {
       return 'FAILED'
     },
-    pull: () => {}
+    pull: () => {},
+    close: () => {
+      return Promise.resolve()
+    }
   },
   SUCCEEDED: {
     name: () => {
       return 'SUCCEEDED'
     },
-    pull: () => {}
+    pull: () => {},
+    close: () => {
+      return Promise.resolve()
+    }
   }
 }
 

@@ -115,6 +115,7 @@ class Result implements Promise<QueryResult> {
   private _connectionHolder: connectionHolder.ConnectionHolder
   private _keys: string[] | null
   private _summary: ResultSummary | null
+  private _error: Error | null
   private _watermarks: { high: number; low: number }
 
   /**
@@ -141,6 +142,7 @@ class Result implements Promise<QueryResult> {
     this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
     this._keys = null
     this._summary = null
+    this._error = null
     this._watermarks = watermarks
   }
 
@@ -154,8 +156,10 @@ class Result implements Promise<QueryResult> {
    }
    */
   keys(): Promise<string[]> {
-    if (this._keys != null) {
+    if (this._keys !== null) {
       return Promise.resolve(this._keys)
+    } else if (this._error !== null) {
+      return Promise.reject(this._error)
     }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
@@ -181,6 +185,8 @@ class Result implements Promise<QueryResult> {
   summary(): Promise<ResultSummary> {
     if (this._summary != null) {
       return Promise.resolve(this._summary)
+    } else if (this._error !== null) {
+      return Promise.reject(this._error)
     }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
@@ -302,6 +308,9 @@ class Result implements Promise<QueryResult> {
       | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
+    if (this._error !== null) {
+      return Promise.reject(this._error).then(onFulfilled, onRejected)
+    }
     return this._getOrCreatePromise().then(onFulfilled, onRejected)
   }
 
@@ -316,6 +325,9 @@ class Result implements Promise<QueryResult> {
   catch<TResult = never>(
     onRejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
   ): Promise<QueryResult | TResult> {
+    if (this._error !== null) {
+      return Promise.reject(this._error).catch(onRejected)
+    }
     return this._getOrCreatePromise().catch(onRejected)
   }
 
@@ -328,6 +340,9 @@ class Result implements Promise<QueryResult> {
    */
   [Symbol.toStringTag]: string
   finally(onfinally?: (() => void) | null): Promise<QueryResult> {
+    if (this._error !== null) {
+      return Promise.reject(this._error).finally(onfinally)
+    }
     return this._getOrCreatePromise().finally(onfinally)
   }
 
@@ -392,6 +407,7 @@ class Result implements Promise<QueryResult> {
 
     const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR
     const onErrorWrapper = (error: Error) => {
+      this._error = error
       // notify connection holder that the used connection is not needed any more because error happened
       // and result can't bee consumed any further; call the original onError callback after that
       this._connectionHolder.releaseConnection().then(() => {
@@ -412,6 +428,19 @@ class Result implements Promise<QueryResult> {
       onCompleted: onCompletedWrapper,
       onError: onErrorWrapper
     }
+  }
+
+  /**
+   * Closes the result and discard not consumed records. 
+   */
+  close(): Promise<void> {
+    if (this._summary !== null || this._error !== null) { 
+      return Promise.resolve()
+    }
+    return this._streamObserverPromise.catch(_ => {
+      // does not matter
+      return { close: () => {} }
+    }).then(o => o.close())
   }
 
   /**

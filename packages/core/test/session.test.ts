@@ -21,26 +21,64 @@ import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import FakeConnection from './utils/connection.fake'
 
 describe('session', () => {
-  it('close should return promise', done => {
-    const connection = newFakeConnection()
-    const session = newSessionWithConnection(connection)
 
-    session.close().then(() => done())
-  }, 70000)
-
-  it('close should return promise even when already closed ', done => {
-    const connection = newFakeConnection()
-    const session = newSessionWithConnection(connection)
-
-    session.close().then(() => {
+  describe('.close()', () => {
+    it('should return promise', done => {
+      const connection = newFakeConnection()
+      const session = newSessionWithConnection(connection)
+  
+      session.close().then(() => done())
+    }, 70000)
+  
+    it('should return promise even when already closed ', done => {
+      const connection = newFakeConnection()
+      const session = newSessionWithConnection(connection)
+  
       session.close().then(() => {
         session.close().then(() => {
-          done()
+          session.close().then(() => {
+            done()
+          })
         })
       })
-    })
-  }, 70000)
+    }, 70000)
+    
+    it('should close the results and clear the pending results', async () => {
+      const connection = newFakeConnection()
+      const session = newSessionWithConnection(connection, false, 1000)
 
+      const result = session.run('RETURN 1')
+      jest.spyOn(result, 'close')
+
+      await result  
+      await session.close()
+
+      expect(result.close).toHaveBeenCalled()
+      // @ts-ignore
+      expect(session._results).toEqual([])
+    })
+
+    it('should close the transaction and clear the pending transactions', async () => {
+      const connection = newFakeConnection()
+      const session = newSessionWithConnection(connection, false, 1000)
+
+      const tx = session.beginTransaction()
+      jest.spyOn(tx, 'close').mockImplementation(() => Promise.resolve())
+      
+      // @ts-ignore
+      expect(session._tx).toEqual(tx)
+
+      await session.close()
+
+      // @ts-ignore
+      expect(session._tx).toEqual(null)
+      // @ts-ignore
+      expect(session._hasTx).toEqual(false)
+      expect(tx.close).toHaveBeenCalled()
+      
+    })
+  })
+  
   it('run should send watermarks to Result when fetchsize if defined', async () => {
     const connection = newFakeConnection()
     const session = newSessionWithConnection(connection, false, 1000)
@@ -79,11 +117,14 @@ describe('session', () => {
     const session = newSessionWithConnection(connection, false, 1000)
 
     const tx = session.beginTransaction()
+    jest.spyOn(tx, 'rollback').mockImplementation(() => Promise.resolve())
 
     // @ts-ignore
     expect(tx._lowRecordWatermak).toEqual(300)
     // @ts-ignore
     expect(tx._highRecordWatermark).toEqual(700)
+
+    await session.close()
   })
 
   it('run should send watermarks to Transaction when fetchsize is fetch all (begin)', async () => {
@@ -92,11 +133,15 @@ describe('session', () => {
 
 
     const tx = session.beginTransaction()
+    
+    jest.spyOn(tx, 'rollback').mockImplementation(() => Promise.resolve())
 
     // @ts-ignore
     expect(tx._lowRecordWatermak).toEqual(Number.MAX_VALUE)
     // @ts-ignore
     expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
+
+    await session.close()
   })
 
   it('run should send watermarks to Transaction when fetchsize if defined (writeTransaction)', async () => {
@@ -219,7 +264,8 @@ function newSessionWithConnection(connection: Connection, beginTx: boolean = tru
   })
 
   if (beginTx) {
-    session.beginTransaction() // force session to acquire new connection
+    const tx = session.beginTransaction() // force session to acquire new connection
+    jest.spyOn(tx, 'rollback').mockImplementation(() => Promise.resolve())
   }
   return session
 }

@@ -207,7 +207,7 @@ function mockResultStreamObserver(query: string, parameters: any | undefined): R
       if (observer && observer.onCompleted) {
         observer.onCompleted(new ResultSummary(query, parameters, {}))
       }
-
-    }
+    },
+    close: () => Promise.resolve()
   }
 }

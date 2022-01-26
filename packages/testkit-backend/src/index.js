@@ -45,8 +45,13 @@ function main( ) {
     process.on('SIGINT', process.exit.bind(process));
     process.on('SIGUSR1', process.exit.bind(process));
     process.on('SIGUSR2', process.exit.bind(process));
-    process.on('uncaughtException', exception => {
-      console.error('UncaughtException', exception)
+    process.on('uncaughtException', (exception, origin) => {
+      console.error('UncaughtException originated by:', origin, 'reason:', exception)
+      process.exit()
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      console.log('Unhandled Rejection at:', promise, promise.name, 'reason:', reason);
       process.exit()
     });
   }
