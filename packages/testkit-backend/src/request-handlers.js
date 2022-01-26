@@ -182,6 +182,27 @@ export function ResultNext (context, data, wire) {
   });
 }
 
+export function ResultPeek (context, data, wire) {
+  const { resultId } = data
+  const result = context.getResult(resultId)
+  if (!("recordIt" in result)) {
+    result.recordIt = result[Symbol.asyncIterator]()
+  }
+  return result.recordIt.peek().then(({ value, done }) => {
+    if (done) {
+      wire.writeResponse('NullRecord', null)
+    } else {
+      const values = Array.from(value.values()).map(nativeToCypher)
+      wire.writeResponse('Record', {
+        values: values
+      })
+    }
+  }).catch(e => {
+    console.log('got some err: ' + JSON.stringify(e))
+    wire.writeError(e)
+  });
+}
+
 export function ResultConsume (context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
@@ -337,6 +358,7 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.3',
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
+      'Feature:API:Result.Peek',
       'Temporary:ConnectionAcquisitionTimeout',
       ...SUPPORTED_TLS
     ]
