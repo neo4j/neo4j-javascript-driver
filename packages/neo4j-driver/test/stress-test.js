@@ -77,7 +77,7 @@ export default async function execute () {
   const [
     protocolVersion,
     bookmarks
-  ] = await sharedNeo4j.cleanupAndGetProtocolVersionAndBookmark(driver)
+  ] = await sharedNeo4j.cleanupAndGetProtocolVersionAndBookmarks(driver)
   console.time('Basic-stress-test')
   const printStats = () => {
     console.timeEnd('Basic-stress-test')
@@ -156,8 +156,8 @@ function createCommands (context) {
 function createUniqueCommands (context) {
   const clusterSafeCommands = [
     readQueryInTxFunctionCommand(context),
-    readQueryInTxFunctionWithBookmarkCommand(context),
-    writeQueryInTxFunctionWithBookmarkCommand(context),
+    readQueryInTxFunctionWithBookmarksCommand(context),
+    writeQueryInTxFunctionWithBookmarksCommand(context),
     writeQueryInTxFunctionCommand(context)
   ]
 
@@ -168,13 +168,13 @@ function createUniqueCommands (context) {
   return [
     ...clusterSafeCommands,
     readQueryCommand(context),
-    readQueryWithBookmarkCommand(context),
+    readQueryWithBookmarksCommand(context),
     readQueryInTxCommand(context),
-    readQueryInTxWithBookmarkCommand(context),
+    readQueryInTxWithBookmarksCommand(context),
     writeQueryCommand(context),
-    writeQueryWithBookmarkCommand(context),
+    writeQueryWithBookmarksCommand(context),
     writeQueryInTxCommand(context),
-    writeQueryInTxWithBookmarkCommand(context)
+    writeQueryInTxWithBookmarksCommand(context)
   ]
 }
 
@@ -182,7 +182,7 @@ function readQueryCommand (context) {
   return queryCommand(context, READ_QUERY, () => noParams(), READ, false)
 }
 
-function readQueryWithBookmarkCommand (context) {
+function readQueryWithBookmarksCommand (context) {
   return queryCommand(context, READ_QUERY, () => noParams(), READ, true)
 }
 
@@ -200,11 +200,11 @@ function readQueryInTxFunctionCommand (context) {
   )
 }
 
-function readQueryInTxWithBookmarkCommand (context) {
+function readQueryInTxWithBookmarksCommand (context) {
   return queryInTxCommand(context, READ_QUERY, () => noParams(), READ, true)
 }
 
-function readQueryInTxFunctionWithBookmarkCommand (context) {
+function readQueryInTxFunctionWithBookmarksCommand (context) {
   return queryInTxFunctionCommand(
     context,
     READ_QUERY,
@@ -218,7 +218,7 @@ function writeQueryCommand (context) {
   return queryCommand(context, WRITE_QUERY, () => randomParams(), WRITE, false)
 }
 
-function writeQueryWithBookmarkCommand (context) {
+function writeQueryWithBookmarksCommand (context) {
   return queryCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true)
 }
 
@@ -242,7 +242,7 @@ function writeQueryInTxFunctionCommand (context) {
   )
 }
 
-function writeQueryInTxWithBookmarkCommand (context) {
+function writeQueryInTxWithBookmarksCommand (context) {
   return queryInTxCommand(
     context,
     WRITE_QUERY,
@@ -252,7 +252,7 @@ function writeQueryInTxWithBookmarkCommand (context) {
   )
 }
 
-function writeQueryInTxFunctionWithBookmarkCommand (context) {
+function writeQueryInTxFunctionWithBookmarksCommand (context) {
   return queryInTxFunctionCommand(
     context,
     WRITE_QUERY,
@@ -262,7 +262,13 @@ function writeQueryInTxFunctionWithBookmarkCommand (context) {
   )
 }
 
-function queryCommand (context, query, paramsSupplier, accessMode, useBookmark) {
+function queryCommand (
+  context,
+  query,
+  paramsSupplier,
+  accessMode,
+  useBookmarks
+) {
   return callback => {
     const commandId = context.nextCommandId()
     if (isCluster()) {
@@ -272,7 +278,7 @@ function queryCommand (context, query, paramsSupplier, accessMode, useBookmark) 
       callback()
       return
     }
-    const session = newSession(context, accessMode, useBookmark)
+    const session = newSession(context, accessMode, useBookmarks)
     const params = paramsSupplier()
 
     context.log(commandId, `About to run ${accessMode} query`)
@@ -303,12 +309,12 @@ function queryInTxFunctionCommand (
   query,
   paramsSupplier,
   accessMode,
-  useBookmark
+  useBookmarks
 ) {
   return callback => {
     const commandId = context.nextCommandId()
     const params = paramsSupplier()
-    const session = newSession(context, accessMode, useBookmark)
+    const session = newSession(context, accessMode, useBookmarks)
 
     context.log(commandId, `About to run ${accessMode} query in TX function`)
 
@@ -321,7 +327,7 @@ function queryInTxFunctionCommand (
 
     resultPromise
       .then(result => {
-        context.queryCompleted(result, accessMode, session.lastBookmark())
+        context.queryCompleted(result, accessMode, session.lastBookmarks())
         context.log(commandId, 'Transaction function executed successfully')
 
         return session
@@ -353,7 +359,7 @@ function queryInTxCommand (
   query,
   paramsSupplier,
   accessMode,
-  useBookmark
+  useBookmarks
 ) {
   return callback => {
     const commandId = context.nextCommandId()
@@ -364,7 +370,7 @@ function queryInTxCommand (
       callback()
       return
     }
-    const session = newSession(context, accessMode, useBookmark)
+    const session = newSession(context, accessMode, useBookmarks)
     const tx = session.beginTransaction()
     const params = paramsSupplier()
 
@@ -387,7 +393,7 @@ function queryInTxCommand (
             }
           })
           .then(() => {
-            context.queryCompleted(result, accessMode, session.lastBookmark())
+            context.queryCompleted(result, accessMode, session.lastBookmarks())
             context.log(commandId, 'Transaction committed successfully')
 
             return session.close().then(() => {
@@ -532,11 +538,11 @@ function noParams () {
   return {}
 }
 
-function newSession (context, accessMode, useBookmark) {
-  if (useBookmark || isCluster()) {
+function newSession (context, accessMode, useBookmarks) {
+  if (useBookmarks || isCluster()) {
     return context.driver.session({
       defaultAccessMode: accessMode,
-      bookmarks: context.bookmark
+      bookmarks: context.bookmarks
     })
   }
   return context.driver.session({ defaultAccessMode: accessMode })
@@ -564,9 +570,9 @@ function arraysEqual (array1, array2) {
 }
 
 class Context {
-  constructor (driver, loggingEnabled, protocolVersion, bookmark) {
+  constructor (driver, loggingEnabled, protocolVersion, bookmarks) {
     this.driver = driver
-    this.bookmark = bookmark
+    this.bookmarks = bookmarks
     this.createdNodesCount = 0
     this._commandIdCouter = 0
     this._loggingEnabled = loggingEnabled
@@ -590,7 +596,7 @@ class Context {
     )
   }
 
-  queryCompleted (result, accessMode, bookmark) {
+  queryCompleted (result, accessMode, bookmarks) {
     const serverInfo = result.summary.server
     this.protocolVersion = serverInfo.protocolVersion
 
@@ -604,8 +610,8 @@ class Context {
         (this.readServersWithQueryCount[serverAddress] || 0) + 1
     }
 
-    if (bookmark) {
-      this.bookmark = bookmark
+    if (bookmarks) {
+      this.bookmarks = bookmarks
     }
   }
 

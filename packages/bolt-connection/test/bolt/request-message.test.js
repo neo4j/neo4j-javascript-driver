@@ -21,7 +21,7 @@ import RequestMessage from '../../src/bolt/request-message'
 import { internal, int, json } from 'neo4j-driver-core'
 
 const {
-  bookmark: { Bookmark },
+  bookmarks: { Bookmarks },
   txConfig: { TxConfig }
 } = internal
 
@@ -86,16 +86,16 @@ describe('#unit RequestMessage', () => {
 
   it('should create BEGIN message', () => {
     ;[READ, WRITE].forEach(mode => {
-      const bookmark = new Bookmark([
+      const bookmarks = new Bookmarks([
         'neo4j:bookmark:v1:tx1',
         'neo4j:bookmark:v1:tx10'
       ])
       const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
 
-      const message = RequestMessage.begin({ bookmark, txConfig, mode })
+      const message = RequestMessage.begin({ bookmarks, txConfig, mode })
 
       const expectedMetadata = {
-        bookmarks: bookmark.values(),
+        bookmarks: bookmarks.values(),
         tx_timeout: int(42),
         tx_metadata: { key: 42 }
       }
@@ -131,7 +131,7 @@ describe('#unit RequestMessage', () => {
     ;[READ, WRITE].forEach(mode => {
       const query = 'RETURN $x'
       const parameters = { x: 42 }
-      const bookmark = new Bookmark([
+      const bookmarks = new Bookmarks([
         'neo4j:bookmark:v1:tx1',
         'neo4j:bookmark:v1:tx10',
         'neo4j:bookmark:v1:tx100'
@@ -142,13 +142,13 @@ describe('#unit RequestMessage', () => {
       })
 
       const message = RequestMessage.runWithMetadata(query, parameters, {
-        bookmark,
+        bookmarks,
         txConfig,
         mode
       })
 
       const expectedMetadata = {
-        bookmarks: bookmark.values(),
+        bookmarks: bookmarks.values(),
         tx_timeout: int(999),
         tx_metadata: { a: 'a', b: 'b' }
       }
@@ -297,17 +297,17 @@ describe('#unit RequestMessage', () => {
 
     it('should create BEGIN message with impersonated user', () => {
       ;[READ, WRITE].forEach(mode => {
-        const bookmark = new Bookmark([
+        const bookmarks = new Bookmarks([
           'neo4j:bookmark:v1:tx1',
           'neo4j:bookmark:v1:tx10'
         ])
         const impersonatedUser = 'the impostor'
         const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
 
-        const message = RequestMessage.begin({ bookmark, txConfig, mode, impersonatedUser })
+        const message = RequestMessage.begin({ bookmarks, txConfig, mode, impersonatedUser })
 
         const expectedMetadata = {
-          bookmarks: bookmark.values(),
+          bookmarks: bookmarks.values(),
           tx_timeout: int(42),
           tx_metadata: { key: 42 },
           imp_user: impersonatedUser
@@ -326,17 +326,17 @@ describe('#unit RequestMessage', () => {
 
     it('should create BEGIN message without impersonated user if it is not supplied or null', () => {
       ;[undefined, null].forEach(impersonatedUser => {
-        const bookmark = new Bookmark([
+        const bookmarks = new Bookmarks([
           'neo4j:bookmark:v1:tx1',
           'neo4j:bookmark:v1:tx10'
         ])
         const mode = WRITE
         const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
 
-        const message = RequestMessage.begin({ bookmark, txConfig, mode, impersonatedUser })
+        const message = RequestMessage.begin({ bookmarks, txConfig, mode, impersonatedUser })
 
         const expectedMetadata = {
-          bookmarks: bookmark.values(),
+          bookmarks: bookmarks.values(),
           tx_timeout: int(42),
           tx_metadata: { key: 42 }
         }
@@ -353,7 +353,7 @@ describe('#unit RequestMessage', () => {
       ;[READ, WRITE].forEach(mode => {
         const query = 'RETURN $x'
         const parameters = { x: 42 }
-        const bookmark = new Bookmark([
+        const bookmarks = new Bookmarks([
           'neo4j:bookmark:v1:tx1',
           'neo4j:bookmark:v1:tx10',
           'neo4j:bookmark:v1:tx100'
@@ -365,14 +365,14 @@ describe('#unit RequestMessage', () => {
         const impersonatedUser = 'the impostor'
 
         const message = RequestMessage.runWithMetadata(query, parameters, {
-          bookmark,
+          bookmarks,
           txConfig,
           mode,
           impersonatedUser
         })
 
         const expectedMetadata = {
-          bookmarks: bookmark.values(),
+          bookmarks: bookmarks.values(),
           tx_timeout: int(999),
           tx_metadata: { a: 'a', b: 'b' },
           imp_user: impersonatedUser
@@ -396,7 +396,7 @@ describe('#unit RequestMessage', () => {
         const mode = WRITE
         const query = 'RETURN $x'
         const parameters = { x: 42 }
-        const bookmark = new Bookmark([
+        const bookmarks = new Bookmarks([
           'neo4j:bookmark:v1:tx1',
           'neo4j:bookmark:v1:tx10',
           'neo4j:bookmark:v1:tx100'
@@ -407,14 +407,14 @@ describe('#unit RequestMessage', () => {
         })
 
         const message = RequestMessage.runWithMetadata(query, parameters, {
-          bookmark,
+          bookmarks,
           txConfig,
           mode,
           impersonatedUser
         })
 
         const expectedMetadata = {
-          bookmarks: bookmark.values(),
+          bookmarks: bookmarks.values(),
           tx_timeout: int(999),
           tx_metadata: { a: 'a', b: 'b' }
         }

@@ -26,7 +26,7 @@ import { LoginObserver } from '../../src/bolt/stream-observers'
 const WRITE = 'WRITE'
 
 const {
-  bookmark: { Bookmark },
+  bookmarks: { Bookmarks },
   txConfig: { TxConfig }
 } = internal
 
@@ -96,7 +96,7 @@ describe('#unit BoltProtocolV1', () => {
     const query = 'RETURN $x, $y'
     const parameters = { x: 'x', y: 'y' }
     const observer = protocol.run(query, parameters, {
-      bookmark: Bookmark.empty(),
+      bookmarks: Bookmarks.empty(),
       txConfig: TxConfig.empty(),
       mode: WRITE
     })
@@ -131,10 +131,10 @@ describe('#unit BoltProtocolV1', () => {
       new BoltProtocolV1(recorder, null, false)
     )
 
-    const bookmark = new Bookmark('neo4j:bookmark:v1:tx42')
+    const bookmarks = new Bookmarks('neo4j:bookmark:v1:tx42')
 
     const observer = protocol.beginTransaction({
-      bookmark: bookmark,
+      bookmarks: bookmarks,
       txConfig: TxConfig.empty(),
       mode: WRITE
     })
@@ -142,7 +142,7 @@ describe('#unit BoltProtocolV1', () => {
     protocol.verifyMessageCount(2)
 
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.run('BEGIN', bookmark.asBeginTransactionParameters())
+      RequestMessage.run('BEGIN', bookmarks.asBeginTransactionParameters())
     )
     expect(protocol.messages[1]).toBeMessage(RequestMessage.pullAll())
     expect(protocol.observers).toEqual([observer, observer])
@@ -349,7 +349,7 @@ describe('#unit BoltProtocolV1', () => {
       const query = 'RETURN $x, $y'
       const parameters = { x: 'x', y: 'y' }
       const observer = protocol.run(query, parameters, {
-        bookmark: Bookmark.empty(),
+        bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         mode: WRITE,
         lowRecordWatermark: 100,

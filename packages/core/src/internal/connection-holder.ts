@@ -21,7 +21,7 @@ import { newError } from '../error'
 import { assertString } from './util'
 import Connection from '../connection'
 import { ACCESS_MODE_WRITE } from './constants'
-import { Bookmark } from './bookmark'
+import { Bookmarks } from './bookmarks'
 import ConnectionProvider from '../connection-provider'
 import { Point } from '..'
 
@@ -42,9 +42,9 @@ interface ConnectionHolderInterface {
   database(): string | undefined
 
   /**
-   * Returns the bookmark
+   * Returns the bookmarks
    */
-  bookmark(): Bookmark
+  bookmarks(): Bookmarks
 
   /**
    * Make this holder initialize new connection if none exists already.
@@ -78,7 +78,7 @@ interface ConnectionHolderInterface {
 class ConnectionHolder implements ConnectionHolderInterface {
   private _mode: string
   private _database?: string
-  private _bookmark: Bookmark
+  private _bookmarks: Bookmarks
   private _connectionProvider?: ConnectionProvider
   private _referenceCount: number
   private _connectionPromise: Promise<Connection | void>
@@ -90,7 +90,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @param {object} params
    * @property {string} params.mode - the access mode for new connection holder.
    * @property {string} params.database - the target database name.
-   * @property {Bookmark} params.bookmark - the last bookmark
+   * @property {Bookmarks} params.bookmarks - initial bookmarks
    * @property {ConnectionProvider} params.connectionProvider - the connection provider to acquire connections from.
    * @property {string?} params.impersonatedUser - the user which will be impersonated
    * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
@@ -98,21 +98,21 @@ class ConnectionHolder implements ConnectionHolderInterface {
   constructor({
     mode = ACCESS_MODE_WRITE,
     database = '',
-    bookmark,
+    bookmarks,
     connectionProvider,
     impersonatedUser,
     onDatabaseNameResolved
   }: {
     mode?: string
     database?: string
-    bookmark?: Bookmark
+    bookmarks?: Bookmarks
     connectionProvider?: ConnectionProvider,
     impersonatedUser?: string,
     onDatabaseNameResolved?: (databaseName?: string) => void
   } = {}) {
     this._mode = mode
     this._database = database ? assertString(database, 'database') : ''
-    this._bookmark = bookmark || Bookmark.empty()
+    this._bookmarks = bookmarks || Bookmarks.empty()
     this._connectionProvider = connectionProvider
     this._impersonatedUser = impersonatedUser
     this._referenceCount = 0
@@ -132,8 +132,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._database = database
   }
 
-  bookmark(): Bookmark {
-    return this._bookmark
+  bookmarks(): Bookmarks {
+    return this._bookmarks
   }
 
   connectionProvider(): ConnectionProvider | undefined {
@@ -149,7 +149,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
       this._connectionPromise = this._connectionProvider.acquireConnection({
         accessMode: this._mode,
         database: this._database,
-        bookmarks: this._bookmark,
+        bookmarks: this._bookmarks,
         impersonatedUser: this._impersonatedUser,
         onDatabaseNameResolved: this._onDatabaseNameResolved
       })
@@ -228,7 +228,7 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
     super({
       mode: connectionHolder.mode(),
       database: connectionHolder.database(),
-      bookmark: connectionHolder.bookmark(),
+      bookmarks: connectionHolder.bookmarks(),
       connectionProvider: connectionHolder.connectionProvider()
     })
     this._connectionHolder = connectionHolder

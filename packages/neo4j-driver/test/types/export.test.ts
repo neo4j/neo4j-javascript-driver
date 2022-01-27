@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { Bookmark } from 'neo4j-driver-core/types/internal/bookmark'
+import { Bookmarks } from 'neo4j-driver-core/types/internal/bookmarks'
 import driver, {
   DateTime,
   RxSession,
@@ -56,7 +56,7 @@ const driverConfiguration1 = driver.driver('driver', undefined, {})
 const session = new Session({
   mode: 'READ',
   connectionProvider: new ConnectionProvider(),
-  bookmark: Bookmark.empty(),
+  bookmarks: Bookmarks.empty(),
   database: 'default',
   config: {},
   reactive: false,

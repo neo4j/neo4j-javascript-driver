@@ -44,8 +44,8 @@ export default class FakeSession {
     return Promise.resolve()
   }
 
-  withBookmark (bookmark) {
-    this._lastBookmark = bookmark
+  withBookmarks (bookmarks) {
+    this._lastBookmarks = bookmarks
     return this
   }
 

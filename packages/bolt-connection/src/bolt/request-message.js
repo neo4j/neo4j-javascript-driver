@@ -120,15 +120,15 @@ export default class RequestMessage {
 
   /**
    * Create a new BEGIN message.
-   * @param {Bookmark} bookmark the bookmark.
+   * @param {Bookmarks} bookmarks the bookmarks.
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
    * @param {string} mode the access mode.
    * @param {string} impersonatedUser the impersonated user.
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin ({ bookmark, txConfig, database, mode, impersonatedUser } = {}) {
-    const metadata = buildTxMetadata(bookmark, txConfig, database, mode, impersonatedUser)
+  static begin ({ bookmarks, txConfig, database, mode, impersonatedUser } = {}) {
+    const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser)
     return new RequestMessage(
       BEGIN,
       [metadata],
@@ -156,7 +156,7 @@ export default class RequestMessage {
    * Create a new RUN message with additional metadata.
    * @param {string} query the cypher query.
    * @param {Object} parameters the query parameters.
-   * @param {Bookmark} bookmark the bookmark.
+   * @param {Bookmarks} bookmarks the bookmarks.
    * @param {TxConfig} txConfig the configuration.
    * @param {string} database the database name.
    * @param {string} mode the access mode.
@@ -166,9 +166,9 @@ export default class RequestMessage {
   static runWithMetadata (
     query,
     parameters,
-    { bookmark, txConfig, database, mode, impersonatedUser } = {}
+    { bookmarks, txConfig, database, mode, impersonatedUser } = {}
   ) {
-    const metadata = buildTxMetadata(bookmark, txConfig, database, mode, impersonatedUser)
+    const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser)
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
@@ -225,7 +225,7 @@ export default class RequestMessage {
    * Generate the ROUTE message, this message is used to fetch the routing table from the server
    *
    * @param {object} routingContext The routing context used to define the routing table. Multi-datacenter deployments is one of its use cases
-   * @param {string[]} bookmarks The list of the bookmark should be used
+   * @param {string[]} bookmarks The list of the bookmarks should be used
    * @param {string} databaseName The name of the database to get the routing table for.
    * @return {RequestMessage} the ROUTE message.
    */
@@ -244,7 +244,7 @@ export default class RequestMessage {
    * Generate the ROUTE message, this message is used to fetch the routing table from the server
    *
    * @param {object} routingContext The routing context used to define the routing table. Multi-datacenter deployments is one of its use cases
-   * @param {string[]} bookmarks The list of the bookmark should be used
+   * @param {string[]} bookmarks The list of the bookmarks should be used
    * @param {object} databaseContext The context inforamtion of the database to get the routing table for.
    * @param {string} databaseContext.databaseName The name of the database to get the routing table.
    * @param {string} databaseContext.impersonatedUser The name of the user to impersonation when getting the routing table.
@@ -274,17 +274,17 @@ export default class RequestMessage {
 
 /**
  * Create an object that represent transaction metadata.
- * @param {Bookmark} bookmark the bookmark.
+ * @param {Bookmarks} bookmarks the bookmarks.
  * @param {TxConfig} txConfig the configuration.
  * @param {string} database the database name.
  * @param {string} mode the access mode.
  * @param {string} impersonatedUser the impersonated user mode.
  * @return {Object} a metadata object.
  */
-function buildTxMetadata (bookmark, txConfig, database, mode, impersonatedUser) {
+function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser) {
   const metadata = {}
-  if (!bookmark.isEmpty()) {
-    metadata.bookmarks = bookmark.values()
+  if (!bookmarks.isEmpty()) {
+    metadata.bookmarks = bookmarks.values()
   }
   if (txConfig.timeout !== null) {
     metadata.tx_timeout = txConfig.timeout

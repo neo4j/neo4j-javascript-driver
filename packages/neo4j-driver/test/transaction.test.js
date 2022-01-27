@@ -215,15 +215,15 @@ describe('#integration transaction', () => {
       .catch(console.log)
   }, 60000)
 
-  it('should throw when provided string (bookmark) parameter', () => {
+  it('should throw when provided string (bookmarks) parameter', () => {
     expect(() => session.beginTransaction('bookmark')).toThrowError(TypeError)
   }, 60000)
 
-  it('should throw when provided string[] (bookmark) parameter', () => {
+  it('should throw when provided string[] (bookmarks) parameter', () => {
     expect(() => session.beginTransaction(['bookmark'])).toThrowError(TypeError)
   }, 60000)
 
-  it('should fail to run query for unreachable bookmark', done => {
+  it('should fail to run query for unreachable bookmarks', done => {
     const tx1 = session.beginTransaction()
     tx1
       .run('CREATE ()')
@@ -233,11 +233,11 @@ describe('#integration transaction', () => {
         tx1
           .commit()
           .then(() => {
-            expectValidLastBookmark(session)
+            expectValidLastBookmarks(session)
 
-            const unreachableBookmark = session.lastBookmark() + '0'
+            const unreachableBookmarks = session.lastBookmarks() + '0'
             const session2 = driver.session({
-              bookmarks: [unreachableBookmark]
+              bookmarks: [unreachableBookmarks]
             })
             const tx2 = session2.beginTransaction()
             tx2.run('CREATE ()').catch(error => {
@@ -467,9 +467,9 @@ describe('#integration transaction', () => {
     expect(error.code).toBe('Neo.ClientError.Statement.SyntaxError')
   }
 
-  function expectValidLastBookmark (session) {
-    expect(session.lastBookmark()).toBeDefined()
-    expect(session.lastBookmark()).not.toBeNull()
+  function expectValidLastBookmarks (session) {
+    expect(session.lastBookmarks()).toBeDefined()
+    expect(session.lastBookmarks()).not.toBeNull()
   }
 
   function testConnectionTimeout (encrypted, done) {

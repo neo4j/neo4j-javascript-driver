@@ -21,7 +21,7 @@ import * as util from './util'
 
 const BOOKMARKS_KEY = 'bookmarks'
 
-export class Bookmark {
+export class Bookmarks {
   private _values: string[]
 
   /**
@@ -32,20 +32,20 @@ export class Bookmark {
     this._values = asStringArray(values)
   }
 
-  static empty(): Bookmark {
+  static empty(): Bookmarks {
     return EMPTY_BOOKMARK
   }
 
   /**
-   * Check if the given bookmark is meaningful and can be send to the database.
-   * @return {boolean} returns `true` bookmark has a value, `false` otherwise.
+   * Check if the given Bookmarks holder is meaningful and can be send to the database.
+   * @return {boolean} returns `true` bookmarks has a value, `false` otherwise.
    */
   isEmpty(): boolean {
     return this._values.length === 0
   }
 
   /**
-   * Get all bookmark values as an array.
+   * Get all bookmarks values as an array.
    * @return {string[]} all values.
    */
   values(): string[] {
@@ -53,17 +53,17 @@ export class Bookmark {
   }
 
   /**
-   * Get this bookmark as an object for begin transaction call.
-   * @return {Object} the value of this bookmark as object.
+   * Get these bookmarks as an object for begin transaction call.
+   * @return {Object} the value of this bookmarks holder as object.
    */
   asBeginTransactionParameters(): { [BOOKMARKS_KEY]?: string[] } {
     if (this.isEmpty()) {
       return {}
     }
 
-    // Driver sends {bookmark: "max", bookmarks: ["one", "two", "max"]} instead of simple
+    // Driver sends {bookmarks: "max", bookmarks: ["one", "two", "max"]} instead of simple
     // {bookmarks: ["one", "two", "max"]} for backwards compatibility reasons. Old servers can only accept single
-    // bookmark that is why driver has to parse and compare given list of bookmarks. This functionality will
+    // bookmarks that is why driver has to parse and compare given list of bookmarks. This functionality will
     // eventually be removed.
     return {
       [BOOKMARKS_KEY]: this._values
@@ -71,7 +71,7 @@ export class Bookmark {
   }
 }
 
-const EMPTY_BOOKMARK = new Bookmark(null)
+const EMPTY_BOOKMARK = new Bookmarks(null)
 
 /**
  * Converts given value to an array.
@@ -108,7 +108,7 @@ function asStringArray(
   }
 
   throw new TypeError(
-    `Bookmark should either be a string or a string array, given: '${value}'`
+    `Bookmarks should either be a string or a string array, given: '${value}'`
   )
 }
 

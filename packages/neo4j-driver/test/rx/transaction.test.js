@@ -419,28 +419,28 @@ describe('#integration-rx transaction', () => {
     await verifyFailToRunQueryAfterTxcIsComplete(false)
   })
 
-  it('should update bookmark', async () => {
+  it('should update bookmarks', async () => {
     if (protocolVersion < 4.0) {
       return
     }
 
-    const bookmark0 = session.lastBookmark()
+    const bookmarks0 = session.lastBookmarks()
 
     const txc1 = await session.beginTransaction().toPromise()
     await verifyCanCreateNode(txc1, 20)
     await verifyCanCommit(txc1)
-    const bookmark1 = session.lastBookmark()
+    const bookmarks1 = session.lastBookmarks()
 
     const txc2 = await session.beginTransaction().toPromise()
     await verifyCanCreateNode(txc2, 21)
     await verifyCanCommit(txc2)
-    const bookmark2 = session.lastBookmark()
+    const bookmarks2 = session.lastBookmarks()
 
-    expect(bookmark0).toEqual([])
-    expect(bookmark1).toBeTruthy()
-    expect(bookmark1).not.toEqual(bookmark0)
-    expect(bookmark2).toBeTruthy()
-    expect(bookmark2).not.toEqual(bookmark1)
+    expect(bookmarks0).toEqual([])
+    expect(bookmarks1).toBeTruthy()
+    expect(bookmarks1).not.toEqual(bookmarks0)
+    expect(bookmarks2).toBeTruthy()
+    expect(bookmarks2).not.toEqual(bookmarks1)
   })
 
   it('should propagate failures from queries', async () => {

@@ -27,7 +27,7 @@ import {
 } from '../../src/bolt/stream-observers'
 
 const {
-  bookmark: { Bookmark },
+  bookmarks: { Bookmarks },
   txConfig: { TxConfig }
 } = internal
 
@@ -71,7 +71,7 @@ describe('#unit BoltProtocolV3', () => {
   })
 
   it('should run a query', () => {
-    const bookmark = new Bookmark([
+    const bookmarks = new Bookmarks([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
     ])
@@ -87,7 +87,7 @@ describe('#unit BoltProtocolV3', () => {
     const parameters = { x: 'x', y: 'y' }
 
     const observer = protocol.run(query, parameters, {
-      bookmark,
+      bookmarks,
       txConfig,
       mode: WRITE
     })
@@ -96,7 +96,7 @@ describe('#unit BoltProtocolV3', () => {
 
     expect(protocol.messages[0]).toBeMessage(
       RequestMessage.runWithMetadata(query, parameters, {
-        bookmark,
+        bookmarks,
         txConfig,
         mode: WRITE
       })
@@ -107,7 +107,7 @@ describe('#unit BoltProtocolV3', () => {
   })
 
   it('should begin a transaction', () => {
-    const bookmark = new Bookmark([
+    const bookmarks = new Bookmarks([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
     ])
@@ -120,14 +120,14 @@ describe('#unit BoltProtocolV3', () => {
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
-      bookmark,
+      bookmarks,
       txConfig,
       mode: WRITE
     })
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.begin({ bookmark, txConfig, mode: WRITE })
+      RequestMessage.begin({ bookmarks, txConfig, mode: WRITE })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
@@ -170,7 +170,7 @@ describe('#unit BoltProtocolV3', () => {
     const protocol = new SpiedBoltProtocolV3(expectedResultObserver)
     utils.spyProtocolWrite(protocol)
     const routingContext = { abc: 'context ' }
-    const sessionContext = { bookmark: 'book' }
+    const sessionContext = { bookmarks: 'book' }
     const onError = () => {}
     const onCompleted = () => {}
 
@@ -306,7 +306,7 @@ describe('#unit BoltProtocolV3', () => {
       const query = 'RETURN $x, $y'
       const parameters = { x: 'x', y: 'y' }
       const observer = protocol.run(query, parameters, {
-        bookmark: Bookmark.empty(),
+        bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         lowRecordWatermark: 100,
         highRecordWatermark: 200,

@@ -386,7 +386,7 @@ describe('#stub-routing routing driver with stub server', () => {
     60000
   )
 
-  it('should pass bookmark from transaction to transaction', async () => {
+  it('should pass bookmarks from transaction to transaction', async () => {
     if (!boltStub.supported) {
       return
     }
@@ -406,7 +406,7 @@ describe('#stub-routing routing driver with stub server', () => {
     const writeTx = session.beginTransaction()
     await writeTx.run("CREATE (n {name:'Bob'})")
     await writeTx.commit()
-    expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx4242'])
+    expect(session.lastBookmarks()).toEqual(['neo4j:bookmark:v1:tx4242'])
 
     const readTx = session.beginTransaction()
     const result = await readTx.run('MATCH (n) RETURN n.name AS name')
@@ -415,7 +415,7 @@ describe('#stub-routing routing driver with stub server', () => {
     expect(records[0].get('name')).toEqual('Bob')
 
     await readTx.commit()
-    expect(session.lastBookmark()).toEqual(['neo4j:bookmark:v1:tx424242'])
+    expect(session.lastBookmarks()).toEqual(['neo4j:bookmark:v1:tx424242'])
 
     await session.close()
     await driver.close()

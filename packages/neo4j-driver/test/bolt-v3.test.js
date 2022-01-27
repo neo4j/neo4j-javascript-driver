@@ -361,28 +361,28 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
-    const initialBookmark = session.lastBookmark()
+    const initialBookmarks = session.lastBookmarks()
 
     await session.run('CREATE ()')
-    const bookmark1 = session.lastBookmark()
-    expect(bookmark1).not.toBeNull()
-    expect(bookmark1).toBeDefined()
-    expect(bookmark1).not.toEqual(initialBookmark)
+    const bookmarks1 = session.lastBookmarks()
+    expect(bookmarks1).not.toBeNull()
+    expect(bookmarks1).toBeDefined()
+    expect(bookmarks1).not.toEqual(initialBookmarks)
 
     await session.run('CREATE ()')
-    const bookmark2 = session.lastBookmark()
-    expect(bookmark2).not.toBeNull()
-    expect(bookmark2).toBeDefined()
-    expect(bookmark2).not.toEqual(initialBookmark)
-    expect(bookmark2).not.toEqual(bookmark1)
+    const bookmarks2 = session.lastBookmarks()
+    expect(bookmarks2).not.toBeNull()
+    expect(bookmarks2).toBeDefined()
+    expect(bookmarks2).not.toEqual(initialBookmarks)
+    expect(bookmarks2).not.toEqual(bookmarks1)
 
     await session.run('CREATE ()')
-    const bookmark3 = session.lastBookmark()
-    expect(bookmark3).not.toBeNull()
-    expect(bookmark3).toBeDefined()
-    expect(bookmark3).not.toEqual(initialBookmark)
-    expect(bookmark3).not.toEqual(bookmark1)
-    expect(bookmark3).not.toEqual(bookmark2)
+    const bookmarks3 = session.lastBookmarks()
+    expect(bookmarks3).not.toBeNull()
+    expect(bookmarks3).toBeDefined()
+    expect(bookmarks3).not.toEqual(initialBookmarks)
+    expect(bookmarks3).not.toEqual(bookmarks1)
+    expect(bookmarks3).not.toEqual(bookmarks2)
   }, 20000)
 
   it('should use bookmarks for auto commit and explicit transactions', async () => {
@@ -390,32 +390,32 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
-    const initialBookmark = session.lastBookmark()
+    const initialBookmarks = session.lastBookmarks()
 
     const tx1 = session.beginTransaction()
     await tx1.run('CREATE ()')
     await tx1.commit()
-    const bookmark1 = session.lastBookmark()
-    expect(bookmark1).not.toBeNull()
-    expect(bookmark1).toBeDefined()
-    expect(bookmark1).not.toEqual(initialBookmark)
+    const bookmarks1 = session.lastBookmarks()
+    expect(bookmarks1).not.toBeNull()
+    expect(bookmarks1).toBeDefined()
+    expect(bookmarks1).not.toEqual(initialBookmarks)
 
     await session.run('CREATE ()')
-    const bookmark2 = session.lastBookmark()
-    expect(bookmark2).not.toBeNull()
-    expect(bookmark2).toBeDefined()
-    expect(bookmark2).not.toEqual(initialBookmark)
-    expect(bookmark2).not.toEqual(bookmark1)
+    const bookmarks2 = session.lastBookmarks()
+    expect(bookmarks2).not.toBeNull()
+    expect(bookmarks2).toBeDefined()
+    expect(bookmarks2).not.toEqual(initialBookmarks)
+    expect(bookmarks2).not.toEqual(bookmarks1)
 
     const tx2 = session.beginTransaction()
     await tx2.run('CREATE ()')
     await tx2.commit()
-    const bookmark3 = session.lastBookmark()
-    expect(bookmark3).not.toBeNull()
-    expect(bookmark3).toBeDefined()
-    expect(bookmark3).not.toEqual(initialBookmark)
-    expect(bookmark3).not.toEqual(bookmark1)
-    expect(bookmark3).not.toEqual(bookmark2)
+    const bookmarks3 = session.lastBookmarks()
+    expect(bookmarks3).not.toBeNull()
+    expect(bookmarks3).toBeDefined()
+    expect(bookmarks3).not.toEqual(initialBookmarks)
+    expect(bookmarks3).not.toEqual(bookmarks1)
+    expect(bookmarks3).not.toEqual(bookmarks2)
   }, 20000)
 
   it('should use bookmarks for auto commit transactions and transaction functions', async () => {
@@ -423,28 +423,28 @@ describe('#integration Bolt V3 API', () => {
       return
     }
 
-    const initialBookmark = session.lastBookmark()
+    const initialBookmarks = session.lastBookmarks()
 
     await session.writeTransaction(tx => tx.run('CREATE ()'))
-    const bookmark1 = session.lastBookmark()
-    expect(bookmark1).not.toBeNull()
-    expect(bookmark1).toBeDefined()
-    expect(bookmark1).not.toEqual(initialBookmark)
+    const bookmarks1 = session.lastBookmarks()
+    expect(bookmarks1).not.toBeNull()
+    expect(bookmarks1).toBeDefined()
+    expect(bookmarks1).not.toEqual(initialBookmarks)
 
     await session.run('CREATE ()')
-    const bookmark2 = session.lastBookmark()
-    expect(bookmark2).not.toBeNull()
-    expect(bookmark2).toBeDefined()
-    expect(bookmark2).not.toEqual(initialBookmark)
-    expect(bookmark2).not.toEqual(bookmark1)
+    const bookmarks2 = session.lastBookmarks()
+    expect(bookmarks2).not.toBeNull()
+    expect(bookmarks2).toBeDefined()
+    expect(bookmarks2).not.toEqual(initialBookmarks)
+    expect(bookmarks2).not.toEqual(bookmarks1)
 
     await session.writeTransaction(tx => tx.run('CREATE ()'))
-    const bookmark3 = session.lastBookmark()
-    expect(bookmark3).not.toBeNull()
-    expect(bookmark3).toBeDefined()
-    expect(bookmark3).not.toEqual(initialBookmark)
-    expect(bookmark3).not.toEqual(bookmark1)
-    expect(bookmark3).not.toEqual(bookmark2)
+    const bookmarks3 = session.lastBookmarks()
+    expect(bookmarks3).not.toBeNull()
+    expect(bookmarks3).toBeDefined()
+    expect(bookmarks3).not.toEqual(initialBookmarks)
+    expect(bookmarks3).not.toEqual(bookmarks1)
+    expect(bookmarks3).not.toEqual(bookmarks2)
   }, 20000)
 
   async function testTransactionMetadataWithTransactionFunctions (read) {

@@ -23,7 +23,7 @@ import {
   ReadOnlyConnectionHolder,
   EMPTY_CONNECTION_HOLDER
 } from './internal/connection-holder'
-import { Bookmark } from './internal/bookmark'
+import { Bookmarks } from './internal/bookmarks'
 import { TxConfig } from './internal/tx-config'
 
 import {
@@ -46,7 +46,7 @@ class Transaction {
   private _reactive: boolean
   private _state: any
   private _onClose: () => void
-  private _onBookmark: (bookmark: Bookmark) => void
+  private _onBookmarks: (bookmarks: Bookmarks) => void
   private _onConnection: () => void
   private _onError: (error: Error) => Promise<Connection | void>
   private _onComplete: (metadata: any) => void
@@ -60,7 +60,7 @@ class Transaction {
    * @constructor
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
-   * @param {function(bookmark: Bookmark)} onBookmark callback invoked when new bookmark is produced.
+   * @param {function(bookmarks: Bookmarks)} onBookmarks callback invoked when new bookmark is produced.
    * * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the conneciton
    * is not yet released.
    * @param {boolean} reactive whether this transaction generates reactive streams
@@ -70,7 +70,7 @@ class Transaction {
   constructor({
     connectionHolder,
     onClose,
-    onBookmark,
+    onBookmarks,
     onConnection,
     reactive,
     fetchSize,
@@ -80,7 +80,7 @@ class Transaction {
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
-    onBookmark: (bookmark: Bookmark) => void
+    onBookmarks: (bookmarks: Bookmarks) => void
     onConnection: () => void
     reactive: boolean
     fetchSize: number
@@ -92,7 +92,7 @@ class Transaction {
     this._reactive = reactive
     this._state = _states.ACTIVE
     this._onClose = onClose
-    this._onBookmark = onBookmark
+    this._onBookmarks = onBookmarks
     this._onConnection = onConnection
     this._onError = this._onErrorCallback.bind(this)
     this._onComplete = this._onCompleteCallback.bind(this)
@@ -105,18 +105,18 @@ class Transaction {
 
   /**
    * @private
-   * @param {Bookmark | string |  string []} bookmark
+   * @param {Bookmarks | string |  string []} bookmarks
    * @param {TxConfig} txConfig
    * @returns {void}
    */
-  _begin(bookmark: Bookmark | string | string[], txConfig: TxConfig): void {
+  _begin(bookmarks: Bookmarks | string | string[], txConfig: TxConfig): void {
     this._connectionHolder
       .getConnection()
       .then(connection => {
         this._onConnection()
         if (connection) {
           return connection.protocol().beginTransaction({
-            bookmark: bookmark,
+            bookmarks: bookmarks,
             txConfig: txConfig,
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
@@ -246,11 +246,11 @@ class Transaction {
 
   /**
    * @private
-   * @param {object} meta The meta with bookmark
+   * @param {object} meta The meta with bookmarks
    * @returns {void}
    */
   _onCompleteCallback(meta: { bookmark?: string | string[] }): void {
-    this._onBookmark(new Bookmark(meta.bookmark))
+    this._onBookmarks(new Bookmarks(meta.bookmark))
   }
 }
 
@@ -333,7 +333,7 @@ const _states = {
           onConnection()
           if (conn) {
             return conn.protocol().run(query, parameters, {
-              bookmark: Bookmark.empty(),
+              bookmarks: Bookmarks.empty(),
               txConfig: TxConfig.empty(),
               beforeError: onError,
               afterComplete: onComplete,

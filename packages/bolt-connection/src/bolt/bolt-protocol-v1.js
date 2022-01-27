@@ -33,7 +33,7 @@ import {
 import { internal } from 'neo4j-driver-core'
 
 const {
-  bookmark: { Bookmark },
+  bookmarks: { Bookmarks },
   constants: { ACCESS_MODE_WRITE, BOLT_PROTOCOL_V1 },
   logger: { Logger },
   txConfig: { TxConfig }
@@ -140,7 +140,7 @@ export default class BoltProtocol {
   /**
    * Begin an explicit transaction.
    * @param {Object} param
-   * @param {Bookmark} param.bookmark the bookmark.
+   * @param {Bookmarks} param.bookmarks the bookmarks.
    * @param {TxConfig} param.txConfig the configuration.
    * @param {string} param.database the target database name.
    * @param {string} param.mode the access mode.
@@ -152,7 +152,7 @@ export default class BoltProtocol {
    * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
   beginTransaction ({
-    bookmark,
+    bookmarks,
     txConfig,
     database,
     mode,
@@ -164,9 +164,9 @@ export default class BoltProtocol {
   } = {}) {
     return this.run(
       'BEGIN',
-      bookmark ? bookmark.asBeginTransactionParameters() : {},
+      bookmarks ? bookmarks.asBeginTransactionParameters() : {},
       {
-        bookmark: bookmark,
+        bookmarks: bookmarks,
         txConfig: txConfig,
         database,
         mode,
@@ -201,7 +201,7 @@ export default class BoltProtocol {
       'COMMIT',
       {},
       {
-        bookmark: Bookmark.empty(),
+        bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         mode: ACCESS_MODE_WRITE,
         beforeError,
@@ -233,7 +233,7 @@ export default class BoltProtocol {
       'ROLLBACK',
       {},
       {
-        bookmark: Bookmark.empty(),
+        bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         mode: ACCESS_MODE_WRITE,
         beforeError,
@@ -249,7 +249,7 @@ export default class BoltProtocol {
    * @param {string} query the cypher query.
    * @param {Object} parameters the query parameters.
    * @param {Object} param
-   * @param {Bookmark} param.bookmark the bookmark.
+   * @param {Bookmarks} param.bookmarks the bookmarks.
    * @param {TxConfig} param.txConfig the transaction configuration.
    * @param {string} param.database the target database name.
    * @param {string} param.impersonatedUser the impersonated user
@@ -267,7 +267,7 @@ export default class BoltProtocol {
     query,
     parameters,
     {
-      bookmark,
+      bookmarks,
       txConfig,
       database,
       mode,
@@ -295,7 +295,7 @@ export default class BoltProtocol {
       lowRecordWatermark
     })
 
-    // bookmark and mode are ignored in this version of the protocol
+    // bookmarks and mode are ignored in this version of the protocol
     assertTxConfigIsEmpty(txConfig, this._onProtocolError, observer)
     // passing in a database name on this protocol version throws an error
     assertDatabaseIsEmpty(database, this._onProtocolError, observer)

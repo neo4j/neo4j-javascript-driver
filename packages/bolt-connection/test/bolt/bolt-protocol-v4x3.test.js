@@ -27,7 +27,7 @@ const WRITE = 'WRITE'
 
 const {
   txConfig: { TxConfig },
-  bookmark: { Bookmark }
+  bookmarks: { Bookmarks }
 } = internal
 
 describe('#unit BoltProtocolV4x3', () => {
@@ -62,13 +62,13 @@ describe('#unit BoltProtocolV4x3', () => {
     utils.spyProtocolWrite(protocol)
     const routingContext = { someContextParam: 'value' }
     const listOfBookmarks = ['a', 'b', 'c']
-    const bookmark = new Bookmark(listOfBookmarks)
+    const bookmarks = new Bookmarks(listOfBookmarks)
     const databaseName = 'name'
 
     const observer = protocol.requestRoutingInformation({
       routingContext,
       databaseName,
-      sessionContext: { bookmark }
+      sessionContext: { bookmarks }
     })
 
     protocol.verifyMessageCount(1)
@@ -82,7 +82,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
   it('should run a query', () => {
     const database = 'testdb'
-    const bookmark = new Bookmark([
+    const bookmarks = new Bookmarks([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
     ])
@@ -98,7 +98,7 @@ describe('#unit BoltProtocolV4x3', () => {
     const parameters = { x: 'x', y: 'y' }
 
     const observer = protocol.run(query, parameters, {
-      bookmark,
+      bookmarks,
       txConfig,
       database,
       mode: WRITE
@@ -108,7 +108,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
     expect(protocol.messages[0]).toBeMessage(
       RequestMessage.runWithMetadata(query, parameters, {
-        bookmark,
+        bookmarks,
         txConfig,
         database,
         mode: WRITE
@@ -120,7 +120,7 @@ describe('#unit BoltProtocolV4x3', () => {
   })
   it('should begin a transaction', () => {
     const database = 'testdb'
-    const bookmark = new Bookmark([
+    const bookmarks = new Bookmarks([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
     ])
@@ -133,7 +133,7 @@ describe('#unit BoltProtocolV4x3', () => {
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
-      bookmark,
+      bookmarks,
       txConfig,
       database,
       mode: WRITE
@@ -141,7 +141,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.begin({ bookmark, txConfig, database, mode: WRITE })
+      RequestMessage.begin({ bookmarks, txConfig, database, mode: WRITE })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
@@ -186,7 +186,7 @@ describe('#unit BoltProtocolV4x3', () => {
   })
 
   it('should begin a transaction', () => {
-    const bookmark = new Bookmark([
+    const bookmarks = new Bookmarks([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
     ])
@@ -199,14 +199,14 @@ describe('#unit BoltProtocolV4x3', () => {
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
-      bookmark,
+      bookmarks,
       txConfig,
       mode: WRITE
     })
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.begin({ bookmark, txConfig, mode: WRITE })
+      RequestMessage.begin({ bookmarks, txConfig, mode: WRITE })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
@@ -310,7 +310,7 @@ describe('#unit BoltProtocolV4x3', () => {
       const query = 'RETURN $x, $y'
       const parameters = { x: 'x', y: 'y' }
       const observer = protocol.run(query, parameters, {
-        bookmark: Bookmark.empty(),
+        bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         lowRecordWatermark: 100,
         highRecordWatermark: 200,

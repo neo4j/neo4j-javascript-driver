@@ -18,7 +18,7 @@
  */
 
 import { ConnectionProvider, Transaction } from "../src";
-import { Bookmark } from "../src/internal/bookmark";
+import { Bookmarks } from "../src/internal/bookmarks";
 import { ConnectionHolder } from "../src/internal/connection-holder";
 import FakeConnection from "./utils/connection.fake";
 
@@ -136,7 +136,7 @@ function newTransaction({
   const transaction = new Transaction({
     connectionHolder,
     onClose: () => { },
-    onBookmark: (_: Bookmark) => { },
+    onBookmarks: (_: Bookmarks) => { },
     onConnection: () => { },
     reactive: false,
     fetchSize,

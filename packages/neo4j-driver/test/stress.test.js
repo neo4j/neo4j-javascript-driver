@@ -136,8 +136,8 @@ describe('#integration stress tests', () => {
   function createUniqueCommands (context) {
     const clusterSafeCommands = [
       readQueryInTxFunctionCommand(context),
-      readQueryInTxFunctionWithBookmarkCommand(context),
-      writeQueryInTxFunctionWithBookmarkCommand(context),
+      readQueryInTxFunctionWithBookmarksCommand(context),
+      writeQueryInTxFunctionWithBookmarksCommand(context),
       writeQueryInTxFunctionCommand(context)
     ]
 
@@ -148,13 +148,13 @@ describe('#integration stress tests', () => {
     return [
       ...clusterSafeCommands,
       readQueryCommand(context),
-      readQueryWithBookmarkCommand(context),
+      readQueryWithBookmarksCommand(context),
       readQueryInTxCommand(context),
-      readQueryInTxWithBookmarkCommand(context),
+      readQueryInTxWithBookmarksCommand(context),
       writeQueryCommand(context),
-      writeQueryWithBookmarkCommand(context),
+      writeQueryWithBookmarksCommand(context),
       writeQueryInTxCommand(context),
-      writeQueryInTxWithBookmarkCommand(context)
+      writeQueryInTxWithBookmarksCommand(context)
     ]
   }
 
@@ -162,7 +162,7 @@ describe('#integration stress tests', () => {
     return queryCommand(context, READ_QUERY, () => noParams(), READ, false)
   }
 
-  function readQueryWithBookmarkCommand (context) {
+  function readQueryWithBookmarksCommand (context) {
     return queryCommand(context, READ_QUERY, () => noParams(), READ, true)
   }
 
@@ -180,11 +180,11 @@ describe('#integration stress tests', () => {
     )
   }
 
-  function readQueryInTxWithBookmarkCommand (context) {
+  function readQueryInTxWithBookmarksCommand (context) {
     return queryInTxCommand(context, READ_QUERY, () => noParams(), READ, true)
   }
 
-  function readQueryInTxFunctionWithBookmarkCommand (context) {
+  function readQueryInTxFunctionWithBookmarksCommand (context) {
     return queryInTxFunctionCommand(
       context,
       READ_QUERY,
@@ -204,7 +204,7 @@ describe('#integration stress tests', () => {
     )
   }
 
-  function writeQueryWithBookmarkCommand (context) {
+  function writeQueryWithBookmarksCommand (context) {
     return queryCommand(context, WRITE_QUERY, () => randomParams(), WRITE, true)
   }
 
@@ -228,7 +228,7 @@ describe('#integration stress tests', () => {
     )
   }
 
-  function writeQueryInTxWithBookmarkCommand (context) {
+  function writeQueryInTxWithBookmarksCommand (context) {
     return queryInTxCommand(
       context,
       WRITE_QUERY,
@@ -238,7 +238,7 @@ describe('#integration stress tests', () => {
     )
   }
 
-  function writeQueryInTxFunctionWithBookmarkCommand (context) {
+  function writeQueryInTxFunctionWithBookmarksCommand (context) {
     return queryInTxFunctionCommand(
       context,
       WRITE_QUERY,
@@ -253,7 +253,7 @@ describe('#integration stress tests', () => {
     query,
     paramsSupplier,
     accessMode,
-    useBookmark
+    useBookmarks
   ) {
     return callback => {
       const commandId = context.nextCommandId()
@@ -264,7 +264,7 @@ describe('#integration stress tests', () => {
         callback()
         return
       }
-      const session = newSession(context, accessMode, useBookmark)
+      const session = newSession(context, accessMode, useBookmarks)
       const params = paramsSupplier()
 
       context.log(commandId, `About to run ${accessMode} query`)
@@ -295,12 +295,12 @@ describe('#integration stress tests', () => {
     query,
     paramsSupplier,
     accessMode,
-    useBookmark
+    useBookmarks
   ) {
     return callback => {
       const commandId = context.nextCommandId()
       const params = paramsSupplier()
-      const session = newSession(context, accessMode, useBookmark)
+      const session = newSession(context, accessMode, useBookmarks)
 
       context.log(commandId, `About to run ${accessMode} query in TX function`)
 
@@ -313,7 +313,7 @@ describe('#integration stress tests', () => {
 
       resultPromise
         .then(result => {
-          context.queryCompleted(result, accessMode, session.lastBookmark())
+          context.queryCompleted(result, accessMode, session.lastBookmarks())
           context.log(commandId, 'Transaction function executed successfully')
 
           return session
@@ -345,7 +345,7 @@ describe('#integration stress tests', () => {
     query,
     paramsSupplier,
     accessMode,
-    useBookmark
+    useBookmarks
   ) {
     return callback => {
       const commandId = context.nextCommandId()
@@ -356,7 +356,7 @@ describe('#integration stress tests', () => {
         callback()
         return
       }
-      const session = newSession(context, accessMode, useBookmark)
+      const session = newSession(context, accessMode, useBookmarks)
       const tx = session.beginTransaction()
       const params = paramsSupplier()
 
@@ -379,7 +379,11 @@ describe('#integration stress tests', () => {
               }
             })
             .then(() => {
-              context.queryCompleted(result, accessMode, session.lastBookmark())
+              context.queryCompleted(
+                result,
+                accessMode,
+                session.lastBookmarks()
+              )
               context.log(commandId, 'Transaction committed successfully')
 
               return session.close().then(() => {
@@ -609,11 +613,11 @@ describe('#integration stress tests', () => {
     return {}
   }
 
-  function newSession (context, accessMode, useBookmark) {
-    if (useBookmark) {
+  function newSession (context, accessMode, useBookmarks) {
+    if (useBookmarks) {
       return context.driver.session({
         defaultAccessMode: accessMode,
-        bookmarks: [context.bookmark]
+        bookmarks: [context.bookmarks]
       })
     }
     return context.driver.session({ defaultAccessMode: accessMode })
@@ -643,7 +647,7 @@ describe('#integration stress tests', () => {
   class Context {
     constructor (driver, loggingEnabled) {
       this.driver = driver
-      this.bookmark = null
+      this.bookmarks = null
       this.createdNodesCount = 0
       this._commandIdCouter = 0
       this._loggingEnabled = loggingEnabled
@@ -666,7 +670,7 @@ describe('#integration stress tests', () => {
       )
     }
 
-    queryCompleted (result, accessMode, bookmark) {
+    queryCompleted (result, accessMode, bookmarks) {
       const serverInfo = result.summary.server
       this.protocolVersion = serverInfo.protocolVersion
 
@@ -680,8 +684,8 @@ describe('#integration stress tests', () => {
           (this.readServersWithQueryCount[serverAddress] || 0) + 1
       }
 
-      if (bookmark) {
-        this.bookmark = bookmark
+      if (bookmarks) {
+        this.bookmarks = bookmarks
       }
     }
 

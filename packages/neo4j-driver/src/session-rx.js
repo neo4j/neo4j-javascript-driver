@@ -122,18 +122,18 @@ export default class RxSession {
   }
 
   /**
-   * Returns the bookmark received following the last successfully completed query, which is executed
+   * Returns the bookmarks received following the last successfully completed query, which is executed
    * either in an {@link RxTransaction} obtained from this session instance or directly through one of
    * the {@link RxSession#run} method of this session instance.
    *
-   * If no bookmark was received or if this transaction was rolled back, the bookmark value will not be
+   * If no bookmarks were received or if this transaction was rolled back, the bookmarks value will not be
    * changed.
    *
    * @public
    * @returns {string}
    */
-  lastBookmark () {
-    return this._session.lastBookmark()
+  lastBookmarks () {
+    return this._session.lastBookmarks()
   }
 
   /**

@@ -35,7 +35,7 @@ import { ResultStreamObserver } from '../../../bolt-connection/lib/bolt'
 
 const {
   logger: { Logger },
-  bookmark: { Bookmark },
+  bookmarks: { Bookmarks },
   txConfig: { TxConfig },
   serverAddress: { ServerAddress }
 } = internal
@@ -112,7 +112,7 @@ describe('#integration ChannelConnection', () => {
             'RETURN 1.0',
             {},
             {
-              bookmark: Bookmark.empty(),
+              bookmarks: Bookmarks.empty(),
               txConfig: TxConfig.empty(),
               mode: WRITE
             }
@@ -257,7 +257,7 @@ describe('#integration ChannelConnection', () => {
           .run(
             'RETURN 1',
             {},
-            { bookmark: Bookmark.empty(), txConfig: TxConfig.empty() }
+            { bookmarks: Bookmarks.empty(), txConfig: TxConfig.empty() }
           ),
       done
     )

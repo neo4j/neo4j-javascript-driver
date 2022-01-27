@@ -18,7 +18,7 @@
  */
 
 import ConnectionProvider from './connection-provider'
-import { Bookmark } from './internal/bookmark'
+import { Bookmarks } from './internal/bookmarks'
 import { ConnectivityVerifier } from './internal/connectivity-verifier'
 import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
 
@@ -81,7 +81,7 @@ type CreateConnectionProvider = (
 type CreateSession = (args: {
   mode: SessionMode
   connectionProvider: ConnectionProvider
-  bookmark?: Bookmark
+  bookmarks?: Bookmarks
   database: string
   config: any
   reactive: boolean
@@ -321,14 +321,14 @@ class Driver {
   }) {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const bookmark = bookmarkOrBookmarks
-      ? new Bookmark(bookmarkOrBookmarks)
-      : Bookmark.empty()
+    const bookmarks = bookmarkOrBookmarks
+      ? new Bookmarks(bookmarkOrBookmarks)
+      : Bookmarks.empty()
     return this._createSession({
       mode: sessionMode,
       database: database || '',
       connectionProvider,
-      bookmark,
+      bookmarks,
       config: this._config,
       reactive,
       impersonatedUser,

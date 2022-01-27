@@ -152,7 +152,7 @@ const defaultConfig = {
   // HTTP server should keep listening on default address
   'dbms.connector.http.listen_address': 'localhost:7474',
 
-  // shorten the default time to wait for the bookmark from 30 to 5 seconds
+  // shorten the default time to wait for the bookmarks from 30 to 5 seconds
   'dbms.transaction.bookmark_ready_timeout': '5s',
 
   // make TLS optional
@@ -308,20 +308,20 @@ function restart (configOverride) {
   startNeo4j()
 }
 
-async function cleanupAndGetProtocolVersionAndBookmark (driver) {
+async function cleanupAndGetProtocolVersionAndBookmarks (driver) {
   const session = driver.session({ defaultAccessMode: neo4j.session.WRITE })
   try {
     const result = await session.writeTransaction(tx =>
       tx.run('MATCH (n) DETACH DELETE n')
     )
-    return [result.summary.server.protocolVersion, session.lastBookmark()]
+    return [result.summary.server.protocolVersion, session.lastBookmarks()]
   } finally {
     await session.close()
   }
 }
 
 async function cleanupAndGetProtocolVersion (driver) {
-  const [protocolVersion] = await cleanupAndGetProtocolVersionAndBookmark(
+  const [protocolVersion] = await cleanupAndGetProtocolVersionAndBookmarks(
     driver
   )
   return protocolVersion
@@ -382,7 +382,7 @@ export default {
   authToken: authToken,
   logging: debugLogging,
   cleanupAndGetProtocolVersion: cleanupAndGetProtocolVersion,
-  cleanupAndGetProtocolVersionAndBookmark,
+  cleanupAndGetProtocolVersionAndBookmarks,
   tlsConfig: tlsConfig,
   getEdition: getEdition,
   hostname: hostname,

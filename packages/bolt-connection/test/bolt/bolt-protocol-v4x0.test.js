@@ -31,7 +31,7 @@ const WRITE = 'WRITE'
 
 const {
   txConfig: { TxConfig },
-  bookmark: { Bookmark }
+  bookmarks: { Bookmarks }
 } = internal
 
 describe('#unit BoltProtocolV4x0', () => {
@@ -41,7 +41,7 @@ describe('#unit BoltProtocolV4x0', () => {
 
   it('should run a query', () => {
     const database = 'testdb'
-    const bookmark = new Bookmark([
+    const bookmarks = new Bookmarks([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
     ])
@@ -57,7 +57,7 @@ describe('#unit BoltProtocolV4x0', () => {
     const parameters = { x: 'x', y: 'y' }
 
     const observer = protocol.run(query, parameters, {
-      bookmark,
+      bookmarks,
       txConfig,
       database,
       mode: WRITE
@@ -67,7 +67,7 @@ describe('#unit BoltProtocolV4x0', () => {
 
     expect(protocol.messages[0]).toBeMessage(
       RequestMessage.runWithMetadata(query, parameters, {
-        bookmark,
+        bookmarks,
         txConfig,
         database,
         mode: WRITE
@@ -80,7 +80,7 @@ describe('#unit BoltProtocolV4x0', () => {
 
   it('should begin a transaction', () => {
     const database = 'testdb'
-    const bookmark = new Bookmark([
+    const bookmarks = new Bookmarks([
       'neo4j:bookmark:v1:tx1',
       'neo4j:bookmark:v1:tx2'
     ])
@@ -93,7 +93,7 @@ describe('#unit BoltProtocolV4x0', () => {
     utils.spyProtocolWrite(protocol)
 
     const observer = protocol.beginTransaction({
-      bookmark,
+      bookmarks,
       txConfig,
       database,
       mode: WRITE
@@ -101,7 +101,7 @@ describe('#unit BoltProtocolV4x0', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.begin({ bookmark, txConfig, database, mode: WRITE })
+      RequestMessage.begin({ bookmarks, txConfig, database, mode: WRITE })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
@@ -118,7 +118,7 @@ describe('#unit BoltProtocolV4x0', () => {
     const protocol = new SpiedBoltProtocolV4x0(expectedResultObserver)
     utils.spyProtocolWrite(protocol)
     const routingContext = { abc: 'context ' }
-    const sessionContext = { bookmark: 'book' }
+    const sessionContext = { bookmarks: 'book' }
     const databaseName = 'the name'
     const onError = () => {}
     const onCompleted = () => {}
@@ -225,7 +225,7 @@ describe('#unit BoltProtocolV4x0', () => {
       const query = 'RETURN $x, $y'
       const parameters = { x: 'x', y: 'y' }
       const observer = protocol.run(query, parameters, {
-        bookmark: Bookmark.empty(),
+        bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         lowRecordWatermark: 100,
         highRecordWatermark: 200,

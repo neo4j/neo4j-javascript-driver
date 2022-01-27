@@ -2560,9 +2560,9 @@ function setupRoutingConnectionProviderToRememberRouters (
   const originalFetch = connectionProvider._fetchRoutingTable.bind(
     connectionProvider
   )
-  const rememberingFetch = (routerAddresses, routingTable, bookmark) => {
+  const rememberingFetch = (routerAddresses, routingTable, bookmarks) => {
     routersArray.push(routerAddresses)
-    return originalFetch(routerAddresses, routingTable, bookmark)
+    return originalFetch(routerAddresses, routingTable, bookmarks)
   }
   connectionProvider._fetchRoutingTable = rememberingFetch
 }
