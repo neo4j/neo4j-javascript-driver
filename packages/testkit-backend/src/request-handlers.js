@@ -360,7 +360,6 @@ export function GetFeatures (_context, _params, wire) {
       'ConfHint:connection.recv_timeout_seconds',
       'Feature:Impersonation',
       'Feature:Bolt:3.0',
-      'Feature:Bolt:4.0',
       'Feature:Bolt:4.1',
       'Feature:Bolt:4.2',
       'Feature:Bolt:4.3',
