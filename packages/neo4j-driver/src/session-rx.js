@@ -129,8 +129,25 @@ export default class RxSession {
    * If no bookmarks were received or if this transaction was rolled back, the bookmarks value will not be
    * changed.
    *
+   * @deprecated This method will be removed in 6.0 version. Please, use {@link RxSession#lastBookmarks} instead.
+   *
    * @public
-   * @returns {string}
+   * @returns {string[]}
+   */
+  lastBookmark () {
+    return this.lastBookmarks()
+  }
+
+  /**
+   * Returns the bookmarks received following the last successfully completed query, which is executed
+   * either in an {@link RxTransaction} obtained from this session instance or directly through one of
+   * the {@link RxSession#run} method of this session instance.
+   *
+   * If no bookmarks were received or if this transaction was rolled back, the bookmarks value will not be
+   * changed.
+   *
+   * @public
+   * @returns {string[]}
    */
   lastBookmarks () {
     return this._session.lastBookmarks()

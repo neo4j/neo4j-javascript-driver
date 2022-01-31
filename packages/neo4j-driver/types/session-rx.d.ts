@@ -33,7 +33,8 @@ declare interface RxSession {
 
   beginTransaction(config?: TransactionConfig): Observable<RxTransaction>
 
-  lastBookmarks(): string | null
+  lastBookmarks(): string[]
+  lastBookmark(): string[]
 
   readTransaction<T>(
     work: RxTransactionWork<T>,

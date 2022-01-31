@@ -20,10 +20,18 @@
 import { Notification, throwError } from 'rxjs'
 import { map, materialize, toArray, concat } from 'rxjs/operators'
 import neo4j from '../../src'
+import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
-import { newError, error } from 'neo4j-driver-core'
+import {
+  newError,
+  error,
+  internal,
+  Session,
+  ConnectionProvider
+} from 'neo4j-driver-core'
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
+const { bookmarks } = internal
 
 describe('#integration rx-session', () => {
   let driver
@@ -272,5 +280,50 @@ describe('#integration rx-session', () => {
         .records()
         .pipe(map(r => r.get(0).toInt()))
     }
+  }
+})
+
+describe('#unit rx-session', () => {
+  describe('lastBookmark', () => {
+    ;[
+      bookmarks.Bookmarks.empty(),
+      new bookmarks.Bookmarks('bookmark1'),
+      new bookmarks.Bookmarks(['bookmark1', 'bookmark2'])
+    ].forEach(bookmarks => {
+      it(`should return ${bookmarks}`, () => {
+        const session = newSession(bookmarks)
+        expect(session.lastBookmark()).toBe(bookmarks.values())
+      })
+    })
+  })
+
+  describe('lastBookmarks', () => {
+    ;[
+      bookmarks.Bookmarks.empty(),
+      new bookmarks.Bookmarks('bookmark1'),
+      new bookmarks.Bookmarks(['bookmark1', 'bookmark2'])
+    ].forEach(bookmarks => {
+      it(`should return ${bookmarks}`, () => {
+        const session = newSession(bookmarks)
+        expect(session.lastBookmarks()).toBe(bookmarks.values())
+      })
+    })
+  })
+
+  function newSession (lastBookmarks = bookmarks.Bookmarks.empty()) {
+    const connectionProvider = new ConnectionProvider()
+    connectionProvider.acquireConnection = () => Promise.resolve(null)
+    connectionProvider.close = () => Promise.resolve()
+
+    const session = new Session({
+      mode: 'READ',
+      connectionProvider,
+      database: '',
+      config: {},
+      reactive: true,
+      bookmarks: lastBookmarks
+    })
+
+    return new RxSession({ session })
   }
 })

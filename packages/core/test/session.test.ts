@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { ConnectionProvider, Session, Connection } from '../src'
+import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import FakeConnection from './utils/connection.fake'
 
@@ -202,9 +203,39 @@ describe('session', () => {
       done()
     })
   }, 70000)
+
+  describe('.lastBookmark()', () => {
+    it.each([
+      [bookmarks.Bookmarks.empty()],
+      [new bookmarks.Bookmarks('bookmark1')],
+      [new bookmarks.Bookmarks(['bookmark1', 'bookmark2'])]
+    ])('should return the bookmark informed in the object creation', (bookmarks) => {
+      const session = newSessionWithConnection(newFakeConnection(), false, 1000, bookmarks)
+
+      expect(session.lastBookmark()).toEqual(bookmarks.values())
+    })
+  })
+
+  describe('.lastBookmark()', () => {
+    it.each([
+      [bookmarks.Bookmarks.empty()],
+      [new bookmarks.Bookmarks('bookmark1')],
+      [new bookmarks.Bookmarks(['bookmark1', 'bookmark2'])]
+    ])('should return the bookmark informed in the object creation', (bookmarks) => {
+      const session = newSessionWithConnection(newFakeConnection(), false, 1000, bookmarks)
+
+      expect(session.lastBookmarks()).toEqual(bookmarks.values())
+    })
+  })
 })
 
-function newSessionWithConnection(connection: Connection, beginTx: boolean = true, fetchSize: number = 1000): Session {
+function newSessionWithConnection(
+  connection: Connection,
+  beginTx: boolean = true,
+  fetchSize: number = 1000,
+  lastBookmarks: bookmarks.Bookmarks = bookmarks.Bookmarks.empty()
+): Session {
+
   const connectionProvider = new ConnectionProvider()
   connectionProvider.acquireConnection = () => Promise.resolve(connection)
   connectionProvider.close = () => Promise.resolve()
@@ -215,7 +246,8 @@ function newSessionWithConnection(connection: Connection, beginTx: boolean = tru
     database: "",
     fetchSize,
     config: {},
-    reactive: false
+    reactive: false,
+    bookmarks: lastBookmarks
   })
 
   if (beginTx) {
