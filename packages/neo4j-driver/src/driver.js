@@ -67,7 +67,7 @@ class Driver extends CoreDriver {
     return new RxSession({
       session: this._newSession({
         defaultAccessMode,
-        bookmarks,
+        bookmarkOrBookmarks: bookmarks,
         database,
         impersonatedUser,
         reactive: true,
