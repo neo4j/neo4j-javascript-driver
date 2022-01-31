@@ -135,6 +135,15 @@ const rxSession9: RxSession = driver.rxSession({
   bookmarks: ['bookmark1', 'bookmark2']
 })
 
+const rxSession10: RxSession = driver.rxSession({
+  defaultAccessMode: WRITE,
+  bookmarks: 'bookmark1'
+})
+const rxSession11: RxSession = driver.rxSession({
+  defaultAccessMode: WRITE,
+  bookmarks: ['bookmark1', 'bookmark2']
+})
+
 rxSession1
   .run('RETURN 1')
   .records()
