@@ -24,9 +24,12 @@ import {
   DEFAULT_ACQUISITION_TIMEOUT,
   DEFAULT_MAX_SIZE
 } from '../../bolt-connection/lib/pool/pool-config'
-import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
 import testUtils from './internal/test-utils'
-import { json } from 'neo4j-driver-core'
+import { json, internal } from 'neo4j-driver-core'
+
+const {
+  bookmarks: { Bookmarks }
+} = internal
 
 // As long as driver creation doesn't touch the network it's fine to run
 // this as a unit test.
@@ -113,6 +116,27 @@ describe('#unit driver', () => {
         encrypted: 'ENCRYPTION_ON'
       })
     ).toThrow()
+  })
+
+  describe('.rxSession()', () => {
+    ;[
+      [undefined, Bookmarks.empty()],
+      [null, Bookmarks.empty()],
+      ['bookmark', new Bookmarks('bookmark')],
+      [['bookmark'], new Bookmarks(['bookmark'])],
+      [['bookmark1', 'bookmark2'], new Bookmarks(['bookmark1', 'bookmark2'])]
+    ].forEach(([bookmarks, expectedBookmarks]) => {
+      it(`should create session using param bookmarks=${bookmarks}`, () => {
+        driver = neo4j.driver(
+          `neo4j+ssc://${sharedNeo4j.hostname}`,
+          sharedNeo4j.authToken
+        )
+
+        const session = driver.rxSession({ bookmarks })
+
+        expect(session.lastBookmarks()).toEqual(expectedBookmarks.values())
+      })
+    })
   })
 })
 

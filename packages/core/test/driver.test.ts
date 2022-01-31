@@ -70,6 +70,19 @@ describe('Driver', () => {
       expect(session).not.toBeUndefined()
       expect(createSession).toHaveBeenCalledWith(expectedSessionParams())
     })
+
+    it.each([
+      [undefined, Bookmarks.empty()],
+      [null, Bookmarks.empty()],
+      ['bookmark', new Bookmarks('bookmark')],
+      [['bookmark'], new Bookmarks(['bookmark'])],
+      [['bookmark1', 'bookmark2'], new Bookmarks(['bookmark1', 'bookmark2'])],
+    ])('should create session using param bookmarks', (bookmarks, expectedBookmarks) => {
+      // @ts-ignore
+      const session = driver!.session({ bookmarks })
+
+      expect(session.lastBookmarks()).toEqual(expectedBookmarks.values())
+    })
   })
 
   it.each([
