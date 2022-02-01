@@ -20,6 +20,9 @@ const skippedTests = [
     ifEndsWith('test_should_fail_with_routing_failure_on_invalid_bookmark_discovery_failure'),
     ifEndsWith('test_should_fail_with_routing_failure_on_forbidden_discovery_failure')
   ),
+  skip('Flacky because sometimes the connection is actually available',
+    ifEndsWith('test_should_enforce_pool_size_per_cluster_member')
+  ),
   skip(
     'Flaky in TeamCity',
     ifEndsWith('test_should_fail_when_writing_to_unexpectedly_interrupting_writers_on_run_using_tx_function'),

@@ -370,13 +370,14 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:API:Result.List',
       'Feature:API:Result.Peek',
       'Temporary:ConnectionAcquisitionTimeout',
-      'Temporary:FastFailingDiscovery',
-      'Temporary:ResultKeys',
-      'Temporary:TransactionClose',
       'Temporary:CypherPathAndRelationship',
       'Temporary:DriverFetchSize',
+      'Temporary:DriverMaxConnectionPoolSize',
       'Temporary:DriverMaxTxRetryTime',
       'Temporary:GetConnectionPoolMetrics',
+      'Temporary:FastFailingDiscovery',
+      'Temporary:ResultKeys',
+      'Temporary:TransactionClose',,
       ...SUPPORTED_TLS
     ]
   })
