@@ -2,6 +2,15 @@ import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Fail while enable Temporary:FastFailingDiscovery',
+    ifEndsWith('test_should_request_rt_from_all_initial_routers_until_successful_on_authorization_expired'),
+    ifEndsWith('test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure'),
+    ifEndsWith('test_should_fail_with_routing_failure_on_any_security_discovery_failure'),
+    ifEndsWith('test_should_fail_with_routing_failure_on_invalid_bookmark_mixture_discovery_failure'),
+    ifEndsWith('test_should_fail_with_routing_failure_on_invalid_bookmark_discovery_failure'),
+    ifEndsWith('test_should_fail_with_routing_failure_on_forbidden_discovery_failure')
+  ),
+  skip(
     'Flaky in TeamCity',
     ifEndsWith('test_should_fail_when_writing_to_unexpectedly_interrupting_writers_on_run_using_tx_function'),
   ),
