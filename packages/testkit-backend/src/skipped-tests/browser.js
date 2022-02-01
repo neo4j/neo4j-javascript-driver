@@ -10,7 +10,7 @@ const skippedTests = [
     ifEquals('stub.disconnects.test_disconnects.TestDisconnects.test_fail_on_reset'),
     ifEquals('stub.tx_begin_parameters.test_tx_begin_parameters.TestTxBeginParameters.test_impersonation_fails_on_v4x3'),
     ifEquals('stub.session_run_parameters.test_session_run_parameters.TestSessionRunParameters.test_impersonation_fails_on_v4x3'),
-    
+    ifEndsWith('test_should_fail_when_writing_to_unexpectedly_interrupting_writers_on_run_using_tx_function '),
   ),
   skip(
     'TLS Tests not implemented for browwer',
