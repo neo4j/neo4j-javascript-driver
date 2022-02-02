@@ -6,6 +6,8 @@ const skippedTests = [
     ifEquals('neo4j.test_bookmarks.TestBookmarks.test_can_pass_bookmark_into_next_session'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_consume_after_commit'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_tx_configuration'),
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_interwoven_queries'),
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_parallel_queries'),
     ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_smaller_than_fetch_size'),
     ifEquals('neo4j.test_tx_func_run.TestTxFuncRun.test_tx_func_configuration')
   ),
