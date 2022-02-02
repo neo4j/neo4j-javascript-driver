@@ -2,6 +2,10 @@ import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Flaky in TeamCity',
+    ifEndsWith('test_should_fail_when_writing_to_unexpectedly_interrupting_writers_on_run_using_tx_function'),
+  ),
+  skip(
     'Partial session iteration is not supported by the js driver',
     ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration'),
     ifEquals('neo4j.test_session_run.TestSessionRun.test_session_reuse'),
