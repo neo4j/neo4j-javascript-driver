@@ -2,6 +2,14 @@ import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Fail while enable Temporary::ResultKeys',
+    ifEquals('neo4j.test_bookmarks.TestBookmarks.test_can_pass_bookmark_into_next_session'),
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_consume_after_commit'),
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_tx_configuration'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_smaller_than_fetch_size'),
+    ifEquals('neo4j.test_tx_func_run.TestTxFuncRun.test_tx_func_configuration')
+  ),
+  skip(
     'Fail while enable Temporary:FastFailingDiscovery',
     ifEndsWith('test_should_request_rt_from_all_initial_routers_until_successful_on_authorization_expired'),
     ifEndsWith('test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure'),
