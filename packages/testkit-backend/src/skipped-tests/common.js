@@ -24,6 +24,10 @@ const skippedTests = [
     ifEndsWith('test_should_enforce_pool_size_per_cluster_member')
   ),
   skip(
+    'Flaky in TeamCity',
+    ifEndsWith('test_should_fail_when_writing_to_unexpectedly_interrupting_writers_on_run_using_tx_function'),
+  ),
+  skip(
     'Not support by the JS driver',
     ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration')
   ),
