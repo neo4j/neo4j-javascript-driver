@@ -4,6 +4,33 @@ export function valueResponse (name, value) {
   return { name: name, data: { value: value } }
 }
 
+
+export function objectToCypher (obj) {
+  return objectMapper(obj, nativeToCypher)
+}
+
+export function objectMemberBitIntToNumber (obj, recursive=false) {
+  return objectMapper(obj, val => { 
+    if(typeof val === 'bigint') {
+      return Number(val)
+    } else if (recursive && typeof val === 'object') {
+      return objectMemberBitIntToNumber(val)
+    } else if (recursive && typeof val === 'array') {
+      return val.map(item => objectMemberBitIntToNumber(item, true))
+    }
+    return val
+  })
+}
+
+function objectMapper(obj, mapper) {
+  if (obj === null || obj === undefined) {
+    return obj
+  }
+  return Object.keys(obj).reduce((acc, key) => {
+    return {...acc, [key]: mapper(obj[key])}
+  }, {})
+}
+
 export function nativeToCypher (x) {
   if (x == null) {
     return valueResponse('CypherNull', null)

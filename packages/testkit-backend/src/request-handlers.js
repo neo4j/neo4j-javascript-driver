@@ -1,5 +1,11 @@
 import neo4j from './neo4j'
-import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
+import { 
+  cypherToNative, 
+  nativeToCypher, 
+} from './cypher-native-binders.js'
+import {
+  nativeToTestkitSummary,
+} from './summary-binder.js'
 import tls from 'tls'
 
 const SUPPORTED_TLS = (() => {
@@ -207,16 +213,13 @@ export function ResultPeek (context, data, wire) {
 }
 
 export function ResultConsume (context, data, wire) {
+  
+
   const { resultId } = data
   const result = context.getResult(resultId)
+
   return result.summary().then(summary => {
-    wire.writeResponse('Summary', {
-      ...summary,
-      serverInfo: {
-        agent: summary.server.agent,
-        protocolVersion: summary.server.protocolVersion.toFixed(1) 
-      }
-    })
+    wire.writeResponse('Summary', nativeToTestkitSummary(summary))
   }).catch(e => wire.writeError(e))
 }
 
@@ -376,6 +379,7 @@ export function GetFeatures (_context, _params, wire) {
       'Temporary:DriverMaxTxRetryTime',
       'Temporary:GetConnectionPoolMetrics',
       'Temporary:FastFailingDiscovery',
+      'Temporary:FullSummary',
       'Temporary:ResultKeys',
       'Temporary:TransactionClose',
       ...SUPPORTED_TLS
