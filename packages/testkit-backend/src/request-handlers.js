@@ -81,6 +81,9 @@ export function NewDriver (context, data, wire) {
   if ('connectionAcquisitionTimeoutMs' in data) {
     config.connectionAcquisitionTimeout = data.connectionAcquisitionTimeoutMs
   }
+  if ('fetchSize' in data) {
+    config.fetchSize = data.fetchSize
+  }
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)
@@ -339,9 +342,13 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
       'Temporary:ConnectionAcquisitionTimeout',
+      'Temporary:CypherPathAndRelationship',
+      'Temporary:DriverFetchSize',
       'Temporary:DriverMaxConnectionPoolSize',
+      'Temporary:DriverMaxTxRetryTime',
       'Temporary:FastFailingDiscovery',
       'Temporary:FullSummary',
+      'Temporary:GetConnectionPoolMetrics',
       'Temporary:ResultKeys',
       'Temporary:TransactionClose',
       ...SUPPORTED_TLS
