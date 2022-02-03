@@ -377,7 +377,7 @@ export function GetFeatures (_context, _params, wire) {
       'Temporary:GetConnectionPoolMetrics',
       'Temporary:FastFailingDiscovery',
       'Temporary:ResultKeys',
-      'Temporary:TransactionClose',,
+      'Temporary:TransactionClose',
       ...SUPPORTED_TLS
     ]
   })
