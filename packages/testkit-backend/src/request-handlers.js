@@ -334,6 +334,8 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
       'Temporary:ConnectionAcquisitionTimeout',
+      'Temporary:FastFailingDiscovery',
+      'Temporary:ResultKeys',
       ...SUPPORTED_TLS
     ]
   })
