@@ -28,6 +28,19 @@ const skippedTests = [
     ifEndsWith('test_should_fail_when_writing_to_unexpectedly_interrupting_writers_on_run_using_tx_function'),
   ),
   skip(
+    'Driver does not validate query type values in result summaries',
+    ifEquals('stub.summary.test_summary.TestSummary.test_invalid_query_type')
+  ),
+  skip(
+    'ResultSummary.notifications defaults to empty array instead of return null/undefined',
+    ifEquals('stub.summary.test_summary.TestSummary.test_no_notifications'),
+    ifEquals('neo4j.test_summary.TestSummary.test_no_notification_info')
+  ),
+  skip(
+    'ResultSummary.plan defaults to empty array instead of return null/undefined',
+    ifEquals('neo4j.test_summary.TestSummary.test_no_plan_info')
+  ),
+  skip(
     'Partial session iteration is not supported by the js driver',
     ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration'),
     ifEquals('neo4j.test_session_run.TestSessionRun.test_session_reuse'),
