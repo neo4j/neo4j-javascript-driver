@@ -333,6 +333,9 @@ class Stats {
 class QueryStatistics {
   private _stats: Stats
   private _systemUpdates: number
+  private _containsSystemUpdates?: boolean
+  private _containsUpdates?: boolean
+
   /**
    * Structurize the statistics
    * @constructor
@@ -350,7 +353,7 @@ class QueryStatistics {
       indexesAdded: 0,
       indexesRemoved: 0,
       constraintsAdded: 0,
-      constraintsRemoved: 0
+      constraintsRemoved: 0,
     }
     this._systemUpdates = 0
     Object.keys(statistics).forEach(index => {
@@ -360,6 +363,10 @@ class QueryStatistics {
         this._stats[camelCaseIndex] = intValue(statistics[index])
       } else if (camelCaseIndex === 'systemUpdates') {
         this._systemUpdates = intValue(statistics[index])
+      } else if (camelCaseIndex === 'containsSystemUpdates') {
+        this._containsSystemUpdates = statistics[index]
+      } else if (camelCaseIndex === 'containsUpdates') {
+        this._containsUpdates = statistics[index]
       }
     })
 
@@ -371,11 +378,12 @@ class QueryStatistics {
    * @return {boolean}
    */
   containsUpdates(): boolean {
-    return (
-      Object.keys(this._stats).reduce((last, current) => {
-        return last + this._stats[current]
-      }, 0) > 0
-    )
+    return this._containsUpdates !== undefined ?
+      this._containsUpdates : (
+        Object.keys(this._stats).reduce((last, current) => {
+          return last + this._stats[current]
+        }, 0) > 0
+      )
   }
 
   /**
@@ -391,7 +399,8 @@ class QueryStatistics {
    * @returns {boolean} - If the system database get updated or not.
    */
   containsSystemUpdates(): boolean {
-    return this._systemUpdates > 0
+    return this._containsSystemUpdates !== undefined ?
+      this._containsSystemUpdates : this._systemUpdates > 0
   }
 
   /**
