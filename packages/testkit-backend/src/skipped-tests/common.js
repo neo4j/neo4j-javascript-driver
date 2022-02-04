@@ -33,7 +33,12 @@ const skippedTests = [
   ),
   skip(
     'ResultSummary.notifications defaults to empty array instead of return null/undefined',
-    ifEquals('stub.summary.test_summary.TestSummary.test_no_notifications')
+    ifEquals('stub.summary.test_summary.TestSummary.test_no_notifications'),
+    ifEquals('neo4j.test_summary.TestSummary.test_no_notification_info')
+  ),
+  skip(
+    'ResultSummary.plan defaults to empty array instead of return null/undefined',
+    ifEquals('neo4j.test_summary.TestSummary.test_no_plan_info')
   ),
   skip(
     'Partial session iteration is not supported by the js driver',
