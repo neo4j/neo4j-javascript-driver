@@ -28,6 +28,19 @@ const skippedTests = [
     ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration')
   ),
   skip(
+    'Driver does not validate query type values in result summaries',
+    ifEquals('stub.summary.test_summary.TestSummary.test_invalid_query_type')
+  ),
+  skip(
+    'ResultSummary.notifications defaults to empty array instead of return null/undefined',
+    ifEquals('stub.summary.test_summary.TestSummary.test_no_notifications'),
+    ifEquals('neo4j.test_summary.TestSummary.test_no_notification_info')
+  ),
+  skip(
+    'ResultSummary.plan defaults to empty array instead of return null/undefined',
+    ifEquals('neo4j.test_summary.TestSummary.test_no_plan_info')
+  ),
+  skip(
     'The driver has no support domain_name_resolver',
     ifEndsWith('test_should_successfully_acquire_rt_when_router_ip_changes'),
     ifEndsWith(
