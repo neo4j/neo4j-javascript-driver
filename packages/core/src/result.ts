@@ -241,19 +241,30 @@ class Result implements Promise<QueryResult> {
       summary?: ResultSummary,
     } = { paused: true, firstRun: true, finished: false }
 
-
-    const controlFlow = async  () => {
-      if (state.queuedObserver === undefined) {
-        state.queuedObserver = this._createQueuedResultObserver()
-        state.streaming = await this._subscribe(state.queuedObserver, true).catch(() => undefined)
+    const controlFlow = () => {
+      if (!state.streaming) {
+        return;
       }
-      if (state.queuedObserver.size >= this._watermarks.high && !state.paused) {
+      const queueSizeIsOverHighOrEqualWatermark = state.queuedObserver!.size >= this._watermarks.high 
+      const queueSizeIsBellowOrEqualLowWatermark = state.queuedObserver!.size <= this._watermarks.low
+
+      if (queueSizeIsOverHighOrEqualWatermark && !state.paused) {
         state.paused = true
-        state.streaming?.pause()
-      } else if (state.queuedObserver.size <= this._watermarks.low && state.paused || state.firstRun) {
-        state.firstRun = false
-        state.paused = false
-        state.streaming?.resume()
+        state.streaming.pause()
+      } else if (queueSizeIsBellowOrEqualLowWatermark && state.paused || state.firstRun && !queueSizeIsOverHighOrEqualWatermark ) {
+        if (state.streaming) {
+          state.firstRun = false
+          state.paused = false
+          state.streaming.resume()
+        }
+      }
+    }
+
+    const initializeObserver = async  () => {
+      if (state.queuedObserver === undefined) {
+        state.queuedObserver = this._createQueuedResultObserver(controlFlow)
+        state.streaming = await this._subscribe(state.queuedObserver, true).catch(() => undefined)
+        controlFlow()
       }
     }
 
@@ -262,7 +273,7 @@ class Result implements Promise<QueryResult> {
         if (state.finished) {
           return { done: true, value: state.summary! }
         }
-        await controlFlow()
+        await initializeObserver()
         const next = await state.queuedObserver!.dequeue()
         if (next.done) {
           state.finished = next.done
@@ -280,7 +291,7 @@ class Result implements Promise<QueryResult> {
         if (state.finished) {
           return { done: true, value: state.summary! }
         }
-        await controlFlow()
+        await initializeObserver()
         return await state.queuedObserver!.head()
       }
     }
@@ -461,7 +472,7 @@ class Result implements Promise<QueryResult> {
   /**
    * @access private
    */
-   private _createQueuedResultObserver (): QueuedResultObserver {
+   private _createQueuedResultObserver (onQueueSizeChanged: () => void): QueuedResultObserver {
     interface ResolvablePromise<T> {
       promise: Promise<T>
       resolve: (arg: T) => any | undefined
@@ -509,11 +520,13 @@ class Result implements Promise<QueryResult> {
           }
         } else {
           buffer.push(element)
+          onQueueSizeChanged()
         }
       },
       dequeue: async () => {
         if (buffer.length > 0) {
           const element = buffer.shift()!
+          onQueueSizeChanged()
           if (isError(element)) {
               throw element
           }
@@ -538,6 +551,8 @@ class Result implements Promise<QueryResult> {
         } catch (error) {
           buffer.unshift(error)
           throw error
+        } finally {
+          onQueueSizeChanged()
         }
       },
       get size (): number {
