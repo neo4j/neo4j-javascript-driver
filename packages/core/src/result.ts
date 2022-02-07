@@ -252,11 +252,9 @@ class Result implements Promise<QueryResult> {
         state.paused = true
         state.streaming.pause()
       } else if (queueSizeIsBellowOrEqualLowWatermark && state.paused || state.firstRun && !queueSizeIsOverHighOrEqualWatermark ) {
-        if (state.streaming) {
-          state.firstRun = false
-          state.paused = false
-          state.streaming.resume()
-        }
+        state.firstRun = false
+        state.paused = false
+        state.streaming.resume()
       }
     }
 
