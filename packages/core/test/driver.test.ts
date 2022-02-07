@@ -140,6 +140,21 @@ describe('Driver', () => {
     promise.catch(_ => 'Do nothing').finally(() => {})
   })
 
+  it.each([
+    [{ encrypted: true }, true],
+    [{ encrypted: false }, false],
+    [{}, false],
+    [{ encrypted: 'ENCRYPTION_ON' }, true],
+    [{ encrypted: 'ENCRYPTION_OFF' }, false],
+  ])('.isEncrypted()', (config, expectedValue) => {
+    const connectionProvider = new ConnectionProvider()
+    connectionProvider.close = jest.fn(() => Promise.resolve())
+    // @ts-ignore
+    const driver = new Driver(META_INFO, config, mockCreateConnectonProvider(connectionProvider))
+
+    expect(driver.isEncrypted()).toEqual(expectedValue)
+  })
+
   function mockCreateConnectonProvider(connectionProvider: ConnectionProvider) {
     return (
       id: number,
