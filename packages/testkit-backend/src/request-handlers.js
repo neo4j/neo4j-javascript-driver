@@ -1,7 +1,7 @@
 import neo4j from './neo4j'
-import { 
-  cypherToNative, 
-  nativeToCypher, 
+import {
+  cypherToNative,
+  nativeToCypher,
 } from './cypher-native-binders.js'
 import {
   nativeToTestkitSummary,
@@ -20,6 +20,14 @@ const SUPPORTED_TLS = (() => {
   }
   return [];
 })();
+
+export function throwFrontendError() {
+  throw new Error("TestKit FrontendError")
+}
+
+export function isFrontendError(error) {
+  return error.message === 'TestKit FrontendError'
+}
 
 export function NewDriver (context, data, wire) {
   const {
@@ -107,8 +115,7 @@ export function DriverClose (context, data, wire) {
     .then(() => {
       wire.writeResponse('Driver', { id: driverId })
     })
-    .catch(err => wire.writeError(err)) 
-    .finally(() => context.removeDriver(driverId))
+    .catch(err => wire.writeError(err))
 }
 
 export function NewSession (context, data, wire) {
@@ -213,8 +220,6 @@ export function ResultPeek (context, data, wire) {
 }
 
 export function ResultConsume (context, data, wire) {
-  
-
   const { resultId } = data
   const result = context.getResult(resultId)
 
@@ -276,7 +281,7 @@ export function RetryablePositive (context, data, wire) {
 
 export function RetryableNegative (context, data, wire) {
   const { sessionId, errorId } = data
-  const error = context.getError(errorId) || new Error('Client error')
+  const error = context.getError(errorId) || new Error('TestKit FrontendError')
   context.getTxsBySessionId(sessionId).forEach(tx => {
     tx.reject(error)
   })

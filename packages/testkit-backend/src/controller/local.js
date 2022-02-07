@@ -1,6 +1,7 @@
 import Context from '../context'
 import Controller from './interface'
 import stringify from '../stringify'
+import { isFrontendError } from '../request-handlers'
 
 
 /**
@@ -24,7 +25,7 @@ export default class LocalController extends Controller {
   closeContext (contextId) {
     this._contexts.delete(contextId)
   }
-  
+
   async handle (contextId, { name, data }) {
     if (!this._contexts.has(contextId)) {
       throw new Error(`Context ${contextId} does not exist`)
@@ -58,15 +59,21 @@ export default class LocalController extends Controller {
 
   _writeError (contextId, e) {
     if (e.name) {
-      const id = this._contexts.get(contextId).addError(e)
-      this._writeResponse(contextId, 'DriverError', {
-        id,
-        msg: e.message + ' (' + e.code + ')',
-        code: e.code
-      })
+      if (isFrontendError(e)) {
+        this._writeResponse(contextId, 'FrontendError', {
+          msg: 'Simulating the client code throwing some error.',
+        })
+      } else {
+        const id = this._contexts.get(contextId).addError(e)
+        this._writeResponse(contextId, 'DriverError', {
+          id,
+          msg: e.message + ' (' + e.code + ')',
+          code: e.code
+        })
+      }
       return
     }
     this._writeBackendError(contextId, e)
   }
-  
+
 }
