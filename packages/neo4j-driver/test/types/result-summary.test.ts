@@ -98,7 +98,6 @@ const column: number = position2.column
 
 const server: ServerInfo = sum1.server
 const address: string | undefined = server.address
-const version: string | undefined = server.version
 
 const resultConsumedAfter1: Integer = sum1.resultConsumedAfter
 const resultAvailableAfter1: Integer = sum1.resultAvailableAfter

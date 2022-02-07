@@ -26,7 +26,6 @@ describe('ServerInfo', () => {
       4.3,
       {
         address: '192.168.0.1',
-        version: 'neo4j',
         protocolVersion: 4.3,
         agent: 'neo4j'
       }
@@ -36,7 +35,6 @@ describe('ServerInfo', () => {
       undefined,
       {
         address: '192.168.0.1',
-        version: 'neo4j',
         protocolVersion: undefined,
         agent: 'neo4j'
       }

@@ -193,7 +193,7 @@ describe('#integration session', () => {
       const sum = result.summary
       expect(sum.server).toBeDefined()
       expect(sum.server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
-      expect(sum.server.version).toBeDefined()
+      expect(sum.server.version).toBeUndefined()
       done()
     })
   }, 70000)
