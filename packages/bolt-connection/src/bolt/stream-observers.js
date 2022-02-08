@@ -240,12 +240,21 @@ class ResultStreamObserver extends StreamObserver {
   }
 
   _handlePullSuccess (meta) {
-    this._setState(_states.SUCCEEDED)
     const completionMetadata = Object.assign(
       this._server ? { server: this._server } : {},
       this._meta,
       meta
     )
+
+    if (![undefined, null, 'r', 'w', 'rw', 's'].includes(completionMetadata.type)) {
+      this.onError(
+        newError(
+          `Server returned invalid query type. Expected one of [undefined, null, "r", "w", "rw", "s"] but got '${completionMetadata.type}'`,
+          PROTOCOL_ERROR))
+      return
+    }
+
+    this._setState(_states.SUCCEEDED)
 
     let beforeHandlerResult = null
     if (this._beforeComplete) {
