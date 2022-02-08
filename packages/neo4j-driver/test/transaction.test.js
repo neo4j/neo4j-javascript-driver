@@ -311,7 +311,7 @@ describe('#integration transaction', () => {
         const sum = result.summary
         expect(sum.server).toBeDefined()
         expect(sum.server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
-        expect(sum.server.version).toBeDefined()
+        expect(sum.server.version).toBeUndefined()
         tx.commit().then(done)
       })
       .catch(console.log)
@@ -331,8 +331,7 @@ describe('#integration transaction', () => {
 
         expect(server).toBeDefined()
         expect(server.address).toEqual(`${sharedNeo4j.hostname}:7687`)
-        expect(server.version).toBeDefined()
-
+        expect(server.version).toBeUndefined()
         done()
       }
     })

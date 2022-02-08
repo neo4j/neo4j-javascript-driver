@@ -459,7 +459,6 @@ class Notification {
  */
 class ServerInfo {
   address?: string
-  version?: string
   protocolVersion?: number
   agent?: string
 
@@ -478,17 +477,6 @@ class ServerInfo {
        * @public
        */
       this.address = serverMeta.address
-      /**
-       * The server version string.
-       * 
-       * See {@link ServerInfo#protocolVersion} and {@link ServerInfo#agent}
-       * @type {string}
-       * @deprecated in 4.3, please use ServerInfo#agent, ServerInfo#protocolVersion, or call the <i>dbms.components</i> procedure instead.
-       * <b>Method might be removed in the next major release.</b>
-       
-       * @public
-       */
-      this.version = serverMeta.version
 
       /**
        * The server user agent string

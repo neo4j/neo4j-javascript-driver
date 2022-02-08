@@ -101,7 +101,6 @@ session1
 const close: Promise<void> = driver.close()
 
 driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
-  console.log(serverInfo.version)
   console.log(serverInfo.address)
 })
 
