@@ -598,9 +598,10 @@ describe('Result', () => {
 
       it('should pause the stream if queue is bigger than high watermark', async () => {
         const pause = jest.spyOn(streamObserverMock, 'pause')
+        const resume = jest.spyOn(streamObserverMock, 'resume')
         streamObserverMock.onKeys(['a'])
 
-        for (let i = 0; i <= watermarks.high; i++) {
+        for (let i = 0; i < watermarks.high + 3; i++) {
           streamObserverMock.onNext([i])
         }
 
@@ -608,6 +609,28 @@ describe('Result', () => {
         await it.next()
 
         expect(pause).toBeCalledTimes(1)
+        expect(resume).toBeCalledTimes(0)
+      })
+
+      it('should pause the stream if queue is bigger than high watermark and not iteraction with the stream', async () => {
+        const pause = jest.spyOn(streamObserverMock, 'pause')
+        const resume = jest.spyOn(streamObserverMock, 'resume')
+        streamObserverMock.onKeys(['a'])
+
+        streamObserverMock.onNext([-1])
+
+        const it = result[Symbol.asyncIterator]()
+        await it.next()
+
+        expect(pause).toBeCalledTimes(1)
+        expect(resume).toBeCalledTimes(1)
+
+        for (let i = 0; i <= watermarks.high + 1; i++) {
+          streamObserverMock.onNext([i])
+        }
+
+        expect(pause).toBeCalledTimes(2)
+        expect(resume).toBeCalledTimes(1)
       })
 
       it('should call resume if queue is smaller than low watermark', async () => {
