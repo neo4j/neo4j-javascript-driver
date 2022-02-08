@@ -31,6 +31,7 @@ import ConnectionProvider from './connection-provider'
 import { Query, SessionMode } from './types'
 import Connection from './connection'
 import { NumberOrInteger } from './graph-types'
+import TransactionPromise from './transaction-promise'
 
 type ConnectionConsumer = (connection: Connection | void) => any | undefined
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
@@ -239,9 +240,9 @@ class Session {
    * While a transaction is open the session cannot be used to run queries outside the transaction.
    *
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
-   * @returns {Transaction} New Transaction.
+   * @returns {TransactionPromise} New Transaction.
    */
-  beginTransaction(transactionConfig?: TransactionConfig): Transaction {
+  beginTransaction(transactionConfig?: TransactionConfig): TransactionPromise {
     // this function needs to support bookmarks parameter for backwards compatibility
     // parameter was of type {string|string[]} and represented either a single or multiple bookmarks
     // that's why we need to check parameter type and decide how to interpret the value
@@ -255,7 +256,7 @@ class Session {
     return this._beginTransaction(this._mode, txConfig)
   }
 
-  _beginTransaction(accessMode: SessionMode, txConfig: TxConfig): Transaction {
+  _beginTransaction(accessMode: SessionMode, txConfig: TxConfig): TransactionPromise {
     if (!this._open) {
       throw newError('Cannot begin a transaction on a closed session.')
     }
@@ -271,7 +272,7 @@ class Session {
     connectionHolder.initializeConnection()
     this._hasTx = true
 
-    const tx = new Transaction({
+    const tx = new TransactionPromise({
       connectionHolder,
       impersonatedUser: this._impersonatedUser,
       onClose: this._transactionClosed.bind(this),

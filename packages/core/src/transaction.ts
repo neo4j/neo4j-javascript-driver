@@ -109,7 +109,10 @@ class Transaction {
    * @param {TxConfig} txConfig
    * @returns {void}
    */
-  _begin(bookmarks: Bookmarks | string | string[], txConfig: TxConfig): void {
+  _begin(bookmarks: Bookmarks | string | string[], txConfig: TxConfig, events?: {
+    onError: (error: Error) => void
+    onComplete: (metadata: any) => void
+  }): void {
     this._connectionHolder
       .getConnection()
       .then(connection => {
@@ -121,14 +124,29 @@ class Transaction {
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
             impersonatedUser: this._impersonatedUser,
-            beforeError: this._onError,
-            afterComplete: this._onComplete
+            beforeError: (error: Error) => {
+              if (events) {
+                events.onError(error)
+              }
+              return this._onError(error).catch(() => {})
+            },
+            afterComplete: (metadata: any) => {
+              if (events) {
+                events.onComplete(metadata)
+              }
+              return this._onComplete(metadata)
+            }
           })
         } else {
           throw newError('No connection available')
         }
       })
-      .catch(error => this._onError(error))
+      .catch(error => { 
+        if (events) {
+          events.onError(error)
+        }
+        this._onError(error).catch(() => {})
+      })
   }
 
   /**

@@ -285,16 +285,21 @@ export function RetryableNegative (context, data, wire) {
 export function SessionBeginTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
-  let tx
+  
   try {
-    tx = session.beginTransaction({ metadata, timeout })
+    return session.beginTransaction({ metadata, timeout })
+    .then(tx => {
+      const id = context.addTx(tx, sessionId)
+      wire.writeResponse('Transaction', { id })
+    }).catch(e => {
+      console.log('got some err: ' + JSON.stringify(e))
+      wire.writeError(e)
+    })
   } catch (e) {
     console.log('got some err: ' + JSON.stringify(e))
     wire.writeError(e)
     return
   }
-  const id = context.addTx(tx, sessionId)
-  wire.writeResponse('Transaction', { id })
 }
 
 export function TransactionCommit (context, data, wire) {
@@ -372,6 +377,7 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
       'Feature:API:Result.Peek',
+      'Optimization:EagerTransactionBegin',
       'Optimization:ImplicitDefaultArguments',
       'Temporary:ConnectionAcquisitionTimeout',
       'Temporary:CypherPathAndRelationship',
