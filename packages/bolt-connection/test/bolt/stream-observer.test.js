@@ -511,6 +511,57 @@ describe('#unit ResultStreamObserver', () => {
       })
     })
   })
+
+  describe('metadata validation', () => {
+    it.each([
+      ['wr'],
+      ['read'],
+      ['read/write'],
+      ['write/read'],
+      ['write'],
+      ['undefined'],
+      ['null'],
+      ['banana']
+    ])(`should trigger onError when the type is '%s'`, (type) => {
+      const streamObserver = newStreamObserver()
+      const expectedError = newError(
+        `Server returned invalid query type. Expected one of [undefined, null, "r", "w", "rw", "s"] but got '${type}'`,
+        PROTOCOL_ERROR)
+
+      streamObserver.onCompleted({ fields: ['A', 'B', 'C'] })
+      streamObserver.onCompleted({ type })
+
+      streamObserver.subscribe(
+        newObserver(NO_OP, receivedError => {
+          expect(receivedError).toEqual(expectedError)
+        }, () => {
+          fail('Should not succeed')
+        })
+      )
+    })
+
+    it.each([
+      ['r'],
+      ['w'],
+      ['rw'],
+      ['s'],
+      [null],
+      [undefined]
+    ])(`should trigger onComplete when the type is '%s'`, (type) => {
+      const streamObserver = newStreamObserver()
+
+      streamObserver.onCompleted({ fields: ['A', 'B', 'C'] })
+      streamObserver.onCompleted({ type })
+
+      streamObserver.subscribe(
+        newObserver(NO_OP, () => {
+          fail('should not fail')
+        }, meta => {
+          expect(meta.type).toBe(type)
+        })
+      )
+    })
+  })
 })
 
 describe('#unit RouteObserver', () => {
