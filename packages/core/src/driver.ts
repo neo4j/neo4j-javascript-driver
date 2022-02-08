@@ -206,6 +206,15 @@ class Driver {
   }
 
   /**
+   * Returns boolean to indicate if driver has been configured with encryption enabled.
+   *
+   * @returns {boolean}
+   */
+  isEncrypted(): boolean {
+    return this._isEncrypted()
+  }
+
+  /**
    * @protected
    * @returns {boolean}
    */
@@ -220,7 +229,7 @@ class Driver {
    * @returns {boolean}
    */
   _isEncrypted() {
-    return this._config.encrypted === ENCRYPTION_ON
+    return this._config.encrypted === ENCRYPTION_ON || this._config.encrypted === true
   }
 
   /**

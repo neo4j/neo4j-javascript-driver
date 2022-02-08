@@ -48,6 +48,7 @@ describe('#unit driver', () => {
       sharedNeo4j.authToken
     )
     expect(driver._isEncrypted()).toBeFalsy()
+    expect(driver.isEncrypted()).toBeFalsy()
     expect(driver._supportsRouting()).toBeFalsy()
   })
 
@@ -57,6 +58,7 @@ describe('#unit driver', () => {
       sharedNeo4j.authToken
     )
     expect(driver._isEncrypted()).toBeTruthy()
+    expect(driver.isEncrypted()).toBeTruthy()
     expect(driver._getTrust()).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES')
     expect(driver._supportsRouting()).toBeFalsy()
   })
@@ -67,6 +69,7 @@ describe('#unit driver', () => {
       sharedNeo4j.authToken
     )
     expect(driver._isEncrypted()).toBeTruthy()
+    expect(driver.isEncrypted()).toBeTruthy()
     expect(driver._getTrust()).toEqual('TRUST_ALL_CERTIFICATES')
     expect(driver._supportsRouting()).toBeFalsy()
   })
@@ -77,6 +80,7 @@ describe('#unit driver', () => {
       sharedNeo4j.authToken
     )
     expect(driver._isEncrypted()).toBeFalsy()
+    expect(driver.isEncrypted()).toBeFalsy()
     expect(driver._supportsRouting()).toBeTruthy()
   })
 
@@ -86,6 +90,7 @@ describe('#unit driver', () => {
       sharedNeo4j.authToken
     )
     expect(driver._isEncrypted()).toBeTruthy()
+    expect(driver.isEncrypted()).toBeTruthy()
     expect(driver._getTrust()).toEqual('TRUST_SYSTEM_CA_SIGNED_CERTIFICATES')
     expect(driver._supportsRouting()).toBeTruthy()
   })
@@ -96,6 +101,7 @@ describe('#unit driver', () => {
       sharedNeo4j.authToken
     )
     expect(driver._isEncrypted()).toBeTruthy()
+    expect(driver.isEncrypted()).toBeTruthy()
     expect(driver._getTrust()).toEqual('TRUST_ALL_CERTIFICATES')
     expect(driver._supportsRouting()).toBeTruthy()
   })
