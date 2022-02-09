@@ -101,7 +101,7 @@ describe('session', () => {
   })
 
   it('run should send watermarks to Transaction when fetchsize if defined (writeTransaction)', async () => {
-    const connection = newFakeConnection()
+    const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, 1000)
     const status = { functionCalled: false }
 
@@ -118,7 +118,7 @@ describe('session', () => {
   })
 
   it('run should send watermarks to Transaction when fetchsize is fetch all (writeTransaction)', async () => {
-    const connection = newFakeConnection()
+    const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, FETCH_ALL)
     const status = { functionCalled: false }
 
@@ -135,7 +135,7 @@ describe('session', () => {
   })
 
   it('run should send watermarks to Transaction when fetchsize if defined (readTransaction)', async () => {
-    const connection = newFakeConnection()
+    const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, 1000)
     const status = { functionCalled: false }
 
@@ -152,7 +152,7 @@ describe('session', () => {
   })
 
   it('run should send watermarks to Transaction when fetchsize is fetch all (readTransaction)', async () => {
-    const connection = newFakeConnection()
+    const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, FETCH_ALL)
     const status = { functionCalled: false }
 
@@ -238,17 +238,8 @@ describe('session', () => {
     })
 
     it('should resolves a Transaction', async () => {
-      const connection = newFakeConnection()
-      const protocol = connection.protocol()
-      // @ts-ignore
-      connection.protocol = () => {
-        return {
-          ...protocol,
-          beginTransaction: (params: { afterComplete: () => {} }) => {
-            params.afterComplete()
-          }
-        }
-      }
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
       const session = newSessionWithConnection(connection, false, 1000)
 
       const tx: Transaction = await session.beginTransaction()
@@ -257,6 +248,20 @@ describe('session', () => {
     })
   })
 })
+
+function mockBeginWithSuccess(connection: FakeConnection) {
+  const protocol = connection.protocol()
+  // @ts-ignore
+  connection.protocol = () => {
+    return {
+      ...protocol,
+      beginTransaction: (params: { afterComplete: () => {}} ) => {
+        params.afterComplete()
+      }
+    }
+  }
+  return connection
+}
 
 function newSessionWithConnection(
   connection: Connection,
