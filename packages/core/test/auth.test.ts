@@ -21,7 +21,42 @@ import auth from '../src/auth'
 describe('auth', () => {
 
   test('.bearer()', () => {
-    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda' } )
+    expect(auth.bearer('==Qyahiadakkda')).toEqual({ scheme: 'bearer', credentials: '==Qyahiadakkda' })
   })
-  
+
+  test.each([
+    [
+      ['user', 'pass', 'realm', 'scheme', { param: 'param' }],
+      {
+        scheme: 'scheme',
+        principal: 'user',
+        credentials: 'pass',
+        realm: 'realm',
+        parameters: { param: 'param' }
+      }
+    ],
+    [
+      ['user', '', '', 'scheme', {}],
+      {
+        scheme: 'scheme',
+        principal: 'user'
+      }
+    ],
+    [
+      ['user', undefined, undefined, 'scheme', undefined],
+      {
+        scheme: 'scheme',
+        principal: 'user'
+      }
+    ],
+    [
+      ['user', null, null, 'scheme', null],
+      {
+        scheme: 'scheme',
+        principal: 'user'
+      }
+    ]
+  ])('.custom()', (args, output) => {
+    expect(auth.custom.apply(auth, args)).toEqual(output)
+  })
 })
