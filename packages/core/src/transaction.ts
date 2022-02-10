@@ -61,11 +61,13 @@ class Transaction {
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param {function(bookmarks: Bookmarks)} onBookmarks callback invoked when new bookmark is produced.
-   * * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the conneciton
+   * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the conneciton
    * is not yet released.
    * @param {boolean} reactive whether this transaction generates reactive streams
    * @param {number} fetchSize - the record fetch size in each pulling batch.
    * @param {string} impersonatedUser - The name of the user which should be impersonated for the duration of the session.
+   * @param {number} highRecordWatermark - The high watermark for the record buffer.
+   * @param {number} lowRecordWatermark - The low watermark for the record buffer.
    */
   constructor({
     connectionHolder,
