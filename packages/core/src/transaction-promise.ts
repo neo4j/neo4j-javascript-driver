@@ -48,7 +48,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param {function(bookmarks: Bookmarks)} onBookmarks callback invoked when new bookmark is produced.
-   * * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the conneciton
+   * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the connection
    * is not yet released.
    * @param {boolean} reactive whether this transaction generates reactive streams
    * @param {number} fetchSize - the record fetch size in each pulling batch.
