@@ -84,7 +84,7 @@
     "husky": "^3.1.0",
     "istanbul": "^0.4.5",
     "jasmine-spec-reporter": "^4.2.1",
-    "karma": "^4.4.1",
+    "karma": "^6.3.14",
     "karma-browserify": "^6.1.0",
     "karma-chrome-launcher": "^3.1.0",
     "karma-edge-launcher": "^0.4.2",
