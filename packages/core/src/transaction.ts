@@ -61,11 +61,13 @@ class Transaction {
    * @param {ConnectionHolder} connectionHolder - the connection holder to get connection from.
    * @param {function()} onClose - Function to be called when transaction is committed or rolled back.
    * @param {function(bookmarks: Bookmarks)} onBookmarks callback invoked when new bookmark is produced.
-   * * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the conneciton
+   * @param {function()} onConnection - Function to be called when a connection is obtained to ensure the conneciton
    * is not yet released.
    * @param {boolean} reactive whether this transaction generates reactive streams
    * @param {number} fetchSize - the record fetch size in each pulling batch.
    * @param {string} impersonatedUser - The name of the user which should be impersonated for the duration of the session.
+   * @param {number} highRecordWatermark - The high watermark for the record buffer.
+   * @param {number} lowRecordWatermark - The low watermark for the record buffer.
    */
   constructor({
     connectionHolder,
@@ -109,7 +111,10 @@ class Transaction {
    * @param {TxConfig} txConfig
    * @returns {void}
    */
-  _begin(bookmarks: Bookmarks | string | string[], txConfig: TxConfig): void {
+  _begin(bookmarks: Bookmarks | string | string[], txConfig: TxConfig, events?: {
+    onError: (error: Error) => void
+    onComplete: (metadata: any) => void
+  }): void {
     this._connectionHolder
       .getConnection()
       .then(connection => {
@@ -121,14 +126,29 @@ class Transaction {
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
             impersonatedUser: this._impersonatedUser,
-            beforeError: this._onError,
-            afterComplete: this._onComplete
+            beforeError: (error: Error) => {
+              if (events) {
+                events.onError(error)
+              }
+              return this._onError(error).catch(() => {})
+            },
+            afterComplete: (metadata: any) => {
+              if (events) {
+                events.onComplete(metadata)
+              }
+              return this._onComplete(metadata)
+            }
           })
         } else {
           throw newError('No connection available')
         }
       })
-      .catch(error => this._onError(error))
+      .catch(error => { 
+        if (events) {
+          events.onError(error)
+        }
+        this._onError(error).catch(() => {})
+      })
   }
 
   /**

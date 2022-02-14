@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, Session, Connection } from '../src'
+import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction } from '../src'
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import FakeConnection from './utils/connection.fake'
@@ -225,6 +225,35 @@ describe('session', () => {
       const session = newSessionWithConnection(newFakeConnection(), false, 1000, bookmarks)
 
       expect(session.lastBookmarks()).toEqual(bookmarks.values())
+    })
+  })
+
+  describe('.beginTransaction()', () => {
+    it('should return a TransactionPromise', () => {
+      const session = newSessionWithConnection(newFakeConnection(), false, 1000)
+
+      const tx: Transaction = session.beginTransaction()
+
+      expect(tx).toBeInstanceOf(TransactionPromise)
+    })
+
+    it('should resolves a Transaction', async () => {
+      const connection = newFakeConnection()
+      const protocol = connection.protocol()
+      // @ts-ignore
+      connection.protocol = () => {
+        return {
+          ...protocol,
+          beginTransaction: (params: { afterComplete: () => {} }) => {
+            params.afterComplete()
+          }
+        }
+      }
+      const session = newSessionWithConnection(connection, false, 1000)
+
+      const tx: Transaction = await session.beginTransaction()
+
+      expect(tx).toBeDefined()
     })
   })
 })
