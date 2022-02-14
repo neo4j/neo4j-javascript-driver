@@ -88,6 +88,9 @@ export function NewDriver (context, data, wire) {
   if ('fetchSize' in data) {
     config.fetchSize = data.fetchSize
   }
+  if ('maxTxRetryTimeMs' in data) {
+    config.maxTransactionRetryTime = data.maxTxRetryTimeMs
+  }
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)
