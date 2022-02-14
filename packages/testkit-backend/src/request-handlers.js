@@ -379,6 +379,7 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:API:Result.Peek',
       'Optimization:EagerTransactionBegin',
       'Optimization:ImplicitDefaultArguments',
+      'Optimization:PullPipelining',
       'Temporary:ConnectionAcquisitionTimeout',
       'Temporary:CypherPathAndRelationship',
       'Temporary:DriverFetchSize',
