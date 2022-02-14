@@ -27,7 +27,7 @@
  * @property {function(principal: string, credentials: string, realm: string, scheme: string, parameters: ?object)} custom
  * the function to create a custom authentication token.
  */
- const auth = {
+const auth = {
   basic: (username: string, password: string, realm?: string) => {
     if (realm) {
       return {
@@ -58,25 +58,32 @@
     credentials: string,
     realm: string,
     scheme: string,
-    parameters?: string
+    parameters?: object
   ) => {
-    if (parameters) {
-      return {
-        scheme: scheme,
-        principal: principal,
-        credentials: credentials,
-        realm: realm,
-        parameters: parameters
-      }
-    } else {
-      return {
-        scheme: scheme,
-        principal: principal,
-        credentials: credentials,
-        realm: realm
-      }
+    const output: any = {
+      scheme: scheme,
+      principal: principal
     }
+    if (isNotEmpty(credentials)) {
+      output.credentials = credentials
+    }
+    if (isNotEmpty(realm)) {
+      output.realm = realm
+    }
+    if (isNotEmpty(parameters)) {
+      output.parameters = parameters
+    }
+    return output
   }
+}
+
+function isNotEmpty<T extends object | string>(value: T | null | undefined): boolean {
+  return !(
+    value === null ||
+    value === undefined ||
+    value === '' ||
+    Object.getPrototypeOf(value) === Object.prototype && Object.keys(value).length === 0
+  )
 }
 
 export default auth

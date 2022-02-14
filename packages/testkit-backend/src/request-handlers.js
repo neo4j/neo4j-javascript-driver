@@ -372,6 +372,7 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
       'Feature:API:Result.Peek',
+      'Optimization:ImplicitDefaultArguments',
       'Temporary:ConnectionAcquisitionTimeout',
       'Temporary:CypherPathAndRelationship',
       'Temporary:DriverFetchSize',
