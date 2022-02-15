@@ -26,6 +26,7 @@ import {
   ACCESS_MODE_READ,
   ACCESS_MODE_WRITE,
   FETCH_ALL,
+  DEFAULT_CONNECTION_TIMEOUT_MILLIS,
   DEFAULT_POOL_ACQUISITION_TIMEOUT,
   DEFAULT_POOL_MAX_SIZE
 } from './internal/constants'
@@ -131,12 +132,15 @@ class Driver {
     createSession: CreateSession = args => new Session(args)
   ) {
     sanitizeConfig(config)
-    validateConfig(config)
+
+    const log = Logger.create(config)
+
+    validateConfig(config, log)
 
     this._id = idGenerator++
     this._meta = meta
     this._config = config
-    this._log = Logger.create(config)
+    this._log = log;
     this._createConnectionProvider = createConnectonProvider
     this._createSession = createSession
 
@@ -366,11 +370,20 @@ class Driver {
  * @private
  * @returns {Object} the given config.
  */
-function validateConfig(config: any): any {
+function validateConfig(config: any, log: Logger): any {
   const resolver = config.resolver
   if (resolver && typeof resolver !== 'function') {
     throw new TypeError(
       `Configured resolver should be a function. Got: ${resolver}`
+    )
+  }
+
+  if (config.connectionAcquisitionTimeout < config.connectionTimeout) {
+    log.warn(
+      'Configuration for "connectionAcquisitionTimeout" should be greater than ' + 
+      'or equal to "connectionTimeout". Otherwise, the connection acquisition ' +
+      'timeout will take precedence for over the connection timeout in scenarios ' +
+      'where a new connection is created while it is acquired'
     )
   }
   return config
@@ -396,6 +409,7 @@ function sanitizeConfig(config: any) {
     config.fetchSize,
     DEFAULT_FETCH_SIZE
   )
+  config.connectionTimeout = extractConnectionTimeout(config)
 }
 
 /**
@@ -428,6 +442,26 @@ function validateFetchSizeValue(
     )
   } else {
     return defaultWhenAbsent
+  }
+}
+
+/**
+ * @private
+ */
+function extractConnectionTimeout (config: any): number|null {
+  const configuredTimeout = parseInt(config.connectionTimeout, 10)
+  if (configuredTimeout === 0) {
+    // timeout explicitly configured to 0
+    return null
+  } else if (configuredTimeout && configuredTimeout < 0) {
+    // timeout explicitly configured to a negative value
+    return null
+  } else if (!configuredTimeout) {
+    // timeout not configured, use default value
+    return DEFAULT_CONNECTION_TIMEOUT_MILLIS
+  } else {
+    // timeout configured, use the provided value
+    return configuredTimeout
   }
 }
 

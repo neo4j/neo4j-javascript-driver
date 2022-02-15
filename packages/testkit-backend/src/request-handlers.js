@@ -383,7 +383,7 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
       'Feature:API:Result.Peek',
-      'Feature:Configuruation:ConnectionAcquisitionTimeout',
+      'Feature:Configuration:ConnectionAcquisitionTimeout',
       'Optimization:EagerTransactionBegin',
       'Optimization:ImplicitDefaultArguments',
       'Optimization:PullPipelining',

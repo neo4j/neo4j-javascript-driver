@@ -74,7 +74,6 @@ class Pool {
    * @return {Object} resource that is ready to use.
    */
   acquire (address) {
-
     const key = address.asKey()
 
     // We're out of resources and will try to acquire later on when an existing resource is released.
@@ -83,7 +82,6 @@ class Pool {
     if (!requests) {
       allRequests[key] = []
     }
-
     return new Promise((resolve, reject) => {
       let request
 
@@ -335,6 +333,13 @@ class Pool {
                 // request is still pending and can be resolved with the newly acquired resource
                 pendingRequest.resolve(resource) // resolve the pending request with the acquired resource
               }
+            } else {
+              // failed to acquire a valid resource from the pool
+              // return the pending request back to the pool
+              if (!this._acquireRequests[key]) {
+                this._acquireRequests[key] = []
+              }
+              this._acquireRequests[key].unshift(pendingRequest)
             }
           })
       } else {

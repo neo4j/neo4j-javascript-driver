@@ -25,8 +25,6 @@ const {
 
 const { SERVICE_UNAVAILABLE } = error
 
-const DEFAULT_CONNECTION_TIMEOUT_MILLIS = 30000 // 30 seconds by default
-
 const ALLOWED_VALUES_ENCRYPTED = [
   null,
   undefined,
@@ -58,7 +56,7 @@ export default class ChannelConfig {
     this.trustedCertificates = extractTrustedCertificates(driverConfig)
     this.knownHostsPath = extractKnownHostsPath(driverConfig)
     this.connectionErrorCode = connectionErrorCode || SERVICE_UNAVAILABLE
-    this.connectionTimeout = extractConnectionTimeout(driverConfig)
+    this.connectionTimeout = driverConfig.connectionTimeout
   }
 }
 
@@ -90,19 +88,3 @@ function extractKnownHostsPath (driverConfig) {
   return driverConfig.knownHosts || null
 }
 
-function extractConnectionTimeout (driverConfig) {
-  const configuredTimeout = parseInt(driverConfig.connectionTimeout, 10)
-  if (configuredTimeout === 0) {
-    // timeout explicitly configured to 0
-    return null
-  } else if (configuredTimeout && configuredTimeout < 0) {
-    // timeout explicitly configured to a negative value
-    return null
-  } else if (!configuredTimeout) {
-    // timeout not configured, use default value
-    return DEFAULT_CONNECTION_TIMEOUT_MILLIS
-  } else {
-    // timeout configured, use the provided value
-    return configuredTimeout
-  }
-}

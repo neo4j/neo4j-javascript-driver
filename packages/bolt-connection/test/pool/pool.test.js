@@ -877,6 +877,40 @@ describe('#unit Pool', () => {
     expect(resource1.observer).toBeFalsy()
     expect(resource2.observer).toBeFalsy()
   })
+
+  it('should thrown aquisition timeout exception if resource takes longer to be created', async () => {
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const acquisitionTimeout = 1000
+    let counter = 0
+
+    const pool = new Pool({
+      create: (server, release) =>
+        new Promise(resolve => setTimeout(
+          () => resolve(new Resource(server, counter++, release))
+          , acquisitionTimeout + 10)),
+      destroy: res => Promise.resolve(),
+      validate: resourceValidOnlyOnceValidationFunction,
+      config: new PoolConfig(1, acquisitionTimeout)
+    })
+
+    try {
+      await pool.acquire(address)
+      fail('should have thrown')
+    } catch (e) {
+      expect(e).toEqual(
+        newError(
+          `Connection acquisition timed out in ${acquisitionTimeout} ms. `
+          + 'Pool status: Active conn count = 0, Idle conn count = 0.'
+        )
+      )
+
+      const numberOfIdleResourceAfterResourceGetCreated = await new Promise(resolve =>
+        setTimeout(() => resolve(idleResources(pool, address)), 11))
+
+      expect(numberOfIdleResourceAfterResourceGetCreated).toEqual(1)
+      expect(counter).toEqual(1)
+    }
+  })
 })
 
 function expectNoPendingAcquisitionRequests (pool) {
@@ -893,6 +927,13 @@ function expectNoIdleResources (pool, address) {
   if (pool.has(address)) {
     expect(pool._pools[address.asKey()].length).toBe(0)
   }
+}
+
+function idleResources (pool, address) {
+  if (pool.has(address)) {
+    return pool._pools[address.asKey()].length
+  } 
+  return undefined
 }
 
 function expectNumberOfAcquisitionRequests (pool, address, expectedNumber) {

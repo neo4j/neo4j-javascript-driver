@@ -21,6 +21,7 @@ import Driver from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
 import { ConfiguredCustomResolver } from '../src/internal/resolver'
+import { LogLevel } from '../src/types'
 
 describe('Driver', () => {
   let driver: Driver | null
@@ -155,6 +156,44 @@ describe('Driver', () => {
     expect(driver.isEncrypted()).toEqual(expectedValue)
   })
 
+  it.each([
+    [{ connectionTimeout: 30000, connectionAcquisitionTimeout: 60000 }, true],
+    [{ connectionTimeout: null, connectionAcquisitionTimeout: 60000 }, true],
+    [{ connectionTimeout: 30000, connectionAcquisitionTimeout: null }, true],
+    [{ connectionTimeout: null, connectionAcquisitionTimeout: null }, true],
+    [{ connectionAcquisitionTimeout: 60000 }, true],
+    [{ connectionTimeout: 30000 }, true],
+    [{}, true],
+    [{ connectionTimeout: 30000, connectionAcquisitionTimeout: 20000 }, false],
+    [{ connectionAcquisitionTimeout: 20000 }, false],
+    [{ connectionTimeout: 70000 }, false],
+    // No connection timeouts should be considered valid, since it means
+    // the user doesn't case about the connection timeout at all.
+    [{ connectionTimeout: 0, connectionAcquisitionTimeout: 2000 }, true],
+    [{ connectionTimeout: -1, connectionAcquisitionTimeout: 2000 }, true],
+  ])('should emit warning if `connectionAcquisitionTimeout` and `connectionTimeout` are conflicting. [%o} ', async (config, valid) => {
+    const logging = {
+      level: 'warn' as LogLevel,
+      logger: jest.fn()
+    }
+
+    const driver = new Driver(META_INFO, { ...config, logging }, mockCreateConnectonProvider(new ConnectionProvider()), createSession)
+
+    if (valid) {
+      expect(logging.logger).not.toHaveBeenCalled()
+    } else {
+      expect(logging.logger).toHaveBeenCalledWith(
+        'warn',
+        'Configuration for "connectionAcquisitionTimeout" should be greater than ' +
+        'or equal to "connectionTimeout". Otherwise, the connection acquisition ' +
+        'timeout will take precedence for over the connection timeout in scenarios ' +
+        'where a new connection is created while it is acquired'
+      )
+    }
+
+    await driver.close()
+  })
+
   function mockCreateConnectonProvider(connectionProvider: ConnectionProvider) {
     return (
       id: number,
@@ -172,6 +211,7 @@ describe('Driver', () => {
         fetchSize: 1000,
         maxConnectionLifetime: 3600000,
         maxConnectionPoolSize: 100,
+        connectionTimeout: 30000,
       },
       connectionProvider,
       database: '',
