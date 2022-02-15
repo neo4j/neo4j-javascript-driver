@@ -336,10 +336,12 @@ class Pool {
             } else {
               // failed to acquire a valid resource from the pool
               // return the pending request back to the pool
-              if (!this._acquireRequests[key]) {
-                this._acquireRequests[key] = []
+              if (!pendingRequest.isCompleted()) {
+                if (!this._acquireRequests[key]) {
+                  this._acquireRequests[key] = []
+                }
+                this._acquireRequests[key].unshift(pendingRequest)
               }
-              this._acquireRequests[key].unshift(pendingRequest)
             }
           })
       } else {
