@@ -74,51 +74,47 @@ class Pool {
    * @return {Object} resource that is ready to use.
    */
   acquire (address) {
-    return this._acquire(address).then(resource => {
-      const key = address.asKey()
 
-      if (resource) {
-        // New or existing resource acquired
-        return resource
-      }
+    const key = address.asKey()
 
-      // We're out of resources and will try to acquire later on when an existing resource is released.
-      const allRequests = this._acquireRequests
-      const requests = allRequests[key]
-      if (!requests) {
-        allRequests[key] = []
-      }
+    // We're out of resources and will try to acquire later on when an existing resource is released.
+    const allRequests = this._acquireRequests
+    const requests = allRequests[key]
+    if (!requests) {
+      allRequests[key] = []
+    }
 
-      return new Promise((resolve, reject) => {
-        let request
+    return new Promise((resolve, reject) => {
+      let request
 
-        const timeoutId = setTimeout(() => {
-          // acquisition timeout fired
+      const timeoutId = setTimeout(() => {
+        // acquisition timeout fired
 
-          // remove request from the queue of pending requests, if it's still there
-          // request might've been taken out by the release operation
-          const pendingRequests = allRequests[key]
-          if (pendingRequests) {
-            allRequests[key] = pendingRequests.filter(item => item !== request)
-          }
+        // remove request from the queue of pending requests, if it's still there
+        // request might've been taken out by the release operation
+        const pendingRequests = allRequests[key]
+        if (pendingRequests) {
+          allRequests[key] = pendingRequests.filter(item => item !== request)
+        }
 
-          if (request.isCompleted()) {
-            // request already resolved/rejected by the release operation; nothing to do
-          } else {
-            // request is still pending and needs to be failed
-            const activeCount = this.activeResourceCount(address)
-            const idleCount = this.has(address) ? this._pools[key].length : 0
-            request.reject(
-              newError(
-                `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
-              )
+        if (request.isCompleted()) {
+          // request already resolved/rejected by the release operation; nothing to do
+        } else {
+          // request is still pending and needs to be failed
+          const activeCount = this.activeResourceCount(address)
+          const idleCount = this.has(address) ? this._pools[key].length : 0
+          request.reject(
+            newError(
+              `Connection acquisition timed out in ${this._acquisitionTimeout} ms. Pool status: Active conn count = ${activeCount}, Idle conn count = ${idleCount}.`
             )
-          }
-        }, this._acquisitionTimeout)
+          )
+        }
+      }, this._acquisitionTimeout)
 
-        request = new PendingRequest(key, resolve, reject, timeoutId, this._log)
-        allRequests[key].push(request)
-      })
+      request = new PendingRequest(key, resolve, reject, timeoutId, this._log)
+      allRequests[key].push(request)
+
+      this._processPendingAcquireRequests(address)
     })
   }
 
@@ -315,7 +311,7 @@ class Pool {
   _processPendingAcquireRequests (address) {
     const key = address.asKey()
     const requests = this._acquireRequests[key]
-    const poolState = this._poolState[key]
+    const poolState = this._poolState[key] || new PoolState()
     if (requests) {
       const pendingRequest = requests.shift() // pop a pending acquire request
 
