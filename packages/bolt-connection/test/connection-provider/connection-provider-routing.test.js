@@ -23,7 +23,8 @@ import {
   error,
   Integer,
   int,
-  internal
+  internal,
+  ServerInfo
 } from 'neo4j-driver-core'
 import { RoutingTable } from '../../src/rediscovery/'
 import { Pool } from '../../src/pool'
@@ -2474,6 +2475,234 @@ describe('#unit RoutingConnectionProvider', () => {
     })
 
   })
+
+  describe.each([
+    [undefined, READ],
+    [undefined, WRITE],
+    ['', READ],
+    ['', WRITE],
+    ['databaseA', READ],
+    ['databaseA', WRITE],
+  ])('.verifyConnectivityAndGetServeInfo({ database: %s, accessMode: %s })', (database, accessMode) => {
+    describe('when connection is available in the pool', () => {
+      it('should return the server info', async () => {
+        const { connectionProvider, server, protocolVersion } = setup()
+
+        const serverInfo = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+
+        expect(serverInfo).toEqual(new ServerInfo(server, protocolVersion))
+      })
+
+      it('should acquire, resetAndFlush and release connections for sever with the selected access mode', async () => {
+        const { connectionProvider, routingTable, seenConnectionsPerAddress, pool } = setup()
+        const acquireSpy = jest.spyOn(pool, 'acquire')
+
+        await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+
+        const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
+        for (const address of targetServers) {
+          expect(acquireSpy).toHaveBeenCalledWith(address)
+
+          const connections = seenConnectionsPerAddress.get(address)
+
+          expect(connections.length).toBe(1)
+          expect(connections[0].resetAndFlush).toHaveBeenCalled()
+          expect(connections[0]._release).toHaveBeenCalled()
+          expect(connections[0]._release.mock.invocationCallOrder[0])
+            .toBeGreaterThan(connections[0].resetAndFlush.mock.invocationCallOrder[0])
+        }
+      })
+
+      it('should not acquire, resetAndFlush and release connections for sever with the other access mode', async () => {
+        const { connectionProvider, routingTable, seenConnectionsPerAddress, pool } = setup()
+        const acquireSpy = jest.spyOn(pool, 'acquire')
+
+        await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+
+        const targetServers = accessMode === WRITE ? routingTable.readers : routingTable.writers
+        for (const address of targetServers) {
+          expect(acquireSpy).not.toHaveBeenCalledWith(address)
+          expect(seenConnectionsPerAddress.get(address)).toBeUndefined()
+        }
+      })
+
+      describe('when the reset and flush fails for at least one the address', () => {
+        it('should fails with the reset and flush error', async () => {
+          const error = newError('Error')
+          let i = 0
+          const resetAndFlush = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+          const { connectionProvider } = setup({ resetAndFlush })
+
+          try {
+            await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+            expect().toBe('Not reached')
+          } catch (e) {
+            expect(e).toBe(error)
+          }
+        })
+
+        it('should release the connection', async () => {
+          const error = newError('Error')
+          let i = 0
+          const resetAndFlush = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+          const { connectionProvider, seenConnectionsPerAddress, routingTable } = setup({ resetAndFlush })
+
+          try {
+            await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+          } catch (e) {
+          } finally {
+            const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
+            for (const address of targetServers) {
+              const connections = seenConnectionsPerAddress.get(address)
+
+              expect(connections.length).toBe(1)
+              expect(connections[0].resetAndFlush).toHaveBeenCalled()
+              expect(connections[0]._release).toHaveBeenCalled()
+            }
+          }
+        })
+
+        describe('and the release fails', () => {
+          it('should fails with the release error', async () => {
+            const error = newError('Error')
+            const releaseError = newError('Release error')
+            let i = 0
+            const resetAndFlush = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+            const releaseMock = jest.fn(() => Promise.reject(releaseError))
+            const { connectionProvider } = setup({ resetAndFlush, releaseMock })
+
+            try {
+              await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+              expect().toBe('Not reached')
+            } catch (e) {
+              expect(e).toBe(releaseError)
+            }
+          })
+        })
+
+      })
+
+      describe('when the release for at least one the address', () => {
+        it('should fails with the reset and flush error', async () => {
+          const error = newError('Error')
+          let i = 0
+          const releaseMock = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+          const { connectionProvider } = setup({ releaseMock })
+
+          try {
+            await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+            expect().toBe('Not reached')
+          } catch (e) {
+            expect(e).toBe(error)
+          }
+        })
+      })
+
+      function setup({ resetAndFlush, releaseMock } = {}) {
+        const routingTable = newRoutingTable(
+          database || null,
+          [server1, server2],
+          [server3, server4],
+          [server5, server6]
+        )
+        const protocolVersion = 4.4
+        const server = { address: 'localhost:123', version: 'neo4j/1234' }
+
+        const seenConnectionsPerAddress = new Map()
+
+        const pool = newPool({
+          create: (address, release) => {
+            if (!seenConnectionsPerAddress.has(address)) {
+              seenConnectionsPerAddress.set(address, [])
+            }
+            const connection = new FakeConnection(address, release, 'version', protocolVersion, server)
+            if (resetAndFlush) {
+              connection.resetAndFlush = resetAndFlush
+            }
+            if (releaseMock) {
+              connection._release = releaseMock
+            }
+            seenConnectionsPerAddress.get(address).push(connection)
+            return connection
+          }
+        })
+        const connectionProvider = newRoutingConnectionProvider(
+          [
+            routingTable
+          ],
+          pool
+        )
+        return { connectionProvider, routingTable, seenConnectionsPerAddress, server, protocolVersion, pool }
+      }
+    })
+
+    describe('when at least the one of the servers is not available', () => {
+      it('should reject with acquistion timeout error', async () => {
+        const routingTable = newRoutingTable(
+          database || null,
+          [server1, server2],
+          [server3, server4],
+          [server5, server6]
+        )
+
+        const pool = newPool({
+          config: {
+            acquisitionTimeout: 0,
+          }
+        })
+
+        const connectionProvider = newRoutingConnectionProvider(
+          [
+            routingTable
+          ],
+          pool
+        )
+
+        try {
+          connectionProvider = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+          expect().toBe('not reached')
+        } catch (e) {
+          expect(e).toBeDefined()
+        }
+      })
+    })
+
+    describe('when at least the one of the connections could not be created', () => {
+      it('should reject with acquistion timeout error', async () => {
+        let i = 0
+        const error = new Error('Connection creation error')
+        const routingTable = newRoutingTable(
+          database || null,
+          [server1, server2],
+          [server3, server4],
+          [server5, server6]
+        )
+
+        const pool = newPool({
+          create: (address, release) => {
+            if (i++ % 2 === 0) {
+              return new FakeConnection(address, release, 'version', 4.4, {})
+            }
+            throw error
+          }
+        })
+
+        const connectionProvider = newRoutingConnectionProvider(
+          [
+            routingTable
+          ],
+          pool
+        )
+
+        try {
+          connectionProvider = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+          expect().toBe('not reached')
+        } catch (e) {
+          expect(e).toBe(error)
+        }
+      })
+    })
+  })
 })
 
 function newRoutingConnectionProvider (
@@ -2567,10 +2796,20 @@ function setupRoutingConnectionProviderToRememberRouters (
   connectionProvider._fetchRoutingTable = rememberingFetch
 }
 
-function newPool () {
+function newPool ({ create, config } = {}) {
+  const _create = (address, release) => {
+    if (create) {
+      try {
+        return Promise.resolve(create(address, release))
+      } catch (e) {
+        return Promise.reject(e)
+      }
+    }
+    return Promise.resolve(new FakeConnection(address, release, 'version', 4.0))
+  }
   return new Pool({
-    create: (address, release) =>
-      Promise.resolve(new FakeConnection(address, release, 'version', 4.0))
+    config,
+    create: (address, release) => _create(address, release),
   })
 }
 
@@ -2605,13 +2844,16 @@ function expectPoolToNotContain (pool, addresses) {
 }
 
 class FakeConnection extends Connection {
-  constructor (address, release, version, protocolVersion) {
+  constructor (address, release, version, protocolVersion, server) {
     super(null)
 
     this._address = address
     this._version = version || VERSION_IN_DEV.toString()
     this._protocolVersion = protocolVersion
     this.release = release
+    this._release = jest.fn(() => release(address, this))
+    this.resetAndFlush = jest.fn(() => Promise.resolve())
+    this._server = server
   }
 
   get address () {
@@ -2620,6 +2862,10 @@ class FakeConnection extends Connection {
 
   get version () {
     return this._version
+  }
+
+  get server () {
+    return this._server
   }
 
   protocol () {
