@@ -19,7 +19,6 @@
 
 import ConnectionProvider from './connection-provider'
 import { Bookmarks } from './internal/bookmarks'
-import { ConnectivityVerifier } from './internal/connectivity-verifier'
 import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
 
 import {
@@ -157,8 +156,8 @@ class Driver {
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
    *
-   * @deprecated This return of this method will change in 6.0.0 to not return the {@link Promise<ServerInfo>} and return a
-   * {@link Promise<void>} instead. If you need to use the server info, use {@link getServerInfo} instead.
+   * @deprecated This return of this method will change in 6.0.0 to not async return the {@link ServerInfo} and 
+   * async return {@link void} instead. If you need to use the server info, use {@link getServerInfo} instead.
    *
    * @public
    * @param {Object} param - The object parameter
