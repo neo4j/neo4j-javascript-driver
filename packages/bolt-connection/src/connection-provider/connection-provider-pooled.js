@@ -19,7 +19,7 @@
 
 import { createChannelConnection, ConnectionErrorHandler } from '../connection'
 import Pool, { PoolConfig } from '../pool'
-import { error, ConnectionProvider } from 'neo4j-driver-core'
+import { error, ConnectionProvider, ServerInfo } from 'neo4j-driver-core'
 
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
@@ -107,6 +107,20 @@ export default class PooledConnectionProvider extends ConnectionProvider {
   _destroyConnection (conn) {
     delete this._openConnections[conn.id]
     return conn.close()
+  }
+
+  /**
+   * Acquire a connection from the pool and return it ServerInfo
+   * @param {object} param
+   * @param {string} param.address the server address
+   * @return {Promise<ServerInfo>} the server info
+   */
+  async _verifyConnectivityAndGetServerVersion ({ address }) {
+    const connection = await this._connectionPool.acquire(address)
+    const serverInfo = new ServerInfo(connection.server, connection.protocol().version)
+    await connection.resetAndFlush().catch(() => {})
+    await connection._release()
+    return serverInfo
   }
 
   async close () {

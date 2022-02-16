@@ -71,7 +71,7 @@ class Pool {
   /**
    * Acquire and idle resource fom the pool or create a new one.
    * @param {ServerAddress} address the address for which we're acquiring.
-   * @return {Object} resource that is ready to use.
+   * @return {Promise<Object>} resource that is ready to use.
    */
   acquire (address) {
     const key = address.asKey()

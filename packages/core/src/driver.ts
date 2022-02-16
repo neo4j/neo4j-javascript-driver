@@ -157,6 +157,9 @@ class Driver {
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
    *
+   * @deprecated This return of this method will change in 6.0.0 to not return the {@link Promise<ServerInfo>} and return a
+   * {@link Promise<void>} instead. If you need to use the server info, use {@link getServerInfo} instead.
+   *
    * @public
    * @param {Object} param - The object parameter
    * @param {string} param.database - The target database to verify connectivity for.
@@ -166,8 +169,19 @@ class Driver {
     ServerInfo
   > {
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const connectivityVerifier = new ConnectivityVerifier(connectionProvider)
-    return connectivityVerifier.verify({ database })
+    return connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode: READ })
+  }
+
+  /**
+   * Get ServerInfo for the giver database.
+   *
+   * @param {Object} param - The object parameter
+   * @param {string} param.database - The target database to verify connectivity for.
+   * @returns {Promise<void>} promise resolved with void or rejected with error.
+   */
+  getServerInfo({ database = ''}: { database?: string } = {}): Promise<ServerInfo> {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode: READ })
   }
 
   /**

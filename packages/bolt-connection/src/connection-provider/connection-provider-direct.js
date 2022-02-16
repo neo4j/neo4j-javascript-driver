@@ -103,4 +103,8 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
       version => version >= BOLT_PROTOCOL_V4_4
     )
   }
+
+  async verifyConnectivityAndGetServerInfo () {
+    return await this._verifyConnectivityAndGetServerVersion({ address: this._address })
+  }
 }

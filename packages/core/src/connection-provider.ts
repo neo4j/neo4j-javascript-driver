@@ -19,6 +19,7 @@
 
 import Connection from './connection'
 import { bookmarks } from './internal'
+import { ServerInfo } from './result-summary'
 
 
 /**
@@ -80,6 +81,20 @@ class ConnectionProvider {
    * @returns {Promise<boolean>}
    */
   supportsUserImpersonation(): Promise<boolean> {
+    throw Error('Not implemented')
+  }
+
+  /**
+   * This method verifies the connectivity of the database by trying to acquire a connection
+   * for each server available in the cluster.
+   *
+   * @param {object} param - object parameter
+   * @property {string} param.database - the target database for the to-be-acquired connection
+   * @property {string} param.accessMode - the access mode for the to-be-acquired connection
+   *
+   * @returns {Promise<ServerInfo>} promise resolved with server info or rejected with error.
+   */
+  verifyConnectivityAndGetServerInfo(param? :{ database?: string, accessMode?: string }): Promise<ServerInfo> {
     throw Error('Not implemented')
   }
 
