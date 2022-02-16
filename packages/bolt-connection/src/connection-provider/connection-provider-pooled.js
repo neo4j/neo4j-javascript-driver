@@ -118,8 +118,11 @@ export default class PooledConnectionProvider extends ConnectionProvider {
   async _verifyConnectivityAndGetServerVersion ({ address }) {
     const connection = await this._connectionPool.acquire(address)
     const serverInfo = new ServerInfo(connection.server, connection.protocol().version)
-    await connection.resetAndFlush().catch(() => {})
-    await connection._release()
+    try {
+      await connection.resetAndFlush()
+    } finally {
+      await connection._release()
+    }
     return serverInfo
   }
 
