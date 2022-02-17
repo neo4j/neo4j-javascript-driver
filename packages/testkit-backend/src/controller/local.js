@@ -35,38 +35,45 @@ export default class LocalController extends Controller {
     }
 
     return await this._requestHandlers[name](this._contexts.get(contextId), data, {
-      writeResponse: (name, data) => this._writeResponse(contextId, name, data),
+      writeResponse: (response) => this._writeResponse(contextId, response),
       writeError: (e) => this._writeError(contextId, e),
       writeBackendError: (msg) => this._writeBackendError(contextId, msg)
     })
 
   }
 
-  _writeResponse (contextId, name, data) {
-    console.log('> writing response', name, data)
-    let response = {
-      name: name,
-      data: data
-    }
-
+  _writeResponse (contextId, response) {
+    console.log('> writing response', response.name, response.data)
     this.emit('response', { contextId, response })
   }
 
   _writeBackendError (contextId, msg) {
-    this._writeResponse(contextId, 'BackendError', { msg: msg })
+    this._writeResponse(contextId, newResponse('BackendError', { msg: msg }))
   }
 
   _writeError (contextId, e) {
     if (e.name) {
       const id = this._contexts.get(contextId).addError(e)
-      this._writeResponse(contextId, 'DriverError', {
+      this._writeResponse(contextId, newResponse('DriverError', {
         id,
         msg: e.message + ' (' + e.code + ')',
         code: e.code
-      })
+      }))
       return
     }
     this._writeBackendError(contextId, e)
   }
+
+  _msg (name, data) {
+    return {
+      name, data
+    }
+  }
   
+}
+
+function newResponse (name, data) {
+  return {
+    name, data
+  }
 }
