@@ -85,6 +85,9 @@ export function NewDriver (context, data, wire) {
   if ('connectionAcquisitionTimeoutMs' in data) {
     config.connectionAcquisitionTimeout = data.connectionAcquisitionTimeoutMs
   }
+  if ('connectionTimeoutMs' in data) {
+    config.connectionTimeout = data.connectionTimeoutMs
+  }
   if ('fetchSize' in data) {
     config.fetchSize = data.fetchSize
   }
@@ -380,6 +383,7 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
       'Feature:API:Result.Peek',
+      'Feature:Configuration:ConnectionAcquisitionTimeout',
       'Optimization:EagerTransactionBegin',
       'Optimization:ImplicitDefaultArguments',
       'Optimization:PullPipelining',

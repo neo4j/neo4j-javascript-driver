@@ -110,7 +110,7 @@ describe('NodeChannel', () => {
   })
 })
 
-function createMockedChannel (connected, config = {}) {
+function createMockedChannel (connected, config = { connectionTimeout: 30000 }) {
   let endCallback = null
   const address = ServerAddress.fromUrl('bolt://localhost:9999')
   const channelConfig = new ChannelConfig(address, config, SERVICE_UNAVAILABLE)

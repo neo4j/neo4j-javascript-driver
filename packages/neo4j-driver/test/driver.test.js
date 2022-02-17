@@ -170,7 +170,7 @@ describe('#integration driver', () => {
     // Given
     const config = {
       maxConnectionPoolSize: 2,
-      connectionAcquisitionTimeout: 0,
+      connectionAcquisitionTimeout: 1000,
       encrypted: false
     }
     driver = neo4j.driver(
