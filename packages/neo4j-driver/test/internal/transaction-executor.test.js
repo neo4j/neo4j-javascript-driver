@@ -195,6 +195,22 @@ describe('#unit TransactionExecutor', () => {
     ])
   }, 30000)
 
+  it('should retry when given transaction creator fail on begin once', async () => {
+    await testRetryWhenTransactionBeginFails([SERVICE_UNAVAILABLE])
+  }, 30000)
+
+  it('should retry when given transaction creator throws on begin many times', async () => {
+    await testRetryWhenTransactionBeginFails([
+      SERVICE_UNAVAILABLE,
+      SESSION_EXPIRED,
+      TRANSIENT_ERROR_2,
+      SESSION_EXPIRED,
+      SERVICE_UNAVAILABLE,
+      TRANSIENT_ERROR_1,
+      'Neo.ClientError.Security.AuthorizationExpired'
+    ])
+  }, 30000)
+
   it('should retry when given transaction work throws once', async () => {
     await testRetryWhenTransactionWorkThrows([SERVICE_UNAVAILABLE])
   }, 30000)
@@ -275,6 +291,30 @@ describe('#unit TransactionExecutor', () => {
     try {
       const executor = new TransactionExecutor()
       const transactionCreator = throwingTransactionCreator(
+        errorCodes,
+        new FakeTransaction()
+      )
+      const usedTransactions = []
+
+      const result = await executor.execute(transactionCreator, tx => {
+        expect(tx).toBeDefined()
+        usedTransactions.push(tx)
+        return Promise.resolve(42)
+      })
+
+      expect(usedTransactions.length).toEqual(1)
+      expect(result).toEqual(42)
+      verifyRetryDelays(fakeSetTimeout, errorCodes.length)
+    } finally {
+      fakeSetTimeout.uninstall()
+    }
+  }
+
+  async function testRetryWhenTransactionBeginFails (errorCodes) {
+    const fakeSetTimeout = setTimeoutMock.install()
+    try {
+      const executor = new TransactionExecutor()
+      const transactionCreator = throwingTransactionCreatorOnBegin(
         errorCodes,
         new FakeTransaction()
       )
@@ -448,6 +488,17 @@ function throwingTransactionCreator (errorCodes, result) {
     }
     const errorCode = remainingErrorCodes.pop()
     throw error(errorCode)
+  }
+}
+
+function throwingTransactionCreatorOnBegin (errorCodes, result) {
+  const remainingErrorCodes = errorCodes.slice().reverse()
+  return () => {
+    if (remainingErrorCodes.length === 0) {
+      return Promise.resolve(result)
+    }
+    const errorCode = remainingErrorCodes.pop()
+    return Promise.reject(error(errorCode))
   }
 }
 

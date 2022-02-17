@@ -8,11 +8,6 @@ const skippedTests = [
     ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments_multi_query_nested')
   ),
   skip(
-    'Eager verification not implemented for tx functions',
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_eager_begin_on_tx_func_run_with_error_on_begin'),
-    ifEquals('stub.tx_run.test_tx_run.TestTxRun.test_eager_begin_on_tx_func_run_with_disconnect_on_begin')
-  ),
-  skip(
     'Fail while enable Temporary::ResultKeys',
     ifEquals('neo4j.test_bookmarks.TestBookmarks.test_can_pass_bookmark_into_next_session'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_consume_after_commit'),
