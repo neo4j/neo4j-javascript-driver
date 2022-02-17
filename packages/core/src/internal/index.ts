@@ -25,7 +25,6 @@ import * as constants from './constants'
 import * as connectionHolder from './connection-holder'
 import * as txConfig from './tx-config'
 import * as transactionExecutor from './transaction-executor'
-import * as connectivityVerifier from './connectivity-verifier'
 import * as logger from './logger'
 import * as urlUtil from './url-util'
 import * as serverAddress from './server-address'
@@ -41,7 +40,6 @@ export {
   connectionHolder,
   txConfig,
   transactionExecutor,
-  connectivityVerifier,
   logger,
   urlUtil,
   serverAddress,

@@ -381,6 +381,8 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.2',
       'Feature:Bolt:4.3',
       'Feature:Bolt:4.4',
+      'Feature:API:Driver:GetServerInfo',
+      'Feature:API:Driver.VerifyConnectivity',
       'Feature:API:Result.List',
       'Feature:API:Result.Peek',
       'Feature:Configuration:ConnectionAcquisitionTimeout',
@@ -407,6 +409,17 @@ export function VerifyConnectivity (context, { driverId }, wire) {
   return driver
     .verifyConnectivity()
     .then(() => wire.writeResponse('Driver', { id: driverId }))
+    .catch(error => wire.writeError(error))
+}
+
+export function GetServerInfo (context, { driverId }, wire) {
+  const driver = context.getDriver(driverId)
+  return driver
+    .getServerInfo()
+    .then(info => wire.writeResponse('ServerInfo', {
+      ...info,
+      protocolVersion: info.protocolVersion.toFixed(1)
+    }))
     .catch(error => wire.writeError(error))
 }
 

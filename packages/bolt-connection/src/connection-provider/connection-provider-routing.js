@@ -237,7 +237,24 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return await this._hasProtocolVersion(
       version => version >= BOLT_PROTOCOL_V4_4
     )
-  }  
+  }
+
+  async verifyConnectivityAndGetServerInfo ({ database, accessMode }) {
+    const context = { database: database || DEFAULT_DB_NAME }
+
+    const routingTable = await this._freshRoutingTable({
+      accessMode,
+      database: context.database,
+      onDatabaseNameResolved: (databaseName) => {
+        context.database = context.database || databaseName
+      }
+    })
+
+    const servers = accessMode === WRITE ? routingTable.writers : routingTable.readers
+
+    return Promise.all(servers.map(address => this._verifyConnectivityAndGetServerVersion({ address })))
+      .then(([serverInfo]) => serverInfo)
+  }
 
   forget (address, database) {
     this._routingTableRegistry.apply(database, {

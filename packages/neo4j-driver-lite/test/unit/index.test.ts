@@ -221,7 +221,8 @@ describe('index', () => {
         close: () => Promise.resolve(),
         supportsMultiDb: () => Promise.resolve(true),
         supportsTransactionConfig: () => Promise.resolve(true),
-        supportsUserImpersonation: () => Promise.resolve(true)
+        supportsUserImpersonation: () => Promise.resolve(true),
+        verifyConnectivityAndGetServerInfo: () => Promise.resolve(new ServerInfo({}))
       }
     })
     expect(session).toBeDefined()

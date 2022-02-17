@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, newError, Session } from '../src'
-import Driver from '../src/driver'
+import { ConnectionProvider, newError, ServerInfo, Session } from '../src'
+import Driver, { READ } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
 import { ConfiguredCustomResolver } from '../src/internal/resolver'
@@ -192,6 +192,48 @@ describe('Driver', () => {
     }
 
     await driver.close()
+  })
+
+  it.each([
+    [undefined, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
+    [undefined, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+    [{}, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
+    [{}, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+    [{ database: undefined }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
+    [{ database: undefined }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+    [{ database: 'db' }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
+    [{ database: 'db' }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+  ])('.verifyConnectivity(%o) => %s', (input: { database?: string } | undefined, _, expectedPromise) => {
+    connectionProvider.verifyConnectivityAndGetServerInfo = jest.fn(() => expectedPromise)
+
+    const promise: Promise<ServerInfo> = driver!.verifyConnectivity(input)
+
+    expect(promise).toBe(expectedPromise)
+    expect(connectionProvider.verifyConnectivityAndGetServerInfo)
+      .toBeCalledWith({ database: input && input.database ? input.database : '', accessMode: READ })
+
+    promise.catch(_ => 'Do nothing').finally(() => { })
+  })
+
+  it.each([
+    [undefined, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
+    [undefined, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+    [{}, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
+    [{}, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+    [{ database: undefined }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
+    [{ database: undefined }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+    [{ database: 'db' }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
+    [{ database: 'db' }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+  ])('.getServerInfo(%o) => %s', (input: { database?: string } | undefined, _, expectedPromise) => {
+    connectionProvider.verifyConnectivityAndGetServerInfo = jest.fn(() => expectedPromise)
+
+    const promise: Promise<ServerInfo> = driver!.getServerInfo(input)
+
+    expect(promise).toBe(expectedPromise)
+    expect(connectionProvider.verifyConnectivityAndGetServerInfo)
+      .toBeCalledWith({ database: input && input.database ? input.database : '', accessMode: READ })
+
+    promise.catch(_ => 'Do nothing').finally(() => { })
   })
 
   function mockCreateConnectonProvider(connectionProvider: ConnectionProvider) {

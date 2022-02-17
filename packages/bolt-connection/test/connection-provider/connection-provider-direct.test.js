@@ -20,7 +20,7 @@
 import DirectConnectionProvider from '../../src/connection-provider/connection-provider-direct'
 import { Pool } from '../../src/pool'
 import { Connection, DelegateConnection } from '../../src/connection'
-import { internal, newError } from 'neo4j-driver-core'
+import { internal, newError, ServerInfo } from 'neo4j-driver-core'
 
 const {
   serverAddress: { ServerAddress },
@@ -139,6 +139,180 @@ it('should not change error when TokenExpired happens', async () => {
   expect(error).toBe(expectedError)
 })
 
+describe('.verifyConnectivityAndGetServerInfo()', () => {
+  describe('when connection is available in the pool', () => {
+    it('should return the server info', async () => {
+      const { connectionProvider, server, protocolVersion } = setup()
+
+      const serverInfo = await connectionProvider.verifyConnectivityAndGetServerInfo()
+
+      expect(serverInfo).toEqual(new ServerInfo(server, protocolVersion))
+    })
+
+    it('should reset and flush the connection', async () => {
+      const { connectionProvider, resetAndFlush } = setup()
+
+      await connectionProvider.verifyConnectivityAndGetServerInfo()
+
+      expect(resetAndFlush).toBeCalledTimes(1)
+    })
+
+    it('should release the connection', async () => {
+      const { connectionProvider, seenConnections } = setup()
+
+      await connectionProvider.verifyConnectivityAndGetServerInfo()
+
+      expect(seenConnections[0]._release).toHaveBeenCalledTimes(1)
+    })
+
+    it('should resetAndFlush and then release the connection', async () => {
+      const { connectionProvider, seenConnections, resetAndFlush } = setup()
+
+      await connectionProvider.verifyConnectivityAndGetServerInfo()
+
+      expect(seenConnections[0]._release.mock.invocationCallOrder[0])
+        .toBeGreaterThan(resetAndFlush.mock.invocationCallOrder[0])
+    })
+
+    describe('when reset and flush fails', () => {
+      it('should fails with the reset and flush error', async () => {
+        const error = newError('Error')
+        const { connectionProvider, resetAndFlush } = setup()
+
+        resetAndFlush.mockRejectedValue(error)
+
+        try {
+          await connectionProvider.verifyConnectivityAndGetServerInfo()
+          expect().toBe('Not reached')
+        } catch (e) {
+          expect(e).toBe(error)
+        }
+      })
+
+      it('should release the connection', async () => {
+        const error = newError('Error')
+        const { connectionProvider, resetAndFlush, seenConnections } = setup()
+
+        resetAndFlush.mockRejectedValue(error)
+
+        try {
+          await connectionProvider.verifyConnectivityAndGetServerInfo()
+        } catch (e) {
+        } finally {
+          expect(seenConnections[0]._release).toHaveBeenCalledTimes(1)
+        }
+      })
+
+      describe('and release fails', () => {
+        it('should fails with the release error', async () => {
+          const error = newError('Error')
+          const releaseError = newError('release errror')
+
+          const { connectionProvider, resetAndFlush } = setup(
+            {
+              releaseMock: () => Promise.reject(releaseError)
+            })
+
+          resetAndFlush.mockRejectedValue(error)
+
+          try {
+            await connectionProvider.verifyConnectivityAndGetServerInfo()
+            expect().toBe('Not reached')
+          } catch (e) {
+            expect(e).toBe(releaseError)
+          }
+        })
+      })
+    })
+
+    describe('when release fails', () => {
+      it('should fails with the release error', async () => {
+        const error = newError('Error')
+
+        const { connectionProvider } = setup(
+          {
+            releaseMock: () => Promise.reject(error)
+          })
+
+        try {
+          await connectionProvider.verifyConnectivityAndGetServerInfo()
+          expect().toBe('Not reached')
+        } catch (e) {
+          expect(e).toBe(error)
+        }
+      })
+    })
+
+    function setup({ releaseMock } = {}) {
+      const protocolVersion = 4.4
+      const resetAndFlush = jest.fn(() => Promise.resolve())
+      const server = { address: 'localhost:123', version: 'neo4j/1234' }
+      const seenConnections = []
+      const create = (address, release) => {
+        const connection = new FakeConnection(address, release, server)
+        connection.protocol = () => {
+          return { version: protocolVersion }
+        }
+        connection.resetAndFlush = resetAndFlush
+        if (releaseMock) {
+          connection._release = releaseMock
+        }
+        seenConnections.push(connection)
+        return connection
+      }
+      const address = ServerAddress.fromUrl('localhost:123')
+      const pool = newPool({ create })
+      const connectionProvider = newDirectConnectionProvider(address, pool)
+      return {
+        connectionProvider,
+        server,
+        protocolVersion,
+        resetAndFlush,
+        seenConnections
+      }
+    }
+  })
+
+  describe('when connection is not available in the pool', () => {
+    it('should reject with acquisition timeout error', async () => {
+      const address = ServerAddress.fromUrl('localhost:123')
+      const pool = newPool({
+        config: {
+          acquisitionTimeout: 0,
+        }
+      })
+
+      const connectionProvider = newDirectConnectionProvider(address, pool)
+
+      try {
+        connectionProvider = await connectionProvider.verifyConnectivityAndGetServerInfo()
+        expect().toBe('not reached')
+      } catch (e) {
+        expect(e).toBeDefined()
+      }
+    })
+  })
+
+  describe('when connection it could not create the connection', () => {
+    it('should reject with connection creation error', async () => {
+      const error = new Error('Connection creation error')
+      const address = ServerAddress.fromUrl('localhost:123')
+      const pool = newPool({
+        create: () => { throw error }
+      })
+
+      const connectionProvider = newDirectConnectionProvider(address, pool)
+
+      try {
+        connectionProvider = await connectionProvider.verifyConnectivityAndGetServerInfo()
+        expect().toBe('not reached')
+      } catch (e) {
+        expect(e).toBe(error)
+      }
+    })
+  })
+})
+
 function newDirectConnectionProvider (address, pool) {
   const connectionProvider = new DirectConnectionProvider({
     id: 0,
@@ -150,22 +324,34 @@ function newDirectConnectionProvider (address, pool) {
   return connectionProvider
 }
 
-function newPool () {
+function newPool({ create, config } = {}) {
+  const _create = (address, release) => {
+    if (create) {
+      return create(address, release)
+    }
+    return new FakeConnection(address, release)
+  }
   return new Pool({
+    config,
     create: (address, release) =>
-      Promise.resolve(new FakeConnection(address, release))
+      Promise.resolve(_create(address, release)),
   })
 }
 
 class FakeConnection extends Connection {
-  constructor (address, release) {
+  constructor(address, release, server) {
     super(null)
 
     this._address = address
-    this.release = release
+    this._release = jest.fn(() => release(address, this))
+    this._server = server
   }
 
-  get address () {
+  get address() {
     return this._address
+  }
+
+  get server() {
+    return this._server
   }
 }
