@@ -80,6 +80,54 @@ export function SessionRun (context, data, wire) {
   wire.writeResponse(responses.Result({ id }))
 }
 
+export function SessionBeginTransaction (context, data, wire) {
+  const { sessionId, txMeta: metadata, timeout } = data
+  const session = context.getSession(sessionId)
+  
+  try {
+    return session.beginTransaction({ metadata, timeout })
+    .toPromise()
+    .then(tx => {
+      const id = context.addTx(tx, sessionId)
+      wire.writeResponse(responses.Transaction({ id }))
+    }).catch(e => {
+      console.log('got some err: ' + JSON.stringify(e))
+      wire.writeError(e)
+    })
+  } catch (e) {
+    console.log('got some err: ' + JSON.stringify(e))
+    wire.writeError(e)
+    return
+  }
+}
+
+export function TransactionRun (context, data, wire) {
+  const { txId, cypher, params } = data
+  const tx = context.getTx(txId)
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      params[key] = cypherToNative(value)
+    }
+  }
+  const result = tx.tx.run(cypher, params)
+  result[Symbol.asyncIterator] = () => toAsyncIterator(result)
+  const id = context.addResult(result)
+
+  wire.writeResponse(responses.Result({ id }))
+}
+
+export function TransactionCommit (context, data, wire) {
+  const { txId: id } = data
+  const { tx } = context.getTx(id)
+  return tx.commit()
+    .toPromise()
+    .then(() => wire.writeResponse(responses.Transaction({ id })))
+    .catch(e => {
+      console.log('got some err: ' + JSON.stringify(e))
+      wire.writeError(e)
+    })
+}
+
 function toAsyncIterator(result) {
   function queueObserver () {
     function createResolvablePromise (){
