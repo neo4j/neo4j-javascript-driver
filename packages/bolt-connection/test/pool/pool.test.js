@@ -275,6 +275,52 @@ describe('#unit Pool', () => {
     expect(r1.destroyed).toBeFalsy()
   })
 
+  it('people are strange', async () => {
+    let counter = 0
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        res.destroyed = true
+        return Promise.resolve()
+      },
+      config: new PoolConfig(2, 500)
+    })
+
+    // Acquire resource
+    const r0 = await pool.acquire(address)
+    expect(pool.has(address)).toBeTruthy()
+    expect(r0.id).toEqual(0)
+
+    // Purging the key
+    await pool.purge(address)
+    expect(pool.has(address)).toBeFalsy()
+    expect(r0.destroyed).toBeFalsy()
+
+    // Acquiring second resource should recreate the pool
+    const r1 = await pool.acquire(address)
+
+    const r2 = pool.acquire(address)
+
+
+    setTimeout(async () => {
+      pool._poolState = {}
+      await r0.close()
+    }, 700)
+    
+
+    try {
+      await r2
+      expect(false).toBeTruthy()
+    } catch(e) {
+      expect(e.message).toEqual('Connection acquisition timed out in 500 ms. Pool status: Active conn count = 2, Idle conn count = 0.')
+    }
+
+    await r1.close()
+    await pool.close()
+  })
+
   it('close purges all keys', async () => {
     let counter = 0
 
