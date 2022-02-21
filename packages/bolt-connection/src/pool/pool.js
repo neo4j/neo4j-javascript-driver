@@ -251,7 +251,7 @@ class Pool {
     const key = address.asKey()
     const pool = this._pools[key]
 
-    if (pool && poolState.isActive()) {
+    if (pool && poolState && poolState.isActive()) {
       // there exist idle connections for the given key
       if (!this._validate(resource)) {
         if (this._log.isDebugEnabled()) {
