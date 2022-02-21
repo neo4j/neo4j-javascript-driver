@@ -48,7 +48,7 @@ export function NewSession(context, data, wire) {
   wire.writeResponse(responses.Session({ id }))
 }
 
-export function SessionClose (context, data, wire) {
+export function SessionClose(context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
   return session
@@ -58,7 +58,7 @@ export function SessionClose (context, data, wire) {
     .catch(err => wire.writeError(err))
 }
 
-export function SessionRun (context, data, wire) {
+export function SessionRun(context, data, wire) {
   const { sessionId, cypher, params, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
   if (params) {
@@ -76,14 +76,15 @@ export function SessionRun (context, data, wire) {
     return
   }
 
-  result[Symbol.asyncIterator] = () => toAsyncIterator(result)
+  const it = toAsyncIterator(result)
+  result[Symbol.asyncIterator] = () => it
 
   let id = context.addResult(result)
 
   wire.writeResponse(responses.Result({ id }))
 }
 
-export function ResultConsume (context, data, wire) {
+export function ResultConsume(context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
 
@@ -95,20 +96,20 @@ export function ResultConsume (context, data, wire) {
 }
 
 
-export function SessionBeginTransaction (context, data, wire) {
+export function SessionBeginTransaction(context, data, wire) {
   const { sessionId, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
-  
+
   try {
     return session.beginTransaction({ metadata, timeout })
-    .toPromise()
-    .then(tx => {
-      const id = context.addTx(tx, sessionId)
-      wire.writeResponse(responses.Transaction({ id }))
-    }).catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
-      wire.writeError(e)
-    })
+      .toPromise()
+      .then(tx => {
+        const id = context.addTx(tx, sessionId)
+        wire.writeResponse(responses.Transaction({ id }))
+      }).catch(e => {
+        console.log('got some err: ' + JSON.stringify(e))
+        wire.writeError(e)
+      })
   } catch (e) {
     console.log('got some err: ' + JSON.stringify(e))
     wire.writeError(e)
@@ -116,7 +117,7 @@ export function SessionBeginTransaction (context, data, wire) {
   }
 }
 
-export function TransactionRun (context, data, wire) {
+export function TransactionRun(context, data, wire) {
   const { txId, cypher, params } = data
   const tx = context.getTx(txId)
   if (params) {
@@ -125,13 +126,16 @@ export function TransactionRun (context, data, wire) {
     }
   }
   const result = tx.tx.run(cypher, params)
-  result[Symbol.asyncIterator] = () => toAsyncIterator(result)
+
+  const it = toAsyncIterator(result)
+  result[Symbol.asyncIterator] = () => it
+
   const id = context.addResult(result)
 
   wire.writeResponse(responses.Result({ id }))
 }
 
-export function TransactionRollback (context, data, wire) {
+export function TransactionRollback(context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.rollback()
@@ -143,7 +147,7 @@ export function TransactionRollback (context, data, wire) {
     })
 }
 
-export function TransactionCommit (context, data, wire) {
+export function TransactionCommit(context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.commit()
@@ -155,17 +159,26 @@ export function TransactionCommit (context, data, wire) {
     })
 }
 
-export function SessionReadTransaction (context, data, wire) {
+export function TransactionClose(context, data, wire) {
+  const { txId: id } = data
+  const { tx } = context.getTx(id)
+  return tx.close()
+    .toPromise()
+    .then(() => wire.writeResponse(responses.Transaction({ id })))
+    .catch(e => wire.writeError(e))
+}
+
+export function SessionReadTransaction(context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
-  
+
   try {
     return session.readTransaction(tx => {
-        return from(new Promise((resolve, reject) => {
-          const id = context.addTx(tx, sessionId, resolve, reject)
-          wire.writeResponse(responses.RetryableTry({ id }))
-        }))
-      }, { metadata })
+      return from(new Promise((resolve, reject) => {
+        const id = context.addTx(tx, sessionId, resolve, reject)
+        wire.writeResponse(responses.RetryableTry({ id }))
+      }))
+    }, { metadata })
       .toPromise()
       .then(() => wire.writeResponse(responses.RetryableDone()))
       .catch(e => wire.writeError(e))
@@ -175,17 +188,17 @@ export function SessionReadTransaction (context, data, wire) {
   }
 }
 
-export function SessionWriteTransaction (context, data, wire) {
+export function SessionWriteTransaction(context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
-  
+
   try {
     return session.writeTransaction(tx => {
-        return from(new Promise((resolve, reject) => {
-          const id = context.addTx(tx, sessionId, resolve, reject)
-          wire.writeResponse(responses.RetryableTry({ id }))
-        }))
-      }, { metadata })
+      return from(new Promise((resolve, reject) => {
+        const id = context.addTx(tx, sessionId, resolve, reject)
+        wire.writeResponse(responses.RetryableTry({ id }))
+      }))
+    }, { metadata })
       .toPromise()
       .then(() => wire.writeResponse(responses.RetryableDone()))
       .catch(e => wire.writeError(e))
@@ -197,8 +210,8 @@ export function SessionWriteTransaction (context, data, wire) {
 
 
 function toAsyncIterator(result) {
-  function queueObserver () {
-    function createResolvablePromise (){
+  function queueObserver() {
+    function createResolvablePromise() {
       const resolvablePromise = {}
       resolvablePromise.promise = new Promise((resolve, reject) => {
         resolvablePromise.resolve = resolve
@@ -208,7 +221,7 @@ function toAsyncIterator(result) {
     }
 
 
-    function isError(elementOrError){
+    function isError(elementOrError) {
       return elementOrError instanceof Error
     }
 
@@ -242,7 +255,7 @@ function toAsyncIterator(result) {
         if (buffer.length > 0) {
           const element = buffer.shift()
           if (isError(element)) {
-              throw element
+            throw element
           }
           return element
         }
@@ -253,13 +266,13 @@ function toAsyncIterator(result) {
         if (buffer.length > 0) {
           const element = buffer[0]
           if (isError(element)) {
-              throw element
+            throw element
           }
           return element
         }
         promiseHolder.resolvable = createResolvablePromise()
         try {
-          const element =  await promiseHolder.resolvable.promise
+          const element = await promiseHolder.resolvable.promise
           buffer.unshift(element)
           return element
         } catch (error) {
@@ -267,7 +280,7 @@ function toAsyncIterator(result) {
           throw error
         }
       },
-      get size () {
+      get size() {
         return buffer.length
       }
     }
@@ -278,7 +291,7 @@ function toAsyncIterator(result) {
 
   const observer = queueObserver()
   records.subscribe(observer);
-  
+
   const state = {
     finished: false
   }
