@@ -301,7 +301,7 @@ function toAsyncIterator(result) {
       if (state.finished) {
         return { done: true }
       }
-      const next = observer.dequeue()
+      const next = await observer.dequeue()
       if (next.done) {
         state.finished = next.done
         state.summary = next.value

@@ -15,7 +15,7 @@ function main( ) {
   const backendPort = process.env.BACKEND_PORT || 9876
   const webserverPort = process.env.WEB_SERVER_PORT || 8000
   const driverDescriptor = process.env.DRIVER_DESCRIPTOR || ''
-  const sessionType = process.env.SESSION_TYPE || 'RX'
+  const sessionType = process.env.SESSION_TYPE || 'ASYNC'
   const sessionTypeDescriptor = sessionType === 'RX' ? 'rx' : 'async'
   const driverDescriptorList = driverDescriptor
     .split(',').map(s => s.trim().toLowerCase())
