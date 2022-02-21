@@ -1,8 +1,10 @@
 import commonSkippedTests from './common'
 import browserSkippedTests from './browser'
+import rxSessionSkippedTests from './rx'
 
 const skippedTestsByContext = new Map([
-  ['browser', browserSkippedTests]
+  ['browser', browserSkippedTests],
+  ['rx', rxSessionSkippedTests],
 ])
 
 export function getShouldRunTest (contexts) {

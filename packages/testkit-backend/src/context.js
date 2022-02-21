@@ -1,5 +1,5 @@
 export default class Context {
-  constructor (shouldRunTest) {
+  constructor (shouldRunTest, getFeatures) {
     this._id = 0
     this._drivers = {}
     this._sessions = {}
@@ -7,6 +7,7 @@ export default class Context {
     this._resolverRequests = {}
     this._errors = {}
     this._shouldRunTest = shouldRunTest
+    this._getFeatures = getFeatures
     this._results = {}
   }
 
@@ -99,6 +100,10 @@ export default class Context {
 
   getShouldRunTestFunction() {
     return this._shouldRunTest
+  }
+
+  getFeatures() {
+    return this._getFeatures()
   }
 
   _add (map, object) {

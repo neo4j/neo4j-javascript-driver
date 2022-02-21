@@ -3,6 +3,7 @@ import neo4j from './neo4j.js';
 import {
   cypherToNative
 } from './cypher-native-binders.js'
+import { from } from 'rxjs';
 
 // Handlers which didn't change depending
 export {
@@ -17,7 +18,9 @@ export {
   ResolverResolutionCompleted,
   GetRoutingTable,
   ForcedRoutingTableUpdate,
-  ResultNext
+  ResultNext,
+  RetryablePositive,
+  RetryableNegative,
 } from './request-handlers.js';
 
 export function NewSession(context, data, wire) {
@@ -80,6 +83,18 @@ export function SessionRun (context, data, wire) {
   wire.writeResponse(responses.Result({ id }))
 }
 
+export function ResultConsume (context, data, wire) {
+  const { resultId } = data
+  const result = context.getResult(resultId)
+
+  return result.consume()
+    .toPromise()
+    .then(summary => {
+      wire.writeResponse(responses.Summary({ summary }))
+    }).catch(e => wire.writeError(e))
+}
+
+
 export function SessionBeginTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
@@ -116,6 +131,18 @@ export function TransactionRun (context, data, wire) {
   wire.writeResponse(responses.Result({ id }))
 }
 
+export function TransactionRollback (context, data, wire) {
+  const { txId: id } = data
+  const { tx } = context.getTx(id)
+  return tx.rollback()
+    .toPromise()
+    .then(() => wire.writeResponse(responses.Transaction({ id })))
+    .catch(e => {
+      console.log('got some err: ' + JSON.stringify(e))
+      wire.writeError(e)
+    })
+}
+
 export function TransactionCommit (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
@@ -127,6 +154,47 @@ export function TransactionCommit (context, data, wire) {
       wire.writeError(e)
     })
 }
+
+export function SessionReadTransaction (context, data, wire) {
+  const { sessionId, txMeta: metadata } = data
+  const session = context.getSession(sessionId)
+  
+  try {
+    return session.readTransaction(tx => {
+        return from(new Promise((resolve, reject) => {
+          const id = context.addTx(tx, sessionId, resolve, reject)
+          wire.writeResponse(responses.RetryableTry({ id }))
+        }))
+      }, { metadata })
+      .toPromise()
+      .then(() => wire.writeResponse(responses.RetryableDone()))
+      .catch(e => wire.writeError(e))
+  } catch (e) {
+    wire.writeError(e)
+    return
+  }
+}
+
+export function SessionWriteTransaction (context, data, wire) {
+  const { sessionId, txMeta: metadata } = data
+  const session = context.getSession(sessionId)
+  
+  try {
+    return session.writeTransaction(tx => {
+        return from(new Promise((resolve, reject) => {
+          const id = context.addTx(tx, sessionId, resolve, reject)
+          wire.writeResponse(responses.RetryableTry({ id }))
+        }))
+      }, { metadata })
+      .toPromise()
+      .then(() => wire.writeResponse(responses.RetryableDone()))
+      .catch(e => wire.writeError(e))
+  } catch (e) {
+    wire.writeError(e)
+    return
+  }
+}
+
 
 function toAsyncIterator(result) {
   function queueObserver () {

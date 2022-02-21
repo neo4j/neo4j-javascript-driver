@@ -10,15 +10,16 @@ import stringify from '../stringify'
  */
 export default class LocalController extends Controller {
 
-  constructor(requestHandlers = {}, shouldRunTest = () => {}) {
+  constructor(requestHandlers = {}, shouldRunTest = () => {}, getFeatures = () => []) {
     super()
     this._requestHandlers = requestHandlers
     this._shouldRunTest = shouldRunTest
+    this._getFeatures = getFeatures
     this._contexts = new Map()
   }
 
   openContext (contextId) {
-    this._contexts.set(contextId, new Context(this._shouldRunTest))
+    this._contexts.set(contextId, new Context(this._shouldRunTest, this._getFeatures))
   }
 
   closeContext (contextId) {
