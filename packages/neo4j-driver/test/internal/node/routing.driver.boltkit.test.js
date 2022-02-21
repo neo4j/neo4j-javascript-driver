@@ -213,11 +213,11 @@ describe('#stub-routing routing driver with stub server', () => {
     // Then
     const readServerInfo = readResult.summary.server
     expect(readServerInfo.address).toBe('127.0.0.1:9005')
-    expect(readServerInfo.version).toBe('Neo4j/8.8.8')
+    expect(readServerInfo.agent).toBe('Neo4j/8.8.8')
 
     const writeServerInfo = writeResult.summary.server
     expect(writeServerInfo.address).toBe('127.0.0.1:9007')
-    expect(writeServerInfo.version).toBe('Neo4j/9.9.9')
+    expect(writeServerInfo.agent).toBe('Neo4j/9.9.9')
 
     await readSession.close()
     await writeSession.close()
@@ -269,12 +269,12 @@ describe('#stub-routing routing driver with stub server', () => {
                         expect(readSummary.server.address).toBe(
                           '127.0.0.1:9005'
                         )
-                        expect(readSummary.server.version).toBe('Neo4j/8.8.8')
+                        expect(readSummary.server.agent).toBe('Neo4j/8.8.8')
 
                         expect(writeSummary.server.address).toBe(
                           '127.0.0.1:9007'
                         )
-                        expect(writeSummary.server.version).toBe('Neo4j/9.9.9')
+                        expect(writeSummary.server.agent).toBe('Neo4j/9.9.9')
 
                         readSession
                           .close()
