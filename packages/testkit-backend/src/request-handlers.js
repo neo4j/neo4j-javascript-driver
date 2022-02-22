@@ -1,25 +1,8 @@
 import neo4j from './neo4j'
 import { 
-  cypherToNative, 
-  nativeToCypher, 
+  cypherToNative
 } from './cypher-native-binders.js'
-import {
-  nativeToTestkitSummary,
-} from './summary-binder.js'
-import tls from 'tls'
-
-const SUPPORTED_TLS = (() => {
-  if (tls.DEFAULT_MAX_VERSION) {
-    const min = Number(tls.DEFAULT_MIN_VERSION.split('TLSv')[1])
-    const max = Number(tls.DEFAULT_MAX_VERSION.split('TLSv')[1])
-    const result = [];
-    for (let version = min > 1 ? min : 1.1; version <= max; version = Number((version + 0.1).toFixed(1)) ) {
-      result.push(`Feature:TLS:${version.toFixed(1)}`)
-    }
-    return result;
-  }
-  return [];
-})();
+import  * as responses from './responses.js'
 
 export function NewDriver (context, data, wire) {
   const {
@@ -55,7 +38,7 @@ export function NewDriver (context, data, wire) {
     ? address =>
       new Promise((resolve, reject) => {
         const id = context.addResolverRequest(resolve, reject)
-        wire.writeResponse('ResolverResolutionRequired', { id, address })
+        wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
       })
     : undefined
   const config = {
@@ -102,7 +85,7 @@ export function NewDriver (context, data, wire) {
     return
   }
   const id = context.addDriver(driver)
-  wire.writeResponse('Driver', { id })
+  wire.writeResponse(responses.Driver({ id }))
 }
 
 export function DriverClose (context, data, wire) {
@@ -111,7 +94,7 @@ export function DriverClose (context, data, wire) {
   return driver
     .close()
     .then(() => {
-      wire.writeResponse('Driver', { id: driverId })
+      wire.writeResponse(responses.Driver({ id: driverId }))
     })
     .catch(err => wire.writeError(err)) 
     .finally(() => context.removeDriver(driverId))
@@ -139,7 +122,7 @@ export function NewSession (context, data, wire) {
     impersonatedUser
   })
   const id = context.addSession(session)
-  wire.writeResponse('Session', { id })
+  wire.writeResponse(responses.Session({ id }))
 }
 
 export function SessionClose (context, data, wire) {
@@ -148,7 +131,7 @@ export function SessionClose (context, data, wire) {
   return session
     .close()
     .then(() => {
-      wire.writeResponse('Session', { id: sessionId })
+      wire.writeResponse(responses.Session({ id: sessionId }))
     })
     .catch(err => wire.writeError(err))
 }
@@ -173,7 +156,7 @@ export function SessionRun (context, data, wire) {
 
   let id = context.addResult(result)
 
-  wire.writeResponse('Result', { id })
+  wire.writeResponse(responses.Result({ id }))
 }
 
 export function ResultNext (context, data, wire) {
@@ -184,12 +167,9 @@ export function ResultNext (context, data, wire) {
   }
   return result.recordIt.next().then(({ value, done }) => {
     if (done) {
-      wire.writeResponse('NullRecord', null)
+      wire.writeResponse(responses.NullRecord())
     } else {
-      const values = Array.from(value.values()).map(nativeToCypher)
-      wire.writeResponse('Record', {
-        values: values
-      })
+      wire.writeResponse(responses.Record({ record: value }))
     }
   }).catch(e => {
     console.log('got some err: ' + JSON.stringify(e))
@@ -205,12 +185,9 @@ export function ResultPeek (context, data, wire) {
   }
   return result.recordIt.peek().then(({ value, done }) => {
     if (done) {
-      wire.writeResponse('NullRecord', null)
+      wire.writeResponse(responses.NullRecord())
     } else {
-      const values = Array.from(value.values()).map(nativeToCypher)
-      wire.writeResponse('Record', {
-        values: values
-      })
+      wire.writeResponse(responses.Record({ record: value }))
     }
   }).catch(e => {
     console.log('got some err: ' + JSON.stringify(e))
@@ -219,13 +196,11 @@ export function ResultPeek (context, data, wire) {
 }
 
 export function ResultConsume (context, data, wire) {
-  
-
   const { resultId } = data
   const result = context.getResult(resultId)
 
   return result.summary().then(summary => {
-    wire.writeResponse('Summary', nativeToTestkitSummary(summary))
+    wire.writeResponse(responses.Summary({ summary }))
   }).catch(e => wire.writeError(e))
 }
 
@@ -236,10 +211,7 @@ export function ResultList (context, data, wire) {
 
   return result
     .then(({ records }) => {
-      const cypherRecords = records.map(rec => {
-        return { values: Array.from(rec.values()).map(nativeToCypher) }
-      })
-      wire.writeResponse('RecordList', { records: cypherRecords})
+      wire.writeResponse(responses.RecordList({ records }))
     })
     .catch(error => wire.writeError(error))
 }
@@ -252,10 +224,10 @@ export function SessionReadTransaction (context, data, wire) {
       tx =>
         new Promise((resolve, reject) => {
           const id = context.addTx(tx, sessionId, resolve, reject)
-          wire.writeResponse('RetryableTry', { id })
+          wire.writeResponse(responses.RetryableTry({ id }))
         })
     , { metadata })
-    .then(_ => wire.writeResponse('RetryableDone', null))
+    .then(_ => wire.writeResponse(responses.RetryableDone()))
     .catch(error => wire.writeError(error))
 }
 
@@ -270,7 +242,7 @@ export function TransactionRun (context, data, wire) {
   const result = tx.tx.run(cypher, params)
   const id = context.addResult(result)
 
-  wire.writeResponse('Result', { id })
+  wire.writeResponse(responses.Result({ id }))
 }
 
 export function RetryablePositive (context, data, wire) {
@@ -296,7 +268,7 @@ export function SessionBeginTransaction (context, data, wire) {
     return session.beginTransaction({ metadata, timeout })
     .then(tx => {
       const id = context.addTx(tx, sessionId)
-      wire.writeResponse('Transaction', { id })
+      wire.writeResponse(responses.Transaction({ id }))
     }).catch(e => {
       console.log('got some err: ' + JSON.stringify(e))
       wire.writeError(e)
@@ -312,7 +284,7 @@ export function TransactionCommit (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.commit()
-    .then(() => wire.writeResponse('Transaction', { id }))
+    .then(() => wire.writeResponse(responses.Transaction({ id })))
     .catch(e => {
       console.log('got some err: ' + JSON.stringify(e))
       wire.writeError(e)
@@ -323,7 +295,7 @@ export function TransactionRollback (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.rollback()
-    .then(() => wire.writeResponse('Transaction', { id }))
+    .then(() => wire.writeResponse(responses.Transaction({ id })))
     .catch(e => wire.writeError(e))
 }
 
@@ -331,7 +303,7 @@ export function TransactionClose (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.close()
-    .then(() => wire.writeResponse('Transaction', { id }))
+    .then(() => wire.writeResponse(responses.Transaction({ id })))
     .catch(e => wire.writeError(e))
 }
 
@@ -339,7 +311,7 @@ export function SessionLastBookmarks (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
   const bookmarks = session.lastBookmarks()
-  wire.writeResponse('Bookmarks', { bookmarks })
+  wire.writeResponse(responses.Bookmarks({ bookmarks }))
 }
 
 export function SessionWriteTransaction (context, data, wire) {
@@ -350,65 +322,32 @@ export function SessionWriteTransaction (context, data, wire) {
       tx =>
         new Promise((resolve, reject) => {
           const id = context.addTx(tx, sessionId, resolve, reject)
-          wire.writeResponse('RetryableTry', { id })
+          wire.writeResponse(responses.RetryableTry({ id }))
         })
     , { metadata })
-    .then(_ => wire.writeResponse('RetryableDone', null))
+    .then(_ => wire.writeResponse(responses.RetryableDone()))
     .catch(error => wire.writeError(error))
 }
 
 export function StartTest (context, { testName }, wire) {
   const shouldRunTest = context.getShouldRunTestFunction()
   shouldRunTest(testName, {
-    onRun: () => wire.writeResponse('RunTest', null),
-    onSkip: reason => wire.writeResponse('SkipTest', { reason })
+    onRun: () => wire.writeResponse(responses.RunTest()),
+    onSkip: reason => wire.writeResponse(responses.SkipTest({ reason }))
   })
 }
 
-export function GetFeatures (_context, _params, wire) {
-  wire.writeResponse('FeatureList', {
-    features: [
-      'Feature:Auth:Custom',
-      'Feature:Auth:Kerberos',
-      'Feature:Auth:Bearer',
-      'Feature:API:SSLConfig',
-      'Feature:API:SSLSchemes',
-      'AuthorizationExpiredTreatment',
-      'ConfHint:connection.recv_timeout_seconds',
-      'Feature:Impersonation',
-      'Feature:Bolt:3.0',
-      'Feature:Bolt:4.1',
-      'Feature:Bolt:4.2',
-      'Feature:Bolt:4.3',
-      'Feature:Bolt:4.4',
-      'Feature:API:Driver:GetServerInfo',
-      'Feature:API:Driver.VerifyConnectivity',
-      'Feature:API:Result.List',
-      'Feature:API:Result.Peek',
-      'Feature:Configuration:ConnectionAcquisitionTimeout',
-      'Optimization:EagerTransactionBegin',
-      'Optimization:ImplicitDefaultArguments',
-      'Optimization:PullPipelining',
-      'Temporary:ConnectionAcquisitionTimeout',
-      'Temporary:CypherPathAndRelationship',
-      'Temporary:DriverFetchSize',
-      'Temporary:DriverMaxConnectionPoolSize',
-      'Temporary:DriverMaxTxRetryTime',
-      'Temporary:GetConnectionPoolMetrics',
-      'Temporary:FastFailingDiscovery',
-      'Temporary:FullSummary',
-      'Temporary:ResultKeys',
-      'Temporary:TransactionClose',
-      ...SUPPORTED_TLS
-    ]
-  })
+export function GetFeatures (context, _params, wire) {
+  wire.writeResponse(responses.FeatureList({
+    features: context.getFeatures()
+  }))
 }
 
 export function VerifyConnectivity (context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
   return driver
     .verifyConnectivity()
-    .then(() => wire.writeResponse('Driver', { id: driverId }))
+    .then(() => wire.writeResponse(responses.Driver({ id: driverId })))
     .catch(error => wire.writeError(error))
 }
 
@@ -416,10 +355,7 @@ export function GetServerInfo (context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
   return driver
     .getServerInfo()
-    .then(info => wire.writeResponse('ServerInfo', {
-      ...info,
-      protocolVersion: info.protocolVersion.toFixed(1)
-    }))
+    .then(serverInfo => wire.writeResponse(responses.ServerInfo({ serverInfo })))
     .catch(error => wire.writeError(error))
 }
 
@@ -428,7 +364,7 @@ export function CheckMultiDBSupport (context, { driverId }, wire) {
   return driver
     .supportsMultiDb()
     .then(available =>
-      wire.writeResponse('MultiDBSupport', { id: driverId, available })
+      wire.writeResponse(responses.MultiDBSupport({ id: driverId, available }))
     )
     .catch(error => wire.writeError(error))
 }
@@ -443,7 +379,6 @@ export function ResolverResolutionCompleted (
 }
 
 export function GetRoutingTable (context, { driverId, database }, wire) {
-  const serverAddressToString = serverAddress => serverAddress.asHostPort()
   const driver = context.getDriver(driverId)
   const routingTable =
     driver &&
@@ -460,13 +395,7 @@ export function GetRoutingTable (context, { driverId, database }, wire) {
     })
 
   if (routingTable) {
-    wire.writeResponse('RoutingTable', {
-      database: routingTable.database,
-      ttl: Number(routingTable.ttl),
-      readers: routingTable.readers.map(serverAddressToString),
-      writers: routingTable.writers.map(serverAddressToString),
-      routers: routingTable.routers.map(serverAddressToString)
-    })
+    wire.writeResponse(responses.RoutingTable({ routingTable }))
   } else {
     wire.writeError('Driver does not support routing')
   }
@@ -485,7 +414,7 @@ export function ForcedRoutingTableUpdate (context, { driverId, database, bookmar
         bookmarks: bookmarks,
         onDatabaseNameResolved: () => {}
     })
-      .then(() => wire.writeResponse("Driver", { "id": driverId }))
+      .then(() => wire.writeResponse(responses.Driver({ "id": driverId })))
       .catch(error => wire.writeError(error))
   } else {
     wire.writeError('Driver does not support routing')
