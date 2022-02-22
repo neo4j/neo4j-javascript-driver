@@ -17,8 +17,14 @@
  * limitations under the License.
  */
 import { newError, Record, ResultSummary } from 'neo4j-driver-core'
-import { Observable, Subject, ReplaySubject, from } from 'rxjs'
-import { flatMap, publishReplay, refCount, shareReplay } from 'rxjs/operators'
+import { Observable, Subject, ReplaySubject, from, asyncScheduler } from 'rxjs'
+import {
+  flatMap,
+  publishReplay,
+  refCount,
+  shareReplay,
+  tap
+} from 'rxjs/operators'
 
 const States = {
   READY: 0,
@@ -44,7 +50,7 @@ export default class RxResult {
       publishReplay(1),
       refCount()
     )
-    this._records = new Subject()
+    this._records = null // = new Subject()
     this._summary = new ReplaySubject()
     this._state = States.READY
   }
@@ -115,9 +121,15 @@ export default class RxResult {
 
     if (this._state < States.STREAMING) {
       this._state = States.STREAMING
-
+      if (!this._records) {
+        this._records = from({
+          [Symbol.asyncIterator]: () => result[Symbol.asyncIterator]()
+        })
+      }
       if (recordsObserver) {
         subscriptions.push(this._records.subscribe(recordsObserver))
+      } else {
+        result._cancel()
       }
 
       subscriptions.push({
@@ -128,27 +140,15 @@ export default class RxResult {
         }
       })
 
-      if (this._records.observers.length === 0) {
-        result._cancel()
-      }
-
-      result.subscribe({
-        onNext: record => {
-          this._records.next(record)
-        },
-        onCompleted: summary => {
-          this._records.complete()
-
-          this._summary.next(summary)
+      this._records.subscribe({
+        complete: async () => {
+          this._state = States.COMPLETED
+          this._summary.next(await result.summary())
           this._summary.complete()
-
-          this._state = States.COMPLETED
         },
-        onError: err => {
-          this._records.error(err)
-          this._summary.error(err)
-
+        error: error => {
           this._state = States.COMPLETED
+          this._summary.error(error)
         }
       })
     } else if (recordsObserver) {

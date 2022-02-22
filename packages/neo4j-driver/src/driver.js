@@ -70,7 +70,7 @@ class Driver extends CoreDriver {
         bookmarkOrBookmarks: bookmarks,
         database,
         impersonatedUser,
-        reactive: true,
+        reactive: false,
         fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize)
       }),
       config: this._config
