@@ -34,7 +34,7 @@ class ServerVersion {
    * @param {number} major the major version number.
    * @param {number} minor the minor version number.
    * @param {number} patch the patch version number.
-   * @param {string} originalVersionString the original version string
+   * @param {string} [originalVersionString] the original version string
    */
   constructor (major, minor, patch, originalVersionString) {
     this.major = major
