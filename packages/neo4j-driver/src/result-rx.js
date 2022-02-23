@@ -16,9 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { pull } from 'lodash'
 import { newError, Record, ResultSummary } from 'neo4j-driver-core'
-import { Observable, Subject, ReplaySubject, from, asyncScheduler } from 'rxjs'
 import {
+  Observable,
+  Subject,
+  ReplaySubject,
+  from,
+  AsyncSubject,
+  BehaviorSubject
+} from 'rxjs'
+import {
+  filter,
   flatMap,
   publishReplay,
   refCount,
@@ -50,7 +59,8 @@ export default class RxResult {
       publishReplay(1),
       refCount()
     )
-    this._records = null // = new Subject()
+    this._records = new Subject()
+    this._push = undefined
     this._summary = new ReplaySubject()
     this._state = States.READY
   }
@@ -77,15 +87,17 @@ export default class RxResult {
    * @public
    * @returns {Observable<Record>} - An observable stream of records.
    */
-  records () {
-    return this._result.pipe(
+  records (autoPush = true) {
+    const result = this._result.pipe(
       flatMap(
         result =>
           new Observable(recordsObserver =>
-            this._startStreaming({ result, recordsObserver })
+            this._startStreaming({ result, recordsObserver, autoPush })
           )
       )
     )
+    result.push = () => this._push()
+    return result
   }
 
   /**
@@ -111,7 +123,8 @@ export default class RxResult {
   _startStreaming ({
     result,
     recordsObserver = null,
-    summaryObserver = null
+    summaryObserver = null,
+    autoPush = true
   } = {}) {
     const subscriptions = []
 
@@ -121,11 +134,23 @@ export default class RxResult {
 
     if (this._state < States.STREAMING) {
       this._state = States.STREAMING
-      if (!this._records) {
-        this._records = from({
-          [Symbol.asyncIterator]: () => result[Symbol.asyncIterator]()
-        })
-      }
+      const { subject, push } = fromAsyncIterator(
+        result[Symbol.asyncIterator](),
+        {
+          complete: async () => {
+            this._state = States.COMPLETED
+            this._summary.next(await result.summary())
+            this._summary.complete()
+          },
+          error: error => {
+            this._state = States.COMPLETED
+            this._summary.error(error)
+          }
+        },
+        !recordsObserver || autoPush
+      )
+      this._records = subject
+      this._push = push
       if (recordsObserver) {
         subscriptions.push(this._records.subscribe(recordsObserver))
       } else {
@@ -139,18 +164,6 @@ export default class RxResult {
           }
         }
       })
-
-      this._records.subscribe({
-        complete: async () => {
-          this._state = States.COMPLETED
-          this._summary.next(await result.summary())
-          this._summary.complete()
-        },
-        error: error => {
-          this._state = States.COMPLETED
-          this._summary.error(error)
-        }
-      })
     } else if (recordsObserver) {
       recordsObserver.error(
         newError(
@@ -162,5 +175,37 @@ export default class RxResult {
     return () => {
       subscriptions.forEach(s => s.unsubscribe())
     }
+  }
+}
+
+function fromAsyncIterator (iterator, completeObserver, autoPush = false) {
+  const subject = new Subject()
+  const pushNextValue = async result => {
+    const { done, value } = await result
+    try {
+      if (done) {
+        subject.complete()
+        completeObserver.complete()
+      } else {
+        subject.next(value)
+        if (autoPush) {
+          await pushNextValue(iterator.next())
+        }
+      }
+    } catch (error) {
+      subject.error(error)
+      completeObserver.error(error)
+    }
+  }
+
+  async function push (value) {
+    await pushNextValue(iterator.next(value))
+  }
+
+  push()
+
+  return {
+    subject: subject.pipe(),
+    push
   }
 }

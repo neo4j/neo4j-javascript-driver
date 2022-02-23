@@ -389,7 +389,9 @@ class ResultStreamObserver extends StreamObserver {
     } else {
       this._moreFunction(this._queryId, this._fetchSize, this)
     }
-    this._setState(_states.STREAMING)
+    if (this._fieldKeys !== null) {
+      this._setState(_states.STREAMING)
+    }
   }
 
   _storeMetadataForCompletion (meta) {
