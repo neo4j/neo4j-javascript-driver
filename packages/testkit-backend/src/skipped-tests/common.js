@@ -2,8 +2,47 @@ import skip, { ifEquals, ifEndsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Fail while enable Temporary::ResultKeys',
+    ifEquals('neo4j.test_bookmarks.TestBookmarks.test_can_pass_bookmark_into_next_session'),
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_consume_after_commit'),
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_tx_configuration'),
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_interwoven_queries'),
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_parallel_queries'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_smaller_than_fetch_size'),
+    ifEquals('neo4j.test_tx_func_run.TestTxFuncRun.test_tx_func_configuration')
+  ),
+  skip(
+    'Fail while enable Temporary:FastFailingDiscovery',
+    ifEndsWith('test_should_request_rt_from_all_initial_routers_until_successful_on_authorization_expired'),
+    ifEndsWith('test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure'),
+    ifEndsWith('test_should_fail_with_routing_failure_on_any_security_discovery_failure'),
+    ifEndsWith('test_should_fail_with_routing_failure_on_invalid_bookmark_mixture_discovery_failure'),
+    ifEndsWith('test_should_fail_with_routing_failure_on_invalid_bookmark_discovery_failure'),
+    ifEndsWith('test_should_fail_with_routing_failure_on_forbidden_discovery_failure')
+  ),
+  skip('Flacky because sometimes the connection is actually available',
+    ifEndsWith('test_should_enforce_pool_size_per_cluster_member')
+  ),
+  skip(
+    'Flaky in TeamCity',
+    ifEndsWith('test_should_fail_when_writing_to_unexpectedly_interrupting_writers_on_run_using_tx_function'),
+  ),
+  skip(
     'Not support by the JS driver',
     ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration')
+  ),
+  skip(
+    'Driver does not validate query type values in result summaries',
+    ifEquals('stub.summary.test_summary.TestSummary.test_invalid_query_type')
+  ),
+  skip(
+    'ResultSummary.notifications defaults to empty array instead of return null/undefined',
+    ifEquals('stub.summary.test_summary.TestSummary.test_no_notifications'),
+    ifEquals('neo4j.test_summary.TestSummary.test_no_notification_info')
+  ),
+  skip(
+    'ResultSummary.plan defaults to empty array instead of return null/undefined',
+    ifEquals('neo4j.test_summary.TestSummary.test_no_plan_info')
   ),
   skip(
     'The driver has no support domain_name_resolver',

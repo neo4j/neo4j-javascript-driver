@@ -68,3 +68,7 @@ tx.commit()
 tx.rollback()
   .pipe(concat(of('rolled back')))
   .subscribe(stringObserver)
+
+tx.close()
+  .pipe(concat(of('closed')))
+  .subscribe(stringObserver)

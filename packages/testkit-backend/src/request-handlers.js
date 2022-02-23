@@ -1,6 +1,7 @@
 import neo4j from './neo4j'
 import ResultObserver from './result-observer.js'
 import { cypherToNative, nativeToCypher } from './cypher-native-binders.js'
+import { nativeToTestkitSummary } from './summary-binder.js'
 import tls from 'tls'
 
 const SUPPORTED_TLS = (() => {
@@ -73,6 +74,15 @@ export function NewDriver (context, data, wire) {
         e => '/usr/local/share/custom-ca-certificates/' + e
       )
     }
+  }
+  if ('maxConnectionPoolSize' in data) {
+    config.maxConnectionPoolSize = data.maxConnectionPoolSize
+  }
+  if ('connectionAcquisitionTimeoutMs' in data) {
+    config.connectionAcquisitionTimeout = data.connectionAcquisitionTimeoutMs
+  }
+  if ('fetchSize' in data) {
+    config.fetchSize = data.fetchSize
   }
   let driver
   try {
@@ -176,18 +186,14 @@ export function ResultNext (context, data, wire) {
 }
 
 export function ResultConsume (context, data, wire) {
+  
+
   const { resultId } = data
   const resultObserver = context.getResultObserver(resultId)
   resultObserver
     .completitionPromise()
     .then(summary => {
-      wire.writeResponse('Summary', {
-        ...summary,
-        serverInfo: {
-          agent: summary.server.agent,
-          protocolVersion: summary.server.protocolVersion.toFixed(1)
-        }
-      })
+      wire.writeResponse('Summary', nativeToTestkitSummary(summary))
     })
     .catch(e => wire.writeError(e))
 }
@@ -279,6 +285,14 @@ export function TransactionRollback (context, data, wire) {
     .catch(e => wire.writeError(e))
 }
 
+export function TransactionClose (context, data, wire) {
+  const { txId: id } = data
+  const { tx } = context.getTx(id)
+  return tx.close()
+    .then(() => wire.writeResponse('Transaction', { id }))
+    .catch(e => wire.writeError(e))
+}
+
 export function SessionLastBookmarks (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
@@ -327,6 +341,16 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.3',
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
+      'Temporary:ConnectionAcquisitionTimeout',
+      'Temporary:CypherPathAndRelationship',
+      'Temporary:DriverFetchSize',
+      'Temporary:DriverMaxConnectionPoolSize',
+      'Temporary:DriverMaxTxRetryTime',
+      'Temporary:FastFailingDiscovery',
+      'Temporary:FullSummary',
+      'Temporary:GetConnectionPoolMetrics',
+      'Temporary:ResultKeys',
+      'Temporary:TransactionClose',
       ...SUPPORTED_TLS
     ]
   })
