@@ -90,4 +90,22 @@ export default class RxTransaction {
         .catch(err => observer.error(err))
     })
   }
+
+  /**
+   * Closes the transaction
+   *
+   * This method will roll back the transaction if it is not already committed or rolled back.
+   *
+   * @returns {Observable} - An empty observable
+   */
+  close () {
+    return new Observable(observer => {
+      this._txc
+        .close()
+        .then(() => {
+          observer.complete()
+        })
+        .catch(err => observer.error(err))
+    })
+  }
 }

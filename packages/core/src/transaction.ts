@@ -210,6 +210,19 @@ class Transaction {
     return this._state === _states.ACTIVE
   }
 
+  /**
+   * Closes the transaction
+   *
+   * This method will roll back the transaction if it is not already committed or rolled back.
+   *
+   * @returns {Promise<void>} An empty promise if closed successfully or error if any error happened during
+   */
+  async close(): Promise<void> {
+    if (this.isOpen()) {
+      await this.rollback()
+    }
+  }
+
   _onErrorCallback(err: any): Promise<Connection | void> {
     // error will be "acknowledged" by sending a RESET message
     // database will then forget about this transaction and cleanup all corresponding resources

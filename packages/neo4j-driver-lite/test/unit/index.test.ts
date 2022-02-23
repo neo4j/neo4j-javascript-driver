@@ -59,6 +59,9 @@ describe('index', () => {
       'RETURN 1'
     )
     expect(result).toBeDefined()
+
+    // Catch the error
+    result.catch(() => {})
   })
 
   it('should export an instanciable Record', () => {
