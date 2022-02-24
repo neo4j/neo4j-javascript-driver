@@ -181,8 +181,8 @@ export default class RxResult {
 function fromAsyncIterator (iterator, completeObserver, autoPush = false) {
   const subject = new Subject()
   const pushNextValue = async result => {
-    const { done, value } = await result
     try {
+      const { done, value } = await result
       if (done) {
         subject.complete()
         completeObserver.complete()
