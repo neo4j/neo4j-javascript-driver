@@ -59,8 +59,8 @@ export default class RxResult {
       publishReplay(1),
       refCount()
     )
-    this._records = new Subject()
-    this._push = undefined
+    this._records = undefined
+    this._controls = new StreamControl()
     this._summary = new ReplaySubject()
     this._state = States.READY
   }
@@ -87,12 +87,12 @@ export default class RxResult {
    * @public
    * @returns {Observable<Record>} - An observable stream of records.
    */
-  records (autoPush = true) {
+  records () {
     const result = this._result.pipe(
       flatMap(
         result =>
           new Observable(recordsObserver =>
-            this._startStreaming({ result, recordsObserver, autoPush })
+            this._startStreaming({ result, recordsObserver })
           )
       )
     )
@@ -120,11 +120,22 @@ export default class RxResult {
     )
   }
 
+  pause () {
+    this._controls.pause()
+  }
+
+  resume () {
+    return this._controls.resume()
+  }
+
+  push () {
+    return this._controls.push()
+  }
+
   _startStreaming ({
     result,
     recordsObserver = null,
-    summaryObserver = null,
-    autoPush = true
+    summaryObserver = null
   } = {}) {
     const subscriptions = []
 
@@ -134,23 +145,7 @@ export default class RxResult {
 
     if (this._state < States.STREAMING) {
       this._state = States.STREAMING
-      const { subject, push } = fromAsyncIterator(
-        result[Symbol.asyncIterator](),
-        {
-          complete: async () => {
-            this._state = States.COMPLETED
-            this._summary.next(await result.summary())
-            this._summary.complete()
-          },
-          error: error => {
-            this._state = States.COMPLETED
-            this._summary.error(error)
-          }
-        },
-        !recordsObserver || autoPush
-      )
-      this._records = subject
-      this._push = push
+      this._setupRecordsStream(result)
       if (recordsObserver) {
         subscriptions.push(this._records.subscribe(recordsObserver))
       } else {
@@ -176,36 +171,102 @@ export default class RxResult {
       subscriptions.forEach(s => s.unsubscribe())
     }
   }
+
+  _setupRecordsStream (result) {
+    if (this._records) {
+      return this._records
+    }
+
+    this._records = createFullyControlledSubject(
+      result[Symbol.asyncIterator](),
+      {
+        complete: async () => {
+          this._state = States.COMPLETED
+          this._summary.next(await result.summary())
+          this._summary.complete()
+        },
+        error: error => {
+          this._state = States.COMPLETED
+          this._summary.error(error)
+        }
+      },
+      this._controls
+    )
+    return this._records
+  }
 }
 
-function fromAsyncIterator (iterator, completeObserver, autoPush = false) {
+function createFullyControlledSubject (
+  iterator,
+  completeObserver,
+  streamControl = new StreamControl()
+) {
   const subject = new Subject()
+
   const pushNextValue = async result => {
     try {
+      streamControl.pushing = true
       const { done, value } = await result
       if (done) {
         subject.complete()
         completeObserver.complete()
       } else {
         subject.next(value)
-        if (autoPush) {
+        if (!streamControl.paused) {
           await pushNextValue(iterator.next())
         }
       }
     } catch (error) {
       subject.error(error)
       completeObserver.error(error)
+    } finally {
+      streamControl.pushing = false
     }
   }
 
-  async function push (value) {
+  async function push (value, times = 1) {
     await pushNextValue(iterator.next(value))
   }
 
   push()
 
-  return {
-    subject: subject.pipe(),
-    push
+  streamControl.pusher = push
+
+  return subject
+}
+
+class StreamControl {
+  constructor (push = async () => {}) {
+    this._paused = false
+    this._pushing = false
+    this._push = push
+  }
+
+  pause () {
+    this._paused = true
+  }
+
+  get paused () {
+    return this._paused
+  }
+
+  set pushing (pushing) {
+    this._pushing = pushing
+  }
+
+  async resume () {
+    const wasPaused = this._paused
+    this._paused = false
+    if (wasPaused && !this._pushing) {
+      await this.push()
+    }
+  }
+
+  async push () {
+    return await this._push()
+  }
+
+  set pusher (push) {
+    this._push = push
   }
 }
