@@ -17,10 +17,16 @@
  * limitations under the License.
  */
 
-import neo4j from '../src'
+import neo4j, { session } from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { ServerVersion, VERSION_4_0_0 } from '../src/internal/server-version'
-import { map, materialize, toArray } from 'rxjs/operators'
+import {
+  bufferCount,
+  map,
+  materialize,
+  mergeMap,
+  toArray
+} from 'rxjs/operators'
 import { Notification } from 'rxjs'
 
 /**
@@ -1528,6 +1534,66 @@ describe('#integration examples', () => {
         await session.close()
       }
     })
+  })
+
+  describe('back-pressure', () => {
+    it('should control flow by manual push records to the stream', done => {
+      const driver = driverGlobal
+
+      const session = driver.rxSession()
+      const xs = []
+
+      const result = session.run('UNWIND RANGE(0, 10) AS x RETURN x')
+      result
+        .records()
+        .pipe(map(record => record.get('x').toInt()))
+        .subscribe({
+          next: async x => {
+            xs.push(x)
+            // manual pushing reoords to the stream
+            // it pauses the automatic pushing
+            await result.push()
+          },
+          complete: async () => {
+            expect(xs).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+            await session.close().toPromise()
+            done()
+          },
+          error: done.fail.bind(done)
+        })
+    })
+  })
+
+  it('should control flow by resume and pause the stream', async () => {
+    const driver = driverGlobal
+    const callCostlyApi = async () => {}
+
+    const session = driver.rxSession()
+
+    try {
+      const result = session.run('UNWIND RANGE(0, 10) AS x RETURN x')
+      const xs = await result
+        .records()
+        .pipe(
+          map(record => record.get('x').toInt()),
+          bufferCount(5), // buffer 5 records
+          mergeMap(async theXs => {
+            // pausing the records coming from the stream
+            result.pause()
+            // some costly operation
+            await callCostlyApi(theXs)
+            // resume the stream
+            await result.resume()
+            return theXs
+          }),
+          toArray()
+        )
+        .toPromise()
+
+      expect(xs).toEqual([[0, 1, 2, 3, 4], [5, 6, 7, 8, 9], [10]])
+    } finally {
+      await session.close().toPromise()
+    }
   })
 })
 

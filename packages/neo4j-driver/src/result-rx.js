@@ -105,14 +105,40 @@ export default class RxResult {
     )
   }
 
+  /**
+   * Pauses the automatic streaming of records.
+   *
+   * This method provides a way of controll the flow of records
+   *
+   * @experimental
+   */
   pause () {
     this._controls.pause()
   }
 
+  /**
+   * Resumes the automatic streaming of records.
+   *
+   * This method won't need to be called in normal stream operation. It only applies to the case when the stream is paused.
+   *
+   * This method is method won't start the consuming records if the ${@link records()} stream didn't get subscribed.
+   * @experimental
+   * @returns {Promise<void>} - A promise that resolves when the stream is resumed.
+   */
   resume () {
     return this._controls.resume()
   }
 
+  /**
+   * Pushes the next record to the stream.
+   *
+   * This method automatic pause the auto-streaming of records and then push next record to the stream.
+   *
+   * For returning the automatic streaming of records, use {@link resume} method.
+   *
+   * @experimental
+   * @returns {Promise<void>} - A promise that resolves when the push is completed.
+   */
   push () {
     return this._controls.push()
   }
@@ -198,7 +224,7 @@ function createFullyControlledSubject (
       } else {
         subject.next(value)
         if (!streamControl.paused) {
-          await pushNextValue(iterator.next())
+          pushNextValue(iterator.next())
         }
       }
     } catch (error) {
@@ -209,13 +235,12 @@ function createFullyControlledSubject (
     }
   }
 
-  async function push (value, times = 1) {
+  async function push (value) {
     await pushNextValue(iterator.next(value))
   }
 
-  push()
-
   streamControl.pusher = push
+  push()
 
   return subject
 }
@@ -242,12 +267,14 @@ class StreamControl {
   async resume () {
     const wasPaused = this._paused
     this._paused = false
+    console.log('resume', wasPaused, this._pushing)
     if (wasPaused && !this._pushing) {
-      await this.push()
+      await this._push()
     }
   }
 
   async push () {
+    this.pause()
     return await this._push()
   }
 
