@@ -32,6 +32,7 @@ const skippedTests = [
   skip(
     'Flaky in TeamCity',
     ifEndsWith('test_should_fail_when_writing_to_unexpectedly_interrupting_writers_on_run_using_tx_function'),
+    ifEndsWith('test_should_read_successfully_from_reachable_db_after_trying_unreachable_db')
   ),
   skip(
     'ResultSummary.notifications defaults to empty array instead of return null/undefined',
