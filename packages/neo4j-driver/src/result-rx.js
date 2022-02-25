@@ -16,24 +16,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { pull } from 'lodash'
 import { newError, Record, ResultSummary } from 'neo4j-driver-core'
-import {
-  Observable,
-  Subject,
-  ReplaySubject,
-  from,
-  AsyncSubject,
-  BehaviorSubject
-} from 'rxjs'
-import {
-  filter,
-  flatMap,
-  publishReplay,
-  refCount,
-  shareReplay,
-  tap
-} from 'rxjs/operators'
+import { Observable, Subject, ReplaySubject, from } from 'rxjs'
+import { flatMap, publishReplay, refCount } from 'rxjs/operators'
 
 const States = {
   READY: 0,
