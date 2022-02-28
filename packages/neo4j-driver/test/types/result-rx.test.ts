@@ -23,6 +23,10 @@ const dummy: any = null
 
 const res: RxResult = dummy
 
+const pushed: Promise<void> = res.push()
+const paused: void = res.pause()
+const resumed: Promise<void> = res.resume()
+
 res.keys().subscribe({
   next: value => console.log(`keys: ${value}`),
   complete: () => console.log('keys complete'),

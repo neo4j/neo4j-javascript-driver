@@ -25,6 +25,12 @@ declare interface RxResult {
   records(): Observable<Record>
 
   consume(): Observable<ResultSummary>
+
+  pause(): void
+
+  resume(): Promise<void>
+
+  push(): Promise<void>
 }
 
 export default RxResult
