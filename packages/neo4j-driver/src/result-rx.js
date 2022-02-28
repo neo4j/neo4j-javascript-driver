@@ -224,7 +224,7 @@ function createFullyControlledSubject (
       } else {
         subject.next(value)
         if (!streamControl.paused) {
-          pushNextValue(iterator.next())
+          setImmediate(async () => await pushNextValue(iterator.next()))
         }
       }
     } catch (error) {
@@ -267,7 +267,6 @@ class StreamControl {
   async resume () {
     const wasPaused = this._paused
     this._paused = false
-    console.log('resume', wasPaused, this._pushing)
     if (wasPaused && !this._pushing) {
       await this._push()
     }
