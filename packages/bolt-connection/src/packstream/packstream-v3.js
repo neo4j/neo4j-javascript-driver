@@ -19,25 +19,17 @@
 
 import * as v2 from './packstream-v2';
 import {
-  Node
+  Node,
+  Relationship
 } from 'neo4j-driver-core'
 
 const NODE_STRUCT_SIZE = 4
-
+const RELATIONSHIP_STRUCT_SIZE = 8
 export class Packer extends v2.Packer {
   // This implementation is the same
 }
 
 export class Unpacker extends v2.Unpacker {
-  /**
-   * @constructor
-   * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
-   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
-   */
-   constructor (disableLosslessIntegers = false, useBigInt = false) {
-    super(disableLosslessIntegers, useBigInt)
-  }
-
   _unpackNode (structSize, buffer) {
     this._verifyStructSize('Node', NODE_STRUCT_SIZE, structSize)
 
@@ -48,5 +40,21 @@ export class Unpacker extends v2.Unpacker {
       this.unpack(buffer) // ElementId
     )
   }
+
+  _unpackRelationship (structSize, buffer) {
+    this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structSize)
+
+    return new Relationship(
+      this.unpack(buffer), // Identity
+      this.unpack(buffer), // Start Node Identity
+      this.unpack(buffer), // End Node Identity
+      this.unpack(buffer), // Type
+      this.unpack(buffer), // Properties,
+      this.unpack(buffer), // ElementId
+      this.unpack(buffer), // Start Node Element Id
+      this.unpack(buffer) // End Node Element Id
+    )
+  }
+  
   
 }

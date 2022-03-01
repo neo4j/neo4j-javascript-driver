@@ -21,7 +21,7 @@
  import { alloc } from '../../src/channel'
  import { Packer, Unpacker } from '../../src/packstream/packstream-v3'
  import { Structure } from '../../src/packstream/packstream-v1'
- import { Node, int } from 'neo4j-driver-core'
+ import { Node, int, Relationship } from 'neo4j-driver-core'
  
  describe('#unit PackStreamV3', () => {
    it('should pack integers with small numbers', () => {
@@ -198,6 +198,20 @@
       expect(() => packAndUnpack(struct)).toThrow()
    })
 
+   it.each(
+    validRelationshipsAndConfig()
+  )('should unpack Relationships', (struct, expectedRelationship, config) => {
+    const releationship = packAndUnpack(struct, config)
+
+    expect(releationship).toEqual(expectedRelationship)
+  })
+
+  it.each(
+    invalidRelationshipsConfig()
+  )('should thrown error for unpacking invalid Relationships', (struct) => {
+     expect(() => packAndUnpack(struct)).toThrow()
+  })
+
    function validNodesAndConfig () {
      function validWithNumber () {
        const identity = 1
@@ -248,6 +262,78 @@
        [ new Structure(0x4e, [1, ['a', 'b'], { 'a': 1, 'b': 2 }, 'elementId', 'myId']) ],
      ]
    }
+
+   function validRelationshipsAndConfig () {
+    function validWithNumber () {
+      const identity = 1
+      const start = 2
+      const end = 3
+      const type = 'KNOWS'
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const startNodeElementId = 'element_id_2'
+      const endNodeElementId = 'element_id_3'
+      const expectedRel = new Relationship(
+        identity, start, end, type, properties, 
+        elementId, startNodeElementId, endNodeElementId)
+      const relStruct = new Structure(0x52, [
+        identity, start, end, type, properties, elementId,
+        startNodeElementId, endNodeElementId
+      ])
+      return [relStruct, expectedRel, { disableLosslessIntegers: true, useBigInt: false }]
+    }
+
+    function validWithInt () {
+      const identity = int(1)
+      const start = int(2)
+      const end = int(3)
+      const type = 'KNOWS'
+      const properties = { 'a': int(1), 'b': int(2) }
+      const elementId = 'element_id_1'
+      const startNodeElementId = 'element_id_2'
+      const endNodeElementId = 'element_id_3'
+      const expectedRel = new Relationship(
+        identity, start, end, type, properties, 
+        elementId, startNodeElementId, endNodeElementId)
+      const relStruct = new Structure(0x52, [
+        identity, start, end, type, properties, elementId,
+        startNodeElementId, endNodeElementId
+      ])
+      return [relStruct, expectedRel, { disableLosslessIntegers: false, useBigInt: false }]
+    }
+
+    function validWithBigInt () {
+      const identity = BigInt(1)
+      const start = BigInt(2)
+      const end = BigInt(3)
+      const type = 'KNOWS'
+      const properties = { 'a': BigInt(1), 'b': BigInt(2) }
+      const elementId = 'element_id_1'
+      const startNodeElementId = 'element_id_2'
+      const endNodeElementId = 'element_id_3'
+      const expectedRel = new Relationship(
+        identity, start, end, type, properties, 
+        elementId, startNodeElementId, endNodeElementId)
+      const relStruct = new Structure(0x52, [
+        identity, start, end, type, properties, elementId,
+        startNodeElementId, endNodeElementId
+      ])
+      return [relStruct, expectedRel, { disableLosslessIntegers: false, useBigInt: true }]
+    }
+
+    return [
+      validWithNumber(),
+      validWithInt(),
+      validWithBigInt()
+    ]
+  }
+
+  function invalidRelationshipsConfig () {
+    return [
+      [ new Structure(0x52, [1, 2, 3, 'rel', { 'a': 1, 'b': 2 }, 'elementId', 'startNodeId'])],
+      [ new Structure(0x52, [1, 2, 3, 'rel', { 'a': 1, 'b': 2 }, 'elementId', 'startNodeId', 'endNodeId', 'myId'])],
+    ]
+  }
  })
  
  function packAndUnpack (
