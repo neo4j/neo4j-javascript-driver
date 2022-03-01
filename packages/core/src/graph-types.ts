@@ -48,14 +48,16 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
   identity: T
   labels: string[]
   properties: P
+  elementId: String
   /**
    * @constructor
    * @protected
    * @param {Integer|number} identity - Unique identity
    * @param {Array<string>} labels - Array for all labels
    * @param {Properties} properties - Map with node properties
+   * @param {string} elementId - Element identifier
    */
-  constructor(identity: T, labels: string[], properties: P) {
+  constructor(identity: T, labels: string[], properties: P, elementId?: string) {
     /**
      * Identity of the node.
      * @type {Integer|number}
@@ -71,13 +73,18 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
      * @type {Properties}
      */
     this.properties = properties
+    /**
+     * The element identifier.
+     * @type {string}
+     */
+    this.elementId = elementId ? elementId : identity.toString()
   }
 
   /**
    * @ignore
    */
   toString() {
-    let s = '(' + this.identity
+    let s = '(' + this.elementId
     for (let i = 0; i < this.labels.length; i++) {
       s += ':' + this.labels[i]
     }
