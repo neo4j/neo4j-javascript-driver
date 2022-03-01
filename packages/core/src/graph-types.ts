@@ -240,18 +240,21 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
   identity: T
   type: string
   properties: P
+  elementId: string
 
   /**
    * @constructor
    * @protected
-   * @param {Integer|number} identity - Unique identity
+   * @param {NumberOrInteger} identity - Unique identity
    * @param {string} type - Relationship type
    * @param {Properties} properties - Map with relationship properties
+   * @param {string} elementId - Relationship element identifier
    */
-  constructor(identity: T, type: string, properties: any) {
+  constructor(identity: T, type: string, properties: any, elementId?: string) {
     /**
      * Identity of the relationship.
-     * @type {Integer|number}
+     * @type {NumberOrInteger}
+     * @deprecated use {@link UnboundRelationship#elementId} instead
      */
     this.identity = identity
     /**
@@ -264,12 +267,19 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
      * @type {Properties}
      */
     this.properties = properties
+
+    /**
+     * The Relationship element identifier.
+     * @type {string}
+     */
+    this.elementId = _valueOrGetDefault(elementId, () => identity.toString())
   }
 
   /**
    * Bind relationship
    *
    * @protected
+   * @deprecated use {@link UnboundRelationship#bindTo} instead
    * @param {Integer} start - Identity of start node
    * @param {Integer} end - Identity of end node
    * @return {Relationship} - Created relationship
@@ -280,7 +290,29 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
       start,
       end,
       this.type,
-      this.properties
+      this.properties,
+      this.elementId,
+    )
+  }
+
+  /**
+   * Bind relationship
+   *
+   * @protected
+   * @param {Node} start - Start Node
+   * @param {Node} end - End Node
+   * @return {Relationship} - Created relationship
+   */
+  bindTo(start: Node<T>, end: Node<T>): Relationship<T> {
+    return new Relationship(
+      this.identity,
+      start.identity,
+      end.identity,
+      this.type,
+      this.properties,
+      this.elementId,
+      start.elementId,
+      end.elementId,
     )
   }
 

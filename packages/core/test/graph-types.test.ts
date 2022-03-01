@@ -21,6 +21,8 @@ import {
   isNode,
   Relationship,
   isRelationship,
+  UnboundRelationship,
+  isUnboundRelationship,
 } from '../src/graph-types'
 
 import {
@@ -177,11 +179,11 @@ describe('Relationship', () => {
     expect(relationship.toString()).toMatchSnapshot()
   }) 
 
-  test.each(validRelationships())('should be consider a node', relationship => {
+  test.each(validRelationships())('should be consider a relationship', relationship => {
     expect(isRelationship(relationship)).toBe(true)
   })
 
-  test.each(nonRelationships())('should not consider a non-node object as node', nonRelationship => {
+  test.each(nonRelationships())('should not consider a non-relationship object as relationship', nonRelationship => {
     expect(isRelationship(nonRelationship)).toBe(false)
   })
 
@@ -219,9 +221,113 @@ describe('Relationship', () => {
   }
 })
 
+describe('UnboundRelationship', () => {
+  test('should have identity', () => {
+    const relationship = new UnboundRelationship(1, 'Rel', {})
+
+    expect(relationship.identity).toEqual(1)
+  })
+
+  test('should have type', () => {
+    const relationship = new UnboundRelationship(1, 'Rel', {})
+
+    expect(relationship.type).toEqual('Rel')
+  })
+
+  test('should have properties', () => {
+    const relationship = new UnboundRelationship(1, 'Rel', { 'property': 'value' })
+
+    expect(relationship.properties).toEqual({ 'property': 'value' })
+  })
+
+  test.each(validUnboundRelationships())('should be serialized as string', relationship => {
+    expect(relationship.toString()).toMatchSnapshot()
+  }) 
+
+  test.each(validUnboundRelationships())('should be consider a unbound relationship', relationship => {
+    expect(isUnboundRelationship(relationship)).toBe(true)
+  })
+
+  test.each(
+    nonUnboundRelationships()
+    )('should not consider a non-unbound relationship object as unbound relationship', nonUnboundRelationship => {
+    expect(isUnboundRelationship(nonUnboundRelationship)).toBe(false)
+  })
+
+  test.each(
+    bindUnboundRelationshipFixture()
+  )('should bind with node identity', (rel, startNode, endNode) => {
+    expect(rel.bind(startNode.identity, endNode.identity))
+      .toEqual(
+        new Relationship(
+          rel.identity, 
+          startNode.identity, 
+          endNode.identity, 
+          rel.type, 
+          rel.properties, 
+          rel.elementId
+        )
+      )
+  })
+
+  test.each(
+    bindUnboundRelationshipFixture()
+  )('should bind to nodes', (rel, startNode, endNode) => {
+    expect(rel.bindTo(startNode, endNode))
+      .toEqual(
+        new Relationship(
+          rel.identity, 
+          startNode.identity, 
+          endNode.identity, 
+          rel.type, 
+          rel.properties, 
+          rel.elementId,
+          startNode.elementId,
+          endNode.elementId
+        )
+      )
+  })
+
+  function validUnboundRelationships (): any[] {
+    return [
+      [new UnboundRelationship(1, 'Rel', {}, 'elementId')],
+      [new UnboundRelationship(1, 'Rel', {})],
+      [new UnboundRelationship(1, 'Rel', { 'property': 'value' })],
+    ]
+  }
+
+  function nonUnboundRelationships (): any[] {
+    return [
+      [undefined],
+      [null],
+      ['Relationship'],
+      [{}],
+      [{ 'property': 'value' }],
+      [{
+        identity: 1, type: 'Rel',
+        properties: { 'property': 'value' }
+      }],
+      [{
+        identity: 1, type: 'Rel',
+        properties: { 'property': 'value' }, elementId: 'elementId'
+      }]
+    ]
+  }
+
+  function bindUnboundRelationshipFixture (): any[]  {
+    return [
+      [new UnboundRelationship(0, 'Rel', {}), new Node(1, ['Node'], {}), new Node(2, ['Node'], {})],
+      [new UnboundRelationship(0, 'Rel', {}, 'elementId'), new Node(1, ['Node'], {}), new Node(2, ['Node'], {})],
+      [new UnboundRelationship(0, 'Rel', {}), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {})],
+      [new UnboundRelationship(0, 'Rel', {}), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {}), 'nodeElementId2'],
+      [new UnboundRelationship(0, 'Rel', {}, 'elementId'), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {}), 'nodeElementId2'],
+    ]
+  }
+})
+
 function validIdentityAndExpectedElementIds (): any[] {
   return [
-    [10, '10'], 
+    [10, '10'],
     [int(12), '12'],
     [BigInt(32), '32'],
   ]
