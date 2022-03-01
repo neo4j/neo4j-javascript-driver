@@ -1,8 +1,14 @@
 import neo4j from './neo4j'
-import { 
-  cypherToNative
-} from './cypher-native-binders.js'
+import { cypherToNative } from './cypher-native-binders.js'
 import  * as responses from './responses.js'
+
+export function throwFrontendError() {
+  throw new Error("TestKit FrontendError")
+}
+
+export function isFrontendError(error) {
+  return error.message === 'TestKit FrontendError'
+}
 
 export function NewDriver (context, data, wire) {
   const {
@@ -96,8 +102,7 @@ export function DriverClose (context, data, wire) {
     .then(() => {
       wire.writeResponse(responses.Driver({ id: driverId }))
     })
-    .catch(err => wire.writeError(err)) 
-    .finally(() => context.removeDriver(driverId))
+    .catch(err => wire.writeError(err))
 }
 
 export function NewSession (context, data, wire) {
@@ -254,7 +259,7 @@ export function RetryablePositive (context, data, wire) {
 
 export function RetryableNegative (context, data, wire) {
   const { sessionId, errorId } = data
-  const error = context.getError(errorId) || new Error('Client error')
+  const error = context.getError(errorId) || new Error('TestKit FrontendError')
   context.getTxsBySessionId(sessionId).forEach(tx => {
     tx.reject(error)
   })
@@ -263,7 +268,7 @@ export function RetryableNegative (context, data, wire) {
 export function SessionBeginTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
-  
+
   try {
     return session.beginTransaction({ metadata, timeout })
     .then(tx => {
