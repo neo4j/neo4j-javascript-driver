@@ -139,6 +139,14 @@ const skippedTests = [
   skip(
     'Driver (still) allows explicit managing of managed transaction',
     ifEquals('stub.tx_lifetime.test_tx_lifetime.TestTxLifetime.test_managed_tx_raises_tx_managed_exec')
+  ),
+  skip(
+    'Flaky tests, requires investigation',
+    ifEndsWith('.test_should_fail_when_reading_from_unexpectedly_interrupting_readers_using_tx_function')
+  ),
+  skip(
+    'Flaky tests, requires investigation',
+    ifEndsWith('.test_should_fail_when_writing_to_unexpectedly_interrupting_writers_using_tx_function')
   )
 ]
 
