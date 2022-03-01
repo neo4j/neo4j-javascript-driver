@@ -26,6 +26,7 @@ import BoltProtocolV4x1 from './bolt-protocol-v4x1'
 import BoltProtocolV4x2 from './bolt-protocol-v4x2'
 import BoltProtocolV4x3 from './bolt-protocol-v4x3'
 import BoltProtocolV4x4 from './bolt-protocol-v4x4'
+import BoltProtocolV5x0 from './bolt-protocol-v5x0'
 import { Chunker, Dechunker } from '../channel'
 import ResponseHandler from './response-handler'
 
@@ -167,6 +168,16 @@ function createProtocol (
       )
     case 4.4:
       return new BoltProtocolV4x4(
+        server,
+        chunker,
+        packingConfig,
+        createResponseHandler,
+        log,
+        onProtocolError,
+        serversideRouting
+      )
+    case 5.0:
+      return new BoltProtocolV5x0(
         server,
         chunker,
         packingConfig,
