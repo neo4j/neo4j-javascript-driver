@@ -19,11 +19,11 @@
 
 import { int, Integer } from 'neo4j-driver-core'
 import { alloc } from '../../src/channel'
-import { Packer, Unpacker } from '../../src/packstream/packstream-v3'
+import { Packer, Unpacker } from '../../src/packstream/packstream-v5'
 import { Structure } from '../../src/packstream/packstream-v1'
 import { Node, int, Relationship, UnboundRelationship } from 'neo4j-driver-core'
 
-describe('#unit PackStreamV3', () => {
+describe('#unit PackStreamV5', () => {
   it('should pack integers with small numbers', () => {
     let n, i
     // test small numbers
