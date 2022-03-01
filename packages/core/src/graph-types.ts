@@ -52,7 +52,7 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
   /**
    * @constructor
    * @protected
-   * @param {Integer|number} identity - Unique identity
+   * @param {NumberOrInteger} identity - Unique identity
    * @param {Array<string>} labels - Array for all labels
    * @param {Properties} properties - Map with node properties
    * @param {string} elementId - Element identifier
@@ -60,7 +60,8 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
   constructor(identity: T, labels: string[], properties: P, elementId?: string) {
     /**
      * Identity of the node.
-     * @type {Integer|number}
+     * @type {NumberOrInteger}
+     * @deprecated use {@link Node#elementId} instead
      */
     this.identity = identity
     /**
