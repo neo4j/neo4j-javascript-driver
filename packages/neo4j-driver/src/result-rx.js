@@ -18,7 +18,7 @@
  */
 import { newError, Record, ResultSummary } from 'neo4j-driver-core'
 import { Observable, Subject, ReplaySubject, from } from 'rxjs'
-import { flatMap, publishReplay, refCount, shareReplay } from 'rxjs/operators'
+import { flatMap, publishReplay, refCount } from 'rxjs/operators'
 
 const States = {
   READY: 0,
@@ -44,7 +44,8 @@ export default class RxResult {
       publishReplay(1),
       refCount()
     )
-    this._records = new Subject()
+    this._records = undefined
+    this._controls = new StreamControl()
     this._summary = new ReplaySubject()
     this._state = States.READY
   }
@@ -72,7 +73,7 @@ export default class RxResult {
    * @returns {Observable<Record>} - An observable stream of records.
    */
   records () {
-    return this._result.pipe(
+    const result = this._result.pipe(
       flatMap(
         result =>
           new Observable(recordsObserver =>
@@ -80,6 +81,8 @@ export default class RxResult {
           )
       )
     )
+    result.push = () => this._push()
+    return result
   }
 
   /**
@@ -102,6 +105,44 @@ export default class RxResult {
     )
   }
 
+  /**
+   * Pauses the automatic streaming of records.
+   *
+   * This method provides a way of controll the flow of records
+   *
+   * @experimental
+   */
+  pause () {
+    this._controls.pause()
+  }
+
+  /**
+   * Resumes the automatic streaming of records.
+   *
+   * This method won't need to be called in normal stream operation. It only applies to the case when the stream is paused.
+   *
+   * This method is method won't start the consuming records if the ${@link records()} stream didn't get subscribed.
+   * @experimental
+   * @returns {Promise<void>} - A promise that resolves when the stream is resumed.
+   */
+  resume () {
+    return this._controls.resume()
+  }
+
+  /**
+   * Pushes the next record to the stream.
+   *
+   * This method automatic pause the auto-streaming of records and then push next record to the stream.
+   *
+   * For returning the automatic streaming of records, use {@link resume} method.
+   *
+   * @experimental
+   * @returns {Promise<void>} - A promise that resolves when the push is completed.
+   */
+  push () {
+    return this._controls.push()
+  }
+
   _startStreaming ({
     result,
     recordsObserver = null,
@@ -115,9 +156,11 @@ export default class RxResult {
 
     if (this._state < States.STREAMING) {
       this._state = States.STREAMING
-
+      this._setupRecordsStream(result)
       if (recordsObserver) {
         subscriptions.push(this._records.subscribe(recordsObserver))
+      } else {
+        result._cancel()
       }
 
       subscriptions.push({
@@ -125,30 +168,6 @@ export default class RxResult {
           if (result._cancel) {
             result._cancel()
           }
-        }
-      })
-
-      if (this._records.observers.length === 0) {
-        result._cancel()
-      }
-
-      result.subscribe({
-        onNext: record => {
-          this._records.next(record)
-        },
-        onCompleted: summary => {
-          this._records.complete()
-
-          this._summary.next(summary)
-          this._summary.complete()
-
-          this._state = States.COMPLETED
-        },
-        onError: err => {
-          this._records.error(err)
-          this._summary.error(err)
-
-          this._state = States.COMPLETED
         }
       })
     } else if (recordsObserver) {
@@ -162,5 +181,103 @@ export default class RxResult {
     return () => {
       subscriptions.forEach(s => s.unsubscribe())
     }
+  }
+
+  _setupRecordsStream (result) {
+    if (this._records) {
+      return this._records
+    }
+
+    this._records = createFullyControlledSubject(
+      result[Symbol.asyncIterator](),
+      {
+        complete: async () => {
+          this._state = States.COMPLETED
+          this._summary.next(await result.summary())
+          this._summary.complete()
+        },
+        error: error => {
+          this._state = States.COMPLETED
+          this._summary.error(error)
+        }
+      },
+      this._controls
+    )
+    return this._records
+  }
+}
+
+function createFullyControlledSubject (
+  iterator,
+  completeObserver,
+  streamControl = new StreamControl()
+) {
+  const subject = new Subject()
+
+  const pushNextValue = async result => {
+    try {
+      streamControl.pushing = true
+      const { done, value } = await result
+      if (done) {
+        subject.complete()
+        completeObserver.complete()
+      } else {
+        subject.next(value)
+        if (!streamControl.paused) {
+          setImmediate(async () => await pushNextValue(iterator.next()))
+        }
+      }
+    } catch (error) {
+      subject.error(error)
+      completeObserver.error(error)
+    } finally {
+      streamControl.pushing = false
+    }
+  }
+
+  async function push (value) {
+    await pushNextValue(iterator.next(value))
+  }
+
+  streamControl.pusher = push
+  push()
+
+  return subject
+}
+
+class StreamControl {
+  constructor (push = async () => {}) {
+    this._paused = false
+    this._pushing = false
+    this._push = push
+  }
+
+  pause () {
+    this._paused = true
+  }
+
+  get paused () {
+    return this._paused
+  }
+
+  set pushing (pushing) {
+    this._pushing = pushing
+  }
+
+  async resume () {
+    const wasPaused = this._paused
+    this._paused = false
+    if (wasPaused && !this._pushing) {
+      await this._push()
+    }
+  }
+
+  async push () {
+    this.pause()
+    return await this._push()
+  }
+
+  set pusher (push) {
+    this._push = push
   }
 }
