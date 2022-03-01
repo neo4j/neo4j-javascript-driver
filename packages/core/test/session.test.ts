@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, Session, Connection } from '../src'
+import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction } from '../src'
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import FakeConnection from './utils/connection.fake'
@@ -101,7 +101,7 @@ describe('session', () => {
   })
 
   it('run should send watermarks to Transaction when fetchsize if defined (writeTransaction)', async () => {
-    const connection = newFakeConnection()
+    const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, 1000)
     const status = { functionCalled: false }
 
@@ -118,7 +118,7 @@ describe('session', () => {
   })
 
   it('run should send watermarks to Transaction when fetchsize is fetch all (writeTransaction)', async () => {
-    const connection = newFakeConnection()
+    const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, FETCH_ALL)
     const status = { functionCalled: false }
 
@@ -135,7 +135,7 @@ describe('session', () => {
   })
 
   it('run should send watermarks to Transaction when fetchsize if defined (readTransaction)', async () => {
-    const connection = newFakeConnection()
+    const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, 1000)
     const status = { functionCalled: false }
 
@@ -152,7 +152,7 @@ describe('session', () => {
   })
 
   it('run should send watermarks to Transaction when fetchsize is fetch all (readTransaction)', async () => {
-    const connection = newFakeConnection()
+    const connection = mockBeginWithSuccess(newFakeConnection())
     const session = newSessionWithConnection(connection, false, FETCH_ALL)
     const status = { functionCalled: false }
 
@@ -227,7 +227,41 @@ describe('session', () => {
       expect(session.lastBookmarks()).toEqual(bookmarks.values())
     })
   })
+
+  describe('.beginTransaction()', () => {
+    it('should return a TransactionPromise', () => {
+      const session = newSessionWithConnection(newFakeConnection(), false, 1000)
+
+      const tx: Transaction = session.beginTransaction()
+
+      expect(tx).toBeInstanceOf(TransactionPromise)
+    })
+
+    it('should resolves a Transaction', async () => {
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const session = newSessionWithConnection(connection, false, 1000)
+
+      const tx: Transaction = await session.beginTransaction()
+
+      expect(tx).toBeDefined()
+    })
+  })
 })
+
+function mockBeginWithSuccess(connection: FakeConnection) {
+  const protocol = connection.protocol()
+  // @ts-ignore
+  connection.protocol = () => {
+    return {
+      ...protocol,
+      beginTransaction: (params: { afterComplete: () => {}} ) => {
+        params.afterComplete()
+      }
+    }
+  }
+  return connection
+}
 
 function newSessionWithConnection(
   connection: Connection,

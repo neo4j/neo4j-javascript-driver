@@ -111,28 +111,10 @@ describe('#unit ChannelConfig', () => {
     expect(config.connectionErrorCode).toEqual(SERVICE_UNAVAILABLE)
   })
 
-  it('should have connection timeout by default', () => {
+  it('should have connection timeout being used as it is', () => {
     const config = new ChannelConfig(null, {}, '')
 
-    expect(config.connectionTimeout).toEqual(30000)
-  })
-
-  it('should respect configured connection timeout', () => {
-    const config = new ChannelConfig(null, { connectionTimeout: 424242 }, '')
-
-    expect(config.connectionTimeout).toEqual(424242)
-  })
-
-  it('should respect disabled connection timeout with value zero', () => {
-    const config = new ChannelConfig(null, { connectionTimeout: 0 }, '')
-
-    expect(config.connectionTimeout).toBeNull()
-  })
-
-  it('should respect disabled connection timeout with negative value', () => {
-    const config = new ChannelConfig(null, { connectionTimeout: -42 }, '')
-
-    expect(config.connectionTimeout).toBeNull()
+    expect(config.connectionTimeout).toEqual(undefined)
   })
 
   it('should validate value of "encrypted" property', () => {

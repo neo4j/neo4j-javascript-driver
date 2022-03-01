@@ -2,7 +2,9 @@ import Backend from './backend'
 import { SocketChannel, WebSocketChannel } from './channel'
 import { LocalController, RemoteController } from './controller'
 import { getShouldRunTest } from './skipped-tests'
-import * as REQUEST_HANDLERS from './request-handlers'
+import { createGetFeatures } from './feature'
+import * as REQUEST_HANDLERS from './request-handlers.js'
+import * as RX_REQUEST_HANDLERS from './request-handlers-rx.js'
 
 /**
  * Responsible for configure and run the backend server.
@@ -13,15 +15,17 @@ function main( ) {
   const backendPort = process.env.BACKEND_PORT || 9876
   const webserverPort = process.env.WEB_SERVER_PORT || 8000
   const driverDescriptor = process.env.DRIVER_DESCRIPTOR || ''
+  const sessionType = process.env.SESSION_TYPE || 'ASYNC'
+  const sessionTypeDescriptor = sessionType === 'RX' ? 'rx' : 'async'
   const driverDescriptorList = driverDescriptor
     .split(',').map(s => s.trim().toLowerCase())
     
-  const shouldRunTest = getShouldRunTest(driverDescriptorList)
+  const shouldRunTest = getShouldRunTest([...driverDescriptorList, sessionTypeDescriptor])
+  const getFeatures = createGetFeatures([sessionTypeDescriptor])
 
   const newChannel = () => {
     if ( channelType.toUpperCase() === 'WEBSOCKET' ) {
       return new WebSocketChannel(new URL(`ws://localhost:${backendPort}`))
-
     }
     return new SocketChannel(backendPort)
   } 
@@ -30,7 +34,7 @@ function main( ) {
     if ( testEnviroment.toUpperCase() === 'REMOTE' ) {
       return new RemoteController(webserverPort)
     }
-    return new LocalController(REQUEST_HANDLERS, shouldRunTest)
+    return new LocalController(getRequestHandlers(sessionType), shouldRunTest, getFeatures)
   }
 
   const backend = new Backend(newController, newChannel)
@@ -50,6 +54,13 @@ function main( ) {
       process.exit()
     });
   }
+}
+
+function getRequestHandlers(sessionType) {
+  if (sessionType.toUpperCase() === 'RX') {
+    return RX_REQUEST_HANDLERS
+  }
+  return REQUEST_HANDLERS
 }
 
 main()

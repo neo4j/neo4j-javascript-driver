@@ -19,6 +19,7 @@
 
 import { newError } from '../error'
 import Transaction from '../transaction'
+import TransactionPromise from '../transaction-promise'
 import { canRetryOn } from './retry-strategy'
 
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds
@@ -26,7 +27,7 @@ const DEFAULT_INITIAL_RETRY_DELAY_MS = 1000 // 1 seconds
 const DEFAULT_RETRY_DELAY_MULTIPLIER = 2.0
 const DEFAULT_RETRY_DELAY_JITTER_FACTOR = 0.2
 
-type TransactionCreator = () => Transaction
+type TransactionCreator = () => TransactionPromise
 type TransactionWork<T> = (tx: Transaction) => T | Promise<T>
 type Resolve<T> = (value: T | PromiseLike<T>) => void
 type Reject = (value: any) => void
@@ -138,15 +139,15 @@ export class TransactionExecutor {
     })
   }
 
-  _executeTransactionInsidePromise<T>(
+  async _executeTransactionInsidePromise<T>(
     transactionCreator: TransactionCreator,
     transactionWork: TransactionWork<T>,
     resolve: Resolve<T>,
     reject: Reject
-  ): void {
+  ): Promise<void> {
     let tx: Transaction
     try {
-      tx = transactionCreator()
+      tx = await transactionCreator()
     } catch (error) {
       // failed to create a transaction
       reject(error)

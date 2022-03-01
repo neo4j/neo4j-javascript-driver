@@ -2,6 +2,12 @@ import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Handle qid omission optmization can cause issues in nested queries',
+    ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments'),
+    ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments_multi_query'),
+    ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments_multi_query_nested')
+  ),
+  skip(
     'Fail while enable Temporary::ResultKeys',
     ifEquals('neo4j.test_bookmarks.TestBookmarks.test_can_pass_bookmark_into_next_session'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_consume_after_commit'),
