@@ -69,7 +69,7 @@ export class Unpacker extends v2.Unpacker {
     return new UnboundRelationship(
       this.unpack(buffer), // Identity
       this.unpack(buffer), // Type
-      this.unpack(buffer) // Properties,
+      this.unpack(buffer), // Properties
       this.unpack(buffer) // ElementId
     )
   }
