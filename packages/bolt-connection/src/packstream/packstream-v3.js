@@ -20,11 +20,14 @@
 import * as v2 from './packstream-v2';
 import {
   Node,
-  Relationship
+  Relationship,
+  UnboundRelationship
 } from 'neo4j-driver-core'
 
 const NODE_STRUCT_SIZE = 4
 const RELATIONSHIP_STRUCT_SIZE = 8
+const UNBOUND_RELATIONSHIP_STRUCT_SIZE = 4
+
 export class Packer extends v2.Packer {
   // This implementation is the same
 }
@@ -55,6 +58,19 @@ export class Unpacker extends v2.Unpacker {
       this.unpack(buffer) // End Node Element Id
     )
   }
-  
-  
+
+  _unpackUnboundRelationship (structSize, buffer) {
+    this._verifyStructSize(
+      'UnboundRelationship',
+      UNBOUND_RELATIONSHIP_STRUCT_SIZE,
+      structSize
+    )
+
+    return new UnboundRelationship(
+      this.unpack(buffer), // Identity
+      this.unpack(buffer), // Type
+      this.unpack(buffer) // Properties,
+      this.unpack(buffer) // ElementId
+    )
+  }
 }

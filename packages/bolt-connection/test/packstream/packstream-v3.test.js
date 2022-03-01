@@ -21,7 +21,7 @@ import { int, Integer } from 'neo4j-driver-core'
 import { alloc } from '../../src/channel'
 import { Packer, Unpacker } from '../../src/packstream/packstream-v3'
 import { Structure } from '../../src/packstream/packstream-v1'
-import { Node, int, Relationship } from 'neo4j-driver-core'
+import { Node, int, Relationship, UnboundRelationship } from 'neo4j-driver-core'
 
 describe('#unit PackStreamV3', () => {
   it('should pack integers with small numbers', () => {
@@ -212,6 +212,20 @@ describe('#unit PackStreamV3', () => {
     expect(() => packAndUnpack(struct)).toThrow()
   })
 
+  it.each(
+    validUnboundRelationshipsAndConfig()
+  )('should unpack UnboundRelationships', (struct, expectedRelationship, config) => {
+    const releationship = packAndUnpack(struct, config)
+
+    expect(releationship).toEqual(expectedRelationship)
+  })
+
+  it.each(
+    invalidUnboundRelationshipsConfig()
+  )('should thrown error for unpacking invalid UnboundRelationships', (struct) => {
+    expect(() => packAndUnpack(struct)).toThrow()
+  })
+
   function validNodesAndConfig() {
     function validWithNumber() {
       const identity = 1
@@ -332,6 +346,57 @@ describe('#unit PackStreamV3', () => {
     return [
       [new Structure(0x52, [1, 2, 3, 'rel', { 'a': 1, 'b': 2 }, 'elementId', 'startNodeId'])],
       [new Structure(0x52, [1, 2, 3, 'rel', { 'a': 1, 'b': 2 }, 'elementId', 'startNodeId', 'endNodeId', 'myId'])],
+    ]
+  }
+
+  function validUnboundRelationshipsAndConfig() {
+    function validWithNumber() {
+      const identity = 1
+      const type = 'DOESNT_KNOW'
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const expectedUnboundRel = new UnboundRelationship(identity, type, properties, elementId)
+      const struct = new Structure(0x72, [
+        identity, type, properties, elementId
+      ])
+      return [struct, expectedUnboundRel, { disableLosslessIntegers: true, useBigInt: false }]
+    }
+
+    function validWithInt() {
+      const identity = int(1)
+      const type = 'DOESNT_KNOW'
+      const properties = { 'a': int(1), 'b': int(2) }
+      const elementId = 'element_id_1'
+      const expectedUnboundRel = new UnboundRelationship(identity, type, properties, elementId)
+      const struct = new Structure(0x72, [
+        identity, type, properties, elementId
+      ])
+      return [struct, expectedUnboundRel, { disableLosslessIntegers: false, useBigInt: false }]
+    }
+
+    function validWithBigInt() {
+      const identity = BigInt(1)
+      const type = 'DOESNT_KNOW'
+      const properties = { 'a': BigInt(1), 'b': BigInt(2) }
+      const elementId = 'element_id_1'
+      const expectedUnboundRel = new UnboundRelationship(identity, type, properties, elementId)
+      const struct = new Structure(0x72, [
+        identity, type, properties, elementId
+      ])
+      return [struct, expectedUnboundRel, { disableLosslessIntegers: false, useBigInt: true }]
+    }
+
+    return [
+      validWithNumber(),
+      validWithInt(),
+      validWithBigInt()
+    ]
+  }
+
+  function invalidUnboundRelationshipsConfig() {
+    return [
+      [new Structure(0x72, [1, 'DOESNT_KNOW', { 'a': 1, 'b': 2 }])],
+      [new Structure(0x72, [1, 'DOESNT_KNOW', { 'a': 1, 'b': 2 }, 'elementId', 'myId'])],
     ]
   }
 })
