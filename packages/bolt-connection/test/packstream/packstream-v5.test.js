@@ -239,6 +239,18 @@ describe('#unit PackStreamV5', () => {
       return [nodeStruct, expectedNode, { disableLosslessIntegers: true, useBigInt: false }]
     }
 
+    function validWithoutOldIdentifiers() {
+      const identity = null
+      const labels = ['a', 'b']
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const expectedNode = new Node(-1, labels, properties, elementId)
+      const nodeStruct = new Structure(0x4e, [
+        identity, labels, properties, elementId
+      ])
+      return [nodeStruct, expectedNode, { disableLosslessIntegers: true, useBigInt: false }]
+    }
+
     function validWithInt() {
       const identity = int(1)
       const labels = ['a', 'b']
@@ -266,7 +278,8 @@ describe('#unit PackStreamV5', () => {
     return [
       validWithNumber(),
       validWithInt(),
-      validWithBigInt()
+      validWithBigInt(),
+      validWithoutOldIdentifiers()
     ]
   }
 
@@ -289,6 +302,25 @@ describe('#unit PackStreamV5', () => {
       const endNodeElementId = 'element_id_3'
       const expectedRel = new Relationship(
         identity, start, end, type, properties,
+        elementId, startNodeElementId, endNodeElementId)
+      const relStruct = new Structure(0x52, [
+        identity, start, end, type, properties, elementId,
+        startNodeElementId, endNodeElementId
+      ])
+      return [relStruct, expectedRel, { disableLosslessIntegers: true, useBigInt: false }]
+    }
+
+    function validWithoutOldIdentifiers() {
+      const identity = null
+      const start = null
+      const end = null
+      const type = 'KNOWS'
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const startNodeElementId = 'element_id_2'
+      const endNodeElementId = 'element_id_3'
+      const expectedRel = new Relationship(
+        -1, -1, -1, type, properties,
         elementId, startNodeElementId, endNodeElementId)
       const relStruct = new Structure(0x52, [
         identity, start, end, type, properties, elementId,
@@ -338,7 +370,8 @@ describe('#unit PackStreamV5', () => {
     return [
       validWithNumber(),
       validWithInt(),
-      validWithBigInt()
+      validWithBigInt(),
+      validWithoutOldIdentifiers()
     ]
   }
 
@@ -356,6 +389,18 @@ describe('#unit PackStreamV5', () => {
       const properties = { 'a': 1, 'b': 2 }
       const elementId = 'element_id_1'
       const expectedUnboundRel = new UnboundRelationship(identity, type, properties, elementId)
+      const struct = new Structure(0x72, [
+        identity, type, properties, elementId
+      ])
+      return [struct, expectedUnboundRel, { disableLosslessIntegers: true, useBigInt: false }]
+    }
+
+    function validWithoutOldIdentifiers() {
+      const identity = null
+      const type = 'DOESNT_KNOW'
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const expectedUnboundRel = new UnboundRelationship(-1, type, properties, elementId)
       const struct = new Structure(0x72, [
         identity, type, properties, elementId
       ])
@@ -389,7 +434,8 @@ describe('#unit PackStreamV5', () => {
     return [
       validWithNumber(),
       validWithInt(),
-      validWithBigInt()
+      validWithBigInt(),
+      validWithoutOldIdentifiers()
     ]
   }
 

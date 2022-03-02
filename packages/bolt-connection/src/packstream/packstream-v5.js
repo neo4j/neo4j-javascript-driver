@@ -37,7 +37,7 @@ export class Unpacker extends v2.Unpacker {
     this._verifyStructSize('Node', NODE_STRUCT_SIZE, structSize)
 
     return new Node(
-      this.unpack(buffer), // Identity
+      _valueOrDefault(this.unpack(buffer), -1), // Identity
       this.unpack(buffer), // Labels
       this.unpack(buffer), // Properties,
       this.unpack(buffer) // ElementId
@@ -48,9 +48,9 @@ export class Unpacker extends v2.Unpacker {
     this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structSize)
 
     return new Relationship(
-      this.unpack(buffer), // Identity
-      this.unpack(buffer), // Start Node Identity
-      this.unpack(buffer), // End Node Identity
+      _valueOrDefault(this.unpack(buffer), -1), // Identity
+      _valueOrDefault(this.unpack(buffer), -1), // Start Node Identity
+      _valueOrDefault(this.unpack(buffer), -1), // End Node Identity
       this.unpack(buffer), // Type
       this.unpack(buffer), // Properties,
       this.unpack(buffer), // ElementId
@@ -67,10 +67,14 @@ export class Unpacker extends v2.Unpacker {
     )
 
     return new UnboundRelationship(
-      this.unpack(buffer), // Identity
+      _valueOrDefault(this.unpack(buffer), -1), // Identity
       this.unpack(buffer), // Type
       this.unpack(buffer), // Properties
       this.unpack(buffer) // ElementId
     )
   }
+}
+
+function _valueOrDefault(value, defaultValue) {
+  return value === null ? defaultValue : value
 }
