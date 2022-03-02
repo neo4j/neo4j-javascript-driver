@@ -436,7 +436,12 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    await verifyUpdates(runnable, 'CREATE INDEX on :Label(prop)', null, {
+    const query =
+      protocolVersion > 4.2
+        ? 'CREATE INDEX FOR :Label(prop)'
+        : 'CREATE INDEX ON :Label(prop)'
+
+    await verifyUpdates(runnable, query, null, {
       nodesCreated: 0,
       nodesDeleted: 0,
       relationshipsCreated: 0,
@@ -467,12 +472,20 @@ describe('#integration-rx summary', () => {
     // first create the to-be-dropped index
     const session = driver.session()
     try {
-      await session.run('CREATE INDEX on :Label(prop)')
+      const query =
+        protocolVersion > 4.2
+          ? 'CREATE INDEX FOR :Label(prop)'
+          : 'CREATE INDEX ON :Label(prop)'
+      await session.run(query)
     } finally {
       await session.close()
     }
 
-    await verifyUpdates(runnable, 'DROP INDEX on :Label(prop)', null, {
+    const query =
+      protocolVersion > 4.2
+        ? 'DROP INDEX FOR :Label(prop)'
+        : 'DROP INDEX ON :Label(prop)'
+    await verifyUpdates(runnable, query, null, {
       nodesCreated: 0,
       nodesDeleted: 0,
       relationshipsCreated: 0,
@@ -499,24 +512,23 @@ describe('#integration-rx summary', () => {
       return
     }
 
-    await verifyUpdates(
-      runnable,
-      'CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE',
-      null,
-      {
-        nodesCreated: 0,
-        nodesDeleted: 0,
-        relationshipsCreated: 0,
-        relationshipsDeleted: 0,
-        propertiesSet: 0,
-        labelsAdded: 0,
-        labelsRemoved: 0,
-        indexesAdded: 0,
-        indexesRemoved: 0,
-        constraintsAdded: 1,
-        constraintsRemoved: 0
-      }
-    )
+    const query =
+      protocolVersion > 4.2
+        ? 'CREATE CONSTRAINT FOR (book:Book) REQUIRE book.isbn IS UNIQUE'
+        : 'CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE'
+    await verifyUpdates(runnable, query, null, {
+      nodesCreated: 0,
+      nodesDeleted: 0,
+      relationshipsCreated: 0,
+      relationshipsDeleted: 0,
+      propertiesSet: 0,
+      labelsAdded: 0,
+      labelsRemoved: 0,
+      indexesAdded: 0,
+      indexesRemoved: 0,
+      constraintsAdded: 1,
+      constraintsRemoved: 0
+    })
   }
 
   /**
@@ -535,31 +547,32 @@ describe('#integration-rx summary', () => {
     // first create the to-be-dropped index
     const session = driver.session()
     try {
-      await session.run(
-        'CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE'
-      )
+      const query =
+        protocolVersion > 4.2
+          ? 'CREATE CONSTRAINT FOR (book:Book) REQUIRE book.isbn IS UNIQUE'
+          : 'CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE'
+      await session.run(query)
     } finally {
       await session.close()
     }
 
-    await verifyUpdates(
-      runnable,
-      'DROP CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE',
-      null,
-      {
-        nodesCreated: 0,
-        nodesDeleted: 0,
-        relationshipsCreated: 0,
-        relationshipsDeleted: 0,
-        propertiesSet: 0,
-        labelsAdded: 0,
-        labelsRemoved: 0,
-        indexesAdded: 0,
-        indexesRemoved: 0,
-        constraintsAdded: 0,
-        constraintsRemoved: 1
-      }
-    )
+    const query =
+      protocolVersion > 4.2
+        ? 'DROP CONSTRAINT FOR (book:Book) REQUIRE book.isbn IS UNIQUE'
+        : 'DROP CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE'
+    await verifyUpdates(runnable, query, null, {
+      nodesCreated: 0,
+      nodesDeleted: 0,
+      relationshipsCreated: 0,
+      relationshipsDeleted: 0,
+      propertiesSet: 0,
+      labelsAdded: 0,
+      labelsRemoved: 0,
+      indexesAdded: 0,
+      indexesRemoved: 0,
+      constraintsAdded: 0,
+      constraintsRemoved: 1
+    })
   }
 
   /**
