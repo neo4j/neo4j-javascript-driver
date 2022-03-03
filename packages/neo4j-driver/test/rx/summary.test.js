@@ -437,7 +437,7 @@ describe('#integration-rx summary', () => {
     }
 
     const query = isNewConstraintIndexSyntax(protocolVersion)
-      ? 'CREATE INDEX FOR :Label(prop)'
+      ? 'CREATE INDEX FOR (l:Label) ON (l.prop)'
       : 'CREATE INDEX ON :Label(prop)'
 
     await verifyUpdates(runnable, query, null, {
@@ -472,7 +472,7 @@ describe('#integration-rx summary', () => {
     const session = driver.session()
     try {
       const query = isNewConstraintIndexSyntax(protocolVersion)
-        ? 'CREATE INDEX FOR :Label(prop)'
+        ? 'CREATE INDEX l_prop FOR (l:Label) ON (l.prop)'
         : 'CREATE INDEX ON :Label(prop)'
       await session.run(query)
     } finally {
@@ -480,7 +480,7 @@ describe('#integration-rx summary', () => {
     }
 
     const query = isNewConstraintIndexSyntax(protocolVersion)
-      ? 'DROP INDEX FOR :Label(prop)'
+      ? 'DROP INDEX l_prop'
       : 'DROP INDEX ON :Label(prop)'
     await verifyUpdates(runnable, query, null, {
       nodesCreated: 0,
@@ -544,7 +544,7 @@ describe('#integration-rx summary', () => {
     const session = driver.session()
     try {
       const query = isNewConstraintIndexSyntax(protocolVersion)
-        ? 'CREATE CONSTRAINT FOR (book:Book) REQUIRE book.isbn IS UNIQUE'
+        ? 'CREATE CONSTRAINT book_isbn FOR (book:Book) REQUIRE book.isbn IS UNIQUE'
         : 'CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE'
       await session.run(query)
     } finally {
@@ -552,7 +552,7 @@ describe('#integration-rx summary', () => {
     }
 
     const query = isNewConstraintIndexSyntax(protocolVersion)
-      ? 'DROP CONSTRAINT FOR (book:Book) REQUIRE book.isbn IS UNIQUE'
+      ? 'DROP CONSTRAINT book_isbn'
       : 'DROP CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE'
     await verifyUpdates(runnable, query, null, {
       nodesCreated: 0,
