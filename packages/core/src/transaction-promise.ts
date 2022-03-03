@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 
-import Transaction from "./transaction"
+import Transaction from './transaction'
 import {
   ConnectionHolder
 } from './internal/connection-holder'
 
 import { Bookmarks } from './internal/bookmarks'
-import { TxConfig } from "./internal/tx-config";
+import { TxConfig } from './internal/tx-config'
 
 /**
  * Represents a {@link Promise<Transaction>} object and a {@link Transaction} object.
@@ -41,7 +41,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
   private _beginMetadata?: any;
   private _beginPromise?: Promise<Transaction>;
   private _reject?: (error: Error) => void;
-  private _resolve?: (value?: Transaction | PromiseLike<Transaction> | undefined) => void;
+  private _resolve?: (value: Transaction | PromiseLike<Transaction>) => void;
 
   /**
    * @constructor
