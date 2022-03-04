@@ -2825,7 +2825,6 @@ describe('#unit RoutingConnectionProvider', () => {
           expect(error).toEqual(expectedError)
         }
       })
-
     })
   })
 })
