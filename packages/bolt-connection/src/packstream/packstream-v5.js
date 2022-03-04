@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import * as v2 from './packstream-v2';
+import * as v2 from './packstream-v2'
 import {
   Node,
   Relationship,
