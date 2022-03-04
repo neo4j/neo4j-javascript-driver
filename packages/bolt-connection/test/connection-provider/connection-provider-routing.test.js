@@ -2576,7 +2576,6 @@ describe('#unit RoutingConnectionProvider', () => {
             }
           })
         })
-
       })
 
       describe('when the reset and flush fails for all addresses', () => {
