@@ -251,9 +251,21 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     })
 
     const servers = accessMode === WRITE ? routingTable.writers : routingTable.readers
+    
+    let error = newError(
+      `No servers available for database '${context.database}' with access mode '${accessMode}'`,
+      SERVICE_UNAVAILABLE
+    )
 
-    return Promise.all(servers.map(address => this._verifyConnectivityAndGetServerVersion({ address })))
-      .then(([serverInfo]) => serverInfo)
+    for (const address of servers) {
+      try {
+        const serverInfo = await this._verifyConnectivityAndGetServerVersion({ address })
+        return serverInfo
+      } catch (e) {
+        error = e
+      }
+    }
+    throw error
   }
 
   forget (address, database) {
