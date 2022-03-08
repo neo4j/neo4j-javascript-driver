@@ -23,6 +23,7 @@ RUN apt-get update && \
         nodejs \
         firefox \
         nodejs \
+        unzip \
     && rm -rf /var/lib/apt/lists/*
 
 RUN /bin/bash -c "hash -d npm"
