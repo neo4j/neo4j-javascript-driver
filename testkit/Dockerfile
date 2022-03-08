@@ -46,6 +46,10 @@ COPY CustomCAs/* /usr/local/share/custom-ca-certificates/
 
 RUN update-ca-certificates --verbose
 
+# Add Deno
+RUN curl -fsSL https://deno.land/x/install/install.sh | sh
+RUN mv /root/.deno/bin/deno /usr/bin/
+
 # Creating an user for building the driver and running the tests
 RUN useradd -m driver && echo "driver:driver" | chpasswd && adduser driver sudo
 VOLUME /driver
@@ -58,8 +62,6 @@ CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
 RUN npm config set prefix /home/driver/.npm_global
 
-# Add Deno
-RUN curl -fsSL https://deno.land/x/install/install.sh | sh
 
 ## Versions
 RUN node --version
