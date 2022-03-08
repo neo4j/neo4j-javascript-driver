@@ -43,9 +43,6 @@ const INT_CACHE: Map<number, Integer> = new Map()
  * @class A Integer class for representing a 64 bit two's-complement integer value.
  * @param {number} low The low (signed) 32 bits of the long
  * @param {number} high The high (signed) 32 bits of the long
- * 
- * @deprecated This class will be removed or made internal in a future version of the driver. 
- * Please configure your driver to use BigInt instead.
  *
  * @constructor
  */
