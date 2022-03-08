@@ -64,7 +64,7 @@ class Session {
   private _databaseNameResolved: boolean
   private _lowRecordWatermark: number
   private _highRecordWatermark: number
-
+  private _results: Result[]
   /**
    * @constructor
    * @protected
@@ -128,6 +128,7 @@ class Session {
     const calculatedWatermaks = this._calculateWatermaks()
     this._lowRecordWatermark = calculatedWatermaks.low
     this._highRecordWatermark = calculatedWatermaks.high
+    this._results = []
   }
 
   /**
@@ -154,7 +155,7 @@ class Session {
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    return this._run(validatedQuery, params, connection => {
+    const result = this._run(validatedQuery, params, connection => {
       this._assertSessionIsOpen()
       return (connection as Connection).protocol().run(validatedQuery, params, {
         bookmarks: this._lastBookmarks,
@@ -169,6 +170,8 @@ class Session {
         highRecordWatermark: this._highRecordWatermark
       })
     })
+    this._results.push(result)
+    return result
   }
 
   _run(
@@ -415,6 +418,9 @@ class Session {
   async close(): Promise<void> {
     if (this._open) {
       this._open = false
+
+      this._results.forEach(result => result._cancel())
+
       this._transactionExecutor.close()
 
       await this._readConnectionHolder.close()

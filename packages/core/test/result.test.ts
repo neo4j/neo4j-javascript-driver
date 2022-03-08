@@ -59,6 +59,26 @@ describe('Result', () => {
         expect(keys).toBe(expectedKeys)
       })
 
+      it('should reject pre-existing errors', () => {
+        const expectedError = newError('some error')
+        streamObserverMock.onError(expectedError)
+
+        expect(result.keys()).rejects.toBe(expectedError)
+      })
+
+      it('should reject already consumed pre-existing error', async () => {
+        const expectedError = newError('some error')
+        streamObserverMock.onError(expectedError)
+
+        try {
+          await result
+        } catch (e) {
+          // ignore
+        }
+
+        expect(result.keys()).rejects.toBe(expectedError)
+      })
+
       it('should resolve key pushed afterwards', done => {
         const expectedKeys = ['a', 'c']
 
@@ -152,6 +172,26 @@ describe('Result', () => {
           const summary = await result.summary()
 
           expect(summary).toEqual(expectedSummary)
+        })
+
+        it('should reject a pre-existing error', () => {
+          const expectedError = newError('the expected error')
+          streamObserverMock.onError(expectedError)
+
+          expect(result.summary()).rejects.toThrow(expectedError)
+        })
+
+        it('should reject already consumed pre-existing error', async () => {
+          const expectedError = newError('the expected error')
+          streamObserverMock.onError(expectedError)
+
+          try {
+            await result
+          } catch (_) {
+            // ignore
+          }
+
+          expect(result.summary()).rejects.toThrow(expectedError)
         })
 
         it('should resolve summary pushe afterwards', done => {

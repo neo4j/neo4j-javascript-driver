@@ -341,7 +341,7 @@ describe('#integration session', () => {
               'Query failed after a long running query was terminated',
               error
             )
-            done.fail.bind(done)
+            done.fail(error)
           })
       })
 
