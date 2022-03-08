@@ -57,5 +57,10 @@ CMD /bin/bash
 RUN mkdir /home/driver/.npm_global
 RUN npm config set prefix /home/driver/.npm_global
 
+# Add Deno
+RUN curl -fsSL https://deno.land/x/install/install.sh | sh
+
+## Versions
 RUN node --version
 RUN npm --version
+RUN deno --version
