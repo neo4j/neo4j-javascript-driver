@@ -204,6 +204,38 @@ describe('session', () => {
     })
   }, 70000)
 
+  it('should call cancel current result', done => {
+    const session = newSessionWithConnection(newFakeConnection())
+
+    const result = session.run('RETURN 1')
+    const spiedCancel =  jest.spyOn(result, '_cancel')
+
+    session.close()
+      .finally(() => {
+        expect(spiedCancel).toHaveBeenCalled()
+        done()
+      })
+  })
+
+  it('should call cancel current results', done => {
+    const session = newSessionWithConnection(newFakeConnection())
+
+    const spiedCancels: any[] = []
+
+    for (let i = 0; i < 10; i++) {
+      const result = session.run('RETURN 1')
+      spiedCancels.push(jest.spyOn(result, '_cancel'))
+    }
+
+    session.close()
+      .finally(() => {
+        spiedCancels.forEach(spy => {
+          expect(spy).toHaveBeenCalled()
+        })
+        done()
+      })
+  })
+
   describe('.lastBookmark()', () => {
     it.each([
       [bookmarks.Bookmarks.empty()],

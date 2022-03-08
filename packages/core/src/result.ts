@@ -115,6 +115,7 @@ class Result implements Promise<QueryResult> {
   private _connectionHolder: connectionHolder.ConnectionHolder
   private _keys: string[] | null
   private _summary: ResultSummary | null
+  private _error: Error | null
   private _watermarks: { high: number; low: number }
 
   /**
@@ -141,6 +142,7 @@ class Result implements Promise<QueryResult> {
     this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
     this._keys = null
     this._summary = null
+    this._error = null
     this._watermarks = watermarks
   }
 
@@ -154,8 +156,10 @@ class Result implements Promise<QueryResult> {
    }
    */
   keys(): Promise<string[]> {
-    if (this._keys != null) {
+    if (this._keys !== null) {
       return Promise.resolve(this._keys)
+    } else if (this._error !==  null) {
+      return Promise.reject(this._error)
     }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
@@ -179,8 +183,10 @@ class Result implements Promise<QueryResult> {
    *
    */
   summary(): Promise<ResultSummary> {
-    if (this._summary != null) {
+    if (this._summary !== null) {
       return Promise.resolve(this._summary)
+    } else if (this._error !== null) {
+      return Promise.reject(this._error)
     }
     return new Promise((resolve, reject) => {
       this._streamObserverPromise
@@ -405,6 +411,7 @@ class Result implements Promise<QueryResult> {
       // and result can't bee consumed any further; call the original onError callback after that
       this._connectionHolder.releaseConnection().then(() => {
         replaceStacktrace(error, this._stack)
+        this._error = error
         onErrorOriginal.call(observer, error)
       })
     }
@@ -431,7 +438,9 @@ class Result implements Promise<QueryResult> {
    * @returns {void}
    */
   _cancel(): void {
-    this._streamObserverPromise.then(o => o.cancel())
+    if (this._summary === null && this._error === null) {
+      this._streamObserverPromise.then(o => o.cancel())
+    }
   }
 
   /**
