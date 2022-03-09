@@ -20,6 +20,7 @@ def init_monorepo():
 def clean_and_build():
     run_in_driver_repo(["npm", "run", "clean"], env=os.environ)
     run_in_driver_repo(["npm", "run", "build"], env=os.environ)
+    run_in_driver_repo(["npm", "run", "build::deno"], env=os.environ)
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@
   "scripts": {
     "clean": "lerna clean -y && lerna run clean",
     "build": "lerna bootstrap --ci",
+    "build::deno": "(cd ./packages/neo4j-driver-deno && deno run --allow-read --allow-write --allow-net ./generate.ts --version=5.0.0-dev)",
     "docs": "lerna run docs --stream --concurrency 1",
     "test::unit": "lerna run test::unit --stream",
     "test::integration": "lerna run test::integration --stream",
