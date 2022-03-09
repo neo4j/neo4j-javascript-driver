@@ -28,6 +28,7 @@ import {
 } from 'neo4j-driver-core'
 import { Observable, of, Observer, throwError } from 'rxjs'
 import { concat, finalize, catchError } from 'rxjs/operators'
+import RxManagedTransaction from '../../types/transaction-managed-rx'
 
 const dummy: any = null
 const intValue: Integer = Integer.fromInt(42)
@@ -151,4 +152,16 @@ const observable5: Observable<string> = rxSession.readTransaction(
 const observable6: Observable<number> = rxSession.writeTransaction(
   (tx: RxTransaction) => of(42),
   txConfig4
+)
+
+const observable7: Observable<string> = rxSession.readTransaction(
+  (tx: RxManagedTransaction) => {
+    return of('42')
+  }
+)
+
+const observable8: Observable<string> = rxSession.writeTransaction(
+  (tx: RxManagedTransaction) => {
+    return of('42')
+  }
 )
