@@ -21,6 +21,7 @@ import ResultSummary from './result-summary'
 import Record from './record'
 import { Query, PeekableAsyncIterator } from './types'
 import { observer, util, connectionHolder } from './internal'
+import { newError } from './error'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
@@ -208,6 +209,9 @@ class Result implements Promise<QueryResult> {
    * @return {Promise} new Promise.
    */
   private _getOrCreatePromise(): Promise<QueryResult> {
+    if (!this.isOpen()) {
+      return Promise.reject(newError('Result is already consumed'))
+    }
     if (!this._p) {
       this._p = new Promise((resolve, reject) => {
         const records: Record[] = []
@@ -238,6 +242,13 @@ class Result implements Promise<QueryResult> {
    * @returns {PeekableAsyncIterator<Record, ResultSummary>} The async iterator for the Results
    */
   [Symbol.asyncIterator](): PeekableAsyncIterator<Record, ResultSummary> {
+    if (!this.isOpen()) {
+      const error = newError('Result is already consumed')
+      return {
+        next: () => Promise.reject(error),
+        peek: () => Promise.reject(error),
+      }
+    }
     const state: {
       paused: boolean,
       firstRun: boolean,
@@ -360,6 +371,10 @@ class Result implements Promise<QueryResult> {
   subscribe(observer: ResultObserver): void {
     this._subscribe(observer)
       .catch(() => {})
+  }
+
+  isOpen (): boolean {
+    return this._summary === null && this._error === null
   }
 
   /**

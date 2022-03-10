@@ -451,6 +451,22 @@ describe('Result', () => {
         result.catch(() => { }).finally(done)
       })
 
+      it.each([
+        ['success', async (stream: any) => stream.onCompleted({})],
+        //['error', async (stream: any) => stream.onError(new Error('error'))],
+      ])('should thrown over an consumed result [%s]', async(_, completeStream) => {
+        completeStream(streamObserverMock)
+
+        await result.summary().catch(() => {})
+
+        try {
+          await result
+          expect('not finish iteration over consumed result').toBe(true)
+        } catch (e) {
+          expect(e).toEqual(newError('Result is already consumed'))
+        }
+      })
+
       describe.each([
         ['query', {}, { query: 'query', parameters: {} }],
         ['query', { a: 1 }, { query: 'query', parameters: { a: 1 } }],
@@ -860,6 +876,26 @@ describe('Result', () => {
         ])
       })
 
+      it.each([
+        ['success', async (stream: any) => stream.onCompleted({})],
+        ['error', async (stream: any) => stream.onError(new Error('error'))],
+      ])('should thrown on iterate over an consumed result [%s]', async(_, completeStream) => {
+        completeStream(streamObserverMock)
+
+        await result.summary().catch(() => {})
+
+        try {
+          for await (const _ of result) {
+            expect('not iterate over consumed result').toBe(true)
+          }
+          expect('not finish iteration over consumed result').toBe(true)
+        } catch (e) {
+          expect(e).toEqual(newError('Result is already consumed'))
+        }
+
+        expect('not finish iteration over consumed result')
+      })
+
       describe('.return()', () => {
         it('should finished the operator when it get called', async () => {
           const keys = ['a', 'b']
@@ -1205,6 +1241,30 @@ describe('Result', () => {
         })
       })
     })
+
+    describe('.isOpen()', () => {
+      it('should return true when the stream is open', async () => {
+        await result._subscribe({}).catch(() => {})
+        
+        expect(result.isOpen()).toBe(true)
+      })
+
+      it('should return false when the stream is closed', async () => {
+        streamObserverMock.onCompleted({})
+
+        await result._subscribe({}).catch(() => {})
+
+        expect(result.isOpen()).toBe(false)
+      })
+
+      it('should return false when the stream is failed', async () => {
+        streamObserverMock.onError(new Error('test'))
+
+        await result._subscribe({}).catch(() => {})
+
+        expect(result.isOpen()).toBe(false)
+      })
+    })
   })
 
   describe.each([
@@ -1319,6 +1379,19 @@ describe('Result', () => {
         })
       })
     })
+
+    describe('isOpen()', () => {
+      it('should be true', () => {
+        expect(result.isOpen()).toBe(true)
+      })
+
+      it('should be false after any interactio with the stream', async () => {
+        const it = result[Symbol.asyncIterator]()
+        await it.next()
+
+        expect(result.isOpen()).toBe(false)
+      })
+    })
   })
 
   describe.each([
@@ -1378,6 +1451,30 @@ describe('Result', () => {
           const it = result[Symbol.asyncIterator]()
           await it.peek()
         })
+      })
+    })
+
+    describe('.isOpen()', () => {
+      it('should be true', async () => {
+        expect(result.isOpen()).toBe(true)
+
+        // consume the stream to avoid unhaddled errors
+        try {
+          await result.summary()
+        } catch (error) {
+        }
+      })
+
+      it('should be false after any interactio with the stream', async () => {
+        const it = result[Symbol.asyncIterator]()
+        
+        try {
+          await it.next()
+        } catch (error) {
+          // this's fine
+        }
+
+        expect(result.isOpen()).toBe(false)
       })
     })
 

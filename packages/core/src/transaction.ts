@@ -600,7 +600,7 @@ function finishTransaction(
     .then(connection => {
       onConnection()
       pendingResults.forEach(r => r._cancel())
-      return Promise.all(pendingResults).then(results => {
+      return Promise.all(pendingResults.map(result => result.summary())).then(results => {
         if (connection) {
           if (commit) {
             return connection.protocol().commitTransaction({
