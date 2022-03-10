@@ -58,7 +58,7 @@ class ManagedTransaction extends Transaction {
    *
    * This method will roll back the transaction if it is not already committed or rolled back.
    *
-   * @deprecated Close should not be done in transaction work. See {@link ManagedTransaction#commit} and {@link ManagedTransaction#rollback}
+   * @deprecated Closure should not be done in transaction work. See {@link ManagedTransaction#commit} and {@link ManagedTransaction#rollback}
    *
    * @returns {Promise<void>} An empty promise if closed successfully or error if any error happened during
    */

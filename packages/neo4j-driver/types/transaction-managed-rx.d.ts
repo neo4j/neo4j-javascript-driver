@@ -45,7 +45,7 @@ declare interface RxManagedTransaction {
    * Closes the transaction
    *
    * This method will roll back the transaction if it is not already committed or rolled back.
-   * @deprecated Close should not be done in transaction work. See {@link RxManagedTransaction#commit} and {@link RxManagedTransaction#rollback}
+   * @deprecated Closure should not be done in transaction work. See {@link RxManagedTransaction#commit} and {@link RxManagedTransaction#rollback}
    * @returns {Observable} - An empty observable
    */
   close(): Observable<any>
