@@ -65,8 +65,11 @@ export default async function execute () {
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
 
   const config = {
-    logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info'),
-    encrypted: isRemoteCluster()
+    logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')
+  }
+
+  if (isSslSchemeNotSet()) {
+    config.encrypted = isRemoteCluster()
   }
 
   const driver = neo4j.driver(
@@ -132,6 +135,21 @@ async function runWhileNotTimeout (asyncFunc, timeoutInSeconds) {
 
 function isRemoteCluster () {
   return fromEnvOrDefault('STRESS_TEST_DATABASE_URI') !== undefined
+}
+
+function isSslSchemeNotSet (uri) {
+  function extractScheme (scheme) {
+    if (scheme) {
+      scheme = scheme.trim()
+      if (scheme.charAt(scheme.length - 1) === ':') {
+        scheme = scheme.substring(0, scheme.length - 1)
+      }
+      return scheme
+    }
+    return null
+  }
+  const scheme = extractScheme(uri)
+  return scheme === null || scheme === 'bolt' || scheme === 'neo4j'
 }
 
 function isCluster () {
