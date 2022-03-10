@@ -373,6 +373,10 @@ class Result implements Promise<QueryResult> {
       .catch(() => {})
   }
 
+  /**
+   * Check if this result is active, which means summary or error are not received by the result.
+   * @return {boolean} `true` when summary or error are not received by the result.
+   */
   isOpen (): boolean {
     return this._summary === null && this._error === null
   }
