@@ -21,6 +21,7 @@ import { flatMap, catchError, concat } from 'rxjs/operators'
 import RxResult from './result-rx'
 import { Session, internal } from 'neo4j-driver-core'
 import RxTransaction from './transaction-rx'
+import RxManagedTransaction from './transaction-managed-rx'
 import RxRetryLogic from './internal/retry-logic-rx'
 
 const {
@@ -84,7 +85,7 @@ export default class RxSession {
    * Executes the provided unit of work in a {@link READ} reactive transaction which is created with the provided
    * transaction configuration.
    * @public
-   * @param {function(txc: RxTransaction): Observable} work - A unit of work to be executed.
+   * @param {function(txc: RxManagedTransaction): Observable} work - A unit of work to be executed.
    * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
    * @returns {Observable} - A reactive stream returned by the unit of work.
    */
@@ -96,7 +97,7 @@ export default class RxSession {
    * Executes the provided unit of work in a {@link WRITE} reactive transaction which is created with the provided
    * transaction configuration.
    * @public
-   * @param {function(txc: RxTransaction): Observable} work - A unit of work to be executed.
+   * @param {function(txc: RxManagedTransaction): Observable} work - A unit of work to be executed.
    * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
    * @returns {Observable} - A reactive stream returned by the unit of work.
    */
