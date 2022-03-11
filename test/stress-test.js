@@ -65,8 +65,11 @@ export default async function execute () {
   const LOGGING_ENABLED = fromEnvOrDefault('STRESS_TEST_LOGGING_ENABLED', false)
 
   const config = {
-    logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info'),
-    encrypted: isRemoteCluster()
+    logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')
+  }
+
+  if (isSslSchemeNotSet(DATABASE_URI)) {
+    config.encrypted = isRemoteCluster()
   }
 
   const driver = neo4j.driver(
