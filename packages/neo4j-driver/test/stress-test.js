@@ -68,7 +68,7 @@ export default async function execute () {
     logging: neo4j.logging.console(LOGGING_ENABLED ? 'debug' : 'info')
   }
 
-  if (isSslSchemeNotSet()) {
+  if (isSslSchemeNotSet(DATABASE_URI)) {
     config.encrypted = isRemoteCluster()
   }
 
