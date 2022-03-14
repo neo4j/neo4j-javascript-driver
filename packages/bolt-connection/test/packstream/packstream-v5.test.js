@@ -239,7 +239,7 @@ describe('#unit PackStreamV5', () => {
       return [nodeStruct, expectedNode, { disableLosslessIntegers: true, useBigInt: false }]
     }
 
-    function validWithoutOldIdentifiers() {
+    function validWithoutOldIdentifiersLossy() {
       const identity = null
       const labels = ['a', 'b']
       const properties = { 'a': 1, 'b': 2 }
@@ -249,6 +249,30 @@ describe('#unit PackStreamV5', () => {
         identity, labels, properties, elementId
       ])
       return [nodeStruct, expectedNode, { disableLosslessIntegers: true, useBigInt: false }]
+    }
+
+    function validWithoutOldIdentifiersLosslessInteger() {
+      const identity = null
+      const labels = ['a', 'b']
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const expectedNode = new Node(int(-1), labels, properties, elementId)
+      const nodeStruct = new Structure(0x4e, [
+        identity, labels, properties, elementId
+      ])
+      return [nodeStruct, expectedNode, { disableLosslessIntegers: false, useBigInt: false }]
+    }
+
+    function validWithoutOldIdentifiersBigInt() {
+      const identity = null
+      const labels = ['a', 'b']
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const expectedNode = new Node(BigInt(-1), labels, properties, elementId)
+      const nodeStruct = new Structure(0x4e, [
+        identity, labels, properties, elementId
+      ])
+      return [nodeStruct, expectedNode, { disableLosslessIntegers: false, useBigInt: true }]
     }
 
     function validWithInt() {
@@ -279,7 +303,9 @@ describe('#unit PackStreamV5', () => {
       validWithNumber(),
       validWithInt(),
       validWithBigInt(),
-      validWithoutOldIdentifiers()
+      validWithoutOldIdentifiersLossy(),
+      validWithoutOldIdentifiersLosslessInteger(),
+      validWithoutOldIdentifiersBigInt()
     ]
   }
 
@@ -310,7 +336,7 @@ describe('#unit PackStreamV5', () => {
       return [relStruct, expectedRel, { disableLosslessIntegers: true, useBigInt: false }]
     }
 
-    function validWithoutOldIdentifiers() {
+    function validWithoutOldIdentifiersLossy() {
       const identity = null
       const start = null
       const end = null
@@ -327,6 +353,44 @@ describe('#unit PackStreamV5', () => {
         startNodeElementId, endNodeElementId
       ])
       return [relStruct, expectedRel, { disableLosslessIntegers: true, useBigInt: false }]
+    }
+
+    function validWithoutOldIdentifiersLossLess() {
+      const identity = null
+      const start = null
+      const end = null
+      const type = 'KNOWS'
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const startNodeElementId = 'element_id_2'
+      const endNodeElementId = 'element_id_3'
+      const expectedRel = new Relationship(
+        int(-1), int(-1), int(-1), type, properties,
+        elementId, startNodeElementId, endNodeElementId)
+      const relStruct = new Structure(0x52, [
+        identity, start, end, type, properties, elementId,
+        startNodeElementId, endNodeElementId
+      ])
+      return [relStruct, expectedRel, { disableLosslessIntegers: false, useBigInt: false }]
+    }
+
+    function validWithoutOldIdentifiersBigInt() {
+      const identity = null
+      const start = null
+      const end = null
+      const type = 'KNOWS'
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const startNodeElementId = 'element_id_2'
+      const endNodeElementId = 'element_id_3'
+      const expectedRel = new Relationship(
+        BigInt(-1), BigInt(-1), BigInt(-1), type, properties,
+        elementId, startNodeElementId, endNodeElementId)
+      const relStruct = new Structure(0x52, [
+        identity, start, end, type, properties, elementId,
+        startNodeElementId, endNodeElementId
+      ])
+      return [relStruct, expectedRel, { disableLosslessIntegers: true, useBigInt: true }]
     }
 
     function validWithInt() {
@@ -371,7 +435,9 @@ describe('#unit PackStreamV5', () => {
       validWithNumber(),
       validWithInt(),
       validWithBigInt(),
-      validWithoutOldIdentifiers()
+      validWithoutOldIdentifiersLossy(),
+      validWithoutOldIdentifiersLossLess(),
+      validWithoutOldIdentifiersBigInt()
     ]
   }
 
@@ -395,7 +461,7 @@ describe('#unit PackStreamV5', () => {
       return [struct, expectedUnboundRel, { disableLosslessIntegers: true, useBigInt: false }]
     }
 
-    function validWithoutOldIdentifiers() {
+    function validWithoutOldIdentifiersLossy() {
       const identity = null
       const type = 'DOESNT_KNOW'
       const properties = { 'a': 1, 'b': 2 }
@@ -405,6 +471,30 @@ describe('#unit PackStreamV5', () => {
         identity, type, properties, elementId
       ])
       return [struct, expectedUnboundRel, { disableLosslessIntegers: true, useBigInt: false }]
+    }
+
+    function validWithoutOldIdentifiersLossless() {
+      const identity = null
+      const type = 'DOESNT_KNOW'
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const expectedUnboundRel = new UnboundRelationship(int(-1), type, properties, elementId)
+      const struct = new Structure(0x72, [
+        identity, type, properties, elementId
+      ])
+      return [struct, expectedUnboundRel, { disableLosslessIntegers: false, useBigInt: false }]
+    }
+
+    function validWithoutOldIdentifiersBigInt() {
+      const identity = null
+      const type = 'DOESNT_KNOW'
+      const properties = { 'a': 1, 'b': 2 }
+      const elementId = 'element_id_1'
+      const expectedUnboundRel = new UnboundRelationship(BigInt(-1), type, properties, elementId)
+      const struct = new Structure(0x72, [
+        identity, type, properties, elementId
+      ])
+      return [struct, expectedUnboundRel, { disableLosslessIntegers: false, useBigInt: true }]
     }
 
     function validWithInt() {
@@ -435,7 +525,9 @@ describe('#unit PackStreamV5', () => {
       validWithNumber(),
       validWithInt(),
       validWithBigInt(),
-      validWithoutOldIdentifiers()
+      validWithoutOldIdentifiersLossy(),
+      validWithoutOldIdentifiersLossless(),
+      validWithoutOldIdentifiersBigInt()
     ]
   }
 

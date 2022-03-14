@@ -83,6 +83,8 @@ describe('Node', () => {
       [new Node(1, ['label'], {}, 'elementId')],
       [new Node(1, ['label'], {})],
       [new Node(1, [], {})],
+      [new Node(BigInt(2), ['label'], {})],
+      [new Node(int(3), ['label'], {})],
       [new Node(1, [], { 'property': 'value' })],
       [new Node(1, ['label'], { 'property': 'value' })],
     ]
@@ -98,6 +100,8 @@ describe('Node', () => {
       [{ 'property': 'value' }],
       [{ 'property': 'value', 'labels': ['label'] }],
       [{ 'property': 'value', 'labels': ['label'], 'identity': 1 }],
+      [{ identity: BigInt(2), labels: ['label'], properties: { 'property': 'value' } }],
+      [{ identity: int(3), labels: ['label'], properties: { 'property': 'value' } }],
     ]
   }
 })
@@ -194,6 +198,8 @@ describe('Relationship', () => {
       [new Relationship(1, 2, 3, 'Rel', {}, 'elementId')],
       [new Relationship(1, 2, 3, 'Rel', {})],
       [new Relationship(1, 2, 3, 'Rel', { 'property': 'value' })],
+      [new Relationship(BigInt(4), BigInt(5), BigInt(6), 'Rel', {})],
+      [new Relationship(int(6), int(7), int(8), 'Rel', {})],
     ]
   }
 
@@ -293,6 +299,8 @@ describe('UnboundRelationship', () => {
       [new UnboundRelationship(1, 'Rel', {}, 'elementId')],
       [new UnboundRelationship(1, 'Rel', {})],
       [new UnboundRelationship(1, 'Rel', { 'property': 'value' })],
+      [new UnboundRelationship(BigInt(2), 'Rel', { 'property': 'value' })],
+      [new UnboundRelationship(int(3), 'Rel', { 'property': 'value' })],
     ]
   }
 

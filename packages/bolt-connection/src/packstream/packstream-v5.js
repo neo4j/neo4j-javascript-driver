@@ -21,7 +21,8 @@ import * as v2 from './packstream-v2'
 import {
   Node,
   Relationship,
-  UnboundRelationship
+  UnboundRelationship,
+  int
 } from 'neo4j-driver-core'
 
 const NODE_STRUCT_SIZE = 4
@@ -33,11 +34,32 @@ export class Packer extends v2.Packer {
 }
 
 export class Unpacker extends v2.Unpacker {
+  /**
+   * @constructor
+   * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
+   * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
+   */
+   constructor (disableLosslessIntegers = false, useBigInt = false) {
+    this._disableLosslessIntegers = disableLosslessIntegers
+    this._useBigInt = useBigInt
+    this._defaultIdentity = this._getDefaultIdentity()
+  }
+
+  _getDefaultIdentity() {
+    if (this._useBigInt) {
+      return BigInt(-1)
+    } else if (this._disableLosslessIntegers) {
+      return -1
+    } else {
+      return int(-1)
+    }
+  }
+
   _unpackNode (structSize, buffer) {
     this._verifyStructSize('Node', NODE_STRUCT_SIZE, structSize)
 
     return new Node(
-      _valueOrDefault(this.unpack(buffer), -1), // Identity
+      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // Identity
       this.unpack(buffer), // Labels
       this.unpack(buffer), // Properties,
       this.unpack(buffer) // ElementId
@@ -48,9 +70,9 @@ export class Unpacker extends v2.Unpacker {
     this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structSize)
 
     return new Relationship(
-      _valueOrDefault(this.unpack(buffer), -1), // Identity
-      _valueOrDefault(this.unpack(buffer), -1), // Start Node Identity
-      _valueOrDefault(this.unpack(buffer), -1), // End Node Identity
+      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // Identity
+      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // Start Node Identity
+      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // End Node Identity
       this.unpack(buffer), // Type
       this.unpack(buffer), // Properties,
       this.unpack(buffer), // ElementId
@@ -67,7 +89,7 @@ export class Unpacker extends v2.Unpacker {
     )
 
     return new UnboundRelationship(
-      _valueOrDefault(this.unpack(buffer), -1), // Identity
+      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // Identity
       this.unpack(buffer), // Type
       this.unpack(buffer), // Properties
       this.unpack(buffer) // ElementId
