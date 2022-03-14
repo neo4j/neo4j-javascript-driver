@@ -453,7 +453,7 @@ describe('Result', () => {
 
       it.each([
         ['success', async (stream: any) => stream.onCompleted({})],
-        //['error', async (stream: any) => stream.onError(new Error('error'))],
+        ['error', async (stream: any) => stream.onError(new Error('error'))],
       ])('should throw when iterating over consumed result [%s]', async(_, completeStream) => {
         completeStream(streamObserverMock)
 
