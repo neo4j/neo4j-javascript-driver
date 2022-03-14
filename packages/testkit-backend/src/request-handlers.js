@@ -1,4 +1,4 @@
-import neo4j from './neo4j'
+import neo4j from './neo4j.deno.js'
 import { cypherToNative } from './cypher-native-binders.js'
 import * as responses from './responses.js'
 
@@ -52,7 +52,7 @@ export function NewDriver (context, data, wire) {
     userAgent,
     resolver,
     useBigInt: true,
-    logging: neo4j.logging.console(process.env.LOG_LEVEL || context.logLevel)
+    logging: neo4j.logging.console('debug')
   }
   if ('encrypted' in data) {
     config.encrypted = data.encrypted ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF'

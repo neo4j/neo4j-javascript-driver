@@ -1,4 +1,4 @@
-import skip, { ifEndsWith, ifEquals, ifStartsWith } from './skip'
+import skip, { ifEndsWith, ifEquals, ifStartsWith } from './skip.js'
 const skippedTests = [
   skip(
     "Browser doesn't support socket timeouts",

@@ -1,6 +1,6 @@
-import commonSkippedTests from './common'
-import browserSkippedTests from './browser'
-import rxSessionSkippedTests from './rx'
+import commonSkippedTests from './common.js'
+import browserSkippedTests from './browser.js'
+import rxSessionSkippedTests from './rx.js'
 
 const skippedTestsByContext = new Map([
   ['browser', browserSkippedTests],

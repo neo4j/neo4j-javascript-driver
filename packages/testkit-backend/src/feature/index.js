@@ -1,6 +1,6 @@
-import commonFeatures from './common'
-import rxFeatures from './rx'
-import asyncFeatures from './async'
+import commonFeatures from './common.js'
+import rxFeatures from './rx.js'
+import asyncFeatures from './async.js'
 
 const featuresByContext = new Map([
   ['async', asyncFeatures],

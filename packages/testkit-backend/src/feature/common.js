@@ -1,6 +1,9 @@
-import tls from 'tls'
+
 
 const SUPPORTED_TLS = (() => {
+  const tls = {
+    DEFAULT_MAX_VERSION: false
+  }
   if (tls.DEFAULT_MAX_VERSION) {
     const min = Number(tls.DEFAULT_MIN_VERSION.split('TLSv')[1])
     const max = Number(tls.DEFAULT_MAX_VERSION.split('TLSv')[1])

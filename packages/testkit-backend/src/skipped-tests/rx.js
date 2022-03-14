@@ -1,4 +1,4 @@
-import { skip, ifEquals } from './skip'
+import { skip, ifEquals } from './skip.js'
 
 const skippedTests = [
   skip(
