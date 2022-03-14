@@ -454,14 +454,14 @@ describe('Result', () => {
       it.each([
         ['success', async (stream: any) => stream.onCompleted({})],
         //['error', async (stream: any) => stream.onError(new Error('error'))],
-      ])('should thrown over an consumed result [%s]', async(_, completeStream) => {
+      ])('should throw when iterating over consumed result [%s]', async(_, completeStream) => {
         completeStream(streamObserverMock)
 
         await result.summary().catch(() => {})
 
         try {
           await result
-          expect('not finish iteration over consumed result').toBe(true)
+          expect('not to finish iteration over consumed result').toBe(true)
         } catch (e) {
           expect(e).toEqual(newError('Result is already consumed'))
         }
@@ -879,21 +879,21 @@ describe('Result', () => {
       it.each([
         ['success', async (stream: any) => stream.onCompleted({})],
         ['error', async (stream: any) => stream.onError(new Error('error'))],
-      ])('should thrown on iterate over an consumed result [%s]', async(_, completeStream) => {
+      ])('should thrown on iterating over an consumed result [%s]', async(_, completeStream) => {
         completeStream(streamObserverMock)
 
         await result.summary().catch(() => {})
 
         try {
           for await (const _ of result) {
-            expect('not iterate over consumed result').toBe(true)
+            expect('not to iterate over consumed result').toBe(true)
           }
-          expect('not finish iteration over consumed result').toBe(true)
+          expect('not to finish iteration over consumed result').toBe(true)
         } catch (e) {
           expect(e).toEqual(newError('Result is already consumed'))
         }
 
-        expect('not finish iteration over consumed result')
+        expect('not to finish iteration over consumed result')
       })
 
       describe('.return()', () => {
@@ -1257,7 +1257,7 @@ describe('Result', () => {
         expect(result.isOpen()).toBe(false)
       })
 
-      it('should return false when the stream is failed', async () => {
+      it('should return false when the stream failed', async () => {
         streamObserverMock.onError(new Error('test'))
 
         await result._subscribe({}).catch(() => {})
@@ -1385,7 +1385,7 @@ describe('Result', () => {
         expect(result.isOpen()).toBe(true)
       })
 
-      it('should be false after any interactio with the stream', async () => {
+      it('should be false after any interaction with the stream', async () => {
         const it = result[Symbol.asyncIterator]()
         await it.next()
 
