@@ -16,11 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import BoltProtocolV44 from './bolt-protocol-v4x4'
+import { v5 } from '../packstream'
 
-import * as v1 from './packstream-v1'
-import * as v2 from './packstream-v2'
-import * as v5 from './packstream-v5'
+import { internal } from 'neo4j-driver-core'
 
-export { v1, v2, v5 }
+const {
+  constants: { BOLT_PROTOCOL_V5_0 },
+} = internal
 
-export default v2
+export default class BoltProtocol extends BoltProtocolV44 {
+  get version() {
+    return BOLT_PROTOCOL_V5_0
+  }
+
+  _createPacker (chunker) {
+    return new v5.Packer(chunker)
+  }
+
+  _createUnpacker (disableLosslessIntegers, useBigInt) {
+    return new v5.Unpacker(disableLosslessIntegers, useBigInt)
+  }
+}

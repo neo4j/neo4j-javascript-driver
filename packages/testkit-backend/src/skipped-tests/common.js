@@ -2,6 +2,10 @@ import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Skipped because server doesn\'t support protocol 5.0 yet',
+    ifEndsWith('neo4j.test_summary.TestSummary.test_protocol_version_information')
+  ),
+  skip(
     'Handle qid omission optmization can cause issues in nested queries',
     ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments'),
     ifEquals('stub.optimizations.test_optimizations.TestOptimizations.test_uses_implicit_default_arguments_multi_query'),

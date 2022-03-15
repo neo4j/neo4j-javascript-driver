@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Node should be serialized as string 1`] = `"(elementId:label)"`;
+
+exports[`Node should be serialized as string 2`] = `"(1:label)"`;
+
+exports[`Node should be serialized as string 3`] = `"(1)"`;
+
+exports[`Node should be serialized as string 4`] = `"(2:label)"`;
+
+exports[`Node should be serialized as string 5`] = `"(3:label)"`;
+
+exports[`Node should be serialized as string 6`] = `"(1 {property:\\"value\\"})"`;
+
+exports[`Node should be serialized as string 7`] = `"(1:label {property:\\"value\\"})"`;
+
+exports[`Relationship should be serialized as string 1`] = `"(startNodeElementId)-[:Rel]->(endNodeElementId)"`;
+
+exports[`Relationship should be serialized as string 2`] = `"(startNodeElementId)-[:Rel]->(3)"`;
+
+exports[`Relationship should be serialized as string 3`] = `"(2)-[:Rel]->(3)"`;
+
+exports[`Relationship should be serialized as string 4`] = `"(2)-[:Rel]->(3)"`;
+
+exports[`Relationship should be serialized as string 5`] = `"(2)-[:Rel {property:\\"value\\"}]->(3)"`;
+
+exports[`Relationship should be serialized as string 6`] = `"(5)-[:Rel]->(6)"`;
+
+exports[`Relationship should be serialized as string 7`] = `"(7)-[:Rel]->(8)"`;
+
+exports[`UnboundRelationship should be serialized as string 1`] = `"-[:Rel]->"`;
+
+exports[`UnboundRelationship should be serialized as string 2`] = `"-[:Rel]->"`;
+
+exports[`UnboundRelationship should be serialized as string 3`] = `"-[:Rel {property:\\"value\\"}]->"`;
+
+exports[`UnboundRelationship should be serialized as string 4`] = `"-[:Rel {property:\\"value\\"}]->"`;
+
+exports[`UnboundRelationship should be serialized as string 5`] = `"-[:Rel {property:\\"value\\"}]->"`;

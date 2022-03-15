@@ -60,7 +60,8 @@ export function nativeToCypher (x) {
         const node = {
           id: nativeToCypher(x.identity),
           labels: nativeToCypher(x.labels),
-          props: nativeToCypher(x.properties)
+          props: nativeToCypher(x.properties),
+          elementId: nativeToCypher(x.elementId)
         }
         return { name: 'CypherNode', data: node }
       }
@@ -70,7 +71,10 @@ export function nativeToCypher (x) {
           startNodeId: nativeToCypher(x.start),
           endNodeId: nativeToCypher(x.end),
           type: nativeToCypher(x.type),
-          props: nativeToCypher(x.properties)
+          props: nativeToCypher(x.properties),
+          elementId: nativeToCypher(x.elementId),
+          startNodeElementId: nativeToCypher(x.startNodeElementId),
+          endNodeElementId: nativeToCypher(x.endNodeElementId)
         }
         return { name: 'CypherRelationship', data: relationship }
       }

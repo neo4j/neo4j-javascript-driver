@@ -20,6 +20,9 @@ import Integer from './integer'
 import { stringify } from './json'
 
 type StandardDate = Date
+/**
+ * @typedef {number | Integer | bigint} NumberOrInteger
+ */
 type NumberOrInteger = number | Integer | bigint
 type Properties = { [key: string]: any }
 
@@ -48,17 +51,20 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
   identity: T
   labels: string[]
   properties: P
+  elementId: string
   /**
    * @constructor
    * @protected
-   * @param {Integer|number} identity - Unique identity
+   * @param {NumberOrInteger} identity - Unique identity
    * @param {Array<string>} labels - Array for all labels
    * @param {Properties} properties - Map with node properties
+   * @param {string} elementId - Node element identifier
    */
-  constructor(identity: T, labels: string[], properties: P) {
+  constructor(identity: T, labels: string[], properties: P, elementId?: string) {
     /**
      * Identity of the node.
-     * @type {Integer|number}
+     * @type {NumberOrInteger}
+     * @deprecated use {@link Node#elementId} instead
      */
     this.identity = identity
     /**
@@ -71,13 +77,18 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
      * @type {Properties}
      */
     this.properties = properties
+    /**
+     * The Node element identifier.
+     * @type {string}
+     */
+    this.elementId = _valueOrGetDefault(elementId, () => identity.toString())
   }
 
   /**
    * @ignore
    */
   toString() {
-    let s = '(' + this.identity
+    let s = '(' + this.elementId
     for (let i = 0; i < this.labels.length; i++) {
       s += ':' + this.labels[i]
     }
@@ -119,30 +130,42 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
   end: T
   type: string
   properties: P
+  elementId: string
+  startNodeElementId: string
+  endNodeElementId: string
 
   /**
    * @constructor
    * @protected
-   * @param {Integer|number} identity - Unique identity
-   * @param {Integer|number} start - Identity of start Node
-   * @param {Integer|number} end - Identity of end Node
+   * @param {NumberOrInteger} identity - Unique identity
+   * @param {NumberOrInteger} start - Identity of start Node
+   * @param {NumberOrInteger} end - Identity of end Node
    * @param {string} type - Relationship type
    * @param {Properties} properties - Map with relationship properties
+   * @param {string} elementId - Relationship element identifier
+   * @param {string} startNodeElementId - Start Node element identifier
+   * @param {string} endNodeElementId - End Node element identifier
    */
-  constructor(identity: T, start: T, end: T, type: string, properties: P) {
+  constructor(
+    identity: T, start: T, end: T, type: string, properties: P,
+    elementId?: string, startNodeElementId?: string, endNodeElementId?: string
+  ) {
     /**
      * Identity of the relationship.
-     * @type {Integer|number}
+     * @type {NumberOrInteger}
+     * @deprecated use {@link Relationship#elementId} instead
      */
     this.identity = identity
     /**
      * Identity of the start node.
-     * @type {Integer|number}
+     * @type {NumberOrInteger}
+     * @deprecated use {@link Relationship#startNodeElementId} instead
      */
     this.start = start
     /**
      * Identity of the end node.
-     * @type {Integer|number}
+     * @type {NumberOrInteger}
+     * @deprecated use {@link Relationship#endNodeElementId} instead
      */
     this.end = end
     /**
@@ -155,13 +178,31 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
      * @type {Properties}
      */
     this.properties = properties
+
+    /**
+     * The Relationship element identifier.
+     * @type {string}
+     */
+    this.elementId = _valueOrGetDefault(elementId, () => identity.toString())
+
+    /**
+     * The Start Node element identifier.
+     * @type {string}
+     */
+    this.startNodeElementId = _valueOrGetDefault(startNodeElementId, () => start.toString())
+
+    /**
+     * The End Node element identifier.
+     * @type {string}
+     */
+    this.endNodeElementId = _valueOrGetDefault(endNodeElementId, () => end.toString())
   }
 
   /**
    * @ignore
    */
   toString(): string {
-    let s = '(' + this.start + ')-[:' + this.type
+    let s = '(' + this.startNodeElementId + ')-[:' + this.type
     const keys = Object.keys(this.properties)
     if (keys.length > 0) {
       s += ' {'
@@ -171,7 +212,7 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
       }
       s += '}'
     }
-    s += ']->(' + this.end + ')'
+    s += ']->(' + this.endNodeElementId + ')'
     return s
   }
 }
@@ -199,18 +240,21 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
   identity: T
   type: string
   properties: P
+  elementId: string
 
   /**
    * @constructor
    * @protected
-   * @param {Integer|number} identity - Unique identity
+   * @param {NumberOrInteger} identity - Unique identity
    * @param {string} type - Relationship type
    * @param {Properties} properties - Map with relationship properties
+   * @param {string} elementId - Relationship element identifier
    */
-  constructor(identity: T, type: string, properties: any) {
+  constructor(identity: T, type: string, properties: any, elementId?: string) {
     /**
      * Identity of the relationship.
-     * @type {Integer|number}
+     * @type {NumberOrInteger}
+     * @deprecated use {@link UnboundRelationship#elementId} instead
      */
     this.identity = identity
     /**
@@ -223,12 +267,19 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
      * @type {Properties}
      */
     this.properties = properties
+
+    /**
+     * The Relationship element identifier.
+     * @type {string}
+     */
+    this.elementId = _valueOrGetDefault(elementId, () => identity.toString())
   }
 
   /**
    * Bind relationship
    *
    * @protected
+   * @deprecated use {@link UnboundRelationship#bindTo} instead
    * @param {Integer} start - Identity of start node
    * @param {Integer} end - Identity of end node
    * @return {Relationship} - Created relationship
@@ -239,7 +290,29 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
       start,
       end,
       this.type,
-      this.properties
+      this.properties,
+      this.elementId,
+    )
+  }
+
+  /**
+   * Bind relationship
+   *
+   * @protected
+   * @param {Node} start - Start Node
+   * @param {Node} end - End Node
+   * @return {Relationship} - Created relationship
+   */
+  bindTo(start: Node<T>, end: Node<T>): Relationship<T> {
+    return new Relationship(
+      this.identity,
+      start.identity,
+      end.identity,
+      this.type,
+      this.properties,
+      this.elementId,
+      start.elementId,
+      end.elementId,
     )
   }
 
@@ -377,6 +450,10 @@ Object.defineProperty(
  */
 function isPath(obj: object): obj is Path {
   return hasIdentifierProperty(obj, PATH_IDENTIFIER_PROPERTY)
+}
+
+function _valueOrGetDefault<T> (value: T|undefined|null, getDefault: () => T): T {
+  return value === undefined || value === null ? getDefault() : value
 }
 
 export {

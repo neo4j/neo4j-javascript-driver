@@ -646,18 +646,18 @@ class Unpacker {
           // information about their start and end nodes, that's instead
           // inferred from the path sequence. This is us inferring (and,
           // for performance reasons remembering) the start/end of a rel.
-          rels[relIndex - 1] = rel = rel.bind(
-            prevNode.identity,
-            nextNode.identity
+          rels[relIndex - 1] = rel = rel.bindTo(
+            prevNode,
+            nextNode
           )
         }
       } else {
         rel = rels[-relIndex - 1]
         if (rel instanceof UnboundRelationship) {
           // See above
-          rels[-relIndex - 1] = rel = rel.bind(
-            nextNode.identity,
-            prevNode.identity
+          rels[-relIndex - 1] = rel = rel.bindTo(
+            nextNode,
+            prevNode
           )
         }
       }
