@@ -1666,7 +1666,7 @@ describe('#unit RoutingConnectionProvider', () => {
       'Neo.ClientError.Security.Forbidden',
       'Neo.ClientError.Security.IWontTellYou'
     ])('with "%s"', errorCode => {
-      it('should fail without change the error ', async () => {
+      it('should fail without changing the error ', async () => {
         const error = newError('something wrong', errorCode)
         const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
           new FakeRediscovery(null, error),
@@ -1686,7 +1686,7 @@ describe('#unit RoutingConnectionProvider', () => {
     })
 
     describe('with "Neo.ClientError.Procedure.ProcedureNotFound"', () => {
-      it('should fail with SERVICE_UNAVAILABLE and a message about do not connect to cause cluster', async () => {
+      it('should fail with SERVICE_UNAVAILABLE and a message about the need for a causal cluster', async () => {
         const error = newError('something wrong', 'Neo.ClientError.Procedure.ProcedureNotFound')
         const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
           new FakeRediscovery(null, error),
@@ -1713,7 +1713,7 @@ describe('#unit RoutingConnectionProvider', () => {
       'Neo.ClientError.Security.AuthorizationExpired',
       'Neo.ClientError.MadeUp.Error'
     ])('with "%s"', errorCode => {
-      it('should fail with SERVICE_UNAVAILABLE and message about no routing servers available ', async () => {
+      it('should fail with SERVICE_UNAVAILABLE and message about no routing servers available', async () => {
         const error = newError('something wrong', errorCode)
         const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
           new FakeRediscovery(null, error),
