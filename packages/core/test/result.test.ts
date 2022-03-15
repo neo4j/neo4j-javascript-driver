@@ -451,22 +451,6 @@ describe('Result', () => {
         result.catch(() => { }).finally(done)
       })
 
-      it.each([
-        ['success', async (stream: any) => stream.onCompleted({})],
-        ['error', async (stream: any) => stream.onError(new Error('error'))],
-      ])('should throw when iterating over consumed result [%s]', async(_, completeStream) => {
-        completeStream(streamObserverMock)
-
-        await result.summary().catch(() => {})
-
-        try {
-          await result
-          expect('not to finish iteration over consumed result').toBe(true)
-        } catch (e) {
-          expect(e).toEqual(newError('Result is already consumed'))
-        }
-      })
-
       describe.each([
         ['query', {}, { query: 'query', parameters: {} }],
         ['query', { a: 1 }, { query: 'query', parameters: { a: 1 } }],

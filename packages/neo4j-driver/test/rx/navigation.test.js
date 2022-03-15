@@ -170,14 +170,19 @@ describe('#integration-rx navigation', () => {
       60000
     )
 
-    it(
-      'should fail on result when closed',
-      () =>
-        shouldFailOnResultWhenClosed(protocolVersion, session, () =>
-          session.close()
-        ),
-      60000
-    )
+    getObservableSelectors().forEach(([observableName, observableSelector]) => {
+      it(
+        `${observableName} should fail on result when closed`,
+        () =>
+          shouldFailOnResultWhenClosed(
+            protocolVersion,
+            session,
+            observableSelector,
+            () => session.close()
+          ),
+        60000
+      )
+    })
   })
 
   describe('transaction', () => {
@@ -340,21 +345,33 @@ describe('#integration-rx navigation', () => {
       60000
     )
 
-    it(
-      'should fail on result when committed',
-      () =>
-        shouldFailOnResultWhenClosed(protocolVersion, txc, () => txc.commit()),
-      60000
-    )
+    getObservableSelectors().forEach(([observableName, observableSelector]) => {
+      it(
+        `${observableName} should fail on result when committed`,
+        () =>
+          shouldFailOnResultWhenClosed(
+            protocolVersion,
+            txc,
+            observableSelector,
+            () => txc.commit()
+          ),
+        60000
+      )
+    })
 
-    it(
-      'should fail on result when rolled back',
-      () =>
-        shouldFailOnResultWhenClosed(protocolVersion, txc, () =>
-          txc.rollback()
-        ),
-      60000
-    )
+    getObservableSelectors().forEach(([observableName, observableSelector]) => {
+      it(
+        `${observableName}should fail on result when rolled back`,
+        () =>
+          shouldFailOnResultWhenClosed(
+            protocolVersion,
+            txc,
+            observableSelector,
+            () => txc.rollback()
+          ),
+        60000
+      )
+    })
   })
 
   /**
@@ -762,14 +779,24 @@ describe('#integration-rx navigation', () => {
     await collectAndAssertError(result.consume(), expectedError)
   }
 
+  function getObservableSelectors () {
+    return [
+      ['consume', r => r.consume()],
+      ['keys', r => r.keys()],
+      ['records', r => r.records()]
+    ]
+  }
+
   /**
    * @param {number} protocolVersion
    * @param {RxSession|RxTransaction} runnable
+   * @param {function(RxSession|RxTransaction):Observable<any>} selectObservable
    * @param {function(): Observable} closeFunc
    */
   async function shouldFailOnResultWhenClosed (
     protocolVersion,
     runnable,
+    selectObservable,
     closeFunc
   ) {
     if (protocolVersion < 4.0) {
@@ -782,9 +809,7 @@ describe('#integration-rx navigation', () => {
     const expectedError = jasmine.objectContaining({
       message: jasmine.stringMatching(/Cannot run query/)
     })
-    await collectAndAssertError(result.keys(), expectedError)
-    await collectAndAssertError(result.records(), expectedError)
-    await collectAndAssertError(result.consume(), expectedError)
+    await collectAndAssertError(selectObservable(result), expectedError)
   }
 
   async function collectAndAssertKeys (result) {

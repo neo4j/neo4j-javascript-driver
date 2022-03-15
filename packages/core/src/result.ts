@@ -209,9 +209,6 @@ class Result implements Promise<QueryResult> {
    * @return {Promise} new Promise.
    */
   private _getOrCreatePromise(): Promise<QueryResult> {
-    if (!this.isOpen()) {
-      return Promise.reject(newError('Result is already consumed'))
-    }
     if (!this._p) {
       this._p = new Promise((resolve, reject) => {
         const records: Record[] = []
