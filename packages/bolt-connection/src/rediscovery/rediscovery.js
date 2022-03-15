@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import RoutingTable from './routing-table'
-import { Session, ServerAddress } from 'neo4j-driver-core'
+import { Session } from 'neo4j-driver-core'
 
 export default class Rediscovery {
   /**
