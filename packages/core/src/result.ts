@@ -21,6 +21,7 @@ import ResultSummary from './result-summary'
 import Record from './record'
 import { Query, PeekableAsyncIterator } from './types'
 import { observer, util, connectionHolder } from './internal'
+import { newError } from './error'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
@@ -238,6 +239,13 @@ class Result implements Promise<QueryResult> {
    * @returns {PeekableAsyncIterator<Record, ResultSummary>} The async iterator for the Results
    */
   [Symbol.asyncIterator](): PeekableAsyncIterator<Record, ResultSummary> {
+    if (!this.isOpen()) {
+      const error = newError('Result is already consumed')
+      return {
+        next: () => Promise.reject(error),
+        peek: () => Promise.reject(error),
+      }
+    }
     const state: {
       paused: boolean,
       firstRun: boolean,
@@ -360,6 +368,14 @@ class Result implements Promise<QueryResult> {
   subscribe(observer: ResultObserver): void {
     this._subscribe(observer)
       .catch(() => {})
+  }
+
+  /**
+   * Check if this result is active, i.e., neither a summary nor an error has been received by the result.
+   * @return {boolean} `true` when neither a summary or nor an error has been received by the result.
+   */
+  isOpen (): boolean {
+    return this._summary === null && this._error === null
   }
 
   /**
