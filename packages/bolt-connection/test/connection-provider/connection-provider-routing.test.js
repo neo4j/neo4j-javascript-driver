@@ -2584,6 +2584,26 @@ describe('#unit RoutingConnectionProvider', () => {
           .toBeGreaterThan(connections[0].resetAndFlush.mock.invocationCallOrder[0])
       })
 
+      it('should not call resetAndFlush for newly created connections', async () => {
+        const { connectionProvider, routingTable, seenConnectionsPerAddress, pool } = setup({ newConnection: true })
+        const acquireSpy = jest.spyOn(pool, 'acquire')
+
+        await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+
+        const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
+        const address = targetServers[0]
+        expect(acquireSpy).toHaveBeenCalledWith(address)
+
+        const connections = seenConnectionsPerAddress.get(address)
+
+        // verifying resetAndFlush was not called
+        expect(connections[0].resetAndFlush).not.toHaveBeenCalled()
+
+        // extra checks
+        expect(connections.length).toBe(1)
+        expect(connections[0]._release).toHaveBeenCalled()
+      })
+
       it('should not acquire, resetAndFlush and release connections for sever with the other access mode', async () => {
         const { connectionProvider, routingTable, seenConnectionsPerAddress, pool } = setup()
         const acquireSpy = jest.spyOn(pool, 'acquire')
@@ -2756,7 +2776,7 @@ describe('#unit RoutingConnectionProvider', () => {
         })
       })
 
-      function setup ({ resetAndFlush, releaseMock } = {}) {
+      function setup ({ resetAndFlush, releaseMock, newConnection } = { }) {
         const routingTable = newRoutingTable(
           database || null,
           [server1, server2],
@@ -2774,6 +2794,7 @@ describe('#unit RoutingConnectionProvider', () => {
               seenConnectionsPerAddress.set(address, [])
             }
             const connection = new FakeConnection(address, release, 'version', protocolVersion, server)
+            connection._firstUsage = !!newConnection
             if (resetAndFlush) {
               connection.resetAndFlush = resetAndFlush
             }

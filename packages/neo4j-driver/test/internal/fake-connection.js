@@ -52,6 +52,7 @@ export default class FakeConnection extends Connection {
     this.protocolErrorsHandled = 0
     this.seenProtocolErrors = []
     this.seenRequestRoutingInformation = []
+    this._hasOnGoingObservableRequests = true
   }
 
   get id () {
@@ -159,6 +160,15 @@ export default class FakeConnection extends Connection {
   withRequestRoutingInformationMock (requestRoutingInformationMock) {
     this._requestRoutingInformationMock = requestRoutingInformationMock
     return this
+  }
+
+  withHasOngoingObservableRequests (value) {
+    this._hasOnGoingObservableRequests = value
+    return this
+  }
+
+  hasOngoingObservableRequests () {
+    return this._hasOnGoingObservableRequests
   }
 
   closed () {

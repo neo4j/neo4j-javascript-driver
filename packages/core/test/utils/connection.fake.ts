@@ -179,6 +179,10 @@ export default class FakeConnection extends Connection {
     this._open = false
     return this
   }
+
+  hasOngoingObservableRequests(): boolean {
+    return true
+  }
 }
 
 function mockResultStreamObserverWithError (query: string, parameters: any | undefined, error: Error): ResultStreamObserver {

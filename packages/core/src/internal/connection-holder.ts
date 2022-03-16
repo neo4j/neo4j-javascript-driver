@@ -197,7 +197,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._connectionPromise = this._connectionPromise
       .then((connection?: Connection|null) => {
         if (connection != null) {
-          if (connection.isOpen()) {
+          if (connection.isOpen() && connection.hasOngoingObservableRequests()) {
             return connection
               .resetAndFlush()
               .catch(ignoreError)

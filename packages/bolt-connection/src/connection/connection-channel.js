@@ -123,6 +123,7 @@ export default class ChannelConnection extends Connection {
   ) {
     super(errorHandler)
 
+    this._reseting = false
     this._id = idGenerator++
     this._address = address
     this._server = { address: address.asHostPort() }
@@ -304,7 +305,7 @@ export default class ChannelConnection extends Connection {
    */
   resetAndFlush () {
     return new Promise((resolve, reject) => {
-      this._protocol.reset({
+      this._reset({
         onError: error => {
           if (this._isBroken) {
             // handling a fatal error, no need to raise a protocol violation
@@ -328,12 +329,29 @@ export default class ChannelConnection extends Connection {
       return
     }
 
-    this._protocol.reset({
+    this._reset({
       onError: () => {
         this._protocol.resetFailure()
       },
       onComplete: () => {
         this._protocol.resetFailure()
+      }
+    })
+  }
+
+  _reset(observer) {
+    if (this._reseting) {
+      observer.onComplete()
+      return
+    }
+    this._reseting = true
+    this._protocol.reset({
+      onError: error => {
+        this._reseting = false
+        observer.onError(error)
+      }, onComplete: () => {
+        this._reseting = false
+        observer.onComplete()
       }
     })
   }

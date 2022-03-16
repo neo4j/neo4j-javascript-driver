@@ -319,6 +319,33 @@ describe('#unit ConnectionHolder', () => {
         })
       })
 
+      describe('and has not ongoing requests', () => {
+        let connection
+
+        beforeEach(async () => {
+          connection = new FakeConnection().withHasOngoingObservableRequests(
+            false
+          )
+          const connectionProvider = newSingleConnectionProvider(connection)
+          const connectionHolder = new ConnectionHolder({
+            mode: READ,
+            connectionProvider
+          })
+
+          connectionHolder.initializeConnection()
+
+          await connectionHolder.releaseConnection()
+        })
+
+        it('should call connection.resetAndFlush', () => {
+          expect(connection.resetInvoked).toBe(0)
+        })
+
+        it('should call connection._release()', () => {
+          expect(connection.releaseInvoked).toBe(1)
+        })
+      })
+
       describe('and connection is not open', () => {
         let connection
 

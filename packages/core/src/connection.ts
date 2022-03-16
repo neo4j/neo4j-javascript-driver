@@ -95,6 +95,14 @@ class Connection {
   }
 
   /**
+   * Checks if there is an ongoing request being handled
+   * @return {boolean} `true` if there is an ongoing request being handled
+   */
+  hasOngoingObservableRequests (): boolean {
+    throw Error('Not implemented')
+  }
+
+  /**
    * Call close on the channel.
    * @returns {Promise<void>} - A promise that will be resolved when the connection is closed.
    *

@@ -83,6 +83,10 @@ export default class DelegateConnection extends Connection {
     return this._delegate.resetAndFlush()
   }
 
+  hasOngoingObservableRequests () {
+    return this._delegate.hasOngoingObservableRequests()
+  }
+
   close () {
     return this._delegate.close()
   }
