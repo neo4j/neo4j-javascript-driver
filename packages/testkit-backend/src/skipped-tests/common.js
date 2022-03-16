@@ -21,15 +21,6 @@ const skippedTests = [
     ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_smaller_than_fetch_size'),
     ifEquals('neo4j.test_tx_func_run.TestTxFuncRun.test_tx_func_configuration')
   ),
-  skip(
-    'Fail while enable Temporary:FastFailingDiscovery',
-    ifEndsWith('test_should_request_rt_from_all_initial_routers_until_successful_on_authorization_expired'),
-    ifEndsWith('test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure'),
-    ifEndsWith('test_should_fail_with_routing_failure_on_any_security_discovery_failure'),
-    ifEndsWith('test_should_fail_with_routing_failure_on_invalid_bookmark_mixture_discovery_failure'),
-    ifEndsWith('test_should_fail_with_routing_failure_on_invalid_bookmark_discovery_failure'),
-    ifEndsWith('test_should_fail_with_routing_failure_on_forbidden_discovery_failure')
-  ),
   skip('Flacky because sometimes the connection is actually available',
     ifEndsWith('test_should_enforce_pool_size_per_cluster_member')
   ),
@@ -106,6 +97,15 @@ const skippedTests = [
     'Driver resolves the address during the record fetch',
     ifEndsWith(
       'test_should_use_resolver_during_rediscovery_when_existing_routers_fail'
+    )
+  ),
+  skip(
+    'Needs to implement "domain_name_resolver_fn"',
+    ifEndsWith(
+      'test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure',
+    ),
+    ifEndsWith(
+      'test_should_request_rt_from_all_initial_routers_until_successful_on_authorization_expired'
     )
   ),
   skip(
