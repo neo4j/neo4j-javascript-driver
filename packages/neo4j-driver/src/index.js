@@ -21,6 +21,7 @@ import VERSION from './version'
 
 import {
   Neo4jError,
+  isRetryableError,
   error,
   Integer,
   inSafeRange,
@@ -383,6 +384,7 @@ const forExport = {
   isDateTime,
   integer,
   Neo4jError,
+  isRetryableError,
   auth,
   logging,
   types,
@@ -405,6 +407,7 @@ export {
   isDateTime,
   integer,
   Neo4jError,
+  isRetryableError,
   auth,
   logging,
   types,

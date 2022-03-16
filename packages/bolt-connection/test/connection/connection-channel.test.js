@@ -169,7 +169,7 @@ describe('ChannelConnection', () => {
         expect(loggerFunction).toHaveBeenCalledWith(
           'error',
           `${connection} experienced a fatal error caused by Neo4jError: some error ` +
-            '({"code":"C","name":"Neo4jError"})'
+            '({"code":"C","name":"Neo4jError","retriable":false})'
         )
       })
     })
@@ -217,7 +217,7 @@ describe('ChannelConnection', () => {
         expect(loggerFunction).toHaveBeenCalledWith(
           'error',
           `${connection} experienced a fatal error caused by Neo4jError: current failure ` +
-            '({"code":"ongoing","name":"Neo4jError"})'
+            '({"code":"ongoing","name":"Neo4jError","retriable":false})'
         )
       })
     })

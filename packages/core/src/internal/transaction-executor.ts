@@ -17,10 +17,10 @@
  * limitations under the License.
  */
 
-import { newError } from '../error'
+import { newError, isRetriableError } from '../error'
 import Transaction from '../transaction'
 import TransactionPromise from '../transaction-promise'
-import { canRetryOn } from './retry-strategy'
+
 
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds
 const DEFAULT_INITIAL_RETRY_DELAY_MS = 1000 // 1 seconds
@@ -107,7 +107,7 @@ export class TransactionExecutor {
   ): Promise<T> {
     const elapsedTimeMs = Date.now() - retryStartTime
 
-    if (elapsedTimeMs > this._maxRetryTimeMs || !canRetryOn(error)) {
+    if (elapsedTimeMs > this._maxRetryTimeMs || !isRetriableError(error)) {
       return Promise.reject(error)
     }
 
