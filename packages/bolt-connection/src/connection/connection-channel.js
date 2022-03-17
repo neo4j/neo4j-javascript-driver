@@ -124,6 +124,7 @@ export default class ChannelConnection extends Connection {
     super(errorHandler)
 
     this._reseting = false
+    this._resetObservers = []
     this._id = idGenerator++
     this._address = address
     this._server = { address: address.asHostPort() }
@@ -340,18 +341,24 @@ export default class ChannelConnection extends Connection {
   }
 
   _reset(observer) {
+    this._resetObservers.push(observer)
     if (this._reseting) {
-      observer.onComplete()
       return
     }
     this._reseting = true
+
+    const notifyFinish = (notify) => {
+      this._reseting = false
+      const observers = this._resetObservers
+      this._resetObservers = []
+      observers.forEach(notify)
+    }
+
     this._protocol.reset({
       onError: error => {
-        this._reseting = false
-        observer.onError(error)
+        notifyFinish(obs => obs.onError(error))
       }, onComplete: () => {
-        this._reseting = false
-        observer.onComplete()
+        notifyFinish(obs => obs.onComplete())
       }
     })
   }

@@ -282,7 +282,7 @@ describe('ChannelConnection', () => {
         connection._resetOnFailure()
 
         expect(protocol.reset).toHaveBeenCalledTimes(1)
-        expect(protocol.resetFailure).toHaveBeenCalledTimes(1)
+        expect(protocol.resetFailure).not.toHaveBeenCalled()
       })
 
       it('should call protocol.reset() when after a previous reset completed', () => {
@@ -451,20 +451,23 @@ describe('ChannelConnection', () => {
       }
 
       const protocol = {
-        reset: jest.fn(),
+        reset: jest.fn(observer => {
+          setTimeout(() => observer.onComplete(), 100)
+        }),
         resetFailure: jest.fn()
       }
       const protocolSupplier = () => protocol
       const connection = spyOnConnectionChannel({ channel, protocolSupplier })
 
-      // to not block since the reset will never complete
-      connection.resetAndFlush()
+      const completeFirstResetAndFlush = connection.resetAndFlush()
 
       expect(protocol.reset).toHaveBeenCalledTimes(1)
 
       await connection.resetAndFlush()
 
       expect(protocol.reset).toHaveBeenCalledTimes(1)
+
+      await completeFirstResetAndFlush
     })
 
     it('should call protocol.reset() when after a previous reset completed', async () => {
