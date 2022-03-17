@@ -79,6 +79,7 @@ export default class BoltProtocol {
     this._log = log
     this._onProtocolError = onProtocolError
     this._fatalError = null
+    this._lastMessageSignature = null
   }
 
   /**
@@ -356,6 +357,8 @@ export default class BoltProtocol {
         this._log.debug(`C: ${message}`)
       }
 
+      this._lastMessageSignature = message.signature
+
       this.packer().packStruct(
         message.signature,
         message.fields.map(field => this.packer().packable(field))
@@ -367,6 +370,10 @@ export default class BoltProtocol {
         this._chunker.flush()
       }
     }
+  }
+
+  isLastMessageLogin () {
+    return this._lastMessageSignature === 0x01
   }
 
   /**

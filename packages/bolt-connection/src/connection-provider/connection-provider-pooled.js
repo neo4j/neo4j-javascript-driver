@@ -123,7 +123,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     const connection = await this._connectionPool.acquire(address)
     const serverInfo = new ServerInfo(connection.server, connection.protocol().version)
     try {
-      if (!connection._firstUsage) {
+      if (!connection._firstUsage && !connection.protocol().isLastMessageLogin()) {
         await connection.resetAndFlush()
       }
     } finally {

@@ -251,7 +251,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
       const create = (address, release) => {
         const connection = new FakeConnection(address, release, server)
         connection.protocol = () => {
-          return { version: protocolVersion }
+          return { version: protocolVersion, isLastMessageLogin() { return false } }
         }
         connection.resetAndFlush = resetAndFlush
         if (releaseMock) {
