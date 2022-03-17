@@ -71,9 +71,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    */
   _createConnection (address, release) {
     return this._createChannelConnection(address).then(connection => {
-      connection._firstUsage = true
       connection._release = () => {
-        connection._firstUsage = false
         return release(address, connection)
       }
       this._openConnections[connection.id] = connection
@@ -123,7 +121,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     const connection = await this._connectionPool.acquire(address)
     const serverInfo = new ServerInfo(connection.server, connection.protocol().version)
     try {
-      if (!connection._firstUsage && !connection.protocol().isLastMessageLogin()) {
+      if (!connection.protocol().isLastMessageLogin()) {
         await connection.resetAndFlush()
       }
     } finally {
