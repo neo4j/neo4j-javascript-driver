@@ -376,6 +376,10 @@ export default class BoltProtocol {
     return this._lastMessageSignature === 0x01
   }
 
+  isLastMessageReset () {
+    return this._lastMessageSignature === 0x0f
+  }
+
   /**
    * Notifies faltal erros to the observers and mark the protocol in the fatal error state.
    * @param {Error} error The error

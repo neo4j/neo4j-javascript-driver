@@ -341,10 +341,22 @@ export default class ChannelConnection extends Connection {
   }
 
   _reset(observer) {
-    this._resetObservers.push(observer)
     if (this._reseting) {
+      if (!this._protocol.isLastMessageReset()) {
+        this._protocol.reset({
+          onError: error => {
+            observer.onError(error)
+          }, onComplete: () => {
+            observer.onComplete()
+          }
+        })
+      } else {
+        this._resetObservers.push(observer)
+      }
       return
     }
+
+    this._resetObservers.push(observer)
     this._reseting = true
 
     const notifyFinish = (notify) => {

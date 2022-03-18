@@ -269,7 +269,8 @@ describe('ChannelConnection', () => {
 
         const protocol = {
           reset: jest.fn(),
-          resetFailure: jest.fn()
+          resetFailure: jest.fn(),
+          isLastMessageReset: jest.fn(() => true)
         }
         const protocolSupplier = () => protocol
         const connection = spyOnConnectionChannel({ channel, protocolSupplier })
@@ -454,7 +455,8 @@ describe('ChannelConnection', () => {
         reset: jest.fn(observer => {
           setTimeout(() => observer.onComplete(), 100)
         }),
-        resetFailure: jest.fn()
+        resetFailure: jest.fn(),
+        isLastMessageReset: jest.fn(() => true)
       }
       const protocolSupplier = () => protocol
       const connection = spyOnConnectionChannel({ channel, protocolSupplier })
