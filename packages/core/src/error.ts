@@ -127,7 +127,7 @@ function _isRetriableCode (code?: Neo4jErrorCode): boolean {
   return code === SERVICE_UNAVAILABLE ||
     code === SESSION_EXPIRED ||
     _isAuthorizationExpired(code) ||
-    _isTransientError(code)
+    _isRetriableTransientError(code)
 }
 
 /**
@@ -135,7 +135,7 @@ function _isRetriableCode (code?: Neo4jErrorCode): boolean {
  * @param {string} code the error to check
  * @return {boolean} true if the error is a transient error
  */
-function _isTransientError (code?: Neo4jErrorCode): boolean {
+function _isRetriableTransientError (code?: Neo4jErrorCode): boolean {
   // Retries should not happen when transaction was explicitly terminated by the user.
   // Termination of transaction might result in two different error codes depending on where it was
   // terminated. These are really client errors but classification on the server is not entirely correct and
