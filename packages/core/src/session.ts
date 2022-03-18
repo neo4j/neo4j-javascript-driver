@@ -494,8 +494,8 @@ class Session {
 
       this._transactionExecutor.close()
 
-      await this._readConnectionHolder.close()
-      await this._writeConnectionHolder.close()
+      await this._readConnectionHolder.close(this._hasTx)
+      await this._writeConnectionHolder.close(this._hasTx)
     }
   }
 

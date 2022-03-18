@@ -196,7 +196,18 @@ describe('session', () => {
     expect(resetAndFlushSpy).toHaveBeenCalledTimes(1)
   }, 70000)
 
-  it('close should not reset connection if there is not an ongoing request ', async () => {
+  it('close should not reset connection if there is not an ongoing request', async () => {
+    const connection = newFakeConnection()
+    connection.hasOngoingObservableRequests = () => false
+    const resetAndFlushSpy = jest.spyOn(connection, 'resetAndFlush')
+    const session = newSessionWithConnection(connection, false)
+
+    await session.close()
+
+    expect(resetAndFlushSpy).not.toHaveBeenCalled()
+  }, 70000)
+
+  it('close should reset connection if there is not an ongoing request but it has tx running', async () => {
     const connection = newFakeConnection()
     connection.hasOngoingObservableRequests = () => false
     const resetAndFlushSpy = jest.spyOn(connection, 'resetAndFlush')
@@ -204,7 +215,7 @@ describe('session', () => {
 
     await session.close()
 
-    expect(resetAndFlushSpy).not.toHaveBeenCalled()
+    expect(resetAndFlushSpy).toHaveBeenCalled()
   }, 70000)
 
   it('should close transaction executor', done => {

@@ -178,12 +178,16 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._connectionPromise
   }
 
+<<<<<<< HEAD
   close (): Promise<null | Connection> {
+=======
+  close(hasTx?: boolean): Promise<void | Connection> {
+>>>>>>> Sending reset if there is a tx going on
     if (this._referenceCount === 0) {
       return this._connectionPromise
     }
     this._referenceCount = 0
-    return this._releaseConnection()
+    return this._releaseConnection(hasTx)
   }
 
   /**
@@ -197,7 +201,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._connectionPromise = this._connectionPromise
       .then((connection?: Connection|null) => {
         if (connection != null) {
-          if (connection.isOpen() && connection.hasOngoingObservableRequests()) {
+          if (connection.isOpen() && (connection.hasOngoingObservableRequests() || hasTx)) {
             return connection
               .resetAndFlush()
               .catch(ignoreError)
