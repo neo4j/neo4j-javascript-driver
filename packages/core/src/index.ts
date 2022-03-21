@@ -20,6 +20,7 @@
 import {
   newError,
   Neo4jError,
+  isRetriableError,
   PROTOCOL_ERROR,
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED
@@ -93,6 +94,7 @@ const error = {
 const forExport = {
   newError,
   Neo4jError,
+  isRetriableError,
   error,
   Integer,
   int,
@@ -150,6 +152,7 @@ const forExport = {
 export {
   newError,
   Neo4jError,
+  isRetriableError,
   error,
   Integer,
   int,

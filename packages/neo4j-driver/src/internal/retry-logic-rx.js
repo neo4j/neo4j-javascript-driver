@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError, error, internal } from 'neo4j-driver-core'
+import { newError, error, internal, isRetriableError } from 'neo4j-driver-core'
 import { Observable, throwError, of } from 'rxjs'
 import { retryWhen, flatMap, delay } from 'rxjs/operators'
 
@@ -25,8 +25,7 @@ const {
   logger: {
     // eslint-disable-next-line no-unused-vars
     Logger
-  },
-  retryStrategy: { canRetryOn }
+  }
 } = internal
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
@@ -81,7 +80,7 @@ export default class RxRetryLogic {
 
         return failedWork.pipe(
           flatMap(err => {
-            if (!canRetryOn(err)) {
+            if (!isRetriableError(err)) {
               return throwError(err)
             }
 

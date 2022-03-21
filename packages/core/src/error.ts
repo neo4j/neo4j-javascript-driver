@@ -62,6 +62,7 @@ class Neo4jError extends Error {
    * Optional error code. Will be populated when error originates in the database.
    */
   code: Neo4jErrorCode
+  retriable: boolean
   __proto__: Neo4jError
 
   /**
@@ -76,6 +77,24 @@ class Neo4jError extends Error {
     this.__proto__ = Neo4jError.prototype
     this.code = code
     this.name = 'Neo4jError'
+    /**
+     * Indicates if the error is retriable.
+     * @type {boolean} - true if the error is retriable
+     */
+    this.retriable = _isRetriableCode(code)
+  }
+
+  /**
+   * Verifies if the given error is retriable.
+   *
+   * @param {object|undefined|null} error the error object
+   * @returns {boolean} true if the error is retriable
+   */
+  static isRetriable(error?: any | null): boolean {
+    return error !== null &&
+      error !== undefined &&
+      error instanceof Neo4jError &&
+      error.retriable
   }
 }
 
@@ -90,8 +109,62 @@ function newError (message: string, code?: Neo4jErrorCode): Neo4jError {
   return new Neo4jError(message, code ?? NOT_AVAILABLE)
 }
 
+/**
+ * Verifies if the given error is retriable.
+ *
+ * @public
+ * @param {object|undefined|null} error the error object
+ * @returns {boolean} true if the error is retriable
+ */
+ const isRetriableError = Neo4jError.isRetriable
+
+/**
+ * @private
+ * @param {string} code the error code
+ * @returns {boolean} true if the error is a retriable error
+ */
+function _isRetriableCode (code?: Neo4jErrorCode): boolean {
+  return code === SERVICE_UNAVAILABLE ||
+    code === SESSION_EXPIRED ||
+    _isAuthorizationExpired(code) ||
+    _isRetriableTransientError(code)
+}
+
+/**
+ * @private
+ * @param {string} code the error to check
+ * @return {boolean} true if the error is a transient error
+ */
+function _isRetriableTransientError (code?: Neo4jErrorCode): boolean {
+  // Retries should not happen when transaction was explicitly terminated by the user.
+  // Termination of transaction might result in two different error codes depending on where it was
+  // terminated. These are really client errors but classification on the server is not entirely correct and
+  // they are classified as transient.
+
+  if (code !== undefined && code.indexOf('TransientError') >= 0) {
+    if (
+      code === 'Neo.TransientError.Transaction.Terminated' ||
+      code === 'Neo.TransientError.Transaction.LockClientStopped'
+    ) {
+      return false
+    }
+    return true
+  }
+  return false
+}
+
+/**
+ * @private
+ * @param {string} code the error to check
+ * @returns {boolean} true if the error is a service unavailable error
+ */
+function _isAuthorizationExpired (code?: Neo4jErrorCode): boolean {
+  return code === 'Neo.ClientError.Security.AuthorizationExpired'
+}
+
 export {
   newError,
+  isRetriableError,
   Neo4jError,
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED,

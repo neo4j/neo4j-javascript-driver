@@ -21,6 +21,7 @@ import { logging } from './logging'
 
 import {
   Neo4jError,
+  isRetriableError,
   error,
   Integer,
   inSafeRange,
@@ -403,6 +404,7 @@ const forExport = {
   isDateTime,
   integer,
   Neo4jError,
+  isRetriableError,
   auth,
   logging,
   types,
@@ -453,6 +455,7 @@ export {
   isDateTime,
   integer,
   Neo4jError,
+  isRetriableError,
   auth,
   logging,
   types,

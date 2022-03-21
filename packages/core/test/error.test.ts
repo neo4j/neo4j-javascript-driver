@@ -18,6 +18,7 @@
  */
 import {
   Neo4jError,
+  isRetriableError,
   newError,
   PROTOCOL_ERROR,
   SERVICE_UNAVAILABLE,
@@ -42,6 +43,18 @@ describe('newError', () => {
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
   })
+})
+
+describe('isRetriableError()', () => {
+  it.each(getRetriableErrorsFixture())
+    ('should return true for error with code %s', error => {
+      expect(isRetriableError(error)).toBe(true)
+    })
+
+  it.each(getNonRetriableErrorsFixture())
+    ('should return false for error with code %s', error => {
+      expect(isRetriableError(error)).toBe(false)
+    })
 })
 
 describe('Neo4jError', () => {
@@ -76,4 +89,64 @@ describe('Neo4jError', () => {
     expect(error.__proto__).toEqual(Neo4jError.prototype)
     expect(error.constructor).toEqual(Neo4jError)
   })
+
+  test.each(getRetriableCodes())
+    ('should define retriable as true for error with code %s', code => {
+      const error = new Neo4jError('message', code)
+
+      expect(error.retriable).toBe(true)
+    })
+
+  test.each(getNonRetriableCodes())
+    ('should define retriable as false for error with code %s', code => {
+      const error = new Neo4jError('message', code)
+
+      expect(error.retriable).toBe(false)
+    })
+
+  describe('.isRetriable()', () => {
+    it.each(getRetriableErrorsFixture())
+      ('should return true for error with code %s', error => {
+        expect(Neo4jError.isRetriable(error)).toBe(true)
+      })
+  
+    it.each(getNonRetriableErrorsFixture())
+      ('should return false for error with code %s', error => {
+        expect(Neo4jError.isRetriable(error)).toBe(false)
+      })
+  })
 })
+
+function getRetriableErrorsFixture () {
+  return getRetriableCodes().map(code => [newError('message', code)])
+}
+
+function getNonRetriableErrorsFixture () {
+  return [
+    null,
+    undefined,
+    '',
+    'Neo.TransientError.Transaction.DeadlockDetected',
+    new Error('Neo.ClientError.Security.AuthorizationExpired'),
+    ...getNonRetriableCodes().map(code => [newError('message', code)])
+  ]
+}
+
+function getRetriableCodes () {
+  return [
+    SERVICE_UNAVAILABLE,
+    SESSION_EXPIRED,
+    'Neo.ClientError.Security.AuthorizationExpired',
+    'Neo.TransientError.Transaction.DeadlockDetected',
+    'Neo.TransientError.Network.CommunicationError'
+  ]
+}
+
+function getNonRetriableCodes () {
+  return [
+    'Neo.TransientError.Transaction.Terminated',
+    'Neo.DatabaseError.General.UnknownError',
+    'Neo.TransientError.Transaction.LockClientStopped',
+    'Neo.DatabaseError.General.OutOfMemoryError'
+  ]
+}

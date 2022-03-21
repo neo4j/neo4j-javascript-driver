@@ -19,6 +19,7 @@
 
 import {
   Neo4jError,
+  isRetriableError,
   error,
   Integer,
   inSafeRange,
@@ -174,6 +175,7 @@ declare const forExport: {
   TrustStrategy: TrustStrategy
   SessionMode: SessionMode
   Neo4jError: Neo4jError
+  isRetriableError: typeof isRetriableError
   Node: Node
   Relationship: Relationship
   UnboundRelationship: UnboundRelationship
@@ -234,6 +236,7 @@ export {
   TrustStrategy,
   SessionMode,
   Neo4jError,
+  isRetriableError,
   Node,
   Relationship,
   UnboundRelationship,
