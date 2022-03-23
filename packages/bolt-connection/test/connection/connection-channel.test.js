@@ -67,7 +67,7 @@ describe('ChannelConnection', () => {
       [{ hints: { 'connection.recv_timeout_seconds': 0n } }],
       [{ hints: { 'connection.recv_timeout_seconds': int(0) } }]
     ])(
-      'should call not call this._ch.setupReceiveTimeout() when onComplete metadata is %o',
+      'should not call this._ch.setupReceiveTimeout() when onComplete metadata is %o',
       async metadata => {
         const channel = {
           setupReceiveTimeout: jest.fn().mockName('setupReceiveTimeout')

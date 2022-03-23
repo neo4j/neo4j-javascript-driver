@@ -59,7 +59,7 @@ describe('NodeChannel', () => {
   })
 
   describe('.setupReceiveTimeout()', () => {
-    it('should call not call socket.setTimeout(receiveTimeout)', () => {
+    it('should not call socket.setTimeout(receiveTimeout)', () => {
       const receiveTimeout = 42
       const channel = createMockedChannel(true)
 
@@ -120,7 +120,7 @@ describe('NodeChannel', () => {
         expect(channel._conn.getCalls().setTimeout[1]).toEqual([receiveTimeout])
       })
 
-      it ('should call not socket.setTimeout(receiveTimeout) if stream already started', () => {
+      it ('should not call socket.setTimeout(receiveTimeout) if stream already started', () => {
         const { receiveTimeout, channel } = setup()
 
         // setup
