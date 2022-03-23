@@ -69,6 +69,7 @@ export function createChannelConnection (
           server: conn.server,
           log: conn.logger,
           observer: {
+            onPendingObserversChange: conn._handleOngoingRequestsNumberChange.bind(conn),
             onError: conn._handleFatalError.bind(conn),
             onFailure: conn._resetOnFailure.bind(conn),
             onProtocolError: conn._handleProtocolError.bind(conn),
@@ -348,6 +349,18 @@ export default class ChannelConnection extends Connection {
   /** Check if this connection is in working condition */
   isOpen () {
     return !this._isBroken && this._ch._open
+  }
+
+  /**
+   * Starts and stops the receive timeout timer.
+   * @param {number} requestsNumber Ongoing requests number
+   */
+  _handleOngoingRequestsNumberChange(requestsNumber) {
+    if (requestsNumber === 0) {
+      this._ch.stopReceiveTimeout()
+    } else {
+      this._ch.startReceiveTimeout()
+    }
   }
 
   /**
