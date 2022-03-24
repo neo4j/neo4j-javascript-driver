@@ -18,7 +18,7 @@
  */
 import { newError, Record, ResultSummary } from 'neo4j-driver-core'
 import { Observable, Subject, ReplaySubject, from } from 'rxjs'
-import { flatMap, publishReplay, refCount, shareReplay } from 'rxjs/operators'
+import { flatMap, publishReplay, refCount } from 'rxjs/operators'
 
 const States = {
   READY: 0,
