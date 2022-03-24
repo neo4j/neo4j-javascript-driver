@@ -59,13 +59,13 @@ describe('NodeChannel', () => {
   })
 
   describe('.setupReceiveTimeout()', () => {
-    it('should call socket.setTimeout(receiveTimeout)', () => {
+    it('should not call socket.setTimeout(receiveTimeout)', () => {
       const receiveTimeout = 42
       const channel = createMockedChannel(true)
 
       channel.setupReceiveTimeout(receiveTimeout)
 
-      expect(channel._conn.getCalls().setTimeout[1]).toEqual([receiveTimeout])
+      expect(channel._conn.getCalls().setTimeout.length).toEqual(1)
     })
 
     it('should unsubscribe to the on connect and on timeout created on the create socket', () => {
@@ -106,6 +106,122 @@ describe('NodeChannel', () => {
       channel.setupReceiveTimeout(receiveTimeout)
 
       expect(channel._conn.getCalls().off).toEqual([])
+    })
+  })
+
+  describe('.startReceiveTimeout()', () => {
+    describe('receive timeout is setup', () => {
+      it('should call socket.setTimeout(receiveTimeout) when called first', () => {
+        const { receiveTimeout, channel } = setup()
+
+        channel.startReceiveTimeout()
+
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(2)
+        expect(channel._conn.getCalls().setTimeout[1]).toEqual([receiveTimeout])
+      })
+
+      it ('should not call socket.setTimeout(receiveTimeout) if stream already started', () => {
+        const { receiveTimeout, channel } = setup()
+
+        // setup
+        channel.startReceiveTimeout()
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(2)
+        expect(channel._conn.getCalls().setTimeout[1]).toEqual([receiveTimeout])
+
+        // start again
+        channel.startReceiveTimeout()
+
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(2)
+        expect(channel._conn.getCalls().setTimeout[1]).toEqual([receiveTimeout])
+      })
+
+      it ('should call socket.setTimeout(receiveTimeout) when after stop', () => {
+        const { receiveTimeout, channel } = setup()
+
+        // setup
+        channel.startReceiveTimeout()
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(2)
+        expect(channel._conn.getCalls().setTimeout[1]).toEqual([receiveTimeout])
+        channel.stopReceiveTimeout()
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(3)
+        expect(channel._conn.getCalls().setTimeout[2]).toEqual([0])
+
+        // start again
+        channel.startReceiveTimeout()
+
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(4)
+        expect(channel._conn.getCalls().setTimeout[3]).toEqual([receiveTimeout])
+      })
+
+      function setup () {
+        const channel = createMockedChannel(true)
+        const receiveTimeout = 42
+        channel.setupReceiveTimeout(receiveTimeout)
+        return {channel, receiveTimeout}
+      }
+    })
+
+    describe('receive timemout is not setup', () => {
+      it ('should call not socket.setTimeout(receiveTimeout) when not started', () => {
+        const channel = createMockedChannel(true)
+
+        // start again
+        channel.startReceiveTimeout()
+
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(1)
+      })
+    })
+  })
+
+  describe('.stopReceiveTimeout()', () => {
+    describe('when receive timeout is setup', () => {
+      it ('should not call socket.setTimeout(0) when not started', () => {
+        const { channel } = setup()
+
+        channel.stopReceiveTimeout()
+
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(1)
+      })
+
+      it ('should call  socket.setTimeout(0) when already started', () => {
+        const { channel } = setup()
+
+        channel.startReceiveTimeout()
+
+        channel.stopReceiveTimeout()
+
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(3)
+        expect(channel._conn.getCalls().setTimeout[2]).toEqual([0])
+      })
+
+      it ('should not call socket.setTimeout(0) when already stopped', () => {
+        const { channel } = setup()
+
+        channel.startReceiveTimeout()
+        channel.stopReceiveTimeout()
+
+        channel.stopReceiveTimeout()
+
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(3)
+      })
+
+      function setup () {
+        const channel = createMockedChannel(true)
+        const receiveTimeout = 42
+        channel.setupReceiveTimeout(receiveTimeout)
+        return {channel, receiveTimeout}
+      }
+    })
+
+    describe('when receive timeout is not setup', () => {
+      it ('should not call socket.setTimeout(0)', () => {
+        const channel = createMockedChannel(true)
+
+        channel.startReceiveTimeout()
+        channel.stopReceiveTimeout()
+
+        expect(channel._conn.getCalls().setTimeout.length).toEqual(1)
+      })
     })
   })
 })
