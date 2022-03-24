@@ -67,7 +67,7 @@ describe('ChannelConnection', () => {
       [{ hints: { 'connection.recv_timeout_seconds': 0n } }],
       [{ hints: { 'connection.recv_timeout_seconds': int(0) } }]
     ])(
-      'should call not call this._ch.setupReceiveTimeout() when onComplete metadata is %o',
+      'should not call this._ch.setupReceiveTimeout() when onComplete metadata is %o',
       async metadata => {
         const channel = {
           setupReceiveTimeout: jest.fn().mockName('setupReceiveTimeout')
@@ -283,6 +283,60 @@ describe('ChannelConnection', () => {
         expect(protocol.reset).not.toHaveBeenCalled()
         expect(protocol.resetFailure).not.toHaveBeenCalled()
       })
+    })
+  })
+
+  describe('.__handleOngoingRequestsNumberChange()', () => {
+    it('should call channel.stopReceiveTimeout when requets number equals to 0', () => {
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
+        startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
+      }
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier: () => undefined })
+
+      connection._handleOngoingRequestsNumberChange(0)
+
+      expect(channel.stopReceiveTimeout).toHaveBeenCalledTimes(1)
+    })
+
+    it('should not call channel.startReceiveTimeout when requets number equals to 0', () => {
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
+        startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
+      }
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier: () => undefined })
+
+      connection._handleOngoingRequestsNumberChange(0)
+
+      expect(channel.startReceiveTimeout).toHaveBeenCalledTimes(0)
+    })
+
+    it.each([
+      [1], [2], [3], [5], [8], [13], [3000]
+    ])('should call channel.startReceiveTimeout when requets number equals to %d', (requests) => {
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
+        startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
+      }
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier: () => undefined })
+
+      connection._handleOngoingRequestsNumberChange(requests)
+
+      expect(channel.startReceiveTimeout).toHaveBeenCalledTimes(1)
+    })
+
+    it.each([
+      [1], [2], [3], [5], [8], [13], [3000]
+    ])('should not call channel.stopReceiveTimeout when requets number equals to %d', (requests) => {
+      const channel = {
+        stopReceiveTimeout: jest.fn().mockName('stopReceiveTimeout'),
+        startReceiveTimeout: jest.fn().mockName('startReceiveTimeout')
+      }
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier: () => undefined })
+
+      connection._handleOngoingRequestsNumberChange(requests)
+
+      expect(channel.stopReceiveTimeout).toHaveBeenCalledTimes(0)
     })
   })
 

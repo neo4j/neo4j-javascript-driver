@@ -36,6 +36,10 @@ export default class DummyChannel {
     this.written.push(buf)
   }
 
+  stopReceiveTimeout () {}
+
+  startReceiveTimeout () {}
+
   toHex () {
     let out = ''
     for (let i = 0; i < this.written.length; i++) {

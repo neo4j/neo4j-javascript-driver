@@ -242,6 +242,8 @@ export default class NodeChannel {
       this
     )
     this._connectionErrorCode = config.connectionErrorCode
+    this._receiveTimeout = null
+    this._receiveTimeoutStarted = false
 
     this._conn = connect(
       config,
@@ -353,7 +355,27 @@ export default class NodeChannel {
       )
     })
 
-    this._conn.setTimeout(receiveTimeout)
+    this._receiveTimeout = receiveTimeout
+  }
+
+  /**
+   * Stops the receive timeout for the channel.
+   */
+  stopReceiveTimeout() {
+    if (this._receiveTimeout !== null && this._receiveTimeoutStarted) {
+      this._receiveTimeoutStarted = false
+      this._conn.setTimeout(0)
+    }
+  }
+
+  /**
+   * Start the receive timeout for the channel.
+   */
+  startReceiveTimeout () {
+    if (this._receiveTimeout !== null && !this._receiveTimeoutStarted) {
+      this._receiveTimeoutStarted = true
+      this._conn.setTimeout(this._receiveTimeout)
+    }
   }
 
   /**
