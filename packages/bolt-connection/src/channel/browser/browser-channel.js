@@ -182,6 +182,18 @@ export default class WebSocketChannel {
   setupReceiveTimeout (receiveTimeout) {}
 
   /**
+   * Stops the receive timeout for the channel.
+   */
+  stopReceiveTimeout() {
+  }
+
+  /**
+   * Start the receive timeout for the channel.
+   */
+  startReceiveTimeout () {
+  }
+
+  /**
    * Set connection timeout on the given WebSocket, if configured.
    * @return {number} the timeout id or null.
    * @private
