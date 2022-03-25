@@ -2,6 +2,10 @@ import skip, { ifEquals, ifEndsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Fails when because tx function could start with not broken transations',
+    ifEndsWith('test_should_write_successfully_on_leader_switch_using_tx_function'),
+  ),
+  skip(
     'Fail while enable Temporary::ResultKeys',
     ifEquals('neo4j.test_bookmarks.TestBookmarks.test_can_pass_bookmark_into_next_session'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_consume_after_commit'),
