@@ -51,7 +51,7 @@ export function NewDriver (context, data, wire) {
     userAgent,
     resolver,
     useBigInt: true,
-    logging: neo4j.logging.console(process.env.LOG_LEVEL)
+    logging: neo4j.logging.console(process.env.LOG_LEVEL || context.logLevel)
   }
   if ('encrypted' in data) {
     config.encrypted = data.encrypted ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF'
@@ -335,6 +335,11 @@ export function SessionWriteTransaction (context, data, wire) {
 }
 
 export function StartTest (context, { testName }, wire) {
+  if (testName.endsWith('.test_disconnect_session_on_tx_pull_after_record')) {
+    context.logLevel = 'debug'
+  } else {
+    context.logLevel = null
+  }
   const shouldRunTest = context.getShouldRunTestFunction()
   shouldRunTest(testName, {
     onRun: () => wire.writeResponse(responses.RunTest()),
