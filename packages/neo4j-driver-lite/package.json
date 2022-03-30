@@ -39,19 +39,19 @@
   },
   "homepage": "https://github.com/neo4j/neo4j-javascript-driver#readme",
   "devDependencies": {
-    "@types/jest": "^26.0.24",
+    "@types/jest": "^27.1.4",
     "browser-resolve": "^2.0.0",
     "browserify": "^17.0.0",
-    "esdoc": "^1.0.4",
+    "esdoc": "^1.1.0",
     "esdoc-importpath-plugin": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
     "isomorphic-ws": "^4.0.1",
-    "jest": "^27.3.1",
-    "ts-jest": "^27.0.7",
-    "ts-node": "^10.3.0",
-    "typescript": "^4.4.4",
-    "uglify-js": "^3.14.2",
-    "ws": "^7.5.5"
+    "jest": "^27.1.4",
+    "ts-jest": "^27.1.4",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3",
+    "uglify-js": "^3.15.3",
+    "ws": "^8.5.0"
   },
   "dependencies": {
     "neo4j-driver-bolt-connection": "5.0.0-dev",
