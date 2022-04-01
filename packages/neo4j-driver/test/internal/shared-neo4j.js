@@ -57,10 +57,11 @@ class UnsupportedPlatform {
 class SupportedPlatform extends UnsupportedPlatform {
   constructor () {
     super()
+    this._env = global.__karma__ ? global.__karma__.config.env : process.env
     this._path = require('path')
     this._childProcess = require('child_process')
     this._fs = require('fs-extra')
-    this._process = require('process')
+    this._cwd = global.__karma__ ? global.__karma__.config.basePath : process.cwd()
   }
 
   static create () {
@@ -110,11 +111,11 @@ class SupportedPlatform extends UnsupportedPlatform {
   }
 
   env (key) {
-    return this._process.env[key]
+    return this._env[key]
   }
 
   cwd () {
-    return this._process.cwd()
+    return this._cwd
   }
 }
 
