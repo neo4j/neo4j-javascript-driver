@@ -281,13 +281,14 @@ function runJasmineTests (filterString) {
       print: () => {}
     })
     jasmine.addReporter(newJasmineConsoleReporter())
-    jasmine.onComplete(passed => {
-      if (passed) {
-        resolve()
-      } else {
-        reject(new Error('tests failed'))
-      }
-    })
+    jasmine.exitOnCompletion = false
     jasmine.execute(null, filterString)
+      .then(result => {
+        if (result.overallStatus === 'passed') {
+          resolve()
+        } else {
+          reject(new Error('tests failed'))
+        }
+      })
   })
 }
