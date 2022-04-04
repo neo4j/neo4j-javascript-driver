@@ -48,3 +48,5 @@ class RxManagedTransaction {
       return this._isOpen()
     }
 }
+
+export default RxManagedTransaction
