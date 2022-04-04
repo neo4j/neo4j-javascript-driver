@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError, error as err, internal } from 'neo4j-driver-core'
+import { newError, error as err, internal, int } from 'neo4j-driver-core'
 import { setTimeoutMock } from './timers-util'
 import lolex from 'lolex'
 
@@ -285,6 +285,39 @@ describe('#unit TransactionExecutor', () => {
     const executor = new TransactionExecutor(42, 42, 42, 0)
     expect(executor._jitterFactor).toEqual(0)
   }, 30000)
+
+  it('should wrap transaction', async () => {
+    const executor = new TransactionExecutor()
+    const expectedTx = new FakeTransaction()
+    const modifiedTx = {}
+    await executor.execute(() => expectedTx, tx => {
+      expect(tx).toEqual(modifiedTx)
+      return 1
+    }, tx => {
+      expect(tx).toEqual(expectedTx)
+      return modifiedTx
+    })
+  })
+
+  it('should wrap transaction when re-try', async () => {
+    const executor = new TransactionExecutor()
+    const expectedTx = new FakeTransaction()
+    const modifiedTx = {}
+    const context = { workCalls: 0 }
+
+    await executor.execute(() => expectedTx, tx => {
+      expect(tx).toEqual(modifiedTx)
+      if (context.workCalls++ < 1) {
+        throw newError('something on the way', 'Neo.ClientError.Security.AuthorizationExpired')
+      }
+      return 1
+    }, tx => {
+      expect(tx).toEqual(expectedTx)
+      return modifiedTx
+    })
+
+    expect(context.workCalls).toEqual(2)
+  })
 
   async function testRetryWhenTransactionCreatorFails (errorCodes) {
     const fakeSetTimeout = setTimeoutMock.install()

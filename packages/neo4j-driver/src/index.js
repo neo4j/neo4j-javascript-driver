@@ -126,7 +126,7 @@ const {
  *       connectionAcquisitionTimeout: 60000, // 1 minute
  *
  *       // Specify the maximum time in milliseconds transactions are allowed to retry via
- *       // `Session#readTransaction()` and `Session#writeTransaction()` functions.
+ *       // `Session#executeRead()` and `Session#executeWrite()` functions.
  *       // These functions will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient
  *       // errors with exponential backoff using initial delay of 1 second.
  *       // Default value is 30000 which is 30 seconds.

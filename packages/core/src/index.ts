@@ -70,6 +70,7 @@ import Result, { QueryResult, ResultObserver } from './result'
 import ConnectionProvider from './connection-provider'
 import Connection from './connection'
 import Transaction from './transaction'
+import ManagedTransaction from './transaction-managed'
 import TransactionPromise from './transaction-promise'
 import Session, { TransactionConfig } from './session'
 import Driver, * as driver from './driver'
@@ -137,6 +138,7 @@ const forExport = {
   Stats,
   Result,
   Transaction,
+  ManagedTransaction,
   TransactionPromise,
   Session,
   Driver,
@@ -196,6 +198,7 @@ export {
   ConnectionProvider,
   Connection,
   Transaction,
+  ManagedTransaction,
   TransactionPromise,
   Session,
   Driver,

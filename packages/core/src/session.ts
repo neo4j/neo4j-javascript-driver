@@ -32,9 +32,11 @@ import { Query, SessionMode } from './types'
 import Connection from './connection'
 import { NumberOrInteger } from './graph-types'
 import TransactionPromise from './transaction-promise'
+import ManagedTransaction from './transaction-managed'
 
 type ConnectionConsumer = (connection: Connection | void) => any | undefined
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
+type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
 interface TransactionConfig {
   timeout?: NumberOrInteger
@@ -336,6 +338,8 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
+   * @deprecated This method will be removed in version 6.0. Please, use {@link Session#executeRead} instead.
+   *
    * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
    * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
@@ -357,6 +361,8 @@ class Session {
    * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
+   *
+   * @deprecated This method will be removed in version 6.0. Please, use {@link Session#executeWrite} instead.
    *
    * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
@@ -380,6 +386,72 @@ class Session {
     return this._transactionExecutor.execute(
       () => this._beginTransaction(accessMode, transactionConfig),
       transactionWork
+    )
+  }
+
+  /**
+   * Execute given unit of work in a {@link READ} transaction.
+   *
+   * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
+   * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
+   * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
+   * `maxTransactionRetryTime` property in milliseconds.
+   *
+   * @param {function(tx: ManagedTransaction): Promise} transactionWork - Callback that executes operations against
+   * a given {@link Transaction}.
+   * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
+   * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
+   * function or commit fails.
+   */
+   executeRead<T>(
+    transactionWork: ManagedTransactionWork<T>,
+    transactionConfig?: TransactionConfig
+  ): Promise<T> {
+    const config = new TxConfig(transactionConfig)
+    return this._executeInTransaction(ACCESS_MODE_READ, config, transactionWork)
+  }
+
+  /**
+   * Execute given unit of work in a {@link WRITE} transaction.
+   *
+   * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
+   * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
+   * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
+   * `maxTransactionRetryTime` property in milliseconds.
+   *
+   * @param {function(tx: ManagedTransaction): Promise} transactionWork - Callback that executes operations against
+   * a given {@link Transaction}.
+   * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
+   * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
+   * function or commit fails.
+   */
+  executeWrite<T>(
+    transactionWork: ManagedTransactionWork<T>,
+    transactionConfig?: TransactionConfig
+  ): Promise<T> {
+    const config = new TxConfig(transactionConfig)
+    return this._executeInTransaction(ACCESS_MODE_WRITE, config, transactionWork)
+  }
+
+  /**
+   * @private
+   * @param {SessionMode} accessMode
+   * @param {TxConfig} transactionConfig
+   * @param {ManagedTransactionWork} transactionWork
+   * @returns {Promise}
+   */
+  private _executeInTransaction<T>(
+    accessMode: SessionMode,
+    transactionConfig: TxConfig,
+    transactionWork: ManagedTransactionWork<T>
+  ): Promise<T> {
+    return this._transactionExecutor.execute(
+      () => this._beginTransaction(accessMode, transactionConfig),
+      transactionWork,
+      tx => new ManagedTransaction({
+        isOpen: tx.isOpen.bind(tx),
+        run: tx.run.bind(tx),
+      })
     )
   }
 

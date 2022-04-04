@@ -19,6 +19,7 @@
 import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction } from '../src'
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
+import ManagedTransaction from '../src/transaction-managed'
 import FakeConnection from './utils/connection.fake'
 
 describe('session', () => {
@@ -277,6 +278,59 @@ describe('session', () => {
       const tx: Transaction = await session.beginTransaction()
 
       expect(tx).toBeDefined()
+    })
+  })
+
+  describe.each([
+    ['.executeWrite()', (session: Session) => session.executeWrite.bind(session)],
+    ['.executeRead()', (session: Session) => session.executeRead.bind(session)],
+  ])('%s', (_, execute) => {
+    it('should call executor with ManagedTransaction', async () => {
+      const connection = mockBeginWithSuccess(newFakeConnection())
+      const session = newSessionWithConnection(connection, false, 1000)
+      const status = { functionCalled: false }
+
+      await execute(session)(async (tx: ManagedTransaction) => {
+        expect(typeof tx).toEqual('object')
+        expect(tx).toBeInstanceOf(ManagedTransaction)
+
+        status.functionCalled = true
+      })
+
+      expect(status.functionCalled).toEqual(true)
+    })
+
+    it('should proxy run to the begined transaction', async () => {
+      const connection = mockBeginWithSuccess(newFakeConnection())
+      const session = newSessionWithConnection(connection, false, FETCH_ALL)
+      // @ts-ignore
+      const run = jest.spyOn(Transaction.prototype, 'run').mockImplementation(() => Promise.resolve())
+      const status = { functionCalled: false }
+      const query = 'RETURN $a'
+      const params = { a: 1 }
+
+      await execute(session)(async (tx: ManagedTransaction) => {
+        status.functionCalled = true
+        await tx.run(query, params)
+      })
+
+      expect(status.functionCalled).toEqual(true)
+      expect(run).toHaveBeenCalledWith(query, params)
+    })
+
+    it('should proxy isOpen to the begined transaction', async () => {
+      const connection = mockBeginWithSuccess(newFakeConnection())
+      const session = newSessionWithConnection(connection, false, FETCH_ALL)
+      const isOpen = jest.spyOn(Transaction.prototype, 'isOpen').mockImplementationOnce(() => true)
+      const status = { functionCalled: false }
+
+      await execute(session)(async (tx: ManagedTransaction) => {
+        status.functionCalled = true
+        expect(tx.isOpen()).toBe(true)
+      })
+
+      expect(status.functionCalled).toEqual(true)
+      expect(isOpen).toHaveBeenCalled()
     })
   })
 })

@@ -58,6 +58,7 @@ import {
   ResultObserver,
   QueryResult,
   Transaction,
+  ManagedTransaction,
   Session,
   ConnectionProvider
 } from 'neo4j-driver-core'
@@ -190,7 +191,8 @@ declare const forExport: {
   ServerInfo: ServerInfo
   NotificationPosition: NotificationPosition
   Session: Session
-  Transaction: Transaction
+  Transaction: Transaction,
+  ManagedTransaction: ManagedTransaction,
   Point: Point
   isPoint: typeof isPoint
   Duration: Duration
@@ -249,6 +251,7 @@ export {
   NotificationPosition,
   Session,
   Transaction,
+  ManagedTransaction,
   Point,
   isPoint,
   Duration,

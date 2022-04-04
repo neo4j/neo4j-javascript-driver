@@ -28,7 +28,7 @@ const DEFAULT_RETRY_DELAY_MULTIPLIER = 2.0
 const DEFAULT_RETRY_DELAY_JITTER_FACTOR = 0.2
 
 type TransactionCreator = () => TransactionPromise
-type TransactionWork<T> = (tx: Transaction) => T | Promise<T>
+type TransactionWork<T, Tx = Transaction> = (tx: Tx) => T | Promise<T>
 type Resolve<T> = (value: T | PromiseLike<T>) => void
 type Reject = (value: any) => void
 type Timeout = ReturnType<typeof setTimeout>
@@ -68,16 +68,18 @@ export class TransactionExecutor {
     this._verifyAfterConstruction()
   }
 
-  execute<T>(
+  execute<T, Tx = Transaction>(
     transactionCreator: TransactionCreator,
-    transactionWork: TransactionWork<T>
+    transactionWork: TransactionWork<T, Tx>,
+    transactionWrapper?: (tx: Transaction) => Tx
   ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       this._executeTransactionInsidePromise(
         transactionCreator,
         transactionWork,
         resolve,
-        reject
+        reject,
+        transactionWrapper
       )
     }).catch(error => {
       const retryStartTimeMs = Date.now()
@@ -87,7 +89,8 @@ export class TransactionExecutor {
         transactionWork,
         error,
         retryStartTimeMs,
-        retryDelayMs
+        retryDelayMs,
+        transactionWrapper
       )
     })
   }
@@ -98,12 +101,13 @@ export class TransactionExecutor {
     this._inFlightTimeoutIds = []
   }
 
-  _retryTransactionPromise<T>(
+  _retryTransactionPromise<T, Tx = Transaction>(
     transactionCreator: TransactionCreator,
-    transactionWork: TransactionWork<T>,
+    transactionWork: TransactionWork<T, Tx>,
     error: Error,
     retryStartTime: number,
-    retryDelayMs: number
+    retryDelayMs: number,
+    transactionWrapper?: (tx: Transaction) => Tx
   ): Promise<T> {
     const elapsedTimeMs = Date.now() - retryStartTime
 
@@ -122,7 +126,8 @@ export class TransactionExecutor {
           transactionCreator,
           transactionWork,
           resolve,
-          reject
+          reject,
+          transactionWrapper
         )
       }, nextRetryTime)
       // add newly created timeoutId to the list of all in-flight timeouts
@@ -134,16 +139,18 @@ export class TransactionExecutor {
         transactionWork,
         error,
         retryStartTime,
-        nextRetryDelayMs
+        nextRetryDelayMs,
+        transactionWrapper
       )
     })
   }
 
-  async _executeTransactionInsidePromise<T>(
+  async _executeTransactionInsidePromise<T, Tx = Transaction>(
     transactionCreator: TransactionCreator,
-    transactionWork: TransactionWork<T>,
+    transactionWork: TransactionWork<T, Tx>,
     resolve: Resolve<T>,
-    reject: Reject
+    reject: Reject,
+    transactionWrapper?: (tx: Transaction) => Tx,
   ): Promise<void> {
     let tx: Transaction
     try {
@@ -154,7 +161,9 @@ export class TransactionExecutor {
       return
     }
 
-    const resultPromise = this._safeExecuteTransactionWork(tx, transactionWork)
+    const wrap = transactionWrapper || ((tx: Transaction) => tx)
+    const wrappedTx = wrap(tx)
+    const resultPromise = this._safeExecuteTransactionWork(wrappedTx, transactionWork)
 
     resultPromise
       .then(result =>
@@ -163,9 +172,9 @@ export class TransactionExecutor {
       .catch(error => this._handleTransactionWorkFailure(error, tx, reject))
   }
 
-  _safeExecuteTransactionWork<T>(
-    tx: Transaction,
-    transactionWork: TransactionWork<T>
+  _safeExecuteTransactionWork<T, Tx = Transaction>(
+    tx: Tx,
+    transactionWork: TransactionWork<T, Tx>
   ): Promise<T> {
     try {
       const result = transactionWork(tx)
