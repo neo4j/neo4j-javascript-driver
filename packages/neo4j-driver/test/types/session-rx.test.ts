@@ -19,6 +19,7 @@
 
 import RxSession from '../../types/session-rx'
 import RxTransaction from '../../types/transaction-rx'
+import { RxManagedTransaction } from '../../types'
 import RxResult from '../../types/result-rx'
 import {
   Integer,
@@ -151,4 +152,28 @@ const observable5: Observable<string> = rxSession.readTransaction(
 const observable6: Observable<number> = rxSession.writeTransaction(
   (tx: RxTransaction) => of(42),
   txConfig4
+)
+
+const observable7: Observable<number> = rxSession.executeRead(
+  (tx: RxManagedTransaction) => {
+    return of(10)
+  }
+)
+
+const observable8: Observable<string> = rxSession.executeRead(
+  (tx: RxManagedTransaction) => {
+    return of('42')
+  }
+)
+
+const observable9: Observable<number> = rxSession.executeWrite(
+  (tx: RxManagedTransaction) => {
+    return of(10)
+  }
+)
+
+const observable10: Observable<string> = rxSession.executeWrite(
+  (tx: RxManagedTransaction) => {
+    return of('42')
+  }
 )

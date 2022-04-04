@@ -74,6 +74,7 @@ import {
 } from './driver'
 import RxSession from './session-rx'
 import RxTransaction from './transaction-rx'
+import RxManagedTransaction from './transaction-managed-rx'
 import RxResult from './result-rx'
 import { Parameters } from './query-runner'
 
@@ -118,6 +119,7 @@ declare const types: {
   Integer: typeof Integer
   RxSession: RxSession
   RxTransaction: RxTransaction
+  RxManagedTransaction: RxManagedTransaction,
   RxResult: RxResult
 }
 
@@ -203,6 +205,7 @@ declare const forExport: {
   DateTime: DateTime
   RxSession: RxSession
   RxTransaction: RxTransaction
+  RxManagedTransaction: RxManagedTransaction,
   RxResult: RxResult
   ConnectionProvider: ConnectionProvider
   isDuration: typeof isDuration
@@ -262,6 +265,7 @@ export {
   DateTime,
   RxSession,
   RxTransaction,
+  RxManagedTransaction,
   RxResult,
   ConnectionProvider,
   isDuration,

@@ -16,20 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Observable } from 'rxjs'
-import { Parameters } from './query-runner'
-import RxResult from './result-rx'
-
-declare interface RxTransaction {
-  run(query: string, parameters?: Parameters): RxResult
-  
-  isOpen(): boolean
-
-  commit(): Observable<any>
-
-  rollback(): Observable<any>
-
-  close(): Observable<any>
-}
-
-export default RxTransaction
+ import { Parameters } from './query-runner'
+ import RxResult from './result-rx'
+ 
+ declare interface RxManagedTransaction {
+   run(query: string, parameters?: Parameters): RxResult
+   isOpen(): boolean
+ }
+ 
+ export default RxManagedTransaction
+ 

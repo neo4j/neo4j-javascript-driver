@@ -35,13 +35,28 @@ declare interface RxSession {
 
   lastBookmarks(): string[]
   lastBookmark(): string[]
-
+  /**
+   * @deprecated This method will be removed in version 6.0. Please, use {@link RxSession#executeRead} instead. 
+   */
   readTransaction<T>(
     work: RxTransactionWork<T>,
     config?: TransactionConfig
   ): Observable<T>
 
+  /**
+   * @deprecated This method will be removed in version 6.0. Please, use {@link RxSession#executeWrite} instead. 
+   */
   writeTransaction<T>(
+    work: RxTransactionWork<T>,
+    config?: TransactionConfig
+  ): Observable<T>
+
+  executeRead<T>(
+    work: RxTransactionWork<T>,
+    config?: TransactionConfig
+  ): Observable<T>
+
+  executeWrite<T>(
     work: RxTransactionWork<T>,
     config?: TransactionConfig
   ): Observable<T>

@@ -41,7 +41,6 @@ export default class RxTransaction {
    * @param {Object} parameters - Parameter values to use in query execution.
    * @returns {RxResult} - A reactive result
    */
-
   run (query, parameters) {
     return new RxResult(
       new Observable(observer => {
@@ -89,6 +88,14 @@ export default class RxTransaction {
         })
         .catch(err => observer.error(err))
     })
+  }
+
+  /**
+   * Check if this transaction is active, which means commit and rollback did not happen.
+   * @return {boolean} `true` when not committed and not rolled back, `false` otherwise.
+   */
+   isOpen() {
+    return this._txc.isOpen()
   }
 
   /**
