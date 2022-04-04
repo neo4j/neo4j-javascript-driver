@@ -170,7 +170,6 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
 
   /**
    * @access private
-   * @returns {void}
    */
   private _onBeginError(error: Error): void {
     this._beginError = error;
@@ -181,7 +180,6 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
 
   /**
    * @access private
-   * @returns {void}
    */
   private _onBeginMetadata(metadata: any): void {
     this._beginMetadata = metadata || {};

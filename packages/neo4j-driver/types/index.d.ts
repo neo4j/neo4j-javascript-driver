@@ -58,8 +58,6 @@ import {
   ResultObserver,
   QueryResult,
   Transaction,
-  TransactionPromise,
-  ManagedTransaction,
   Session,
   ConnectionProvider
 } from 'neo4j-driver-core'
@@ -75,7 +73,6 @@ import {
 } from './driver'
 import RxSession from './session-rx'
 import RxTransaction from './transaction-rx'
-import RxManagedTransaction from './transaction-managed-rx'
 import RxResult from './result-rx'
 import { Parameters } from './query-runner'
 
@@ -120,7 +117,6 @@ declare const types: {
   Integer: typeof Integer
   RxSession: RxSession
   RxTransaction: RxTransaction
-  RxManagedTransaction: RxManagedTransaction
   RxResult: RxResult
 }
 
@@ -195,8 +191,6 @@ declare const forExport: {
   NotificationPosition: NotificationPosition
   Session: Session
   Transaction: Transaction
-  TransactionPromise: TransactionPromise
-  ManagedTransaction: ManagedTransaction
   Point: Point
   isPoint: typeof isPoint
   Duration: Duration
@@ -207,7 +201,6 @@ declare const forExport: {
   DateTime: DateTime
   RxSession: RxSession
   RxTransaction: RxTransaction
-  RxManagedTransaction: RxManagedTransaction
   RxResult: RxResult
   ConnectionProvider: ConnectionProvider
   isDuration: typeof isDuration
@@ -256,8 +249,6 @@ export {
   NotificationPosition,
   Session,
   Transaction,
-  TransactionPromise,
-  ManagedTransaction,
   Point,
   isPoint,
   Duration,
@@ -268,7 +259,6 @@ export {
   DateTime,
   RxSession,
   RxTransaction,
-  RxManagedTransaction,
   RxResult,
   ConnectionProvider,
   isDuration,

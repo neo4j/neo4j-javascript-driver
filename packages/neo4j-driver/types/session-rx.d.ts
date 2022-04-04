@@ -18,12 +18,11 @@
  */
 import RxResult from './result-rx'
 import RxTransaction from './transaction-rx'
-import RxManagedTransaction from './transaction-managed-rx'
 import { TransactionConfig } from 'neo4j-driver-core'
 import { Parameters } from './query-runner'
 import { Observable } from 'rxjs'
 
-declare type RxTransactionWork<T> = (tx: RxManagedTransaction) => Observable<T>
+declare type RxTransactionWork<T> = (tx: RxTransaction) => Observable<T>
 
 declare interface RxSession {
   run(
