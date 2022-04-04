@@ -161,7 +161,10 @@ export class TransactionExecutor {
       return
     }
 
-    const wrap = transactionWrapper || ((tx: Transaction) => tx)
+    // The conversion from `tx` as `unknown` then to `Tx` is necessary
+    // because it is not possible to be sure that `Tx` is a subtype of `Transaction`
+    // in using static type checking.
+    const wrap = transactionWrapper || ((tx: Transaction) => tx as unknown as Tx)
     const wrappedTx = wrap(tx)
     const resultPromise = this._safeExecuteTransactionWork(wrappedTx, transactionWork)
 
