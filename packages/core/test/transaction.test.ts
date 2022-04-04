@@ -21,12 +21,10 @@ import { ConnectionProvider, newError, Transaction, TransactionPromise } from ".
 import { Bookmarks } from "../src/internal/bookmarks";
 import { ConnectionHolder } from "../src/internal/connection-holder";
 import { TxConfig } from "../src/internal/tx-config";
-import ManagedTransaction from "../src/transaction-managed";
 import FakeConnection from "./utils/connection.fake";
 
 
 testTx('Transaction', newRegularTransaction)
-testTx('ManagedTransaction', newManagedTransaction)
 
 testTx('TransactionPromise', newTransactionPromise, () => {
   describe('Promise', () => {
@@ -486,39 +484,6 @@ function newRegularTransaction({
   connectionHolder.initializeConnection()
 
   const transaction = new Transaction({
-    connectionHolder,
-    onClose: () => { },
-    onBookmarks: (_: Bookmarks) => { },
-    onConnection: () => { },
-    reactive: false,
-    fetchSize,
-    impersonatedUser: "",
-    highRecordWatermark,
-    lowRecordWatermark
-  })
-
-  return transaction
-}
-
-function newManagedTransaction({
-  connection,
-  fetchSize = 1000,
-  highRecordWatermark = 700,
-  lowRecordWatermark = 300
-}: {
-  connection: FakeConnection
-  fetchSize?: number
-  highRecordWatermark?: number,
-  lowRecordWatermark?: number
-}): ManagedTransaction {
-  const connectionProvider = new ConnectionProvider()
-  connectionProvider.acquireConnection = () => Promise.resolve(connection)
-  connectionProvider.close = () => Promise.resolve()
-
-  const connectionHolder = new ConnectionHolder({ connectionProvider })
-  connectionHolder.initializeConnection()
-
-  const transaction = new ManagedTransaction({
     connectionHolder,
     onClose: () => { },
     onBookmarks: (_: Bookmarks) => { },

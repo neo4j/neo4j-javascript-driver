@@ -27,7 +27,6 @@ import {
   Session,
   TransactionConfig
 } from 'neo4j-driver-core'
-import ManagedTransaction from 'neo4j-driver-core/types/transaction-managed'
 
 const dummy: any = null
 const intValue: Integer = Integer.fromInt(42)

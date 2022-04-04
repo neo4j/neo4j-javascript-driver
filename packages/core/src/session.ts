@@ -32,10 +32,9 @@ import { Query, SessionMode } from './types'
 import Connection from './connection'
 import { NumberOrInteger } from './graph-types'
 import TransactionPromise from './transaction-promise'
-import ManagedTransaction from './transaction-managed'
 
 type ConnectionConsumer = (connection: Connection | void) => any | undefined
-type TransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
+type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
 
 interface TransactionConfig {
   timeout?: NumberOrInteger
@@ -337,7 +336,7 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
-   * @param {function(tx: ManagedTransaction): Promise} transactionWork - Callback that executes operations against
+   * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
    * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
    * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
@@ -359,7 +358,7 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
-   * @param {function(tx: ManagedTransaction): Promise} transactionWork - Callback that executes operations against
+   * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
    * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
    * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
