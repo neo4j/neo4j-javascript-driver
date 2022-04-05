@@ -20,8 +20,7 @@
 import RxManagedTransaction from '../../types/transaction-managed-rx'
 import { Record, ResultSummary } from 'neo4j-driver-core'
 import RxResult from '../../types/result-rx'
-import { Observable, of, Observer, throwError } from 'rxjs'
-import { concat, finalize, catchError } from 'rxjs/operators'
+import { Observer } from 'rxjs'
 
 const dummy: any = null
 
@@ -60,5 +59,3 @@ const result2: RxResult = tx.run('RETURN $value', { value: '42' })
 result2.keys().subscribe(keysObserver)
 result2.records().subscribe(recordsObserver)
 result2.consume().subscribe(summaryObserver)
-
-const isOpen: boolean = tx.isOpen()

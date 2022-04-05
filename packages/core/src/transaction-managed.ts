@@ -24,10 +24,6 @@ interface Run {
   (query: Query, parameters?: any): Result
 }
 
-interface IsOpen {
-  (): boolean
-}
-
 /**
  * Represents a transaction that is managed by the transaction executor.
  * 
@@ -35,17 +31,12 @@ interface IsOpen {
  */
 class ManagedTransaction {
   private _run: Run
-  private _isOpen: IsOpen
 
-  constructor({ run, isOpen }: { run: Run, isOpen: IsOpen }) {
+  constructor({ run }: { run: Run }) {
     /**
      * @private
      */
     this._run = run
-    /**
-     * @private
-     */
-    this._isOpen = isOpen
   }
 
   /**
@@ -58,14 +49,6 @@ class ManagedTransaction {
    */
   run(query: Query, parameters?: any): Result {
     return this._run(query, parameters)
-  }
-
-  /**
-  * Check if this transaction is active, which means commit and rollback did not happen.
-  * @return {boolean} `true` when not committed and not rolled back, `false` otherwise.
-  */
-  isOpen(): boolean {
-    return this._isOpen()
   }
 }
 

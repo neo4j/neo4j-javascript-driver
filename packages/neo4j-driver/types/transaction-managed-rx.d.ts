@@ -21,7 +21,6 @@
  
  declare interface RxManagedTransaction {
    run(query: string, parameters?: Parameters): RxResult
-   isOpen(): boolean
  }
  
  export default RxManagedTransaction

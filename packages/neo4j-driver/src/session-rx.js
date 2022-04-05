@@ -140,8 +140,7 @@ export default class RxSession {
    */
   _executeInTransaction (accessMode, work, transactionConfig) {
     const wrapper = txc => new RxManagedTransaction({
-      run: txc.run.bind(txc),
-      isOpen: txc.isOpen.bind(txc)
+      run: txc.run.bind(txc)
     })
     return this._runTransaction(accessMode, work, transactionConfig, wrapper)
   }

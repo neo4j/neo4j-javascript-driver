@@ -23,9 +23,8 @@
  * @public
  */
 class RxManagedTransaction {
-  constructor({ run, isOpen }) {
+  constructor({ run }) {
     this._run = run
-    this._isOpen = isOpen
   }
 
   /**
@@ -39,14 +38,6 @@ class RxManagedTransaction {
    run (query, parameters) {
      return this._run(query, parameters)
    }
-
-   /**
-   * Check if this transaction is active, which means commit and rollback did not happen.
-   * @return {boolean} `true` when not committed and not rolled back, `false` otherwise.
-   */
-    isOpen() {
-      return this._isOpen()
-    }
 }
 
 export default RxManagedTransaction

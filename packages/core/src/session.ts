@@ -449,7 +449,6 @@ class Session {
       () => this._beginTransaction(accessMode, transactionConfig),
       transactionWork,
       tx => new ManagedTransaction({
-        isOpen: tx.isOpen.bind(tx),
         run: tx.run.bind(tx),
       })
     )
