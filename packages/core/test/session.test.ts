@@ -300,7 +300,7 @@ describe('session', () => {
       expect(status.functionCalled).toEqual(true)
     })
 
-    it('should proxy run to the begined transaction', async () => {
+    it('should proxy run to the begun transaction', async () => {
       const connection = mockBeginWithSuccess(newFakeConnection())
       const session = newSessionWithConnection(connection, false, FETCH_ALL)
       // @ts-ignore
@@ -318,7 +318,7 @@ describe('session', () => {
       expect(run).toHaveBeenCalledWith(query, params)
     })
 
-    it('should proxy isOpen to the begined transaction', async () => {
+    it('should proxy isOpen to the begun transaction', async () => {
       const connection = mockBeginWithSuccess(newFakeConnection())
       const session = newSessionWithConnection(connection, false, FETCH_ALL)
       const isOpen = jest.spyOn(Transaction.prototype, 'isOpen').mockImplementationOnce(() => true)
