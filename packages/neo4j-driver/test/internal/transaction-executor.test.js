@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError, error as err, internal, int } from 'neo4j-driver-core'
+import { newError, error as err, internal } from 'neo4j-driver-core'
 import { setTimeoutMock } from './timers-util'
 import lolex from 'lolex'
 
