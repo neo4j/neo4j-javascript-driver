@@ -202,10 +202,6 @@ class ResultStreamObserver extends StreamObserver {
    * @param {function(error: Object)} observer.onError - Handle errors, should always be provided.
    */
   subscribe (observer) {
-    if (this._error) {
-      observer.onError(this._error)
-      return
-    }
     if (this._head && observer.onKeys) {
       observer.onKeys(this._head)
     }
@@ -222,6 +218,9 @@ class ResultStreamObserver extends StreamObserver {
     }
     if (this._tail && observer.onCompleted) {
       observer.onCompleted(this._tail)
+    }
+    if (this._error) {
+      observer.onError(this._error)
     }
     this._observers.push(observer)
 
