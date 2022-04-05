@@ -448,9 +448,7 @@ class Session {
     return this._transactionExecutor.execute(
       () => this._beginTransaction(accessMode, transactionConfig),
       transactionWork,
-      tx => new ManagedTransaction({
-        run: tx.run.bind(tx),
-      })
+      ManagedTransaction.fromTransaction
     )
   }
 

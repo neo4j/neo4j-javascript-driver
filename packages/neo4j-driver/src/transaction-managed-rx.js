@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import RxResult from './result-rx'
+import RxTransaction from './transaction-rx'
 
 /**
  * Represents a rx transaction that is managed by the transaction executor.
@@ -23,8 +25,22 @@
  * @public
  */
 class RxManagedTransaction {
+  /**
+   * @private
+   */
   constructor({ run }) {
     this._run = run
+  }
+
+  /**
+   * @private
+   * @param {RxTransaction} txc - The transaction to be wrapped
+   * @returns {RxManagedTransaction} The managed transaction
+   */
+  static fromTransaction (txc) {
+    return new RxManagedTransaction({
+      run: txc.run.bind(txc)
+    })
   }
 
   /**

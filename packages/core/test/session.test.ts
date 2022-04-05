@@ -317,6 +317,7 @@ describe('session', () => {
       expect(status.functionCalled).toEqual(true)
       expect(run).toHaveBeenCalledWith(query, params)
     })
+  })
 })
 
 function mockBeginWithSuccess(connection: FakeConnection) {

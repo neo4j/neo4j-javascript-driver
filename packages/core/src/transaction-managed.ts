@@ -18,6 +18,7 @@
  */
 
 import Result from './result'
+import Transaction from './transaction'
 import { Query } from './types'
 
 interface Run {
@@ -32,11 +33,25 @@ interface Run {
 class ManagedTransaction {
   private _run: Run
 
-  constructor({ run }: { run: Run }) {
+  /**
+   * @private
+   */
+  private constructor({ run }: { run: Run }) {
     /**
      * @private
      */
     this._run = run
+  }
+
+  /**
+   * @private
+   * @param {Transaction} tx - Transaction to wrap
+   * @returns {ManagedTransaction} the ManagedTransaction
+   */
+  static fromTransaction(tx: Transaction): ManagedTransaction {
+    return new ManagedTransaction({
+      run: tx.run.bind(tx)
+    })
   }
 
   /**
