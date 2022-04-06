@@ -31,15 +31,21 @@ import {
 } from './internal/constants'
 import { Logger } from './internal/logger'
 import Session from './session'
-import { ServerInfo } from './result-summary'
+import ResultSummary, { ServerInfo } from './result-summary'
 import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
 import {
   EncryptionLevel,
   LoggingConfig,
   TrustStrategy,
-  SessionMode
+  SessionMode,
+  Query
 } from './types'
+import { NumberOrInteger } from './graph-types'
 import { ServerAddress } from './internal/server-address'
+import Record from './record'
+import Result from './result'
+import { Neo4jError } from './error'
+
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -94,6 +100,16 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
+}
+
+interface RunnerConfig {
+    defaultAccessMode?: SessionMode
+    bookmarks?: string | string[]
+    database?: string
+    impersonatedUser?: string
+    fetchSize?: number,
+    timeout?: NumberOrInteger
+    metadata?: object
 }
 
 /**
@@ -151,6 +167,32 @@ class Driver {
     this._connectionProvider = null
 
     this._afterConstruction()
+  }
+
+  async *run (query: Query, parameters?: any, config?: RunnerConfig ):AsyncIterator<Record, ResultSummary> {
+    async function isRunSucceeded(result: Result): Promise<boolean> {
+      return result.keys().then(() => true).catch(() => false)
+    }
+
+    let currentException = null
+    for(let i = 0; i ++ < 3; i++ ) {
+      const session = this.session(config)
+      const result = session.run(query, parameters, config)
+      try {
+        for await (const record of result) {
+          yield record
+        }
+        return result.summary()
+      } catch (ex) {
+        if (!Neo4jError.isRetriable(ex) && await isRunSucceeded(result)) {
+          throw ex
+        }
+        currentException = ex
+      } finally {
+        await session.close().catch(ex => console.log('I dont care about this error', ex))
+      }
+    }
+    throw currentException
   }
 
   /**
