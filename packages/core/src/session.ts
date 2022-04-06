@@ -189,10 +189,10 @@ class Session {
     return this._runn(this._mode, query, parameters, transactionConfig)
   }
 
-  async execute<T = Record>(plannedQuery: PlannedQuery, parameters?: any, transform?: ((R: Record) => T)): Promise<ExecutionResult<T>> {
+  async execute<T = Record>(plannedQuery: PlannedQuery, transform?: ((R: Record) => T)): Promise<ExecutionResult<T>> {
     return await this._runTransaction(plannedQuery.accessMode, TxConfig.empty(), async tx => {
       const values: T[] = []
-      const result = tx.run(plannedQuery.query, parameters)
+      const result = tx.run(plannedQuery.query, plannedQuery.parameters)
       for await(const record of result) {
         const map = transform || ((r: Record) => r as unknown as T)
         values.push(map(record))

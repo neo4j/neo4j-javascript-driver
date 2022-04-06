@@ -9,11 +9,11 @@ for await(const record of await driver.execute(matchAllNodes)) {
 }
 
 const createPerson = await driver.plan('CREATE (n:Person {name: $name, born: $born}) RETURN n')
-
-const createPersonResult = await driver.execute(createPerson, { name: 'Antonio', born: 1999n})
+const createFakeAntonio = createPerson.withParameters({ name: 'Antonio', born: 1999n})
+const createPersonResult = await driver.execute(createFakeAntonio)
 console.log('Person created', createPersonResult.sumamry)
 
 // Should print the property of all nodes in the driver as in the first matchAllNodes query
-for await(const record of await driver.execute(matchAllNodes, {}, record => record.get('n').properties)) {
+for await(const record of await driver.execute(matchAllNodes, record => record.get('n').properties)) {
   console.log(record);
 }

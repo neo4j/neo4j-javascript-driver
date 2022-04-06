@@ -176,8 +176,8 @@ class Driver {
     return await this._getSession(database).plan(query)
   }
 
-  execute<T>(query: PlannedQuery, parameters?: any, transform?: ((R: Record) => T), database?: string): Promise<ExecutionResult<T>> {
-    return this._getSession(database).execute(query, parameters, transform)
+  execute<T>(query: PlannedQuery, transform?: ((R: Record) => T), database?: string): Promise<ExecutionResult<T>> {
+    return this._getSession(database).execute(query, transform)
   }
 
   _getSession(database?: string): Session {
