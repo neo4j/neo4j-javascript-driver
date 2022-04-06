@@ -160,8 +160,6 @@ class Driver {
     this._log = log;
     this._createConnectionProvider = createConnectonProvider
     this._createSession = createSession
-    this._sessions = new Map()
-
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
      * @type {ConnectionProvider}
@@ -173,19 +171,21 @@ class Driver {
   }
 
   async plan ( query: Query, database?: string ): Promise<PlannedQuery> {
-    return await this._getSession(database).plan(query)
-  }
-
-  execute<T>(query: PlannedQuery<T> | PlannedQuery<T>[], database?: string): Promise<ExecutionResult<T> | ExecutionResult<T>[]> {
-    return this._getSession(database).execute(query)
-  }
-
-  _getSession(database?: string): Session {
-    const db = database || ""
-    if (!this._sessions.has(db)) {
-      this._sessions.set(db, this.session({ database: db }))
+    const session = this.session({ database })
+    try {
+      return await session.plan(query)
+    } finally {
+      await session.close()
     }
-    return this._sessions.get(db)!
+  }
+
+  async execute<T>(query: PlannedQuery<T> | PlannedQuery<T>[], database?: string): Promise<ExecutionResult<T> | ExecutionResult<T>[]> {
+    const session = this.session({ database })
+    try {
+      return await session.execute(query)
+    } finally {
+      await session.close()
+    }
   }
 
   /**

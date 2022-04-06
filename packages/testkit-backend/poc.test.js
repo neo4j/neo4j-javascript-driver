@@ -19,11 +19,16 @@ for await(const record of await driver.execute(matchAllNodes.withRecordMapper(re
 }
 
 
-const getMovies = (await driver.plan('MATCH (m:Movie) RETURN m')).withRecordMapper(record => record.get('m').properties)
-const getPeople = (await driver.plan('MATCH (p:Person) RETURN p')).withRecordMapper(record => record.get('p').properties)
+const getMovies = await driver.plan('MATCH (m:Movie) RETURN m')
+const getPeople = await driver.plan('MATCH (p:Person) RETURN p')
+
+const nodeAsObject = nodeName => record => record.get(nodeName).properties
 
 
-const [movies, people] = await driver.execute([getMovies, getPeople])
+const [movies, people] = await driver.execute([
+  getMovies.withRecordMapper(nodeAsObject('m')), 
+  getPeople.withRecordMapper(nodeAsObject('p'))
+])
 
 console.log('Movies Updates:', movies.summary.counters.containsUpdates())
 for (const movie of movies) {
