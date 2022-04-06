@@ -42,7 +42,7 @@ type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
 export class ExecutionResult<T> {
   constructor(
     public readonly values: T[],
-    public readonly sumamry: ResultSummary
+    public readonly summary: ResultSummary
   ) {
 
   }
@@ -189,15 +189,26 @@ class Session {
     return this._runn(this._mode, query, parameters, transactionConfig)
   }
 
-  async execute<T = Record>(plannedQuery: PlannedQuery, transform?: ((R: Record) => T)): Promise<ExecutionResult<T>> {
-    return await this._runTransaction(plannedQuery.accessMode, TxConfig.empty(), async tx => {
-      const values: T[] = []
+  async execute<T = Record>(plannedQuery: PlannedQuery<T> | PlannedQuery<T>[]): Promise<ExecutionResult<T> | ExecutionResult<T>[]> {
+    const run = (tx: Transaction) => async <R>(plannedQuery:PlannedQuery<R>) => {
+      const values: R[] = []
       const result = tx.run(plannedQuery.query, plannedQuery.parameters)
-      for await(const record of result) {
-        const map = transform || ((r: Record) => r as unknown as T)
-        values.push(map(record))
+      for await(const record of result) { 
+        values.push(plannedQuery.map(record))
       }
       return new ExecutionResult(values, await result.summary())
+    }
+
+    const accessMode: SessionMode = plannedQuery instanceof PlannedQuery ? 
+      plannedQuery.accessMode : 
+      plannedQuery.reduce((acc, q) => acc === 'WRITE' ? 'WRITE' : q.accessMode, 'READ' as SessionMode)
+
+    return await this._runTransaction(accessMode, TxConfig.empty(), async tx => {
+      if (plannedQuery instanceof PlannedQuery) {
+        return run(tx)(plannedQuery)
+      } else {
+        return await Promise.all(plannedQuery.map(run(tx)))
+      }
     })
   }
 

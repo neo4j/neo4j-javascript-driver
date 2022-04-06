@@ -14,6 +14,23 @@ const createPersonResult = await driver.execute(createFakeAntonio)
 console.log('Person created', createPersonResult.sumamry)
 
 // Should print the property of all nodes in the driver as in the first matchAllNodes query
-for await(const record of await driver.execute(matchAllNodes, record => record.get('n').properties)) {
+for await(const record of await driver.execute(matchAllNodes.withRecordMapper(record => record.get('n').properties))) {
   console.log(record);
+}
+
+
+const getMovies = (await driver.plan('MATCH (m:Movie) RETURN m')).withRecordMapper(record => record.get('m').properties)
+const getPeople = (await driver.plan('MATCH (p:Person) RETURN p')).withRecordMapper(record => record.get('p').properties)
+
+
+const [movies, people] = await driver.execute([getMovies, getPeople])
+
+console.log('Movies Updates:', movies.summary.counters.containsUpdates())
+for (const movie of movies) {
+  console.log(movie)
+}
+
+console.log('People Updates:', people.summary.counters.containsUpdates())
+for (const person of people) {
+  console.log(person)
 }
