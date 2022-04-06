@@ -19,8 +19,8 @@
 import { ResultStreamObserver, FailedObserver } from './internal/observers'
 import { validateQueryAndParameters } from './internal/util'
 import { FETCH_ALL } from './internal/constants'
-import { newError } from './error'
-import Result from './result'
+import { Neo4jError, newError } from './error'
+import Result, { QueryResult } from './result'
 import Transaction from './transaction'
 import { ConnectionHolder } from './internal/connection-holder'
 import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
@@ -32,14 +32,53 @@ import { Query, SessionMode } from './types'
 import Connection from './connection'
 import { NumberOrInteger } from './graph-types'
 import TransactionPromise from './transaction-promise'
+import PlannedQuery from './query-planned'
+import ResultSummary, { Plan } from './result-summary'
+import Record from './record'
 
 type ConnectionConsumer = (connection: Connection | void) => any | undefined
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
+
+export class ExecutionResult<T> {
+  constructor(
+    public readonly values: T[],
+    public readonly sumamry: ResultSummary
+  ) {
+
+  }
+
+  [Symbol.iterator]() {
+    return this.values[Symbol.iterator]()
+  }
+}
 
 interface TransactionConfig {
   timeout?: NumberOrInteger
   metadata?: object
 }
+
+const UPDATES = new Set([
+  'Create', 
+  'CreateIndex', 
+  'CreateNodeKeyConstraint', 
+  'CreateNodePropertyExistenceConstraint', 
+  'CreateRelationshipPropertyExistenceConstraint',
+  'CreateUniqueConstraint',
+  'Delete',
+  'DetachDelete',
+  'DropConstraint',
+  'DropIndex',
+  'DropNodeKeyConstraint',
+  'DropNodePropertyExistenceConstraint',
+  'DropRelationshipPropertyExistenceConstraint',
+  'DropUniqueConstraint',
+  'RemoveLabels',
+  'SetLabels',
+  'SetNodePropertiesFromMap',
+  'SetProperty',
+  'SetRelationshipPropertiesFromMap',
+  'ProcedureCall' // It might be an update
+])
 
 /**
  * A Session instance is used for handling the connection and
@@ -145,8 +184,51 @@ class Session {
   run(
     query: Query,
     parameters?: any,
-    transactionConfig?: TransactionConfig
+    transactionConfig?: TransactionConfig,
   ): Result {
+    return this._runn(this._mode, query, parameters, transactionConfig)
+  }
+
+  async execute<T = Record>(plannedQuery: PlannedQuery, parameters?: any, transform?: ((R: Record) => T)): Promise<ExecutionResult<T>> {
+    return await this._runTransaction(plannedQuery.accessMode, TxConfig.empty(), async tx => {
+      const values: T[] = []
+      const result = tx.run(plannedQuery.query, parameters)
+      for await(const record of result) {
+        const map = transform || ((r: Record) => r as unknown as T)
+        values.push(map(record))
+      }
+      return new ExecutionResult(values, await result.summary())
+    })
+  }
+
+  async plan(query: Query): Promise<PlannedQuery> {
+    function getAccessMode  (plan: Plan | false): SessionMode {
+      if (plan === false) {
+        return 'WRITE'
+      }
+      const operator = plan.operatorType.substring(0, plan.operatorType.indexOf('@'))
+      if (UPDATES.has(operator)) {
+        return 'WRITE'
+      }
+      for (const childPlan of plan.children) {
+        if (getAccessMode(childPlan) === 'WRITE') {
+          return 'WRITE'
+        }
+      }
+      return 'READ'
+    }
+    // @ts-ignore
+    const queryString = typeof query === 'string' ? query : query.text
+    const summary = await this._runn('READ', `EXPLAIN ${queryString}`).summary()
+    return new PlannedQuery(query, getAccessMode(summary.plan))
+  }
+
+  _runn(
+    mode: SessionMode,
+    query: Query,
+    parameters?: any,
+    transactionConfig?: TransactionConfig,
+  ) {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters
@@ -169,7 +251,7 @@ class Session {
         lowRecordWatermark: this._lowRecordWatermark,
         highRecordWatermark: this._highRecordWatermark
       })
-    })
+    }, mode)
     this._results.push(result)
     return result
   }
@@ -177,9 +259,10 @@ class Session {
   _run(
     query: Query,
     parameters: any,
-    customRunner: ConnectionConsumer
+    customRunner: ConnectionConsumer,
+    mode: SessionMode
   ): Result {
-    const connectionHolder = this._connectionHolderWithMode(this._mode)
+    const connectionHolder = this._connectionHolderWithMode(mode)
 
     let observerPromise
     if (!this._open) {

@@ -30,7 +30,7 @@ import {
   DEFAULT_POOL_MAX_SIZE
 } from './internal/constants'
 import { Logger } from './internal/logger'
-import Session from './session'
+import Session, { ExecutionResult } from './session'
 import ResultSummary, { ServerInfo } from './result-summary'
 import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
 import {
@@ -45,6 +45,7 @@ import { ServerAddress } from './internal/server-address'
 import Record from './record'
 import Result from './result'
 import { Neo4jError } from './error'
+import PlannedQuery from './query-planned'
 
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
@@ -130,6 +131,7 @@ class Driver {
   private readonly _createConnectionProvider: CreateConnectionProvider
   private _connectionProvider: ConnectionProvider | null
   private readonly _createSession: CreateSession
+  private _sessions: Map<string, Session>
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -158,6 +160,7 @@ class Driver {
     this._log = log;
     this._createConnectionProvider = createConnectonProvider
     this._createSession = createSession
+    this._sessions = new Map()
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
@@ -169,30 +172,20 @@ class Driver {
     this._afterConstruction()
   }
 
-  async *run (query: Query, parameters?: any, config?: RunnerConfig ):AsyncIterator<Record, ResultSummary> {
-    async function isRunSucceeded(result: Result): Promise<boolean> {
-      return result.keys().then(() => true).catch(() => false)
-    }
+  async plan ( query: Query, database?: string ): Promise<PlannedQuery> {
+    return await this._getSession(database).plan(query)
+  }
 
-    let currentException = null
-    for(let i = 0; i ++ < 3; i++ ) {
-      const session = this.session(config)
-      const result = session.run(query, parameters, config)
-      try {
-        for await (const record of result) {
-          yield record
-        }
-        return result.summary()
-      } catch (ex) {
-        if (!Neo4jError.isRetriable(ex) && await isRunSucceeded(result)) {
-          throw ex
-        }
-        currentException = ex
-      } finally {
-        await session.close().catch(ex => console.log('I dont care about this error', ex))
-      }
+  execute<T>(query: PlannedQuery, parameters?: any, transform?: ((R: Record) => T), database?: string): Promise<ExecutionResult<T>> {
+    return this._getSession(database).execute(query, parameters, transform)
+  }
+
+  _getSession(database?: string): Session {
+    const db = database || ""
+    if (!this._sessions.has(db)) {
+      this._sessions.set(db, this.session({ database: db }))
     }
-    throw currentException
+    return this._sessions.get(db)!
   }
 
   /**
