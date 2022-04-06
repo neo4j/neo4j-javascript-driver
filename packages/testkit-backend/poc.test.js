@@ -39,3 +39,23 @@ console.log('People Updates:', people.summary.counters.containsUpdates())
 for (const person of people) {
   console.log(person)
 }
+
+const titles = await driver.execute(async tx => {
+  const result = tx.run('MATCH (m:Movie) RETURN m.title') 
+  const titles = []
+  for await(const record of result) {
+    titles.push(record.get('m.title'))
+  }
+  return titles
+})
+
+const releaseYears = await driver.execute(async tx => {
+  const result = tx.run(getMovies.query, getMovies.parameters) 
+  const years = []
+  for await(const record of result) {
+    years.push(record.get('m').properties['released'])
+  }
+  return years
+}, { mode: 'READ' })
+
+console.log(releaseYears)

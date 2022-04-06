@@ -30,7 +30,7 @@ import {
   DEFAULT_POOL_MAX_SIZE
 } from './internal/constants'
 import { Logger } from './internal/logger'
-import Session, { ExecutionResult } from './session'
+import Session, { ExecutionResult, TransactionWork } from './session'
 import ResultSummary, { ServerInfo } from './result-summary'
 import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
 import {
@@ -179,10 +179,10 @@ class Driver {
     }
   }
 
-  async execute<T>(query: PlannedQuery<T> | PlannedQuery<T>[], database?: string): Promise<ExecutionResult<T> | ExecutionResult<T>[]> {
-    const session = this.session({ database })
+  async execute<T>(query: PlannedQuery<T> | PlannedQuery<T>[] | TransactionWork<T>, config: { database?: string, mode?: SessionMode} = {}): Promise<ExecutionResult<T> | ExecutionResult<T>[] | T> {
+    const session = this.session({ database: config.database })
     try {
-      return await session.execute(query)
+      return await session.execute(query, config.mode)
     } finally {
       await session.close()
     }

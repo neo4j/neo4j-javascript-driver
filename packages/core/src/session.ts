@@ -37,7 +37,9 @@ import ResultSummary, { Plan } from './result-summary'
 import Record from './record'
 
 type ConnectionConsumer = (connection: Connection | void) => any | undefined
-type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
+export interface TransactionWork<T> {
+  (tx: Transaction): Promise<T> | T
+}
 
 export class ExecutionResult<T> {
   constructor(
@@ -189,7 +191,7 @@ class Session {
     return this._runn(this._mode, query, parameters, transactionConfig)
   }
 
-  async execute<T = Record>(plannedQuery: PlannedQuery<T> | PlannedQuery<T>[]): Promise<ExecutionResult<T> | ExecutionResult<T>[]> {
+  async execute<T = Record>(plannedQuery: PlannedQuery<T> | PlannedQuery<T>[] | TransactionWork<T>, mode?: SessionMode): Promise<ExecutionResult<T> | ExecutionResult<T>[] | T> {
     const run = (tx: Transaction) => async <R>(plannedQuery:PlannedQuery<R>) => {
       const values: R[] = []
       const result = tx.run(plannedQuery.query, plannedQuery.parameters)
@@ -199,9 +201,13 @@ class Session {
       return new ExecutionResult(values, await result.summary())
     }
 
-    const accessMode: SessionMode = plannedQuery instanceof PlannedQuery ? 
+    if (typeof plannedQuery === 'function') {
+      return await this._runTransaction(mode || this._mode, TxConfig.empty(), plannedQuery)
+    }
+
+    const accessMode: SessionMode = mode || (plannedQuery instanceof PlannedQuery ? 
       plannedQuery.accessMode : 
-      plannedQuery.reduce((acc, q) => acc === 'WRITE' ? 'WRITE' : q.accessMode, 'READ' as SessionMode)
+      plannedQuery.reduce((acc, q) => acc === 'WRITE' ? 'WRITE' : q.accessMode, 'READ' as SessionMode))
 
     return await this._runTransaction(accessMode, TxConfig.empty(), async tx => {
       if (plannedQuery instanceof PlannedQuery) {
