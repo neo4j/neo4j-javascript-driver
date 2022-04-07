@@ -239,6 +239,138 @@ describe('#integration rx-session', () => {
     expect(await countNodes('Person')).toBe(0)
   }, 60000)
 
+  describe('.executeWrite()', () => {
+    it('should run transactions without retries', async () => {
+      if (protocolVersion < 4.0) {
+        return
+      }
+  
+      const txcWork = new ConfigurableTransactionWork({
+        query: 'CREATE (:WithoutRetry) RETURN 5'
+      })
+  
+      const result = await session
+        .executeWrite(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+        .toPromise()
+      expect(result).toEqual([
+        Notification.createNext(5),
+        Notification.createComplete()
+      ])
+  
+      expect(txcWork.invocations).toBe(1)
+      expect(await countNodes('WithoutRetry')).toBe(1)
+    }, 60000)
+
+
+    it('should run transaction with retries on reactive failures', async () => {
+      if (protocolVersion < 4.0) {
+        return
+      }
+
+      const txcWork = new ConfigurableTransactionWork({
+        query: 'CREATE (:WithReactiveFailure) RETURN 7',
+        reactiveFailures: [
+          newError('service unavailable', SERVICE_UNAVAILABLE),
+          newError('session expired', SESSION_EXPIRED),
+          newError('transient error', 'Neo.TransientError.Transaction.NotStarted')
+        ]
+      })
+
+      const result = await session
+        .executeWrite(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+        .toPromise()
+      expect(result).toEqual([
+        Notification.createNext(7),
+        Notification.createComplete()
+      ])
+
+      expect(txcWork.invocations).toBe(4)
+      expect(await countNodes('WithReactiveFailure')).toBe(1)
+    }, 60000)
+
+    it('should run transaction with retries on synchronous failures', async () => {
+      if (protocolVersion < 4.0) {
+        return
+      }
+
+      const txcWork = new ConfigurableTransactionWork({
+        query: 'CREATE (:WithSyncFailure) RETURN 9',
+        syncFailures: [
+          newError('service unavailable', SERVICE_UNAVAILABLE),
+          newError('session expired', SESSION_EXPIRED),
+          newError('transient error', 'Neo.TransientError.Transaction.NotStarted')
+        ]
+      })
+
+      const result = await session
+        .executeWrite(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+        .toPromise()
+      expect(result).toEqual([
+        Notification.createNext(9),
+        Notification.createComplete()
+      ])
+
+      expect(txcWork.invocations).toBe(4)
+      expect(await countNodes('WithSyncFailure')).toBe(1)
+    }, 60000)
+
+    it('should fail on transactions that cannot be retried', async () => {
+      if (protocolVersion < 4.0) {
+        return
+      }
+
+      const txcWork = new ConfigurableTransactionWork({
+        query: 'UNWIND [10, 5, 0] AS x CREATE (:Hi) RETURN 10/x'
+      })
+
+      const result = await session
+        .executeWrite(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+        .toPromise()
+      expect(result).toEqual([
+        Notification.createNext(1),
+        Notification.createNext(2),
+        Notification.createError(jasmine.stringMatching(/\/ by zero/))
+      ])
+
+      expect(txcWork.invocations).toBe(1)
+      expect(await countNodes('Hi')).toBe(0)
+    }, 60000)
+
+    it('should fail even after a transient error', async () => {
+      if (protocolVersion < 4.0) {
+        return
+      }
+
+      const txcWork = new ConfigurableTransactionWork({
+        query: 'CREATE (:Person) RETURN 1',
+        syncFailures: [
+          newError(
+            'a transient error',
+            'Neo.TransientError.Transaction.NotStarted'
+          )
+        ],
+        reactiveFailures: [
+          newError('a database error', 'Neo.Database.Not.Started')
+        ]
+      })
+
+      const result = await session
+        .executeWrite(txc => txcWork.work(txc))
+        .pipe(materialize(), toArray())
+        .toPromise()
+      expect(result).toEqual([
+        Notification.createError(jasmine.stringMatching(/a database error/))
+      ])
+
+      expect(txcWork.invocations).toBe(2)
+      expect(await countNodes('Person')).toBe(0)
+    }, 60000)
+  })
+
   async function countNodes (label) {
     const session = driver.rxSession()
     return await session

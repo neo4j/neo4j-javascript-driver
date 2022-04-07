@@ -17,11 +17,10 @@
  * limitations under the License.
  */
 
-import RxTransaction from '../../types/transaction-rx'
+import RxManagedTransaction from '../../types/transaction-managed-rx'
 import { Record, ResultSummary } from 'neo4j-driver-core'
 import RxResult from '../../types/result-rx'
-import { Observable, of, Observer, throwError } from 'rxjs'
-import { concat, finalize, catchError } from 'rxjs/operators'
+import { Observer } from 'rxjs'
 
 const dummy: any = null
 
@@ -49,7 +48,7 @@ const summaryObserver: Observer<ResultSummary> = {
   error: error => console.log(`summary error: ${error}`)
 }
 
-const tx: RxTransaction = dummy
+const tx: RxManagedTransaction = dummy
 
 const result1: RxResult = tx.run('RETURN 1')
 result1.keys().subscribe(keysObserver)
@@ -60,17 +59,3 @@ const result2: RxResult = tx.run('RETURN $value', { value: '42' })
 result2.keys().subscribe(keysObserver)
 result2.records().subscribe(recordsObserver)
 result2.consume().subscribe(summaryObserver)
-
-const isOpen: boolean = tx.isOpen()
-
-tx.commit()
-  .pipe(concat(of('committed')))
-  .subscribe(stringObserver)
-
-tx.rollback()
-  .pipe(concat(of('rolled back')))
-  .subscribe(stringObserver)
-
-tx.close()
-  .pipe(concat(of('closed')))
-  .subscribe(stringObserver)

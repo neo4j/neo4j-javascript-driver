@@ -225,7 +225,7 @@ export function SessionReadTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
   return session
-    .readTransaction(
+    .executeRead(
       tx =>
         new Promise((resolve, reject) => {
           const id = context.addTx(tx, sessionId, resolve, reject)
@@ -323,7 +323,7 @@ export function SessionWriteTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
   return session
-    .writeTransaction(
+    .executeWrite(
       tx =>
         new Promise((resolve, reject) => {
           const id = context.addTx(tx, sessionId, resolve, reject)

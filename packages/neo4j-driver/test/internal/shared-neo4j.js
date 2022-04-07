@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import neo4j from '../../src'
 import { json } from 'neo4j-driver-core'
 

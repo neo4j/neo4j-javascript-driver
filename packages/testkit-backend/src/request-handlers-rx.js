@@ -173,7 +173,7 @@ export function SessionReadTransaction(context, data, wire) {
   const session = context.getSession(sessionId)
 
   try {
-    return session.readTransaction(tx => {
+    return session.executeRead(tx => {
       return from(new Promise((resolve, reject) => {
         const id = context.addTx(tx, sessionId, resolve, reject)
         wire.writeResponse(responses.RetryableTry({ id }))
@@ -193,7 +193,7 @@ export function SessionWriteTransaction(context, data, wire) {
   const session = context.getSession(sessionId)
 
   try {
-    return session.writeTransaction(tx => {
+    return session.executeWrite(tx => {
       return from(new Promise((resolve, reject) => {
         const id = context.addTx(tx, sessionId, resolve, reject)
         wire.writeResponse(responses.RetryableTry({ id }))
