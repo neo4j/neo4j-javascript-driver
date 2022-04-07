@@ -33,15 +33,6 @@ const features = [
   'Feature:API:Driver.VerifyConnectivity',
   'Feature:API:Result.Peek',
   'Optimization:ImplicitDefaultArguments',
-  'Temporary:CypherPathAndRelationship',
-  'Temporary:DriverFetchSize',
-  'Temporary:DriverMaxConnectionPoolSize',
-  'Temporary:DriverMaxTxRetryTime',
-  'Temporary:GetConnectionPoolMetrics',
-  'Temporary:FastFailingDiscovery',
-  'Temporary:FullSummary',
-  'Temporary:ResultKeys',
-  'Temporary:TransactionClose',
   ...SUPPORTED_TLS
 ]
 
