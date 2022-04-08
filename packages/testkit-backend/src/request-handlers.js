@@ -186,7 +186,7 @@ export function ResultNext (context, data, wire) {
 }
 
 export function ResultConsume (context, data, wire) {
-  
+
 
   const { resultId } = data
   const resultObserver = context.getResultObserver(resultId)
@@ -341,16 +341,6 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.3',
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
-      'Temporary:ConnectionAcquisitionTimeout',
-      'Temporary:CypherPathAndRelationship',
-      'Temporary:DriverFetchSize',
-      'Temporary:DriverMaxConnectionPoolSize',
-      'Temporary:DriverMaxTxRetryTime',
-      'Temporary:FastFailingDiscovery',
-      'Temporary:FullSummary',
-      'Temporary:GetConnectionPoolMetrics',
-      'Temporary:ResultKeys',
-      'Temporary:TransactionClose',
       ...SUPPORTED_TLS
     ]
   })
