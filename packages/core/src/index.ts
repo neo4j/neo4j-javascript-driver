@@ -19,6 +19,8 @@
 
 import {
   newError,
+  newIllegalArgumentError,
+  newFatalDiscoveryError,
   Neo4jError,
   isRetriableError,
   PROTOCOL_ERROR,
@@ -93,6 +95,8 @@ const error = {
  */
 const forExport = {
   newError,
+  newIllegalArgumentError,
+  newFatalDiscoveryError,
   Neo4jError,
   isRetriableError,
   error,
@@ -151,6 +155,8 @@ const forExport = {
 
 export {
   newError,
+  newIllegalArgumentError,
+  newFatalDiscoveryError,
   Neo4jError,
   isRetriableError,
   error,

@@ -21,7 +21,7 @@ import ResultSummary from './result-summary'
 import Record from './record'
 import { Query, PeekableAsyncIterator } from './types'
 import { observer, util, connectionHolder } from './internal'
-import { newError } from './error'
+import { newResultConsumedError } from './error'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
@@ -240,7 +240,7 @@ class Result implements Promise<QueryResult> {
    */
   [Symbol.asyncIterator](): PeekableAsyncIterator<Record, ResultSummary> {
     if (!this.isOpen()) {
-      const error = newError('Result is already consumed')
+      const error = newResultConsumedError('Result is already consumed')
       return {
         next: () => Promise.reject(error),
         peek: () => Promise.reject(error),

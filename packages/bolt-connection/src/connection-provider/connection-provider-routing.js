@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { newError, error, int, Session, internal } from 'neo4j-driver-core'
+import { newError, error, newFatalDiscoveryError, int, Session, internal } from 'neo4j-driver-core'
 import Rediscovery, { RoutingTable } from '../rediscovery'
 import { HostNameResolver } from '../channel'
 import SingleConnectionProvider from './connection-provider-single'
@@ -536,7 +536,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   }
 
   _handleRediscoveryError(error, routerAddress) {
-    if (_isFailFastError(error) || _isFailFastSecurityError(error)) {
+    if (error.code === DATABASE_NOT_FOUND_CODE) {
+      throw newFatalDiscoveryError(error.message, error.code)
+    } else if (_isFailFastError(error) || _isFailFastSecurityError(error)) {
       throw error
     } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
       // throw when getServers procedure not found because this is clearly a configuration issue

@@ -42,7 +42,7 @@ const PROTOCOL_ERROR: string = 'ProtocolError'
  * Error code representing an no classified error. Used by {@link Neo4jError#code}.
  * @type {string}
  */
-const NOT_AVAILABLE: string = 'N/A'
+const NOT_AVAILABLE: 'N/A' = 'N/A'
 
 /**
  * Possible error codes in the {@link Neo4jError}
@@ -52,6 +52,23 @@ type Neo4jErrorCode =
   | typeof SESSION_EXPIRED
   | typeof PROTOCOL_ERROR
   | typeof NOT_AVAILABLE
+
+/**
+ * The Neo4j Error category
+ * @typedef {'unknown'|'transient'} Neo4jErrorCategory
+ */
+type Neo4jErrorCategory = 
+  'ClientError' | 
+  'TransientError' | 
+  typeof NOT_AVAILABLE |
+  'AuthorizationExpiredError' |
+  'ServiceUnavailableError' |
+  'SessionExpiredError' |
+  'ResultConsumedError' | 
+  'SecurityError' |
+  'IllegalArgumentError' |
+  'ProtocolError' |
+  'FatalDiscoveryError'
 
 /// TODO: Remove definitions of this.constructor and this.__proto__
 /**
@@ -63,14 +80,16 @@ class Neo4jError extends Error {
    */
   code: Neo4jErrorCode
   retriable: boolean
+  category: Neo4jErrorCategory
   __proto__: Neo4jError
 
   /**
    * @constructor
    * @param {string} message - the error message
    * @param {string} code - Optional error code. Will be populated when error originates in the database.
+   * @param {string|undefined} category - Optional error category. Will be populated when error originates in the database.
    */
-  constructor (message: string, code: Neo4jErrorCode) {
+  constructor (message: string, code: Neo4jErrorCode, category?: Neo4jErrorCategory) {
     super(message)
     this.constructor = Neo4jError
     // eslint-disable-next-line no-proto
@@ -82,6 +101,11 @@ class Neo4jError extends Error {
      * @type {boolean} - true if the error is retriable
      */
     this.retriable = _isRetriableCode(code)
+    /**
+     * Indicates if the category of the error occurred.
+     * @type {Neo4jErrorCategory} - the category of the error
+     */
+    this.category = category || _categorizeErrorCode(code)
   }
 
   /**
@@ -102,11 +126,24 @@ class Neo4jError extends Error {
  * Create a new error from a message and error code
  * @param message the error message
  * @param code the error code
+ * @param category the error category
  * @return {Neo4jError} an {@link Neo4jError}
  * @private
  */
-function newError (message: string, code?: Neo4jErrorCode): Neo4jError {
-  return new Neo4jError(message, code ?? NOT_AVAILABLE)
+function newError (message: string, code?: Neo4jErrorCode, category?: Neo4jErrorCategory): Neo4jError {
+  return new Neo4jError(message, code || NOT_AVAILABLE, category)
+}
+
+function newIllegalArgumentError (message: string, code?: Neo4jErrorCode): Neo4jError {
+  return newError(message, code, 'IllegalArgumentError' )
+}
+
+function newResultConsumedError (message: string, code?: Neo4jErrorCode): Neo4jError {
+  return newError(message, code, 'ResultConsumedError')
+}
+
+function newFatalDiscoveryError (message: string, code?: Neo4jErrorCode): Neo4jError {
+  return newError(message, code, 'FatalDiscoveryError')
 }
 
 /**
@@ -153,6 +190,28 @@ function _isRetriableTransientError (code?: Neo4jErrorCode): boolean {
   return false
 }
 
+function _categorizeErrorCode (code?: Neo4jErrorCode): Neo4jErrorCategory {
+  if (code === undefined) {
+    return NOT_AVAILABLE 
+  } else if (code === 'Neo.ClientError.Security.AuthorizationExpired') {
+    return 'AuthorizationExpiredError'
+  } else if (code === SERVICE_UNAVAILABLE) {
+    return 'ServiceUnavailableError'
+  } else if (code === PROTOCOL_ERROR) {
+    return 'ProtocolError'
+  } else if (code === SESSION_EXPIRED) {
+    return 'SessionExpiredError'
+  } else if (_isRetriableTransientError(code)) {
+    return 'TransientError'
+  } else if (code?.startsWith('Neo.ClientError.Security')) {
+    return 'SecurityError'
+  } else if (code?.startsWith('Neo.ClientError.') || code?.startsWith('Neo.TransientError.')) {
+    return 'ClientError'
+  } else {
+    return NOT_AVAILABLE
+  }
+}
+
 /**
  * @private
  * @param {string} code the error to check
@@ -164,6 +223,9 @@ function _isAuthorizationExpired (code?: Neo4jErrorCode): boolean {
 
 export {
   newError,
+  newIllegalArgumentError,
+  newResultConsumedError,
+  newFatalDiscoveryError,
   isRetriableError,
   Neo4jError,
   SERVICE_UNAVAILABLE,

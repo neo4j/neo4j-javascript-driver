@@ -20,6 +20,7 @@ import VERSION from './version'
 import { logging } from './logging'
 
 import {
+  newIllegalArgumentError,
   Neo4jError,
   isRetriableError,
   error,
@@ -259,14 +260,14 @@ function driver (
       routing = true
       break
     default:
-      throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
+      throw newIllegalArgumentError(`Unknown scheme: ${parsedUrl.scheme}`)
   }
 
   // Encryption enabled on URL, propagate trust to the config.
   if (encrypted) {
     // Check for configuration conflict between URL and config.
     if ('encrypted' in config || 'trust' in config) {
-      throw new Error(
+      throw newIllegalArgumentError(
         'Encryption/trust can only be configured either through URL or config, not both'
       )
     }
@@ -310,7 +311,7 @@ function driver (
         })
     } else {
       if (!isEmptyObjectOrNull(parsedUrl.query)) {
-        throw new Error(
+        throw newIllegalArgumentError(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )
       }

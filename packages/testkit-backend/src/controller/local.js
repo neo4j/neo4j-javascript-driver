@@ -2,6 +2,7 @@ import Context from '../context'
 import Controller from './interface'
 import stringify from '../stringify'
 import { isFrontendError } from '../request-handlers'
+import { Neo4jError } from 'neo4j-driver'
 
 
 /**
@@ -64,7 +65,8 @@ export default class LocalController extends Controller {
         this._writeResponse(contextId, newResponse('DriverError', {
           id,
           msg: e.message,
-          code: e.code
+          code: e.code,
+          errorType: e.category
         }))
       }
       return

@@ -33,6 +33,7 @@ const features = [
   'Feature:API:Driver.VerifyConnectivity',
   'Feature:API:Result.Peek',
   'Optimization:ImplicitDefaultArguments',
+  'Backend:RTFetch',
   ...SUPPORTED_TLS
 ]
 

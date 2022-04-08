@@ -42,6 +42,16 @@ describe('newError', () => {
 
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
+    expect(error.category).toEqual('N/A')
+  })
+
+  test.each([
+    ['ResultConsumedError']
+  ])('should allow define "%s" as category', category => {
+    // @ts-ignore
+    const error = new Neo4jError('message', 'code', category)
+
+    expect(error.category).toEqual(category)
   })
 })
 
@@ -114,6 +124,74 @@ describe('Neo4jError', () => {
       ('should return false for error with code %s', error => {
         expect(Neo4jError.isRetriable(error)).toBe(false)
       })
+  })
+
+  test.each([
+    ['Neo.ClientError.Made.Up'],
+    ['Neo.TransientError.Transaction.LockClientStopped'],
+    ['Neo.TransientError.Transaction.Terminated']
+  ])('should define category as "ClientError" for error with code %s', code => {
+    const error = new Neo4jError('message', code)
+
+    expect(error.category).toEqual('ClientError')
+  })
+
+  test.each([
+    ['Neo.TransientError.Transaction.DeadlockDetected'],
+    ['Neo.TransientError.Network.CommunicationError']
+  ])('should define category as "TransientError" for error with code %s', code => {
+    const error = new Neo4jError('message', code)
+
+    expect(error.category).toEqual('TransientError')
+  })
+
+  test.each([
+    ['Neo.ClientError.Security.AuthorizationExpired']
+  ])('should define category as "AuthorizationExpiredError" for error with code %s', code => {
+    const error = new Neo4jError('message', code)
+
+    expect(error.category).toEqual('AuthorizationExpiredError')
+  })
+
+  test.each([
+    ['ServiceUnavailable']
+  ])('should define category as "ServiceUnavailableError" for error with code %s', code => {
+    const error = new Neo4jError('message', code)
+
+    expect(error.category).toEqual('ServiceUnavailableError')
+  })
+
+  test.each([
+    ['SessionExpired']
+  ])('should define category as "SessionExpiredError" for error with code %s', code => {
+    const error = new Neo4jError('message', code)
+
+    expect(error.category).toEqual('SessionExpiredError')
+  })
+
+  test.each([
+    'ProtocolError'
+  ])('should define category as "ProtocolError" for error with code %s', code => {
+    const error = new Neo4jError('message', code)
+
+    expect(error.category).toEqual('ProtocolError')
+  })
+
+  test.each([
+    ['Neo.ClientError.Security.Forbidden']
+  ])('should define category as "SecurityError" for error with code %s', code => {
+    const error = new Neo4jError('message', code)
+
+    expect(error.category).toEqual('SecurityError')
+  })
+
+  test.each([
+    ['ResultConsumedError']
+  ])('should allow define "%s" as category', category => {
+    // @ts-ignore
+    const error = new Neo4jError('message', 'code', category)
+
+    expect(error.category).toEqual(category)
   })
 })
 

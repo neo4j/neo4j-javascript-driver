@@ -874,7 +874,7 @@ describe('Result', () => {
           }
           expect('not to finish iteration over consumed result').toBe(true)
         } catch (e) {
-          expect(e).toEqual(newError('Result is already consumed'))
+          expect(e).toEqual(newError('Result is already consumed', undefined, 'ResultConsumedError'))
         }
 
         expect('not to finish iteration over consumed result')
