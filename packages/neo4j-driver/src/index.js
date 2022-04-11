@@ -22,6 +22,7 @@ import VERSION from './version'
 import {
   newIllegalArgumentError,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetryableError,
   error,
   Integer,
@@ -385,6 +386,7 @@ const forExport = {
   isDateTime,
   integer,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetryableError,
   auth,
   logging,
@@ -408,6 +410,7 @@ export {
   isDateTime,
   integer,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetryableError,
   auth,
   logging,

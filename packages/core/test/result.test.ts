@@ -26,6 +26,7 @@ import {
 } from '../src'
 
 import Result from '../src/result'
+import { newResultConsumedError } from '../src/error'
 
 describe('Result', () => {
   const expectedError = newError('some error')
@@ -874,7 +875,7 @@ describe('Result', () => {
           }
           expect('not to finish iteration over consumed result').toBe(true)
         } catch (e) {
-          expect(e).toEqual(newError('Result is already consumed', undefined, 'ResultConsumedError'))
+          expect(e).toEqual(newResultConsumedError('Result is already consumed'))
         }
 
         expect('not to finish iteration over consumed result')

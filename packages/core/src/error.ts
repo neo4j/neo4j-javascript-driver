@@ -54,35 +54,49 @@ type Neo4jErrorCode =
   | typeof NOT_AVAILABLE
 
 /**
- * The Neo4j Error category
- * @typedef {
- *  'ClientError' | 
- *  'TransientError' | 
- *  'N/A' |
- *  'AuthorizationExpiredError' |
- *  'ServiceUnavailableError' |
- *  'SessionExpiredError' |
- *  'ResultConsumedError' | 
- *  'SecurityError' |
- *  'IllegalArgumentError' |
- *  'ProtocolError' |
- *  'FatalDiscoveryError' |
- *  'TokenExpiredError'} Neo4jErrorCategory
+ * Represents an category of error ocurrred in the Neo4j driver.
+ * 
+ * Categories are used to classify errors in a way that makes it possible to
+ * distinguish between different types of errors and give the user a hint on how
+ * to handle them.
+ *
+ * @public
  */
-type Neo4jErrorCategory = 
-  'AuthorizationExpiredError' |
-  'ClientError' |
-  'FatalDiscoveryError' |
-  'IllegalArgumentError' |
-  'N/A' |
-  'ProtocolError' |
-  'ResultConsumedError' |
-  'SecurityError' |
-  'ServiceUnavailableError' |
-  'SessionExpiredError' |
-  'TokenExpiredError' |
-  'TransientError' 
+class Neo4jErrorCategory {
+  private readonly _value: string
 
+  public static readonly AUTORIZATION_EXPIRED_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('AuthorizationExpiredError')
+  public static readonly CLIENT_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('ClientError')
+  public static readonly FATAL_DISCOVERY_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('FatalDiscoveryError')
+  public static readonly ILLEGAL_ARGUMENT_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('IllegalArgumentError')
+  public static readonly PROTOCOL_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('ProtocolError')
+  public static readonly RESULT_CONSUMED_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('ResultConsumedError')
+  public static readonly SECURITY_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('SecurityError')
+  public static readonly SERVICE_UNAVAILABLE_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('ServiceUnavailableError')
+  public static readonly SESSION_EXPIRED_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('SessionExpiredError')
+  public static readonly TOKEN_EXPIRED_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('TokenExpiredError')
+  public static readonly TRANSIENT_ERROR: Neo4jErrorCategory = new Neo4jErrorCategory('TransientError')
+
+  /**
+   * @private
+   * @param value The category value
+   */
+  private constructor(value: string) {
+    this._value = value
+  }
+
+  valueOf(): string {
+    return this._value
+  }
+
+  toJSON(): string {
+    return this._value
+  }
+
+  toString(): string {
+    return this._value
+  }
+}
 /// TODO: Remove definitions of this.constructor and this.__proto__
 /**
  * Class for all errors thrown/returned by the driver.
@@ -93,7 +107,7 @@ class Neo4jError extends Error {
    */
   code: Neo4jErrorCode
   retriable: boolean
-  category: Neo4jErrorCategory
+  category?: Neo4jErrorCategory
   __proto__: Neo4jError
 
   /**
@@ -148,15 +162,15 @@ function newError (message: string, code?: Neo4jErrorCode, category?: Neo4jError
 }
 
 function newIllegalArgumentError (message: string, code?: Neo4jErrorCode): Neo4jError {
-  return newError(message, code, 'IllegalArgumentError' )
+  return newError(message, code, Neo4jErrorCategory.ILLEGAL_ARGUMENT_ERROR )
 }
 
 function newResultConsumedError (message: string, code?: Neo4jErrorCode): Neo4jError {
-  return newError(message, code, 'ResultConsumedError')
+  return newError(message, code, Neo4jErrorCategory.RESULT_CONSUMED_ERROR)
 }
 
 function newFatalDiscoveryError (message: string, code?: Neo4jErrorCode): Neo4jError {
-  return newError(message, code, 'FatalDiscoveryError')
+  return newError(message, code, Neo4jErrorCategory.FATAL_DISCOVERY_ERROR)
 }
 
 /**
@@ -203,27 +217,27 @@ function _isRetriableTransientError (code?: Neo4jErrorCode): boolean {
   return false
 }
 
-function _categorizeErrorCode (code?: Neo4jErrorCode): Neo4jErrorCategory {
+function _categorizeErrorCode (code?: Neo4jErrorCode): Neo4jErrorCategory | undefined {
   if (code === undefined) {
-    return NOT_AVAILABLE 
+    return undefined 
   } else if (code === 'Neo.ClientError.Security.AuthorizationExpired') {
-    return 'AuthorizationExpiredError'
+    return Neo4jErrorCategory.AUTORIZATION_EXPIRED_ERROR
   } else if (code === SERVICE_UNAVAILABLE) {
-    return 'ServiceUnavailableError'
+    return Neo4jErrorCategory.SERVICE_UNAVAILABLE_ERROR
   } else if (code === PROTOCOL_ERROR) {
-    return 'ProtocolError'
+    return Neo4jErrorCategory.PROTOCOL_ERROR
   } else if (code === SESSION_EXPIRED) {
-    return 'SessionExpiredError'
+    return Neo4jErrorCategory.SESSION_EXPIRED_ERROR
   } else if (_isRetriableTransientError(code)) {
-    return 'TransientError'
+    return Neo4jErrorCategory.TRANSIENT_ERROR
   } else if (code === 'Neo.ClientError.Security.TokenExpired') {
-    return 'TokenExpiredError'
+    return Neo4jErrorCategory.TOKEN_EXPIRED_ERROR
   } else if (code?.startsWith('Neo.ClientError.Security')) {
-    return 'SecurityError'
+    return Neo4jErrorCategory.SECURITY_ERROR
   } else if (code?.startsWith('Neo.ClientError.') || code?.startsWith('Neo.TransientError.')) {
-    return 'ClientError'
+    return Neo4jErrorCategory.CLIENT_ERROR
   } else {
-    return NOT_AVAILABLE
+    return undefined
   }
 }
 
@@ -243,6 +257,7 @@ export {
   newFatalDiscoveryError,
   isRetriableError,
   Neo4jError,
+  Neo4jErrorCategory,
   SERVICE_UNAVAILABLE,
   SESSION_EXPIRED,
   PROTOCOL_ERROR

@@ -22,6 +22,7 @@ import { logging } from './logging'
 import {
   newIllegalArgumentError,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetriableError,
   error,
   Integer,
@@ -405,6 +406,7 @@ const forExport = {
   isDateTime,
   integer,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetriableError,
   auth,
   logging,
@@ -456,6 +458,7 @@ export {
   isDateTime,
   integer,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetriableError,
   auth,
   logging,
