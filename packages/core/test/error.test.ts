@@ -154,7 +154,7 @@ describe('Neo4jError', () => {
   ])('should define category as "AuthorizationExpiredError" for error with code %s', code => {
     const error = new Neo4jError('message', code)
 
-    expect(error.category).toEqual(Neo4jErrorCategory.AUTORIZATION_EXPIRED_ERROR)
+    expect(error.category).toEqual(Neo4jErrorCategory.AUTHORIZATION_EXPIRED_ERROR)
   })
 
   test.each([
@@ -240,7 +240,7 @@ describe.each([
 
 describe('Neo4jErrorCategory', () => {
   describe.each([
-    [Neo4jErrorCategory.AUTORIZATION_EXPIRED_ERROR, 'AuthorizationExpiredError'],
+    [Neo4jErrorCategory.AUTHORIZATION_EXPIRED_ERROR, 'AuthorizationExpiredError'],
     [Neo4jErrorCategory.CLIENT_ERROR, 'ClientError'],
     [Neo4jErrorCategory.FATAL_DISCOVERY_ERROR, 'FatalDiscoveryError'],
     [Neo4jErrorCategory.ILLEGAL_ARGUMENT_ERROR, 'IllegalArgumentError'],
