@@ -55,21 +55,33 @@ type Neo4jErrorCode =
 
 /**
  * The Neo4j Error category
- * @typedef {'unknown'|'transient'} Neo4jErrorCategory
+ * @typedef {
+ *  'ClientError' | 
+ *  'TransientError' | 
+ *  'N/A' |
+ *  'AuthorizationExpiredError' |
+ *  'ServiceUnavailableError' |
+ *  'SessionExpiredError' |
+ *  'ResultConsumedError' | 
+ *  'SecurityError' |
+ *  'IllegalArgumentError' |
+ *  'ProtocolError' |
+ *  'FatalDiscoveryError' |
+ *  'TokenExpiredError'} Neo4jErrorCategory
  */
 type Neo4jErrorCategory = 
-  'ClientError' | 
-  'TransientError' | 
-  typeof NOT_AVAILABLE |
   'AuthorizationExpiredError' |
+  'ClientError' |
+  'FatalDiscoveryError' |
+  'IllegalArgumentError' |
+  'N/A' |
+  'ProtocolError' |
+  'ResultConsumedError' |
+  'SecurityError' |
   'ServiceUnavailableError' |
   'SessionExpiredError' |
-  'ResultConsumedError' | 
-  'SecurityError' |
-  'IllegalArgumentError' |
-  'ProtocolError' |
-  'FatalDiscoveryError' |
-  'TokenExpiredError'
+  'TokenExpiredError' |
+  'TransientError' 
 
 /// TODO: Remove definitions of this.constructor and this.__proto__
 /**
