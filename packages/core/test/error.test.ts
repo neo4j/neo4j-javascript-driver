@@ -154,6 +154,14 @@ describe('Neo4jError', () => {
   })
 
   test.each([
+    ['Neo.ClientError.Security.TokenExpired']
+  ])('should define category as "TokenExpiredError" for error with code %s', code => {
+    const error = new Neo4jError('message', code)
+
+    expect(error.category).toEqual('TokenExpiredError')
+  })
+
+  test.each([
     ['ServiceUnavailable']
   ])('should define category as "ServiceUnavailableError" for error with code %s', code => {
     const error = new Neo4jError('message', code)

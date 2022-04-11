@@ -68,7 +68,8 @@ type Neo4jErrorCategory =
   'SecurityError' |
   'IllegalArgumentError' |
   'ProtocolError' |
-  'FatalDiscoveryError'
+  'FatalDiscoveryError' |
+  'TokenExpiredError'
 
 /// TODO: Remove definitions of this.constructor and this.__proto__
 /**
@@ -203,6 +204,8 @@ function _categorizeErrorCode (code?: Neo4jErrorCode): Neo4jErrorCategory {
     return 'SessionExpiredError'
   } else if (_isRetriableTransientError(code)) {
     return 'TransientError'
+  } else if (code === 'Neo.ClientError.Security.TokenExpired') {
+    return 'TokenExpiredError'
   } else if (code?.startsWith('Neo.ClientError.Security')) {
     return 'SecurityError'
   } else if (code?.startsWith('Neo.ClientError.') || code?.startsWith('Neo.TransientError.')) {
