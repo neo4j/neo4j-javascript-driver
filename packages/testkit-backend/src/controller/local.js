@@ -55,23 +55,21 @@ export default class LocalController extends Controller {
   }
 
   _writeError (contextId, e) {
-    if (e.name) {
-      if (isFrontendError(e)) {
-        this._writeResponse(contextId, newResponse('FrontendError', {
-          msg: 'Simulating the client code throwing some error.',
-        }))
-      } else {
-        const id = this._contexts.get(contextId).addError(e)
+    if (e instanceof Neo4jError) {
+      const id = this._contexts.get(contextId).addError(e)
         this._writeResponse(contextId, newResponse('DriverError', {
           id,
           msg: e.message,
           code: e.code,
           errorType: e.category
         }))
-      }
-      return
+    } else if (isFrontendError(e)) {
+      this._writeResponse(contextId, newResponse('FrontendError', {
+        msg: 'Simulating the client code throwing some error.',
+      }))
+    } else {
+      this._writeBackendError(contextId, e)
     }
-    this._writeBackendError(contextId, e)
   }
 
 }
