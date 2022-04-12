@@ -2,6 +2,10 @@ import skip, { ifEquals, ifEndsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Just for now',
+    ifEndsWith('test_no_reset_on_clean_connection')
+  ),
+  skip(
     'Skipped because server doesn\'t support protocol 5.0 yet',
     ifEndsWith('neo4j.test_summary.TestSummary.test_protocol_version_information')
   ),
