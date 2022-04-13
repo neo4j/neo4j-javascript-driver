@@ -10,7 +10,6 @@
   },
   "scripts": {
     "lint": "eslint --fix --ext .js ./",
-    "format": "prettier-eslint '**/*.js' '**/*.json' '**/*.md' '**/*.ts' '**/*.html' --write",
     "test": "gulp test",
     "test::unit": "gulp test-nodejs-unit && gulp run-ts-declaration-tests",
     "test::browser": "gulp test-browser",
@@ -26,17 +25,6 @@
     "browser": "gulp browser && gulp test-browser",
     "prepare": "npm run build",
     "clean": "rm -fr node_modules lib build"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{js,json,ts,md,html}": [
-      "prettier-eslint --write",
-      "git add"
-    ]
   },
   "main": "lib/index.js",
   "browser": {
@@ -79,7 +67,6 @@
     "gulp-typescript": "^5.0.1",
     "gulp-uglify": "^3.0.2",
     "gulp-watch": "^5.0.1",
-    "husky": "^7.0.4",
     "istanbul": "^0.4.5",
     "jasmine-spec-reporter": "^7.0.0",
     "karma": "^6.3.17",
@@ -91,17 +78,13 @@
     "karma-jasmine": "^4.0.2",
     "karma-source-map-support": "^1.4.0",
     "karma-spec-reporter": "^0.0.33",
-    "lint-staged": "^12.3.7",
     "lodash": "^4.17.21",
     "lolex": "^6.0.0",
     "minimist": "^1.2.6",
     "mustache": "^4.2.0",
     "nyc": "^15.1.0",
-    "prettier-eslint": "^13.0.0",
-    "prettier-eslint-cli": "^5.0.1",
     "run-sequence": "^2.2.1",
     "semver": "^7.3.5",
-    "standard": "^16.0.4",
     "tmp": "0.2.1",
     "typescript": "^4.6.3",
     "vinyl-buffer": "^1.0.1",

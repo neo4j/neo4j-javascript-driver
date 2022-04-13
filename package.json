@@ -1,13 +1,29 @@
 {
   "name": "root",
   "private": true,
+  "type": "module",
   "devDependencies": {
-    "lerna": "^4.0.0"
+    "husky": "^7.0.4",
+    "lerna": "^4.0.0",
+    "lint-staged": "^12.3.7",
+    "standard": "^16.0.4",
+    "ts-standard": "^11.0.0"
+  },
+  "lint-staged": {
+    "*.{js,md,html}": [
+      "standard --fix",
+      "git add"
+    ],
+    "*.ts": [
+      "ts-standard --fix",
+      "git add"
+    ]
   },
   "scripts": {
     "clean": "lerna clean -y && lerna run clean",
     "build": "lerna bootstrap --ci",
     "build::deno": "(cd ./packages/neo4j-driver-deno && deno run --allow-read --allow-write --allow-net ./generate.ts --version=5.0.0-dev)",
+    "build::notci": "lerna bootstrap",
     "docs": "lerna run docs --stream --concurrency 1",
     "test::unit": "lerna run test::unit --stream",
     "test::integration": "lerna run test::integration --stream",
@@ -17,6 +33,8 @@
     "start-neo4j": "lerna run start-neo4j --scope neo4j-driver",
     "stop-neo4j": "lerna run stop-neo4j --scope neo4j-driver",
     "start-testkit-backend": "lerna run start --scope testkit-backend --stream",
-    "lerna": "lerna"
+    "lerna": "lerna",
+    "prepare": "husky install",
+    "lint-staged": "lint-staged"
   }
 }
