@@ -54,6 +54,6 @@
     "ts-standard::bolt-connection": "ts-standard --project ./packages/bolt-connection/tsconfig.json",
     "ts-standard::neo4j-driver-lite": "ts-standard --project ./packages/neo4j-driver-lite/tsconfig.json",
     "ts-standard::neo4j-driver": "ts-standard --project ./packages/neo4j-driver/tsconfig.json",
-    "standard": "standard --fix"
+    "standard": "standard --fix --env jest --env jasmine"
   }
 }
