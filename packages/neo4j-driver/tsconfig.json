@@ -4,7 +4,9 @@
     "target": "es6",
     "noImplicitAny": true,
     "noImplicitReturns": true,
+    "strictNullChecks": true,
     "moduleResolution": "node",
     "types": []
-  }
+  },
+  "include": ["types/**/*.ts"]
 }
