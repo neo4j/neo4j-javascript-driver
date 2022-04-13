@@ -1,9 +1,9 @@
-import * as responses from './responses.js';
-import neo4j from './neo4j.js';
+import * as responses from './responses.js'
+import neo4j from './neo4j.js'
 import {
   cypherToNative
 } from './cypher-native-binders.js'
-import { from } from 'rxjs';
+import { from } from 'rxjs'
 
 // Handlers which didn't change depending
 export {
@@ -20,10 +20,10 @@ export {
   ForcedRoutingTableUpdate,
   ResultNext,
   RetryablePositive,
-  RetryableNegative,
-} from './request-handlers.js';
+  RetryableNegative
+} from './request-handlers.js'
 
-export function NewSession(context, data, wire) {
+export function NewSession (context, data, wire) {
   let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser } = data
   switch (accessMode) {
     case 'r':
@@ -48,7 +48,7 @@ export function NewSession(context, data, wire) {
   wire.writeResponse(responses.Session({ id }))
 }
 
-export function SessionClose(context, data, wire) {
+export function SessionClose (context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
   return session
@@ -58,7 +58,7 @@ export function SessionClose(context, data, wire) {
     .catch(err => wire.writeError(err))
 }
 
-export function SessionRun(context, data, wire) {
+export function SessionRun (context, data, wire) {
   const { sessionId, cypher, params, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
   if (params) {
@@ -79,12 +79,12 @@ export function SessionRun(context, data, wire) {
   const it = toAsyncIterator(result)
   result[Symbol.asyncIterator] = () => it
 
-  let id = context.addResult(result)
+  const id = context.addResult(result)
 
   wire.writeResponse(responses.Result({ id }))
 }
 
-export function ResultConsume(context, data, wire) {
+export function ResultConsume (context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
 
@@ -95,8 +95,7 @@ export function ResultConsume(context, data, wire) {
     }).catch(e => wire.writeError(e))
 }
 
-
-export function SessionBeginTransaction(context, data, wire) {
+export function SessionBeginTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
 
@@ -113,11 +112,10 @@ export function SessionBeginTransaction(context, data, wire) {
   } catch (e) {
     console.log('got some err: ' + JSON.stringify(e))
     wire.writeError(e)
-    return
   }
 }
 
-export function TransactionRun(context, data, wire) {
+export function TransactionRun (context, data, wire) {
   const { txId, cypher, params } = data
   const tx = context.getTx(txId)
   if (params) {
@@ -135,7 +133,7 @@ export function TransactionRun(context, data, wire) {
   wire.writeResponse(responses.Result({ id }))
 }
 
-export function TransactionRollback(context, data, wire) {
+export function TransactionRollback (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.rollback()
@@ -147,7 +145,7 @@ export function TransactionRollback(context, data, wire) {
     })
 }
 
-export function TransactionCommit(context, data, wire) {
+export function TransactionCommit (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.commit()
@@ -159,7 +157,7 @@ export function TransactionCommit(context, data, wire) {
     })
 }
 
-export function TransactionClose(context, data, wire) {
+export function TransactionClose (context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.close()
@@ -168,7 +166,7 @@ export function TransactionClose(context, data, wire) {
     .catch(e => wire.writeError(e))
 }
 
-export function SessionReadTransaction(context, data, wire) {
+export function SessionReadTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
 
@@ -184,11 +182,10 @@ export function SessionReadTransaction(context, data, wire) {
       .catch(e => wire.writeError(e))
   } catch (e) {
     wire.writeError(e)
-    return
   }
 }
 
-export function SessionWriteTransaction(context, data, wire) {
+export function SessionWriteTransaction (context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
 
@@ -204,24 +201,21 @@ export function SessionWriteTransaction(context, data, wire) {
       .catch(e => wire.writeError(e))
   } catch (e) {
     wire.writeError(e)
-    return
   }
 }
 
-
-function toAsyncIterator(result) {
-  function queueObserver() {
-    function createResolvablePromise() {
+function toAsyncIterator (result) {
+  function queueObserver () {
+    function createResolvablePromise () {
       const resolvablePromise = {}
       resolvablePromise.promise = new Promise((resolve, reject) => {
         resolvablePromise.resolve = resolve
         resolvablePromise.reject = reject
-      });
-      return resolvablePromise;
+      })
+      return resolvablePromise
     }
 
-
-    function isError(elementOrError) {
+    function isError (elementOrError) {
       return elementOrError instanceof Error
     }
 
@@ -238,7 +232,7 @@ function toAsyncIterator(result) {
       error: (error) => {
         observer._push(error)
       },
-      _push(element) {
+      _push (element) {
         if (promiseHolder.resolvable !== null) {
           const resolvable = promiseHolder.resolvable
           promiseHolder.resolvable = null
@@ -280,7 +274,7 @@ function toAsyncIterator(result) {
           throw error
         }
       },
-      get size() {
+      get size () {
         return buffer.length
       }
     }
@@ -290,7 +284,7 @@ function toAsyncIterator(result) {
   const records = result.records()
 
   const observer = queueObserver()
-  records.subscribe(observer);
+  records.subscribe(observer)
 
   const state = {
     finished: false

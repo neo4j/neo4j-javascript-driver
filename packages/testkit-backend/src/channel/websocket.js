@@ -1,4 +1,5 @@
-import Channel from "./interface"
+/* eslint-env browser */
+import Channel from './interface'
 
 /**
  * This communication channel is meant to connect to other instances of the `testkit-backend` for receiving its events.
@@ -6,21 +7,20 @@ import Channel from "./interface"
  * This channel is only supported in browsers since it depends on WebSocket client to be available globally.
  */
 export default class WebSocketChannel extends Channel {
-
-  constructor(address) {
+  constructor (address) {
     super()
     this._adddress = address
     this._ws = null
   }
 
   start () {
-    if(!this._ws) {
+    if (!this._ws) {
       this._ws = new WebSocket(this._adddress)
       this._ws.onmessage = ({ data: message }) => {
         console.log(message)
         console.debug('[WebSocketChannel] Received messsage', message)
-        const { messageType, contextId, data } =  JSON.parse(message)
-        
+        const { messageType, contextId, data } = JSON.parse(message)
+
         switch (messageType) {
           case 'contextOpen':
           case 'contextClose':
@@ -39,7 +39,7 @@ export default class WebSocketChannel extends Channel {
   }
 
   stop () {
-    if(this._ws) {
+    if (this._ws) {
       this._ws.close()
       this._ws = null
     }
@@ -58,5 +58,4 @@ export default class WebSocketChannel extends Channel {
       typeof value === 'bigint' ? `${value}n` : value
     )
   }
-
 }

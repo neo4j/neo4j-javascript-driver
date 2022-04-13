@@ -11,7 +11,7 @@ export default class Protocol extends EventEmitter {
     this._readlineInterface = null
   }
 
-  start() {
+  start () {
     if (!this._readlineInterface) {
       this._readlineInterface = readline.createInterface(this._stream, null)
       this._readlineInterface.on('line', this._processLine.bind(this))
@@ -56,14 +56,14 @@ export default class Protocol extends EventEmitter {
     }
   }
 
-  _emitError(e) {
+  _emitError (e) {
     this.emit('error', e)
   }
 
   serializeResponse (response) {
     console.log('> writing response', response)
     const responseStr = stringify(response)
-    return  ['#response begin', responseStr, '#response end'].join('\n') + '\n'
+    return ['#response begin', responseStr, '#response end'].join('\n') + '\n'
   }
 
   _emitRequest () {
@@ -72,5 +72,4 @@ export default class Protocol extends EventEmitter {
     console.log('> Got request ' + name, data)
     this.emit('request', { name, data })
   }
-  
 }

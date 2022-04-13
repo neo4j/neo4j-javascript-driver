@@ -98,11 +98,11 @@ export default class Context {
     return Object.values(this._txs).filter(tx => tx.sessionId === sessionId)
   }
 
-  getShouldRunTestFunction() {
+  getShouldRunTestFunction () {
     return this._shouldRunTest
   }
 
-  getFeatures() {
+  getFeatures () {
     return this._getFeatures()
   }
 

@@ -3,15 +3,13 @@ import Controller from './interface'
 import stringify from '../stringify'
 import { isFrontendError } from '../request-handlers'
 
-
 /**
  * Local controller handles the requests locally by redirecting them to the correct request handler/service.
  *
  * This controller is used when testing browser and locally.
  */
 export default class LocalController extends Controller {
-
-  constructor(requestHandlers = {}, shouldRunTest = () => {}, getFeatures = () => []) {
+  constructor (requestHandlers = {}, shouldRunTest = () => {}, getFeatures = () => []) {
     super()
     this._requestHandlers = requestHandlers
     this._shouldRunTest = shouldRunTest
@@ -41,7 +39,6 @@ export default class LocalController extends Controller {
       writeError: (e) => this._writeError(contextId, e),
       writeBackendError: (msg) => this._writeBackendError(contextId, msg)
     })
-
   }
 
   _writeResponse (contextId, response) {
@@ -57,7 +54,7 @@ export default class LocalController extends Controller {
     if (e.name) {
       if (isFrontendError(e)) {
         this._writeResponse(contextId, newResponse('FrontendError', {
-          msg: 'Simulating the client code throwing some error.',
+          msg: 'Simulating the client code throwing some error.'
         }))
       } else {
         const id = this._contexts.get(contextId).addError(e)
@@ -71,7 +68,6 @@ export default class LocalController extends Controller {
     }
     this._writeBackendError(contextId, e)
   }
-
 }
 
 function newResponse (name, data) {

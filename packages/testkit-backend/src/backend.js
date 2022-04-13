@@ -1,5 +1,5 @@
-import Channel from './channel'
-import Controller from './controller'
+import Channel from './channel' // eslint-disable-line no-unused-vars
+import Controller from './controller' // eslint-disable-line no-unused-vars
 
 /**
  * Binds Channel and Controller
@@ -39,5 +39,4 @@ export default class Backend {
     this._channel.stop()
     this._controller.stop()
   }
-
 }
