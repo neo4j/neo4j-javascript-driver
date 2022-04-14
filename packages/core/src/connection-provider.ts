@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable @typescript-eslint/promise-function-async */
 
 import Connection from './connection'
 import { bookmarks } from './internal'
 import { ServerInfo } from './result-summary'
-
 
 /**
  * Inteface define a common way to acquire a connection
@@ -44,11 +44,11 @@ class ConnectionProvider {
    * @property {string} param.impersonatedUser - the impersonated user
    * @property {function (databaseName:string?)} param.onDatabaseNameResolved - Callback called when the database name get resolved
    */
-  acquireConnection(param?: {
+  acquireConnection (param?: {
     accessMode?: string
     database?: string
-    bookmarks: bookmarks.Bookmarks,
-    impersonatedUser?: string,
+    bookmarks: bookmarks.Bookmarks
+    impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
   }): Promise<Connection> {
     throw Error('Not implemented')
@@ -60,7 +60,7 @@ class ConnectionProvider {
    *
    * @returns {Promise<boolean>}
    */
-  supportsMultiDb(): Promise<boolean> {
+  supportsMultiDb (): Promise<boolean> {
     throw Error('Not implemented')
   }
 
@@ -70,7 +70,7 @@ class ConnectionProvider {
    *
    * @returns {Promise<boolean>}
    */
-  supportsTransactionConfig(): Promise<boolean> {
+  supportsTransactionConfig (): Promise<boolean> {
     throw Error('Not implemented')
   }
 
@@ -80,7 +80,7 @@ class ConnectionProvider {
    *
    * @returns {Promise<boolean>}
    */
-  supportsUserImpersonation(): Promise<boolean> {
+  supportsUserImpersonation (): Promise<boolean> {
     throw Error('Not implemented')
   }
 
@@ -94,7 +94,7 @@ class ConnectionProvider {
    *
    * @returns {Promise<ServerInfo>} promise resolved with server info or rejected with error.
    */
-  verifyConnectivityAndGetServerInfo(param? :{ database?: string, accessMode?: string }): Promise<ServerInfo> {
+  verifyConnectivityAndGetServerInfo (param?: { database?: string, accessMode?: string }): Promise<ServerInfo> {
     throw Error('Not implemented')
   }
 
@@ -103,7 +103,7 @@ class ConnectionProvider {
    *
    * @returns {Promise<void>}
    */
-  close(): Promise<void> {
+  close (): Promise<void> {
     throw Error('Not implemented')
   }
 }

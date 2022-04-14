@@ -16,14 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ResultStreamObserver, FailedObserver } from './internal/observers'
+
+/* eslint-disable @typescript-eslint/promise-function-async */
+
+import { FailedObserver } from './internal/observers'
 import { validateQueryAndParameters } from './internal/util'
-import { FETCH_ALL } from './internal/constants'
+import { FETCH_ALL, ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import { newError } from './error'
 import Result from './result'
 import Transaction from './transaction'
 import { ConnectionHolder } from './internal/connection-holder'
-import { ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import { TransactionExecutor } from './internal/transaction-executor'
 import { Bookmarks } from './internal/bookmarks'
 import { TxConfig } from './internal/tx-config'
@@ -34,7 +36,7 @@ import { NumberOrInteger } from './graph-types'
 import TransactionPromise from './transaction-promise'
 import ManagedTransaction from './transaction-managed'
 
-type ConnectionConsumer = (connection: Connection | void) => any | undefined
+type ConnectionConsumer = (connection: Connection | null) => any | undefined
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
@@ -51,22 +53,22 @@ interface TransactionConfig {
  * @access public
  */
 class Session {
-  private _mode: SessionMode
+  private readonly _mode: SessionMode
   private _database: string
-  private _reactive: boolean
-  private _fetchSize: number
-  private _readConnectionHolder: ConnectionHolder
-  private _writeConnectionHolder: ConnectionHolder
+  private readonly _reactive: boolean
+  private readonly _fetchSize: number
+  private readonly _readConnectionHolder: ConnectionHolder
+  private readonly _writeConnectionHolder: ConnectionHolder
   private _open: boolean
   private _hasTx: boolean
   private _lastBookmarks: Bookmarks
-  private _transactionExecutor: TransactionExecutor
-  private _impersonatedUser?: string
-  private _onComplete: (meta: any) => void
+  private readonly _transactionExecutor: TransactionExecutor
+  private readonly _impersonatedUser?: string
+  private readonly _onComplete: (meta: any) => void
   private _databaseNameResolved: boolean
-  private _lowRecordWatermark: number
-  private _highRecordWatermark: number
-  private _results: Result[]
+  private readonly _lowRecordWatermark: number
+  private readonly _highRecordWatermark: number
+  private readonly _results: Result[]
   /**
    * @constructor
    * @protected
@@ -80,7 +82,7 @@ class Session {
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
    * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
    */
-  constructor({
+  constructor ({
     mode,
     connectionProvider,
     bookmarks,
@@ -96,7 +98,7 @@ class Session {
     database: string
     config: any
     reactive: boolean
-    fetchSize: number,
+    fetchSize: number
     impersonatedUser?: string
   }) {
     this._mode = mode
@@ -123,7 +125,7 @@ class Session {
     this._open = true
     this._hasTx = false
     this._impersonatedUser = impersonatedUser
-    this._lastBookmarks = bookmarks || Bookmarks.empty()
+    this._lastBookmarks = bookmarks ?? Bookmarks.empty()
     this._transactionExecutor = _createTransactionExecutor(config)
     this._onComplete = this._onCompleteCallback.bind(this)
     this._databaseNameResolved = this._database !== ''
@@ -144,7 +146,7 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
    * @return {Result} New Result.
    */
-  run(
+  run (
     query: Query,
     parameters?: any,
     transactionConfig?: TransactionConfig
@@ -153,7 +155,7 @@ class Session {
       query,
       parameters
     )
-    const autoCommitTxConfig = transactionConfig
+    const autoCommitTxConfig = (transactionConfig != null)
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
@@ -176,7 +178,7 @@ class Session {
     return result
   }
 
-  _run(
+  _run (
     query: Query,
     parameters: any,
     customRunner: ConnectionConsumer
@@ -210,7 +212,7 @@ class Session {
     return new Result(observerPromise, query, parameters, connectionHolder, watermarks)
   }
 
-  async _acquireConnection(connectionConsumer: ConnectionConsumer) {
+  _acquireConnection (connectionConsumer: ConnectionConsumer): Promise<Connection> {
     let promise
     const connectionHolder = this._connectionHolderWithMode(this._mode)
     if (!this._open) {
@@ -247,21 +249,21 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
    * @returns {TransactionPromise} New Transaction.
    */
-  beginTransaction(transactionConfig?: TransactionConfig): TransactionPromise {
+  beginTransaction (transactionConfig?: TransactionConfig): TransactionPromise {
     // this function needs to support bookmarks parameter for backwards compatibility
     // parameter was of type {string|string[]} and represented either a single or multiple bookmarks
     // that's why we need to check parameter type and decide how to interpret the value
     const arg = transactionConfig
 
     let txConfig = TxConfig.empty()
-    if (arg) {
+    if (arg != null) {
       txConfig = new TxConfig(arg)
     }
 
     return this._beginTransaction(this._mode, txConfig)
   }
 
-  _beginTransaction(accessMode: SessionMode, txConfig: TxConfig): TransactionPromise {
+  _beginTransaction (accessMode: SessionMode, txConfig: TxConfig): TransactionPromise {
     if (!this._open) {
       throw newError('Cannot begin a transaction on a closed session.')
     }
@@ -296,7 +298,7 @@ class Session {
    * @private
    * @returns {void}
    */
-  _assertSessionIsOpen() {
+  _assertSessionIsOpen (): void {
     if (!this._open) {
       throw newError('You cannot run more transactions on a closed session.')
     }
@@ -306,7 +308,7 @@ class Session {
    * @private
    * @returns {void}
    */
-  _transactionClosed() {
+  _transactionClosed (): void {
     this._hasTx = false
   }
 
@@ -314,10 +316,10 @@ class Session {
    * Return the bookmarks received following the last completed {@link Transaction}.
    *
    * @deprecated This method will be removed in version 6.0. Please, use {@link Session#lastBookmarks} instead.
-   * 
+   *
    * @return {string[]} A reference to a previous transaction.
    */
-   lastBookmark(): string[] {
+  lastBookmark (): string[] {
     return this.lastBookmarks()
   }
 
@@ -326,7 +328,7 @@ class Session {
    *
    * @return {string[]} A reference to a previous transaction.
    */
-  lastBookmarks(): string[] {
+  lastBookmarks (): string[] {
     return this._lastBookmarks.values()
   }
 
@@ -403,7 +405,7 @@ class Session {
    * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
    */
-   executeRead<T>(
+  executeRead<T>(
     transactionWork: ManagedTransactionWork<T>,
     transactionConfig?: TransactionConfig
   ): Promise<T> {
@@ -458,9 +460,9 @@ class Session {
    * @param {string|undefined} database The resolved database name
    * @returns {void}
    */
-  _onDatabaseNameResolved(database?: string): void {
+  _onDatabaseNameResolved (database?: string): void {
     if (!this._databaseNameResolved) {
-      const normalizedDatabase = database || ''
+      const normalizedDatabase = database ?? ''
       this._database = normalizedDatabase
       this._readConnectionHolder.setDatabase(normalizedDatabase)
       this._writeConnectionHolder.setDatabase(normalizedDatabase)
@@ -474,8 +476,8 @@ class Session {
    * @param {Bookmarks} newBookmarks - The new bookmarks.
    * @returns {void}
    */
-  _updateBookmarks(newBookmarks?: Bookmarks): void {
-    if (newBookmarks && !newBookmarks.isEmpty()) {
+  _updateBookmarks (newBookmarks?: Bookmarks): void {
+    if ((newBookmarks != null) && !newBookmarks.isEmpty()) {
       this._lastBookmarks = newBookmarks
     }
   }
@@ -484,7 +486,7 @@ class Session {
    * Close this session.
    * @return {Promise}
    */
-  async close(): Promise<void> {
+  async close (): Promise<void> {
     if (this._open) {
       this._open = false
 
@@ -497,13 +499,13 @@ class Session {
     }
   }
 
-  _connectionHolderWithMode(mode: SessionMode): ConnectionHolder {
+  _connectionHolderWithMode (mode: SessionMode): ConnectionHolder {
     if (mode === ACCESS_MODE_READ) {
       return this._readConnectionHolder
     } else if (mode === ACCESS_MODE_WRITE) {
       return this._writeConnectionHolder
     } else {
-      throw newError('Unknown access mode: ' + mode)
+      throw newError('Unknown access mode: ' + (mode as string))
     }
   }
 
@@ -512,7 +514,7 @@ class Session {
    * @param {Object} meta Connection metadatada
    * @returns {void}
    */
-  _onCompleteCallback(meta: { bookmark: string | string[] }): void {
+  _onCompleteCallback (meta: { bookmark: string | string[] }): void {
     this._updateBookmarks(new Bookmarks(meta.bookmark))
   }
 
@@ -520,7 +522,7 @@ class Session {
    * @private
    * @returns {void}
    */
-  private _calculateWatermaks(): { low: number; high: number } {
+  private _calculateWatermaks (): { low: number, high: number } {
     if (this._fetchSize === FETCH_ALL) {
       return {
         low: Number.MAX_VALUE, // we shall always lower than this number to enable auto pull
@@ -536,12 +538,12 @@ class Session {
   /**
    * @protected
    */
-  static _validateSessionMode(rawMode?: SessionMode): SessionMode {
-    const mode = rawMode || ACCESS_MODE_WRITE
+  static _validateSessionMode (rawMode?: SessionMode): SessionMode {
+    const mode: string = rawMode ?? ACCESS_MODE_WRITE
     if (mode !== ACCESS_MODE_READ && mode !== ACCESS_MODE_WRITE) {
       throw newError('Illegal session mode ' + mode)
     }
-    return mode
+    return mode as SessionMode
   }
 }
 
@@ -550,13 +552,10 @@ class Session {
  * @param {object} config
  * @returns {TransactionExecutor} The transaction executor
  */
-function _createTransactionExecutor(config?: {
+function _createTransactionExecutor (config?: {
   maxTransactionRetryTime: number | null
 }): TransactionExecutor {
-  const maxRetryTimeMs =
-    config && config.maxTransactionRetryTime
-      ? config.maxTransactionRetryTime
-      : null
+  const maxRetryTimeMs = config?.maxTransactionRetryTime ?? null
   return new TransactionExecutor(maxRetryTimeMs)
 }
 

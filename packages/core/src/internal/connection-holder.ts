@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable @typescript-eslint/promise-function-async */
 
 import { newError } from '../error'
 import { assertString } from './util'
@@ -23,7 +24,6 @@ import Connection from '../connection'
 import { ACCESS_MODE_WRITE } from './constants'
 import { Bookmarks } from './bookmarks'
 import ConnectionProvider from '../connection-provider'
-import { Point } from '..'
 
 /**
  * @private
@@ -33,42 +33,42 @@ interface ConnectionHolderInterface {
    * Returns the assigned access mode.
    * @returns {string} access mode
    */
-  mode(): string | undefined
+  mode: () => string | undefined
 
   /**
    * Returns the target database name
    * @returns {string} the database name
    */
-  database(): string | undefined
+  database: () => string | undefined
 
   /**
    * Returns the bookmarks
    */
-  bookmarks(): Bookmarks
+  bookmarks: () => Bookmarks
 
   /**
    * Make this holder initialize new connection if none exists already.
    * @return {boolean}
    */
-  initializeConnection(): boolean
+  initializeConnection: () => boolean
 
   /**
    * Get the current connection promise.
    * @return {Promise<Connection>} promise resolved with the current connection.
    */
-  getConnection(): Promise<Connection | void>
+  getConnection: () => Promise<Connection | null>
 
   /**
    * Notify this holder that single party does not require current connection any more.
    * @return {Promise<Connection>} promise resolved with the current connection, never a rejected promise.
    */
-  releaseConnection(): Promise<Connection | void>
+  releaseConnection: () => Promise<Connection | null>
 
   /**
    * Closes this holder and releases current connection (if any) despite any existing users.
    * @return {Promise<Connection>} promise resolved when current connection is released to the pool.
    */
-  close(): Promise<Connection | void>
+  close: () => Promise<Connection | null>
 }
 
 /**
@@ -76,14 +76,14 @@ interface ConnectionHolderInterface {
  * @private
  */
 class ConnectionHolder implements ConnectionHolderInterface {
-  private _mode: string
+  private readonly _mode: string
   private _database?: string
-  private _bookmarks: Bookmarks
-  private _connectionProvider?: ConnectionProvider
+  private readonly _bookmarks: Bookmarks
+  private readonly _connectionProvider?: ConnectionProvider
   private _referenceCount: number
-  private _connectionPromise: Promise<Connection | void>
-  private _impersonatedUser?: string
-  private _onDatabaseNameResolved?: (databaseName?: string) => void
+  private _connectionPromise: Promise<Connection | null>
+  private readonly _impersonatedUser?: string
+  private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
 
   /**
    * @constructor
@@ -95,7 +95,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @property {string?} params.impersonatedUser - the user which will be impersonated
    * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
    */
-  constructor({
+  constructor ({
     mode = ACCESS_MODE_WRITE,
     database = '',
     bookmarks,
@@ -106,46 +106,46 @@ class ConnectionHolder implements ConnectionHolderInterface {
     mode?: string
     database?: string
     bookmarks?: Bookmarks
-    connectionProvider?: ConnectionProvider,
-    impersonatedUser?: string,
+    connectionProvider?: ConnectionProvider
+    impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
   } = {}) {
     this._mode = mode
-    this._database = database ? assertString(database, 'database') : ''
-    this._bookmarks = bookmarks || Bookmarks.empty()
+    this._database = database != null ? assertString(database, 'database') : ''
+    this._bookmarks = bookmarks ?? Bookmarks.empty()
     this._connectionProvider = connectionProvider
     this._impersonatedUser = impersonatedUser
     this._referenceCount = 0
-    this._connectionPromise = Promise.resolve()
+    this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
   }
 
-  mode(): string | undefined {
+  mode (): string | undefined {
     return this._mode
   }
 
-  database(): string | undefined {
+  database (): string | undefined {
     return this._database
   }
 
-  setDatabase(database?: string) {
+  setDatabase (database?: string): void {
     this._database = database
   }
 
-  bookmarks(): Bookmarks {
+  bookmarks (): Bookmarks {
     return this._bookmarks
   }
 
-  connectionProvider(): ConnectionProvider | undefined {
+  connectionProvider (): ConnectionProvider | undefined {
     return this._connectionProvider
   }
 
-  referenceCount(): number {
+  referenceCount (): number {
     return this._referenceCount
   }
 
-  initializeConnection(): boolean {
-    if (this._referenceCount === 0 && this._connectionProvider) {
+  initializeConnection (): boolean {
+    if (this._referenceCount === 0 && (this._connectionProvider != null)) {
       this._connectionPromise = this._connectionProvider.acquireConnection({
         accessMode: this._mode,
         database: this._database,
@@ -160,11 +160,12 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._referenceCount++
     return true
   }
-  getConnection(): Promise<Connection | void> {
+
+  getConnection (): Promise<Connection | null> {
     return this._connectionPromise
   }
 
-  releaseConnection(): Promise<void | Connection> {
+  releaseConnection (): Promise<null | Connection> {
     if (this._referenceCount === 0) {
       return this._connectionPromise
     }
@@ -177,7 +178,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._connectionPromise
   }
 
-  close(): Promise<void | Connection> {
+  close (): Promise<null | Connection> {
     if (this._referenceCount === 0) {
       return this._connectionPromise
     }
@@ -192,19 +193,19 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @return {Promise} - promise resolved then connection is returned to the pool.
    * @private
    */
-  private _releaseConnection(): Promise<Connection | void> {
+  private _releaseConnection (): Promise<Connection | null> {
     this._connectionPromise = this._connectionPromise
-      .then((connection?: Connection|void) => {
-        if (connection) {
+      .then((connection?: Connection|null) => {
+        if (connection != null) {
           if (connection.isOpen()) {
             return connection
               .resetAndFlush()
               .catch(ignoreError)
-              .then(() => connection._release())
+              .then(() => connection._release().then(() => null))
           }
-          return connection._release()
+          return connection._release().then(() => null)
         } else {
-          return Promise.resolve()
+          return Promise.resolve(null)
         }
       })
       .catch(ignoreError)
@@ -218,13 +219,13 @@ class ConnectionHolder implements ConnectionHolderInterface {
  * releasing or initilizing
  */
 export default class ReadOnlyConnectionHolder extends ConnectionHolder {
-  private _connectionHolder: ConnectionHolder
+  private readonly _connectionHolder: ConnectionHolder
 
   /**
    * Contructor
    * @param {ConnectionHolder} connectionHolder the connection holder which will treat the requests
    */
-  constructor(connectionHolder: ConnectionHolder) {
+  constructor (connectionHolder: ConnectionHolder) {
     super({
       mode: connectionHolder.mode(),
       database: connectionHolder.database(),
@@ -239,7 +240,7 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
    *
    * @return {boolean}
    */
-  initializeConnection(): boolean {
+  initializeConnection (): boolean {
     if (this._connectionHolder.referenceCount() === 0) {
       return false
     }
@@ -250,7 +251,7 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
    * Get the current connection promise.
    * @return {Promise<Connection>} promise resolved with the current connection.
    */
-  getConnection(): Promise<Connection | void> {
+  getConnection (): Promise<Connection | null> {
     return this._connectionHolder.getConnection()
   }
 
@@ -258,45 +259,45 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
    * Get the current connection promise, doesn't performs the release
    * @return {Promise<Connection>} promise with the resolved current connection
    */
-  releaseConnection(): Promise<Connection | void> {
-    return this._connectionHolder.getConnection().catch(() => Promise.resolve())
+  releaseConnection (): Promise<Connection | null> {
+    return this._connectionHolder.getConnection().catch(() => Promise.resolve(null))
   }
 
   /**
    * Get the current connection promise, doesn't performs the connection close
    * @return {Promise<Connection>} promise with the resolved current connection
    */
-  close(): Promise<Connection | void> {
-    return this._connectionHolder.getConnection().catch(() => Promise.resolve())
+  close (): Promise<Connection | null> {
+    return this._connectionHolder.getConnection().catch(() => Promise.resolve(null))
   }
 }
 
 class EmptyConnectionHolder extends ConnectionHolder {
-  mode(): undefined {
+  mode (): undefined {
     return undefined
   }
 
-  database(): undefined {
+  database (): undefined {
     return undefined
   }
 
-  initializeConnection() {
+  initializeConnection (): boolean {
     // nothing to initialize
     return true
   }
 
-  getConnection(): Promise<Connection> {
-    return Promise.reject(
+  async getConnection (): Promise<Connection> {
+    return await Promise.reject(
       newError('This connection holder does not serve connections')
     )
   }
 
-  releaseConnection(): Promise<void> {
-    return Promise.resolve()
+  async releaseConnection (): Promise<null> {
+    return await Promise.resolve(null)
   }
 
-  close(): Promise<void> {
-    return Promise.resolve()
+  async close (): Promise<null> {
+    return await Promise.resolve(null)
   }
 }
 
@@ -307,7 +308,9 @@ class EmptyConnectionHolder extends ConnectionHolder {
  */
 const EMPTY_CONNECTION_HOLDER: EmptyConnectionHolder = new EmptyConnectionHolder()
 
-// eslint-disable-next-line handle-callback-err
-function ignoreError(error: Error) { }
+// eslint-disable-next-line node/handle-callback-err
+function ignoreError (error: Error): null {
+  return null
+}
 
 export { ConnectionHolder, ReadOnlyConnectionHolder, EMPTY_CONNECTION_HOLDER }

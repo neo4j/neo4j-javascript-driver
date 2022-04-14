@@ -35,7 +35,7 @@ export class TxConfig {
    * @constructor
    * @param {Object} config the raw configuration object.
    */
-  constructor(config: any) {
+  constructor (config: any) {
     assertValidConfig(config)
     this.timeout = extractTimeout(config)
     this.metadata = extractMetadata(config)
@@ -45,7 +45,7 @@ export class TxConfig {
    * Get an empty config object.
    * @return {TxConfig} an empty config.
    */
-  static empty(): TxConfig {
+  static empty (): TxConfig {
     return EMPTY_CONFIG
   }
 
@@ -53,7 +53,7 @@ export class TxConfig {
    * Check if this config object is empty. I.e. has no configuration values specified.
    * @return {boolean} `true` if this object is empty, `false` otherwise.
    */
-  isEmpty(): boolean {
+  isEmpty (): boolean {
     return Object.values(this).every(value => value == null)
   }
 }
@@ -63,8 +63,8 @@ const EMPTY_CONFIG = new TxConfig({})
 /**
  * @return {Integer|null}
  */
-function extractTimeout(config: any): Integer | null {
-  if (util.isObject(config) && (config.timeout || config.timeout === 0)) {
+function extractTimeout (config: any): Integer | null {
+  if (util.isObject(config) && config.timeout != null) {
     util.assertNumberOrInteger(config.timeout, 'Transaction timeout')
     const timeout = int(config.timeout)
     if (timeout.isNegative()) {
@@ -78,8 +78,8 @@ function extractTimeout(config: any): Integer | null {
 /**
  * @return {object|null}
  */
-function extractMetadata(config: any): any {
-  if (util.isObject(config) && config.metadata) {
+function extractMetadata (config: any): any {
+  if (util.isObject(config) && config.metadata != null) {
     const metadata = config.metadata
     util.assertObject(metadata, 'config.metadata')
     if (Object.keys(metadata).length !== 0) {
@@ -90,8 +90,8 @@ function extractMetadata(config: any): any {
   return null
 }
 
-function assertValidConfig(config: any): void {
-  if (config) {
+function assertValidConfig (config: any): void {
+  if (config != null) {
     util.assertObject(config, 'Transaction config')
   }
 }

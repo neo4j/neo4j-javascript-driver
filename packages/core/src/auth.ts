@@ -29,7 +29,7 @@
  */
 const auth = {
   basic: (username: string, password: string, realm?: string) => {
-    if (realm) {
+    if (realm != null) {
       return {
         scheme: 'basic',
         principal: username,
@@ -77,12 +77,12 @@ const auth = {
   }
 }
 
-function isNotEmpty<T extends object | string>(value: T | null | undefined): boolean {
+function isNotEmpty<T extends object | string> (value: T | null | undefined): boolean {
   return !(
     value === null ||
     value === undefined ||
     value === '' ||
-    Object.getPrototypeOf(value) === Object.prototype && Object.keys(value).length === 0
+    (Object.getPrototypeOf(value) === Object.prototype && Object.keys(value).length === 0)
   )
 }
 

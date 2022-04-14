@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/promise-function-async */
+
 import Transaction from './transaction'
 import {
   ConnectionHolder
@@ -30,18 +32,18 @@ import { TxConfig } from './internal/tx-config'
  *
  * Resolving this object promise verifies the result of the transaction begin and returns the {@link Transaction} object in case of success.
  *
- * The object can still also used as {@link Transaction} for convenience. The result of begin will be checked 
+ * The object can still also used as {@link Transaction} for convenience. The result of begin will be checked
  * during the next API calls in the object as it is in the transaction.
  *
  * @access public
  */
-class TransactionPromise extends Transaction implements Promise<Transaction>{
-  [Symbol.toStringTag]: string = "TransactionPromise"
-  private _beginError?: Error;
-  private _beginMetadata?: any;
-  private _beginPromise?: Promise<Transaction>;
-  private _reject?: (error: Error) => void;
-  private _resolve?: (value: Transaction | PromiseLike<Transaction>) => void;
+class TransactionPromise extends Transaction implements Promise<Transaction> {
+  [Symbol.toStringTag]: string = 'TransactionPromise'
+  private _beginError?: Error
+  private _beginMetadata?: any
+  private _beginPromise?: Promise<Transaction>
+  private _reject?: (error: Error) => void
+  private _resolve?: (value: Transaction | PromiseLike<Transaction>) => void
 
   /**
    * @constructor
@@ -54,7 +56,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
    * @param {number} fetchSize - the record fetch size in each pulling batch.
    * @param {string} impersonatedUser - The name of the user which should be impersonated for the duration of the session.
    */
-  constructor({
+  constructor ({
     connectionHolder,
     onClose,
     onBookmarks,
@@ -71,8 +73,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
     onConnection: () => void
     reactive: boolean
     fetchSize: number
-    impersonatedUser?: string,
-    highRecordWatermark: number,
+    impersonatedUser?: string
+    highRecordWatermark: number
     lowRecordWatermark: number
   }) {
     super({
@@ -97,13 +99,13 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
    */
   then<TResult1 = Transaction, TResult2 = never>(
     onfulfilled?:
-      ((value: Transaction) => TResult1 | PromiseLike<TResult1>)
-      | null,
+    ((value: Transaction) => TResult1 | PromiseLike<TResult1>)
+    | null,
     onrejected?:
-      ((reason: any) => TResult2 | PromiseLike<TResult2>)
-      | null
+    ((reason: any) => TResult2 | PromiseLike<TResult2>)
+    | null
   ): Promise<TResult1 | TResult2> {
-    return this._getOrCreateBeginPromise().then(onfulfilled, onrejected);
+    return this._getOrCreateBeginPromise().then(onfulfilled, onrejected)
   }
 
   /**
@@ -112,8 +114,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
    * @param {function(error: Neo4jError)} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
-  catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null): Promise<any> {
-    return this._getOrCreateBeginPromise().catch(onrejected);
+  catch <TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null): Promise<any> {
+    return this._getOrCreateBeginPromise().catch(onrejected)
   }
 
   /**
@@ -122,31 +124,30 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
    * @param {function()|null} onfinally - function when the promise finished
    * @return {Promise} promise.
    */
-  finally(onfinally?: (() => void) | null): Promise<Transaction> {
-    return this._getOrCreateBeginPromise().finally(onfinally);
+  finally (onfinally?: (() => void) | null): Promise<Transaction> {
+    return this._getOrCreateBeginPromise().finally(onfinally)
   }
 
-  private _getOrCreateBeginPromise(): Promise<Transaction> {
-    if (!this._beginPromise) {
+  private _getOrCreateBeginPromise (): Promise<Transaction> {
+    if (this._beginPromise == null) {
       this._beginPromise = new Promise((resolve, reject) => {
-        this._resolve = resolve;
-        this._reject = reject;
-        if (this._beginError) {
-          reject(this._beginError);
+        this._resolve = resolve
+        this._reject = reject
+        if (this._beginError != null) {
+          reject(this._beginError)
         }
-        if (this._beginMetadata) {
-          resolve(this._toTransaction());
+        if (this._beginMetadata != null) {
+          resolve(this._toTransaction())
         }
-      });
+      })
     }
-    return this._beginPromise;
+    return this._beginPromise
   }
 
   /**
    * @access private
    */
-  private _toTransaction(): Transaction {
-    //@ts-ignore
+  private _toTransaction (): Transaction {
     return {
       ...this,
       run: super.run.bind(this),
@@ -154,28 +155,28 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
       rollback: super.rollback.bind(this),
       close: super.close.bind(this),
       isOpen: super.isOpen.bind(this),
-      _begin: this._begin.bind(this),
+      _begin: this._begin.bind(this)
     }
   }
 
   /**
    * @access private
    */
-  _begin(bookmarks: string | Bookmarks | string[], txConfig: TxConfig): void {
+  _begin (bookmarks: string | Bookmarks | string[], txConfig: TxConfig): void {
     return super._begin(bookmarks, txConfig, {
       onError: this._onBeginError.bind(this),
       onComplete: this._onBeginMetadata.bind(this)
-    });
+    })
   }
 
   /**
    * @access private
    * @returns {void}
    */
-  private _onBeginError(error: Error): void {
-    this._beginError = error;
-    if (this._reject) {
-      this._reject(error);
+  private _onBeginError (error: Error): void {
+    this._beginError = error
+    if (this._reject != null) {
+      this._reject(error)
     }
   }
 
@@ -183,13 +184,12 @@ class TransactionPromise extends Transaction implements Promise<Transaction>{
    * @access private
    * @returns {void}
    */
-  private _onBeginMetadata(metadata: any): void {
-    this._beginMetadata = metadata || {};
-    if (this._resolve) {
-      this._resolve(this._toTransaction());
+  private _onBeginMetadata (metadata: any): void {
+    this._beginMetadata = metadata ?? {}
+    if (this._resolve != null) {
+      this._resolve(this._toTransaction())
     }
   }
-
 }
 
 export default TransactionPromise

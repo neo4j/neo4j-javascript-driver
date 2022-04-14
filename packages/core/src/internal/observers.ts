@@ -76,7 +76,7 @@ export interface ResultStreamObserver extends StreamObserver {
   /**
    * Cancel pending record stream
    */
-  cancel(): void
+  cancel: () => void
 
   /**
    * Pause the record consuming
@@ -84,14 +84,14 @@ export interface ResultStreamObserver extends StreamObserver {
    * This function will supend the record consuming. It will not cancel the stream and the already
    * requested records will be sent to the subscriber.
    */
-  pause(): void
+  pause: () => void
 
   /**
    * Resume the record consuming
    *
    * This function will resume the record consuming fetching more records from the server.
    */
-  resume(): void
+  resume: () => void
 
   /**
    * Stream observer defaults to handling responses for two messages: RUN + PULL_ALL or RUN + DISCARD_ALL.
@@ -103,12 +103,12 @@ export interface ResultStreamObserver extends StreamObserver {
    *
    * This function prepares the observer to only handle a single response message.
    */
-  prepareToHandleSingleResponse(): void
+  prepareToHandleSingleResponse: () => void
 
   /**
    * Mark this observer as if it has completed with no metadata.
    */
-  markCompleted(): void
+  markCompleted: () => void
 
   /**
    * Subscribe to events with provided observer.
@@ -118,47 +118,48 @@ export interface ResultStreamObserver extends StreamObserver {
    * @param {function(metadata: Object)} observer.onCompleted - Handle stream tail, the metadata.
    * @param {function(error: Object)} observer.onError - Handle errors, should always be provided.
    */
-  subscribe(observer: ResultObserver): void
+  subscribe: (observer: ResultObserver) => void
 }
 
 export class CompletedObserver implements ResultStreamObserver {
-  subscribe(observer: ResultObserver): void {
+  subscribe (observer: ResultObserver): void {
     apply(observer, observer.onKeys, [])
     apply(observer, observer.onCompleted, {})
   }
 
-  cancel(): void {
+  cancel (): void {
     // do nothing
   }
 
-  pause(): void {
+  pause (): void {
     // do nothing
   }
 
-  resume(): void {
+  resume (): void {
     // do nothing
   }
 
-  prepareToHandleSingleResponse(): void {
+  prepareToHandleSingleResponse (): void {
     // do nothing
   }
 
-  markCompleted(): void {
+  markCompleted (): void {
     // do nothing
   }
 
-  onError(error: Error): void {
+  // eslint-disable-next-line node/handle-callback-err
+  onError (error: Error): void {
     // nothing to do, already finished
     throw Error('CompletedObserver not supposed to call onError')
   }
 }
 
 export class FailedObserver implements ResultStreamObserver {
-  private _error: Error
-  private _beforeError?: (error: Error) => void
-  private _observers: ResultObserver[]
+  private readonly _error: Error
+  private readonly _beforeError?: (error: Error) => void
+  private readonly _observers: ResultObserver[]
 
-  constructor({
+  constructor ({
     error,
     onError
   }: {
@@ -171,41 +172,39 @@ export class FailedObserver implements ResultStreamObserver {
     this.onError(error)
   }
 
-  subscribe(observer: ResultObserver): void {
+  subscribe (observer: ResultObserver): void {
     apply(observer, observer.onError, this._error)
     this._observers.push(observer)
   }
 
-  onError(error: Error): void {
-    Promise.resolve(apply(this, this._beforeError, error)).then(() =>
-      this._observers.forEach(o => apply(o, o.onError, error))
-    )
+  onError (error: Error): void {
+    apply(this, this._beforeError, error)
+    this._observers.forEach(o => apply(o, o.onError, error))
   }
 
-  cancel(): void {
+  cancel (): void {
     // do nothing
   }
 
-  pause(): void {
+  pause (): void {
     // do nothing
   }
 
-  resume(): void {
+  resume (): void {
     // do nothing
   }
 
-  markCompleted(): void {
+  markCompleted (): void {
     // do nothing
   }
 
-  prepareToHandleSingleResponse(): void {
+  prepareToHandleSingleResponse (): void {
     // do nothing
   }
-
 }
 
-function apply<T>(thisArg: any, func?: (param: T) => void, param?: T): void {
-  if (func) {
+function apply<T> (thisArg: any, func?: (param: T) => void, param?: T): void {
+  if (func != null) {
     func.bind(thisArg)(param as any)
   }
 }

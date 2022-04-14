@@ -25,7 +25,7 @@ import { NumberOrInteger } from './graph-types'
  * @access public
  */
 class ResultSummary<T extends NumberOrInteger = Integer> {
-  query: { text: string; parameters: { [key: string]: any } }
+  query: { text: string, parameters: { [key: string]: any } }
   queryType: string
   counters: QueryStatistics
   updateStatistics: QueryStatistics
@@ -43,7 +43,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
    * @param {Object} metadata - Query metadata
    * @param {number|undefined} protocolVersion - Bolt Protocol Version
    */
-  constructor(
+  constructor (
     query: string,
     parameters: { [key: string]: any },
     metadata: any,
@@ -70,7 +70,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @type {QueryStatistics}
      * @public
      */
-    this.counters = new QueryStatistics(metadata.stats || {})
+    this.counters = new QueryStatistics(metadata.stats ?? {})
     // for backwards compatibility, remove in future version
     /**
      * Use {@link ResultSummary.counters} instead.
@@ -87,8 +87,8 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @public
      */
     this.plan =
-      metadata.plan || metadata.profile
-        ? new Plan(metadata.plan || metadata.profile)
+      metadata.plan != null || metadata.profile != null
+        ? new Plan(metadata.plan ?? metadata.profile)
         : false
 
     /**
@@ -98,7 +98,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @type {ProfiledPlan}
      * @public
      */
-    this.profile = metadata.profile ? new ProfiledPlan(metadata.profile) : false
+    this.profile = metadata.profile != null ? new ProfiledPlan(metadata.profile) : false
 
     /**
      * An array of notifications that might arise when executing the query. Notifications can be warnings about
@@ -135,14 +135,14 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
      * @type {{name: string}}
      * @public
      */
-    this.database = { name: metadata.db || null }
+    this.database = { name: metadata.db ?? null }
   }
 
-  _buildNotifications(notifications: any[]): Notification[] {
-    if (!notifications) {
+  _buildNotifications (notifications: any[]): Notification[] {
+    if (notifications == null) {
       return []
     }
-    return notifications.map(function(n: any): Notification {
+    return notifications.map(function (n: any): Notification {
       return new Notification(n)
     })
   }
@@ -151,7 +151,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
    * Check if the result summary has a plan
    * @return {boolean}
    */
-  hasPlan(): boolean {
+  hasPlan (): boolean {
     return this.plan instanceof Plan
   }
 
@@ -159,7 +159,7 @@ class ResultSummary<T extends NumberOrInteger = Integer> {
    * Check if the result summary has a profile
    * @return {boolean}
    */
-  hasProfile(): boolean {
+  hasProfile (): boolean {
     return this.profile instanceof ProfiledPlan
   }
 }
@@ -179,11 +179,11 @@ class Plan {
    * @constructor
    * @param {Object} plan - Object with plan data
    */
-  constructor(plan: any) {
+  constructor (plan: any) {
     this.operatorType = plan.operatorType
     this.identifiers = plan.identifiers
     this.arguments = plan.args
-    this.children = plan.children
+    this.children = plan.children != null
       ? plan.children.map((child: any) => new Plan(child))
       : []
   }
@@ -210,7 +210,7 @@ class ProfiledPlan {
    * @constructor
    * @param {Object} profile - Object with profile data
    */
-  constructor(profile: any) {
+  constructor (profile: any) {
     this.operatorType = profile.operatorType
     this.identifiers = profile.identifiers
     this.arguments = profile.args
@@ -220,12 +220,12 @@ class ProfiledPlan {
     this.pageCacheHits = valueOrDefault('pageCacheHits', profile)
     this.pageCacheHitRatio = valueOrDefault('pageCacheHitRatio', profile)
     this.time = valueOrDefault('time', profile)
-    this.children = profile.children
+    this.children = profile.children != null
       ? profile.children.map((child: any) => new ProfiledPlan(child))
       : []
   }
 
-  hasPageCacheStats(): boolean {
+  hasPageCacheStats (): boolean {
     return (
       this.pageCacheMisses > 0 ||
       this.pageCacheHits > 0 ||
@@ -256,7 +256,7 @@ class Stats {
    * @constructor
    * @private
    */
-  constructor() {
+  constructor () {
     /**
      * nodes created
      * @type {number}
@@ -341,7 +341,7 @@ class QueryStatistics {
    * @constructor
    * @param {Object} statistics - Result statistics
    */
-  constructor(statistics: any) {
+  constructor (statistics: any) {
     this._stats = {
       nodesCreated: 0,
       nodesDeleted: 0,
@@ -353,7 +353,7 @@ class QueryStatistics {
       indexesAdded: 0,
       indexesRemoved: 0,
       constraintsAdded: 0,
-      constraintsRemoved: 0,
+      constraintsRemoved: 0
     }
     this._systemUpdates = 0
     Object.keys(statistics).forEach(index => {
@@ -377,20 +377,21 @@ class QueryStatistics {
    * Did the database get updated?
    * @return {boolean}
    */
-  containsUpdates(): boolean {
-    return this._containsUpdates !== undefined ?
-      this._containsUpdates : (
-        Object.keys(this._stats).reduce((last, current) => {
-          return last + this._stats[current]
-        }, 0) > 0
-      )
+  containsUpdates (): boolean {
+    return this._containsUpdates !== undefined
+      ? this._containsUpdates
+      : (
+          Object.keys(this._stats).reduce((last, current) => {
+            return last + this._stats[current]
+          }, 0) > 0
+        )
   }
 
   /**
    * Returns the query statistics updates in a dictionary.
    * @returns {Stats}
    */
-  updates(): Stats {
+  updates (): Stats {
     return this._stats
   }
 
@@ -398,23 +399,24 @@ class QueryStatistics {
    * Return true if the system database get updated, otherwise false
    * @returns {boolean} - If the system database get updated or not.
    */
-  containsSystemUpdates(): boolean {
-    return this._containsSystemUpdates !== undefined ?
-      this._containsSystemUpdates : this._systemUpdates > 0
+  containsSystemUpdates (): boolean {
+    return this._containsSystemUpdates !== undefined
+      ? this._containsSystemUpdates
+      : this._systemUpdates > 0
   }
 
   /**
    * @returns {number} - Number of system updates
    */
-  systemUpdates(): number {
+  systemUpdates (): number {
     return this._systemUpdates
   }
 }
 
 interface NotificationPosition {
-  offset: number
-  line: number
-  column: number
+  offset?: number
+  line?: number
+  column?: number
 }
 
 /**
@@ -433,7 +435,7 @@ class Notification {
    * @constructor
    * @param {Object} notification - Object with notification data
    */
-  constructor(notification: any) {
+  constructor (notification: any) {
     this.code = notification.code
     this.title = notification.title
     this.description = notification.description
@@ -441,15 +443,17 @@ class Notification {
     this.position = Notification._constructPosition(notification.position)
   }
 
-  static _constructPosition(pos: NotificationPosition) {
-    if (!pos) {
+  static _constructPosition (pos: NotificationPosition): NotificationPosition {
+    if (pos == null) {
       return {}
     }
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
     return {
-      offset: intValue(pos.offset),
-      line: intValue(pos.line),
-      column: intValue(pos.column)
+      offset: intValue(pos.offset!),
+      line: intValue(pos.line!),
+      column: intValue(pos.column!)
     }
+    /* eslint-enable @typescript-eslint/no-non-null-assertion */
   }
 }
 
@@ -469,8 +473,8 @@ class ServerInfo {
    * @param {Object} connectionInfo - Bolt connection info
    * @param {number} protocolVersion - Bolt Protocol Version
    */
-  constructor(serverMeta?: any, protocolVersion?: number) {
-    if (serverMeta) {
+  constructor (serverMeta?: any, protocolVersion?: number) {
+    if (serverMeta != null) {
       /**
        * The server adress
        * @type {string}
@@ -495,22 +499,22 @@ class ServerInfo {
   }
 }
 
-function intValue(value: NumberOrInteger): number {
+function intValue (value: NumberOrInteger): number {
   if (value instanceof Integer) {
     return value.toInt()
-  } else if (typeof value == 'bigint') {
+  } else if (typeof value === 'bigint') {
     return int(value).toInt()
   } else {
     return value
   }
 }
 
-function valueOrDefault(
+function valueOrDefault (
   key: string,
-  values: { [key: string]: NumberOrInteger },
+  values: { [key: string]: NumberOrInteger } | false,
   defaultValue: number = 0
 ): number {
-  if (key in values) {
+  if (values !== false && key in values) {
     const value = values[key]
     return intValue(value)
   } else {
@@ -539,7 +543,7 @@ export {
   Stats
 }
 export type {
-  NotificationPosition,
+  NotificationPosition
 }
 
 export default ResultSummary

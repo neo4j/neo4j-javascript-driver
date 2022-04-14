@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/* eslint-disable @typescript-eslint/promise-function-async */
 import ConnectionProvider from './connection-provider'
 import { Bookmarks } from './internal/bookmarks'
 import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
@@ -32,7 +32,7 @@ import {
 import { Logger } from './internal/logger'
 import Session from './session'
 import { ServerInfo } from './result-summary'
-import { ENCRYPTION_ON, ENCRYPTION_OFF } from './internal/util'
+import { ENCRYPTION_ON } from './internal/util'
 import {
   EncryptionLevel,
   LoggingConfig,
@@ -85,7 +85,7 @@ type CreateSession = (args: {
   database: string
   config: any
   reactive: boolean
-  fetchSize: number,
+  fetchSize: number
   impersonatedUser?: string
 }) => Session
 
@@ -122,9 +122,9 @@ class Driver {
    * @param {Object} meta Metainformation about the driver
    * @param {Object} config
    * @param {function(id: number, config:Object, log:Logger, hostNameResolver: ConfiguredCustomResolver): ConnectionProvider } createConnectonProvider Creates the connection provider
-   * @param {function(args): Session } createSession Creates the a session    
+   * @param {function(args): Session } createSession Creates the a session
   */
-  constructor(
+  constructor (
     meta: MetaInfo,
     config: DriverConfig = {},
     createConnectonProvider: CreateConnectionProvider,
@@ -139,7 +139,7 @@ class Driver {
     this._id = idGenerator++
     this._meta = meta
     this._config = config
-    this._log = log;
+    this._log = log
     this._createConnectionProvider = createConnectonProvider
     this._createSession = createSession
 
@@ -156,7 +156,7 @@ class Driver {
   /**
    * Verifies connectivity of this driver by trying to open a connection with the provided driver options.
    *
-   * @deprecated This return of this method will change in 6.0.0 to not async return the {@link ServerInfo} and 
+   * @deprecated This return of this method will change in 6.0.0 to not async return the {@link ServerInfo} and
    * async return {@link void} instead. If you need to use the server info, use {@link getServerInfo} instead.
    *
    * @public
@@ -164,9 +164,7 @@ class Driver {
    * @param {string} param.database - The target database to verify connectivity for.
    * @returns {Promise<ServerInfo>} promise resolved with server info or rejected with error.
    */
-  verifyConnectivity({ database = '' }: { database?: string } = {}): Promise<
-    ServerInfo
-  > {
+  verifyConnectivity ({ database = '' }: { database?: string } = {}): Promise<ServerInfo> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode: READ })
   }
@@ -178,7 +176,7 @@ class Driver {
    * @param {string} param.database - The target database to verify connectivity for.
    * @returns {Promise<void>} promise resolved with void or rejected with error.
    */
-  getServerInfo({ database = ''}: { database?: string } = {}): Promise<ServerInfo> {
+  getServerInfo ({ database = '' }: { database?: string } = {}): Promise<ServerInfo> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode: READ })
   }
@@ -191,7 +189,7 @@ class Driver {
    *
    * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
    */
-  supportsMultiDb(): Promise<boolean> {
+  supportsMultiDb (): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsMultiDb()
   }
@@ -204,7 +202,7 @@ class Driver {
    *
    * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
    */
-  supportsTransactionConfig(): Promise<boolean> {
+  supportsTransactionConfig (): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsTransactionConfig()
   }
@@ -217,7 +215,7 @@ class Driver {
    *
    * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
    */
-   supportsUserImpersonation(): Promise<boolean> {
+  supportsUserImpersonation (): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
     return connectionProvider.supportsUserImpersonation()
   }
@@ -227,7 +225,7 @@ class Driver {
    *
    * @returns {boolean}
    */
-  isEncrypted(): boolean {
+  isEncrypted (): boolean {
     return this._isEncrypted()
   }
 
@@ -235,7 +233,7 @@ class Driver {
    * @protected
    * @returns {boolean}
    */
-  _supportsRouting(): boolean {
+  _supportsRouting (): boolean {
     return this._meta.routing
   }
 
@@ -245,7 +243,7 @@ class Driver {
    * @protected
    * @returns {boolean}
    */
-  _isEncrypted() {
+  _isEncrypted (): boolean {
     return this._config.encrypted === ENCRYPTION_ON || this._config.encrypted === true
   }
 
@@ -255,7 +253,7 @@ class Driver {
    * @protected
    * @returns {TrustStrategy}
    */
-  _getTrust(): TrustStrategy | undefined {
+  _getTrust (): TrustStrategy | undefined {
     return this._config.trust
   }
 
@@ -281,7 +279,7 @@ class Driver {
    * @param {string} param.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
    * @return {Session} new session.
    */
-  session({
+  session ({
     defaultAccessMode = WRITE,
     bookmarks: bookmarkOrBookmarks,
     database = '',
@@ -300,7 +298,8 @@ class Driver {
       database,
       reactive: false,
       impersonatedUser,
-      fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!!)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!)
     })
   }
 
@@ -310,9 +309,9 @@ class Driver {
    * @public
    * @return {Promise<void>} promise resolved when the driver is closed.
    */
-  close(): Promise<void> {
+  close (): Promise<void> {
     this._log.info(`Driver ${this._id} closing`)
-    if (this._connectionProvider) {
+    if (this._connectionProvider != null) {
       return this._connectionProvider.close()
     }
     return Promise.resolve()
@@ -321,16 +320,16 @@ class Driver {
   /**
    * @protected
    */
-  _afterConstruction() {
+  _afterConstruction (): void {
     this._log.info(
-      `${this._meta.typename} driver ${this._id} created for server address ${this._meta.address}`
+      `${this._meta.typename} driver ${this._id} created for server address ${this._meta.address.toString()}`
     )
   }
 
   /**
    * @private
    */
-  _newSession({
+  _newSession ({
     defaultAccessMode,
     bookmarkOrBookmarks,
     database,
@@ -344,15 +343,15 @@ class Driver {
     reactive: boolean
     impersonatedUser?: string
     fetchSize: number
-  }) {
+  }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
-    const bookmarks = bookmarkOrBookmarks
+    const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
     return this._createSession({
       mode: sessionMode,
-      database: database || '',
+      database: database ?? '',
       connectionProvider,
       bookmarks,
       config: this._config,
@@ -365,8 +364,8 @@ class Driver {
   /**
    * @private
    */
-  _getOrCreateConnectionProvider(): ConnectionProvider {
-    if (!this._connectionProvider) {
+  _getOrCreateConnectionProvider (): ConnectionProvider {
+    if (this._connectionProvider == null) {
       this._connectionProvider = this._createConnectionProvider(
         this._id,
         this._config,
@@ -383,17 +382,17 @@ class Driver {
  * @private
  * @returns {Object} the given config.
  */
-function validateConfig(config: any, log: Logger): any {
+function validateConfig (config: any, log: Logger): any {
   const resolver = config.resolver
-  if (resolver && typeof resolver !== 'function') {
+  if (resolver !== null && resolver !== undefined && typeof resolver !== 'function') {
     throw new TypeError(
-      `Configured resolver should be a function. Got: ${resolver}`
+      `Configured resolver should be a function. Got: ${typeof resolver}`
     )
   }
 
   if (config.connectionAcquisitionTimeout < config.connectionTimeout) {
     log.warn(
-      'Configuration for "connectionAcquisitionTimeout" should be greater than ' + 
+      'Configuration for "connectionAcquisitionTimeout" should be greater than ' +
       'or equal to "connectionTimeout". Otherwise, the connection acquisition ' +
       'timeout will take precedence for over the connection timeout in scenarios ' +
       'where a new connection is created while it is acquired'
@@ -405,7 +404,7 @@ function validateConfig(config: any, log: Logger): any {
 /**
  * @private
  */
-function sanitizeConfig(config: any) {
+function sanitizeConfig (config: any): void {
   config.maxConnectionLifetime = sanitizeIntValue(
     config.maxConnectionLifetime,
     DEFAULT_MAX_CONNECTION_LIFETIME
@@ -428,7 +427,7 @@ function sanitizeConfig(config: any) {
 /**
  * @private
  */
-function sanitizeIntValue(rawValue: any, defaultWhenAbsent: number): number {
+function sanitizeIntValue (rawValue: any, defaultWhenAbsent: number): number {
   const sanitizedValue = parseInt(rawValue, 10)
   if (sanitizedValue > 0 || sanitizedValue === 0) {
     return sanitizedValue
@@ -442,7 +441,7 @@ function sanitizeIntValue(rawValue: any, defaultWhenAbsent: number): number {
 /**
  * @private
  */
-function validateFetchSizeValue(
+function validateFetchSizeValue (
   rawValue: any,
   defaultWhenAbsent: number
 ): number {
@@ -466,10 +465,10 @@ function extractConnectionTimeout (config: any): number|null {
   if (configuredTimeout === 0) {
     // timeout explicitly configured to 0
     return null
-  } else if (configuredTimeout && configuredTimeout < 0) {
+  } else if (!isNaN(configuredTimeout) && configuredTimeout < 0) {
     // timeout explicitly configured to a negative value
     return null
-  } else if (!configuredTimeout) {
+  } else if (isNaN(configuredTimeout)) {
     // timeout not configured, use default value
     return DEFAULT_CONNECTION_TIMEOUT_MILLIS
   } else {
@@ -483,7 +482,7 @@ function extractConnectionTimeout (config: any): number|null {
  * @returns {ConfiguredCustomResolver} new custom resolver that wraps the passed-in resolver function.
  *              If resolved function is not specified, it defaults to an identity resolver.
  */
-function createHostNameResolver(config: any): ConfiguredCustomResolver {
+function createHostNameResolver (config: any): ConfiguredCustomResolver {
   return new ConfiguredCustomResolver(config.resolver)
 }
 

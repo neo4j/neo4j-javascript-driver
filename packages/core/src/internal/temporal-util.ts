@@ -45,7 +45,7 @@ class ValueRange {
     this._maxInteger = int(max)
   }
 
-  contains (value: number | Integer | bigint) {
+  contains (value: number | Integer | bigint): boolean {
     if (isInt(value) && value instanceof Integer) {
       return (
         value.greaterThanOrEqual(this._minInteger) &&
@@ -62,7 +62,7 @@ class ValueRange {
     }
   }
 
-  toString () {
+  toString (): string {
     return `[${this._minNumber}, ${this._maxNumber}]`
   }
 }
@@ -271,7 +271,7 @@ export function timeZoneOffsetToIsoString (
   const secondsValue = offsetSeconds.modulo(SECONDS_PER_MINUTE)
   const seconds = secondsValue.equals(0) ? null : formatNumber(secondsValue, 2)
 
-  return seconds
+  return seconds != null
     ? `${signPrefix}${hours}:${minutes}:${seconds}`
     : `${signPrefix}${hours}:${minutes}`
 }
@@ -309,7 +309,7 @@ export function dateToIsoString (
  * @param {string} isoString The iso date string
  * @returns {Date} the date
  */
- export function isoStringToStandardDate(isoString: string): Date {
+export function isoStringToStandardDate (isoString: string): Date {
   return new Date(isoString)
 }
 
@@ -323,7 +323,7 @@ export function totalNanoseconds (
   standardDate: Date,
   nanoseconds?: NumberOrInteger
 ): NumberOrInteger {
-  nanoseconds = nanoseconds || 0
+  nanoseconds = nanoseconds ?? 0
   const nanosFromMillis = standardDate.getMilliseconds() * NANOS_PER_MILLISECOND
   return add(nanoseconds, nanosFromMillis)
 }
@@ -432,7 +432,7 @@ function assertValidTemporalValue (
   assertNumberOrInteger(value, name)
   if (!range.contains(value)) {
     throw newError(
-      `${name} is expected to be in range ${range} but was: ${value}`
+      `${name} is expected to be in range ${range.toString()} but was: ${value.toString()}`
     )
   }
   return value
@@ -554,7 +554,7 @@ function formatSecondsAndNanosecondsForDuration (
     }
   }
 
-  return nanosecondsString ? secondsString + nanosecondsString : secondsString
+  return nanosecondsString != null ? secondsString + nanosecondsString : secondsString
 }
 
 /**
@@ -582,7 +582,7 @@ function formatNumber (
   }
 
   let numString = num.toString()
-  if (stringLength) {
+  if (stringLength != null) {
     // left pad the string with zeroes
     while (numString.length < stringLength) {
       numString = '0' + numString

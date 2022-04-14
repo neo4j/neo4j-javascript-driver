@@ -17,11 +17,14 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/promise-function-async */
+
 import ResultSummary from './result-summary'
 import Record from './record'
 import { Query, PeekableAsyncIterator } from './types'
 import { observer, util, connectionHolder } from './internal'
-import { newError } from './error'
+import { newError, PROTOCOL_ERROR } from './error'
+import { NumberOrInteger } from './graph-types'
 
 const { EMPTY_CONNECTION_HOLDER } = connectionHolder
 
@@ -30,7 +33,8 @@ const { EMPTY_CONNECTION_HOLDER } = connectionHolder
  * @param {Error} error The error
  * @returns {void}
  */
-const DEFAULT_ON_ERROR = (error: Error) => {
+const DEFAULT_ON_ERROR = (error: Error): void => {
+  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands, @typescript-eslint/no-base-to-string
   console.log('Uncaught error when processing result: ' + error)
 }
 
@@ -39,14 +43,14 @@ const DEFAULT_ON_ERROR = (error: Error) => {
  * @param {ResultSummary} summary
  * @returns {void}
  */
-const DEFAULT_ON_COMPLETED = (summary: ResultSummary) => {}
+const DEFAULT_ON_COMPLETED = (summary: ResultSummary): void => {}
 
 /**
  * @private
  * @param {string[]} keys List of keys of the record in the result
- * @return {void} 
+ * @return {void}
  */
-const DEFAULT_ON_KEYS = (_keys: string[]) => {}
+const DEFAULT_ON_KEYS = (keys: string[]): void => {}
 
 /**
  * The query result is the combination of the {@link ResultSummary} and
@@ -88,16 +92,15 @@ interface ResultObserver {
   onError?: (error: Error) => void
 }
 
-
 /**
- * Defines a ResultObserver interface which can be used to enqueue records and dequeue 
+ * Defines a ResultObserver interface which can be used to enqueue records and dequeue
  * them until the result is fully received.
  * @access private
  */
- interface QueuedResultObserver extends ResultObserver {
-  dequeue (): Promise<IteratorResult<Record, ResultSummary>>
-  head (): Promise<IteratorResult<Record, ResultSummary>>
-  get size (): number
+interface QueuedResultObserver extends ResultObserver {
+  dequeue: () => Promise<IteratorResult<Record, ResultSummary>>
+  head: () => Promise<IteratorResult<Record, ResultSummary>>
+  size: number
 }
 
 /**
@@ -108,16 +111,16 @@ interface ResultObserver {
  * @access public
  */
 class Result implements Promise<QueryResult> {
-  private _stack: string | null
-  private _streamObserverPromise: Promise<observer.ResultStreamObserver>
+  private readonly _stack: string | null
+  private readonly _streamObserverPromise: Promise<observer.ResultStreamObserver>
   private _p: Promise<QueryResult> | null
-  private _query: Query
-  private _parameters: any
-  private _connectionHolder: connectionHolder.ConnectionHolder
+  private readonly _query: Query
+  private readonly _parameters: any
+  private readonly _connectionHolder: connectionHolder.ConnectionHolder
   private _keys: string[] | null
   private _summary: ResultSummary | null
   private _error: Error | null
-  private _watermarks: { high: number; low: number }
+  private readonly _watermarks: { high: number, low: number }
 
   /**
    * Inject the observer to be used.
@@ -128,19 +131,19 @@ class Result implements Promise<QueryResult> {
    * @param {Object} parameters - Map with parameters to use in query
    * @param {ConnectionHolder} connectionHolder - to be notified when result is either fully consumed or error happened.
    */
-  constructor(
+  constructor (
     streamObserverPromise: Promise<observer.ResultStreamObserver>,
     query: Query,
     parameters?: any,
     connectionHolder?: connectionHolder.ConnectionHolder,
-    watermarks: { high: number; low: number } = { high: Number.MAX_VALUE, low: Number.MAX_VALUE }
+    watermarks: { high: number, low: number } = { high: Number.MAX_VALUE, low: Number.MAX_VALUE }
   ) {
     this._stack = captureStacktrace()
     this._streamObserverPromise = streamObserverPromise
     this._p = null
     this._query = query
-    this._parameters = parameters || {}
-    this._connectionHolder = connectionHolder || EMPTY_CONNECTION_HOLDER
+    this._parameters = parameters ?? {}
+    this._connectionHolder = connectionHolder ?? EMPTY_CONNECTION_HOLDER
     this._keys = null
     this._summary = null
     this._error = null
@@ -156,10 +159,10 @@ class Result implements Promise<QueryResult> {
    * @returns {Promise<string[]>} - Field keys, in the order they will appear in records.
    }
    */
-  keys(): Promise<string[]> {
+  keys (): Promise<string[]> {
     if (this._keys !== null) {
       return Promise.resolve(this._keys)
-    } else if (this._error !==  null) {
+    } else if (this._error !== null) {
       return Promise.reject(this._error)
     }
     return new Promise((resolve, reject) => {
@@ -183,7 +186,7 @@ class Result implements Promise<QueryResult> {
    * @returns {Promise<ResultSummary>} - Result summary.
    *
    */
-  summary(): Promise<ResultSummary> {
+  summary (): Promise<ResultSummary> {
     if (this._summary !== null) {
       return Promise.resolve(this._summary)
     } else if (this._error !== null) {
@@ -208,8 +211,8 @@ class Result implements Promise<QueryResult> {
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise(): Promise<QueryResult> {
-    if (!this._p) {
+  private _getOrCreatePromise (): Promise<QueryResult> {
+    if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
         const records: Record[] = []
         const observer = {
@@ -238,56 +241,68 @@ class Result implements Promise<QueryResult> {
    * @public
    * @returns {PeekableAsyncIterator<Record, ResultSummary>} The async iterator for the Results
    */
-  [Symbol.asyncIterator](): PeekableAsyncIterator<Record, ResultSummary> {
+  [Symbol.asyncIterator] (): PeekableAsyncIterator<Record, ResultSummary> {
     if (!this.isOpen()) {
       const error = newError('Result is already consumed')
       return {
         next: () => Promise.reject(error),
-        peek: () => Promise.reject(error),
+        peek: () => Promise.reject(error)
       }
     }
     const state: {
-      paused: boolean,
-      firstRun: boolean,
-      finished: boolean,
-      queuedObserver?: QueuedResultObserver,
-      streaming?: observer.ResultStreamObserver,
-      summary?: ResultSummary,
+      paused: boolean
+      firstRun: boolean
+      finished: boolean
+      queuedObserver?: QueuedResultObserver
+      streaming?: observer.ResultStreamObserver
+      summary?: ResultSummary
     } = { paused: true, firstRun: true, finished: false }
 
-    const controlFlow = () => {
-      if (!state.streaming) {
-        return;
+    const controlFlow = (): void => {
+      if (state.streaming == null) {
+        return
       }
-      const queueSizeIsOverHighOrEqualWatermark = state.queuedObserver!.size >= this._watermarks.high 
-      const queueSizeIsBellowOrEqualLowWatermark = state.queuedObserver!.size <= this._watermarks.low
+
+      const size = state.queuedObserver?.size ?? 0
+      const queueSizeIsOverHighOrEqualWatermark = size >= this._watermarks.high
+      const queueSizeIsBellowOrEqualLowWatermark = size <= this._watermarks.low
 
       if (queueSizeIsOverHighOrEqualWatermark && !state.paused) {
         state.paused = true
         state.streaming.pause()
-      } else if (queueSizeIsBellowOrEqualLowWatermark && state.paused || state.firstRun && !queueSizeIsOverHighOrEqualWatermark ) {
+      } else if ((queueSizeIsBellowOrEqualLowWatermark && state.paused) || (state.firstRun && !queueSizeIsOverHighOrEqualWatermark)) {
         state.firstRun = false
         state.paused = false
         state.streaming.resume()
       }
     }
 
-    const initializeObserver = async  () => {
+    const initializeObserver = async (): Promise<QueuedResultObserver> => {
       if (state.queuedObserver === undefined) {
         state.queuedObserver = this._createQueuedResultObserver(controlFlow)
         state.streaming = await this._subscribe(state.queuedObserver, true).catch(() => undefined)
         controlFlow()
       }
+      return state.queuedObserver
+    }
+
+    const assertSummary = <T extends NumberOrInteger>(summary: ResultSummary<T> | undefined): summary is ResultSummary<T> => {
+      if (summary === undefined) {
+        throw newError('InvalidState: Result stream finished without Summary', PROTOCOL_ERROR)
+      }
+      return true
     }
 
     return {
       next: async () => {
         if (state.finished) {
-          return { done: true, value: state.summary! }
+          if (assertSummary(state.summary)) {
+            return { done: true, value: state.summary }
+          }
         }
-        await initializeObserver()
-        const next = await state.queuedObserver!.dequeue()
-        if (next.done) {
+        const queuedObserver = await initializeObserver()
+        const next = await queuedObserver.dequeue()
+        if (next.done === true) {
           state.finished = next.done
           state.summary = next.value
         }
@@ -301,10 +316,12 @@ class Result implements Promise<QueryResult> {
       },
       peek: async () => {
         if (state.finished) {
-          return { done: true, value: state.summary! }
+          if (assertSummary(state.summary)) {
+            return { done: true, value: state.summary }
+          }
         }
-        await initializeObserver()
-        return await state.queuedObserver!.head()
+        const queuedObserver = await initializeObserver()
+        return await queuedObserver.head()
       }
     }
   }
@@ -321,8 +338,8 @@ class Result implements Promise<QueryResult> {
    */
   then<TResult1 = QueryResult, TResult2 = never>(
     onFulfilled?:
-      | ((value: QueryResult) => TResult1 | PromiseLike<TResult1>)
-      | null,
+    | ((value: QueryResult) => TResult1 | PromiseLike<TResult1>)
+    | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
     return this._getOrCreatePromise().then(onFulfilled, onRejected)
@@ -336,7 +353,7 @@ class Result implements Promise<QueryResult> {
    * @param {function(error: Neo4jError)} onRejected - Function to be called upon errors.
    * @return {Promise} promise.
    */
-  catch<TResult = never>(
+  catch <TResult = never>(
     onRejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
   ): Promise<QueryResult | TResult> {
     return this._getOrCreatePromise().catch(onRejected)
@@ -350,7 +367,7 @@ class Result implements Promise<QueryResult> {
    * @return {Promise} promise.
    */
   [Symbol.toStringTag]: string
-  finally(onfinally?: (() => void) | null): Promise<QueryResult> {
+  finally (onfinally?: (() => void) | null): Promise<QueryResult> {
     return this._getOrCreatePromise().finally(onfinally)
   }
 
@@ -365,7 +382,7 @@ class Result implements Promise<QueryResult> {
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return {void}
    */
-  subscribe(observer: ResultObserver): void {
+  subscribe (observer: ResultObserver): void {
     this._subscribe(observer)
       .catch(() => {})
   }
@@ -387,7 +404,7 @@ class Result implements Promise<QueryResult> {
    * @param {boolean} paused The flag to indicate if the stream should be started paused
    * @returns {Promise<observer.ResultStreamObserver>} The result stream observer.
    */
-  _subscribe(observer: ResultObserver, paused: boolean = false): Promise<observer.ResultStreamObserver> {
+  _subscribe (observer: ResultObserver, paused: boolean = false): Promise<observer.ResultStreamObserver> {
     const _observer = this._decorateObserver(observer)
 
     return this._streamObserverPromise
@@ -398,8 +415,10 @@ class Result implements Promise<QueryResult> {
         o.subscribe(_observer)
         return o
       })
-      .catch(error => { 
-        _observer.onError!(error)
+      .catch(error => {
+        if (_observer.onError != null) {
+          _observer.onError(error)
+        }
         return Promise.reject(error)
       })
   }
@@ -411,35 +430,35 @@ class Result implements Promise<QueryResult> {
    * @param {ResultObserver} observer The ResultObserver to decorate.
    * @returns The decorated result observer
    */
-  _decorateObserver(observer: ResultObserver): ResultObserver {
-    const onCompletedOriginal = observer.onCompleted || DEFAULT_ON_COMPLETED
-    const onCompletedWrapper = (metadata: any) => {
+  _decorateObserver (observer: ResultObserver): ResultObserver {
+    const onCompletedOriginal = observer.onCompleted ?? DEFAULT_ON_COMPLETED
+    const onErrorOriginal = observer.onError ?? DEFAULT_ON_ERROR
+    const onKeysOriginal = observer.onKeys ?? DEFAULT_ON_KEYS
 
+    const onCompletedWrapper = (metadata: any): void => {
       this._createSummary(metadata).then(summary => {
         this._summary = summary
         return onCompletedOriginal.call(observer, summary)
-      })
+      }).catch(onErrorOriginal)
     }
 
-    const onErrorOriginal = observer.onError || DEFAULT_ON_ERROR
-    const onErrorWrapper = (error: Error) => {
+    const onErrorWrapper = (error: Error): void => {
       // notify connection holder that the used connection is not needed any more because error happened
       // and result can't bee consumed any further; call the original onError callback after that
       this._connectionHolder.releaseConnection().then(() => {
         replaceStacktrace(error, this._stack)
         this._error = error
         onErrorOriginal.call(observer, error)
-      })
+      }).catch(onErrorOriginal)
     }
 
-    const onKeysOriginal = observer.onKeys || DEFAULT_ON_KEYS
-    const onKeysWrapper = (keys: string[]) => {
+    const onKeysWrapper = (keys: string[]): void => {
       this._keys = keys
       return onKeysOriginal.call(observer, keys)
     }
 
     return {
-      onNext: observer.onNext? observer.onNext.bind(observer) : undefined,
+      onNext: (observer.onNext != null) ? observer.onNext.bind(observer) : undefined,
       onKeys: onKeysWrapper,
       onCompleted: onCompletedWrapper,
       onError: onErrorWrapper
@@ -453,9 +472,10 @@ class Result implements Promise<QueryResult> {
    * @since 4.0.0
    * @returns {void}
    */
-  _cancel(): void {
+  _cancel (): void {
     if (this._summary === null && this._error === null) {
       this._streamObserverPromise.then(o => o.cancel())
+        .catch(() => {})
     }
   }
 
@@ -464,7 +484,7 @@ class Result implements Promise<QueryResult> {
    * @param metadata
    * @returns
    */
-  private _createSummary(metadata: any): Promise<ResultSummary> {
+  private _createSummary (metadata: any): Promise<ResultSummary> {
     const {
       validatedQuery: query,
       params: parameters
@@ -481,7 +501,7 @@ class Result implements Promise<QueryResult> {
           connectionHolder
             .releaseConnection()
             .then(() =>
-              connection ? connection.protocol().version : undefined
+              connection?.protocol()?.version
             ),
         // onRejected:
         _ => undefined
@@ -495,7 +515,7 @@ class Result implements Promise<QueryResult> {
   /**
    * @access private
    */
-   private _createQueuedResultObserver (onQueueSizeChanged: () => void): QueuedResultObserver {
+  private _createQueuedResultObserver (onQueueSizeChanged: () => void): QueuedResultObserver {
     interface ResolvablePromise<T> {
       promise: Promise<T>
       resolve: (arg: T) => any | undefined
@@ -507,13 +527,13 @@ class Result implements Promise<QueryResult> {
       resolvablePromise.promise = new Promise((resolve, reject) => {
         resolvablePromise.resolve = resolve
         resolvablePromise.reject = reject
-      });
-      return resolvablePromise;
+      })
+      return resolvablePromise
     }
 
     type QueuedResultElementOrError = IteratorResult<Record, ResultSummary> | Error
 
-    function isError(elementOrError: QueuedResultElementOrError): elementOrError is Error {
+    function isError (elementOrError: QueuedResultElementOrError): elementOrError is Error {
       return elementOrError instanceof Error
     }
 
@@ -532,7 +552,7 @@ class Result implements Promise<QueryResult> {
       onError: (error: Error) => {
         observer._push(error)
       },
-      _push(element: QueuedResultElementOrError) {
+      _push (element: QueuedResultElementOrError) {
         if (promiseHolder.resolvable !== null) {
           const resolvable = promiseHolder.resolvable
           promiseHolder.resolvable = null
@@ -548,10 +568,10 @@ class Result implements Promise<QueryResult> {
       },
       dequeue: async () => {
         if (buffer.length > 0) {
-          const element = buffer.shift()!
+          const element = buffer.shift() ?? newError('Unexpected empty buffer', PROTOCOL_ERROR)
           onQueueSizeChanged()
           if (isError(element)) {
-              throw element
+            throw element
           }
           return element
         }
@@ -562,13 +582,13 @@ class Result implements Promise<QueryResult> {
         if (buffer.length > 0) {
           const element = buffer[0]
           if (isError(element)) {
-              throw element
+            throw element
           }
           return element
         }
         promiseHolder.resolvable = createResolvablePromise()
         try {
-          const element =  await promiseHolder.resolvable.promise
+          const element = await promiseHolder.resolvable.promise
           buffer.unshift(element)
           return element
         } catch (error) {
@@ -587,9 +607,9 @@ class Result implements Promise<QueryResult> {
   }
 }
 
-function captureStacktrace(): string | null {
+function captureStacktrace (): string | null {
   const error = new Error('')
-  if (error.stack) {
+  if (error.stack != null) {
     return error.stack.replace(/^Error(\n\r)*/, '') // we don't need the 'Error\n' part, if only it exists
   }
   return null
@@ -601,10 +621,11 @@ function captureStacktrace(): string | null {
  * @param {string| null} newStack The newStack
  * @returns {void}
  */
-function replaceStacktrace(error: Error, newStack?: string | null) {
-  if (newStack) {
+function replaceStacktrace (error: Error, newStack?: string | null): void {
+  if (newStack != null) {
     // Error.prototype.toString() concatenates error.name and error.message nicely
     // then we add the rest of the stack trace
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     error.stack = error.toString() + '\n' + newStack
   }
 }

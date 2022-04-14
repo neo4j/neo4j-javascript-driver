@@ -39,12 +39,12 @@ export class Point<T extends NumberOrInteger = Integer> {
    * @param {number} y - The `y` coordinate of the point.
    * @param {number} [z=undefined] - The `z` coordinate of the point or `undefined` if point has 2 dimensions.
    */
-  constructor(srid: T, x: number, y: number, z?: number) {
+  constructor (srid: T, x: number, y: number, z?: number) {
     /**
      * The coordinate reference system identifier.
      * @type {T}
      */
-    this.srid = <T>assertNumberOrInteger(srid, 'SRID')
+    this.srid = assertNumberOrInteger(srid, 'SRID') as T
     /**
      * The `x` coordinate of the point.
      * @type {number}
@@ -66,8 +66,8 @@ export class Point<T extends NumberOrInteger = Integer> {
   /**
    * @ignore
    */
-  toString(): string {
-    return this.z || this.z === 0
+  toString (): string {
+    return this.z != null && !isNaN(this.z)
       ? `Point{srid=${formatAsFloat(this.srid)}, x=${formatAsFloat(
           this.x
         )}, y=${formatAsFloat(this.y)}, z=${formatAsFloat(this.z)}}`
@@ -77,8 +77,8 @@ export class Point<T extends NumberOrInteger = Integer> {
   }
 }
 
-function formatAsFloat(number: NumberOrInteger) {
-  return Number.isInteger(number) ? number + '.0' : number.toString()
+function formatAsFloat (number: NumberOrInteger): string {
+  return Number.isInteger(number) ? number.toString() + '.0' : number.toString()
 }
 
 Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
@@ -93,6 +93,6 @@ Object.defineProperty(Point.prototype, POINT_IDENTIFIER_PROPERTY, {
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Point}, `false` otherwise.
  */
-export function isPoint(obj?: any): obj is Point {
-  return (obj && obj[POINT_IDENTIFIER_PROPERTY]) === true
+export function isPoint (obj?: any): obj is Point {
+  return obj != null && obj[POINT_IDENTIFIER_PROPERTY] === true
 }
