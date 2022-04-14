@@ -5,8 +5,8 @@
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "build::es6": "tsc --target ES6 --outdir lib6",
+    "build": "tsc -p tsconfig.build.json",
+    "build::es6": "tsc -p tsconfig.build.json --target ES6 --outdir lib6",
     "test": "jest",
     "test::watch": "jest --watch",
     "test::unit": "npm run test",
