@@ -20,7 +20,9 @@ import { Driver, READ, WRITE } from './driver'
 import VERSION from './version'
 
 import {
+  newIllegalArgumentError,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetryableError,
   error,
   Integer,
@@ -229,14 +231,14 @@ function driver (url, authToken, config = {}) {
       routing = true
       break
     default:
-      throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
+      throw newIllegalArgumentError(`Unknown scheme: ${parsedUrl.scheme}`)
   }
 
   // Encryption enabled on URL, propagate trust to the config.
   if (encrypted) {
     // Check for configuration conflict between URL and config.
     if ('encrypted' in config || 'trust' in config) {
-      throw new Error(
+      throw newIllegalArgumentError(
         'Encryption/trust can only be configured either through URL or config, not both'
       )
     }
@@ -275,7 +277,7 @@ function driver (url, authToken, config = {}) {
         })
     } else {
       if (!isEmptyObjectOrNull(parsedUrl.query)) {
-        throw new Error(
+        throw newIllegalArgumentError(
           `Parameters are not supported with none routed scheme. Given URL: '${url}'`
         )
       }
@@ -384,6 +386,7 @@ const forExport = {
   isDateTime,
   integer,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetryableError,
   auth,
   logging,
@@ -407,6 +410,7 @@ export {
   isDateTime,
   integer,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetryableError,
   auth,
   logging,

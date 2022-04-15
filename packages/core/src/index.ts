@@ -19,7 +19,10 @@
 
 import {
   newError,
+  newIllegalArgumentError,
+  newFatalDiscoveryError,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetriableError,
   PROTOCOL_ERROR,
   SERVICE_UNAVAILABLE,
@@ -93,7 +96,10 @@ const error = {
  */
 const forExport = {
   newError,
+  newIllegalArgumentError,
+  newFatalDiscoveryError,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetriableError,
   error,
   Integer,
@@ -151,7 +157,10 @@ const forExport = {
 
 export {
   newError,
+  newIllegalArgumentError,
+  newFatalDiscoveryError,
   Neo4jError,
+  Neo4jErrorCategory,
   isRetriableError,
   error,
   Integer,

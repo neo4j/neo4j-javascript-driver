@@ -24,7 +24,8 @@ import {
   Integer,
   int,
   internal,
-  ServerInfo
+  ServerInfo,
+  newFatalDiscoveryError
 } from 'neo4j-driver-core'
 import { RoutingTable } from '../../src/rediscovery/'
 import { Pool } from '../../src/pool'
@@ -1660,7 +1661,6 @@ describe('#unit RoutingConnectionProvider', () => {
 
   describe('when rediscovery.lookupRoutingTableOnRouter fails', () => {
     describe.each([
-      'Neo.ClientError.Database.DatabaseNotFound',
       'Neo.ClientError.Transaction.InvalidBookmark',
       'Neo.ClientError.Transaction.InvalidBookmarkMixture',
       'Neo.ClientError.Security.Forbidden',
@@ -1679,6 +1679,29 @@ describe('#unit RoutingConnectionProvider', () => {
           completed = true
         } catch (capturedError) {
           expect(capturedError).toBe(error)
+        }
+
+        expect(completed).toBe(false)
+      })
+    })
+
+    describe.each([
+      'Neo.ClientError.Database.DatabaseNotFound'
+    ])('with "%s"', errorCode => {
+      it('should fail with `FatalDiscoveryError`', async () => {
+        const error = newError('something wrong', errorCode)
+        const expectedThownError = newFatalDiscoveryError('something wrong', errorCode)
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          new FakeRediscovery(null, error),
+          newPool()
+        )
+
+        let completed = false
+        try {
+          await connectionProvider.acquireConnection({ accessMode: READ })
+          completed = true
+        } catch (capturedError) {
+          expect(capturedError).toEqual(expectedThownError)
         }
 
         expect(completed).toBe(false)
