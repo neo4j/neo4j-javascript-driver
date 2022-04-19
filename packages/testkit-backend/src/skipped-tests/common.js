@@ -80,7 +80,7 @@ const skippedTests = [
   ),
   skip(
     'Keeps retrying on commit despite connection being dropped',
-    ifEquals('stub.retry.TestRetry.test_disconnect_on_commit')
+    ifEquals('stub.retry.test_retry.TestRetry.test_disconnect_on_commit')
   ),
   skip(
     'Wait clarification about verifyConnectivity behaviour when no reader connection is available',
