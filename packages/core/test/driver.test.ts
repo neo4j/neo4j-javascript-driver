@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable @typescript-eslint/promise-function-async */
 import { ConnectionProvider, newError, ServerInfo, Session } from '../src'
 import Driver, { READ } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
@@ -47,26 +48,24 @@ describe('Driver', () => {
   })
 
   afterEach(async () => {
-    if (driver) {
+    if (driver != null) {
       await driver.close()
       driver = null
     }
   })
 
-
   describe('.session()', () => {
     it('should create the session with impersonated user', () => {
       const impersonatedUser = 'the impostor'
 
-      const session = driver!.session({ impersonatedUser })
+      const session = driver?.session({ impersonatedUser })
 
       expect(session).not.toBeUndefined()
       expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ impersonatedUser }))
     })
 
-
     it('should create the session without impersonated user', () => {
-      const session = driver!.session()
+      const session = driver?.session()
 
       expect(session).not.toBeUndefined()
       expect(createSession).toHaveBeenCalledWith(expectedSessionParams())
@@ -77,12 +76,12 @@ describe('Driver', () => {
       [null, Bookmarks.empty()],
       ['bookmark', new Bookmarks('bookmark')],
       [['bookmark'], new Bookmarks(['bookmark'])],
-      [['bookmark1', 'bookmark2'], new Bookmarks(['bookmark1', 'bookmark2'])],
+      [['bookmark1', 'bookmark2'], new Bookmarks(['bookmark1', 'bookmark2'])]
     ])('should create session using param bookmarks', (bookmarks, expectedBookmarks) => {
-      // @ts-ignore
-      const session = driver!.session({ bookmarks })
+      // @ts-expect-error
+      const session = driver?.session({ bookmarks })
 
-      expect(session.lastBookmarks()).toEqual(expectedBookmarks.values())
+      expect(session?.lastBookmarks()).toEqual(expectedBookmarks.values())
     })
   })
 
@@ -96,11 +95,11 @@ describe('Driver', () => {
   ])('.supportsMultiDb() => %s', (_, expectedPromise) => {
     connectionProvider.supportsMultiDb = jest.fn(() => expectedPromise)
 
-    const promise: Promise<boolean> = driver!.supportsMultiDb()
+    const promise: Promise<boolean> | undefined = driver?.supportsMultiDb()
 
     expect(promise).toBe(expectedPromise)
 
-    promise.catch(_ => 'Do nothing').finally(() => {})
+    promise?.catch(_ => 'Do nothing').finally(() => {})
   })
 
   it.each([
@@ -115,11 +114,11 @@ describe('Driver', () => {
       () => expectedPromise
     )
 
-    const promise: Promise<boolean> = driver!.supportsTransactionConfig()
+    const promise: Promise<boolean> | undefined = driver?.supportsTransactionConfig()
 
     expect(promise).toBe(expectedPromise)
 
-    promise.catch(_ => 'Do nothing').finally(() => {})
+    promise?.catch(_ => 'Do nothing').finally(() => {})
   })
 
   it.each([
@@ -134,11 +133,11 @@ describe('Driver', () => {
       () => expectedPromise
     )
 
-    const promise: Promise<boolean> = driver!.supportsUserImpersonation()
+    const promise: Promise<boolean> | undefined = driver?.supportsUserImpersonation()
 
     expect(promise).toBe(expectedPromise)
 
-    promise.catch(_ => 'Do nothing').finally(() => {})
+    promise?.catch(_ => 'Do nothing').finally(() => {})
   })
 
   it.each([
@@ -146,11 +145,11 @@ describe('Driver', () => {
     [{ encrypted: false }, false],
     [{}, false],
     [{ encrypted: 'ENCRYPTION_ON' }, true],
-    [{ encrypted: 'ENCRYPTION_OFF' }, false],
+    [{ encrypted: 'ENCRYPTION_OFF' }, false]
   ])('.isEncrypted()', (config, expectedValue) => {
     const connectionProvider = new ConnectionProvider()
     connectionProvider.close = jest.fn(() => Promise.resolve())
-    // @ts-ignore
+    // @ts-expect-error
     const driver = new Driver(META_INFO, config, mockCreateConnectonProvider(connectionProvider))
 
     expect(driver.isEncrypted()).toEqual(expectedValue)
@@ -170,7 +169,7 @@ describe('Driver', () => {
     // No connection timeouts should be considered valid, since it means
     // the user doesn't case about the connection timeout at all.
     [{ connectionTimeout: 0, connectionAcquisitionTimeout: 2000 }, true],
-    [{ connectionTimeout: -1, connectionAcquisitionTimeout: 2000 }, true],
+    [{ connectionTimeout: -1, connectionAcquisitionTimeout: 2000 }, true]
   ])('should emit warning if `connectionAcquisitionTimeout` and `connectionTimeout` are conflicting. [%o} ', async (config, valid) => {
     const logging = {
       level: 'warn' as LogLevel,
@@ -202,17 +201,17 @@ describe('Driver', () => {
     [{ database: undefined }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
     [{ database: undefined }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
     [{ database: 'db' }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
-    [{ database: 'db' }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+    [{ database: 'db' }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))]
   ])('.verifyConnectivity(%o) => %s', (input: { database?: string } | undefined, _, expectedPromise) => {
     connectionProvider.verifyConnectivityAndGetServerInfo = jest.fn(() => expectedPromise)
 
-    const promise: Promise<ServerInfo> = driver!.verifyConnectivity(input)
+    const promise: Promise<ServerInfo> | undefined = driver?.verifyConnectivity(input)
 
     expect(promise).toBe(expectedPromise)
     expect(connectionProvider.verifyConnectivityAndGetServerInfo)
-      .toBeCalledWith({ database: input && input.database ? input.database : '', accessMode: READ })
+      .toBeCalledWith({ database: input?.database ?? '', accessMode: READ })
 
-    promise.catch(_ => 'Do nothing').finally(() => { })
+    promise?.catch(_ => 'Do nothing').finally(() => { })
   })
 
   it.each([
@@ -223,20 +222,20 @@ describe('Driver', () => {
     [{ database: undefined }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
     [{ database: undefined }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
     [{ database: 'db' }, 'Promise.resolve(ServerInfo>)', Promise.resolve(new ServerInfo())],
-    [{ database: 'db' }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))],
+    [{ database: 'db' }, 'Promise.reject(Error)', Promise.reject(newError('something went wrong'))]
   ])('.getServerInfo(%o) => %s', (input: { database?: string } | undefined, _, expectedPromise) => {
     connectionProvider.verifyConnectivityAndGetServerInfo = jest.fn(() => expectedPromise)
 
-    const promise: Promise<ServerInfo> = driver!.getServerInfo(input)
+    const promise: Promise<ServerInfo> | undefined = driver?.getServerInfo(input)
 
     expect(promise).toBe(expectedPromise)
     expect(connectionProvider.verifyConnectivityAndGetServerInfo)
-      .toBeCalledWith({ database: input && input.database ? input.database : '', accessMode: READ })
+      .toBeCalledWith({ database: input?.database ?? '', accessMode: READ })
 
-    promise.catch(_ => 'Do nothing').finally(() => { })
+    promise?.catch(_ => 'Do nothing').finally(() => { })
   })
 
-  function mockCreateConnectonProvider(connectionProvider: ConnectionProvider) {
+  function mockCreateConnectonProvider (connectionProvider: ConnectionProvider) {
     return (
       id: number,
       config: Object,
@@ -245,7 +244,7 @@ describe('Driver', () => {
     ) => connectionProvider
   }
 
-  function expectedSessionParams(extra: any = {}) {
+  function expectedSessionParams (extra: any = {}): any {
     return {
       bookmarks: Bookmarks.empty(),
       config: {
@@ -253,12 +252,12 @@ describe('Driver', () => {
         fetchSize: 1000,
         maxConnectionLifetime: 3600000,
         maxConnectionPoolSize: 100,
-        connectionTimeout: 30000,
+        connectionTimeout: 30000
       },
       connectionProvider,
       database: '',
       fetchSize: 1000,
-      mode: "WRITE",
+      mode: 'WRITE',
       reactive: false,
       impersonatedUser: undefined,
       ...extra

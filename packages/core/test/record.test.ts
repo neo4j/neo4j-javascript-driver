@@ -103,7 +103,7 @@ describe('Record', () => {
   it('should allow forEach through the record', () => {
     // Given
     const record = new Record(['name', 'age'], ['Bob', 45])
-    const result: [any, string, Record][] = []
+    const result: Array<[any, string, Record]> = []
 
     // When
     record.forEach((value, key, record) => {

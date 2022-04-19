@@ -792,9 +792,9 @@ describe('#unit url-util', () => {
     })
   })
 
-  function verifyUrl(urlString: string, expectedUrl: PartialUrl) {
+  function verifyUrl (urlString: string, expectedUrl: PartialUrl): void {
     const url = parse(urlString)
-    if (expectedUrl.scheme) {
+    if (expectedUrl.scheme != null) {
       expect(url.scheme).toEqual(expectedUrl.scheme)
     } else {
       expect(url.scheme).toBeNull()
@@ -804,36 +804,40 @@ describe('#unit url-util', () => {
     expect(url.host).not.toBeNull()
     expect(url.host).toEqual(expectedUrl.host)
 
-    if (expectedUrl.port) {
+    if (expectedUrl.port != null) {
       expect(url.port).toEqual(expectedUrl.port)
     } else {
       expect(url.port).toEqual(
-        urlUtil.defaultPortForScheme(expectedUrl.scheme!!)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        urlUtil.defaultPortForScheme(expectedUrl.scheme!)
       )
     }
 
     verifyHostAndPort(url, expectedUrl)
-    if (expectedUrl.query) {
+    if (expectedUrl.query != null) {
       expect(url.query).toEqual(expectedUrl.query)
     } else {
       expect(url.query).toEqual({})
     }
   }
 
-  function verifyHostAndPort(url: urlUtil.Url, expectedUrl: PartialUrl) {
+  function verifyHostAndPort (url: urlUtil.Url, expectedUrl: PartialUrl): void {
     const port =
-      expectedUrl.port === 0 || expectedUrl.port
+      expectedUrl.port === 0 || expectedUrl.port != null
         ? expectedUrl.port
-        : urlUtil.defaultPortForScheme(expectedUrl.scheme!!)
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        : urlUtil.defaultPortForScheme(expectedUrl.scheme!)
 
-    if (expectedUrl.ipv6) {
+    if (expectedUrl.ipv6 != null) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       expect(url.hostAndPort).toEqual(`[${expectedUrl.host}]:${port}`)
     } else {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       expect(url.hostAndPort).toEqual(`${expectedUrl.host}:${port}`)
     }
   }
 
-  function parse(url: any): urlUtil.Url {
+  function parse (url: any): urlUtil.Url {
     return urlUtil.parseDatabaseUrl(url)
   }
 })

@@ -59,11 +59,11 @@ describe('Result', () => {
         expect(keys).toBe(expectedKeys)
       })
 
-      it('should reject pre-existing errors', () => {
+      it('should reject pre-existing errors', async () => {
         const expectedError = newError('some error')
         streamObserverMock.onError(expectedError)
 
-        expect(result.keys()).rejects.toBe(expectedError)
+        await expect(result.keys()).rejects.toBe(expectedError)
       })
 
       it('should reject already consumed pre-existing error', async () => {
@@ -76,7 +76,7 @@ describe('Result', () => {
           // ignore
         }
 
-        expect(result.keys()).rejects.toBe(expectedError)
+        await expect(result.keys()).rejects.toBe(expectedError)
       })
 
       it('should resolve key pushed afterwards', done => {
@@ -86,7 +86,7 @@ describe('Result', () => {
           expect(keys).toBe(expectedKeys)
 
           done()
-        })
+        }).catch(done)
         streamObserverMock.onKeys(expectedKeys)
       })
 
@@ -174,11 +174,11 @@ describe('Result', () => {
           expect(summary).toEqual(expectedSummary)
         })
 
-        it('should reject a pre-existing error', () => {
+        it('should reject a pre-existing error', async () => {
           const expectedError = newError('the expected error')
           streamObserverMock.onError(expectedError)
 
-          expect(result.summary()).rejects.toThrow(expectedError)
+          await expect(result.summary()).rejects.toThrow(expectedError)
         })
 
         it('should reject already consumed pre-existing error', async () => {
@@ -191,7 +191,7 @@ describe('Result', () => {
             // ignore
           }
 
-          expect(result.summary()).rejects.toThrow(expectedError)
+          await expect(result.summary()).rejects.toThrow(expectedError)
         })
 
         it('should resolve summary pushe afterwards', done => {
@@ -233,7 +233,7 @@ describe('Result', () => {
         let receivedKeys: string[] = []
 
         await result.subscribe({
-          onKeys(keys) {
+          onKeys (keys) {
             receivedKeys = keys
           }
         })
@@ -252,7 +252,7 @@ describe('Result', () => {
         streamObserverMock.onNext(rawRecord2)
 
         await result.subscribe({
-          onNext(record) {
+          onNext (record) {
             receivedRecords.push(record)
           }
         })
@@ -296,8 +296,8 @@ describe('Result', () => {
           streamObserverMock.onCompleted(metadata)
 
           const promiseSummary = new Promise(
-            async resolve =>
-              await result.subscribe({
+            resolve =>
+              result.subscribe({
                 onCompleted: resolve
               })
           )
@@ -314,8 +314,8 @@ describe('Result', () => {
         streamObserverMock.onError(error)
 
         const promiseError = new Promise<Error>(
-          async resolve =>
-            await result.subscribe({
+          resolve =>
+            result.subscribe({
               onError: resolve
             })
         )
@@ -349,8 +349,8 @@ describe('Result', () => {
           streamObserverMock.onError(error)
 
           const promiseError = new Promise<Error>(
-            async resolve =>
-              await result.subscribe({
+            resolve =>
+              result.subscribe({
                 onError: resolve
               })
           )
@@ -376,8 +376,8 @@ describe('Result', () => {
           streamObserverMock.onCompleted(metadata)
 
           const promiseSummary = new Promise(
-            async resolve =>
-              await result.subscribe({
+            resolve =>
+              result.subscribe({
                 onCompleted: resolve
               })
           )
@@ -397,8 +397,8 @@ describe('Result', () => {
               }
             }
 
-            connectionHolderMock.getConnection = (): Promise<Connection> => {
-              return Promise.resolve(asConnection(connectionMock))
+            connectionHolderMock.getConnection = async (): Promise<Connection> => {
+              return asConnection(connectionMock)
             }
             const metadata = {
               resultConsumedAfter: 20,
@@ -415,8 +415,8 @@ describe('Result', () => {
             streamObserverMock.onCompleted(metadata)
 
             const promiseSummary = new Promise(
-              async resolve =>
-                await result.subscribe({
+              resolve =>
+                result.subscribe({
                   onCompleted: resolve
                 })
             )
@@ -571,8 +571,8 @@ describe('Result', () => {
               }
             }
 
-            connectionHolderMock.getConnection = (): Promise<Connection> => {
-              return Promise.resolve(asConnection(connectionMock))
+            connectionHolderMock.getConnection = async (): Promise<Connection> => {
+              return await Promise.resolve(asConnection(connectionMock))
             }
             const metadata = {
               resultConsumedAfter: 20,
@@ -601,6 +601,7 @@ describe('Result', () => {
         const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
         streamObserverMock.onCompleted({})
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for await (const _ of result) {
           // do nothing
         }
@@ -612,7 +613,7 @@ describe('Result', () => {
         const pause = jest.spyOn(streamObserverMock, 'pause')
         const resume = jest.spyOn(streamObserverMock, 'resume')
         streamObserverMock.onCompleted({})
-
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for await (const _ of result) {
           // do nothing
         }
@@ -628,6 +629,7 @@ describe('Result', () => {
         const pause = jest.spyOn(streamObserverMock, 'pause')
         streamObserverMock.onCompleted({})
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for await (const _ of result) {
           // do nothing
         }
@@ -847,7 +849,7 @@ describe('Result', () => {
 
         for await (const record of res) {
           records.push(record)
-          await new Promise(r => setTimeout(r, 0.1))
+          await new Promise(resolve => setTimeout(resolve, 0.1))
         }
 
         expect(records).toEqual([
@@ -862,13 +864,14 @@ describe('Result', () => {
 
       it.each([
         ['success', async (stream: any) => stream.onCompleted({})],
-        ['error', async (stream: any) => stream.onError(new Error('error'))],
-      ])('should thrown on iterating over an consumed result [%s]', async(_, completeStream) => {
-        completeStream(streamObserverMock)
+        ['error', async (stream: any) => stream.onError(new Error('error'))]
+      ])('should thrown on iterating over an consumed result [%s]', async (_, completeStream) => {
+        await completeStream(streamObserverMock)
 
         await result.summary().catch(() => {})
 
         try {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           for await (const _ of result) {
             expect('not to iterate over consumed result').toBe(true)
           }
@@ -893,6 +896,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
           await it.next()
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const { value, done } = await it.return!(summary)
 
           expect(value).toEqual(summary)
@@ -911,6 +915,7 @@ describe('Result', () => {
           const it = result[Symbol.asyncIterator]()
 
           await it.next()
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await it.return!(new ResultSummary('query', {}, {}))
 
           const { value, done } = await it.next()
@@ -924,6 +929,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await it.return!(new ResultSummary('query', {}, {}))
 
           await it.next()
@@ -936,6 +942,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await it.return!(new ResultSummary('query', {}, {}))
 
           await it.next()
@@ -953,12 +960,11 @@ describe('Result', () => {
           streamObserverMock.onNext(rawRecord1)
           streamObserverMock.onNext(rawRecord2)
 
-
           const it = result[Symbol.asyncIterator]()
 
           await it.next()
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await it.return!(new ResultSummary('query', {}, {}))
-
 
           expect(cancel).toBeCalled()
         })
@@ -968,6 +974,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await it.return!(new ResultSummary('query', {}, {}))
           await it.next()
 
@@ -979,6 +986,7 @@ describe('Result', () => {
 
           const it = result[Symbol.asyncIterator]()
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           await it.return!(new ResultSummary('query', {}, {}))
           await it.peek()
 
@@ -1040,7 +1048,6 @@ describe('Result', () => {
 
           expect(resume).toBeCalledTimes(1)
         })
-
 
         it('should return the first record', async () => {
           const keys = ['a', 'b']
@@ -1181,7 +1188,6 @@ describe('Result', () => {
             new Record(keys, rawRecord1),
             new Record(keys, rawRecord2)
           ])
-
         })
 
         it('should throws it when it is the event after onKeys', async () => {
@@ -1228,15 +1234,18 @@ describe('Result', () => {
 
     describe('.isOpen()', () => {
       it('should return true when the stream is open', async () => {
-        await result._subscribe({}).catch(() => {})
-        
+        await result._subscribe({})
+
         expect(result.isOpen()).toBe(true)
       })
 
       it('should return false when the stream is closed', async () => {
         streamObserverMock.onCompleted({})
 
-        await result._subscribe({}).catch(() => {})
+        await new Promise((resolve) => result.subscribe({
+          onCompleted: resolve,
+          onError: resolve
+        }))
 
         expect(result.isOpen()).toBe(false)
       })
@@ -1381,9 +1390,9 @@ describe('Result', () => {
   describe.each([
     [
       'Promise.resolve(new observer.FailedObserver({ error: expectedError }))',
-      () => Promise.resolve(new observer.FailedObserver({ error: expectedError }))
+      async () => await Promise.resolve(new observer.FailedObserver({ error: expectedError }))
     ],
-    ['Promise.reject(expectedError)', () => Promise.reject(expectedError)]
+    ['Promise.reject(expectedError)', async () => await Promise.reject(expectedError)]
   ])('new Result(%s, "query") ', (_, getPromise) => {
     let result: Result
 
@@ -1392,11 +1401,11 @@ describe('Result', () => {
     })
 
     describe('.keys()', () => {
-      shouldReturnRejectedPromiseWithTheExpectedError(() => result.keys())
+      shouldReturnRejectedPromiseWithTheExpectedError(async () => await result.keys())
     })
 
     describe('.summary()', () => {
-      shouldReturnRejectedPromiseWithTheExpectedError(() => result.summary())
+      shouldReturnRejectedPromiseWithTheExpectedError(async () => await result.summary())
     })
 
     describe('Promise', () => {
@@ -1425,6 +1434,7 @@ describe('Result', () => {
 
     describe('asyncIterator', () => {
       shouldReturnRejectedPromiseWithTheExpectedError(async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for await (const _ of result) {
           // do nothing
         }
@@ -1451,7 +1461,7 @@ describe('Result', () => {
 
       it('should be false after any interactio with the stream', async () => {
         const it = result[Symbol.asyncIterator]()
-        
+
         try {
           await it.next()
         } catch (error) {
@@ -1462,67 +1472,71 @@ describe('Result', () => {
       })
     })
 
-    function shouldReturnRejectedPromiseWithTheExpectedError<T>(
+    function shouldReturnRejectedPromiseWithTheExpectedError<T> (
       supplier: () => Promise<T>
-    ) {
-      it('should return rejected promise with the expected error', () =>
-        expect(supplier()).rejects.toBe(expectedError))
+    ): void {
+      it('should return rejected promise with the expected error', async () =>
+        await expect(supplier()).rejects.toBe(expectedError))
     }
   })
 })
 
 class ResultStreamObserverMock implements observer.ResultStreamObserver {
-  private _queuedRecords: Record[]
+  private readonly _queuedRecords: Record[]
   private _fieldKeys?: string[]
-  private _observers: ResultObserver[]
+  private readonly _observers: ResultObserver[]
   private _error?: Error
   private _meta?: any
 
-  constructor() {
+  constructor () {
     this._queuedRecords = []
     this._observers = []
   }
 
-  cancel(): void {}
+  cancel (): void {}
 
-  prepareToHandleSingleResponse(): void {}
+  prepareToHandleSingleResponse (): void {}
 
-  markCompleted(): void {}
+  markCompleted (): void {}
 
-  subscribe(observer: ResultObserver): void {
+  subscribe (observer: ResultObserver): void {
     this._observers.push(observer)
 
-    if (observer.onError && this._error) {
-      observer.onError!(this._error)
+    if ((observer.onError != null) && (this._error != null)) {
+      observer.onError(this._error)
       return
     }
 
-    if (observer.onKeys && this._fieldKeys) {
-      observer.onKeys!(this._fieldKeys)
+    if ((observer.onKeys != null) && (this._fieldKeys != null)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      observer.onKeys(this._fieldKeys)
     }
 
-    if (observer.onNext) {
+    if (observer.onNext != null) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       this._queuedRecords.forEach(record => observer.onNext!(record))
     }
 
-    if (observer.onCompleted && this._meta) {
-      observer.onCompleted!(this._meta)
+    if ((observer.onCompleted != null) && this._meta != null) {
+      observer.onCompleted(this._meta)
     }
   }
 
-  onKeys(keys: string[]) {
+  onKeys (keys: string[]): void {
     this._fieldKeys = keys
     this._observers.forEach(o => {
-      if (o.onKeys) {
-        o.onKeys!(keys)
+      if (o.onKeys != null) {
+        o.onKeys(keys)
       }
     })
   }
 
-  onNext(rawRecord: any[]) {
+  onNext (rawRecord: any[]): void {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const record = new Record(this._fieldKeys!, rawRecord)
     const streamed = this._observers
       .filter(o => o.onNext)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       .map(o => o.onNext!(record))
       .reduce(() => true, false)
 
@@ -1531,15 +1545,17 @@ class ResultStreamObserverMock implements observer.ResultStreamObserver {
     }
   }
 
-  onError(error: Error) {
+  onError (error: Error): void {
     this._error = error
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this._observers.filter(o => o.onError).forEach(o => o.onError!(error))
   }
 
-  onCompleted(meta: any) {
+  onCompleted (meta: any): void {
     this._meta = meta
     this._observers
       .filter(o => o.onCompleted)
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       .forEach(o => o.onCompleted!(meta))
   }
 
@@ -1547,17 +1563,17 @@ class ResultStreamObserverMock implements observer.ResultStreamObserver {
     // do nothing
   }
 
-  resume(): void {
+  resume (): void {
     // do nothing
   }
 }
 
-function simulateStream(
+function simulateStream (
   records: any[][],
   observer: ResultStreamObserverMock,
   fetchSize: number,
   timeout: number = 1): {
-    resume: () => void,
+    resume: () => void
     pause: () => void
   } {
   const state = {
@@ -1567,7 +1583,7 @@ function simulateStream(
     consumed: 0
   }
 
-  const streaming = () => {
+  const streaming = (): void => {
     if (state.streaming || state.finished) {
       return
     }
@@ -1597,7 +1613,6 @@ function simulateStream(
         observer.onNext(record)
       }
       state.consumed++
-
     }, timeout)
   }
 
@@ -1613,13 +1628,12 @@ function simulateStream(
 
   /*
   return () => {
-    
-    
+
     return true
   }
   */
 }
 
-function asConnection(value: any): Connection {
+function asConnection (value: any): Connection {
   return value
 }

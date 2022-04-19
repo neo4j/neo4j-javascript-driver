@@ -17,9 +17,8 @@
  * limitations under the License.
  */
 
-import { Connection, ResultObserver, Record, ResultSummary } from '../../src'
+import { Connection, ResultObserver, ResultSummary } from '../../src'
 import { ResultStreamObserver } from '../../src/internal/observers'
-
 
 /**
  * This class is like a mock of {@link Connection} that tracks invocations count.
@@ -30,7 +29,7 @@ import { ResultStreamObserver } from '../../src/internal/observers'
  */
 export default class FakeConnection extends Connection {
   private _open: boolean
-  private _id: number
+  private readonly _id: number
   private _databaseId: string | null
   private _requestRoutingInformationMock: ((params: any) => void) | null
   public creationTimestamp: number
@@ -47,7 +46,7 @@ export default class FakeConnection extends Connection {
   public rollbackInvoked: number
   public _rollbackError: Error | null
 
-  constructor() {
+  constructor () {
     super()
 
     this._open = true
@@ -70,31 +69,32 @@ export default class FakeConnection extends Connection {
     this._rollbackError = null
   }
 
-  get id(): string {
+  get id (): string {
     return this._id.toString()
   }
 
-  get databaseId(): string {
-    return this._databaseId!!
+  get databaseId (): string {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this._databaseId!
   }
 
-  set databaseId(value) {
+  set databaseId (value: string) {
     this._databaseId = value
   }
 
-  get server() {
+  get server (): any {
     return this._server
   }
 
-  get version() {
+  get version (): string {
     return this._server.version
   }
 
-  set version(value) {
+  set version (value: string) {
     this._server.version = value
   }
 
-  protocol() {
+  protocol (): any {
     // return fake protocol object that simply records seen queries and parameters
     return {
       run: (query: string, parameters: any | undefined, protocolOptions: any | undefined): ResultStreamObserver => {
@@ -106,11 +106,11 @@ export default class FakeConnection extends Connection {
       commitTransaction: () => {
         return mockResultStreamObserver('COMMIT', {})
       },
-      beginTransaction: () => {
-        return Promise.resolve()
+      beginTransaction: async () => {
+        return await Promise.resolve()
       },
       rollbackTransaction: () => {
-        this.rollbackInvoked ++
+        this.rollbackInvoked++
         if (this._rollbackError !== null) {
           return mockResultStreamObserverWithError('ROLLBACK', {}, this._rollbackError)
         }
@@ -118,7 +118,7 @@ export default class FakeConnection extends Connection {
       },
       requestRoutingInformation: (params: any | undefined) => {
         this.seenRequestRoutingInformation.push(params)
-        if (this._requestRoutingInformationMock) {
+        if (this._requestRoutingInformationMock != null) {
           this._requestRoutingInformationMock(params)
         }
       },
@@ -126,76 +126,74 @@ export default class FakeConnection extends Connection {
     }
   }
 
-  resetAndFlush() {
+  async resetAndFlush (): Promise<void> {
     this.resetInvoked++
-    return Promise.resolve()
   }
 
-  _release() {
+  async _release (): Promise<void> {
     this.releaseInvoked++
-    return Promise.resolve()
   }
 
-  isOpen() {
+  isOpen (): boolean {
     return this._open
   }
 
-  isNeverReleased() {
+  isNeverReleased (): boolean {
     return this.isReleasedTimes(0)
   }
 
-  isReleasedOnce() {
+  isReleasedOnce (): boolean {
     return this.isReleasedTimes(1)
   }
 
-  isReleasedTimes(times: number) {
+  isReleasedTimes (times: number): boolean {
     return this.resetInvoked === times && this.releaseInvoked === times
   }
 
-  _handleProtocolError(message: string) {
+  _handleProtocolError (message: string): void {
     this.protocolErrorsHandled++
     this.seenProtocolErrors.push(message)
   }
 
-  withProtocolVersion(version: number) {
+  withProtocolVersion (version: number): FakeConnection {
     this.protocolVersion = version
     return this
   }
 
-  withCreationTimestamp(value: number) {
+  withCreationTimestamp (value: number): FakeConnection {
     this.creationTimestamp = value
     return this
   }
 
-  withRequestRoutingInformationMock(requestRoutingInformationMock: (params: any) => void) {
+  withRequestRoutingInformationMock (requestRoutingInformationMock: (params: any) => void): FakeConnection {
     this._requestRoutingInformationMock = requestRoutingInformationMock
     return this
   }
 
-  withRollbackError(error: Error) {
+  withRollbackError (error: Error): FakeConnection {
     this._rollbackError = error
     return this
   }
 
-  closed() {
+  closed (): FakeConnection {
     this._open = false
     return this
   }
 }
 
-function mockResultStreamObserverWithError (query: string, parameters: any | undefined, error: Error) {
+function mockResultStreamObserverWithError (query: string, parameters: any | undefined, error: Error): ResultStreamObserver {
   const observer = mockResultStreamObserver(query, parameters)
   observer.subscribe = (observer: ResultObserver) => {
-    if (observer && observer.onError) {
+    if (observer?.onError != null) {
       observer.onError(error)
     }
   }
   return observer
 }
 
-function mockResultStreamObserver(query: string, parameters: any | undefined): ResultStreamObserver {
+function mockResultStreamObserver (query: string, parameters: any | undefined): ResultStreamObserver {
   return {
-    onError: (error: any) => { },
+    onError: (e: any) => { },
     onCompleted: () => { },
     onNext: (result: any) => { },
     cancel: () => { },
@@ -204,10 +202,9 @@ function mockResultStreamObserver(query: string, parameters: any | undefined): R
     resume: () => { },
     markCompleted: () => { },
     subscribe: (observer: ResultObserver) => {
-      if (observer && observer.onCompleted) {
+      if (observer?.onCompleted != null) {
         observer.onCompleted(new ResultSummary(query, parameters, {}))
       }
-
     }
   }
 }

@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import Integer, {
   int,
   isInt,
@@ -92,25 +93,25 @@ describe('Integer', () => {
   )
 
   forEachEqualsScenarios(({ input, expectedOutput }) =>
-    test(`Integer(${input.integer}).equals(${input.other}) toEqual ${expectedOutput}`, () =>
+    test(`Integer(${input.integer}).equals(${mayIntegerToString(input.other)}) toEqual ${expectedOutput}`, () =>
       expect(input.integer.equals(input.other)).toEqual(expectedOutput))
   )
 
   forEachEqualsScenarios(({ input, expectedOutput }) =>
     test(`Integer(${input.integer}).notEquals(${
-      input.other
+      mayIntegerToString(input.other)
     }) toEqual ${!expectedOutput}`, () =>
       expect(input.integer.notEquals(input.other)).toEqual(!expectedOutput))
   )
 
   forEachLessThanScenarios(({ input, expectedOutput }) =>
-    test(`Integer(${input.integer}).lessThan(${input.other}) toEqual ${expectedOutput}`, () =>
+    test(`Integer(${input.integer}).lessThan(${mayIntegerToString(input.other)}) toEqual ${expectedOutput}`, () =>
       expect(input.integer.lessThan(input.other)).toEqual(expectedOutput))
   )
 
   forEachLessThanScenarios(({ input, expectedOutput }) =>
     test(`Integer(${input.integer}).greaterThanOrEqual(${
-      input.other
+      mayIntegerToString(input.other)
     }) toEqual ${!expectedOutput}`, () =>
       expect(input.integer.greaterThanOrEqual(input.other)).toEqual(
         !expectedOutput
@@ -118,7 +119,7 @@ describe('Integer', () => {
   )
 
   forEachLessOrEqualThanScenarios(({ input, expectedOutput }) =>
-    test(`Integer(${input.integer}).lessThanOrEqual(${input.other}) toEqual ${expectedOutput}`, () =>
+    test(`Integer(${input.integer}).lessThanOrEqual(${mayIntegerToString(input.other)}) toEqual ${expectedOutput}`, () =>
       expect(input.integer.lessThanOrEqual(input.other)).toEqual(
         expectedOutput
       ))
@@ -126,7 +127,7 @@ describe('Integer', () => {
 
   forEachLessOrEqualThanScenarios(({ input, expectedOutput }) =>
     test(`Integer(${input.integer}).greaterThan(${
-      input.other
+      mayIntegerToString(input.other)
     }) toEqual ${!expectedOutput}`, () =>
       expect(input.integer.greaterThan(input.other)).toEqual(!expectedOutput))
   )
@@ -137,22 +138,22 @@ describe('Integer', () => {
   )
 
   forEachAddScenarios(({ input, expectedOutput }) =>
-    test(`Integer(${input.integer}).add(${input.other}) toEqual ${expectedOutput}`, () =>
+    test(`Integer(${input.integer}).add(${mayIntegerToString(input.other)}) toEqual ${expectedOutput}`, () =>
       expect(input.integer.add(input.other)).toEqual(expectedOutput))
   )
 
   forEachSubtractScenarios(({ input, expectedOutput }) =>
-    test(`Integer(${input.integer}).subtract(${input.other}) toEqual ${expectedOutput}`, () =>
+    test(`Integer(${input.integer}).subtract(${mayIntegerToString(input.other)}) toEqual ${expectedOutput}`, () =>
       expect(input.integer.subtract(input.other)).toEqual(expectedOutput))
   )
 
   forEachMultiplyScenarios(({ input, expectedOutput }) =>
-    test(`Integer(${input.integer}).multiply(${input.other}) toEqual ${expectedOutput}`, () =>
+    test(`Integer(${input.integer}).multiply(${mayIntegerToString(input.other)}) toEqual ${expectedOutput}`, () =>
       expect(input.integer.multiply(input.other)).toEqual(expectedOutput))
   )
 
   forEachDivScenarios(({ input, expectedOutput }) =>
-    test(`Integer(${input.integer}).div(${input.other}) toEqual ${expectedOutput}`, () =>
+    test(`Integer(${input.integer}).div(${mayIntegerToString(input.other)}) toEqual ${expectedOutput}`, () =>
       expect(input.integer.div(input.other)).toEqual(expectedOutput))
   )
 
@@ -256,27 +257,27 @@ describe('Integer', () => {
     ))
 
   forEachFromValueScenarios(({ input, expectedOutput }) =>
-    test(`Integer.fromValue(${input}) toEqual ${expectedOutput}`, () =>
+    test(`Integer.fromValue(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(Integer.fromValue(input)).toEqual(expectedOutput))
   )
 
   forEachFromValueScenarios(({ input, expectedOutput }) =>
-    test(`int(${input}) toEqual ${expectedOutput}`, () =>
+    test(`int(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(int(input)).toEqual(expectedOutput))
   )
 
   forEachStaticToNumberScenarios(({ input, expectedOutput }) =>
-    test(`Integer.toNumber(${input}) toEqual ${expectedOutput}`, () =>
+    test(`Integer.toNumber(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(Integer.toNumber(input)).toEqual(expectedOutput))
   )
 
   forEachStaticToNumberScenarios(({ input, expectedOutput }) =>
-    test(`toNumber(${input}) toEqual ${expectedOutput}`, () =>
+    test(`toNumber(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(toNumber(input)).toEqual(expectedOutput))
   )
 
   forEachStaticToStringScenarios(({ input, expectedOutput }) =>
-    test(`Integer.toString(${input}) toEqual ${expectedOutput}`, () =>
+    test(`Integer.toString(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(Integer.toString(input)).toEqual(expectedOutput))
   )
 
@@ -291,12 +292,12 @@ describe('Integer', () => {
     ))
 
   forEachStaticToStringScenarios(({ input, expectedOutput }) =>
-    test(`toString(${input}) toEqual ${expectedOutput}`, () =>
+    test(`toString(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(toString(input)).toEqual(expectedOutput))
   )
 
   forEachStaticInSafeRangeScenarios(({ input, expectedOutput }) =>
-    test(`inSafeRange(${input}) toEqual ${expectedOutput}`, () =>
+    test(`inSafeRange(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(inSafeRange(input)).toEqual(expectedOutput))
   )
 
@@ -307,9 +308,9 @@ describe('Integer', () => {
   })
 })
 
-function forEachToNumberOrInfinityScenarios(
+function forEachToNumberOrInfinityScenarios (
   func: Consumer<AssertionPair<number | string, number>>
-) {
+): void {
   ;[
     v('42', 42),
     v('4242', 4242),
@@ -328,9 +329,9 @@ function forEachToNumberOrInfinityScenarios(
   ].forEach(func)
 }
 
-function forEachToNumberScenarios(
+function forEachToNumberScenarios (
   func: Consumer<AssertionPair<number | string | bigint, number>>
-) {
+): void {
   ;[
     v('42', 42),
     v('4242', 4242),
@@ -359,9 +360,9 @@ function forEachToNumberScenarios(
   ].forEach(func)
 }
 
-function forEachInSafeRangeScenarios(
+function forEachInSafeRangeScenarios (
   func: Consumer<AssertionPair<Integer, boolean>>
-) {
+): void {
   ;[
     v(int('42'), true),
     v(int('4242'), true),
@@ -375,7 +376,7 @@ function forEachInSafeRangeScenarios(
   ].forEach(func)
 }
 
-function forEachToIntScenarios(func: Consumer<AssertionPair<Integer, number>>) {
+function forEachToIntScenarios (func: Consumer<AssertionPair<Integer, number>>): void {
   ;[
     v(new Integer(), 0),
     v(new Integer(13), 13),
@@ -385,13 +386,13 @@ function forEachToIntScenarios(func: Consumer<AssertionPair<Integer, number>>) {
   ].forEach(func)
 }
 
-function forEachToStringScenarios(
-  func: Consumer<AssertionPair<{ integer: Integer; radix?: number }, string>>
-) {
-  function i(
+function forEachToStringScenarios (
+  func: Consumer<AssertionPair<{ integer: Integer, radix?: number }, string>>
+): void {
+  function i (
     integer: Integer,
     radix?: number
-  ): { integer: Integer; radix?: number } {
+  ): { integer: Integer, radix?: number } {
     return { integer, radix }
   }
 
@@ -424,9 +425,9 @@ function forEachToStringScenarios(
   ].forEach(func)
 }
 
-function forEachGetHighBitsScenarios(
+function forEachGetHighBitsScenarios (
   func: Consumer<AssertionPair<Integer, number>>
-) {
+): void {
   ;[
     v(new Integer(), 0),
     v(new Integer(123), 0),
@@ -437,9 +438,9 @@ function forEachGetHighBitsScenarios(
   ].forEach(func)
 }
 
-function forEachGetLowBitsScenarios(
+function forEachGetLowBitsScenarios (
   func: Consumer<AssertionPair<Integer, number>>
-) {
+): void {
   ;[
     v(new Integer(), 0),
     v(new Integer(123), 123),
@@ -450,9 +451,9 @@ function forEachGetLowBitsScenarios(
   ].forEach(func)
 }
 
-function forEachGetNumBitsAbsScenarios(
+function forEachGetNumBitsAbsScenarios (
   func: Consumer<AssertionPair<Integer, number>>
-) {
+): void {
   ;[
     v(Integer.MIN_VALUE, 64),
     v(Integer.MAX_VALUE, 63),
@@ -464,9 +465,9 @@ function forEachGetNumBitsAbsScenarios(
   ].forEach(func)
 }
 
-function forEachIsZeroScenarios(
+function forEachIsZeroScenarios (
   func: Consumer<AssertionPair<Integer, boolean>>
-) {
+): void {
   ;[
     v(Integer.MIN_VALUE, false),
     v(Integer.MAX_VALUE, false),
@@ -478,9 +479,9 @@ function forEachIsZeroScenarios(
   ].forEach(func)
 }
 
-function forEachIsNegativeScenarios(
+function forEachIsNegativeScenarios (
   func: Consumer<AssertionPair<Integer, boolean>>
-) {
+): void {
   ;[
     v(Integer.MIN_VALUE, true),
     v(Integer.MAX_VALUE, false),
@@ -494,9 +495,9 @@ function forEachIsNegativeScenarios(
   ].forEach(func)
 }
 
-function forEachIsOddScenarios(
+function forEachIsOddScenarios (
   func: Consumer<AssertionPair<Integer, boolean>>
-) {
+): void {
   ;[
     v(Integer.fromValue(1), true),
     v(Integer.fromValue(-1), true),
@@ -510,13 +511,13 @@ function forEachIsOddScenarios(
   ].forEach(func)
 }
 
-function forEachEqualsScenarios(
-  func: Consumer<AssertionPair<{ integer: Integer; other: Interable }, boolean>>
-) {
-  function i(
+function forEachEqualsScenarios (
+  func: Consumer<AssertionPair<{ integer: Integer, other: MayIntegerCompatible }, boolean>>
+): void {
+  function i (
     integer: Integer,
-    other: Interable
-  ): { integer: Integer; other: Interable } {
+    other: MayIntegerCompatible
+  ): { integer: Integer, other: MayIntegerCompatible } {
     return { integer, other }
   }
   ;[
@@ -531,13 +532,13 @@ function forEachEqualsScenarios(
   ].forEach(func)
 }
 
-function forEachLessThanScenarios(
-  func: Consumer<AssertionPair<{ integer: Integer; other: Interable }, boolean>>
-) {
-  function i(
+function forEachLessThanScenarios (
+  func: Consumer<AssertionPair<{ integer: Integer, other: MayIntegerCompatible }, boolean>>
+): void {
+  function i (
     integer: Integer,
-    other: Interable
-  ): { integer: Integer; other: Interable } {
+    other: MayIntegerCompatible
+  ): { integer: Integer, other: MayIntegerCompatible } {
     return { integer, other }
   }
   ;[
@@ -560,13 +561,13 @@ function forEachLessThanScenarios(
   ].forEach(func)
 }
 
-function forEachLessOrEqualThanScenarios(
-  func: Consumer<AssertionPair<{ integer: Integer; other: Interable }, boolean>>
-) {
-  function i(
+function forEachLessOrEqualThanScenarios (
+  func: Consumer<AssertionPair<{ integer: Integer, other: MayIntegerCompatible }, boolean>>
+): void {
+  function i (
     integer: Integer,
-    other: Interable
-  ): { integer: Integer; other: Interable } {
+    other: MayIntegerCompatible
+  ): { integer: Integer, other: MayIntegerCompatible } {
     return { integer, other }
   }
   ;[
@@ -589,9 +590,9 @@ function forEachLessOrEqualThanScenarios(
   ].forEach(func)
 }
 
-function forEachNegateScenarios(
+function forEachNegateScenarios (
   func: Consumer<AssertionPair<Integer, Integer>>
-) {
+): void {
   ;[
     v(Integer.fromValue(1), Integer.fromNumber(-1)),
     v(Integer.fromValue(-1), Integer.fromNumber(1)),
@@ -604,13 +605,13 @@ function forEachNegateScenarios(
   ].forEach(func)
 }
 
-function forEachAddScenarios(
-  func: Consumer<AssertionPair<{ integer: Integer; other: Interable }, Integer>>
-) {
-  function i(
+function forEachAddScenarios (
+  func: Consumer<AssertionPair<{ integer: Integer, other: MayIntegerCompatible }, Integer>>
+): void {
+  function i (
     integer: Integer,
-    other: Interable
-  ): { integer: Integer; other: Interable } {
+    other: MayIntegerCompatible
+  ): { integer: Integer, other: MayIntegerCompatible } {
     return { integer, other }
   }
   ;[
@@ -627,13 +628,13 @@ function forEachAddScenarios(
   ].forEach(func)
 }
 
-function forEachSubtractScenarios(
-  func: Consumer<AssertionPair<{ integer: Integer; other: Interable }, Integer>>
-) {
-  function i(
+function forEachSubtractScenarios (
+  func: Consumer<AssertionPair<{ integer: Integer, other: MayIntegerCompatible }, Integer>>
+): void {
+  function i (
     integer: Integer,
-    other: Interable
-  ): { integer: Integer; other: Interable } {
+    other: MayIntegerCompatible
+  ): { integer: Integer, other: MayIntegerCompatible } {
     return { integer, other }
   }
   ;[
@@ -650,13 +651,13 @@ function forEachSubtractScenarios(
   ].forEach(func)
 }
 
-function forEachMultiplyScenarios(
-  func: Consumer<AssertionPair<{ integer: Integer; other: Interable }, Integer>>
-) {
-  function i(
+function forEachMultiplyScenarios (
+  func: Consumer<AssertionPair<{ integer: Integer, other: MayIntegerCompatible }, Integer>>
+): void {
+  function i (
     integer: Integer,
-    other: Interable
-  ): { integer: Integer; other: Interable } {
+    other: MayIntegerCompatible
+  ): { integer: Integer, other: MayIntegerCompatible } {
     return { integer, other }
   }
   ;[
@@ -678,13 +679,13 @@ function forEachMultiplyScenarios(
   ].forEach(func)
 }
 
-function forEachDivScenarios(
-  func: Consumer<AssertionPair<{ integer: Integer; other: Interable }, Integer>>
-) {
-  function i(
+function forEachDivScenarios (
+  func: Consumer<AssertionPair<{ integer: Integer, other: MayIntegerCompatible }, Integer>>
+): void {
+  function i (
     integer: Integer,
-    other: Interable
-  ): { integer: Integer; other: Interable } {
+    other: MayIntegerCompatible
+  ): { integer: Integer, other: MayIntegerCompatible } {
     return { integer, other }
   }
   ;[
@@ -706,18 +707,18 @@ function forEachDivScenarios(
   ].forEach(func)
 }
 
-function forEachModuloScenarios(
+function forEachModuloScenarios (
   func: Consumer<
-    AssertionPair<
-      { dividend: Integer; divisor: number | string | Integer },
-      Integer
-    >
+  AssertionPair<
+  { dividend: Integer, divisor: number | string | Integer },
+  Integer
   >
-) {
-  function d(
+  >
+): void {
+  function d (
     dividend: Integer,
     divisor: number | string | Integer
-  ): { dividend: Integer; divisor: number | string | Integer } {
+  ): { dividend: Integer, divisor: number | string | Integer } {
     return { dividend, divisor }
   }
 
@@ -737,7 +738,7 @@ function forEachModuloScenarios(
   ].forEach(func)
 }
 
-function forEachNotScenario(func: Consumer<AssertionPair<Integer, Integer>>) {
+function forEachNotScenario (func: Consumer<AssertionPair<Integer, Integer>>): void {
   ;[
     v(
       Integer.MIN_VALUE,
@@ -754,18 +755,18 @@ function forEachNotScenario(func: Consumer<AssertionPair<Integer, Integer>>) {
   ].forEach(func)
 }
 
-function forEachAndScenario(
+function forEachAndScenario (
   func: Consumer<
-    AssertionPair<
-      { integer: Integer; other: Integer | number | string },
-      Integer
-    >
+  AssertionPair<
+  { integer: Integer, other: Integer | number | string },
+  Integer
   >
-) {
-  function a(
+  >
+): void {
+  function a (
     integer: Integer,
     other: Integer | number | string
-  ): { integer: Integer; other: Integer | number | string } {
+  ): { integer: Integer, other: Integer | number | string } {
     return { integer, other }
   }
 
@@ -781,18 +782,18 @@ function forEachAndScenario(
   ].forEach(func)
 }
 
-function forEachOrScenario(
+function forEachOrScenario (
   func: Consumer<
-    AssertionPair<
-      { integer: Integer; other: Integer | number | string },
-      Integer
-    >
+  AssertionPair<
+  { integer: Integer, other: Integer | number | string },
+  Integer
   >
-) {
-  function a(
+  >
+): void {
+  function a (
     integer: Integer,
     other: Integer | number | string
-  ): { integer: Integer; other: Integer | number | string } {
+  ): { integer: Integer, other: Integer | number | string } {
     return { integer, other }
   }
 
@@ -808,18 +809,18 @@ function forEachOrScenario(
   ].forEach(func)
 }
 
-function forEachXorScenario(
+function forEachXorScenario (
   func: Consumer<
-    AssertionPair<
-      { integer: Integer; other: Integer | number | string },
-      Integer
-    >
+  AssertionPair<
+  { integer: Integer, other: Integer | number | string },
+  Integer
   >
-) {
-  function a(
+  >
+): void {
+  function a (
     integer: Integer,
     other: Integer | number | string
-  ): { integer: Integer; other: Integer | number | string } {
+  ): { integer: Integer, other: Integer | number | string } {
     return { integer, other }
   }
 
@@ -835,15 +836,15 @@ function forEachXorScenario(
   ].forEach(func)
 }
 
-function forEachShiftLeftScenario(
+function forEachShiftLeftScenario (
   func: Consumer<
-    AssertionPair<{ integer: Integer; numBits: Integer | number }, Integer>
+  AssertionPair<{ integer: Integer, numBits: Integer | number }, Integer>
   >
-) {
-  function s(
+): void {
+  function s (
     integer: Integer,
     numBits: Integer | number
-  ): { integer: Integer; numBits: Integer | number } {
+  ): { integer: Integer, numBits: Integer | number } {
     return { integer, numBits }
   }
 
@@ -858,15 +859,15 @@ function forEachShiftLeftScenario(
   ].forEach(func)
 }
 
-function forEachShiftRightScenario(
+function forEachShiftRightScenario (
   func: Consumer<
-    AssertionPair<{ integer: Integer; numBits: Integer | number }, Integer>
+  AssertionPair<{ integer: Integer, numBits: Integer | number }, Integer>
   >
-) {
-  function s(
+): void {
+  function s (
     integer: Integer,
     numBits: Integer | number
-  ): { integer: Integer; numBits: Integer | number } {
+  ): { integer: Integer, numBits: Integer | number } {
     return { integer, numBits }
   }
 
@@ -881,7 +882,7 @@ function forEachShiftRightScenario(
   ].forEach(func)
 }
 
-function forEachIsIntegerScenario(func: Consumer<AssertionPair<any, boolean>>) {
+function forEachIsIntegerScenario (func: Consumer<AssertionPair<any, boolean>>): void {
   ;[
     v('42', false),
     v(42, false),
@@ -901,9 +902,9 @@ function forEachIsIntegerScenario(func: Consumer<AssertionPair<any, boolean>>) {
   ].forEach(func)
 }
 
-function forEachFromIntScenarios(
+function forEachFromIntScenarios (
   func: Consumer<AssertionPair<number, Integer>>
-) {
+): void {
   ;[
     v(-128, new Integer(-128, -1)),
     v(127, new Integer(127, 0)),
@@ -913,13 +914,13 @@ function forEachFromIntScenarios(
   ].forEach(func)
 }
 
-function forEachFromBitsScenarios(
-  func: Consumer<AssertionPair<{ lowBits: number; highBits: number }, Integer>>
-) {
-  function b(
+function forEachFromBitsScenarios (
+  func: Consumer<AssertionPair<{ lowBits: number, highBits: number }, Integer>>
+): void {
+  function b (
     lowBits: number,
     highBits: number
-  ): { lowBits: number; highBits: number } {
+  ): { lowBits: number, highBits: number } {
     return { lowBits, highBits }
   }
 
@@ -930,9 +931,9 @@ function forEachFromBitsScenarios(
   ].forEach(func)
 }
 
-function forEachFromNumberScenarios(
+function forEachFromNumberScenarios (
   func: Consumer<AssertionPair<number, Integer>>
-) {
+): void {
   const TWO_PWR_63: number = 9223372036854776000
   ;[
     v(-128, new Integer(-128, -1)),
@@ -948,10 +949,10 @@ function forEachFromNumberScenarios(
   ].forEach(func)
 }
 
-function forEachFromStringScenarios(
-  func: Consumer<AssertionPair<{ str: string; radix?: number }, Integer>>
-) {
-  function i(str: string, radix?: number): { str: string; radix?: number } {
+function forEachFromStringScenarios (
+  func: Consumer<AssertionPair<{ str: string, radix?: number }, Integer>>
+): void {
+  function i (str: string, radix?: number): { str: string, radix?: number } {
     return { str, radix }
   }
 
@@ -989,15 +990,33 @@ function forEachFromStringScenarios(
   ].forEach(func)
 }
 
-type Interable =
+type MayIntegerCompatible =
   | Integer
   | number
-  | { low: number; high: number }
+  | { low: number, high: number }
   | string
   | bigint
-function forEachFromValueScenarios(
-  func: Consumer<AssertionPair<Interable, Integer>>
-) {
+
+function mayIntegerToString (val?: MayIntegerCompatible): string {
+  function isLowAndHigh (v: any): v is { low: number, high: number } {
+    const isNotObject = v instanceof Integer || v instanceof Number || v instanceof BigInt || v instanceof String
+    return !isNotObject
+  }
+  if (val === null) {
+    return 'null'
+  }
+  if (val === undefined) {
+    return 'undefined'
+  }
+  if (isLowAndHigh(val)) {
+    return val.low?.toString() + ',' + val.high?.toString()
+  }
+  return val.toString()
+}
+
+function forEachFromValueScenarios (
+  func: Consumer<AssertionPair<MayIntegerCompatible, Integer>>
+): void {
   ;[
     v(Integer.ONE, Integer.ONE),
     v('1', Integer.ONE),
@@ -1006,9 +1025,9 @@ function forEachFromValueScenarios(
   ].forEach(func)
 }
 
-function forEachStaticToNumberScenarios(
-  func: Consumer<AssertionPair<Interable, number>>
-) {
+function forEachStaticToNumberScenarios (
+  func: Consumer<AssertionPair<MayIntegerCompatible, number>>
+): void {
   ;[
     v(Integer.ONE, 1),
     v('1', 1),
@@ -1018,9 +1037,9 @@ function forEachStaticToNumberScenarios(
   ].forEach(func)
 }
 
-function forEachStaticToStringScenarios(
-  func: Consumer<AssertionPair<Interable, string>>
-) {
+function forEachStaticToStringScenarios (
+  func: Consumer<AssertionPair<MayIntegerCompatible, string>>
+): void {
   ;[
     v(Integer.ONE, '1'),
     v('1', '1'),
@@ -1029,9 +1048,9 @@ function forEachStaticToStringScenarios(
   ].forEach(func)
 }
 
-function forEachStaticInSafeRangeScenarios(
-  func: Consumer<AssertionPair<Interable, boolean>>
-) {
+function forEachStaticInSafeRangeScenarios (
+  func: Consumer<AssertionPair<MayIntegerCompatible, boolean>>
+): void {
   ;[
     v(Integer.ONE, true),
     v('1', true),
@@ -1039,8 +1058,10 @@ function forEachStaticInSafeRangeScenarios(
     v({ low: 1, high: 0 }, true),
     v(Integer.MAX_VALUE, false),
     v(Integer.MIN_VALUE, false),
+    // eslint-disable-next-line no-loss-of-precision
     v(99999191919191919191, false),
     v('99999191919191919191', false),
+    // eslint-disable-next-line no-loss-of-precision
     v({ low: 99999999181818811818, high: 191919111111991919 }, false)
   ].forEach(func)
 }
@@ -1050,10 +1071,8 @@ interface AssertionPair<I, O> {
   expectedOutput: O
 }
 
-interface Consumer<I> {
-  (i: I): void
-}
+type Consumer<I> = (i: I) => void
 
-function v<I, O>(input: I, expectedOutput: O): AssertionPair<I, O> {
+function v<I, O> (input: I, expectedOutput: O): AssertionPair<I, O> {
   return { input, expectedOutput }
 }
