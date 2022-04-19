@@ -1,13 +1,42 @@
 {
   "name": "root",
   "private": true,
+  "type": "module",
   "devDependencies": {
-    "lerna": "^4.0.0"
+    "husky": "^7.0.4",
+    "lerna": "^4.0.0",
+    "lint-staged": "^12.3.7",
+    "standard": "^16.0.4",
+    "ts-standard": "^11.0.0",
+    "typescript": "^4.6.3"
+  },
+  "lint-staged": {
+    "*.{js,md,html}": [
+      "npm run standard",
+      "git add"
+    ],
+    "packages/core/**/*.ts": [
+      "npm run ts-standard::core",
+      "git add"
+    ],
+    "packages/bolt-connection/**/*.ts": [
+      "npm run ts-standard::bolt-connection",
+      "git add"
+    ],
+    "packages/neo4j-driver-lite/**/*.ts": [
+      "npm run ts-standard::neo4j-driver-lite",
+      "git add"
+    ],
+    "packages/neo4j-driver/**/*.ts": [
+      "npm run ts-standard::neo4j-driver",
+      "git add"
+    ]
   },
   "scripts": {
     "clean": "lerna clean -y && lerna run clean",
     "build": "lerna bootstrap --ci",
     "build::deno": "(cd ./packages/neo4j-driver-deno && deno run --allow-read --allow-write --allow-net ./generate.ts --version=5.0.0-dev)",
+    "build::notci": "lerna bootstrap",
     "docs": "lerna run docs --stream --concurrency 1",
     "test::unit": "lerna run test::unit --stream",
     "test::integration": "lerna run test::integration --stream",
@@ -17,6 +46,14 @@
     "start-neo4j": "lerna run start-neo4j --scope neo4j-driver",
     "stop-neo4j": "lerna run stop-neo4j --scope neo4j-driver",
     "start-testkit-backend": "lerna run start --scope testkit-backend --stream",
-    "lerna": "lerna"
+    "lerna": "lerna",
+    "prepare": "husky install",
+    "lint-staged": "lint-staged",
+    "ts-standard": "npm run ts-standard::core && npm run ts-standard::bolt-connection && npm run ts-standard::neo4j-driver-lite && npm run ts-standard::neo4j-driver",
+    "ts-standard::core": "ts-standard --fix --project ./packages/core/tsconfig.json",
+    "ts-standard::bolt-connection": "ts-standard --fix --project ./packages/bolt-connection/tsconfig.json",
+    "ts-standard::neo4j-driver-lite": "ts-standard --fix --project ./packages/neo4j-driver-lite/tsconfig.json",
+    "ts-standard::neo4j-driver": "ts-standard --fix --project ./packages/neo4j-driver/tsconfig.json",
+    "standard": "standard --fix --env jest --env jasmine"
   }
 }
