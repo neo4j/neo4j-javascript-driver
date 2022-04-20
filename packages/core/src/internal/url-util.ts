@@ -151,7 +151,7 @@ function extractPort (
 ): number {
   const port =
     typeof portString === 'string' ? parseInt(portString, 10) : portString
-  return port != null ? port : defaultPortForScheme(scheme)
+  return port != null && !isNaN(port) ? port : defaultPortForScheme(scheme)
 }
 
 function extractQuery (
