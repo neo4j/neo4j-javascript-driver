@@ -25,43 +25,43 @@ import { Observable } from 'rxjs'
 declare type RxTransactionWork<T> = (tx: RxTransaction) => Observable<T>
 
 declare interface RxSession {
-  run(
+  run: (
     query: string,
     parameters?: Parameters,
     config?: TransactionConfig
-  ): RxResult
+  ) => RxResult
 
-  beginTransaction(config?: TransactionConfig): Observable<RxTransaction>
+  beginTransaction: (config?: TransactionConfig) => Observable<RxTransaction>
 
-  lastBookmarks(): string[]
-  lastBookmark(): string[]
+  lastBookmarks: () => string[]
+  lastBookmark: () => string[]
   /**
-   * @deprecated This method will be removed in version 6.0. Please, use {@link RxSession#executeRead} instead. 
+   * @deprecated This method will be removed in version 6.0. Please, use {@link RxSession#executeRead} instead.
    */
-  readTransaction<T>(
+  readTransaction: <T>(
     work: RxTransactionWork<T>,
     config?: TransactionConfig
-  ): Observable<T>
+  ) => Observable<T>
 
   /**
-   * @deprecated This method will be removed in version 6.0. Please, use {@link RxSession#executeWrite} instead. 
+   * @deprecated This method will be removed in version 6.0. Please, use {@link RxSession#executeWrite} instead.
    */
-  writeTransaction<T>(
+  writeTransaction: <T>(
     work: RxTransactionWork<T>,
     config?: TransactionConfig
-  ): Observable<T>
+  ) => Observable<T>
 
-  executeRead<T>(
+  executeRead: <T>(
     work: RxTransactionWork<T>,
     config?: TransactionConfig
-  ): Observable<T>
+  ) => Observable<T>
 
-  executeWrite<T>(
+  executeWrite: <T>(
     work: RxTransactionWork<T>,
     config?: TransactionConfig
-  ): Observable<T>
+  ) => Observable<T>
 
-  close(): Observable<any>
+  close: () => Observable<any>
 }
 
 export default RxSession

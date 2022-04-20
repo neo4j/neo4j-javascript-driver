@@ -23,9 +23,8 @@ const {
   util: { assertString }
 } = internal
 
-const SERVER_VERSION_REGEX = new RegExp(
-  '^(Neo4j/)?(\\d+)\\.(\\d+)(?:\\.)?(\\d*)(\\.|-|\\+)?([0-9A-Za-z-.]*)?$'
-)
+const SERVER_VERSION_REGEX = /^(Neo4j\/)?(\d+)\.(\d+)(?:\.)?(\d*)(\.|-|\+)?([0-9A-Za-z-.]*)?$/
+
 const NEO4J_IN_DEV_VERSION_STRING = 'Neo4j/dev'
 
 class ServerVersion {

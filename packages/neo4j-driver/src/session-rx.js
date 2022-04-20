@@ -19,6 +19,7 @@
 import { defer, Observable, throwError } from 'rxjs'
 import { flatMap, catchError, concat } from 'rxjs/operators'
 import RxResult from './result-rx'
+// eslint-disable-next-line no-unused-vars
 import { Session, internal } from 'neo4j-driver-core'
 import RxTransaction from './transaction-rx'
 import RxManagedTransaction from './transaction-managed-rx'
@@ -107,7 +108,6 @@ export default class RxSession {
     return this._runTransaction(ACCESS_MODE_WRITE, work, transactionConfig)
   }
 
-
   /**
    * Executes the provided unit of work in a {@link READ} reactive transaction which is created with the provided
    * transaction configuration.
@@ -116,7 +116,7 @@ export default class RxSession {
    * @param {TransactionConfig} transactionConfig - Configuration for the enclosing transaction created by the driver.
    * @returns {Observable} - A reactive stream returned by the unit of work.
    */
-   executeRead (work, transactionConfig) {
+  executeRead (work, transactionConfig) {
     return this._executeInTransaction(ACCESS_MODE_READ, work, transactionConfig)
   }
 
@@ -229,7 +229,7 @@ export default class RxSession {
     }
 
     return this._retryLogic.retry(
-      this._beginTransaction(accessMode, transactionConfig).pipe(
+      this._beginTransaction(accessMode, txConfig).pipe(
         flatMap(txc =>
           defer(() => {
             try {

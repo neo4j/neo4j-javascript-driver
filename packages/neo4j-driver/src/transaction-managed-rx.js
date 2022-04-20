@@ -16,19 +16,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line no-unused-vars
 import RxResult from './result-rx'
+// eslint-disable-next-line no-unused-vars
 import RxTransaction from './transaction-rx'
 
 /**
  * Represents a rx transaction that is managed by the transaction executor.
- * 
+ *
  * @public
  */
 class RxManagedTransaction {
   /**
    * @private
    */
-  constructor({ run }) {
+  constructor ({ run }) {
     this._run = run
   }
 
@@ -51,9 +53,9 @@ class RxManagedTransaction {
    * @param {Object} parameters - Parameter values to use in query execution.
    * @returns {RxResult} - A reactive result
    */
-   run (query, parameters) {
-     return this._run(query, parameters)
-   }
+  run (query, parameters) {
+    return this._run(query, parameters)
+  }
 }
 
 export default RxManagedTransaction
