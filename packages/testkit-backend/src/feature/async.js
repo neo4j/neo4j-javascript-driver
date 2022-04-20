@@ -2,7 +2,7 @@ const features = [
   'Feature:API:Result.List',
   'Feature:API:Result.Peek',
   'Optimization:EagerTransactionBegin',
-  'Optimization:PullPipelining',
+  'Optimization:PullPipelining'
 ]
 
 export default features

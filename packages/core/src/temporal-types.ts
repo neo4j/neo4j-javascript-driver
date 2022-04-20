@@ -58,7 +58,7 @@ export class Duration<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger} seconds - The number of seconds for the new duration.
    * @param {NumberOrInteger} nanoseconds - The number of nanoseconds for the new duration.
    */
-  constructor(months: T, days: T, seconds: T, nanoseconds: T) {
+  constructor (months: T, days: T, seconds: T, nanoseconds: T) {
     /**
      * The number of months.
      * @type {NumberOrInteger}
@@ -87,7 +87,7 @@ export class Duration<T extends NumberOrInteger = Integer> {
   /**
    * @ignore
    */
-  toString() {
+  toString (): string {
     return util.durationToIsoString(
       this.months,
       this.days,
@@ -108,7 +108,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Duration}, `false` otherwise.
  */
-export function isDuration(obj: object): obj is Duration {
+export function isDuration (obj: object): obj is Duration {
   return hasIdentifierProperty(obj, DURATION_IDENTIFIER_PROPERTY)
 }
 
@@ -128,7 +128,7 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger} second - The second for the new local time.
    * @param {NumberOrInteger} nanosecond - The nanosecond for the new local time.
    */
-  constructor(hour: T, minute: T, second: T, nanosecond: T) {
+  constructor (hour: T, minute: T, second: T, nanosecond: T) {
     /**
      * The hour.
      * @type {NumberOrInteger}
@@ -159,7 +159,7 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger|undefined} nanosecond - The optional amount of nanoseconds.
    * @return {LocalTime<number>} New LocalTime.
    */
-  static fromStandardDate(
+  static fromStandardDate (
     standardDate: StandardDate,
     nanosecond?: NumberOrInteger
   ): LocalTime<number> {
@@ -177,15 +177,15 @@ export class LocalTime<T extends NumberOrInteger = Integer> {
       totalNanoseconds instanceof Integer
         ? totalNanoseconds.toInt()
         : typeof totalNanoseconds === 'bigint'
-        ? int(totalNanoseconds).toInt()
-        : totalNanoseconds
+          ? int(totalNanoseconds).toInt()
+          : totalNanoseconds
     )
   }
 
   /**
    * @ignore
    */
-  toString(): string {
+  toString (): string {
     return util.timeToIsoString(
       this.hour,
       this.minute,
@@ -206,7 +206,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link LocalTime}, `false` otherwise.
  */
-export function isLocalTime(obj: object): boolean {
+export function isLocalTime (obj: object): boolean {
   return hasIdentifierProperty(obj, LOCAL_TIME_IDENTIFIER_PROPERTY)
 }
 
@@ -229,7 +229,7 @@ export class Time<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger} timeZoneOffsetSeconds - The time zone offset in seconds. Value represents the difference, in seconds, from UTC to local time.
    * This is different from standard JavaScript `Date.getTimezoneOffset()` which is the difference, in minutes, from local time to UTC.
    */
-  constructor(
+  constructor (
     hour: T,
     minute: T,
     second: T,
@@ -274,7 +274,7 @@ export class Time<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger|undefined} nanosecond - The optional amount of nanoseconds.
    * @return {Time<number>} New Time.
    */
-  static fromStandardDate(
+  static fromStandardDate (
     standardDate: StandardDate,
     nanosecond?: NumberOrInteger
   ): Time<number> {
@@ -292,7 +292,7 @@ export class Time<T extends NumberOrInteger = Integer> {
   /**
    * @ignore
    */
-  toString() {
+  toString (): string {
     return (
       util.timeToIsoString(
         this.hour,
@@ -315,7 +315,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Time}, `false` otherwise.
  */
-export function isTime(obj: object): obj is Time {
+export function isTime (obj: object): obj is Time {
   return hasIdentifierProperty(obj, TIME_IDENTIFIER_PROPERTY)
 }
 
@@ -333,7 +333,7 @@ export class Date<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger} month - The month for the new local date.
    * @param {NumberOrInteger} day - The day for the new local date.
    */
-  constructor(year: T, month: T, day: T) {
+  constructor (year: T, month: T, day: T) {
     /**
      * The year.
      * @type {NumberOrInteger}
@@ -358,7 +358,7 @@ export class Date<T extends NumberOrInteger = Integer> {
    * @param {global.Date} standardDate - The standard JavaScript date to convert.
    * @return {Date} New Date.
    */
-  static fromStandardDate(standardDate: StandardDate): Date<number> {
+  static fromStandardDate (standardDate: StandardDate): Date<number> {
     verifyStandardDateAndNanos(standardDate)
 
     return new Date(
@@ -376,14 +376,14 @@ export class Date<T extends NumberOrInteger = Integer> {
    *
    * @returns {StandardDate} Standard JavaScript `Date` at `00:00:00.000` UTC.
    */
-  toStandardDate(): StandardDate {
+  toStandardDate (): StandardDate {
     return util.isoStringToStandardDate(this.toString())
   }
 
   /**
    * @ignore
    */
-  toString() {
+  toString (): string {
     return util.dateToIsoString(this.year, this.month, this.day)
   }
 }
@@ -399,7 +399,7 @@ Object.defineProperty(
  * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link Date}, `false` otherwise.
  */
-export function isDate(obj: object): boolean {
+export function isDate (obj: object): boolean {
   return hasIdentifierProperty(obj, DATE_IDENTIFIER_PROPERTY)
 }
 
@@ -425,7 +425,7 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger} second - The second for the new local time.
    * @param {NumberOrInteger} nanosecond - The nanosecond for the new local time.
    */
-  constructor(
+  constructor (
     year: T,
     month: T,
     day: T,
@@ -479,7 +479,7 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger|undefined} nanosecond - The optional amount of nanoseconds.
    * @return {LocalDateTime} New LocalDateTime.
    */
-  static fromStandardDate(
+  static fromStandardDate (
     standardDate: StandardDate,
     nanosecond?: NumberOrInteger
   ): LocalDateTime<number> {
@@ -501,14 +501,14 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
    *
    * @returns {StandardDate} Standard JavaScript `Date` at the local timezone
    */
-  toStandardDate(): StandardDate {
+  toStandardDate (): StandardDate {
     return util.isoStringToStandardDate(this.toString())
   }
 
   /**
    * @ignore
    */
-  toString(): string {
+  toString (): string {
     return localDateTimeToString(
       this.year,
       this.month,
@@ -532,7 +532,7 @@ Object.defineProperty(
  * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link LocalDateTime}, `false` otherwise.
  */
-export function isLocalDateTime(obj: any): obj is LocalDateTime {
+export function isLocalDateTime (obj: any): obj is LocalDateTime {
   return hasIdentifierProperty(obj, LOCAL_DATE_TIME_IDENTIFIER_PROPERTY)
 }
 
@@ -564,7 +564,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    * This is different from standard JavaScript `Date.getTimezoneOffset()` which is the difference, in minutes, from local time to UTC.
    * @param {string|null} timeZoneId - The time zone id for the new date-time. Either this argument or `timeZoneOffsetSeconds` should be defined.
    */
-  constructor(
+  constructor (
     year: T,
     month: T,
     day: T,
@@ -630,7 +630,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
      *
      * @type {string}
      */
-    this.timeZoneId = id || undefined
+    this.timeZoneId = id ?? undefined
 
     Object.freeze(this)
   }
@@ -641,7 +641,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    * @param {NumberOrInteger|undefined} nanosecond - The optional amount of nanoseconds.
    * @return {DateTime} New DateTime.
    */
-  static fromStandardDate(
+  static fromStandardDate (
     standardDate: StandardDate,
     nanosecond?: NumberOrInteger
   ): DateTime<number> {
@@ -666,7 +666,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    * @returns {StandardDate} Standard JavaScript `Date` at the defined time zone offset
    * @throws {Error} If the time zone offset is not defined in the object.
    */
-  toStandardDate(): StandardDate {
+  toStandardDate (): StandardDate {
     if (this.timeZoneOffsetSeconds === undefined) {
       throw new Error('Requires DateTime created with time zone offset')
     }
@@ -676,7 +676,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
   /**
    * @ignore
    */
-  toString(): string {
+  toString (): string {
     const localDateTimeStr = localDateTimeToString(
       this.year,
       this.month,
@@ -686,9 +686,9 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       this.second,
       this.nanosecond
     )
-    const timeZoneStr = this.timeZoneId
+    const timeZoneStr = this.timeZoneId != null
       ? `[${this.timeZoneId}]`
-      : util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds || 0)
+      : util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds ?? 0)
     return localDateTimeStr + timeZoneStr
   }
 }
@@ -704,15 +704,15 @@ Object.defineProperty(
  * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link DateTime}, `false` otherwise.
  */
-export function isDateTime(obj: object): boolean {
+export function isDateTime (obj: object): boolean {
   return hasIdentifierProperty(obj, DATE_TIME_IDENTIFIER_PROPERTY)
 }
 
-function hasIdentifierProperty(obj: any, property: string) {
-  return (obj && obj[property]) === true
+function hasIdentifierProperty (obj: any, property: string): boolean {
+  return obj != null && obj[property] === true
 }
 
-function localDateTimeToString(
+function localDateTimeToString (
   year: NumberOrInteger,
   month: NumberOrInteger,
   day: NumberOrInteger,
@@ -734,12 +734,12 @@ function localDateTimeToString(
  * @param {string | null } timeZoneId
  * @returns {Array<NumberOrInteger | undefined | null, string | undefined | null>}
  */
-function verifyTimeZoneArguments(
+function verifyTimeZoneArguments (
   timeZoneOffsetSeconds?: NumberOrInteger,
   timeZoneId?: string | null
 ): [NumberOrInteger | undefined | null, string | undefined | null] {
-  const offsetDefined = timeZoneOffsetSeconds || timeZoneOffsetSeconds === 0
-  const idDefined = timeZoneId && timeZoneId !== ''
+  const offsetDefined = timeZoneOffsetSeconds !== null && timeZoneOffsetSeconds !== undefined
+  const idDefined = timeZoneId !== null && timeZoneId !== undefined && timeZoneId !== ''
 
   if (offsetDefined && !idDefined) {
     assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds')
@@ -749,10 +749,12 @@ function verifyTimeZoneArguments(
     return [undefined, timeZoneId]
   } else if (offsetDefined && idDefined) {
     throw newError(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Unable to create DateTime with both time zone offset and id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`
     )
   } else {
     throw newError(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Unable to create DateTime without either time zone offset or id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`
     )
   }
@@ -764,7 +766,7 @@ function verifyTimeZoneArguments(
  * @param {NumberOrInteger} nanosecond
  * @returns {void}
  */
-function verifyStandardDateAndNanos(
+function verifyStandardDateAndNanos (
   standardDate: StandardDate,
   nanosecond?: NumberOrInteger
 ): void {

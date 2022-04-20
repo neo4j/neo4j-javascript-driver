@@ -23,7 +23,7 @@
  * @param val A JavaScript value, usually an object or array, to be converted.
  * @returns A JSON string representing the given value.
  */
-export function stringify (val: any) {
+export function stringify (val: any): string {
   return JSON.stringify(val, (_, value) =>
     typeof value === 'bigint' ? `${value}n` : value
   )

@@ -20,17 +20,17 @@ import { Observable } from 'rxjs'
 import { Record, ResultSummary } from 'neo4j-driver-core'
 
 declare interface RxResult {
-  keys(): Observable<string[]>
+  keys: () => Observable<string[]>
 
-  records(): Observable<Record>
+  records: () => Observable<Record>
 
-  consume(): Observable<ResultSummary>
+  consume: () => Observable<ResultSummary>
 
-  pause(): void
+  pause: () => void
 
-  resume(): Promise<void>
+  resume: () => Promise<void>
 
-  push(): Promise<void>
+  push: () => Promise<void>
 }
 
 export default RxResult

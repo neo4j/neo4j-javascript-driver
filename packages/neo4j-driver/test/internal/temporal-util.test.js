@@ -18,7 +18,6 @@
  */
 
 import { int, internal } from 'neo4j-driver-core'
-import { types } from '../../src'
 import testUtils from './test-utils'
 
 const { temporalUtil: util } = internal
@@ -407,28 +406,3 @@ describe('#unit temporal-util', () => {
     expect(() => util.assertValidNanosecond(int(1222222222))).toThrow()
   })
 })
-
-function date (year, month, day) {
-  return new types.Date(int(year), int(month), int(day))
-}
-
-function localTime (hour, minute, second, nanosecond) {
-  return new types.LocalTime(
-    int(hour),
-    int(minute),
-    int(second),
-    int(nanosecond)
-  )
-}
-
-function localDateTime (year, month, day, hour, minute, second, nanosecond) {
-  return new types.LocalDateTime(
-    int(year),
-    int(month),
-    int(day),
-    int(hour),
-    int(minute),
-    int(second),
-    int(nanosecond)
-  )
-}

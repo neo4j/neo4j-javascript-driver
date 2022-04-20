@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Record } from 'neo4j-driver-core'
 
 interface Person {
@@ -51,11 +53,11 @@ record3.forEach(
   (value: string | number, key: 'name' | 'age', record: Record<Person>) => {}
 )
 
-const record3Mapped: [
+const record3Mapped: Array<[
   string | number,
   'name' | 'age',
   Record<Person>
-][] = record3.map((...args) => args)
+]> = record3.map((...args) => args)
 
 const record1Entries: IterableIterator<[string, any]> = record1.entries()
 const record2Entries: IterableIterator<[string, any]> = record2.entries()

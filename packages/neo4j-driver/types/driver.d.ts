@@ -19,8 +19,6 @@
 
 import RxSession from './session-rx'
 import {
-  ServerInfo,
-  Session,
   Driver as CoreDriver,
   types
 } from 'neo4j-driver-core'
@@ -36,17 +34,12 @@ declare const READ: SessionMode
 declare const WRITE: SessionMode
 
 declare interface Driver extends CoreDriver {
-  rxSession({
-    defaultAccessMode,
-    bookmarks,
-    database,
-    fetchSize
-  }?: {
+  rxSession: (sessionParams?: {
     defaultAccessMode?: SessionMode
     bookmarks?: string | string[]
     fetchSize?: number
     database?: string
-  }): RxSession
+  }) => RxSession
 }
 
 export {

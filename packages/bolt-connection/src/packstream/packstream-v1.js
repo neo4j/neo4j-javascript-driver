@@ -155,8 +155,8 @@ class Packer {
         `It is not allowed to pass paths in query parameters, given: ${x}`
       )
     } else if (x instanceof Structure) {
-      var packableFields = []
-      for (var i = 0; i < x.fields.length; i++) {
+      const packableFields = []
+      for (let i = 0; i < x.fields.length; i++) {
         packableFields[i] = this.packable(x.fields[i])
       }
       return () => this.packStruct(x.signature, packableFields)
@@ -208,8 +208,8 @@ class Packer {
   }
 
   packInteger (x) {
-    var high = x.high
-    var low = x.low
+    const high = x.high
+    const low = x.low
 
     if (x.greaterThanOrEqual(-0x10) && x.lessThan(0x80)) {
       this._ch.writeInt8(low)

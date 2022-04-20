@@ -83,7 +83,7 @@ class Pool {
       allRequests[key] = []
     }
     return new Promise((resolve, reject) => {
-      let request
+      let request = null
 
       const timeoutId = setTimeout(() => {
         // acquisition timeout fired
@@ -416,16 +416,16 @@ class PendingRequest {
 }
 
 class PoolState {
-  constructor() {
-    this._active = true;
+  constructor () {
+    this._active = true
   }
 
-  isActive() {
-    return this._active;
+  isActive () {
+    return this._active
   }
 
-  close() {
-    this._active = false;
+  close () {
+    this._active = false
   }
 }
 

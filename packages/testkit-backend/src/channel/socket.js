@@ -13,7 +13,7 @@ function generateRandomId () {
  * This implementation is meant to be run in NodeJS, it doesn't support Browser.
  */
 export default class SocketChannel extends Channel {
-  constructor(port, newProtocol = stream => new Protocol(stream), newId = generateRandomId ) {
+  constructor (port, newProtocol = stream => new Protocol(stream), newId = generateRandomId) {
     super()
     this._newProtocol = newProtocol
     this._server = null
@@ -34,9 +34,9 @@ export default class SocketChannel extends Channel {
     }
   }
 
-  _handleConnection(connection) {
+  _handleConnection (connection) {
     console.log('Backend connected')
-        
+
     const contextId = this._newId()
     const protocol = this._newProtocol(connection)
 
@@ -46,10 +46,10 @@ export default class SocketChannel extends Channel {
     })
 
     this.emit('contextOpen', { contextId })
-    protocol.on('request', request => this.emit('request', { contextId, request }) )
+    protocol.on('request', request => this.emit('request', { contextId, request }))
     protocol.on('error', e => this._writeBackendError(contextId, e))
-    
-    connection.on('end', () =>  { 
+
+    connection.on('end', () => {
       if (this._clients.has(contextId)) {
         this._clients.get(contextId).protocol.stop()
       }
@@ -69,7 +69,7 @@ export default class SocketChannel extends Channel {
   }
 
   writeBackendError (contextId, error) {
-    this.writeResponse(contextId, { name: 'BackendError', data:  { msg: error } })
+    this.writeResponse(contextId, { name: 'BackendError', data: { msg: error } })
   }
 
   stop () {

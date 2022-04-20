@@ -17,35 +17,34 @@
  * limitations under the License.
  */
 
-import { ConnectionProvider, newError, Transaction, TransactionPromise } from "../src";
-import { Bookmarks } from "../src/internal/bookmarks";
-import { ConnectionHolder } from "../src/internal/connection-holder";
-import { TxConfig } from "../src/internal/tx-config";
-import FakeConnection from "./utils/connection.fake";
-
+import { ConnectionProvider, newError, Transaction, TransactionPromise } from '../src'
+import { Bookmarks } from '../src/internal/bookmarks'
+import { ConnectionHolder } from '../src/internal/connection-holder'
+import { TxConfig } from '../src/internal/tx-config'
+import FakeConnection from './utils/connection.fake'
 
 testTx('Transaction', newRegularTransaction)
 
 testTx('TransactionPromise', newTransactionPromise, () => {
   describe('Promise', () => {
-    const syncContext = (fn: () => void) => fn()
-    const asyncContext = (fn: () => void) => setImmediate(fn)
+    const syncContext = (fn: () => void): void => fn()
+    const asyncContext = (fn: () => void): NodeJS.Immediate => setImmediate(fn)
 
     whenBeginSucceed('async', asyncContext)
     whenBeginSucceed('sync', syncContext)
 
-    function whenBeginSucceed(ctxName: string, ctx: (_: () => void) => void) {
+    function whenBeginSucceed (ctxName: string, ctx: (_: () => void) => void): void {
       describe(`when begin processed with success [${ctxName}]`, () => {
         it('should result resolve with Transaction', async () => {
           const [tx] = setupTx()
 
-          const resolveTx: Transaction = await tx;
+          const resolveTx: Transaction = await tx
 
-          // @ts-ignore
+          // @ts-expect-error
           expect(resolveTx.then).toBeUndefined()
-          // @ts-ignore
+          // @ts-expect-error
           expect(resolveTx.catch).toBeUndefined()
-          // @ts-ignore
+          // @ts-expect-error
           expect(resolveTx.finally).toBeUndefined()
 
           expect(resolveTx.commit).toBeDefined()
@@ -58,7 +57,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
         it('should resolve an open Transaction', async () => {
           const [tx] = setupTx()
 
-          const resolved = await tx;
+          const resolved = await tx
 
           expect(resolved.isOpen()).toBe(true)
         })
@@ -68,7 +67,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           const resolvedTx = await tx
 
-          await resolvedTx.run('RETURN 1');
+          await resolvedTx.run('RETURN 1')
         })
 
         it('should be able to commit the resolved transaction', async () => {
@@ -76,7 +75,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           const resolvedTx = await tx
 
-          await resolvedTx.commit();
+          await resolvedTx.commit()
         })
 
         it('should be able to rollback the resolved transaction', async () => {
@@ -84,7 +83,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           const resolvedTx = await tx
 
-          await resolvedTx.rollback();
+          await resolvedTx.rollback()
         })
 
         it('should be able to close the resolved transaction', async () => {
@@ -92,13 +91,13 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           const resolvedTx = await tx
 
-          await resolvedTx.close();
+          await resolvedTx.close()
         })
 
         it('should the original tx be open', async () => {
           const [tx] = setupTx()
 
-          await tx;
+          await tx
 
           expect(tx.isOpen()).toBe(true)
         })
@@ -108,7 +107,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           await tx
 
-          await tx.run('RETURN 1');
+          await tx.run('RETURN 1')
         })
 
         it('should be able to commit the original transaction', async () => {
@@ -116,7 +115,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           await tx
 
-          await tx.commit();
+          await tx.commit()
         })
 
         it('should be able to rollback the original transaction', async () => {
@@ -124,7 +123,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           await tx
 
-          await tx.rollback();
+          await tx.rollback()
         })
 
         it('should be able to close the original transaction', async () => {
@@ -132,14 +131,13 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           await tx
 
-          await tx.close();
+          await tx.close()
         })
 
-        function setupTx(): [TransactionPromise] {
+        function setupTx (): [TransactionPromise] {
           const connection = newFakeConnection()
           const protocol = connection.protocol()
 
-          // @ts-ignore
           connection.protocol = () => {
             return {
               ...protocol,
@@ -157,21 +155,19 @@ testTx('TransactionPromise', newTransactionPromise, () => {
 
           return [tx]
         }
-
       })
     }
-
 
     whenBeginFails('async', asyncContext)
     whenBeginFails('sync', syncContext)
 
-    function whenBeginFails(ctxName: string, ctx: (fn: () => void) => void) {
+    function whenBeginFails (ctxName: string, ctx: (fn: () => void) => void): void {
       describe(`when begin fails [${ctxName}]`, () => {
         it('should fails to resolve the transaction', async () => {
           const [tx, expectedError] = setupTx()
 
           try {
-            await tx;
+            await tx
             fail('should have thrown')
           } catch (e) {
             expect(e).toEqual(expectedError)
@@ -182,7 +178,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
           const [tx] = setupTx()
 
           try {
-            await tx;
+            await tx
           } catch (e) {
             // thats fine
           }
@@ -194,13 +190,13 @@ testTx('TransactionPromise', newTransactionPromise, () => {
           const [tx] = setupTx()
 
           try {
-            await tx;
+            await tx
           } catch (e) {
             // thats fine
           }
 
           try {
-            await tx.run('RETURN 1');
+            await tx.run('RETURN 1')
             fail('shoud not succeed')
           } catch (e) {
             expect(e).toEqual(newError(
@@ -213,13 +209,13 @@ testTx('TransactionPromise', newTransactionPromise, () => {
           const [tx] = setupTx()
 
           try {
-            await tx;
+            await tx
           } catch (e) {
             // thats fine
           }
 
           try {
-            await tx.commit();
+            await tx.commit()
             fail('shoud not succeed')
           } catch (e) {
             expect(e).toEqual(newError(
@@ -232,32 +228,31 @@ testTx('TransactionPromise', newTransactionPromise, () => {
           const [tx] = setupTx()
 
           try {
-            await tx;
+            await tx
           } catch (e) {
             // thats fine
           }
 
-          await tx.rollback();
+          await tx.rollback()
         })
 
         it('should be able to close the original transaction', async () => {
           const [tx] = setupTx()
 
           try {
-            await tx;
+            await tx
           } catch (e) {
             // thats fine
           }
 
-          await tx.close();
+          await tx.close()
         })
 
-        function setupTx(): [TransactionPromise, Error] {
+        function setupTx (): [TransactionPromise, Error] {
           const connection = newFakeConnection()
           const protocol = connection.protocol()
           const expectedError = newError('begin error')
 
-          // @ts-ignore
           connection.protocol = () => {
             return {
               ...protocol,
@@ -288,7 +283,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
         tx._begin(Bookmarks.empty(), TxConfig.empty())
 
         try {
-          await tx;
+          await tx
           fail('should have thrown')
         } catch (e) {
           expect(e).toEqual(expectedError)
@@ -308,7 +303,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
         tx._begin(Bookmarks.empty(), TxConfig.empty())
 
         try {
-          await tx;
+          await tx
           fail('should have thrown')
         } catch (e) {
           expect(e).toEqual(expectedError)
@@ -318,9 +313,8 @@ testTx('TransactionPromise', newTransactionPromise, () => {
   })
 })
 
-function testTx<T extends Transaction>(transactionName: string, newTransaction: TransactionFactory<T>, fn: jest.EmptyFunction = () => { }) {
+function testTx<T extends Transaction> (transactionName: string, newTransaction: TransactionFactory<T>, fn: jest.EmptyFunction = () => { }): void {
   describe(transactionName, () => {
-
     describe('.run()', () => {
       it('should call run with watermarks', async () => {
         const connection = newFakeConnection()
@@ -349,12 +343,11 @@ function testTx<T extends Transaction>(transactionName: string, newTransaction: 
           lowRecordWatermark: 300
         })
 
-        var result = tx.run('RETURN 1')
+        const result = tx.run('RETURN 1')
 
-        // @ts-ignore
+        // @ts-expect-error
         expect(result._watermarks).toEqual({ high: 700, low: 300 })
       })
-
     })
 
     describe('.close()', () => {
@@ -386,11 +379,11 @@ function testTx<T extends Transaction>(transactionName: string, newTransaction: 
       })
 
       describe('when transaction is closed', () => {
-        const commit = async (tx: Transaction) => tx.commit()
-        const rollback = async (tx: Transaction) => tx.rollback()
-        const error = async (tx: Transaction, conn: FakeConnection) => {
+        const commit = async (tx: Transaction): Promise<void> => await tx.commit()
+        const rollback = async (tx: Transaction): Promise<void> => await tx.rollback()
+        const error = async (tx: Transaction, conn: FakeConnection): Promise<void> => {
           conn.withRollbackError(new Error('rollback error'))
-          return tx.rollback().catch(() => { })
+          return await tx.rollback().catch(() => { })
         }
 
         it.each([
@@ -415,37 +408,35 @@ function testTx<T extends Transaction>(transactionName: string, newTransaction: 
   })
 }
 
-interface TransactionFactory<T extends Transaction> {
-  (_: {
-    connection: FakeConnection
-    fetchSize?: number
-    highRecordWatermark?: number,
-    lowRecordWatermark?: number
-  }): T
-}
+type TransactionFactory<T extends Transaction> = (_: {
+  connection: FakeConnection
+  fetchSize?: number
+  highRecordWatermark?: number
+  lowRecordWatermark?: number
+}) => T
 
-function newTransactionPromise({
+function newTransactionPromise ({
   connection,
   fetchSize = 1000,
   highRecordWatermark = 700,
   lowRecordWatermark = 300,
   errorResolvingConnection = undefined
 }: {
-  connection: FakeConnection | void
+  connection?: FakeConnection
   fetchSize?: number
-  highRecordWatermark?: number,
+  highRecordWatermark?: number
   lowRecordWatermark?: number
   errorResolvingConnection?: Error
 }): TransactionPromise {
   const connectionProvider = new ConnectionProvider()
-  // @ts-ignore
-  connectionProvider.acquireConnection = () => {
-    if (errorResolvingConnection) {
-      return Promise.reject(errorResolvingConnection)
+  // @ts-expect-error
+  connectionProvider.acquireConnection = async () => {
+    if (errorResolvingConnection != null) {
+      return await Promise.reject(errorResolvingConnection)
     }
-    return Promise.resolve(connection)
+    return await Promise.resolve(connection)
   }
-  connectionProvider.close = () => Promise.resolve()
+  connectionProvider.close = async () => await Promise.resolve()
 
   const connectionHolder = new ConnectionHolder({ connectionProvider })
   connectionHolder.initializeConnection()
@@ -457,7 +448,7 @@ function newTransactionPromise({
     onConnection: () => { },
     reactive: false,
     fetchSize,
-    impersonatedUser: "",
+    impersonatedUser: '',
     highRecordWatermark,
     lowRecordWatermark
   })
@@ -465,7 +456,7 @@ function newTransactionPromise({
   return transaction
 }
 
-function newRegularTransaction({
+function newRegularTransaction ({
   connection,
   fetchSize = 1000,
   highRecordWatermark = 700,
@@ -473,12 +464,12 @@ function newRegularTransaction({
 }: {
   connection: FakeConnection
   fetchSize?: number
-  highRecordWatermark?: number,
+  highRecordWatermark?: number
   lowRecordWatermark?: number
 }): Transaction {
   const connectionProvider = new ConnectionProvider()
-  connectionProvider.acquireConnection = () => Promise.resolve(connection)
-  connectionProvider.close = () => Promise.resolve()
+  connectionProvider.acquireConnection = async () => await Promise.resolve(connection)
+  connectionProvider.close = async () => await Promise.resolve()
 
   const connectionHolder = new ConnectionHolder({ connectionProvider })
   connectionHolder.initializeConnection()
@@ -490,7 +481,7 @@ function newRegularTransaction({
     onConnection: () => { },
     reactive: false,
     fetchSize,
-    impersonatedUser: "",
+    impersonatedUser: '',
     highRecordWatermark,
     lowRecordWatermark
   })
@@ -498,6 +489,6 @@ function newRegularTransaction({
   return transaction
 }
 
-function newFakeConnection(): FakeConnection {
+function newFakeConnection (): FakeConnection {
   return new FakeConnection()
 }

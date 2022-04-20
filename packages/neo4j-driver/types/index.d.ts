@@ -94,7 +94,7 @@ declare const auth: {
   ) => AuthToken
 }
 
-declare function driver(
+declare function driver (
   url: string,
   authToken?: AuthToken,
   config?: Config
@@ -119,7 +119,7 @@ declare const types: {
   Integer: typeof Integer
   RxSession: RxSession
   RxTransaction: RxTransaction
-  RxManagedTransaction: RxManagedTransaction,
+  RxManagedTransaction: RxManagedTransaction
   RxResult: RxResult
 }
 
@@ -193,8 +193,8 @@ declare const forExport: {
   ServerInfo: ServerInfo
   NotificationPosition: NotificationPosition
   Session: Session
-  Transaction: Transaction,
-  ManagedTransaction: ManagedTransaction,
+  Transaction: Transaction
+  ManagedTransaction: ManagedTransaction
   Point: Point
   isPoint: typeof isPoint
   Duration: Duration
@@ -205,7 +205,7 @@ declare const forExport: {
   DateTime: DateTime
   RxSession: RxSession
   RxTransaction: RxTransaction
-  RxManagedTransaction: RxManagedTransaction,
+  RxManagedTransaction: RxManagedTransaction
   RxResult: RxResult
   ConnectionProvider: ConnectionProvider
   isDuration: typeof isDuration

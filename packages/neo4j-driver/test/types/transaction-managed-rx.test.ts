@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import RxManagedTransaction from '../../types/transaction-managed-rx'
 import { Record, ResultSummary } from 'neo4j-driver-core'
 import RxResult from '../../types/result-rx'
@@ -27,24 +29,30 @@ const dummy: any = null
 const stringObserver: Observer<string> = {
   next: value => console.log(value),
   complete: () => console.log('complete'),
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   error: error => console.log(`error: ${error}`)
 }
 
 const keysObserver: Observer<string[]> = {
-  next: value => console.log(`keys: ${value}`),
+  next: value => console.log(`keys: ${value.reduce((acc, curr) => acc + ', ' + curr, '')}`),
   complete: () => console.log('keys complete'),
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   error: error => console.log(`keys error: ${error}`)
 }
 
 const recordsObserver: Observer<Record> = {
-  next: value => console.log(`record: ${value}`),
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  next: value => console.log(`record: ${value.toString()}`),
   complete: () => console.log('records complete'),
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   error: error => console.log(`records error: ${error}`)
 }
 
 const summaryObserver: Observer<ResultSummary> = {
-  next: value => console.log(`summary: ${value}`),
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  next: value => console.log(`summary: ${value.toString()}`),
   complete: () => console.log('summary complete'),
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   error: error => console.log(`summary error: ${error}`)
 }
 

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/* eslint-env browser */
 import ChannelBuffer from '../channel-buf'
 import { newError, internal } from 'neo4j-driver-core'
 
@@ -26,8 +26,10 @@ const {
 
 // Just to be sure that these values are with us even after WebSocket is injected
 // for tests.
+// eslint-disable-next-line no-unused-vars
 const WS_CONNECTING = 0
 const WS_OPEN = 1
+// eslint-disable-next-line no-unused-vars
 const WS_CLOSING = 2
 const WS_CLOSED = 3
 
@@ -184,7 +186,7 @@ export default class WebSocketChannel {
   /**
    * Stops the receive timeout for the channel.
    */
-  stopReceiveTimeout() {
+  stopReceiveTimeout () {
   }
 
   /**
@@ -265,7 +267,7 @@ function isIPv6Address (hostAndPort) {
 
 function asWindowsFriendlyIPv6Address (scheme, address) {
   // replace all ':' with '-'
-  const hostWithoutColons = address.host().replace(new RegExp(':', 'g'), '-')
+  const hostWithoutColons = address.host().replace(/:/g, '-')
 
   // replace '%' with 's' for link-local IPv6 address like 'fe80::1%lo0'
   const hostWithoutPercent = hostWithoutColons.replace('%', 's')

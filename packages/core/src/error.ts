@@ -90,7 +90,7 @@ class Neo4jError extends Error {
    * @param {object|undefined|null} error the error object
    * @returns {boolean} true if the error is retriable
    */
-  static isRetriable(error?: any | null): boolean {
+  static isRetriable (error?: any | null): boolean {
     return error !== null &&
       error !== undefined &&
       error instanceof Neo4jError &&
@@ -116,7 +116,7 @@ function newError (message: string, code?: Neo4jErrorCode): Neo4jError {
  * @param {object|undefined|null} error the error object
  * @returns {boolean} true if the error is retriable
  */
- const isRetriableError = Neo4jError.isRetriable
+const isRetriableError = Neo4jError.isRetriable
 
 /**
  * @private
@@ -141,7 +141,7 @@ function _isRetriableTransientError (code?: Neo4jErrorCode): boolean {
   // terminated. These are really client errors but classification on the server is not entirely correct and
   // they are classified as transient.
 
-  if (code !== undefined && code.indexOf('TransientError') >= 0) {
+  if (code?.includes('TransientError') === true) {
     if (
       code === 'Neo.TransientError.Transaction.Terminated' ||
       code === 'Neo.TransientError.Transaction.LockClientStopped'

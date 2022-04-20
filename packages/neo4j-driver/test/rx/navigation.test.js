@@ -18,9 +18,12 @@
  */
 import neo4j from '../../src'
 import sharedNeo4j from '../internal/shared-neo4j'
+// eslint-disable-next-line no-unused-vars
 import RxSession from '../../src/session-rx'
+// eslint-disable-next-line no-unused-vars
 import { Notification, Observable } from 'rxjs'
 import { materialize, toArray, map } from 'rxjs/operators'
+// eslint-disable-next-line no-unused-vars
 import RxTransaction from '../../src/transaction-rx'
 
 describe('#integration-rx navigation', () => {

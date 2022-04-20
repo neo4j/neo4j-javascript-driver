@@ -8,5 +8,5 @@
     "moduleResolution": "node",
     "types": []
   },
-  "include": ["types/**/*.ts"]
+  "include": ["types/**/*.ts", "test/types/**/*.ts"]
 }

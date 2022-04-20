@@ -4,30 +4,29 @@ export function valueResponse (name, value) {
   return { name: name, data: { value: value } }
 }
 
-
 export function objectToCypher (obj) {
   return objectMapper(obj, nativeToCypher)
 }
 
-export function objectMemberBitIntToNumber (obj, recursive=false) {
-  return objectMapper(obj, val => { 
-    if(typeof val === 'bigint') {
+export function objectMemberBitIntToNumber (obj, recursive = false) {
+  return objectMapper(obj, val => {
+    if (typeof val === 'bigint') {
       return Number(val)
     } else if (recursive && typeof val === 'object') {
       return objectMemberBitIntToNumber(val)
-    } else if (recursive && typeof val === 'array') {
+    } else if (recursive && Array.isArray(val)) {
       return val.map(item => objectMemberBitIntToNumber(item, true))
     }
     return val
   })
 }
 
-function objectMapper(obj, mapper) {
+function objectMapper (obj, mapper) {
   if (obj === null || obj === undefined) {
     return obj
   }
   return Object.keys(obj).reduce((acc, key) => {
-    return {...acc, [key]: mapper(obj[key])}
+    return { ...acc, [key]: mapper(obj[key]) }
   }, {})
 }
 
@@ -48,76 +47,80 @@ export function nativeToCypher (x) {
     case 'boolean':
       return valueResponse('CypherBool', x)
     case 'object':
-      if (neo4j.isInt(x)) {
-        // TODO: Broken!!!
-        return valueResponse('CypherInt', x.toInt())
-      }
-      if (Array.isArray(x)) {
-        const values = x.map(nativeToCypher)
-        return valueResponse('CypherList', values)
-      }
-      if (x instanceof neo4j.types.Node) {
-        const node = {
-          id: nativeToCypher(x.identity),
-          labels: nativeToCypher(x.labels),
-          props: nativeToCypher(x.properties),
-          elementId: nativeToCypher(x.elementId)
-        }
-        return { name: 'CypherNode', data: node }
-      }
-      if (x instanceof neo4j.types.Relationship) {
-        const relationship = {
-          id: nativeToCypher(x.identity),
-          startNodeId: nativeToCypher(x.start),
-          endNodeId: nativeToCypher(x.end),
-          type: nativeToCypher(x.type),
-          props: nativeToCypher(x.properties),
-          elementId: nativeToCypher(x.elementId),
-          startNodeElementId: nativeToCypher(x.startNodeElementId),
-          endNodeElementId: nativeToCypher(x.endNodeElementId)
-        }
-        return { name: 'CypherRelationship', data: relationship }
-      }
-      if (x instanceof neo4j.types.Path) {
-        const path = x.segments
-          .map(segment => {
-            return {
-              nodes: [segment.end],
-              relationships: [segment.relationship]
-            }
-          })
-          .reduce(
-            (previous, current) => {
-              return {
-                nodes: [...previous.nodes, ...current.nodes],
-                relationships: [
-                  ...previous.relationships,
-                  ...current.relationships
-                ]
-              }
-            },
-            { nodes: [x.start], relationships: [] }
-          )
-
-        return {
-          name: 'CypherPath',
-          data: {
-            nodes: nativeToCypher(path.nodes),
-            relationships: nativeToCypher(path.relationships)
-          }
-        }
-      }
-      // If all failed, interpret as a map
-      const map = {}
-      for (const [key, value] of Object.entries(x)) {
-        map[key] = nativeToCypher(value)
-      }
-      return valueResponse('CypherMap', map)
+      return valueResponseOfObject(x)
   }
   console.log(`type of ${x} is ${typeof x}`)
   const err = 'Unable to convert ' + x + ' to cypher type'
   console.log(err)
   throw Error(err)
+}
+
+function valueResponseOfObject (x) {
+  if (neo4j.isInt(x)) {
+    // TODO: Broken!!!
+    return valueResponse('CypherInt', x.toInt())
+  }
+  if (Array.isArray(x)) {
+    const values = x.map(nativeToCypher)
+    return valueResponse('CypherList', values)
+  }
+  if (x instanceof neo4j.types.Node) {
+    const node = {
+      id: nativeToCypher(x.identity),
+      labels: nativeToCypher(x.labels),
+      props: nativeToCypher(x.properties),
+      elementId: nativeToCypher(x.elementId)
+    }
+    return { name: 'CypherNode', data: node }
+  }
+  if (x instanceof neo4j.types.Relationship) {
+    const relationship = {
+      id: nativeToCypher(x.identity),
+      startNodeId: nativeToCypher(x.start),
+      endNodeId: nativeToCypher(x.end),
+      type: nativeToCypher(x.type),
+      props: nativeToCypher(x.properties),
+      elementId: nativeToCypher(x.elementId),
+      startNodeElementId: nativeToCypher(x.startNodeElementId),
+      endNodeElementId: nativeToCypher(x.endNodeElementId)
+    }
+    return { name: 'CypherRelationship', data: relationship }
+  }
+  if (x instanceof neo4j.types.Path) {
+    const path = x.segments
+      .map(segment => {
+        return {
+          nodes: [segment.end],
+          relationships: [segment.relationship]
+        }
+      })
+      .reduce(
+        (previous, current) => {
+          return {
+            nodes: [...previous.nodes, ...current.nodes],
+            relationships: [
+              ...previous.relationships,
+              ...current.relationships
+            ]
+          }
+        },
+        { nodes: [x.start], relationships: [] }
+      )
+
+    return {
+      name: 'CypherPath',
+      data: {
+        nodes: nativeToCypher(path.nodes),
+        relationships: nativeToCypher(path.relationships)
+      }
+    }
+  }
+  // If all failed, interpret as a map
+  const map = {}
+  for (const [key, value] of Object.entries(x)) {
+    map[key] = nativeToCypher(value)
+  }
+  return valueResponse('CypherMap', map)
 }
 
 export function cypherToNative (c) {

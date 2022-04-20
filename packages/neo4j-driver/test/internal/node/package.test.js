@@ -17,13 +17,13 @@
  * limitations under the License.
  */
 
-var path = require('path')
-var fs = require('fs')
-var webpack = require('webpack')
-var sharedNeo4j = require('../shared-neo4j').default
+const path = require('path')
+const fs = require('fs')
+const webpack = require('webpack')
+const sharedNeo4j = require('../shared-neo4j').default
 
 describe('Package', function () {
-  var driver
+  let driver
 
   afterAll(async () => {
     if (driver) {
@@ -32,7 +32,7 @@ describe('Package', function () {
   })
 
   it('should work in NodeJS', function (done) {
-    var neo4j
+    let neo4j
 
     try {
       neo4j = require(sandboxPath('node_modules', 'neo4j-driver', 'lib'))
@@ -44,7 +44,7 @@ describe('Package', function () {
       'bolt://localhost',
       neo4j.auth.basic(sharedNeo4j.username, sharedNeo4j.password)
     )
-    var session = driver.session()
+    const session = driver.session()
     session
       .run('RETURN 1 AS answer')
       .then(function (result) {
@@ -71,10 +71,10 @@ describe('Package', function () {
     //     └── index.js
     /* eslint-enable no-irregular-whitespace */
 
-    var projectDir = sandboxPath()
-    var srcDir = path.join(projectDir, 'src')
-    var distDir = path.join(projectDir, 'dist')
-    var indexJsFile = path.join(srcDir, 'index.js')
+    const projectDir = sandboxPath()
+    const srcDir = path.join(projectDir, 'src')
+    const distDir = path.join(projectDir, 'dist')
+    const indexJsFile = path.join(srcDir, 'index.js')
 
     // create src directory
     fs.mkdirSync(srcDir)
@@ -82,7 +82,7 @@ describe('Package', function () {
     fs.writeFileSync(indexJsFile, 'require("neo4j-driver");\n')
 
     // configuration for Webpack
-    var webpackOptions = {
+    const webpackOptions = {
       mode: 'development',
       context: projectDir,
       output: {
@@ -91,7 +91,7 @@ describe('Package', function () {
     }
 
     // function to invoke when Webpack compiler is done
-    var webpackCallback = function (error, stats) {
+    const webpackCallback = function (error, stats) {
       if (error) {
         done.fail(error)
       }
@@ -107,8 +107,8 @@ describe('Package', function () {
 })
 
 function sandboxPath () {
-  var parts = [__dirname, '..', '..', '..', 'build', 'sandbox']
-  for (var i = 0; i < arguments.length; i++) {
+  const parts = [__dirname, '..', '..', '..', 'build', 'sandbox']
+  for (let i = 0; i < arguments.length; i++) {
     parts.push(arguments[i])
   }
   return path.join.apply(null, parts)

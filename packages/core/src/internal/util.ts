@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Integer, { isInt } from '../integer'
 import { NumberOrInteger } from '../graph-types'
 import { EncryptionLevel } from '../types'
@@ -30,7 +30,7 @@ const ENCRYPTION_OFF: EncryptionLevel = 'ENCRYPTION_OFF'
  * @param obj The subject object
  * @returns {boolean} True if it's empty object or null
  */
-function isEmptyObjectOrNull(obj?: any): boolean {
+function isEmptyObjectOrNull (obj?: any): boolean {
   if (obj === null) {
     return true
   }
@@ -40,7 +40,7 @@ function isEmptyObjectOrNull(obj?: any): boolean {
   }
 
   for (const prop in obj) {
-    if (Object.prototype.hasOwnProperty.bind(obj, prop)) {
+    if (obj[prop] !== undefined) {
       return false
     }
   }
@@ -53,7 +53,7 @@ function isEmptyObjectOrNull(obj?: any): boolean {
  * @param obj The subject
  * @returns {boolean} True if it's an object
  */
-function isObject(obj: any): boolean {
+function isObject (obj: any): boolean {
   return typeof obj === 'object' && !Array.isArray(obj) && obj !== null
 }
 
@@ -64,25 +64,25 @@ function isObject(obj: any): boolean {
  * @return {{validatedQuery: string|{text: string, parameters: Object}, params: Object}} the normalized query with parameters.
  * @throws TypeError when either given query or parameters are invalid.
  */
-function validateQueryAndParameters(
-  query: string | String | { text: string; parameters?: any },
+function validateQueryAndParameters (
+  query: string | String | { text: string, parameters?: any },
   parameters?: any,
   opt?: { skipAsserts: boolean }
 ): {
-  validatedQuery: string
-  params: any
-} {
+    validatedQuery: string
+    params: any
+  } {
   let validatedQuery: string = ''
-  let params = parameters || {}
-  const skipAsserts: boolean = opt?.skipAsserts || false
+  let params = parameters ?? {}
+  const skipAsserts: boolean = opt?.skipAsserts ?? false
 
   if (typeof query === 'string') {
     validatedQuery = query
   } else if (query instanceof String) {
     validatedQuery = query.toString()
-  } else if (typeof query === 'object' && query.text) {
+  } else if (typeof query === 'object' && query.text != null) {
     validatedQuery = query.text
-    params = query.parameters || {}
+    params = query.parameters ?? {}
   }
 
   if (!skipAsserts) {
@@ -100,7 +100,7 @@ function validateQueryAndParameters(
  * @returns {object} The subject object
  * @throws {TypeError} when the supplied param is not an object
  */
-function assertObject(obj: any, objName: string): Object {
+function assertObject (obj: any, objName: string): Object {
   if (!isObject(obj)) {
     throw new TypeError(
       objName + ' expected to be an object but was: ' + stringify(obj)
@@ -116,10 +116,10 @@ function assertObject(obj: any, objName: string): Object {
  * @returns {string} The subject string
  * @throws {TypeError} when the supplied param is not a string
  */
-function assertString(obj: any, objName: Object): string {
+function assertString (obj: any, objName: Object): string {
   if (!isString(obj)) {
     throw new TypeError(
-      objName + ' expected to be string but was: ' + stringify(obj)
+      stringify(objName) + ' expected to be string but was: ' + stringify(obj)
     )
   }
   return obj
@@ -132,7 +132,7 @@ function assertString(obj: any, objName: Object): string {
  * @returns {number} The number
  * @throws {TypeError} when the supplied param is not a number
  */
-function assertNumber(obj: any, objName: string): number {
+function assertNumber (obj: any, objName: string): number {
   if (typeof obj !== 'number') {
     throw new TypeError(
       objName + ' expected to be a number but was: ' + stringify(obj)
@@ -148,7 +148,7 @@ function assertNumber(obj: any, objName: string): number {
  * @returns {number|Integer} The subject object
  * @throws {TypeError} when the supplied param is not a number or integer
  */
-function assertNumberOrInteger(obj: any, objName: string): NumberOrInteger {
+function assertNumberOrInteger (obj: any, objName: string): NumberOrInteger {
   if (typeof obj !== 'number' && typeof obj !== 'bigint' && !isInt(obj)) {
     throw new TypeError(
       objName +
@@ -166,7 +166,7 @@ function assertNumberOrInteger(obj: any, objName: string): NumberOrInteger {
  * @returns {Date} The valida date
  * @throws {TypeError} when the supplied param is not a valid date
  */
-function assertValidDate(obj: any, objName: string): Date {
+function assertValidDate (obj: any, objName: string): Date {
   if (Object.prototype.toString.call(obj) !== '[object Date]') {
     throw new TypeError(
       objName +
@@ -190,7 +190,7 @@ function assertValidDate(obj: any, objName: string): Date {
  * @returns {void}
  * @throws {TypeError} if the query is not valid
  */
-function assertCypherQuery(obj: any): void {
+function assertCypherQuery (obj: any): void {
   assertString(obj, 'Cypher query')
   if (obj.trim().length === 0) {
     throw new TypeError('Cypher query is expected to be a non-empty string.')
@@ -203,12 +203,13 @@ function assertCypherQuery(obj: any): void {
  * @returns {void}
  * @throws {TypeError} if the parameters is not valid
  */
-function assertQueryParameters(obj: any): void {
+function assertQueryParameters (obj: any): void {
   if (!isObject(obj)) {
     // objects created with `Object.create(null)` do not have a constructor property
-    const constructor = obj.constructor ? ' ' + obj.constructor.name : ''
+    // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+    const constructor = obj.constructor != null ? ' ' + obj.constructor.name : ''
     throw new TypeError(
-      `Query parameters are expected to either be undefined/null or an object, given:${constructor} ${obj}`
+      `Query parameters are expected to either be undefined/null or an object, given:${constructor} ${JSON.stringify(obj)}`
     )
   }
 }
@@ -219,7 +220,7 @@ function assertQueryParameters(obj: any): void {
  * @param str The string
  * @returns {boolean} True if the supplied object is an string
  */
-function isString(str: any): str is string {
+function isString (str: any): str is string {
   return Object.prototype.toString.call(str) === '[object String]'
 }
 

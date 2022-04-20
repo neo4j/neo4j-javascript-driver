@@ -1,6 +1,6 @@
 import { objectToCypher, objectMemberBitIntToNumber } from './cypher-native-binders.js'
 
-function mapPlan(plan) {
+function mapPlan (plan) {
   return {
     operatorType: plan.operatorType,
     args: plan.arguments,
@@ -9,7 +9,7 @@ function mapPlan(plan) {
   }
 }
 
-function mapCounters(stats) {
+function mapCounters (stats) {
   return {
     ...stats._stats,
     systemUpdates: stats.systemUpdates(),
@@ -18,7 +18,7 @@ function mapCounters(stats) {
   }
 }
 
-function mapProfile(profile, child=false) {
+function mapProfile (profile, child = false) {
   const mapChild = (child) => mapProfile(child, true)
   const obj = {
     args: objectMemberBitIntToNumber(profile.arguments),
@@ -30,21 +30,21 @@ function mapProfile(profile, child=false) {
   }
 
   if (child) {
-    return { 
+    return {
       ...obj,
       pageCacheHitRatio: profile.pageCacheHitRatio !== undefined ? Number(profile.pageCacheHitRatio) : undefined,
       pageCacheHits: profile.pageCacheHits !== undefined ? Number(profile.pageCacheHits) : undefined,
       pageCacheMisses: profile.pageCacheMisses !== undefined ? Number(profile.pageCacheMisses) : undefined,
-      time: profile.time !== undefined ? Number(profile.time) : undefined,
+      time: profile.time !== undefined ? Number(profile.time) : undefined
     }
   }
   return obj
 }
 
-function mapNotification(notification) {
+function mapNotification (notification) {
   return {
     ...notification,
-    position: Object.keys(notification.position).length !== 0 ? notification.position : undefined,
+    position: Object.keys(notification.position).length !== 0 ? notification.position : undefined
   }
 }
 
@@ -58,7 +58,7 @@ export function nativeToTestkitSummary (summary) {
     },
     serverInfo: {
       agent: summary.server.agent,
-      protocolVersion: summary.server.protocolVersion.toFixed(1) 
+      protocolVersion: summary.server.protocolVersion.toFixed(1)
     },
     counters: mapCounters(summary.counters),
     plan: mapPlan(summary.plan),

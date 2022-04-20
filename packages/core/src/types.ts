@@ -20,7 +20,7 @@
 /**
  * @private
  */
-export type Query = string | String | { text: string; parameters?: any }
+export type Query = string | String | { text: string, parameters?: any }
 
 export type EncryptionLevel = 'ENCRYPTION_ON' | 'ENCRYPTION_OFF'
 
@@ -40,7 +40,7 @@ export type TrustStrategy =
   | 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
   | 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
 
-export type Parameters = { [key: string]: any }
+export interface Parameters { [key: string]: any }
 export interface AuthToken {
   scheme: string
   principal: string
@@ -75,7 +75,7 @@ export interface PeekableAsyncIterator<T, TReturn = any, TNext = undefined> exte
   /**
    * Returns the next element in the iteration without advancing the iterator.
    *
-   * @return {IteratorResult<T, TReturn} The next element in the iteration.
+   * @return {IteratorResult<T, TReturn>} The next element in the iteration.
    */
-  peek(): Promise<IteratorResult<T, TReturn>>
+  peek: () => Promise<IteratorResult<T, TReturn>>
 }

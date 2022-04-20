@@ -250,14 +250,14 @@ export default class RequestMessage {
    * @param {string} databaseContext.impersonatedUser The name of the user to impersonation when getting the routing table.
    * @return {RequestMessage} the ROUTE message.
    */
-   static routeV4x4 (routingContext = {}, bookmarks = [], databaseContext = {}) {
+  static routeV4x4 (routingContext = {}, bookmarks = [], databaseContext = {}) {
     const dbContext = {}
 
-    if ( databaseContext.databaseName ) {
+    if (databaseContext.databaseName) {
       dbContext.db = databaseContext.databaseName
     }
 
-    if ( databaseContext.impersonatedUser ) {
+    if (databaseContext.impersonatedUser) {
       dbContext.imp_user = databaseContext.impersonatedUser
     }
 

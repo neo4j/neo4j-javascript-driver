@@ -142,7 +142,6 @@ describe('#unit RawRoutingTable', () => {
         const result = RawRoutingTable.ofRecord(record)
         expect(result.db).toEqual(null)
       })
-
     })
   })
 

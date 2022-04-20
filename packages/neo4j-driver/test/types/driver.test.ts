@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import Driver, {
   AuthToken,
   Config,
@@ -38,13 +40,11 @@ const authToken: AuthToken = dummy
 const scheme: string = authToken.scheme
 const principal: string = authToken.principal
 const credentials: string = authToken.credentials
-const realm1: undefined = <undefined>authToken.realm
-const realm2: string = <string>authToken.realm
-const parameters1: undefined = <undefined>authToken.parameters
-const parameters2: { [key: string]: any } = <{ [key: string]: any }>(
-  authToken.parameters
-)
-const parameters3: Parameters = <Parameters>authToken.parameters
+const realm1: undefined = authToken.realm as undefined
+const realm2: string = authToken.realm as string
+const parameters1: undefined = authToken.parameters as undefined
+const parameters2: { [key: string]: any } = authToken.parameters as { [key: string]: any }
+const parameters3: Parameters = authToken.parameters as Parameters
 
 const encryptionLevel: EncryptionLevel = dummy
 const encryptionLevelStr: string = encryptionLevel
@@ -96,21 +96,22 @@ session1
       console.log(record)
     })
   })
-  .then(() => session1.close())
+  .then(async () => await session1.close())
+  .catch(error => console.error(error))
 
-const close: Promise<void> = driver.close()
+const close: Promise<void> = driver.close().catch(error => console.error(error))
 
 driver.verifyConnectivity().then((serverInfo: ServerInfo) => {
   console.log(serverInfo.address)
-})
+}).catch(error => console.error(error))
 
 driver.supportsMultiDb().then((supported: boolean) => {
-  console.log(`multi database is supported? => ${supported}`)
-})
+  console.log(`multi database is supported? => ${supported ? 'yes' : 'no'}`)
+}).catch(error => console.error(error))
 
 driver.supportsTransactionConfig().then((supported: boolean) => {
-  console.log(`transaction config is supported? => ${supported}`)
-})
+  console.log(`transaction config is supported? => ${supported ? 'yes' : 'no'}`)
+}).catch(error => console.error(error))
 
 const rxSession1: RxSession = driver.rxSession()
 const rxSession2: RxSession = driver.rxSession({ defaultAccessMode: READ })

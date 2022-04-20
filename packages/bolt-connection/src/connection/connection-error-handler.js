@@ -77,8 +77,8 @@ export default class ConnectionErrorHandler {
 }
 
 function isAutorizationExpiredError (error) {
-  return error && ( 
-      error.code === 'Neo.ClientError.Security.AuthorizationExpired' ||
+  return error && (
+    error.code === 'Neo.ClientError.Security.AuthorizationExpired' ||
       error.code === 'Neo.ClientError.Security.TokenExpired'
   )
 }

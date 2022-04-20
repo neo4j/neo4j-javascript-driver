@@ -38,7 +38,7 @@ function generateFieldLookup<
   Entries extends Dict = Dict,
   Key extends keyof Entries = keyof Entries,
   FieldLookup extends Dict<string, number> = Dict<string, number>
->(keys: Key[]): FieldLookup {
+> (keys: Key[]): FieldLookup {
   const lookup: Dict<string, number> = {}
   keys.forEach((name, idx) => {
     lookup[name as string] = idx
@@ -72,8 +72,8 @@ class Record<
 > {
   keys: Key[]
   length: number
-  private _fields: any[]
-  private _fieldLookup: FieldLookup
+  private readonly _fields: any[]
+  private readonly _fieldLookup: FieldLookup
 
   /**
    * Create a new record object.
@@ -85,7 +85,7 @@ class Record<
    *                            field names to values. If this is null, one will be
    *                            generated.
    */
-  constructor(keys: Key[], fields: any[], fieldLookup?: FieldLookup) {
+  constructor (keys: Key[], fields: any[], fieldLookup?: FieldLookup) {
     /**
      * Field keys, in the order the fields appear in the record.
      * @type {string[]}
@@ -97,7 +97,7 @@ class Record<
      */
     this.length = keys.length
     this._fields = fields
-    this._fieldLookup = fieldLookup || generateFieldLookup(keys)
+    this._fieldLookup = fieldLookup ?? generateFieldLookup(keys)
   }
 
   /**
@@ -108,7 +108,7 @@ class Record<
    * @param {function(value: Object, key: string, record: Record)} visitor the function to apply to each field.
    * @returns {void} Nothing
    */
-  forEach(visitor: Visitor<Entries, Key>): void {
+  forEach (visitor: Visitor<Entries, Key>): void {
     for (const [key, value] of this.entries()) {
       visitor(value, key as Key, this)
     }
@@ -141,7 +141,7 @@ class Record<
    * @generator
    * @returns {IterableIterator<Array>}
    */
-  *entries(): IterableIterator<[string, any]> {
+  * entries (): IterableIterator<[string, any]> {
     for (let i = 0; i < this.keys.length; i++) {
       yield [this.keys[i] as string, this._fields[i]]
     }
@@ -153,7 +153,7 @@ class Record<
    * @generator
    * @returns {IterableIterator<Object>}
    */
-  *values(): IterableIterator<Object> {
+  * values (): IterableIterator<Object> {
     for (let i = 0; i < this.keys.length; i++) {
       yield this._fields[i]
     }
@@ -165,7 +165,7 @@ class Record<
    * @generator
    * @returns {IterableIterator<Object>}
    */
-  *[Symbol.iterator](): IterableIterator<Object> {
+  * [Symbol.iterator] (): IterableIterator<Object> {
     for (let i = 0; i < this.keys.length; i++) {
       yield this._fields[i]
     }
@@ -176,7 +176,8 @@ class Record<
    *
    * @returns {Object}
    */
-  toObject(): Entries {
+  toObject (): Entries {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const obj: Entries = {} as Entries
 
     for (const [key, value] of this.entries()) {
@@ -187,7 +188,7 @@ class Record<
   }
 
   get<K extends Key>(key: K): Entries[K]
-  get(key: keyof FieldLookup | number): any
+  get (key: keyof FieldLookup | number): any
 
   /**
    * Get a value from this record, either by index or by field key.
@@ -195,16 +196,16 @@ class Record<
    * @param {string|Number} key Field key, or the index of the field.
    * @returns {*}
    */
-  get(key: string | number): any {
+  get (key: string | number): any {
     let index
     if (!(typeof key === 'number')) {
-      index = this._fieldLookup[key as string]
+      index = this._fieldLookup[key]
       if (index === undefined) {
         throw newError(
           "This record has no field with key '" +
             key +
             "', available key are: [" +
-            this.keys +
+            this.keys.toString() +
             '].'
         )
       }
@@ -215,7 +216,7 @@ class Record<
     if (index > this._fields.length - 1 || index < 0) {
       throw newError(
         "This record has no field with index '" +
-          index +
+          index.toString() +
           "'. Remember that indexes start at `0`, " +
           'and make sure your query returns records in the shape you meant it to.'
       )
@@ -230,7 +231,7 @@ class Record<
    * @param {string|Number} key Field key, or the index of the field.
    * @returns {boolean}
    */
-  has(key: Key | string | number): boolean {
+  has (key: Key | string | number): boolean {
     // if key is a number, we check if it is in the _fields array
     if (typeof key === 'number') {
       return key >= 0 && key < this._fields.length

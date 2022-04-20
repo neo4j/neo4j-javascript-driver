@@ -1,12 +1,12 @@
 import neo4j from './neo4j'
 import { cypherToNative } from './cypher-native-binders.js'
-import  * as responses from './responses.js'
+import * as responses from './responses.js'
 
-export function throwFrontendError() {
-  throw new Error("TestKit FrontendError")
+export function throwFrontendError () {
+  throw new Error('TestKit FrontendError')
 }
 
-export function isFrontendError(error) {
+export function isFrontendError (error) {
   return error.message === 'TestKit FrontendError'
 }
 
@@ -31,6 +31,7 @@ export function NewDriver (context, data, wire) {
       break
     case 'bearer':
       parsedAuthToken = neo4j.auth.bearer(authToken.credentials)
+      break
     default:
       parsedAuthToken = neo4j.auth.custom(
         authToken.principal,
@@ -42,10 +43,10 @@ export function NewDriver (context, data, wire) {
   }
   const resolver = resolverRegistered
     ? address =>
-      new Promise((resolve, reject) => {
-        const id = context.addResolverRequest(resolve, reject)
-        wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
-      })
+        new Promise((resolve, reject) => {
+          const id = context.addResolverRequest(resolve, reject)
+          wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
+        })
     : undefined
   const config = {
     userAgent,
@@ -159,7 +160,7 @@ export function SessionRun (context, data, wire) {
     return
   }
 
-  let id = context.addResult(result)
+  const id = context.addResult(result)
 
   wire.writeResponse(responses.Result({ id }))
 }
@@ -167,7 +168,7 @@ export function SessionRun (context, data, wire) {
 export function ResultNext (context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
-  if (!("recordIt" in result)) {
+  if (!('recordIt' in result)) {
     result.recordIt = result[Symbol.asyncIterator]()
   }
   return result.recordIt.next().then(({ value, done }) => {
@@ -179,13 +180,13 @@ export function ResultNext (context, data, wire) {
   }).catch(e => {
     console.log('got some err: ' + JSON.stringify(e))
     wire.writeError(e)
-  });
+  })
 }
 
 export function ResultPeek (context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
-  if (!("recordIt" in result)) {
+  if (!('recordIt' in result)) {
     result.recordIt = result[Symbol.asyncIterator]()
   }
   return result.recordIt.peek().then(({ value, done }) => {
@@ -197,7 +198,7 @@ export function ResultPeek (context, data, wire) {
   }).catch(e => {
     console.log('got some err: ' + JSON.stringify(e))
     wire.writeError(e)
-  });
+  })
 }
 
 export function ResultConsume (context, data, wire) {
@@ -231,7 +232,7 @@ export function SessionReadTransaction (context, data, wire) {
           const id = context.addTx(tx, sessionId, resolve, reject)
           wire.writeResponse(responses.RetryableTry({ id }))
         })
-    , { metadata })
+      , { metadata })
     .then(_ => wire.writeResponse(responses.RetryableDone()))
     .catch(error => wire.writeError(error))
 }
@@ -271,17 +272,16 @@ export function SessionBeginTransaction (context, data, wire) {
 
   try {
     return session.beginTransaction({ metadata, timeout })
-    .then(tx => {
-      const id = context.addTx(tx, sessionId)
-      wire.writeResponse(responses.Transaction({ id }))
-    }).catch(e => {
-      console.log('got some err: ' + JSON.stringify(e))
-      wire.writeError(e)
-    })
+      .then(tx => {
+        const id = context.addTx(tx, sessionId)
+        wire.writeResponse(responses.Transaction({ id }))
+      }).catch(e => {
+        console.log('got some err: ' + JSON.stringify(e))
+        wire.writeError(e)
+      })
   } catch (e) {
     console.log('got some err: ' + JSON.stringify(e))
     wire.writeError(e)
-    return
   }
 }
 
@@ -329,7 +329,7 @@ export function SessionWriteTransaction (context, data, wire) {
           const id = context.addTx(tx, sessionId, resolve, reject)
           wire.writeResponse(responses.RetryableTry({ id }))
         })
-    , { metadata })
+      , { metadata })
     .then(_ => wire.writeResponse(responses.RetryableDone()))
     .catch(error => wire.writeError(error))
 }
@@ -418,13 +418,13 @@ export function ForcedRoutingTableUpdate (context, { driverId, database, bookmar
   if (provider._freshRoutingTable) {
     // Removing database from the routing table registry
     provider._routingTableRegistry._remove(database)
-    return provider._freshRoutingTable ({
-        accessMode: 'READ',
-        database,
-        bookmarks: bookmarks,
-        onDatabaseNameResolved: () => {}
+    return provider._freshRoutingTable({
+      accessMode: 'READ',
+      database,
+      bookmarks: bookmarks,
+      onDatabaseNameResolved: () => {}
     })
-      .then(() => wire.writeResponse(responses.Driver({ "id": driverId })))
+      .then(() => wire.writeResponse(responses.Driver({ id: driverId })))
       .catch(error => wire.writeError(error))
   } else {
     wire.writeError('Driver does not support routing')

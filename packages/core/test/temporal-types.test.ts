@@ -80,12 +80,11 @@ describe('DateTime', () => {
 
       const standardDate = datetime.toStandardDate()
 
-
       expect(standardDate.getFullYear()).toEqual(datetime.year)
       expect(standardDate.getMonth()).toEqual(datetime.month - 1)
       expect(standardDate.getDate()).toEqual(datetime.day)
       const offsetInMinutes = offset(standardDate)
-      const offsetAdjust = offsetInMinutes - datetime.timeZoneOffsetSeconds!! / 60
+      const offsetAdjust = offsetInMinutes - (datetime.timeZoneOffsetSeconds ?? 0) / 60
       const hourDiff = Math.abs(offsetAdjust / 60)
       const minuteDiff = Math.abs(offsetAdjust % 60)
       expect(standardDate.getHours()).toBe(datetime.hour - hourDiff)
@@ -99,7 +98,6 @@ describe('DateTime', () => {
 
       expect(() => datetime.toStandardDate())
         .toThrow(new Error('Requires DateTime created with time zone offset'))
-
     })
 
     it('should be the reverse operation of fromStandardDate', () => {
@@ -121,6 +119,6 @@ describe('DateTime', () => {
  * this way using the most common meaning.
  * The time to add to UTC to get the local time.
  */
-function offset(date: StandardDate): number {
+function offset (date: StandardDate): number {
   return date.getTimezoneOffset() * -1
 }

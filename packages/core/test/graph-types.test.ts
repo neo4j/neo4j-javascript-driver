@@ -16,13 +16,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { 
+import {
   Node,
   isNode,
   Relationship,
   isRelationship,
   UnboundRelationship,
-  isUnboundRelationship,
+  isUnboundRelationship
 } from '../src/graph-types'
 
 import {
@@ -68,7 +68,7 @@ describe('Node', () => {
 
   test.each(validNodes())('should be serialized as string', node => {
     expect(node.toString()).toMatchSnapshot()
-  }) 
+  })
 
   test.each(validNodes())('should be consider a node', (node: any) => {
     expect(isNode(node)).toBe(true)
@@ -78,30 +78,30 @@ describe('Node', () => {
     expect(isNode(nonNode)).toBe(false)
   })
 
-  function validNodes(): any[] {
+  function validNodes (): any[] {
     return [
       [new Node(1, ['label'], {}, 'elementId')],
       [new Node(1, ['label'], {})],
       [new Node(1, [], {})],
       [new Node(BigInt(2), ['label'], {})],
       [new Node(int(3), ['label'], {})],
-      [new Node(1, [], { 'property': 'value' })],
-      [new Node(1, ['label'], { 'property': 'value' })],
+      [new Node(1, [], { property: 'value' })],
+      [new Node(1, ['label'], { property: 'value' })]
     ]
   }
 
-  function nonNodes(): any[] {
+  function nonNodes (): any[] {
     return [
       [undefined],
       [null],
-      [{ identity: 1, labels: ['label'], properties: { 'property': 'value' } }],
-      [{ identity: 1, labels: ['label'], properties: { 'property': 'value' }, elementId: 'elementId' }],
+      [{ identity: 1, labels: ['label'], properties: { property: 'value' } }],
+      [{ identity: 1, labels: ['label'], properties: { property: 'value' }, elementId: 'elementId' }],
       [{}],
-      [{ 'property': 'value' }],
-      [{ 'property': 'value', 'labels': ['label'] }],
-      [{ 'property': 'value', 'labels': ['label'], 'identity': 1 }],
-      [{ identity: BigInt(2), labels: ['label'], properties: { 'property': 'value' } }],
-      [{ identity: int(3), labels: ['label'], properties: { 'property': 'value' } }],
+      [{ property: 'value' }],
+      [{ property: 'value', labels: ['label'] }],
+      [{ property: 'value', labels: ['label'], identity: 1 }],
+      [{ identity: BigInt(2), labels: ['label'], properties: { property: 'value' } }],
+      [{ identity: int(3), labels: ['label'], properties: { property: 'value' } }]
     ]
   }
 })
@@ -132,9 +132,9 @@ describe('Relationship', () => {
   })
 
   test('should have properties', () => {
-    const relationship = new Relationship(1, 2, 3, 'Rel', { 'property': 'value' })
+    const relationship = new Relationship(1, 2, 3, 'Rel', { property: 'value' })
 
-    expect(relationship.properties).toEqual({ 'property': 'value' })
+    expect(relationship.properties).toEqual({ property: 'value' })
   })
 
   test('should have elementId', () => {
@@ -142,7 +142,7 @@ describe('Relationship', () => {
 
     expect(relationship.elementId).toEqual('elementId')
   })
-  
+
   test.each(
     validIdentityAndExpectedElementIds()
   )('should default elementId to indentity when it is not set', (identity, expected) => {
@@ -181,7 +181,7 @@ describe('Relationship', () => {
 
   test.each(validRelationships())('should be serialized as string', relationship => {
     expect(relationship.toString()).toMatchSnapshot()
-  }) 
+  })
 
   test.each(validRelationships())('should be consider a relationship', relationship => {
     expect(isRelationship(relationship)).toBe(true)
@@ -197,9 +197,9 @@ describe('Relationship', () => {
       [new Relationship(1, 2, 3, 'Rel', {}, 'elementId', 'startNodeElementId')],
       [new Relationship(1, 2, 3, 'Rel', {}, 'elementId')],
       [new Relationship(1, 2, 3, 'Rel', {})],
-      [new Relationship(1, 2, 3, 'Rel', { 'property': 'value' })],
+      [new Relationship(1, 2, 3, 'Rel', { property: 'value' })],
       [new Relationship(BigInt(4), BigInt(5), BigInt(6), 'Rel', {})],
-      [new Relationship(int(6), int(7), int(8), 'Rel', {})],
+      [new Relationship(int(6), int(7), int(8), 'Rel', {})]
     ]
   }
 
@@ -209,20 +209,32 @@ describe('Relationship', () => {
       [null],
       ['Relationship'],
       [{}],
-      [{ 'property': 'value' }],
+      [{ property: 'value' }],
       [{
-        identity: 1, start: 2, end: 3, type: 'Rel',
-        properties: { 'property': 'value' }
+        identity: 1,
+        start: 2,
+        end: 3,
+        type: 'Rel',
+        properties: { property: 'value' }
       }],
       [{
-        identity: 1, start: 2, end: 3, type: 'Rel',
-        properties: { 'property': 'value' }, elementId: 'elementId'
+        identity: 1,
+        start: 2,
+        end: 3,
+        type: 'Rel',
+        properties: { property: 'value' },
+        elementId: 'elementId'
       }],
       [{
-        identity: 1, start: 2, end: 3, type: 'Rel',
-        properties: { 'property': 'value' }, elementId: 'elementId',
-        startNodeElementId: 'startNodeElementId', endNodeElementId: 'endNodeElementId'
-      }],
+        identity: 1,
+        start: 2,
+        end: 3,
+        type: 'Rel',
+        properties: { property: 'value' },
+        elementId: 'elementId',
+        startNodeElementId: 'startNodeElementId',
+        endNodeElementId: 'endNodeElementId'
+      }]
     ]
   }
 })
@@ -241,14 +253,14 @@ describe('UnboundRelationship', () => {
   })
 
   test('should have properties', () => {
-    const relationship = new UnboundRelationship(1, 'Rel', { 'property': 'value' })
+    const relationship = new UnboundRelationship(1, 'Rel', { property: 'value' })
 
-    expect(relationship.properties).toEqual({ 'property': 'value' })
+    expect(relationship.properties).toEqual({ property: 'value' })
   })
 
   test.each(validUnboundRelationships())('should be serialized as string', relationship => {
     expect(relationship.toString()).toMatchSnapshot()
-  }) 
+  })
 
   test.each(validUnboundRelationships())('should be consider a unbound relationship', relationship => {
     expect(isUnboundRelationship(relationship)).toBe(true)
@@ -256,7 +268,7 @@ describe('UnboundRelationship', () => {
 
   test.each(
     nonUnboundRelationships()
-    )('should not consider a non-unbound relationship object as unbound relationship', nonUnboundRelationship => {
+  )('should not consider a non-unbound relationship object as unbound relationship', nonUnboundRelationship => {
     expect(isUnboundRelationship(nonUnboundRelationship)).toBe(false)
   })
 
@@ -266,11 +278,11 @@ describe('UnboundRelationship', () => {
     expect(rel.bind(startNode.identity, endNode.identity))
       .toEqual(
         new Relationship(
-          rel.identity, 
-          startNode.identity, 
-          endNode.identity, 
-          rel.type, 
-          rel.properties, 
+          rel.identity,
+          startNode.identity,
+          endNode.identity,
+          rel.type,
+          rel.properties,
           rel.elementId
         )
       )
@@ -282,11 +294,11 @@ describe('UnboundRelationship', () => {
     expect(rel.bindTo(startNode, endNode))
       .toEqual(
         new Relationship(
-          rel.identity, 
-          startNode.identity, 
-          endNode.identity, 
-          rel.type, 
-          rel.properties, 
+          rel.identity,
+          startNode.identity,
+          endNode.identity,
+          rel.type,
+          rel.properties,
           rel.elementId,
           startNode.elementId,
           endNode.elementId
@@ -298,9 +310,9 @@ describe('UnboundRelationship', () => {
     return [
       [new UnboundRelationship(1, 'Rel', {}, 'elementId')],
       [new UnboundRelationship(1, 'Rel', {})],
-      [new UnboundRelationship(1, 'Rel', { 'property': 'value' })],
-      [new UnboundRelationship(BigInt(2), 'Rel', { 'property': 'value' })],
-      [new UnboundRelationship(int(3), 'Rel', { 'property': 'value' })],
+      [new UnboundRelationship(1, 'Rel', { property: 'value' })],
+      [new UnboundRelationship(BigInt(2), 'Rel', { property: 'value' })],
+      [new UnboundRelationship(int(3), 'Rel', { property: 'value' })]
     ]
   }
 
@@ -310,25 +322,28 @@ describe('UnboundRelationship', () => {
       [null],
       ['Relationship'],
       [{}],
-      [{ 'property': 'value' }],
+      [{ property: 'value' }],
       [{
-        identity: 1, type: 'Rel',
-        properties: { 'property': 'value' }
+        identity: 1,
+        type: 'Rel',
+        properties: { property: 'value' }
       }],
       [{
-        identity: 1, type: 'Rel',
-        properties: { 'property': 'value' }, elementId: 'elementId'
+        identity: 1,
+        type: 'Rel',
+        properties: { property: 'value' },
+        elementId: 'elementId'
       }]
     ]
   }
 
-  function bindUnboundRelationshipFixture (): any[]  {
+  function bindUnboundRelationshipFixture (): any[] {
     return [
       [new UnboundRelationship(0, 'Rel', {}), new Node(1, ['Node'], {}), new Node(2, ['Node'], {})],
       [new UnboundRelationship(0, 'Rel', {}, 'elementId'), new Node(1, ['Node'], {}), new Node(2, ['Node'], {})],
       [new UnboundRelationship(0, 'Rel', {}), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {})],
       [new UnboundRelationship(0, 'Rel', {}), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {}), 'nodeElementId2'],
-      [new UnboundRelationship(0, 'Rel', {}, 'elementId'), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {}), 'nodeElementId2'],
+      [new UnboundRelationship(0, 'Rel', {}, 'elementId'), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {}), 'nodeElementId2']
     ]
   }
 })
@@ -337,6 +352,6 @@ function validIdentityAndExpectedElementIds (): any[] {
   return [
     [10, '10'],
     [int(12), '12'],
-    [BigInt(32), '32'],
+    [BigInt(32), '32']
   ]
 }

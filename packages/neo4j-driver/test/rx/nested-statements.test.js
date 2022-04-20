@@ -28,6 +28,7 @@ import {
   catchError
 } from 'rxjs/operators'
 import neo4j from '../../src'
+// eslint-disable-next-line no-unused-vars
 import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 

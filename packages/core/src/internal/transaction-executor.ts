@@ -16,11 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable @typescript-eslint/promise-function-async */
 
 import { newError, isRetriableError } from '../error'
 import Transaction from '../transaction'
 import TransactionPromise from '../transaction-promise'
-
 
 const DEFAULT_MAX_RETRY_TIME_MS = 30 * 1000 // 30 seconds
 const DEFAULT_INITIAL_RETRY_DELAY_MS = 1000 // 1 seconds
@@ -34,13 +34,13 @@ type Reject = (value: any) => void
 type Timeout = ReturnType<typeof setTimeout>
 
 export class TransactionExecutor {
-  private _maxRetryTimeMs: number
-  private _initialRetryDelayMs: number
-  private _multiplier: number
-  private _jitterFactor: number
+  private readonly _maxRetryTimeMs: number
+  private readonly _initialRetryDelayMs: number
+  private readonly _multiplier: number
+  private readonly _jitterFactor: number
   private _inFlightTimeoutIds: Timeout[]
 
-  constructor(
+  constructor (
     maxRetryTimeMs?: number | null,
     initialRetryDelayMs?: number,
     multiplier?: number,
@@ -80,7 +80,7 @@ export class TransactionExecutor {
         resolve,
         reject,
         transactionWrapper
-      )
+      ).catch(reject)
     }).catch(error => {
       const retryStartTimeMs = Date.now()
       const retryDelayMs = this._initialRetryDelayMs
@@ -95,7 +95,7 @@ export class TransactionExecutor {
     })
   }
 
-  close() {
+  close (): void {
     // cancel all existing timeouts to prevent further retries
     this._inFlightTimeoutIds.forEach(timeoutId => clearTimeout(timeoutId))
     this._inFlightTimeoutIds = []
@@ -128,7 +128,7 @@ export class TransactionExecutor {
           resolve,
           reject,
           transactionWrapper
-        )
+        ).catch(reject)
       }, nextRetryTime)
       // add newly created timeoutId to the list of all in-flight timeouts
       this._inFlightTimeoutIds.push(timeoutId)
@@ -150,7 +150,7 @@ export class TransactionExecutor {
     transactionWork: TransactionWork<T, Tx>,
     resolve: Resolve<T>,
     reject: Reject,
-    transactionWrapper?: (tx: Transaction) => Tx,
+    transactionWrapper?: (tx: Transaction) => Tx
   ): Promise<void> {
     let tx: Transaction
     try {
@@ -164,7 +164,7 @@ export class TransactionExecutor {
     // The conversion from `tx` as `unknown` then to `Tx` is necessary
     // because it is not possible to be sure that `Tx` is a subtype of `Transaction`
     // in using static type checking.
-    const wrap = transactionWrapper || ((tx: Transaction) => tx as unknown as Tx)
+    const wrap = transactionWrapper ?? ((tx: Transaction) => tx as unknown as Tx)
     const wrappedTx = wrap(tx)
     const resultPromise = this._safeExecuteTransactionWork(wrappedTx, transactionWork)
 
@@ -195,7 +195,7 @@ export class TransactionExecutor {
     tx: Transaction,
     resolve: Resolve<T>,
     reject: Reject
-  ) {
+  ): void {
     if (tx.isOpen()) {
       // transaction work returned resolved promise and transaction has not been committed/rolled back
       // try to commit the transaction
@@ -215,7 +215,7 @@ export class TransactionExecutor {
     }
   }
 
-  _handleTransactionWorkFailure(error: any, tx: Transaction, reject: Reject) {
+  _handleTransactionWorkFailure (error: any, tx: Transaction, reject: Reject): void {
     if (tx.isOpen()) {
       // transaction work failed and the transaction is still open, roll it back and propagate the failure
       tx.rollback()
@@ -223,44 +223,45 @@ export class TransactionExecutor {
           // ignore the rollback error
         })
         .then(() => reject(error)) // propagate the original error we got from the transaction work
+        .catch(reject)
     } else {
       // transaction is already rolled back, propagate the error
       reject(error)
     }
   }
 
-  _computeDelayWithJitter(delayMs: number): number {
+  _computeDelayWithJitter (delayMs: number): number {
     const jitter = delayMs * this._jitterFactor
     const min = delayMs - jitter
     const max = delayMs + jitter
     return Math.random() * (max - min) + min
   }
 
-  _verifyAfterConstruction() {
+  _verifyAfterConstruction (): void {
     if (this._maxRetryTimeMs < 0) {
-      throw newError('Max retry time should be >= 0: ' + this._maxRetryTimeMs)
+      throw newError('Max retry time should be >= 0: ' + this._maxRetryTimeMs.toString())
     }
     if (this._initialRetryDelayMs < 0) {
       throw newError(
-        'Initial retry delay should >= 0: ' + this._initialRetryDelayMs
+        'Initial retry delay should >= 0: ' + this._initialRetryDelayMs.toString()
       )
     }
     if (this._multiplier < 1.0) {
-      throw newError('Multiplier should be >= 1.0: ' + this._multiplier)
+      throw newError('Multiplier should be >= 1.0: ' + this._multiplier.toString())
     }
     if (this._jitterFactor < 0 || this._jitterFactor > 1) {
       throw newError(
-        'Jitter factor should be in [0.0, 1.0]: ' + this._jitterFactor
+        'Jitter factor should be in [0.0, 1.0]: ' + this._jitterFactor.toFixed()
       )
     }
   }
 }
 
-function _valueOrDefault(
+function _valueOrDefault (
   value: number | undefined | null,
   defaultValue: number
 ): number {
-  if (value || value === 0) {
+  if (value != null) {
     return value
   }
   return defaultValue

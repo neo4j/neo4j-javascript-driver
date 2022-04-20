@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import RxResult from '../../types/result-rx'
 
 const dummy: any = null
@@ -24,23 +26,29 @@ const dummy: any = null
 const res: RxResult = dummy
 
 const pushed: Promise<void> = res.push()
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 const paused: void = res.pause()
 const resumed: Promise<void> = res.resume()
 
 res.keys().subscribe({
-  next: value => console.log(`keys: ${value}`),
+  next: value => console.log(`keys: ${value.reduce((acc, curr) => acc + ', ' + curr, '')}`),
   complete: () => console.log('keys complete'),
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   error: error => console.log(`keys error: ${error}`)
 })
 
 res.records().subscribe({
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions,@typescript-eslint/no-base-to-string
   next: value => console.log(`record: ${value}`),
   complete: () => console.log('records complete'),
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   error: error => console.log(`records error: ${error}`)
 })
 
 res.consume().subscribe({
-  next: value => console.log(`summary: ${value}`),
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  next: value => console.log(`summary: ${value.toString()}`),
   complete: () => console.log('summary complete'),
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   error: error => console.log(`summary error: ${error}`)
 })

@@ -1,4 +1,4 @@
-import skip, { ifEquals, ifEndsWith, ifStartsWith } from './skip'
+import skip, { ifEquals, ifEndsWith } from './skip'
 
 const skippedTests = [
   skip(
@@ -43,11 +43,11 @@ const skippedTests = [
     'Partial session iteration is not supported by the js driver',
     ifEquals('neo4j.test_session_run.TestSessionRun.test_partial_iteration'),
     ifEquals('neo4j.test_session_run.TestSessionRun.test_session_reuse'),
-    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_nested'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_nested')
   ),
   skip(
     'Nested calls does not garauntee order in the records pulling',
-    ifEquals('stub.iteration.test_iteration_tx_run.TestIterationTxRun.test_nested'),
+    ifEquals('stub.iteration.test_iteration_tx_run.TestIterationTxRun.test_nested')
   ),
   skip(
     'The driver has no support domain_name_resolver',
@@ -102,7 +102,7 @@ const skippedTests = [
   skip(
     'Needs to implement "domain_name_resolver_fn"',
     ifEndsWith(
-      'test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure',
+      'test_should_request_rt_from_all_initial_routers_until_successful_on_unknown_failure'
     ),
     ifEndsWith(
       'test_should_request_rt_from_all_initial_routers_until_successful_on_authorization_expired'

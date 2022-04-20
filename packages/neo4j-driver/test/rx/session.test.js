@@ -244,11 +244,11 @@ describe('#integration rx-session', () => {
       if (protocolVersion < 4.0) {
         return
       }
-  
+
       const txcWork = new ConfigurableTransactionWork({
         query: 'CREATE (:WithoutRetry) RETURN 5'
       })
-  
+
       const result = await session
         .executeWrite(txc => txcWork.work(txc))
         .pipe(materialize(), toArray())
@@ -257,11 +257,10 @@ describe('#integration rx-session', () => {
         Notification.createNext(5),
         Notification.createComplete()
       ])
-  
+
       expect(txcWork.invocations).toBe(1)
       expect(await countNodes('WithoutRetry')).toBe(1)
     }, 60000)
-
 
     it('should run transaction with retries on reactive failures', async () => {
       if (protocolVersion < 4.0) {

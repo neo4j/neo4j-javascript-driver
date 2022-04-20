@@ -214,7 +214,7 @@ export type {
   NotificationPosition,
   QueryResult,
   ResultObserver,
-  TransactionConfig,
-};
+  TransactionConfig
+}
 
 export default forExport

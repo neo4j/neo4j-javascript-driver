@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable @typescript-eslint/promise-function-async */
 
 import { ServerAddress } from './internal/server-address'
 
@@ -25,28 +26,28 @@ import { ServerAddress } from './internal/server-address'
  */
 class Connection {
   get id (): string {
-    return ""
+    return ''
   }
 
-  get databaseId(): string {
-    return ""
+  get databaseId (): string {
+    return ''
   }
 
-  get server(): any {
+  get server (): any {
     return {}
   }
 
   /**
    * @property {ServerAddress} the server address this connection is opened against
    */
-  get address(): ServerAddress | undefined {
+  get address (): ServerAddress | undefined {
     return undefined
   }
 
   /**
    * @property {ServerVersion} the version of the server this connection is connected to
    */
-  get version(): any {
+  get version (): any {
     return undefined
   }
 

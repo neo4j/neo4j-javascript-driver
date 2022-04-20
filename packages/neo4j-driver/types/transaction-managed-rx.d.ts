@@ -16,12 +16,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- import { Parameters } from './query-runner'
- import RxResult from './result-rx'
- 
- declare interface RxManagedTransaction {
-   run(query: string, parameters?: Parameters): RxResult
- }
- 
- export default RxManagedTransaction
- 
+import { Parameters } from './query-runner'
+import RxResult from './result-rx'
+
+declare interface RxManagedTransaction {
+  run: (query: string, parameters?: Parameters) => RxResult
+}
+
+export default RxManagedTransaction

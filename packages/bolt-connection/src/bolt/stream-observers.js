@@ -16,17 +16,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError, error, Integer, Record, json, internal } from 'neo4j-driver-core'
+import {
+  newError,
+  error,
+  // eslint-disable-next-line no-unused-vars
+  Integer,
+  Record,
+  json,
+  internal
+} from 'neo4j-driver-core'
 import RawRoutingTable from './routing-table-raw'
 
 const {
-  constants: { FETCH_ALL },
+  constants: { FETCH_ALL }
 } = internal
 const { PROTOCOL_ERROR } = error
 class StreamObserver {
   onNext (rawRecord) {}
 
-  onError (error) {}
+  onError (_error) {}
 
   onCompleted (meta) {}
 }
@@ -100,7 +108,7 @@ class ResultStreamObserver extends StreamObserver {
     this._highRecordWatermark = highRecordWatermark
     this._setState(reactive ? _states.READY : _states.READY_STREAMING)
     this._setupAutoPull()
-    this._paused = false;
+    this._paused = false
   }
 
   /**
@@ -643,7 +651,7 @@ const _states = {
     pull: () => {}
   },
   FAILED: {
-    onError: error => {
+    onError: _error => {
       // more errors are ignored
     },
     name: () => {

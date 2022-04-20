@@ -20,15 +20,13 @@
 import neo4j from '../../../src'
 import { READ, WRITE } from '../../../src/driver'
 import boltStub from '../bolt-stub'
-import RoutingTable from '../../../../bolt-connection/lib/rediscovery/routing-table'
 import { error, internal } from 'neo4j-driver-core'
-import lolex from 'lolex'
 
 const {
   serverAddress: { ServerAddress }
 } = internal
 
-const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
+const { SESSION_EXPIRED } = error
 
 describe('#stub-routing routing driver with stub server', () => {
   it('should discover IPv6 servers', async () => {

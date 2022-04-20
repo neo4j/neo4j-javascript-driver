@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* eslint-disable @typescript-eslint/promise-function-async */
 import { validateQueryAndParameters } from './internal/util'
 import Connection from './connection'
 import {
@@ -42,19 +44,19 @@ import { Query } from './types'
  * @access public
  */
 class Transaction {
-  private _connectionHolder: ConnectionHolder
-  private _reactive: boolean
+  private readonly _connectionHolder: ConnectionHolder
+  private readonly _reactive: boolean
   private _state: any
-  private _onClose: () => void
-  private _onBookmarks: (bookmarks: Bookmarks) => void
-  private _onConnection: () => void
-  private _onError: (error: Error) => Promise<Connection | void>
-  private _onComplete: (metadata: any) => void
-  private _fetchSize: number
-  private _results: any[]
-  private _impersonatedUser?: string
-  private _lowRecordWatermak: number
-  private _highRecordWatermark: number
+  private readonly _onClose: () => void
+  private readonly _onBookmarks: (bookmarks: Bookmarks) => void
+  private readonly _onConnection: () => void
+  private readonly _onError: (error: Error) => Promise<Connection | null>
+  private readonly _onComplete: (metadata: any) => void
+  private readonly _fetchSize: number
+  private readonly _results: any[]
+  private readonly _impersonatedUser?: string
+  private readonly _lowRecordWatermak: number
+  private readonly _highRecordWatermark: number
 
   /**
    * @constructor
@@ -69,7 +71,7 @@ class Transaction {
    * @param {number} highRecordWatermark - The high watermark for the record buffer.
    * @param {number} lowRecordWatermark - The low watermark for the record buffer.
    */
-  constructor({
+  constructor ({
     connectionHolder,
     onClose,
     onBookmarks,
@@ -86,8 +88,8 @@ class Transaction {
     onConnection: () => void
     reactive: boolean
     fetchSize: number
-    impersonatedUser?: string,
-    highRecordWatermark: number,
+    impersonatedUser?: string
+    highRecordWatermark: number
     lowRecordWatermark: number
   }) {
     this._connectionHolder = connectionHolder
@@ -111,7 +113,7 @@ class Transaction {
    * @param {TxConfig} txConfig
    * @returns {void}
    */
-  _begin(bookmarks: Bookmarks | string | string[], txConfig: TxConfig, events?: {
+  _begin (bookmarks: Bookmarks | string | string[], txConfig: TxConfig, events?: {
     onError: (error: Error) => void
     onComplete: (metadata: any) => void
   }): void {
@@ -119,7 +121,7 @@ class Transaction {
       .getConnection()
       .then(connection => {
         this._onConnection()
-        if (connection) {
+        if (connection != null) {
           return connection.protocol().beginTransaction({
             bookmarks: bookmarks,
             txConfig: txConfig,
@@ -127,13 +129,13 @@ class Transaction {
             database: this._connectionHolder.database(),
             impersonatedUser: this._impersonatedUser,
             beforeError: (error: Error) => {
-              if (events) {
+              if (events != null) {
                 events.onError(error)
               }
-              return this._onError(error).catch(() => {})
+              return this._onError(error)
             },
             afterComplete: (metadata: any) => {
-              if (events) {
+              if (events != null) {
                 events.onComplete(metadata)
               }
               return this._onComplete(metadata)
@@ -143,8 +145,8 @@ class Transaction {
           throw newError('No connection available')
         }
       })
-      .catch(error => { 
-        if (events) {
+      .catch(error => {
+        if (events != null) {
           events.onError(error)
         }
         this._onError(error).catch(() => {})
@@ -159,13 +161,13 @@ class Transaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run(query: Query, parameters?: any): Result {
+  run (query: Query, parameters?: any): Result {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters
     )
 
-    var result = this._state.run(validatedQuery, params, {
+    const result = this._state.run(validatedQuery, params, {
       connectionHolder: this._connectionHolder,
       onError: this._onError,
       onComplete: this._onComplete,
@@ -186,7 +188,7 @@ class Transaction {
    *
    * @returns {Promise<void>} An empty promise if committed successfully or error if any error happened during commit.
    */
-  commit(): Promise<void> {
+  commit (): Promise<void> {
     const committed = this._state.commit({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
@@ -213,7 +215,7 @@ class Transaction {
    * @returns {Promise<void>} An empty promise if rolled back successfully or error if any error happened during
    * rollback.
    */
-  rollback(): Promise<void> {
+  rollback (): Promise<void> {
     const rolledback = this._state.rollback({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
@@ -236,7 +238,7 @@ class Transaction {
    * Check if this transaction is active, which means commit and rollback did not happen.
    * @return {boolean} `true` when not committed and not rolled back, `false` otherwise.
    */
-  isOpen(): boolean {
+  isOpen (): boolean {
     return this._state === _states.ACTIVE
   }
 
@@ -247,13 +249,13 @@ class Transaction {
    *
    * @returns {Promise<void>} An empty promise if closed successfully or error if any error happened during
    */
-  async close(): Promise<void> {
+  async close (): Promise<void> {
     if (this.isOpen()) {
       await this.rollback()
     }
   }
 
-  _onErrorCallback(err: any): Promise<Connection | void> {
+  _onErrorCallback (): Promise<Connection | null> {
     // error will be "acknowledged" by sending a RESET message
     // database will then forget about this transaction and cleanup all corresponding resources
     // it is thus safe to move this transaction to a FAILED state and disallow any further interactions with it
@@ -269,7 +271,7 @@ class Transaction {
    * @param {object} meta The meta with bookmarks
    * @returns {void}
    */
-  _onCompleteCallback(meta: { bookmark?: string | string[] }): void {
+  _onCompleteCallback (meta: { bookmark?: string | string[] }): void {
     this._onBookmarks(new Bookmarks(meta.bookmark))
   }
 }
@@ -351,7 +353,7 @@ const _states = {
         .getConnection()
         .then(conn => {
           onConnection()
-          if (conn) {
+          if (conn != null) {
             return conn.protocol().run(query, parameters, {
               bookmarks: Bookmarks.empty(),
               txConfig: TxConfig.empty(),
@@ -436,8 +438,8 @@ const _states = {
         query,
         parameters,
         connectionHolder,
-          0, // high watermark
-          0 // low watermark
+        0, // high watermark
+        0 // low watermark
       )
     }
   },
@@ -587,7 +589,7 @@ const _states = {
  * @param {function() : any} onConnection
  * @param {list<Result>>}pendingResults all run results in this transaction
  */
-function finishTransaction(
+function finishTransaction (
   commit: boolean,
   connectionHolder: ConnectionHolder,
   onError: (err: Error) => any,
@@ -601,7 +603,7 @@ function finishTransaction(
       onConnection()
       pendingResults.forEach(r => r._cancel())
       return Promise.all(pendingResults.map(result => result.summary())).then(results => {
-        if (connection) {
+        if (connection != null) {
           if (commit) {
             return connection.protocol().commitTransaction({
               beforeError: onError,
@@ -630,7 +632,7 @@ function finishTransaction(
     {
       high: Number.MAX_VALUE,
       low: Number.MAX_VALUE
-    },
+    }
   )
 }
 
@@ -645,7 +647,7 @@ function finishTransaction(
  * @return {Result} new result.
  * @private
  */
-function newCompletedResult(
+function newCompletedResult (
   observerPromise: ResultStreamObserver | Promise<ResultStreamObserver>,
   query: Query,
   parameters: any,
@@ -657,7 +659,7 @@ function newCompletedResult(
     Promise.resolve(observerPromise),
     query,
     parameters,
-    new ReadOnlyConnectionHolder(connectionHolder || EMPTY_CONNECTION_HOLDER),
+    new ReadOnlyConnectionHolder(connectionHolder ?? EMPTY_CONNECTION_HOLDER),
     {
       low: lowRecordWatermark,
       high: highRecordWatermark

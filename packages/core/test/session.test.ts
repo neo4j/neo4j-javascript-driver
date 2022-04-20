@@ -27,7 +27,7 @@ describe('session', () => {
     const connection = newFakeConnection()
     const session = newSessionWithConnection(connection)
 
-    session.close().then(() => done())
+    session.close().then(() => done()).catch(done)
   }, 70000)
 
   it('close should return promise even when already closed ', done => {
@@ -38,9 +38,9 @@ describe('session', () => {
       session.close().then(() => {
         session.close().then(() => {
           done()
-        })
-      })
-    })
+        }).catch(done)
+      }).catch(done)
+    }).catch(done)
   }, 70000)
 
   it('run should send watermarks to Result when fetchsize if defined', async () => {
@@ -48,14 +48,14 @@ describe('session', () => {
     const session = newSessionWithConnection(connection, false, 1000)
 
     const result = session.run('RETURN 1')
-    await result;
+    await result
 
     expect(connection.seenProtocolOptions[0]).toMatchObject({
       fetchSize: 1000,
       lowRecordWatermark: 300,
       highRecordWatermark: 700
     })
-    // @ts-ignore
+    // @ts-expect-error
     expect(result._watermarks).toEqual({ high: 700, low: 300 })
   })
 
@@ -64,7 +64,7 @@ describe('session', () => {
     const session = newSessionWithConnection(connection, false, FETCH_ALL)
 
     const result = session.run('RETURN 1')
-    await result;
+    await result
 
     expect(connection.seenProtocolOptions[0]).toMatchObject({
       fetchSize: FETCH_ALL,
@@ -72,7 +72,7 @@ describe('session', () => {
       highRecordWatermark: Number.MAX_VALUE
     })
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(result._watermarks).toEqual({ high: Number.MAX_VALUE, low: Number.MAX_VALUE })
   })
 
@@ -82,9 +82,9 @@ describe('session', () => {
 
     const tx = session.beginTransaction()
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(tx._lowRecordWatermak).toEqual(300)
-    // @ts-ignore
+    // @ts-expect-error
     expect(tx._highRecordWatermark).toEqual(700)
   })
 
@@ -92,12 +92,11 @@ describe('session', () => {
     const connection = newFakeConnection()
     const session = newSessionWithConnection(connection, false, FETCH_ALL)
 
-
     const tx = session.beginTransaction()
 
-    // @ts-ignore
+    // @ts-expect-error
     expect(tx._lowRecordWatermak).toEqual(Number.MAX_VALUE)
-    // @ts-ignore
+    // @ts-expect-error
     expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
   })
 
@@ -107,9 +106,9 @@ describe('session', () => {
     const status = { functionCalled: false }
 
     await session.writeTransaction(tx => {
-      // @ts-ignore
+      // @ts-expect-error
       expect(tx._lowRecordWatermak).toEqual(300)
-      // @ts-ignore
+      // @ts-expect-error
       expect(tx._highRecordWatermark).toEqual(700)
 
       status.functionCalled = true
@@ -124,9 +123,9 @@ describe('session', () => {
     const status = { functionCalled: false }
 
     await session.writeTransaction(tx => {
-      // @ts-ignore
+      // @ts-expect-error
       expect(tx._lowRecordWatermak).toEqual(Number.MAX_VALUE)
-      // @ts-ignore
+      // @ts-expect-error
       expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
 
       status.functionCalled = true
@@ -141,9 +140,9 @@ describe('session', () => {
     const status = { functionCalled: false }
 
     await session.readTransaction(tx => {
-      // @ts-ignore
+      // @ts-expect-error
       expect(tx._lowRecordWatermak).toEqual(300)
-      // @ts-ignore
+      // @ts-expect-error
       expect(tx._highRecordWatermark).toEqual(700)
 
       status.functionCalled = true
@@ -158,9 +157,9 @@ describe('session', () => {
     const status = { functionCalled: false }
 
     await session.readTransaction(tx => {
-      // @ts-ignore
+      // @ts-expect-error
       expect(tx._lowRecordWatermak).toEqual(Number.MAX_VALUE)
-      // @ts-ignore
+      // @ts-expect-error
       expect(tx._highRecordWatermark).toEqual(Number.MAX_VALUE)
 
       status.functionCalled = true
@@ -182,16 +181,16 @@ describe('session', () => {
         session.close().then(() => {
           expect(connection.isReleasedOnce()).toBeTruthy()
           done()
-        })
-      })
-    })
+        }).catch(done)
+      }).catch(done)
+    }).catch(done)
   }, 70000)
 
   it('should close transaction executor', done => {
     const session = newSessionWithConnection(newFakeConnection())
 
     let closeCalledTimes = 0
-    // @ts-ignore
+    // @ts-expect-error
     const transactionExecutor = session._transactionExecutor
     const originalClose = transactionExecutor.close
     transactionExecutor.close = () => {
@@ -202,14 +201,14 @@ describe('session', () => {
     session.close().then(() => {
       expect(closeCalledTimes).toEqual(1)
       done()
-    })
+    }).catch(done)
   }, 70000)
 
   it('should call cancel current result', done => {
     const session = newSessionWithConnection(newFakeConnection())
 
     const result = session.run('RETURN 1')
-    const spiedCancel =  jest.spyOn(result, '_cancel')
+    const spiedCancel = jest.spyOn(result, '_cancel')
 
     session.close()
       .finally(() => {
@@ -283,7 +282,7 @@ describe('session', () => {
 
   describe.each([
     ['.executeWrite()', (session: Session) => session.executeWrite.bind(session)],
-    ['.executeRead()', (session: Session) => session.executeRead.bind(session)],
+    ['.executeRead()', (session: Session) => session.executeRead.bind(session)]
   ])('%s', (_, execute) => {
     it('should call executor with ManagedTransaction', async () => {
       const connection = mockBeginWithSuccess(newFakeConnection())
@@ -303,8 +302,8 @@ describe('session', () => {
     it('should proxy run to the begun transaction', async () => {
       const connection = mockBeginWithSuccess(newFakeConnection())
       const session = newSessionWithConnection(connection, false, FETCH_ALL)
-      // @ts-ignore
-      const run = jest.spyOn(Transaction.prototype, 'run').mockImplementation(() => Promise.resolve())
+      // @ts-expect-error
+      const run = jest.spyOn(Transaction.prototype, 'run').mockImplementation(async () => await Promise.resolve())
       const status = { functionCalled: false }
       const query = 'RETURN $a'
       const params = { a: 1 }
@@ -320,13 +319,12 @@ describe('session', () => {
   })
 })
 
-function mockBeginWithSuccess(connection: FakeConnection) {
+function mockBeginWithSuccess (connection: FakeConnection): FakeConnection {
   const protocol = connection.protocol()
-  // @ts-ignore
   connection.protocol = () => {
     return {
       ...protocol,
-      beginTransaction: (params: { afterComplete: () => {}} ) => {
+      beginTransaction: (params: { afterComplete: () => {}}) => {
         params.afterComplete()
       }
     }
@@ -334,21 +332,20 @@ function mockBeginWithSuccess(connection: FakeConnection) {
   return connection
 }
 
-function newSessionWithConnection(
+function newSessionWithConnection (
   connection: Connection,
   beginTx: boolean = true,
   fetchSize: number = 1000,
   lastBookmarks: bookmarks.Bookmarks = bookmarks.Bookmarks.empty()
 ): Session {
-
   const connectionProvider = new ConnectionProvider()
-  connectionProvider.acquireConnection = () => Promise.resolve(connection)
-  connectionProvider.close = () => Promise.resolve()
+  connectionProvider.acquireConnection = async () => await Promise.resolve(connection)
+  connectionProvider.close = async () => await Promise.resolve()
 
   const session = new Session({
     mode: ACCESS_MODE_READ,
     connectionProvider,
-    database: "",
+    database: '',
     fetchSize,
     config: {},
     reactive: false,
@@ -356,11 +353,11 @@ function newSessionWithConnection(
   })
 
   if (beginTx) {
-    session.beginTransaction() // force session to acquire new connection
+    session.beginTransaction().catch(e => {}) // force session to acquire new connection
   }
   return session
 }
 
-function newFakeConnection(): FakeConnection {
+function newFakeConnection (): FakeConnection {
   return new FakeConnection()
 }

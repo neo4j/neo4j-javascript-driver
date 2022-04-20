@@ -46,15 +46,13 @@ describe('newError', () => {
 })
 
 describe('isRetriableError()', () => {
-  it.each(getRetriableErrorsFixture())
-    ('should return true for error with code %s', error => {
-      expect(isRetriableError(error)).toBe(true)
-    })
+  it.each(getRetriableErrorsFixture())('should return true for error with code %s', error => {
+    expect(isRetriableError(error)).toBe(true)
+  })
 
-  it.each(getNonRetriableErrorsFixture())
-    ('should return false for error with code %s', error => {
-      expect(isRetriableError(error)).toBe(false)
-    })
+  it.each(getNonRetriableErrorsFixture())('should return false for error with code %s', error => {
+    expect(isRetriableError(error)).toBe(false)
+  })
 })
 
 describe('Neo4jError', () => {
@@ -90,38 +88,34 @@ describe('Neo4jError', () => {
     expect(error.constructor).toEqual(Neo4jError)
   })
 
-  test.each(getRetriableCodes())
-    ('should define retriable as true for error with code %s', code => {
-      const error = new Neo4jError('message', code)
+  test.each(getRetriableCodes())('should define retriable as true for error with code %s', code => {
+    const error = new Neo4jError('message', code)
 
-      expect(error.retriable).toBe(true)
-    })
+    expect(error.retriable).toBe(true)
+  })
 
-  test.each(getNonRetriableCodes())
-    ('should define retriable as false for error with code %s', code => {
-      const error = new Neo4jError('message', code)
+  test.each(getNonRetriableCodes())('should define retriable as false for error with code %s', code => {
+    const error = new Neo4jError('message', code)
 
-      expect(error.retriable).toBe(false)
-    })
+    expect(error.retriable).toBe(false)
+  })
 
   describe('.isRetriable()', () => {
-    it.each(getRetriableErrorsFixture())
-      ('should return true for error with code %s', error => {
-        expect(Neo4jError.isRetriable(error)).toBe(true)
-      })
-  
-    it.each(getNonRetriableErrorsFixture())
-      ('should return false for error with code %s', error => {
-        expect(Neo4jError.isRetriable(error)).toBe(false)
-      })
+    it.each(getRetriableErrorsFixture())('should return true for error with code %s', error => {
+      expect(Neo4jError.isRetriable(error)).toBe(true)
+    })
+
+    it.each(getNonRetriableErrorsFixture())('should return false for error with code %s', error => {
+      expect(Neo4jError.isRetriable(error)).toBe(false)
+    })
   })
 })
 
-function getRetriableErrorsFixture () {
+function getRetriableErrorsFixture (): Array<[Neo4jError]> {
   return getRetriableCodes().map(code => [newError('message', code)])
 }
 
-function getNonRetriableErrorsFixture () {
+function getNonRetriableErrorsFixture (): any[] {
   return [
     null,
     undefined,
@@ -132,7 +126,7 @@ function getNonRetriableErrorsFixture () {
   ]
 }
 
-function getRetriableCodes () {
+function getRetriableCodes (): string[] {
   return [
     SERVICE_UNAVAILABLE,
     SESSION_EXPIRED,
@@ -142,7 +136,7 @@ function getRetriableCodes () {
   ]
 }
 
-function getNonRetriableCodes () {
+function getNonRetriableCodes (): string[] {
   return [
     'Neo.TransientError.Transaction.Terminated',
     'Neo.DatabaseError.General.UnknownError',

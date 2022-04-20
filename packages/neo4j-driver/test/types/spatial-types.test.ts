@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { int, Integer, isPoint, Point } from 'neo4j-driver-core'
 
 const point1: Point = new Point(int(1), 2, 3)

@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import {
   Integer,
@@ -46,39 +47,39 @@ const systemUpdates: number = counters.systemUpdates()
 const updates: { [key: string]: number } = counters.updates()
 
 const plan: Plan | false = sum1.plan
-const planOperatorType: string | false = plan ? plan.operatorType : false
-const planIdentifiers: string[] | false = plan ? plan.identifiers : false
-const planArguments: { [key: string]: string } | false = plan
+const planOperatorType: string | false = plan !== false ? plan.operatorType : false
+const planIdentifiers: string[] | false = plan !== false ? plan.identifiers : false
+const planArguments: { [key: string]: string } | false = plan !== false
   ? plan.arguments
   : false
-const planChildren: Plan[] | false = plan ? plan.children : false
+const planChildren: Plan[] | false = plan !== false ? plan.children : false
 
 const profile: ProfiledPlan | false = sum1.profile
-const profileOperatorType: string | false = profile
+const profileOperatorType: string | false = profile !== false
   ? profile.operatorType
   : false
-const profileIdentifiers: string[] | false = profile
+const profileIdentifiers: string[] | false = profile !== false
   ? profile.identifiers
   : false
-const profileArguments: { [key: string]: string } | false = profile
+const profileArguments: { [key: string]: string } | false = profile !== false
   ? profile.arguments
   : false
-const profileDbHits: number | false = profile ? profile.dbHits : false
-const profileRows: number | false = profile ? profile.rows : false
-const hasPageCacheStats: boolean | false = profile
+const profileDbHits: number | false = profile !== false ? profile.dbHits : false
+const profileRows: number | false = profile !== false ? profile.rows : false
+const hasPageCacheStats: boolean | false = profile !== false
   ? profile.hasPageCacheStats()
   : false
-const profilePageCacheMisses: number | false = profile
+const profilePageCacheMisses: number | false = profile !== false
   ? profile.pageCacheMisses
   : false
-const profilePageCacheHits: number | false = profile
+const profilePageCacheHits: number | false = profile !== false
   ? profile.pageCacheHits
   : false
-const profilePageCacheHitRatio: number | false = profile
+const profilePageCacheHitRatio: number | false = profile !== false
   ? profile.pageCacheHitRatio
   : false
-const time: number | false = profile ? profile.time : false
-const profileChildren: ProfiledPlan[] | false = profile
+const time: number | false = profile !== false ? profile.time : false
+const profileChildren: ProfiledPlan[] | false = profile !== false
   ? profile.children
   : false
 
@@ -89,12 +90,11 @@ const title: string = notification.title
 const description: string = notification.description
 const severity: string = notification.severity
 const position1: NotificationPosition | {} = notification.position
-const position2: NotificationPosition = <NotificationPosition>(
-  notification.position
-)
-const offset: number = position2.offset
-const line: number = position2.line
-const column: number = position2.column
+const position2: NotificationPosition = notification.position as NotificationPosition
+
+const offset: number | undefined = position2.offset
+const line: number | undefined = position2.line
+const column: number | undefined = position2.column
 
 const server: ServerInfo = sum1.server
 const address: string | undefined = server.address

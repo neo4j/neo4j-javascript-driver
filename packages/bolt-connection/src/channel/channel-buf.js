@@ -76,14 +76,13 @@ export default class ChannelBuffer extends BaseBuffer {
 
 /**
  * Allocate a buffer
- * 
+ *
  * @param {number} size The buffer sizzer
  * @returns {BaseBuffer} The buffer
  */
 export function alloc (size) {
   return new ChannelBuffer(size)
 }
-
 
 function newChannelJSBuffer (arg) {
   if (arg instanceof buffer.Buffer) {

@@ -129,9 +129,9 @@ describe('ChannelConnection', () => {
   describe('._handleFatalError()', () => {
     describe('when there is not current failure on going', () => {
       const thrownError = newError('some error', 'C')
-      let loggerFunction;
-      let notifyFatalError;
-      let connection;
+      let loggerFunction
+      let notifyFatalError
+      let connection
 
       beforeEach(() => {
         notifyFatalError = jest.fn()
@@ -177,9 +177,9 @@ describe('ChannelConnection', () => {
     describe('when there is current failure on going', () => {
       const thrownError = newError('some error', 'C')
       const currentFailure = newError('current failure', 'ongoing')
-      let loggerFunction;
-      let notifyFatalError;
-      let connection;
+      let loggerFunction
+      let notifyFatalError
+      let connection
 
       beforeEach(() => {
         notifyFatalError = jest.fn()

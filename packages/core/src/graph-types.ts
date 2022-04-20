@@ -24,7 +24,7 @@ type StandardDate = Date
  * @typedef {number | Integer | bigint} NumberOrInteger
  */
 type NumberOrInteger = number | Integer | bigint
-type Properties = { [key: string]: any }
+interface Properties { [key: string]: any }
 
 const IDENTIFIER_PROPERTY_ATTRIBUTES = {
   value: true,
@@ -40,8 +40,8 @@ const UNBOUND_RELATIONSHIP_IDENTIFIER_PROPERTY: string =
 const PATH_IDENTIFIER_PROPERTY: string = '__isPath__'
 const PATH_SEGMENT_IDENTIFIER_PROPERTY: string = '__isPathSegment__'
 
-function hasIdentifierProperty(obj: any, property: string): boolean {
-  return (obj && obj[property]) === true
+function hasIdentifierProperty (obj: any, property: string): boolean {
+  return obj != null && obj[property] === true
 }
 
 /**
@@ -60,7 +60,7 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
    * @param {Properties} properties - Map with node properties
    * @param {string} elementId - Node element identifier
    */
-  constructor(identity: T, labels: string[], properties: P, elementId?: string) {
+  constructor (identity: T, labels: string[], properties: P, elementId?: string) {
     /**
      * Identity of the node.
      * @type {NumberOrInteger}
@@ -87,7 +87,7 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
   /**
    * @ignore
    */
-  toString() {
+  toString (): string {
     let s = '(' + this.elementId
     for (let i = 0; i < this.labels.length; i++) {
       s += ':' + this.labels[i]
@@ -117,7 +117,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Node}, `false` otherwise.
  */
-function isNode(obj: object): obj is Node {
+function isNode (obj: object): obj is Node {
   return hasIdentifierProperty(obj, NODE_IDENTIFIER_PROPERTY)
 }
 
@@ -146,7 +146,7 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
    * @param {string} startNodeElementId - Start Node element identifier
    * @param {string} endNodeElementId - End Node element identifier
    */
-  constructor(
+  constructor (
     identity: T, start: T, end: T, type: string, properties: P,
     elementId?: string, startNodeElementId?: string, endNodeElementId?: string
   ) {
@@ -201,7 +201,7 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
   /**
    * @ignore
    */
-  toString(): string {
+  toString (): string {
     let s = '(' + this.startNodeElementId + ')-[:' + this.type
     const keys = Object.keys(this.properties)
     if (keys.length > 0) {
@@ -228,7 +228,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Relationship}, `false` otherwise.
  */
-function isRelationship(obj: object): obj is Relationship {
+function isRelationship (obj: object): obj is Relationship {
   return hasIdentifierProperty(obj, RELATIONSHIP_IDENTIFIER_PROPERTY)
 }
 
@@ -250,7 +250,7 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
    * @param {Properties} properties - Map with relationship properties
    * @param {string} elementId - Relationship element identifier
    */
-  constructor(identity: T, type: string, properties: any, elementId?: string) {
+  constructor (identity: T, type: string, properties: any, elementId?: string) {
     /**
      * Identity of the relationship.
      * @type {NumberOrInteger}
@@ -284,14 +284,14 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
    * @param {Integer} end - Identity of end node
    * @return {Relationship} - Created relationship
    */
-  bind(start: T, end: T): Relationship<T> {
+  bind (start: T, end: T): Relationship<T> {
     return new Relationship(
       this.identity,
       start,
       end,
       this.type,
       this.properties,
-      this.elementId,
+      this.elementId
     )
   }
 
@@ -303,7 +303,7 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
    * @param {Node} end - End Node
    * @return {Relationship} - Created relationship
    */
-  bindTo(start: Node<T>, end: Node<T>): Relationship<T> {
+  bindTo (start: Node<T>, end: Node<T>): Relationship<T> {
     return new Relationship(
       this.identity,
       start.identity,
@@ -312,14 +312,14 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
       this.properties,
       this.elementId,
       start.elementId,
-      end.elementId,
+      end.elementId
     )
   }
 
   /**
    * @ignore
    */
-  toString() {
+  toString (): string {
     let s = '-[:' + this.type
     const keys = Object.keys(this.properties)
     if (keys.length > 0) {
@@ -346,7 +346,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link UnboundRelationship}, `false` otherwise.
  */
-function isUnboundRelationship(obj: object): obj is UnboundRelationship {
+function isUnboundRelationship (obj: object): obj is UnboundRelationship {
   return hasIdentifierProperty(obj, UNBOUND_RELATIONSHIP_IDENTIFIER_PROPERTY)
 }
 
@@ -364,7 +364,7 @@ class PathSegment<T extends NumberOrInteger = Integer> {
    * @param {Relationship} rel - relationship that connects start and end node
    * @param {Node} end - end node
    */
-  constructor(start: Node<T>, rel: Relationship<T>, end: Node<T>) {
+  constructor (start: Node<T>, rel: Relationship<T>, end: Node<T>) {
     /**
      * Start node.
      * @type {Node}
@@ -394,7 +394,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link PathSegment}, `false` otherwise.
  */
-function isPathSegment(obj: object): obj is PathSegment {
+function isPathSegment (obj: object): obj is PathSegment {
   return hasIdentifierProperty(obj, PATH_SEGMENT_IDENTIFIER_PROPERTY)
 }
 
@@ -404,7 +404,7 @@ function isPathSegment(obj: object): obj is PathSegment {
 class Path<T extends NumberOrInteger = Integer> {
   start: Node<T>
   end: Node<T>
-  segments: PathSegment<T>[]
+  segments: Array<PathSegment<T>>
   length: number
   /**
    * @constructor
@@ -413,7 +413,7 @@ class Path<T extends NumberOrInteger = Integer> {
    * @param {Node} end - end node
    * @param {Array<PathSegment>} segments - Array of Segments
    */
-  constructor(start: Node<T>, end: Node<T>, segments: PathSegment<T>[]) {
+  constructor (start: Node<T>, end: Node<T>, segments: Array<PathSegment<T>>) {
     /**
      * Start node.
      * @type {Node}
@@ -448,7 +448,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Path}, `false` otherwise.
  */
-function isPath(obj: object): obj is Path {
+function isPath (obj: object): obj is Path {
   return hasIdentifierProperty(obj, PATH_IDENTIFIER_PROPERTY)
 }
 
@@ -470,5 +470,5 @@ export {
 }
 export type {
   StandardDate,
-  NumberOrInteger,
+  NumberOrInteger
 }

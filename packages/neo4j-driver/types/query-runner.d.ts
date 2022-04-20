@@ -21,7 +21,7 @@ import { Result, types } from 'neo4j-driver-core'
 
 declare type Parameters = types.Parameters
 declare interface QueryRunner {
-  run(query: string, parameters?: Parameters): Result
+  run: (query: string, parameters?: Parameters) => Result
 }
 
 export { Parameters }

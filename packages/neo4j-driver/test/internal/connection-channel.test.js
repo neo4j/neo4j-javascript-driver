@@ -18,7 +18,7 @@
  */
 
 import DummyChannel from './dummy-channel'
-import ChannelConnection, {
+import {
   createChannelConnection
 } from '../../../bolt-connection/lib/connection/connection-channel'
 import { Packer } from '../../../bolt-connection/lib/packstream/packstream-v1'

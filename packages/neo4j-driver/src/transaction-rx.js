@@ -18,6 +18,7 @@
  */
 import { Observable } from 'rxjs'
 import RxResult from './result-rx'
+// eslint-disable-next-line no-unused-vars
 import Transaction from 'neo4j-driver-core'
 
 /**
@@ -94,7 +95,7 @@ export default class RxTransaction {
    * Check if this transaction is active, which means commit and rollback did not happen.
    * @return {boolean} `true` when not committed and not rolled back, `false` otherwise.
    */
-   isOpen() {
+  isOpen () {
     return this._txc.isOpen()
   }
 

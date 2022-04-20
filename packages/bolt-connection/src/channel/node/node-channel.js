@@ -361,7 +361,7 @@ export default class NodeChannel {
   /**
    * Stops the receive timeout for the channel.
    */
-  stopReceiveTimeout() {
+  stopReceiveTimeout () {
     if (this._receiveTimeout !== null && this._receiveTimeoutStarted) {
       this._receiveTimeoutStarted = false
       this._conn.setTimeout(0)

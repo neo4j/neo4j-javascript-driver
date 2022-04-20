@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   Record,
   ResultSummary,
@@ -88,8 +90,8 @@ result4.subscribe({
 
 tx.commit().then(() => {
   console.log('transaction committed')
-})
+}).catch(error => console.error(error))
 
 tx.rollback().then(() => {
   console.log('transaction rolled back')
-})
+}).catch(error => console.error(error))

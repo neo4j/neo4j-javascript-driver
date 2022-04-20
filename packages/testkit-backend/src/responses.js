@@ -40,7 +40,7 @@ export function NullRecord () {
 
 export function Record ({ record }) {
   const values = Array.from(record.values()).map(nativeToCypher)
-  return response('Record', { values })    
+  return response('Record', { values })
 }
 
 export function RecordList ({ records }) {
@@ -59,9 +59,9 @@ export function Bookmarks ({ bookmarks }) {
 }
 
 export function ServerInfo ({ serverInfo }) {
-  return response('ServerInfo', { 
+  return response('ServerInfo', {
     ...serverInfo,
-    protocolVersion: serverInfo.protocolVersion.toFixed(1) 
+    protocolVersion: serverInfo.protocolVersion.toFixed(1)
   })
 }
 
@@ -93,6 +93,6 @@ export function FeatureList ({ features }) {
   return response('FeatureList', { features })
 }
 
-function response(name, data) {
+function response (name, data) {
   return { name, data }
 }

@@ -33,4 +33,3 @@ NOTE: exports in this module should have exactly the same names/structure as exp
 
 export const Channel = NodeChannel
 export const HostNameResolver = NodeHostNameResolver
-

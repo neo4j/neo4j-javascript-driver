@@ -7,7 +7,6 @@ import { EventEmitter } from 'events'
  * @event response Event triggered whith response to the request handled.
  */
 export default class Controller extends EventEmitter {
-
   start () {
 
   }
@@ -24,7 +23,7 @@ export default class Controller extends EventEmitter {
     throw new Error('not implemented')
   }
 
-  async handle(contextId, request) {
+  async handle (contextId, request) {
     throw new Error('not implemented')
   }
 }

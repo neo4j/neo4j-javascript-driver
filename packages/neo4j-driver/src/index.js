@@ -52,7 +52,6 @@ import {
   Record,
   ResultSummary,
   Result,
-  ConnectionProvider,
   auth
 } from 'neo4j-driver-core'
 import {
@@ -61,7 +60,7 @@ import {
 } from 'neo4j-driver-bolt-connection'
 
 const {
-  util: { ENCRYPTION_ON, ENCRYPTION_OFF, assertString, isEmptyObjectOrNull },
+  util: { ENCRYPTION_ON, assertString, isEmptyObjectOrNull },
   serverAddress: { ServerAddress },
   urlUtil
 } = internal

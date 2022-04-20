@@ -1,7 +1,7 @@
-import Controller from "./interface"
-import { WebSocketServer } from "ws"
-import { createServer } from "http"
-import { Server } from "node-static"
+import Controller from './interface'
+import { WebSocketServer } from 'ws'
+import { createServer } from 'http'
+import { Server } from 'node-static'
 
 /**
  * RemoteController handles the requests by sending them a remote client.
@@ -12,7 +12,7 @@ import { Server } from "node-static"
  * This controller can only be used in Node since it depends on {@link createServer}, {@link WebSocketServer} and {@link Server}
  */
 export default class RemoteController extends Controller {
-  constructor(port) {
+  constructor (port) {
     super()
     this._staticServer = new Server('./public')
     this._port = port
@@ -33,12 +33,11 @@ export default class RemoteController extends Controller {
     }
     if (!this._wss) {
       this._wss = new WebSocketServer({ server: this._http })
-      this._wss.on('connection', safeRun( ws => this._handleClientConnection(ws)))
+      this._wss.on('connection', safeRun(ws => this._handleClientConnection(ws)))
       this._wss.on('error', safeRun(error => {
         console.error('[RemoteController] Server error', error)
       }))
     }
-
   }
 
   stop () {
@@ -47,7 +46,7 @@ export default class RemoteController extends Controller {
       this._ws = null
     }
 
-    if(this._wss) {
+    if (this._wss) {
       this._wss.close()
       this._wss = null
     }
@@ -78,7 +77,7 @@ export default class RemoteController extends Controller {
     console.log('[RemoteController] Registering client')
 
     this._ws = ws
-    this._ws.on('message', safeRun(buffer  => {
+    this._ws.on('message', safeRun(buffer => {
       const message = JSON.parse(buffer.toString())
       console.debug('[RemoteController] Received messsage', message)
       const { contextId, response } = message
@@ -105,7 +104,7 @@ export default class RemoteController extends Controller {
         data
       }
 
-      console.info(`[RemoteController] Sending message`, message)
+      console.info('[RemoteController] Sending message', message)
       return this._ws.send(JSON.stringify(message))
     }
     console.error('[RemoteController] There is no client connected')
@@ -119,11 +118,9 @@ export default class RemoteController extends Controller {
   }
 
   _writeBackendError (contextId, msg) {
-    this._writeResponse(contextId, {  name: 'BackendError', data: { msg: msg } })
+    this._writeResponse(contextId, { name: 'BackendError', data: { msg: msg } })
   }
-
 }
-
 
 function safeRun (func) {
   return function () {

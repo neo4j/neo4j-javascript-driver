@@ -140,7 +140,6 @@ describe('#unit ConnectionErrorHandler', () => {
     expect(addresses).toEqual([])
   })
 
-
   it('should handle and transform token expired error', () => {
     const errors = []
     const addresses = []

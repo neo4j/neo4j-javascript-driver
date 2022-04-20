@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable-next-line no-unused-vars */
 import { newError, Record, ResultSummary } from 'neo4j-driver-core'
 import { Observable, Subject, ReplaySubject, from } from 'rxjs'
 import { flatMap, publishReplay, refCount } from 'rxjs/operators'
@@ -264,6 +265,10 @@ class StreamControl {
     this._pushing = pushing
   }
 
+  get pushing () {
+    return this._pushing
+  }
+
   async resume () {
     const wasPaused = this._paused
     this._paused = false
@@ -279,5 +284,9 @@ class StreamControl {
 
   set pusher (push) {
     this._push = push
+  }
+
+  get pusher () {
+    return this._push
   }
 }

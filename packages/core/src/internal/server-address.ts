@@ -26,48 +26,48 @@ export class ServerAddress {
   private readonly _hostPort: string
   private readonly _stringValue: string
 
-  constructor(
+  constructor (
     host: string,
     resolved: string | null | undefined,
     port: number,
     hostPort: string
   ) {
     this._host = assertString(host, 'host')
-    this._resolved = resolved ? assertString(resolved, 'resolved') : null
+    this._resolved = resolved != null ? assertString(resolved, 'resolved') : null
     this._port = assertNumber(port, 'port')
     this._hostPort = hostPort
-    this._stringValue = resolved ? `${hostPort}(${resolved})` : `${hostPort}`
+    this._stringValue = resolved != null ? `${hostPort}(${resolved})` : `${hostPort}`
   }
 
-  host() {
+  host (): string {
     return this._host
   }
 
-  resolvedHost() {
-    return this._resolved ? this._resolved : this._host
+  resolvedHost (): string {
+    return this._resolved != null ? this._resolved : this._host
   }
 
-  port() {
+  port (): number {
     return this._port
   }
 
-  resolveWith(resolved: string) {
+  resolveWith (resolved: string): ServerAddress {
     return new ServerAddress(this._host, resolved, this._port, this._hostPort)
   }
 
-  asHostPort() {
+  asHostPort (): string {
     return this._hostPort
   }
 
-  asKey() {
+  asKey (): string {
     return this._hostPort
   }
 
-  toString() {
+  toString (): string {
     return this._stringValue
   }
 
-  static fromUrl(url: string) {
+  static fromUrl (url: string): ServerAddress {
     const urlParsed = urlUtil.parseDatabaseUrl(url)
     return new ServerAddress(
       urlParsed.host,

@@ -27,6 +27,7 @@ import {
 import { internal } from 'neo4j-driver-core'
 
 const {
+  // eslint-disable-next-line no-unused-vars
   bookmarks: { Bookmarks },
   constants: { BOLT_PROTOCOL_V4_0, FETCH_ALL },
   txConfig: { TxConfig }

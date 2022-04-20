@@ -20,7 +20,6 @@
 import SingleConnectionProvider from '../../../bolt-connection/lib/connection-provider/connection-provider-single'
 import { READ, WRITE } from '../../src/driver'
 import FakeConnection from './fake-connection'
-import Connection from '../../../bolt-connection/lib/connection/connection'
 import { internal } from 'neo4j-driver-core'
 
 const {

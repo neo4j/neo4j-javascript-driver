@@ -22,17 +22,17 @@ import * as util from './util'
 const BOOKMARKS_KEY = 'bookmarks'
 
 export class Bookmarks {
-  private _values: string[]
+  private readonly _values: string[]
 
   /**
    * @constructor
    * @param {string|string[]} values single bookmark as string or multiple bookmarks as a string array.
    */
-  constructor(values?: string | string[] | Array<string> | null) {
+  constructor (values?: string | string[] | string[] | null) {
     this._values = asStringArray(values)
   }
 
-  static empty(): Bookmarks {
+  static empty (): Bookmarks {
     return EMPTY_BOOKMARK
   }
 
@@ -40,7 +40,7 @@ export class Bookmarks {
    * Check if the given Bookmarks holder is meaningful and can be send to the database.
    * @return {boolean} returns `true` bookmarks has a value, `false` otherwise.
    */
-  isEmpty(): boolean {
+  isEmpty (): boolean {
     return this._values.length === 0
   }
 
@@ -48,7 +48,7 @@ export class Bookmarks {
    * Get all bookmarks values as an array.
    * @return {string[]} all values.
    */
-  values(): string[] {
+  values (): string[] {
     return this._values
   }
 
@@ -56,7 +56,7 @@ export class Bookmarks {
    * Get these bookmarks as an object for begin transaction call.
    * @return {Object} the value of this bookmarks holder as object.
    */
-  asBeginTransactionParameters(): { [BOOKMARKS_KEY]?: string[] } {
+  asBeginTransactionParameters (): { [BOOKMARKS_KEY]?: string[] } {
     if (this.isEmpty()) {
       return {}
     }
@@ -78,10 +78,10 @@ const EMPTY_BOOKMARK = new Bookmarks(null)
  * @param {string|string[]|Array} [value=undefined] argument to convert.
  * @return {string[]} value converted to an array.
  */
-function asStringArray(
-  value?: string | string[] | Array<string> | null
+function asStringArray (
+  value?: string | string[] | string[] | null
 ): string[] {
-  if (!value) {
+  if (value == null || value === '') {
     return []
   }
 
@@ -98,6 +98,7 @@ function asStringArray(
       if (element !== undefined && element !== null) {
         if (!util.isString(element)) {
           throw new TypeError(
+            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
             `Bookmark value should be a string, given: '${element}'`
           )
         }
@@ -108,6 +109,7 @@ function asStringArray(
   }
 
   throw new TypeError(
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     `Bookmarks should either be a string or a string array, given: '${value}'`
   )
 }
@@ -118,7 +120,7 @@ function asStringArray(
  *
  * @param {Array} value
  */
-function flattenArray(values: any[]): string[] {
+function flattenArray (values: any[]): string[] {
   return values.reduce(
     (dest, value) =>
       Array.isArray(value)

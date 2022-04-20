@@ -1,4 +1,4 @@
-import { EventEmitter } from "events"
+import { EventEmitter } from 'events'
 
 /**
  * Defines the interface used for receiving commands form teskit.
@@ -10,7 +10,6 @@ import { EventEmitter } from "events"
  * @event request This event is triggered when the channel receives a request
  */
 export default class Channel extends EventEmitter {
-
   start () {
     throw Error('Not implemented')
   }
@@ -24,7 +23,6 @@ export default class Channel extends EventEmitter {
   }
 
   writeBackendError (contextId, error) {
-    this.writeResponse(contextId, { name: 'BackendError', data:  { msg: error } })
+    this.writeResponse(contextId, { name: 'BackendError', data: { msg: error } })
   }
-
 }

@@ -21,22 +21,20 @@ import Result from './result'
 import Transaction from './transaction'
 import { Query } from './types'
 
-interface Run {
-  (query: Query, parameters?: any): Result
-}
+type Run = (query: Query, parameters?: any) => Result
 
 /**
  * Represents a transaction that is managed by the transaction executor.
- * 
+ *
  * @public
  */
 class ManagedTransaction {
-  private _run: Run
+  private readonly _run: Run
 
   /**
    * @private
    */
-  private constructor({ run }: { run: Run }) {
+  private constructor ({ run }: { run: Run }) {
     /**
      * @private
      */
@@ -48,7 +46,7 @@ class ManagedTransaction {
    * @param {Transaction} tx - Transaction to wrap
    * @returns {ManagedTransaction} the ManagedTransaction
    */
-  static fromTransaction(tx: Transaction): ManagedTransaction {
+  static fromTransaction (tx: Transaction): ManagedTransaction {
     return new ManagedTransaction({
       run: tx.run.bind(tx)
     })
@@ -62,7 +60,7 @@ class ManagedTransaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run(query: Query, parameters?: any): Result {
+  run (query: Query, parameters?: any): Result {
     return this._run(query, parameters)
   }
 }

@@ -16,6 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
 
 import {
@@ -50,7 +52,7 @@ const node2: Node<number> = new Node(2, ['Person', 'Employee'], {
 })
 const node2Id: number = node2.identity
 
-type NodeProps = { name: string }
+interface NodeProps { name: string }
 const node3: Node<number, NodeProps> = new Node(2, ['Person', 'Employee'], {
   name: 'Alice'
 })
@@ -106,7 +108,7 @@ const rel6Start: number = rel6.start
 const rel6End: number = rel6.end
 const isRel6: boolean = rel6 instanceof UnboundRelationship
 
-type RelationshipProps = { since: number }
+interface RelationshipProps { since: number }
 const rel7: Relationship<number, RelationshipProps> = new Relationship(
   2,
   3,
@@ -120,8 +122,8 @@ const rel7Props: RelationshipProps = rel7.properties
 const rel7PropertySince: number = rel7.properties.since
 
 const rel8: UnboundRelationship<
-  number,
-  RelationshipProps
+number,
+RelationshipProps
 > = new UnboundRelationship(5, 'KNOWS', {
   since: 12345
 })
@@ -159,5 +161,5 @@ if (isPath(pathAsObj)) {
 const path2: Path<number> = new Path(node2, node2, [pathSegment2])
 const path2Start: Node<number> = path2.start
 const path2End: Node<number> = path2.end
-const path2Segments: PathSegment<number>[] = path2.segments
+const path2Segments: Array<PathSegment<number>> = path2.segments
 const isPath2: boolean = path2 instanceof Path

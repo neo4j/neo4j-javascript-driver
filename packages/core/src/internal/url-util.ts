@@ -30,7 +30,7 @@ class Url {
   readonly hostAndPort: string
   readonly query: Object
 
-  constructor(
+  constructor (
     scheme: string | null,
     host: string,
     port: number,
@@ -86,7 +86,7 @@ interface ParsedUri {
   path?: string
 }
 
-function parseDatabaseUrl(url: string) {
+function parseDatabaseUrl (url: string): Url {
   assertString(url, 'URL')
 
   const sanitized = sanitizeUrl(url)
@@ -100,26 +100,26 @@ function parseDatabaseUrl(url: string) {
   const port = extractPort(parsedUrl.port, scheme)
   const hostAndPort = `${formattedHost}:${port}`
   const query = extractQuery(
-    // @ts-ignore
-    parsedUrl.query || extractResourceQueryString(parsedUrl.resourceName),
+    // @ts-expect-error
+    parsedUrl.query ?? extractResourceQueryString(parsedUrl.resourceName),
     url
   )
 
   return new Url(scheme, host, port, hostAndPort, query)
 }
 
-function extractResourceQueryString(resource?: string): string | null {
+function extractResourceQueryString (resource?: string): string | null {
   if (typeof resource !== 'string') {
     return null
   }
-  const [_, query] = resource.split('?')
+  const [, query] = resource.split('?')
   return query
 }
 
-function sanitizeUrl(url: string): { schemeMissing: boolean; url: string } {
+function sanitizeUrl (url: string): { schemeMissing: boolean, url: string } {
   url = url.trim()
 
-  if (url.indexOf('://') === -1) {
+  if (!url.includes('://')) {
     // url does not contain scheme, add dummy 'none://' to make parser work correctly
     return { schemeMissing: true, url: `none://${url}` }
   }
@@ -127,8 +127,8 @@ function sanitizeUrl(url: string): { schemeMissing: boolean; url: string } {
   return { schemeMissing: false, url: url }
 }
 
-function extractScheme(scheme?: string): string | null {
-  if (scheme) {
+function extractScheme (scheme?: string): string | null {
+  if (scheme != null) {
     scheme = scheme.trim()
     if (scheme.charAt(scheme.length - 1) === ':') {
       scheme = scheme.substring(0, scheme.length - 1)
@@ -138,40 +138,40 @@ function extractScheme(scheme?: string): string | null {
   return null
 }
 
-function extractHost(host?: string, url?: string): string {
-  if (!host) {
-    throw new Error(`Unable to extract host from ${url}`)
+function extractHost (host?: string, url?: string): string {
+  if (host == null) {
+    throw new Error('Unable to extract host from null or undefined URL')
   }
   return host.trim()
 }
 
-function extractPort(
+function extractPort (
   portString: string | number | undefined,
   scheme: string | null
 ): number {
   const port =
     typeof portString === 'string' ? parseInt(portString, 10) : portString
-  return port === 0 || port ? port : defaultPortForScheme(scheme)
+  return port != null && !isNaN(port) ? port : defaultPortForScheme(scheme)
 }
 
-function extractQuery(
+function extractQuery (
   queryString: string | undefined | null,
   url: string
 ): Object {
-  const query = queryString ? trimAndSanitizeQuery(queryString) : null
+  const query = queryString != null ? trimAndSanitizeQuery(queryString) : null
   const context: any = {}
 
-  if (query) {
+  if (query != null) {
     query.split('&').forEach((pair: string) => {
       const keyValue = pair.split('=')
       if (keyValue.length !== 2) {
-        throw new Error(`Invalid parameters: '${keyValue}' in URL '${url}'.`)
+        throw new Error(`Invalid parameters: '${keyValue.toString()}' in URL '${url}'.`)
       }
 
       const key = trimAndVerifyQueryElement(keyValue[0], 'key', url)
       const value = trimAndVerifyQueryElement(keyValue[1], 'value', url)
 
-      if (context[key]) {
+      if (context[key] !== undefined) {
         throw new Error(
           `Duplicated query parameters with key '${key}' in URL '${url}'`
         )
@@ -184,23 +184,23 @@ function extractQuery(
   return context
 }
 
-function trimAndSanitizeQuery(query: string): string {
-  query = (query || '').trim()
-  if (query && query.charAt(0) === '?') {
+function trimAndSanitizeQuery (query: string): string {
+  query = (query ?? '').trim()
+  if (query?.charAt(0) === '?') {
     query = query.substring(1, query.length)
   }
   return query
 }
 
-function trimAndVerifyQueryElement(element: string, name: string, url: string) {
-  element = (element || '').trim()
-  if (!element) {
+function trimAndVerifyQueryElement (element: string, name: string, url: string): string {
+  element = (element ?? '').trim()
+  if (element === '') {
     throw new Error(`Illegal empty ${name} in URL query '${url}'`)
   }
   return element
 }
 
-function escapeIPv6Address(address: string) {
+function escapeIPv6Address (address: string): string {
   const startsWithSquareBracket = address.charAt(0) === '['
   const endsWithSquareBracket = address.charAt(address.length - 1) === ']'
 
@@ -213,24 +213,24 @@ function escapeIPv6Address(address: string) {
   }
 }
 
-function formatHost(host: string) {
-  if (!host) {
+function formatHost (host: string): string {
+  if (host === '' || host == null) {
     throw new Error(`Illegal host ${host}`)
   }
-  const isIPv6Address = host.indexOf(':') >= 0
+  const isIPv6Address = host.includes(':')
   return isIPv6Address ? escapeIPv6Address(host) : host
 }
 
-function formatIPv4Address(address: string, port: number): string {
+function formatIPv4Address (address: string, port: number): string {
   return `${address}:${port}`
 }
 
-function formatIPv6Address(address: string, port: number): string {
+function formatIPv6Address (address: string, port: number): string {
   const escapedAddress = escapeIPv6Address(address)
   return `${escapedAddress}:${port}`
 }
 
-function defaultPortForScheme(scheme: string | null): number {
+function defaultPortForScheme (scheme: string | null): number {
   if (scheme === 'http') {
     return DEFAULT_HTTP_PORT
   } else if (scheme === 'https') {
@@ -240,22 +240,22 @@ function defaultPortForScheme(scheme: string | null): number {
   }
 }
 
-function uriJsParse(value: string) {
+function uriJsParse (value: string): ParsedUri {
   // JS version of Python partition function
-  function partition(s: string, delimiter: string): [string, string, string] {
+  function partition (s: string, delimiter: string): [string, string, string] {
     const i = s.indexOf(delimiter)
     if (i >= 0) return [s.substring(0, i), s[i], s.substring(i + 1)]
     else return [s, '', '']
   }
 
   // JS version of Python rpartition function
-  function rpartition(s: string, delimiter: string): [string, string, string] {
+  function rpartition (s: string, delimiter: string): [string, string, string] {
     const i = s.lastIndexOf(delimiter)
     if (i >= 0) return [s.substring(0, i), s[i], s.substring(i + 1)]
     else return ['', '', s]
   }
 
-  function between(
+  function between (
     s: string,
     ldelimiter: string,
     rdelimiter: string
@@ -270,9 +270,9 @@ function uriJsParse(value: string) {
   // - userInfo (optional, might contain both user name and password)
   // - host
   // - port (optional, included only as a string)
-  function parseAuthority(value: string): ParsedUri {
-    let parsed: ParsedUri = {},
-      parts: [string, string, string]
+  function parseAuthority (value: string): ParsedUri {
+    const parsed: ParsedUri = {}
+    let parts: [string, string, string]
 
     // Parse user info
     parts = rpartition(value, '@')
@@ -282,7 +282,7 @@ function uriJsParse(value: string) {
     }
 
     // Parse host and port
-    const [ipv6Host, rest] = between(value, `[`, `]`)
+    const [ipv6Host, rest] = between(value, '[', ']')
     if (ipv6Host !== '') {
       parsed.host = ipv6Host
       parts = partition(rest, ':')
@@ -298,8 +298,8 @@ function uriJsParse(value: string) {
     return parsed
   }
 
-  let parsed: ParsedUri = {},
-    parts: string[]
+  let parsed: ParsedUri = {}
+  let parts: string[]
 
   // Parse scheme
   parts = partition(value, ':')
