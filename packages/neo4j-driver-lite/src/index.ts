@@ -87,7 +87,7 @@ type ConfiguredCustomResolver = internal.resolver.ConfiguredCustomResolver
 const { READ, WRITE } = coreDriver
 
 const {
-  util: { ENCRYPTION_ON, ENCRYPTION_OFF, assertString, isEmptyObjectOrNull },
+  util: { ENCRYPTION_ON, assertString, isEmptyObjectOrNull },
   serverAddress: { ServerAddress },
   urlUtil
 } = internal
@@ -259,7 +259,7 @@ function driver (
       routing = true
       break
     default:
-      throw new Error(`Unknown scheme: ${parsedUrl.scheme}`)
+      throw new Error(`Unknown scheme: ${parsedUrl.scheme ?? 'null'}`)
   }
 
   // Encryption enabled on URL, propagate trust to the config.
@@ -275,11 +275,11 @@ function driver (
   }
 
   // Sanitize authority token. Nicer error from server when a scheme is set.
-  authToken = authToken || {}
-  authToken.scheme = authToken.scheme || 'none'
+  authToken = authToken ?? {}
+  authToken.scheme = authToken.scheme ?? 'none'
 
   // Use default user agent or user agent specified by user.
-  config.userAgent = config.userAgent || USER_AGENT
+  config.userAgent = config.userAgent ?? USER_AGENT
   const address = ServerAddress.fromUrl(parsedUrl.hostAndPort)
 
   const meta = {
@@ -290,7 +290,7 @@ function driver (
 
   return new Driver(meta, config, createConnectionProviderFunction())
 
-  function createConnectionProviderFunction () {
+  function createConnectionProviderFunction (): (id: number, config: Config, log: Logger, hostNameResolver: ConfiguredCustomResolver) => ConnectionProvider {
     if (routing) {
       return (
         id: number,
@@ -500,6 +500,6 @@ export type {
   TrustStrategy,
   SessionMode,
   ResultObserver,
-  NotificationPosition,
+  NotificationPosition
 }
 export default forExport
