@@ -41,7 +41,7 @@ const skippedTests = [
   ),
   skip(
     'Partial session iteration is not supported by the js driver',
-    ifEquals('neo4j.sessionrun.TestSessionRun.test_partial_iteration'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_partial_iteration'),
     ifEquals('neo4j.test_session_run.TestSessionRun.test_session_reuse'),
     ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_nested'),
   ),
