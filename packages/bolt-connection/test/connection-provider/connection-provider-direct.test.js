@@ -243,7 +243,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
       })
     })
 
-    function setup({ releaseMock } = {}) {
+    function setup ({ releaseMock } = {}) {
       const protocolVersion = 4.4
       const resetAndFlush = jest.fn(() => Promise.resolve())
       const server = { address: 'localhost:123', version: 'neo4j/1234' }
@@ -278,14 +278,14 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
       const address = ServerAddress.fromUrl('localhost:123')
       const pool = newPool({
         config: {
-          acquisitionTimeout: 0,
+          acquisitionTimeout: 0
         }
       })
 
       const connectionProvider = newDirectConnectionProvider(address, pool)
 
       try {
-        connectionProvider = await connectionProvider.verifyConnectivityAndGetServerInfo()
+        await connectionProvider.verifyConnectivityAndGetServerInfo()
         expect().toBe('not reached')
       } catch (e) {
         expect(e).toBeDefined()
@@ -304,7 +304,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
       const connectionProvider = newDirectConnectionProvider(address, pool)
 
       try {
-        connectionProvider = await connectionProvider.verifyConnectivityAndGetServerInfo()
+        await connectionProvider.verifyConnectivityAndGetServerInfo()
         expect().toBe('not reached')
       } catch (e) {
         expect(e).toBe(error)
@@ -324,7 +324,7 @@ function newDirectConnectionProvider (address, pool) {
   return connectionProvider
 }
 
-function newPool({ create, config } = {}) {
+function newPool ({ create, config } = {}) {
   const _create = (address, release) => {
     if (create) {
       return create(address, release)
@@ -334,12 +334,12 @@ function newPool({ create, config } = {}) {
   return new Pool({
     config,
     create: (address, release) =>
-      Promise.resolve(_create(address, release)),
+      Promise.resolve(_create(address, release))
   })
 }
 
 class FakeConnection extends Connection {
-  constructor(address, release, server) {
+  constructor (address, release, server) {
     super(null)
 
     this._address = address
@@ -347,11 +347,11 @@ class FakeConnection extends Connection {
     this._server = server
   }
 
-  get address() {
+  get address () {
     return this._address
   }
 
-  get server() {
+  get server () {
     return this._server
   }
 }

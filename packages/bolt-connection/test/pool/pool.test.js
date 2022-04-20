@@ -182,9 +182,9 @@ describe('#unit Pool', () => {
     // When
     const r00 = await pool.acquire(address1)
     const r01 = await pool.acquire(address1)
-    const r10 = await pool.acquire(address2)
-    const r11 = await pool.acquire(address2)
-    const r12 = await pool.acquire(address2)
+    await pool.acquire(address2)
+    await pool.acquire(address2)
+    await pool.acquire(address2)
 
     expect(pool.activeResourceCount(address1)).toEqual(2)
     expect(pool.activeResourceCount(address2)).toEqual(3)
@@ -371,7 +371,7 @@ describe('#unit Pool', () => {
       pool.acquire(address2),
       pool.acquire(address3)
     ]
-    const values = await Promise.all(acquiredResources)
+    await Promise.all(acquiredResources)
 
     expect(pool.has(address1)).toBeTruthy()
     expect(pool.has(address2)).toBeTruthy()
@@ -408,7 +408,7 @@ describe('#unit Pool', () => {
       pool.acquire(address2),
       pool.acquire(address3)
     ]
-    const values = await Promise.all(acquiredResources)
+    await Promise.all(acquiredResources)
 
     expect(pool.has(address1)).toBeTruthy()
     expect(pool.has(address2)).toBeTruthy()
@@ -457,8 +457,8 @@ describe('#unit Pool', () => {
         Promise.resolve(new Resource(server, 42, release))
     })
 
-    const r1 = await pool.acquire(existingAddress)
-    const r0 = await pool.acquire(existingAddress)
+    await pool.acquire(existingAddress)
+    await pool.acquire(existingAddress)
 
     expect(pool.has(existingAddress)).toBeTruthy()
     expect(pool.has(absentAddress)).toBeFalsy()
@@ -568,7 +568,7 @@ describe('#unit Pool', () => {
       config: new PoolConfig(2, 5000)
     })
 
-    const r0 = await pool.acquire(address)
+    await pool.acquire(address)
     const r1 = await pool.acquire(address)
 
     setTimeout(() => {
@@ -899,8 +899,8 @@ describe('#unit Pool', () => {
     } catch (e) {
       expect(e).toEqual(
         newError(
-          `Connection acquisition timed out in ${acquisitionTimeout} ms. `
-          + 'Pool status: Active conn count = 0, Idle conn count = 0.'
+          `Connection acquisition timed out in ${acquisitionTimeout} ms. ` +
+          'Pool status: Active conn count = 0, Idle conn count = 0.'
         )
       )
 
@@ -932,7 +932,7 @@ function expectNoIdleResources (pool, address) {
 function idleResources (pool, address) {
   if (pool.has(address)) {
     return pool._pools[address.asKey()].length
-  } 
+  }
   return undefined
 }
 

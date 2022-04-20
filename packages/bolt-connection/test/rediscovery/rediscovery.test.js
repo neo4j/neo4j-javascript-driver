@@ -28,9 +28,8 @@ const {
   serverAddress: { ServerAddress }
 } = internal
 
-const { PROTOCOL_ERROR, SERVICE_UNAVAILABLE } = error
+const { PROTOCOL_ERROR } = error
 
-const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
 
 describe('#unit Rediscovery', () => {

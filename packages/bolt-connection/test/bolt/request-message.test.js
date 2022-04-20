@@ -175,7 +175,7 @@ describe('#unit RequestMessage', () => {
   })
 
   describe('BoltV4', () => {
-    function verify(message, signature, metadata, name) {
+    function verify (message, signature, metadata, name) {
       expect(message.signature).toEqual(signature)
       expect(message.fields).toEqual([metadata])
       expect(message.toString()).toEqual(`${name} ${json.stringify(metadata)}`)
@@ -272,7 +272,7 @@ describe('#unit RequestMessage', () => {
       const requestContext = { someValue: '1234' }
       const bookmarks = ['a', 'b']
       const databaseName = 'user_db'
-      const impersonatedUser = "user"
+      const impersonatedUser = 'user'
 
       const message = RequestMessage.routeV4x4(requestContext, bookmarks, { databaseName, impersonatedUser })
 

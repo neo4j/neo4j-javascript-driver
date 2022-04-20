@@ -36,7 +36,7 @@ describe('uft8', () => {
     '⚡ 🏃‍♀️'
   ])('should decode encoded string', str => {
     const encoded = encode(str)
-    
+
     const encodedThenDecoded = decode(encoded, encoded.length)
 
     expect(encodedThenDecoded).toEqual(str)
@@ -54,12 +54,11 @@ describe('uft8', () => {
     '⚡ 🏃‍♀️'
   ])('.encode("%s") should match snapshot', str => {
     const encoded = encode(str)
-    
+
     expect(encoded.toString()).toMatchSnapshot()
   })
 })
 
-
-function makeString ( len ) {
+function makeString (len) {
   return crypto.randomBytes(len).toString('hex')
 }

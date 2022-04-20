@@ -74,7 +74,7 @@ describe('#unit BoltProtocolV5x0', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.routeV4x4(routingContext, listOfBookmarks, { databaseName, impersonatedUser: null})
+      RequestMessage.routeV4x4(routingContext, listOfBookmarks, { databaseName, impersonatedUser: null })
     )
     expect(protocol.observers).toEqual([observer])
     expect(observer).toEqual(expect.any(RouteObserver))
@@ -347,7 +347,7 @@ describe('#unit BoltProtocolV5x0', () => {
         bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         lowRecordWatermark: 100,
-        highRecordWatermark: 200,
+        highRecordWatermark: 200
       })
 
       expect(observer._lowRecordWatermark).toEqual(100)

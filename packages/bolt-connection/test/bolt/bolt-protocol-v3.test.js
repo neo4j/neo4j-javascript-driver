@@ -237,7 +237,7 @@ describe('#unit BoltProtocolV3', () => {
   describe('Bolt v4.4', () => {
     /**
      * @param {string} impersonatedUser The impersonated user.
-     * @param {function(protocol: BoltProtocolV3)} fn 
+     * @param {function(protocol: BoltProtocolV3)} fn
      */
     function verifyImpersonationNotSupportedErrror (impersonatedUser, fn) {
       const recorder = new utils.MessageRecordingConnection()
@@ -251,7 +251,7 @@ describe('#unit BoltProtocolV3', () => {
     }
 
     describe('beginTransaction', () => {
-      function verifyBeginTransaction(impersonatedUser) {
+      function verifyBeginTransaction (impersonatedUser) {
         verifyImpersonationNotSupportedErrror(
           impersonatedUser,
           protocol => protocol.beginTransaction({ impersonatedUser }))
@@ -309,7 +309,7 @@ describe('#unit BoltProtocolV3', () => {
         bookmarks: Bookmarks.empty(),
         txConfig: TxConfig.empty(),
         lowRecordWatermark: 100,
-        highRecordWatermark: 200,
+        highRecordWatermark: 200
       })
 
       expect(observer._lowRecordWatermark).toEqual(100)

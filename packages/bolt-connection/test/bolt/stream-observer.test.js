@@ -434,10 +434,8 @@ describe('#unit ResultStreamObserver', () => {
         expect(more).toBeCalledWith(queryId, fetchSize, streamObserver)
       })
 
-
       it('should ask for more records when the stream is a new reactive stream and not run success come yet', () => {
         // Setup
-        const queryId = 123
         const fetchSize = 2000
 
         const more = jest.fn()
@@ -478,7 +476,6 @@ describe('#unit ResultStreamObserver', () => {
         // verification
         expect(more).toBeCalledTimes(0)
       })
-
 
       it('should not ask for more records when the stream is a new stream', () => {
         // Setup
@@ -565,7 +562,6 @@ describe('#unit ResultStreamObserver', () => {
         expect(more).toBeCalledTimes(0)
       })
 
-
       it('should resume the stream consumption until the end', () => {
         // Setup
         const queryId = 123
@@ -646,7 +642,7 @@ describe('#unit ResultStreamObserver', () => {
       ['undefined'],
       ['null'],
       ['banana']
-    ])(`should trigger onError when the type is '%s'`, (type) => {
+    ])('should trigger onError when the type is \'%s\'', (type) => {
       const streamObserver = newStreamObserver()
       const expectedError = newError(
         `Server returned invalid query type. Expected one of [undefined, null, "r", "w", "rw", "s"] but got '${type}'`,
@@ -671,7 +667,7 @@ describe('#unit ResultStreamObserver', () => {
       ['s'],
       [null],
       [undefined]
-    ])(`should trigger onComplete when the type is '%s'`, (type) => {
+    ])('should trigger onComplete when the type is \'%s\'', (type) => {
       const streamObserver = newStreamObserver()
 
       streamObserver.onCompleted({ fields: ['A', 'B', 'C'] })

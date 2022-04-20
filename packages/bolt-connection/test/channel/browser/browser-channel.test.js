@@ -31,6 +31,7 @@ const { SERVICE_UNAVAILABLE } = error
 
 const WS_CONNECTING = 0
 const WS_OPEN = 1
+// eslint-disable-next-line no-unused-vars
 const WS_CLOSING = 2
 const WS_CLOSED = 3
 

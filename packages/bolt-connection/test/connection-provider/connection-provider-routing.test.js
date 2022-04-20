@@ -70,8 +70,6 @@ describe('#unit RoutingConnectionProvider', () => {
   const serverDD = ServerAddress.fromUrl('serverDD')
   const serverEE = ServerAddress.fromUrl('serverEE')
 
-  const serverABC = ServerAddress.fromUrl('serverABC')
-  
   const usersDataSet = [
     [null],
     [undefined],
@@ -1700,8 +1698,8 @@ describe('#unit RoutingConnectionProvider', () => {
         } catch (capturedError) {
           expect(capturedError.code).toBe(SERVICE_UNAVAILABLE)
           expect(capturedError.message).toBe(
-            'Server at server-non-existing-seed-router:7687 can\'t '
-             + 'perform routing. Make sure you are connecting to a causal cluster'
+            'Server at server-non-existing-seed-router:7687 can\'t ' +
+             'perform routing. Make sure you are connecting to a causal cluster'
           )
         }
 
@@ -1734,7 +1732,6 @@ describe('#unit RoutingConnectionProvider', () => {
 
         expect(completed).toBe(false)
       })
-
     })
   })
 
@@ -2224,7 +2221,7 @@ describe('#unit RoutingConnectionProvider', () => {
     }, 10000)
 
     it.each(usersDataSet)('should purge expired routing tables after specified duration on update [user=%s]', async (user) => {
-      var originalDateNow = Date.now
+      const originalDateNow = Date.now
       Date.now = () => 50000
       try {
         const routingTableToLoad = newRoutingTable(
@@ -2315,11 +2312,11 @@ describe('#unit RoutingConnectionProvider', () => {
       const connectionProvider = newRoutingConnectionProvider(
         [],
         pool,
-        { 
+        {
           null: {
             'server-non-existing-seed-router:7687': newRoutingTableWithUser(
               {
-                database: null, 
+                database: null,
                 routers: [server1, server2, server3],
                 readers: [server1, server2],
                 writers: [server3],
@@ -2327,7 +2324,7 @@ describe('#unit RoutingConnectionProvider', () => {
                 routingTableDatabase: 'homedb'
               }
             )
-          } 
+          }
         }
       )
 
@@ -2349,11 +2346,11 @@ describe('#unit RoutingConnectionProvider', () => {
       const connectionProvider = newRoutingConnectionProvider(
         [],
         pool,
-        { 
-          'databaseA': {
+        {
+          databaseA: {
             'server-non-existing-seed-router:7687': newRoutingTableWithUser(
               {
-                database: 'databaseA', 
+                database: 'databaseA',
                 routers: [server1, server3],
                 readers: [server1],
                 writers: [server3],
@@ -2362,10 +2359,10 @@ describe('#unit RoutingConnectionProvider', () => {
               }
             )
           },
-          'databaseB': {
+          databaseB: {
             'server-non-existing-seed-router:7687': newRoutingTableWithUser(
               {
-                database: 'homedb', 
+                database: 'homedb',
                 routers: [server2, server3],
                 readers: [server2],
                 writers: [server3],
@@ -2373,7 +2370,7 @@ describe('#unit RoutingConnectionProvider', () => {
                 routingTableDatabase: 'homedb'
               }
             )
-          } 
+          }
         }
       )
 
@@ -2409,13 +2406,12 @@ describe('#unit RoutingConnectionProvider', () => {
         }
       )
 
-      await connectionProvider.acquireConnection({ accessMode: READ, impersonatedUser: user, accessMode: WRITE })
+      await connectionProvider.acquireConnection({ accessMode: WRITE, impersonatedUser: user })
       const connection = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb', impersonatedUser: user })
 
       expect(connection.address).toEqual(server1)
       expect(pool.has(server1)).toBeTruthy()
     })
-
 
     it('should be to acquire connection other users homedb using it name', async () => {
       const user1 = 'the-impostor-number-1'
@@ -2467,14 +2463,13 @@ describe('#unit RoutingConnectionProvider', () => {
               )
             ]
           },
-          "kakakaka": {}
-        },
+          kakakaka: {}
+        }
       )
 
       await connectionProvider.acquireConnection({ accessMode: WRITE, impersonatedUser: user2 })
       await connectionProvider.acquireConnection({ accessMode: WRITE, impersonatedUser: user1 })
       await connectionProvider.acquireConnection({ accessMode: WRITE })
-
 
       const defaultConnToHomeDb1 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb1' })
       expect(defaultConnToHomeDb1.address).toEqual(server1)
@@ -2499,9 +2494,7 @@ describe('#unit RoutingConnectionProvider', () => {
       const user2ConnToHomeDb1 = await connectionProvider.acquireConnection({ accessMode: READ, database: 'homedb1', impersonatedUser: user2 })
       expect(user2ConnToHomeDb1.address).toEqual(server1)
       expect(pool.has(server1)).toBeTruthy()
-
     })
-
 
     it.each(usersDataSet)('should call onDatabaseNameResolved with the resolved db acquiring home db [user=%s]', async (user) => {
       const pool = newPool()
@@ -2534,7 +2527,7 @@ describe('#unit RoutingConnectionProvider', () => {
         [],
         pool,
         {
-          'databaseA': {
+          databaseA: {
             'server-non-existing-seed-router:7687': newRoutingTableWithUser({
               database: 'databaseA',
               routers: [server1, server2, server3],
@@ -2553,7 +2546,6 @@ describe('#unit RoutingConnectionProvider', () => {
 
       expect(onDatabaseNameResolved).toHaveBeenCalledWith('databaseA')
     })
-
   })
 
   describe.each([
@@ -2562,7 +2554,7 @@ describe('#unit RoutingConnectionProvider', () => {
     ['', READ],
     ['', WRITE],
     ['databaseA', READ],
-    ['databaseA', WRITE],
+    ['databaseA', WRITE]
   ])('.verifyConnectivityAndGetServeInfo({ database: %s, accessMode: %s })', (database, accessMode) => {
     describe('when connection is available in the pool', () => {
       it('should return the server info', async () => {
@@ -2590,7 +2582,6 @@ describe('#unit RoutingConnectionProvider', () => {
         expect(connections[0]._release).toHaveBeenCalled()
         expect(connections[0]._release.mock.invocationCallOrder[0])
           .toBeGreaterThan(connections[0].resetAndFlush.mock.invocationCallOrder[0])
-      
       })
 
       it('should not acquire, resetAndFlush and release connections for sever with the other access mode', async () => {
@@ -2610,18 +2601,18 @@ describe('#unit RoutingConnectionProvider', () => {
         it('should succeed with the server info ', async () => {
           const error = newError('Error')
           let i = 0
-          const resetAndFlush = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+          const resetAndFlush = jest.fn(() => i++ % 2 === 0 ? Promise.reject(error) : Promise.resolve())
           const { connectionProvider, server, protocolVersion } = setup({ resetAndFlush })
 
           const serverInfo = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
-          
+
           expect(serverInfo).toEqual(new ServerInfo(server, protocolVersion))
         })
 
         it('should release the connection', async () => {
           const error = newError('Error')
           let i = 0
-          const resetAndFlush = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+          const resetAndFlush = jest.fn(() => i++ % 2 === 0 ? Promise.reject(error) : Promise.resolve())
           const { connectionProvider, seenConnectionsPerAddress, routingTable } = setup({ resetAndFlush })
 
           try {
@@ -2644,7 +2635,7 @@ describe('#unit RoutingConnectionProvider', () => {
             const error = newError('Error')
             const releaseError = newError('Release error')
             let i = 0
-            const resetAndFlush = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+            const resetAndFlush = jest.fn(() => i++ % 2 === 0 ? Promise.reject(error) : Promise.resolve())
             const releaseMock = jest.fn(() => Promise.reject(releaseError))
             const { connectionProvider } = setup({ resetAndFlush, releaseMock })
 
@@ -2666,8 +2657,8 @@ describe('#unit RoutingConnectionProvider', () => {
 
           try {
             await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
-            expect().toBe('Not reached')     
-          } catch(e) {
+            expect().toBe('Not reached')
+          } catch (e) {
             expect(e).toBe(error)
           }
         })
@@ -2676,7 +2667,7 @@ describe('#unit RoutingConnectionProvider', () => {
           const resetAndFlush = jest.fn(() => Promise.reject(error))
           const { connectionProvider, routingTable, seenConnectionsPerAddress, pool } = setup({ resetAndFlush })
           const acquireSpy = jest.spyOn(pool, 'acquire')
-  
+
           try {
             await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
           } catch (e) {
@@ -2685,9 +2676,9 @@ describe('#unit RoutingConnectionProvider', () => {
             const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
             for (const address of targetServers) {
               expect(acquireSpy).toHaveBeenCalledWith(address)
-      
+
               const connections = seenConnectionsPerAddress.get(address)
-      
+
               expect(connections.length).toBe(1)
               expect(connections[0].resetAndFlush).toHaveBeenCalled()
               expect(connections[0]._release).toHaveBeenCalled()
@@ -2700,7 +2691,7 @@ describe('#unit RoutingConnectionProvider', () => {
         it('should release the connection', async () => {
           const error = newError('Error')
           let i = 0
-          const resetAndFlush = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+          const resetAndFlush = jest.fn(() => i++ % 2 === 0 ? Promise.reject(error) : Promise.resolve())
           const { connectionProvider, seenConnectionsPerAddress, routingTable } = setup({ resetAndFlush })
 
           try {
@@ -2723,7 +2714,7 @@ describe('#unit RoutingConnectionProvider', () => {
             const error = newError('Error')
             const releaseError = newError('Release error')
             let i = 0
-            const resetAndFlush = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+            const resetAndFlush = jest.fn(() => i++ % 2 === 0 ? Promise.reject(error) : Promise.resolve())
             const releaseMock = jest.fn(() => Promise.reject(releaseError))
             const { connectionProvider } = setup({ resetAndFlush, releaseMock })
 
@@ -2735,17 +2726,16 @@ describe('#unit RoutingConnectionProvider', () => {
             }
           })
         })
-
       })
 
       describe('when the release for at least one the address', () => {
         it('should succeed with the server info', async () => {
           const error = newError('Error')
           let i = 0
-          const releaseMock = jest.fn(() => i++ % 2 == 0 ? Promise.reject(error) : Promise.resolve())
+          const releaseMock = jest.fn(() => i++ % 2 === 0 ? Promise.reject(error) : Promise.resolve())
           const { connectionProvider, server, protocolVersion } = setup({ releaseMock })
 
-          const serverInfo =  await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+          const serverInfo = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
 
           expect(serverInfo).toEqual(new ServerInfo(server, protocolVersion))
         })
@@ -2760,13 +2750,13 @@ describe('#unit RoutingConnectionProvider', () => {
           try {
             await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
             expect().toBe('Not reached')
-          } catch(e) {
+          } catch (e) {
             expect(e).toBe(error)
           }
         })
       })
 
-      function setup({ resetAndFlush, releaseMock } = {}) {
+      function setup ({ resetAndFlush, releaseMock } = {}) {
         const routingTable = newRoutingTable(
           database || null,
           [server1, server2],
@@ -2815,7 +2805,7 @@ describe('#unit RoutingConnectionProvider', () => {
 
         const pool = newPool({
           config: {
-            acquisitionTimeout: 0,
+            acquisitionTimeout: 0
           }
         })
 
@@ -2827,7 +2817,7 @@ describe('#unit RoutingConnectionProvider', () => {
         )
 
         try {
-          connectionProvider = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+          await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
           expect().toBe('not reached')
         } catch (e) {
           expect(e).toBeDefined()
@@ -2862,7 +2852,7 @@ describe('#unit RoutingConnectionProvider', () => {
           pool
         )
 
-        const serverInfo = connectionProvider = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
+        const serverInfo = await connectionProvider.verifyConnectivityAndGetServerInfo({ database, accessMode })
         expect(serverInfo).toEqual(new ServerInfo({}, 4.4))
       })
     })
@@ -2994,7 +2984,7 @@ function newRoutingTable (
   expirationTime = Integer.MAX_VALUE,
   routingTableDatabase
 ) {
-  var routingTable = new  RoutingTable({
+  const routingTable = new RoutingTable({
     database: database || routingTableDatabase,
     routers,
     readers,
@@ -3031,7 +3021,7 @@ function newPool ({ create, config } = {}) {
   }
   return new Pool({
     config,
-    create: (address, release) => _create(address, release),
+    create: (address, release) => _create(address, release)
   })
 }
 
@@ -3070,7 +3060,7 @@ class FakeConnection extends Connection {
     super(null)
 
     this._address = address
-    this._version = version || VERSION_IN_DEV.toString()
+    this._version = version
     this._protocolVersion = protocolVersion
     this.release = release
     this._release = jest.fn(() => release(address, this))
@@ -3109,7 +3099,7 @@ class FakeRediscovery {
     }
     const table = this._routerToRoutingTable[database || null]
     if (table) {
-      let routingTables = table[router.asKey()]
+      const routingTables = table[router.asKey()]
       let routingTable = routingTables
       if (routingTables instanceof Array) {
         routingTable = routingTables.find(rt => rt.user === user)
