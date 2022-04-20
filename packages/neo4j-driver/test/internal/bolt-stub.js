@@ -90,7 +90,7 @@ class SupportedBoltStub extends UnsupportedBoltStub {
       let timedOut = false
       const timeoutId = setTimeout(() => {
         timedOut = true
-        reject(`unable to connect to localhost:${port}`)
+        reject(new Error(`unable to connect to localhost:${port}`))
       }, 15000)
 
       const tryConnect = () => {
@@ -136,7 +136,7 @@ class StubServer {
       let timedOut = false
       const timeoutId = setTimeout(() => {
         timedOut = true
-        reject('timed out waiting for the stub server to exit')
+        reject(new Error('timed out waiting for the stub server to exit'))
       }, 5000)
 
       const checkStatus = () => {
@@ -147,7 +147,7 @@ class StubServer {
           if (exitStatus.code === 0) {
             resolve()
           } else {
-            reject(`stub server exited with code: ${exitStatus.code}`)
+            reject(new Error(`stub server exited with code: ${exitStatus.code}`))
           }
         } else {
           if (!timedOut) {

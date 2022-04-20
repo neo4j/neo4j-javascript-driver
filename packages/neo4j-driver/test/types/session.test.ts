@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   Integer,
   Record,
@@ -61,8 +63,8 @@ const promise1: Promise<number> = session.readTransaction((tx: Transaction) => {
   return 10
 })
 
-const promise2: Promise<string> = session.readTransaction((tx: Transaction) => {
-  return Promise.resolve('42')
+const promise2: Promise<string> = session.readTransaction(async (tx: Transaction) => {
+  return await Promise.resolve('42')
 })
 
 const promise3: Promise<number> = session.writeTransaction(
@@ -72,8 +74,8 @@ const promise3: Promise<number> = session.writeTransaction(
 )
 
 const promise4: Promise<string> = session.writeTransaction(
-  (tx: Transaction) => {
-    return Promise.resolve('42')
+  async (tx: Transaction) => {
+    return await Promise.resolve('42')
   }
 )
 

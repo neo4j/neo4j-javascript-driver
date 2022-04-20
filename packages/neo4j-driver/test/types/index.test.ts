@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   auth,
   AuthToken,
@@ -65,7 +67,7 @@ const driver4: Driver = driver(
   'bolt://localhost',
   auth.basic('neo4j', 'password'),
   {
-    resolver: address => Promise.resolve([address1, address2])
+    resolver: async address => await Promise.resolve([address1, address2])
   }
 )
 

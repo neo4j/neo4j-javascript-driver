@@ -18,14 +18,11 @@
  */
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import { ServerVersion } from '../src/internal/server-version'
 import { READ } from '../src/driver'
 
 describe('#integration transaction', () => {
   let driver
   let session
-  // eslint-disable-next-line no-unused-vars
-  let serverVersion
 
   beforeEach(async () => {
     driver = neo4j.driver(
@@ -34,8 +31,7 @@ describe('#integration transaction', () => {
     )
     session = driver.session()
 
-    const result = await session.run('MATCH (n) DETACH DELETE n')
-    serverVersion = ServerVersion.fromString(result.summary.server.version)
+    await session.run('MATCH (n) DETACH DELETE n')
   })
 
   afterEach(async () => {

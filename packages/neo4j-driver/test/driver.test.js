@@ -192,8 +192,8 @@ describe('#integration driver', () => {
     Promise.all([result1, result2]).then(results => {
       driver.close()
       beginTxWithoutCommit(driver).catch(() => {
-        var pool = driver._connectionProvider._connectionPool
-        var serverKey = Object.keys(pool._activeResourceCounts)[0]
+        const pool = driver._connectionProvider._connectionPool
+        const serverKey = Object.keys(pool._activeResourceCounts)[0]
         expect(pool._activeResourceCounts[serverKey]).toEqual(2)
         expect(serverKey in pool._pools).toBeFalsy()
         expect(
@@ -652,15 +652,6 @@ describe('#integration driver', () => {
       })
       .then(() => session.close())
       .then(() => done())
-  }
-
-  /**
-   * Starts new transaction to force new network connection.
-   * @param {Driver} driver - the driver to use.
-   */
-  function startNewTransaction (driver) {
-    const session = driver.session()
-    expect(session.beginTransaction()).toBeDefined()
   }
 
   function wrongCredentials () {

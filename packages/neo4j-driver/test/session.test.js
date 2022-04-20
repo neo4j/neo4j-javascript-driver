@@ -19,7 +19,6 @@
 
 import neo4j from '../src'
 import { READ } from '../src/driver'
-import SingleConnectionProvider from '../../bolt-connection/lib/connection-provider/connection-provider-single'
 import sharedNeo4j from './internal/shared-neo4j'
 import _ from 'lodash'
 import testUtils from './internal/test-utils'
@@ -27,7 +26,6 @@ import {
   newError,
   error,
   queryType,
-  Session,
   internal,
   json
 } from 'neo4j-driver-core'
@@ -42,8 +40,6 @@ const { PROTOCOL_ERROR, SESSION_EXPIRED } = error
 describe('#integration session', () => {
   let driver
   let session
-  // eslint-disable-next-line no-unused-vars
-  let protocolVersion
 
   beforeEach(async () => {
     driver = neo4j.driver(
@@ -52,7 +48,7 @@ describe('#integration session', () => {
     )
     session = driver.session()
 
-    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
+    await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -1232,20 +1228,5 @@ describe('#integration session', () => {
       })
       .then(() => localDriver.close())
       .then(() => done())
-  }
-
-  function testUnsupportedQueryParameter (value, done) {
-    session
-      .run('RETURN $value', { value: value })
-      .then(() => {
-        done.fail(
-          `Should not be possible to send ${value.constructor.name} ${value} as a query parameter`
-        )
-      })
-      .catch(error => {
-        expect(error.name).toEqual('Neo4jError')
-        expect(error.code).toEqual(neo4j.error.PROTOCOL_ERROR)
-        done()
-      })
   }
 })

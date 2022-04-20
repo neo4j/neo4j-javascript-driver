@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Bookmarks } from 'neo4j-driver-core/types/internal/bookmarks'
 import driver, {
   DateTime,
@@ -44,7 +46,7 @@ const driverConfiguration0 = driver.driver('driver', undefined, {
   logging: {
     level: 'info',
     logger: (level: 'info' | 'warn' | 'error' | 'debug', message?: string) => {
-      console.log(level + ' ' + message)
+      console.log(level + ' ' + (message ?? ''))
     }
   },
   resolver: (address: string) => [address],

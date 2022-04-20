@@ -17,7 +17,9 @@
  * limitations under the License.
  */
 import neo4j from '../../src'
+// eslint-disable-next-line no-unused-vars
 import RxSession from '../../src/session-rx'
+// eslint-disable-next-line no-unused-vars
 import RxTransaction from '../../src/transaction-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
 

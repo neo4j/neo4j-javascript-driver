@@ -17,17 +17,16 @@
  * limitations under the License.
  */
 
-import { Notification, throwError } from 'rxjs'
+import { Notification } from 'rxjs'
 import {
   flatMap,
   materialize,
   toArray,
   concat,
-  map,
-  bufferCount,
-  catchError
+  map
 } from 'rxjs/operators'
 import neo4j from '../../src'
+// eslint-disable-next-line no-unused-vars
 import RxSession from '../../src/session-rx'
 import RxTransaction from '../../src/transaction-rx'
 import sharedNeo4j from '../internal/shared-neo4j'

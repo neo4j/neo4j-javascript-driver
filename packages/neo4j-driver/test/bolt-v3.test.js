@@ -92,8 +92,8 @@ describe('#integration Bolt V3 API', () => {
     } catch (e) {
       // ClientError on 4.1 and later
       if (
-        e.code != 'Neo.ClientError.Transaction.TransactionTimedOut' &&
-        e.code != 'Neo.TransientError.Transaction.LockClientStopped'
+        e.code !== 'Neo.ClientError.Transaction.TransactionTimedOut' &&
+        e.code !== 'Neo.TransientError.Transaction.LockClientStopped'
       ) {
         fail('Expected transaction timeout error but got: ' + e.code)
       }
@@ -215,8 +215,8 @@ describe('#integration Bolt V3 API', () => {
     } catch (e) {
       // ClientError on 4.1 and later
       if (
-        e.code != 'Neo.ClientError.Transaction.TransactionTimedOut' &&
-        e.code != 'Neo.TransientError.Transaction.LockClientStopped'
+        e.code !== 'Neo.ClientError.Transaction.TransactionTimedOut' &&
+        e.code !== 'Neo.TransientError.Transaction.LockClientStopped'
       ) {
         fail('Expected transaction timeout error but got: ' + e.code)
       }

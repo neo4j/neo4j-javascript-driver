@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Record, ResultSummary, Result } from 'neo4j-driver-core'
 
 const dummy: any = null

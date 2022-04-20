@@ -23,8 +23,6 @@ import sharedNeo4j from './internal/shared-neo4j'
 describe('#integration session', () => {
   let driver
   let session
-  // eslint-disable-next-line no-unused-vars
-  let protocolVersion
 
   beforeEach(async () => {
     driver = neo4j.driver(
@@ -33,7 +31,7 @@ describe('#integration session', () => {
     )
     session = driver.session({ fetchSize: 2 })
 
-    protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
+    await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
   })
 
   afterEach(async () => {
@@ -82,7 +80,6 @@ describe('#integration session', () => {
 
   it('should give proper error when nesting queries within one session', done => {
     const size = 20
-    const count = 0
     const result = session.run('UNWIND range(1, $size) AS x RETURN x', {
       size: size
     })
