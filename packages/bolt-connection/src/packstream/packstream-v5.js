@@ -39,13 +39,12 @@ export class Unpacker extends v2.Unpacker {
    * @param {boolean} disableLosslessIntegers if this unpacker should convert all received integers to native JS numbers.
    * @param {boolean} useBigInt if this unpacker should convert all received integers to Bigint
    */
-   constructor (disableLosslessIntegers = false, useBigInt = false) {
-    this._disableLosslessIntegers = disableLosslessIntegers
-    this._useBigInt = useBigInt
+  constructor (disableLosslessIntegers = false, useBigInt = false) {
+    super(disableLosslessIntegers, useBigInt)
     this._defaultIdentity = this._getDefaultIdentity()
   }
 
-  _getDefaultIdentity() {
+  _getDefaultIdentity () {
     if (this._useBigInt) {
       return BigInt(-1)
     } else if (this._disableLosslessIntegers) {
@@ -97,6 +96,6 @@ export class Unpacker extends v2.Unpacker {
   }
 }
 
-function _valueOrDefault(value, defaultValue) {
+function _valueOrDefault (value, defaultValue) {
   return value === null ? defaultValue : value
 }

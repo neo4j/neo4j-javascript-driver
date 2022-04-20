@@ -355,7 +355,7 @@ export default class ChannelConnection extends Connection {
    * Starts and stops the receive timeout timer.
    * @param {number} requestsNumber Ongoing requests number
    */
-  _handleOngoingRequestsNumberChange(requestsNumber) {
+  _handleOngoingRequestsNumberChange (requestsNumber) {
     if (requestsNumber === 0) {
       this._ch.stopReceiveTimeout()
     } else {

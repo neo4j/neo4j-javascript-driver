@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import { newError } from 'neo4j-driver-core'
+// eslint-disable-next-line no-unused-vars
 import { ResultStreamObserver } from './stream-observers'
 
 /**
@@ -59,7 +60,7 @@ function assertDatabaseIsEmpty (database, onProtocolError = () => {}, observer) 
 
 /**
  * Asserts that the passed-in impersonated user is empty
- * @param {string} impersonatedUser 
+ * @param {string} impersonatedUser
  * @param {function (err:Error)} onProtocolError Called when it does have impersonated user set
  * @param {any} observer
  */

@@ -193,5 +193,4 @@ export default class ResponseHandler {
   _resetFailure () {
     this._currentFailure = null
   }
-
 }

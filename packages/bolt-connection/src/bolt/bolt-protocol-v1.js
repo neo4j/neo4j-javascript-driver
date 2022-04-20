@@ -21,6 +21,7 @@ import {
   assertTxConfigIsEmpty,
   assertImpersonatedUserIsEmpty
 } from './bolt-protocol-util'
+// eslint-disable-next-line no-unused-vars
 import { Chunker } from '../channel'
 import { v1 } from '../packstream'
 import RequestMessage from './request-message'
@@ -28,6 +29,7 @@ import {
   LoginObserver,
   ResetObserver,
   ResultStreamObserver,
+  // eslint-disable-next-line no-unused-vars
   StreamObserver
 } from './stream-observers'
 import { internal } from 'neo4j-driver-core'
@@ -35,6 +37,7 @@ import { internal } from 'neo4j-driver-core'
 const {
   bookmarks: { Bookmarks },
   constants: { ACCESS_MODE_WRITE, BOLT_PROTOCOL_V1 },
+  // eslint-disable-next-line no-unused-vars
   logger: { Logger },
   txConfig: { TxConfig }
 } = internal

@@ -87,4 +87,3 @@ function extractTrustedCertificates (driverConfig) {
 function extractKnownHostsPath (driverConfig) {
   return driverConfig.knownHosts || null
 }
-

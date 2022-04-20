@@ -22,11 +22,11 @@ import { v5 } from '../packstream'
 import { internal } from 'neo4j-driver-core'
 
 const {
-  constants: { BOLT_PROTOCOL_V5_0 },
+  constants: { BOLT_PROTOCOL_V5_0 }
 } = internal
 
 export default class BoltProtocol extends BoltProtocolV44 {
-  get version() {
+  get version () {
     return BOLT_PROTOCOL_V5_0
   }
 

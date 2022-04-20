@@ -626,7 +626,7 @@ function convertIntegerPropsIfNeeded (obj, disableLosslessIntegers, useBigInt) {
 
   const clone = Object.create(Object.getPrototypeOf(obj))
   for (const prop in obj) {
-    if (obj.hasOwnProperty(prop)) {
+    if (Object.prototype.hasOwnProperty.call(obj, prop) === true) {
       const value = obj[prop]
       clone[prop] = isInt(value) ? convert(value) : value
     }

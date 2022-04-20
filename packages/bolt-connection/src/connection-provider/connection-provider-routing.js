@@ -41,13 +41,12 @@ const {
   }
 } = internal
 
-
 const PROCEDURE_NOT_FOUND_CODE = 'Neo.ClientError.Procedure.ProcedureNotFound'
 const DATABASE_NOT_FOUND_CODE = 'Neo.ClientError.Database.DatabaseNotFound'
 const INVALID_BOOKMARK_CODE = 'Neo.ClientError.Transaction.InvalidBookmark'
-const INVALID_BOOKMARK_MIXTURE_CODE = 
+const INVALID_BOOKMARK_MIXTURE_CODE =
   'Neo.ClientError.Transaction.InvalidBookmarkMixture'
-const AUTHORIZATION_EXPIRED_CODE = 
+const AUTHORIZATION_EXPIRED_CODE =
   'Neo.ClientError.Security.AuthorizationExpired'
 
 const SYSTEM_DB_NAME = 'system'
@@ -257,7 +256,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     })
 
     const servers = accessMode === WRITE ? routingTable.writers : routingTable.readers
-    
+
     let error = newError(
       `No servers available for database '${context.database}' with access mode '${accessMode}'`,
       SERVICE_UNAVAILABLE
@@ -285,7 +284,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   }
 
   forgetWriter (address, database) {
-    this._routingTableRegistry.apply( database, {
+    this._routingTableRegistry.apply(database, {
       applyWhenExists: routingTable => routingTable.forgetWriter(address)
     })
   }
@@ -510,7 +509,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         errorCode: SESSION_EXPIRED,
         handleAuthorizationExpired: (error, address) => this._handleAuthorizationExpired(error, address)
       })
-      
+
       const connectionProvider = new SingleConnectionProvider(
         new DelegateConnection(connection, databaseSpecificErrorHandler))
 
@@ -535,7 +534,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
   }
 
-  _handleRediscoveryError(error, routerAddress) {
+  _handleRediscoveryError (error, routerAddress) {
     if (_isFailFastError(error) || _isFailFastSecurityError(error)) {
       throw error
     } else if (error.code === PROCEDURE_NOT_FOUND_CODE) {
@@ -578,9 +577,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._routingTableRegistry.register(
       newRoutingTable
     )
-    
+
     onDatabaseNameResolved(newRoutingTable.database)
-    
+
     this._log.info(`Updated routing table ${newRoutingTable}`)
   }
 
@@ -639,14 +638,14 @@ class RoutingTableRegistry {
 
   /**
    * Retrieves a routing table from a given database name
-   * 
+   *
    * @param {string|impersonatedUser} impersonatedUser The impersonated User
    * @param {string} database The database name
    * @param {function()|RoutingTable} defaultSupplier The routing table supplier, if it's not a function or not exists, it will return itself as default value
    * @returns {RoutingTable} The routing table for the respective database
    */
   get (database, defaultSupplier) {
-    if (this._tables.has(database) ) {
+    if (this._tables.has(database)) {
       return this._tables.get(database)
     }
     return typeof defaultSupplier === 'function'
@@ -690,14 +689,13 @@ function _isFailFastError (error) {
   return [
     DATABASE_NOT_FOUND_CODE,
     INVALID_BOOKMARK_CODE,
-    INVALID_BOOKMARK_MIXTURE_CODE,
+    INVALID_BOOKMARK_MIXTURE_CODE
   ].includes(error.code)
 }
 
 function _isFailFastSecurityError (error) {
-  return error.code.startsWith('Neo.ClientError.Security.') && 
+  return error.code.startsWith('Neo.ClientError.Security.') &&
     ![
-      AUTHORIZATION_EXPIRED_CODE,
+      AUTHORIZATION_EXPIRED_CODE
     ].includes(error.code)
 }
-

@@ -24,11 +24,11 @@ import { RouteObserver, ResultStreamObserver } from './stream-observers'
 
 const {
   constants: { BOLT_PROTOCOL_V4_4, FETCH_ALL },
-  bookmarks: { Bookmarks },
+  bookmarks: { Bookmarks }
 } = internal
 
 export default class BoltProtocol extends BoltProtocolV43 {
-  get version() {
+  get version () {
     return BOLT_PROTOCOL_V4_4
   }
 
@@ -153,5 +153,4 @@ export default class BoltProtocol extends BoltProtocolV43 {
 
     return observer
   }
-
 }

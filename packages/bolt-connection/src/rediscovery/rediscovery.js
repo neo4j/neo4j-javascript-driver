@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 import RoutingTable from './routing-table'
+// eslint-disable-next-line no-unused-vars
 import { Session } from 'neo4j-driver-core'
 
 export default class Rediscovery {
@@ -70,7 +71,7 @@ export default class Rediscovery {
           afterComplete: session._onComplete
         },
         onCompleted: resolve,
-        onError: reject,
+        onError: reject
       })
     })
   }

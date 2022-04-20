@@ -27,6 +27,7 @@ import BoltProtocolV4x2 from './bolt-protocol-v4x2'
 import BoltProtocolV4x3 from './bolt-protocol-v4x3'
 import BoltProtocolV4x4 from './bolt-protocol-v4x4'
 import BoltProtocolV5x0 from './bolt-protocol-v5x0'
+// eslint-disable-next-line no-unused-vars
 import { Chunker, Dechunker } from '../channel'
 import ResponseHandler from './response-handler'
 
