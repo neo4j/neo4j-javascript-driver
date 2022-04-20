@@ -17,17 +17,13 @@
  * limitations under the License.
  */
 
-// @ts-ignore
 const env = process.env
 
-const username = env.TEST_NEO4J_USER || 'neo4j'
-const password = env.TEST_NEO4J_PASS || 'password'
-const hostname = env.TEST_NEO4J_HOST || 'localhost'
-const scheme = env.TEST_NEO4J_SCHEME || 'bolt'
-const cluster =
-  env.TEST_NEO4J_IS_CLUSTER !== undefined
-    ? env.TEST_NEO4J_IS_CLUSTER === '1'
-    : false
+const username = env.TEST_NEO4J_USER ?? 'neo4j'
+const password = env.TEST_NEO4J_PASS ?? 'password'
+const hostname = env.TEST_NEO4J_HOST ?? 'localhost'
+const scheme = env.TEST_NEO4J_SCHEME ?? 'bolt'
+const cluster = env.TEST_NEO4J_IS_CLUSTER === '1'
 
 const testNonClusterSafe = cluster ? test.skip.bind(test) : test
 

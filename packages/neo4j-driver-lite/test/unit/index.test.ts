@@ -217,12 +217,12 @@ describe('index', () => {
       mode: 'READ',
       reactive: false,
       connectionProvider: {
-        acquireConnection: () => Promise.reject(Error('something wrong')),
-        close: () => Promise.resolve(),
-        supportsMultiDb: () => Promise.resolve(true),
-        supportsTransactionConfig: () => Promise.resolve(true),
-        supportsUserImpersonation: () => Promise.resolve(true),
-        verifyConnectivityAndGetServerInfo: () => Promise.resolve(new ServerInfo({}))
+        acquireConnection: async () => { throw Error('something wrong') },
+        close: async () => {},
+        supportsMultiDb: async () => true,
+        supportsTransactionConfig: async () => true,
+        supportsUserImpersonation: async () => true,
+        verifyConnectivityAndGetServerInfo: async () => new ServerInfo({})
       }
     })
     expect(session).toBeDefined()
