@@ -81,7 +81,7 @@ const EMPTY_BOOKMARK = new Bookmarks(null)
 function asStringArray (
   value?: string | string[] | string[] | null
 ): string[] {
-  if (value == null) {
+  if (value == null || value === '') {
     return []
   }
 
