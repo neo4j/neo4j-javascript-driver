@@ -20,7 +20,6 @@
 import neo4j from '../src'
 import { READ } from '../src/driver'
 import sharedNeo4j from './internal/shared-neo4j'
-import _ from 'lodash'
 import testUtils from './internal/test-utils'
 import {
   newError,
@@ -846,8 +845,8 @@ describe('#integration session', () => {
       allBookmarks.push(bookmarks)
     }
 
-    expect(_.uniq(allBookmarks).length).toEqual(nodeCount)
-    allBookmarks.forEach(bookmarks => expect(_.isArray(bookmarks)).toBeTruthy())
+    expect(new Set(allBookmarks).size).toEqual(nodeCount)
+    allBookmarks.forEach(bookmarks => expect(Array.isArray(bookmarks)).toBeTruthy())
 
     const session = driver.session({
       defaultAccessMode: READ,

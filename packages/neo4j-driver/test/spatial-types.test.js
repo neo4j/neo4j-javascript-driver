@@ -20,7 +20,6 @@
 import neo4j, { int } from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { isPoint, Point } from 'neo4j-driver-core'
-import _ from 'lodash'
 
 const WGS_84_2D_CRS_CODE = neo4j.int(4326)
 const CARTESIAN_2D_CRS_CODE = neo4j.int(7203)
@@ -198,7 +197,7 @@ describe('#integration spatial-types', () => {
       'RETURN point({x: 42.231, y: 176.938123})',
       point => {
         expect(isPoint(point)).toBeTruthy()
-        expect(_.isNumber(point.srid)).toBeTruthy()
+        expect(typeof point.srid).toEqual('number')
         expect(point.srid).toEqual(CARTESIAN_2D_CRS_CODE.toNumber())
       }
     )

@@ -19,7 +19,6 @@
 
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
-import _ from 'lodash'
 
 describe('#integration null value', () => {
   it('should support null', testValue(null))
@@ -246,13 +245,26 @@ function runReturnQuery (driver, actual, expected) {
 }
 
 function randomByteArrays (count, minLength, maxLength) {
-  return _.range(count).map(() => {
-    const length = _.random(minLength, maxLength)
+  return range(count).map(() => {
+    const length = random(minLength, maxLength)
     return randomByteArray(length)
   })
 }
 
 function randomByteArray (length) {
-  const array = _.range(length).map(() => _.random(-128, 127))
+  const array = range(length).map(() => random(-128, 127))
   return new Int8Array(array)
+}
+
+function range (size) {
+  const arr = []
+  for (let i; i < size; i++) {
+    arr.push(i)
+  }
+  return arr
+}
+
+function random (lower, upper) {
+  const interval = upper - lower
+  return lower + Math.floor(Math.random() * interval)
 }

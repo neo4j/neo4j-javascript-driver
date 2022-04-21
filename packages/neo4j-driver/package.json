@@ -73,7 +73,6 @@
     "karma-jasmine": "^4.0.2",
     "karma-source-map-support": "^1.4.0",
     "karma-spec-reporter": "^0.0.33",
-    "lodash": "^4.17.21",
     "lolex": "^6.0.0",
     "minimist": "^1.2.6",
     "mustache": "^4.2.0",
