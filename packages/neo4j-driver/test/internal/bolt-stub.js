@@ -24,12 +24,6 @@ class UnsupportedBoltStub {
   start (script, port) {
     throw new Error('BoltStub: unable to start, unavailable on this platform')
   }
-
-  startWithTemplate (scriptTemplate, parameters, port) {
-    throw new Error(
-      'BoltStub: unable to start with template, unavailable on this platform'
-    )
-  }
 }
 
 const verbose = (process.env.NEOLOGLEVEL || 'error').toLowerCase() === 'debug' // for debugging purposes
@@ -115,14 +109,6 @@ class SupportedBoltStub extends UnsupportedBoltStub {
       tryConnect()
     })
   }
-
-  startWithTemplate (scriptTemplate, parameters, port) {
-    const template = this._fs.readFileSync(scriptTemplate, 'utf-8')
-    const scriptContents = this._mustache.render(template, parameters)
-    const script = this._tmp.fileSync().name
-    this._fs.writeFileSync(script, scriptContents, 'utf-8')
-    return this.start(script, port)
-  }
 }
 
 class StubServer {
@@ -182,6 +168,5 @@ const stub = supported ? supportedStub : new UnsupportedBoltStub()
 export default {
   supported: supported,
   start: stub.start.bind(stub),
-  startWithTemplate: stub.startWithTemplate.bind(stub),
   newDriver: newDriver
 }
