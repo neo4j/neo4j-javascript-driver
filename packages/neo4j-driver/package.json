@@ -75,7 +75,6 @@
     "karma-spec-reporter": "^0.0.33",
     "lolex": "^6.0.0",
     "minimist": "^1.2.6",
-    "mustache": "^4.2.0",
     "nyc": "^15.1.0",
     "run-sequence": "^2.2.1",
     "semver": "^7.3.5",
