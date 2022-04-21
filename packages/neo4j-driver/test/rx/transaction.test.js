@@ -19,11 +19,11 @@
 
 import { Notification } from 'rxjs'
 import {
-  flatMap,
+  mergeMap,
   materialize,
   toArray,
-  concat,
-  map
+  map,
+  concatWith
 } from 'rxjs/operators'
 import neo4j from '../../src'
 // eslint-disable-next-line no-unused-vars
@@ -64,7 +64,7 @@ describe('#integration-rx transaction', () => {
     const result = await session
       .beginTransaction()
       .pipe(
-        flatMap(txc => txc.commit()),
+        mergeMap(txc => txc.commit()),
         materialize(),
         toArray()
       )
@@ -81,7 +81,7 @@ describe('#integration-rx transaction', () => {
     const result = await session
       .beginTransaction()
       .pipe(
-        flatMap(txc => txc.rollback()),
+        mergeMap(txc => txc.rollback()),
         materialize(),
         toArray()
       )
@@ -98,13 +98,13 @@ describe('#integration-rx transaction', () => {
     const result = await session
       .beginTransaction()
       .pipe(
-        flatMap(txc =>
+        mergeMap(txc =>
           txc
             .run('CREATE (n:Node {id: 42}) RETURN n')
             .records()
             .pipe(
               map(r => r.get('n').properties.id),
-              concat(txc.commit())
+              concatWith(txc.commit())
             )
         ),
         materialize(),
@@ -127,13 +127,13 @@ describe('#integration-rx transaction', () => {
     const result = await session
       .beginTransaction()
       .pipe(
-        flatMap(txc =>
+        mergeMap(txc =>
           txc
             .run('CREATE (n:Node {id: 42}) RETURN n')
             .records()
             .pipe(
               map(r => r.get('n').properties.id),
-              concat(txc.rollback())
+              concatWith(txc.rollback())
             )
         ),
         materialize(),
@@ -156,13 +156,13 @@ describe('#integration-rx transaction', () => {
     const result = await session
       .beginTransaction()
       .pipe(
-        flatMap(txc =>
+        mergeMap(txc =>
           txc
             .run('CREATE (n:Node {id: 42}) RETURN n')
             .records()
             .pipe(
               map(r => r.get('n').properties.id),
-              concat(txc.close())
+              concatWith(txc.close())
             )
         ),
         materialize(),
@@ -457,9 +457,9 @@ describe('#integration-rx transaction', () => {
     const result = await result1
       .records()
       .pipe(
-        concat(result2.records()),
-        concat(result3.records()),
-        concat(result4.records()),
+        concatWith(result2.records()),
+        concatWith(result3.records()),
+        concatWith(result4.records()),
         map(r => r.get(0).toInt()),
         materialize(),
         toArray()
@@ -489,9 +489,9 @@ describe('#integration-rx transaction', () => {
     const result = await result4
       .records()
       .pipe(
-        concat(result3.records()),
-        concat(result2.records()),
-        concat(result1.records()),
+        concatWith(result3.records()),
+        concatWith(result2.records()),
+        concatWith(result1.records()),
         map(r => r.get(0).toInt()),
         materialize(),
         toArray()
@@ -615,8 +615,8 @@ describe('#integration-rx transaction', () => {
     const results = await result1
       .records()
       .pipe(
-        concat(result2.records()),
-        concat(result3.records()),
+        concatWith(result2.records()),
+        concatWith(result3.records()),
         materialize(),
         toArray()
       )
@@ -641,8 +641,8 @@ describe('#integration-rx transaction', () => {
     const results = await result1
       .keys()
       .pipe(
-        concat(result2.keys()),
-        concat(result3.keys()),
+        concatWith(result2.keys()),
+        concatWith(result3.keys()),
         materialize(),
         toArray()
       )
@@ -744,7 +744,7 @@ describe('#integration-rx transaction', () => {
       .records()
       .pipe(
         map(r => r.get(0).toInt()),
-        concat(session.close())
+        concatWith(session.close())
       )
       .toPromise()
   }

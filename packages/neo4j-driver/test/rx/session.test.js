@@ -18,7 +18,7 @@
  */
 
 import { Notification, throwError } from 'rxjs'
-import { map, materialize, toArray, concat } from 'rxjs/operators'
+import { map, materialize, toArray, concatWith } from 'rxjs/operators'
 import neo4j from '../../src'
 import RxSession from '../../src/session-rx'
 import sharedNeo4j from '../internal/shared-neo4j'
@@ -377,7 +377,7 @@ describe('#integration rx-session', () => {
       .records()
       .pipe(
         map(r => r.get(0).toInt()),
-        concat(session.close())
+        concatWith(session.close())
       )
       .toPromise()
   }
@@ -403,7 +403,8 @@ describe('#integration rx-session', () => {
       }
 
       if (this._reactiveFailuresIndex < this._reactiveFailures.length) {
-        return throwError(this._reactiveFailures[this._reactiveFailuresIndex++])
+        const i = this._reactiveFailuresIndex++
+        return throwError(() => this._reactiveFailures[i])
       }
 
       return txc

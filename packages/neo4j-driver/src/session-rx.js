@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 import { defer, Observable, throwError } from 'rxjs'
-import { flatMap, catchError, concat } from 'rxjs/operators'
+import { mergeMap, catchError, concatWith } from 'rxjs/operators'
 import RxResult from './result-rx'
 // eslint-disable-next-line no-unused-vars
 import { Session, internal } from 'neo4j-driver-core'
@@ -230,16 +230,16 @@ export default class RxSession {
 
     return this._retryLogic.retry(
       this._beginTransaction(accessMode, txConfig).pipe(
-        flatMap(txc =>
+        mergeMap(txc =>
           defer(() => {
             try {
               return work(transactionWrapper(txc))
             } catch (err) {
-              return throwError(err)
+              return throwError(() => err)
             }
           }).pipe(
-            catchError(err => txc.rollback().pipe(concat(throwError(err)))),
-            concat(txc.commit())
+            catchError(err => txc.rollback().pipe(concatWith(throwError(() => err)))),
+            concatWith(txc.commit())
           )
         )
       )

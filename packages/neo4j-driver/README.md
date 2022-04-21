@@ -222,7 +222,7 @@ rxSession
   .records()
   .pipe(
     map(record => record.get('name')),
-    concat(rxSession.close())
+    concatWith(rxSession.close())
   )
   .subscribe({
     next: data => console.log(data),
@@ -373,8 +373,8 @@ try {
 rxSession
   .beginTransaction()
   .pipe(
-    flatMap(txc =>
-      concat(
+    mergeMap(txc =>
+      concatWith(
         txc
           .run(
             'MERGE (bob:Person {name: $nameParam}) RETURN bob.name AS name',
@@ -397,7 +397,7 @@ rxSession
         of('Second query completed'),
         txc.commit(),
         of('committed')
-      ).pipe(catchError(err => txc.rollback().pipe(throwError(err))))
+      ).pipe(catchError(err => txc.rollback().pipe(throwError(() => err))))
     )
   )
   .subscribe({
