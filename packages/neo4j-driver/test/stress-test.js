@@ -456,7 +456,7 @@ function verifyRecord (record) {
     return new Error(`Unexpected labels in node: ${JSON.stringify(node)}`)
   }
 
-  const propertyKeys = node.labels
+  const propertyKeys = Object.keys(node.properties)
   if (
     propertyKeys.length > 0 &&
     !arraysEqual(['name', 'salary'], propertyKeys)
