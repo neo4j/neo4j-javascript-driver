@@ -20,7 +20,6 @@
 import neo4j from '../src'
 import { READ, WRITE } from '../src/driver'
 import parallelLimit from 'async/parallelLimit'
-import _ from 'lodash'
 import sharedNeo4j from './internal/shared-neo4j'
 
 const TEST_MODES = {
@@ -158,10 +157,12 @@ function isCluster () {
 
 function createCommands (context) {
   const uniqueCommands = createUniqueCommands(context)
-
+  function sample (arr) {
+    return arr[Math.floor(Math.random() * arr.length)]
+  }
   const commands = []
   for (let i = 0; i < TEST_MODE.commandsCount; i++) {
-    const randomCommand = _.sample(uniqueCommands)
+    const randomCommand = sample(uniqueCommands)
     commands.push(randomCommand)
   }
 
@@ -455,9 +456,9 @@ function verifyRecord (record) {
     return new Error(`Unexpected labels in node: ${JSON.stringify(node)}`)
   }
 
-  const propertyKeys = _.keys(node.properties)
+  const propertyKeys = node.labels
   if (
-    !_.isEmpty(propertyKeys) &&
+    propertyKeys.length > 0 &&
     !arraysEqual(['name', 'salary'], propertyKeys)
   ) {
     return new Error(
@@ -584,7 +585,8 @@ function fromEnvOrDefault (envVariableName, defaultValue = undefined) {
 }
 
 function arraysEqual (array1, array2) {
-  return _.difference(array1, array2).length === 0
+  const resultant = array1.filter(item => !array2.find(item2 => item2.valueOf() === item.valueOf()))
+  return resultant.length === 0
 }
 
 class Context {

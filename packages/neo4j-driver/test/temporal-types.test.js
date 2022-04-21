@@ -21,7 +21,6 @@ import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { toNumber, internal } from 'neo4j-driver-core'
 import timesSeries from 'async/timesSeries'
-import _ from 'lodash'
 import testUtils from './internal/test-utils'
 
 const {
@@ -1423,11 +1422,11 @@ describe('#integration temporal-types', () => {
   }
 
   async function testSendAndReceiveArrayOfRandomTemporalValues (valueGenerator) {
-    const arrayLength = _.random(
+    const arrayLength = random(
       MIN_TEMPORAL_ARRAY_LENGTH,
       MAX_TEMPORAL_ARRAY_LENGTH
     )
-    const values = _.range(arrayLength).map(() => valueGenerator())
+    const values = range(arrayLength).map(() => valueGenerator())
 
     await testSendReceiveTemporalValue(values)
   }
@@ -1486,12 +1485,12 @@ describe('#integration temporal-types', () => {
   }
 
   function randomDuration () {
-    const sign = _.sample([-1, 1]) // duration can be negative
+    const sign = sample([-1, 1]) // duration can be negative
     return duration(
-      sign * _.random(0, MAX_DURATION_COMPONENT),
-      sign * _.random(0, MAX_DURATION_COMPONENT),
-      sign * _.random(0, MAX_DURATION_COMPONENT),
-      _.random(0, MAX_NANO_OF_SECOND)
+      sign * random(0, MAX_DURATION_COMPONENT),
+      sign * random(0, MAX_DURATION_COMPONENT),
+      sign * random(0, MAX_DURATION_COMPONENT),
+      random(0, MAX_NANO_OF_SECOND)
     )
   }
 
@@ -1600,7 +1599,24 @@ describe('#integration temporal-types', () => {
   }
 
   function randomZoneId () {
-    return _.sample(ZONE_IDS)
+    return sample(ZONE_IDS)
+  }
+
+  function random (lower, upper) {
+    const interval = upper - lower
+    return lower + Math.floor(Math.random() * interval)
+  }
+
+  function range (size) {
+    const arr = []
+    for (let i; i < size; i++) {
+      arr.push(i)
+    }
+    return arr
+  }
+
+  function sample (arr) {
+    return arr[Math.floor(Math.random() * arr.length)]
   }
 
   function duration (months, days, seconds, nanoseconds) {
@@ -1698,7 +1714,7 @@ describe('#integration temporal-types', () => {
   }
 
   function randomInt (lower, upper) {
-    return neo4j.int(_.random(lower, upper))
+    return neo4j.int(random(lower, upper))
   }
 
   function testStandardDateToLocalTimeConversion (date, nanosecond) {

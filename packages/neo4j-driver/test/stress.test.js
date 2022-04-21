@@ -20,7 +20,6 @@
 import neo4j from '../src'
 import { READ, WRITE } from '../src/driver'
 import parallelLimit from 'async/parallelLimit'
-import _ from 'lodash'
 import sharedNeo4j from './internal/shared-neo4j'
 
 describe('#integration stress tests', () => {
@@ -120,11 +119,14 @@ describe('#integration stress tests', () => {
   )
 
   function createCommands (context) {
+    function sample (arr) {
+      return arr[Math.floor(Math.random() * arr.length)]
+    }
     const uniqueCommands = createUniqueCommands(context)
 
     const commands = []
     for (let i = 0; i < TEST_MODE.commandsCount; i++) {
-      const randomCommand = _.sample(uniqueCommands)
+      const randomCommand = sample(uniqueCommands)
       commands.push(randomCommand)
     }
 
@@ -427,9 +429,9 @@ describe('#integration stress tests', () => {
       return new Error(`Unexpected labels in node: ${JSON.stringify(node)}`)
     }
 
-    const propertyKeys = _.keys(node.properties)
+    const propertyKeys = node.labels
     if (
-      !_.isEmpty(propertyKeys) &&
+      propertyKeys.length > 0 &&
       !arraysEqual(['name', 'salary'], propertyKeys)
     ) {
       return new Error(
@@ -550,19 +552,19 @@ describe('#integration stress tests', () => {
   }
 
   function addressesForMultiDb (records, role, db = 'neo4j') {
-    return _.uniq(
+    return [...new Set(
       records
         .filter(record => record.get('databases')[db] === role)
         .map(record => record.get('addresses')[0].replace('bolt://', ''))
-    )
+    )]
   }
 
   function addressesWithRole (records, role) {
-    return _.uniq(
+    return [...new Set(
       records
         .filter(record => record.get('role') === role)
         .map(record => record.get('addresses')[0].replace('bolt://', ''))
-    )
+    )]
   }
 
   function assertAllAddressesServedReadQueries (addresses, readQueriesByServer) {
@@ -641,7 +643,8 @@ describe('#integration stress tests', () => {
   }
 
   function arraysEqual (array1, array2) {
-    return _.difference(array1, array2).length === 0
+    const resultant = array1.filter(item => !array2.find(item2 => item2.valueOf() === item.valueOf()))
+    return resultant.length === 0
   }
 
   class Context {
