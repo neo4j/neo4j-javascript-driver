@@ -22,8 +22,8 @@
 import RxTransaction from '../../types/transaction-rx'
 import { Record, ResultSummary } from 'neo4j-driver-core'
 import RxResult from '../../types/result-rx'
-import { Observable, of, Observer, throwError } from 'rxjs'
-import { concat, finalize, catchError } from 'rxjs/operators'
+import { of, Observer } from 'rxjs'
+import { concatWith } from 'rxjs/operators'
 
 const dummy: any = null
 
@@ -72,13 +72,13 @@ result2.consume().subscribe(summaryObserver)
 const isOpen: boolean = tx.isOpen()
 
 tx.commit()
-  .pipe(concat(of('committed')))
+  .pipe(concatWith(of('committed')))
   .subscribe(stringObserver)
 
 tx.rollback()
-  .pipe(concat(of('rolled back')))
+  .pipe(concatWith(of('rolled back')))
   .subscribe(stringObserver)
 
 tx.close()
-  .pipe(concat(of('closed')))
+  .pipe(concatWith(of('closed')))
   .subscribe(stringObserver)

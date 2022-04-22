@@ -19,13 +19,13 @@
 
 import { Notification, throwError } from 'rxjs'
 import {
-  flatMap,
+  mergeMap,
   materialize,
   toArray,
-  concat,
   map,
   bufferCount,
-  catchError
+  catchError,
+  concatWith
 } from 'rxjs/operators'
 import neo4j from '../../src'
 // eslint-disable-next-line no-unused-vars
@@ -65,14 +65,14 @@ describe('#integration-rx transaction', () => {
     const messages = await session
       .beginTransaction()
       .pipe(
-        flatMap(txc =>
+        mergeMap(txc =>
           txc
             .run('UNWIND RANGE(1, $size) AS x RETURN x', { size })
             .records()
             .pipe(
               map(r => r.get(0)),
               bufferCount(50),
-              flatMap(x =>
+              mergeMap(x =>
                 txc
                   .run('UNWIND $x AS id CREATE (n:Node {id: id}) RETURN n.id', {
                     x
@@ -80,8 +80,8 @@ describe('#integration-rx transaction', () => {
                   .records()
               ),
               map(r => r.get(0)),
-              concat(txc.commit()),
-              catchError(err => txc.rollback().pipe(concat(throwError(err)))),
+              concatWith(txc.commit()),
+              catchError(err => txc.rollback().pipe(concatWith(throwError(() => err)))),
               materialize(),
               toArray()
             )
@@ -105,7 +105,7 @@ describe('#integration-rx transaction', () => {
       .pipe(
         map(r => r.get(0)),
         bufferCount(50),
-        flatMap(x =>
+        mergeMap(x =>
           session
             .run('UNWIND $x AS id CREATE (n:Node {id: id}) RETURN n.id', {
               x

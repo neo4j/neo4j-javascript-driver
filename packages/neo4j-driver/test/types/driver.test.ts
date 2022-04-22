@@ -31,7 +31,7 @@ import Driver, {
 import { Parameters } from '../../types/query-runner'
 import { ServerInfo, Session } from 'neo4j-driver-core'
 import RxSession from '../../types/session-rx'
-import { concat, map, catchError } from 'rxjs/operators'
+import { map, catchError, concatWith } from 'rxjs/operators'
 import { throwError } from 'rxjs'
 
 const dummy: any = null
@@ -140,8 +140,8 @@ rxSession1
   .records()
   .pipe(
     map(r => r.get(0)),
-    concat(rxSession1.close()),
-    catchError(err => rxSession1.close().pipe(concat(throwError(err))))
+    concatWith(rxSession1.close()),
+    catchError(err => rxSession1.close().pipe(concatWith(throwError(() => err))))
   )
   .subscribe({
     next: data => console.log(data),

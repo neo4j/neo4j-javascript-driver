@@ -19,7 +19,7 @@
 /* eslint-disable-next-line no-unused-vars */
 import { newError, Record, ResultSummary } from 'neo4j-driver-core'
 import { Observable, Subject, ReplaySubject, from } from 'rxjs'
-import { flatMap, publishReplay, refCount } from 'rxjs/operators'
+import { mergeMap, publishReplay, refCount } from 'rxjs/operators'
 
 const States = {
   READY: 0,
@@ -41,7 +41,7 @@ export default class RxResult {
 
     this._result = replayedResult
     this._keys = replayedResult.pipe(
-      flatMap(r => from(r.keys())),
+      mergeMap(r => from(r.keys())),
       publishReplay(1),
       refCount()
     )
@@ -75,7 +75,7 @@ export default class RxResult {
    */
   records () {
     const result = this._result.pipe(
-      flatMap(
+      mergeMap(
         result =>
           new Observable(recordsObserver =>
             this._startStreaming({ result, recordsObserver })
@@ -97,7 +97,7 @@ export default class RxResult {
    */
   consume () {
     return this._result.pipe(
-      flatMap(
+      mergeMap(
         result =>
           new Observable(summaryObserver =>
             this._startStreaming({ result, summaryObserver })

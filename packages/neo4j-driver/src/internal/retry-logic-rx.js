@@ -20,7 +20,7 @@
 import { newError, error, internal, isRetriableError } from 'neo4j-driver-core'
 // eslint-disable-next-line no-unused-vars
 import { Observable, throwError, of } from 'rxjs'
-import { retryWhen, flatMap, delay } from 'rxjs/operators'
+import { retryWhen, mergeMap, delay } from 'rxjs/operators'
 
 const {
   logger: {
@@ -80,9 +80,9 @@ export default class RxRetryLogic {
         let delayDuration = this._initialDelay
 
         return failedWork.pipe(
-          flatMap(err => {
+          mergeMap(err => {
             if (!isRetriableError(err)) {
-              return throwError(err)
+              return throwError(() => err)
             }
 
             handledExceptions.push(err)
@@ -98,7 +98,7 @@ export default class RxRetryLogic {
 
               error.seenErrors = handledExceptions
 
-              return throwError(error)
+              return throwError(() => error)
             }
 
             const nextDelayDuration = this._computeNextDelay(delayDuration)

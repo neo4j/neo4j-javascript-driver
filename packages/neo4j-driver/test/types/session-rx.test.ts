@@ -30,7 +30,7 @@ import {
   TransactionConfig
 } from 'neo4j-driver-core'
 import { Observable, of, Observer, throwError } from 'rxjs'
-import { concat, finalize, catchError } from 'rxjs/operators'
+import { finalize, catchError, concatWith } from 'rxjs/operators'
 
 const dummy: any = null
 const intValue: Integer = Integer.fromInt(42)
@@ -120,8 +120,8 @@ result1.records().subscribe(recordsObserver)
 result1
   .consume()
   .pipe(
-    concat(close1),
-    catchError(err => close1.pipe(concat(throwError(err))))
+    concatWith(close1),
+    catchError(err => close1.pipe(concatWith(throwError(() => err))))
   )
   .subscribe(summaryObserver)
 
@@ -131,8 +131,8 @@ result2.records().subscribe(recordsObserver)
 result2
   .consume()
   .pipe(
-    concat(close1),
-    catchError(err => close1.pipe(concat(throwError(err))))
+    concatWith(close1),
+    catchError(err => close1.pipe(concatWith(throwError(() => err))))
   )
   .subscribe(summaryObserver)
 
@@ -146,8 +146,8 @@ result3.records().subscribe(recordsObserver)
 result3
   .consume()
   .pipe(
-    concat(close1),
-    catchError(err => close1.pipe(concat(throwError(err))))
+    concatWith(close1),
+    catchError(err => close1.pipe(concatWith(throwError(() => err))))
   )
   .subscribe(summaryObserver)
 
