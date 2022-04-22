@@ -426,7 +426,13 @@ const forExport = {
   Path,
   PathSegment,
   Point,
-  Integer
+  Integer,
+  Duration,
+  LocalTime,
+  Time,
+  Date,
+  LocalDateTime,
+  DateTime
 }
 
 export {
@@ -472,6 +478,12 @@ export {
   Path,
   PathSegment,
   Point,
-  Integer
+  Integer,
+  Duration,
+  LocalTime,
+  Time,
+  Date,
+  LocalDateTime,
+  DateTime
 }
 export default forExport

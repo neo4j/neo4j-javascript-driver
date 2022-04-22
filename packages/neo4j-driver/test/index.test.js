@@ -22,7 +22,13 @@ import neo4j, {
   PathSegment,
   Point,
   Integer,
-  Neo4jError
+  Neo4jError,
+  Duration,
+  LocalTime,
+  Time,
+  Date,
+  LocalDateTime,
+  DateTime
 } from '../src'
 
 import {
@@ -41,7 +47,13 @@ import {
   PathSegment as InternalPathSegment,
   Point as InternalPoint,
   Integer as InternalInteger,
-  Neo4jError as InternalNeo4jError
+  Neo4jError as InternalNeo4jError,
+  Duration as InternalDuration,
+  LocalTime as InternalLocalTime,
+  Time as InternalTime,
+  Date as InternalDate,
+  LocalDateTime as InternalLocalDateTime,
+  DateTime as InternalDateTime
 } from 'neo4j-driver-core'
 import InternalRxManagedTransaction from '../src/transaction-managed-rx'
 
@@ -402,6 +414,90 @@ describe('#unit index', () => {
 
       function subject () {
         return new InternalNeo4jError('Message', 'N/A')
+      }
+    })
+
+    describe('Duration', () => {
+      it('should be instanceof neo4j.Duration', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Duration)
+      })
+
+      it('should be instanceof Duration', () => {
+        expect(subject()).toBeInstanceOf(Duration)
+      })
+
+      function subject () {
+        return new InternalDuration(1, 1, 1, 1)
+      }
+    })
+
+    describe('LocalTime', () => {
+      it('should be instanceof neo4j.LocalTime', () => {
+        expect(subject()).toBeInstanceOf(neo4j.LocalTime)
+      })
+
+      it('should be instanceof LocalTime', () => {
+        expect(subject()).toBeInstanceOf(LocalTime)
+      })
+
+      function subject () {
+        return new InternalLocalTime(1, 1, 1, 1)
+      }
+    })
+
+    describe('Time', () => {
+      it('should be instanceof neo4j.Time', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Time)
+      })
+
+      it('should be instanceof Time', () => {
+        expect(subject()).toBeInstanceOf(Time)
+      })
+
+      function subject () {
+        return new InternalTime(1, 1, 1, 1, 1)
+      }
+    })
+
+    describe('Date', () => {
+      it('should be instanceof neo4j.Date', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Date)
+      })
+
+      it('should be instanceof Date', () => {
+        expect(subject()).toBeInstanceOf(Date)
+      })
+
+      function subject () {
+        return new InternalDate(1, 1, 1)
+      }
+    })
+
+    describe('LocalDateTime', () => {
+      it('should be instanceof neo4j.LocalDateTime', () => {
+        expect(subject()).toBeInstanceOf(neo4j.LocalDateTime)
+      })
+
+      it('should be instanceof LocalDateTime', () => {
+        expect(subject()).toBeInstanceOf(LocalDateTime)
+      })
+
+      function subject () {
+        return new InternalLocalDateTime(1, 1, 1, 1, 1, 1, 1)
+      }
+    })
+
+    describe('DateTime', () => {
+      it('should be instanceof neo4j.DateTime', () => {
+        expect(subject()).toBeInstanceOf(neo4j.DateTime)
+      })
+
+      it('should be instanceof DateTime', () => {
+        expect(subject()).toBeInstanceOf(DateTime)
+      })
+
+      function subject () {
+        return new InternalDateTime(1, 1, 1, 1, 1, 1, 1, 1)
       }
     })
   })
