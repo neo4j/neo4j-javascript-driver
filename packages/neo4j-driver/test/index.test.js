@@ -14,7 +14,12 @@ import neo4j, {
   QueryStatistics,
   Notification,
   ServerInfo,
-  Record
+  Record,
+  Node,
+  Relationship,
+  UnboundRelationship,
+  Path,
+  PathSegment
 } from '../src'
 
 import { 
@@ -25,7 +30,12 @@ import {
   QueryStatistics as InternalQueryStatistics,
   Notification as InternalNotification,
   ServerInfo as InternalServerInfo,
-  Record as InternalRecord
+  Record as InternalRecord,
+  Node as InternalNode,
+  Relationship as InternalRelationship,
+  UnboundRelationship as InternalUnboundRelationship,
+  Path as InternalPath,
+  PathSegment as InternalPathSegment
 } from 'neo4j-driver-core'
 import InternalRxManagedTransaction from '../src/transaction-managed-rx'
 
@@ -274,6 +284,76 @@ describe('#unit index', () => {
 
       function subject() {
         return new InternalRecord([], [])
+      }
+    })
+
+    describe('Node', () => {
+      it('should be instanceof neo4j.Node', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Node)
+      })
+
+      it('should be instanceof Node', () => {
+        expect(subject()).toBeInstanceOf(Node)
+      })
+
+      function subject() {
+        return new InternalNode(1, [], [])
+      }
+    })
+
+    describe('Relationship', () => {
+      it('should be instanceof neo4j.Relationship', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Relationship)
+      })
+
+      it('should be instanceof Relationship', () => {
+        expect(subject()).toBeInstanceOf(Relationship)
+      })
+
+      function subject() {
+        return new InternalRelationship(1, 1, 1, "Type", [], [])
+      }
+    })
+
+    describe('UnboundRelationship', () => {
+      it('should be instanceof neo4j.UnboundRelationship', () => {
+        expect(subject()).toBeInstanceOf(neo4j.UnboundRelationship)
+      })
+
+      it('should be instanceof UnboundRelationship', () => {
+        expect(subject()).toBeInstanceOf(UnboundRelationship)
+      })
+
+      function subject() {
+        return new InternalUnboundRelationship(1, "Type", [])
+      }
+    })
+
+    describe('Path', () => {
+      it('should be instanceof neo4j.Path', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Path)
+      })
+
+      it('should be instanceof Path', () => {
+        expect(subject()).toBeInstanceOf(Path)
+      })
+
+      function subject() {
+        return new InternalPath(new InternalNode(1, [], []), new InternalNode(1, [], []), [])
+      }
+    })
+
+    describe('PathSegment', () => {
+      it('should be instanceof neo4j.PathSegment', () => {
+        expect(subject()).toBeInstanceOf(neo4j.PathSegment)
+      })
+
+      it('should be instanceof PathSegment', () => {
+        expect(subject()).toBeInstanceOf(PathSegment)
+      })
+
+      function subject() {
+        return new InternalPathSegment(new InternalNode(1, [], []), new InternalNode(1, [], []), [])
       }
     })
   })

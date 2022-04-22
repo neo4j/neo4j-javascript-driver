@@ -419,7 +419,12 @@ const forExport = {
   QueryStatistics,
   Notification,
   ServerInfo,
-  Record
+  Record,
+  Node,
+  Relationship,
+  UnboundRelationship,
+  Path,
+  PathSegment
 }
 
 export {
@@ -458,6 +463,11 @@ export {
   QueryStatistics,
   Notification,
   ServerInfo,
-  Record
+  Record,
+  Node,
+  Relationship,
+  UnboundRelationship,
+  Path,
+  PathSegment
 }
 export default forExport
