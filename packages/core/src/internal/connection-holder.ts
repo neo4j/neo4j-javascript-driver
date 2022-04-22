@@ -178,11 +178,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return this._connectionPromise
   }
 
-<<<<<<< HEAD
-  close (): Promise<null | Connection> {
-=======
-  close(hasTx?: boolean): Promise<void | Connection> {
->>>>>>> Sending reset if there is a tx going on
+  close (hasTx?: boolean): Promise<null | Connection> {
     if (this._referenceCount === 0) {
       return this._connectionPromise
     }
@@ -197,11 +193,11 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @return {Promise} - promise resolved then connection is returned to the pool.
    * @private
    */
-  private _releaseConnection (): Promise<Connection | null> {
+  private _releaseConnection (hasTx?: boolean): Promise<Connection | null> {
     this._connectionPromise = this._connectionPromise
       .then((connection?: Connection|null) => {
         if (connection != null) {
-          if (connection.isOpen() && (connection.hasOngoingObservableRequests() || hasTx)) {
+          if (connection.isOpen() && (connection.hasOngoingObservableRequests() || hasTx === true)) {
             return connection
               .resetAndFlush()
               .catch(ignoreError)
