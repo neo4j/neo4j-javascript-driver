@@ -51,10 +51,16 @@ import {
   UnboundRelationship,
   Record,
   ResultSummary,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics,
+  Notification,
+  ServerInfo,
   Result,
   auth,
   Session,
   Transaction,
+  ManagedTransaction
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -63,6 +69,7 @@ import {
 
 import RxSession from './session-rx'
 import RxTransaction from './transaction-rx'
+import RxManagedTransaction from './transaction-managed-rx'
 import RxResult from './result-rx'
 
 const {
@@ -400,10 +407,19 @@ const forExport = {
   Driver,
   Session,
   Transaction,
+  ManagedTransaction,
   Result,
   RxSession,
   RxTransaction,
-  RxResult
+  RxManagedTransaction,
+  RxResult,
+  ResultSummary,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics,
+  Notification,
+  ServerInfo,
+  Record
 }
 
 export {
@@ -430,9 +446,18 @@ export {
   Driver,
   Session,
   Transaction,
+  ManagedTransaction,
   Result,
   RxSession,
   RxTransaction,
-  RxResult
+  RxManagedTransaction,
+  RxResult,
+  ResultSummary,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics,
+  Notification,
+  ServerInfo,
+  Record
 }
 export default forExport
