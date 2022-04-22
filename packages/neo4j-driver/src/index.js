@@ -424,7 +424,9 @@ const forExport = {
   Relationship,
   UnboundRelationship,
   Path,
-  PathSegment
+  PathSegment,
+  Point,
+  Integer
 }
 
 export {
@@ -468,6 +470,8 @@ export {
   Relationship,
   UnboundRelationship,
   Path,
-  PathSegment
+  PathSegment,
+  Point,
+  Integer
 }
 export default forExport

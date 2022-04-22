@@ -1,10 +1,10 @@
-import neo4j, { 
-  Driver, 
-  Session, 
+import neo4j, {
+  Driver,
+  Session,
   Transaction,
-  ManagedTransaction, 
-  Result, 
-  RxSession, 
+  ManagedTransaction,
+  Result,
+  RxSession,
   RxTransaction,
   RxManagedTransaction,
   RxResult,
@@ -19,11 +19,14 @@ import neo4j, {
   Relationship,
   UnboundRelationship,
   Path,
-  PathSegment
+  PathSegment,
+  Point,
+  Integer,
+  Neo4jError
 } from '../src'
 
-import { 
-  ManagedTransaction as InternalManagedTransaction, 
+import {
+  ManagedTransaction as InternalManagedTransaction,
   ResultSummary as InternalResultSummary,
   Plan as InternalPlan,
   ProfiledPlan as InternalProfiledPlan,
@@ -35,7 +38,10 @@ import {
   Relationship as InternalRelationship,
   UnboundRelationship as InternalUnboundRelationship,
   Path as InternalPath,
-  PathSegment as InternalPathSegment
+  PathSegment as InternalPathSegment,
+  Point as InternalPoint,
+  Integer as InternalInteger,
+  Neo4jError as InternalNeo4jError
 } from 'neo4j-driver-core'
 import InternalRxManagedTransaction from '../src/transaction-managed-rx'
 
@@ -64,7 +70,7 @@ describe('#unit index', () => {
         expect(session).toBeInstanceOf(Session)
       })
 
-      function subject() {
+      function subject () {
         const driver = neo4j.driver('bolt://localhost')
         return driver.session()
       }
@@ -81,7 +87,7 @@ describe('#unit index', () => {
         expect(transaction).toBeInstanceOf(Transaction)
       })
 
-      function subject() {
+      function subject () {
         const driver = neo4j.driver('bolt://localhost')
         return driver.session().beginTransaction()
       }
@@ -98,7 +104,7 @@ describe('#unit index', () => {
         expect(result).toBeInstanceOf(Result)
       })
 
-      function subject() {
+      function subject () {
         const driver = neo4j.driver('bolt://localhost')
         return driver.session().run('RETURN 1')
       }
@@ -115,7 +121,7 @@ describe('#unit index', () => {
         expect(session).toBeInstanceOf(RxSession)
       })
 
-      function subject() {
+      function subject () {
         const driver = neo4j.driver('bolt://localhost')
         return driver.rxSession()
       }
@@ -132,7 +138,7 @@ describe('#unit index', () => {
         expect(transaction).toBeInstanceOf(RxTransaction)
       })
 
-      function subject() {
+      function subject () {
         const driver = neo4j.driver('bolt://localhost')
         return driver.rxSession().beginTransaction().toPromise()
       }
@@ -149,7 +155,7 @@ describe('#unit index', () => {
         expect(result).toBeInstanceOf(RxResult)
       })
 
-      function subject() {
+      function subject () {
         const driver = neo4j.driver('bolt://localhost')
         return driver.rxSession().run()
       }
@@ -164,9 +170,9 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(ManagedTransaction)
       })
 
-      function subject() {
+      function subject () {
         const driver = neo4j.driver('bolt://localhost')
-        const tx =  driver.session().beginTransaction()
+        const tx = driver.session().beginTransaction()
         return InternalManagedTransaction.fromTransaction(tx)
       }
     })
@@ -182,9 +188,9 @@ describe('#unit index', () => {
         expect(rxManagedTransaction).toBeInstanceOf(RxManagedTransaction)
       })
 
-      async function subject() {
+      async function subject () {
         const driver = neo4j.driver('bolt://localhost')
-        const tx =  await driver.rxSession().beginTransaction().toPromise()
+        const tx = await driver.rxSession().beginTransaction().toPromise()
         return InternalRxManagedTransaction.fromTransaction(tx)
       }
     })
@@ -198,7 +204,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(ResultSummary)
       })
 
-      function subject() {
+      function subject () {
         return new InternalResultSummary('query', {}, {}, 5.0)
       }
     })
@@ -212,7 +218,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(Plan)
       })
 
-      function subject() {
+      function subject () {
         return new InternalPlan({})
       }
     })
@@ -226,7 +232,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(ProfiledPlan)
       })
 
-      function subject() {
+      function subject () {
         return new InternalProfiledPlan({})
       }
     })
@@ -240,7 +246,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(QueryStatistics)
       })
 
-      function subject() {
+      function subject () {
         return new InternalQueryStatistics({})
       }
     })
@@ -254,7 +260,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(Notification)
       })
 
-      function subject() {
+      function subject () {
         return new InternalNotification({})
       }
     })
@@ -268,7 +274,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(ServerInfo)
       })
 
-      function subject() {
+      function subject () {
         return new InternalServerInfo({}, 5.0)
       }
     })
@@ -282,7 +288,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(Record)
       })
 
-      function subject() {
+      function subject () {
         return new InternalRecord([], [])
       }
     })
@@ -296,7 +302,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(Node)
       })
 
-      function subject() {
+      function subject () {
         return new InternalNode(1, [], [])
       }
     })
@@ -310,8 +316,8 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(Relationship)
       })
 
-      function subject() {
-        return new InternalRelationship(1, 1, 1, "Type", [], [])
+      function subject () {
+        return new InternalRelationship(1, 1, 1, 'Type', [], [])
       }
     })
 
@@ -324,8 +330,8 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(UnboundRelationship)
       })
 
-      function subject() {
-        return new InternalUnboundRelationship(1, "Type", [])
+      function subject () {
+        return new InternalUnboundRelationship(1, 'Type', [])
       }
     })
 
@@ -338,7 +344,7 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(Path)
       })
 
-      function subject() {
+      function subject () {
         return new InternalPath(new InternalNode(1, [], []), new InternalNode(1, [], []), [])
       }
     })
@@ -352,8 +358,50 @@ describe('#unit index', () => {
         expect(subject()).toBeInstanceOf(PathSegment)
       })
 
-      function subject() {
+      function subject () {
         return new InternalPathSegment(new InternalNode(1, [], []), new InternalNode(1, [], []), [])
+      }
+    })
+
+    describe('Point', () => {
+      it('should be instanceof neo4j.Point', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Point)
+      })
+
+      it('should be instanceof Point', () => {
+        expect(subject()).toBeInstanceOf(Point)
+      })
+
+      function subject () {
+        return new InternalPoint(1, 1, 1)
+      }
+    })
+
+    describe('Integer', () => {
+      it('should be instanceof neo4j.Integer', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Integer)
+      })
+
+      it('should be instanceof Integer', () => {
+        expect(subject()).toBeInstanceOf(Integer)
+      })
+
+      function subject () {
+        return new InternalInteger(1, 1)
+      }
+    })
+
+    describe('Neo4jError', () => {
+      it('should be instanceof neo4j.Neo4jError', () => {
+        expect(subject()).toBeInstanceOf(neo4j.Neo4jError)
+      })
+
+      it('should be instanceof Neo4jError', () => {
+        expect(subject()).toBeInstanceOf(Neo4jError)
+      })
+
+      function subject () {
+        return new InternalNeo4jError('Message', 'N/A')
       }
     })
   })
