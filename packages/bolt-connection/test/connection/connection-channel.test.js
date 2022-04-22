@@ -19,7 +19,6 @@
 
 import ChannelConnection from '../../src/connection/connection-channel'
 import { int, internal, newError } from 'neo4j-driver-core'
-import { observer } from 'neo4j-driver-core/types/internal'
 
 const {
   serverAddress: { ServerAddress },
