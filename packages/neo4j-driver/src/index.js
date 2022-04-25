@@ -50,14 +50,24 @@ import {
   UnboundRelationship,
   Record,
   ResultSummary,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics,
+  Notification,
+  ServerInfo,
   Result,
-  ConnectionProvider,
-  auth
+  auth,
+  Session,
+  Transaction,
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
   RoutingConnectionProvider
 } from 'neo4j-driver-bolt-connection'
+
+import RxSession from './session-rx'
+import RxTransaction from './transaction-rx'
+import RxResult from './result-rx'
 
 const {
   util: { ENCRYPTION_ON, ENCRYPTION_OFF, assertString, isEmptyObjectOrNull },
@@ -389,7 +399,34 @@ const forExport = {
   session,
   error,
   spatial,
-  temporal
+  temporal,
+  Driver,
+  Session,
+  Transaction,
+  Result,
+  RxSession,
+  RxTransaction,
+  RxResult,
+  ResultSummary,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics,
+  Notification,
+  ServerInfo,
+  Record,
+  Node,
+  Relationship,
+  UnboundRelationship,
+  Path,
+  PathSegment,
+  Point,
+  Integer,
+  Duration,
+  LocalTime,
+  Time,
+  Date,
+  LocalDateTime,
+  DateTime
 }
 
 export {
@@ -411,6 +448,33 @@ export {
   session,
   error,
   spatial,
-  temporal
+  temporal,
+  Driver,
+  Session,
+  Transaction,
+  Result,
+  RxSession,
+  RxTransaction,
+  RxResult,
+  ResultSummary,
+  Plan,
+  ProfiledPlan,
+  QueryStatistics,
+  Notification,
+  ServerInfo,
+  Record,
+  Node,
+  Relationship,
+  UnboundRelationship,
+  Path,
+  PathSegment,
+  Point,
+  Integer,
+  Duration,
+  LocalTime,
+  Time,
+  Date,
+  LocalDateTime,
+  DateTime
 }
 export default forExport
