@@ -62,7 +62,6 @@ class Pool {
     this._pendingCreates = {}
     this._acquireRequests = {}
     this._activeResourceCounts = {}
-    this._poolState = {}
     this._release = this._release.bind(this)
     this._log = log
     this._closed = false
@@ -184,13 +183,10 @@ class Pool {
 
     const key = address.asKey()
     let pool = this._pools[key]
-    let poolState = this._poolState[key]
     if (!pool) {
-      pool = []
-      poolState = new PoolState()
+      pool = new SingleAddressPool()
       this._pools[key] = pool
       this._pendingCreates[key] = 0
-      this._poolState[key] = poolState
     }
     while (pool.length) {
       const resource = pool.pop()
@@ -229,7 +225,7 @@ class Pool {
     let resource
     try {
       // Invoke callback that creates actual connection
-      resource = await this._create(address, (address, resource) => this._release(poolState, address, resource))
+      resource = await this._create(address, (address, resource) => this._release(address, resource, pool))
 
       resourceAcquired(key, this._activeResourceCounts)
       if (this._log.isDebugEnabled()) {
@@ -241,11 +237,10 @@ class Pool {
     return resource
   }
 
-  async _release (poolState, address, resource) {
+  async _release (address, resource, pool) {
     const key = address.asKey()
-    const pool = this._pools[key]
 
-    if (pool && poolState.isActive()) {
+    if (pool.isActive()) {
       // there exist idle connections for the given key
       if (!this._validate(resource)) {
         if (this._log.isDebugEnabled()) {
@@ -288,28 +283,27 @@ class Pool {
     }
     resourceReleased(key, this._activeResourceCounts)
 
-    this._processPendingAcquireRequests(address)
+    this._processPendingAcquireRequests(address, pool)
   }
 
   async _purgeKey (key) {
-    const pool = this._pools[key] || []
-    const poolState = this._poolState[key] || new PoolState()
-    while (pool.length) {
-      const resource = pool.pop()
-      if (this._removeIdleObserver) {
-        this._removeIdleObserver(resource)
+    const pool = this._pools[key]
+    if (pool) {
+      while (pool.length) {
+        const resource = pool.pop()
+        if (this._removeIdleObserver) {
+          this._removeIdleObserver(resource)
+        }
+        await this._destroy(resource)
       }
-      await this._destroy(resource)
+      pool.close()
+      delete this._pools[key]
     }
-    poolState.close()
-    delete this._pools[key]
-    delete this._poolState[key]
   }
 
-  _processPendingAcquireRequests (address) {
+  _processPendingAcquireRequests (address, pool) {
     const key = address.asKey()
     const requests = this._acquireRequests[key]
-    const poolState = this._poolState[key] || new PoolState()
     if (requests) {
       const pendingRequest = requests.shift() // pop a pending acquire request
 
@@ -328,7 +322,7 @@ class Pool {
               if (pendingRequest.isCompleted()) {
                 // request has been completed, most likely failed by a timeout
                 // return the acquired resource back to the pool
-                this._release(poolState, address, resource)
+                this._release(address, resource, pool)
               } else {
                 // request is still pending and can be resolved with the newly acquired resource
                 pendingRequest.resolve(resource) // resolve the pending request with the acquired resource
@@ -415,9 +409,10 @@ class PendingRequest {
   }
 }
 
-class PoolState {
+class SingleAddressPool {
   constructor () {
     this._active = true
+    this._elements = []
   }
 
   isActive () {
@@ -426,6 +421,23 @@ class PoolState {
 
   close () {
     this._active = false
+  }
+
+  filter (predicate) {
+    this._elements = this._elements.filter(predicate)
+    return this
+  }
+
+  get length () {
+    return this._elements.length
+  }
+
+  pop () {
+    return this._elements.pop()
+  }
+
+  push (element) {
+    return this._elements.push(element)
   }
 }
 
