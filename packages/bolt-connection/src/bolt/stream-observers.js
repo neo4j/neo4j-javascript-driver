@@ -591,6 +591,49 @@ class RouteObserver extends StreamObserver {
   }
 }
 
+class PlanObserver extends StreamObserver {
+  /**
+   *
+   * @param {Object} param -
+   * @param {function(err: String)} param.onProtocolError
+   * @param {function(err: Error)} param.onError
+   * @param {function(RawPlan)} param.onCompleted
+   */
+  constructor ({ onProtocolError, onError, onCompleted } = {}) {
+    super()
+
+    this._onProtocolError = onProtocolError
+    this._onError = onError
+    this._onCompleted = onCompleted
+  }
+
+  onNext (record) {
+    this.onError(
+      newError(
+        'Received RECORD when resetting: received record is: ' +
+          json.stringify(record),
+        PROTOCOL_ERROR
+      )
+    )
+  }
+
+  onError (error) {
+    if (error.code === PROTOCOL_ERROR && this._onProtocolError) {
+      this._onProtocolError(error.message)
+    }
+
+    if (this._onError) {
+      this._onError(error)
+    }
+  }
+
+  onCompleted (metadata) {
+    if (this._onCompleted) {
+      this._onCompleted(RawRoutingTable.ofMessageResponse(metadata))
+    }
+  }
+}
+
 const _states = {
   READY_STREAMING: {
     // async start state
@@ -668,5 +711,6 @@ export {
   FailedObserver,
   CompletedObserver,
   RouteObserver,
-  ProcedureRouteObserver
+  ProcedureRouteObserver,
+  PlanObserver
 }

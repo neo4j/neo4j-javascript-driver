@@ -26,21 +26,24 @@ export default class PlannedQuery<T = Record> {
   constructor (
     private readonly _query: Query, 
     private readonly _accessMode: SessionMode,
+    private readonly _isAutoCommit: boolean = false,
     private readonly _recordMapper: (result: Record) => T = (r) => r as unknown as T
   ) {}
 
-  withParameters(parameters: any): PlannedQuery {
+  withParameters(parameters: any): PlannedQuery<T> {
     return new PlannedQuery(
       { 
         // @ts-ignore
         text: this.query,
         parameters
       },
-      this._accessMode
+      this._accessMode,
+      this._isAutoCommit,
+      this._recordMapper
     )
   }
 
-  mergeParameters (parameters: any): PlannedQuery {
+  mergeParameters (parameters: any): PlannedQuery<T> {
     // @ts-ignore
     return this.withParameters({ ... this.parameters, ... parameters })
   }
@@ -49,6 +52,7 @@ export default class PlannedQuery<T = Record> {
     return new PlannedQuery(
       this._query,
       this._accessMode,
+      this._isAutoCommit,
       mapper
     )
   }
@@ -69,5 +73,9 @@ export default class PlannedQuery<T = Record> {
 
   get accessMode () {
     return this._accessMode
+  }
+
+  get isAutoCommit () {
+    return this._isAutoCommit
   }
 }

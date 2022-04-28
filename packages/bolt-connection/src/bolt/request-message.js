@@ -39,6 +39,7 @@ const BEGIN = 0x11 // 0001 0001 // BEGIN <metadata>
 const COMMIT = 0x12 // 0001 0010 // COMMIT
 const ROLLBACK = 0x13 // 0001 0011 // ROLLBACK
 const ROUTE = 0x66 // 0110 0110 // ROUTE
+const PLAN = 0X73 // 0111 0011 // PLAN
 
 const DISCARD = 0x2f // 0010 1111 // DISCARD
 const PULL = 0x3f // 0011 1111 // PULL
@@ -237,6 +238,14 @@ export default class RequestMessage {
         `ROUTE ${json.stringify(routingContext)} ${json.stringify(
           bookmarks
         )} ${databaseName}`
+    )
+  }
+
+  static plan ({ query }) {
+    return new RequestMessage(
+      PLAN,
+      [query],
+      () => `PLAN ${query}`
     )
   }
 

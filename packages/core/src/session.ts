@@ -192,6 +192,22 @@ class Session {
   }
 
   async execute<T = Record>(plannedQuery: PlannedQuery<T> | PlannedQuery<T>[] | TransactionWork<T>, mode?: SessionMode): Promise<ExecutionResult<T> | ExecutionResult<T>[] | T> {
+    if (typeof plannedQuery === 'function' || !(plannedQuery instanceof PlannedQuery && plannedQuery.isAutoCommit)) {
+      return this._executeInTxFunctione(plannedQuery, mode)
+    }
+
+    const run = async <R>(plannedQuery:PlannedQuery<R>) => {
+      const values: R[] = []
+      const result = this.run(plannedQuery.query, plannedQuery.parameters)
+      for await(const record of result) { 
+        values.push(plannedQuery.map(record))
+      }
+      return new ExecutionResult(values, await result.summary())
+    }
+    return run(plannedQuery)
+  }
+
+  async _executeInTxFunctione<T = Record>(plannedQuery: PlannedQuery<T> | PlannedQuery<T>[] | TransactionWork<T>, mode?: SessionMode) {
     const run = (tx: Transaction) => async <R>(plannedQuery:PlannedQuery<R>) => {
       const values: R[] = []
       const result = tx.run(plannedQuery.query, plannedQuery.parameters)
@@ -219,6 +235,24 @@ class Session {
   }
 
   async plan(query: Query): Promise<PlannedQuery> {
+    const plannedQuery = await this._acquireConnection(conn => {
+      if (conn?.protocol().plan) {
+        return new Promise((resolve, reject) => {
+          conn.protocol().plan({ query, onCompleted: (metadata: any) => {
+            const { updatesGraph, requiresAutoCommit } = metadata
+            resolve(new PlannedQuery(query, updatesGraph? 'WRITE' : 'READ', requiresAutoCommit))
+          }, onError: reject })
+        })
+      }
+      return undefined
+    })
+    if (plannedQuery) {
+      return plannedQuery
+    }
+    return this._planMyself(query)
+  }
+
+  async _planMyself(query: Query): Promise<PlannedQuery> {
     function getAccessMode  (plan: Plan | false): SessionMode {
       if (plan === false) {
         return 'WRITE'

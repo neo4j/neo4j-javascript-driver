@@ -129,7 +129,7 @@ export default class BoltProtocol {
 
     return observer
   }
-
+  
   /**
    * Perform protocol related operations for closing this connection
    */

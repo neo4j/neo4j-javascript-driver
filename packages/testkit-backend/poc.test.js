@@ -1,6 +1,8 @@
 import neo4j from 'neo4j-driver-lite'
 
-const driver = neo4j.driver('bolt://localhost', neo4j.auth.basic('neo4j','pass'));
+const driver = neo4j.driver('bolt://192.168.1.250:7687', neo4j.auth.basic('neo4j','neo4j'), {
+  logging: neo4j.logging.console('debug'),
+});
 
 const matchAllNodes = await driver.plan('MATCH (n) RETURN n')
 

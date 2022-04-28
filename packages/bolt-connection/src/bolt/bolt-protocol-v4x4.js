@@ -20,7 +20,7 @@ import BoltProtocolV43 from './bolt-protocol-v4x3'
 
 import { internal } from 'neo4j-driver-core'
 import RequestMessage from './request-message'
-import { RouteObserver, ResultStreamObserver } from './stream-observers'
+import { RouteObserver, ResultStreamObserver, PlanObserver } from './stream-observers'
 
 const {
   constants: { BOLT_PROTOCOL_V4_4, FETCH_ALL },
@@ -65,6 +65,16 @@ export default class BoltProtocol extends BoltProtocolV43 {
     )
 
     return observer
+  }
+
+  plan ( { query, onCompleted, onError }) {
+    const observer = new PlanObserver({
+      onProtocolError: this._onProtocolError,
+      onError,
+      onCompleted
+    })
+
+    this.write(RequestMessage.plan({ query }), observer, true)
   }
 
   run (
