@@ -463,6 +463,47 @@ describe('#unit RoutingConnectionProvider', () => {
       })
   }, 10000)
 
+  it.each(usersDataSet)('keeps the seed router in the pool after [user=%s]', (user, done) => {
+    const pool = newPool()
+    const updatedRoutingTable = newRoutingTable(
+      null,
+      [serverA, serverB],
+      [serverC, serverD],
+      [serverE, serverF]
+    )
+
+    const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+      server0,
+      [server0], // seed router address resolves just to itself
+      [
+        newRoutingTable(
+          null,
+          [server1, server2, server3],
+          [server4, server5],
+          [server6, server7],
+          int(0) // expired routing table
+        )
+      ],
+      {
+        null: {
+          'server1:7687': null, // returns no routing table
+          'server2:7687': null, // returns no routing table
+          'server3:7687': null, // returns no routing table
+          'server0:7687': updatedRoutingTable
+        }
+      },
+      pool
+    )
+
+    connectionProvider
+      .acquireConnection({ accessMode: READ, database: null, impersonatedUser: user })
+      .then(connection => {
+        expect(connection.address).toEqual(serverC)
+        expect(pool.has(server0)).toBeTruthy()
+
+      }).finally(done)
+  }, 10000)
+
   it.each(usersDataSet)('refreshes routing table without readers to get read connection [user=%s]', (user, done) => {
     const pool = newPool()
     const updatedRoutingTable = newRoutingTable(
