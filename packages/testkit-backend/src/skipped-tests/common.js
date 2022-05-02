@@ -13,6 +13,7 @@ const skippedTests = [
     ifEquals('neo4j.test_tx_run.TestTxRun.test_interwoven_queries'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_parallel_queries'),
     ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_smaller_than_fetch_size'),
+    ifEquals('neo4j.test_summary.TestSummary.test_summary_counters_case_2'),
     ifEquals('neo4j.test_tx_func_run.TestTxFuncRun.test_tx_func_configuration')
   ),
   skip(
