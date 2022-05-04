@@ -26,6 +26,7 @@ import {
 } from '../src'
 
 import Result from '../src/result'
+import FakeConnection from './utils/connection.fake'
 
 describe('Result', () => {
   const expectedError = newError('some error')
@@ -146,11 +147,14 @@ describe('Result', () => {
           { query: 'query', parameters: { b: 2 } }
         ]
       ])('when query=%s and parameters=%s', (query, params, expected) => {
+        let connectionHolderMock: connectionHolder.ConnectionHolder
         beforeEach(() => {
+          connectionHolderMock = new connectionHolder.ConnectionHolder({})
           result = new Result(
             Promise.resolve(streamObserverMock),
             query,
-            params
+            params,
+            connectionHolderMock
           )
         })
 
@@ -171,6 +175,44 @@ describe('Result', () => {
 
           const summary = await result.summary()
 
+          expect(summary).toEqual(expectedSummary)
+        })
+
+        it('should resolve pre-existing summary', async () => {
+          const metadata = {
+            resultConsumedAfter: 20,
+            resultAvailableAfter: 124,
+            extraInfo: 'extra'
+          }
+          const protocolVersion = 5.0
+
+          const expectedSummary = new ResultSummary(
+            expected.query,
+            expected.parameters,
+            metadata,
+            protocolVersion
+          )
+
+          jest.spyOn(connectionHolderMock, 'getConnection')
+            .mockImplementationOnce(async () => {
+              const conn = new FakeConnection()
+              conn.protocolVersion = protocolVersion
+              return conn
+            })
+
+          jest.spyOn(connectionHolderMock, 'releaseConnection')
+            .mockImplementationOnce(async () => null)
+
+          const iterator = result[Symbol.asyncIterator]()
+          const next = iterator.next()
+          const summaryPromise = result.summary()
+
+          streamObserverMock.onCompleted(metadata)
+
+          const { value } = await next
+          const summary = await summaryPromise
+
+          expect(value).toEqual(expectedSummary)
           expect(summary).toEqual(expectedSummary)
         })
 

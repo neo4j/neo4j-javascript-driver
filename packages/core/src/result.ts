@@ -436,7 +436,10 @@ class Result implements Promise<QueryResult> {
     const onKeysOriginal = observer.onKeys ?? DEFAULT_ON_KEYS
 
     const onCompletedWrapper = (metadata: any): void => {
-      this._createSummary(metadata).then(summary => {
+      this._releaseConnectionAndGetSummary(metadata).then(summary => {
+        if (this._summary !== null) {
+          return onCompletedOriginal.call(observer, this._summary)
+        }
         this._summary = summary
         return onCompletedOriginal.call(observer, summary)
       }).catch(onErrorOriginal)
@@ -484,7 +487,7 @@ class Result implements Promise<QueryResult> {
    * @param metadata
    * @returns
    */
-  private _createSummary (metadata: any): Promise<ResultSummary> {
+  private _releaseConnectionAndGetSummary (metadata: any): Promise<ResultSummary> {
     const {
       validatedQuery: query,
       params: parameters
