@@ -110,8 +110,7 @@ class Pool {
 
       request = new PendingRequest(key, resolve, reject, timeoutId, this._log)
       allRequests[key].push(request)
-      const pool = this._getOrInitializePoolFor(key)
-      this._processPendingAcquireRequests(address, pool)
+      this._processPendingAcquireRequests(address)
     })
   }
 
@@ -206,7 +205,7 @@ class Pool {
         if (this._log.isDebugEnabled()) {
           this._log.debug(`${resource} acquired from the pool ${key}`)
         }
-        return resource
+        return { resource, pool }
       } else {
         await this._destroy(resource)
       }
@@ -220,7 +219,7 @@ class Pool {
         this.activeResourceCount(address) + this._pendingCreates[key]
       if (numConnections >= this._maxSize) {
         // Will put this request in queue instead since the pool is full
-        return null
+        return { resource: null, pool }
       }
     }
 
@@ -239,7 +238,7 @@ class Pool {
     } finally {
       this._pendingCreates[key] = this._pendingCreates[key] - 1
     }
-    return resource
+    return { resource, pool }
   }
 
   async _release (address, resource, pool) {
@@ -288,7 +287,7 @@ class Pool {
     }
     resourceReleased(key, this._activeResourceCounts)
 
-    this._processPendingAcquireRequests(address, pool)
+    this._processPendingAcquireRequests(address)
   }
 
   async _purgeKey (key) {
@@ -306,7 +305,7 @@ class Pool {
     }
   }
 
-  _processPendingAcquireRequests (address, pool) {
+  _processPendingAcquireRequests (address) {
     const key = address.asKey()
     const requests = this._acquireRequests[key]
     if (requests) {
@@ -318,9 +317,9 @@ class Pool {
             // failed to acquire/create a new connection to resolve the pending acquire request
             // propagate the error by failing the pending request
             pendingRequest.reject(error)
-            return null
+            return { resource: null }
           })
-          .then(resource => {
+          .then(({ resource, pool }) => {
             if (resource) {
               // managed to acquire a valid resource from the pool
 
