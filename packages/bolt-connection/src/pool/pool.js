@@ -110,8 +110,8 @@ class Pool {
 
       request = new PendingRequest(key, resolve, reject, timeoutId, this._log)
       allRequests[key].push(request)
-
-      this._processPendingAcquireRequests(address)
+      const pool = this._getOrInitializePoolFor(key)
+      this._processPendingAcquireRequests(address, pool)
     })
   }
 
@@ -176,18 +176,23 @@ class Pool {
     return this._activeResourceCounts[address.asKey()] || 0
   }
 
-  async _acquire (address) {
-    if (this._closed) {
-      throw newError('Pool is closed, it is no more able to serve requests.')
-    }
-
-    const key = address.asKey()
+  _getOrInitializePoolFor (key) {
     let pool = this._pools[key]
     if (!pool) {
       pool = new SingleAddressPool()
       this._pools[key] = pool
       this._pendingCreates[key] = 0
     }
+    return pool
+  }
+
+  async _acquire (address) {
+    if (this._closed) {
+      throw newError('Pool is closed, it is no more able to serve requests.')
+    }
+
+    const key = address.asKey()
+    const pool = this._getOrInitializePoolFor(key)
     while (pool.length) {
       const resource = pool.pop()
 
