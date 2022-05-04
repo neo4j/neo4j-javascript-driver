@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 
+import { internal } from 'neo4j-driver-core'
 import neo4j from '../src'
 import { READ, WRITE } from '../src/driver'
 import parallelLimit from 'async/parallelLimit'
@@ -137,19 +138,9 @@ function isRemoteCluster () {
   return fromEnvOrDefault('STRESS_TEST_DATABASE_URI') !== undefined
 }
 
-function isSslSchemeNotSet (uri) {
-  function extractScheme (scheme) {
-    if (scheme) {
-      scheme = scheme.trim()
-      if (scheme.charAt(scheme.length - 1) === ':') {
-        scheme = scheme.substring(0, scheme.length - 1)
-      }
-      return scheme
-    }
-    return null
-  }
-  const scheme = extractScheme(uri)
-  return scheme === null || scheme === 'bolt' || scheme === 'neo4j'
+function isSslSchemeNotSet (url) {
+  const parsedUri = internal.urlUtil.parseDatabaseUrl(url)
+  return parsedUri.scheme === null || parsedUri.scheme === 'bolt' || parsedUri.scheme === 'neo4j'
 }
 
 function isCluster () {
