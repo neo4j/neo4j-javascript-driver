@@ -14,12 +14,14 @@ const skippedTests = [
   skip(
     'Fail while enable Temporary::ResultKeys',
     ifEquals('neo4j.test_bookmarks.TestBookmarks.test_can_pass_bookmark_into_next_session'),
+    ifEquals('neo4j.test_direct_driver.TestDirectDriver.test_multi_db_various_databases'),
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_smaller_than_fetch_size'),
+    ifEquals('neo4j.test_summary.TestSummary.test_summary_counters_case_2'),
+    ifEquals('neo4j.test_tx_func_run.TestTxFuncRun.test_tx_func_configuration'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_consume_after_commit'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_tx_configuration'),
     ifEquals('neo4j.test_tx_run.TestTxRun.test_interwoven_queries'),
-    ifEquals('neo4j.test_tx_run.TestTxRun.test_parallel_queries'),
-    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_smaller_than_fetch_size'),
-    ifEquals('neo4j.test_tx_func_run.TestTxFuncRun.test_tx_func_configuration')
+    ifEquals('neo4j.test_tx_run.TestTxRun.test_parallel_queries')
   ),
   skip('Flacky because sometimes the connection is actually available',
     ifEndsWith('test_should_enforce_pool_size_per_cluster_member')
