@@ -335,7 +335,7 @@ export function SessionWriteTransaction (context, data, wire) {
 }
 
 export function StartTest (context, { testName }, wire) {
-  if (testName.endsWith('.test_disconnect_session_on_tx_pull_after_record') || testName.endsWith('test_should_reject_server_using_verify_connectivity_bolt_4x4')) {
+  if (testName.endsWith('.test_disconnect_session_on_tx_pull_after_record') || testName.endsWith('test_no_reset_on_clean_connection')) {
     context.logLevel = 'debug'
   } else {
     context.logLevel = null
