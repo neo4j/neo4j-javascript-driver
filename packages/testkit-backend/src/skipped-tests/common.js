@@ -45,7 +45,8 @@ const skippedTests = [
     'Partial session iteration is not supported by the js driver',
     ifEquals('neo4j.test_session_run.TestSessionRun.test_partial_iteration'),
     ifEquals('neo4j.test_session_run.TestSessionRun.test_session_reuse'),
-    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_nested')
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_iteration_nested'),
+    ifEquals('stub.iteration.test_iteration_tx_run.TestIterationSessionRun.test_nested')
   ),
   skip(
     'Nested calls does not garauntee order in the records pulling',
