@@ -260,6 +260,76 @@ describe('ChannelConnection', () => {
         expect(protocol.reset).toHaveBeenCalled()
         expect(protocol.resetFailure).toHaveBeenCalled()
       })
+
+      it('should not call protocol.reset() when there is an ongoing reset', () => {
+        const channel = {
+          _open: true
+        }
+
+        const protocol = {
+          reset: jest.fn(),
+          resetFailure: jest.fn(),
+          isLastMessageReset: jest.fn(() => true)
+        }
+        const protocolSupplier = () => protocol
+        const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).toHaveBeenCalledTimes(1)
+        expect(protocol.resetFailure).not.toHaveBeenCalled()
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).toHaveBeenCalledTimes(1)
+        expect(protocol.resetFailure).not.toHaveBeenCalled()
+      })
+
+      it('should call protocol.reset() when after a previous reset completed', () => {
+        const channel = {
+          _open: true
+        }
+
+        const protocol = {
+          reset: jest.fn(observer => observer.onComplete()),
+          resetFailure: jest.fn()
+        }
+        const protocolSupplier = () => protocol
+        const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).toHaveBeenCalledTimes(1)
+        expect(protocol.resetFailure).toHaveBeenCalledTimes(1)
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).toHaveBeenCalledTimes(2)
+        expect(protocol.resetFailure).toHaveBeenCalledTimes(2)
+      })
+
+      it('should call protocol.reset() when after a previous reset fail', () => {
+        const channel = {
+          _open: true
+        }
+
+        const protocol = {
+          reset: jest.fn(observer => observer.onError(new Error('some error'))),
+          resetFailure: jest.fn()
+        }
+        const protocolSupplier = () => protocol
+        const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).toHaveBeenCalledTimes(1)
+        expect(protocol.resetFailure).toHaveBeenCalledTimes(1)
+
+        connection._resetOnFailure()
+
+        expect(protocol.reset).toHaveBeenCalledTimes(2)
+        expect(protocol.resetFailure).toHaveBeenCalledTimes(2)
+      })
     })
 
     describe('when connection is not open', () => {
@@ -337,6 +407,110 @@ describe('ChannelConnection', () => {
       connection._handleOngoingRequestsNumberChange(requests)
 
       expect(channel.stopReceiveTimeout).toHaveBeenCalledTimes(0)
+    })
+  })
+
+  describe('.resetAndFlush()', () => {
+    it('should call protocol.reset() onComplete', async () => {
+      const channel = {
+        _open: true
+      }
+
+      const protocol = {
+        reset: jest.fn(observer => observer.onComplete()),
+        resetFailure: jest.fn()
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+      await connection.resetAndFlush().catch(() => {})
+
+      expect(protocol.reset).toHaveBeenCalled()
+    })
+
+    it('should call protocol.reset() onError', async () => {
+      const channel = {
+        _open: true
+      }
+
+      const protocol = {
+        reset: jest.fn(observer => observer.onError()),
+        resetFailure: jest.fn()
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+      await connection.resetAndFlush().catch(() => {})
+
+      expect(protocol.reset).toHaveBeenCalled()
+    })
+
+    it('should not call protocol.reset() when there is an ongoing reset', async () => {
+      const channel = {
+        _open: true
+      }
+
+      const protocol = {
+        reset: jest.fn(observer => {
+          setTimeout(() => observer.onComplete(), 100)
+        }),
+        resetFailure: jest.fn(),
+        isLastMessageReset: jest.fn(() => true)
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+      const completeFirstResetAndFlush = connection.resetAndFlush()
+
+      expect(protocol.reset).toHaveBeenCalledTimes(1)
+
+      await connection.resetAndFlush()
+
+      expect(protocol.reset).toHaveBeenCalledTimes(1)
+
+      await completeFirstResetAndFlush
+    })
+
+    it('should call protocol.reset() when after a previous reset completed', async () => {
+      const channel = {
+        _open: true
+      }
+
+      const protocol = {
+        reset: jest.fn(observer => observer.onComplete()),
+        resetFailure: jest.fn()
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+      await connection.resetAndFlush()
+
+      expect(protocol.reset).toHaveBeenCalledTimes(1)
+
+      await connection.resetAndFlush()
+
+      expect(protocol.reset).toHaveBeenCalledTimes(2)
+    })
+
+    it('should call protocol.reset() when after a previous reset fail', async () => {
+      const channel = {
+        _open: true
+      }
+
+      const protocol = {
+        reset: jest.fn(observer => observer.onError(new Error('some error'))),
+        resetFailure: jest.fn()
+      }
+      const protocolSupplier = () => protocol
+      const connection = spyOnConnectionChannel({ channel, protocolSupplier })
+
+      await connection.resetAndFlush().catch(() => {})
+
+      expect(protocol.reset).toHaveBeenCalledTimes(1)
+
+      await connection.resetAndFlush().catch(() => {})
+
+      expect(protocol.reset).toHaveBeenCalledTimes(2)
     })
   })
 

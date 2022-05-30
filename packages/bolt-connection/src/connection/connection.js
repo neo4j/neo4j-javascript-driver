@@ -103,6 +103,10 @@ export default class Connection {
     throw new Error('not implemented')
   }
 
+  hasOngoingObservableRequests () {
+    throw new Error('not implemented')
+  }
+
   /**
    * Call close on the channel.
    * @returns {Promise<void>} - A promise that will be resolved when the connection is closed.

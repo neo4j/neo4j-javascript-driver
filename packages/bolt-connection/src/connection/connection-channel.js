@@ -123,6 +123,8 @@ export default class ChannelConnection extends Connection {
   ) {
     super(errorHandler)
 
+    this._reseting = false
+    this._resetObservers = []
     this._id = idGenerator++
     this._address = address
     this._server = { address: address.asHostPort() }
@@ -304,7 +306,7 @@ export default class ChannelConnection extends Connection {
    */
   resetAndFlush () {
     return new Promise((resolve, reject) => {
-      this._protocol.reset({
+      this._reset({
         onError: error => {
           if (this._isBroken) {
             // handling a fatal error, no need to raise a protocol violation
@@ -328,12 +330,47 @@ export default class ChannelConnection extends Connection {
       return
     }
 
-    this._protocol.reset({
+    this._reset({
       onError: () => {
         this._protocol.resetFailure()
       },
       onComplete: () => {
         this._protocol.resetFailure()
+      }
+    })
+  }
+
+  _reset(observer) {
+    if (this._reseting) {
+      if (!this._protocol.isLastMessageReset()) {
+        this._protocol.reset({
+          onError: error => {
+            observer.onError(error)
+          }, onComplete: () => {
+            observer.onComplete()
+          }
+        })
+      } else {
+        this._resetObservers.push(observer)
+      }
+      return
+    }
+
+    this._resetObservers.push(observer)
+    this._reseting = true
+
+    const notifyFinish = (notify) => {
+      this._reseting = false
+      const observers = this._resetObservers
+      this._resetObservers = []
+      observers.forEach(notify)
+    }
+
+    this._protocol.reset({
+      onError: error => {
+        notifyFinish(obs => obs.onError(error))
+      }, onComplete: () => {
+        notifyFinish(obs => obs.onComplete())
       }
     })
   }
