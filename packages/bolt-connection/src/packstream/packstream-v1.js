@@ -120,7 +120,8 @@ class Packer {
    * @param x the value to pack
    * @returns Function
    */
-  packable (x) {
+  packable (x, dehydrate = (x) => x) {
+    x = dehydrate(x)
     if (x === null) {
       return () => this._ch.writeUInt8(NULL)
     } else if (x === true) {
