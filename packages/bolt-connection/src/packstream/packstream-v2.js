@@ -151,9 +151,9 @@ export class Unpacker extends v1.Unpacker {
 function packPoint (point) {
   const is2DPoint = point.z === null || point.z === undefined
   if (is2DPoint) {
-    packPoint2D(point)
+    return packPoint2D(point)
   } else {
-    packPoint3D(point)
+    return packPoint3D(point)
   }
 }
 
