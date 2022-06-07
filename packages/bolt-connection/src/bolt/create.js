@@ -72,7 +72,7 @@ export default function create ({
 
     // setup dechunker to dechunk messages and forward them to the message handler
     dechunker.onmessage = buf => {
-      responseHandler.handleResponse(protocol.unpacker().unpack(buf))
+      responseHandler.handleResponse(protocol.unpack(buf))
     }
 
     return responseHandler

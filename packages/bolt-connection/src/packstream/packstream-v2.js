@@ -410,9 +410,9 @@ function unpackLocalDateTime (
  */
 function packDateTime (value) {
   if (value.timeZoneId) {
-    packDateTimeWithZoneId(value)
+    return packDateTimeWithZoneId(value)
   } else {
-    packDateTimeWithZoneOffset(value)
+    return packDateTimeWithZoneOffset(value)
   }
 }
 

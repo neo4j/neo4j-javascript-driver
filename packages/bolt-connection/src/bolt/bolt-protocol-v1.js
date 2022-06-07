@@ -98,11 +98,29 @@ export default class BoltProtocol {
   }
 
   /**
+   * Creates a packable function out of the provided value
+   * @param x the value to pack
+   * @returns Function
+   */
+  packable (x) {
+    return this._packer.packable(x)
+  }
+
+  /**
    * Get the unpacker.
    * @return {Unpacker} the protocol's unpacker.
    */
   unpacker () {
     return this._unpacker
+  }
+
+  /**
+   * Unpack a buffer
+   * @param {Buffer} buf
+   * @returns {any|null} The unpacked value
+   */
+  unpack (buf) {
+    return this._unpacker.unpack(buf)
   }
 
   /**
@@ -361,7 +379,7 @@ export default class BoltProtocol {
 
       this.packer().packStruct(
         message.signature,
-        message.fields.map(field => this.packer().packable(field))
+        message.fields.map(field => this.packable(field))
       )
 
       this._chunker.messageBoundary()
