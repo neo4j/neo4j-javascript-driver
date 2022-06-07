@@ -54,44 +54,64 @@ export class Unpacker extends v2.Unpacker {
     }
   }
 
-  _unpackNode (structSize, buffer) {
-    this._verifyStructSize('Node', NODE_STRUCT_SIZE, structSize)
+  _unpackNode (structure) {
+    this._verifyStructSize('Node', NODE_STRUCT_SIZE, structure.size)
+
+    const [identity, lables, properties, elementId] = structure.fields
 
     return new Node(
-      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // Identity
-      this.unpack(buffer), // Labels
-      this.unpack(buffer), // Properties,
-      this.unpack(buffer) // ElementId
+      _valueOrDefault(identity, this._defaultIdentity), // Identity
+      lables, // Labels
+      properties, // Properties,
+      elementId // ElementId
     )
   }
 
-  _unpackRelationship (structSize, buffer) {
-    this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structSize)
+  _unpackRelationship (structure) {
+    this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structure.size)
+
+    const [
+      identity,
+      startNodeIdentity,
+      endNodeIdentity,
+      type,
+      properties,
+      elementId,
+      startNodeElementId,
+      endNodeElementId
+    ] = structure.fields
 
     return new Relationship(
-      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // Identity
-      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // Start Node Identity
-      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // End Node Identity
-      this.unpack(buffer), // Type
-      this.unpack(buffer), // Properties,
-      this.unpack(buffer), // ElementId
-      this.unpack(buffer), // Start Node Element Id
-      this.unpack(buffer) // End Node Element Id
+      _valueOrDefault(identity, this._defaultIdentity), // Identity
+      _valueOrDefault(startNodeIdentity, this._defaultIdentity), // Start Node Identity
+      _valueOrDefault(endNodeIdentity, this._defaultIdentity), // End Node Identity
+      type,
+      properties,
+      elementId,
+      startNodeElementId,
+      endNodeElementId
     )
   }
 
-  _unpackUnboundRelationship (structSize, buffer) {
+  _unpackUnboundRelationship (structure) {
     this._verifyStructSize(
       'UnboundRelationship',
       UNBOUND_RELATIONSHIP_STRUCT_SIZE,
-      structSize
+      structure.size
     )
 
+    const [
+      identity,
+      type,
+      properties,
+      elementId
+    ] = structure.fields
+
     return new UnboundRelationship(
-      _valueOrDefault(this.unpack(buffer), this._defaultIdentity), // Identity
-      this.unpack(buffer), // Type
-      this.unpack(buffer), // Properties
-      this.unpack(buffer) // ElementId
+      _valueOrDefault(identity, this._defaultIdentity), // Identity
+      type,
+      properties,
+      elementId
     )
   }
 }

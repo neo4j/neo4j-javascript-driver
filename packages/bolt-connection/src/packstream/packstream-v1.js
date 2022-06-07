@@ -85,6 +85,10 @@ class Structure {
     this.fields = fields
   }
 
+  get size () {
+    return this.fields.length
+  }
+
   toString () {
     let fieldStr = ''
     for (let i = 0; i < this.fields.length; i++) {
@@ -575,61 +579,45 @@ class Unpacker {
 
   _unpackStructWithSize (structSize, buffer) {
     const signature = buffer.readUInt8()
-    if (signature === NODE) {
-      return this._unpackNode(structSize, buffer)
-    } else if (signature === RELATIONSHIP) {
-      return this._unpackRelationship(structSize, buffer)
-    } else if (signature === UNBOUND_RELATIONSHIP) {
-      return this._unpackUnboundRelationship(structSize, buffer)
-    } else if (signature === PATH) {
-      return this._unpackPath(structSize, buffer)
-    } else {
-      return this._unpackUnknownStruct(signature, structSize, buffer)
+    const structure = new Structure(signature, [])
+    for (let i = 0; i < structSize; i++) {
+      structure.fields.push(this.unpack(buffer))
     }
+    return this._hydrate(structure)
   }
 
-  _unpackNode (structSize, buffer) {
-    this._verifyStructSize('Node', NODE_STRUCT_SIZE, structSize)
+  _unpackNode (structure) {
+    this._verifyStructSize('Node', NODE_STRUCT_SIZE, structure.size)
 
-    return new Node(
-      this.unpack(buffer), // Identity
-      this.unpack(buffer), // Labels
-      this.unpack(buffer) // Properties
-    )
+    const [identity, labels, properties] = structure.fields
+
+    return new Node(identity, labels, properties)
   }
 
-  _unpackRelationship (structSize, buffer) {
-    this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structSize)
+  _unpackRelationship (structure) {
+    this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structure.size)
 
-    return new Relationship(
-      this.unpack(buffer), // Identity
-      this.unpack(buffer), // Start Node Identity
-      this.unpack(buffer), // End Node Identity
-      this.unpack(buffer), // Type
-      this.unpack(buffer) // Properties
-    )
+    const [identity, startNodeIdentity, endNodeIdentity, type, properties] = structure.fields
+
+    return new Relationship(identity, startNodeIdentity, endNodeIdentity, type, properties)
   }
 
-  _unpackUnboundRelationship (structSize, buffer) {
+  _unpackUnboundRelationship (structure) {
     this._verifyStructSize(
       'UnboundRelationship',
       UNBOUND_RELATIONSHIP_STRUCT_SIZE,
-      structSize
+      structure.size
     )
 
-    return new UnboundRelationship(
-      this.unpack(buffer), // Identity
-      this.unpack(buffer), // Type
-      this.unpack(buffer) // Properties
-    )
+    const [identity, type, properties] = structure.fields
+
+    return new UnboundRelationship(identity, type, properties)
   }
 
-  _unpackPath (structSize, buffer) {
-    this._verifyStructSize('Path', PATH_STRUCT_SIZE, structSize)
+  _unpackPath (structure) {
+    this._verifyStructSize('Path', PATH_STRUCT_SIZE, structure.size)
 
-    const nodes = this.unpack(buffer)
-    const rels = this.unpack(buffer)
-    const sequence = this.unpack(buffer)
+    const [nodes, rels, sequence] = structure.fields
 
     const segments = []
     let prevNode = nodes[0]
@@ -668,12 +656,18 @@ class Unpacker {
     return new Path(nodes[0], nodes[nodes.length - 1], segments)
   }
 
-  _unpackUnknownStruct (signature, structSize, buffer) {
-    const result = new Structure(signature, [])
-    for (let i = 0; i < structSize; i++) {
-      result.fields.push(this.unpack(buffer))
+  _hydrate (structure, onUnknowStructure = struct => struct) {
+    if (structure.signature === NODE) {
+      return this._unpackNode(structure)
+    } else if (structure.signature === RELATIONSHIP) {
+      return this._unpackRelationship(structure)
+    } else if (structure.signature === UNBOUND_RELATIONSHIP) {
+      return this._unpackUnboundRelationship(structure)
+    } else if (structure.signature === PATH) {
+      return this._unpackPath(structure)
+    } else {
+      return onUnknowStructure(structure)
     }
-    return result
   }
 
   _verifyStructSize (structName, expectedSize, actualSize) {

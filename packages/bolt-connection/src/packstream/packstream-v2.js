@@ -112,70 +112,32 @@ export class Unpacker extends v1.Unpacker {
     super(disableLosslessIntegers, useBigInt)
   }
 
-  _unpackUnknownStruct (signature, structSize, buffer) {
-    if (signature === POINT_2D) {
-      return unpackPoint2D(this, structSize, buffer)
-    } else if (signature === POINT_3D) {
-      return unpackPoint3D(this, structSize, buffer)
-    } else if (signature === DURATION) {
-      return unpackDuration(this, structSize, buffer)
-    } else if (signature === LOCAL_TIME) {
-      return unpackLocalTime(
-        this,
-        structSize,
-        buffer,
-        this._disableLosslessIntegers,
-        this._useBigInt
-      )
-    } else if (signature === TIME) {
-      return unpackTime(
-        this,
-        structSize,
-        buffer,
-        this._disableLosslessIntegers,
-        this._useBigInt
-      )
-    } else if (signature === DATE) {
-      return unpackDate(
-        this,
-        structSize,
-        buffer,
-        this._disableLosslessIntegers,
-        this._useBigInt
-      )
-    } else if (signature === LOCAL_DATE_TIME) {
-      return unpackLocalDateTime(
-        this,
-        structSize,
-        buffer,
-        this._disableLosslessIntegers,
-        this._useBigInt
-      )
-    } else if (signature === DATE_TIME_WITH_ZONE_OFFSET) {
-      return unpackDateTimeWithZoneOffset(
-        this,
-        structSize,
-        buffer,
-        this._disableLosslessIntegers,
-        this._useBigInt
-      )
-    } else if (signature === DATE_TIME_WITH_ZONE_ID) {
-      return unpackDateTimeWithZoneId(
-        this,
-        structSize,
-        buffer,
-        this._disableLosslessIntegers,
-        this._useBigInt
-      )
-    } else {
-      return super._unpackUnknownStruct(
-        signature,
-        structSize,
-        buffer,
-        this._disableLosslessIntegers,
-        this._useBigInt
-      )
-    }
+  _hydrate (structure, onUnknowStructure = struct => struct) {
+    const verifyStructSize = this._verifyStructSize.bind(this)
+    return super._hydrate(structure, struct => {
+      const signature = struct.signature
+      if (signature === POINT_2D) {
+        return unpackPoint2D(verifyStructSize, struct)
+      } else if (signature === POINT_3D) {
+        return unpackPoint3D(verifyStructSize, struct)
+      } else if (signature === DURATION) {
+        return unpackDuration(verifyStructSize, struct)
+      } else if (signature === LOCAL_TIME) {
+        return unpackLocalTime(verifyStructSize, struct, this._disableLosslessIntegers, this._useBigInt)
+      } else if (signature === TIME) {
+        return unpackTime(verifyStructSize, struct, this._disableLosslessIntegers, this._useBigInt)
+      } else if (signature === DATE) {
+        return unpackDate(verifyStructSize, struct, this._disableLosslessIntegers, this._useBigInt)
+      } else if (signature === LOCAL_DATE_TIME) {
+        return unpackLocalDateTime(verifyStructSize, struct, this._disableLosslessIntegers, this._useBigInt)
+      } else if (signature === DATE_TIME_WITH_ZONE_OFFSET) {
+        return unpackDateTimeWithZoneOffset(verifyStructSize, struct, this._disableLosslessIntegers, this._useBigInt)
+      } else if (signature === DATE_TIME_WITH_ZONE_ID) {
+        return unpackDateTimeWithZoneId(verifyStructSize, struct, this._disableLosslessIntegers, this._useBigInt)
+      } else {
+        return onUnknowStructure(struct)
+      }
+    })
   }
 }
 
@@ -229,13 +191,14 @@ function packPoint3D (point, packer) {
  * @param {BaseBuffer} buffer the buffer to unpack from.
  * @return {Point} the unpacked 2D point value.
  */
-function unpackPoint2D (unpacker, structSize, buffer) {
-  unpacker._verifyStructSize('Point2D', POINT_2D_STRUCT_SIZE, structSize)
+function unpackPoint2D (verifyStructSize, struct) {
+  verifyStructSize('Point2D', POINT_2D_STRUCT_SIZE, struct.size)
 
+  const [srid, x, y] = struct.fields
   return new Point(
-    unpacker.unpack(buffer), // srid
-    unpacker.unpack(buffer), // x
-    unpacker.unpack(buffer), // y
+    srid,
+    x,
+    y,
     undefined // z
   )
 }
@@ -247,15 +210,12 @@ function unpackPoint2D (unpacker, structSize, buffer) {
  * @param {BaseBuffer} buffer the buffer to unpack from.
  * @return {Point} the unpacked 3D point value.
  */
-function unpackPoint3D (unpacker, structSize, buffer) {
-  unpacker._verifyStructSize('Point3D', POINT_3D_STRUCT_SIZE, structSize)
+function unpackPoint3D (verifyStructSize, struct) {
+  verifyStructSize('Point3D', POINT_3D_STRUCT_SIZE, struct.size)
 
-  return new Point(
-    unpacker.unpack(buffer), // srid
-    unpacker.unpack(buffer), // x
-    unpacker.unpack(buffer), // y
-    unpacker.unpack(buffer) // z
-  )
+  const [srid, x, y, z] = struct.fields
+
+  return new Point(srid, x, y, z)
 }
 
 /**
@@ -285,13 +245,10 @@ function packDuration (value, packer) {
  * @param {BaseBuffer} buffer the buffer to unpack from.
  * @return {Duration} the unpacked duration value.
  */
-function unpackDuration (unpacker, structSize, buffer) {
-  unpacker._verifyStructSize('Duration', DURATION_STRUCT_SIZE, structSize)
+function unpackDuration (verifyStructSize, struct) {
+  verifyStructSize('Duration', DURATION_STRUCT_SIZE, struct.size)
 
-  const months = unpacker.unpack(buffer)
-  const days = unpacker.unpack(buffer)
-  const seconds = unpacker.unpack(buffer)
-  const nanoseconds = unpacker.unpack(buffer)
+  const [months, days, seconds, nanoseconds] = struct.fields
 
   return new Duration(months, days, seconds, nanoseconds)
 }
@@ -321,17 +278,12 @@ function packLocalTime (value, packer) {
  * @param {boolean} disableLosslessIntegers if integer properties in the result local time should be native JS numbers.
  * @return {LocalTime} the unpacked local time value.
  */
-function unpackLocalTime (
-  unpacker,
-  structSize,
-  buffer,
-  disableLosslessIntegers
-) {
-  unpacker._verifyStructSize('LocalTime', LOCAL_TIME_STRUCT_SIZE, structSize)
+function unpackLocalTime (verifyStructSize, struct, disableLosslessIntegers, useBigInt) {
+  verifyStructSize('LocalTime', LOCAL_TIME_STRUCT_SIZE, struct.size)
 
-  const nanoOfDay = unpacker.unpackInteger(buffer)
+  const [nanoOfDay] = struct.fields
   const result = nanoOfDayToLocalTime(nanoOfDay)
-  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers)
+  return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt) // check disable lossless
 }
 
 /**
@@ -364,17 +316,14 @@ function packTime (value, packer) {
  * @return {Time} the unpacked time value.
  */
 function unpackTime (
-  unpacker,
-  structSize,
-  buffer,
+  verifyStructSize,
+  struct,
   disableLosslessIntegers,
   useBigInt
 ) {
-  unpacker._verifyStructSize('Time', TIME_STRUCT_SIZE, structSize)
+  verifyStructSize('Time', TIME_STRUCT_SIZE, struct.size)
 
-  const nanoOfDay = unpacker.unpackInteger(buffer)
-  const offsetSeconds = unpacker.unpackInteger(buffer)
-
+  const [nanoOfDay, offsetSeconds] = struct.fields
   const localTime = nanoOfDayToLocalTime(nanoOfDay)
   const result = new Time(
     localTime.hour,
@@ -407,15 +356,14 @@ function packDate (value, packer) {
  * @return {Date} the unpacked neo4j date value.
  */
 function unpackDate (
-  unpacker,
-  structSize,
-  buffer,
+  verifyStructSize,
+  struct,
   disableLosslessIntegers,
   useBigInt
 ) {
-  unpacker._verifyStructSize('Date', DATE_STRUCT_SIZE, structSize)
+  verifyStructSize('Date', DATE_STRUCT_SIZE, struct.size)
 
-  const epochDay = unpacker.unpackInteger(buffer)
+  const [epochDay] = struct.fields
   const result = epochDayToDate(epochDay)
   return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt)
 }
@@ -453,20 +401,18 @@ function packLocalDateTime (value, packer) {
  * @return {LocalDateTime} the unpacked local date time value.
  */
 function unpackLocalDateTime (
-  unpacker,
-  structSize,
-  buffer,
+  verifyStructSize,
+  struct,
   disableLosslessIntegers,
   useBigInt
 ) {
-  unpacker._verifyStructSize(
+  verifyStructSize(
     'LocalDateTime',
     LOCAL_DATE_TIME_STRUCT_SIZE,
-    structSize
+    struct.size
   )
 
-  const epochSecond = unpacker.unpackInteger(buffer)
-  const nano = unpacker.unpackInteger(buffer)
+  const [epochSecond, nano] = struct.fields
   const result = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
   return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt)
 }
@@ -519,21 +465,18 @@ function packDateTimeWithZoneOffset (value, packer) {
  * @return {DateTime} the unpacked date time with zone offset value.
  */
 function unpackDateTimeWithZoneOffset (
-  unpacker,
-  structSize,
-  buffer,
+  verifyStructSize,
+  struct,
   disableLosslessIntegers,
   useBigInt
 ) {
-  unpacker._verifyStructSize(
+  verifyStructSize(
     'DateTimeWithZoneOffset',
     DATE_TIME_WITH_ZONE_OFFSET_STRUCT_SIZE,
-    structSize
+    struct.size
   )
 
-  const epochSecond = unpacker.unpackInteger(buffer)
-  const nano = unpacker.unpackInteger(buffer)
-  const timeZoneOffsetSeconds = unpacker.unpackInteger(buffer)
+  const [epochSecond, nano, timeZoneOffsetSeconds] = struct.fields
 
   const localDateTime = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
   const result = new DateTime(
@@ -585,21 +528,18 @@ function packDateTimeWithZoneId (value, packer) {
  * @return {DateTime} the unpacked date time with zone id value.
  */
 function unpackDateTimeWithZoneId (
-  unpacker,
-  structSize,
-  buffer,
+  verifyStructSize,
+  struct,
   disableLosslessIntegers,
   useBigInt
 ) {
-  unpacker._verifyStructSize(
+  verifyStructSize(
     'DateTimeWithZoneId',
     DATE_TIME_WITH_ZONE_ID_STRUCT_SIZE,
-    structSize
+    struct.size
   )
 
-  const epochSecond = unpacker.unpackInteger(buffer)
-  const nano = unpacker.unpackInteger(buffer)
-  const timeZoneId = unpacker.unpack(buffer)
+  const [epochSecond, nano, timeZoneId] = struct.fields
 
   const localDateTime = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
   const result = new DateTime(
