@@ -17,11 +17,14 @@
  * limitations under the License.
  */
 
-import * as v1 from './packstream-v1'
-import * as v2 from './packstream-v2'
-import * as v5 from './packstream-v5'
-import * as structure from './structure'
-
-export { v1, v2, v5, structure }
-
-export default v2
+/**
+ * Identity function.
+ *
+ * Identity functions are function which returns the input as output.
+ *
+ * @param {any} x
+ * @returns {any} the x
+ */
+export function identity (x) {
+  return x
+}

@@ -20,6 +20,9 @@ import BoltProtocolV42 from './bolt-protocol-v4x2'
 import RequestMessage from './request-message'
 import { RouteObserver } from './stream-observers'
 
+import * as transformersFactories from './bolt-protocol-v4x3.transformer'
+import Transformer from './transformer'
+
 import { internal } from 'neo4j-driver-core'
 
 const {
@@ -30,6 +33,13 @@ const {
 export default class BoltProtocol extends BoltProtocolV42 {
   get version () {
     return BOLT_PROTOCOL_V4_3
+  }
+
+  get transformer () {
+    if (this._transformer === undefined) {
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+    }
+    return this._transformer
   }
 
   /**

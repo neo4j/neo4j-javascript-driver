@@ -17,11 +17,4 @@
  * limitations under the License.
  */
 
-import * as v1 from './packstream-v1'
-import * as v2 from './packstream-v2'
-import * as v5 from './packstream-v5'
-import * as structure from './structure'
-
-export { v1, v2, v5, structure }
-
-export default v2
+export * from './bolt-protocol-v4x3.transformer'

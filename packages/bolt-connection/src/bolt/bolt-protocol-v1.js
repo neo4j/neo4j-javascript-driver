@@ -33,6 +33,8 @@ import {
   StreamObserver
 } from './stream-observers'
 import { internal } from 'neo4j-driver-core'
+import * as transformersFactories from './bolt-protocol-v1.transformer'
+import Transformer from './transformer'
 
 const {
   bookmarks: { Bookmarks },
@@ -80,6 +82,14 @@ export default class BoltProtocol {
     this._onProtocolError = onProtocolError
     this._fatalError = null
     this._lastMessageSignature = null
+    this._config = { disableLosslessIntegers, useBigInt }
+  }
+
+  get transformer () {
+    if (this._transformer === undefined) {
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+    }
+    return this._transformer
   }
 
   /**
@@ -103,7 +113,7 @@ export default class BoltProtocol {
    * @returns Function
    */
   packable (x) {
-    return this._packer.packable(x)
+    return this._packer.packable(x, this.transformer.toStructure)
   }
 
   /**
@@ -120,7 +130,7 @@ export default class BoltProtocol {
    * @returns {any|null} The unpacked value
    */
   unpack (buf) {
-    return this._unpacker.unpack(buf)
+    return this._unpacker.unpack(buf, this.transformer.fromStructure)
   }
 
   /**

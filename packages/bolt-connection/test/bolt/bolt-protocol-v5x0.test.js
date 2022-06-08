@@ -19,7 +19,7 @@
 
 import BoltProtocolV5x0 from '../../src/bolt/bolt-protocol-v5x0'
 import RequestMessage from '../../src/bolt/request-message'
-import { v5 } from '../../src/packstream'
+import { v2 } from '../../src/packstream'
 import utils from '../test-utils'
 import { RouteObserver } from '../../src/bolt/stream-observers'
 import { internal } from 'neo4j-driver-core'
@@ -356,14 +356,14 @@ describe('#unit BoltProtocolV5x0', () => {
   })
 
   describe('packstream', () => {
-    it('should configure v5 packer', () => {
+    it('should configure v2 packer', () => {
       const protocol = new BoltProtocolV5x0(null, null, false)
-      expect(protocol.packer()).toBeInstanceOf(v5.Packer)
+      expect(protocol.packer()).toBeInstanceOf(v2.Packer)
     })
 
-    it('should configure v5 unpacker', () => {
+    it('should configure v2 unpacker', () => {
       const protocol = new BoltProtocolV5x0(null, null, false)
-      expect(protocol.unpacker()).toBeInstanceOf(v5.Unpacker)
+      expect(protocol.unpacker()).toBeInstanceOf(v2.Unpacker)
     })
   })
 })

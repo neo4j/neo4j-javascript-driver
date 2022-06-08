@@ -17,7 +17,9 @@
  * limitations under the License.
  */
 import BoltProtocolV44 from './bolt-protocol-v4x4'
-import { v5 } from '../packstream'
+
+import * as transformersFactories from './bolt-protocol-v5x0.transformer'
+import Transformer from './transformer'
 
 import { internal } from 'neo4j-driver-core'
 
@@ -30,11 +32,10 @@ export default class BoltProtocol extends BoltProtocolV44 {
     return BOLT_PROTOCOL_V5_0
   }
 
-  _createPacker (chunker) {
-    return new v5.Packer(chunker)
-  }
-
-  _createUnpacker (disableLosslessIntegers, useBigInt) {
-    return new v5.Unpacker(disableLosslessIntegers, useBigInt)
+  get transformer () {
+    if (this._transformer === undefined) {
+      this._transformer = new Transformer([...transformersFactories].map(create => create(this._config)))
+    }
+    return this._transformer
   }
 }

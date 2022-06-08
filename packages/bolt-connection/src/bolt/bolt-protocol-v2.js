@@ -19,6 +19,8 @@
 import BoltProtocolV1 from './bolt-protocol-v1'
 import v2 from '../packstream'
 import { internal } from 'neo4j-driver-core'
+import * as transformersFactories from './bolt-protocol-v2.transformer'
+import Transformer from './transformer'
 
 const {
   constants: { BOLT_PROTOCOL_V2 }
@@ -31,6 +33,13 @@ export default class BoltProtocol extends BoltProtocolV1 {
 
   _createUnpacker (disableLosslessIntegers, useBigInt) {
     return new v2.Unpacker(disableLosslessIntegers, useBigInt)
+  }
+
+  get transformer () {
+    if (this._transformer === undefined) {
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+    }
+    return this._transformer
   }
 
   get version () {
