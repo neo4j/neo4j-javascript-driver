@@ -17,7 +17,11 @@
  * limitations under the License.
  */
 
-import { newError, PROTOCOL_ERROR } from 'neo4j-driver-core'
+import { newError, error } from 'neo4j-driver-core'
+
+const {
+  PROTOCOL_ERROR
+} = error
 
 /**
  * A Structure have a signature and fields.
