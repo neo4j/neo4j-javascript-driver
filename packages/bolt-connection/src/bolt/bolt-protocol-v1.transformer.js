@@ -45,7 +45,7 @@ const UNBOUND_RELATIONSHIP_STRUCT_SIZE = 3
 const PATH = 0x50
 const PATH_STRUCT_SIZE = 3
 
-export function createNodeTransformer () {
+function createNodeTransformer () {
   return new TypeTransformer({
     signature: NODE,
     isTypeInstance: object => object instanceof Node,
@@ -65,7 +65,7 @@ export function createNodeTransformer () {
   })
 }
 
-export function createRelationshipTransformer () {
+function createRelationshipTransformer () {
   return new TypeTransformer({
     signature: RELATIONSHIP,
     isTypeInstance: object => object instanceof Relationship,
@@ -85,7 +85,7 @@ export function createRelationshipTransformer () {
   })
 }
 
-export function createUnboundRelationshipTransformer () {
+function createUnboundRelationshipTransformer () {
   return new TypeTransformer({
     signature: UNBOUND_RELATIONSHIP,
     isTypeInstance: object => object instanceof UnboundRelationship,
@@ -109,7 +109,7 @@ export function createUnboundRelationshipTransformer () {
   })
 }
 
-export function createPathTransformer () {
+function createPathTransformer () {
   return new TypeTransformer({
     signature: PATH,
     isTypeInstance: object => object instanceof Path,
@@ -161,4 +161,11 @@ export function createPathTransformer () {
       return new Path(nodes[0], nodes[nodes.length - 1], segments)
     }
   })
+}
+
+export default {
+  createNodeTransformer,
+  createRelationshipTransformer,
+  createUnboundRelationshipTransformer,
+  createPathTransformer
 }

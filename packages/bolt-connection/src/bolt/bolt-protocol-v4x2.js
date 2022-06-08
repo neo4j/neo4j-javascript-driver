@@ -20,7 +20,7 @@ import BoltProtocolV41 from './bolt-protocol-v4x1'
 
 import { internal } from 'neo4j-driver-core'
 
-import * as transformersFactories from './bolt-protocol-v4x2.transformer'
+import transformersFactories from './bolt-protocol-v4x2.transformer'
 import Transformer from './transformer'
 
 const {

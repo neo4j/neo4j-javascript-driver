@@ -20,7 +20,7 @@ import BoltProtocolV42 from './bolt-protocol-v4x2'
 import RequestMessage from './request-message'
 import { RouteObserver } from './stream-observers'
 
-import * as transformersFactories from './bolt-protocol-v4x3.transformer'
+import transformersFactories from './bolt-protocol-v4x3.transformer'
 import Transformer from './transformer'
 
 import { internal } from 'neo4j-driver-core'

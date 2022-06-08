@@ -21,7 +21,7 @@ import RequestMessage from './request-message'
 import { LoginObserver } from './stream-observers'
 import { internal } from 'neo4j-driver-core'
 
-import * as transformersFactories from './bolt-protocol-v4x1.transformer'
+import transformersFactories from './bolt-protocol-v4x1.transformer'
 import Transformer from './transformer'
 
 const {

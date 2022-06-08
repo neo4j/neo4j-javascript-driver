@@ -22,7 +22,7 @@ import { internal } from 'neo4j-driver-core'
 import RequestMessage from './request-message'
 import { RouteObserver, ResultStreamObserver } from './stream-observers'
 
-import * as transformersFactories from './bolt-protocol-v4x4.transformer'
+import transformersFactories from './bolt-protocol-v4x4.transformer'
 import Transformer from './transformer'
 
 const {

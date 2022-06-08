@@ -17,4 +17,8 @@
  * limitations under the License.
  */
 
-export * from './bolt-protocol-v2.transformer'
+import v2 from './bolt-protocol-v2.transformer'
+
+export default {
+  ...v2
+}

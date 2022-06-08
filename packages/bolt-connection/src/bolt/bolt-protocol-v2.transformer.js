@@ -43,7 +43,7 @@ import {
   epochSecondAndNanoToLocalDateTime
 } from './temporal-factory'
 
-export * from './bolt-protocol-v1.transformer'
+import v1 from './bolt-protocol-v1.transformer'
 
 const {
   temporalUtil: {
@@ -80,7 +80,7 @@ const DATE_TIME_WITH_ZONE_OFFSET_STRUCT_SIZE = 3
 const DATE_TIME_WITH_ZONE_ID = 0x66
 const DATE_TIME_WITH_ZONE_ID_STRUCT_SIZE = 3
 
-export function createPoint2DTransformer () {
+function createPoint2DTransformer () {
   return new TypeTransformer({
     signature: POINT_2D,
     isTypeInstance: point => isPoint(point) && (point.z === null || point.z === undefined),
@@ -103,7 +103,7 @@ export function createPoint2DTransformer () {
   })
 }
 
-export function createPoint3DTransformer () {
+function createPoint3DTransformer () {
   return new TypeTransformer({
     signature: POINT_3D,
     isTypeInstance: point => isPoint(point) && point.z !== null && point.z !== undefined,
@@ -127,7 +127,7 @@ export function createPoint3DTransformer () {
   })
 }
 
-export function createDurationTransformer () {
+function createDurationTransformer () {
   return new TypeTransformer({
     signature: DURATION,
     isTypeInstance: isDuration,
@@ -149,7 +149,7 @@ export function createDurationTransformer () {
   })
 }
 
-export function createLocalTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
+function createLocalTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: LOCAL_TIME,
     isTypeInstance: isLocalTime,
@@ -173,7 +173,7 @@ export function createLocalTimeTransformer ({ disableLosslessIntegers, useBigInt
   })
 }
 
-export function createTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
+function createTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: TIME,
     isTypeInstance: isTime,
@@ -205,7 +205,7 @@ export function createTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   })
 }
 
-export function createDateTransformer ({ disableLosslessIntegers, useBigInt }) {
+function createDateTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: DATE,
     isTypeInstance: isDate,
@@ -224,7 +224,7 @@ export function createDateTransformer ({ disableLosslessIntegers, useBigInt }) {
   })
 }
 
-export function createLocalDateTime ({ disableLosslessIntegers, useBigInt }) {
+function createLocalDateTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: LOCAL_DATE_TIME,
     isTypeInstance: isLocalDateTime,
@@ -256,7 +256,7 @@ export function createLocalDateTime ({ disableLosslessIntegers, useBigInt }) {
   })
 }
 
-export function createDateTimeWithZoneId ({ disableLosslessIntegers, useBigInt }) {
+function createDateTimeWithZoneIdTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: DATE_TIME_WITH_ZONE_ID,
     isTypeInstance: object => isDateTime(object) && object.timeZoneId != null,
@@ -301,7 +301,7 @@ export function createDateTimeWithZoneId ({ disableLosslessIntegers, useBigInt }
   })
 }
 
-export function createDateTimeWithOffset ({ disableLosslessIntegers, useBigInt }) {
+function createDateTimeWithOffsetTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: DATE_TIME_WITH_ZONE_OFFSET,
     isTypeInstance: object => isDateTime(object) && object.timeZoneId == null,
@@ -362,4 +362,17 @@ function convertIntegerPropsIfNeeded (obj, disableLosslessIntegers, useBigInt) {
   }
   Object.freeze(clone)
   return clone
+}
+
+export default {
+  ...v1,
+  createPoint2DTransformer,
+  createPoint3DTransformer,
+  createDurationTransformer,
+  createLocalTimeTransformer,
+  createTimeTransformer,
+  createDateTransformer,
+  createLocalDateTimeTransformer,
+  createDateTimeWithZoneIdTransformer,
+  createDateTimeWithOffsetTransformer
 }

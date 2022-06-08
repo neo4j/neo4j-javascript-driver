@@ -23,7 +23,7 @@ import {
   ResultStreamObserver,
   ProcedureRouteObserver
 } from './stream-observers'
-import * as transformersFactories from './bolt-protocol-v4x0.transformer'
+import transformersFactories from './bolt-protocol-v4x0.transformer'
 import Transformer from './transformer'
 
 import { internal } from 'neo4j-driver-core'
