@@ -78,7 +78,7 @@ function createUnboundRelationshipTransformer (config) {
   const unboundRelationshipTransformer = v4x4.createUnboundRelationshipTransformer(config)
   return unboundRelationshipTransformer.extendsWith({
     fromStructure: struct => {
-      this._verifyStructSize(
+      structure.verifyStructSize(
         'UnboundRelationship',
         UNBOUND_RELATIONSHIP_STRUCT_SIZE,
         struct.size
