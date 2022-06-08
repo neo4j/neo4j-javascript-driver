@@ -30,7 +30,7 @@ export default class Transformer {
 
   fromStructure (struct) {
     if (struct instanceof structure.Structure && this._transformersPerSignature.has(struct.signature)) {
-      const { fromStructure } = this._transformersPerSignature[struct.signature]
+      const { fromStructure } = this._transformersPerSignature.get(struct.signature)
       return fromStructure(struct)
     }
     return struct

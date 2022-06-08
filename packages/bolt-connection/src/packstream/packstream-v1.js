@@ -75,9 +75,9 @@ class Packer {
    * @param x the value to pack
    * @returns Function
    */
-  packable (x, dehydrate = functional.identity) {
+  packable (x, dehydrateStruct = functional.identity) {
     try {
-      x = dehydrate(x)
+      x = dehydrateStruct(x)
     } catch (ex) {
       return () => ex
     }
@@ -102,15 +102,15 @@ class Packer {
       return () => {
         this.packListHeader(x.length)
         for (let i = 0; i < x.length; i++) {
-          this.packable(x[i] === undefined ? null : x[i])()
+          this.packable(x[i] === undefined ? null : x[i], dehydrateStruct)()
         }
       }
     } else if (isIterable(x)) {
-      return this.packableIterable(x)
+      return this.packableIterable(x, dehydrateStruct)
     } else if (x instanceof Structure) {
       const packableFields = []
       for (let i = 0; i < x.fields.length; i++) {
-        packableFields[i] = this.packable(x.fields[i])
+        packableFields[i] = this.packable(x.fields[i], dehydrateStruct)
       }
       return () => this.packStruct(x.signature, packableFields)
     } else if (typeof x === 'object') {
@@ -128,7 +128,7 @@ class Packer {
           const key = keys[i]
           if (x[key] !== undefined) {
             this.packString(key)
-            this.packable(x[key])()
+            this.packable(x[key], dehydrateStruct)()
           }
         }
       }
@@ -137,10 +137,10 @@ class Packer {
     }
   }
 
-  packableIterable (iterable) {
+  packableIterable (iterable, dehydrateStruct) {
     try {
       const array = Array.from(iterable)
-      return this.packable(array)
+      return this.packable(array, dehydrateStruct)
     } catch (e) {
       // handle errors from iterable to array conversion
       throw newError(`Cannot pack given iterable, ${e.message}: ${iterable}`)
@@ -331,63 +331,58 @@ class Unpacker {
     this._useBigInt = useBigInt
   }
 
-  unpack (buffer, hydrate = functional.identity) {
-    const deserialize = () => {
-      const marker = buffer.readUInt8()
-      const markerHigh = marker & 0xf0
-      const markerLow = marker & 0x0f
+  unpack (buffer, hydrateStructure = functional.identity) {
+    const marker = buffer.readUInt8()
+    const markerHigh = marker & 0xf0
+    const markerLow = marker & 0x0f
 
-      if (marker === NULL) {
-        return null
-      }
-
-      const boolean = this._unpackBoolean(marker)
-      if (boolean !== null) {
-        return boolean
-      }
-
-      const numberOrInteger = this._unpackNumberOrInteger(marker, buffer)
-      if (numberOrInteger !== null) {
-        if (isInt(numberOrInteger)) {
-          if (this._useBigInt) {
-            return numberOrInteger.toBigInt()
-          } else if (this._disableLosslessIntegers) {
-            return numberOrInteger.toNumberOrInfinity()
-          }
-        }
-        return numberOrInteger
-      }
-
-      const string = this._unpackString(marker, markerHigh, markerLow, buffer)
-      if (string !== null) {
-        return string
-      }
-
-      const list = this._unpackList(marker, markerHigh, markerLow, buffer)
-      if (list !== null) {
-        return list
-      }
-
-      const byteArray = this._unpackByteArray(marker, buffer)
-      if (byteArray !== null) {
-        return byteArray
-      }
-
-      const map = this._unpackMap(marker, markerHigh, markerLow, buffer)
-      if (map !== null) {
-        return map
-      }
-
-      const struct = this._unpackStruct(marker, markerHigh, markerLow, buffer)
-      if (struct !== null) {
-        return struct
-      }
-
-      throw newError('Unknown packed value with marker ' + marker.toString(16))
+    if (marker === NULL) {
+      return null
     }
 
-    const deserialized = deserialize()
-    return hydrate(deserialized)
+    const boolean = this._unpackBoolean(marker)
+    if (boolean !== null) {
+      return boolean
+    }
+
+    const numberOrInteger = this._unpackNumberOrInteger(marker, buffer)
+    if (numberOrInteger !== null) {
+      if (isInt(numberOrInteger)) {
+        if (this._useBigInt) {
+          return numberOrInteger.toBigInt()
+        } else if (this._disableLosslessIntegers) {
+          return numberOrInteger.toNumberOrInfinity()
+        }
+      }
+      return numberOrInteger
+    }
+
+    const string = this._unpackString(marker, markerHigh, markerLow, buffer)
+    if (string !== null) {
+      return string
+    }
+
+    const list = this._unpackList(marker, markerHigh, markerLow, buffer, hydrateStructure)
+    if (list !== null) {
+      return list
+    }
+
+    const byteArray = this._unpackByteArray(marker, buffer)
+    if (byteArray !== null) {
+      return byteArray
+    }
+
+    const map = this._unpackMap(marker, markerHigh, markerLow, buffer, hydrateStructure)
+    if (map !== null) {
+      return map
+    }
+
+    const struct = this._unpackStruct(marker, markerHigh, markerLow, buffer, hydrateStructure)
+    if (struct !== null) {
+      return struct
+    }
+
+    throw newError('Unknown packed value with marker ' + marker.toString(16))
   }
 
   unpackInteger (buffer) {
@@ -454,24 +449,24 @@ class Unpacker {
     }
   }
 
-  _unpackList (marker, markerHigh, markerLow, buffer) {
+  _unpackList (marker, markerHigh, markerLow, buffer, hydrateStructure) {
     if (markerHigh === TINY_LIST) {
-      return this._unpackListWithSize(markerLow, buffer)
+      return this._unpackListWithSize(markerLow, buffer, hydrateStructure)
     } else if (marker === LIST_8) {
-      return this._unpackListWithSize(buffer.readUInt8(), buffer)
+      return this._unpackListWithSize(buffer.readUInt8(), buffer, hydrateStructure)
     } else if (marker === LIST_16) {
-      return this._unpackListWithSize(buffer.readUInt16(), buffer)
+      return this._unpackListWithSize(buffer.readUInt16(), buffer, hydrateStructure)
     } else if (marker === LIST_32) {
-      return this._unpackListWithSize(buffer.readUInt32(), buffer)
+      return this._unpackListWithSize(buffer.readUInt32(), buffer, hydrateStructure)
     } else {
       return null
     }
   }
 
-  _unpackListWithSize (size, buffer) {
+  _unpackListWithSize (size, buffer, hydrateStructure) {
     const value = []
     for (let i = 0; i < size; i++) {
-      value.push(this.unpack(buffer))
+      value.push(this.unpack(buffer, hydrateStructure))
     }
     return value
   }
@@ -496,48 +491,49 @@ class Unpacker {
     return value
   }
 
-  _unpackMap (marker, markerHigh, markerLow, buffer) {
+  _unpackMap (marker, markerHigh, markerLow, buffer, hydrateStructure) {
     if (markerHigh === TINY_MAP) {
-      return this._unpackMapWithSize(markerLow, buffer)
+      return this._unpackMapWithSize(markerLow, buffer, hydrateStructure)
     } else if (marker === MAP_8) {
-      return this._unpackMapWithSize(buffer.readUInt8(), buffer)
+      return this._unpackMapWithSize(buffer.readUInt8(), buffer, hydrateStructure)
     } else if (marker === MAP_16) {
-      return this._unpackMapWithSize(buffer.readUInt16(), buffer)
+      return this._unpackMapWithSize(buffer.readUInt16(), buffer, hydrateStructure)
     } else if (marker === MAP_32) {
-      return this._unpackMapWithSize(buffer.readUInt32(), buffer)
+      return this._unpackMapWithSize(buffer.readUInt32(), buffer, hydrateStructure)
     } else {
       return null
     }
   }
 
-  _unpackMapWithSize (size, buffer) {
+  _unpackMapWithSize (size, buffer, hydrateStructure) {
     const value = {}
     for (let i = 0; i < size; i++) {
-      const key = this.unpack(buffer)
-      value[key] = this.unpack(buffer)
+      const key = this.unpack(buffer, hydrateStructure)
+      value[key] = this.unpack(buffer, hydrateStructure)
     }
     return value
   }
 
-  _unpackStruct (marker, markerHigh, markerLow, buffer) {
+  _unpackStruct (marker, markerHigh, markerLow, buffer, hydrateStructure) {
     if (markerHigh === TINY_STRUCT) {
-      return this._unpackStructWithSize(markerLow, buffer)
+      return this._unpackStructWithSize(markerLow, buffer, hydrateStructure)
     } else if (marker === STRUCT_8) {
-      return this._unpackStructWithSize(buffer.readUInt8(), buffer)
+      return this._unpackStructWithSize(buffer.readUInt8(), buffer, hydrateStructure)
     } else if (marker === STRUCT_16) {
-      return this._unpackStructWithSize(buffer.readUInt16(), buffer)
+      return this._unpackStructWithSize(buffer.readUInt16(), buffer, hydrateStructure)
     } else {
       return null
     }
   }
 
-  _unpackStructWithSize (structSize, buffer) {
+  _unpackStructWithSize (structSize, buffer, hydrateStructure) {
     const signature = buffer.readUInt8()
     const structure = new Structure(signature, [])
     for (let i = 0; i < structSize; i++) {
-      structure.fields.push(this.unpack(buffer))
+      structure.fields.push(this.unpack(buffer, hydrateStructure))
     }
-    return structure
+
+    return hydrateStructure(structure)
   }
 }
 
@@ -548,4 +544,4 @@ function isIterable (obj) {
   return typeof obj[Symbol.iterator] === 'function'
 }
 
-export { Packer, Unpacker, Structure }
+export { Packer, Unpacker }

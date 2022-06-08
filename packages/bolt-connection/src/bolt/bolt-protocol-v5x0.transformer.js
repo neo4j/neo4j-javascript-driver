@@ -28,8 +28,8 @@ const UNBOUND_RELATIONSHIP_STRUCT_SIZE = 4
 function createNodeTransformer (config) {
   const node4x4Transformer = v4x4.createNodeTransformer(config)
   return node4x4Transformer.extendsWith({
-    toStructure: struct => {
-      structure.verifyStructSize('Node', NODE_STRUCT_SIZE, struct)
+    fromStructure: struct => {
+      structure.verifyStructSize('Node', NODE_STRUCT_SIZE, struct.size)
 
       const [identity, lables, properties, elementId] = struct.fields
 
@@ -46,8 +46,8 @@ function createNodeTransformer (config) {
 function createRelationshipTransformer (config) {
   const relationship4x4Transformer = v4x4.createRelationshipTransformer(config)
   return relationship4x4Transformer.extendsWith({
-    toStructure: struct => {
-      structure.verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structure.size)
+    fromStructure: struct => {
+      structure.verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, struct.size)
 
       const [
         identity,
@@ -77,7 +77,7 @@ function createRelationshipTransformer (config) {
 function createUnboundRelationshipTransformer (config) {
   const unboundRelationshipTransformer = v4x4.createUnboundRelationshipTransformer(config)
   return unboundRelationshipTransformer.extendsWith({
-    toStructure: struct => {
+    fromStructure: struct => {
       this._verifyStructSize(
         'UnboundRelationship',
         UNBOUND_RELATIONSHIP_STRUCT_SIZE,

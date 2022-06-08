@@ -23,7 +23,7 @@ import {
 } from './bolt-protocol-util'
 // eslint-disable-next-line no-unused-vars
 import { Chunker } from '../channel'
-import { v1 } from '../packstream'
+import { structure, v1 } from '../packstream'
 import RequestMessage from './request-message'
 import {
   LoginObserver,
@@ -386,11 +386,9 @@ export default class BoltProtocol {
       }
 
       this._lastMessageSignature = message.signature
+      const messageStruct = new structure.Structure(message.signature, message.fields)
 
-      this.packer().packStruct(
-        message.signature,
-        message.fields.map(field => this.packable(field))
-      )
+      this.packable(messageStruct)()
 
       this._chunker.messageBoundary()
 
