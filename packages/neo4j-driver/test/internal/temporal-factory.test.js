@@ -18,7 +18,7 @@
  */
 
 import { int } from 'neo4j-driver-core'
-import * as factory from '../../../bolt-connection/lib/packstream/temporal-factory'
+import * as factory from '../../../bolt-connection/lib/bolt/temporal-factory'
 import { types } from '../../src'
 
 describe('#unit temporal-factory', () => {
