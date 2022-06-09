@@ -19,7 +19,8 @@
 
 import { int, Integer } from 'neo4j-driver-core'
 import { alloc } from '../../src/channel'
-import { Packer, Structure, Unpacker } from '../../src/packstream/packstream-v1'
+import { Packer, Unpacker } from '../../src/packstream/packstream-v1'
+import { Structure } from '../../src/packstream/structure'
 
 describe('#unit PackStreamV1', () => {
   it('should pack integers with small numbers', () => {
