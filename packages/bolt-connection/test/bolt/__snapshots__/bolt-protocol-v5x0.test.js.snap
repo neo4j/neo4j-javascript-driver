@@ -4,8 +4,6 @@ exports[`#unit BoltProtocolV5x0 .packable() should pack not pack graph types (No
 
 exports[`#unit BoltProtocolV5x0 .packable() should pack not pack graph types (Path) 1`] = `"It is not allowed to pass paths in query parameters, given: [object Object]"`;
 
-exports[`#unit BoltProtocolV5x0 .packable() should pack not pack graph types (PathSegment) 1`] = `"Cannot read properties of null (reading 'writeUInt8')"`;
-
 exports[`#unit BoltProtocolV5x0 .packable() should pack not pack graph types (Relationship) 1`] = `"It is not allowed to pass relationships in query parameters, given: (e)-[:a {b:\\"c\\"}]->(f)"`;
 
 exports[`#unit BoltProtocolV5x0 .packable() should pack not pack graph types (UnboundRelationship) 1`] = `"It is not allowed to pass unbound relationships in query parameters, given: -[:a {b:\\"c\\"}]->"`;

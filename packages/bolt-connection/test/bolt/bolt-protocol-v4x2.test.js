@@ -131,8 +131,7 @@ describe('#unit BoltProtocolV4x2', () => {
       ['Node', new Node(1, ['a'], { a: 'b' }, 'c')],
       ['Relationship', new Relationship(1, 2, 3, 'a', { b: 'c' }, 'd', 'e', 'f')],
       ['UnboundRelationship', new UnboundRelationship(1, 'a', { b: 'c' }, '1')],
-      ['Path', new Path(new Node(1, [], {}), new Node(2, [], {}), [])],
-      ['PathSegment', new PathSegment(new Node(1, [], {}), new Relationship(1, 1, 1, '', {}), new Node(1, [], {}))]
+      ['Path', new Path(new Node(1, [], {}), new Node(2, [], {}), [])]
     ])('should pack not pack graph types (%s)', (_, graphType) => {
       const protocol = new BoltProtocolV4x2(
         new utils.MessageRecordingConnection(),
