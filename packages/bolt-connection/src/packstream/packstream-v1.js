@@ -79,7 +79,7 @@ class Packer {
     try {
       x = dehydrateStruct(x)
     } catch (ex) {
-      return () => ex
+      return () => { throw ex }
     }
 
     if (x === null) {
