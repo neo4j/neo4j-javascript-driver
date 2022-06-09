@@ -117,7 +117,8 @@ export default class ResponseHandler {
           this._log.debug(`S: FAILURE ${json.stringify(msg)}`)
         }
         try {
-          const error = newError(payload.message, payload.code)
+          const standardizedCode = _standardizeCode(payload.code)
+          const error = newError(payload.message, standardizedCode)
           this._currentFailure = this._observer.onErrorApplyTransformation(
             error
           )
@@ -193,4 +194,22 @@ export default class ResponseHandler {
   _resetFailure () {
     this._currentFailure = null
   }
+}
+
+/**
+ * Standardize error classification that are different between 5.x and previous versions.
+ *
+ * The transient error were clean-up for being retrieable and because of this
+ * `Terminated` and `LockClientStopped` were reclassified as `ClientError`.
+ *
+ * @param {string} code
+ * @returns {string} the standardized error code
+ */
+function _standardizeCode (code) {
+  if (code === 'Neo.TransientError.Transaction.Terminated') {
+    return 'Neo.ClientError.Transaction.Terminated'
+  } else if (code === 'Neo.TransientError.Transaction.LockClientStopped') {
+    return 'Neo.ClientError.Transaction.LockClientStopped'
+  }
+  return code
 }

@@ -165,15 +165,17 @@ function getRetriableCodes (): string[] {
     SESSION_EXPIRED,
     'Neo.ClientError.Security.AuthorizationExpired',
     'Neo.TransientError.Transaction.DeadlockDetected',
-    'Neo.TransientError.Network.CommunicationError'
+    'Neo.TransientError.Network.CommunicationError',
+    'Neo.TransientError.Transaction.Terminated',
+    'Neo.TransientError.Transaction.LockClientStopped'
   ]
 }
 
 function getNonRetriableCodes (): string[] {
   return [
-    'Neo.TransientError.Transaction.Terminated',
     'Neo.DatabaseError.General.UnknownError',
-    'Neo.TransientError.Transaction.LockClientStopped',
-    'Neo.DatabaseError.General.OutOfMemoryError'
+    'Neo.DatabaseError.General.OutOfMemoryError',
+    'Neo.ClientError.Transaction.Terminated',
+    'Neo.ClientError.Transaction.LockClientStopped'
   ]
 }
