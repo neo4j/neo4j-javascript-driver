@@ -75,6 +75,9 @@ const record: Record = new Record(['role'], [124])
 dummy instanceof types.Node
 dummy instanceof types.PathSegment
 dummy instanceof types.Path
+dummy instanceof types.Result
+dummy instanceof types.ResultSummary
+dummy instanceof types.Record
 dummy instanceof types.Relationship
 dummy instanceof types.Point
 dummy instanceof types.Date

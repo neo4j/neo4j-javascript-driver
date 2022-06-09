@@ -103,9 +103,9 @@ declare const types: {
   UnboundRelationship: typeof UnboundRelationship
   PathSegment: typeof PathSegment
   Path: typeof Path
-  Result: Result
-  ResultSummary: ResultSummary
-  Record: Record
+  Result: typeof Result
+  ResultSummary: typeof ResultSummary
+  Record: typeof Record
   Point: typeof Point
   Duration: typeof Duration
   LocalTime: typeof LocalTime
