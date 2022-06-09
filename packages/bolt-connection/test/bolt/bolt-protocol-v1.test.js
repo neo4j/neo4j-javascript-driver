@@ -19,7 +19,21 @@
 
 import BoltProtocolV1 from '../../src/bolt/bolt-protocol-v1'
 import RequestMessage from '../../src/bolt/request-message'
-import { Date, DateTime, Duration, internal, LocalDateTime, LocalTime, Path, PathSegment, Point, Relationship, Time, UnboundRelationship, Node } from 'neo4j-driver-core'
+import {
+  Date,
+  DateTime,
+  Duration,
+  internal,
+  LocalDateTime,
+  LocalTime,
+  Path,
+  PathSegment,
+  Point,
+  Relationship,
+  Time,
+  UnboundRelationship,
+  Node
+} from 'neo4j-driver-core'
 import utils from '../test-utils'
 import { LoginObserver } from '../../src/bolt/stream-observers'
 import { alloc } from '../../src/channel'
@@ -406,6 +420,7 @@ describe('#unit BoltProtocolV1', () => {
       buffer.reset()
 
       const unpacked = protocol.unpack(buffer)
+      expect(unpacked).toBeInstanceOf(Object)
       expect(unpacked).toMatchSnapshot()
     })
   })

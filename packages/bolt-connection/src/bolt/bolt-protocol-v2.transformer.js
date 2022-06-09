@@ -320,7 +320,7 @@ function createDateTimeWithOffsetTransformer ({ disableLosslessIntegers, useBigI
       return new structure.Structure(DATE_TIME_WITH_ZONE_OFFSET, [epochSecond, nano, timeZoneOffsetSeconds])
     },
     fromStructure: struct => {
-      struct.verifyStructSize(
+      structure.verifyStructSize(
         'DateTimeWithZoneOffset',
         DATE_TIME_WITH_ZONE_OFFSET_STRUCT_SIZE,
         struct.size
