@@ -86,3 +86,6 @@ const instanceOfLocalDateTime: boolean = dummy instanceof types.LocalDateTime
 const instanceOfLocalTime: boolean = dummy instanceof types.LocalTime
 const instanceOfTime: boolean = dummy instanceof types.Time
 const instanceOfInteger: boolean = dummy instanceof types.Integer
+const instanceOfResult: boolean = dummy instanceof types.Result
+const instanceOfResultSummary: boolean = dummy instanceof types.ResultSummary
+const instanceOfRecord: boolean = dummy instanceof types.Record
