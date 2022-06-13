@@ -51,7 +51,7 @@ describe('#integration Bolt V3 API', () => {
   })
 
   it('should set transaction metadata for auto-commit transaction', async () => {
-    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
+    if (!databaseSupportsBoltV3() || !(await databaseSupportsListTransaction())) {
       return
     }
 
@@ -174,7 +174,7 @@ describe('#integration Bolt V3 API', () => {
   )
 
   it('should set transaction metadata for explicit transactions', async () => {
-    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
+    if (!databaseSupportsBoltV3() || !(await databaseSupportsListTransaction())) {
       return
     }
 
@@ -450,7 +450,7 @@ describe('#integration Bolt V3 API', () => {
   }, 20000)
 
   async function testTransactionMetadataWithTransactionFunctions (read) {
-    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
+    if (!databaseSupportsBoltV3() || !(await databaseSupportsListTransaction())) {
       return
     }
 
@@ -554,7 +554,19 @@ describe('#integration Bolt V3 API', () => {
     return protocolVersion >= 3
   }
 
-  function databaseSupportsListTransaction () {
-    return sharedNeo4j.edition === 'enterprise'
+  async function databaseSupportsListTransaction () {
+    if (sharedNeo4j.edition === 'enterprise') {
+      try {
+        await session.run(
+          'CALL dbms.listTransactions()',
+          {}
+        )
+        return true
+      } catch (e) {
+        console.error('Database does not support dbms.listTransactions()', e)
+        return false
+      }
+    }
+    return false
   }
 })
