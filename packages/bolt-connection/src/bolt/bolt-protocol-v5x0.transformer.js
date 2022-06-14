@@ -25,6 +25,11 @@ const NODE_STRUCT_SIZE = 4
 const RELATIONSHIP_STRUCT_SIZE = 8
 const UNBOUND_RELATIONSHIP_STRUCT_SIZE = 4
 
+/**
+ * Create an extend Node transformer with support to elementId
+ * @param {any} config
+ * @returns {TypeTransformer}
+ */
 function createNodeTransformer (config) {
   const node4x4Transformer = v4x4.createNodeTransformer(config)
   return node4x4Transformer.extendsWith({
@@ -43,6 +48,11 @@ function createNodeTransformer (config) {
   })
 }
 
+/**
+ * Create an extend Relationship transformer with support to elementId
+ * @param {any} config
+ * @returns {TypeTransformer}
+ */
 function createRelationshipTransformer (config) {
   const relationship4x4Transformer = v4x4.createRelationshipTransformer(config)
   return relationship4x4Transformer.extendsWith({
@@ -74,6 +84,11 @@ function createRelationshipTransformer (config) {
   })
 }
 
+/**
+ * Create an extend Unbound Relationship transformer with support to elementId
+ * @param {any} config
+ * @returns {TypeTransformer}
+ */
 function createUnboundRelationshipTransformer (config) {
   const unboundRelationshipTransformer = v4x4.createUnboundRelationshipTransformer(config)
   return unboundRelationshipTransformer.extendsWith({

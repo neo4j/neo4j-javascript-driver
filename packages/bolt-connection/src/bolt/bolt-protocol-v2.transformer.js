@@ -80,6 +80,10 @@ const DATE_TIME_WITH_ZONE_OFFSET_STRUCT_SIZE = 3
 const DATE_TIME_WITH_ZONE_ID = 0x66
 const DATE_TIME_WITH_ZONE_ID_STRUCT_SIZE = 3
 
+/**
+ * Creates the Point2D Transformer
+ * @returns {TypeTransformer}
+ */
 function createPoint2DTransformer () {
   return new TypeTransformer({
     signature: POINT_2D,
@@ -103,6 +107,10 @@ function createPoint2DTransformer () {
   })
 }
 
+/**
+ * Creates the Point3D Transformer
+ * @returns {TypeTransformer}
+ */
 function createPoint3DTransformer () {
   return new TypeTransformer({
     signature: POINT_3D,
@@ -127,6 +135,10 @@ function createPoint3DTransformer () {
   })
 }
 
+/**
+ * Creates the Duration Transformer
+ * @returns {TypeTransformer}
+ */
 function createDurationTransformer () {
   return new TypeTransformer({
     signature: DURATION,
@@ -149,6 +161,13 @@ function createDurationTransformer () {
   })
 }
 
+/**
+ * Creates the LocalTime Transformer
+ * @param {Object} param
+ * @param {boolean} param.disableLosslessIntegers Disables lossless integers
+ * @param {boolean} param.useBigInt Uses BigInt instead of number or Integer
+ * @returns {TypeTransformer}
+ */
 function createLocalTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: LOCAL_TIME,
@@ -173,6 +192,13 @@ function createLocalTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   })
 }
 
+/**
+ * Creates the Time Transformer
+ * @param {Object} param
+ * @param {boolean} param.disableLosslessIntegers Disables lossless integers
+ * @param {boolean} param.useBigInt Uses BigInt instead of number or Integer
+ * @returns {TypeTransformer}
+ */
 function createTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: TIME,
@@ -205,6 +231,13 @@ function createTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   })
 }
 
+/**
+ * Creates the Date Transformer
+ * @param {Object} param
+ * @param {boolean} param.disableLosslessIntegers Disables lossless integers
+ * @param {boolean} param.useBigInt Uses BigInt instead of number or Integer
+ * @returns {TypeTransformer}
+ */
 function createDateTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: DATE,
@@ -224,6 +257,13 @@ function createDateTransformer ({ disableLosslessIntegers, useBigInt }) {
   })
 }
 
+/**
+ * Creates the LocalDateTime Transformer
+ * @param {Object} param
+ * @param {boolean} param.disableLosslessIntegers Disables lossless integers
+ * @param {boolean} param.useBigInt Uses BigInt instead of number or Integer
+ * @returns {TypeTransformer}
+ */
 function createLocalDateTimeTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: LOCAL_DATE_TIME,
@@ -256,6 +296,13 @@ function createLocalDateTimeTransformer ({ disableLosslessIntegers, useBigInt })
   })
 }
 
+/**
+ * Creates the DateTime with ZoneId Transformer
+ * @param {Object} param
+ * @param {boolean} param.disableLosslessIntegers Disables lossless integers
+ * @param {boolean} param.useBigInt Uses BigInt instead of number or Integer
+ * @returns {TypeTransformer}
+ */
 function createDateTimeWithZoneIdTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: DATE_TIME_WITH_ZONE_ID,
@@ -301,6 +348,13 @@ function createDateTimeWithZoneIdTransformer ({ disableLosslessIntegers, useBigI
   })
 }
 
+/**
+ * Creates the DateTime with Offset Transformer
+ * @param {Object} param
+ * @param {boolean} param.disableLosslessIntegers Disables lossless integers
+ * @param {boolean} param.useBigInt Uses BigInt instead of number or Integer
+ * @returns {TypeTransformer}
+ */
 function createDateTimeWithOffsetTransformer ({ disableLosslessIntegers, useBigInt }) {
   return new TypeTransformer({
     signature: DATE_TIME_WITH_ZONE_OFFSET,

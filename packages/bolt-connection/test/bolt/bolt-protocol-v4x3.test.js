@@ -590,7 +590,7 @@ describe('#unit BoltProtocolV4x3', () => {
         'DateTimeWithZoneId with more fields',
         new structure.Structure(0x66, [1, 2, 'America/Sao Paulo', 'Brasil'])
       ]
-    ])('should not unpack with wrong size(%s)', (_, struct) => {
+    ])('should not unpack with wrong size (%s)', (_, struct) => {
       const buffer = alloc(256)
       const protocol = new BoltProtocolV4x3(
         new utils.MessageRecordingConnection(),
@@ -653,7 +653,7 @@ describe('#unit BoltProtocolV4x3', () => {
         new structure.Structure(0x66, [1, 2, 'America/Sao Paulo']),
         new DateTime(1970, 1, 1, 0, 0, 1, 2, undefined, 'America/Sao Paulo')
       ]
-    ])('should pack spatial types and temporal types (%s)', (_, struct, object) => {
+    ])('should unpack spatial types and temporal types (%s)', (_, struct, object) => {
       const buffer = alloc(256)
       const protocol = new BoltProtocolV4x3(
         new utils.MessageRecordingConnection(),
