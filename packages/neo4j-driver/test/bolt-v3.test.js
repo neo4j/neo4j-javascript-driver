@@ -51,7 +51,7 @@ describe('#integration Bolt V3 API', () => {
   })
 
   it('should set transaction metadata for auto-commit transaction', async () => {
-    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
+    if (!databaseSupportsBoltV3() || !(await databaseSupportsListTransaction())) {
       return
     }
 
@@ -93,7 +93,8 @@ describe('#integration Bolt V3 API', () => {
       // ClientError on 4.1 and later
       if (
         e.code !== 'Neo.ClientError.Transaction.TransactionTimedOut' &&
-        e.code !== 'Neo.TransientError.Transaction.LockClientStopped'
+        e.code !== 'Neo.TransientError.Transaction.LockClientStopped' &&
+        e.code !== 'Neo.ClientError.Transaction.LockClientStopped'
       ) {
         fail('Expected transaction timeout error but got: ' + e.code)
       }
@@ -173,7 +174,7 @@ describe('#integration Bolt V3 API', () => {
   )
 
   it('should set transaction metadata for explicit transactions', async () => {
-    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
+    if (!databaseSupportsBoltV3() || !(await databaseSupportsListTransaction())) {
       return
     }
 
@@ -216,7 +217,8 @@ describe('#integration Bolt V3 API', () => {
       // ClientError on 4.1 and later
       if (
         e.code !== 'Neo.ClientError.Transaction.TransactionTimedOut' &&
-        e.code !== 'Neo.TransientError.Transaction.LockClientStopped'
+        e.code !== 'Neo.TransientError.Transaction.LockClientStopped' &&
+        e.code !== 'Neo.ClientError.Transaction.LockClientStopped'
       ) {
         fail('Expected transaction timeout error but got: ' + e.code)
       }
@@ -448,7 +450,7 @@ describe('#integration Bolt V3 API', () => {
   }, 20000)
 
   async function testTransactionMetadataWithTransactionFunctions (read) {
-    if (!databaseSupportsBoltV3() || !databaseSupportsListTransaction()) {
+    if (!databaseSupportsBoltV3() || !(await databaseSupportsListTransaction())) {
       return
     }
 
@@ -552,7 +554,19 @@ describe('#integration Bolt V3 API', () => {
     return protocolVersion >= 3
   }
 
-  function databaseSupportsListTransaction () {
-    return sharedNeo4j.edition === 'enterprise'
+  async function databaseSupportsListTransaction () {
+    if (sharedNeo4j.edition === 'enterprise') {
+      try {
+        await session.run(
+          'CALL dbms.listTransactions()',
+          {}
+        )
+        return true
+      } catch (e) {
+        console.error('Database does not support dbms.listTransactions()', e)
+        return false
+      }
+    }
+    return false
   }
 })
