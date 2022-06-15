@@ -126,23 +126,35 @@ function valueResponseOfObject (x) {
 export function cypherToNative (c) {
   const {
     name,
-    data: { value }
+    data
   } = c
   switch (name) {
     case 'CypherString':
-      return value
+      return data.value
     case 'CypherInt':
-      return BigInt(value)
+      return BigInt(data.value)
     case 'CypherFloat':
-      return value
+      return data.value
     case 'CypherNull':
-      return value
+      return data.value
     case 'CypherBool':
-      return value
+      return data.value
     case 'CypherList':
-      return value.map(cypherToNative)
+      return data.value.map(cypherToNative)
+    case 'CypherDateTime':
+      return new neo4j.DateTime(
+        data.year,
+        data.month,
+        data.day,
+        data.hour,
+        data.minute,
+        data.second,
+        data.nanosecond,
+        data.timezone_id == null ? data.utc_offset_s : null,
+        data.timezone_id
+      )
     case 'CypherMap':
-      return Object.entries(value).reduce((acc, [key, val]) => {
+      return Object.entries(data.value).reduce((acc, [key, val]) => {
         acc[key] = cypherToNative(val)
         return acc
       }, {})
