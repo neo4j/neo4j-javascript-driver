@@ -83,33 +83,7 @@ function createDateTimeWithZoneIdTransformer (config) {
         value.nanosecond
       )
 
-      const dateTimeWithZoneAppliedTwice = getTimeInZoneId(value.timeZoneId, epochSecond, value.nanosecond)
-
-      // The wallclock form the current date time
-      const epochWithZoneAppliedTwice = localDateTimeToEpochSecond(
-        dateTimeWithZoneAppliedTwice.year,
-        dateTimeWithZoneAppliedTwice.month,
-        dateTimeWithZoneAppliedTwice.day,
-        dateTimeWithZoneAppliedTwice.hour,
-        dateTimeWithZoneAppliedTwice.minute,
-        dateTimeWithZoneAppliedTwice.second,
-        value.nanosecond)
-
-      const offsetOfZoneInTheFutureUtc = epochSecond.subtract(epochWithZoneAppliedTwice)
-      const guessedUtc = epochSecond.add(offsetOfZoneInTheFutureUtc)
-
-      const zonedDateTimeFromGuessedUtc = getTimeInZoneId(value.timeZoneId, guessedUtc, value.nanosecond)
-
-      const zonedEpochFromGuessedUtc = localDateTimeToEpochSecond(
-        zonedDateTimeFromGuessedUtc.year,
-        zonedDateTimeFromGuessedUtc.month,
-        zonedDateTimeFromGuessedUtc.day,
-        zonedDateTimeFromGuessedUtc.hour,
-        zonedDateTimeFromGuessedUtc.minute,
-        zonedDateTimeFromGuessedUtc.second,
-        value.nanosecond)
-
-      const offset = zonedEpochFromGuessedUtc.subtract(guessedUtc)
+      const offset = getOffsetFromZoneId(value.timeZoneId, epochSecond, value.nanosecond)
       const utc = epochSecond.subtract(offset)
 
       const nano = int(value.nanosecond)
@@ -118,6 +92,62 @@ function createDateTimeWithZoneIdTransformer (config) {
       return new structure.Structure(DATE_TIME_WITH_ZONE_ID, [utc, nano, timeZoneId])
     }
   })
+}
+
+/**
+ * Returns the offset for a given timezone id
+ *
+ * Javascript doesn't have support for direct getting the timezone offset from a given
+ * TimeZoneId and DateTime in the given TimeZoneId. For solving this issue,
+ *
+ * 1. The ZoneId is applied to the timestamp, so we could make the difference between the
+ * given timestamp and the new calculated one. This is the offset for the timezone
+ * in the utc is equal to epoch (some time in the future or past)
+ * 2. The offset is subtracted from the timestamp, so we have an estimated utc timestamp.
+ * 3. The ZoneId is applied to the new timestamp, se we could could make the difference
+ * between the new timestamp and the calculated one. This is the offset for the given timezone.
+ *
+ * Example:
+ *    Input: 2022-3-27 1:59:59 'Europe/Berlin'
+ *    Apply 1, 2022-3-27 1:59:59 => 2022-3-27 3:59:59 'Europe/Berlin' +2:00
+ *    Apply 2, 2022-3-27 1:59:59 - 2:00 => 2022-3-26 23:59:59
+ *    Apply 3, 2022-3-26 23:59:59 => 2022-3-27 00:59:59 'Europe/Berlin' +1:00
+ *  The offset is +1 hour.
+ *
+ * @param {string} timeZoneId The timezone id
+ * @param {Integer} epochSecond The epoch second in the timezone id
+ * @param {Integerable} nanosecond The nanoseconds in the timezone id
+ * @returns The timezone offset
+ */
+function getOffsetFromZoneId (timeZoneId, epochSecond, nanosecond) {
+  const dateTimeWithZoneAppliedTwice = getTimeInZoneId(timeZoneId, epochSecond, nanosecond)
+
+  // The wallclock form the current date time
+  const epochWithZoneAppliedTwice = localDateTimeToEpochSecond(
+    dateTimeWithZoneAppliedTwice.year,
+    dateTimeWithZoneAppliedTwice.month,
+    dateTimeWithZoneAppliedTwice.day,
+    dateTimeWithZoneAppliedTwice.hour,
+    dateTimeWithZoneAppliedTwice.minute,
+    dateTimeWithZoneAppliedTwice.second,
+    nanosecond)
+
+  const offsetOfZoneInTheFutureUtc = epochWithZoneAppliedTwice.subtract(epochSecond)
+  const guessedUtc = epochSecond.subtract(offsetOfZoneInTheFutureUtc)
+
+  const zonedDateTimeFromGuessedUtc = getTimeInZoneId(timeZoneId, guessedUtc, nanosecond)
+
+  const zonedEpochFromGuessedUtc = localDateTimeToEpochSecond(
+    zonedDateTimeFromGuessedUtc.year,
+    zonedDateTimeFromGuessedUtc.month,
+    zonedDateTimeFromGuessedUtc.day,
+    zonedDateTimeFromGuessedUtc.hour,
+    zonedDateTimeFromGuessedUtc.minute,
+    zonedDateTimeFromGuessedUtc.second,
+    nanosecond)
+
+  const offset = zonedEpochFromGuessedUtc.subtract(guessedUtc)
+  return offset
 }
 
 function getTimeInZoneId (timeZoneId, epochSecond, nano) {

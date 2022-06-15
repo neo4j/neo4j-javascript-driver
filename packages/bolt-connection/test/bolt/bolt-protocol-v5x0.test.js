@@ -420,16 +420,64 @@ describe('#unit BoltProtocolV5x0', () => {
         new DateTime(2022, 3, 27, 1, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
       ],
       [
+        'DateTimeWithZoneId / Europe just 1 before turn CEST',
+        new DateTime(2022, 3, 27, 0, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
         'DateTimeWithZoneId / Europe just after turn CEST',
         new DateTime(2022, 3, 27, 3, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just 1 after turn CEST',
+        new DateTime(2022, 3, 27, 4, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
       ],
       [
         'DateTimeWithZoneId / Europe just before turn CET',
         new DateTime(2022, 10, 30, 2, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
       ],
       [
+        'DateTimeWithZoneId / Europe just 1 before turn CET',
+        new DateTime(2022, 10, 30, 1, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
         'DateTimeWithZoneId / Europe just after turn CET',
         new DateTime(2022, 10, 30, 3, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just 1 after turn CET',
+        new DateTime(2022, 10, 30, 4, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just before turn summer time',
+        new DateTime(2018, 11, 4, 11, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just 1 before turn summer time',
+        new DateTime(2018, 11, 4, 10, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just after turn summer time',
+        new DateTime(2018, 11, 5, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just 1 after turn summer time',
+        new DateTime(2018, 11, 5, 2, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just before turn winter time',
+        new DateTime(2019, 2, 17, 11, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just 1 before turn winter time',
+        new DateTime(2019, 2, 17, 10, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just after turn winter time',
+        new DateTime(2019, 2, 18, 0, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just 1 after turn winter time',
+        new DateTime(2019, 2, 18, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
       ],
       [
         'DateTimeWithZoneOffset',
