@@ -407,8 +407,34 @@ describe('#unit BoltProtocolV5x0', () => {
       ['Time', new Time(1, 1, 1, 1, 1)],
       ['Date', new Date(1, 1, 1)],
       ['LocalDateTime', new LocalDateTime(1, 1, 1, 1, 1, 1, 1)],
-      ['DateTimeWithZoneId', new DateTime(1, 1, 1, 1, 1, 1, 1, undefined, 'America/Sao Paulo')],
-      ['DateTime', new DateTime(1, 1, 1, 1, 1, 1, 1, 1)],
+      [
+        'DateTimeWithZoneId / Australia',
+        new DateTime(2022, 6, 15, 15, 21, 18, 183_000_000, undefined, 'Australia/Eucla')
+      ],
+      [
+        'DateTimeWithZoneId',
+        new DateTime(2022, 6, 22, 15, 21, 18, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just before turn CEST',
+        new DateTime(2022, 3, 27, 1, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just after turn CEST',
+        new DateTime(2022, 3, 27, 3, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just before turn CET',
+        new DateTime(2022, 10, 30, 2, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just after turn CET',
+        new DateTime(2022, 10, 30, 3, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneOffset',
+        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
+      ],
       ['Point2D', new Point(1, 1, 1)],
       ['Point3D', new Point(1, 1, 1, 1)]
     ])('should pack spatial types and temporal types (%s)', (_, object) => {
@@ -621,19 +647,19 @@ describe('#unit BoltProtocolV5x0', () => {
       ],
       [
         'DateTimeWithZoneOffset with less fields',
-        new structure.Structure(0x46, [1, 2])
+        new structure.Structure(0x49, [1, 2])
       ],
       [
         'DateTimeWithZoneOffset with more fields',
-        new structure.Structure(0x46, [1, 2, 3, 4])
+        new structure.Structure(0x49, [1, 2, 3, 4])
       ],
       [
         'DateTimeWithZoneId with less fields',
-        new structure.Structure(0x66, [1, 2])
+        new structure.Structure(0x69, [1, 2])
       ],
       [
         'DateTimeWithZoneId with more fields',
-        new structure.Structure(0x66, [1, 2, 'America/Sao Paulo', 'Brasil'])
+        new structure.Structure(0x69, [1, 2, 'America/Sao Paulo', 'Brasil'])
       ]
     ])('should not unpack with wrong size (%s)', (_, struct) => {
       const buffer = alloc(256)
@@ -690,13 +716,24 @@ describe('#unit BoltProtocolV5x0', () => {
       ],
       [
         'DateTimeWithZoneOffset',
-        new structure.Structure(0x46, [1, 2, 3]),
-        new DateTime(1970, 1, 1, 0, 0, 1, 2, 3)
+        new structure.Structure(0x49, [
+          1655212878, 183_000_000, 120 * 60
+        ]),
+        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
       ],
       [
         'DateTimeWithZoneId',
-        new structure.Structure(0x66, [1, 2, 'America/Sao Paulo']),
-        new DateTime(1970, 1, 1, 0, 0, 1, 2, undefined, 'America/Sao Paulo')
+        new structure.Structure(0x69, [
+          1655212878, 183_000_000, 'Europe/Berlin'
+        ]),
+        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Australia',
+        new structure.Structure(0x69, [
+          1655212878, 183_000_000, 'Australia/Eucla'
+        ]),
+        new DateTime(2022, 6, 14, 22, 6, 18, 183_000_000, undefined, 'Australia/Eucla')
       ]
     ])('should unpack spatial types and temporal types (%s)', (_, struct, object) => {
       const buffer = alloc(256)
@@ -716,6 +753,35 @@ describe('#unit BoltProtocolV5x0', () => {
 
       const unpacked = protocol.unpack(buffer)
       expect(unpacked).toEqual(object)
+    })
+
+    it.each([
+      [
+        'DateTimeWithZoneOffset/0x46',
+        new structure.Structure(0x46, [1, 2, 3])
+      ],
+      [
+        'DateTimeWithZoneId/0x66',
+        new structure.Structure(0x66, [1, 2, 'America/Sao Paulo'])
+      ]
+    ])('should unpack deprecated temporal types as unknown structs (%s)', (_, struct) => {
+      const buffer = alloc(256)
+      const protocol = new BoltProtocolV5x0(
+        new utils.MessageRecordingConnection(),
+        buffer,
+        {
+          disableLosslessIntegers: true
+        }
+      )
+
+      const packable = protocol.packable(struct)
+
+      expect(packable).not.toThrow()
+
+      buffer.reset()
+
+      const unpacked = protocol.unpack(buffer)
+      expect(unpacked).toEqual(struct)
     })
   })
 })
