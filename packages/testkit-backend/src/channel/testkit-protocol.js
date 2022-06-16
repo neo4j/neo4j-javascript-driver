@@ -69,7 +69,7 @@ export default class Protocol extends EventEmitter {
   _emitRequest () {
     const request = JSON.parse(this._request)
     const { name, data } = request
-    console.log('> Got request ' + name, data)
+    console.log('> Got request ' + name, JSON.stringify(data, undefined, 2))
     this.emit('request', { name, data })
   }
 }
