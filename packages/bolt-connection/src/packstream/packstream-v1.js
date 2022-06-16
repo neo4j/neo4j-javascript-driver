@@ -17,18 +17,14 @@
  * limitations under the License.
  */
 import { utf8 } from '../channel'
+import { functional } from '../lang'
+import { Structure } from './structure'
 import {
   newError,
   error,
   int,
   isInt,
-  Integer,
-  toNumber,
-  Node,
-  Path,
-  PathSegment,
-  Relationship,
-  UnboundRelationship
+  Integer
 } from 'neo4j-driver-core'
 
 const { PROTOCOL_ERROR } = error
@@ -60,43 +56,6 @@ const MAP_32 = 0xda
 const STRUCT_8 = 0xdc
 const STRUCT_16 = 0xdd
 
-const NODE = 0x4e
-const NODE_STRUCT_SIZE = 3
-
-const RELATIONSHIP = 0x52
-const RELATIONSHIP_STRUCT_SIZE = 5
-
-const UNBOUND_RELATIONSHIP = 0x72
-const UNBOUND_RELATIONSHIP_STRUCT_SIZE = 3
-
-const PATH = 0x50
-const PATH_STRUCT_SIZE = 3
-
-/**
- * A Structure have a signature and fields.
- * @access private
- */
-class Structure {
-  /**
-   * Create new instance
-   */
-  constructor (signature, fields) {
-    this.signature = signature
-    this.fields = fields
-  }
-
-  toString () {
-    let fieldStr = ''
-    for (let i = 0; i < this.fields.length; i++) {
-      if (i > 0) {
-        fieldStr += ', '
-      }
-      fieldStr += this.fields[i]
-    }
-    return 'Structure(' + this.signature + ', [' + fieldStr + '])'
-  }
-}
-
 /**
  * Class to pack
  * @access private
@@ -116,7 +75,13 @@ class Packer {
    * @param x the value to pack
    * @returns Function
    */
-  packable (x) {
+  packable (x, dehydrateStruct = functional.identity) {
+    try {
+      x = dehydrateStruct(x)
+    } catch (ex) {
+      return () => { throw ex }
+    }
+
     if (x === null) {
       return () => this._ch.writeUInt8(NULL)
     } else if (x === true) {
@@ -137,27 +102,15 @@ class Packer {
       return () => {
         this.packListHeader(x.length)
         for (let i = 0; i < x.length; i++) {
-          this.packable(x[i] === undefined ? null : x[i])()
+          this.packable(x[i] === undefined ? null : x[i], dehydrateStruct)()
         }
       }
     } else if (isIterable(x)) {
-      return this.packableIterable(x)
-    } else if (x instanceof Node) {
-      return this._nonPackableValue(
-        `It is not allowed to pass nodes in query parameters, given: ${x}`
-      )
-    } else if (x instanceof Relationship) {
-      return this._nonPackableValue(
-        `It is not allowed to pass relationships in query parameters, given: ${x}`
-      )
-    } else if (x instanceof Path) {
-      return this._nonPackableValue(
-        `It is not allowed to pass paths in query parameters, given: ${x}`
-      )
+      return this.packableIterable(x, dehydrateStruct)
     } else if (x instanceof Structure) {
       const packableFields = []
       for (let i = 0; i < x.fields.length; i++) {
-        packableFields[i] = this.packable(x.fields[i])
+        packableFields[i] = this.packable(x.fields[i], dehydrateStruct)
       }
       return () => this.packStruct(x.signature, packableFields)
     } else if (typeof x === 'object') {
@@ -175,7 +128,7 @@ class Packer {
           const key = keys[i]
           if (x[key] !== undefined) {
             this.packString(key)
-            this.packable(x[key])()
+            this.packable(x[key], dehydrateStruct)()
           }
         }
       }
@@ -184,10 +137,10 @@ class Packer {
     }
   }
 
-  packableIterable (iterable) {
+  packableIterable (iterable, dehydrateStruct) {
     try {
       const array = Array.from(iterable)
-      return this.packable(array)
+      return this.packable(array, dehydrateStruct)
     } catch (e) {
       // handle errors from iterable to array conversion
       throw newError(`Cannot pack given iterable, ${e.message}: ${iterable}`)
@@ -378,7 +331,7 @@ class Unpacker {
     this._useBigInt = useBigInt
   }
 
-  unpack (buffer) {
+  unpack (buffer, hydrateStructure = functional.identity) {
     const marker = buffer.readUInt8()
     const markerHigh = marker & 0xf0
     const markerLow = marker & 0x0f
@@ -409,7 +362,7 @@ class Unpacker {
       return string
     }
 
-    const list = this._unpackList(marker, markerHigh, markerLow, buffer)
+    const list = this._unpackList(marker, markerHigh, markerLow, buffer, hydrateStructure)
     if (list !== null) {
       return list
     }
@@ -419,12 +372,12 @@ class Unpacker {
       return byteArray
     }
 
-    const map = this._unpackMap(marker, markerHigh, markerLow, buffer)
+    const map = this._unpackMap(marker, markerHigh, markerLow, buffer, hydrateStructure)
     if (map !== null) {
       return map
     }
 
-    const struct = this._unpackStruct(marker, markerHigh, markerLow, buffer)
+    const struct = this._unpackStruct(marker, markerHigh, markerLow, buffer, hydrateStructure)
     if (struct !== null) {
       return struct
     }
@@ -496,24 +449,24 @@ class Unpacker {
     }
   }
 
-  _unpackList (marker, markerHigh, markerLow, buffer) {
+  _unpackList (marker, markerHigh, markerLow, buffer, hydrateStructure) {
     if (markerHigh === TINY_LIST) {
-      return this._unpackListWithSize(markerLow, buffer)
+      return this._unpackListWithSize(markerLow, buffer, hydrateStructure)
     } else if (marker === LIST_8) {
-      return this._unpackListWithSize(buffer.readUInt8(), buffer)
+      return this._unpackListWithSize(buffer.readUInt8(), buffer, hydrateStructure)
     } else if (marker === LIST_16) {
-      return this._unpackListWithSize(buffer.readUInt16(), buffer)
+      return this._unpackListWithSize(buffer.readUInt16(), buffer, hydrateStructure)
     } else if (marker === LIST_32) {
-      return this._unpackListWithSize(buffer.readUInt32(), buffer)
+      return this._unpackListWithSize(buffer.readUInt32(), buffer, hydrateStructure)
     } else {
       return null
     }
   }
 
-  _unpackListWithSize (size, buffer) {
+  _unpackListWithSize (size, buffer, hydrateStructure) {
     const value = []
     for (let i = 0; i < size; i++) {
-      value.push(this.unpack(buffer))
+      value.push(this.unpack(buffer, hydrateStructure))
     }
     return value
   }
@@ -538,151 +491,49 @@ class Unpacker {
     return value
   }
 
-  _unpackMap (marker, markerHigh, markerLow, buffer) {
+  _unpackMap (marker, markerHigh, markerLow, buffer, hydrateStructure) {
     if (markerHigh === TINY_MAP) {
-      return this._unpackMapWithSize(markerLow, buffer)
+      return this._unpackMapWithSize(markerLow, buffer, hydrateStructure)
     } else if (marker === MAP_8) {
-      return this._unpackMapWithSize(buffer.readUInt8(), buffer)
+      return this._unpackMapWithSize(buffer.readUInt8(), buffer, hydrateStructure)
     } else if (marker === MAP_16) {
-      return this._unpackMapWithSize(buffer.readUInt16(), buffer)
+      return this._unpackMapWithSize(buffer.readUInt16(), buffer, hydrateStructure)
     } else if (marker === MAP_32) {
-      return this._unpackMapWithSize(buffer.readUInt32(), buffer)
+      return this._unpackMapWithSize(buffer.readUInt32(), buffer, hydrateStructure)
     } else {
       return null
     }
   }
 
-  _unpackMapWithSize (size, buffer) {
+  _unpackMapWithSize (size, buffer, hydrateStructure) {
     const value = {}
     for (let i = 0; i < size; i++) {
-      const key = this.unpack(buffer)
-      value[key] = this.unpack(buffer)
+      const key = this.unpack(buffer, hydrateStructure)
+      value[key] = this.unpack(buffer, hydrateStructure)
     }
     return value
   }
 
-  _unpackStruct (marker, markerHigh, markerLow, buffer) {
+  _unpackStruct (marker, markerHigh, markerLow, buffer, hydrateStructure) {
     if (markerHigh === TINY_STRUCT) {
-      return this._unpackStructWithSize(markerLow, buffer)
+      return this._unpackStructWithSize(markerLow, buffer, hydrateStructure)
     } else if (marker === STRUCT_8) {
-      return this._unpackStructWithSize(buffer.readUInt8(), buffer)
+      return this._unpackStructWithSize(buffer.readUInt8(), buffer, hydrateStructure)
     } else if (marker === STRUCT_16) {
-      return this._unpackStructWithSize(buffer.readUInt16(), buffer)
+      return this._unpackStructWithSize(buffer.readUInt16(), buffer, hydrateStructure)
     } else {
       return null
     }
   }
 
-  _unpackStructWithSize (structSize, buffer) {
+  _unpackStructWithSize (structSize, buffer, hydrateStructure) {
     const signature = buffer.readUInt8()
-    if (signature === NODE) {
-      return this._unpackNode(structSize, buffer)
-    } else if (signature === RELATIONSHIP) {
-      return this._unpackRelationship(structSize, buffer)
-    } else if (signature === UNBOUND_RELATIONSHIP) {
-      return this._unpackUnboundRelationship(structSize, buffer)
-    } else if (signature === PATH) {
-      return this._unpackPath(structSize, buffer)
-    } else {
-      return this._unpackUnknownStruct(signature, structSize, buffer)
-    }
-  }
-
-  _unpackNode (structSize, buffer) {
-    this._verifyStructSize('Node', NODE_STRUCT_SIZE, structSize)
-
-    return new Node(
-      this.unpack(buffer), // Identity
-      this.unpack(buffer), // Labels
-      this.unpack(buffer) // Properties
-    )
-  }
-
-  _unpackRelationship (structSize, buffer) {
-    this._verifyStructSize('Relationship', RELATIONSHIP_STRUCT_SIZE, structSize)
-
-    return new Relationship(
-      this.unpack(buffer), // Identity
-      this.unpack(buffer), // Start Node Identity
-      this.unpack(buffer), // End Node Identity
-      this.unpack(buffer), // Type
-      this.unpack(buffer) // Properties
-    )
-  }
-
-  _unpackUnboundRelationship (structSize, buffer) {
-    this._verifyStructSize(
-      'UnboundRelationship',
-      UNBOUND_RELATIONSHIP_STRUCT_SIZE,
-      structSize
-    )
-
-    return new UnboundRelationship(
-      this.unpack(buffer), // Identity
-      this.unpack(buffer), // Type
-      this.unpack(buffer) // Properties
-    )
-  }
-
-  _unpackPath (structSize, buffer) {
-    this._verifyStructSize('Path', PATH_STRUCT_SIZE, structSize)
-
-    const nodes = this.unpack(buffer)
-    const rels = this.unpack(buffer)
-    const sequence = this.unpack(buffer)
-
-    const segments = []
-    let prevNode = nodes[0]
-
-    for (let i = 0; i < sequence.length; i += 2) {
-      const nextNode = nodes[sequence[i + 1]]
-      const relIndex = toNumber(sequence[i])
-      let rel
-
-      if (relIndex > 0) {
-        rel = rels[relIndex - 1]
-        if (rel instanceof UnboundRelationship) {
-          // To avoid duplication, relationships in a path do not contain
-          // information about their start and end nodes, that's instead
-          // inferred from the path sequence. This is us inferring (and,
-          // for performance reasons remembering) the start/end of a rel.
-          rels[relIndex - 1] = rel = rel.bindTo(
-            prevNode,
-            nextNode
-          )
-        }
-      } else {
-        rel = rels[-relIndex - 1]
-        if (rel instanceof UnboundRelationship) {
-          // See above
-          rels[-relIndex - 1] = rel = rel.bindTo(
-            nextNode,
-            prevNode
-          )
-        }
-      }
-      // Done hydrating one path segment.
-      segments.push(new PathSegment(prevNode, rel, nextNode))
-      prevNode = nextNode
-    }
-    return new Path(nodes[0], nodes[nodes.length - 1], segments)
-  }
-
-  _unpackUnknownStruct (signature, structSize, buffer) {
-    const result = new Structure(signature, [])
+    const structure = new Structure(signature, [])
     for (let i = 0; i < structSize; i++) {
-      result.fields.push(this.unpack(buffer))
+      structure.fields.push(this.unpack(buffer, hydrateStructure))
     }
-    return result
-  }
 
-  _verifyStructSize (structName, expectedSize, actualSize) {
-    if (expectedSize !== actualSize) {
-      throw newError(
-        `Wrong struct size for ${structName}, expected ${expectedSize} but was ${actualSize}`,
-        PROTOCOL_ERROR
-      )
-    }
+    return hydrateStructure(structure)
   }
 }
 
@@ -693,4 +544,4 @@ function isIterable (obj) {
   return typeof obj[Symbol.iterator] === 'function'
 }
 
-export { Packer, Unpacker, Structure }
+export { Packer, Unpacker }

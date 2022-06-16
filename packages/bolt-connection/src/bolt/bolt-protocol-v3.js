@@ -25,6 +25,8 @@ import {
   ResultStreamObserver,
   ProcedureRouteObserver
 } from './stream-observers'
+import transformersFactories from './bolt-protocol-v3.transformer'
+import Transformer from './transformer'
 import { internal } from 'neo4j-driver-core'
 
 const {
@@ -42,6 +44,13 @@ const noOpObserver = new StreamObserver()
 export default class BoltProtocol extends BoltProtocolV2 {
   get version () {
     return BOLT_PROTOCOL_V3
+  }
+
+  get transformer () {
+    if (this._transformer === undefined) {
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+    }
+    return this._transformer
   }
 
   transformMetadata (metadata) {

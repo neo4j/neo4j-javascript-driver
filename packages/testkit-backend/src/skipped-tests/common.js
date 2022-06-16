@@ -2,6 +2,12 @@ import skip, { ifEquals, ifEndsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Testkit implemenation is deprecated',
+    ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_node_only_element_id'),
+    ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_path_element_ids_with_only_string'),
+    ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_rel_only_element_id')
+  ),
+  skip(
     'Skipped because server doesn\'t support protocol 5.0 yet',
     ifEndsWith('neo4j.test_summary.TestSummary.test_protocol_version_information')
   ),

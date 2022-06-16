@@ -1,0 +1,109 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#unit BoltProtocolV1 .packable() should pack not pack graph types (Node) 1`] = `"It is not allowed to pass nodes in query parameters, given: (c:a {a:\\"b\\"})"`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack not pack graph types (Path) 1`] = `"It is not allowed to pass paths in query parameters, given: [object Object]"`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack not pack graph types (Relationship) 1`] = `"It is not allowed to pass relationships in query parameters, given: (e)-[:a {b:\\"c\\"}]->(f)"`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack not pack graph types (UnboundRelationship) 1`] = `"It is not allowed to pass unbound relationships in query parameters, given: -[:a {b:\\"c\\"}]->"`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (Date) 1`] = `
+Object {
+  "day": 1,
+  "month": 1,
+  "year": 1,
+}
+`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (DateTime) 1`] = `
+Object {
+  "day": 1,
+  "hour": 1,
+  "minute": 1,
+  "month": 1,
+  "nanosecond": 1,
+  "second": 1,
+  "timeZoneOffsetSeconds": 1,
+  "year": 1,
+}
+`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (Duration) 1`] = `
+Object {
+  "days": 1,
+  "months": 1,
+  "nanoseconds": Integer {
+    "high": 0,
+    "low": 1,
+  },
+  "seconds": Integer {
+    "high": 0,
+    "low": 1,
+  },
+}
+`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (LocalDateTime) 1`] = `
+Object {
+  "day": 1,
+  "hour": 1,
+  "minute": 1,
+  "month": 1,
+  "nanosecond": 1,
+  "second": 1,
+  "year": 1,
+}
+`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (LocalTime) 1`] = `
+Object {
+  "hour": 1,
+  "minute": 1,
+  "nanosecond": 1,
+  "second": 1,
+}
+`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (Point2D) 1`] = `
+Object {
+  "srid": 1,
+  "x": 1,
+  "y": 1,
+}
+`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (Point3D) 1`] = `
+Object {
+  "srid": 1,
+  "x": 1,
+  "y": 1,
+  "z": 1,
+}
+`;
+
+exports[`#unit BoltProtocolV1 .packable() should pack types introduced afterwards as Map (Time) 1`] = `
+Object {
+  "hour": 1,
+  "minute": 1,
+  "nanosecond": 1,
+  "second": 1,
+  "timeZoneOffsetSeconds": 1,
+}
+`;
+
+exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(Node with less fields) 1`] = `"Wrong struct size for Node, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(Node with more fields) 1`] = `"Wrong struct size for Node, expected 3 but was 4"`;
+
+exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(Path with less fields) 1`] = `"Wrong struct size for Path, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(Path with more fields) 1`] = `"Wrong struct size for Path, expected 3 but was 4"`;
+
+exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(Relationship with less fields) 1`] = `"Wrong struct size for Relationship, expected 5 but was 4"`;
+
+exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(Relationship with more fields) 1`] = `"Wrong struct size for Relationship, expected 5 but was 8"`;
+
+exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(UnboundRelationship with less fields) 1`] = `"Wrong struct size for UnboundRelationship, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV1 .unpack() should not unpack graph types with wrong size(UnboundRelationship with more fields) 1`] = `"Wrong struct size for UnboundRelationship, expected 3 but was 4"`;

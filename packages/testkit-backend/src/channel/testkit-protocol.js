@@ -61,8 +61,8 @@ export default class Protocol extends EventEmitter {
   }
 
   serializeResponse (response) {
-    console.log('> writing response', response)
     const responseStr = stringify(response)
+    console.log('> writing response', responseStr)
     return ['#response begin', responseStr, '#response end'].join('\n') + '\n'
   }
 

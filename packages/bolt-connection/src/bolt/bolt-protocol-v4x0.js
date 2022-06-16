@@ -23,6 +23,8 @@ import {
   ResultStreamObserver,
   ProcedureRouteObserver
 } from './stream-observers'
+import transformersFactories from './bolt-protocol-v4x0.transformer'
+import Transformer from './transformer'
 
 import { internal } from 'neo4j-driver-core'
 
@@ -40,6 +42,13 @@ const CALL_GET_ROUTING_TABLE_MULTI_DB = `CALL dbms.routing.getRoutingTable($${CO
 export default class BoltProtocol extends BoltProtocolV3 {
   get version () {
     return BOLT_PROTOCOL_V4_0
+  }
+
+  get transformer () {
+    if (this._transformer === undefined) {
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+    }
+    return this._transformer
   }
 
   beginTransaction ({

@@ -266,7 +266,7 @@ describe('#unit Bolt', () => {
 
         protocol.packer().packStruct(
           expectedMessage.signature,
-          expectedMessage.fields.map(field => protocol.packer().packable(field))
+          expectedMessage.fields.map(field => protocol.packable(field))
         )
         params.chunker.messageBoundary()
         params.chunker.flush()

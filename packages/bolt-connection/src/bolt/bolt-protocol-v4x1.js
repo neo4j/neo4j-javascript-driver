@@ -21,6 +21,9 @@ import RequestMessage from './request-message'
 import { LoginObserver } from './stream-observers'
 import { internal } from 'neo4j-driver-core'
 
+import transformersFactories from './bolt-protocol-v4x1.transformer'
+import Transformer from './transformer'
+
 const {
   constants: { BOLT_PROTOCOL_V4_1 }
 } = internal
@@ -60,6 +63,13 @@ export default class BoltProtocol extends BoltProtocolV4 {
 
   get version () {
     return BOLT_PROTOCOL_V4_1
+  }
+
+  get transformer () {
+    if (this._transformer === undefined) {
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+    }
+    return this._transformer
   }
 
   initialize ({ userAgent, authToken, onError, onComplete } = {}) {

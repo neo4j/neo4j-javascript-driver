@@ -23,7 +23,7 @@ import {
 } from './bolt-protocol-util'
 // eslint-disable-next-line no-unused-vars
 import { Chunker } from '../channel'
-import { v1 } from '../packstream'
+import { structure, v1 } from '../packstream'
 import RequestMessage from './request-message'
 import {
   LoginObserver,
@@ -33,6 +33,8 @@ import {
   StreamObserver
 } from './stream-observers'
 import { internal } from 'neo4j-driver-core'
+import transformersFactories from './bolt-protocol-v1.transformer'
+import Transformer from './transformer'
 
 const {
   bookmarks: { Bookmarks },
@@ -80,6 +82,14 @@ export default class BoltProtocol {
     this._onProtocolError = onProtocolError
     this._fatalError = null
     this._lastMessageSignature = null
+    this._config = { disableLosslessIntegers, useBigInt }
+  }
+
+  get transformer () {
+    if (this._transformer === undefined) {
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+    }
+    return this._transformer
   }
 
   /**
@@ -98,11 +108,29 @@ export default class BoltProtocol {
   }
 
   /**
+   * Creates a packable function out of the provided value
+   * @param x the value to pack
+   * @returns Function
+   */
+  packable (x) {
+    return this._packer.packable(x, this.transformer.toStructure)
+  }
+
+  /**
    * Get the unpacker.
    * @return {Unpacker} the protocol's unpacker.
    */
   unpacker () {
     return this._unpacker
+  }
+
+  /**
+   * Unpack a buffer
+   * @param {Buffer} buf
+   * @returns {any|null} The unpacked value
+   */
+  unpack (buf) {
+    return this._unpacker.unpack(buf, this.transformer.fromStructure)
   }
 
   /**
@@ -358,11 +386,9 @@ export default class BoltProtocol {
       }
 
       this._lastMessageSignature = message.signature
+      const messageStruct = new structure.Structure(message.signature, message.fields)
 
-      this.packer().packStruct(
-        message.signature,
-        message.fields.map(field => this.packer().packable(field))
-      )
+      this.packable(messageStruct)()
 
       this._chunker.messageBoundary()
 
