@@ -67,7 +67,7 @@ function createDateTimeWithZoneIdTransformer (config) {
         localDateTime.minute,
         localDateTime.second,
         int(nano),
-        null,
+        localDateTime.timeZoneOffsetSeconds,
         timeZoneId
       )
       return convertIntegerPropsIfNeeded(result, disableLosslessIntegers, useBigInt)
@@ -83,7 +83,9 @@ function createDateTimeWithZoneIdTransformer (config) {
         value.nanosecond
       )
 
-      const offset = getOffsetFromZoneId(value.timeZoneId, epochSecond, value.nanosecond)
+      const offset = value.timeZoneOffsetSeconds != null
+        ? value.timeZoneOffsetSeconds
+        : getOffsetFromZoneId(value.timeZoneId, epochSecond, value.nanosecond)
       const utc = epochSecond.subtract(offset)
 
       const nano = int(value.nanosecond)
@@ -159,27 +161,46 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
     hour: 'numeric',
     minute: 'numeric',
     second: 'numeric',
-    hourCycle: 'h23'
+    hourCycle: 'h23',
+    timeZoneName: 'short'
   })
 
   const l = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
-
-  const formattedUtc = formatter.formatToParts(Date.UTC(
+  const utc = Date.UTC(
     int(l.year).toNumber(),
     int(l.month).toNumber() - 1,
     int(l.day).toNumber(),
     int(l.hour).toNumber(),
     int(l.minute).toNumber(),
     int(l.second).toNumber()
-  ))
+  )
 
-  const localDateTime = formattedUtc.reduce((obj, currentValue) => {
-    if (currentValue.type !== 'literal') {
+  const formattedUtcParts = formatter.formatToParts(utc)
+
+  const localDateTime = formattedUtcParts.reduce((obj, currentValue) => {
+    if (currentValue.type === 'timeZoneName') {
+      const parts = currentValue.value.replace('GMT', '').split(':')
+      const divisor = 60
+      const { offset } = parts.reduce((state, value) => {
+        const part = int(value)
+        const signal = part.isPositive() ? int(1) : int(-1)
+
+        const offset = part.multiply(state.factor).add(state.offset)
+        const factor = state.factor.div(divisor).multiply(signal)
+
+        return {
+          offset,
+          factor
+        }
+      }, { factor: int(60 * 60), offset: int(0) })
+
+      obj.timeZoneOffsetSeconds = offset
+    } else if (currentValue.type !== 'literal') {
       obj[currentValue.type] = int(currentValue.value)
-      return obj
     }
     return obj
   }, {})
+
   return localDateTime
 }
 

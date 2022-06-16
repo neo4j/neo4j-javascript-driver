@@ -408,6 +408,42 @@ describe('#unit BoltProtocolV5x0', () => {
       ['Date', new Date(1, 1, 1)],
       ['LocalDateTime', new LocalDateTime(1, 1, 1, 1, 1, 1, 1)],
       [
+        'DateTimeWithZoneOffset',
+        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
+      ],
+      [
+        'DateTimeWithZoneId / Berlin 2:30 CET',
+        new DateTime(2022, 10, 30, 2, 30, 0, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Berlin 2:30 CEST',
+        new DateTime(2022, 10, 30, 2, 30, 0, 183_000_000, 1 * 60 * 60, 'Europe/Berlin')
+      ],
+      ['Point2D', new Point(1, 1, 1)],
+      ['Point3D', new Point(1, 1, 1, 1)]
+    ])('should pack spatial types and temporal types (%s)', (_, object) => {
+      const buffer = alloc(256)
+      const protocol = new BoltProtocolV5x0(
+        new utils.MessageRecordingConnection(),
+        buffer,
+        {
+          disableLosslessIntegers: true
+        }
+      )
+
+      const packable = protocol.packable(object)
+
+      expect(packable).not.toThrow()
+
+      buffer.reset()
+
+      const unpacked = protocol.unpack(buffer)
+
+      expect(unpacked).toEqual(object)
+    })
+
+    it.each([
+      [
         'DateTimeWithZoneId / Australia',
         new DateTime(2022, 6, 15, 15, 21, 18, 183_000_000, undefined, 'Australia/Eucla')
       ],
@@ -478,14 +514,8 @@ describe('#unit BoltProtocolV5x0', () => {
       [
         'DateTimeWithZoneId / Sao Paulo just 1 after turn winter time',
         new DateTime(2019, 2, 18, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
-      ],
-      [
-        'DateTimeWithZoneOffset',
-        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
-      ],
-      ['Point2D', new Point(1, 1, 1)],
-      ['Point3D', new Point(1, 1, 1, 1)]
-    ])('should pack spatial types and temporal types (%s)', (_, object) => {
+      ]
+    ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
       const buffer = alloc(256)
       const protocol = new BoltProtocolV5x0(
         new utils.MessageRecordingConnection(),
@@ -502,7 +532,22 @@ describe('#unit BoltProtocolV5x0', () => {
       buffer.reset()
 
       const unpacked = protocol.unpack(buffer)
-      expect(unpacked).toEqual(object)
+
+      expect(unpacked.timeZoneOffsetSeconds).toBeDefined()
+
+      const unpackedDateTimeWithoutOffset = new DateTime(
+        unpacked.year,
+        unpacked.month,
+        unpacked.day,
+        unpacked.hour,
+        unpacked.minute,
+        unpacked.second,
+        unpacked.nanosecond,
+        undefined,
+        unpacked.timeZoneId
+      )
+
+      expect(unpackedDateTimeWithoutOffset).toEqual(object)
     })
   })
 
@@ -774,14 +819,14 @@ describe('#unit BoltProtocolV5x0', () => {
         new structure.Structure(0x69, [
           1655212878, 183_000_000, 'Europe/Berlin'
         ]),
-        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, undefined, 'Europe/Berlin')
+        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
       ],
       [
         'DateTimeWithZoneId / Australia',
         new structure.Structure(0x69, [
           1655212878, 183_000_000, 'Australia/Eucla'
         ]),
-        new DateTime(2022, 6, 14, 22, 6, 18, 183_000_000, undefined, 'Australia/Eucla')
+        new DateTime(2022, 6, 14, 22, 6, 18, 183_000_000, 8 * 60 * 60 + 45 * 60, 'Australia/Eucla')
       ]
     ])('should unpack spatial types and temporal types (%s)', (_, struct, object) => {
       const buffer = alloc(256)
