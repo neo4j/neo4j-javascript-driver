@@ -106,6 +106,10 @@ class MessageRecordingConnection extends Connection {
     expect(this.observers.length).toEqual(expected)
     expect(this.flushes.length).toEqual(expected)
   }
+
+  get version () {
+    return 4.3
+  }
 }
 
 function spyProtocolWrite (protocol, callRealMethod = false) {

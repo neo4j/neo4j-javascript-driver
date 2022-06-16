@@ -44,7 +44,8 @@ const WRITE = 'WRITE'
 
 const {
   txConfig: { TxConfig },
-  bookmarks: { Bookmarks }
+  bookmarks: { Bookmarks },
+  logger: { Logger }
 } = internal
 
 describe('#unit BoltProtocolV4x3', () => {
@@ -196,7 +197,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello(clientName, authToken)
+      RequestMessage.hello(clientName, authToken, null, ['utc'])
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
@@ -671,6 +672,330 @@ describe('#unit BoltProtocolV4x3', () => {
 
       const unpacked = protocol.unpack(buffer)
       expect(unpacked).toEqual(object)
+    })
+  })
+
+  describe('utc patch', () => {
+    describe('the server accepted the patch', () => {
+      let protocol
+      let buffer
+      let loggerFunction
+
+      beforeEach(() => {
+        buffer = alloc(256)
+        loggerFunction = jest.fn()
+        protocol = new BoltProtocolV4x3(
+          new utils.MessageRecordingConnection(),
+          buffer,
+          { disableLosslessIntegers: true },
+          undefined,
+          new Logger('debug', loggerFunction)
+        )
+        utils.spyProtocolWrite(protocol)
+
+        const clientName = 'js-driver/1.2.3'
+        const authToken = { username: 'neo4j', password: 'secret' }
+
+        const observer = protocol.initialize({ userAgent: clientName, authToken })
+
+        observer.onCompleted({ patch_bolt: ['utc'] })
+
+        buffer.reset()
+      })
+
+      it.each([
+        [
+          'DateTimeWithZoneOffset',
+          new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
+        ],
+        [
+          'DateTimeWithZoneId / Berlin 2:30 CET',
+          new DateTime(2022, 10, 30, 2, 30, 0, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Berlin 2:30 CEST',
+          new DateTime(2022, 10, 30, 2, 30, 0, 183_000_000, 1 * 60 * 60, 'Europe/Berlin')
+        ]
+      ])('should pack temporal types (%s)', (_, object) => {
+        const packable = protocol.packable(object)
+
+        expect(packable).not.toThrow()
+
+        buffer.reset()
+
+        const unpacked = protocol.unpack(buffer)
+
+        expect(unpacked).toEqual(object)
+      })
+
+      it.each([
+        [
+          'DateTimeWithZoneId / Australia',
+          new DateTime(2022, 6, 15, 15, 21, 18, 183_000_000, undefined, 'Australia/Eucla')
+        ],
+        [
+          'DateTimeWithZoneId',
+          new DateTime(2022, 6, 22, 15, 21, 18, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Europe just before turn CEST',
+          new DateTime(2022, 3, 27, 1, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Europe just 1 before turn CEST',
+          new DateTime(2022, 3, 27, 0, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Europe just after turn CEST',
+          new DateTime(2022, 3, 27, 3, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Europe just 1 after turn CEST',
+          new DateTime(2022, 3, 27, 4, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Europe just before turn CET',
+          new DateTime(2022, 10, 30, 2, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Europe just 1 before turn CET',
+          new DateTime(2022, 10, 30, 1, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Europe just after turn CET',
+          new DateTime(2022, 10, 30, 3, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Europe just 1 after turn CET',
+          new DateTime(2022, 10, 30, 4, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Sao Paulo just before turn summer time',
+          new DateTime(2018, 11, 4, 11, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+        ],
+        [
+          'DateTimeWithZoneId / Sao Paulo just 1 before turn summer time',
+          new DateTime(2018, 11, 4, 10, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+        ],
+        [
+          'DateTimeWithZoneId / Sao Paulo just after turn summer time',
+          new DateTime(2018, 11, 5, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+        ],
+        [
+          'DateTimeWithZoneId / Sao Paulo just 1 after turn summer time',
+          new DateTime(2018, 11, 5, 2, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+        ],
+        [
+          'DateTimeWithZoneId / Sao Paulo just before turn winter time',
+          new DateTime(2019, 2, 17, 11, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+        ],
+        [
+          'DateTimeWithZoneId / Sao Paulo just 1 before turn winter time',
+          new DateTime(2019, 2, 17, 10, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+        ],
+        [
+          'DateTimeWithZoneId / Sao Paulo just after turn winter time',
+          new DateTime(2019, 2, 18, 0, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+        ],
+        [
+          'DateTimeWithZoneId / Sao Paulo just 1 after turn winter time',
+          new DateTime(2019, 2, 18, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+        ]
+      ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
+        const packable = protocol.packable(object)
+
+        expect(packable).not.toThrow()
+
+        buffer.reset()
+
+        const unpacked = protocol.unpack(buffer)
+
+        expect(unpacked.timeZoneOffsetSeconds).toBeDefined()
+
+        const unpackedDateTimeWithoutOffset = new DateTime(
+          unpacked.year,
+          unpacked.month,
+          unpacked.day,
+          unpacked.hour,
+          unpacked.minute,
+          unpacked.second,
+          unpacked.nanosecond,
+          undefined,
+          unpacked.timeZoneId
+        )
+
+        expect(loggerFunction)
+          .toBeCalledWith('warn',
+            'DateTime objects without "timeZoneOffsetSeconds" property ' +
+            'are prune to bugs related to ambiguous times. For instance, ' +
+            '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
+
+        expect(unpackedDateTimeWithoutOffset).toEqual(object)
+      })
+
+      it.each([
+        [
+          'DateTimeWithZoneOffset with less fields',
+          new structure.Structure(0x49, [1, 2])
+        ],
+        [
+          'DateTimeWithZoneOffset with more fields',
+          new structure.Structure(0x49, [1, 2, 3, 4])
+        ],
+        [
+          'DateTimeWithZoneId with less fields',
+          new structure.Structure(0x69, [1, 2])
+        ],
+        [
+          'DateTimeWithZoneId with more fields',
+          new structure.Structure(0x69, [1, 2, 'America/Sao Paulo', 'Brasil'])
+        ]
+      ])('should not unpack with wrong size (%s)', (_, struct) => {
+        const packable = protocol.packable(struct)
+
+        expect(packable).not.toThrow()
+
+        buffer.reset()
+
+        expect(() => protocol.unpack(buffer)).toThrowErrorMatchingSnapshot()
+      })
+
+      it.each([
+        [
+          'DateTimeWithZoneOffset',
+          new structure.Structure(0x49, [
+            1655212878, 183_000_000, 120 * 60
+          ]),
+          new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
+        ],
+        [
+          'DateTimeWithZoneId',
+          new structure.Structure(0x69, [
+            1655212878, 183_000_000, 'Europe/Berlin'
+          ]),
+          new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
+        ],
+        [
+          'DateTimeWithZoneId / Australia',
+          new structure.Structure(0x69, [
+            1655212878, 183_000_000, 'Australia/Eucla'
+          ]),
+          new DateTime(2022, 6, 14, 22, 6, 18, 183_000_000, 8 * 60 * 60 + 45 * 60, 'Australia/Eucla')
+        ]
+      ])('should unpack temporal types (%s)', (_, struct, object) => {
+        const packable = protocol.packable(struct)
+
+        expect(packable).not.toThrow()
+
+        buffer.reset()
+
+        const unpacked = protocol.unpack(buffer)
+        expect(unpacked).toEqual(object)
+      })
+
+      it.each([
+        [
+          'DateTimeWithZoneOffset/0x46',
+          new structure.Structure(0x46, [1, 2, 3])
+        ],
+        [
+          'DateTimeWithZoneId/0x66',
+          new structure.Structure(0x66, [1, 2, 'America/Sao Paulo'])
+        ]
+      ])('should unpack deprecated temporal types as unknown structs (%s)', (_, struct) => {
+        const packable = protocol.packable(struct)
+
+        expect(packable).not.toThrow()
+
+        buffer.reset()
+
+        const unpacked = protocol.unpack(buffer)
+        expect(unpacked).toEqual(struct)
+      })
+    })
+
+    describe('the server did not accept th patch', () => {
+      let protocol
+      let buffer
+      let loggerFunction
+
+      beforeEach(() => {
+        buffer = alloc(256)
+        loggerFunction = jest.fn()
+        protocol = new BoltProtocolV4x3(
+          new utils.MessageRecordingConnection(),
+          buffer,
+          { disableLosslessIntegers: true },
+          undefined,
+          new Logger('debug', loggerFunction)
+        )
+        utils.spyProtocolWrite(protocol)
+
+        const clientName = 'js-driver/1.2.3'
+        const authToken = { username: 'neo4j', password: 'secret' }
+
+        const observer = protocol.initialize({ userAgent: clientName, authToken })
+
+        observer.onCompleted({})
+
+        buffer.reset()
+      })
+
+      it.each([
+        [
+          'DateTimeWithZoneOffset/0x49',
+          new structure.Structure(0x49, [1, 2, 3])
+        ],
+        [
+          'DateTimeWithZoneId/0x69',
+          new structure.Structure(0x69, [1, 2, 'America/Sao Paulo'])
+        ]
+      ])('should unpack utc temporal types as unknown structs (%s)', (_, struct) => {
+        const packable = protocol.packable(struct)
+
+        expect(packable).not.toThrow()
+
+        buffer.reset()
+
+        const unpacked = protocol.unpack(buffer)
+        expect(unpacked).toEqual(struct)
+      })
+
+      it.each([
+        [
+          'DateTimeWithZoneOffset',
+          new structure.Structure(0x46, [1, 2, 3]),
+          new DateTime(1970, 1, 1, 0, 0, 1, 2, 3)
+        ],
+        [
+          'DateTimeWithZoneId',
+          new structure.Structure(0x66, [1, 2, 'America/Sao Paulo']),
+          new DateTime(1970, 1, 1, 0, 0, 1, 2, undefined, 'America/Sao Paulo')
+        ]
+      ])('should unpack temporal types without utc fix (%s)', (_, struct, object) => {
+        const packable = protocol.packable(struct)
+
+        expect(packable).not.toThrow()
+
+        buffer.reset()
+
+        const unpacked = protocol.unpack(buffer)
+        expect(unpacked).toEqual(object)
+      })
+
+      it.each([
+        ['DateTimeWithZoneId', new DateTime(1, 1, 1, 1, 1, 1, 1, undefined, 'America/Sao Paulo')],
+        ['DateTime', new DateTime(1, 1, 1, 1, 1, 1, 1, 1)]
+      ])('should pack temporal types (no utc) (%s)', (_, object) => {
+        const packable = protocol.packable(object)
+
+        expect(packable).not.toThrow()
+
+        buffer.reset()
+
+        const unpacked = protocol.unpack(buffer)
+        expect(unpacked).toEqual(object)
+      })
     })
   })
 })

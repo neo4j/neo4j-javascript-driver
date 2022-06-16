@@ -59,3 +59,11 @@ exports[`#unit BoltProtocolV4x4 .unpack() should not unpack with wrong size (Tim
 exports[`#unit BoltProtocolV4x4 .unpack() should not unpack with wrong size (UnboundRelationship with less fields) 1`] = `"Wrong struct size for UnboundRelationship, expected 3 but was 2"`;
 
 exports[`#unit BoltProtocolV4x4 .unpack() should not unpack with wrong size (UnboundRelationship with more fields) 1`] = `"Wrong struct size for UnboundRelationship, expected 3 but was 4"`;
+
+exports[`#unit BoltProtocolV4x4 utc patch the server accepted the patch should not unpack with wrong size (DateTimeWithZoneId with less fields) 1`] = `"Wrong struct size for DateTimeWithZoneId, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV4x4 utc patch the server accepted the patch should not unpack with wrong size (DateTimeWithZoneId with more fields) 1`] = `"Wrong struct size for DateTimeWithZoneId, expected 3 but was 4"`;
+
+exports[`#unit BoltProtocolV4x4 utc patch the server accepted the patch should not unpack with wrong size (DateTimeWithZoneOffset with less fields) 1`] = `"Wrong struct size for DateTimeWithZoneOffset, expected 3 but was 2"`;
+
+exports[`#unit BoltProtocolV4x4 utc patch the server accepted the patch should not unpack with wrong size (DateTimeWithZoneOffset with more fields) 1`] = `"Wrong struct size for DateTimeWithZoneOffset, expected 3 but was 4"`;

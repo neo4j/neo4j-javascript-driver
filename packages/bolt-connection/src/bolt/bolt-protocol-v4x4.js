@@ -23,6 +23,7 @@ import RequestMessage from './request-message'
 import { RouteObserver, ResultStreamObserver } from './stream-observers'
 
 import transformersFactories from './bolt-protocol-v4x4.transformer'
+import utcTransformersFactories from './bolt-protocol-v5x0.utc.transformer'
 import Transformer from './transformer'
 
 const {
@@ -162,5 +163,12 @@ export default class BoltProtocol extends BoltProtocolV43 {
     )
 
     return observer
+  }
+
+  _applyUtcPatch () {
+    this._transformer = new Transformer(Object.values({
+      ...transformersFactories,
+      ...utcTransformersFactories
+    }).map(create => create(this._config, this._log)))
   }
 }
