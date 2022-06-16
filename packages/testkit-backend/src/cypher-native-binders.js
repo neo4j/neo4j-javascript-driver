@@ -150,7 +150,7 @@ export function cypherToNative (c) {
         data.minute,
         data.second,
         data.nanosecond,
-        data.timezone_id == null ? data.utc_offset_s : null,
+        data.utc_offset_s,
         data.timezone_id
       )
     case 'CypherMap':
