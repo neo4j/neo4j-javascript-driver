@@ -43,7 +43,7 @@ const DATE_TIME_WITH_ZONE_OFFSET_STRUCT_SIZE = 3
 const DATE_TIME_WITH_ZONE_ID = 0x69
 const DATE_TIME_WITH_ZONE_ID_STRUCT_SIZE = 3
 
-function createDateTimeWithZoneIdTransformer (config) {
+function createDateTimeWithZoneIdTransformer (config, logger) {
   const { disableLosslessIntegers, useBigInt } = config
   const dateTimeWithZoneIdTransformer = v4x4.createDateTimeWithZoneIdTransformer(config)
   return dateTimeWithZoneIdTransformer.extendsWith({
@@ -86,6 +86,12 @@ function createDateTimeWithZoneIdTransformer (config) {
       const offset = value.timeZoneOffsetSeconds != null
         ? value.timeZoneOffsetSeconds
         : getOffsetFromZoneId(value.timeZoneId, epochSecond, value.nanosecond)
+
+      if (value.timeZoneOffsetSeconds == null) {
+        logger.warn('DateTime objects without "timeZoneOffsetSeconds" property ' +
+        'are prune to bugs related to ambiguous times. For instance, ' +
+        '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
+      }
       const utc = epochSecond.subtract(offset)
 
       const nano = int(value.nanosecond)

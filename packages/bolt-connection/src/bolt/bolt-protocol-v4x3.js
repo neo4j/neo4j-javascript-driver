@@ -37,7 +37,7 @@ export default class BoltProtocol extends BoltProtocolV42 {
 
   get transformer () {
     if (this._transformer === undefined) {
-      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)))
     }
     return this._transformer
   }
