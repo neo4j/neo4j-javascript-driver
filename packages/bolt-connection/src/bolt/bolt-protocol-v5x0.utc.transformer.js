@@ -167,7 +167,7 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
     hour: 'numeric',
     minute: 'numeric',
     second: 'numeric',
-    hourCycle: 'h23',
+    hour12: false,
     timeZoneName: 'short'
   })
 
@@ -206,6 +206,8 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
     }
     return obj
   }, {})
+
+  localDateTime.hour = localDateTime.hour.modulo(24)
 
   return localDateTime
 }
