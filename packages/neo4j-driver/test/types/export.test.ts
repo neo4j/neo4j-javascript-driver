@@ -27,7 +27,8 @@ import driver, {
   RxResult,
   Session,
   ConnectionProvider,
-  Record
+  Record,
+  types
 } from '../../'
 
 const dateTime = DateTime.fromStandardDate(new Date())
@@ -72,3 +73,16 @@ const rxTransaction: RxTransaction = dummy
 const rxResult: RxResult = dummy
 
 const record: Record = new Record(['role'], [124])
+
+const instanceOfNode: boolean = dummy instanceof types.Node
+const instanceOfPathSegment: boolean = dummy instanceof types.PathSegment
+const instanceOfPath: boolean = dummy instanceof types.Path
+const instanceOfRelationship: boolean = dummy instanceof types.Relationship
+const instanceOfPoint: boolean = dummy instanceof types.Point
+const instanceOfDate: boolean = dummy instanceof types.Date
+const instanceOfDateTime: boolean = dummy instanceof types.DateTime
+const instanceOfDuration: boolean = dummy instanceof types.Duration
+const instanceOfLocalDateTime: boolean = dummy instanceof types.LocalDateTime
+const instanceOfLocalTime: boolean = dummy instanceof types.LocalTime
+const instanceOfTime: boolean = dummy instanceof types.Time
+const instanceOfInteger: boolean = dummy instanceof types.Integer
