@@ -115,12 +115,58 @@ function valueResponseOfObject (x) {
       }
     }
   }
+
+  if (neo4j.isDate(x)) {
+    return structResponse('CypherDate', {
+      year: x.year,
+      month: x.month,
+      day: x.day
+    })
+  } else if (neo4j.isDateTime(x) || neo4j.isLocalDateTime(x)) {
+    return structResponse('CypherDateTime', {
+      year: x.year,
+      month: x.month,
+      day: x.day,
+      hour: x.hour,
+      minute: x.minute,
+      second: x.second,
+      nanosecond: x.nanosecond,
+      utc_offset_s: x.timeZoneOffsetSeconds,
+      timezone_id: x.timeZoneId
+    })
+  } else if (neo4j.isTime(x) || neo4j.isLocalTime(x)) {
+    return structResponse('CypherTime', {
+      hour: x.hour,
+      minute: x.minute,
+      second: x.second,
+      nanosecond: x.nanosecond,
+      utc_offset_s: x.timeZoneOffsetSeconds
+    })
+  } else if (neo4j.isDuration(x)) {
+    return structResponse('CypherDuration', {
+      months: x.months,
+      days: x.days,
+      seconds: x.seconds,
+      nanoseconds: x.nanoseconds
+    })
+  }
+
   // If all failed, interpret as a map
   const map = {}
   for (const [key, value] of Object.entries(x)) {
     map[key] = nativeToCypher(value)
   }
   return valueResponse('CypherMap', map)
+}
+
+function structResponse (name, data) {
+  const map = {}
+  for (const [key, value] of Object.entries(data)) {
+    map[key] = typeof value === 'bigint' || neo4j.isInt(value)
+      ? neo4j.int(value).toNumber()
+      : value
+  }
+  return { name, data: map }
 }
 
 export function cypherToNative (c) {
@@ -142,6 +188,17 @@ export function cypherToNative (c) {
     case 'CypherList':
       return data.value.map(cypherToNative)
     case 'CypherDateTime':
+      if (data.utc_offset_s == null && data.timezone_id == null) {
+        return new neo4j.LocalDateTime(
+          data.year,
+          data.month,
+          data.day,
+          data.hour,
+          data.minute,
+          data.second,
+          data.nanosecond
+        )
+      }
       return new neo4j.DateTime(
         data.year,
         data.month,
@@ -152,6 +209,35 @@ export function cypherToNative (c) {
         data.nanosecond,
         data.utc_offset_s,
         data.timezone_id
+      )
+    case 'CypherTime':
+      if (data.utc_offset_s == null) {
+        return new neo4j.LocalTime(
+          data.hour,
+          data.minute,
+          data.second,
+          data.nanosecond
+        )
+      }
+      return new neo4j.Time(
+        data.hour,
+        data.minute,
+        data.second,
+        data.nanosecond,
+        data.utc_offset_s
+      )
+    case 'CypherDate':
+      return new neo4j.Date(
+        data.year,
+        data.month,
+        data.day
+      )
+    case 'CypherDuration':
+      return new neo4j.Duration(
+        data.months,
+        data.days,
+        data.seconds,
+        data.nanoseconds
       )
     case 'CypherMap':
       return Object.entries(data.value).reduce((acc, [key, val]) => {

@@ -2,6 +2,10 @@ import skip, { ifEquals, ifEndsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Using numbers out of bound',
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_should_echo_temporal_type')
+  ),
+  skip(
     'Testkit implemenation is deprecated',
     ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_node_only_element_id'),
     ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_path_element_ids_with_only_string'),
