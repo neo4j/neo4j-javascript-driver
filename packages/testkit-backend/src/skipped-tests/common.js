@@ -158,6 +158,12 @@ const skippedTests = [
   skip(
     'Flaky tests, requires investigation',
     ifEndsWith('.test_should_fail_when_writing_to_unexpectedly_interrupting_writers_using_tx_function')
+  ),
+  skip(
+    'TODO: ConnectionAcquisitionTimeout cancels handshake with the router',
+    ifEquals(
+      'stub.driver_parameters.test_connection_acquisition_timeout_ms.TestConnectionAcquisitionTimeoutMs.test_does_not_encompass_router_handshake'
+    )
   )
 ]
 
