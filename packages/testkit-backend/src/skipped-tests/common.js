@@ -132,6 +132,12 @@ const skippedTests = [
     ifEquals(
       'stub.iteration.test_result_list.TestResultList.test_session_run_result_list_pulls_all_records_at_once_next_before_list'
     )
+  ),
+  skip(
+    "TODO: ConnectionAcquisitionTimeout cancels handshake with the router",
+    ifEquals(
+      "stub.driver_parameters.test_connection_acquisition_timeout_ms.TestConnectionAcquisitionTimeoutMs.test_does_not_encompass_router_handshake"
+    )
   )
 ]
 
