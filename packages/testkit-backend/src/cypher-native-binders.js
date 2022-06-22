@@ -131,7 +131,7 @@ function valueResponseOfObject (x) {
       minute: x.minute,
       second: x.second,
       nanosecond: x.nanosecond,
-      utc_offset_s: x.timeZoneOffsetSeconds || 0,
+      utc_offset_s: x.timeZoneOffsetSeconds || (x.timeZoneId == null ? undefined : 0),
       timezone_id: x.timeZoneId
     })
   } else if (neo4j.isTime(x) || neo4j.isLocalTime(x)) {
