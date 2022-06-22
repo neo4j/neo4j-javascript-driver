@@ -413,6 +413,10 @@ describe('#unit BoltProtocolV5x0', () => {
         new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
       ],
       [
+        'DateTimeWithZoneOffset / 1978',
+        new DateTime(1978, 12, 16, 10, 5, 59, 128000987, -150 * 60)
+      ],
+      [
         'DateTimeWithZoneId / Berlin 2:30 CET',
         new DateTime(2022, 10, 30, 2, 30, 0, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
       ],
@@ -515,6 +519,14 @@ describe('#unit BoltProtocolV5x0', () => {
       [
         'DateTimeWithZoneId / Sao Paulo just 1 after turn winter time',
         new DateTime(2019, 2, 18, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Istanbul',
+        new DateTime(1978, 12, 16, 12, 35, 59, 128000987, undefined, 'Europe/Istanbul')
+      ],
+      [
+        'DateTimeWithZoneId / Istanbul',
+        new DateTime(2020, 6, 15, 4, 30, 0, 183_000_000, undefined, 'Pacific/Honolulu')
       ]
     ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
       const buffer = alloc(256)
@@ -825,6 +837,13 @@ describe('#unit BoltProtocolV5x0', () => {
         new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
       ],
       [
+        'DateTimeWithZoneOffset / 1978',
+        new structure.Structure(0x49, [
+          282659759, 128000987, -150 * 60
+        ]),
+        new DateTime(1978, 12, 16, 10, 5, 59, 128000987, -150 * 60)
+      ],
+      [
         'DateTimeWithZoneId',
         new structure.Structure(0x69, [
           1655212878, 183_000_000, 'Europe/Berlin'
@@ -837,6 +856,13 @@ describe('#unit BoltProtocolV5x0', () => {
           1655212878, 183_000_000, 'Australia/Eucla'
         ]),
         new DateTime(2022, 6, 14, 22, 6, 18, 183_000_000, 8 * 60 * 60 + 45 * 60, 'Australia/Eucla')
+      ],
+      [
+        'DateTimeWithZoneId / Honolulu',
+        new structure.Structure(0x69, [
+          1592231400, 183_000_000, 'Pacific/Honolulu'
+        ]),
+        new DateTime(2020, 6, 15, 4, 30, 0, 183_000_000, -10 * 60 * 60, 'Pacific/Honolulu')
       ]
     ])('should unpack spatial types and temporal types (%s)', (_, struct, object) => {
       const buffer = alloc(256)

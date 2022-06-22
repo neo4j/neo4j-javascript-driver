@@ -167,8 +167,7 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
     hour: 'numeric',
     minute: 'numeric',
     second: 'numeric',
-    hour12: false,
-    timeZoneName: 'short'
+    hour12: false
   })
 
   const l = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
@@ -184,29 +183,23 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
   const formattedUtcParts = formatter.formatToParts(utc)
 
   const localDateTime = formattedUtcParts.reduce((obj, currentValue) => {
-    if (currentValue.type === 'timeZoneName') {
-      const parts = currentValue.value.replace('GMT', '').split(':')
-      const divisor = 60
-      const { offset } = parts.reduce((state, value) => {
-        const part = int(value)
-        const signal = part.isPositive() ? int(1) : int(-1)
-
-        const offset = part.multiply(state.factor).add(state.offset)
-        const factor = state.factor.div(divisor).multiply(signal)
-
-        return {
-          offset,
-          factor
-        }
-      }, { factor: int(60 * 60), offset: int(0) })
-
-      obj.timeZoneOffsetSeconds = offset
-    } else if (currentValue.type !== 'literal') {
+    if (currentValue.type !== 'literal') {
       obj[currentValue.type] = int(currentValue.value)
     }
     return obj
   }, {})
 
+  const epochInTimeZone = localDateTimeToEpochSecond(
+    localDateTime.year,
+    localDateTime.month,
+    localDateTime.day,
+    localDateTime.hour,
+    localDateTime.minute,
+    localDateTime.second,
+    localDateTime.nanosecond
+  )
+
+  localDateTime.timeZoneOffsetSeconds = epochInTimeZone.subtract(epochSecond)
   localDateTime.hour = localDateTime.hour.modulo(24)
 
   return localDateTime
