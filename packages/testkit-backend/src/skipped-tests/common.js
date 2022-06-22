@@ -2,8 +2,16 @@ import skip, { ifEquals, ifEndsWith } from './skip'
 
 const skippedTests = [
   skip(
+    'Driver does not return offset for old DateTime implementations',
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_nested_datetime'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_should_echo_all_timezone_ids'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_cypher_created_datetime')
+  ),
+  skip(
     'Using numbers out of bound',
-    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_should_echo_temporal_type')
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_should_echo_temporal_type'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_nested_duration'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_duration_components')
   ),
   skip(
     'Testkit implemenation is deprecated',
