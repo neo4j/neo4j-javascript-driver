@@ -1008,9 +1008,6 @@ describe('#integration temporal-types', () => {
     expect(
       () => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, null)
     ).toThrow()
-    expect(
-      () => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, 8, 'UK')
-    ).toThrow()
   }, 60000)
 
   it('should convert standard Date to neo4j LocalTime', () => {

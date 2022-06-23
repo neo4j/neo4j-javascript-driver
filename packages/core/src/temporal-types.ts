@@ -707,21 +707,25 @@ function verifyTimeZoneArguments(
   const offsetDefined = timeZoneOffsetSeconds || timeZoneOffsetSeconds === 0
   const idDefined = timeZoneId && timeZoneId !== ''
 
-  if (offsetDefined && !idDefined) {
-    assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds')
-    return [timeZoneOffsetSeconds, undefined]
-  } else if (!offsetDefined && idDefined) {
-    assertString(timeZoneId, 'Time zone ID')
-    return [undefined, timeZoneId]
-  } else if (offsetDefined && idDefined) {
+  if (!offsetDefined && !idDefined) {
     throw newError(
-      `Unable to create DateTime with both time zone offset and id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`
-    )
-  } else {
-    throw newError(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Unable to create DateTime without either time zone offset or id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`
     )
   }
+
+  const result: [NumberOrInteger | undefined | null, string | undefined | null] = [undefined, undefined]
+  if (offsetDefined) {
+    assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds')
+    result[0] = timeZoneOffsetSeconds
+  }
+
+  if (idDefined) {
+    assertString(timeZoneId, 'Time zone ID')
+    result[1] = timeZoneId
+  }
+
+  return result
 }
 
 /**

@@ -331,6 +331,8 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Auth:Bearer',
       'Feature:API:SSLConfig',
       'Feature:API:SSLSchemes',
+      'Feature:API:Type.Temporal',
+      'Feature:Bolt:Patch:UTC',
       'AuthorizationExpiredTreatment',
       'ConfHint:connection.recv_timeout_seconds',
       'Feature:Impersonation',
