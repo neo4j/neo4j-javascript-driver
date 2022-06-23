@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`#unit PackStreamV2 utc should not unpack with wrong size (DateTimeWithZoneId with less fields) 1`] = `"Wrong struct size for DateTimeWithZoneId, expected 3 but was 2"`;
+
+exports[`#unit PackStreamV2 utc should not unpack with wrong size (DateTimeWithZoneId with more fields) 1`] = `"Wrong struct size for DateTimeWithZoneId, expected 3 but was 4"`;
+
+exports[`#unit PackStreamV2 utc should not unpack with wrong size (DateTimeWithZoneOffset with less fields) 1`] = `"Wrong struct size for DateTimeWithZoneOffset, expected 3 but was 2"`;
+
+exports[`#unit PackStreamV2 utc should not unpack with wrong size (DateTimeWithZoneOffset with more fields) 1`] = `"Wrong struct size for DateTimeWithZoneOffset, expected 3 but was 4"`;

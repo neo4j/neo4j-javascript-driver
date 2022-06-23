@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { int, Integer } from 'neo4j-driver-core'
+import { int, Integer, DateTime } from 'neo4j-driver-core'
 import { alloc } from '../../src/channel'
 import { Packer, Unpacker } from '../../src/packstream/packstream-v2'
 import { Structure } from '../../src/packstream/packstream-v1'
@@ -182,14 +182,235 @@ describe('#unit PackStreamV2', () => {
     expect(unpacked[0]).toBe(list[0])
     expect(unpacked[1]).toBe(list[1])
   })
+
+  describe('utc', () => {
+    it.each([
+      [
+        'DateTimeWithZoneOffset',
+        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
+      ],
+      [
+        'DateTimeWithZoneId / Berlin 2:30 CET',
+        new DateTime(2022, 10, 30, 2, 30, 0, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Berlin 2:30 CEST',
+        new DateTime(2022, 10, 30, 2, 30, 0, 183_000_000, 1 * 60 * 60, 'Europe/Berlin')
+      ]
+    ])('should pack temporal types (%s)', (_, object) => {
+      
+      const unpacked = packAndUnpack(object, { disableLosslessIntegers: true, useUtc: true })
+
+      expect(unpacked).toEqual(object)
+    })
+
+    it.each([
+      [
+        'DateTimeWithZoneId / Australia',
+        new DateTime(2022, 6, 15, 15, 21, 18, 183_000_000, undefined, 'Australia/Eucla')
+      ],
+      [
+        'DateTimeWithZoneId',
+        new DateTime(2022, 6, 22, 15, 21, 18, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just before turn CEST',
+        new DateTime(2022, 3, 27, 1, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just 1 before turn CEST',
+        new DateTime(2022, 3, 27, 0, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just after turn CEST',
+        new DateTime(2022, 3, 27, 3, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just 1 after turn CEST',
+        new DateTime(2022, 3, 27, 4, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just before turn CET',
+        new DateTime(2022, 10, 30, 2, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just 1 before turn CET',
+        new DateTime(2022, 10, 30, 1, 59, 59, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just after turn CET',
+        new DateTime(2022, 10, 30, 3, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Europe just 1 after turn CET',
+        new DateTime(2022, 10, 30, 4, 0, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just before turn summer time',
+        new DateTime(2018, 11, 4, 11, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just 1 before turn summer time',
+        new DateTime(2018, 11, 4, 10, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just after turn summer time',
+        new DateTime(2018, 11, 5, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just 1 after turn summer time',
+        new DateTime(2018, 11, 5, 2, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just before turn winter time',
+        new DateTime(2019, 2, 17, 11, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just 1 before turn winter time',
+        new DateTime(2019, 2, 17, 10, 59, 59, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just after turn winter time',
+        new DateTime(2019, 2, 18, 0, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+      ],
+      [
+        'DateTimeWithZoneId / Sao Paulo just 1 after turn winter time',
+        new DateTime(2019, 2, 18, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+      ]
+    ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
+      const unpacked = packAndUnpack(object, { disableLosslessIntegers: true, useUtc: true})
+
+      expect(unpacked.timeZoneOffsetSeconds).toBeDefined()
+
+      const unpackedDateTimeWithoutOffset = new DateTime(
+        unpacked.year,
+        unpacked.month,
+        unpacked.day,
+        unpacked.hour,
+        unpacked.minute,
+        unpacked.second,
+        unpacked.nanosecond,
+        undefined,
+        unpacked.timeZoneId
+      )
+
+      expect(unpackedDateTimeWithoutOffset).toEqual(object)
+    })
+
+    it.each([
+      [
+        'DateTimeWithZoneOffset with less fields',
+        new Structure(0x49, [1, 2])
+      ],
+      [
+        'DateTimeWithZoneOffset with more fields',
+        new Structure(0x49, [1, 2, 3, 4])
+      ],
+      [
+        'DateTimeWithZoneId with less fields',
+        new Structure(0x69, [1, 2])
+      ],
+      [
+        'DateTimeWithZoneId with more fields',
+        new Structure(0x69, [1, 2, 'America/Sao Paulo', 'Brasil'])
+      ]
+    ])('should not unpack with wrong size (%s)', (_, struct) => {
+      expect(() => packAndUnpack(struct, { useUtc: true })).toThrowErrorMatchingSnapshot()
+    })
+
+    it.each([
+      [
+        'DateTimeWithZoneOffset',
+        new Structure(0x49, [
+          int(1655212878), int(183_000_000), int(120 * 60)
+        ]),
+        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 120 * 60)
+      ],
+      [
+        'DateTimeWithZoneId',
+        new Structure(0x69, [
+          int(1655212878), int(183_000_000), 'Europe/Berlin'
+        ]),
+        new DateTime(2022, 6, 14, 15, 21, 18, 183_000_000, 2 * 60 * 60, 'Europe/Berlin')
+      ],
+      [
+        'DateTimeWithZoneId / Australia',
+        new Structure(0x69, [
+          int(1655212878), int(183_000_000), 'Australia/Eucla'
+        ]),
+        new DateTime(2022, 6, 14, 22, 6, 18, 183_000_000, 8 * 60 * 60 + 45 * 60, 'Australia/Eucla')
+      ]
+    ])('should unpack temporal types (%s)', (_, struct, object) => {
+      const unpacked = packAndUnpack(struct, { disableLosslessIntegers: true, useUtc: true})
+      expect(unpacked).toEqual(object)
+    })
+  
+    it.each([
+      [
+        'DateTimeWithZoneOffset/0x46',
+        new Structure(0x46, [1, 2, 3])
+      ],
+      [
+        'DateTimeWithZoneId/0x66',
+        new Structure(0x66, [1, 2, 'America/Sao Paulo'])
+      ]
+    ])('should unpack deprecated temporal types as unknown structs (%s)', (_, struct) => {
+      const unpacked = packAndUnpack(struct, { disableLosslessIntegers: true, useUtc: true})
+      expect(unpacked).toEqual(struct)
+    })
+  })
+
+  describe('non-utc', () => {
+    it.each([
+      [
+        'DateTimeWithZoneOffset/0x49',
+        new Structure(0x49, [1, 2, 3])
+      ],
+      [
+        'DateTimeWithZoneId/0x69',
+        new Structure(0x69, [1, 2, 'America/Sao Paulo'])
+      ]
+    ])('should unpack utc temporal types as unknown structs (%s)', (_, struct) => {
+      const unpacked = packAndUnpack(struct, { disableLosslessIntegers: true })
+      expect(unpacked).toEqual(struct)
+    })
+
+    it.each([
+      [
+        'DateTimeWithZoneOffset',
+        new Structure(0x46, [int(1), int(2), int(3)]),
+        new DateTime(1970, 1, 1, 0, 0, 1, 2, 3)
+      ],
+      [
+        'DateTimeWithZoneId',
+        new Structure(0x66, [int(1), int(2), 'America/Sao Paulo']),
+        new DateTime(1970, 1, 1, 0, 0, 1, 2, undefined, 'America/Sao Paulo')
+      ]
+    ])('should unpack temporal types without utc fix (%s)', (_, struct, object) => {
+      const unpacked = packAndUnpack(struct, { disableLosslessIntegers: true })
+      expect(unpacked).toEqual(object)
+    })
+
+    it.each([
+      ['DateTimeWithZoneId', new DateTime(1, 1, 1, 1, 1, 1, 1, undefined, 'America/Sao Paulo')],
+      ['DateTime', new DateTime(1, 1, 1, 1, 1, 1, 1, 1)]
+    ])('should pack temporal types (no utc) (%s)', (_, object) => {
+      const unpacked = packAndUnpack(object, { disableLosslessIntegers: true })
+      expect(unpacked).toEqual(object)
+    })
+  })
 })
 
 function packAndUnpack (
   val,
-  { bufferSize = 128, disableLosslessIntegers = false, useBigInt = false } = {}
+  { bufferSize = 128, disableLosslessIntegers = false, useBigInt = false, useUtc = false} = {}
 ) {
   const buffer = alloc(bufferSize)
-  new Packer(buffer).packable(val)()
+  const packer = new Packer(buffer)
+  packer.useUtc = useUtc
+  packer.packable(val)()
   buffer.reset()
-  return new Unpacker(disableLosslessIntegers, useBigInt).unpack(buffer)
+  const unpacker = new Unpacker(disableLosslessIntegers, useBigInt)
+  unpacker.useUtc = useUtc
+  return unpacker.unpack(buffer)
 }
