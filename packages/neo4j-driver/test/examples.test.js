@@ -1511,6 +1511,21 @@ describe('#integration examples', () => {
       })
     }
   })
+
+  it('configure session database', async () => {
+
+    const driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
+
+    // tag::session-config-database[]
+    const session = driver.session({
+      database: '<the database name>',
+      defaultAccessMode: neo4j.session.READ
+    })
+    // end::session-config-database[]
+
+    await session.close()
+    await driver.close()
+  })
 })
 
 function removeLineBreaks (string) {
