@@ -74,7 +74,41 @@ describe('LocalDateTime', () => {
 })
 
 describe('DateTime', () => {
+  describe('constructor', () => {
+    it('should be able to create a date with zone id and offset', () => {
+      const datetime = new DateTime(2022, 6, 16, 11, 19, 25, 400004, 2 * 60 * 60, 'Europe/Stockholm')
+
+      expect(datetime.year).toEqual(2022)
+      expect(datetime.month).toEqual(6)
+      expect(datetime.day).toEqual(16)
+      expect(datetime.hour).toEqual(11)
+      expect(datetime.minute).toEqual(19)
+      expect(datetime.second).toEqual(25)
+      expect(datetime.nanosecond).toEqual(400004)
+      expect(datetime.timeZoneOffsetSeconds).toEqual(2 * 60 * 60)
+      expect(datetime.timeZoneId).toEqual('Europe/Stockholm')
+    })
+  })
+
   describe('.toStandardDate()', () => {
+    it('should convert to a standard date (offset + zone id)', () => {
+      const datetime = new DateTime(2022, 6, 16, 11, 19, 25, 4000004, 2 * 60 * 60, 'Europe/Stockholm')
+
+      const standardDate = datetime.toStandardDate()
+
+      expect(standardDate.getFullYear()).toEqual(datetime.year)
+      expect(standardDate.getMonth()).toEqual(datetime.month - 1)
+      expect(standardDate.getDate()).toEqual(datetime.day)
+      const offsetInMinutes = offset(standardDate)
+      const offsetAdjust = offsetInMinutes - (datetime.timeZoneOffsetSeconds ?? 0) / 60
+      const hourDiff = Math.abs(offsetAdjust / 60)
+      const minuteDiff = Math.abs(offsetAdjust % 60)
+      expect(standardDate.getHours()).toBe(datetime.hour - hourDiff)
+      expect(standardDate.getMinutes()).toBe(datetime.minute - minuteDiff)
+      expect(standardDate.getSeconds()).toBe(datetime.second)
+      expect(standardDate.getMilliseconds()).toBe(Math.round(datetime.nanosecond / 1000000))
+    })
+
     it('should convert to a standard date (offset)', () => {
       const datetime = new DateTime(2020, 12, 15, 12, 2, 3, 4000000, 120 * 60)
 
@@ -90,7 +124,7 @@ describe('DateTime', () => {
       expect(standardDate.getHours()).toBe(datetime.hour - hourDiff)
       expect(standardDate.getMinutes()).toBe(datetime.minute - minuteDiff)
       expect(standardDate.getSeconds()).toBe(datetime.second)
-      expect(standardDate.getMilliseconds()).toBe(datetime.nanosecond / 1000000)
+      expect(standardDate.getMilliseconds()).toBe(Math.round(datetime.nanosecond / 1000000))
     })
 
     it('should not convert to a standard date (zoneid)', () => {

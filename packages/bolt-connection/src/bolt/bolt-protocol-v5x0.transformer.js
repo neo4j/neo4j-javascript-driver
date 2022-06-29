@@ -18,8 +18,14 @@
  */
 
 import { structure } from '../packstream'
-import { Node, Relationship, UnboundRelationship } from 'neo4j-driver-core'
+import {
+  Node,
+  Relationship,
+  UnboundRelationship
+} from 'neo4j-driver-core'
+
 import v4x4 from './bolt-protocol-v4x4.transformer'
+import v5x0Utc from './bolt-protocol-v5x0.utc.transformer'
 
 const NODE_STRUCT_SIZE = 4
 const RELATIONSHIP_STRUCT_SIZE = 8
@@ -118,6 +124,7 @@ function createUnboundRelationshipTransformer (config) {
 
 export default {
   ...v4x4,
+  ...v5x0Utc,
   createNodeTransformer,
   createRelationshipTransformer,
   createUnboundRelationshipTransformer

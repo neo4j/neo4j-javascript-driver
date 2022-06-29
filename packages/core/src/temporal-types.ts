@@ -670,7 +670,13 @@ export class DateTime<T extends NumberOrInteger = Integer> {
     if (this.timeZoneOffsetSeconds === undefined) {
       throw new Error('Requires DateTime created with time zone offset')
     }
-    return util.isoStringToStandardDate(this.toString())
+    return util.isoStringToStandardDate(
+      // the timezone name should be removed from the
+      // string, otherwise the javascript parse doesn't
+      // read the datetime correctly
+      this.toString().replace(
+        this.timeZoneId != null ? `[${this.timeZoneId}]` : '', '')
+    )
   }
 
   /**
@@ -686,10 +692,16 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       this.second,
       this.nanosecond
     )
+
+    const timeOffset = this.timeZoneOffsetSeconds != null
+      ? util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds ?? 0)
+      : ''
+
     const timeZoneStr = this.timeZoneId != null
       ? `[${this.timeZoneId}]`
-      : util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds ?? 0)
-    return localDateTimeStr + timeZoneStr
+      : ''
+
+    return localDateTimeStr + timeOffset + timeZoneStr
   }
 }
 
@@ -741,23 +753,25 @@ function verifyTimeZoneArguments (
   const offsetDefined = timeZoneOffsetSeconds !== null && timeZoneOffsetSeconds !== undefined
   const idDefined = timeZoneId !== null && timeZoneId !== undefined && timeZoneId !== ''
 
-  if (offsetDefined && !idDefined) {
-    assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds')
-    return [timeZoneOffsetSeconds, undefined]
-  } else if (!offsetDefined && idDefined) {
-    assertString(timeZoneId, 'Time zone ID')
-    return [undefined, timeZoneId]
-  } else if (offsetDefined && idDefined) {
-    throw newError(
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      `Unable to create DateTime with both time zone offset and id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`
-    )
-  } else {
+  if (!offsetDefined && !idDefined) {
     throw newError(
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `Unable to create DateTime without either time zone offset or id. Please specify either of them. Given offset: ${timeZoneOffsetSeconds} and id: ${timeZoneId}`
     )
   }
+
+  const result: [NumberOrInteger | undefined | null, string | undefined | null] = [undefined, undefined]
+  if (offsetDefined) {
+    assertNumberOrInteger(timeZoneOffsetSeconds, 'Time zone offset in seconds')
+    result[0] = timeZoneOffsetSeconds
+  }
+
+  if (idDefined) {
+    assertString(timeZoneId, 'Time zone ID')
+    result[1] = timeZoneId
+  }
+
+  return result
 }
 
 /**

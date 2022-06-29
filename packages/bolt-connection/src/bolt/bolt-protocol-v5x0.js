@@ -20,6 +20,8 @@ import BoltProtocolV44 from './bolt-protocol-v4x4'
 
 import transformersFactories from './bolt-protocol-v5x0.transformer'
 import Transformer from './transformer'
+import RequestMessage from './request-message'
+import { LoginObserver } from './stream-observers'
 
 import { internal } from 'neo4j-driver-core'
 
@@ -34,8 +36,33 @@ export default class BoltProtocol extends BoltProtocolV44 {
 
   get transformer () {
     if (this._transformer === undefined) {
-      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config)))
+      this._transformer = new Transformer(Object.values(transformersFactories).map(create => create(this._config, this._log)))
     }
     return this._transformer
+  }
+
+  /**
+   * Initialize a connection with the server
+   *
+   * @param {Object} param0 The params
+   * @param {string} param0.userAgent The user agent
+   * @param {any} param0.authToken The auth token
+   * @param {function(error)} param0.onError On error callback
+   * @param {function(onComplte)} param0.onComplete On complete callback
+   * @returns {LoginObserver} The Login observer
+   */
+  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+    const observer = new LoginObserver({
+      onError: error => this._onLoginError(error, onError),
+      onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
+    })
+
+    this.write(
+      RequestMessage.hello(userAgent, authToken, this._serversideRouting),
+      observer,
+      true
+    )
+
+    return observer
   }
 }
