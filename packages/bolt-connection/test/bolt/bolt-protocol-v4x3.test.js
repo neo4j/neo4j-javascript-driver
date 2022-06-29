@@ -22,12 +22,14 @@ import RequestMessage from '../../src/bolt/request-message'
 import utils from '../test-utils'
 import { RouteObserver } from '../../src/bolt/stream-observers'
 import { internal } from 'neo4j-driver-core'
+import { alloc } from '../../src/channel'
 
 const WRITE = 'WRITE'
 
 const {
   txConfig: { TxConfig },
-  bookmark: { Bookmark }
+  bookmark: { Bookmark },
+  logger: { Logger }
 } = internal
 
 describe('#unit BoltProtocolV4x3', () => {
@@ -179,7 +181,7 @@ describe('#unit BoltProtocolV4x3', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello(clientName, authToken)
+      RequestMessage.hello(clientName, authToken, null, ['utc'])
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
@@ -298,5 +300,72 @@ describe('#unit BoltProtocolV4x3', () => {
         expect(protocol._unpacker._useBigInt).toBe(useBigInt)
       }
     )
+  })
+
+  describe('utc patch', () => {
+    describe('the server accepted the patch', () => {
+      let protocol
+      let buffer
+      let loggerFunction
+
+      beforeEach(() => {
+        buffer = alloc(256)
+        loggerFunction = jest.fn()
+        protocol = new BoltProtocolV4x3(
+          new utils.MessageRecordingConnection(),
+          buffer,
+          { disableLosslessIntegers: true },
+          undefined,
+          new Logger('debug', loggerFunction)
+        )
+        utils.spyProtocolWrite(protocol)
+
+        const clientName = 'js-driver/1.2.3'
+        const authToken = { username: 'neo4j', password: 'secret' }
+
+        const observer = protocol.initialize({ userAgent: clientName, authToken })
+
+        observer.onCompleted({ patch_bolt: ['utc'] })
+
+        buffer.reset()
+      })
+
+      it('should enable utc in the packer and unpacker', () => {
+        expect(protocol._packer.useUtc).toBe(true)
+        expect(protocol._unpacker.useUtc).toBe(true)
+      })
+    })
+
+    describe('the server does not the patch', () => {
+      let protocol
+      let buffer
+      let loggerFunction
+
+      beforeEach(() => {
+        buffer = alloc(256)
+        loggerFunction = jest.fn()
+        protocol = new BoltProtocolV4x3(
+          new utils.MessageRecordingConnection(),
+          buffer,
+          { disableLosslessIntegers: true },
+          undefined,
+          new Logger('debug', loggerFunction)
+        )
+        utils.spyProtocolWrite(protocol)
+
+        const clientName = 'js-driver/1.2.3'
+        const authToken = { username: 'neo4j', password: 'secret' }
+
+        const observer = protocol.initialize({ userAgent: clientName, authToken })
+
+        observer.onCompleted({})
+
+        buffer.reset()
+      })
+      it('should not enable utc in the packer and unpacker', () => {
+        expect(protocol._packer.useUtc).not.toBe(true)
+        expect(protocol._unpacker.useUtc).not.toBe(true)
+      })
+    })
   })
 })

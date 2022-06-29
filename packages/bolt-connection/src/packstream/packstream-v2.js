@@ -18,6 +18,7 @@
  */
 
 import * as v1 from './packstream-v1'
+import * as utc from './packstream-utc'
 import {
   int,
   isInt,
@@ -94,7 +95,9 @@ export class Packer extends v1.Packer {
       return () => packDate(obj, this)
     } else if (isLocalDateTime(obj)) {
       return () => packLocalDateTime(obj, this)
-    } else if (isDateTime(obj)) {
+    } else if (isDateTime(obj) && this.useUtc) {
+      return () => utc.packDateTime(obj, this)
+    } else if (isDateTime(obj) && !this.useUtc) {
       return () => packDateTime(obj, this)
     } else {
       return super.packable(obj)
@@ -151,7 +154,15 @@ export class Unpacker extends v1.Unpacker {
         this._disableLosslessIntegers,
         this._useBigInt
       )
-    } else if (signature === DATE_TIME_WITH_ZONE_OFFSET) {
+    } else if (signature === utc.DATE_TIME_WITH_ZONE_OFFSET && this.useUtc) {
+      return utc.unpackDateTimeWithZoneOffset(
+        this,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers,
+        this._useBigInt
+      )
+    } else if (signature === DATE_TIME_WITH_ZONE_OFFSET && !this.useUtc) {
       return unpackDateTimeWithZoneOffset(
         this,
         structSize,
@@ -159,7 +170,15 @@ export class Unpacker extends v1.Unpacker {
         this._disableLosslessIntegers,
         this._useBigInt
       )
-    } else if (signature === DATE_TIME_WITH_ZONE_ID) {
+    } else if (signature === utc.DATE_TIME_WITH_ZONE_ID && this.useUtc) {
+      return utc.unpackDateTimeWithZoneId(
+        this,
+        structSize,
+        buffer,
+        this._disableLosslessIntegers,
+        this._useBigInt
+      )
+    } else if (signature === DATE_TIME_WITH_ZONE_ID && !this.useUtc) {
       return unpackDateTimeWithZoneId(
         this,
         structSize,

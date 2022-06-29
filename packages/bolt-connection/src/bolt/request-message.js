@@ -106,10 +106,13 @@ export default class RequestMessage {
    * @param {Object} optional server side routing, set to routing context to turn on server side routing (> 4.1)
    * @return {RequestMessage} new HELLO message.
    */
-  static hello (userAgent, authToken, routing = null) {
+  static hello (userAgent, authToken, routing = null, patchs = null) {
     const metadata = Object.assign({ user_agent: userAgent }, authToken)
     if (routing) {
       metadata.routing = routing
+    }
+    if (patchs) {
+      metadata.patch_bolt = patchs
     }
     return new RequestMessage(
       HELLO,
