@@ -589,7 +589,7 @@ describe('#integration driver', () => {
   })
 
   it('hasReachableServer success', async () => {
-    const result = neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}`)
+    const result = await neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}`)
     expect(result).toBe(true)
   })
 
