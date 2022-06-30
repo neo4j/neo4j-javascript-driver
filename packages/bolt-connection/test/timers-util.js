@@ -28,6 +28,7 @@ class SetTimeoutMock {
         code()
         this.invocationDelays.push(delay)
       }
+      this.calls.push([...arguments])
       return this._timeoutIdCounter++
     }
 
@@ -59,6 +60,7 @@ class SetTimeoutMock {
     this._paused = false
     this._timeoutIdCounter = 0
 
+    this.calls = []
     this.invocationDelays = []
     this.clearedTimeouts = []
   }

@@ -19,7 +19,7 @@
 
 import WebSocketChannel from '../../../src/channel/browser/browser-channel'
 import ChannelConfig from '../../../src/channel/channel-config'
-import { error, internal } from 'neo4j-driver-core'
+import { error, internal, newError } from 'neo4j-driver-core'
 import { setTimeoutMock } from '../../timers-util'
 
 const {
@@ -357,6 +357,230 @@ describe('WebSocketChannel', () => {
       } finally {
         fakeSetTimeout.uninstall()
       }
+    })
+  })
+
+  describe('.startReceiveTimeout()', () => {
+    let fakeSetTimeout
+    beforeEach(() => {
+      const address = ServerAddress.fromUrl('http://localhost:8989')
+      const channelConfig = new ChannelConfig(
+        address,
+        { connectionTimeout: 0 },
+        SERVICE_UNAVAILABLE
+      )
+      webSocketChannel = new WebSocketChannel(
+        channelConfig,
+        undefined,
+        createWebSocketFactory(WS_OPEN)
+      )
+      fakeSetTimeout = setTimeoutMock.install()
+      fakeSetTimeout.pause()
+    })
+
+    afterEach(() => {
+      fakeSetTimeout.uninstall()
+    })
+
+    describe('receive timeout is setup', () => {
+      const receiveTimeout = 1000
+      beforeEach(() => {
+        webSocketChannel.setupReceiveTimeout(receiveTimeout)
+      })
+
+      it('should call setTimeout(receiveTimeout) when it call first', () => {
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+        expect(fakeSetTimeout.calls.length).toEqual(1)
+        expect(fakeSetTimeout.calls[0][1]).toEqual(receiveTimeout)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+      })
+
+      it('should call not setTimeout(receiveTimeout) when already started', () => {
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+        expect(fakeSetTimeout.calls.length).toEqual(1)
+        expect(fakeSetTimeout.calls[0][1]).toEqual(receiveTimeout)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+        expect(fakeSetTimeout.calls.length).toEqual(1)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+      })
+
+      it('should call setTimeout(receiveTimeout) after stopped', () => {
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+        expect(fakeSetTimeout.calls.length).toEqual(1)
+        expect(fakeSetTimeout.calls[0][1]).toEqual(receiveTimeout)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+
+        webSocketChannel.stopReceiveTimeout()
+
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(2)
+        expect(fakeSetTimeout.calls.length).toEqual(2)
+        expect(fakeSetTimeout.calls[1][1]).toEqual(receiveTimeout)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([0])
+      })
+
+      describe('on times out', () => {
+        beforeEach(() => {
+          webSocketChannel.startReceiveTimeout()
+        })
+
+        it('should notify the error', () => {
+          webSocketChannel.onerror = jest.fn()
+
+          fakeSetTimeout.calls[0][0]()
+
+          expect(webSocketChannel.onerror).toBeCalledWith(newError(
+            'Connection lost. Server didn\'t respond in 1000ms',
+            webSocketChannel._config.connectionErrorCode
+          ))
+        })
+
+        it('should close the connection', () => {
+          fakeSetTimeout.calls[0][0]()
+
+          expect(webSocketChannel._ws.readyState).toBe(WS_CLOSED)
+        })
+
+        it('should close the timedout', () => {
+          fakeSetTimeout.calls[0][0]()
+
+          expect(webSocketChannel._timedout).toBe(true)
+        })
+
+        describe('onmessage', () => {
+          it('should not reset the timer', () => {
+            fakeSetTimeout.calls[0][0]()
+
+            webSocketChannel._ws.onmessage('')
+
+            expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+            expect(fakeSetTimeout.calls.length).toEqual(1)
+          })
+        })
+      })
+
+      describe('onmessage', () => {
+        it('should reset the timer', () => {
+          webSocketChannel.startReceiveTimeout()
+
+          expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+          expect(fakeSetTimeout.calls.length).toEqual(1)
+          expect(fakeSetTimeout.calls[0][1]).toEqual(receiveTimeout)
+          expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+
+          webSocketChannel._ws.onmessage('')
+
+          expect(fakeSetTimeout._timeoutIdCounter).toEqual(2)
+          expect(fakeSetTimeout.calls.length).toEqual(2)
+          expect(fakeSetTimeout.calls[1][1]).toEqual(receiveTimeout)
+          expect(fakeSetTimeout.clearedTimeouts).toEqual([0])
+        })
+      })
+    })
+
+    describe('receive timeout is not setup', () => {
+      it('should not call setTimeout(receiveTimeout) when not configured', () => {
+        // start
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(0)
+      })
+
+      describe('onmessage', () => {
+        it('should reset the timer', () => {
+          webSocketChannel.startReceiveTimeout()
+
+          webSocketChannel._ws.onmessage('')
+
+          expect(fakeSetTimeout._timeoutIdCounter).toEqual(0)
+          expect(fakeSetTimeout.calls.length).toEqual(0)
+        })
+      })
+    })
+  })
+
+  describe('.stopReceiveTimeout()', () => {
+    let fakeSetTimeout
+    beforeEach(() => {
+      const address = ServerAddress.fromUrl('http://localhost:8989')
+      const channelConfig = new ChannelConfig(
+        address,
+        { connectionTimeout: 0 },
+        SERVICE_UNAVAILABLE
+      )
+      webSocketChannel = new WebSocketChannel(
+        channelConfig,
+        undefined,
+        createWebSocketFactory(WS_OPEN)
+      )
+      fakeSetTimeout = setTimeoutMock.install()
+      fakeSetTimeout.pause()
+    })
+
+    afterEach(() => {
+      fakeSetTimeout.uninstall()
+    })
+
+    describe('receive timeout is setup', () => {
+      const receiveTimeout = 1000
+      beforeEach(() => {
+        webSocketChannel.setupReceiveTimeout(receiveTimeout)
+      })
+
+      it('should not clear timeout when it is not started', () => {
+        webSocketChannel.stopReceiveTimeout()
+
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+      })
+
+      it('should clear timeout when it is started', () => {
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+        expect(fakeSetTimeout.calls.length).toEqual(1)
+        expect(fakeSetTimeout.calls[0][1]).toEqual(receiveTimeout)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+
+        webSocketChannel.stopReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+        expect(fakeSetTimeout.calls.length).toEqual(1)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([0])
+      })
+
+      describe('onmessage', () => {
+        it('should reset the timer when stoped', () => {
+          webSocketChannel.startReceiveTimeout()
+          webSocketChannel.stopReceiveTimeout()
+
+          webSocketChannel._ws.onmessage('')
+
+          expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+          expect(fakeSetTimeout.calls.length).toEqual(1)
+        })
+      })
+    })
+
+    describe('receive timeout is not setup', () => {
+      it('should not call clearTimeout() when not configured', () => {
+        // start
+        webSocketChannel.startReceiveTimeout()
+        webSocketChannel.stopReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(0)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+      })
     })
   })
 
