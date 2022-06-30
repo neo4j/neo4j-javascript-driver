@@ -99,6 +99,18 @@ class ConnectionProvider {
   }
 
   /**
+   * Returns the protocol version negotiated via handshake.
+   *
+   * Note that this function call _always_ causes a round-trip to the server.
+   *
+   * @returns {Promise<number>} the protocol version negotiated via handshake.
+   * @throws {Error} When protocol negotiation fails
+   */
+  getNegotiatedProtocolVersion (): Promise<number> {
+    throw Error('Not Implemented')
+  }
+
+  /**
    * Closes this connection provider along with its internals (connections, pools, etc.)
    *
    * @returns {Promise<void>}

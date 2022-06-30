@@ -92,6 +92,13 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
     )
   }
 
+  getNegotiatedProtocolVersion () {
+    return new Promise((resolve, reject) => {
+      this._hasProtocolVersion(resolve)
+        .catch(reject)
+    })
+  }
+
   async supportsTransactionConfig () {
     return await this._hasProtocolVersion(
       version => version >= BOLT_PROTOCOL_V3

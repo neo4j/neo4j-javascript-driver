@@ -221,6 +221,19 @@ class Driver {
   }
 
   /**
+   * Returns the protocol version negotiated via handshake.
+   *
+   * Note that this function call _always_ causes a round-trip to the server.
+   *
+   * @returns {Promise<number>} the protocol version negotiated via handshake.
+   * @throws {Error} When protocol negotiation fails
+   */
+  getNegotiatedProtocolVersion (): Promise<number> {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.getNegotiatedProtocolVersion()
+  }
+
+  /**
    * Returns boolean to indicate if driver has been configured with encryption enabled.
    *
    * @returns {boolean}

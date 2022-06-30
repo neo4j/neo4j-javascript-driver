@@ -305,6 +305,26 @@ function driver (url, authToken, config = {}) {
   }
 }
 
+/**
+ * Method which veirfies if the driver is server is reachable.
+ *
+ * @experimental
+ * @since 5.0.0
+ * @param {string} url The URL for the Neo4j database, for instance "neo4j://localhost" and/or "bolt://localhost"
+ * @param {object} config Configuration object. See the {@link driver}
+ * @returns {true} When the server is reachable
+ * @throws {Error} When the server is not reacheable or the url is invalid
+ */
+async function hasReachableServer (url, config) {
+  const nonLoggedDriver = driver(url, { scheme: 'none', principal: '', credentials: '' }, config)
+  try {
+    await nonLoggedDriver.getNegotiatedProtocolVersion()
+    return true
+  } finally {
+    await nonLoggedDriver.close()
+  }
+}
+
 const USER_AGENT = 'neo4j-javascript/' + VERSION
 
 /**
@@ -385,6 +405,7 @@ const temporal = {
  */
 const forExport = {
   driver,
+  hasReachableServer,
   int,
   isInt,
   isPoint,
@@ -437,6 +458,7 @@ const forExport = {
 
 export {
   driver,
+  hasReachableServer,
   int,
   isInt,
   isPoint,
