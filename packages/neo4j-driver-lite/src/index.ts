@@ -329,14 +329,14 @@ function driver (
 }
 
 /**
- * Method which veirfies if the driver is server is reachable.
+ * Verifies if the driver can reach a server at the given url.
  *
  * @experimental
  * @since 5.0.0
  * @param {string} url The URL for the Neo4j database, for instance "neo4j://localhost" and/or "bolt://localhost"
  * @param {Pick<Config, 'logging'>} config Configuration object. See the {@link driver}
  * @returns {true} When the server is reachable
- * @throws {Error} When the server is not reacheable or the url is invalid
+ * @throws {Error} When the server is not reachable or the url is invalid
  */
 async function hasReachableServer (url: string, config?: Pick<Config, 'logging'>): Promise<true> {
   const nonLoggedDriver = driver(url, { scheme: 'none', principal: '', credentials: '' }, config)
