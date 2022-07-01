@@ -306,7 +306,7 @@ function driver (url, authToken, config = {}) {
 }
 
 /**
- * Method which veirfies if the driver is server is reachable.
+ * Verifies if the driver can reach a server at the given url.
  *
  * @experimental
  * @since 5.0.0
