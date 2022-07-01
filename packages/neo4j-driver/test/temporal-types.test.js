@@ -1400,6 +1400,12 @@ describe('#integration temporal-types', () => {
     verifyTimeZoneOffset(neo4jDateTime5, -1 * 150 * 60, '-02:30')
   }, 60000)
 
+  it('should not create DateTime with invalid ZoneId', () => {
+    expect(() => dateTimeWithZoneId(1999, 10, 1, 10, 15, 0, 0, 'Europe/Neo4j')).toThrowError(
+      'Time zone ID is expected to be a valid ZoneId but was "Europe/Neo4j"'
+    )
+  })
+
   function testSendAndReceiveRandomTemporalValues (valueGenerator) {
     const asyncFunction = (index, callback) => {
       testSendReceiveTemporalValue(valueGenerator())

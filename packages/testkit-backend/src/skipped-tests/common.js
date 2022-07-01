@@ -1,8 +1,11 @@
-import skip, { ifEquals, ifEndsWith } from './skip'
+import skip, { ifEquals, ifEndsWith, endsWith, ifStartsWith, startsWith, not } from './skip'
 
 const skippedTests = [
   skip(
     'Driver does not return offset for old DateTime implementations',
+    ifStartsWith('stub.types.test_temporal_types.TestTemporalTypes')
+      .and(not(startsWith('stub.types.test_temporal_types.TestTemporalTypesV5')))
+      .and(endsWith('test_zoned_date_time')),
     ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_nested_datetime'),
     ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_should_echo_all_timezone_ids'),
     ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_cypher_created_datetime')

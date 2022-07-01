@@ -154,7 +154,7 @@ describe('#unit BoltProtocolV2', () => {
       ['Time', new Time(1, 1, 1, 1, 1)],
       ['Date', new Date(1, 1, 1)],
       ['LocalDateTime', new LocalDateTime(1, 1, 1, 1, 1, 1, 1)],
-      ['DateTimeWithZoneId', new DateTime(1, 1, 1, 1, 1, 1, 1, undefined, 'America/Sao Paulo')],
+      ['DateTimeWithZoneId', new DateTime(1, 1, 1, 1, 1, 1, 1, undefined, 'America/Sao_Paulo')],
       ['DateTime', new DateTime(1, 1, 1, 1, 1, 1, 1, 1)],
       ['Point2D', new Point(1, 1, 1)],
       ['Point3D', new Point(1, 1, 1, 1)]
@@ -380,7 +380,7 @@ describe('#unit BoltProtocolV2', () => {
       ],
       [
         'DateTimeWithZoneId with more fields',
-        new structure.Structure(0x66, [1, 2, 'America/Sao Paulo', 'Brasil'])
+        new structure.Structure(0x66, [1, 2, 'America/Sao_Paulo', 'Brasil'])
       ]
     ])('should not unpack with wrong size (%s)', (_, struct) => {
       const buffer = alloc(256)
@@ -396,7 +396,8 @@ describe('#unit BoltProtocolV2', () => {
 
       buffer.reset()
 
-      expect(() => protocol.unpack(buffer)).toThrowErrorMatchingSnapshot()
+      const unpacked = protocol.unpack(buffer)
+      expect(() => unpacked instanceof structure.Structure).toThrowErrorMatchingSnapshot()
     })
 
     it.each([
@@ -442,8 +443,8 @@ describe('#unit BoltProtocolV2', () => {
       ],
       [
         'DateTimeWithZoneId',
-        new structure.Structure(0x66, [1, 2, 'America/Sao Paulo']),
-        new DateTime(1970, 1, 1, 0, 0, 1, 2, undefined, 'America/Sao Paulo')
+        new structure.Structure(0x66, [1, 2, 'America/Sao_Paulo']),
+        new DateTime(1970, 1, 1, 0, 0, 1, 2, undefined, 'America/Sao_Paulo')
       ]
     ])('should unpack spatial types and temporal types (%s)', (_, struct, object) => {
       const buffer = alloc(256)

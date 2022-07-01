@@ -417,6 +417,16 @@ export function assertValidNanosecond (
   )
 }
 
+export function assertValidZoneId (fieldName: string, zoneId: string): void {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: zoneId })
+  } catch (e) {
+    throw newError(
+      `${fieldName} is expected to be a valid ZoneId but was: "${zoneId}"`
+    )
+  }
+}
+
 /**
  * Check if the given value is of expected type and is in the expected range.
  * @param {Integer|number} value the value to check.

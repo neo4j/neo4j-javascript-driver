@@ -568,7 +568,8 @@ describe('#unit BoltProtocolV1', () => {
 
       buffer.reset()
 
-      expect(() => protocol.unpack(buffer)).toThrowErrorMatchingSnapshot()
+      const unpacked = protocol.unpack(buffer)
+      expect(() => unpacked instanceof structure.Structure).toThrowErrorMatchingSnapshot()
     })
 
     it.each([
@@ -580,7 +581,7 @@ describe('#unit BoltProtocolV1', () => {
       ['Date', new structure.Structure(0x44, [1])],
       ['LocalDateTime', new structure.Structure(0x64, [1, 2])],
       ['DateTimeWithZoneOffset', new structure.Structure(0x46, [1, 2, 3])],
-      ['DateTimeWithZoneId', new structure.Structure(0x66, [1, 2, 'America/Sao Paulo'])]
+      ['DateTimeWithZoneId', new structure.Structure(0x66, [1, 2, 'America/Sao_Paulo'])]
     ])('should unpack future structs as structs (%s)', (_, struct) => {
       const buffer = alloc(256)
       const protocol = new BoltProtocolV1(
