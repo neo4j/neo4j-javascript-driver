@@ -275,6 +275,65 @@ describe('#unit Bolt', () => {
         expect(receivedMessage.signature).toEqual(expectedMessage.signature)
         expect(receivedMessage.fields).toEqual(expectedMessage.fields)
       })
+
+      it(`it should configure the channel.onmessage to dechunk and notify unpacking issues ${version}`, () => {
+        const params = createBoltCreateParams({ version })
+        let receivedMessage = null
+        const message = {
+          signature: 0x10,
+          fields: [123]
+        }
+        const protocol = Bolt.create(params)
+        protocol._responseHandler.handleResponse = msg => {
+          receivedMessage = msg
+        }
+
+        protocol.packer().packStruct(
+          message.signature,
+          message.fields.map(field => protocol.packer().packable(field))
+        )
+
+        params.chunker.messageBoundary()
+        params.chunker.flush()
+
+        const expectedError = newError('Something went wrong')
+        protocol.unpacker = jest.fn(() => {
+          return {
+            unpack: () => { 
+              throw expectedError
+            }
+          }
+        })
+
+        params.channel.onmessage(params.channel.toBuffer())
+
+        expect(receivedMessage).toBeNull()
+        expect(params.observer.errors).toEqual([expectedError])
+      })
+
+      it(`it should configure the channel.onmessage to dechunk and notify response handler issues ${version}`, () => {
+        const params = createBoltCreateParams({ version })
+        let receivedMessage = null
+        const expectedMessage = {
+          signature: 0x10,
+          fields: [123]
+        }
+        const protocol = Bolt.create(params)
+        const expectedError = newError('Something went wrong')
+        protocol._responseHandler.handleResponse = msg => {
+          throw expectedError
+        }
+
+        protocol.packer().packStruct(
+          expectedMessage.signature,
+          expectedMessage.fields.map(field => protocol.packer().packable(field))
+        )
+        params.chunker.messageBoundary()
+        params.chunker.flush()
+        params.channel.onmessage(params.channel.toBuffer())
+
+        expect(params.observer.errors).toEqual([expectedError])
+      })
     })
 
     forEachUnknownProtocolVersion(version => {
