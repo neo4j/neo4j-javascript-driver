@@ -53,6 +53,9 @@ export default class WebSocketChannel {
     this._error = null
     this._handleConnectionError = this._handleConnectionError.bind(this)
     this._config = config
+    this._receiveTimeout = null
+    this._receiveTimeoutStarted = false
+    this._receiveTimeoutId = null
 
     const { scheme, error } = determineWebSocketScheme(config, protocolSupplier)
     if (error) {
@@ -84,6 +87,7 @@ export default class WebSocketChannel {
       }
     }
     this._ws.onmessage = event => {
+      this._resetTimeout()
       if (self.onmessage) {
         const b = new ChannelBuffer(event.data)
         self.onmessage(b)
@@ -111,7 +115,7 @@ export default class WebSocketChannel {
     }
 
     // onerror triggers on websocket close as well.. don't get me started.
-    if (this._open) {
+    if (this._open && !this._timedout) {
       // http://stackoverflow.com/questions/25779831/how-to-catch-websocket-connection-to-ws-xxxnn-failed-connection-closed-be
       this._error = newError(
         'WebSocket connection failure. Due to security ' +
@@ -181,18 +185,56 @@ export default class WebSocketChannel {
    * @param {number} receiveTimeout The amount of time the channel will keep without receive any data before timeout (ms)
    * @returns {void}
    */
-  setupReceiveTimeout (receiveTimeout) {}
+  setupReceiveTimeout (receiveTimeout) {
+    this._receiveTimeout = receiveTimeout
+  }
 
   /**
    * Stops the receive timeout for the channel.
    */
   stopReceiveTimeout () {
+    if (this._receiveTimeout !== null && this._receiveTimeoutStarted) {
+      this._receiveTimeoutStarted = false
+      if (this._receiveTimeoutId != null) {
+        clearTimeout(this._receiveTimeoutId)
+      }
+      this._receiveTimeoutId = null
+    }
   }
 
   /**
    * Start the receive timeout for the channel.
    */
   startReceiveTimeout () {
+    if (this._receiveTimeout !== null && !this._receiveTimeoutStarted) {
+      this._receiveTimeoutStarted = true
+      this._resetTimeout()
+    }
+  }
+
+  _resetTimeout () {
+    if (!this._receiveTimeoutStarted) {
+      return
+    }
+
+    if (this._receiveTimeoutId !== null) {
+      clearTimeout(this._receiveTimeoutId)
+    }
+
+    this._receiveTimeoutId = setTimeout(() => {
+      this._receiveTimeoutId = null
+      this._timedout = true
+      this.stopReceiveTimeout()
+      this._error = newError(
+        `Connection lost. Server didn't respond in ${this._receiveTimeout}ms`,
+        this._config.connectionErrorCode
+      )
+
+      this.close()
+      if (this.onerror) {
+        this.onerror(this._error)
+      }
+    }, this._receiveTimeout)
   }
 
   /**
