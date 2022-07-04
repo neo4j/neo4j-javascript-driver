@@ -26,6 +26,14 @@ import {
 } from '../src/error'
 
 describe('newError', () => {
+  let supportsCause = false
+  beforeAll(() => {
+    // @ts-expect-error
+    const error = new Error('a', { cause: new Error('a') })
+    // @ts-expect-error
+    supportsCause = error.cause != null
+  })
+
   ;[PROTOCOL_ERROR, SERVICE_UNAVAILABLE, SESSION_EXPIRED].forEach(
     expectedCode => {
       test(`should create Neo4jError for code ${expectedCode}`, () => {
@@ -42,6 +50,31 @@ describe('newError', () => {
 
     expect(error.message).toEqual('some error')
     expect(error.code).toEqual('N/A')
+  })
+
+  test('should create Neo4jErro with cause', () => {
+    const cause = new Error('cause')
+    const error: Neo4jError = newError('some error', undefined, cause)
+
+    expect(error.message).toEqual('some error')
+    expect(error.code).toEqual('N/A')
+    if (supportsCause) {
+      // @ts-expect-error
+      expect(error.cause).toBe(cause)
+    } else {
+      // @ts-expect-error
+      expect(error.cause).toBeUndefined()
+    }
+  })
+
+  test.each([null, undefined])('should create Neo4jErro without cause (%s)', (cause) => {
+    // @ts-expect-error
+    const error: Neo4jError = newError('some error', undefined, cause)
+
+    expect(error.message).toEqual('some error')
+    expect(error.code).toEqual('N/A')
+    // @ts-expect-error
+    expect(error.cause).toBeUndefined()
   })
 })
 

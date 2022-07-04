@@ -1701,6 +1701,8 @@ describe('#unit RoutingConnectionProvider', () => {
             'Server at server-non-existing-seed-router:7687 can\'t ' +
              'perform routing. Make sure you are connecting to a causal cluster'
           )
+          // Error should be the cause of the given capturedError
+          expect(capturedError).toEqual(newError(capturedError.message, capturedError.code, error))
         }
 
         expect(completed).toBe(false)
@@ -1728,6 +1730,9 @@ describe('#unit RoutingConnectionProvider', () => {
             'Could not perform discovery. ' +
             'No routing servers available. Known routing table: '
           ))
+
+          // Error should be the cause of the given capturedError
+          expect(capturedError).toEqual(newError(capturedError.message, capturedError.code, error))
         }
 
         expect(completed).toBe(false)
