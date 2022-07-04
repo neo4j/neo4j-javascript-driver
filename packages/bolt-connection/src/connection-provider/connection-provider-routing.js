@@ -244,6 +244,13 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
   }
 
+  getNegotiatedProtocolVersion () {
+    return new Promise((resolve, reject) => {
+      this._hasProtocolVersion(resolve)
+        .catch(reject)
+    })
+  }
+
   async verifyConnectivityAndGetServerInfo ({ database, accessMode }) {
     const context = { database: database || DEFAULT_DB_NAME }
 

@@ -222,7 +222,8 @@ describe('index', () => {
         supportsMultiDb: async () => true,
         supportsTransactionConfig: async () => true,
         supportsUserImpersonation: async () => true,
-        verifyConnectivityAndGetServerInfo: async () => new ServerInfo({})
+        verifyConnectivityAndGetServerInfo: async () => new ServerInfo({}),
+        getNegotiatedProtocolVersion: async () => 5.0
       }
     })
     expect(session).toBeDefined()

@@ -100,6 +100,11 @@ declare function driver (
   config?: Config
 ): Driver
 
+declare function hasReachableServer (
+  url: string,
+  config?: Pick<Config, 'logging'>
+): Promise<true>
+
 declare const types: {
   Node: typeof Node
   Relationship: typeof Relationship
@@ -158,6 +163,7 @@ declare const temporal: {
 
 declare const forExport: {
   driver: typeof driver
+  hasReachableServer: typeof hasReachableServer
   int: typeof int
   isInt: typeof isInt
   integer: typeof integer
@@ -218,6 +224,7 @@ declare const forExport: {
 
 export {
   driver,
+  hasReachableServer,
   int,
   isInt,
   integer,
