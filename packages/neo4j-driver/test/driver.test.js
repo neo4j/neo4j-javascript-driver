@@ -589,19 +589,13 @@ describe('#integration driver', () => {
   })
 
   it('hasReachableServer success', async () => {
-    const result = await neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}`)
-    expect(result).toBe(true)
+    await expectAsync(neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}`))
+      .toBeResolvedTo(true)
   })
 
   it('hasReachableServer failure', async () => {
-    let success = false
-    try {
-      await neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}:9999`)
-      success = true
-    } catch (error) {
-      expect(error).toBeInstanceOf(Error)
-    }
-    expect(success).toEqual(false)
+    await expectAsync(neo4j.hasReachableServer(`${sharedNeo4j.scheme}://${sharedNeo4j.hostname}:9999`))
+      .toBeRejected()
   })
 
   const integersWithNativeNumberEquivalent = [
