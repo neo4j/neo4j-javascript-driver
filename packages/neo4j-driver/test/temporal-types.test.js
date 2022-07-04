@@ -44,8 +44,8 @@ const MIN_YEAR = -MAX_YEAR
 const MAX_TIME_ZONE_OFFSET = 64800
 const MIN_TIME_ZONE_OFFSET = -MAX_TIME_ZONE_OFFSET
 const SECONDS_PER_MINUTE = 60
-const MIN_ZONE_ID = 'Etc/GMT+12'
-const MAX_ZONE_ID = 'Etc/GMT-14'
+const MIN_ZONE_ID = 'Pacific/Samoa'
+const MAX_ZONE_ID = 'Pacific/Kiritimati'
 const ZONE_IDS = ['Europe/Zaporozhye', 'Europe/London', 'UTC', 'Africa/Cairo']
 
 describe('#integration temporal-types', () => {
