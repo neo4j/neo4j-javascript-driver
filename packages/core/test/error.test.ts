@@ -67,7 +67,7 @@ describe('newError', () => {
     }
   })
 
-  test.each([null, undefined])('should create Neo4jErro without cause (%s)', (cause) => {
+  test.each([null, undefined])('should create Neo4jError without cause (%s)', (cause) => {
     // @ts-expect-error
     const error: Neo4jError = newError('some error', undefined, cause)
 
