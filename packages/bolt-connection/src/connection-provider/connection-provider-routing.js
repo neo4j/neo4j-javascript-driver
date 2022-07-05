@@ -121,7 +121,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this.forgetWriter(address, database || DEFAULT_DB_NAME)
     return newError(
       'No longer possible to write to server at ' + address,
-      SESSION_EXPIRED
+      SESSION_EXPIRED,
+      error
     )
   }
 
@@ -345,7 +346,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   ) {
     // we start with seed router, no routers were probed before
     const seenRouters = []
-    let newRoutingTable = await this._fetchRoutingTableUsingSeedRouter(
+    let [newRoutingTable, error] = await this._fetchRoutingTableUsingSeedRouter(
       seenRouters,
       this._seedRouter,
       currentRoutingTable,
@@ -357,18 +358,21 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       this._useSeedRouter = false
     } else {
       // seed router did not return a valid routing table - try to use other known routers
-      newRoutingTable = await this._fetchRoutingTableUsingKnownRouters(
+      const [newRoutingTable2, error2] = await this._fetchRoutingTableUsingKnownRouters(
         knownRouters,
         currentRoutingTable,
         bookmarks,
         impersonatedUser
       )
+      newRoutingTable = newRoutingTable2
+      error = error2 || error
     }
 
     return await this._applyRoutingTableIfPossible(
       currentRoutingTable,
       newRoutingTable,
-      onDatabaseNameResolved
+      onDatabaseNameResolved,
+      error
     )
   }
 
@@ -379,7 +383,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     impersonatedUser,
     onDatabaseNameResolved
   ) {
-    let newRoutingTable = await this._fetchRoutingTableUsingKnownRouters(
+    let [newRoutingTable, error] = await this._fetchRoutingTableUsingKnownRouters(
       knownRouters,
       currentRoutingTable,
       bookmarks,
@@ -388,7 +392,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
     if (!newRoutingTable) {
       // none of the known routers returned a valid routing table - try to use seed router address for rediscovery
-      newRoutingTable = await this._fetchRoutingTableUsingSeedRouter(
+      [newRoutingTable, error] = await this._fetchRoutingTableUsingSeedRouter(
         knownRouters,
         this._seedRouter,
         currentRoutingTable,
@@ -400,7 +404,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return await this._applyRoutingTableIfPossible(
       currentRoutingTable,
       newRoutingTable,
-      onDatabaseNameResolved
+      onDatabaseNameResolved,
+      error
     )
   }
 
@@ -410,7 +415,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     bookmarks,
     impersonatedUser
   ) {
-    const newRoutingTable = await this._fetchRoutingTable(
+    const [newRoutingTable, error] = await this._fetchRoutingTable(
       knownRouters,
       currentRoutingTable,
       bookmarks,
@@ -419,7 +424,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
     if (newRoutingTable) {
       // one of the known routers returned a valid routing table - use it
-      return newRoutingTable
+      return [newRoutingTable, null]
     }
 
     // returned routing table was undefined, this means a connection error happened and the last known
@@ -431,7 +436,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       lastRouterIndex
     )
 
-    return null
+    return [null, error]
   }
 
   async _fetchRoutingTableUsingSeedRouter (
@@ -460,14 +465,14 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return [].concat.apply([], dnsResolvedAddresses)
   }
 
-  _fetchRoutingTable (routerAddresses, routingTable, bookmarks, impersonatedUser) {
+  async _fetchRoutingTable (routerAddresses, routingTable, bookmarks, impersonatedUser) {
     return routerAddresses.reduce(
       async (refreshedTablePromise, currentRouter, currentIndex) => {
-        const newRoutingTable = await refreshedTablePromise
+        const [newRoutingTable] = await refreshedTablePromise
 
         if (newRoutingTable) {
           // valid routing table was fetched - just return it, try next router otherwise
-          return newRoutingTable
+          return [newRoutingTable, null]
         } else {
           // returned routing table was undefined, this means a connection error happened and we need to forget the
           // previous router and try the next one
@@ -480,19 +485,19 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         }
 
         // try next router
-        const session = await this._createSessionForRediscovery(
+        const [session, error] = await this._createSessionForRediscovery(
           currentRouter,
           bookmarks,
           impersonatedUser
         )
         if (session) {
           try {
-            return await this._rediscovery.lookupRoutingTableOnRouter(
+            return [await this._rediscovery.lookupRoutingTableOnRouter(
               session,
               routingTable.database,
               currentRouter,
               impersonatedUser
-            )
+            ), null]
           } catch (error) {
             return this._handleRediscoveryError(error, currentRouter)
           } finally {
@@ -501,10 +506,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         } else {
           // unable to acquire connection and create session towards the current router
           // return null to signal that the next router should be tried
-          return null
+          return [null, error]
         }
       },
-      Promise.resolve(null)
+      Promise.resolve([null, null])
     )
   }
 
@@ -522,20 +527,20 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
       const protocolVersion = connection.protocol().version
       if (protocolVersion < 4.0) {
-        return new Session({
+        return [new Session({
           mode: WRITE,
           bookmarks: Bookmarks.empty(),
           connectionProvider
-        })
+        }), null]
       }
 
-      return new Session({
+      return [new Session({
         mode: READ,
         database: SYSTEM_DB_NAME,
         bookmarks,
         connectionProvider,
         impersonatedUser
-      })
+      }), null]
     } catch (error) {
       return this._handleRediscoveryError(error, routerAddress)
     }
@@ -548,21 +553,23 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       // throw when getServers procedure not found because this is clearly a configuration issue
       throw newError(
         `Server at ${routerAddress.asHostPort()} can't perform routing. Make sure you are connecting to a causal cluster`,
-        SERVICE_UNAVAILABLE
+        SERVICE_UNAVAILABLE,
+        error
       )
     }
     this._log.warn(
       `unable to fetch routing table because of an error ${error}`
     )
-    return null
+    return [null, error]
   }
 
-  async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable, onDatabaseNameResolved) {
+  async _applyRoutingTableIfPossible (currentRoutingTable, newRoutingTable, onDatabaseNameResolved, error) {
     if (!newRoutingTable) {
       // none of routing servers returned valid routing table, throw exception
       throw newError(
         `Could not perform discovery. No routing servers available. Known routing table: ${currentRoutingTable}`,
-        SERVICE_UNAVAILABLE
+        SERVICE_UNAVAILABLE,
+        error
       )
     }
 

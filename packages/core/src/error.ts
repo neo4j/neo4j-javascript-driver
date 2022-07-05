@@ -70,8 +70,9 @@ class Neo4jError extends Error {
    * @param {string} message - the error message
    * @param {string} code - Optional error code. Will be populated when error originates in the database.
    */
-  constructor (message: string, code: Neo4jErrorCode) {
-    super(message)
+  constructor (message: string, code: Neo4jErrorCode, cause?: Error) {
+    // @ts-expect-error
+    super(message, cause != null ? { cause } : undefined)
     this.constructor = Neo4jError
     // eslint-disable-next-line no-proto
     this.__proto__ = Neo4jError.prototype
@@ -105,8 +106,8 @@ class Neo4jError extends Error {
  * @return {Neo4jError} an {@link Neo4jError}
  * @private
  */
-function newError (message: string, code?: Neo4jErrorCode): Neo4jError {
-  return new Neo4jError(message, code ?? NOT_AVAILABLE)
+function newError (message: string, code?: Neo4jErrorCode, cause?: Error): Neo4jError {
+  return new Neo4jError(message, code ?? NOT_AVAILABLE, cause)
 }
 
 /**

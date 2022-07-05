@@ -41,7 +41,15 @@ const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const READ = 'READ'
 const WRITE = 'WRITE'
 
-describe('#unit RoutingConnectionProvider', () => {
+describe.each([
+  3,
+  4.0,
+  4.1,
+  4.2,
+  4.3,
+  4.4,
+  5.0
+])('#unit RoutingConnectionProvider (PROTOCOL_VERSION=%d)', (PROTOCOL_VERSION) => {
   const server0 = ServerAddress.fromUrl('server0')
   const server1 = ServerAddress.fromUrl('server1')
   const server2 = ServerAddress.fromUrl('server2')
@@ -1701,6 +1709,8 @@ describe('#unit RoutingConnectionProvider', () => {
             'Server at server-non-existing-seed-router:7687 can\'t ' +
              'perform routing. Make sure you are connecting to a causal cluster'
           )
+          // Error should be the cause of the given capturedError
+          expect(capturedError).toEqual(newError(capturedError.message, capturedError.code, error))
         }
 
         expect(completed).toBe(false)
@@ -1728,6 +1738,9 @@ describe('#unit RoutingConnectionProvider', () => {
             'Could not perform discovery. ' +
             'No routing servers available. Known routing table: '
           ))
+
+          // Error should be the cause of the given capturedError
+          expect(capturedError).toEqual(newError(capturedError.message, capturedError.code, error))
         }
 
         expect(completed).toBe(false)
@@ -2917,71 +2930,88 @@ describe('#unit RoutingConnectionProvider', () => {
       })
     })
   })
-})
 
-function newRoutingConnectionProvider (
-  routingTables,
-  pool = null,
-  routerToRoutingTable = { null: {} }
-) {
-  const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
-  return newRoutingConnectionProviderWithSeedRouter(
+  function newPool ({ create, config } = {}) {
+    const _create = (address, release) => {
+      if (create) {
+        try {
+          return Promise.resolve(create(address, release))
+        } catch (e) {
+          return Promise.reject(e)
+        }
+      }
+      return Promise.resolve(new FakeConnection(address, release, 'version', PROTOCOL_VERSION))
+    }
+    return new Pool({
+      config,
+      create: (address, release) => _create(address, release)
+    })
+  }
+
+  function newRoutingConnectionProviderWithSeedRouter (
     seedRouter,
-    [seedRouter],
+    seedRouterResolved,
     routingTables,
-    routerToRoutingTable,
-    pool
-  )
-}
+    routerToRoutingTable = { null: {} },
+    connectionPool = null,
+    routingTablePurgeDelay = null,
+    fakeRediscovery = null
+  ) {
+    const pool = connectionPool || newPool()
+    const connectionProvider = new RoutingConnectionProvider({
+      id: 0,
+      address: seedRouter,
+      routingContext: {},
+      hostNameResolver: new SimpleHostNameResolver(),
+      config: {},
+      log: Logger.noOp(),
+      routingTablePurgeDelay: routingTablePurgeDelay
+    })
+    connectionProvider._connectionPool = pool
+    routingTables.forEach(r => {
+      connectionProvider._routingTableRegistry.register(r)
+    })
+    connectionProvider._rediscovery =
+      fakeRediscovery || new FakeRediscovery(routerToRoutingTable)
+    connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
+    connectionProvider._useSeedRouter = routingTables.every(
+      r => r.expirationTime !== Integer.ZERO
+    )
+    return connectionProvider
+  }
 
-function newRoutingConnectionProviderWithFakeRediscovery (
-  fakeRediscovery,
-  pool = null,
-  routerToRoutingTable = { null: {} }
-) {
-  const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
-  return newRoutingConnectionProviderWithSeedRouter(
-    seedRouter,
-    [seedRouter],
-    [],
-    routerToRoutingTable,
-    pool,
-    null,
-    fakeRediscovery
-  )
-}
+  function newRoutingConnectionProvider (
+    routingTables,
+    pool = null,
+    routerToRoutingTable = { null: {} }
+  ) {
+    const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
+    return newRoutingConnectionProviderWithSeedRouter(
+      seedRouter,
+      [seedRouter],
+      routingTables,
+      routerToRoutingTable,
+      pool
+    )
+  }
 
-function newRoutingConnectionProviderWithSeedRouter (
-  seedRouter,
-  seedRouterResolved,
-  routingTables,
-  routerToRoutingTable = { null: {} },
-  connectionPool = null,
-  routingTablePurgeDelay = null,
-  fakeRediscovery = null
-) {
-  const pool = connectionPool || newPool()
-  const connectionProvider = new RoutingConnectionProvider({
-    id: 0,
-    address: seedRouter,
-    routingContext: {},
-    hostNameResolver: new SimpleHostNameResolver(),
-    config: {},
-    log: Logger.noOp(),
-    routingTablePurgeDelay: routingTablePurgeDelay
-  })
-  connectionProvider._connectionPool = pool
-  routingTables.forEach(r => {
-    connectionProvider._routingTableRegistry.register(r)
-  })
-  connectionProvider._rediscovery =
-    fakeRediscovery || new FakeRediscovery(routerToRoutingTable)
-  connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
-  connectionProvider._useSeedRouter = routingTables.every(
-    r => r.expirationTime !== Integer.ZERO
-  )
-  return connectionProvider
-}
+  function newRoutingConnectionProviderWithFakeRediscovery (
+    fakeRediscovery,
+    pool = null,
+    routerToRoutingTable = { null: {} }
+  ) {
+    const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
+    return newRoutingConnectionProviderWithSeedRouter(
+      seedRouter,
+      [seedRouter],
+      [],
+      routerToRoutingTable,
+      pool,
+      null,
+      fakeRediscovery
+    )
+  }
+})
 
 function newRoutingTableWithUser ({
   database,
@@ -3027,23 +3057,6 @@ function setupRoutingConnectionProviderToRememberRouters (
     return originalFetch(routerAddresses, routingTable, bookmarks)
   }
   connectionProvider._fetchRoutingTable = rememberingFetch
-}
-
-function newPool ({ create, config } = {}) {
-  const _create = (address, release) => {
-    if (create) {
-      try {
-        return Promise.resolve(create(address, release))
-      } catch (e) {
-        return Promise.reject(e)
-      }
-    }
-    return Promise.resolve(new FakeConnection(address, release, 'version', 4.0))
-  }
-  return new Pool({
-    config,
-    create: (address, release) => _create(address, release)
-  })
 }
 
 function expectRoutingTable (
