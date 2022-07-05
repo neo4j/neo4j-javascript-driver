@@ -644,9 +644,6 @@ describe('#integration temporal-types', () => {
         'Asia/Yangon'
       ).toString()
     ).toEqual('-30455-05-05T12:24:10.000000123[Asia/Yangon]')
-    expect(
-      dateTimeWithZoneId(248, 12, 30, 23, 59, 59, 3, 'CET').toString()
-    ).toEqual('0248-12-30T23:59:59.000000003[CET]')
   }, 60000)
 
   it('should expose local time components in time', () => {
@@ -1404,7 +1401,7 @@ describe('#integration temporal-types', () => {
 
   it('should not create DateTime with invalid ZoneId', () => {
     expect(() => dateTimeWithZoneId(1999, 10, 1, 10, 15, 0, 0, 'Europe/Neo4j')).toThrowError(
-      'Time zone ID is expected to be a valid ZoneId but was "Europe/Neo4j"'
+      'Time zone ID is expected to be a valid ZoneId but was: "Europe/Neo4j"'
     )
   })
 
