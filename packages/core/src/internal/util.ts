@@ -225,7 +225,7 @@ function isString (str: any): str is string {
 }
 
 /**
- * Creates a object which all method call will thrown the given error
+ * Creates a object which all method call will throw the given error
  *
  * @param {Error} error The error
  * @param {any} object The object. Default: {}
