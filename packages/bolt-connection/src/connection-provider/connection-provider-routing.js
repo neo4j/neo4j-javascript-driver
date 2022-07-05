@@ -520,11 +520,11 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
       const protocolVersion = connection.protocol().version
       if (protocolVersion < 4.0) {
-        return new Session({
+        return [new Session({
           mode: WRITE,
           bookmarks: Bookmarks.empty(),
           connectionProvider
-        })
+        }), null]
       }
 
       return [new Session({
