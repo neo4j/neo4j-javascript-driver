@@ -232,7 +232,7 @@ function isString (str: any): str is string {
  * @returns {any} A broken object
  */
 function createBrokenObject<T extends object> (error: Error, object: any = {}): T {
-  const fail: () => void = () => {
+  const fail: <T>() => T = () => {
     throw error
   }
 
