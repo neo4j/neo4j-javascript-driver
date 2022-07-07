@@ -315,7 +315,9 @@ describe('#unit PackStreamV2', () => {
         new Structure(0x69, [1, 2, 'America/Sao Paulo', 'Brasil'])
       ]
     ])('should not unpack with wrong size (%s)', (_, struct) => {
-      expect(() => packAndUnpack(struct, { useUtc: true })).toThrowErrorMatchingSnapshot()
+      const result = packAndUnpack(struct, { useUtc: true })
+      // Errors are postponed for when the data is accessed.
+      expect(() => result instanceof DateTime).toThrowErrorMatchingSnapshot()
     })
 
     it.each([
@@ -352,7 +354,7 @@ describe('#unit PackStreamV2', () => {
       ],
       [
         'DateTimeWithZoneId/0x66',
-        new Structure(0x66, [1, 2, 'America/Sao Paulo'])
+        new Structure(0x66, [1, 2, 'America/Sao_Paulo'])
       ]
     ])('should unpack deprecated temporal types as unknown structs (%s)', (_, struct) => {
       const unpacked = packAndUnpack(struct, { disableLosslessIntegers: true, useUtc: true})
@@ -368,7 +370,7 @@ describe('#unit PackStreamV2', () => {
       ],
       [
         'DateTimeWithZoneId/0x69',
-        new Structure(0x69, [1, 2, 'America/Sao Paulo'])
+        new Structure(0x69, [1, 2, 'America/Sao_Paulo'])
       ]
     ])('should unpack utc temporal types as unknown structs (%s)', (_, struct) => {
       const unpacked = packAndUnpack(struct, { disableLosslessIntegers: true })
@@ -383,8 +385,8 @@ describe('#unit PackStreamV2', () => {
       ],
       [
         'DateTimeWithZoneId',
-        new Structure(0x66, [int(1), int(2), 'America/Sao Paulo']),
-        new DateTime(1970, 1, 1, 0, 0, 1, 2, undefined, 'America/Sao Paulo')
+        new Structure(0x66, [int(1), int(2), 'America/Sao_Paulo']),
+        new DateTime(1970, 1, 1, 0, 0, 1, 2, undefined, 'America/Sao_Paulo')
       ]
     ])('should unpack temporal types without utc fix (%s)', (_, struct, object) => {
       const unpacked = packAndUnpack(struct, { disableLosslessIntegers: true })
@@ -392,7 +394,7 @@ describe('#unit PackStreamV2', () => {
     })
 
     it.each([
-      ['DateTimeWithZoneId', new DateTime(1, 1, 1, 1, 1, 1, 1, undefined, 'America/Sao Paulo')],
+      ['DateTimeWithZoneId', new DateTime(1, 1, 1, 1, 1, 1, 1, undefined, 'America/Sao_Paulo')],
       ['DateTime', new DateTime(1, 1, 1, 1, 1, 1, 1, 1)]
     ])('should pack temporal types (no utc) (%s)', (_, object) => {
       const unpacked = packAndUnpack(object, { disableLosslessIntegers: true })

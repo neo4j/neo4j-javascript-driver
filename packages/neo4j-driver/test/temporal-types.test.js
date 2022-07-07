@@ -44,8 +44,8 @@ const MIN_YEAR = -MAX_YEAR
 const MAX_TIME_ZONE_OFFSET = 64800
 const MIN_TIME_ZONE_OFFSET = -MAX_TIME_ZONE_OFFSET
 const SECONDS_PER_MINUTE = 60
-const MIN_ZONE_ID = 'Etc/GMT+12'
-const MAX_ZONE_ID = 'Etc/GMT-14'
+const MIN_ZONE_ID = 'Pacific/Samoa'
+const MAX_ZONE_ID = 'Pacific/Kiritimati'
 const ZONE_IDS = ['Europe/Zaporozhye', 'Europe/London', 'UTC', 'Africa/Cairo']
 
 describe('#integration temporal-types', () => {
@@ -644,9 +644,6 @@ describe('#integration temporal-types', () => {
         'Asia/Yangon'
       ).toString()
     ).toEqual('-30455-05-05T12:24:10.000000123[Asia/Yangon]')
-    expect(
-      dateTimeWithZoneId(248, 12, 30, 23, 59, 59, 3, 'CET').toString()
-    ).toEqual('0248-12-30T23:59:59.000000003[CET]')
   }, 60000)
 
   it('should expose local time components in time', () => {
@@ -1400,6 +1397,13 @@ describe('#integration temporal-types', () => {
     const neo4jDateTime5 = neo4j.types.DateTime.fromStandardDate(standardDate5)
     verifyTimeZoneOffset(neo4jDateTime5, -1 * 150 * 60, '-02:30')
   }, 60000)
+
+
+  it('should not create DateTime with invalid ZoneId', () => {
+    expect(() => dateTimeWithZoneId(1999, 10, 1, 10, 15, 0, 0, 'Europe/Neo4j')).toThrowError(
+      'Time zone ID is expected to be a valid ZoneId but was: "Europe/Neo4j"'
+    )
+  })
 
   function testSendAndReceiveRandomTemporalValues (valueGenerator) {
     const asyncFunction = (index, callback) => {

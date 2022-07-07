@@ -28,9 +28,11 @@ import {
   Path,
   PathSegment,
   Relationship,
-  UnboundRelationship
+  UnboundRelationship,
+  internal
 } from 'neo4j-driver-core'
 
+const { util } = internal
 const { PROTOCOL_ERROR } = error
 
 const TINY_STRING = 0x80
@@ -562,15 +564,20 @@ class Unpacker {
   }
 
   _unpackStruct (marker, markerHigh, markerLow, buffer) {
-    if (markerHigh === TINY_STRUCT) {
-      return this._unpackStructWithSize(markerLow, buffer)
-    } else if (marker === STRUCT_8) {
-      return this._unpackStructWithSize(buffer.readUInt8(), buffer)
-    } else if (marker === STRUCT_16) {
-      return this._unpackStructWithSize(buffer.readUInt16(), buffer)
-    } else {
-      return null
+    try {
+      if (markerHigh === TINY_STRUCT) {
+        return this._unpackStructWithSize(markerLow, buffer)
+      } else if (marker === STRUCT_8) {
+        return this._unpackStructWithSize(buffer.readUInt8(), buffer)
+      } else if (marker === STRUCT_16) {
+        return this._unpackStructWithSize(buffer.readUInt16(), buffer)
+      } else {
+        return null
+      }
+    } catch (error) {
+      return util.createBrokenObject(error)
     }
+  
   }
 
   _unpackStructWithSize (structSize, buffer) {
