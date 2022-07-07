@@ -342,9 +342,27 @@ export function StartTest (context, { testName }, wire) {
   }
   const shouldRunTest = context.getShouldRunTestFunction()
   shouldRunTest(testName, {
-    onRun: () => wire.writeResponse(responses.RunTest()),
+    onRun: () => {
+      if (testName === 'neo4j.datatypes.test_temporal_types.TestDataTypes.test_date_time_cypher_created_tz_id') {
+        return wire.writeResponse(responses.RunSubTests())
+      }
+      return wire.writeResponse(responses.RunTest())
+    },
     onSkip: reason => wire.writeResponse(responses.SkipTest({ reason }))
   })
+}
+
+export function StartSubTest (context, { testName, subtestArguments }, wire) {
+  if (testName === 'neo4j.datatypes.test_temporal_types.TestDataTypes.test_date_time_cypher_created_tz_id') {
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone: subtestArguments.tz_id })
+      return wire.writeResponse(responses.RunTest())
+    } catch (e) {
+      wire.writeResponse(responses.SkipTest({ reason: `Unsupported tzid: ${subtestArguments.tz_id}` }))
+    }
+  } else {
+    wire.writeBackendError(`No entry for ${testName} in StartSubTest`)
+  }
 }
 
 export function GetFeatures (context, _params, wire) {

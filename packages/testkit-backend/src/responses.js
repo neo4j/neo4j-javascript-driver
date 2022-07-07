@@ -85,6 +85,10 @@ export function RunTest () {
   return response('RunTest', null)
 }
 
+export function RunSubTests () {
+  return response('RunSubTests', null)
+}
+
 export function SkipTest ({ reason }) {
   return response('SkipTest', { reason })
 }
