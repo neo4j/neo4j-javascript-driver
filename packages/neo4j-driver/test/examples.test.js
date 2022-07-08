@@ -1282,10 +1282,12 @@ describe('#integration examples', () => {
     }, 30000)
 
     it('DateTime', async () => {
+      if (protocolVersion === 5) {
+        return
+      }
       const driver = driverGlobal
       const session = driver.session()
       const standardDate = new Date()
-
       try {
         // tag::temporal-types-datetime[]
         // Creating DateTime from standard javascript Date.

@@ -418,7 +418,8 @@ describe('#integration temporal-types', () => {
       0,
       MAX_TIME_ZONE_OFFSET
     )
-    await testSendReceiveTemporalValue(minDateTime)
+
+    await neo4jServer5xDateTypesImplmentationGuard(async () => await testSendReceiveTemporalValue(minDateTime))
   }, 60000)
 
   it('should send and receive DateTime with zone offset when disableLosslessIntegers=true', async () => {
@@ -427,17 +428,19 @@ describe('#integration temporal-types', () => {
     }
     session = driverWithNativeNumbers.session()
 
-    await testSendReceiveTemporalValue(
-      new neo4j.types.DateTime(
-        2022,
-        2,
-        7,
-        17,
-        15,
-        59,
-        12399,
-        MAX_TIME_ZONE_OFFSET,
-        null
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testSendReceiveTemporalValue(
+        new neo4j.types.DateTime(
+          2022,
+          2,
+          7,
+          17,
+          15,
+          59,
+          12399,
+          MAX_TIME_ZONE_OFFSET,
+          null
+        )
       )
     )
   }, 60000)
@@ -447,8 +450,10 @@ describe('#integration temporal-types', () => {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() =>
-      randomDateTimeWithZoneOffset()
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testSendAndReceiveRandomTemporalValues(() =>
+        randomDateTimeWithZoneOffset()
+      )
     )
   }, 60000)
 
@@ -456,9 +461,10 @@ describe('#integration temporal-types', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
-
-    await testSendAndReceiveArrayOfRandomTemporalValues(() =>
-      randomDateTimeWithZoneOffset()
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testSendAndReceiveArrayOfRandomTemporalValues(() =>
+        randomDateTimeWithZoneOffset()
+      )
     )
   }, 60000)
 
@@ -477,9 +483,11 @@ describe('#integration temporal-types', () => {
       999,
       'Europe/Stockholm'
     )
-    await testReceiveTemporalValue(
-      'RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "Europe/Stockholm"})',
-      expectedValue
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testReceiveTemporalValue(
+        'RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "Europe/Stockholm"})',
+        expectedValue
+      )
     )
   }, 60000)
 
@@ -498,7 +506,9 @@ describe('#integration temporal-types', () => {
       MAX_NANO_OF_SECOND,
       MAX_ZONE_ID
     )
-    await testSendReceiveTemporalValue(maxDateTime)
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testSendReceiveTemporalValue(maxDateTime)
+    )
   }, 60000)
 
   it('should send and receive min DateTime with zone id', async () => {
@@ -516,7 +526,10 @@ describe('#integration temporal-types', () => {
       0,
       MIN_ZONE_ID
     )
-    await testSendReceiveTemporalValue(minDateTime)
+
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testSendReceiveTemporalValue(minDateTime)
+    )
   }, 60000)
 
   it('should send and receive DateTime with zone id when disableLosslessIntegers=true', async () => {
@@ -525,17 +538,19 @@ describe('#integration temporal-types', () => {
     }
     session = driverWithNativeNumbers.session()
 
-    await testSendReceiveTemporalValue(
-      new neo4j.types.DateTime(
-        2011,
-        11,
-        25,
-        23,
-        59,
-        59,
-        192378,
-        null,
-        'Europe/Stockholm'
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testSendReceiveTemporalValue(
+        new neo4j.types.DateTime(
+          2011,
+          11,
+          25,
+          23,
+          59,
+          59,
+          192378,
+          null,
+          'Europe/Stockholm'
+        )
       )
     )
   }, 60000)
@@ -545,8 +560,10 @@ describe('#integration temporal-types', () => {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() =>
-      randomDateTimeWithZoneId()
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testSendAndReceiveRandomTemporalValues(() =>
+        randomDateTimeWithZoneId()
+      )
     )
   }, 60000)
 
@@ -555,8 +572,10 @@ describe('#integration temporal-types', () => {
       return
     }
 
-    await testSendAndReceiveArrayOfRandomTemporalValues(() =>
-      randomDateTimeWithZoneId()
+    await neo4jServer5xDateTypesImplmentationGuard(async () =>
+      await testSendAndReceiveArrayOfRandomTemporalValues(() =>
+        randomDateTimeWithZoneId()
+      )
     )
   }, 60000)
 
@@ -1482,6 +1501,13 @@ describe('#integration temporal-types', () => {
       return true
     }
     return false
+  }
+
+  function neo4jServer5xDateTypesImplmentationGuard (test) {
+    if (protocolVersion === 5) {
+      return expectAsync(test).toBeRejected()
+    }
+    return test()
   }
 
   function randomDuration () {
