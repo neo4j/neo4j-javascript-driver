@@ -1505,7 +1505,7 @@ describe('#integration temporal-types', () => {
 
   function neo4jServer5xDateTypesImplmentationGuard (test) {
     if (protocolVersion === 5) {
-      return expectAsync(test).toBeRejected()
+      return expectAsync(test()).toBeRejected()
     }
     return test()
   }
