@@ -18,6 +18,9 @@
  */
 
 import { structure } from '../packstream'
+import { internal } from 'neo4j-driver-core'
+
+const { util } = internal
 
 /**
  * Class responsible for applying the expected {@link TypeTransformer} to
@@ -43,11 +46,15 @@ export default class Transformer {
    * @returns {<T>|structure.Structure} The driver object or the structure if the transformer was not found.
    */
   fromStructure (struct) {
-    if (struct instanceof structure.Structure && this._transformersPerSignature.has(struct.signature)) {
-      const { fromStructure } = this._transformersPerSignature.get(struct.signature)
-      return fromStructure(struct)
+    try {
+      if (struct instanceof structure.Structure && this._transformersPerSignature.has(struct.signature)) {
+        const { fromStructure } = this._transformersPerSignature.get(struct.signature)
+        return fromStructure(struct)
+      }
+      return struct
+    } catch (error) {
+      return util.createBrokenObject(error)
     }
-    return struct
   }
 
   /**

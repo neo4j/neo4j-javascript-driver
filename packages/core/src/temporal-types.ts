@@ -768,6 +768,7 @@ function verifyTimeZoneArguments (
 
   if (idDefined) {
     assertString(timeZoneId, 'Time zone ID')
+    util.assertValidZoneId('Time zone ID', timeZoneId)
     result[1] = timeZoneId
   }
 

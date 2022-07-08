@@ -224,6 +224,35 @@ function isString (str: any): str is string {
   return Object.prototype.toString.call(str) === '[object String]'
 }
 
+/**
+ * Creates a object which all method call will throw the given error
+ *
+ * @param {Error} error The error
+ * @param {any} object The object. Default: {}
+ * @returns {any} A broken object
+ */
+function createBrokenObject<T extends object> (error: Error, object: any = {}): T {
+  const fail: <T>() => T = () => {
+    throw error
+  }
+
+  return new Proxy(object, {
+    get: fail,
+    set: fail,
+    apply: fail,
+    construct: fail,
+    defineProperty: fail,
+    deleteProperty: fail,
+    getOwnPropertyDescriptor: fail,
+    getPrototypeOf: fail,
+    has: fail,
+    isExtensible: fail,
+    ownKeys: fail,
+    preventExtensions: fail,
+    setPrototypeOf: fail
+  })
+}
+
 export {
   isEmptyObjectOrNull,
   isObject,
@@ -235,5 +264,6 @@ export {
   assertValidDate,
   validateQueryAndParameters,
   ENCRYPTION_ON,
-  ENCRYPTION_OFF
+  ENCRYPTION_OFF,
+  createBrokenObject
 }
