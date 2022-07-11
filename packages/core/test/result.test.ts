@@ -939,11 +939,11 @@ describe('Result', () => {
           const it = result[Symbol.asyncIterator]()
           await it.next()
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const sumamryPromise = it.return!(summary)
+          const summaryPromise = it.return!(summary)
 
           streamObserverMock.onCompleted({})
 
-          const { value, done } = await sumamryPromise
+          const { value, done } = await summaryPromise
           expect(value).toBe(summary)
           expect(done).toEqual(true)
         })
@@ -961,11 +961,11 @@ describe('Result', () => {
           const it = result[Symbol.asyncIterator]()
           await it.next()
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const sumamryPromise = it.return!()
+          const summaryPromise = it.return!()
 
           streamObserverMock.onCompleted({})
 
-          const { value, done } = await sumamryPromise
+          const { value, done } = await summaryPromise
           expect(value).toEqual(summary)
           expect(done).toEqual(true)
         })
