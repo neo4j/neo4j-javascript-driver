@@ -139,6 +139,65 @@ it('should not change error when TokenExpired happens', async () => {
   expect(error).toBe(expectedError)
 })
 
+describe('config.sessionConnectionTimeout', () => {
+  describe('when connection is acquired in time', () => {
+    let connectionPromise
+    let address
+    let pool
+
+    beforeEach(() => {
+      address = ServerAddress.fromUrl('localhost:123')
+      pool = newPool()
+      const connectionProvider = newDirectConnectionProvider(address, pool, {
+        sessionConnectionTimeout: 120000
+      })
+
+      connectionPromise = connectionProvider
+        .acquireConnection({ accessMode: 'READ', database: '' })
+    })
+
+    it('should resolve with the connection', async () => {
+      const connection = await connectionPromise
+
+      expect(connection).toBeDefined()
+      expect(connection.address).toEqual(address)
+      expect(pool.has(address)).toBeTruthy()
+    })
+  })
+
+  describe('when connection is not acquired in time', () => {
+    let connectionPromise
+    let address
+    let pool
+
+    beforeEach(() => {
+      address = ServerAddress.fromUrl('localhost:123')
+      pool = newPool({ delay: 1000 })
+      const connectionProvider = newDirectConnectionProvider(address, pool, {
+        sessionConnectionTimeout: 500
+      })
+
+      connectionPromise = connectionProvider
+        .acquireConnection({ accessMode: 'READ', database: '' })
+    })
+
+    it('should resolve with the connection', async () => {
+      await expect(connectionPromise).rejects.toThrowError(newError(
+        'Session acquisition timed out in 500 ms.'
+      ))
+    })
+
+    it('should return the connection back to the pool', async () => {
+      await expect(connectionPromise).rejects.toThrow()
+      // wait for connection be released to the pool
+      setTimeout(() => {
+        expect(pool.has(address)).toBe(true)
+        expect(pool.activeResourceCount(address)).toBe(1)
+      }, 600)
+    })
+  })
+})
+
 describe('.verifyConnectivityAndGetServerInfo()', () => {
   describe('when connection is available in the pool', () => {
     it('should return the server info', async () => {
@@ -251,7 +310,7 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
       const create = (address, release) => {
         const connection = new FakeConnection(address, release, server)
         connection.protocol = () => {
-          return { version: protocolVersion, isLastMessageLogin() { return false } }
+          return { version: protocolVersion, isLastMessageLogin () { return false } }
         }
         connection.resetAndFlush = resetAndFlush
         if (releaseMock) {
@@ -313,10 +372,10 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
   })
 })
 
-function newDirectConnectionProvider (address, pool) {
+function newDirectConnectionProvider (address, pool, config) {
   const connectionProvider = new DirectConnectionProvider({
     id: 0,
-    config: {},
+    config: { ...config },
     log: Logger.noOp(),
     address: address
   })
@@ -324,7 +383,7 @@ function newDirectConnectionProvider (address, pool) {
   return connectionProvider
 }
 
-function newPool ({ create, config } = {}) {
+function newPool ({ create, config, delay } = {}) {
   const _create = (address, release) => {
     if (create) {
       return create(address, release)
@@ -333,8 +392,14 @@ function newPool ({ create, config } = {}) {
   }
   return new Pool({
     config,
-    create: (address, release) =>
-      Promise.resolve(_create(address, release))
+    create: (address, release) => {
+      if (delay !== undefined) {
+        return new Promise((resolve) => {
+          setTimeout(() => resolve(_create(address, release)), delay)
+        })
+      }
+      return Promise.resolve(_create(address, release))
+    }
   })
 }
 
