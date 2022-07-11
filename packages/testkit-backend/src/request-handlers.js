@@ -75,6 +75,9 @@ export function NewDriver (context, data, wire) {
   if ('connectionAcquisitionTimeoutMs' in data) {
     config.connectionAcquisitionTimeout = data.connectionAcquisitionTimeoutMs
   }
+  if ('sessionConnectionTimeoutMs' in data) {
+    config.sessionConnectionTimeout = data.sessionConnectionTimeoutMs
+  }
   if ('connectionTimeoutMs' in data) {
     config.connectionTimeout = data.connectionTimeoutMs
   }

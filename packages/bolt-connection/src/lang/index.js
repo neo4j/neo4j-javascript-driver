@@ -18,3 +18,4 @@
  */
 
 export * as functional from './functional'
+export * as controller from './controller'

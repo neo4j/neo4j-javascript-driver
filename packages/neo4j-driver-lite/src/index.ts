@@ -151,6 +151,11 @@ const {
  *       // connection or borrow an existing one.
  *       connectionAcquisitionTimeout: 60000, // 1 minute
  *
+ *       // The maximum amout of time for a session to wait to acquire an usable connection. This encompasses *everything*
+ *       // that needs to happen for this, including, if necessary, updating the routing table<, acquiring a connection
+ *       // from the pool, and, if necessary performing a BOLT and Authentication handshake with the reader/writer.
+ *       sessionConnectionTimeout: 120000, // 2 minutes
+ *
  *       // Specify the maximum time in milliseconds transactions are allowed to retry via
  *       // `Session#executeRead()` and `Session#executeWrite()` functions.
  *       // These functions will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient

@@ -23,6 +23,7 @@ import { HostNameResolver } from '../channel'
 import SingleConnectionProvider from './connection-provider-single'
 import PooledConnectionProvider from './connection-provider-pooled'
 import { LeastConnectedLoadBalancingStrategy } from '../load-balancing'
+import { controller } from '../lang'
 import {
   createChannelConnection,
   ConnectionErrorHandler,
@@ -143,53 +144,65 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._handleAuthorizationExpired(error, address, context.database)
     )
 
-    const routingTable = await this._freshRoutingTable({
-      accessMode,
-      database: context.database,
-      bookmarks: bookmarks,
-      impersonatedUser,
-      onDatabaseNameResolved: (databaseName) => {
-        context.database = context.database || databaseName
-        if (onDatabaseNameResolved) {
-          onDatabaseNameResolved(databaseName)
+    const refreshRoutingTableJob = {
+      run: async () => {
+        const routingTable = await this._freshRoutingTable({
+          accessMode,
+          database: context.database,
+          bookmarks: bookmarks,
+          impersonatedUser,
+          onDatabaseNameResolved: (databaseName) => {
+            context.database = context.database || databaseName
+            if (onDatabaseNameResolved) {
+              onDatabaseNameResolved(databaseName)
+            }
+          }
+        })
+
+        // select a target server based on specified access mode
+        if (accessMode === READ) {
+          address = this._loadBalancingStrategy.selectReader(routingTable.readers)
+          name = 'read'
+        } else if (accessMode === WRITE) {
+          address = this._loadBalancingStrategy.selectWriter(routingTable.writers)
+          name = 'write'
+        } else {
+          throw newError('Illegal mode ' + accessMode)
         }
+
+        // we couldn't select a target server
+        if (!address) {
+          throw newError(
+            `Failed to obtain connection towards ${name} server. Known routing table is: ${routingTable}`,
+            SESSION_EXPIRED
+          )
+        }
+        return { routingTable, address }
       }
-    })
-
-    // select a target server based on specified access mode
-    if (accessMode === READ) {
-      address = this._loadBalancingStrategy.selectReader(routingTable.readers)
-      name = 'read'
-    } else if (accessMode === WRITE) {
-      address = this._loadBalancingStrategy.selectWriter(routingTable.writers)
-      name = 'write'
-    } else {
-      throw newError('Illegal mode ' + accessMode)
     }
 
-    // we couldn't select a target server
-    if (!address) {
-      throw newError(
-        `Failed to obtain connection towards ${name} server. Known routing table is: ${routingTable}`,
-        SESSION_EXPIRED
-      )
+    const acquireConnectionJob = {
+      run: async ({ routingTable, address }) => {
+        try {
+          const connection = await this._acquireConnectionToServer(
+            address,
+            name,
+            routingTable
+          )
+
+          return new DelegateConnection(connection, databaseSpecificErrorHandler)
+        } catch (error) {
+          const transformed = databaseSpecificErrorHandler.handleAndTransformError(
+            error,
+            address
+          )
+          throw transformed
+        }
+      },
+      onTimeout: (connection) => connection._release()
     }
 
-    try {
-      const connection = await this._acquireConnectionToServer(
-        address,
-        name,
-        routingTable
-      )
-
-      return new DelegateConnection(connection, databaseSpecificErrorHandler)
-    } catch (error) {
-      const transformed = databaseSpecificErrorHandler.handleAndTransformError(
-        error,
-        address
-      )
-      throw transformed
-    }
+    return controller.runWithTimeout(this._sessionConnectionTimeoutConfig, refreshRoutingTableJob, acquireConnectionJob)
   }
 
   async _hasProtocolVersion (versionPredicate) {

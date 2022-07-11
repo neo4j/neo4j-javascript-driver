@@ -27,7 +27,8 @@ import {
   FETCH_ALL,
   DEFAULT_CONNECTION_TIMEOUT_MILLIS,
   DEFAULT_POOL_ACQUISITION_TIMEOUT,
-  DEFAULT_POOL_MAX_SIZE
+  DEFAULT_POOL_MAX_SIZE,
+  DEFAULT_SESSION_CONNECTION_TIMEOUT
 } from './internal/constants'
 import { Logger } from './internal/logger'
 import Session from './session'
@@ -433,6 +434,10 @@ function sanitizeConfig (config: any): void {
   config.fetchSize = validateFetchSizeValue(
     config.fetchSize,
     DEFAULT_FETCH_SIZE
+  )
+  config.sessionConnectionTimeout = sanitizeIntValue(
+    config.sessionConnectionTimeout,
+    DEFAULT_SESSION_CONNECTION_TIMEOUT
   )
   config.connectionTimeout = extractConnectionTimeout(config)
 }

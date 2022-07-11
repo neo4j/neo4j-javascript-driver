@@ -31,6 +31,7 @@ const features = [
   'Feature:Bolt:5.0',
   'Feature:Bolt:Patch:UTC',
   'Feature:API:ConnectionAcquisitionTimeout',
+  'Feature:API:SessionConnectionTimeout',
   'Feature:API:Driver:GetServerInfo',
   'Feature:API:Driver.VerifyConnectivity',
   'Feature:API:Result.Peek',
