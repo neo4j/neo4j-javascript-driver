@@ -99,6 +99,7 @@ interface ResultObserver {
  */
 interface QueuedResultObserver extends ResultObserver {
   dequeue: () => Promise<IteratorResult<Record, ResultSummary>>
+  dequeueUntilDone: () => Promise<IteratorResult<Record, ResultSummary>>
   head: () => Promise<IteratorResult<Record, ResultSummary>>
   size: number
 }
@@ -308,11 +309,19 @@ class Result implements Promise<QueryResult> {
         }
         return next
       },
-      return: async (value: ResultSummary) => {
-        state.finished = true
-        state.summary = value
+      return: async (value?: ResultSummary) => {
+        if (state.finished) {
+          if (assertSummary(state.summary)) {
+            return { done: true, value: value ?? state.summary }
+          }
+        }
         state.streaming?.cancel()
-        return { done: true, value: value }
+        const queuedObserver = await initializeObserver()
+        const last = await queuedObserver.dequeueUntilDone()
+        state.finished = true
+        last.value = value ?? last.value
+        state.summary = last.value as ResultSummary
+        return last
       },
       peek: async () => {
         if (state.finished) {
@@ -540,6 +549,19 @@ class Result implements Promise<QueryResult> {
       return elementOrError instanceof Error
     }
 
+    async function dequeue (): Promise<IteratorResult<Record, ResultSummary>> {
+      if (buffer.length > 0) {
+        const element = buffer.shift() ?? newError('Unexpected empty buffer', PROTOCOL_ERROR)
+        onQueueSizeChanged()
+        if (isError(element)) {
+          throw element
+        }
+        return element
+      }
+      promiseHolder.resolvable = createResolvablePromise()
+      return await promiseHolder.resolvable.promise
+    }
+
     const buffer: QueuedResultElementOrError[] = []
     const promiseHolder: {
       resolvable: ResolvablePromise<IteratorResult<Record, ResultSummary>> | null
@@ -569,17 +591,14 @@ class Result implements Promise<QueryResult> {
           onQueueSizeChanged()
         }
       },
-      dequeue: async () => {
-        if (buffer.length > 0) {
-          const element = buffer.shift() ?? newError('Unexpected empty buffer', PROTOCOL_ERROR)
-          onQueueSizeChanged()
-          if (isError(element)) {
-            throw element
+      dequeue: dequeue,
+      dequeueUntilDone: async () => {
+        while (true) {
+          const element = await dequeue()
+          if (element.done === true) {
+            return element
           }
-          return element
         }
-        promiseHolder.resolvable = createResolvablePromise()
-        return await promiseHolder.resolvable.promise
       },
       head: async () => {
         if (buffer.length > 0) {

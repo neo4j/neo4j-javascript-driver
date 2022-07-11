@@ -939,8 +939,33 @@ describe('Result', () => {
           const it = result[Symbol.asyncIterator]()
           await it.next()
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const { value, done } = await it.return!(summary)
+          const sumamryPromise = it.return!(summary)
 
+          streamObserverMock.onCompleted({})
+
+          const { value, done } = await sumamryPromise
+          expect(value).toBe(summary)
+          expect(done).toEqual(true)
+        })
+
+        it('should return resultant summary when it get called without params', async () => {
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+          const summary = new ResultSummary('query', {}, {})
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          const it = result[Symbol.asyncIterator]()
+          await it.next()
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          const sumamryPromise = it.return!()
+
+          streamObserverMock.onCompleted({})
+
+          const { value, done } = await sumamryPromise
           expect(value).toEqual(summary)
           expect(done).toEqual(true)
         })
@@ -953,6 +978,7 @@ describe('Result', () => {
           streamObserverMock.onKeys(keys)
           streamObserverMock.onNext(rawRecord1)
           streamObserverMock.onNext(rawRecord2)
+          streamObserverMock.onCompleted({})
 
           const it = result[Symbol.asyncIterator]()
 
@@ -966,8 +992,9 @@ describe('Result', () => {
           expect(done).toEqual(true)
         })
 
-        it('should not subscribe to the observer when it is the first api called', async () => {
+        it('should subscribe to the observer when it is the first api called', async () => {
           const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+          streamObserverMock.onCompleted({})
 
           const it = result[Symbol.asyncIterator]()
 
@@ -976,11 +1003,12 @@ describe('Result', () => {
 
           await it.next()
 
-          expect(subscribe).not.toBeCalled()
+          expect(subscribe).toBeCalled()
         })
 
         it('should not canceld stream when it is the first api called', async () => {
           const cancel = jest.spyOn(streamObserverMock, 'cancel')
+          streamObserverMock.onCompleted({})
 
           const it = result[Symbol.asyncIterator]()
 
@@ -1001,6 +1029,7 @@ describe('Result', () => {
           streamObserverMock.onKeys(keys)
           streamObserverMock.onNext(rawRecord1)
           streamObserverMock.onNext(rawRecord2)
+          streamObserverMock.onCompleted({})
 
           const it = result[Symbol.asyncIterator]()
 
@@ -1013,6 +1042,7 @@ describe('Result', () => {
 
         it('should prevent following next requests to subscribe to the stream', async () => {
           const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+          streamObserverMock.onCompleted({})
 
           const it = result[Symbol.asyncIterator]()
 
@@ -1020,11 +1050,12 @@ describe('Result', () => {
           await it.return!(new ResultSummary('query', {}, {}))
           await it.next()
 
-          expect(subscribe).not.toBeCalled()
+          expect(subscribe).toBeCalledTimes(1)
         })
 
         it('should prevent following peek requests to subscribe to the stream', async () => {
           const subscribe = jest.spyOn(streamObserverMock, 'subscribe')
+          streamObserverMock.onCompleted({})
 
           const it = result[Symbol.asyncIterator]()
 
@@ -1032,7 +1063,7 @@ describe('Result', () => {
           await it.return!(new ResultSummary('query', {}, {}))
           await it.peek()
 
-          expect(subscribe).not.toBeCalled()
+          expect(subscribe).toBeCalledTimes(1)
         })
       })
 
