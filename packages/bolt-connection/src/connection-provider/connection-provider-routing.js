@@ -199,7 +199,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
           throw transformed
         }
       },
-      onTimeout: (connection) => connection._release()
+      onTimeout: connection => connection._release()
     }
 
     return controller.runWithTimeout(this._sessionConnectionTimeoutConfig, refreshRoutingTableJob, acquireConnectionJob)

@@ -21,6 +21,7 @@ import DirectConnectionProvider from '../../src/connection-provider/connection-p
 import { Pool } from '../../src/pool'
 import { Connection, DelegateConnection } from '../../src/connection'
 import { internal, newError, ServerInfo } from 'neo4j-driver-core'
+import testUtils from '../test-utils'
 
 const {
   serverAddress: { ServerAddress },
@@ -169,10 +170,12 @@ describe('config.sessionConnectionTimeout', () => {
     let connectionPromise
     let address
     let pool
+    let seenConnections
 
     beforeEach(() => {
+      seenConnections = []
       address = ServerAddress.fromUrl('localhost:123')
-      pool = newPool({ delay: 1000 })
+      pool = newPool({ delay: 1000, seenConnections })
       const connectionProvider = newDirectConnectionProvider(address, pool, {
         sessionConnectionTimeout: 500
       })
@@ -181,7 +184,7 @@ describe('config.sessionConnectionTimeout', () => {
         .acquireConnection({ accessMode: 'READ', database: '' })
     })
 
-    it('should resolve with the connection', async () => {
+    it('should reject with Session acquisition timeout error', async () => {
       await expect(connectionPromise).rejects.toThrowError(newError(
         'Session acquisition timed out in 500 ms.'
       ))
@@ -190,10 +193,11 @@ describe('config.sessionConnectionTimeout', () => {
     it('should return the connection back to the pool', async () => {
       await expect(connectionPromise).rejects.toThrow()
       // wait for connection be released to the pool
-      setTimeout(() => {
-        expect(pool.has(address)).toBe(true)
-        expect(pool.activeResourceCount(address)).toBe(1)
-      }, 600)
+      await testUtils.wait(600)
+
+      expect(seenConnections.length).toBe(1)
+      expect(seenConnections[0]._release).toBeCalledTimes(1)
+      expect(pool.has(address)).toBe(true)
     })
   })
 })
@@ -383,22 +387,17 @@ function newDirectConnectionProvider (address, pool, config) {
   return connectionProvider
 }
 
-function newPool ({ create, config, delay } = {}) {
+function newPool ({ create, config, delay, seenConnections = [] } = {}) {
   const _create = (address, release) => {
-    if (create) {
-      return create(address, release)
-    }
-    return new FakeConnection(address, release)
+    const connection = create != null ? create(address, release) : new FakeConnection(address, release)
+    seenConnections.push(connection)
+    return connection
   }
   return new Pool({
     config,
-    create: (address, release) => {
-      if (delay !== undefined) {
-        return new Promise((resolve) => {
-          setTimeout(() => resolve(_create(address, release)), delay)
-        })
-      }
-      return Promise.resolve(_create(address, release))
+    create: async (address, release) => {
+      await testUtils.wait(delay)
+      return _create(address, release)
     }
   })
 }

@@ -20,11 +20,11 @@
 export function runWithTimeout ({ timeout, reason }, ...jobs) {
   const status = { timedout: false }
   async function _run (currentValue, { resolve, reject }, myJobs) {
-    const [{ run, onTimeout = () => {} }, ...otherJobs] = myJobs
+    const [{ run, onTimeout = () => Promise.resolve() }, ...otherJobs] = myJobs
     try {
       const value = await run(currentValue)
       if (status.timedout) {
-        onTimeout(value).catch(() => {})
+        await onTimeout(value).catch(() => {})
       } else if (otherJobs.length === 0) {
         resolve(value)
       } else {
