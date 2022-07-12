@@ -28,7 +28,8 @@ import {
   DEFAULT_CONNECTION_TIMEOUT_MILLIS,
   DEFAULT_POOL_ACQUISITION_TIMEOUT,
   DEFAULT_POOL_MAX_SIZE,
-  DEFAULT_SESSION_CONNECTION_TIMEOUT
+  DEFAULT_SESSION_CONNECTION_TIMEOUT,
+  DEFAULT_UPDATE_ROUTING_TABLE_TIMEOUT
 } from './internal/constants'
 import { Logger } from './internal/logger'
 import Session from './session'
@@ -438,6 +439,10 @@ function sanitizeConfig (config: any): void {
   config.sessionConnectionTimeout = sanitizeIntValue(
     config.sessionConnectionTimeout,
     DEFAULT_SESSION_CONNECTION_TIMEOUT
+  )
+  config.updateRoutingTableTimeout = sanitizeIntValue(
+    config.updateRoutingTableTimeout,
+    DEFAULT_UPDATE_ROUTING_TABLE_TIMEOUT
   )
   config.connectionTimeout = extractConnectionTimeout(config)
 }

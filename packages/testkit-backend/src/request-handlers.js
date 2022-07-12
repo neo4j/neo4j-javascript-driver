@@ -78,6 +78,9 @@ export function NewDriver (context, data, wire) {
   if ('sessionConnectionTimeoutMs' in data) {
     config.sessionConnectionTimeout = data.sessionConnectionTimeoutMs
   }
+  if ('updateRoutingTableTimeoutMs' in data) {
+    config.updateRoutingTableTimeout = data.updateRoutingTableTimeoutMs
+  }
   if ('connectionTimeoutMs' in data) {
     config.connectionTimeout = data.connectionTimeoutMs
   }
