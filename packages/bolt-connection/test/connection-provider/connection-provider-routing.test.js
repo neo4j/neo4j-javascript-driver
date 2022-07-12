@@ -2725,6 +2725,151 @@ describe.each([
     })
   })
 
+  describe('config.updateRoutingTableTimeout', () => {
+    describe('when routing table is refreshed in time', () => {
+      let connectionPromise
+      let address
+      let pool
+
+      beforeEach(() => {
+        address = server3
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool()
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        })
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            updateRoutingTableTimeout: 500
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should resolve with the connection', async () => {
+        const connection = await connectionPromise
+
+        expect(connection).toBeDefined()
+        expect(connection.address).toEqual(address)
+        expect(pool.has(address)).toBeTruthy()
+      })
+    })
+
+    describe('when routing connection is not acquired in time', () => {
+      let connectionPromise
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool({ delay: 350, seenConnections })
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        })
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            sessionConnectionTimeout: 300
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should reject with Session acquisition timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Session acquisition timed out in 300 ms.'
+        ))
+      })
+    })
+
+    describe('when rediscovery is not done in time', () => {
+      let connectionPromise
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool({ seenConnections })
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        }, null, 500)
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            sessionConnectionTimeout: 300
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should reject with Session acquisition timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Session acquisition timed out in 300 ms.'
+        ))
+      })
+
+      it('should release the connection', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection be released
+        await testUtils.wait(400)
+
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === defaultSeedRouter)
+        expect(seenConnectionsToAddress.length).toBe(1)
+      })
+    })
+  })
+
   describe.each([
     [undefined, READ],
     [undefined, WRITE],

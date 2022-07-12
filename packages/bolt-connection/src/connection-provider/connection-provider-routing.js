@@ -76,6 +76,13 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       )
     })
 
+    this._updateRoutingTableTimeoutConfig = {
+      timeout: this._config.updateRoutingTableTimeout,
+      reason: () => newError(
+        `Routing table update timed out in ${this._config.updateRoutingTableTimeout} ms.`
+      )
+    }
+
     this._routingContext = { ...routingContext, address: address.toString() }
     this._seedRouter = address
     this._rediscovery = new Rediscovery(this._routingContext)
@@ -315,18 +322,23 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   }
 
   _freshRoutingTable ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved } = {}) {
-    const currentRoutingTable = this._routingTableRegistry.get(
-      database,
-      () => new RoutingTable({ database })
-    )
+    const refreshRoutingTableJob = {
+      run: () => {
+        const currentRoutingTable = this._routingTableRegistry.get(
+          database,
+          () => new RoutingTable({ database })
+        )
 
-    if (!currentRoutingTable.isStaleFor(accessMode)) {
-      return currentRoutingTable
+        if (!currentRoutingTable.isStaleFor(accessMode)) {
+          return currentRoutingTable
+        }
+        this._log.info(
+          `Routing table is stale for database: "${database}" and access mode: "${accessMode}": ${currentRoutingTable}`
+        )
+        return this._refreshRoutingTable(currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved)
+      }
     }
-    this._log.info(
-      `Routing table is stale for database: "${database}" and access mode: "${accessMode}": ${currentRoutingTable}`
-    )
-    return this._refreshRoutingTable(currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved)
+    return controller.runWithTimeout(this._updateRoutingTableTimeoutConfig, refreshRoutingTableJob)
   }
 
   _refreshRoutingTable (currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved) {
