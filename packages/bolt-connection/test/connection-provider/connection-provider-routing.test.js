@@ -2713,6 +2713,15 @@ describe.each([
         ))
       })
 
+      it('should acquire connection the default router', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection be released to the pool
+        await testUtils.wait(400)
+
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === defaultSeedRouter)
+        expect(seenConnectionsToAddress.length).toBe(1)
+      })
+
       it('should not acquire connection to reader', async () => {
         await expect(connectionPromise).rejects.toThrow()
         // wait for connection be released to the pool
@@ -2720,6 +2729,76 @@ describe.each([
 
         expect(pool.has(address)).toBe(false)
         const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === address)
+        expect(seenConnectionsToAddress.length).toBe(0)
+      })
+    })
+
+    describe('when rediscovery is not done in time and router fails', () => {
+      let connectionPromise
+      let address
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        address = server3
+        const routingTable = newRoutingTable(
+          'aDatabase',
+          [server1, server2], // routers
+          [server3],
+          [server5],
+          int(0) // expired
+        )
+        pool = newPool({ seenConnections })
+        const routerToRoutingTable = {
+          aDatabase: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          aDatabase: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        }, newError('It is a non fast-failing error'), 500)
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            sessionConnectionTimeout: 300
+          },
+          [routingTable]
+        )
+
+        // Force not use seed router
+        connectionProvider._useSeedRouter = false
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: 'aDatabase' })
+      })
+
+      it('should reject with Session acquisition timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Session acquisition timed out in 300 ms.'
+        ))
+      })
+
+      it('should acquire connection the router1', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // Wait for connection to server 1 be created
+        await testUtils.wait(300)
+
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === server1)
+        expect(seenConnectionsToAddress.length).toBe(1)
+      })
+
+      it('should not acquire connection the router2', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection server 2 be created
+        await testUtils.wait(800)
+
+        expect(pool.has(address)).toBe(false)
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === server2)
         expect(seenConnectionsToAddress.length).toBe(0)
       })
     })
@@ -2801,7 +2880,7 @@ describe.each([
           pool,
           routerToRoutingTable,
           {
-            sessionConnectionTimeout: 300
+            updateRoutingTableTimeout: 300
           }
         )
 
@@ -2809,9 +2888,9 @@ describe.each([
           .acquireConnection({ accessMode: 'READ', database: '' })
       })
 
-      it('should reject with Session acquisition timeout error', async () => {
+      it('should reject with routing table update timeout error', async () => {
         await expect(connectionPromise).rejects.toThrowError(newError(
-          'Session acquisition timed out in 300 ms.'
+          'Routing table update timed out in 300 ms.'
         ))
       })
     })
@@ -2845,7 +2924,7 @@ describe.each([
           pool,
           routerToRoutingTable,
           {
-            sessionConnectionTimeout: 300
+            updateRoutingTableTimeout: 300
           }
         )
 
@@ -2853,9 +2932,9 @@ describe.each([
           .acquireConnection({ accessMode: 'READ', database: '' })
       })
 
-      it('should reject with Session acquisition timeout error', async () => {
+      it('should reject with routing table update timeout error', async () => {
         await expect(connectionPromise).rejects.toThrowError(newError(
-          'Session acquisition timed out in 300 ms.'
+          'Routing table update timed out in 300 ms.'
         ))
       })
 
@@ -2866,6 +2945,76 @@ describe.each([
 
         const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === defaultSeedRouter)
         expect(seenConnectionsToAddress.length).toBe(1)
+      })
+    })
+
+    describe('when rediscovery is not done in time and router fails', () => {
+      let connectionPromise
+      let address
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        address = server3
+        const routingTable = newRoutingTable(
+          'aDatabase',
+          [server1, server2], // routers
+          [server3],
+          [server5],
+          int(0) // expired
+        )
+        pool = newPool({ seenConnections })
+        const routerToRoutingTable = {
+          aDatabase: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          aDatabase: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        }, newError('It is a non fast-failing error'), 500)
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            updateRoutingTableTimeout: 300
+          },
+          [routingTable]
+        )
+
+        // Force not use seed router
+        connectionProvider._useSeedRouter = false
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: 'aDatabase' })
+      })
+
+      it('should reject with routing table update timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Routing table update timed out in 300 ms.'
+        ))
+      })
+
+      it('should acquire connection the router1', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // Wait for connection to server 1 be created
+        await testUtils.wait(300)
+
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === server1)
+        expect(seenConnectionsToAddress.length).toBe(1)
+      })
+
+      it('should not acquire connection the router2', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection server 2 be created
+        await testUtils.wait(800)
+
+        expect(pool.has(address)).toBe(false)
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === server2)
+        expect(seenConnectionsToAddress.length).toBe(0)
       })
     })
   })
@@ -3307,13 +3456,14 @@ describe.each([
     fakeRediscovery,
     pool = null,
     routerToRoutingTable = { null: {} },
-    config = {}
+    config = {},
+    routingTables = []
   ) {
     const seedRouter = defaultSeedRouter
     return newRoutingConnectionProviderWithSeedRouter(
       seedRouter,
       [seedRouter],
-      [],
+      routingTables,
       routerToRoutingTable,
       pool,
       null,
@@ -3362,9 +3512,9 @@ function setupRoutingConnectionProviderToRememberRouters (
   const originalFetch = connectionProvider._fetchRoutingTable.bind(
     connectionProvider
   )
-  const rememberingFetch = (routerAddresses, routingTable, bookmarks) => {
+  const rememberingFetch = (routerAddresses, ...rest) => {
     routersArray.push(routerAddresses)
-    return originalFetch(routerAddresses, routingTable, bookmarks)
+    return originalFetch(...[routerAddresses, ...rest])
   }
   connectionProvider._fetchRoutingTable = rememberingFetch
 }
