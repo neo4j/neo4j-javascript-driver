@@ -19,7 +19,7 @@
 
 import { createChannelConnection, ConnectionErrorHandler } from '../connection'
 import Pool, { PoolConfig } from '../pool'
-import { error, ConnectionProvider, ServerInfo } from 'neo4j-driver-core'
+import { error, newError, ConnectionProvider, ServerInfo } from 'neo4j-driver-core'
 
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
@@ -58,6 +58,12 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       log: this._log
     })
     this._openConnections = {}
+    this._sessionConnectionTimeoutConfig = {
+      timeout: this._config.sessionConnectionTimeout,
+      reason: () => newError(
+        `Session acquisition timed out in ${this._config.sessionConnectionTimeout} ms.`
+      )
+    }
   }
 
   _createConnectionErrorHandler () {
