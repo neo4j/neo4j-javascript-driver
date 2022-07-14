@@ -508,8 +508,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   async _fetchRoutingTable (routerAddresses, routingTable, bookmarks, impersonatedUser, cancelationToken) {
     return routerAddresses.reduce(
       async (refreshedTablePromise, currentRouter, currentIndex) => {
-        cancelationToken.throwIfCancellationRequested()
-
         const [newRoutingTable] = await refreshedTablePromise
 
         if (newRoutingTable) {
@@ -532,7 +530,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
           bookmarks,
           impersonatedUser
         )
-        cancelationToken.throwIfCancellationRequested()
         if (session) {
           try {
             return [await this._rediscovery.lookupRoutingTableOnRouter(
@@ -542,12 +539,13 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
               impersonatedUser
             ), null]
           } catch (error) {
+            cancelationToken.throwIfCancellationRequested()
             return this._handleRediscoveryError(error, currentRouter)
           } finally {
             await session.close()
-            cancelationToken.throwIfCancellationRequested()
           }
         } else {
+          cancelationToken.throwIfCancellationRequested()
           // unable to acquire connection and create session towards the current router
           // return null to signal that the next router should be tried
           return [null, error]
