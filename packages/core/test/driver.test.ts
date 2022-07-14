@@ -143,7 +143,7 @@ describe('Driver', () => {
         connectionAcquisitionTimeout: 60000,
         fetchSize: 1000,
         maxConnectionLifetime: 3600000,
-        maxConnectionPoolSize: 100,
+        maxConnectionPoolSize: 100
       },
       connectionProvider,
       database: '',

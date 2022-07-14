@@ -21,6 +21,7 @@ import DirectConnectionProvider from '../../src/connection-provider/connection-p
 import { Pool } from '../../src/pool'
 import { Connection, DelegateConnection } from '../../src/connection'
 import { internal, newError } from 'neo4j-driver-core'
+import testUtils from '../test-utils'
 
 const {
   serverAddress: { ServerAddress },
@@ -96,53 +97,115 @@ describe('#unit DirectConnectionProvider', () => {
 
     expect(error).toBe(expectedError)
   })
-})
 
-it('should purge connections for address when TokenExpired happens', async () => {
-  const address = ServerAddress.fromUrl('localhost:123')
-  const pool = newPool()
-  jest.spyOn(pool, 'purge')
-  const connectionProvider = newDirectConnectionProvider(address, pool)
-
-  const conn = await connectionProvider.acquireConnection({
-    accessMode: 'READ',
-    database: ''
+  it('should purge connections for address when TokenExpired happens', async () => {
+    const address = ServerAddress.fromUrl('localhost:123')
+    const pool = newPool()
+    jest.spyOn(pool, 'purge')
+    const connectionProvider = newDirectConnectionProvider(address, pool)
+  
+    const conn = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: ''
+    })
+  
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+  
+    conn.handleAndTransformError(error, address)
+  
+    expect(pool.purge).toHaveBeenCalledWith(address)
   })
-
-  const error = newError(
-    'Message',
-    'Neo.ClientError.Security.TokenExpired'
-  )
-
-  conn.handleAndTransformError(error, address)
-
-  expect(pool.purge).toHaveBeenCalledWith(address)
-})
-
-it('should not change error when TokenExpired happens', async () => {
-  const address = ServerAddress.fromUrl('localhost:123')
-  const pool = newPool()
-  const connectionProvider = newDirectConnectionProvider(address, pool)
-
-  const conn = await connectionProvider.acquireConnection({
-    accessMode: 'READ',
-    database: ''
+  
+  it('should not change error when TokenExpired happens', async () => {
+    const address = ServerAddress.fromUrl('localhost:123')
+    const pool = newPool()
+    const connectionProvider = newDirectConnectionProvider(address, pool)
+  
+    const conn = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: ''
+    })
+  
+    const expectedError = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+  
+    const error = conn.handleAndTransformError(expectedError, address)
+  
+    expect(error).toBe(expectedError)
   })
-
-  const expectedError = newError(
-    'Message',
-    'Neo.ClientError.Security.TokenExpired'
-  )
-
-  const error = conn.handleAndTransformError(expectedError, address)
-
-  expect(error).toBe(expectedError)
+  
+  describe('config.sessionConnectionTimeout', () => {
+    describe('when connection is acquired in time', () => {
+      let connectionPromise
+      let address
+      let pool
+  
+      beforeEach(() => {
+        address = ServerAddress.fromUrl('localhost:123')
+        pool = newPool()
+        const connectionProvider = newDirectConnectionProvider(address, pool, {
+          sessionConnectionTimeout: 120000
+        })
+  
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+  
+      it('should resolve with the connection', async () => {
+        const connection = await connectionPromise
+  
+        expect(connection).toBeDefined()
+        expect(connection.address).toEqual(address)
+        expect(pool.has(address)).toBeTruthy()
+      })
+    })
+  
+    describe('when connection is not acquired in time', () => {
+      let connectionPromise
+      let address
+      let pool
+      let seenConnections
+  
+      beforeEach(() => {
+        seenConnections = []
+        address = ServerAddress.fromUrl('localhost:123')
+        pool = newPool({ delay: 1000, seenConnections })
+        const connectionProvider = newDirectConnectionProvider(address, pool, {
+          sessionConnectionTimeout: 500
+        })
+  
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+  
+      it('should reject with Session acquisition timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Session acquisition timed out in 500 ms.'
+        ))
+      })
+  
+      it('should return the connection back to the pool', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection be released to the pool
+        await testUtils.wait(600)
+  
+        expect(seenConnections.length).toBe(1)
+        expect(seenConnections[0]._release).toBeCalledTimes(1)
+        expect(pool.has(address)).toBe(true)
+      })
+    })
+  })
 })
 
-function newDirectConnectionProvider (address, pool) {
+function newDirectConnectionProvider (address, pool, config) {
   const connectionProvider = new DirectConnectionProvider({
     id: 0,
-    config: {},
+    config: { ...config },
     log: Logger.noOp(),
     address: address
   })
@@ -150,10 +213,18 @@ function newDirectConnectionProvider (address, pool) {
   return connectionProvider
 }
 
-function newPool () {
+function newPool ({ create, config, delay, seenConnections = [] } = {}) {
+  const _create = (address, release) => {
+    const connection = create != null ? create(address, release) : new FakeConnection(address, release)
+    seenConnections.push(connection)
+    return connection
+  }
   return new Pool({
-    create: (address, release) =>
-      Promise.resolve(new FakeConnection(address, release))
+    config,
+    create: async (address, release) => {
+      await testUtils.wait(delay)
+      return _create(address, release)
+    }
   })
 }
 
@@ -163,6 +234,7 @@ class FakeConnection extends Connection {
 
     this._address = address
     this.release = release
+    this._release = jest.fn(() => release(address, this))
   }
 
   get address () {

@@ -24,6 +24,7 @@ import {
   ConnectionErrorHandler
 } from '../connection'
 import { internal, error } from 'neo4j-driver-core'
+import { controller } from '../lang'
 
 const {
   constants: { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V4_4 }
@@ -49,12 +50,17 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
         this._handleAuthorizationExpired(error, address, database)
     })
 
-    return this._connectionPool
-      .acquire(this._address)
-      .then(
-        connection =>
-          new DelegateConnection(connection, databaseSpecificErrorHandler)
-      )
+    const acquireConnectionJob = {
+      run: () => this._connectionPool
+        .acquire(this._address)
+        .then(
+          connection =>
+            new DelegateConnection(connection, databaseSpecificErrorHandler)
+        ),
+      onTimeout: connection => connection._release()
+    }
+
+    return controller.runWithTimeout(this._sessionConnectionTimeoutConfig, acquireConnectionJob)
   }
 
   _handleAuthorizationExpired (error, address, database) {
