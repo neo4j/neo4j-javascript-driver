@@ -30,6 +30,7 @@ import { Pool } from '../../src/pool'
 import SimpleHostNameResolver from '../../src/channel/browser/browser-host-name-resolver'
 import RoutingConnectionProvider from '../../src/connection-provider/connection-provider-routing'
 import { DelegateConnection, Connection } from '../../src/connection'
+import testUtils from '../test-utils'
 
 const {
   serverAddress: { ServerAddress },
@@ -39,6 +40,8 @@ const {
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const READ = 'READ'
 const WRITE = 'WRITE'
+const defaultSeedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
+
 
 describe('#unit RoutingConnectionProvider', () => {
   const server0 = ServerAddress.fromUrl('server0')
@@ -69,8 +72,8 @@ describe('#unit RoutingConnectionProvider', () => {
   const serverDD = ServerAddress.fromUrl('serverDD')
   const serverEE = ServerAddress.fromUrl('serverEE')
 
-  const serverABC = ServerAddress.fromUrl('serverABC')
-  
+  const serverABC = ServerAddress.fromUrl('serverABC')  
+
   const usersDataSet = [
     [null],
     [undefined],
@@ -2472,22 +2475,481 @@ describe('#unit RoutingConnectionProvider', () => {
 
       expect(onDatabaseNameResolved).toHaveBeenCalledWith('databaseA')
     })
+  })
 
+  describe('config.sessionConnectionTimeout', () => {
+    describe('when connection is acquired in time', () => {
+      let connectionPromise
+      let address
+      let pool
+
+      beforeEach(() => {
+        address = server3
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool()
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        })
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            sessionConnectionTimeout: 500
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should resolve with the connection', async () => {
+        const connection = await connectionPromise
+
+        expect(connection).toBeDefined()
+        expect(connection.address).toEqual(address)
+        expect(pool.has(address)).toBeTruthy()
+      })
+    })
+
+    describe('when connection is not acquired in time', () => {
+      let connectionPromise
+      let address
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        address = server3
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool({ delay: 350, seenConnections })
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        })
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            sessionConnectionTimeout: 600
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should reject with Session acquisition timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Session acquisition timed out in 600 ms.'
+        ))
+      })
+
+      it('should return the connection back to the pool', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection be released to the pool
+        await testUtils.wait(400)
+
+        expect(pool.has(address)).toBe(true)
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === address)
+        expect(seenConnectionsToAddress.length).toBe(1)
+        expect(seenConnectionsToAddress[0]._release).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    describe('when rediscovery is not done in time', () => {
+      let connectionPromise
+      let address
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        address = server3
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool({ seenConnections })
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        }, null, 500)
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            sessionConnectionTimeout: 300
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should reject with Session acquisition timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Session acquisition timed out in 300 ms.'
+        ))
+      })
+
+      it('should acquire connection the default router', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection be released to the pool
+        await testUtils.wait(400)
+
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === defaultSeedRouter)
+        expect(seenConnectionsToAddress.length).toBe(1)
+      })
+
+      it('should not acquire connection to reader', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection be released to the pool
+        await testUtils.wait(400)
+
+        expect(pool.has(address)).toBe(false)
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === address)
+        expect(seenConnectionsToAddress.length).toBe(0)
+      })
+    })
+
+    describe('when rediscovery is not done in time and router fails', () => {
+      let connectionPromise
+      let address
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        address = server3
+        const routingTable = newRoutingTable(
+          'aDatabase',
+          [server1, server2], // routers
+          [server3],
+          [server5],
+          int(0) // expired
+        )
+        pool = newPool({ seenConnections })
+        const routerToRoutingTable = {
+          aDatabase: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          aDatabase: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        }, newError('It is a non fast-failing error'), 500)
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            sessionConnectionTimeout: 300
+          },
+          [routingTable]
+        )
+
+        // Force not use seed router
+        connectionProvider._useSeedRouter = false
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: 'aDatabase' })
+      })
+
+      it('should reject with Session acquisition timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Session acquisition timed out in 300 ms.'
+        ))
+      })
+
+      it('should acquire connection the router1', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // Wait for connection to server 1 be created
+        await testUtils.wait(300)
+
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === server1)
+        expect(seenConnectionsToAddress.length).toBe(1)
+      })
+
+      it('should not acquire connection the router2', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection server 2 be created
+        await testUtils.wait(800)
+
+        expect(pool.has(address)).toBe(false)
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === server2)
+        expect(seenConnectionsToAddress.length).toBe(0)
+      })
+    })
+  })
+
+  describe('config.updateRoutingTableTimeout', () => {
+    describe('when routing table is refreshed in time', () => {
+      let connectionPromise
+      let address
+      let pool
+
+      beforeEach(() => {
+        address = server3
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool()
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        })
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            updateRoutingTableTimeout: 500
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should resolve with the connection', async () => {
+        const connection = await connectionPromise
+
+        expect(connection).toBeDefined()
+        expect(connection.address).toEqual(address)
+        expect(pool.has(address)).toBeTruthy()
+      })
+    })
+
+    describe('when routing connection is not acquired in time', () => {
+      let connectionPromise
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool({ delay: 350, seenConnections })
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        })
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            updateRoutingTableTimeout: 300
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should reject with routing table update timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Routing table update timed out in 300 ms.'
+        ))
+      })
+    })
+
+    describe('when rediscovery is not done in time', () => {
+      let connectionPromise
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        const routingTable = newRoutingTable(
+          null,
+          [server1],
+          [server3],
+          [server5]
+        )
+        pool = newPool({ seenConnections })
+        const routerToRoutingTable = {
+          null: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          null: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        }, null, 500)
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            updateRoutingTableTimeout: 300
+          }
+        )
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: '' })
+      })
+
+      it('should reject with routing table update timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Routing table update timed out in 300 ms.'
+        ))
+      })
+
+      it('should release the connection', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection be released
+        await testUtils.wait(400)
+
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === defaultSeedRouter)
+        expect(seenConnectionsToAddress.length).toBe(1)
+      })
+    })
+
+    describe('when rediscovery is not done in time and router fails', () => {
+      let connectionPromise
+      let address
+      let pool
+      let seenConnections
+
+      beforeEach(() => {
+        seenConnections = []
+        address = server3
+        const routingTable = newRoutingTable(
+          'aDatabase',
+          [server1, server2], // routers
+          [server3],
+          [server5],
+          int(0) // expired
+        )
+        pool = newPool({ seenConnections })
+        const routerToRoutingTable = {
+          aDatabase: routingTable
+        }
+        const rediscovery = new FakeRediscovery({
+          aDatabase: {
+            // Seed Router
+            [defaultSeedRouter.asKey()]: routingTable
+          }
+        }, newError('It is a non fast-failing error'), 500)
+
+        const connectionProvider = newRoutingConnectionProviderWithFakeRediscovery(
+          rediscovery,
+          pool,
+          routerToRoutingTable,
+          {
+            updateRoutingTableTimeout: 300
+          },
+          [routingTable]
+        )
+
+        // Force not use seed router
+        connectionProvider._useSeedRouter = false
+
+        connectionPromise = connectionProvider
+          .acquireConnection({ accessMode: 'READ', database: 'aDatabase' })
+      })
+
+      it('should reject with routing table update timeout error', async () => {
+        await expect(connectionPromise).rejects.toThrowError(newError(
+          'Routing table update timed out in 300 ms.'
+        ))
+      })
+
+      it('should acquire connection the router1', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // Wait for connection to server 1 be created
+        await testUtils.wait(300)
+
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === server1)
+        expect(seenConnectionsToAddress.length).toBe(1)
+      })
+
+      it('should not acquire connection the router2', async () => {
+        await expect(connectionPromise).rejects.toThrow()
+        // wait for connection server 2 be created
+        await testUtils.wait(800)
+
+        expect(pool.has(address)).toBe(false)
+        const seenConnectionsToAddress = seenConnections.filter(conn => conn.address === server2)
+        expect(seenConnectionsToAddress.length).toBe(0)
+      })
+    })
   })
 })
 
-function newRoutingConnectionProvider (
-  routingTables,
+function newRoutingConnectionProviderWithFakeRediscovery (
+  fakeRediscovery,
   pool = null,
-  routerToRoutingTable = { null: {} }
+  routerToRoutingTable = { null: {} },
+  config = {},
+  routingTables = []
 ) {
-  const seedRouter = ServerAddress.fromUrl('server-non-existing-seed-router')
+  const seedRouter = defaultSeedRouter
   return newRoutingConnectionProviderWithSeedRouter(
     seedRouter,
     [seedRouter],
     routingTables,
     routerToRoutingTable,
-    pool
+    pool,
+    null,
+    fakeRediscovery,
+    config
   )
 }
 
@@ -2497,7 +2959,9 @@ function newRoutingConnectionProviderWithSeedRouter (
   routingTables,
   routerToRoutingTable = { null: {} },
   connectionPool = null,
-  routingTablePurgeDelay = null
+  routingTablePurgeDelay = null,
+  fakeRediscovery = null,
+  config = {}
 ) {
   const pool = connectionPool || newPool()
   const connectionProvider = new RoutingConnectionProvider({
@@ -2505,7 +2969,7 @@ function newRoutingConnectionProviderWithSeedRouter (
     address: seedRouter,
     routingContext: {},
     hostNameResolver: new SimpleHostNameResolver(),
-    config: {},
+    config: config,
     log: Logger.noOp(),
     routingTablePurgeDelay: routingTablePurgeDelay
   })
@@ -2513,12 +2977,28 @@ function newRoutingConnectionProviderWithSeedRouter (
   routingTables.forEach(r => {
     connectionProvider._routingTableRegistry.register(r)
   })
-  connectionProvider._rediscovery = new FakeRediscovery(routerToRoutingTable)
+  connectionProvider._rediscovery =
+    fakeRediscovery || new FakeRediscovery(routerToRoutingTable)
   connectionProvider._hostNameResolver = new FakeDnsResolver(seedRouterResolved)
   connectionProvider._useSeedRouter = routingTables.every(
     r => r.expirationTime !== Integer.ZERO
   )
   return connectionProvider
+}
+
+function newRoutingConnectionProvider (
+  routingTables,
+  pool = null,
+  routerToRoutingTable = { null: {} }
+) {
+  const seedRouter = defaultSeedRouter
+  return newRoutingConnectionProviderWithSeedRouter(
+    seedRouter,
+    [seedRouter],
+    routingTables,
+    routerToRoutingTable,
+    pool
+  )
 }
 
 function newRoutingTableWithUser ({
@@ -2560,17 +3040,25 @@ function setupRoutingConnectionProviderToRememberRouters (
   const originalFetch = connectionProvider._fetchRoutingTable.bind(
     connectionProvider
   )
-  const rememberingFetch = (routerAddresses, routingTable, bookmark) => {
+  const rememberingFetch = (routerAddresses, ...rest) => {
     routersArray.push(routerAddresses)
-    return originalFetch(routerAddresses, routingTable, bookmark)
+    return originalFetch(...[routerAddresses, ...rest])
   }
   connectionProvider._fetchRoutingTable = rememberingFetch
 }
 
-function newPool () {
+function newPool ({ create, config, delay, seenConnections = [] } = {}) {
+  const _create = async (address, release) => {
+    await testUtils.wait(delay)
+    const connection = create != null
+      ? create(address, release)
+      : new FakeConnection(address, release, 'version', 4.0)
+    seenConnections.push(connection)
+    return connection
+  }
   return new Pool({
-    create: (address, release) =>
-      Promise.resolve(new FakeConnection(address, release, 'version', 4.0))
+    config,
+    create: (address, release) => _create(address, release)
   })
 }
 
@@ -2612,6 +3100,7 @@ class FakeConnection extends Connection {
     this._version = version || VERSION_IN_DEV.toString()
     this._protocolVersion = protocolVersion
     this.release = release
+    this._release = jest.fn(() => release(address, this))
   }
 
   get address () {
@@ -2630,11 +3119,17 @@ class FakeConnection extends Connection {
 }
 
 class FakeRediscovery {
-  constructor (routerToRoutingTable) {
+  constructor (routerToRoutingTable, error, delay) {
     this._routerToRoutingTable = routerToRoutingTable
+    this._error = error
+    this._delay = delay
   }
 
-  lookupRoutingTableOnRouter (ignored, database, router, user) {
+  async lookupRoutingTableOnRouter (ignored, database, router, user) {
+    await testUtils.wait(this._delay)
+    if (this._error) {
+      throw this._error
+    }
     const table = this._routerToRoutingTable[database || null]
     if (table) {
       let routingTables = table[router.asKey()]
@@ -2642,9 +3137,9 @@ class FakeRediscovery {
       if (routingTables instanceof Array) {
         routingTable = routingTables.find(rt => rt.user === user)
       }
-      return Promise.resolve(routingTable)
+      return routingTable
     }
-    return Promise.resolve(null)
+    return null
   }
 }
 

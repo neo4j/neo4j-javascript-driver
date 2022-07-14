@@ -58,6 +58,8 @@ export interface Config {
   maxTransactionRetryTime?: number
   maxConnectionLifetime?: number
   connectionAcquisitionTimeout?: number
+  sessionConnectionTimeout?: number
+  updateRoutingTableTimeout?: number
   connectionTimeout?: number
   disableLosslessIntegers?: boolean
   useBigInt?: boolean
