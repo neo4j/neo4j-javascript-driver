@@ -81,12 +81,6 @@ export function NewDriver (context, data, wire) {
   if ('connectionAcquisitionTimeoutMs' in data) {
     config.connectionAcquisitionTimeout = data.connectionAcquisitionTimeoutMs
   }
-  if ('sessionConnectionTimeoutMs' in data) {
-    config.sessionConnectionTimeout = data.sessionConnectionTimeoutMs
-  }
-  if ('updateRoutingTableTimeoutMs' in data) {
-    config.updateRoutingTableTimeout = data.updateRoutingTableTimeoutMs
-  }
   if ('fetchSize' in data) {
     config.fetchSize = data.fetchSize
   }
@@ -350,8 +344,6 @@ export function GetFeatures (_context, _params, wire) {
       'Feature:Bolt:4.4',
       'Feature:API:Result.List',
       'Detail:ResultStreamWorksAfterBrokenRecord',
-      'Feature:API:SessionConnectionTimeout',
-      'Feature:API:UpdateRoutingTableTimeout',
       ...SUPPORTED_TLS
     ]
   })
