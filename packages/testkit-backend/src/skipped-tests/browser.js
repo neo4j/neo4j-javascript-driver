@@ -1,12 +1,6 @@
 import skip, { ifEndsWith, ifEquals, ifStartsWith } from './skip'
 const skippedTests = [
   skip(
-    'Flacky in testkit',
-    ifStartsWith('stub.driver_parameters.test_update_routing_table_timeout_ms'),
-    ifStartsWith('stub.driver_parameters.test_session_connection_timeout'),
-    ifStartsWith('stub.driver_parameters.test_max_connection_pool_size.TestMaxConnectionPoolSize.test_connection_pool_maxes_out_at_100_by_default')
-  ),
-  skip(
     "Browser doesn't support socket timeouts",
     ifStartsWith('stub.configuration_hints.test_connection_recv_timeout_seconds')
   ),

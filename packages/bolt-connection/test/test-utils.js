@@ -134,16 +134,11 @@ function spyProtocolWrite (protocol, callRealMethod = false) {
   return protocol
 }
 
-function wait (time) {
-  return new Promise((resolve) => setTimeout(resolve, time))
-}
-
 export default {
   isClient,
   isServer,
   fakeStandardDateWithOffset,
   matchers,
   MessageRecordingConnection,
-  spyProtocolWrite,
-  wait
+  spyProtocolWrite
 }

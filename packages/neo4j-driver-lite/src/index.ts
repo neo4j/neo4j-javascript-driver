@@ -148,19 +148,6 @@ const {
  *       // connection or borrow an existing one.
  *       connectionAcquisitionTimeout: 60000, // 1 minute
  *
- *       // The maximum amout of time for a session to wait to acquire an usable connection. This encompasses *everything*
- *       // that needs to happen for this, including, if necessary, updating the routing table<, acquiring a connection
- *       // from the pool, and, if necessary performing a BOLT and Authentication handshake with the reader/writer.
- *       // Since this can include updating the routing table, it is recommended to keep this bigger than `updateRoutingTableTimeout`.
- *       sessionConnectionTimeout: null, // Disabled for not breaking compatibility. Recommended: 120000 ms
- *
- *       // the maximum amount of time the driver will attempt to fetch a new routing table. This encompasses *everything*
- *       // that needs to happen for this, including fetching connections from the pool, performing handshakes,
- *       // and requesting and receiving a fresh routing table.
- *       // Since this includes acquiring a connection from the pool plus an extra round-trip for fetching the routing table,
- *       // it is recommended to keep this bigger than `connectionAcquisitionTimeout`.
- *       updateRoutingTableTimeout: null, // Disabled for not breaking compatibility. Recommended: 90000 ms
- *
  *       // Specify the maximum time in milliseconds transactions are allowed to retry via
  *       // `Session#readTransaction()` and `Session#writeTransaction()` functions.
  *       // These functions will retry the given unit of work on `ServiceUnavailable`, `SessionExpired` and transient
