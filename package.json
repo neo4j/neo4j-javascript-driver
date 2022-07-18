@@ -2,11 +2,14 @@
   "name": "root",
   "private": true,
   "type": "module",
+  "workspaces": [
+     "packages/*"
+  ], 
   "devDependencies": {
-    "husky": "^7.0.4",
-    "lerna": "^4.0.0",
-    "lint-staged": "^12.3.7",
-    "standard": "^16.0.4",
+    "husky": "^8.0.1",
+    "lerna": "^5.1.8",
+    "lint-staged": "^13.0.3",
+    "standard": "^17.0.0",
     "ts-standard": "^11.0.0",
     "typescript": "^4.6.3"
   },
