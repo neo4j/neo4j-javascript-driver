@@ -23,18 +23,19 @@ import { FailedObserver } from './internal/observers'
 import { validateQueryAndParameters } from './internal/util'
 import { FETCH_ALL, ACCESS_MODE_READ, ACCESS_MODE_WRITE } from './internal/constants'
 import { newError } from './error'
-import Result from './result'
+import Result, { QueryResult } from './result'
 import Transaction from './transaction'
 import { ConnectionHolder } from './internal/connection-holder'
 import { TransactionExecutor } from './internal/transaction-executor'
 import { Bookmarks } from './internal/bookmarks'
 import { TxConfig } from './internal/tx-config'
 import ConnectionProvider from './connection-provider'
-import { Query, SessionMode } from './types'
+import { ClusterMemberAccess, Query, SessionMode } from './types'
 import Connection from './connection'
 import { NumberOrInteger } from './graph-types'
 import TransactionPromise from './transaction-promise'
 import ManagedTransaction from './transaction-managed'
+import { QueryRunner } from './query-runner'
 
 type ConnectionConsumer = (connection: Connection | null) => any | undefined
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
@@ -45,6 +46,11 @@ interface TransactionConfig {
   metadata?: object
 }
 
+interface SessionQueryConfig extends TransactionConfig {
+  clusterMemberAccess?: ClusterMemberAccess
+  skipRecords?: boolean
+}
+
 /**
  * A Session instance is used for handling the connection and
  * sending queries through the connection.
@@ -52,7 +58,7 @@ interface TransactionConfig {
  * In order to execute parallel queries, multiple sessions are required.
  * @access public
  */
-class Session {
+class Session implements QueryRunner {
   private readonly _mode: SessionMode
   private _database: string
   private readonly _reactive: boolean
@@ -176,6 +182,32 @@ class Session {
     })
     this._results.push(result)
     return result
+  }
+
+  query (query: Query): Promise<QueryResult>
+  query (query: Query, parameters: any): Promise<QueryResult>
+  query (query: Query, parameters: any | undefined | null, config: SessionQueryConfig): Promise<QueryResult>
+  query (query: Query, parameters?: any, config?: SessionQueryConfig): Promise<QueryResult> {
+    const access = config?.clusterMemberAccess ?? 'AUTOMATIC'
+
+    const job: ManagedTransactionWork<QueryResult> = async (tx) => {
+      const skipRecords = config?.skipRecords ?? false
+      const result = tx.run(query, parameters)
+      if (skipRecords) {
+        const summary = await result.summary()
+        return { summary, records: [] }
+      }
+      return await tx.query(query, parameters)
+    }
+
+    switch (access) {
+      case 'READERS':
+        return this.executeRead(job, config)
+      case 'AUTOMATIC':
+        return this.executeWrite(job, config)
+      default:
+        throw Error('invalid clusterMemberAccess')
+    }
   }
 
   _run (

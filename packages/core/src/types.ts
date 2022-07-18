@@ -30,6 +30,8 @@ export type LoggerFunction = (level: LogLevel, message: string) => unknown
 
 export type SessionMode = 'READ' | 'WRITE'
 
+export type ClusterMemberAccess = 'AUTOMATIC' | 'READERS' | 'WRITERS'
+
 export interface LoggingConfig {
   level?: LogLevel
   logger: LoggerFunction

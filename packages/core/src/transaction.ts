@@ -35,15 +35,16 @@ import {
 } from './internal/observers'
 
 import { newError } from './error'
-import Result from './result'
+import Result, { QueryResult } from './result'
 import { Query } from './types'
+import { EagerQueryRunner } from './query-runner'
 
 /**
  * Represents a transaction in the Neo4j database.
  *
  * @access public
  */
-class Transaction {
+class Transaction implements EagerQueryRunner {
   private readonly _connectionHolder: ConnectionHolder
   private readonly _reactive: boolean
   private _state: any
@@ -179,6 +180,15 @@ class Transaction {
     })
     this._results.push(result)
     return result
+  }
+
+  /**
+   * @todo Doc
+   * @param query
+   * @param parameters
+   */
+  async query (query: Query, parameters?: any): Promise<QueryResult> {
+    return await this.run(query, parameters)
   }
 
   /**

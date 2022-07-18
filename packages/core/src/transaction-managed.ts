@@ -17,28 +17,35 @@
  * limitations under the License.
  */
 
-import Result from './result'
+import { EagerQueryRunner } from './query-runner'
+import Result, { QueryResult } from './result'
 import Transaction from './transaction'
 import { Query } from './types'
 
-type Run = (query: Query, parameters?: any) => Result
+type RunMethod = (query: Query, parameters?: any) => Result
+type QueryMethod = (query: Query, parameters?: any) => Promise<QueryResult>
 
 /**
  * Represents a transaction that is managed by the transaction executor.
  *
  * @public
  */
-class ManagedTransaction {
-  private readonly _run: Run
+class ManagedTransaction implements EagerQueryRunner {
+  private readonly _run: RunMethod
+  private readonly _query: QueryRun
 
   /**
    * @private
    */
-  private constructor ({ run }: { run: Run }) {
+  private constructor ({ run, query }: { run: RunMethod, query: QueryMethod }) {
     /**
      * @private
      */
     this._run = run
+    /**
+     * @private
+     */
+    this._query = query
   }
 
   /**
@@ -48,7 +55,8 @@ class ManagedTransaction {
    */
   static fromTransaction (tx: Transaction): ManagedTransaction {
     return new ManagedTransaction({
-      run: tx.run.bind(tx)
+      run: tx.run.bind(tx),
+      query: tx.query.bind(tx)
     })
   }
 
@@ -62,6 +70,16 @@ class ManagedTransaction {
    */
   run (query: Query, parameters?: any): Result {
     return this._run(query, parameters)
+  }
+
+  /**
+   * @todo doc
+   * @param query
+   * @param parameters
+   * @returns
+   */
+  async query (query: Query, parameters?: any): Promise<QueryResult> {
+    return this._query(query, parameters)
   }
 }
 
