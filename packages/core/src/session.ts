@@ -75,6 +75,7 @@ class Session implements QueryRunner {
   private readonly _lowRecordWatermark: number
   private readonly _highRecordWatermark: number
   private readonly _results: Result[]
+  private readonly _connectionProvider: ConnectionProvider
   /**
    * @constructor
    * @protected
@@ -128,6 +129,7 @@ class Session implements QueryRunner {
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved
     })
+    this._connectionProvider = connectionProvider
     this._open = true
     this._hasTx = false
     this._impersonatedUser = impersonatedUser
@@ -200,7 +202,21 @@ class Session implements QueryRunner {
       return await tx.query(query, parameters)
     }
 
+    const executeAutomatic: () => Promise<QueryResult> = async () => {
+      const canAutoRoute = await this._connectionProvider.supportsAutoRoutingQuery({
+        database: this._database,
+        onDatabaseNameResolved: this._onDatabaseNameResolved
+      })
+      if (!canAutoRoute) {
+        throw newError('Server does not support Automatic ClusterMemberAccess')
+      }
+
+      return await this.executeRead(job, config)
+    }
+
     switch (access) {
+      case 'AUTOMATIC':
+        return executeAutomatic()
       case 'READERS':
         return this.executeRead(job, config)
       case 'WRITERS':

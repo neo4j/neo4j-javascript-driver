@@ -84,6 +84,13 @@ class ConnectionProvider {
     throw Error('Not implemented')
   }
 
+  supportsAutoRoutingQuery (param?: {
+    database?: string
+    onDatabaseNameResolved?: (databaseName?: string) => void
+  }): Promise<boolean> {
+    throw Error('Not implemented')
+  }
+
   /**
    * This method verifies the connectivity of the database by trying to acquire a connection
    * for each server available in the cluster.

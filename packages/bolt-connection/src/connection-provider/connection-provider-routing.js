@@ -146,7 +146,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     const routingTable = await this._freshRoutingTable({
       accessMode,
       database: context.database,
-      bookmarks: bookmarks,
+      bookmarks,
       impersonatedUser,
       onDatabaseNameResolved: (databaseName) => {
         context.database = context.database || databaseName
@@ -243,6 +243,19 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return await this._hasProtocolVersion(
       version => version >= BOLT_PROTOCOL_V4_4
     )
+  }
+
+  async supportsAutoRoutingQuery ({ database, onDatabaseNameResolved } = {}) {
+    const connection = await this.acquireConnection({
+      database,
+      onDatabaseNameResolved,
+      accessMode: READ
+    })
+    try {
+      return connection._supportsAutoRoutingQuery
+    } finally {
+      await connection._release()
+    }
   }
 
   getNegotiatedProtocolVersion () {

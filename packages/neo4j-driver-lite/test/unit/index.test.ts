@@ -223,7 +223,8 @@ describe('index', () => {
         supportsTransactionConfig: async () => true,
         supportsUserImpersonation: async () => true,
         verifyConnectivityAndGetServerInfo: async () => new ServerInfo({}),
-        getNegotiatedProtocolVersion: async () => 5.0
+        getNegotiatedProtocolVersion: async () => 5.0,
+        supportsAutoRoutingQuery: async () => false
       }
     })
     expect(session).toBeDefined()

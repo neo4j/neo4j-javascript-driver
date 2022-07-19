@@ -150,6 +150,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
   private _toTransaction (): Transaction {
     return {
       ...this,
+      query: super.query.bind(this),
       run: super.run.bind(this),
       commit: super.commit.bind(this),
       rollback: super.rollback.bind(this),

@@ -111,6 +111,10 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
     )
   }
 
+  async supportsAutoRoutingQuery () {
+    return true
+  }
+
   async verifyConnectivityAndGetServerInfo () {
     return await this._verifyConnectivityAndGetServerVersion({ address: this._address })
   }

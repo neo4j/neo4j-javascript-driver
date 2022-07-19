@@ -203,31 +203,35 @@ export default class ChannelConnection extends Connection {
             }
 
             if (metadata.hints) {
-              const receiveTimeoutRaw =
-                metadata.hints['connection.recv_timeout_seconds']
-              if (
-                receiveTimeoutRaw !== null &&
-                receiveTimeoutRaw !== undefined
-              ) {
-                const receiveTimeoutInSeconds = toNumber(receiveTimeoutRaw)
-                if (
-                  Number.isInteger(receiveTimeoutInSeconds) &&
-                  receiveTimeoutInSeconds > 0
-                ) {
-                  this._ch.setupReceiveTimeout(receiveTimeoutInSeconds * 1000)
-                } else {
-                  this._log.info(
-                    `Server located at ${this._address} supplied an invalid connection receive timeout value (${receiveTimeoutInSeconds}). ` +
-                      'Please, verify the server configuration and status because this can be the symptom of a bigger issue.'
-                  )
-                }
-              }
+              this._proccessConnectionHints(metadata)
             }
           }
           resolve(self)
         }
       })
     })
+  }
+
+  /**
+   * @private
+   * @param {any} metadata
+   */
+  _proccessConnectionHints (metadata) {
+    const receiveTimeoutRaw = metadata.hints['connection.recv_timeout_seconds']
+    if (receiveTimeoutRaw !== null && receiveTimeoutRaw !== undefined) {
+      const receiveTimeoutInSeconds = toNumber(receiveTimeoutRaw)
+      if (Number.isInteger(receiveTimeoutInSeconds) &&
+        receiveTimeoutInSeconds > 0) {
+        this._ch.setupReceiveTimeout(receiveTimeoutInSeconds * 1000)
+      } else {
+        this._log.info(
+          `Server located at ${this._address} supplied an invalid connection receive timeout value (${receiveTimeoutInSeconds}). ` +
+          'Please, verify the server configuration and status because this can be the symptom of a bigger issue.'
+        )
+      }
+    }
+
+    this._supportsAutoRoutingQuery = metadata.hints.server_side_routing ?? false
   }
 
   /**
@@ -340,13 +344,14 @@ export default class ChannelConnection extends Connection {
     })
   }
 
-  _reset(observer) {
+  _reset (observer) {
     if (this._reseting) {
       if (!this._protocol.isLastMessageReset()) {
         this._protocol.reset({
           onError: error => {
             observer.onError(error)
-          }, onComplete: () => {
+          },
+          onComplete: () => {
             observer.onComplete()
           }
         })
@@ -369,7 +374,8 @@ export default class ChannelConnection extends Connection {
     this._protocol.reset({
       onError: error => {
         notifyFinish(obs => obs.onError(error))
-      }, onComplete: () => {
+      },
+      onComplete: () => {
         notifyFinish(obs => obs.onComplete())
       }
     })
