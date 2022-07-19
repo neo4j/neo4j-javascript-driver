@@ -30,7 +30,7 @@ import {
   DEFAULT_POOL_MAX_SIZE
 } from './internal/constants'
 import { Logger } from './internal/logger'
-import Session, { SessionQueryConfig } from './session'
+import Session, { ManagedTransactionWork, SessionQueryConfig, SessionTxConfig } from './session'
 import { ServerInfo } from './result-summary'
 import { ENCRYPTION_ON } from './internal/util'
 import {
@@ -98,8 +98,16 @@ interface DriverConfig {
   logging?: LoggingConfig
 }
 
-interface DriverQueryConfig extends SessionQueryConfig {
+interface DriverSpecificConfig {
   database?: string
+}
+
+interface DriverTxConfig extends SessionTxConfig, DriverSpecificConfig {
+
+}
+
+interface DriverQueryConfig extends SessionQueryConfig, DriverSpecificConfig {
+
 }
 
 /**
@@ -333,6 +341,18 @@ class Driver {
     const session = this.session(config)
     try {
       return await session.query(query, parameters, config)
+    } finally {
+      await session.close()
+    }
+  }
+
+  execute<T> (transactionWork: ManagedTransactionWork<T>): Promise<T>
+  execute<T> (transactionWork: ManagedTransactionWork<T>, config: DriverTxConfig): Promise<T>
+  execute<T> (transactionWork: ManagedTransactionWork<T>, config?: DriverTxConfig): Promise<T>
+  async execute<T> (transactionWork: ManagedTransactionWork<T>, config?: DriverTxConfig): Promise<T> {
+    const session = this.session(config)
+    try {
+      return await session.execute(transactionWork, config)
     } finally {
       await session.close()
     }

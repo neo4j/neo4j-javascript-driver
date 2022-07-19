@@ -46,8 +46,11 @@ interface TransactionConfig {
   metadata?: object
 }
 
-interface SessionQueryConfig extends TransactionConfig {
+interface SessionTxConfig extends TransactionConfig {
   clusterMemberAccess?: ClusterMemberAccess
+}
+
+interface SessionQueryConfig extends SessionTxConfig {
   skipRecords?: boolean
 }
 
@@ -191,8 +194,6 @@ class Session implements QueryRunner {
   query (query: Query, parameters: any | undefined | null, config: SessionQueryConfig): Promise<QueryResult>
   query (query: Query, parameters?: any, config?: SessionQueryConfig): Promise<QueryResult>
   query (query: Query, parameters?: any, config?: SessionQueryConfig): Promise<QueryResult> {
-    const access = config?.clusterMemberAccess ?? 'AUTOMATIC'
-
     const job: ManagedTransactionWork<QueryResult> = async (tx) => {
       const skipRecords = config?.skipRecords ?? false
       const result = tx.run(query, parameters)
@@ -202,8 +203,15 @@ class Session implements QueryRunner {
       }
       return await tx.query(query, parameters)
     }
+    return this.execute(job, config)
+  }
 
-    const executeAutomatic: () => Promise<QueryResult> = async () => {
+  execute<T> (transactionWork: ManagedTransactionWork<T>): Promise<T>
+  execute<T> (transactionWork: ManagedTransactionWork<T>, config: SessionTxConfig): Promise<T>
+  execute<T> (transactionWork: ManagedTransactionWork<T>, config?: SessionTxConfig): Promise<T>
+  execute<T> (transactionWork: ManagedTransactionWork<T>, config?: SessionTxConfig): Promise<T> {
+    const access = config?.clusterMemberAccess ?? 'AUTOMATIC'
+    const executeAutomatic: () => Promise<T> = async () => {
       const canAutoRoute = await this._connectionProvider.supportsAutoRoutingQuery({
         database: this._database,
         onDatabaseNameResolved: this._onDatabaseNameResolved
@@ -212,16 +220,16 @@ class Session implements QueryRunner {
         throw newError('Server does not support Automatic ClusterMemberAccess')
       }
 
-      return await this.executeRead(job, config)
+      return await this.executeRead(transactionWork, config)
     }
 
     switch (access) {
       case 'AUTOMATIC':
         return executeAutomatic()
       case 'READERS':
-        return this.executeRead(job, config)
+        return this.executeRead(transactionWork, config)
       case 'WRITERS':
-        return this.executeWrite(job, config)
+        return this.executeWrite(transactionWork, config)
       default:
         throw Error('invalid clusterMemberAccess')
     }
@@ -609,4 +617,4 @@ function _createTransactionExecutor (config?: {
 }
 
 export default Session
-export type { TransactionConfig, SessionQueryConfig }
+export type { TransactionConfig, SessionTxConfig, SessionQueryConfig, ManagedTransactionWork }
