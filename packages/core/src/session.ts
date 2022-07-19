@@ -203,7 +203,7 @@ class Session implements QueryRunner {
     switch (access) {
       case 'READERS':
         return this.executeRead(job, config)
-      case 'AUTOMATIC':
+      case 'WRITERS':
         return this.executeWrite(job, config)
       default:
         throw Error('invalid clusterMemberAccess')
