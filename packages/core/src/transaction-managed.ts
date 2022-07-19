@@ -73,10 +73,17 @@ class ManagedTransaction implements EagerQueryRunner {
   }
 
   /**
-   * @todo doc
-   * @param query
-   * @param parameters
-   * @returns
+   * Run Cypher query
+   * Could be called with a query object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
+   * or with the query and parameters as separate arguments.
+   *
+   * For access to the {@link Result} object, use {@link ManagedTransaction#run}
+   *
+   * @public
+   * @since 5.0.0
+   * @param {mixed} query - Cypher query to execute
+   * @param {Object} parameters - Map with parameters to use in query
+   * @return {Promise<QueryResult>} Query result
    */
   async query (query: Query, parameters?: any): Promise<QueryResult> {
     return await this._query(query, parameters)

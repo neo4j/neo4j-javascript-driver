@@ -84,6 +84,15 @@ class ConnectionProvider {
     throw Error('Not implemented')
   }
 
+  /**
+   * This methods checks whether the backend database supports auto routing query
+   *
+   * Direct Connection are considered supporting auto routing queries
+   *
+   * @param {object} param - object parameter
+   * @property {string} [param.database] - the target database for the to-be-acquired connection
+   * @property {function (databaseName:string?)} [param.onDatabaseNameResolved] - Callback called when the database name get resolved
+   */
   supportsAutoRoutingQuery (param?: {
     database?: string
     onDatabaseNameResolved?: (databaseName?: string) => void

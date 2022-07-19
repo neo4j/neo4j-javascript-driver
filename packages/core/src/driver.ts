@@ -361,6 +361,7 @@ class Driver {
    * For access to the {@link Result} object, use {@link Driver#execute} and {@link ManagedTransaction#run}
    *
    * @public
+   * @since 5.0.0
    * @param {mixed} query - Cypher query to execute
    * @param {Object} [parameters] - Map with parameters to use in query
    * @param {DriverQueryConfig} [config] - Configuration for the query and transaction.
@@ -383,6 +384,8 @@ class Driver {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
+   * @public
+   * @since 5.0.0
    * @param {function(tx: ManagedTransaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link ManagedTransaction}.
    * @param {DriverTxConfig} [config] - Configuration for all transactions started to execute the unit of work.
