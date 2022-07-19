@@ -32,7 +32,7 @@ type QueryMethod = (query: Query, parameters?: any) => Promise<QueryResult>
  */
 class ManagedTransaction implements EagerQueryRunner {
   private readonly _run: RunMethod
-  private readonly _query: QueryRun
+  private readonly _query: QueryMethod
 
   /**
    * @private
@@ -79,7 +79,7 @@ class ManagedTransaction implements EagerQueryRunner {
    * @returns
    */
   async query (query: Query, parameters?: any): Promise<QueryResult> {
-    return this._query(query, parameters)
+    return await this._query(query, parameters)
   }
 }
 
