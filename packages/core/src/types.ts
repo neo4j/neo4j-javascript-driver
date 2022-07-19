@@ -30,6 +30,16 @@ export type LoggerFunction = (level: LogLevel, message: string) => unknown
 
 export type SessionMode = 'READ' | 'WRITE'
 
+/**
+ * The type of Cluster Members which will be accessed.
+ *
+ * * 'AUTOMATIC' - the called function will try to resolve the access
+ * type automatic.
+ * * 'READERS' - The workload will be directed to the readers.
+ * * 'WRITERS' - The workload will be directed to the writers
+ *
+ * @typedef {'AUTOMATIC' | 'READERS' | 'WRITERS'} ClusterMemberAccess
+ */
 export type ClusterMemberAccess = 'AUTOMATIC' | 'READERS' | 'WRITERS'
 
 export interface LoggingConfig {

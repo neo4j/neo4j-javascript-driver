@@ -55,7 +55,15 @@ const DEFAULT_ON_KEYS = (keys: string[]): void => {}
 /**
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
+ *
+ * @typedef {Object} QueryResult
+ * @property {Record[]} records - The resultant records list
+ * @property {ResultSummary} summary - The result summary
  */
+// eslint-disable-next-line no-lone-blocks
+{
+  // Empty block for the typedef be processed
+}
 interface QueryResult {
   records: Record[]
   summary: ResultSummary

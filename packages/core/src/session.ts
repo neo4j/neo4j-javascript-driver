@@ -46,10 +46,27 @@ interface TransactionConfig {
   metadata?: object
 }
 
+/**
+ * @typedef {TransactionConfig} SessionTxConfig
+ *
+ * @property {ClusterMemberAccess} [clusterMemberAccess] The cluster members used
+ */
+// eslint-disable-next-line no-lone-blocks
+{
+  // Empty block for the typedef be processed
+}
 interface SessionTxConfig extends TransactionConfig {
   clusterMemberAccess?: ClusterMemberAccess
 }
 
+/**
+ * @typedef {SessionTxConfig} SessionQueryConfig
+ * @property {boolean} [skipRecords] Skips the records pull and return only the summary
+ */
+// eslint-disable-next-line no-lone-blocks
+{
+  // Empty block for the typedef be processed
+}
 interface SessionQueryConfig extends SessionTxConfig {
   skipRecords?: boolean
 }
@@ -189,10 +206,26 @@ class Session implements QueryRunner {
     return result
   }
 
-  query (query: Query): Promise<QueryResult>
-  query (query: Query, parameters: any): Promise<QueryResult>
-  query (query: Query, parameters: any | undefined | null, config: SessionQueryConfig): Promise<QueryResult>
-  query (query: Query, parameters?: any, config?: SessionQueryConfig): Promise<QueryResult>
+  /**
+   * Run Cypher query in a resilient transaction.
+   *
+   * Could be called with a query object i.e.: `{text: "MATCH ...", parameters: {param: 1}}`
+   * or with the query and parameters as separate arguments.
+   *
+   * Some failures of the given query or the commit itself will be retried with exponential backoff with initial
+   * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
+   * `maxTransactionRetryTime` property in milliseconds.
+   *
+   * For auto-commit queries, use {@link Session#run}
+   *
+   * For access to the {@link Result} object, use {@link Session#execute} and {@link ManagedTransaction#run}
+   *
+   * @public
+   * @param {mixed} query - Cypher query to execute
+   * @param {Object} [parameters] - Map with parameters to use in query
+   * @param {SessionQueryConfig} [config] - Configuration for the query and transaction.
+   * @return {Promise<QueryResult>} New Result.
+   */
   query (query: Query, parameters?: any, config?: SessionQueryConfig): Promise<QueryResult> {
     const job: ManagedTransactionWork<QueryResult> = async (tx) => {
       const skipRecords = config?.skipRecords ?? false
@@ -206,9 +239,20 @@ class Session implements QueryRunner {
     return this.execute(job, config)
   }
 
-  execute<T> (transactionWork: ManagedTransactionWork<T>): Promise<T>
-  execute<T> (transactionWork: ManagedTransactionWork<T>, config: SessionTxConfig): Promise<T>
-  execute<T> (transactionWork: ManagedTransactionWork<T>, config?: SessionTxConfig): Promise<T>
+  /**
+   * Execute given unit of work in a transaction.
+   *
+   * Transaction will automatically be committed unless the given function throws or returns a rejected promise.
+   * Some failures of the given function or the commit itself will be retried with exponential backoff with initial
+   * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
+   * `maxTransactionRetryTime` property in milliseconds.
+   *
+   * @param {function(tx: ManagedTransaction): Promise} transactionWork - Callback that executes operations against
+   * a given {@link ManagedTransaction}.
+   * @param {SessionTxConfig} [config] - Configuration for all transactions started to execute the unit of work.
+   * @return {Promise<T>} Resolved promise as returned by the given function or rejected promise when given
+   * function or commit fails.
+   */
   execute<T> (transactionWork: ManagedTransactionWork<T>, config?: SessionTxConfig): Promise<T> {
     const access = config?.clusterMemberAccess ?? 'AUTOMATIC'
     const executeAutomatic: () => Promise<T> = async () => {
