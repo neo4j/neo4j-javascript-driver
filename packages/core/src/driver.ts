@@ -30,16 +30,18 @@ import {
   DEFAULT_POOL_MAX_SIZE
 } from './internal/constants'
 import { Logger } from './internal/logger'
-import Session from './session'
+import Session, { SessionQueryConfig } from './session'
 import { ServerInfo } from './result-summary'
 import { ENCRYPTION_ON } from './internal/util'
 import {
   EncryptionLevel,
   LoggingConfig,
   TrustStrategy,
-  SessionMode
+  SessionMode,
+  Query
 } from './types'
 import { ServerAddress } from './internal/server-address'
+import { QueryResult } from './result'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -94,6 +96,10 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
+}
+
+interface DriverQueryConfig extends SessionQueryConfig {
+  database?: string
 }
 
 /**
@@ -314,6 +320,22 @@ class Driver {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!)
     })
+  }
+
+  /**
+   * @todo Document
+   * @param query
+   */
+  query (query: Query): Promise<QueryResult>
+  query (query: Query, parameters: any): Promise<QueryResult>
+  query (query: Query, parameters: any | undefined | null, config: DriverQueryConfig): Promise<QueryResult>
+  async query (query: Query, parameters?: any, config?: DriverQueryConfig): Promise<QueryResult> {
+    const session = this.session(config)
+    try {
+      return await session.query(query, parameters, config)
+    } finally {
+      await session.close()
+    }
   }
 
   /**

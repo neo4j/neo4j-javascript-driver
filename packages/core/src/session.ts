@@ -189,6 +189,7 @@ class Session implements QueryRunner {
   query (query: Query): Promise<QueryResult>
   query (query: Query, parameters: any): Promise<QueryResult>
   query (query: Query, parameters: any | undefined | null, config: SessionQueryConfig): Promise<QueryResult>
+  query (query: Query, parameters?: any, config?: SessionQueryConfig): Promise<QueryResult>
   query (query: Query, parameters?: any, config?: SessionQueryConfig): Promise<QueryResult> {
     const access = config?.clusterMemberAccess ?? 'AUTOMATIC'
 
@@ -608,4 +609,4 @@ function _createTransactionExecutor (config?: {
 }
 
 export default Session
-export type { TransactionConfig }
+export type { TransactionConfig, SessionQueryConfig }
