@@ -60,7 +60,8 @@ import {
   auth,
   Session,
   Transaction,
-  ManagedTransaction
+  ManagedTransaction,
+  bookmarkManager
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -335,7 +336,7 @@ const USER_AGENT = 'neo4j-javascript/' + VERSION
 const logging = {
   console: level => {
     return {
-      level: level,
+      level,
       logger: (level, message) =>
         console.log(`${global.Date.now()} ${level.toUpperCase()} ${message}`)
     }
@@ -453,7 +454,8 @@ const forExport = {
   Time,
   Date,
   LocalDateTime,
-  DateTime
+  DateTime,
+  bookmarkManager
 }
 
 export {
@@ -506,6 +508,7 @@ export {
   Time,
   Date,
   LocalDateTime,
-  DateTime
+  DateTime,
+  bookmarkManager
 }
 export default forExport

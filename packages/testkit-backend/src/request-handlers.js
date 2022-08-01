@@ -43,10 +43,10 @@ export function NewDriver (context, data, wire) {
   }
   const resolver = resolverRegistered
     ? address =>
-        new Promise((resolve, reject) => {
-          const id = context.addResolverRequest(resolve, reject)
-          wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
-        })
+      new Promise((resolve, reject) => {
+        const id = context.addResolverRequest(resolve, reject)
+        wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
+      })
     : undefined
   const config = {
     userAgent,
@@ -83,6 +83,17 @@ export function NewDriver (context, data, wire) {
   }
   if ('maxTxRetryTimeMs' in data) {
     config.maxTransactionRetryTime = data.maxTxRetryTimeMs
+  }
+  if ('bookmarkManager' in data) {
+    /// TODO: Implement supplier and notify
+    const bmmConfig = data.bookmarkManager
+    let initialBookmarks
+    if (bmmConfig.initialBookmarks != null) {
+      initialBookmarks = new Map(Object.entries(bmmConfig.initialBookmarks))
+    }
+    config.bookmarkManager = neo4j.bookmarkManager({
+      initialBookmarks
+    })
   }
   let driver
   try {
@@ -439,7 +450,7 @@ export function ForcedRoutingTableUpdate (context, { driverId, database, bookmar
     return provider._freshRoutingTable({
       accessMode: 'READ',
       database,
-      bookmarks: bookmarks,
+      bookmarks,
       onDatabaseNameResolved: () => {}
     })
       .then(() => wire.writeResponse(responses.Driver({ id: driverId })))

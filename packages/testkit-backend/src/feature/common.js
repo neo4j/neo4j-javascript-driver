@@ -17,6 +17,7 @@ const features = [
   'Feature:Auth:Custom',
   'Feature:Auth:Kerberos',
   'Feature:Auth:Bearer',
+  'Feature:API:BookmarkManager',
   'Feature:API:SSLConfig',
   'Feature:API:SSLSchemes',
   'Feature:API:Type.Temporal',

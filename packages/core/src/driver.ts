@@ -40,6 +40,7 @@ import {
   SessionMode
 } from './types'
 import { ServerAddress } from './internal/server-address'
+import BookmarkManager from './bookmark-manager'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -87,6 +88,7 @@ type CreateSession = (args: {
   reactive: boolean
   fetchSize: number
   impersonatedUser?: string
+  bookmarkManager?: BookmarkManager
 }) => Session
 
 interface DriverConfig {
@@ -94,6 +96,7 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
+  bookmarkManager?: BookmarkManager
 }
 
 /**
@@ -362,6 +365,9 @@ class Driver {
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
+    const bookmarkManager = bookmarkOrBookmarks == null
+      ? this._config.bookmarkManager
+      : undefined
     return this._createSession({
       mode: sessionMode,
       database: database ?? '',
@@ -370,7 +376,8 @@ class Driver {
       config: this._config,
       reactive,
       impersonatedUser,
-      fetchSize
+      fetchSize,
+      bookmarkManager
     })
   }
 

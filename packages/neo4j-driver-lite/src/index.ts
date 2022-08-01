@@ -69,7 +69,10 @@ import {
   Connection,
   driver as coreDriver,
   types as coreTypes,
-  auth
+  auth,
+  BookmarkManager,
+  bookmarkManager,
+  BookmarkManagerConfig
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -460,7 +463,8 @@ const forExport = {
   LocalDateTime,
   DateTime,
   ConnectionProvider,
-  Connection
+  Connection,
+  bookmarkManager
 }
 
 export {
@@ -512,7 +516,8 @@ export {
   LocalDateTime,
   DateTime,
   ConnectionProvider,
-  Connection
+  Connection,
+  bookmarkManager
 }
 export type {
   QueryResult,
@@ -522,6 +527,8 @@ export type {
   TrustStrategy,
   SessionMode,
   ResultObserver,
-  NotificationPosition
+  NotificationPosition,
+  BookmarkManager,
+  BookmarkManagerConfig
 }
 export default forExport

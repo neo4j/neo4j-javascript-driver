@@ -75,6 +75,7 @@ import TransactionPromise from './transaction-promise'
 import Session, { TransactionConfig } from './session'
 import Driver, * as driver from './driver'
 import auth from './auth'
+import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager'
 import * as types from './types'
 import * as json from './json'
 import * as internal from './internal' // todo: removed afterwards
@@ -146,7 +147,8 @@ const forExport = {
   types,
   driver,
   json,
-  auth
+  auth,
+  bookmarkManager
 }
 
 export {
@@ -205,7 +207,8 @@ export {
   types,
   driver,
   json,
-  auth
+  auth,
+  bookmarkManager
 }
 
 export type {
@@ -214,7 +217,9 @@ export type {
   NotificationPosition,
   QueryResult,
   ResultObserver,
-  TransactionConfig
+  TransactionConfig,
+  BookmarkManager,
+  BookmarkManagerConfig
 }
 
 export default forExport
