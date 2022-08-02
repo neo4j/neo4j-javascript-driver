@@ -48,7 +48,7 @@ class Transaction {
   private readonly _reactive: boolean
   private _state: any
   private readonly _onClose: () => void
-  private readonly _onBookmarks: (bookmarks: Bookmarks) => void
+  private readonly _onBookmarks: (newBookmarks: Bookmarks, previousBookmarks: Bookmarks, database?: string) => void
   private readonly _onConnection: () => void
   private readonly _onError: (error: Error) => Promise<Connection | null>
   private readonly _onComplete: (metadata: any) => void
@@ -57,6 +57,7 @@ class Transaction {
   private readonly _impersonatedUser?: string
   private readonly _lowRecordWatermak: number
   private readonly _highRecordWatermark: number
+  private _bookmarks: Bookmarks
 
   /**
    * @constructor
@@ -84,7 +85,7 @@ class Transaction {
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
-    onBookmarks: (bookmarks: Bookmarks) => void
+    onBookmarks: (newBookmarks: Bookmarks, previousBookmarks: Bookmarks, database?: string) => void
     onConnection: () => void
     reactive: boolean
     fetchSize: number
@@ -99,12 +100,13 @@ class Transaction {
     this._onBookmarks = onBookmarks
     this._onConnection = onConnection
     this._onError = this._onErrorCallback.bind(this)
-    this._onComplete = this._onCompleteCallback.bind(this)
     this._fetchSize = fetchSize
+    this._onCompleteCallback = this._onCompleteCallback.bind(this)
     this._results = []
     this._impersonatedUser = impersonatedUser
     this._lowRecordWatermak = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
+    this._bookmarks = Bookmarks.empty()
   }
 
   /**
@@ -113,17 +115,18 @@ class Transaction {
    * @param {TxConfig} txConfig
    * @returns {void}
    */
-  _begin (bookmarks: Bookmarks | string | string[], txConfig: TxConfig, events?: {
+  _begin (getBookmarks: () => Bookmarks, txConfig: TxConfig, events?: {
     onError: (error: Error) => void
     onComplete: (metadata: any) => void
   }): void {
     this._connectionHolder
       .getConnection()
       .then(connection => {
+        this._bookmarks = getBookmarks()
         this._onConnection()
         if (connection != null) {
           return connection.protocol().beginTransaction({
-            bookmarks: bookmarks,
+            bookmarks: this._bookmarks,
             txConfig: txConfig,
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
@@ -138,7 +141,7 @@ class Transaction {
               if (events != null) {
                 events.onComplete(metadata)
               }
-              return this._onComplete(metadata)
+              return this._onCompleteCallback(metadata, Bookmarks.empty())
             }
           })
         } else {
@@ -192,7 +195,7 @@ class Transaction {
     const committed = this._state.commit({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
-      onComplete: this._onComplete,
+      onComplete: (meta: any) => this._onCompleteCallback(meta, this._bookmarks),
       onConnection: this._onConnection,
       pendingResults: this._results
     })
@@ -271,8 +274,8 @@ class Transaction {
    * @param {object} meta The meta with bookmarks
    * @returns {void}
    */
-  _onCompleteCallback (meta: { bookmark?: string | string[] }): void {
-    this._onBookmarks(new Bookmarks(meta.bookmark))
+  _onCompleteCallback (meta: { bookmark?: string | string[], db?: string }, previousBookmarks: Bookmarks): void {
+    this._onBookmarks(new Bookmarks(meta.bookmark), previousBookmarks, meta.db)
   }
 }
 

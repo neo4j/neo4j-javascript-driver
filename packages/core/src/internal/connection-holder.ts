@@ -24,6 +24,7 @@ import Connection from '../connection'
 import { ACCESS_MODE_WRITE } from './constants'
 import { Bookmarks } from './bookmarks'
 import ConnectionProvider from '../connection-provider'
+import BookmarkManager from '../bookmark-manager'
 
 /**
  * @private
@@ -83,6 +84,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private _referenceCount: number
   private _connectionPromise: Promise<Connection | null>
   private readonly _impersonatedUser?: string
+  private readonly _bookmarkManager?: BookmarkManager
   private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
 
   /**
@@ -101,13 +103,15 @@ class ConnectionHolder implements ConnectionHolderInterface {
     bookmarks,
     connectionProvider,
     impersonatedUser,
-    onDatabaseNameResolved
+    onDatabaseNameResolved,
+    bookmarkManager
   }: {
     mode?: string
     database?: string
     bookmarks?: Bookmarks
     connectionProvider?: ConnectionProvider
     impersonatedUser?: string
+    bookmarkManager?: BookmarkManager
     onDatabaseNameResolved?: (databaseName?: string) => void
   } = {}) {
     this._mode = mode
@@ -118,6 +122,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
+    this._bookmarkManager = bookmarkManager
   }
 
   mode (): string | undefined {
@@ -146,12 +151,16 @@ class ConnectionHolder implements ConnectionHolderInterface {
 
   initializeConnection (): boolean {
     if (this._referenceCount === 0 && (this._connectionProvider != null)) {
+      const bookmarks = this._getBookmarks()
+
       this._connectionPromise = this._connectionProvider.acquireConnection({
         accessMode: this._mode,
         database: this._database,
-        bookmarks: this._bookmarks,
+        bookmarks,
         impersonatedUser: this._impersonatedUser,
-        onDatabaseNameResolved: this._onDatabaseNameResolved
+        onDatabaseNameResolved: this._onDatabaseNameResolved,
+        onRoutingTableRefresh:
+          () => this._bookmarkManager?.updateBookmarks('system', bookmarks.values(), [])
       })
     } else {
       this._referenceCount++
@@ -159,6 +168,13 @@ class ConnectionHolder implements ConnectionHolderInterface {
     }
     this._referenceCount++
     return true
+  }
+
+  private _getBookmarks (): Bookmarks {
+    if (this._bookmarkManager != null) {
+      return new Bookmarks(this._bookmarkManager.getBookmarks('system'))
+    }
+    return this._bookmarks
   }
 
   getConnection (): Promise<Connection | null> {

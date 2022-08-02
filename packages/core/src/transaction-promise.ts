@@ -69,7 +69,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
-    onBookmarks: (bookmarks: Bookmarks) => void
+    onBookmarks: (newBookmarks: Bookmarks, previousBookmarks: Bookmarks, database?: string) => void
     onConnection: () => void
     reactive: boolean
     fetchSize: number
@@ -162,7 +162,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
   /**
    * @access private
    */
-  _begin (bookmarks: string | Bookmarks | string[], txConfig: TxConfig): void {
+  _begin (bookmarks: () => Bookmarks, txConfig: TxConfig): void {
     return super._begin(bookmarks, txConfig, {
       onError: this._onBeginError.bind(this),
       onComplete: this._onBeginMetadata.bind(this)

@@ -115,7 +115,8 @@ class Session {
       bookmarks,
       connectionProvider,
       impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved
+      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      bookmarkManager
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
@@ -123,7 +124,8 @@ class Session {
       bookmarks,
       connectionProvider,
       impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved
+      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      bookmarkManager
     })
     this._open = true
     this._hasTx = false
@@ -162,9 +164,8 @@ class Session {
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    const bookmarks = this._bookmarks()
-
     const result = this._run(validatedQuery, params, connection => {
+      const bookmarks = this._bookmarks()
       this._assertSessionIsOpen()
       return (connection as Connection).protocol().run(validatedQuery, params, {
         bookmarks,
@@ -283,20 +284,19 @@ class Session {
     const connectionHolder = this._connectionHolderWithMode(mode)
     connectionHolder.initializeConnection()
     this._hasTx = true
-    const bookmarks = this._bookmarks()
 
     const tx = new TransactionPromise({
       connectionHolder,
       impersonatedUser: this._impersonatedUser,
       onClose: this._transactionClosed.bind(this),
-      onBookmarks: (newBookmarks) => this._updateBookmarks(newBookmarks, bookmarks),
+      onBookmarks: (newBm, oldBm, db) => this._updateBookmarks(newBm, oldBm, db),
       onConnection: this._assertSessionIsOpen.bind(this),
       reactive: this._reactive,
       fetchSize: this._fetchSize,
       lowRecordWatermark: this._lowRecordWatermark,
       highRecordWatermark: this._highRecordWatermark
     })
-    tx._begin(bookmarks, txConfig)
+    tx._begin(() => this._bookmarks(), txConfig)
     return tx
   }
 
