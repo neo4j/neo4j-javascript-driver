@@ -101,7 +101,7 @@ class Transaction {
     this._onConnection = onConnection
     this._onError = this._onErrorCallback.bind(this)
     this._fetchSize = fetchSize
-    this._onCompleteCallback = this._onCompleteCallback.bind(this)
+    this._onComplete = this._onCompleteCallback.bind(this)
     this._results = []
     this._impersonatedUser = impersonatedUser
     this._lowRecordWatermak = lowRecordWatermark
@@ -141,7 +141,7 @@ class Transaction {
               if (events != null) {
                 events.onComplete(metadata)
               }
-              return this._onCompleteCallback(metadata, Bookmarks.empty())
+              return this._onComplete(metadata)
             }
           })
         } else {
@@ -275,7 +275,7 @@ class Transaction {
    * @returns {void}
    */
   _onCompleteCallback (meta: { bookmark?: string | string[], db?: string }, previousBookmarks: Bookmarks): void {
-    this._onBookmarks(new Bookmarks(meta.bookmark), previousBookmarks, meta.db)
+    this._onBookmarks(new Bookmarks(meta.bookmark), previousBookmarks ?? Bookmarks.empty(), meta.db)
   }
 }
 
