@@ -48,7 +48,7 @@ export default interface BookmarkManager {
 export interface BookmarkManagerConfig {
   initialBookmarks?: Map<string, string[]>
   bookmarkSupplier?: (database: string) => string[]
-  notifyBookmakrs?: (database: string, bookmarks: string[]) => void
+  notifyBookmarks?: (database: string, bookmarks: string[]) => void
 }
 
 export function bookmarkManager (config: BookmarkManagerConfig = {}): BookmarkManager {
@@ -59,7 +59,7 @@ export function bookmarkManager (config: BookmarkManagerConfig = {}): BookmarkMa
   return new Neo4jBookmarkManager(
     initialBookmarks,
     config.bookmarkSupplier,
-    config.notifyBookmakrs
+    config.notifyBookmarks
   )
 }
 
@@ -95,7 +95,8 @@ class Neo4jBookmarkManager implements BookmarkManager {
     const bookmarks = this._bookmarksPerDb.get(database) ?? []
 
     if (typeof this._bookmarkSupplier === 'function') {
-      return [...bookmarks, ...this._bookmarkSupplier(database)]
+      const suppliedBookmarks = this._bookmarkSupplier(database) ?? []
+      return [...bookmarks, ...suppliedBookmarks]
     }
 
     return [...bookmarks]
