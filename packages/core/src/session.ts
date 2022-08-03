@@ -490,12 +490,12 @@ class Session {
    * @returns {void}
    */
   _updateBookmarks (newBookmarks?: Bookmarks, previousBookmarks?: Bookmarks, database?: string): void {
-    this._bookmarkManager?.updateBookmarks(
-      database ?? this._database,
-      previousBookmarks?.values() ?? [],
-      newBookmarks?.values() ?? []
-    )
     if ((newBookmarks != null) && !newBookmarks.isEmpty()) {
+      this._bookmarkManager?.updateBookmarks(
+        database ?? this._database,
+        previousBookmarks?.values() ?? [],
+        newBookmarks?.values() ?? []
+      )
       this._lastBookmarks = newBookmarks
     }
   }
