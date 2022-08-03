@@ -50,7 +50,6 @@ class ConnectionProvider {
     bookmarks: bookmarks.Bookmarks
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
-    onRoutingTableRefresh?: () => void
   }): Promise<Connection> {
     throw Error('Not implemented')
   }

@@ -111,8 +111,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
     bookmarks?: Bookmarks
     connectionProvider?: ConnectionProvider
     impersonatedUser?: string
-    bookmarkManager?: BookmarkManager
     onDatabaseNameResolved?: (databaseName?: string) => void
+    bookmarkManager?: BookmarkManager
   } = {}) {
     this._mode = mode
     this._database = database != null ? assertString(database, 'database') : ''
@@ -151,16 +151,12 @@ class ConnectionHolder implements ConnectionHolderInterface {
 
   initializeConnection (): boolean {
     if (this._referenceCount === 0 && (this._connectionProvider != null)) {
-      const bookmarks = this._getBookmarks()
-
       this._connectionPromise = this._connectionProvider.acquireConnection({
         accessMode: this._mode,
         database: this._database,
-        bookmarks,
+        bookmarks: this._getBookmarks(),
         impersonatedUser: this._impersonatedUser,
-        onDatabaseNameResolved: this._onDatabaseNameResolved,
-        onRoutingTableRefresh:
-          () => this._bookmarkManager?.updateBookmarks('system', bookmarks.values(), [])
+        onDatabaseNameResolved: this._onDatabaseNameResolved
       })
     } else {
       this._referenceCount++
