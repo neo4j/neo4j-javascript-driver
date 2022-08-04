@@ -25,7 +25,7 @@ import {
   DEFAULT_MAX_SIZE
 } from '../../bolt-connection/lib/pool/pool-config'
 import testUtils from './internal/test-utils'
-import { json, internal } from 'neo4j-driver-core'
+import { json, internal, bookmarkManager } from 'neo4j-driver-core'
 
 const {
   bookmarks: { Bookmarks }
@@ -125,6 +125,7 @@ describe('#unit driver', () => {
   })
 
   describe('.rxSession()', () => {
+    const manager = bookmarkManager()
     ;[
       [undefined, Bookmarks.empty()],
       [null, Bookmarks.empty()],
@@ -141,6 +142,29 @@ describe('#unit driver', () => {
         const session = driver.rxSession({ bookmarks })
 
         expect(session.lastBookmarks()).toEqual(expectedBookmarks.values())
+      })
+    })
+
+    ;[
+      [manager, undefined, manager],
+      [manager, false, manager],
+      [manager, true, undefined],
+      [undefined, undefined, undefined],
+      [undefined, false, undefined],
+      [undefined, true, undefined]
+    ].forEach(([driverBMManager, ignoreBookmarkManager, sessionBMManager]) => {
+      it('should create session using param bookmark manager', () => {
+        driver = neo4j.driver(
+          `neo4j+ssc://${sharedNeo4j.hostname}`,
+          sharedNeo4j.authToken,
+          {
+            bookmarkManager: driverBMManager
+          }
+        )
+
+        const session = driver.rxSession({ ignoreBookmarkManager })
+
+        expect(session._session._bookmarkManager).toEqual(sessionBMManager)
       })
     })
   })
