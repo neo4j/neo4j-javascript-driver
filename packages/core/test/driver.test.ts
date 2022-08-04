@@ -107,12 +107,34 @@ describe('Driver', () => {
         }
       })
 
+      it('should create session without bookmark manager when bookmark manager is ignored', async () => {
+        const manager = bookmarkManager()
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG, bookmarkManager: manager },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        const session = driver.session({ ignoreBookmarkManager: true })
+
+        try {
+          expect(createSession).toBeCalledWith(expect.objectContaining({
+            bookmarkManager: undefined,
+            bookmarks: Bookmarks.empty()
+          }))
+        } finally {
+          await session.close()
+          await driver.close()
+        }
+      })
+
       it.each([
         [[], Bookmarks.empty()],
         ['bookmark', new Bookmarks('bookmark')],
         [['bookmark'], new Bookmarks(['bookmark'])],
         [['bookmark1', 'bookmark2'], new Bookmarks(['bookmark1', 'bookmark2'])]
-      ])('should create session without bookmark manager when bookmark set', async (bookmarks, expectedBookmarks) => {
+      ])('should create session with bookmark manager when bookmark set', async (bookmarks, expectedBookmarks) => {
         const manager = bookmarkManager()
         const driver = new Driver(
           META_INFO,
@@ -125,7 +147,7 @@ describe('Driver', () => {
 
         try {
           expect(createSession).toBeCalledWith(expect.objectContaining({
-            bookmarkManager: undefined,
+            bookmarkManager: manager,
             bookmarks: expectedBookmarks
           }))
         } finally {

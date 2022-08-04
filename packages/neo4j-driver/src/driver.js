@@ -55,6 +55,7 @@ class Driver extends CoreDriver {
    * absence indicates that the bookmarks do not exist or are unknown.
    * @param {string} param.database - The database this session will operate on.
    * @param {string} param.impersonatedUser - The name of the user which should be impersonated for the duration of the session.
+   * @param {boolean} param.ignoreBookmarkManager - Disable the bookmark manager usage in the session.
    * @returns {RxSession} new reactive session.
    */
   rxSession ({
@@ -62,7 +63,8 @@ class Driver extends CoreDriver {
     bookmarks,
     database = '',
     fetchSize,
-    impersonatedUser
+    impersonatedUser,
+    ignoreBookmarkManager
   } = {}) {
     return new RxSession({
       session: this._newSession({
@@ -71,7 +73,8 @@ class Driver extends CoreDriver {
         database,
         impersonatedUser,
         reactive: false,
-        fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize)
+        fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize),
+        ignoreBookmarkManager
       }),
       config: this._config
     })

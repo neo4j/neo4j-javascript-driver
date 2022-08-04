@@ -167,10 +167,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
   }
 
   private _getBookmarks (): Bookmarks {
-    if (this._bookmarkManager != null) {
-      return new Bookmarks(this._bookmarkManager.getBookmarks('system'))
-    }
-    return this._bookmarks
+    const bookmarks = this._bookmarkManager?.getBookmarks('system') ?? []
+    return new Bookmarks([...this._bookmarks.values(), ...bookmarks])
   }
 
   getConnection (): Promise<Connection | null> {

@@ -339,10 +339,8 @@ class Session {
   }
 
   private _bookmarks (): Bookmarks {
-    if (this._bookmarkManager != null) {
-      return new Bookmarks(this._bookmarkManager.getAllBookmarks([this._database, 'system']))
-    }
-    return this._lastBookmarks
+    const bookmarks = this._bookmarkManager?.getAllBookmarks([this._database, 'system']) ?? []
+    return new Bookmarks([...bookmarks, ...this._lastBookmarks.values()])
   }
 
   /**

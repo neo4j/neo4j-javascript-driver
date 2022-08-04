@@ -24,7 +24,7 @@ export {
 } from './request-handlers.js'
 
 export function NewSession (context, data, wire) {
-  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser } = data
+  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, ignoreBookmarkManager } = data
   switch (accessMode) {
     case 'r':
       accessMode = neo4j.session.READ
@@ -42,7 +42,8 @@ export function NewSession (context, data, wire) {
     bookmarks,
     database,
     fetchSize,
-    impersonatedUser
+    impersonatedUser,
+    ignoreBookmarkManager
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))

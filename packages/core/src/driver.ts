@@ -293,6 +293,7 @@ class Driver {
    * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
    * @param {string} param.database - The database this session will operate on.
    * @param {string} param.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
+   * @param {boolean} param.ignoreBookmarkManager - Disable the bookmark manager usage in the session.
    * @return {Session} new session.
    */
   session ({
@@ -300,13 +301,15 @@ class Driver {
     bookmarks: bookmarkOrBookmarks,
     database = '',
     impersonatedUser,
-    fetchSize
+    fetchSize,
+    ignoreBookmarkManager
   }: {
     defaultAccessMode?: SessionMode
     bookmarks?: string | string[]
     database?: string
     impersonatedUser?: string
     fetchSize?: number
+    ignoreBookmarkManager?: boolean
   } = {}): Session {
     return this._newSession({
       defaultAccessMode,
@@ -315,7 +318,8 @@ class Driver {
       reactive: false,
       impersonatedUser,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!)
+      fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!),
+      ignoreBookmarkManager
     })
   }
 
@@ -351,7 +355,8 @@ class Driver {
     database,
     reactive,
     impersonatedUser,
-    fetchSize
+    fetchSize,
+    ignoreBookmarkManager
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
@@ -359,13 +364,14 @@ class Driver {
     reactive: boolean
     impersonatedUser?: string
     fetchSize: number
+    ignoreBookmarkManager?: boolean
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
-    const bookmarkManager = bookmarkOrBookmarks == null
+    const bookmarkManager = ignoreBookmarkManager !== true
       ? this._config.bookmarkManager
       : undefined
     return this._createSession({
