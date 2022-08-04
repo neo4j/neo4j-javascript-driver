@@ -452,6 +452,67 @@ describe('session', () => {
     })
   })
 
+  describe('.commit()', () => {
+    it.each([
+      [undefined, 'neo4j'],
+      ['neo4j', 'neo4j'],
+      ['adb', 'adb']
+    ])('should call run updateBookmarks when bookmarks is not empty', async (metaDb, updateDb) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const updateBookmarksSpy = jest.spyOn(manager, 'updateBookmarks')
+
+      const connection = mockCommitWithSuccess(mockBeginWithSuccess(newFakeConnection()), { db: metaDb, bookmark: customBookmarks })
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      const tx = await session.beginTransaction()
+      await tx.commit()
+
+      expect(updateBookmarksSpy).toBeCalledTimes(1)
+      expect(updateBookmarksSpy).toBeCalledWith(updateDb, [...neo4jBookmarks, ...systemBookmarks], customBookmarks)
+    })
+
+    it.each([
+      [undefined],
+      ['neo4j'],
+      ['adb']
+    ])('should not call run updateBookmarks when bookmarks is empty', async (metaDb) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const updateBookmarksSpy = jest.spyOn(manager, 'updateBookmarks')
+
+      const connection = mockCommitWithSuccess(mockBeginWithSuccess(newFakeConnection()), { db: metaDb })
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      const tx = await session.beginTransaction()
+      await tx.commit()
+
+      expect(updateBookmarksSpy).not.toBeCalled()
+    })
+  })
+
   describe.each([
     ['.executeWrite()', (session: Session) => session.executeWrite.bind(session)],
     ['.executeRead()', (session: Session) => session.executeRead.bind(session)]
@@ -669,6 +730,21 @@ function mockBeginWithSuccess (connection: FakeConnection): FakeConnection {
       beginTransaction: (params: { afterComplete: () => {}}, ...args: any[]) => {
         protocol.beginTransaction([params, ...args])
         params.afterComplete()
+      }
+    }
+  }
+  return connection
+}
+
+function mockCommitWithSuccess (connection: FakeConnection, metadata: any): FakeConnection {
+  const protocol = connection.protocol()
+  connection.protocol = () => {
+    return {
+      ...protocol,
+      commitTransaction: (params: { afterComplete: (metadata: any) => {}}, ...args: any[]) => {
+        const observer = protocol.commitTransaction(...[params, ...args])
+        params.afterComplete(metadata)
+        return observer
       }
     }
   }

@@ -275,7 +275,7 @@ class Transaction {
    * @returns {void}
    */
   _onCompleteCallback (meta: { bookmark?: string | string[], db?: string }, previousBookmarks: Bookmarks): void {
-    this._onBookmarks(new Bookmarks(meta.bookmark), previousBookmarks ?? Bookmarks.empty(), meta.db)
+    this._onBookmarks(new Bookmarks(meta?.bookmark), previousBookmarks ?? Bookmarks.empty(), meta?.db)
   }
 }
 
