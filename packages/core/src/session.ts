@@ -340,7 +340,7 @@ class Session {
 
   private _bookmarks (): Bookmarks {
     const bookmarks = this._bookmarkManager?.getAllBookmarks([this._database, 'system']) ?? []
-    return new Bookmarks([...bookmarks, ...this._lastBookmarks.values()])
+    return new Bookmarks([...bookmarks, ...this._lastBookmarks])
   }
 
   /**

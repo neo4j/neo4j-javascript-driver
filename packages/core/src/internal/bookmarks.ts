@@ -52,6 +52,10 @@ export class Bookmarks {
     return this._values
   }
 
+  [Symbol.iterator] (): Iterable<string> {
+    return this._values[Symbol.iterator]()
+  }
+
   /**
    * Get these bookmarks as an object for begin transaction call.
    * @return {Object} the value of this bookmarks holder as object.
