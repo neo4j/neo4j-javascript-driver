@@ -18,12 +18,13 @@
  */
 
 export default interface BookmarkManager {
-  /**
-  * Method called when the bookmarks get update because of a given event
+  /* Method called when the bookmarks get updated when a transaction finished.
   *
+  * This method will be called during when auto-commit queries finished and explicit transactions
+  * get commited.
   * @param database The database which the bookmarks belongs to
-  * @param previousBookmarks The bookmarks used during the session creation
-  * @param newBookmarks The new bookmarks resolved at the end of the session.
+  * @param previousBookmarks The bookmarks used during the transaction creation
+  * @param newBookmarks The new bookmarks resolved at the end of the transaction.
   * @returns {void}
   */
   updateBookmarks: (database: string, previousBookmarks: string[], newBookmarks: string[]) => void
@@ -37,7 +38,12 @@ export default interface BookmarkManager {
   getBookmarks: (database: string) => string[]
 
   /**
-   * Method called by the driver for getting all the bookmarks
+   * Method called by the driver for getting all the bookmarks.
+   *
+   * The return of this method should be all the bookmarks present in the BookmarkManager for all databases.
+   * The databases informed in the method call will be used for enriching the bookmark set by enforcing the bookmark
+   * manager calls `bookmarkSupplier` for these database names even though this database are not present in the bookmark
+   * manager map yet.
    *
    * @param mustIncludedDatabases The database which must be included in the result even if they don't have be initialized yet.
    * @returns {string[]} The set of bookmarks
