@@ -36,6 +36,7 @@ const features = [
   'Feature:API:Driver.VerifyConnectivity',
   'Optimization:EagerTransactionBegin',
   'Optimization:ImplicitDefaultArguments',
+  'Optimization:MinimalBookmarksSet',
   'Optimization:MinimalResets',
   ...SUPPORTED_TLS
 ]

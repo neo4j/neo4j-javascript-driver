@@ -94,7 +94,7 @@ function asStringArray (
   }
 
   if (Array.isArray(value)) {
-    const result = []
+    const result = new Set<string>()
     const flattenedValue = flattenArray(value)
     for (let i = 0; i < flattenedValue.length; i++) {
       const element = flattenedValue[i]
@@ -106,10 +106,10 @@ function asStringArray (
             `Bookmark value should be a string, given: '${element}'`
           )
         }
-        result.push(element)
+        result.add(element)
       }
     }
-    return result
+    return [...result]
   }
 
   throw new TypeError(
