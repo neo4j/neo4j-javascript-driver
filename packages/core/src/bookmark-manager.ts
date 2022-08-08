@@ -49,6 +49,15 @@ export default interface BookmarkManager {
    * @returns {string[]} The set of bookmarks
    */
   getAllBookmarks: (mustIncludedDatabases: string[]) => string[]
+
+  /**
+   * Forget the databases and its bookmarks
+   *
+   * This method is not called by the driver. Forgetting unused databases is the user's responsibility.
+   *
+   * @param databases The databases which the bookmarks will be removed for.
+   */
+  forget: (databases: string[]) => void
 }
 
 export interface BookmarkManagerConfig {
@@ -117,5 +126,11 @@ class Neo4jBookmarkManager implements BookmarkManager {
     }
 
     return bookmarks
+  }
+
+  forget (databases: string[]): void {
+    for (const database of databases) {
+      this._bookmarksPerDb.delete(database)
+    }
   }
 }

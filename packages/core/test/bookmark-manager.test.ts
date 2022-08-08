@@ -191,4 +191,41 @@ describe('BookmarkManager', () => {
       expect(notifyBookmarks).toBeCalledWith('neo4j', newBookmarks)
     })
   })
+
+  describe('forget()', () => {
+    it('should forgot database', () => {
+      const extraBookmarks = ['system:bmextra', 'adb:bmextra']
+      const bookmarkSupplier = jest.fn((database: string) => [`${database}:bmextra`])
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ]),
+        bookmarkSupplier
+      })
+
+      manager.forget(['neo4j', 'adb'])
+      const bookmarks = manager.getAllBookmarks(['system', 'adb'])
+
+      expect(bookmarks.sort()).toEqual(
+        [...systemBookmarks, ...extraBookmarks].sort()
+      )
+    })
+
+    it('getAllBookmarks() should not call bookmarkSupplier for the forget dbs', () => {
+      const bookmarkSupplier = jest.fn((database: string) => [`${database}:bmextra`])
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ]),
+        bookmarkSupplier
+      })
+
+      manager.forget(['neo4j', 'adb'])
+      manager.getAllBookmarks(['system', 'adb'])
+
+      expect(bookmarkSupplier).not.toBeCalledWith('neo4j')
+    })
+  })
 })
