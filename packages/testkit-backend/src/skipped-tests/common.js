@@ -2,6 +2,10 @@ import skip, { ifEquals, ifEndsWith, endsWith, ifStartsWith, startsWith, not } f
 
 const skippedTests = [
   skip(
+    'Driver does not support async call in BookmarkManager extensions',
+    ifEquals('stub.driver_parameters.test_bookmark_manager.TestNeo4jBookmarkManager.test_should_enrich_bookmarks_with_bookmark_supplier_result')
+  ),
+  skip(
     'Driver does not return offset for old DateTime implementations',
     ifStartsWith('stub.types.test_temporal_types.TestTemporalTypes')
       .and(not(startsWith('stub.types.test_temporal_types.TestTemporalTypesV5')))

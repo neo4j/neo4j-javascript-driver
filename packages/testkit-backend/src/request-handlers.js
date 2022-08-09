@@ -88,11 +88,36 @@ export function NewDriver (context, data, wire) {
     /// TODO: Implement supplier and notify
     const bmmConfig = data.bookmarkManager
     let initialBookmarks
+    let bookmarkSupplier
+    let notifyBookmarks
     if (bmmConfig.initialBookmarks != null) {
       initialBookmarks = new Map(Object.entries(bmmConfig.initialBookmarks))
     }
+    if (bmmConfig.bookmarkSupplierRegistered === true) {
+      bookmarkSupplier = (database) => {
+        const supplier = () =>
+          new Promise((resolve, reject) => {
+            const id = context.addBookmarkSupplierRequest(resolve, reject)
+            wire.writeResponse(responses.BookmarkSupplierRequest({ id, database }))
+          })
+        supplier()
+        return []
+      }
+    }
+    if (bmmConfig.notifyBookmarksRegistered === true) {
+      notifyBookmarks = (database, bookmarks) => {
+        const notifier = () =>
+          new Promise((resolve, reject) => {
+            const id = context.addNotifyBookmarksRequest(resolve, reject)
+            wire.writeResponse(responses.NotifyBookmarksRequest({ id, database, bookmarks }))
+          })
+        notifier()
+      }
+    }
     config.bookmarkManager = neo4j.bookmarkManager({
-      initialBookmarks
+      initialBookmarks,
+      bookmarkSupplier,
+      notifyBookmarks
     })
   }
   let driver
@@ -416,6 +441,27 @@ export function ResolverResolutionCompleted (
 ) {
   const request = context.getResolverRequest(requestId)
   request.resolve(addresses)
+}
+
+export function BookmarkSupplierCompleted (
+  context,
+  {
+    requestId,
+    bookmarks
+  }
+) {
+  const bookmarkSupplierRequest = context.getBookmarkSupplierRequest(requestId)
+  bookmarkSupplierRequest.resolve(bookmarks)
+}
+
+export function NotifyBookmarksCompleted (
+  context,
+  {
+    requestId
+  }
+) {
+  const notifyBookmarksRequest = context.getNotifyBookmarksRequest(requestId)
+  notifyBookmarksRequest.resolve()
 }
 
 export function GetRoutingTable (context, { driverId, database }, wire) {
