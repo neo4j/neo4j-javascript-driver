@@ -85,7 +85,6 @@ export function NewDriver (context, data, wire) {
     config.maxTransactionRetryTime = data.maxTxRetryTimeMs
   }
   if ('bookmarkManager' in data && data.bookmarkManager != null) {
-    /// TODO: Implement supplier and notify
     const bmmConfig = data.bookmarkManager
     let initialBookmarks
     let bookmarkSupplier
