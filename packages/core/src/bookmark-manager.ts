@@ -48,7 +48,7 @@ export default interface BookmarkManager {
    * @param mustIncludedDatabases The database which must be included in the result even if they don't have be initialized yet.
    * @returns {string[]} The set of bookmarks
    */
-  getAllBookmarks: (mustIncludedDatabases: string[]) => string[]
+  getAllBookmarks: () => string[]
 
   /**
    * Forget the databases and its bookmarks
@@ -62,8 +62,8 @@ export default interface BookmarkManager {
 
 export interface BookmarkManagerConfig {
   initialBookmarks?: Map<string, string[]>
-  bookmarkSupplier?: (database: string) => string[]
-  notifyBookmarks?: (database: string, bookmarks: string[]) => void
+  bookmarksSupplier?: (database?: string) => string[]
+  bookmarksConsumer?: (database: string, bookmarks: string[]) => void
 }
 
 export function bookmarkManager (config: BookmarkManagerConfig = {}): BookmarkManager {
@@ -73,16 +73,16 @@ export function bookmarkManager (config: BookmarkManagerConfig = {}): BookmarkMa
 
   return new Neo4jBookmarkManager(
     initialBookmarks,
-    config.bookmarkSupplier,
-    config.notifyBookmarks
+    config.bookmarksSupplier,
+    config.bookmarksConsumer
   )
 }
 
 class Neo4jBookmarkManager implements BookmarkManager {
   constructor (
     private readonly _bookmarksPerDb: Map<string, Set<string>>,
-    private readonly _bookmarkSupplier?: (database: string) => string[],
-    private readonly _notifyBookmarks?: (database: string, bookmark: string[]) => void
+    private readonly _bookmarksSupplier?: (database?: string) => string[],
+    private readonly _bookmarksConsumer?: (database: string, bookmark: string[]) => void
   ) {
 
   }
@@ -92,8 +92,8 @@ class Neo4jBookmarkManager implements BookmarkManager {
     previousBookmarks.forEach(bm => bookmarks.delete(bm))
     newBookmarks.forEach(bm => bookmarks.add(bm))
 
-    if (typeof this._notifyBookmarks === 'function') {
-      this._notifyBookmarks(database, [...bookmarks])
+    if (typeof this._bookmarksConsumer === 'function') {
+      this._bookmarksConsumer(database, [...bookmarks])
     }
   }
 
@@ -109,20 +109,23 @@ class Neo4jBookmarkManager implements BookmarkManager {
   getBookmarks (database: string): string[] {
     const bookmarks = this._bookmarksPerDb.get(database) ?? []
 
-    if (typeof this._bookmarkSupplier === 'function') {
-      const suppliedBookmarks = this._bookmarkSupplier(database) ?? []
+    if (typeof this._bookmarksSupplier === 'function') {
+      const suppliedBookmarks = this._bookmarksSupplier(database) ?? []
       return [...bookmarks, ...suppliedBookmarks]
     }
 
     return [...bookmarks]
   }
 
-  getAllBookmarks (mustIncludedDatabases: string[]): string[] {
+  getAllBookmarks (): string[] {
     const bookmarks = []
-    const databases = new Set([...this._bookmarksPerDb.keys(), ...mustIncludedDatabases])
 
-    for (const database of databases) {
-      bookmarks.push(...this.getBookmarks(database))
+    for (const [, dbBookmarks] of this._bookmarksPerDb) {
+      bookmarks.push(...dbBookmarks)
+    }
+    if (typeof this._bookmarksSupplier === 'function') {
+      const suppliedBookmarks = this._bookmarksSupplier() ?? []
+      bookmarks.push(...suppliedBookmarks)
     }
 
     return bookmarks

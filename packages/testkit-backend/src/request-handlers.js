@@ -87,13 +87,13 @@ export function NewDriver (context, data, wire) {
   if ('bookmarkManager' in data && data.bookmarkManager != null) {
     const bmmConfig = data.bookmarkManager
     let initialBookmarks
-    let bookmarkSupplier
-    let notifyBookmarks
+    let bookmarksSupplier
+    let bookmarksConsumer
     if (bmmConfig.initialBookmarks != null) {
       initialBookmarks = new Map(Object.entries(bmmConfig.initialBookmarks))
     }
     if (bmmConfig.bookmarkSupplierRegistered === true) {
-      bookmarkSupplier = (database) => {
+      bookmarksSupplier = (database) => {
         const supplier = () =>
           new Promise((resolve, reject) => {
             const id = context.addBookmarkSupplierRequest(resolve, reject)
@@ -104,7 +104,7 @@ export function NewDriver (context, data, wire) {
       }
     }
     if (bmmConfig.notifyBookmarksRegistered === true) {
-      notifyBookmarks = (database, bookmarks) => {
+      bookmarksConsumer = (database, bookmarks) => {
         const notifier = () =>
           new Promise((resolve, reject) => {
             const id = context.addNotifyBookmarksRequest(resolve, reject)
@@ -115,8 +115,8 @@ export function NewDriver (context, data, wire) {
     }
     config.bookmarkManager = neo4j.bookmarkManager({
       initialBookmarks,
-      bookmarkSupplier,
-      notifyBookmarks
+      bookmarksConsumer,
+      bookmarksSupplier
     })
   }
   let driver

@@ -386,7 +386,7 @@ describe('session', () => {
 
       await session.beginTransaction()
 
-      expect(getAllBookmarksSpy).toBeCalledWith(['neo4j', 'system'])
+      expect(getAllBookmarksSpy).toBeCalledWith()
     })
 
     it.each([
@@ -623,7 +623,7 @@ describe('session', () => {
 
       await session.run('query')
 
-      expect(getAllBookmarksSpy).toBeCalledWith(['neo4j', 'system'])
+      expect(getAllBookmarksSpy).toBeCalledWith()
     })
 
     it.each([

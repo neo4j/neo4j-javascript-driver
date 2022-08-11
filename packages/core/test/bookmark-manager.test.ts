@@ -54,7 +54,7 @@ describe('BookmarkManager', () => {
           ['neo4j', neo4jBookmarks],
           ['system', systemBookmarks]
         ]),
-        bookmarkSupplier: () => extraBookmarks
+        bookmarksSupplier: () => extraBookmarks
       })
 
       const bookmarks = manager.getBookmarks('neo4j')
@@ -63,15 +63,15 @@ describe('BookmarkManager', () => {
     })
 
     it('should return call from bookmarkSupplier with correct database', () => {
-      const bookmarkSupplier = jest.fn()
+      const bookmarksSupplier = jest.fn()
 
       const manager = bookmarkManager({
-        bookmarkSupplier
+        bookmarksSupplier
       })
 
       manager.getBookmarks('neo4j')
 
-      expect(bookmarkSupplier).toBeCalledWith('neo4j')
+      expect(bookmarksSupplier).toBeCalledWith('neo4j')
     })
   })
 
@@ -84,7 +84,7 @@ describe('BookmarkManager', () => {
         ])
       })
 
-      const bookmarks = manager.getAllBookmarks(['neo4j', 'adb'])
+      const bookmarks = manager.getAllBookmarks()
 
       expect(bookmarks).toEqual([...neo4jBookmarks, ...systemBookmarks])
     })
@@ -92,44 +92,42 @@ describe('BookmarkManager', () => {
     it('should return empty if there isnt bookmarks for any db', () => {
       const manager = bookmarkManager({})
 
-      const bookmarks = manager.getAllBookmarks(['neo4j', 'adb'])
+      const bookmarks = manager.getAllBookmarks()
 
       expect(bookmarks).toEqual([])
     })
 
     it('should return enrich bookmarks list with supplied bookmarks', () => {
       const extraBookmarks = ['neo4j:bmextra', 'system:bmextra', 'adb:bmextra']
-      const bookmarkSupplier = jest.fn((database: string) => [`${database}:bmextra`])
+      const bookmarksSupplier = jest.fn((database?: string) => extraBookmarks)
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],
           ['system', systemBookmarks]
         ]),
-        bookmarkSupplier
+        bookmarksSupplier
       })
 
-      const bookmarks = manager.getAllBookmarks(['neo4j', 'adb'])
+      const bookmarks = manager.getAllBookmarks()
 
       expect(bookmarks.sort()).toEqual(
         [...neo4jBookmarks, ...systemBookmarks, ...extraBookmarks].sort()
       )
     })
 
-    it('should call bookmarkSupplier for each existing and listed databases ', () => {
-      const bookmarkSupplier = jest.fn()
+    it('should call bookmarkSupplier for getting all bookmarks', () => {
+      const bookmarksSupplier = jest.fn()
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],
           ['system', systemBookmarks]
         ]),
-        bookmarkSupplier
+        bookmarksSupplier
       })
 
-      manager.getAllBookmarks(['neo4j', 'adb'])
+      manager.getAllBookmarks()
 
-      expect(bookmarkSupplier).toBeCalledWith('neo4j')
-      expect(bookmarkSupplier).toBeCalledWith('adb')
-      expect(bookmarkSupplier).toBeCalledWith('system')
+      expect(bookmarksSupplier).toBeCalledWith()
     })
   })
 
@@ -145,7 +143,7 @@ describe('BookmarkManager', () => {
 
       manager.updateBookmarks(
         'neo4j',
-        manager.getAllBookmarks(['neo4j', 'system']),
+        manager.getAllBookmarks(),
         newBookmarks
       )
 
@@ -172,60 +170,44 @@ describe('BookmarkManager', () => {
     })
 
     it('should notify new bookmarks', () => {
-      const notifyBookmarks = jest.fn()
+      const bookmarksConsumer = jest.fn()
       const newBookmarks = ['neo4j:bm03']
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],
           ['system', systemBookmarks]
         ]),
-        notifyBookmarks
+        bookmarksConsumer
       })
 
       manager.updateBookmarks(
         'neo4j',
-        manager.getAllBookmarks(['neo4j', 'system']),
+        manager.getAllBookmarks(),
         newBookmarks
       )
 
-      expect(notifyBookmarks).toBeCalledWith('neo4j', newBookmarks)
+      expect(bookmarksConsumer).toBeCalledWith('neo4j', newBookmarks)
     })
   })
 
   describe('forget()', () => {
     it('should forgot database', () => {
       const extraBookmarks = ['system:bmextra', 'adb:bmextra']
-      const bookmarkSupplier = jest.fn((database: string) => [`${database}:bmextra`])
+      const bookmarksSupplier = jest.fn(() => extraBookmarks)
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],
           ['system', systemBookmarks]
         ]),
-        bookmarkSupplier
+        bookmarksSupplier
       })
 
       manager.forget(['neo4j', 'adb'])
-      const bookmarks = manager.getAllBookmarks(['system', 'adb'])
+      const bookmarks = manager.getAllBookmarks()
 
       expect(bookmarks.sort()).toEqual(
         [...systemBookmarks, ...extraBookmarks].sort()
       )
-    })
-
-    it('getAllBookmarks() should not call bookmarkSupplier for the forget dbs', () => {
-      const bookmarkSupplier = jest.fn((database: string) => [`${database}:bmextra`])
-      const manager = bookmarkManager({
-        initialBookmarks: new Map([
-          ['neo4j', neo4jBookmarks],
-          ['system', systemBookmarks]
-        ]),
-        bookmarkSupplier
-      })
-
-      manager.forget(['neo4j', 'adb'])
-      manager.getAllBookmarks(['system', 'adb'])
-
-      expect(bookmarkSupplier).not.toBeCalledWith('neo4j')
     })
   })
 })
