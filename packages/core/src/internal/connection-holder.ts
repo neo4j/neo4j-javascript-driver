@@ -96,6 +96,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @property {ConnectionProvider} params.connectionProvider - the connection provider to acquire connections from.
    * @property {string?} params.impersonatedUser - the user which will be impersonated
    * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
+   * @property {[BookmarkManager]} params.bookmarkManager - the bookmark manager used in the session
    */
   constructor ({
     mode = ACCESS_MODE_WRITE,

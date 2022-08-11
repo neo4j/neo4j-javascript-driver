@@ -17,47 +17,56 @@
  * limitations under the License.
  */
 
-export default interface BookmarkManager {
-  /* Method called when the bookmarks get updated when a transaction finished.
-  *
-  * This method will be called during when auto-commit queries finished and explicit transactions
-  * get commited.
-  * @param database The database which the bookmarks belongs to
-  * @param previousBookmarks The bookmarks used during the transaction creation
-  * @param newBookmarks The new bookmarks resolved at the end of the transaction.
-  * @returns {void}
+/**
+ * Interface for the piece of software responsible for keeping track of current active bookmarks accross the driver.
+ * @interface
+ */
+export default class BookmarkManager {
+  /**
+   * Method called when the bookmarks get updated when a transaction finished.
+   *
+   * This method will be called during when auto-commit queries finished and explicit transactions
+   * get commited.
+   * @param {string} database The database which the bookmarks belongs to
+   * @param {string[]} previousBookmarks The bookmarks used during the transaction creation
+   * @param {string[]} newBookmarks The new bookmarks resolved at the end of the transaction.
+   * @returns {void}
   */
-  updateBookmarks: (database: string, previousBookmarks: string[], newBookmarks: string[]) => void
+  updateBookmarks (database: string, previousBookmarks: string[], newBookmarks: string[]): void {
+    throw new Error('Not implemented')
+  }
 
   /**
    * Method called by the driver to get the bookmark for one specific database
    *
-   * @param database The database which the bookmarks belongs to
+   * @param {string} database The database which the bookmarks belongs to
    * @returns {string[]} The set of bookmarks
    */
-  getBookmarks: (database: string) => string[]
+  getBookmarks (database: string): string[] {
+    throw new Error('Not implemented')
+  }
 
   /**
    * Method called by the driver for getting all the bookmarks.
    *
    * The return of this method should be all the bookmarks present in the BookmarkManager for all databases.
-   * The databases informed in the method call will be used for enriching the bookmark set by enforcing the bookmark
-   * manager calls `bookmarkSupplier` for these database names even though this database are not present in the bookmark
-   * manager map yet.
    *
-   * @param mustIncludedDatabases The database which must be included in the result even if they don't have be initialized yet.
    * @returns {string[]} The set of bookmarks
    */
-  getAllBookmarks: () => string[]
+  getAllBookmarks (): string[] {
+    throw new Error('Not implemented')
+  }
 
   /**
    * Forget the databases and its bookmarks
    *
    * This method is not called by the driver. Forgetting unused databases is the user's responsibility.
    *
-   * @param databases The databases which the bookmarks will be removed for.
+   * @param {string[]} databases The databases which the bookmarks will be removed for.
    */
-  forget: (databases: string[]) => void
+  forget (databases: string[]): void {
+    throw new Error('Not implemented')
+  }
 }
 
 export interface BookmarkManagerConfig {
@@ -66,6 +75,20 @@ export interface BookmarkManagerConfig {
   bookmarksConsumer?: (database: string, bookmarks: string[]) => void
 }
 
+/**
+ * @typedef {Object} BookmarkManagerConfig
+ * @property {Map<string,string[]>} [initialBookmarks] Defines the initial set of bookmarks. The key is the database name and the values are the bookmarks.
+ * @property {function([database]: string):string[]} [bookmarksSupplier] Called for supplying extra bookmarks to the BookmarkManager
+ * 1. supplying bookmarks from the given database when the default BookmarkManager's `.getBookmarks(database)` gets called.
+ * 2. supplying all the bookmarks when the default BookmarkManager's  `.getAllBookmarks()` gets called
+ * @property {function(database: string, bookmarks: string[]): void} [bookmarksConsumer] Called when the set of bookmarks for database get updated
+ */
+/**
+ * Provides an configured {@link BookmarkManager} instance.
+ *
+ * @param {BookmarkManagerConfig} [config={}]
+ * @returns {BookmarkManager}
+ */
 export function bookmarkManager (config: BookmarkManagerConfig = {}): BookmarkManager {
   const initialBookmarks = new Map<string, Set<string>>()
 

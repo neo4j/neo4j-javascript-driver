@@ -52,7 +52,7 @@ export class Bookmarks {
     return this._values
   }
 
-  [Symbol.iterator] (): Iterable<string> {
+  [Symbol.iterator] (): IterableIterator<string> {
     return this._values[Symbol.iterator]()
   }
 
