@@ -103,7 +103,7 @@ export function NewDriver (context, data, wire) {
         return []
       }
     }
-    if (bmmConfig.bookmarksConsumerRegistred === true) {
+    if (bmmConfig.bookmarksConsumerRegistered === true) {
       bookmarksConsumer = (database, bookmarks) => {
         const notifier = () =>
           new Promise((resolve, reject) => {
