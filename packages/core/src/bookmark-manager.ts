@@ -22,6 +22,10 @@
  * @interface
  */
 export default class BookmarkManager {
+  constructor () {
+    throw new Error('Not implemented')
+  }
+
   /**
    * Method called when the bookmarks get updated when a transaction finished.
    *
