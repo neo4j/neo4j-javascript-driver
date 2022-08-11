@@ -51,7 +51,7 @@ class Transaction {
   private readonly _onBookmarks: (newBookmarks: Bookmarks, previousBookmarks: Bookmarks, database?: string) => void
   private readonly _onConnection: () => void
   private readonly _onError: (error: Error) => Promise<Connection | null>
-  private readonly _onComplete: (metadata: any) => void
+  private readonly _onComplete: (metadata: any, previousBookmarks?: Bookmarks) => void
   private readonly _fetchSize: number
   private readonly _results: any[]
   private readonly _impersonatedUser?: string
@@ -274,7 +274,7 @@ class Transaction {
    * @param {object} meta The meta with bookmarks
    * @returns {void}
    */
-  _onCompleteCallback (meta: { bookmark?: string | string[], db?: string }, previousBookmarks: Bookmarks): void {
+  _onCompleteCallback (meta: { bookmark?: string | string[], db?: string }, previousBookmarks?: Bookmarks): void {
     this._onBookmarks(new Bookmarks(meta?.bookmark), previousBookmarks ?? Bookmarks.empty(), meta?.db)
   }
 }
