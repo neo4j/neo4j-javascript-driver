@@ -92,23 +92,23 @@ export function NewDriver (context, data, wire) {
     if (bmmConfig.initialBookmarks != null) {
       initialBookmarks = new Map(Object.entries(bmmConfig.initialBookmarks))
     }
-    if (bmmConfig.bookmarkSupplierRegistered === true) {
+    if (bmmConfig.bookmarksSupplierRegistered === true) {
       bookmarksSupplier = (database) => {
         const supplier = () =>
           new Promise((resolve, reject) => {
             const id = context.addBookmarkSupplierRequest(resolve, reject)
-            wire.writeResponse(responses.BookmarkSupplierRequest({ id, database }))
+            wire.writeResponse(responses.BookmarksSupplierRequest({ id, database }))
           })
         supplier()
         return []
       }
     }
-    if (bmmConfig.notifyBookmarksRegistered === true) {
+    if (bmmConfig.bookmarksConsumerRegistred === true) {
       bookmarksConsumer = (database, bookmarks) => {
         const notifier = () =>
           new Promise((resolve, reject) => {
             const id = context.addNotifyBookmarksRequest(resolve, reject)
-            wire.writeResponse(responses.NotifyBookmarksRequest({ id, database, bookmarks }))
+            wire.writeResponse(responses.BookmarksConsumerRequest({ id, database, bookmarks }))
           })
         notifier()
       }
@@ -442,7 +442,7 @@ export function ResolverResolutionCompleted (
   request.resolve(addresses)
 }
 
-export function BookmarkSupplierCompleted (
+export function BookmarksSupplierCompleted (
   context,
   {
     requestId,
@@ -453,7 +453,7 @@ export function BookmarkSupplierCompleted (
   bookmarkSupplierRequest.resolve(bookmarks)
 }
 
-export function NotifyBookmarksCompleted (
+export function BookmarksConsumerCompleted (
   context,
   {
     requestId
