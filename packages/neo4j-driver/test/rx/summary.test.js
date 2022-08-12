@@ -39,7 +39,7 @@ describe('#integration-rx summary', () => {
       session = driver.rxSession()
 
       protocolVersion = await sharedNeo4j.cleanupAndGetProtocolVersion(driver)
-      await dropConstraintsAndIndices(driver)
+      await dropConstraintsAndIndices(driver, protocolVersion)
     })
 
     afterEach(async () => {
@@ -140,7 +140,7 @@ describe('#integration-rx summary', () => {
         await normalSession.close()
       }
 
-      await dropConstraintsAndIndices(driver)
+      await dropConstraintsAndIndices(driver, protocolVersion)
     })
 
     afterEach(async () => {
@@ -240,7 +240,7 @@ describe('#integration-rx summary', () => {
         await normalSession.close()
       }
 
-      await dropConstraintsAndIndices(driver)
+      await dropConstraintsAndIndices(driver, protocolVersion)
     })
 
     afterEach(async () => {
@@ -755,16 +755,22 @@ describe('#integration-rx summary', () => {
     expect(summary.counters.containsUpdates()).toBeFalsy()
   }
 
-  async function dropConstraintsAndIndices (driver) {
+  async function dropConstraintsAndIndices (driver, protocolVersion) {
     const session = driver.session()
     try {
-      const constraints = await session.run('CALL db.constraints()')
+      const showConstraints = shouldUseShowConstraints(protocolVersion)
+        ? 'SHOW CONSTRAINTS'
+        : 'CALL db.constraints()'
+      const constraints = await session.run(showConstraints)
       for (let i = 0; i < constraints.records.length; i++) {
         const name = constraints.records[i].toObject().name
         await session.run('DROP CONSTRAINT ' + name) // ${getName(constraints.records[i])}`)
       }
 
-      const indices = await session.run('CALL db.indexes()')
+      const showIndexes = shouldUseShowIndexes(protocolVersion)
+        ? 'SHOW INDEXES'
+        : 'CALL db.indexes()'
+      const indices = await session.run(showIndexes)
       for (let i = 0; i < indices.records.length; i++) {
         const name = indices.records[i].toObject().name
         await session.run('DROP INDEX ' + name) // ${getName(constraints.records[i])}`)
@@ -776,5 +782,13 @@ describe('#integration-rx summary', () => {
 
   function isNewConstraintIndexSyntax (protocolVersion) {
     return protocolVersion > 4.3
+  }
+
+  function shouldUseShowConstraints (protocolVersion) {
+    return protocolVersion > 4.2
+  }
+
+  function shouldUseShowIndexes (protocolVersion) {
+    return protocolVersion > 4.2
   }
 })
