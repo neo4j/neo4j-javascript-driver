@@ -42,12 +42,11 @@ export default class LocalController extends Controller {
   }
 
   _writeResponse (contextId, response) {
-    console.log('> writing response', response.name, response.data)
     this.emit('response', { contextId, response })
   }
 
   _writeBackendError (contextId, msg) {
-    this._writeResponse(contextId, newResponse('BackendError', { msg: msg }))
+    this._writeResponse(contextId, newResponse('BackendError', { msg }))
   }
 
   _writeError (contextId, e) {
