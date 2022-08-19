@@ -29,7 +29,7 @@ export default class BookmarkManager {
   /**
    * Method called when the bookmarks get updated when a transaction finished.
    *
-   * This method will be called during when auto-commit queries finished and explicit transactions
+   * This method will be called when auto-commit queries finish and when explicit transactions
    * get commited.
    * @param {string} database The database which the bookmarks belongs to
    * @param {Iterable<string>} previousBookmarks The bookmarks used when starting the transaction
