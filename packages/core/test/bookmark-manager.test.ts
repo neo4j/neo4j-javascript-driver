@@ -62,6 +62,22 @@ describe('BookmarkManager', () => {
       expect(bookmarks).toEqual([...neo4jBookmarks, ...extraBookmarks])
     })
 
+    it('should return not duplicate bookmarks if bookmarkSupplier returns existing bm', () => {
+      const extraBookmarks = ['neo4j:bm03', 'neo4j:bm04']
+
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ]),
+        bookmarksSupplier: () => [...extraBookmarks, ...neo4jBookmarks]
+      })
+
+      const bookmarks = manager.getBookmarks('neo4j')
+
+      expect(bookmarks).toEqual([...neo4jBookmarks, ...extraBookmarks])
+    })
+
     it('should return call from bookmarkSupplier with correct database', () => {
       const bookmarksSupplier = jest.fn()
 
@@ -86,7 +102,7 @@ describe('BookmarkManager', () => {
 
       const bookmarks = manager.getAllBookmarks()
 
-      expect(bookmarks).toEqual([...neo4jBookmarks, ...systemBookmarks])
+      expect([...bookmarks]).toEqual([...neo4jBookmarks, ...systemBookmarks])
     })
 
     it('should return empty if there are no bookmarks for any db', () => {
@@ -94,7 +110,7 @@ describe('BookmarkManager', () => {
 
       const bookmarks = manager.getAllBookmarks()
 
-      expect(bookmarks).toEqual([])
+      expect([...bookmarks]).toEqual([])
     })
 
     it('should return enriched bookmarks list with supplied bookmarks', () => {
@@ -110,7 +126,25 @@ describe('BookmarkManager', () => {
 
       const bookmarks = manager.getAllBookmarks()
 
-      expect(bookmarks.sort()).toEqual(
+      expect([...bookmarks].sort()).toEqual(
+        [...neo4jBookmarks, ...systemBookmarks, ...extraBookmarks].sort()
+      )
+    })
+
+    it('should return duplicate bookmarks if bookmarksSupplier returns already existing bm', () => {
+      const extraBookmarks = ['neo4j:bmextra', 'system:bmextra', 'adb:bmextra']
+      const bookmarksSupplier = jest.fn((database?: string) => [...extraBookmarks, ...systemBookmarks])
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ]),
+        bookmarksSupplier
+      })
+
+      const bookmarks = manager.getAllBookmarks()
+
+      expect([...bookmarks].sort()).toEqual(
         [...neo4jBookmarks, ...systemBookmarks, ...extraBookmarks].sort()
       )
     })
@@ -148,6 +182,27 @@ describe('BookmarkManager', () => {
       )
 
       expect(manager.getBookmarks('neo4j')).toEqual(newBookmarks)
+      expect(manager.getBookmarks('system')).toEqual(systemBookmarks)
+    })
+
+    it('should not remove bookmarks not present in the original list', () => {
+      const newBookmarks = ['neo4j:bm03']
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const [bookmarkNotUsedInTx, ...bookmarksUsedInTx] = neo4jBookmarks
+      manager.updateBookmarks(
+        'neo4j',
+        bookmarksUsedInTx,
+        newBookmarks
+      )
+
+      expect(manager.getBookmarks('neo4j'))
+        .toEqual([bookmarkNotUsedInTx, ...newBookmarks])
       expect(manager.getBookmarks('system')).toEqual(systemBookmarks)
     })
 
@@ -205,8 +260,27 @@ describe('BookmarkManager', () => {
       manager.forget(['neo4j', 'adb'])
       const bookmarks = manager.getAllBookmarks()
 
-      expect(bookmarks.sort()).toEqual(
+      expect([...bookmarks].sort()).toEqual(
         [...systemBookmarks, ...extraBookmarks].sort()
+      )
+    })
+
+    it('should forget what never reminded', () => {
+      const extraBookmarks = ['system:bmextra', 'adb:bmextra']
+      const bookmarksSupplier = jest.fn(() => extraBookmarks)
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ]),
+        bookmarksSupplier
+      })
+
+      manager.forget(['unexisting-db'])
+      const bookmarks = manager.getAllBookmarks()
+
+      expect([...bookmarks].sort()).toEqual(
+        [...systemBookmarks, ...neo4jBookmarks, ...extraBookmarks].sort()
       )
     })
   })

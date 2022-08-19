@@ -28,7 +28,7 @@ export class Bookmarks {
    * @constructor
    * @param {string|string[]} values single bookmark as string or multiple bookmarks as a string array.
    */
-  constructor (values?: string | string[] | string[] | null) {
+  constructor (values?: string | string[] | null) {
     this._values = asStringArray(values)
   }
 
@@ -83,7 +83,7 @@ const EMPTY_BOOKMARK = new Bookmarks(null)
  * @return {string[]} value converted to an array.
  */
 function asStringArray (
-  value?: string | string[] | string[] | null
+  value?: string | string[] | null
 ): string[] {
   if (value == null || value === '') {
     return []

@@ -442,11 +442,7 @@ describe('session', () => {
         database: 'neo4j'
       })
 
-      await session.run('query')
-
-      const { afterComplete } = connection.seenProtocolOptions[0]
-
-      afterComplete({ db: metaDb })
+      await session.beginTransaction()
 
       expect(updateBookmarksSpy).not.toBeCalled()
     })
