@@ -84,7 +84,7 @@ export interface BookmarkManagerConfig {
  * @property {Map<string,string[]>} [initialBookmarks] Defines the initial set of bookmarks. The key is the database name and the values are the bookmarks.
  * @property {function([database]: string):string[]} [bookmarksSupplier] Called for supplying extra bookmarks to the BookmarkManager
  * 1. supplying bookmarks from the given database when the default BookmarkManager's `.getBookmarks(database)` gets called.
- * 2. supplying all the bookmarks when the default BookmarkManager's  `.getAllBookmarks()` gets called
+ * 2. supplying all the bookmarks when the default BookmarkManager's `.getAllBookmarks()` gets called
  * @property {function(database: string, bookmarks: string[]): void} [bookmarksConsumer] Called when the set of bookmarks for database get updated
  */
 /**

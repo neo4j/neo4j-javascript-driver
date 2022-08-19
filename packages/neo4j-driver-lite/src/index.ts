@@ -202,16 +202,16 @@ const {
  *         logger: (level, message) => console.log(level + ' ' + message)
  *       },
  *
- *       // Configure a BookmarkManager for in the driver
+ *       // Configure a BookmarkManager for the driver to use
  *       //
- *       // BookmarkManager is a piece of software responsible for keeping casual concistency between different sessions by sharing bookmarks
+ *       // A BookmarkManager is a piece of software responsible for keeping casual consistency between different sessions by sharing bookmarks
  *       // between the them.
  *       // Enabling it is done by supplying an BookmarkManager implementation instance to this param.
- *       // A default implementation could be acquired by calling bookmarkManager factory function.
+ *       // A default implementation could be acquired by calling the factory function bookmarkManager.
  *       //
- *       // **Warning**: Enabling Bookmark Manager can have a negative impact performance wise since all the queries will wait for the last changes
- *       // being propagated accross the cluster.
- *       // For keeping concistency between a group of queries, use Session for grouping them.
+ *       // **Warning**: Enabling the BookmarkManager can have a negative impact on performance since all the queries will wait for the latest changes
+ *       // being propagated across the cluster.
+ *       // For keeping consistency between a group of queries, use Session for grouping them.
  *       //
  *       // Example:
  *       // const driver = neo4j.driver(url, auth, { bookmarkManager: neo4j.bookmarkManager() })

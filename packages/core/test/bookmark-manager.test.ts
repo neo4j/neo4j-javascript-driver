@@ -89,7 +89,7 @@ describe('BookmarkManager', () => {
       expect(bookmarks).toEqual([...neo4jBookmarks, ...systemBookmarks])
     })
 
-    it('should return empty if there isnt bookmarks for any db', () => {
+    it('should return empty if there are no bookmarks for any db', () => {
       const manager = bookmarkManager({})
 
       const bookmarks = manager.getAllBookmarks()
@@ -97,7 +97,7 @@ describe('BookmarkManager', () => {
       expect(bookmarks).toEqual([])
     })
 
-    it('should return enrich bookmarks list with supplied bookmarks', () => {
+    it('should return enriched bookmarks list with supplied bookmarks', () => {
       const extraBookmarks = ['neo4j:bmextra', 'system:bmextra', 'adb:bmextra']
       const bookmarksSupplier = jest.fn((database?: string) => extraBookmarks)
       const manager = bookmarkManager({
@@ -132,7 +132,7 @@ describe('BookmarkManager', () => {
   })
 
   describe('updateBookmarks()', () => {
-    it('should remove previous bookmarks and new bookmarks an existing db', () => {
+    it('should remove previous bookmarks and new bookmarks for an existing db', () => {
       const newBookmarks = ['neo4j:bm03']
       const manager = bookmarkManager({
         initialBookmarks: new Map([
@@ -191,7 +191,7 @@ describe('BookmarkManager', () => {
   })
 
   describe('forget()', () => {
-    it('should forgot database', () => {
+    it('should forget database', () => {
       const extraBookmarks = ['system:bmextra', 'adb:bmextra']
       const bookmarksSupplier = jest.fn(() => extraBookmarks)
       const manager = bookmarkManager({
