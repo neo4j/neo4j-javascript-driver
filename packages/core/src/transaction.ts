@@ -115,16 +115,16 @@ class Transaction {
    * @param {TxConfig} txConfig
    * @returns {void}
    */
-  _begin (getBookmarks: () => Bookmarks, txConfig: TxConfig, events?: {
+  _begin (getBookmarks: () => Promise<Bookmarks>, txConfig: TxConfig, events?: {
     onError: (error: Error) => void
     onComplete: (metadata: any) => void
   }): void {
     this._connectionHolder
       .getConnection()
-      .then(connection => {
-        this._bookmarks = getBookmarks()
+      .then(async connection => {
         this._onConnection()
         if (connection != null) {
+          this._bookmarks = await getBookmarks()
           return connection.protocol().beginTransaction({
             bookmarks: this._bookmarks,
             txConfig: txConfig,

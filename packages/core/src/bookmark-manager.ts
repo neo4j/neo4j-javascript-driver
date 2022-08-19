@@ -36,7 +36,7 @@ export default class BookmarkManager {
    * @param {Iterable<string>} newBookmarks The new bookmarks received at the end of the transaction.
    * @returns {void}
   */
-  updateBookmarks (database: string, previousBookmarks: Iterable<string>, newBookmarks: Iterable<string>): void {
+  async updateBookmarks (database: string, previousBookmarks: Iterable<string>, newBookmarks: Iterable<string>): Promise<void> {
     throw new Error('Not implemented')
   }
 
@@ -46,7 +46,7 @@ export default class BookmarkManager {
    * @param {string} database The database which the bookmarks belong to
    * @returns {Iterable<string>} The set of bookmarks
    */
-  getBookmarks (database: string): Iterable<string> {
+  async getBookmarks (database: string): Promise<Iterable<string>> {
     throw new Error('Not implemented')
   }
 
@@ -57,7 +57,7 @@ export default class BookmarkManager {
    *
    * @returns {Iterable<string>} The set of bookmarks
    */
-  getAllBookmarks (): Iterable<string> {
+  async getAllBookmarks (): Promise<Iterable<string>> {
     throw new Error('Not implemented')
   }
 
@@ -68,24 +68,24 @@ export default class BookmarkManager {
    *
    * @param {Iterable<string>} databases The databases which the bookmarks will be removed for.
    */
-  forget (databases: Iterable<string>): void {
+  async forget (databases: Iterable<string>): Promise<void> {
     throw new Error('Not implemented')
   }
 }
 
 export interface BookmarkManagerConfig {
   initialBookmarks?: Map<string, Iterable<string>>
-  bookmarksSupplier?: (database?: string) => Iterable<string>
-  bookmarksConsumer?: (database: string, bookmarks: Iterable<string>) => void
+  bookmarksSupplier?: (database?: string) => Promise<Iterable<string>>
+  bookmarksConsumer?: (database: string, bookmarks: Iterable<string>) => Promise<void>
 }
 
 /**
  * @typedef {Object} BookmarkManagerConfig
  * @property {Map<string,Iterable<string>>} [initialBookmarks] Defines the initial set of bookmarks. The key is the database name and the values are the bookmarks.
- * @property {function([database]: string):Iterable<string>} [bookmarksSupplier] Called for supplying extra bookmarks to the BookmarkManager
+ * @property {function([database]: string):Promise<Iterable<string>>} [bookmarksSupplier] Called for supplying extra bookmarks to the BookmarkManager
  * 1. supplying bookmarks from the given database when the default BookmarkManager's `.getBookmarks(database)` gets called.
  * 2. supplying all the bookmarks when the default BookmarkManager's `.getAllBookmarks()` gets called
- * @property {function(database: string, bookmarks: Iterable<string>): void} [bookmarksConsumer] Called when the set of bookmarks for database get updated
+ * @property {function(database: string, bookmarks: Iterable<string>): Promise<void>} [bookmarksConsumer] Called when the set of bookmarks for database get updated
  */
 /**
  * Provides an configured {@link BookmarkManager} instance.
@@ -108,13 +108,13 @@ export function bookmarkManager (config: BookmarkManagerConfig = {}): BookmarkMa
 class Neo4jBookmarkManager implements BookmarkManager {
   constructor (
     private readonly _bookmarksPerDb: Map<string, Set<string>>,
-    private readonly _bookmarksSupplier?: (database?: string) => Iterable<string>,
-    private readonly _bookmarksConsumer?: (database: string, bookmark: Iterable<string>) => void
+    private readonly _bookmarksSupplier?: (database?: string) => Promise<Iterable<string>>,
+    private readonly _bookmarksConsumer?: (database: string, bookmark: Iterable<string>) => Promise<void>
   ) {
 
   }
 
-  updateBookmarks (database: string, previousBookmarks: Iterable<string>, newBookmarks: Iterable<string>): void {
+  async updateBookmarks (database: string, previousBookmarks: Iterable<string>, newBookmarks: Iterable<string>): Promise<void> {
     const bookmarks = this._getOrInitializeBookmarks(database)
     for (const bm of previousBookmarks) {
       bookmarks.delete(bm)
@@ -123,7 +123,7 @@ class Neo4jBookmarkManager implements BookmarkManager {
       bookmarks.add(bm)
     }
     if (typeof this._bookmarksConsumer === 'function') {
-      this._bookmarksConsumer(database, [...bookmarks])
+      await this._bookmarksConsumer(database, [...bookmarks])
     }
   }
 
@@ -136,11 +136,11 @@ class Neo4jBookmarkManager implements BookmarkManager {
     return maybeBookmarks
   }
 
-  getBookmarks (database: string): Iterable<string> {
+  async getBookmarks (database: string): Promise<Iterable<string>> {
     const bookmarks = new Set(this._bookmarksPerDb.get(database))
 
     if (typeof this._bookmarksSupplier === 'function') {
-      const suppliedBookmarks = this._bookmarksSupplier(database) ?? []
+      const suppliedBookmarks = await this._bookmarksSupplier(database) ?? []
       for (const bm of suppliedBookmarks) {
         bookmarks.add(bm)
       }
@@ -149,7 +149,7 @@ class Neo4jBookmarkManager implements BookmarkManager {
     return [...bookmarks]
   }
 
-  getAllBookmarks (): Iterable<string> {
+  async getAllBookmarks (): Promise<Iterable<string>> {
     const bookmarks = new Set<string>()
 
     for (const [, dbBookmarks] of this._bookmarksPerDb) {
@@ -158,7 +158,7 @@ class Neo4jBookmarkManager implements BookmarkManager {
       }
     }
     if (typeof this._bookmarksSupplier === 'function') {
-      const suppliedBookmarks = this._bookmarksSupplier() ?? []
+      const suppliedBookmarks = await this._bookmarksSupplier() ?? []
       for (const bm of suppliedBookmarks) {
         bookmarks.add(bm)
       }
@@ -167,7 +167,7 @@ class Neo4jBookmarkManager implements BookmarkManager {
     return bookmarks
   }
 
-  forget (databases: Iterable<string>): void {
+  async forget (databases: Iterable<string>): Promise<void> {
     for (const database of databases) {
       this._bookmarksPerDb.delete(database)
     }

@@ -151,7 +151,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
             connection
           })
 
-          tx._begin(() => Bookmarks.empty(), TxConfig.empty())
+          tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
 
           return [tx]
         }
@@ -266,7 +266,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
             connection
           })
 
-          tx._begin(() => Bookmarks.empty(), TxConfig.empty())
+          tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
           return [tx, expectedError]
         }
       })
@@ -280,7 +280,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
           connection: undefined
         })
 
-        tx._begin(() => Bookmarks.empty(), TxConfig.empty())
+        tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
 
         try {
           await tx
@@ -300,7 +300,7 @@ testTx('TransactionPromise', newTransactionPromise, () => {
           errorResolvingConnection: expectedError
         })
 
-        tx._begin(() => Bookmarks.empty(), TxConfig.empty())
+        tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
 
         try {
           await tx

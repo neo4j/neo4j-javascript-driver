@@ -93,25 +93,18 @@ export function NewDriver (context, data, wire) {
       initialBookmarks = new Map(Object.entries(bmmConfig.initialBookmarks))
     }
     if (bmmConfig.bookmarksSupplierRegistered === true) {
-      bookmarksSupplier = (database) => {
-        const supplier = () =>
-          new Promise((resolve, reject) => {
-            const id = context.addBookmarkSupplierRequest(resolve, reject)
-            wire.writeResponse(responses.BookmarksSupplierRequest({ id, database }))
-          })
-        supplier()
-        return []
-      }
+      bookmarksSupplier = (database) =>
+        new Promise((resolve, reject) => {
+          const id = context.addBookmarkSupplierRequest(resolve, reject)
+          wire.writeResponse(responses.BookmarksSupplierRequest({ id, database }))
+        })
     }
     if (bmmConfig.bookmarksConsumerRegistered === true) {
-      bookmarksConsumer = (database, bookmarks) => {
-        const notifier = () =>
-          new Promise((resolve, reject) => {
-            const id = context.addNotifyBookmarksRequest(resolve, reject)
-            wire.writeResponse(responses.BookmarksConsumerRequest({ id, database, bookmarks }))
-          })
-        notifier()
-      }
+      bookmarksConsumer = (database, bookmarks) =>
+        new Promise((resolve, reject) => {
+          const id = context.addNotifyBookmarksRequest(resolve, reject)
+          wire.writeResponse(responses.BookmarksConsumerRequest({ id, database, bookmarks }))
+        })
     }
     config.bookmarkManager = neo4j.bookmarkManager({
       initialBookmarks,

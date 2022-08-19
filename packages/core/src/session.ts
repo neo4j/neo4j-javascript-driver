@@ -37,7 +37,7 @@ import TransactionPromise from './transaction-promise'
 import ManagedTransaction from './transaction-managed'
 import BookmarkManager from './bookmark-manager'
 
-type ConnectionConsumer = (connection: Connection | null) => any | undefined
+type ConnectionConsumer = (connection: Connection | null) => any | undefined | Promise<any> | Promise<undefined>
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
@@ -164,8 +164,8 @@ class Session {
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    const result = this._run(validatedQuery, params, connection => {
-      const bookmarks = this._bookmarks()
+    const result = this._run(validatedQuery, params, async connection => {
+      const bookmarks = await this._bookmarks()
       this._assertSessionIsOpen()
       return (connection as Connection).protocol().run(validatedQuery, params, {
         bookmarks,
@@ -338,8 +338,8 @@ class Session {
     return this._lastBookmarks.values()
   }
 
-  private _bookmarks (): Bookmarks {
-    const bookmarks = this._bookmarkManager?.getAllBookmarks() ?? []
+  private async _bookmarks (): Promise<Bookmarks> {
+    const bookmarks = await this._bookmarkManager?.getAllBookmarks() ?? []
     return new Bookmarks([...bookmarks, ...this._lastBookmarks])
   }
 

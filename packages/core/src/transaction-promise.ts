@@ -162,7 +162,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
   /**
    * @access private
    */
-  _begin (bookmarks: () => Bookmarks, txConfig: TxConfig): void {
+  _begin (bookmarks: () => Promise<Bookmarks>, txConfig: TxConfig): void {
     return super._begin(bookmarks, txConfig, {
       onError: this._onBeginError.bind(this),
       onComplete: this._onBeginMetadata.bind(this)

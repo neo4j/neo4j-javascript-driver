@@ -152,13 +152,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
 
   initializeConnection (): boolean {
     if (this._referenceCount === 0 && (this._connectionProvider != null)) {
-      this._connectionPromise = this._connectionProvider.acquireConnection({
-        accessMode: this._mode,
-        database: this._database,
-        bookmarks: this._getBookmarks(),
-        impersonatedUser: this._impersonatedUser,
-        onDatabaseNameResolved: this._onDatabaseNameResolved
-      })
+      this._connectionPromise = this._createConnectionPromise(this._connectionProvider)
     } else {
       this._referenceCount++
       return false
@@ -167,8 +161,18 @@ class ConnectionHolder implements ConnectionHolderInterface {
     return true
   }
 
-  private _getBookmarks (): Bookmarks {
-    const bookmarks = this._bookmarkManager?.getBookmarks('system') ?? []
+  private async _createConnectionPromise (connectionProvider: ConnectionProvider): Promise<Connection | null> {
+    return await connectionProvider.acquireConnection({
+      accessMode: this._mode,
+      database: this._database,
+      bookmarks: await this._getBookmarks(),
+      impersonatedUser: this._impersonatedUser,
+      onDatabaseNameResolved: this._onDatabaseNameResolved
+    })
+  }
+
+  private async _getBookmarks (): Promise<Bookmarks> {
+    const bookmarks = await this._bookmarkManager?.getBookmarks('system') ?? []
     return new Bookmarks([...this._bookmarks, ...bookmarks])
   }
 
