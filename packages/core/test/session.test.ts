@@ -423,7 +423,7 @@ describe('session', () => {
       [undefined],
       ['neo4j'],
       ['adb']
-    ])('should not call run updateBookmarks when bookmarks since it didnt have bookmarks', async (metaDb) => {
+    ])('should not call updateBookmarks when server returns no bookmarks', async (metaDb) => {
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],
@@ -457,7 +457,7 @@ describe('session', () => {
       [undefined, 'neo4j'],
       ['neo4j', 'neo4j'],
       ['adb', 'adb']
-    ])('should call run updateBookmarks when bookmarks is not empty', async (metaDb, updateDb) => {
+    ])('should call updateBookmarks when server returns non-empty bookmarks', async (metaDb, updateDb) => {
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],
@@ -487,7 +487,7 @@ describe('session', () => {
       [undefined],
       ['neo4j'],
       ['adb']
-    ])('should not call run updateBookmarks when bookmarks is empty', async (metaDb) => {
+    ])('should not call updateBookmarks when server returns no bookmarks', async (metaDb) => {
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],
@@ -660,7 +660,7 @@ describe('session', () => {
       [undefined, 'neo4j'],
       ['neo4j', 'neo4j'],
       ['adb', 'adb']
-    ])('should call run updateBookmarks when bookmarks is not empty', async (metaDb, updateDb) => {
+    ])('should call updateBookmarks when server returns non-empty bookmarks', async (metaDb, updateDb) => {
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],
@@ -692,7 +692,7 @@ describe('session', () => {
       [undefined],
       ['neo4j'],
       ['adb']
-    ])('should not call run updateBookmarks when bookmarks is empty', async (metaDb) => {
+    ])('should not call updateBookmarks when server returns no bookmarks', async (metaDb) => {
       const manager = bookmarkManager({
         initialBookmarks: new Map([
           ['neo4j', neo4jBookmarks],

@@ -32,8 +32,8 @@ export default class BookmarkManager {
    * This method will be called during when auto-commit queries finished and explicit transactions
    * get commited.
    * @param {string} database The database which the bookmarks belongs to
-   * @param {string[]} previousBookmarks The bookmarks used during the transaction creation
-   * @param {string[]} newBookmarks The new bookmarks resolved at the end of the transaction.
+   * @param {string[]} previousBookmarks The bookmarks used when starting the transaction
+   * @param {string[]} newBookmarks The new bookmarks received at the end of the transaction.
    * @returns {void}
   */
   updateBookmarks (database: string, previousBookmarks: string[], newBookmarks: string[]): void {
@@ -41,9 +41,9 @@ export default class BookmarkManager {
   }
 
   /**
-   * Method called by the driver to get the bookmark for one specific database
+   * Method called by the driver to get the bookmarks for one specific database
    *
-   * @param {string} database The database which the bookmarks belongs to
+   * @param {string} database The database which the bookmarks belong to
    * @returns {string[]} The set of bookmarks
    */
   getBookmarks (database: string): string[] {
@@ -53,7 +53,7 @@ export default class BookmarkManager {
   /**
    * Method called by the driver for getting all the bookmarks.
    *
-   * The return of this method should be all the bookmarks present in the BookmarkManager for all databases.
+   * This method should return all bookmarks for all databases present in the BookmarkManager.
    *
    * @returns {string[]} The set of bookmarks
    */
