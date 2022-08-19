@@ -19,10 +19,15 @@
 import {
   bookmarkManager
 } from '../src/bookmark-manager'
+import { installMatchers } from './utils/matchers'
 
 describe('BookmarkManager', () => {
   const systemBookmarks = ['system:bm01', 'system:bm02']
   const neo4jBookmarks = ['neo4j:bm01', 'neo4j:bm02']
+
+  beforeAll(() => {
+    installMatchers()
+  })
 
   describe('getBookmarks()', () => {
     it('should return empty if db doesnt exists', async () => {
@@ -43,7 +48,7 @@ describe('BookmarkManager', () => {
 
       const bookmarks = await manager.getBookmarks('neo4j')
 
-      expect(bookmarks).toEqual(neo4jBookmarks)
+      expect(bookmarks).toBeSortedEqual(neo4jBookmarks)
     })
 
     it('should return get bookmarks from bookmarkSupplier', async () => {
@@ -59,7 +64,7 @@ describe('BookmarkManager', () => {
 
       const bookmarks = await manager.getBookmarks('neo4j')
 
-      expect(bookmarks).toEqual([...neo4jBookmarks, ...extraBookmarks])
+      expect(bookmarks).toBeSortedEqual([...neo4jBookmarks, ...extraBookmarks])
     })
 
     it('should return not duplicate bookmarks if bookmarkSupplier returns existing bm', async () => {
@@ -75,7 +80,7 @@ describe('BookmarkManager', () => {
 
       const bookmarks = await manager.getBookmarks('neo4j')
 
-      expect(bookmarks).toEqual([...neo4jBookmarks, ...extraBookmarks])
+      expect(bookmarks).toBeSortedEqual([...neo4jBookmarks, ...extraBookmarks])
     })
 
     it('should return call from bookmarkSupplier with correct database', async () => {
@@ -102,7 +107,7 @@ describe('BookmarkManager', () => {
 
       const bookmarks = await manager.getAllBookmarks()
 
-      expect([...bookmarks]).toEqual([...neo4jBookmarks, ...systemBookmarks])
+      expect(bookmarks).toBeSortedEqual([...neo4jBookmarks, ...systemBookmarks])
     })
 
     it('should return empty if there are no bookmarks for any db', async () => {
@@ -110,7 +115,7 @@ describe('BookmarkManager', () => {
 
       const bookmarks = await manager.getAllBookmarks()
 
-      expect([...bookmarks]).toEqual([])
+      expect(bookmarks).toBeSortedEqual([])
     })
 
     it('should return enriched bookmarks list with supplied bookmarks', async () => {
@@ -126,8 +131,8 @@ describe('BookmarkManager', () => {
 
       const bookmarks = await manager.getAllBookmarks()
 
-      expect([...bookmarks].sort()).toEqual(
-        [...neo4jBookmarks, ...systemBookmarks, ...extraBookmarks].sort()
+      expect(bookmarks).toBeSortedEqual(
+        [...neo4jBookmarks, ...systemBookmarks, ...extraBookmarks]
       )
     })
 
@@ -144,8 +149,8 @@ describe('BookmarkManager', () => {
 
       const bookmarks = await manager.getAllBookmarks()
 
-      expect([...bookmarks].sort()).toEqual(
-        [...neo4jBookmarks, ...systemBookmarks, ...extraBookmarks].sort()
+      expect(bookmarks).toBeSortedEqual(
+        [...neo4jBookmarks, ...systemBookmarks, ...extraBookmarks]
       )
     })
 
@@ -181,8 +186,8 @@ describe('BookmarkManager', () => {
         newBookmarks
       )
 
-      await expect(manager.getBookmarks('neo4j')).resolves.toEqual(newBookmarks)
-      await expect(manager.getBookmarks('system')).resolves.toEqual(systemBookmarks)
+      await expect(manager.getBookmarks('neo4j')).resolves.toBeSortedEqual(newBookmarks)
+      await expect(manager.getBookmarks('system')).resolves.toBeSortedEqual(systemBookmarks)
     })
 
     it('should not remove bookmarks not present in the original list', async () => {
@@ -202,8 +207,8 @@ describe('BookmarkManager', () => {
       )
 
       await expect(manager.getBookmarks('neo4j'))
-        .resolves.toEqual([bookmarkNotUsedInTx, ...newBookmarks])
-      await expect(manager.getBookmarks('system')).resolves.toEqual(systemBookmarks)
+        .resolves.toBeSortedEqual([bookmarkNotUsedInTx, ...newBookmarks])
+      await expect(manager.getBookmarks('system')).resolves.toBeSortedEqual(systemBookmarks)
     })
 
     it('should add bookmarks to a non-existing database', async () => {
@@ -220,8 +225,8 @@ describe('BookmarkManager', () => {
         newBookmarks
       )
 
-      await expect(manager.getBookmarks('neo4j')).resolves.toEqual(newBookmarks)
-      await expect(manager.getBookmarks('system')).resolves.toEqual(systemBookmarks)
+      await expect(manager.getBookmarks('neo4j')).resolves.toBeSortedEqual(newBookmarks)
+      await expect(manager.getBookmarks('system')).resolves.toBeSortedEqual(systemBookmarks)
     })
 
     it('should notify new bookmarks', async () => {
@@ -260,8 +265,8 @@ describe('BookmarkManager', () => {
       await manager.forget(['neo4j', 'adb'])
       const bookmarks = await manager.getAllBookmarks()
 
-      expect([...bookmarks].sort()).toEqual(
-        [...systemBookmarks, ...extraBookmarks].sort()
+      expect(bookmarks).toBeSortedEqual(
+        [...systemBookmarks, ...extraBookmarks]
       )
     })
 
@@ -279,8 +284,8 @@ describe('BookmarkManager', () => {
       await manager.forget(['unexisting-db'])
       const bookmarks = await manager.getAllBookmarks()
 
-      expect([...bookmarks].sort()).toEqual(
-        [...systemBookmarks, ...neo4jBookmarks, ...extraBookmarks].sort()
+      expect(bookmarks).toBeSortedEqual(
+        [...systemBookmarks, ...neo4jBookmarks, ...extraBookmarks]
       )
     })
   })
