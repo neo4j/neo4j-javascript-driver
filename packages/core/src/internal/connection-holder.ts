@@ -24,7 +24,6 @@ import Connection from '../connection'
 import { ACCESS_MODE_WRITE } from './constants'
 import { Bookmarks } from './bookmarks'
 import ConnectionProvider from '../connection-provider'
-import BookmarkManager from '../bookmark-manager'
 
 /**
  * @private
@@ -84,7 +83,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private _referenceCount: number
   private _connectionPromise: Promise<Connection | null>
   private readonly _impersonatedUser?: string
-  private readonly _bookmarkManager?: BookmarkManager
+  private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
   private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
 
   /**
@@ -96,7 +95,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @property {ConnectionProvider} params.connectionProvider - the connection provider to acquire connections from.
    * @property {string?} params.impersonatedUser - the user which will be impersonated
    * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
-   * @property {[BookmarkManager]} params.bookmarkManager - the bookmark manager used in the session
+   * @property {function():Promise<Bookmarks>} params.getConnectionAcquistionBookmarks - called for getting Bookmarks for acquiring connections
    */
   constructor ({
     mode = ACCESS_MODE_WRITE,
@@ -105,7 +104,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     connectionProvider,
     impersonatedUser,
     onDatabaseNameResolved,
-    bookmarkManager
+    getConnectionAcquistionBookmarks
   }: {
     mode?: string
     database?: string
@@ -113,7 +112,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     connectionProvider?: ConnectionProvider
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
-    bookmarkManager?: BookmarkManager
+    getConnectionAcquistionBookmarks?: () => Promise<Bookmarks>
   } = {}) {
     this._mode = mode
     this._database = database != null ? assertString(database, 'database') : ''
@@ -123,7 +122,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
-    this._bookmarkManager = bookmarkManager
+    this._getConnectionAcquistionBookmarks = getConnectionAcquistionBookmarks ?? (async () => Bookmarks.empty())
   }
 
   mode (): string | undefined {
@@ -172,8 +171,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   }
 
   private async _getBookmarks (): Promise<Bookmarks> {
-    const bookmarks = await this._bookmarkManager?.getBookmarks('system') ?? []
-    return new Bookmarks([...this._bookmarks, ...bookmarks])
+    return await this._getConnectionAcquistionBookmarks()
   }
 
   getConnection (): Promise<Connection | null> {
@@ -245,6 +243,8 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
       mode: connectionHolder.mode(),
       database: connectionHolder.database(),
       bookmarks: connectionHolder.bookmarks(),
+      // @ts-expect-error
+      getConnectionAcquistionBookmarks: connectionHolder._getConnectionAcquistionBookmarks,
       connectionProvider: connectionHolder.connectionProvider()
     })
     this._connectionHolder = connectionHolder

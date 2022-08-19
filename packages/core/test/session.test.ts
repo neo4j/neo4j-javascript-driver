@@ -595,6 +595,61 @@ describe('session', () => {
       )
     })
 
+    it('should acquire connection with system bookmarks from the bookmark manager when bookmarks already updated', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const connection = newFakeConnection()
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        lastBookmarks: new bookmarks.Bookmarks(customBookmarks),
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+      const { afterComplete } = connection.seenProtocolOptions[0]
+      afterComplete({ db: 'neo4j', bookmark: ['other-bookmark'] })
+
+      await session.run('query')
+
+      expect(connectionProvider.acquireConnection).toHaveBeenNthCalledWith(2,
+        expect.objectContaining({ bookmarks: new bookmarks.Bookmarks(systemBookmarks) }))
+    })
+
+    it('should acquire connection with system bookmarks from the bookmark manager + lastBookmarks when bookmarks not updated', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const connection = newFakeConnection()
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        lastBookmarks: new bookmarks.Bookmarks(customBookmarks),
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+      const { afterComplete } = connection.seenProtocolOptions[0]
+      afterComplete({ db: 'neo4j', bookmark: [] })
+
+      await session.run('query')
+
+      expect(connectionProvider.acquireConnection).toHaveBeenNthCalledWith(2,
+        expect.objectContaining({ bookmarks: new bookmarks.Bookmarks([...customBookmarks, ...systemBookmarks]) })
+      )
+    })
+
     it.each([
       [[]],
       [customBookmarks]
@@ -648,6 +703,75 @@ describe('session', () => {
       expect(connection.seenProtocolOptions[0]).toEqual(
         expect.objectContaining({
           bookmarks: new bookmarks.Bookmarks([...neo4jBookmarks, ...systemBookmarks, ...lastBookmarks])
+        })
+      )
+    })
+
+    it.each([
+      [[]],
+      [customBookmarks]
+    ])('should call run query with getAllBookmarks + lastBookmarks when bookmarks not updated', async (lastBookmarks) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j',
+        lastBookmarks: new bookmarks.Bookmarks(lastBookmarks)
+      })
+
+      await session.run('query')
+      const { afterComplete } = connection.seenProtocolOptions[0]
+      afterComplete({ db: 'neo4j', bookmark: [] })
+
+      await session.run('query')
+
+      expect(connection.seenProtocolOptions[1]).toEqual(
+        expect.objectContaining({
+          bookmarks: new bookmarks.Bookmarks([...neo4jBookmarks, ...systemBookmarks, ...lastBookmarks])
+        })
+      )
+    })
+
+    it.each([
+      [[]],
+      [customBookmarks]
+    ])('should call run query with getAllBookmarks when bookmarks updated', async (lastBookmarks) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j',
+        lastBookmarks: new bookmarks.Bookmarks(lastBookmarks)
+      })
+
+      await session.run('query')
+      const { afterComplete } = connection.seenProtocolOptions[0]
+      afterComplete({ db: 'neo4j', bookmark: 'abc' })
+      await manager.updateBookmarks('neo4j', ['abc'], neo4jBookmarks)
+
+      await session.run('query')
+
+      expect(connection.seenProtocolOptions[1]).toEqual(
+        expect.objectContaining({
+          bookmarks: new bookmarks.Bookmarks([...neo4jBookmarks, ...systemBookmarks])
         })
       )
     })

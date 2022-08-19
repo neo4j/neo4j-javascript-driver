@@ -63,6 +63,7 @@ class Session {
   private _open: boolean
   private _hasTx: boolean
   private _lastBookmarks: Bookmarks
+  private _configuredBookmarks: Bookmarks
   private readonly _transactionExecutor: TransactionExecutor
   private readonly _impersonatedUser?: string
   private _databaseNameResolved: boolean
@@ -109,6 +110,7 @@ class Session {
     this._reactive = reactive
     this._fetchSize = fetchSize
     this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
+    this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
@@ -116,7 +118,7 @@ class Session {
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,
-      bookmarkManager
+      getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
@@ -125,12 +127,13 @@ class Session {
       connectionProvider,
       impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,
-      bookmarkManager
+      getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks
     })
     this._open = true
     this._hasTx = false
     this._impersonatedUser = impersonatedUser
     this._lastBookmarks = bookmarks ?? Bookmarks.empty()
+    this._configuredBookmarks = this._lastBookmarks
     this._transactionExecutor = _createTransactionExecutor(config)
     this._databaseNameResolved = this._database !== ''
     const calculatedWatermaks = this._calculateWatermaks()
@@ -339,8 +342,11 @@ class Session {
   }
 
   private async _bookmarks (): Promise<Bookmarks> {
-    const bookmarks = await this._bookmarkManager?.getAllBookmarks() ?? []
-    return new Bookmarks([...bookmarks, ...this._lastBookmarks])
+    const bookmarks = await this._bookmarkManager?.getAllBookmarks()
+    if (bookmarks === undefined) {
+      return this._lastBookmarks
+    }
+    return new Bookmarks([...bookmarks, ...this._configuredBookmarks])
   }
 
   /**
@@ -481,6 +487,14 @@ class Session {
     }
   }
 
+  private async _getConnectionAcquistionBookmarks (): Promise<Bookmarks> {
+    const bookmarks = await this._bookmarkManager?.getBookmarks('system')
+    if (bookmarks === undefined) {
+      return this._lastBookmarks
+    }
+    return new Bookmarks([...this._configuredBookmarks, ...bookmarks])
+  }
+
   /**
    * Update value of the last bookmarks.
    * @private
@@ -495,6 +509,7 @@ class Session {
         newBookmarks?.values() ?? []
       )
       this._lastBookmarks = newBookmarks
+      this._configuredBookmarks = Bookmarks.empty()
     }
   }
 
