@@ -27,7 +27,7 @@ import { TransactionExecutor } from './internal/transaction-executor'
 import { Bookmark } from './internal/bookmark'
 import { TxConfig } from './internal/tx-config'
 import ConnectionProvider from './connection-provider'
-import { Query, SessionMode } from './types'
+import { Parameters, Query, SessionMode } from './types'
 import Connection from './connection'
 import { NumberOrInteger } from './graph-types'
 
@@ -136,7 +136,7 @@ class Session {
    */
   run(
     query: Query,
-    parameters?: any,
+    parameters?: Parameters,
     transactionConfig?: TransactionConfig
   ): Result {
     const { validatedQuery, params } = validateQueryAndParameters(

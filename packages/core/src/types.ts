@@ -40,7 +40,13 @@ export type TrustStrategy =
   | 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
   | 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
 
-export type Parameters = { [key: string]: any }
+export type Primitives = string | number | boolean
+
+export type Parameters = Record<
+  string,
+  Primitives | Record<string, Primitives>
+>
+  
 export interface AuthToken {
   scheme: string
   principal: string
