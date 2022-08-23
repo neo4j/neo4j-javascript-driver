@@ -96,7 +96,110 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
+}
+
+/**
+ * The session configuration
+ *
+ * @interface
+ *
+ * @param {string} defaultAccessMode=WRITE - The access mode of this session, allowed values are {@link READ} and {@link WRITE}.
+ * @param {string|string[]} bookmarks - The initial reference or references to some previous
+ * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
+ * @param {number} fetchSize - The record fetch size of each batch of this session.
+ * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
+ * @param {string} database - The database this session will operate on.
+ * @param {string} impersonatedUser - The username which the user wants to impersonate for the duration of the session.
+ * @param {BookmarkManager} [bookmarkManager] = The bookmark manager
+ */
+class SessionConfig {
+  defaultAccessMode?: SessionMode
+  bookmarks?: string | string[]
+  database?: string
+  impersonatedUser?: string
+  fetchSize?: number
   bookmarkManager?: BookmarkManager
+
+  /**
+   * @constructor
+   * @private
+   */
+  constructor () {
+    /**
+     * The access mode of this session, allowed values are {@link READ} and {@link WRITE}.
+     * **Default**: {@link WRITE}
+     * @type {string}
+     */
+    this.defaultAccessMode = WRITE
+    /**
+     * The initial reference or references to some previous
+     * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
+     * @type {string|string[]|undefined}
+     */
+    this.bookmarks = []
+
+    /**
+     * The database this session will operate on.
+     *
+     * @type {string|undefined}
+     */
+    this.database = ''
+
+    /**
+     * The username which the user wants to impersonate for the duration of the session.
+     *
+     * @type {string|undefined}
+     */
+    this.impersonatedUser = undefined
+
+    /**
+     * The record fetch size of each batch of this session.
+     *
+     * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
+     *
+     * @type {number|undefined}
+     */
+    this.fetchSize = undefined
+    /**
+     * Configure a BookmarkManager for the session to use
+     *
+     * A BookmarkManager is a piece of software responsible for keeping casual consistency between different sessions by sharing bookmarks
+     * between the them.
+     * Enabling it is done by supplying an BookmarkManager implementation instance to this param.
+     * A default implementation could be acquired by calling the factory function {@link bookmarkManager}.
+     *
+     * **Warning**: Share the same BookmarkManager instance accross all session can have a negative impact
+     * on performance since all the queries will wait for the latest changes being propagated across the cluster.
+     * For keeping consistency between a group of queries, use {@link Session} for grouping them.
+     * For keeping consistency between a group of sessions, use {@link BookmarkManager} instance for groupping them.
+     *
+     * @example
+     * const bookmarkManager = neo4j.bookmarkManager()
+     * const linkedSession1 = driver.session({ database:'neo4j', bookmarkManager })
+     * const linkedSession2 = driver.session({ database:'neo4j', bookmarkManager })
+     * const unlinkedSession = driver.session({ database:'neo4j' })
+     *
+     * // Creating Driver User
+     * const createUserQueryResult = await linkedSession1.run('CREATE (p:Person {name: $name})', { name: 'Driver User'})
+     *
+     * // Reading Driver User will *NOT* wait of the changes being propagated to the server before RUN the query
+     * // So the 'Driver User' person might not exist in the Result
+     * const unlinkedReadResult = await unlinkedSession.run('CREATE (p:Person {name: $name}) RETURN p', { name: 'Driver User'})
+     *
+     * // Reading Driver User will wait of the changes being propagated to the server before RUN the query
+     * // So the 'Driver User' person should exist in the Result, unless deleted.
+     * const linkedSesssion2 = await linkedSession2.run('CREATE (p:Person {name: $name}) RETURN p', { name: 'Driver User'})
+     *
+     * await linkedSession1.close()
+     * await linkedSession2.close()
+     * await unlinkedSession.close()
+     *
+     * @experimental
+     * @type {BookmarkManager|undefined}
+     * @since 5.0
+     */
+    this.bookmarkManager = undefined
+  }
 }
 
 /**
@@ -285,15 +388,7 @@ class Driver {
    * pool and made available for others to use.
    *
    * @public
-   * @param {Object} param - The object parameter
-   * @param {string} param.defaultAccessMode=WRITE - The access mode of this session, allowed values are {@link READ} and {@link WRITE}.
-   * @param {string|string[]} param.bookmarks - The initial reference or references to some previous
-   * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
-   * @param {number} param.fetchSize - The record fetch size of each batch of this session.
-   * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
-   * @param {string} param.database - The database this session will operate on.
-   * @param {string} param.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
-   * @param {boolean} param.ignoreBookmarkManager - Disable the bookmark manager usage in the session.
+   * @param {SessionConfig} param - The session configuration
    * @return {Session} new session.
    */
   session ({
@@ -302,15 +397,8 @@ class Driver {
     database = '',
     impersonatedUser,
     fetchSize,
-    ignoreBookmarkManager
-  }: {
-    defaultAccessMode?: SessionMode
-    bookmarks?: string | string[]
-    database?: string
-    impersonatedUser?: string
-    fetchSize?: number
-    ignoreBookmarkManager?: boolean
-  } = {}): Session {
+    bookmarkManager
+  }: SessionConfig = {}): Session {
     return this._newSession({
       defaultAccessMode,
       bookmarkOrBookmarks,
@@ -319,7 +407,7 @@ class Driver {
       impersonatedUser,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!),
-      ignoreBookmarkManager
+      bookmarkManager
     })
   }
 
@@ -356,7 +444,7 @@ class Driver {
     reactive,
     impersonatedUser,
     fetchSize,
-    ignoreBookmarkManager
+    bookmarkManager
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
@@ -364,16 +452,14 @@ class Driver {
     reactive: boolean
     impersonatedUser?: string
     fetchSize: number
-    ignoreBookmarkManager?: boolean
+    bookmarkManager?: BookmarkManager
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmarks = bookmarkOrBookmarks != null
       ? new Bookmarks(bookmarkOrBookmarks)
       : Bookmarks.empty()
-    const bookmarkManager = ignoreBookmarkManager !== true
-      ? this._config.bookmarkManager
-      : undefined
+
     return this._createSession({
       mode: sessionMode,
       database: database ?? '',
@@ -486,7 +572,7 @@ function validateFetchSizeValue (
 /**
  * @private
  */
-function extractConnectionTimeout (config: any): number|null {
+function extractConnectionTimeout (config: any): number | null {
   const configuredTimeout = parseInt(config.connectionTimeout, 10)
   if (configuredTimeout === 0) {
     // timeout explicitly configured to 0
@@ -513,5 +599,5 @@ function createHostNameResolver (config: any): ConfiguredCustomResolver {
 }
 
 export { Driver, READ, WRITE }
-
+export type { SessionConfig }
 export default Driver

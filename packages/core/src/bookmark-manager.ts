@@ -20,9 +20,15 @@
 /**
  * Interface for the piece of software responsible for keeping track of current active bookmarks accross the driver.
  * @interface
+ * @since 5.0
+ * @experimental
  */
 export default class BookmarkManager {
-  constructor () {
+  /**
+   * @constructor
+   * @private
+   */
+  private constructor () {
     throw new Error('Not implemented')
   }
 
@@ -31,6 +37,7 @@ export default class BookmarkManager {
    *
    * This method will be called when auto-commit queries finish and when explicit transactions
    * get commited.
+   *
    * @param {string} database The database which the bookmarks belongs to
    * @param {Iterable<string>} previousBookmarks The bookmarks used when starting the transaction
    * @param {Iterable<string>} newBookmarks The new bookmarks received at the end of the transaction.
@@ -81,7 +88,10 @@ export interface BookmarkManagerConfig {
 
 /**
  * @typedef {Object} BookmarkManagerConfig
- * @property {Map<string,Iterable<string>>} [initialBookmarks] Defines the initial set of bookmarks. The key is the database name and the values are the bookmarks.
+ *
+ * @since 5.0
+ * @experimental
+ * @property {Map<string,Iterable<string>>} [initialBookmarks@experimental] Defines the initial set of bookmarks. The key is the database name and the values are the bookmarks.
  * @property {function([database]: string):Promise<Iterable<string>>} [bookmarksSupplier] Called for supplying extra bookmarks to the BookmarkManager
  * 1. supplying bookmarks from the given database when the default BookmarkManager's `.getBookmarks(database)` gets called.
  * 2. supplying all the bookmarks when the default BookmarkManager's `.getAllBookmarks()` gets called
@@ -90,6 +100,8 @@ export interface BookmarkManagerConfig {
 /**
  * Provides an configured {@link BookmarkManager} instance.
  *
+ * @since 5.0
+ * @experimental
  * @param {BookmarkManagerConfig} [config={}]
  * @returns {BookmarkManager}
  */

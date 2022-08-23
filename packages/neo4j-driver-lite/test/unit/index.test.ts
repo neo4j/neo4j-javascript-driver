@@ -93,25 +93,27 @@ describe('index', () => {
 
   it('should treat BookmarkManager as an interface', () => {
     const bookmarkManager: BookmarkManager = {
-      getAllBookmarks (): string[] {
+      async getAllBookmarks (): Promise<string[]> {
         return []
       },
-      getBookmarks (database: string): string[] {
+      async getBookmarks (database: string): Promise<string[]> {
         return []
       },
-      updateBookmarks (database: string, previousBookmarks: string[], newBookmarks: string[]): void {
+      async updateBookmarks (database: string, previousBookmarks: string[], newBookmarks: string[]): Promise<void> {
 
       },
-      forget (databases: string[]): void {
+      async forget (databases: string[]): Promise<void> {
 
       }
     }
 
-    const driver = neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'neo4i'), {
-      bookmarkManager
-    })
+    const driver = neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'neo4j'))
 
     expect(driver).toBeDefined()
+
+    const session = driver.session({ bookmarkManager })
+
+    expect(session).toBeDefined()
   })
 
   it('should export AuthToken', () => {

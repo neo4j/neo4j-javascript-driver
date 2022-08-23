@@ -76,6 +76,7 @@ import Session, { TransactionConfig } from './session'
 import Driver, * as driver from './driver'
 import auth from './auth'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager'
+import { SessionConfig } from './driver'
 import * as types from './types'
 import * as json from './json'
 import * as internal from './internal' // todo: removed afterwards
@@ -219,7 +220,8 @@ export type {
   ResultObserver,
   TransactionConfig,
   BookmarkManager,
-  BookmarkManagerConfig
+  BookmarkManagerConfig,
+  SessionConfig
 }
 
 export default forExport

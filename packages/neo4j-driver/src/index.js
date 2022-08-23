@@ -186,21 +186,6 @@ const {
  *         logger: (level, message) => console.log(level + ' ' + message)
  *       },
  *
- *       // Configure a BookmarkManager for the driver to use
- *       //
- *       // A BookmarkManager is a piece of software responsible for keeping casual consistency between different sessions by sharing bookmarks
- *       // between the them.
- *       // Enabling it is done by supplying an BookmarkManager implementation instance to this param.
- *       // A default implementation could be acquired by calling the factory function bookmarkManager.
- *       //
- *       // **Warning**: Enabling the BookmarkManager can have a negative impact on performance since all the queries will wait for the latest changes
- *       // being propagated across the cluster.
- *       // For keeping consistency between a group of queries, use Session for grouping them.
- *       //
- *       // Example:
- *       // const driver = neo4j.driver(url, auth, { bookmarkManager: neo4j.bookmarkManager() })
- *       bookmarkManager: undefined, // Disabled
- *
  *       // Specify a custom server address resolver function used by the routing driver to resolve the initial address used to create the driver.
  *       // Such resolution happens:
  *       //  * during the very first rediscovery when driver is created

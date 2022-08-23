@@ -20,7 +20,8 @@
 import RxSession from './session-rx'
 import {
   Driver as CoreDriver,
-  types
+  types,
+  SessionConfig
 } from 'neo4j-driver-core'
 
 declare type AuthToken = types.AuthToken
@@ -34,12 +35,7 @@ declare const READ: SessionMode
 declare const WRITE: SessionMode
 
 declare interface Driver extends CoreDriver {
-  rxSession: (sessionParams?: {
-    defaultAccessMode?: SessionMode
-    bookmarks?: string | string[]
-    fetchSize?: number
-    database?: string
-  }) => RxSession
+  rxSession: (sessionParams?: SessionConfig) => RxSession
 }
 
 export {

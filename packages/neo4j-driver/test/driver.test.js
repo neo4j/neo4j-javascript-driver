@@ -146,25 +146,18 @@ describe('#unit driver', () => {
     })
 
     ;[
-      [manager, undefined, manager],
-      [manager, false, manager],
-      [manager, true, undefined],
-      [undefined, undefined, undefined],
-      [undefined, false, undefined],
-      [undefined, true, undefined]
-    ].forEach(([driverBMManager, ignoreBookmarkManager, sessionBMManager]) => {
+      [manager, manager],
+      [undefined, undefined]
+    ].forEach(([bookmarkManager, configuredBookmarkManager]) => {
       it('should create session using param bookmark manager', () => {
         driver = neo4j.driver(
           `neo4j+ssc://${sharedNeo4j.hostname}`,
-          sharedNeo4j.authToken,
-          {
-            bookmarkManager: driverBMManager
-          }
+          sharedNeo4j.authToken
         )
 
-        const session = driver.rxSession({ ignoreBookmarkManager })
+        const session = driver.rxSession({ bookmarkManager })
 
-        expect(session._session._bookmarkManager).toEqual(sessionBMManager)
+        expect(session._session._bookmarkManager).toEqual(configuredBookmarkManager)
       })
     })
   })

@@ -84,34 +84,6 @@ export function NewDriver (context, data, wire) {
   if ('maxTxRetryTimeMs' in data) {
     config.maxTransactionRetryTime = data.maxTxRetryTimeMs
   }
-  if ('bookmarkManager' in data && data.bookmarkManager != null) {
-    const bmmConfig = data.bookmarkManager
-    let initialBookmarks
-    let bookmarksSupplier
-    let bookmarksConsumer
-    if (bmmConfig.initialBookmarks != null) {
-      initialBookmarks = new Map(Object.entries(bmmConfig.initialBookmarks))
-    }
-    if (bmmConfig.bookmarksSupplierRegistered === true) {
-      bookmarksSupplier = (database) =>
-        new Promise((resolve, reject) => {
-          const id = context.addBookmarkSupplierRequest(resolve, reject)
-          wire.writeResponse(responses.BookmarksSupplierRequest({ id, database }))
-        })
-    }
-    if (bmmConfig.bookmarksConsumerRegistered === true) {
-      bookmarksConsumer = (database, bookmarks) =>
-        new Promise((resolve, reject) => {
-          const id = context.addNotifyBookmarksRequest(resolve, reject)
-          wire.writeResponse(responses.BookmarksConsumerRequest({ id, database, bookmarks }))
-        })
-    }
-    config.bookmarkManager = neo4j.bookmarkManager({
-      initialBookmarks,
-      bookmarksConsumer,
-      bookmarksSupplier
-    })
-  }
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)

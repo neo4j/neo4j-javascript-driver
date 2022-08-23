@@ -63,7 +63,8 @@ import {
   ConnectionProvider,
   BookmarkManager,
   bookmarkManager,
-  BookmarkManagerConfig
+  BookmarkManagerConfig,
+  SessionConfig
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -290,7 +291,8 @@ export {
 
 export type {
   BookmarkManager,
-  BookmarkManagerConfig
+  BookmarkManagerConfig,
+  SessionConfig
 }
 
 export default forExport

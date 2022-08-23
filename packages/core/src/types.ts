@@ -17,8 +17,6 @@
  * limitations under the License.
  */
 
-import BookmarkManager from './bookmark-manager'
-
 /**
  * @private
  */
@@ -66,7 +64,6 @@ export interface Config {
   logging?: LoggingConfig
   resolver?: (address: string) => string[] | Promise<string[]>
   userAgent?: string
-  bookmarkManager?: BookmarkManager
 }
 
 /**
