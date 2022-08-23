@@ -40,12 +40,20 @@ export type TrustStrategy =
   | 'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES'
   | 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
 
-export type Primitives = string | number | boolean
+  export type Primitives =
+  | string
+  | number
+  | boolean
+  | Array<Primitives>
 
-export type Parameters = Record<
+export type PrimitiveInner = Record<
   string,
-  Primitives | Record<string, Primitives>
+  | Primitives
+  | Array<PrimitiveInner>
+  | Record<string, Primitives | Array<PrimitiveInner>>
 >
+
+export type Parameters = PrimitiveInner
   
 export interface AuthToken {
   scheme: string
