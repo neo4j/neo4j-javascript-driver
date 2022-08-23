@@ -34,7 +34,7 @@ import {
 
 import { newError } from './error'
 import Result from './result'
-import { Query } from './types'
+import { Parameters, Query } from './types'
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -131,7 +131,7 @@ class Transaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run(query: Query, parameters?: any): Result {
+  run(query: Query, parameters?: Parameters): Result {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters
