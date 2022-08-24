@@ -14,12 +14,16 @@ export function ResolverResolutionRequired ({ id, address }) {
   return response('ResolverResolutionRequired', { id, address })
 }
 
-export function BookmarksSupplierRequest ({ id, database }) {
-  return response('BookmarksSupplierRequest', { id, database })
+export function BookmarkManager ({ id }) {
+  return response('BookmarkManager', { id })
 }
 
-export function BookmarksConsumerRequest ({ id, database, bookmarks }) {
-  return response('BookmarksConsumerRequest', { id, database, bookmarks })
+export function BookmarksSupplierRequest ({ id, bookmarkManagerId, database }) {
+  return response('BookmarksSupplierRequest', { id, bookmarkManagerId, database })
+}
+
+export function BookmarksConsumerRequest ({ id, bookmarkManagerId, database, bookmarks }) {
+  return response('BookmarksConsumerRequest', { id, bookmarkManagerId, database, bookmarks })
 }
 
 export function Session ({ id }) {

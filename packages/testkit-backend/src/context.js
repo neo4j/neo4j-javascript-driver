@@ -11,6 +11,7 @@ export default class Context {
     this._results = {}
     this._bookmarkSupplierRequests = {}
     this._notifyBookmarksRequests = {}
+    this._bookmarksManagers = {}
   }
 
   addDriver (driver) {
@@ -134,6 +135,20 @@ export default class Context {
 
   getNotifyBookmarksRequest (id) {
     return this._notifyBookmarksRequests[id]
+  }
+
+  addBookmarkManager (bookmarkManagerFactory) {
+    this._id++
+    this._bookmarksManagers[this._id] = bookmarkManagerFactory(this._id)
+    return this._id
+  }
+
+  getBookmarkManager (id) {
+    return this._bookmarksManagers[id]
+  }
+
+  removeBookmarkManager (id) {
+    delete this._bookmarksManagers[id]
   }
 
   _add (map, object) {

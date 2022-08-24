@@ -20,11 +20,14 @@ export {
   ForcedRoutingTableUpdate,
   ResultNext,
   RetryablePositive,
-  RetryableNegative
+  RetryableNegative,
+  NewBookmarkManager,
+  BookmarksSupplierCompleted,
+  BookmarksConsumerCompleted
 } from './request-handlers.js'
 
 export function NewSession (context, data, wire) {
-  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, ignoreBookmarkManager } = data
+  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
   switch (accessMode) {
     case 'r':
       accessMode = neo4j.session.READ
@@ -36,6 +39,14 @@ export function NewSession (context, data, wire) {
       wire.writeBackendError('Unknown accessmode: ' + accessMode)
       return
   }
+  let bookmarkManager
+  if (bookmarkManagerId != null) {
+    bookmarkManager = context.getBookmarkManager(bookmarkManagerId)
+    if (bookmarkManager == null) {
+      wire.writeBackendError(`Bookmark manager ${bookmarkManagerId} not found`)
+      return
+    }
+  }
   const driver = context.getDriver(driverId)
   const session = driver.rxSession({
     defaultAccessMode: accessMode,
@@ -43,7 +54,7 @@ export function NewSession (context, data, wire) {
     database,
     fetchSize,
     impersonatedUser,
-    ignoreBookmarkManager
+    bookmarkManager
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))

@@ -122,7 +122,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
-    this._getConnectionAcquistionBookmarks = getConnectionAcquistionBookmarks ?? (async () => Bookmarks.empty())
+    this._getConnectionAcquistionBookmarks = getConnectionAcquistionBookmarks ?? (() => Promise.resolve(Bookmarks.empty()))
   }
 
   mode (): string | undefined {

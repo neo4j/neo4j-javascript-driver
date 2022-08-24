@@ -107,7 +107,7 @@ export function DriverClose (context, data, wire) {
 }
 
 export function NewSession (context, data, wire) {
-  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, ignoreBookmarkManager } = data
+  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
   switch (accessMode) {
     case 'r':
       accessMode = neo4j.session.READ
@@ -119,6 +119,14 @@ export function NewSession (context, data, wire) {
       wire.writeBackendError('Unknown accessmode: ' + accessMode)
       return
   }
+  let bookmarkManager
+  if (bookmarkManagerId != null) {
+    bookmarkManager = context.getBookmarkManager(bookmarkManagerId)
+    if (bookmarkManager == null) {
+      wire.writeBackendError(`Bookmark manager ${bookmarkManagerId} not found`)
+      return
+    }
+  }
   const driver = context.getDriver(driverId)
   const session = driver.session({
     defaultAccessMode: accessMode,
@@ -126,7 +134,7 @@ export function NewSession (context, data, wire) {
     database,
     fetchSize,
     impersonatedUser,
-    ignoreBookmarkManager
+    bookmarkManager
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))
@@ -405,6 +413,48 @@ export function ResolverResolutionCompleted (
 ) {
   const request = context.getResolverRequest(requestId)
   request.resolve(addresses)
+}
+
+export function NewBookmarkManager (
+  context,
+  {
+    initialBookmarks,
+    bookmarksSupplierRegistered,
+    bookmarksConsumerRegistered
+  },
+  wire
+) {
+  let bookmarkManager
+  const id = context.addBookmarkManager((bookmarkManagerId) => {
+    let bookmarksSupplier
+    let bookmarksConsumer
+    if (initialBookmarks != null) {
+      initialBookmarks = new Map(Object.entries(initialBookmarks))
+    }
+    if (bookmarksSupplierRegistered === true) {
+      bookmarksSupplier = (database) =>
+        new Promise((resolve, reject) => {
+          const id = context.addBookmarkSupplierRequest(resolve, reject)
+          wire.writeResponse(responses.BookmarksSupplierRequest({ id, bookmarkManagerId, database }))
+        })
+    }
+    if (bookmarksConsumerRegistered === true) {
+      bookmarksConsumer = (database, bookmarks) =>
+        new Promise((resolve, reject) => {
+          const id = context.addNotifyBookmarksRequest(resolve, reject)
+          wire.writeResponse(responses.BookmarksConsumerRequest({ id, bookmarkManagerId, database, bookmarks }))
+        })
+    }
+    bookmarkManager = neo4j.bookmarkManager({
+      initialBookmarks,
+      bookmarksConsumer,
+      bookmarksSupplier
+    })
+
+    return bookmarkManager
+  })
+
+  wire.writeResponse(responses.BookmarkManager({ id }))
 }
 
 export function BookmarksSupplierCompleted (
