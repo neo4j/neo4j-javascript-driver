@@ -139,7 +139,7 @@ describe('#unit index', () => {
       }
     })
 
-    describe('await rxRession.beginTransaction().toPromise() return', () => {
+    xdescribe('await rxRession.beginTransaction().toPromise() return', () => {
       it('should be instanceof neo4j.RxTransaction', async () => {
         const transaction = await subject()
         expect(transaction).toBeInstanceOf(neo4j.RxTransaction)
@@ -193,7 +193,7 @@ describe('#unit index', () => {
       }
     })
 
-    describe('RxManagedTransaction', () => {
+    xdescribe('RxManagedTransaction', () => {
       it('should be instanceof neo4j.RxManagedTransaction', async () => {
         const rxManagedTransaction = await subject()
         expect(rxManagedTransaction).toBeInstanceOf(neo4j.RxManagedTransaction)
