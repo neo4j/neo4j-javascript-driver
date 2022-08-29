@@ -76,8 +76,7 @@ export function SessionRun (context, data, wire) {
     return
   }
 
-  const it = toAsyncIterator(result)
-  result[Symbol.asyncIterator] = () => it
+  result[Symbol.asyncIterator] = () => toAsyncIterator(result)
 
   const id = context.addResult(result)
 
@@ -125,8 +124,7 @@ export function TransactionRun (context, data, wire) {
   }
   const result = tx.tx.run(cypher, params)
 
-  const it = toAsyncIterator(result)
-  result[Symbol.asyncIterator] = () => it
+  result[Symbol.asyncIterator] = () => toAsyncIterator(result)
 
   const id = context.addResult(result)
 
@@ -305,7 +303,7 @@ function toAsyncIterator (result) {
     return: async (value) => {
       state.finished = true
       state.summary = value
-      return { done: true, value: value }
+      return { done: true, value }
     }
   }
 }
