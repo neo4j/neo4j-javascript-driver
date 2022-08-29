@@ -22,6 +22,7 @@ export {
   RetryablePositive,
   RetryableNegative,
   NewBookmarkManager,
+  BookmarkManagerClose,
   BookmarksSupplierCompleted,
   BookmarksConsumerCompleted
 } from './request-handlers.js'

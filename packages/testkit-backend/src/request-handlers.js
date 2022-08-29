@@ -457,6 +457,17 @@ export function NewBookmarkManager (
   wire.writeResponse(responses.BookmarkManager({ id }))
 }
 
+export function BookmarkManagerClose (
+  context,
+  {
+    id
+  },
+  wire
+) {
+  context.removeBookmarkManager(id)
+  wire.writeResponse(responses.BookmarkManager({ id }))
+}
+
 export function BookmarksSupplierCompleted (
   context,
   {
