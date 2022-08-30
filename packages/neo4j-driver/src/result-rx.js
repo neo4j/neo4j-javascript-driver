@@ -35,7 +35,7 @@ export default class RxResult {
    * @constructor
    * @protected
    * @param {Observable<Result>} result - An observable of single Result instance to relay requests.
-   * @param {number} state - The streamming state
+   * @param {number} state - The streaming state
    */
   constructor (result, state) {
     const replayedResult = result.pipe(publishReplay(1), refCount())
