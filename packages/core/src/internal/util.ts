@@ -24,7 +24,10 @@ import { stringify } from '../json'
 
 const ENCRYPTION_ON: EncryptionLevel = 'ENCRYPTION_ON'
 const ENCRYPTION_OFF: EncryptionLevel = 'ENCRYPTION_OFF'
-
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const __isBrokenObject__ = '__isBrokenObject__'
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const __reason__ = '__reason__'
 /**
  * Verifies if the object is null or empty
  * @param obj The subject object
@@ -236,7 +239,16 @@ function createBrokenObject<T extends object> (error: Error, object: any = {}): 
   }
 
   return new Proxy(object, {
-    get: fail,
+    get: (_: T, p: string | Symbol): any => {
+      if (p === __isBrokenObject__) {
+        return true
+      } else if (p === __reason__) {
+        return error
+      } else if (p === 'toJSON') {
+        return undefined
+      }
+      fail()
+    },
     set: fail,
     apply: fail,
     construct: fail,
@@ -252,6 +264,27 @@ function createBrokenObject<T extends object> (error: Error, object: any = {}): 
   })
 }
 
+/**
+ * Verifies if it is a Broken Object
+ * @param {any} object The object
+ * @returns {boolean} If it was created with createBrokenObject
+ */
+function isBrokenObject (object: any): boolean {
+  return object !== null && typeof object === 'object' && object[__isBrokenObject__] === true
+}
+
+/**
+ * Returns if the reason the object is broken.
+ *
+ * This method should only be called with instances create with {@link createBrokenObject}
+ *
+ * @param {any} object The object
+ * @returns {Error} The reason the object is broken
+ */
+function getBrokenObjectReason (object: any): Error {
+  return object[__reason__]
+}
+
 export {
   isEmptyObjectOrNull,
   isObject,
@@ -264,5 +297,7 @@ export {
   validateQueryAndParameters,
   ENCRYPTION_ON,
   ENCRYPTION_OFF,
-  createBrokenObject
+  createBrokenObject,
+  isBrokenObject,
+  getBrokenObjectReason
 }

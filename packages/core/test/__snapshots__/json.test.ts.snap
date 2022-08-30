@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`json .stringify should handle objects created with createBrokenObject 1`] = `"{\\"__isBrokenObject__\\":true,\\"__reason__\\":{\\"code\\":\\"N/A\\",\\"name\\":\\"Neo4jError\\"}}"`;
+
+exports[`json .stringify should handle objects created with createBrokenObject in list 1`] = `"[{\\"__isBrokenObject__\\":true,\\"__reason__\\":{\\"code\\":\\"N/A\\",\\"name\\":\\"Neo4jError\\"}}]"`;
+
+exports[`json .stringify should handle objects created with createBrokenObject inside other object 1`] = `"{\\"number\\":1,\\"broken\\":{\\"__isBrokenObject__\\":true,\\"__reason__\\":{\\"code\\":\\"N/A\\",\\"name\\":\\"Neo4jError\\"}}}"`;

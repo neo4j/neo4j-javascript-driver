@@ -17,14 +17,25 @@
  * limitations under the License.
  */
 
+import { isBrokenObject, getBrokenObjectReason } from './internal/util'
+
 /**
  * Custom version on JSON.stringify that can handle values that normally don't support serialization, such as BigInt.
  * @private
  * @param val A JavaScript value, usually an object or array, to be converted.
  * @returns A JSON string representing the given value.
  */
-export function stringify (val: any) {
-  return JSON.stringify(val, (_, value) =>
-    typeof value === 'bigint' ? `${value}n` : value
-  )
+export function stringify (val: any): string {
+  return JSON.stringify(val, (_, value) => {
+    if (isBrokenObject(value)) {
+      return {
+        __isBrokenObject__: true,
+        __reason__: getBrokenObjectReason(value)
+      }
+    }
+    if (typeof value === 'bigint') {
+      return `${value}n`
+    }
+    return value
+  })
 }
