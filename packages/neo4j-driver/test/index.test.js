@@ -152,6 +152,10 @@ describe('#unit index', () => {
 
       function subject () {
         const driver = neo4j.driver('bolt://localhost')
+        driver._createSession = () => ({
+          _mode: 'READ',
+          _beginTransaction: async () => new Transaction({})
+        })
         return driver.rxSession().beginTransaction().toPromise()
       }
     })
@@ -202,6 +206,10 @@ describe('#unit index', () => {
 
       async function subject () {
         const driver = neo4j.driver('bolt://localhost')
+        driver._createSession = () => ({
+          _mode: 'READ',
+          _beginTransaction: async () => new Transaction({})
+        })
         const tx = await driver.rxSession().beginTransaction().toPromise()
         return InternalRxManagedTransaction.fromTransaction(tx)
       }

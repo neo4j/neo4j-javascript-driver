@@ -67,21 +67,27 @@ export function SessionRun (context, data, wire) {
     }
   }
 
-  let result
+  let rxResult
   try {
-    result = session.run(cypher, params, { metadata, timeout })
+    rxResult = session.run(cypher, params, { metadata, timeout })
   } catch (e) {
     console.log('got some err: ' + JSON.stringify(e))
     wire.writeError(e)
     return
   }
 
-  const it = toAsyncIterator(result)
-  result[Symbol.asyncIterator] = () => it
+  rxResult
+    ._toObservable()
+    .subscribe({
+      error: e => wire.writeError(e),
+      next: result => {
+        result[Symbol.asyncIterator] = () => toAsyncIterator(result)
 
-  const id = context.addResult(result)
+        const id = context.addResult(result)
 
-  wire.writeResponse(responses.Result({ id }))
+        wire.writeResponse(responses.Result({ id }))
+      }
+    })
 }
 
 export function ResultConsume (context, data, wire) {
@@ -123,14 +129,19 @@ export function TransactionRun (context, data, wire) {
       params[key] = cypherToNative(value)
     }
   }
-  const result = tx.tx.run(cypher, params)
 
-  const it = toAsyncIterator(result)
-  result[Symbol.asyncIterator] = () => it
+  tx.tx.run(cypher, params)
+    ._toObservable()
+    .subscribe({
+      error: e => wire.writeError(e),
+      next: result => {
+        result[Symbol.asyncIterator] = () => toAsyncIterator(result)
 
-  const id = context.addResult(result)
+        const id = context.addResult(result)
 
-  wire.writeResponse(responses.Result({ id }))
+        wire.writeResponse(responses.Result({ id }))
+      }
+    })
 }
 
 export function TransactionRollback (context, data, wire) {
@@ -305,7 +316,7 @@ function toAsyncIterator (result) {
     return: async (value) => {
       state.finished = true
       state.summary = value
-      return { done: true, value: value }
+      return { done: true, value }
     }
   }
 }

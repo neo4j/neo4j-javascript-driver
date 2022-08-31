@@ -205,12 +205,14 @@ export default class RxSession {
 
     return new Observable(observer => {
       try {
-        observer.next(
-          new RxTransaction(
-            this._session._beginTransaction(accessMode, txConfig)
-          )
-        )
-        observer.complete()
+        this._session._beginTransaction(accessMode, txConfig)
+          .then(tx => {
+            observer.next(
+              new RxTransaction(tx)
+            )
+            observer.complete()
+          })
+          .catch(err => observer.error(err))
       } catch (err) {
         observer.error(err)
       }

@@ -33,7 +33,7 @@ const features = [
   'Feature:API:ConnectionAcquisitionTimeout',
   'Feature:API:Driver:GetServerInfo',
   'Feature:API:Driver.VerifyConnectivity',
-  'Feature:API:Result.Peek',
+  'Optimization:EagerTransactionBegin',
   'Optimization:ImplicitDefaultArguments',
   'Optimization:MinimalResets',
   ...SUPPORTED_TLS

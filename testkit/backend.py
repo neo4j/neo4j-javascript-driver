@@ -16,6 +16,10 @@ if __name__ == "__main__":
         print("Testkit should test browser")
         os.environ["TEST_ENVIRONMENT"] = "REMOTE"
 
+    session_type = os.environ.get("TEST_SESSION_TYPE", None)
+    if session_type is not None:
+        os.environ["SESSION_TYPE"] = session_type
+
     print("npm run start-testkit-backend")
     with open_proccess_in_driver_repo([
         "npm", "run", "start-testkit-backend"

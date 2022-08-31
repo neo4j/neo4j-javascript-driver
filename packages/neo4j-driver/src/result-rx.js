@@ -35,8 +35,9 @@ export default class RxResult {
    * @constructor
    * @protected
    * @param {Observable<Result>} result - An observable of single Result instance to relay requests.
+   * @param {number} state - The streaming state
    */
-  constructor (result) {
+  constructor (result, state) {
     const replayedResult = result.pipe(publishReplay(1), refCount())
 
     this._result = replayedResult
@@ -48,7 +49,7 @@ export default class RxResult {
     this._records = undefined
     this._controls = new StreamControl()
     this._summary = new ReplaySubject()
-    this._state = States.READY
+    this._state = state || States.READY
   }
 
   /**
@@ -182,6 +183,31 @@ export default class RxResult {
     return () => {
       subscriptions.forEach(s => s.unsubscribe())
     }
+  }
+
+  /**
+   * Create a {@link Observable} for the current {@link RxResult}
+   *
+   *
+   * @package
+   * @experimental
+   * @since 5.0
+   * @return {Observable<RxResult>}
+   */
+  _toObservable () {
+    function wrap (result) {
+      return new Observable(observer => {
+        observer.next(result)
+        observer.complete()
+      })
+    }
+    return new Observable(observer => {
+      this._result.subscribe({
+        complete: () => observer.complete(),
+        next: result => observer.next(new RxResult(wrap(result)), this._state),
+        error: e => observer.error(e)
+      })
+    })
   }
 
   _setupRecordsStream (result) {
