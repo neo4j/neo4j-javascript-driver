@@ -102,15 +102,6 @@ interface DriverConfig {
  * The session configuration
  *
  * @interface
- *
- * @param {string} defaultAccessMode=WRITE - The access mode of this session, allowed values are {@link READ} and {@link WRITE}.
- * @param {string|string[]} bookmarks - The initial reference or references to some previous
- * transactions. Value is optional and absence indicates that that the bookmarks do not exist or are unknown.
- * @param {number} fetchSize - The record fetch size of each batch of this session.
- * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
- * @param {string} database - The database this session will operate on.
- * @param {string} impersonatedUser - The username which the user wants to impersonate for the duration of the session.
- * @param {BookmarkManager} [bookmarkManager] = The bookmark manager
  */
 class SessionConfig {
   defaultAccessMode?: SessionMode
