@@ -24,7 +24,8 @@ export {
   NewBookmarkManager,
   BookmarkManagerClose,
   BookmarksSupplierCompleted,
-  BookmarksConsumerCompleted
+  BookmarksConsumerCompleted,
+  StartSubTest
 } from './request-handlers.js'
 
 export function NewSession (context, data, wire) {
