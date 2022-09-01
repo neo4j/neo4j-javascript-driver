@@ -325,6 +325,8 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
           lowRecordWatermark: 300
         })
 
+        tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
+
         await tx.run('RETURN 1')
 
         expect(connection.seenProtocolOptions[0]).toMatchObject({
@@ -343,10 +345,35 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
           lowRecordWatermark: 300
         })
 
+        tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
+
         const result = tx.run('RETURN 1')
 
         // @ts-expect-error
         expect(result._watermarks).toEqual({ high: 700, low: 300 })
+      })
+
+      it('should wait begin message be send', async () => {
+        const connection = newFakeConnection()
+        const tx = newTransaction({
+          connection
+        })
+
+        const bookmarksPromise: Promise<Bookmarks> = new Promise((resolve) => {
+          setTimeout(() => resolve(Bookmarks.empty()), 1000)
+        })
+
+        tx._begin(async () => await bookmarksPromise, TxConfig.empty())
+
+        const result = tx.run('RETURN 1')
+
+        expect(connection.seenBeginTransaction.length).toEqual(0)
+        expect(connection.seenQueries.length).toEqual(0)
+
+        await result
+
+        expect(connection.seenBeginTransaction.length).toEqual(1)
+        expect(connection.seenQueries.length).toEqual(1)
       })
     })
 
@@ -356,6 +383,7 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
           const connection = newFakeConnection()
           const tx = newTransaction({ connection })
 
+          tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
           await tx.run('RETURN 1')
           await tx.close()
 
@@ -367,6 +395,7 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
           const connection = newFakeConnection().withRollbackError(expectedError)
           const tx = newTransaction({ connection })
 
+          tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
           await tx.run('RETURN 1')
 
           try {
@@ -375,6 +404,29 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
           } catch (error) {
             expect(error).toEqual(expectedError)
           }
+        })
+
+        it('should wait begin message be send', async () => {
+          const connection = newFakeConnection()
+          const tx = newTransaction({
+            connection
+          })
+
+          const bookmarksPromise: Promise<Bookmarks> = new Promise((resolve) => {
+            setTimeout(() => resolve(Bookmarks.empty()), 1000)
+          })
+
+          tx._begin(async () => await bookmarksPromise, TxConfig.empty())
+
+          const result = tx.close()
+
+          expect(connection.seenBeginTransaction.length).toEqual(0)
+          expect(connection.rollbackInvoked).toEqual(0)
+
+          await result
+
+          expect(connection.seenBeginTransaction.length).toEqual(1)
+          expect(connection.rollbackInvoked).toEqual(1)
         })
       })
 
@@ -393,6 +445,8 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
         ])('should not roll back the connection', async (_, operation) => {
           const connection = newFakeConnection()
           const tx = newTransaction({ connection })
+
+          tx._begin(async () => Bookmarks.empty(), TxConfig.empty())
 
           await operation(tx, connection)
           const rollbackInvokedAfterOperation = connection.rollbackInvoked

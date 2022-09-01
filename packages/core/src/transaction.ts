@@ -58,6 +58,8 @@ class Transaction {
   private readonly _lowRecordWatermak: number
   private readonly _highRecordWatermark: number
   private _bookmarks: Bookmarks
+  private readonly _activePromise: Promise<void>
+  private _acceptActive: () => void
 
   /**
    * @constructor
@@ -107,6 +109,9 @@ class Transaction {
     this._lowRecordWatermak = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
     this._bookmarks = Bookmarks.empty()
+    this._activePromise = new Promise((resolve, reject) => {
+      this._acceptActive = resolve
+    })
   }
 
   /**
@@ -154,6 +159,10 @@ class Transaction {
         }
         this._onError(error).catch(() => {})
       })
+      // It should make the transaction active anyway
+      // futher errors will be treated by the exiting
+      // observers
+      .finally(() => this._acceptActive())
   }
 
   /**
@@ -178,7 +187,8 @@ class Transaction {
       reactive: this._reactive,
       fetchSize: this._fetchSize,
       highRecordWatermark: this._highRecordWatermark,
-      lowRecordWatermark: this._lowRecordWatermak
+      lowRecordWatermark: this._lowRecordWatermak,
+      preparationJob: this._activePromise
     })
     this._results.push(result)
     return result
@@ -197,7 +207,8 @@ class Transaction {
       onError: this._onError,
       onComplete: (meta: any) => this._onCompleteCallback(meta, this._bookmarks),
       onConnection: this._onConnection,
-      pendingResults: this._results
+      pendingResults: this._results,
+      preparationJob: this._activePromise
     })
     this._state = committed.state
     // clean up
@@ -224,7 +235,8 @@ class Transaction {
       onError: this._onError,
       onComplete: this._onComplete,
       onConnection: this._onConnection,
-      pendingResults: this._results
+      pendingResults: this._results,
+      preparationJob: this._activePromise
     })
     this._state = rolledback.state
     // clean up
@@ -293,6 +305,7 @@ interface StateTransitionParams {
   fetchSize: number
   highRecordWatermark: number
   lowRecordWatermark: number
+  preparationJob?: Promise<any>
 }
 
 const _states = {
@@ -303,7 +316,8 @@ const _states = {
       onError,
       onComplete,
       onConnection,
-      pendingResults
+      pendingResults,
+      preparationJob
     }: StateTransitionParams): any => {
       return {
         result: finishTransaction(
@@ -312,7 +326,8 @@ const _states = {
           onError,
           onComplete,
           onConnection,
-          pendingResults
+          pendingResults,
+          preparationJob
         ),
         state: _states.SUCCEEDED
       }
@@ -322,7 +337,8 @@ const _states = {
       onError,
       onComplete,
       onConnection,
-      pendingResults
+      pendingResults,
+      preparationJob
     }: StateTransitionParams): any => {
       return {
         result: finishTransaction(
@@ -331,7 +347,8 @@ const _states = {
           onError,
           onComplete,
           onConnection,
-          pendingResults
+          pendingResults,
+          preparationJob
         ),
         state: _states.ROLLED_BACK
       }
@@ -347,31 +364,35 @@ const _states = {
         reactive,
         fetchSize,
         highRecordWatermark,
-        lowRecordWatermark
+        lowRecordWatermark,
+        preparationJob
       }: StateTransitionParams
     ): any => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
       // No need to include mode and database name as it shall be inclued in begin
-      const observerPromise = connectionHolder
-        .getConnection()
-        .then(conn => {
-          onConnection()
-          if (conn != null) {
-            return conn.protocol().run(query, parameters, {
-              bookmarks: Bookmarks.empty(),
-              txConfig: TxConfig.empty(),
-              beforeError: onError,
-              afterComplete: onComplete,
-              reactive: reactive,
-              fetchSize: fetchSize,
-              highRecordWatermark: highRecordWatermark,
-              lowRecordWatermark: lowRecordWatermark
-            })
-          } else {
-            throw newError('No connection available')
-          }
-        })
-        .catch(error => new FailedObserver({ error, onError }))
+      const requirements = preparationJob ?? Promise.resolve()
+
+      const observerPromise =
+        connectionHolder.getConnection()
+          .then(conn => requirements.then(() => conn))
+          .then(conn => {
+            onConnection()
+            if (conn != null) {
+              return conn.protocol().run(query, parameters, {
+                bookmarks: Bookmarks.empty(),
+                txConfig: TxConfig.empty(),
+                beforeError: onError,
+                afterComplete: onComplete,
+                reactive: reactive,
+                fetchSize: fetchSize,
+                highRecordWatermark: highRecordWatermark,
+                lowRecordWatermark: lowRecordWatermark
+              })
+            } else {
+              throw newError('No connection available')
+            }
+          })
+          .catch(error => new FailedObserver({ error, onError }))
 
       return newCompletedResult(
         observerPromise,
@@ -598,32 +619,36 @@ function finishTransaction (
   onError: (err: Error) => any,
   onComplete: (metadata: any) => any,
   onConnection: () => any,
-  pendingResults: Result[]
+  pendingResults: Result[],
+  preparationJob?: Promise<void>
 ): Result {
-  const observerPromise = connectionHolder
-    .getConnection()
-    .then(connection => {
-      onConnection()
-      pendingResults.forEach(r => r._cancel())
-      return Promise.all(pendingResults.map(result => result.summary())).then(results => {
-        if (connection != null) {
-          if (commit) {
-            return connection.protocol().commitTransaction({
-              beforeError: onError,
-              afterComplete: onComplete
-            })
+  const requirements = preparationJob ?? Promise.resolve()
+
+  const observerPromise =
+    connectionHolder.getConnection()
+      .then(conn => requirements.then(() => conn))
+      .then(connection => {
+        onConnection()
+        pendingResults.forEach(r => r._cancel())
+        return Promise.all(pendingResults.map(result => result.summary())).then(results => {
+          if (connection != null) {
+            if (commit) {
+              return connection.protocol().commitTransaction({
+                beforeError: onError,
+                afterComplete: onComplete
+              })
+            } else {
+              return connection.protocol().rollbackTransaction({
+                beforeError: onError,
+                afterComplete: onComplete
+              })
+            }
           } else {
-            return connection.protocol().rollbackTransaction({
-              beforeError: onError,
-              afterComplete: onComplete
-            })
+            throw newError('No connection available')
           }
-        } else {
-          throw newError('No connection available')
-        }
+        })
       })
-    })
-    .catch(error => new FailedObserver({ error, onError }))
+      .catch(error => new FailedObserver({ error, onError }))
 
   // for commit & rollback we need result that uses real connection holder and notifies it when
   // connection is not needed and can be safely released to the pool
