@@ -160,7 +160,7 @@ class Transaction {
         this._onError(error).catch(() => {})
       })
       // It should make the transaction active anyway
-      // futher errors will be treated by the exiting
+      // further errors will be treated by the existing
       // observers
       .finally(() => this._acceptActive())
   }
@@ -369,7 +369,7 @@ const _states = {
       }: StateTransitionParams
     ): any => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
-      // No need to include mode and database name as it shall be inclued in begin
+      // No need to include mode and database name as it shall be included in begin
       const requirements = preparationJob ?? Promise.resolve()
 
       const observerPromise =
