@@ -353,7 +353,7 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
         expect(result._watermarks).toEqual({ high: 700, low: 300 })
       })
 
-      it('should wait begin message be sent', async () => {
+      it('should wait until begin message be sent', async () => {
         const connection = newFakeConnection()
         const tx = newTransaction({
           connection
@@ -406,7 +406,7 @@ function testTx<T extends Transaction> (transactionName: string, newTransaction:
           }
         })
 
-        it('should wait begin message be sent', async () => {
+        it('should wait until begin message be sent', async () => {
           const connection = newFakeConnection()
           const tx = newTransaction({
             connection
