@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
+import neo4j, {
   Result,
   Record,
   QueryResult,
@@ -49,7 +49,8 @@ import {
   Time,
   Date,
   LocalDateTime,
-  DateTime
+  DateTime,
+  BookmarkManager
 } from '../../'
 
 describe('index', () => {
@@ -82,6 +83,37 @@ describe('index', () => {
     const resultSummary: ResultSummary = new ResultSummary('RETURN 1', {}, {})
 
     expect(resultSummary).toBeDefined()
+  })
+
+  it('should export neo4j.bookmarkManager', () => {
+    const bookmarkManager = neo4j.bookmarkManager()
+
+    expect(bookmarkManager).toBeDefined()
+  })
+
+  it('should treat BookmarkManager as an interface', () => {
+    const bookmarkManager: BookmarkManager = {
+      async getAllBookmarks (): Promise<string[]> {
+        return []
+      },
+      async getBookmarks (database: string): Promise<string[]> {
+        return []
+      },
+      async updateBookmarks (database: string, previousBookmarks: string[], newBookmarks: string[]): Promise<void> {
+
+      },
+      async forget (databases: string[]): Promise<void> {
+
+      }
+    }
+
+    const driver = neo4j.driver('neo4j://localhost', neo4j.auth.basic('neo4j', 'neo4j'))
+
+    expect(driver).toBeDefined()
+
+    const session = driver.session({ bookmarkManager })
+
+    expect(session).toBeDefined()
   })
 
   it('should export AuthToken', () => {

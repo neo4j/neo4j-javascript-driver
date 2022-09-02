@@ -9,6 +9,9 @@ export default class Context {
     this._shouldRunTest = shouldRunTest
     this._getFeatures = getFeatures
     this._results = {}
+    this._bookmarkSupplierRequests = {}
+    this._notifyBookmarksRequests = {}
+    this._bookmarksManagers = {}
   }
 
   addDriver (driver) {
@@ -104,6 +107,48 @@ export default class Context {
 
   getFeatures () {
     return this._getFeatures()
+  }
+
+  addBookmarkSupplierRequest (resolve, reject) {
+    return this._add(this._bookmarkSupplierRequests, {
+      resolve, reject
+    })
+  }
+
+  removeBookmarkSupplierRequest (id) {
+    delete this._bookmarkSupplierRequests[id]
+  }
+
+  getBookmarkSupplierRequest (id) {
+    return this._bookmarkSupplierRequests[id]
+  }
+
+  addNotifyBookmarksRequest (resolve, reject) {
+    return this._add(this._notifyBookmarksRequests, {
+      resolve, reject
+    })
+  }
+
+  removeNotifyBookmarksRequest (id) {
+    delete this._notifyBookmarksRequests[id]
+  }
+
+  getNotifyBookmarksRequest (id) {
+    return this._notifyBookmarksRequests[id]
+  }
+
+  addBookmarkManager (bookmarkManagerFactory) {
+    this._id++
+    this._bookmarksManagers[this._id] = bookmarkManagerFactory(this._id)
+    return this._id
+  }
+
+  getBookmarkManager (id) {
+    return this._bookmarksManagers[id]
+  }
+
+  removeBookmarkManager (id) {
+    delete this._bookmarksManagers[id]
   }
 
   _add (map, object) {

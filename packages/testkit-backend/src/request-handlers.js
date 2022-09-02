@@ -43,10 +43,10 @@ export function NewDriver (context, data, wire) {
   }
   const resolver = resolverRegistered
     ? address =>
-        new Promise((resolve, reject) => {
-          const id = context.addResolverRequest(resolve, reject)
-          wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
-        })
+      new Promise((resolve, reject) => {
+        const id = context.addResolverRequest(resolve, reject)
+        wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
+      })
     : undefined
   const config = {
     userAgent,
@@ -107,7 +107,7 @@ export function DriverClose (context, data, wire) {
 }
 
 export function NewSession (context, data, wire) {
-  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser } = data
+  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
   switch (accessMode) {
     case 'r':
       accessMode = neo4j.session.READ
@@ -119,13 +119,22 @@ export function NewSession (context, data, wire) {
       wire.writeBackendError('Unknown accessmode: ' + accessMode)
       return
   }
+  let bookmarkManager
+  if (bookmarkManagerId != null) {
+    bookmarkManager = context.getBookmarkManager(bookmarkManagerId)
+    if (bookmarkManager == null) {
+      wire.writeBackendError(`Bookmark manager ${bookmarkManagerId} not found`)
+      return
+    }
+  }
   const driver = context.getDriver(driverId)
   const session = driver.session({
     defaultAccessMode: accessMode,
     bookmarks,
     database,
     fetchSize,
-    impersonatedUser
+    impersonatedUser,
+    bookmarkManager
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))
@@ -406,6 +415,80 @@ export function ResolverResolutionCompleted (
   request.resolve(addresses)
 }
 
+export function NewBookmarkManager (
+  context,
+  {
+    initialBookmarks,
+    bookmarksSupplierRegistered,
+    bookmarksConsumerRegistered
+  },
+  wire
+) {
+  let bookmarkManager
+  const id = context.addBookmarkManager((bookmarkManagerId) => {
+    let bookmarksSupplier
+    let bookmarksConsumer
+    if (initialBookmarks != null) {
+      initialBookmarks = new Map(Object.entries(initialBookmarks))
+    }
+    if (bookmarksSupplierRegistered === true) {
+      bookmarksSupplier = (database) =>
+        new Promise((resolve, reject) => {
+          const id = context.addBookmarkSupplierRequest(resolve, reject)
+          wire.writeResponse(responses.BookmarksSupplierRequest({ id, bookmarkManagerId, database }))
+        })
+    }
+    if (bookmarksConsumerRegistered === true) {
+      bookmarksConsumer = (database, bookmarks) =>
+        new Promise((resolve, reject) => {
+          const id = context.addNotifyBookmarksRequest(resolve, reject)
+          wire.writeResponse(responses.BookmarksConsumerRequest({ id, bookmarkManagerId, database, bookmarks }))
+        })
+    }
+    bookmarkManager = neo4j.bookmarkManager({
+      initialBookmarks,
+      bookmarksConsumer,
+      bookmarksSupplier
+    })
+
+    return bookmarkManager
+  })
+
+  wire.writeResponse(responses.BookmarkManager({ id }))
+}
+
+export function BookmarkManagerClose (
+  context,
+  {
+    id
+  },
+  wire
+) {
+  context.removeBookmarkManager(id)
+  wire.writeResponse(responses.BookmarkManager({ id }))
+}
+
+export function BookmarksSupplierCompleted (
+  context,
+  {
+    requestId,
+    bookmarks
+  }
+) {
+  const bookmarkSupplierRequest = context.getBookmarkSupplierRequest(requestId)
+  bookmarkSupplierRequest.resolve(bookmarks)
+}
+
+export function BookmarksConsumerCompleted (
+  context,
+  {
+    requestId
+  }
+) {
+  const notifyBookmarksRequest = context.getNotifyBookmarksRequest(requestId)
+  notifyBookmarksRequest.resolve()
+}
+
 export function GetRoutingTable (context, { driverId, database }, wire) {
   const driver = context.getDriver(driverId)
   const routingTable =
@@ -439,7 +522,7 @@ export function ForcedRoutingTableUpdate (context, { driverId, database, bookmar
     return provider._freshRoutingTable({
       accessMode: 'READ',
       database,
-      bookmarks: bookmarks,
+      bookmarks,
       onDatabaseNameResolved: () => {}
     })
       .then(() => wire.writeResponse(responses.Driver({ id: driverId })))

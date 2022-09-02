@@ -60,7 +60,11 @@ import {
   Transaction,
   ManagedTransaction,
   Session,
-  ConnectionProvider
+  ConnectionProvider,
+  BookmarkManager,
+  bookmarkManager,
+  BookmarkManagerConfig,
+  SessionConfig
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -220,6 +224,7 @@ declare const forExport: {
   isDate: typeof isDate
   isLocalDateTime: typeof isLocalDateTime
   isDateTime: typeof isDateTime
+  bookmarkManager: typeof bookmarkManager
 }
 
 export {
@@ -280,7 +285,14 @@ export {
   isTime,
   isDate,
   isLocalDateTime,
-  isDateTime
+  isDateTime,
+  bookmarkManager
+}
+
+export type {
+  BookmarkManager,
+  BookmarkManagerConfig,
+  SessionConfig
 }
 
 export default forExport

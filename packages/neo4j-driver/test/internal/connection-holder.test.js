@@ -47,7 +47,7 @@ describe('#unit EmptyConnectionHolder', () => {
 })
 
 describe('#unit ConnectionHolder', () => {
-  it('should acquire new connection during initialization', () => {
+  it('should acquire new connection during initialization', async () => {
     const connectionProvider = new RecordingConnectionProvider([
       new FakeConnection()
     ])
@@ -57,6 +57,8 @@ describe('#unit ConnectionHolder', () => {
     })
 
     connectionHolder.initializeConnection()
+
+    await connectionHolder.getConnection()
 
     expect(connectionProvider.acquireConnectionInvoked).toBe(1)
   })

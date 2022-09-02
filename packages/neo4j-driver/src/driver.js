@@ -49,12 +49,7 @@ class Driver extends CoreDriver {
    * pool and made available for others to use.
    *
    * @public
-   * @param {Object} param
-   * @param {string} param.defaultAccessMode=WRITE - The access mode of this session, allowed values are {@link READ} and {@link WRITE}.
-   * @param {string|string[]} param.bookmarks - The initial reference or references to some previous transactions. Value is optional and
-   * absence indicates that the bookmarks do not exist or are unknown.
-   * @param {string} param.database - The database this session will operate on.
-   * @param {string} param.impersonatedUser - The name of the user which should be impersonated for the duration of the session.
+   * @param {SessionConfig} config
    * @returns {RxSession} new reactive session.
    */
   rxSession ({
@@ -62,7 +57,8 @@ class Driver extends CoreDriver {
     bookmarks,
     database = '',
     fetchSize,
-    impersonatedUser
+    impersonatedUser,
+    bookmarkManager
   } = {}) {
     return new RxSession({
       session: this._newSession({
@@ -71,7 +67,8 @@ class Driver extends CoreDriver {
         database,
         impersonatedUser,
         reactive: false,
-        fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize)
+        fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize),
+        bookmarkManager
       }),
       config: this._config
     })

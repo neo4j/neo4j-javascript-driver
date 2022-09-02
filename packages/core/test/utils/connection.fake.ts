@@ -45,6 +45,7 @@ export default class FakeConnection extends Connection {
   public seenRequestRoutingInformation: any[]
   public rollbackInvoked: number
   public _rollbackError: Error | null
+  public seenBeginTransaction: any[]
 
   constructor () {
     super()
@@ -67,6 +68,7 @@ export default class FakeConnection extends Connection {
     this.seenRequestRoutingInformation = []
     this.rollbackInvoked = 0
     this._rollbackError = null
+    this.seenBeginTransaction = []
   }
 
   get id (): string {
@@ -106,7 +108,8 @@ export default class FakeConnection extends Connection {
       commitTransaction: () => {
         return mockResultStreamObserver('COMMIT', {})
       },
-      beginTransaction: async () => {
+      beginTransaction: async (...args: any) => {
+        this.seenBeginTransaction.push(...args)
         return await Promise.resolve()
       },
       rollbackTransaction: () => {
@@ -180,7 +183,7 @@ export default class FakeConnection extends Connection {
     return this
   }
 
-  hasOngoingObservableRequests(): boolean {
+  hasOngoingObservableRequests (): boolean {
     return true
   }
 }

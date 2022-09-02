@@ -146,7 +146,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     const routingTable = await this._freshRoutingTable({
       accessMode,
       database: context.database,
-      bookmarks: bookmarks,
+      bookmarks,
       impersonatedUser,
       onDatabaseNameResolved: (databaseName) => {
         context.database = context.database || databaseName

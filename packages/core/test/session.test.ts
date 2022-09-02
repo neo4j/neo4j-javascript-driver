@@ -16,13 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction } from '../src'
+import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction, BookmarkManager, bookmarkManager } from '../src'
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import ManagedTransaction from '../src/transaction-managed'
 import FakeConnection from './utils/connection.fake'
 
 describe('session', () => {
+  const systemBookmarks = ['sys:bm01', 'sys:bm02']
+  const neo4jBookmarks = ['neo4j:bm01', 'neo4j:bm03']
+  const customBookmarks = ['neo4j:bm02']
+
   it('close should return promise', done => {
     const connection = newFakeConnection()
     const session = newSessionWithConnection(connection)
@@ -310,6 +314,199 @@ describe('session', () => {
 
       expect(tx).toBeDefined()
     })
+
+    it('should acquire connection with system bookmarks from the bookmark manager', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.beginTransaction()
+
+      expect(connectionProvider.acquireConnection).toBeCalledWith(
+        expect.objectContaining({ bookmarks: new bookmarks.Bookmarks(systemBookmarks) })
+      )
+    })
+
+    it('should acquire connection with system bookmarks from the bookmark manager + lastBookmarks', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        lastBookmarks: new bookmarks.Bookmarks(customBookmarks),
+        database: 'neo4j'
+      })
+
+      await session.beginTransaction()
+
+      expect(connectionProvider.acquireConnection).toBeCalledWith(
+        expect.objectContaining({ bookmarks: new bookmarks.Bookmarks([...customBookmarks, ...systemBookmarks]) })
+      )
+    })
+
+    it.each([
+      [[]],
+      [customBookmarks]
+    ])('should call getAllBookmarks for the relevant database', async (lastBookmarks) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const getAllBookmarksSpy = jest.spyOn(manager, 'getAllBookmarks')
+
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j',
+        lastBookmarks: new bookmarks.Bookmarks(lastBookmarks)
+      })
+
+      await session.beginTransaction()
+
+      expect(getAllBookmarksSpy).toBeCalledWith()
+    })
+
+    it.each([
+      [[]],
+      [customBookmarks]
+    ])('should call begin query with getAllBookmarks + lastBookmarks', async (lastBookmarks) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j',
+        lastBookmarks: new bookmarks.Bookmarks(lastBookmarks)
+      })
+
+      await session.beginTransaction()
+
+      expect(connection.seenBeginTransaction[0]).toEqual([
+        expect.objectContaining({
+          bookmarks: new bookmarks.Bookmarks([...neo4jBookmarks, ...systemBookmarks, ...lastBookmarks])
+        })
+      ])
+    })
+
+    it.each([
+      [undefined],
+      ['neo4j'],
+      ['adb']
+    ])('should not call updateBookmarks when server returns no bookmarks', async (metaDb) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const updateBookmarksSpy = jest.spyOn(manager, 'updateBookmarks')
+
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.beginTransaction()
+
+      expect(updateBookmarksSpy).not.toBeCalled()
+    })
+  })
+
+  describe('.commit()', () => {
+    it.each([
+      [undefined, 'neo4j'],
+      ['neo4j', 'neo4j'],
+      ['adb', 'adb']
+    ])('should call updateBookmarks when server returns non-empty bookmarks', async (metaDb, updateDb) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const updateBookmarksSpy = jest.spyOn(manager, 'updateBookmarks')
+
+      const connection = mockCommitWithSuccess(mockBeginWithSuccess(newFakeConnection()), { db: metaDb, bookmark: customBookmarks })
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      const tx = await session.beginTransaction()
+      await tx.commit()
+
+      expect(updateBookmarksSpy).toBeCalledTimes(1)
+      expect(updateBookmarksSpy).toBeCalledWith(updateDb, [...neo4jBookmarks, ...systemBookmarks], customBookmarks)
+    })
+
+    it.each([
+      [undefined],
+      ['neo4j'],
+      ['adb']
+    ])('should not call updateBookmarks when server returns no bookmarks', async (metaDb) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const updateBookmarksSpy = jest.spyOn(manager, 'updateBookmarks')
+
+      const connection = mockCommitWithSuccess(mockBeginWithSuccess(newFakeConnection()), { db: metaDb })
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      const tx = await session.beginTransaction()
+      await tx.commit()
+
+      expect(updateBookmarksSpy).not.toBeCalled()
+    })
   })
 
   describe.each([
@@ -349,6 +546,300 @@ describe('session', () => {
       expect(run).toHaveBeenCalledWith(query, params)
     })
   })
+
+  describe('.run()', () => {
+    it('should acquire connection with system bookmarks from the bookmark manager', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const connection = newFakeConnection()
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+
+      expect(connectionProvider.acquireConnection).toBeCalledWith(
+        expect.objectContaining({ bookmarks: new bookmarks.Bookmarks(systemBookmarks) })
+      )
+    })
+
+    it('should acquire connection with system bookmarks from the bookmark manager + lastBookmarks', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const connection = newFakeConnection()
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        lastBookmarks: new bookmarks.Bookmarks(customBookmarks),
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+
+      expect(connectionProvider.acquireConnection).toBeCalledWith(
+        expect.objectContaining({ bookmarks: new bookmarks.Bookmarks([...customBookmarks, ...systemBookmarks]) })
+      )
+    })
+
+    it('should acquire connection with system bookmarks from the bookmark manager when bookmarks already updated', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const connection = newFakeConnection()
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        lastBookmarks: new bookmarks.Bookmarks(customBookmarks),
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+      const { afterComplete } = connection.seenProtocolOptions[0]
+      afterComplete({ db: 'neo4j', bookmark: ['other-bookmark'] })
+
+      await session.run('query')
+
+      expect(connectionProvider.acquireConnection).toHaveBeenNthCalledWith(2,
+        expect.objectContaining({ bookmarks: new bookmarks.Bookmarks(systemBookmarks) }))
+    })
+
+    it('should acquire connection with system bookmarks from the bookmark manager + lastBookmarks when bookmarks not updated', async () => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const connection = newFakeConnection()
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        lastBookmarks: new bookmarks.Bookmarks(customBookmarks),
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+      const { afterComplete } = connection.seenProtocolOptions[0]
+      afterComplete({ db: 'neo4j', bookmark: [] })
+
+      await session.run('query')
+
+      expect(connectionProvider.acquireConnection).toHaveBeenNthCalledWith(2,
+        expect.objectContaining({ bookmarks: new bookmarks.Bookmarks([...customBookmarks, ...systemBookmarks]) })
+      )
+    })
+
+    it.each([
+      [[]],
+      [customBookmarks]
+    ])('should call getAllBookmarks for the relevant database', async (lastBookmarks) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+      const getAllBookmarksSpy = jest.spyOn(manager, 'getAllBookmarks')
+
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j',
+        lastBookmarks: new bookmarks.Bookmarks(lastBookmarks)
+      })
+
+      await session.run('query')
+
+      expect(getAllBookmarksSpy).toBeCalledWith()
+    })
+
+    it.each([
+      [[]],
+      [customBookmarks]
+    ])('should call run query with getAllBookmarks + lastBookmarks', async (lastBookmarks) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j',
+        lastBookmarks: new bookmarks.Bookmarks(lastBookmarks)
+      })
+
+      await session.run('query')
+
+      expect(connection.seenProtocolOptions[0]).toEqual(
+        expect.objectContaining({
+          bookmarks: new bookmarks.Bookmarks([...neo4jBookmarks, ...systemBookmarks, ...lastBookmarks])
+        })
+      )
+    })
+
+    it.each([
+      [[]],
+      [customBookmarks]
+    ])('should call run query with getAllBookmarks + lastBookmarks when bookmarks not updated', async (lastBookmarks) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j',
+        lastBookmarks: new bookmarks.Bookmarks(lastBookmarks)
+      })
+
+      await session.run('query')
+      const { afterComplete } = connection.seenProtocolOptions[0]
+      afterComplete({ db: 'neo4j', bookmark: [] })
+
+      await session.run('query')
+
+      expect(connection.seenProtocolOptions[1]).toEqual(
+        expect.objectContaining({
+          bookmarks: new bookmarks.Bookmarks([...neo4jBookmarks, ...systemBookmarks, ...lastBookmarks])
+        })
+      )
+    })
+
+    it.each([
+      [[]],
+      [customBookmarks]
+    ])('should call run query with getAllBookmarks when bookmarks updated', async (lastBookmarks) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j',
+        lastBookmarks: new bookmarks.Bookmarks(lastBookmarks)
+      })
+
+      await session.run('query')
+      const { afterComplete } = connection.seenProtocolOptions[0]
+      afterComplete({ db: 'neo4j', bookmark: 'abc' })
+      await manager.updateBookmarks('neo4j', ['abc'], neo4jBookmarks)
+
+      await session.run('query')
+
+      expect(connection.seenProtocolOptions[1]).toEqual(
+        expect.objectContaining({
+          bookmarks: new bookmarks.Bookmarks([...neo4jBookmarks, ...systemBookmarks])
+        })
+      )
+    })
+
+    it.each([
+      [undefined, 'neo4j'],
+      ['neo4j', 'neo4j'],
+      ['adb', 'adb']
+    ])('should call updateBookmarks when server returns non-empty bookmarks', async (metaDb, updateDb) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const updateBookmarksSpy = jest.spyOn(manager, 'updateBookmarks')
+
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+
+      const { afterComplete } = connection.seenProtocolOptions[0]
+
+      afterComplete({ db: metaDb, bookmark: customBookmarks })
+
+      expect(updateBookmarksSpy).toBeCalledWith(updateDb, [...neo4jBookmarks, ...systemBookmarks], customBookmarks)
+    })
+
+    it.each([
+      [undefined],
+      ['neo4j'],
+      ['adb']
+    ])('should not call updateBookmarks when server returns no bookmarks', async (metaDb) => {
+      const manager = bookmarkManager({
+        initialBookmarks: new Map([
+          ['neo4j', neo4jBookmarks],
+          ['system', systemBookmarks]
+        ])
+      })
+
+      const updateBookmarksSpy = jest.spyOn(manager, 'updateBookmarks')
+
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        bookmarkManager: manager,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+
+      const { afterComplete } = connection.seenProtocolOptions[0]
+
+      afterComplete({ db: metaDb })
+
+      expect(updateBookmarksSpy).not.toBeCalled()
+    })
+  })
 })
 
 function mockBeginWithSuccess (connection: FakeConnection): FakeConnection {
@@ -356,8 +847,24 @@ function mockBeginWithSuccess (connection: FakeConnection): FakeConnection {
   connection.protocol = () => {
     return {
       ...protocol,
-      beginTransaction: (params: { afterComplete: () => {}}) => {
+      beginTransaction: (params: { afterComplete: () => {}}, ...args: any[]) => {
+        protocol.beginTransaction([params, ...args])
         params.afterComplete()
+      }
+    }
+  }
+  return connection
+}
+
+function mockCommitWithSuccess (connection: FakeConnection, metadata: any): FakeConnection {
+  const protocol = connection.protocol()
+  connection.protocol = () => {
+    return {
+      ...protocol,
+      commitTransaction: (params: { afterComplete: (metadata: any) => {}}, ...args: any[]) => {
+        const observer = protocol.commitTransaction(...[params, ...args])
+        params.afterComplete(metadata)
+        return observer
       }
     }
   }
@@ -368,26 +875,49 @@ function newSessionWithConnection (
   connection: Connection,
   beginTx: boolean = true,
   fetchSize: number = 1000,
-  lastBookmarks: bookmarks.Bookmarks = bookmarks.Bookmarks.empty()
+  lastBookmarks: bookmarks.Bookmarks = bookmarks.Bookmarks.empty(),
+  bookmarkManager?: BookmarkManager
 ): Session {
+  const { session } = setupSession({
+    connection, beginTx, fetchSize, lastBookmarks, bookmarkManager
+  })
+  return session
+}
+
+function setupSession ({
+  connection,
+  beginTx = true,
+  fetchSize = 1000,
+  database = '',
+  lastBookmarks = bookmarks.Bookmarks.empty(),
+  bookmarkManager
+}: {
+  connection: Connection
+  beginTx?: boolean
+  fetchSize?: number
+  lastBookmarks?: bookmarks.Bookmarks
+  database?: string
+  bookmarkManager?: BookmarkManager
+}): { session: Session, connectionProvider: ConnectionProvider } {
   const connectionProvider = new ConnectionProvider()
-  connectionProvider.acquireConnection = async () => await Promise.resolve(connection)
+  connectionProvider.acquireConnection = jest.fn(async () => await Promise.resolve(connection))
   connectionProvider.close = async () => await Promise.resolve()
 
   const session = new Session({
     mode: ACCESS_MODE_READ,
     connectionProvider,
-    database: '',
+    database,
     fetchSize,
     config: {},
     reactive: false,
-    bookmarks: lastBookmarks
+    bookmarks: lastBookmarks,
+    bookmarkManager
   })
 
   if (beginTx) {
     session.beginTransaction().catch(e => {}) // force session to acquire new connection
   }
-  return session
+  return { session, connectionProvider }
 }
 
 function newFakeConnection (): FakeConnection {

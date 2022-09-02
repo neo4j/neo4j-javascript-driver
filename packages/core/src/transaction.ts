@@ -48,15 +48,18 @@ class Transaction {
   private readonly _reactive: boolean
   private _state: any
   private readonly _onClose: () => void
-  private readonly _onBookmarks: (bookmarks: Bookmarks) => void
+  private readonly _onBookmarks: (newBookmarks: Bookmarks, previousBookmarks: Bookmarks, database?: string) => void
   private readonly _onConnection: () => void
   private readonly _onError: (error: Error) => Promise<Connection | null>
-  private readonly _onComplete: (metadata: any) => void
+  private readonly _onComplete: (metadata: any, previousBookmarks?: Bookmarks) => void
   private readonly _fetchSize: number
   private readonly _results: any[]
   private readonly _impersonatedUser?: string
   private readonly _lowRecordWatermak: number
   private readonly _highRecordWatermark: number
+  private _bookmarks: Bookmarks
+  private readonly _activePromise: Promise<void>
+  private _acceptActive: () => void
 
   /**
    * @constructor
@@ -84,7 +87,7 @@ class Transaction {
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
-    onBookmarks: (bookmarks: Bookmarks) => void
+    onBookmarks: (newBookmarks: Bookmarks, previousBookmarks: Bookmarks, database?: string) => void
     onConnection: () => void
     reactive: boolean
     fetchSize: number
@@ -99,12 +102,16 @@ class Transaction {
     this._onBookmarks = onBookmarks
     this._onConnection = onConnection
     this._onError = this._onErrorCallback.bind(this)
-    this._onComplete = this._onCompleteCallback.bind(this)
     this._fetchSize = fetchSize
+    this._onComplete = this._onCompleteCallback.bind(this)
     this._results = []
     this._impersonatedUser = impersonatedUser
     this._lowRecordWatermak = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
+    this._bookmarks = Bookmarks.empty()
+    this._activePromise = new Promise((resolve, reject) => {
+      this._acceptActive = resolve
+    })
   }
 
   /**
@@ -113,17 +120,18 @@ class Transaction {
    * @param {TxConfig} txConfig
    * @returns {void}
    */
-  _begin (bookmarks: Bookmarks | string | string[], txConfig: TxConfig, events?: {
+  _begin (getBookmarks: () => Promise<Bookmarks>, txConfig: TxConfig, events?: {
     onError: (error: Error) => void
     onComplete: (metadata: any) => void
   }): void {
     this._connectionHolder
       .getConnection()
-      .then(connection => {
+      .then(async connection => {
         this._onConnection()
         if (connection != null) {
+          this._bookmarks = await getBookmarks()
           return connection.protocol().beginTransaction({
-            bookmarks: bookmarks,
+            bookmarks: this._bookmarks,
             txConfig: txConfig,
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
@@ -151,6 +159,10 @@ class Transaction {
         }
         this._onError(error).catch(() => {})
       })
+      // It should make the transaction active anyway
+      // further errors will be treated by the existing
+      // observers
+      .finally(() => this._acceptActive())
   }
 
   /**
@@ -175,7 +187,8 @@ class Transaction {
       reactive: this._reactive,
       fetchSize: this._fetchSize,
       highRecordWatermark: this._highRecordWatermark,
-      lowRecordWatermark: this._lowRecordWatermak
+      lowRecordWatermark: this._lowRecordWatermak,
+      preparationJob: this._activePromise
     })
     this._results.push(result)
     return result
@@ -192,9 +205,10 @@ class Transaction {
     const committed = this._state.commit({
       connectionHolder: this._connectionHolder,
       onError: this._onError,
-      onComplete: this._onComplete,
+      onComplete: (meta: any) => this._onCompleteCallback(meta, this._bookmarks),
       onConnection: this._onConnection,
-      pendingResults: this._results
+      pendingResults: this._results,
+      preparationJob: this._activePromise
     })
     this._state = committed.state
     // clean up
@@ -221,7 +235,8 @@ class Transaction {
       onError: this._onError,
       onComplete: this._onComplete,
       onConnection: this._onConnection,
-      pendingResults: this._results
+      pendingResults: this._results,
+      preparationJob: this._activePromise
     })
     this._state = rolledback.state
     // clean up
@@ -271,8 +286,8 @@ class Transaction {
    * @param {object} meta The meta with bookmarks
    * @returns {void}
    */
-  _onCompleteCallback (meta: { bookmark?: string | string[] }): void {
-    this._onBookmarks(new Bookmarks(meta.bookmark))
+  _onCompleteCallback (meta: { bookmark?: string | string[], db?: string }, previousBookmarks?: Bookmarks): void {
+    this._onBookmarks(new Bookmarks(meta?.bookmark), previousBookmarks ?? Bookmarks.empty(), meta?.db)
   }
 }
 
@@ -290,6 +305,7 @@ interface StateTransitionParams {
   fetchSize: number
   highRecordWatermark: number
   lowRecordWatermark: number
+  preparationJob?: Promise<any>
 }
 
 const _states = {
@@ -300,7 +316,8 @@ const _states = {
       onError,
       onComplete,
       onConnection,
-      pendingResults
+      pendingResults,
+      preparationJob
     }: StateTransitionParams): any => {
       return {
         result: finishTransaction(
@@ -309,7 +326,8 @@ const _states = {
           onError,
           onComplete,
           onConnection,
-          pendingResults
+          pendingResults,
+          preparationJob
         ),
         state: _states.SUCCEEDED
       }
@@ -319,7 +337,8 @@ const _states = {
       onError,
       onComplete,
       onConnection,
-      pendingResults
+      pendingResults,
+      preparationJob
     }: StateTransitionParams): any => {
       return {
         result: finishTransaction(
@@ -328,7 +347,8 @@ const _states = {
           onError,
           onComplete,
           onConnection,
-          pendingResults
+          pendingResults,
+          preparationJob
         ),
         state: _states.ROLLED_BACK
       }
@@ -344,31 +364,35 @@ const _states = {
         reactive,
         fetchSize,
         highRecordWatermark,
-        lowRecordWatermark
+        lowRecordWatermark,
+        preparationJob
       }: StateTransitionParams
     ): any => {
       // RUN in explicit transaction can't contain bookmarks and transaction configuration
-      // No need to include mode and database name as it shall be inclued in begin
-      const observerPromise = connectionHolder
-        .getConnection()
-        .then(conn => {
-          onConnection()
-          if (conn != null) {
-            return conn.protocol().run(query, parameters, {
-              bookmarks: Bookmarks.empty(),
-              txConfig: TxConfig.empty(),
-              beforeError: onError,
-              afterComplete: onComplete,
-              reactive: reactive,
-              fetchSize: fetchSize,
-              highRecordWatermark: highRecordWatermark,
-              lowRecordWatermark: lowRecordWatermark
-            })
-          } else {
-            throw newError('No connection available')
-          }
-        })
-        .catch(error => new FailedObserver({ error, onError }))
+      // No need to include mode and database name as it shall be included in begin
+      const requirements = preparationJob ?? Promise.resolve()
+
+      const observerPromise =
+        connectionHolder.getConnection()
+          .then(conn => requirements.then(() => conn))
+          .then(conn => {
+            onConnection()
+            if (conn != null) {
+              return conn.protocol().run(query, parameters, {
+                bookmarks: Bookmarks.empty(),
+                txConfig: TxConfig.empty(),
+                beforeError: onError,
+                afterComplete: onComplete,
+                reactive: reactive,
+                fetchSize: fetchSize,
+                highRecordWatermark: highRecordWatermark,
+                lowRecordWatermark: lowRecordWatermark
+              })
+            } else {
+              throw newError('No connection available')
+            }
+          })
+          .catch(error => new FailedObserver({ error, onError }))
 
       return newCompletedResult(
         observerPromise,
@@ -595,32 +619,36 @@ function finishTransaction (
   onError: (err: Error) => any,
   onComplete: (metadata: any) => any,
   onConnection: () => any,
-  pendingResults: Result[]
+  pendingResults: Result[],
+  preparationJob?: Promise<void>
 ): Result {
-  const observerPromise = connectionHolder
-    .getConnection()
-    .then(connection => {
-      onConnection()
-      pendingResults.forEach(r => r._cancel())
-      return Promise.all(pendingResults.map(result => result.summary())).then(results => {
-        if (connection != null) {
-          if (commit) {
-            return connection.protocol().commitTransaction({
-              beforeError: onError,
-              afterComplete: onComplete
-            })
+  const requirements = preparationJob ?? Promise.resolve()
+
+  const observerPromise =
+    connectionHolder.getConnection()
+      .then(conn => requirements.then(() => conn))
+      .then(connection => {
+        onConnection()
+        pendingResults.forEach(r => r._cancel())
+        return Promise.all(pendingResults.map(result => result.summary())).then(results => {
+          if (connection != null) {
+            if (commit) {
+              return connection.protocol().commitTransaction({
+                beforeError: onError,
+                afterComplete: onComplete
+              })
+            } else {
+              return connection.protocol().rollbackTransaction({
+                beforeError: onError,
+                afterComplete: onComplete
+              })
+            }
           } else {
-            return connection.protocol().rollbackTransaction({
-              beforeError: onError,
-              afterComplete: onComplete
-            })
+            throw newError('No connection available')
           }
-        } else {
-          throw newError('No connection available')
-        }
+        })
       })
-    })
-    .catch(error => new FailedObserver({ error, onError }))
+      .catch(error => new FailedObserver({ error, onError }))
 
   // for commit & rollback we need result that uses real connection holder and notifies it when
   // connection is not needed and can be safely released to the pool

@@ -83,6 +83,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private _referenceCount: number
   private _connectionPromise: Promise<Connection | null>
   private readonly _impersonatedUser?: string
+  private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
   private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
 
   /**
@@ -94,6 +95,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @property {ConnectionProvider} params.connectionProvider - the connection provider to acquire connections from.
    * @property {string?} params.impersonatedUser - the user which will be impersonated
    * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
+   * @property {function():Promise<Bookmarks>} params.getConnectionAcquistionBookmarks - called for getting Bookmarks for acquiring connections
    */
   constructor ({
     mode = ACCESS_MODE_WRITE,
@@ -101,7 +103,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
     bookmarks,
     connectionProvider,
     impersonatedUser,
-    onDatabaseNameResolved
+    onDatabaseNameResolved,
+    getConnectionAcquistionBookmarks
   }: {
     mode?: string
     database?: string
@@ -109,6 +112,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     connectionProvider?: ConnectionProvider
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
+    getConnectionAcquistionBookmarks?: () => Promise<Bookmarks>
   } = {}) {
     this._mode = mode
     this._database = database != null ? assertString(database, 'database') : ''
@@ -118,6 +122,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._referenceCount = 0
     this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
+    this._getConnectionAcquistionBookmarks = getConnectionAcquistionBookmarks ?? (() => Promise.resolve(Bookmarks.empty()))
   }
 
   mode (): string | undefined {
@@ -146,19 +151,27 @@ class ConnectionHolder implements ConnectionHolderInterface {
 
   initializeConnection (): boolean {
     if (this._referenceCount === 0 && (this._connectionProvider != null)) {
-      this._connectionPromise = this._connectionProvider.acquireConnection({
-        accessMode: this._mode,
-        database: this._database,
-        bookmarks: this._bookmarks,
-        impersonatedUser: this._impersonatedUser,
-        onDatabaseNameResolved: this._onDatabaseNameResolved
-      })
+      this._connectionPromise = this._createConnectionPromise(this._connectionProvider)
     } else {
       this._referenceCount++
       return false
     }
     this._referenceCount++
     return true
+  }
+
+  private async _createConnectionPromise (connectionProvider: ConnectionProvider): Promise<Connection | null> {
+    return await connectionProvider.acquireConnection({
+      accessMode: this._mode,
+      database: this._database,
+      bookmarks: await this._getBookmarks(),
+      impersonatedUser: this._impersonatedUser,
+      onDatabaseNameResolved: this._onDatabaseNameResolved
+    })
+  }
+
+  private async _getBookmarks (): Promise<Bookmarks> {
+    return await this._getConnectionAcquistionBookmarks()
   }
 
   getConnection (): Promise<Connection | null> {
@@ -230,6 +243,8 @@ export default class ReadOnlyConnectionHolder extends ConnectionHolder {
       mode: connectionHolder.mode(),
       database: connectionHolder.database(),
       bookmarks: connectionHolder.bookmarks(),
+      // @ts-expect-error
+      getConnectionAcquistionBookmarks: connectionHolder._getConnectionAcquistionBookmarks,
       connectionProvider: connectionHolder.connectionProvider()
     })
     this._connectionHolder = connectionHolder

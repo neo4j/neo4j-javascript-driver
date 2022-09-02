@@ -35,8 +35,9 @@ import Connection from './connection'
 import { NumberOrInteger } from './graph-types'
 import TransactionPromise from './transaction-promise'
 import ManagedTransaction from './transaction-managed'
+import BookmarkManager from './bookmark-manager'
 
-type ConnectionConsumer = (connection: Connection | null) => any | undefined
+type ConnectionConsumer = (connection: Connection | null) => any | undefined | Promise<any> | Promise<undefined>
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
 type ManagedTransactionWork<T> = (tx: ManagedTransaction) => Promise<T> | T
 
@@ -62,13 +63,14 @@ class Session {
   private _open: boolean
   private _hasTx: boolean
   private _lastBookmarks: Bookmarks
+  private _configuredBookmarks: Bookmarks
   private readonly _transactionExecutor: TransactionExecutor
   private readonly _impersonatedUser?: string
-  private readonly _onComplete: (meta: any) => void
   private _databaseNameResolved: boolean
   private readonly _lowRecordWatermark: number
   private readonly _highRecordWatermark: number
   private readonly _results: Result[]
+  private readonly _bookmarkManager?: BookmarkManager
   /**
    * @constructor
    * @protected
@@ -90,7 +92,8 @@ class Session {
     config,
     reactive,
     fetchSize,
-    impersonatedUser
+    impersonatedUser,
+    bookmarkManager
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -100,19 +103,22 @@ class Session {
     reactive: boolean
     fetchSize: number
     impersonatedUser?: string
+    bookmarkManager?: BookmarkManager
   }) {
     this._mode = mode
     this._database = database
     this._reactive = reactive
     this._fetchSize = fetchSize
     this._onDatabaseNameResolved = this._onDatabaseNameResolved.bind(this)
+    this._getConnectionAcquistionBookmarks = this._getConnectionAcquistionBookmarks.bind(this)
     this._readConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_READ,
       database,
       bookmarks,
       connectionProvider,
       impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved
+      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks
     })
     this._writeConnectionHolder = new ConnectionHolder({
       mode: ACCESS_MODE_WRITE,
@@ -120,19 +126,21 @@ class Session {
       bookmarks,
       connectionProvider,
       impersonatedUser,
-      onDatabaseNameResolved: this._onDatabaseNameResolved
+      onDatabaseNameResolved: this._onDatabaseNameResolved,
+      getConnectionAcquistionBookmarks: this._getConnectionAcquistionBookmarks
     })
     this._open = true
     this._hasTx = false
     this._impersonatedUser = impersonatedUser
     this._lastBookmarks = bookmarks ?? Bookmarks.empty()
+    this._configuredBookmarks = this._lastBookmarks
     this._transactionExecutor = _createTransactionExecutor(config)
-    this._onComplete = this._onCompleteCallback.bind(this)
     this._databaseNameResolved = this._database !== ''
     const calculatedWatermaks = this._calculateWatermaks()
     this._lowRecordWatermark = calculatedWatermaks.low
     this._highRecordWatermark = calculatedWatermaks.high
     this._results = []
+    this._bookmarkManager = bookmarkManager
   }
 
   /**
@@ -159,15 +167,16 @@ class Session {
       ? new TxConfig(transactionConfig)
       : TxConfig.empty()
 
-    const result = this._run(validatedQuery, params, connection => {
+    const result = this._run(validatedQuery, params, async connection => {
+      const bookmarks = await this._bookmarks()
       this._assertSessionIsOpen()
       return (connection as Connection).protocol().run(validatedQuery, params, {
-        bookmarks: this._lastBookmarks,
+        bookmarks,
         txConfig: autoCommitTxConfig,
         mode: this._mode,
         database: this._database,
         impersonatedUser: this._impersonatedUser,
-        afterComplete: this._onComplete,
+        afterComplete: (meta: any) => this._onCompleteCallback(meta, bookmarks),
         reactive: this._reactive,
         fetchSize: this._fetchSize,
         lowRecordWatermark: this._lowRecordWatermark,
@@ -283,14 +292,14 @@ class Session {
       connectionHolder,
       impersonatedUser: this._impersonatedUser,
       onClose: this._transactionClosed.bind(this),
-      onBookmarks: this._updateBookmarks.bind(this),
+      onBookmarks: (newBm, oldBm, db) => this._updateBookmarks(newBm, oldBm, db),
       onConnection: this._assertSessionIsOpen.bind(this),
       reactive: this._reactive,
       fetchSize: this._fetchSize,
       lowRecordWatermark: this._lowRecordWatermark,
       highRecordWatermark: this._highRecordWatermark
     })
-    tx._begin(this._lastBookmarks, txConfig)
+    tx._begin(() => this._bookmarks(), txConfig)
     return tx
   }
 
@@ -330,6 +339,14 @@ class Session {
    */
   lastBookmarks (): string[] {
     return this._lastBookmarks.values()
+  }
+
+  private async _bookmarks (): Promise<Bookmarks> {
+    const bookmarks = await this._bookmarkManager?.getAllBookmarks()
+    if (bookmarks === undefined) {
+      return this._lastBookmarks
+    }
+    return new Bookmarks([...bookmarks, ...this._configuredBookmarks])
   }
 
   /**
@@ -470,15 +487,29 @@ class Session {
     }
   }
 
+  private async _getConnectionAcquistionBookmarks (): Promise<Bookmarks> {
+    const bookmarks = await this._bookmarkManager?.getBookmarks('system')
+    if (bookmarks === undefined) {
+      return this._lastBookmarks
+    }
+    return new Bookmarks([...this._configuredBookmarks, ...bookmarks])
+  }
+
   /**
    * Update value of the last bookmarks.
    * @private
    * @param {Bookmarks} newBookmarks - The new bookmarks.
    * @returns {void}
    */
-  _updateBookmarks (newBookmarks?: Bookmarks): void {
+  _updateBookmarks (newBookmarks?: Bookmarks, previousBookmarks?: Bookmarks, database?: string): void {
     if ((newBookmarks != null) && !newBookmarks.isEmpty()) {
+      this._bookmarkManager?.updateBookmarks(
+        database ?? this._database,
+        previousBookmarks?.values() ?? [],
+        newBookmarks?.values() ?? []
+      )
       this._lastBookmarks = newBookmarks
+      this._configuredBookmarks = Bookmarks.empty()
     }
   }
 
@@ -514,8 +545,8 @@ class Session {
    * @param {Object} meta Connection metadatada
    * @returns {void}
    */
-  _onCompleteCallback (meta: { bookmark: string | string[] }): void {
-    this._updateBookmarks(new Bookmarks(meta.bookmark))
+  _onCompleteCallback (meta: { bookmark: string | string[], db?: string }, previousBookmarks?: Bookmarks): void {
+    this._updateBookmarks(new Bookmarks(meta.bookmark), previousBookmarks, meta.db)
   }
 
   /**

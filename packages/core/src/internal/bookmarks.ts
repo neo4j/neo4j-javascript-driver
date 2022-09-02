@@ -28,7 +28,7 @@ export class Bookmarks {
    * @constructor
    * @param {string|string[]} values single bookmark as string or multiple bookmarks as a string array.
    */
-  constructor (values?: string | string[] | string[] | null) {
+  constructor (values?: string | string[] | null) {
     this._values = asStringArray(values)
   }
 
@@ -50,6 +50,10 @@ export class Bookmarks {
    */
   values (): string[] {
     return this._values
+  }
+
+  [Symbol.iterator] (): IterableIterator<string> {
+    return this._values[Symbol.iterator]()
   }
 
   /**
@@ -79,7 +83,7 @@ const EMPTY_BOOKMARK = new Bookmarks(null)
  * @return {string[]} value converted to an array.
  */
 function asStringArray (
-  value?: string | string[] | string[] | null
+  value?: string | string[] | null
 ): string[] {
   if (value == null || value === '') {
     return []
@@ -90,7 +94,7 @@ function asStringArray (
   }
 
   if (Array.isArray(value)) {
-    const result = []
+    const result = new Set<string>()
     const flattenedValue = flattenArray(value)
     for (let i = 0; i < flattenedValue.length; i++) {
       const element = flattenedValue[i]
@@ -102,10 +106,10 @@ function asStringArray (
             `Bookmark value should be a string, given: '${element}'`
           )
         }
-        result.push(element)
+        result.add(element)
       }
     }
-    return result
+    return [...result]
   }
 
   throw new TypeError(

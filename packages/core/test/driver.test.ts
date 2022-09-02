@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { ConnectionProvider, newError, ServerInfo, Session } from '../src'
+import { bookmarkManager, ConnectionProvider, newError, ServerInfo, Session } from '../src'
 import Driver, { READ } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
@@ -82,6 +82,78 @@ describe('Driver', () => {
       const session = driver?.session({ bookmarks })
 
       expect(session?.lastBookmarks()).toEqual(expectedBookmarks.values())
+    })
+
+    describe('when bookmark manager configured', () => {
+      it('should create session with bookmark manager when no bookmark set', async () => {
+        const manager = bookmarkManager()
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        const session = driver.session({ bookmarkManager: manager })
+
+        try {
+          expect(createSession).toBeCalledWith(expect.objectContaining({
+            bookmarkManager: manager,
+            bookmarks: Bookmarks.empty()
+          }))
+        } finally {
+          await session.close()
+          await driver.close()
+        }
+      })
+
+      it.each([
+        [[], Bookmarks.empty()],
+        ['bookmark', new Bookmarks('bookmark')],
+        [['bookmark'], new Bookmarks(['bookmark'])],
+        [['bookmark1', 'bookmark2'], new Bookmarks(['bookmark1', 'bookmark2'])]
+      ])('should create session with bookmark manager when bookmark set', async (bookmarks, expectedBookmarks) => {
+        const manager = bookmarkManager()
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        const session = driver.session({ bookmarks, bookmarkManager: manager })
+
+        try {
+          expect(createSession).toBeCalledWith(expect.objectContaining({
+            bookmarkManager: manager,
+            bookmarks: expectedBookmarks
+          }))
+        } finally {
+          await session.close()
+          await driver.close()
+        }
+      })
+
+      it('should create session without bookmark manager when no bookmark manager is set', async () => {
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        const session = driver.session()
+
+        try {
+          expect(createSession).toBeCalledWith(expect.objectContaining({
+            bookmarkManager: undefined,
+            bookmarks: Bookmarks.empty()
+          }))
+        } finally {
+          await session.close()
+          await driver.close()
+        }
+      })
     })
   })
 
