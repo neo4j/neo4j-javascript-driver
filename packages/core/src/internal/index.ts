@@ -29,6 +29,7 @@ import * as logger from './logger'
 import * as urlUtil from './url-util'
 import * as serverAddress from './server-address'
 import * as resolver from './resolver'
+import * as objectUtil from './object-util'
 
 export {
   util,
@@ -42,5 +43,6 @@ export {
   logger,
   urlUtil,
   serverAddress,
-  resolver
+  resolver,
+  objectUtil
 }
