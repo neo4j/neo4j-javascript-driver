@@ -31,6 +31,7 @@ import * as urlUtil from './url-util'
 import * as serverAddress from './server-address'
 import * as resolver from './resolver'
 import * as retryStrategy from './retry-strategy'
+import * as objectUtil from './object-util'
 
 export {
   util,
@@ -46,5 +47,6 @@ export {
   urlUtil,
   serverAddress,
   resolver,
-  retryStrategy
+  retryStrategy,
+  objectUtil
 }

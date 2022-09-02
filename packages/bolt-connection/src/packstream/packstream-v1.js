@@ -32,7 +32,7 @@ import {
   internal
 } from 'neo4j-driver-core'
 
-const { util } = internal
+const { objectUtil } = internal
 const { PROTOCOL_ERROR } = error
 
 const TINY_STRING = 0x80
@@ -575,7 +575,7 @@ class Unpacker {
         return null
       }
     } catch (error) {
-      return util.createBrokenObject(error)
+      return objectUtil.createBrokenObject(error)
     }
   
   }
