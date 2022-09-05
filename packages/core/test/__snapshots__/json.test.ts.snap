@@ -1,5 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`json .stringify should handle BigInt 1`] = `"\\"42n\\""`;
+
+exports[`json .stringify should handle BigInt in a list 1`] = `"[\\"42n\\",\\"-24n\\"]"`;
+
+exports[`json .stringify should handle BigInt in a object 1`] = `"{\\"theResponse\\":\\"42n\\"}"`;
+
 exports[`json .stringify should handle objects created with createBrokenObject 1`] = `"{\\"__isBrokenObject__\\":true,\\"__reason__\\":{\\"code\\":\\"N/A\\",\\"name\\":\\"Neo4jError\\"}}"`;
 
 exports[`json .stringify should handle objects created with createBrokenObject in list 1`] = `"[{\\"__isBrokenObject__\\":true,\\"__reason__\\":{\\"code\\":\\"N/A\\",\\"name\\":\\"Neo4jError\\"}}]"`;

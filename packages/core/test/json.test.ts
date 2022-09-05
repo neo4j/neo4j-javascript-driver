@@ -45,5 +45,25 @@ describe('json', () => {
         broken
       })).toMatchSnapshot()
     })
+
+    it('should handle BigInt', () => {
+      const bigint = BigInt(42)
+
+      expect(json.stringify(bigint)).toMatchSnapshot()
+    })
+
+    it('should handle BigInt in a list', () => {
+      const bigintList = [BigInt(42), BigInt(-24)]
+
+      expect(json.stringify(bigintList)).toMatchSnapshot()
+    })
+
+    it('should handle BigInt in a object', () => {
+      const bigintInObject = {
+        theResponse: BigInt(42)
+      }
+
+      expect(json.stringify(bigintInObject)).toMatchSnapshot()
+    })
   })
 })
