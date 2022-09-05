@@ -20,7 +20,7 @@
 import { structure } from '../packstream'
 import { internal } from 'neo4j-driver-core'
 
-const { util } = internal
+const { objectUtil } = internal
 
 /**
  * Class responsible for applying the expected {@link TypeTransformer} to
@@ -53,7 +53,7 @@ export default class Transformer {
       }
       return struct
     } catch (error) {
-      return util.createBrokenObject(error)
+      return objectUtil.createBrokenObject(error)
     }
   }
 

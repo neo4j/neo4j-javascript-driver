@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-import { isBrokenObject, getBrokenObjectReason } from './internal/util'
+import { isBrokenObject, getBrokenObjectReason } from './internal/object-util'
 
 /**
  * Custom version on JSON.stringify that can handle values that normally don't support serialization, such as BigInt.

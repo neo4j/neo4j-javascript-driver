@@ -18,7 +18,7 @@
  */
 
 import { json, newError } from '../src'
-import { createBrokenObject } from '../src/internal/util'
+import { createBrokenObject } from '../src/internal/object-util'
 
 describe('json', () => {
   describe('.stringify', () => {

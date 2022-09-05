@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError } from '../../src'
 import Integer, { int } from '../../src/integer'
 import {
   isEmptyObjectOrNull,
@@ -29,10 +28,7 @@ import {
   assertValidDate,
   validateQueryAndParameters,
   ENCRYPTION_ON,
-  ENCRYPTION_OFF,
-  createBrokenObject,
-  isBrokenObject,
-  getBrokenObjectReason
+  ENCRYPTION_OFF
 } from '../../src/internal/util'
 
 /* eslint-disable no-new-wrappers */
@@ -254,47 +250,4 @@ describe('Util', () => {
     expect(ENCRYPTION_ON).toBe('ENCRYPTION_ON'))
   test('should ENCRYPTION_OFF toBe "ENCRYPTION_OFF"', () =>
     expect(ENCRYPTION_OFF).toBe('ENCRYPTION_OFF'))
-
-  describe('isBrokenObject', () => {
-    it('should return true when object created with createBrokenObject', () => {
-      const object = createBrokenObject(newError('error'), {})
-
-      expect(isBrokenObject(object)).toBe(true)
-    })
-
-    it('should return false for regular objects', () => {
-      const object = {}
-
-      expect(isBrokenObject(object)).toBe(false)
-    })
-
-    it('should return false for non-objects', () => {
-      expect(isBrokenObject(null)).toBe(false)
-      expect(isBrokenObject(undefined)).toBe(false)
-      expect(isBrokenObject(1)).toBe(false)
-      expect(isBrokenObject(() => {})).toBe(false)
-      expect(isBrokenObject('string')).toBe(false)
-    })
-  })
-
-  describe('getBrokenObjectReason', () => {
-    it('should return the reason the object is broken', () => {
-      const reason = newError('error')
-      const object = createBrokenObject(reason, {})
-
-      expect(getBrokenObjectReason(object)).toBe(reason)
-    })
-  })
-
-  describe('createBrokenObject', () => {
-    describe('toJSON', () => {
-      it('should return undefined', () => {
-        const reason = newError('error')
-        const object = createBrokenObject(reason, {})
-
-        // @ts-expect-error
-        expect(object.toJSON).toBeUndefined()
-      })
-    })
-  })
 })
