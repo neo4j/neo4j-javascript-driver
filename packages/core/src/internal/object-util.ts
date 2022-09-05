@@ -22,7 +22,7 @@ const __isBrokenObject__ = '__isBrokenObject__'
 const __reason__ = '__reason__'
 
 /**
- * Creates a object which all method call will throw the given error
+ * Creates a object on which all method calls will throw the given error
  *
  * @param {Error} error The error
  * @param {any} object The object. Default: {}
