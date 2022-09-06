@@ -271,7 +271,7 @@ describe('Integer', () => {
       newError('number format error: "a7891" is NaN in radix 10: a7891')
     ))
 
-  test('Integer.fromString("7010", 2, { validatedString: true }) toThrow invalid character', () =>
+  test('Integer.fromString("7010", 2, { strictStringValidation: true }) toThrow invalid character', () =>
     expect(() => Integer.fromString('7010', 2, { strictStringValidation: true })).toThrow(
       newError('number format error: "7010" is NaN in radix 2: 7010')
     ))
