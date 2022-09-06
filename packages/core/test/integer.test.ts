@@ -255,6 +255,26 @@ describe('Integer', () => {
       newError('number format error: interior "-" character: 123-2')
     ))
 
+  test('Integer.fromString("7891a", undefined, { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => Integer.fromString('7891a', undefined, { strictStringValidation: true })).toThrow(
+      newError('number format error: "7891a" is NaN in radix 10: 7891a')
+    ))
+
+  test('Integer.fromString("78a91", undefined, { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => Integer.fromString('78a91', undefined, { strictStringValidation: true })).toThrow(
+      newError('number format error: "78a91" is NaN in radix 10: 78a91')
+    ))
+
+  test('Integer.fromString("a7891", undefined, { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => Integer.fromString('a7891', undefined, { strictStringValidation: true })).toThrow(
+      newError('number format error: "a7891" is NaN in radix 10: a7891')
+    ))
+
+  test('Integer.fromString("7010", 2, { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => Integer.fromString('7010', 2, { strictStringValidation: true })).toThrow(
+      newError('number format error: "7010" is NaN in radix 2: 7010')
+    ))
+
   forEachFromValueScenarios(({ input, expectedOutput }) =>
     test(`Integer.fromValue(${input}) toEqual ${expectedOutput}`, () =>
       expect(Integer.fromValue(input)).toEqual(expectedOutput))
@@ -264,6 +284,35 @@ describe('Integer', () => {
     test(`int(${input}) toEqual ${expectedOutput}`, () =>
       expect(int(input)).toEqual(expectedOutput))
   )
+
+  test('int("7891a", { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => int('7891a', { strictStringValidation: true })).toThrow(
+      newError('number format error: "7891a" is NaN in radix 10: 7891a')
+    ))
+
+  test('int("78a91", { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => int('78a91', { strictStringValidation: true })).toThrow(
+      newError('number format error: "78a91" is NaN in radix 10: 78a91')
+    ))
+
+  test('int("a7891", { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => int('a7891', { strictStringValidation: true })).toThrow(
+      newError('number format error: "a7891" is NaN in radix 10: a7891')
+    ))
+
+  test('int("7891123456789876a", { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => int('7891123456789876a', { strictStringValidation: true })).toThrow(
+      newError('number format error: "a" is NaN in radix 10: 7891123456789876a')
+    ))
+
+  test('int("7891123456789876a") not toThrow invalid character', () =>
+    expect(() => int('7891123456789876a')).not.toThrow())
+
+  test.each(malformedNumbers())('int("%s", { strictStringValidation: true }) toThrow invalid character', (theNumberString) =>
+    expect(() => int(theNumberString, { strictStringValidation: true })).toThrow())
+
+  test.each(wellFormedNumbersAndRadix())('Integer.fromString("%s", %n, { strictStringValidation: true }) not toThrown', (theNumberString, radix) =>
+    expect(() => Integer.fromString(theNumberString, radix, { strictStringValidation: true })).not.toThrow())
 
   forEachStaticToNumberScenarios(({ input, expectedOutput }) =>
     test(`Integer.toNumber(${input}) toEqual ${expectedOutput}`, () =>
@@ -1043,6 +1092,79 @@ function forEachStaticInSafeRangeScenarios(
     v('99999191919191919191', false),
     v({ low: 99999999181818811818, high: 191919111111991919 }, false)
   ].forEach(func)
+}
+
+function malformedNumbers (): string[] {
+  return [
+    '7a',
+    '7891123a',
+    '78911234a',
+    '789112345a',
+    '7891123456a',
+    '7891123456789876a',
+    '78911234567898765a',
+    '789112345678987654a',
+    '78911234567898765a2',
+    '7891123456789876a25',
+    '789112345678987a256',
+    '78911234567898a2567',
+    '7891123456789a25678',
+    '789112345678a256789',
+    '78911234567a2567898',
+    '7891123456a25678987',
+    '789112345a256789876',
+    '78911234a2567898765',
+    '7891123a25678987654',
+    '7891123ab2567898765',
+    '78911234ab256789876',
+    '789112345ab25678987',
+    '7891123456ab2567898',
+    '78911234567ab256789',
+    '78911234567abc25678',
+    '78911234567abcd2567',
+    '78911234567abcde256',
+    '78911234567abcdef25',
+    '78911234567abcdefg2',
+    '7891123456abcdefgh1',
+    '789112345abcdefgh12',
+    '78911234abcdefgh123',
+    '7891123abcdefgh1234',
+    '789112abcdefghij123',
+    '7kkkkabcdefghijklmn',
+    '7kkkkabcdefg12345mn',
+    '7kkkkabcdefg123456n',
+    '7kkkkab22efg123456n',
+    '7kkkkab22efg12345mn',
+    '7kkkkab223fg12345mn',
+    'kkkkk11223fg12345mn',
+    'kkkkk11223fg123456n',
+    'kkkkk11223fg1234567',
+    'kkkkk11223451234567',
+    'kkk111gkk3451234567',
+    'kkk111gkkkk51234567',
+    'kkk111gkkkkk123kk67',
+    'kkkk234',
+    'kkkk2345',
+    'kkkk23456',
+    'kkkk234567',
+    'kkkk2345679kk',
+    'kkkk2345679kkkkkk',
+    'kkk234567',
+    'kkk2345679',
+    'kk2345679',
+    'kkkkkkkkkkkkkkkkkkk',
+  ]
+}
+
+function wellFormedNumbersAndRadix (): [string, number][] {
+  return [
+    ['01', 2],
+    ['012', 3],
+    ['0123', 4],
+    ['0123456789', 10],
+    ['0123456789ab', 12],
+    ['0123456789abcde', 16],
+  ]
 }
 
 interface AssertionPair<I, O> {
