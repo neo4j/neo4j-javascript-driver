@@ -262,7 +262,8 @@ export function packDateTime (value, packer) {
      hour: 'numeric',
      minute: 'numeric',
      second: 'numeric',
-     hour12: false
+     hour12: false,
+     era: 'narrow'
    })
  
    const l = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
@@ -278,12 +279,19 @@ export function packDateTime (value, packer) {
    const formattedUtcParts = formatter.formatToParts(utc)
  
    const localDateTime = formattedUtcParts.reduce((obj, currentValue) => {
-     if (currentValue.type !== 'literal') {
+    if (currentValue.type === 'era') {
+      obj.adjustEra =
+        currentValue.value.toLocaleUpperCase() === 'B'
+          ? year => year.subtract(1).negate() // 1BC equals to year 0 in astronomical year numbering
+          : year => year
+    } else if (currentValue.type !== 'literal') {
        obj[currentValue.type] = int(currentValue.value)
      }
      return obj
    }, {})
  
+   localDateTime.year = localDateTime.adjustEra(localDateTime.year)
+
    const epochInTimeZone = localDateTimeToEpochSecond(
      localDateTime.year,
      localDateTime.month,
