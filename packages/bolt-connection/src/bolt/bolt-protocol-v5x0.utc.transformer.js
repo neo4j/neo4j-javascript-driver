@@ -30,6 +30,7 @@ import v4x4 from './bolt-protocol-v4x4.transformer'
 import {
   epochSecondAndNanoToLocalDateTime
 } from './temporal-factory'
+import { identity } from '../lang/functional'
 
 const {
   temporalUtil: {
@@ -89,8 +90,8 @@ function createDateTimeWithZoneIdTransformer (config, logger) {
 
       if (value.timeZoneOffsetSeconds == null) {
         logger.warn('DateTime objects without "timeZoneOffsetSeconds" property ' +
-        'are prune to bugs related to ambiguous times. For instance, ' +
-        '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
+          'are prune to bugs related to ambiguous times. For instance, ' +
+          '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
       }
       const utc = epochSecond.subtract(offset)
 
@@ -167,7 +168,8 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
     hour: 'numeric',
     minute: 'numeric',
     second: 'numeric',
-    hour12: false
+    hour12: false,
+    era: 'narrow'
   })
 
   const l = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
@@ -183,11 +185,18 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
   const formattedUtcParts = formatter.formatToParts(utc)
 
   const localDateTime = formattedUtcParts.reduce((obj, currentValue) => {
-    if (currentValue.type !== 'literal') {
+    if (currentValue.type === 'era') {
+      obj.adjustEra =
+        currentValue.value.toLocaleUpperCase() === 'B'
+          ? year => year.subtract(1).negate() // 1BC equals to year 0 in astronomical year numbering
+          : identity
+    } else if (currentValue.type !== 'literal') {
       obj[currentValue.type] = int(currentValue.value)
     }
     return obj
   }, {})
+
+  localDateTime.year = localDateTime.adjustEra(localDateTime.year)
 
   const epochInTimeZone = localDateTimeToEpochSecond(
     localDateTime.year,

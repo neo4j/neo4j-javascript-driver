@@ -834,6 +834,18 @@ describe('#unit BoltProtocolV4x4', () => {
         [
           'DateTimeWithZoneId / Sao Paulo just 1 after turn winter time',
           new DateTime(2019, 2, 18, 1, 0, 0, 183_000_000, undefined, 'America/Sao_Paulo')
+        ],
+        [
+          'DateWithWithZoneId / Berlin before common era',
+          new DateTime(-2020, 6, 15, 4, 30, 0, 183_000_000, undefined, 'Europe/Berlin')
+        ],
+        [
+          'DateWithWithZoneId / Max Date',
+          new DateTime(99_999, 12, 31, 23, 59, 59, 999_999_999, undefined, 'Pacific/Kiritimati')
+        ],
+        [
+          'DateWithWithZoneId / Min Date',
+          new DateTime(-99_999, 12, 31, 23, 59, 59, 999_999_999, undefined, 'Pacific/Samoa')
         ]
       ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
         const packable = protocol.packable(object)
