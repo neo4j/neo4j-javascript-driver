@@ -527,6 +527,18 @@ describe('#unit BoltProtocolV5x0', () => {
       [
         'DateTimeWithZoneId / Istanbul',
         new DateTime(2020, 6, 15, 4, 30, 0, 183_000_000, undefined, 'Pacific/Honolulu')
+      ],
+      [
+        'DateWithWithZoneId / Berlin before common era',
+        new DateTime(-2020, 6, 15, 4, 30, 0, 183_000_000, undefined, 'Europe/Berlin')
+      ],
+      [
+        'DateWithWithZoneId / Max Date',
+        new DateTime(99_999, 12, 31, 23, 59, 59, 999_999_999, undefined, 'Pacific/Kiritimati')
+      ],
+      [
+        'DateWithWithZoneId / Min Date',
+        new DateTime(-99_999, 12, 31, 23, 59, 59, 999_999_999, undefined, 'Pacific/Samoa')
       ]
     ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
       const buffer = alloc(256)
