@@ -957,6 +957,20 @@ class Integer {
 }
 
 /**
+ * @private
+ * @param num
+ * @param radix
+ * @param minSize
+ * @returns {string}
+ */
+function _convertNumberToString (num: number, radix: number, minSize: number): string {
+  const theNumberString = num.toString(radix)
+  const paddingLength = Math.max(minSize - theNumberString.length, 0)
+  const padding = '0'.repeat(paddingLength)
+  return `${padding}${theNumberString}`
+}
+
+/**
  *
  * @private
  * @param theString
@@ -967,7 +981,7 @@ class Integer {
 function _isValidNumberFromString (theString: string, theNumber: number, radix: number): boolean {
   return !Number.isNaN(theString) &&
     !Number.isNaN(theNumber) &&
-    theNumber.toString(radix).toLocaleLowerCase() === theString.toLocaleLowerCase()
+    _convertNumberToString(theNumber, radix, theString.length) === theString.toLowerCase()
 }
 
 type Integerable =
