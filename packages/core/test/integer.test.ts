@@ -256,6 +256,26 @@ describe('Integer', () => {
       newError('number format error: interior "-" character: 123-2')
     ))
 
+  test('Integer.fromString("7891a", undefined, { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => Integer.fromString('7891a', undefined, { strictStringValidation: true })).toThrow(
+      newError('number format error: "7891a" is NaN in radix 10: 7891a')
+    ))
+
+  test('Integer.fromString("78a91", undefined, { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => Integer.fromString('78a91', undefined, { strictStringValidation: true })).toThrow(
+      newError('number format error: "78a91" is NaN in radix 10: 78a91')
+    ))
+
+  test('Integer.fromString("a7891", undefined, { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => Integer.fromString('a7891', undefined, { strictStringValidation: true })).toThrow(
+      newError('number format error: "a7891" is NaN in radix 10: a7891')
+    ))
+
+  test('Integer.fromString("7010", 2, { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => Integer.fromString('7010', 2, { strictStringValidation: true })).toThrow(
+      newError('number format error: "7010" is NaN in radix 2: 7010')
+    ))
+
   forEachFromValueScenarios(({ input, expectedOutput }) =>
     test(`Integer.fromValue(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(Integer.fromValue(input)).toEqual(expectedOutput))
@@ -265,6 +285,29 @@ describe('Integer', () => {
     test(`int(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>
       expect(int(input)).toEqual(expectedOutput))
   )
+
+  test('int("7891a", { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => int('7891a', { strictStringValidation: true })).toThrow(
+      newError('number format error: "7891a" is NaN in radix 10: 7891a')
+    ))
+
+  test('int("78a91", { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => int('78a91', { strictStringValidation: true })).toThrow(
+      newError('number format error: "78a91" is NaN in radix 10: 78a91')
+    ))
+
+  test('int("a7891", { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => int('a7891', { strictStringValidation: true })).toThrow(
+      newError('number format error: "a7891" is NaN in radix 10: a7891')
+    ))
+
+  test('int("7891123456789876a", { strictStringValidation: true }) toThrow invalid character', () =>
+    expect(() => int('7891123456789876a', { strictStringValidation: true })).toThrow(
+      newError('number format error: "a" is NaN in radix 10: 7891123456789876a')
+    ))
+
+  test('int("7891123456789876a") not toThrow invalid character', () =>
+    expect(() => int('7891123456789876a')).not.toThrow())
 
   forEachStaticToNumberScenarios(({ input, expectedOutput }) =>
     test(`Integer.toNumber(${mayIntegerToString(input)}) toEqual ${expectedOutput}`, () =>

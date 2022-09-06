@@ -833,10 +833,12 @@ class Integer {
    * @access private
    * @param {string} str The textual representation of the Integer
    * @param {number=} radix The radix in which the text is written (2-36), defaults to 10
+   * @param {Object} [opts={}] Configuration options
+   * @param {boolean} [opts.strictStringValidation=false] Enable strict validation generated Integer.
    * @returns {!Integer} The corresponding Integer value
    * @expose
    */
-  static fromString (str: string, radix?: number): Integer {
+  static fromString (str: string, radix?: number, { strictStringValidation }: { strictStringValidation?: boolean} = {}): Integer {
     if (str.length === 0) {
       throw newError('number format error: empty string')
     }
@@ -867,7 +869,13 @@ class Integer {
     let result = Integer.ZERO
     for (let i = 0; i < str.length; i += 8) {
       const size = Math.min(8, str.length - i)
-      const value = parseInt(str.substring(i, i + size), radix)
+      const valueString = str.substring(i, i + size)
+      const value = parseInt(valueString, radix)
+
+      if (strictStringValidation === true && !_isValidNumberFromString(valueString, value, radix)) {
+        throw newError(`number format error: "${valueString}" is NaN in radix ${radix}: ${str}`)
+      }
+
       if (size < 8) {
         const power = Integer.fromNumber(Math.pow(radix, size))
         result = result.multiply(power).add(Integer.fromNumber(value))
@@ -883,10 +891,12 @@ class Integer {
    * Converts the specified value to a Integer.
    * @access private
    * @param {!Integer|number|string|bigint|!{low: number, high: number}} val Value
+   * @param {Object} [opts={}] Configuration options
+   * @param {boolean} [opts.strictStringValidation=false] Enable strict validation generated Integer.
    * @returns {!Integer}
    * @expose
    */
-  static fromValue (val: Integerable): Integer {
+  static fromValue (val: Integerable, opts: { strictStringValidation?: boolean} = {}): Integer {
     if (val /* is compatible */ instanceof Integer) {
       return val
     }
@@ -894,7 +904,7 @@ class Integer {
       return Integer.fromNumber(val)
     }
     if (typeof val === 'string') {
-      return Integer.fromString(val)
+      return Integer.fromString(val, undefined, opts)
     }
     if (typeof val === 'bigint') {
       return Integer.fromString(val.toString())
@@ -944,6 +954,20 @@ class Integer {
   static inSafeRange (val: Integerable): boolean {
     return Integer.fromValue(val).inSafeRange()
   }
+}
+
+/**
+ *
+ * @private
+ * @param theString
+ * @param theNumber
+ * @param radix
+ * @return {boolean} True if valid
+ */
+function _isValidNumberFromString (theString: string, theNumber: number, radix: number): boolean {
+  return !Number.isNaN(theString) &&
+    !Number.isNaN(theNumber) &&
+    theNumber.toString(radix).toLocaleLowerCase() === theString.toLocaleLowerCase()
 }
 
 type Integerable =
@@ -1011,6 +1035,8 @@ const TWO_PWR_24 = Integer.fromInt(TWO_PWR_24_DBL)
  * Cast value to Integer type.
  * @access public
  * @param {Mixed} value - The value to use.
+ * @param {Object} [opts={}] Configuration options
+ * @param {boolean} [opts.strictStringValidation=false] Enable strict validation generated Integer.
  * @return {Integer} - An object of type Integer.
  */
 const int = Integer.fromValue
