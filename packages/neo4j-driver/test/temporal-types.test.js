@@ -1455,6 +1455,11 @@ describe('#integration temporal-types', () => {
     expect(records.length).toEqual(1)
 
     const receivedValue = records[0].get(0)
+    // Amend test for ignore timeZoneOffsetInSeconds returned by the
+    // new servers in ZonedDateTime with the utc fix
+    if (value.timeZoneId != null && receivedValue.timeZoneOffsetSeconds != null) {
+      receivedValue.timeZoneOffsetInSeconds = undefined
+    }
     expect(receivedValue).toEqual(value)
   }
 
