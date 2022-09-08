@@ -813,6 +813,10 @@ describe('#unit BoltProtocolV4x3', () => {
         [
           'DateWithWithZoneId / Min Date',
           new DateTime(-99_999, 12, 31, 23, 59, 59, 999_999_999, undefined, 'Pacific/Samoa')
+        ],
+        [
+          'DateWithWithZoneId / Ambiguous date between 00 and 99',
+          new DateTime(50, 12, 31, 23, 59, 59, 999_999_999, undefined, 'Pacific/Samoa')
         ]
       ])('should pack and unpack DateTimeWithZoneId and without offset (%s)', (_, object) => {
         const packable = protocol.packable(object)
