@@ -35,8 +35,7 @@ const LOCKS_TERMINATED_ERROR =
   'Neo.TransientError.Transaction.LockClientStopped'
 const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError'
 
-// Not exactly integration tests but annoyingly slow for being a unit tests.
-describe('#integration TransactionExecutor', () => {
+describe('#unit TransactionExecutor', () => {
   it('should retry until database error happens', async () => {
     await testNoRetryOnUnknownError(
       [
