@@ -1439,7 +1439,24 @@ describe('#integration temporal-types', () => {
       expect(records.length).toEqual(1)
 
       const value = records[0].get(0)
-      expect(value).toEqual(expectedValue)
+
+      if (
+        expectedValue.timeZoneId != null &&
+        value.timeZoneOffsetSeconds != null &&
+        neo4j.isDateTime(value) &&
+        neo4j.isDateTime(expectedValue)) {
+        expect(value).toEqual(jasmine.objectContaining({
+          year: expectedValue.year,
+          month: expectedValue.month,
+          day: expectedValue.day,
+          hour: expectedValue.hour,
+          second: expectedValue.second,
+          nanosecond: expectedValue.nanosecond,
+          timeZoneId: expectedValue.timeZoneId
+        }))
+      } else {
+        expect(value).toEqual(expectedValue)
+      }
     } finally {
       await session.close()
     }
@@ -1457,10 +1474,23 @@ describe('#integration temporal-types', () => {
     const receivedValue = records[0].get(0)
     // Amend test to ignore timeZoneOffsetInSeconds returned by the
     // new servers in ZonedDateTime with the utc fix
-    if (value.timeZoneId != null && receivedValue.timeZoneOffsetSeconds != null) {
-      receivedValue.timeZoneOffsetInSeconds = undefined
+    if (
+      value.timeZoneId != null &&
+        receivedValue.timeZoneOffsetSeconds != null &&
+        neo4j.isDateTime(value) &&
+        neo4j.isDateTime(receivedValue)) {
+      expect(receivedValue).toEqual(jasmine.objectContaining({
+        year: value.year,
+        month: value.month,
+        day: value.day,
+        hour: value.hour,
+        second: value.second,
+        nanosecond: value.nanosecond,
+        timeZoneId: value.timeZoneId
+      }))
+    } else {
+      expect(receivedValue).toEqual(value)
     }
-    expect(receivedValue).toEqual(value)
   }
 
   async function testDurationToString (values) {

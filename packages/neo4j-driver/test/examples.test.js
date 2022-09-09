@@ -708,7 +708,7 @@ describe('#integration examples', () => {
   it('service unavailable example', done => {
     const console = consoleOverride
     const consoleLoggedMsg = consoleOverridePromise
-    const uri = `bolt://${sharedNeo4j.hostname}:7688` // wrong port
+    const uri = `bolt://${sharedNeo4j.hostname}:7686` // wrong port
     const password = 'wrongPassword'
 
     // tag::service-unavailable[]

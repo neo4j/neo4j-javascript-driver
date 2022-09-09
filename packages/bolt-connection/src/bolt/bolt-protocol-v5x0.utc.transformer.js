@@ -172,22 +172,17 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
     era: 'narrow'
   })
 
-  const l = epochSecondAndNanoToLocalDateTime(epochSecond, nano)
-  const utc = Date.UTC(
-    int(l.year).toNumber(),
-    int(l.month).toNumber() - 1,
-    int(l.day).toNumber(),
-    int(l.hour).toNumber(),
-    int(l.minute).toNumber(),
-    int(l.second).toNumber()
-  )
+  const utc = int(epochSecond)
+    .multiply(1000)
+    .add(int(nano).div(1_000_000))
+    .toNumber()
 
   const formattedUtcParts = formatter.formatToParts(utc)
 
   const localDateTime = formattedUtcParts.reduce((obj, currentValue) => {
     if (currentValue.type === 'era') {
       obj.adjustEra =
-        currentValue.value.toLocaleUpperCase() === 'B'
+        currentValue.value.toUpperCase() === 'B'
           ? year => year.subtract(1).negate() // 1BC equals to year 0 in astronomical year numbering
           : identity
     } else if (currentValue.type !== 'literal') {
