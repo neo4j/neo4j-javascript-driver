@@ -65,7 +65,7 @@ describe('#unit-rx retrylogic', () => {
       verifyNoRetry(
         newError(
           'transaction terminated',
-          'Neo.TransientError.Transaction.Terminated'
+          'Neo.ClientError.Transaction.Terminated'
         )
       )
     })
@@ -74,7 +74,7 @@ describe('#unit-rx retrylogic', () => {
       verifyNoRetry(
         newError(
           'lock client stopped',
-          'Neo.TransientError.Transaction.LockClientStopped'
+          'Neo.ClientError.Transaction.LockClientStopped'
         )
       )
     })
