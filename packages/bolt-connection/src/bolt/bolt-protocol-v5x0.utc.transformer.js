@@ -182,7 +182,7 @@ function getTimeInZoneId (timeZoneId, epochSecond, nano) {
   const localDateTime = formattedUtcParts.reduce((obj, currentValue) => {
     if (currentValue.type === 'era') {
       obj.adjustEra =
-        currentValue.value.toLocaleUpperCase() === 'B'
+        currentValue.value.toUpperCase() === 'B'
           ? year => year.subtract(1).negate() // 1BC equals to year 0 in astronomical year numbering
           : identity
     } else if (currentValue.type !== 'literal') {
