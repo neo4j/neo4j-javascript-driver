@@ -292,16 +292,18 @@ class Pool {
 
   async _purgeKey (key) {
     const pool = this._pools[key]
+    const destructionList = []
     if (pool) {
       while (pool.length) {
         const resource = pool.pop()
         if (this._removeIdleObserver) {
           this._removeIdleObserver(resource)
         }
-        await this._destroy(resource)
+        destructionList.push(this._destroy(resource))
       }
       pool.close()
       delete this._pools[key]
+      await Promise.all(destructionList)
     }
   }
 
