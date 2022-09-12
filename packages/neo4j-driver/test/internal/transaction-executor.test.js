@@ -30,9 +30,9 @@ const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = err
 const TRANSIENT_ERROR_1 = 'Neo.TransientError.Transaction.DeadlockDetected'
 const TRANSIENT_ERROR_2 = 'Neo.TransientError.Network.CommunicationError'
 const UNKNOWN_ERROR = 'Neo.DatabaseError.General.UnknownError'
-const TX_TERMINATED_ERROR = 'Neo.TransientError.Transaction.Terminated'
+const TX_TERMINATED_ERROR = 'Neo.ClientError.Transaction.Terminated'
 const LOCKS_TERMINATED_ERROR =
-  'Neo.TransientError.Transaction.LockClientStopped'
+  'Neo.ClientError.Transaction.LockClientStopped'
 const OOM_ERROR = 'Neo.DatabaseError.General.OutOfMemoryError'
 
 describe('#unit TransactionExecutor', () => {
