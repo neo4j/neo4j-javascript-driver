@@ -300,16 +300,18 @@ class Pool {
   async _purgeKey (key) {
     const pool = this._pools[key] || []
     const poolState = this._poolState[key] || new PoolState()
+    const destructionList = []
     while (pool.length) {
       const resource = pool.pop()
       if (this._removeIdleObserver) {
         this._removeIdleObserver(resource)
       }
-      await this._destroy(resource)
+      destructionList.push(this._destroy(resource))
     }
     poolState.close()
     delete this._pools[key]
     delete this._poolState[key]
+    await Promise.all(destructionList)
   }
 
   _processPendingAcquireRequests (address) {

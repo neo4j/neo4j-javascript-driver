@@ -923,6 +923,43 @@ describe('#unit Pool', () => {
     expect(resource1.observer).toBeFalsy()
     expect(resource2.observer).toBeFalsy()
   })
+
+  it('should purge resources in parallel', async () => {
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    let resourceCount = 0
+    const resourcesReleased = []
+    let resolveRelease 
+    const releasePromise = new Promise((resolve) => {
+      resolveRelease = resolve
+    })
+
+    const pool = new Pool({
+      create: (server, release) => 
+        Promise.resolve(new Resource(server, resourceCount++, release)),
+      destroy: res => {
+        resourcesReleased.push(res)
+        resourceCount--
+        // Only destroy when the last resource
+        // get destroyed
+        if (resourceCount === 0) {
+          resolveRelease()
+        }
+        return releasePromise
+      },
+      validate: res => true,
+    })
+
+    const resource1 = await pool.acquire(address)
+    const resource2 = await pool.acquire(address)
+    await resource1.close()
+    await resource2.close()
+
+    await pool.purge(address)
+
+    expect(resourcesReleased).toEqual([
+      resource2, resource1
+    ])
+  })
 })
 
 function expectNoPendingAcquisitionRequests (pool) {
