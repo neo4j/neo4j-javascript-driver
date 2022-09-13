@@ -354,7 +354,7 @@ describe('#integration temporal-types', () => {
     await testSendAndReceiveRandomTemporalValues(() => randomLocalDateTime())
   }, 60000)
 
-  it('should send and receive random LocalDateTime', async () => {
+  it('should send and receive array of random LocalDateTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
