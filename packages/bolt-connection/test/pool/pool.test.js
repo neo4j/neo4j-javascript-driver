@@ -878,7 +878,7 @@ describe('#unit Pool', () => {
     expect(resource2.observer).toBeFalsy()
   })
 
-  it('should thrown aquisition timeout exception if resource takes longer to be created', async () => {
+  it('should thrown acquisition timeout exception if resource takes longer to be created', async () => {
     const address = ServerAddress.fromUrl('bolt://localhost:7687')
     const acquisitionTimeout = 1000
     let counter = 0
@@ -910,6 +910,43 @@ describe('#unit Pool', () => {
       expect(numberOfIdleResourceAfterResourceGetCreated).toEqual(1)
       expect(counter).toEqual(1)
     }
+  })
+
+  it('should purge resources in parallel', async () => {
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    let resourceCount = 0
+    const resourcesReleased = []
+    let resolveRelease
+    const releasePromise = new Promise((resolve) => {
+      resolveRelease = resolve
+    })
+
+    const pool = new Pool({
+      create: (server, release) =>
+        Promise.resolve(new Resource(server, resourceCount++, release)),
+      destroy: res => {
+        resourcesReleased.push(res)
+        resourceCount--
+        // Only destroy when the last resource
+        // get destroyed
+        if (resourceCount === 0) {
+          resolveRelease()
+        }
+        return releasePromise
+      },
+      validate: res => true
+    })
+
+    const resource1 = await pool.acquire(address)
+    const resource2 = await pool.acquire(address)
+    await resource1.close()
+    await resource2.close()
+
+    await pool.purge(address)
+
+    expect(resourcesReleased).toEqual([
+      resource2, resource1
+    ])
   })
 })
 
