@@ -588,10 +588,10 @@ describe('#integration temporal-types', () => {
   }, 60000)
 
   it('should convert Date to ISO string', () => {
-    expect(date(2015, 10, 12).toString()).toEqual('2015-10-12')
-    expect(date(881, 1, 1).toString()).toEqual('0881-01-01')
-    expect(date(-999, 12, 24).toString()).toEqual('-0999-12-24')
-    expect(date(-9, 1, 1).toString()).toEqual('-0009-01-01')
+    expect(date(2015, 10, 12).toString()).toEqual('+002015-10-12')
+    expect(date(881, 1, 1).toString()).toEqual('+000881-01-01')
+    expect(date(-999, 12, 24).toString()).toEqual('-000999-12-24')
+    expect(date(-9, 1, 1).toString()).toEqual('-000009-01-01')
   }, 60000)
 
   it('should convert LocalDateTime to ISO string', () => {

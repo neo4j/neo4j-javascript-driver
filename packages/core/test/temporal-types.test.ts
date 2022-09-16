@@ -19,6 +19,7 @@
 
 import { StandardDate } from '../src/graph-types'
 import { LocalDateTime, Date, DateTime } from '../src/temporal-types'
+import fc from 'fast-check'
 
 describe('Date', () => {
   describe('.toStandardDate()', () => {
@@ -33,15 +34,33 @@ describe('Date', () => {
     })
 
     it('should be the reverse operation of fromStandardDate but losing time information', () => {
-      const standardDate = new global.Date()
+      fc.assert(
+        fc.property(fc.date(), (standardDate) => {
+          // @ts-expect-error
+          if (isNaN(standardDate)) {
+            // Should not create from a non-valid date.
+            expect(() => Date.fromStandardDate(standardDate)).toThrow(TypeError)
+            return
+          }
 
-      const date = Date.fromStandardDate(standardDate)
-      const receivedDate = date.toStandardDate()
+          const date = Date.fromStandardDate(standardDate)
+          const receivedDate = date.toStandardDate()
 
-      // Setting 00:00:00:000 UTC
-      standardDate.setHours(0, -1 * standardDate.getTimezoneOffset(), 0, 0)
+          const hour = standardDate.setHours(0, -1 * receivedDate.getTimezoneOffset())
 
-      expect(receivedDate).toEqual(standardDate)
+          // In some situations, the setHours result in a NaN hour.
+          // In this case, the test should be discarded
+          if (isNaN(hour)) {
+            return
+          }
+
+          expect(receivedDate.getFullYear()).toEqual(standardDate.getFullYear())
+          expect(receivedDate.getMonth()).toEqual(standardDate.getMonth())
+          expect(receivedDate.getDate()).toEqual(standardDate.getDate())
+          expect(receivedDate.getHours()).toEqual(standardDate.getHours())
+          expect(receivedDate.getMinutes()).toEqual(standardDate.getMinutes())
+        })
+      )
     })
   })
 })
@@ -63,12 +82,14 @@ describe('LocalDateTime', () => {
     })
 
     it('should be the reverse operation of fromStandardDate', () => {
-      const date = new global.Date()
+      fc.assert(
+        fc.property(fc.date(), (date) => {
+          const localDatetime = LocalDateTime.fromStandardDate(date)
+          const receivedDate = localDatetime.toStandardDate()
 
-      const localDatetime = LocalDateTime.fromStandardDate(date)
-      const receivedDate = localDatetime.toStandardDate()
-
-      expect(receivedDate).toEqual(date)
+          expect(receivedDate).toEqual(date)
+        })
+      )
     })
   })
 })
@@ -135,12 +156,14 @@ describe('DateTime', () => {
     })
 
     it('should be the reverse operation of fromStandardDate', () => {
-      const date = new global.Date()
+      fc.assert(
+        fc.property(fc.date(), (date) => {
+          const datetime = DateTime.fromStandardDate(date)
+          const receivedDate = datetime.toStandardDate()
 
-      const datetime = DateTime.fromStandardDate(date)
-      const receivedDate = datetime.toStandardDate()
-
-      expect(receivedDate).toEqual(date)
+          expect(receivedDate).toEqual(date)
+        })
+      )
     })
   })
 })
