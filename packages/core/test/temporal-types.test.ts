@@ -21,6 +21,10 @@ import { StandardDate } from '../src/graph-types'
 import { LocalDateTime, Date, DateTime } from '../src/temporal-types'
 import fc from 'fast-check'
 
+const MIN_UTC_IN_MS = -8_640_000_000_000_000
+const MAX_UTC_IN_MS = 8_640_000_000_000_000
+const ONE_DAY_IN_MS = 86_400_000
+
 describe('Date', () => {
   describe('.toStandardDate()', () => {
     it('should convert to a standard date', () => {
@@ -35,31 +39,24 @@ describe('Date', () => {
 
     it('should be the reverse operation of fromStandardDate but losing time information', () => {
       fc.assert(
-        fc.property(fc.date(), (standardDate) => {
-          // @ts-expect-error
-          if (isNaN(standardDate)) {
-            // Should not create from a non-valid date.
-            expect(() => Date.fromStandardDate(standardDate)).toThrow(TypeError)
-            return
-          }
+        fc.property(
+          fc.date({
+            max: newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
+            min: newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
+          }),
+          standardDate => {
+            const date = Date.fromStandardDate(standardDate)
+            const receivedDate = date.toStandardDate()
 
-          const date = Date.fromStandardDate(standardDate)
-          const receivedDate = date.toStandardDate()
+            const adjustedDateTime = newDate(standardDate)
+            adjustedDateTime.setHours(0, offset(receivedDate))
 
-          const hour = standardDate.setHours(0, -1 * receivedDate.getTimezoneOffset())
-
-          // In some situations, the setHours result in a NaN hour.
-          // In this case, the test should be discarded
-          if (isNaN(hour)) {
-            return
-          }
-
-          expect(receivedDate.getFullYear()).toEqual(standardDate.getFullYear())
-          expect(receivedDate.getMonth()).toEqual(standardDate.getMonth())
-          expect(receivedDate.getDate()).toEqual(standardDate.getDate())
-          expect(receivedDate.getHours()).toEqual(standardDate.getHours())
-          expect(receivedDate.getMinutes()).toEqual(standardDate.getMinutes())
-        })
+            expect(receivedDate.getFullYear()).toEqual(adjustedDateTime.getFullYear())
+            expect(receivedDate.getMonth()).toEqual(adjustedDateTime.getMonth())
+            expect(receivedDate.getDate()).toEqual(adjustedDateTime.getDate())
+            expect(receivedDate.getHours()).toEqual(adjustedDateTime.getHours())
+            expect(receivedDate.getMinutes()).toEqual(adjustedDateTime.getMinutes())
+          })
       )
     })
   })
@@ -178,4 +175,13 @@ describe('DateTime', () => {
  */
 function offset (date: StandardDate): number {
   return date.getTimezoneOffset() * -1
+}
+
+/**
+ * Shortcut for creating a new StandardDate
+ * @param date
+ * @returns {StandardDate} the standard date
+ */
+function newDate (date: string | number | globalThis.Date): StandardDate {
+  return new globalThis.Date(date)
 }
