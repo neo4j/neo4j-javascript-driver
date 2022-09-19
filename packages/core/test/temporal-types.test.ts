@@ -19,6 +19,12 @@
 
 import { StandardDate } from '../src/graph-types'
 import { LocalDateTime, Date, DateTime } from '../src/temporal-types'
+import { temporalUtil } from '../src/internal'
+import fc from 'fast-check'
+
+const MIN_UTC_IN_MS = -8_640_000_000_000_000
+const MAX_UTC_IN_MS = 8_640_000_000_000_000
+const ONE_DAY_IN_MS = 86_400_000
 
 describe('Date', () => {
   describe('.toStandardDate()', () => {
@@ -33,15 +39,26 @@ describe('Date', () => {
     })
 
     it('should be the reverse operation of fromStandardDate but losing time information', () => {
-      const standardDate = new global.Date()
+      fc.assert(
+        fc.property(
+          fc.date({
+            max: temporalUtil.newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
+            min: temporalUtil.newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
+          }),
+          standardDate => {
+            const date = Date.fromStandardDate(standardDate)
+            const receivedDate = date.toStandardDate()
 
-      const date = Date.fromStandardDate(standardDate)
-      const receivedDate = date.toStandardDate()
+            const adjustedDateTime = temporalUtil.newDate(standardDate)
+            adjustedDateTime.setHours(0, offset(receivedDate))
 
-      // Setting 00:00:00:000 UTC
-      standardDate.setHours(0, -1 * standardDate.getTimezoneOffset(), 0, 0)
-
-      expect(receivedDate).toEqual(standardDate)
+            expect(receivedDate.getFullYear()).toEqual(adjustedDateTime.getFullYear())
+            expect(receivedDate.getMonth()).toEqual(adjustedDateTime.getMonth())
+            expect(receivedDate.getDate()).toEqual(adjustedDateTime.getDate())
+            expect(receivedDate.getHours()).toEqual(adjustedDateTime.getHours())
+            expect(receivedDate.getMinutes()).toEqual(adjustedDateTime.getMinutes())
+          })
+      )
     })
   })
 })
@@ -63,12 +80,14 @@ describe('LocalDateTime', () => {
     })
 
     it('should be the reverse operation of fromStandardDate', () => {
-      const date = new global.Date()
+      fc.assert(
+        fc.property(fc.date(), (date) => {
+          const localDatetime = LocalDateTime.fromStandardDate(date)
+          const receivedDate = localDatetime.toStandardDate()
 
-      const localDatetime = LocalDateTime.fromStandardDate(date)
-      const receivedDate = localDatetime.toStandardDate()
-
-      expect(receivedDate).toEqual(date)
+          expect(receivedDate).toEqual(date)
+        })
+      )
     })
   })
 })
@@ -135,12 +154,14 @@ describe('DateTime', () => {
     })
 
     it('should be the reverse operation of fromStandardDate', () => {
-      const date = new global.Date()
+      fc.assert(
+        fc.property(fc.date(), (date) => {
+          const datetime = DateTime.fromStandardDate(date)
+          const receivedDate = datetime.toStandardDate()
 
-      const datetime = DateTime.fromStandardDate(date)
-      const receivedDate = datetime.toStandardDate()
-
-      expect(receivedDate).toEqual(date)
+          expect(receivedDate).toEqual(date)
+        })
+      )
     })
   })
 })

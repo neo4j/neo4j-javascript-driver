@@ -667,16 +667,7 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    * @throws {Error} If the time zone offset is not defined in the object.
    */
   toStandardDate (): StandardDate {
-    if (this.timeZoneOffsetSeconds === undefined) {
-      throw new Error('Requires DateTime created with time zone offset')
-    }
-    return util.isoStringToStandardDate(
-      // the timezone name should be removed from the
-      // string, otherwise the javascript parse doesn't
-      // read the datetime correctly
-      this.toString().replace(
-        this.timeZoneId != null ? `[${this.timeZoneId}]` : '', '')
-    )
+    return util.toStandardDate(this._toUTC())
   }
 
   /**
@@ -702,6 +693,32 @@ export class DateTime<T extends NumberOrInteger = Integer> {
       : ''
 
     return localDateTimeStr + timeOffset + timeZoneStr
+  }
+
+  /**
+   * @private
+   * @returns {number}
+   */
+  private _toUTC (): number {
+    if (this.timeZoneOffsetSeconds === undefined) {
+      throw new Error('Requires DateTime created with time zone offset')
+    }
+    const epochSecond = util.localDateTimeToEpochSecond(
+      this.year,
+      this.month,
+      this.day,
+      this.hour,
+      this.minute,
+      this.second,
+      this.nanosecond
+    )
+
+    const utcSecond = epochSecond.subtract(this.timeZoneOffsetSeconds ?? 0)
+
+    return int(utcSecond)
+      .multiply(1000)
+      .add(int(this.nanosecond).div(1_000_000))
+      .toNumber()
   }
 }
 

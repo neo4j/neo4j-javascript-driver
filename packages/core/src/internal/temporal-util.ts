@@ -288,16 +288,7 @@ export function dateToIsoString (
   month: NumberOrInteger | string,
   day: NumberOrInteger | string
 ): string {
-  year = int(year)
-  const isNegative = year.isNegative()
-  if (isNegative) {
-    year = year.multiply(-1)
-  }
-  let yearString = formatNumber(year, 4)
-  if (isNegative) {
-    yearString = '-' + yearString
-  }
-
+  const yearString = formatYear(year)
   const monthString = formatNumber(month, 2)
   const dayString = formatNumber(day, 2)
   return `${yearString}-${monthString}-${dayString}`
@@ -311,6 +302,25 @@ export function dateToIsoString (
  */
 export function isoStringToStandardDate (isoString: string): Date {
   return new Date(isoString)
+}
+
+/**
+ * Convert the given utc timestamp to a JavaScript Date object
+ *
+ * @param {number} utc Timestamp in UTC
+ * @returns {Date} the date
+ */
+export function toStandardDate (utc: number): Date {
+  return new Date(utc)
+}
+
+/**
+ * Shortcut for creating a new StandardDate
+ * @param date
+ * @returns {Date} the standard date
+ */
+export function newDate (date: string | number | Date): Date {
+  return new Date(date)
 }
 
 /**
@@ -341,11 +351,14 @@ export function totalNanoseconds (
  * @return {number} the time zone offset in seconds.
  */
 export function timeZoneOffsetInSeconds (standardDate: Date): number {
+  const secondsPortion = standardDate.getSeconds() >= standardDate.getUTCSeconds()
+    ? standardDate.getSeconds() - standardDate.getUTCSeconds()
+    : standardDate.getSeconds() - standardDate.getUTCSeconds() + 60
   const offsetInMinutes = standardDate.getTimezoneOffset()
   if (offsetInMinutes === 0) {
-    return 0
+    return 0 + secondsPortion
   }
-  return -1 * offsetInMinutes * SECONDS_PER_MINUTE
+  return -1 * offsetInMinutes * SECONDS_PER_MINUTE + secondsPortion
 }
 
 /**
@@ -577,13 +590,29 @@ function formatNanosecond (value: NumberOrInteger | string): string {
 }
 
 /**
+ *
+ * @param {Integer|number|string} year The year to be formatted
+ * @return {string} formatted year
+ */
+function formatYear (year: NumberOrInteger | string): string {
+  const yearInteger = int(year)
+  if (yearInteger.isNegative() || yearInteger.greaterThan(9999)) {
+    return formatNumber(yearInteger, 6, { usePositiveSign: true })
+  }
+  return formatNumber(yearInteger, 4)
+}
+
+/**
  * @param {Integer|number|string} num the number to format.
  * @param {number} [stringLength=undefined] the string length to left-pad to.
  * @return {string} formatted and possibly left-padded number as string.
  */
 function formatNumber (
   num: NumberOrInteger | string,
-  stringLength?: number
+  stringLength?: number,
+  params?: {
+    usePositiveSign?: boolean
+  }
 ): string {
   num = int(num)
   const isNegative = num.isNegative()
@@ -598,7 +627,12 @@ function formatNumber (
       numString = '0' + numString
     }
   }
-  return isNegative ? '-' + numString : numString
+  if (isNegative) {
+    return '-' + numString
+  } else if (params?.usePositiveSign === true) {
+    return '+' + numString
+  }
+  return numString
 }
 
 function add (x: NumberOrInteger, y: number): NumberOrInteger {
