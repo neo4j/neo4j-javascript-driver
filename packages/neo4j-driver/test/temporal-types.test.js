@@ -588,31 +588,31 @@ describe('#integration temporal-types', () => {
   }, 60000)
 
   it('should convert Date to ISO string', () => {
-    expect(date(2015, 10, 12).toString()).toEqual('+002015-10-12')
-    expect(date(881, 1, 1).toString()).toEqual('+000881-01-01')
+    expect(date(2015, 10, 12).toString()).toEqual('2015-10-12')
+    expect(date(881, 1, 1).toString()).toEqual('0881-01-01')
     expect(date(-999, 12, 24).toString()).toEqual('-000999-12-24')
     expect(date(-9, 1, 1).toString()).toEqual('-000009-01-01')
   }, 60000)
 
   it('should convert LocalDateTime to ISO string', () => {
     expect(localDateTime(1992, 11, 8, 9, 42, 17, 22).toString()).toEqual(
-      '+001992-11-08T09:42:17.000000022'
+      '1992-11-08T09:42:17.000000022'
     )
     expect(localDateTime(-10, 7, 15, 8, 15, 33, 500).toString()).toEqual(
       '-000010-07-15T08:15:33.000000500'
     )
     expect(localDateTime(0, 1, 1, 0, 0, 0, 1).toString()).toEqual(
-      '+000000-01-01T00:00:00.000000001'
+      '0000-01-01T00:00:00.000000001'
     )
   }, 60000)
 
   it('should convert DateTime with time zone offset to ISO string', () => {
     expect(
       dateTimeWithZoneOffset(2025, 9, 17, 23, 22, 21, 999888, 37800).toString()
-    ).toEqual('+002025-09-17T23:22:21.000999888+10:30')
+    ).toEqual('2025-09-17T23:22:21.000999888+10:30')
     expect(
       dateTimeWithZoneOffset(1, 2, 3, 4, 5, 6, 7, -49376).toString()
-    ).toEqual('+000001-02-03T04:05:06.000000007-13:42:56')
+    ).toEqual('0001-02-03T04:05:06.000000007-13:42:56')
     expect(
       dateTimeWithZoneOffset(-3, 3, 9, 9, 33, 27, 999000, 15300).toString()
     ).toEqual('-000003-03-09T09:33:27.000999000+04:15')
@@ -630,7 +630,7 @@ describe('#integration temporal-types', () => {
         15000000,
         'Europe/Zaporozhye'
       ).toString()
-    ).toEqual('+001949-10-07T06:10:15.015000000[Europe/Zaporozhye]')
+    ).toEqual('1949-10-07T06:10:15.015000000[Europe/Zaporozhye]')
     expect(
       dateTimeWithZoneId(
         -30455,

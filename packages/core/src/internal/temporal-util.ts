@@ -288,7 +288,7 @@ export function dateToIsoString (
   month: NumberOrInteger | string,
   day: NumberOrInteger | string
 ): string {
-  const yearString = formatNumber(year, 6, { usePositiveSign: true })
+  const yearString = formatYear(year)
   const monthString = formatNumber(month, 2)
   const dayString = formatNumber(day, 2)
   return `${yearString}-${monthString}-${dayString}`
@@ -578,6 +578,19 @@ function formatSecondsAndNanosecondsForDuration (
 function formatNanosecond (value: NumberOrInteger | string): string {
   value = int(value)
   return value.equals(0) ? '' : '.' + formatNumber(value, 9)
+}
+
+/**
+ *
+ * @param {Integer|number|string} year The year to be formatted
+ * @return {string} formatted year
+ */
+function formatYear (year: NumberOrInteger | string): string {
+  const yearInteger = int(year)
+  if (yearInteger.isNegative() || yearInteger.greaterThan(9999)) {
+    return formatNumber(yearInteger, 6, { usePositiveSign: true })
+  }
+  return formatNumber(yearInteger, 4)
 }
 
 /**
