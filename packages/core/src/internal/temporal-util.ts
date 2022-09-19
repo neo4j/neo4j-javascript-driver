@@ -315,6 +315,15 @@ export function toStandardDate (utc: number): Date {
 }
 
 /**
+ * Shortcut for creating a new StandardDate
+ * @param date
+ * @returns {Date} the standard date
+ */
+export function newDate (date: string | number | Date): Date {
+  return new Date(date)
+}
+
+/**
  * Get the total number of nanoseconds from the milliseconds of the given standard JavaScript date and optional nanosecond part.
  * @param {global.Date} standardDate the standard JavaScript date.
  * @param {Integer|number|bigint|undefined} nanoseconds the optional number of nanoseconds.

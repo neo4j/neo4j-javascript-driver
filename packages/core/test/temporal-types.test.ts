@@ -19,6 +19,7 @@
 
 import { StandardDate } from '../src/graph-types'
 import { LocalDateTime, Date, DateTime } from '../src/temporal-types'
+import { temporalUtil } from '../src/internal'
 import fc from 'fast-check'
 
 const MIN_UTC_IN_MS = -8_640_000_000_000_000
@@ -41,14 +42,14 @@ describe('Date', () => {
       fc.assert(
         fc.property(
           fc.date({
-            max: newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
-            min: newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
+            max: temporalUtil.newDate(MAX_UTC_IN_MS - ONE_DAY_IN_MS),
+            min: temporalUtil.newDate(MIN_UTC_IN_MS + ONE_DAY_IN_MS)
           }),
           standardDate => {
             const date = Date.fromStandardDate(standardDate)
             const receivedDate = date.toStandardDate()
 
-            const adjustedDateTime = newDate(standardDate)
+            const adjustedDateTime = temporalUtil.newDate(standardDate)
             adjustedDateTime.setHours(0, offset(receivedDate))
 
             expect(receivedDate.getFullYear()).toEqual(adjustedDateTime.getFullYear())
@@ -175,13 +176,4 @@ describe('DateTime', () => {
  */
 function offset (date: StandardDate): number {
   return date.getTimezoneOffset() * -1
-}
-
-/**
- * Shortcut for creating a new StandardDate
- * @param date
- * @returns {StandardDate} the standard date
- */
-function newDate (date: string | number | globalThis.Date): StandardDate {
-  return new globalThis.Date(date)
 }
