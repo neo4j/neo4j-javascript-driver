@@ -381,6 +381,16 @@ export class Date<T extends NumberOrInteger = Integer> {
   }
 
   /**
+   * Serialize date to ISO 8601
+   *
+   * @throws {Error} If the time zone offset is not defined in the object.
+   * @return {string} The ISO string
+   */
+  toJSON (): string {
+    return this.toString()
+  }
+
+  /**
    * @ignore
    */
   toString (): string {
@@ -503,6 +513,16 @@ export class LocalDateTime<T extends NumberOrInteger = Integer> {
    */
   toStandardDate (): StandardDate {
     return util.isoStringToStandardDate(this.toString())
+  }
+
+  /**
+   * Serialize date to ISO 8601
+   *
+   * @throws {Error} If the time zone offset is not defined in the object.
+   * @return {string} The ISO string
+   */
+  toJSON (): string {
+    return this.toString()
   }
 
   /**
@@ -668,6 +688,31 @@ export class DateTime<T extends NumberOrInteger = Integer> {
    */
   toStandardDate (): StandardDate {
     return util.toStandardDate(this._toUTC())
+  }
+
+  /**
+   * Serialize date to ISO 8601
+   *
+   * @throws {Error} If the time zone offset is not defined in the object.
+   * @return {string} The ISO string
+   */
+  toJSON (): string {
+    if (this.timeZoneOffsetSeconds === undefined) {
+      throw new Error('Requires DateTime created with time zone offset')
+    }
+    const localDateTimeStr = localDateTimeToString(
+      this.year,
+      this.month,
+      this.day,
+      this.hour,
+      this.minute,
+      this.second,
+      this.nanosecond
+    )
+
+    const timeOffset = util.timeZoneOffsetToIsoString(this.timeZoneOffsetSeconds)
+
+    return localDateTimeStr + timeOffset
   }
 
   /**
