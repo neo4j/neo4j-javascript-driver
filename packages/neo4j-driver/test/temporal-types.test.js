@@ -551,7 +551,7 @@ describe('#integration temporal-types', () => {
     )
   }, 60000)
 
-  it('should send and receive array of DateTime with zone id', async () => {
+  xit('should send and receive array of DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
