@@ -18,6 +18,12 @@
  */
 import Connection from '../../bolt-connection/src/connection/connection'
 import { json } from 'neo4j-driver-core'
+import timezones from './timezones'
+import fc from 'fast-check'
+
+const MIN_UTC_IN_MS = -8_640_000_000_000_000
+const MAX_UTC_IN_MS = 8_640_000_000_000_000
+const ONE_DAY_IN_MS = 86_400_000
 
 function isClient () {
   return typeof window !== 'undefined' && window.document
@@ -134,11 +140,20 @@ function spyProtocolWrite (protocol, callRealMethod = false) {
   return protocol
 }
 
+function arbitraryTimeZoneId () {
+  return fc.integer({ min: 0, max: timezones.length - 1 })
+    .map(i => timezones[i])
+}
+
 export default {
   isClient,
   isServer,
   fakeStandardDateWithOffset,
   matchers,
   MessageRecordingConnection,
-  spyProtocolWrite
+  spyProtocolWrite,
+  MAX_UTC_IN_MS,
+  MIN_UTC_IN_MS,
+  ONE_DAY_IN_MS,
+  arbitraryTimeZoneId
 }

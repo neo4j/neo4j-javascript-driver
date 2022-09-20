@@ -39,13 +39,15 @@ import {
 
 import { alloc } from '../../src/channel'
 import { structure } from '../../src/packstream'
+import fc from 'fast-check'
 
 const WRITE = 'WRITE'
 
 const {
   txConfig: { TxConfig },
   bookmarks: { Bookmarks },
-  logger: { Logger }
+  logger: { Logger },
+  temporalUtil
 } = internal
 
 describe('#unit BoltProtocolV4x3', () => {
@@ -848,6 +850,84 @@ describe('#unit BoltProtocolV4x3', () => {
             '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
 
         expect(unpackedDateTimeWithoutOffset).toEqual(object)
+      })
+
+      it('should pack and unpack DateTimeWithOffset', () => {
+        fc.assert(
+          fc.property(
+            fc.date({
+              min: temporalUtil.newDate(utils.MIN_UTC_IN_MS + utils.ONE_DAY_IN_MS),
+              max: temporalUtil.newDate(utils.MAX_UTC_IN_MS - utils.ONE_DAY_IN_MS)
+            }),
+            utils.arbitraryTimeZoneId(),
+            (date, timeZoneId) => {
+              const object = new DateTime(
+                date.getUTCFullYear(),
+                date.getUTCMonth() + 1,
+                date.getUTCDate(),
+                date.getUTCHours(),
+                date.getUTCMinutes(),
+                date.getUTCSeconds(),
+                date.getUTCMilliseconds() * 1_000_000,
+                undefined,
+                timeZoneId
+              )
+
+              buffer.reset()
+
+              const packable = protocol.packable(object)
+
+              expect(packable).not.toThrow()
+
+              buffer.reset()
+
+              const unpacked = protocol.unpack(buffer)
+
+              expect(unpacked.timeZoneOffsetSeconds).toBeDefined()
+
+              const unpackedDateTimeWithoutOffset = new DateTime(
+                unpacked.year,
+                unpacked.month,
+                unpacked.day,
+                unpacked.hour,
+                unpacked.minute,
+                unpacked.second,
+                unpacked.nanosecond,
+                undefined,
+                unpacked.timeZoneId
+              )
+
+              expect(loggerFunction)
+                .toBeCalledWith('warn',
+                  'DateTime objects without "timeZoneOffsetSeconds" property ' +
+                  'are prune to bugs related to ambiguous times. For instance, ' +
+                  '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
+
+              expect(unpackedDateTimeWithoutOffset).toEqual(object)
+            })
+        )
+      })
+
+      it('should pack and unpack DateTimeWithZoneIdAndNoOffset', () => {
+        fc.assert(
+          fc.property(fc.date(), date => {
+            const object = DateTime.fromStandardDate(date)
+
+            buffer.reset()
+
+            const packable = protocol.packable(object)
+
+            expect(packable).not.toThrow()
+
+            buffer.reset()
+
+            const unpacked = protocol.unpack(buffer)
+
+            expect(unpacked.timeZoneOffsetSeconds).toBeDefined()
+
+            expect(unpacked).toEqual(object)
+          })
+        )
       })
 
       it.each([
