@@ -141,8 +141,16 @@ function spyProtocolWrite (protocol, callRealMethod = false) {
 }
 
 function arbitraryTimeZoneId () {
-  return fc.integer({ min: 0, max: timezones.length - 1 })
-    .map(i => timezones[i])
+  const validTimeZones = timezones.filter(timeZone => {
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone })
+      return true
+    } catch (e) {
+      return false
+    }
+  })
+  return fc.integer({ min: 0, max: validTimeZones.length - 1 })
+    .map(i => validTimeZones[i])
 }
 
 export default {
