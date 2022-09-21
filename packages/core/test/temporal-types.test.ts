@@ -28,7 +28,7 @@ const ONE_DAY_IN_MS = 86_400_000
 
 describe('Date', () => {
   describe('.toString()', () => {
-    it('should be serialize string which can be loaded by new Date', () => {
+    it('should return a string which can be loaded by new Date', () => {
       fc.assert(
         fc.property(
           fc.date({
@@ -55,7 +55,7 @@ describe('Date', () => {
 
 describe('LocalDateTime', () => {
   describe('.toString()', () => {
-    it('should be serialize string which can be loaded by new Date', () => {
+    it('should return a string which can be loaded by new Date', () => {
       fc.assert(
         fc.property(fc.date(), (date) => {
           const localDatetime = LocalDateTime.fromStandardDate(date)
@@ -70,7 +70,7 @@ describe('LocalDateTime', () => {
 
 describe('DateTime', () => {
   describe('.toString()', () => {
-    it('should be serialize string which can be loaded by new Date', () => {
+    it('should return a string which can be loaded by new Date', () => {
       fc.assert(
         fc.property(fc.date().filter(dt => dt.getSeconds() === dt.getUTCSeconds()), (date) => {
           const datetime = DateTime.fromStandardDate(date)
