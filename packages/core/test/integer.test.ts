@@ -366,8 +366,12 @@ describe('Integer', () => {
     )
   })
 
-  test('int(string) should be reversed by Integer.toString', () => {
-    fc.assert(fc.property(fc.integer().map(num => num.toString()), str => str === int(str).toString()))
+  test('int.toString() should match Integer.toString()', () => {
+    fc.assert(fc.property(fc.integer(), i => i.toString() === int(i).toString()))
+  })
+
+  test('int(string) should match int(Integer)', () => {
+    fc.assert(fc.property(fc.integer(), i => int(i) === int(i.toString())))
   })
 
   test('int(number) should be reversed by Integer.toNumber', () => {
@@ -408,7 +412,7 @@ describe('Integer', () => {
       (a, b, c) => a.multiply(b.subtract(c)).equals(a.multiply(b).subtract(a.multiply(c)))))
   })
 
-  describe('For Same Signal Integers', () => {
+  describe('with same sign', () => {
     test('Integer.greaterThan should return true if a - b is positive', () => {
       fc.assert(fc.property(
         arbitrarySameSignalIntegers(),
@@ -440,7 +444,7 @@ describe('Integer', () => {
     })
   })
 
-  describe('For Different Signal Integers', () => {
+  describe('with different sign', () => {
     test('Integer.greaterThan should return true if a is positive', () => {
       fc.assert(fc.property(
         arbitraryDiffSignalIntegers(),
@@ -1309,12 +1313,12 @@ function arbitraryInteger (): fc.Arbitrary<Integer> {
     .map(({ low, high }) => new Integer(low, high))
 }
 
-function arbitrarySameSignalIntegers (): fc.Arbitrary<{ a: Integer, b: Integer }> {
+function arbitrarySameSignIntegers (): fc.Arbitrary<{ a: Integer, b: Integer }> {
   return fc.record({ a: arbitraryInteger(), b: arbitraryInteger() })
     .map(({ a, b }) => a.isPositive() === b.isPositive() ? { a, b } : { a, b: b.negate() })
 }
 
-function arbitraryDiffSignalIntegers (): fc.Arbitrary<{ a: Integer, b: Integer }> {
+function arbitraryDiffSignIntegers (): fc.Arbitrary<{ a: Integer, b: Integer }> {
   return fc.record({ a: arbitraryInteger(), b: arbitraryInteger() })
     .map(({ a, b }) => a.isPositive() === b.isPositive() ? { a, b: b.negate() } : { a, b })
 }
