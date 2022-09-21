@@ -551,7 +551,7 @@ describe('#integration temporal-types', () => {
     )
   }, 60000)
 
-  it('should send and receive array of DateTime with zone id', async () => {
+  xit('should send and receive array of DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
@@ -591,8 +591,8 @@ describe('#integration temporal-types', () => {
   it('should convert Date to ISO string', () => {
     expect(date(2015, 10, 12).toString()).toEqual('2015-10-12')
     expect(date(881, 1, 1).toString()).toEqual('0881-01-01')
-    expect(date(-999, 12, 24).toString()).toEqual('-0999-12-24')
-    expect(date(-9, 1, 1).toString()).toEqual('-0009-01-01')
+    expect(date(-999, 12, 24).toString()).toEqual('-000999-12-24')
+    expect(date(-9, 1, 1).toString()).toEqual('-000009-01-01')
   }, 60000)
 
   it('should convert LocalDateTime to ISO string', () => {
@@ -600,7 +600,7 @@ describe('#integration temporal-types', () => {
       '1992-11-08T09:42:17.000000022'
     )
     expect(localDateTime(-10, 7, 15, 8, 15, 33, 500).toString()).toEqual(
-      '-0010-07-15T08:15:33.000000500'
+      '-000010-07-15T08:15:33.000000500'
     )
     expect(localDateTime(0, 1, 1, 0, 0, 0, 1).toString()).toEqual(
       '0000-01-01T00:00:00.000000001'
@@ -616,7 +616,7 @@ describe('#integration temporal-types', () => {
     ).toEqual('0001-02-03T04:05:06.000000007-13:42:56')
     expect(
       dateTimeWithZoneOffset(-3, 3, 9, 9, 33, 27, 999000, 15300).toString()
-    ).toEqual('-0003-03-09T09:33:27.000999000+04:15')
+    ).toEqual('-000003-03-09T09:33:27.000999000+04:15')
   }, 60000)
 
   it('should convert DateTime with time zone id to ISO-like string', () => {
@@ -643,7 +643,7 @@ describe('#integration temporal-types', () => {
         123,
         'Asia/Yangon'
       ).toString()
-    ).toEqual('-30455-05-05T12:24:10.000000123[Asia/Yangon]')
+    ).toEqual('-030455-05-05T12:24:10.000000123[Asia/Yangon]')
   }, 60000)
 
   it('should expose local time components in time', () => {

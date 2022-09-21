@@ -91,17 +91,17 @@ describe('#unit temporal-util', () => {
   it('should convert date to ISO string', () => {
     expect(util.dateToIsoString(90, 2, 5)).toEqual('0090-02-05')
     expect(util.dateToIsoString(int(1), 1, int(1))).toEqual('0001-01-01')
-    expect(util.dateToIsoString(-123, int(12), int(23))).toEqual('-0123-12-23')
+    expect(util.dateToIsoString(-123, int(12), int(23))).toEqual('-000123-12-23')
     expect(util.dateToIsoString(int(-999), int(9), int(10))).toEqual(
-      '-0999-09-10'
+      '-000999-09-10'
     )
     expect(util.dateToIsoString(1999, 12, 19)).toEqual('1999-12-19')
     expect(util.dateToIsoString(int(2023), int(8), int(16))).toEqual(
       '2023-08-16'
     )
-    expect(util.dateToIsoString(12345, 12, 31)).toEqual('12345-12-31')
+    expect(util.dateToIsoString(12345, 12, 31)).toEqual('+012345-12-31')
     expect(util.dateToIsoString(int(19191919), int(11), int(30))).toEqual(
-      '19191919-11-30'
+      '+19191919-11-30'
     )
     expect(util.dateToIsoString(-909090, 9, 9)).toEqual('-909090-09-09')
     expect(util.dateToIsoString(int(-888999777), int(7), int(26))).toEqual(
