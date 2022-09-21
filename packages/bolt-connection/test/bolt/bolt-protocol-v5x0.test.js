@@ -22,6 +22,7 @@ import RequestMessage from '../../src/bolt/request-message'
 import { v2, structure } from '../../src/packstream'
 import utils from '../test-utils'
 import { RouteObserver } from '../../src/bolt/stream-observers'
+import fc from 'fast-check'
 import {
   Date,
   DateTime,
@@ -45,7 +46,8 @@ const WRITE = 'WRITE'
 const {
   txConfig: { TxConfig },
   bookmarks: { Bookmarks },
-  logger: { Logger }
+  logger: { Logger },
+  temporalUtil
 } = internal
 
 describe('#unit BoltProtocolV5x0', () => {
@@ -560,6 +562,11 @@ describe('#unit BoltProtocolV5x0', () => {
       const packable = protocol.packable(object)
 
       expect(packable).not.toThrow()
+      expect(loggerFunction)
+        .toBeCalledWith('warn',
+          'DateTime objects without "timeZoneOffsetSeconds" property ' +
+          'are prune to bugs related to ambiguous times. For instance, ' +
+          '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
 
       buffer.reset()
 
@@ -579,13 +586,103 @@ describe('#unit BoltProtocolV5x0', () => {
         unpacked.timeZoneId
       )
 
-      expect(loggerFunction)
-        .toBeCalledWith('warn',
-          'DateTime objects without "timeZoneOffsetSeconds" property ' +
-          'are prune to bugs related to ambiguous times. For instance, ' +
-          '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
-
       expect(unpackedDateTimeWithoutOffset).toEqual(object)
+    })
+
+    it('should pack and unpack DateTimeWithOffset', () => {
+      fc.assert(
+        fc.property(
+          fc.date({
+            min: temporalUtil.newDate(utils.MIN_UTC_IN_MS + utils.ONE_DAY_IN_MS),
+            max: temporalUtil.newDate(utils.MAX_UTC_IN_MS - utils.ONE_DAY_IN_MS)
+          }),
+          fc.integer({ min: 0, max: 999_999 }),
+          utils.arbitraryTimeZoneId(),
+          (date, nanoseconds, timeZoneId) => {
+            const object = new DateTime(
+              date.getUTCFullYear(),
+              date.getUTCMonth() + 1,
+              date.getUTCDate(),
+              date.getUTCHours(),
+              date.getUTCMinutes(),
+              date.getUTCSeconds(),
+              date.getUTCMilliseconds() * 1_000_000 + nanoseconds,
+              undefined,
+              timeZoneId
+            )
+            const buffer = alloc(256)
+            const loggerFunction = jest.fn()
+            const protocol = new BoltProtocolV5x0(
+              new utils.MessageRecordingConnection(),
+              buffer,
+              {
+                disableLosslessIntegers: true
+              },
+              undefined,
+              new Logger('debug', loggerFunction)
+            )
+
+            const packable = protocol.packable(object)
+
+            expect(packable).not.toThrow()
+            expect(loggerFunction)
+              .toBeCalledWith('warn',
+                'DateTime objects without "timeZoneOffsetSeconds" property ' +
+                'are prune to bugs related to ambiguous times. For instance, ' +
+                '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
+
+            buffer.reset()
+
+            const unpacked = protocol.unpack(buffer)
+
+            expect(unpacked.timeZoneOffsetSeconds).toBeDefined()
+
+            const unpackedDateTimeWithoutOffset = new DateTime(
+              unpacked.year,
+              unpacked.month,
+              unpacked.day,
+              unpacked.hour,
+              unpacked.minute,
+              unpacked.second,
+              unpacked.nanosecond,
+              undefined,
+              unpacked.timeZoneId
+            )
+
+            expect(unpackedDateTimeWithoutOffset).toEqual(object)
+          })
+      )
+    })
+
+    it('should pack and unpack DateTimeWithZoneIdAndNoOffset', () => {
+      fc.assert(
+        fc.property(fc.date(), date => {
+          const object = DateTime.fromStandardDate(date)
+          const buffer = alloc(256)
+          const loggerFunction = jest.fn()
+          const protocol = new BoltProtocolV5x0(
+            new utils.MessageRecordingConnection(),
+            buffer,
+            {
+              disableLosslessIntegers: true
+            },
+            undefined,
+            new Logger('debug', loggerFunction)
+          )
+
+          const packable = protocol.packable(object)
+
+          expect(packable).not.toThrow()
+
+          buffer.reset()
+
+          const unpacked = protocol.unpack(buffer)
+
+          expect(unpacked.timeZoneOffsetSeconds).toBeDefined()
+
+          expect(unpacked).toEqual(object)
+        })
+      )
     })
   })
 
