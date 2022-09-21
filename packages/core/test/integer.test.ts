@@ -371,7 +371,7 @@ describe('Integer', () => {
   })
 
   test('int(string) should match int(Integer)', () => {
-    fc.assert(fc.property(fc.integer(), i => int(i) === int(i.toString())))
+    fc.assert(fc.property(fc.integer(), i => int(i).equals(int(i.toString()))))
   })
 
   test('int(number) should be reversed by Integer.toNumber', () => {
@@ -412,34 +412,49 @@ describe('Integer', () => {
       (a, b, c) => a.multiply(b.subtract(c)).equals(a.multiply(b).subtract(a.multiply(c)))))
   })
 
+  test('Integer.add should have 0 as identity', () => {
+    fc.assert(fc.property(arbitraryInteger(), (a) => a.add(0).equals(a)))
+  })
+
+  test('Integer.subtract should have 0 as identity', () => {
+    fc.assert(fc.property(arbitraryInteger(), (a) => a.subtract(0).equals(a)))
+  })
+
+  test('Integer.multiply should have 0 as identity', () => {
+    fc.assert(fc.property(arbitraryInteger(), (a) => a.multiply(1).equals(a)))
+  })
+
+  test('Integer.div should have 0 as identity', () => {
+    fc.assert(fc.property(arbitraryInteger(), (a) => a.div(1).equals(a)))
+  })
+
+  test('Integer.equals should return true if a - b is ZERO', () => {
+    fc.assert(fc.property(arbitraryInteger(), arbitraryInteger(),
+      (a, b) => a.subtract(b).isZero() ? a.equals(b) : !a.equals(b)))
+  })
+
   describe('with same sign', () => {
     test('Integer.greaterThan should return true if a - b is positive', () => {
       fc.assert(fc.property(
-        arbitrarySameSignalIntegers(),
+        arbitrarySameSignIntegers(),
         ({ a, b }) => a.subtract(b).isPositive() ? a.greaterThan(b) : !a.greaterThan(b)))
     })
 
     test('Integer.greaterThanOrEqual should return true if a - b is positive or ZERO', () => {
       fc.assert(fc.property(
-        arbitrarySameSignalIntegers(),
+        arbitrarySameSignIntegers(),
         ({ a, b }) => a.subtract(b).isPositive() || a.subtract(b).isZero() ? a.greaterThanOrEqual(b) : !a.greaterThanOrEqual(b)))
-    })
-
-    test('Integer.equals should return true if a - b is ZERO', () => {
-      fc.assert(fc.property(
-        arbitrarySameSignalIntegers(),
-        ({ a, b }) => a.subtract(b).isZero() ? a.equals(b) : !a.equals(b)))
     })
 
     test('Integer.lessThanOrEqual should return true if a - b is ZERO or negative', () => {
       fc.assert(fc.property(
-        arbitrarySameSignalIntegers(),
+        arbitrarySameSignIntegers(),
         ({ a, b }) => a.subtract(b).isNegative() || a.subtract(b).isZero() ? a.lessThanOrEqual(b) : !a.lessThanOrEqual(b)))
     })
 
     test('Integer.lessThanOrEqual should return true if a - b is ZERO or negative', () => {
       fc.assert(fc.property(
-        arbitrarySameSignalIntegers(),
+        arbitrarySameSignIntegers(),
         ({ a, b }) => a.subtract(b).isNegative() ? a.lessThan(b) : !a.lessThan(b)))
     })
   })
@@ -447,31 +462,25 @@ describe('Integer', () => {
   describe('with different sign', () => {
     test('Integer.greaterThan should return true if a is positive', () => {
       fc.assert(fc.property(
-        arbitraryDiffSignalIntegers(),
+        arbitraryDiffSignIntegers(),
         ({ a, b }) => a.isPositive() ? a.greaterThan(b) : !a.greaterThan(b)))
     })
 
     test('Integer.greaterThanOrEqual should return true if a is positive or ZERO', () => {
       fc.assert(fc.property(
-        arbitraryDiffSignalIntegers(),
+        arbitraryDiffSignIntegers(),
         ({ a, b }) => a.isPositive() || a.isZero() ? a.greaterThanOrEqual(b) : !a.greaterThanOrEqual(b)))
-    })
-
-    test('Integer.equals should return true if a is ZERO and b is ZERO', () => {
-      fc.assert(fc.property(
-        arbitraryDiffSignalIntegers(),
-        ({ a, b }) => a.isZero() && b.isZero() ? a.equals(b) : !a.equals(b)))
     })
 
     test('Integer.lessThanOrEqual should return true if a is ZERO or negative', () => {
       fc.assert(fc.property(
-        arbitraryDiffSignalIntegers(),
+        arbitraryDiffSignIntegers(),
         ({ a, b }) => a.isNegative() || a.isZero() ? a.lessThanOrEqual(b) : !a.lessThanOrEqual(b)))
     })
 
     test('Integer.lessThanOrEqual should return true if a is ZERO or negative', () => {
       fc.assert(fc.property(
-        arbitraryDiffSignalIntegers(),
+        arbitraryDiffSignIntegers(),
         ({ a, b }) => a.isNegative() ? a.lessThan(b) : !a.lessThan(b)))
     })
   })
