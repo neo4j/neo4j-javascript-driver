@@ -562,6 +562,11 @@ describe('#unit BoltProtocolV5x0', () => {
       const packable = protocol.packable(object)
 
       expect(packable).not.toThrow()
+      expect(loggerFunction)
+        .toBeCalledWith('warn',
+          'DateTime objects without "timeZoneOffsetSeconds" property ' +
+          'are prune to bugs related to ambiguous times. For instance, ' +
+          '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
 
       buffer.reset()
 
@@ -581,12 +586,6 @@ describe('#unit BoltProtocolV5x0', () => {
         unpacked.timeZoneId
       )
 
-      expect(loggerFunction)
-        .toBeCalledWith('warn',
-          'DateTime objects without "timeZoneOffsetSeconds" property ' +
-          'are prune to bugs related to ambiguous times. For instance, ' +
-          '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
-
       expect(unpackedDateTimeWithoutOffset).toEqual(object)
     })
 
@@ -597,8 +596,9 @@ describe('#unit BoltProtocolV5x0', () => {
             min: temporalUtil.newDate(utils.MIN_UTC_IN_MS + utils.ONE_DAY_IN_MS),
             max: temporalUtil.newDate(utils.MAX_UTC_IN_MS - utils.ONE_DAY_IN_MS)
           }),
+          fc.integer({ min: 0, max: 999_999 }),
           utils.arbitraryTimeZoneId(),
-          (date, timeZoneId) => {
+          (date, nanoseconds, timeZoneId) => {
             const object = new DateTime(
               date.getUTCFullYear(),
               date.getUTCMonth() + 1,
@@ -606,7 +606,7 @@ describe('#unit BoltProtocolV5x0', () => {
               date.getUTCHours(),
               date.getUTCMinutes(),
               date.getUTCSeconds(),
-              date.getUTCMilliseconds() * 1_000_000,
+              date.getUTCMilliseconds() * 1_000_000 + nanoseconds,
               undefined,
               timeZoneId
             )
@@ -625,6 +625,11 @@ describe('#unit BoltProtocolV5x0', () => {
             const packable = protocol.packable(object)
 
             expect(packable).not.toThrow()
+            expect(loggerFunction)
+              .toBeCalledWith('warn',
+                'DateTime objects without "timeZoneOffsetSeconds" property ' +
+                'are prune to bugs related to ambiguous times. For instance, ' +
+                '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
 
             buffer.reset()
 
@@ -643,12 +648,6 @@ describe('#unit BoltProtocolV5x0', () => {
               undefined,
               unpacked.timeZoneId
             )
-
-            expect(loggerFunction)
-              .toBeCalledWith('warn',
-                'DateTime objects without "timeZoneOffsetSeconds" property ' +
-                'are prune to bugs related to ambiguous times. For instance, ' +
-                '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
 
             expect(unpackedDateTimeWithoutOffset).toEqual(object)
           })
