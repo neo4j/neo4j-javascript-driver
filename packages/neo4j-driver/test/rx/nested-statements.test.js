@@ -91,7 +91,7 @@ describe('#integration-rx transaction', () => {
 
     expect(messages.length).toBe(size + 1)
     expect(messages[size]).toEqual(Notification.createComplete())
-  })
+  }, 10000)
 
   it('should give proper error when nesting queries within one session', async () => {
     const size = 1024
