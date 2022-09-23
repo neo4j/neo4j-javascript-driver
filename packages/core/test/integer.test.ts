@@ -25,6 +25,7 @@ import Integer, {
   inSafeRange
 } from '../src/integer'
 import { newError } from '../src/error'
+import fc from 'fast-check'
 
 describe('Integer', () => {
   forEachToNumberOrInfinityScenarios(({ input, expectedOutput }) =>
@@ -354,6 +355,134 @@ describe('Integer', () => {
     expect(Integer.MAX_SAFE_VALUE.toBigInt().toString()).toEqual(
       Integer.MAX_SAFE_VALUE.toString()
     )
+  })
+
+  test('int(BigInt) should be reversed by Integer.toBigInt', () => {
+    fc.assert(
+      fc.property(
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        bigint => bigint === int(bigint).toBigInt()
+      )
+    )
+  })
+
+  test('int.toString() should match Integer.toString()', () => {
+    fc.assert(fc.property(fc.integer(), i => i.toString() === int(i).toString()))
+  })
+
+  test('int(string) should match int(Integer)', () => {
+    fc.assert(fc.property(fc.integer(), i => int(i).equals(int(i.toString()))))
+  })
+
+  test('int(number) should be reversed by Integer.toNumber', () => {
+    fc.assert(fc.property(fc.integer(), num => num === int(num).toNumber()))
+  })
+
+  test('int(Integer) should be equal Integer', () => {
+    fc.assert(fc.property(arbitraryInteger(), integer => integer === int(integer)))
+  })
+
+  test('Integer.add should be Commutative', () => {
+    fc.assert(fc.property(arbitraryInteger(), arbitraryInteger(),
+      (a, b) => a.add(b).equals(b.add(a))))
+  })
+
+  test('Integer.multiply should be Commutative', () => {
+    fc.assert(fc.property(arbitraryInteger(), arbitraryInteger(),
+      (a, b) => a.multiply(b).equals(b.multiply(a))))
+  })
+
+  test('Integer.add should be Associative', () => {
+    fc.assert(fc.property(arbitraryInteger(), arbitraryInteger(), arbitraryInteger(),
+      (a, b, c) => a.add(b.add(c)).equals(a.add(b).add(c))))
+  })
+
+  test('Integer.multiply should be Associative', () => {
+    fc.assert(fc.property(arbitraryInteger(), arbitraryInteger(), arbitraryInteger(),
+      (a, b, c) => a.multiply(b.multiply(c)).equals(a.multiply(b).multiply(c))))
+  })
+
+  test('Integer.add should be Distributive', () => {
+    fc.assert(fc.property(arbitraryInteger(), arbitraryInteger(), arbitraryInteger(),
+      (a, b, c) => a.multiply(b.add(c)).equals(a.multiply(b).add(a.multiply(c)))))
+  })
+
+  test('Integer.subtract should be Distributive', () => {
+    fc.assert(fc.property(arbitraryInteger(), arbitraryInteger(), arbitraryInteger(),
+      (a, b, c) => a.multiply(b.subtract(c)).equals(a.multiply(b).subtract(a.multiply(c)))))
+  })
+
+  test('Integer.add should have 0 as identity', () => {
+    fc.assert(fc.property(arbitraryInteger(), (a) => a.add(0).equals(a)))
+  })
+
+  test('Integer.subtract should have 0 as identity', () => {
+    fc.assert(fc.property(arbitraryInteger(), (a) => a.subtract(0).equals(a)))
+  })
+
+  test('Integer.multiply should have 0 as identity', () => {
+    fc.assert(fc.property(arbitraryInteger(), (a) => a.multiply(1).equals(a)))
+  })
+
+  test('Integer.div should have 0 as identity', () => {
+    fc.assert(fc.property(arbitraryInteger(), (a) => a.div(1).equals(a)))
+  })
+
+  test('Integer.equals should return true if a - b is ZERO', () => {
+    fc.assert(fc.property(arbitraryInteger(), arbitraryInteger(),
+      (a, b) => a.subtract(b).isZero() ? a.equals(b) : !a.equals(b)))
+  })
+
+  describe('with same sign', () => {
+    test('Integer.greaterThan should return true if a - b is positive', () => {
+      fc.assert(fc.property(
+        arbitrarySameSignIntegers(),
+        ({ a, b }) => a.subtract(b).isPositive() ? a.greaterThan(b) : !a.greaterThan(b)))
+    })
+
+    test('Integer.greaterThanOrEqual should return true if a - b is positive or ZERO', () => {
+      fc.assert(fc.property(
+        arbitrarySameSignIntegers(),
+        ({ a, b }) => a.subtract(b).isPositive() || a.subtract(b).isZero() ? a.greaterThanOrEqual(b) : !a.greaterThanOrEqual(b)))
+    })
+
+    test('Integer.lessThanOrEqual should return true if a - b is ZERO or negative', () => {
+      fc.assert(fc.property(
+        arbitrarySameSignIntegers(),
+        ({ a, b }) => a.subtract(b).isNegative() || a.subtract(b).isZero() ? a.lessThanOrEqual(b) : !a.lessThanOrEqual(b)))
+    })
+
+    test('Integer.lessThanOrEqual should return true if a - b is ZERO or negative', () => {
+      fc.assert(fc.property(
+        arbitrarySameSignIntegers(),
+        ({ a, b }) => a.subtract(b).isNegative() ? a.lessThan(b) : !a.lessThan(b)))
+    })
+  })
+
+  describe('with different sign', () => {
+    test('Integer.greaterThan should return true if a is positive', () => {
+      fc.assert(fc.property(
+        arbitraryDiffSignIntegers(),
+        ({ a, b }) => a.isPositive() ? a.greaterThan(b) : !a.greaterThan(b)))
+    })
+
+    test('Integer.greaterThanOrEqual should return true if a is positive or ZERO', () => {
+      fc.assert(fc.property(
+        arbitraryDiffSignIntegers(),
+        ({ a, b }) => a.isPositive() || a.isZero() ? a.greaterThanOrEqual(b) : !a.greaterThanOrEqual(b)))
+    })
+
+    test('Integer.lessThanOrEqual should return true if a is ZERO or negative', () => {
+      fc.assert(fc.property(
+        arbitraryDiffSignIntegers(),
+        ({ a, b }) => a.isNegative() || a.isZero() ? a.lessThanOrEqual(b) : !a.lessThanOrEqual(b)))
+    })
+
+    test('Integer.lessThanOrEqual should return true if a is ZERO or negative', () => {
+      fc.assert(fc.property(
+        arbitraryDiffSignIntegers(),
+        ({ a, b }) => a.isNegative() ? a.lessThan(b) : !a.lessThan(b)))
+    })
   })
 })
 
@@ -1188,6 +1317,20 @@ function wellFormedNumbersAndRadix (): Array<[string, number]> {
   ]
 }
 
+function arbitraryInteger (): fc.Arbitrary<Integer> {
+  return fc.record({ low: fc.integer(), high: fc.integer() })
+    .map(({ low, high }) => new Integer(low, high))
+}
+
+function arbitrarySameSignIntegers (): fc.Arbitrary<{ a: Integer, b: Integer }> {
+  return fc.record({ a: arbitraryInteger(), b: arbitraryInteger() })
+    .map(({ a, b }) => a.isPositive() === b.isPositive() ? { a, b } : { a, b: b.negate() })
+}
+
+function arbitraryDiffSignIntegers (): fc.Arbitrary<{ a: Integer, b: Integer }> {
+  return fc.record({ a: arbitraryInteger(), b: arbitraryInteger() })
+    .map(({ a, b }) => a.isPositive() === b.isPositive() ? { a, b: b.negate() } : { a, b })
+}
 interface AssertionPair<I, O> {
   input: I
   expectedOutput: O

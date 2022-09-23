@@ -99,7 +99,7 @@ describe('#integration temporal-types', () => {
       'RETURN duration({years: 2, months: 3, days: 17, seconds: 91, nanoseconds: 999})',
       expectedValue
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive random Duration', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -107,7 +107,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveRandomTemporalValues(() => randomDuration())
-  }, 60000)
+  }, 90000)
 
   it('should send and receive Duration when disableLosslessIntegers=true', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -118,7 +118,7 @@ describe('#integration temporal-types', () => {
     await testSendReceiveTemporalValue(
       new neo4j.types.Duration(4, 15, 931, 99953)
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive array of Duration', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -126,7 +126,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveArrayOfRandomTemporalValues(() => randomDuration())
-  }, 60000)
+  }, 90000)
 
   it('should receive LocalTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -138,7 +138,7 @@ describe('#integration temporal-types', () => {
       'RETURN localtime({hour: 22, minute: 59, second: 10, nanosecond: 999999})',
       expectedValue
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive max LocalTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -147,7 +147,7 @@ describe('#integration temporal-types', () => {
 
     const maxLocalTime = localTime(23, 59, 59, MAX_NANO_OF_SECOND)
     await testSendReceiveTemporalValue(maxLocalTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive min LocalTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -156,7 +156,7 @@ describe('#integration temporal-types', () => {
 
     const minLocalTime = localTime(0, 0, 0, 0)
     await testSendReceiveTemporalValue(minLocalTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive LocalTime when disableLosslessIntegers=true', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -167,7 +167,7 @@ describe('#integration temporal-types', () => {
     await testSendReceiveTemporalValue(
       new neo4j.types.LocalTime(12, 32, 56, 12345)
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive random LocalTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -175,7 +175,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveRandomTemporalValues(() => randomLocalTime())
-  }, 60000)
+  }, 90000)
 
   it('should send and receive array of LocalTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -183,7 +183,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveArrayOfRandomTemporalValues(() => randomLocalTime())
-  }, 60000)
+  }, 90000)
 
   it('should receive Time', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -195,7 +195,7 @@ describe('#integration temporal-types', () => {
       'RETURN time({hour: 11, minute: 42, second: 59, nanosecond: 9999, timezone:"-08:30"})',
       expectedValue
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive max Time', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -204,7 +204,7 @@ describe('#integration temporal-types', () => {
 
     const maxTime = time(23, 59, 59, MAX_NANO_OF_SECOND, MAX_TIME_ZONE_OFFSET)
     await testSendReceiveTemporalValue(maxTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive min Time', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -213,7 +213,7 @@ describe('#integration temporal-types', () => {
 
     const minTime = time(0, 0, 0, 0, MIN_TIME_ZONE_OFFSET)
     await testSendReceiveTemporalValue(minTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive Time when disableLosslessIntegers=true', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -224,7 +224,7 @@ describe('#integration temporal-types', () => {
     await testSendReceiveTemporalValue(
       new neo4j.types.Time(22, 19, 32, 18381, MAX_TIME_ZONE_OFFSET)
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive random Time', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -232,7 +232,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveRandomTemporalValues(() => randomTime())
-  }, 60000)
+  }, 90000)
 
   it('should send and receive array of Time', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -240,7 +240,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveArrayOfRandomTemporalValues(() => randomTime())
-  }, 60000)
+  }, 90000)
 
   it('should receive Date', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -252,7 +252,7 @@ describe('#integration temporal-types', () => {
       'RETURN date({year: 1995, month: 7, day: 28})',
       expectedValue
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive max Date', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -261,7 +261,7 @@ describe('#integration temporal-types', () => {
 
     const maxDate = date(MAX_YEAR, 12, 31)
     await testSendReceiveTemporalValue(maxDate)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive min Date', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -270,7 +270,7 @@ describe('#integration temporal-types', () => {
 
     const minDate = date(MIN_YEAR, 1, 1)
     await testSendReceiveTemporalValue(minDate)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive Date when disableLosslessIntegers=true', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -279,7 +279,7 @@ describe('#integration temporal-types', () => {
     session = driverWithNativeNumbers.session()
 
     await testSendReceiveTemporalValue(new neo4j.types.Date(1923, 8, 14))
-  }, 60000)
+  }, 90000)
 
   it('should send and receive random Date', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -287,7 +287,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveRandomTemporalValues(() => randomDate())
-  }, 60000)
+  }, 90000)
 
   it('should send and receive array of Date', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -295,7 +295,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveArrayOfRandomTemporalValues(() => randomDate())
-  }, 60000)
+  }, 90000)
 
   it('should receive LocalDateTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -307,7 +307,7 @@ describe('#integration temporal-types', () => {
       'RETURN localdatetime({year: 1869, month: 9, day: 23, hour: 18, minute: 29, second: 59, nanosecond: 12349})',
       expectedValue
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive max LocalDateTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -324,7 +324,7 @@ describe('#integration temporal-types', () => {
       MAX_NANO_OF_SECOND
     )
     await testSendReceiveTemporalValue(maxLocalDateTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive min LocalDateTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -333,7 +333,7 @@ describe('#integration temporal-types', () => {
 
     const minLocalDateTime = localDateTime(MIN_YEAR, 1, 1, 0, 0, 0, 0)
     await testSendReceiveTemporalValue(minLocalDateTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive LocalDateTime when disableLosslessIntegers=true', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -344,7 +344,7 @@ describe('#integration temporal-types', () => {
     await testSendReceiveTemporalValue(
       new neo4j.types.LocalDateTime(2045, 9, 1, 11, 25, 25, 911)
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive random LocalDateTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -352,7 +352,7 @@ describe('#integration temporal-types', () => {
     }
 
     await testSendAndReceiveRandomTemporalValues(() => randomLocalDateTime())
-  }, 60000)
+  }, 90000)
 
   it('should send and receive array of random LocalDateTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -362,7 +362,7 @@ describe('#integration temporal-types', () => {
     await testSendAndReceiveArrayOfRandomTemporalValues(() =>
       randomLocalDateTime()
     )
-  }, 60000)
+  }, 90000)
 
   it('should receive DateTime with time zone offset', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -383,7 +383,7 @@ describe('#integration temporal-types', () => {
       'RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "+05:00"})',
       expectedValue
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive max DateTime with zone offset', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -401,7 +401,7 @@ describe('#integration temporal-types', () => {
       MAX_TIME_ZONE_OFFSET
     )
     await testSendReceiveTemporalValue(maxDateTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive min DateTime with zone offset', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -419,7 +419,7 @@ describe('#integration temporal-types', () => {
       MAX_TIME_ZONE_OFFSET
     )
     await testSendReceiveTemporalValue(minDateTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive DateTime with zone offset when disableLosslessIntegers=true', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -440,7 +440,7 @@ describe('#integration temporal-types', () => {
         null
       )
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive random DateTime with zone offset', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -450,7 +450,7 @@ describe('#integration temporal-types', () => {
     await testSendAndReceiveRandomTemporalValues(() =>
       randomDateTimeWithZoneOffset()
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive array of DateTime with zone offset', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -460,7 +460,7 @@ describe('#integration temporal-types', () => {
     await testSendAndReceiveArrayOfRandomTemporalValues(() =>
       randomDateTimeWithZoneOffset()
     )
-  }, 60000)
+  }, 90000)
 
   it('should receive DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -481,7 +481,7 @@ describe('#integration temporal-types', () => {
       'RETURN datetime({year: 1992, month: 11, day: 24, hour: 9, minute: 55, second: 42, nanosecond: 999, timezone: "Europe/Stockholm"})',
       expectedValue
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive max DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -499,7 +499,7 @@ describe('#integration temporal-types', () => {
       MAX_ZONE_ID
     )
     await testSendReceiveTemporalValue(maxDateTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive min DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -517,7 +517,7 @@ describe('#integration temporal-types', () => {
       MIN_ZONE_ID
     )
     await testSendReceiveTemporalValue(minDateTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive DateTime with zone id when disableLosslessIntegers=true', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -538,7 +538,7 @@ describe('#integration temporal-types', () => {
         'Europe/Stockholm'
       )
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive random DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -548,7 +548,7 @@ describe('#integration temporal-types', () => {
     await testSendAndReceiveRandomTemporalValues(() =>
       randomDateTimeWithZoneId()
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive array of DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -558,7 +558,7 @@ describe('#integration temporal-types', () => {
     await testSendAndReceiveArrayOfRandomTemporalValues(() =>
       randomDateTimeWithZoneId()
     )
-  }, 60000)
+  }, 90000)
 
   it('should convert Duration to ISO string', () => {
     expect(duration(13, 62, 3, 999111999).toString()).toEqual(
@@ -566,7 +566,7 @@ describe('#integration temporal-types', () => {
     )
     expect(duration(0, 0, 0, 0).toString()).toEqual('P0M0DT0S')
     expect(duration(-1, -2, 10, 10).toString()).toEqual('P-1M-2DT10.000000010S')
-  }, 60000)
+  }, 90000)
 
   it('should convert LocalTime to ISO string', () => {
     expect(localTime(12, 19, 39, 111222333).toString()).toEqual(
@@ -574,7 +574,7 @@ describe('#integration temporal-types', () => {
     )
     expect(localTime(3, 59, 2, 17).toString()).toEqual('03:59:02.000000017')
     expect(localTime(0, 0, 0, 0).toString()).toEqual('00:00:00')
-  }, 60000)
+  }, 90000)
 
   it('should convert Time to ISO string', () => {
     expect(time(11, 45, 22, 333222111, 9015).toString()).toEqual(
@@ -585,14 +585,14 @@ describe('#integration temporal-types', () => {
     expect(time(21, 59, 0, 123, -25200).toString()).toEqual(
       '21:59:00.000000123-07:00'
     )
-  }, 60000)
+  }, 90000)
 
   it('should convert Date to ISO string', () => {
     expect(date(2015, 10, 12).toString()).toEqual('2015-10-12')
     expect(date(881, 1, 1).toString()).toEqual('0881-01-01')
     expect(date(-999, 12, 24).toString()).toEqual('-000999-12-24')
     expect(date(-9, 1, 1).toString()).toEqual('-000009-01-01')
-  }, 60000)
+  }, 90000)
 
   it('should convert LocalDateTime to ISO string', () => {
     expect(localDateTime(1992, 11, 8, 9, 42, 17, 22).toString()).toEqual(
@@ -604,7 +604,7 @@ describe('#integration temporal-types', () => {
     expect(localDateTime(0, 1, 1, 0, 0, 0, 1).toString()).toEqual(
       '0000-01-01T00:00:00.000000001'
     )
-  }, 60000)
+  }, 90000)
 
   it('should convert DateTime with time zone offset to ISO string', () => {
     expect(
@@ -616,7 +616,7 @@ describe('#integration temporal-types', () => {
     expect(
       dateTimeWithZoneOffset(-3, 3, 9, 9, 33, 27, 999000, 15300).toString()
     ).toEqual('-000003-03-09T09:33:27.000999000+04:15')
-  }, 60000)
+  }, 90000)
 
   it('should convert DateTime with time zone id to ISO-like string', () => {
     expect(
@@ -643,7 +643,7 @@ describe('#integration temporal-types', () => {
         'Asia/Yangon'
       ).toString()
     ).toEqual('-030455-05-05T12:24:10.000000123[Asia/Yangon]')
-  }, 60000)
+  }, 90000)
 
   it('should expose local time components in time', () => {
     const offsetTime = time(22, 12, 58, 999111222, 42)
@@ -652,7 +652,7 @@ describe('#integration temporal-types', () => {
     expect(offsetTime.minute).toEqual(neo4j.int(12))
     expect(offsetTime.second).toEqual(neo4j.int(58))
     expect(offsetTime.nanosecond).toEqual(neo4j.int(999111222))
-  }, 60000)
+  }, 90000)
 
   it('should expose local date and time components in local date-time', () => {
     const dateTime = localDateTime(2025, 9, 18, 23, 22, 21, 2020)
@@ -665,7 +665,7 @@ describe('#integration temporal-types', () => {
     expect(dateTime.minute).toEqual(neo4j.int(22))
     expect(dateTime.second).toEqual(neo4j.int(21))
     expect(dateTime.nanosecond).toEqual(neo4j.int(2020))
-  }, 60000)
+  }, 90000)
 
   it('should expose local date-time components in date-time with zone offset', () => {
     const zonedDateTime = dateTimeWithZoneOffset(
@@ -687,7 +687,7 @@ describe('#integration temporal-types', () => {
     expect(zonedDateTime.minute).toEqual(neo4j.int(37))
     expect(zonedDateTime.second).toEqual(neo4j.int(59))
     expect(zonedDateTime.nanosecond).toEqual(neo4j.int(875387))
-  }, 60000)
+  }, 90000)
 
   it('should expose local date-time components in date-time with zone ID', () => {
     const zonedDateTime = dateTimeWithZoneId(
@@ -709,7 +709,7 @@ describe('#integration temporal-types', () => {
     expect(zonedDateTime.minute).toEqual(neo4j.int(32))
     expect(zonedDateTime.second).toEqual(neo4j.int(11))
     expect(zonedDateTime.nanosecond).toEqual(neo4j.int(9346458))
-  }, 60000)
+  }, 90000)
 
   it('should format duration to string', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -827,7 +827,7 @@ describe('#integration temporal-types', () => {
         expectedString: 'P0M0DT-42.123456789S'
       }
     ])
-  }, 60000)
+  }, 90000)
 
   it('should normalize created duration', () => {
     const duration1 = duration(0, 0, 1, 1000000000)
@@ -853,7 +853,7 @@ describe('#integration temporal-types', () => {
     const duration6 = duration(0, 0, 40, -12123456999)
     expect(duration6.seconds).toEqual(neo4j.int(27))
     expect(duration6.nanoseconds).toEqual(neo4j.int(876543001))
-  }, 60000)
+  }, 90000)
 
   it('should validate types of constructor arguments for Duration', () => {
     expect(() => new neo4j.types.Duration('1', 2, 3, 4)).toThrowError(TypeError)
@@ -871,7 +871,7 @@ describe('#integration temporal-types', () => {
           nanoseconds: 4
         })
     ).toThrowError(TypeError)
-  }, 60000)
+  }, 90000)
 
   it('should validate types of constructor arguments for LocalTime', () => {
     expect(() => new neo4j.types.LocalTime('1', 2, 3, 4)).toThrowError(
@@ -895,7 +895,7 @@ describe('#integration temporal-types', () => {
           nanosecond: 4
         })
     ).toThrowError(TypeError)
-  }, 60000)
+  }, 90000)
 
   it('should validate types of constructor arguments for Time', () => {
     expect(() => new neo4j.types.Time('1', 2, 3, 4, 5)).toThrowError(TypeError)
@@ -917,7 +917,7 @@ describe('#integration temporal-types', () => {
           timeZoneOffsetSeconds: 5
         })
     ).toThrowError(TypeError)
-  }, 60000)
+  }, 90000)
 
   it('should validate types of constructor arguments for Date', () => {
     expect(() => new neo4j.types.Date('1', 2, 3)).toThrowError(TypeError)
@@ -926,7 +926,7 @@ describe('#integration temporal-types', () => {
     expect(
       () => new neo4j.types.Date({ year: 1, month: 2, day: 3 })
     ).toThrowError(TypeError)
-  }, 60000)
+  }, 90000)
 
   it('should validate types of constructor arguments for LocalDateTime', () => {
     expect(
@@ -962,7 +962,7 @@ describe('#integration temporal-types', () => {
           nanosecond: 7
         })
     ).toThrowError(TypeError)
-  }, 60000)
+  }, 90000)
 
   it('should validate types of constructor arguments for DateTime', () => {
     expect(
@@ -1004,7 +1004,7 @@ describe('#integration temporal-types', () => {
     expect(
       () => new neo4j.types.DateTime(1, 2, 3, 4, 5, 6, 7, null, null)
     ).toThrow()
-  }, 60000)
+  }, 90000)
 
   it('should convert standard Date to neo4j LocalTime', () => {
     testStandardDateToLocalTimeConversion(new Date(2000, 1, 1, 0, 0, 0, 0))
@@ -1026,7 +1026,7 @@ describe('#integration temporal-types', () => {
       new Date(2222, 3, 29, 0, 0, 0, 0),
       neo4j.int(999999999)
     )
-  }, 60000)
+  }, 90000)
 
   it('should fail to convert invalid standard Date to neo4j LocalTime', () => {
     const LocalTime = neo4j.types.LocalTime
@@ -1056,7 +1056,7 @@ describe('#integration temporal-types', () => {
     expect(() => LocalTime.fromStandardDate(new Date(), [1])).toThrowError(
       TypeError
     )
-  }, 60000)
+  }, 90000)
 
   it('should convert standard Date to neo4j Time', () => {
     testStandardDateToTimeConversion(new Date(2000, 1, 1, 0, 0, 0, 0))
@@ -1078,7 +1078,7 @@ describe('#integration temporal-types', () => {
       new Date(2222, 3, 29, 0, 0, 0, 0),
       neo4j.int(999999999)
     )
-  }, 60000)
+  }, 90000)
 
   it('should fail to convert invalid standard Date to neo4j Time', () => {
     const Time = neo4j.types.Time
@@ -1098,7 +1098,7 @@ describe('#integration temporal-types', () => {
       Time.fromStandardDate(new Date(), { nanosecond: 1 })
     ).toThrowError(TypeError)
     expect(() => Time.fromStandardDate(new Date(), [1])).toThrowError(TypeError)
-  }, 60000)
+  }, 90000)
 
   it('should convert standard Date to neo4j Date', () => {
     testStandardDateToNeo4jDateConversion(new Date(2000, 1, 1))
@@ -1113,7 +1113,7 @@ describe('#integration temporal-types', () => {
     testStandardDateToNeo4jDateConversion(new Date(2222, 3, 29))
 
     testStandardDateToNeo4jDateConversion(new Date(1567, 0, 29))
-  }, 60000)
+  }, 90000)
 
   it('should fail to convert invalid standard Date to neo4j Date', () => {
     const Neo4jDate = neo4j.types.Date
@@ -1133,7 +1133,7 @@ describe('#integration temporal-types', () => {
     expect(() => Neo4jDate.fromStandardDate(new Date(NaN))).toThrowError(
       TypeError
     )
-  }, 60000)
+  }, 90000)
 
   it('should convert standard Date to neo4j LocalDateTime', () => {
     testStandardDateToLocalDateTimeConversion(new Date(2011, 9, 18))
@@ -1157,7 +1157,7 @@ describe('#integration temporal-types', () => {
 
     testStandardDateToLocalDateTimeConversion(new Date(2192, 0, 17, 20, 30, 40))
     testStandardDateToLocalDateTimeConversion(new Date(2239, 0, 9, 1, 2, 3), 4)
-  }, 60000)
+  }, 90000)
 
   it('should fail to convert invalid standard Date to neo4j LocalDateTime', () => {
     const LocalDateTime = neo4j.types.LocalDateTime
@@ -1187,7 +1187,7 @@ describe('#integration temporal-types', () => {
     expect(() => LocalDateTime.fromStandardDate(new Date(), [1])).toThrowError(
       TypeError
     )
-  }, 60000)
+  }, 90000)
 
   it('should convert standard Date to neo4j DateTime', () => {
     testStandardDateToDateTimeConversion(new Date(2011, 9, 18))
@@ -1209,7 +1209,7 @@ describe('#integration temporal-types', () => {
 
     testStandardDateToDateTimeConversion(new Date(1899, 0, 7, 7, 7, 7, 7))
     testStandardDateToDateTimeConversion(new Date(2005, 0, 1, 2, 3, 4, 5), 100)
-  }, 60000)
+  }, 90000)
 
   it('should fail to convert invalid standard Date to neo4j DateTime', () => {
     const DateTime = neo4j.types.DateTime
@@ -1239,7 +1239,7 @@ describe('#integration temporal-types', () => {
     expect(() => DateTime.fromStandardDate(new Date(), [1])).toThrowError(
       TypeError
     )
-  }, 60000)
+  }, 90000)
 
   it('should send and receive neo4j Date created from standard Date with zero month', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -1252,7 +1252,7 @@ describe('#integration temporal-types', () => {
     const standardDate = new Date(2000, 0, 1)
     const neo4jDate = neo4j.types.Date.fromStandardDate(standardDate)
     await testSendReceiveTemporalValue(neo4jDate)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive neo4j LocalDateTime created from standard Date with zero month', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -1267,7 +1267,7 @@ describe('#integration temporal-types', () => {
       standardDate
     )
     await testSendReceiveTemporalValue(neo4jLocalDateTime)
-  }, 60000)
+  }, 90000)
 
   it('should send and receive neo4j DateTime created from standard Date with zero month', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -1280,7 +1280,7 @@ describe('#integration temporal-types', () => {
     const standardDate = new Date(1756, 0, 29, 23, 15, 59, 12)
     const neo4jDateTime = neo4j.types.DateTime.fromStandardDate(standardDate)
     await testSendReceiveTemporalValue(neo4jDateTime)
-  }, 60000)
+  }, 90000)
 
   it('should fail to create LocalTime with out of range values', () => {
     expect(() => localTime(999, 1, 1, 1)).toThrow()
@@ -1288,7 +1288,7 @@ describe('#integration temporal-types', () => {
     expect(() => localTime(1, 1, 999, 1)).toThrow()
     expect(() => localTime(1, 1, 1, -999)).toThrow()
     expect(() => localTime(1, 1, 1, 1000000000)).toThrow()
-  }, 60000)
+  }, 90000)
 
   it('should fail to create Time with out of range values', () => {
     expect(() => time(999, 1, 1, 1, 1)).toThrow()
@@ -1296,7 +1296,7 @@ describe('#integration temporal-types', () => {
     expect(() => time(1, 1, 999, 1, 1)).toThrow()
     expect(() => time(1, 1, 1, -999, 1)).toThrow()
     expect(() => time(1, 1, 1, 1000000000, 1)).toThrow()
-  }, 60000)
+  }, 90000)
 
   it('should fail to create Date with out of range values', () => {
     expect(() => date(1000000000, 1, 1)).toThrow()
@@ -1305,7 +1305,7 @@ describe('#integration temporal-types', () => {
     expect(() => date(1, 1, 0)).toThrow()
     expect(() => date(1, 1, -1)).toThrow()
     expect(() => date(1, 1, 33)).toThrow()
-  }, 60000)
+  }, 90000)
 
   it('should fail to create LocalDateTime with out of range values', () => {
     expect(() => localDateTime(1000000000, 1, 1, 1, 1, 1, 1)).toThrow()
@@ -1326,7 +1326,7 @@ describe('#integration temporal-types', () => {
     expect(() => localDateTime(1, 1, 1, 1, 1, 99, 1)).toThrow()
     expect(() => localDateTime(1, 1, 1, 1, 1, 1, -1)).toThrow()
     expect(() => localDateTime(1, 1, 1, 1, 1, 1, 1000000000)).toThrow()
-  }, 60000)
+  }, 90000)
 
   it('should fail to create DateTime with out of range values', () => {
     expect(() =>
@@ -1351,7 +1351,7 @@ describe('#integration temporal-types', () => {
     expect(() =>
       dateTimeWithZoneOffset(1, 1, 1, 1, 1, 1, 1000000000, 0)
     ).toThrow()
-  }, 60000)
+  }, 90000)
 
   it('should convert standard Date with offset to neo4j Time', () => {
     const standardDate1 = testUtils.fakeStandardDateWithOffset(0)
@@ -1373,7 +1373,7 @@ describe('#integration temporal-types', () => {
     const standardDate5 = testUtils.fakeStandardDateWithOffset(150)
     const neo4jTime5 = neo4j.types.Time.fromStandardDate(standardDate5)
     verifyTimeZoneOffset(neo4jTime5, -1 * 150 * 60, '-02:30')
-  }, 60000)
+  }, 90000)
 
   it('should convert standard Date with offset to neo4j DateTime', () => {
     const standardDate1 = testUtils.fakeStandardDateWithOffset(0)
@@ -1395,7 +1395,7 @@ describe('#integration temporal-types', () => {
     const standardDate5 = testUtils.fakeStandardDateWithOffset(150)
     const neo4jDateTime5 = neo4j.types.DateTime.fromStandardDate(standardDate5)
     verifyTimeZoneOffset(neo4jDateTime5, -1 * 150 * 60, '-02:30')
-  }, 60000)
+  }, 90000)
 
   it('should not create DateTime with invalid ZoneId', () => {
     expect(() => dateTimeWithZoneId(1999, 10, 1, 10, 15, 0, 0, 'Europe/Neo4j')).toThrowError(
