@@ -164,6 +164,12 @@ await Deno.writeTextFile(
   `export default "${version}" // Specified using --version when running generate.ts\n`,
 );
 
+// Copy custom files
+await Deno.copyFile(
+  "src/deno-channel.js", 
+  join(rootOutDir, "/bolt-connection/channel/browser/browser-channel.js"));
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Warnings show up at the end
 if (!doTransform) {

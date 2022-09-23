@@ -39,10 +39,19 @@ function write(conn: Deno.Conn, response: object) {
   )
   const responseArr = ['#response begin', responseStr, '#response end'].join('\n') + '\n'
   console.log('response', responseArr);
-  conn.write(new TextEncoder().encode(responseArr))
-    .catch(e => {
-      console.log('error writing to connection', e);
-    });
+  const buffer = new Uint8Array(responseArr.length);
+  new TextEncoder().encodeInto(responseArr, buffer);
+  
+  async function writeBuffer(buff: Uint8Array, size: number) {
+    let bytesWritten = 0;
+    while(bytesWritten < size) {
+      const writtenInSep = await conn.write(buff.slice(bytesWritten));
+      bytesWritten += writtenInSep;
+    }
+  }
+
+  writeBuffer(buffer, buffer.byteLength);
+  
 }
 
 const descriptor = [] as string[]
@@ -74,19 +83,25 @@ const backend: Backend = {
     handler(contexts.get(contextId)!!, data, {
       writeResponse: (response: object) => write(conn, response),
       writeError: (e: Error) => {
-        console.log('writeError', e);
-        if (e.name && e instanceof neo4j.Neo4jError) {
-          if (contexts.has(contextId)) {
-            const id = contexts.get(contextId)!!.addError(e)
-            write(conn, { name: 'DriverError', data: { id, msg: e.message + ' (' + e.code + ')', code: e.code } })
-            return
+        console.error(e)
+        if (e.name) {
+          if (e.message === 'TestKit FrontendError') {
+            write(conn, { name: 'FrontendError', data: {
+              msg: 'Simulating the client code throwing some error.'
+            }})
           } else {
-            console.log('Context does not exist', contextId, e)
+            const id = contexts.get(contextId)?.addError(e)
+            write(conn, { name: 'DriverError', data: {
+              id,
+              msg: e.message,
+              // @ts-ignore
+              code: e.code 
+            }})
           }
           return
         }
-        write(conn, { name: 'BackendError', data: { msg: e.message } })
-
+        const msg = e.message
+        write(conn, { name: 'BackendError', data: { msg } })
       },
       writeBackendError: (msg: string) => write(conn, { name: 'BackendError', data: { msg } })
     });
@@ -102,37 +117,42 @@ async function handleConnection( conn: Deno.Conn, contextId: number): Promise<vo
   backend.openContext(contextId);
   let inRequest = false
   let requestString = ''
-  for await (const message of Deno.iter(conn)) {
-    const rawTxtMessage = new TextDecoder().decode(message);
-    const lines = rawTxtMessage.split('\n');
-    for (const line of lines) {
-      switch (line) {
-        case '#request begin':
-          if(inRequest) {
-            throw new Error('Already in request');
-          }
-          inRequest = true;
-          break;
-        case '#request end':
-          if(!inRequest) {
-            throw new Error('Not in request');
-          }
-          const request = JSON.parse(requestString);
-          backend.handle(contextId, conn, request);
-          inRequest = false;
-          requestString = '';
-          break
-        case '':
-          // ignore empty lines
-          break;
-        default:
-          if(!inRequest) {
-            throw new Error('Not in request');
-          }
-          requestString += line;
-          break
+  try {
+    for await (const message of Deno.iter(conn)) {
+      const rawTxtMessage = new TextDecoder().decode(message);
+      const lines = rawTxtMessage.split('\n');
+      for (const line of lines) {
+        switch (line) {
+          case '#request begin':
+            if(inRequest) {
+              throw new Error('Already in request');
+            }
+            inRequest = true;
+            break;
+          case '#request end':
+            if(!inRequest) {
+              throw new Error('Not in request');
+            }
+            const request = JSON.parse(requestString);
+            backend.handle(contextId, conn, request);
+            inRequest = false;
+            requestString = '';
+            break
+          case '':
+            // ignore empty lines
+            break;
+          default:
+            if(!inRequest) {
+              throw new Error('Not in request');
+            }
+            requestString += line;
+            break
+        }
       }
     }
+  } catch (err) {
+    console.error(err)
   }
+  
   backend.closeContext(contextId);
 }

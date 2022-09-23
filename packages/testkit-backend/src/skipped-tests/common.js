@@ -1,6 +1,21 @@
-import skip, { ifEquals, ifEndsWith } from './skip'
+import skip, { ifEquals, ifEndsWith, endsWith, ifStartsWith, startsWith, not } from './skip.js'
 
 const skippedTests = [
+  skip(
+    'Driver does not return offset for old DateTime implementations',
+    ifStartsWith('stub.types.test_temporal_types.TestTemporalTypes')
+      .and(not(startsWith('stub.types.test_temporal_types.TestTemporalTypesV5')))
+      .and(endsWith('test_zoned_date_time')),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_nested_datetime'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_should_echo_all_timezone_ids'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_cypher_created_datetime')
+  ),
+  skip(
+    'Using numbers out of bound',
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_should_echo_temporal_type'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_nested_duration'),
+    ifEquals('neo4j.datatypes.test_temporal_types.TestDataTypes.test_duration_components')
+  ),
   skip(
     'Testkit implemenation is deprecated',
     ifEquals('stub.basic_query.test_basic_query.TestBasicQuery.test_5x0_populates_node_only_element_id'),
