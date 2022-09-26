@@ -54,7 +54,7 @@ function write(conn: Deno.Conn, response: object) {
   
 }
 
-const descriptor = [] as string[]
+const descriptor = ['async', 'deno'] as string[]
 const shouldRunTest = getShouldRunTest(descriptor);
 const getFeatures = createGetFeatures(descriptor);
 

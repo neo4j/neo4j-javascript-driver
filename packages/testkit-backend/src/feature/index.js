@@ -1,10 +1,12 @@
 import commonFeatures from './common.js'
 import rxFeatures from './rx.js'
 import asyncFeatures from './async.js'
+import denoFeatures from './deno.js'
 
 const featuresByContext = new Map([
   ['async', asyncFeatures],
-  ['rx', rxFeatures]
+  ['rx', rxFeatures],
+  ['deno', denoFeatures]
 ])
 
 export function createGetFeatures (contexts) {

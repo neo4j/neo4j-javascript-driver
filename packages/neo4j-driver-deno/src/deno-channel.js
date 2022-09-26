@@ -33,10 +33,10 @@ export default class DenoChannel {
   /**
    * Create new instance
    * @param {ChannelConfig} config - configuration for this channel.
-   * @param {function(): string} protocolSupplier - function that detects protocol of the web page. Should only be used in tests.
    */
   constructor (
-    config
+    config,
+    connect = _connect
   ) {
     this.id = _CONNECTION_IDGEN++
     this._conn = null
@@ -55,10 +55,7 @@ export default class DenoChannel {
       this
     )
 
-    this._socketPromise =  Deno.connect({ 
-      hostname: config.address.host(), 
-      port: config.address.port() 
-    })
+    this._socketPromise = connect(config)
       .then(conn => {
         this._clearConnectionTimeout()
         if (!this._open) {
@@ -219,6 +216,98 @@ export default class DenoChannel {
   }
 }
 
+const TrustStrategy = {
+  TRUST_CUSTOM_CA_SIGNED_CERTIFICATES: async function (config) {
+    if (
+      !config.trustedCertificates ||
+      config.trustedCertificates.length === 0
+    ) {
+      throw newError(
+          'You are using TRUST_CUSTOM_CA_SIGNED_CERTIFICATES as the method ' +
+            'to verify trust for encrypted  connections, but have not configured any ' +
+            'trustedCertificates. You  must specify the path to at least one trusted ' +
+            'X.509 certificate for this to work. Two other alternatives is to use ' +
+            'TRUST_ALL_CERTIFICATES or to disable encryption by setting encrypted="' +
+            ENCRYPTION_OFF +
+            '"' +
+            'in your driver configuration.'
+      );
+    }
+
+    const caCerts = await Promise.all(
+      config.trustedCertificates.map(f => Deno.readTextFile(f))
+    )
+
+    return Deno.connectTls({ 
+      hostname: config.address.resolvedHost(), 
+      port: config.address.port(),
+      caCerts
+    })
+  },
+  TRUST_SYSTEM_CA_SIGNED_CERTIFICATES: async function (config) {
+    return Deno.connectTls({ 
+      hostname: config.address.resolvedHost(), 
+      port: config.address.port()
+    })
+  },
+  TRUST_ALL_CERTIFICATES:  async function (config) {
+    throw newError(
+      `"${config.trust}" is not available in DenoJS. ` +
+      'For trust in any certificates, you should use the DenoJS flag ' +
+      '"--unsafely-ignore-certificate-errors". '+ 
+      'See, https://deno.com/blog/v1.13#disable-tls-verification'
+    )
+  }
+}
+
+async function _connect (config) {
+  if (!isEncrypted(config)) {
+    return Deno.connect({ 
+      hostname: config.address.resolvedHost(), 
+      port: config.address.port() 
+    })
+  }
+  const trustStrategyName = getTrustStrategyName(config)
+  const trustStrategy = TrustStrategy[trustStrategyName]
+
+  if (trustStrategy != null) {
+    return await trustStrategy(config)
+  }
+  
+  throw newError(
+    'Unknown trust strategy: ' +
+    config.trust +
+    '. Please use either ' +
+    "trust:'TRUST_CUSTOM_CA_SIGNED_CERTIFICATES' configuration " +
+    'or the System CA. ' +
+    'Alternatively, you can disable encryption by setting ' +
+    '`encrypted:"' +
+    ENCRYPTION_OFF +
+    '"`. There is no mechanism to use encryption without trust verification, ' +
+    'because this incurs the overhead of encryption without improving security. If ' +
+    'the driver does not verify that the peer it is connected to is really Neo4j, it ' +
+    'is very easy for an attacker to bypass the encryption by pretending to be Neo4j.'
+
+  )
+}
+
+function isEncrypted (config) {
+  const encryptionNotConfigured =
+    config.encrypted == null || config.encrypted === undefined
+  if (encryptionNotConfigured) {
+    // default to using encryption if trust-all-certificates is available
+    return false
+  }
+  return config.encrypted === true || config.encrypted === ENCRYPTION_ON
+}
+
+function getTrustStrategyName (config) {
+  if (config.trust) {
+    return config.trust
+  }
+  return 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES'
+}
+
 async function setupReader (channel) {
   try {
     for await (const message of Deno.iter(channel._conn)) {
@@ -239,48 +328,3 @@ async function setupReader (channel) {
   }
 }
 
-/**
- * @param {ChannelConfig} config - configuration for the channel.
- * @return {boolean} `true` if encryption enabled in the config, `false` otherwise.
- */
-function isEncryptionExplicitlyTurnedOn (config) {
-  return config.encrypted === true || config.encrypted === ENCRYPTION_ON
-}
-
-/**
- * @param {ChannelConfig} config - configuration for the channel.
- * @return {boolean} `true` if encryption disabled in the config, `false` otherwise.
- */
-function isEncryptionExplicitlyTurnedOff (config) {
-  return config.encrypted === false || config.encrypted === ENCRYPTION_OFF
-}
-
-/**
- * @param {function(): string} protocolSupplier - function that detects protocol of the web page.
- * @return {boolean} `true` if protocol returned by the given function is secure, `false` otherwise.
- */
-function isProtocolSecure (protocolSupplier) {
-  const protocol =
-    typeof protocolSupplier === 'function' ? protocolSupplier() : ''
-  return protocol && protocol.toLowerCase().indexOf('https') >= 0
-}
-
-function verifyEncryptionSettings (encryptionOn, encryptionOff, secureProtocol) {
-  if (secureProtocol === null) {
-    // do nothing sice the protocol could not be identified
-  } else if (encryptionOn && !secureProtocol) {
-    // encryption explicitly turned on for a driver used on a HTTP web page
-    console.warn(
-      'Neo4j driver is configured to use secure WebSocket on a HTTP web page. ' +
-        'WebSockets might not work in a mixed content environment. ' +
-        'Please consider configuring driver to not use encryption.'
-    )
-  } else if (encryptionOff && secureProtocol) {
-    // encryption explicitly turned off for a driver used on a HTTPS web page
-    console.warn(
-      'Neo4j driver is configured to use insecure WebSocket on a HTTPS web page. ' +
-        'WebSockets might not work in a mixed content environment. ' +
-        'Please consider configuring driver to use encryption.'
-    )
-  }
-}
