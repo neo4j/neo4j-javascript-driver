@@ -144,26 +144,17 @@ export default class WebSocketChannel {
     if (this._pending !== null) {
       this._pending.push(buffer)
     } else if (buffer instanceof ChannelBuffer) {
-      // We should wait for the connection state change before sending
-      setTimeout(() => {
-        try {
-          if (this._ws.readyState !== WS_OPEN){
-            console.log('WebSocket not open')
-            return;
-          }
-          this._ws.send(buffer._buffer)
-        } catch (error) {
-          if (this._ws.readyState !== WS_OPEN) {
-            // Websocket has been closed
-            this._handleConnectionError()
-          } else {
-            console.log('errror', error)
-            // Some other error occured
-            throw error
-          }
+      try {
+        this._ws.send(buffer._buffer)
+      } catch (error) {
+        if (this._ws.readyState !== WS_OPEN) {
+          // Websocket has been closed
+          this._handleConnectionError()
+        } else {
+          // Some other error occured
+          throw error
         }
-      }, 500)
-      console.log('after timeout')
+      }
     } else {
       throw newError("Don't know how to send buffer: " + buffer)
     }
@@ -175,17 +166,14 @@ export default class WebSocketChannel {
    */
   close () {
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (this._ws && this._ws.readyState !== WS_CLOSED && this._ws.readyState !== WS_CLOSING) {
-          this._open = false
-          this._clearConnectionTimeout()
-          this._ws.onclose = () => resolve()
-          this._ws.close()
-        } else {
-          resolve()
-        }
-      }, 500)
-      
+      if (this._ws && this._ws.readyState !== WS_CLOSED) {
+        this._open = false
+        this._clearConnectionTimeout()
+        this._ws.onclose = () => resolve()
+        this._ws.close()
+      } else {
+        resolve()
+      }
     })
   }
 
