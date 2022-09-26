@@ -1,5 +1,3 @@
-import { objectToCypher, objectMemberBitIntToNumber } from './cypher-native-binders.js'
-
 function mapPlan (plan) {
   return {
     operatorType: plan.operatorType,
@@ -18,10 +16,10 @@ function mapCounters (stats) {
   }
 }
 
-function mapProfile (profile, child = false) {
-  const mapChild = (child) => mapProfile(child, true)
+function mapProfile (profile, child = false, binder) {
+  const mapChild = (child) => mapProfile(child, true, binder)
   const obj = {
-    args: objectMemberBitIntToNumber(profile.arguments),
+    args: binder.objectMemberBitIntToNumber(profile.arguments),
     dbHits: Number(profile.dbHits),
     identifiers: profile.identifiers,
     operatorType: profile.operatorType,
@@ -48,13 +46,13 @@ function mapNotification (notification) {
   }
 }
 
-export function nativeToTestkitSummary (summary) {
+export function nativeToTestkitSummary (summary, binder) {
   return {
-    ...objectMemberBitIntToNumber(summary),
+    ...binder.objectMemberBitIntToNumber(summary),
     database: summary.database.name,
     query: {
       text: summary.query.text,
-      parameters: objectToCypher(summary.query.parameters)
+      parameters: binder.objectToCypher(summary.query.parameters)
     },
     serverInfo: {
       agent: summary.server.agent,
@@ -62,7 +60,7 @@ export function nativeToTestkitSummary (summary) {
     },
     counters: mapCounters(summary.counters),
     plan: mapPlan(summary.plan),
-    profile: mapProfile(summary.profile),
+    profile: mapProfile(summary.profile, false, binder),
     notifications: summary.notifications.map(mapNotification)
   }
 }

@@ -1,6 +1,6 @@
 import Context from './context.js';
 import { getShouldRunTest } from './skipped-tests/index.js';
-import neo4j from "../../neo4j-driver-deno/lib/mod.ts";
+import neo4j from '../../neo4j-driver-deno/lib/mod.ts'
 import { createGetFeatures } from './feature/index.js';
 import * as handlers from './request-handlers.js';
 
@@ -78,9 +78,9 @@ const backend: Backend = {
 
     console.log('Handle', req.name, req.data);
     
-    const handler: (c: Context, data: any, wire: any) => void = requestHandlers[name as string];
+    const handler: (neo4j: any, c: Context, data: any, wire: any) => void = requestHandlers[name as string];
 
-    handler(contexts.get(contextId)!!, data, {
+    handler(neo4j, contexts.get(contextId)!!, data, {
       writeResponse: (response: object) => write(conn, response),
       writeError: (e: Error) => {
         console.error(e)

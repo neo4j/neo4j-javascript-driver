@@ -9,12 +9,13 @@ import { isFrontendError } from '../request-handlers'
  * This controller is used when testing browser and locally.
  */
 export default class LocalController extends Controller {
-  constructor (requestHandlers = {}, shouldRunTest = () => {}, getFeatures = () => []) {
+  constructor (requestHandlers = {}, shouldRunTest = () => {}, getFeatures = () => [], neo4j) {
     super()
     this._requestHandlers = requestHandlers
     this._shouldRunTest = shouldRunTest
     this._getFeatures = getFeatures
     this._contexts = new Map()
+    this._neo4j = neo4j
   }
 
   openContext (contextId) {
@@ -34,7 +35,7 @@ export default class LocalController extends Controller {
       throw new Error(`Unknown request: ${name}`)
     }
 
-    return await this._requestHandlers[name](this._contexts.get(contextId), data, {
+    return await this._requestHandlers[name](this._neo4j, this._contexts.get(contextId), data, {
       writeResponse: (response) => this._writeResponse(contextId, response),
       writeError: (e) => this._writeError(contextId, e),
       writeBackendError: (msg) => this._writeBackendError(contextId, msg)

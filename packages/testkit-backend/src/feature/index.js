@@ -9,11 +9,11 @@ const featuresByContext = new Map([
   ['deno', denoFeatures]
 ])
 
-export function createGetFeatures (contexts) {
+export function createGetFeatures (contexts, extraFeatures = []) {
   const features = contexts
     .filter(context => featuresByContext.has(context))
     .map(context => featuresByContext.get(context))
-    .reduce((previous, current) => [...previous, ...current], commonFeatures)
+    .reduce((previous, current) => [...previous, ...current], [...commonFeatures, ...extraFeatures])
 
   return () => features
 }
