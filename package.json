@@ -46,6 +46,7 @@
     "start-neo4j": "lerna run start-neo4j --scope neo4j-driver",
     "stop-neo4j": "lerna run stop-neo4j --scope neo4j-driver",
     "start-testkit-backend": "lerna run start --scope testkit-backend --stream",
+    "start-testkit-backend::deno": "lerna run start::deno --scope testkit-backend --stream",
     "lerna": "lerna",
     "prepare": "husky install",
     "lint-staged": "lint-staged",
