@@ -51,7 +51,7 @@ export function NewDriver (neo4j, context, data, wire) {
     userAgent,
     resolver,
     useBigInt: true,
-    logging: neo4j.logging.console('debug')
+    logging: neo4j.logging.console(process.env.LOG_LEVEL || context.logLevel)
   }
   if ('encrypted' in data) {
     config.encrypted = data.encrypted ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF'
