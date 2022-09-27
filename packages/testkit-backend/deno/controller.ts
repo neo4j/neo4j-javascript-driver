@@ -13,7 +13,6 @@ function newWire(context: Context, reply: Reply): any {
   return {
     writeResponse: (response: TestkitResponse) => reply(response),
     writeError: (e: Error) => {
-      console.error(e);
       if (e.name) {
         if (e.message === "TestKit FrontendError") {
           reply({
@@ -29,7 +28,7 @@ function newWire(context: Context, reply: Reply): any {
             data: {
               id,
               msg: e.message,
-              // @ts-ignore
+              // @ts-ignore Code Neo4jError does have code
               code: e.code,
             },
           });
@@ -45,6 +44,7 @@ function newWire(context: Context, reply: Reply): any {
 }
 
 export function createHandler(
+  // deno-lint-ignore no-explicit-any
   neo4j: any,
   newContext: () => Context,
   requestHandlers: RequestHandlerMap,

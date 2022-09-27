@@ -5,8 +5,8 @@ import { createGetFeatures } from "../src/feature/index.js";
 import * as handlers from "../src/request-handlers.js";
 import channel from "./channel.ts";
 import controller from "./controller.ts";
+import { RequestHandlerMap } from "./domain.ts";
 
-// @ts-ignore
 const requestHandlers: RequestHandlerMap = handlers as RequestHandlerMap;
 
 addEventListener("events.errorMonitor", (event) => {

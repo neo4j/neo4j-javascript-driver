@@ -19,6 +19,9 @@
 /* eslint-env browser */
 import ChannelBuffer from '../channel-buf.js'
 import { newError, internal } from '../../../core/index.ts'
+import { iterateReader } from 'https://deno.land/std@0.157.0/streams/conversion.ts';
+
+
 
 const {
   util: { ENCRYPTION_OFF, ENCRYPTION_ON }
@@ -244,13 +247,13 @@ const TrustStrategy = {
       caCerts
     })
   },
-  TRUST_SYSTEM_CA_SIGNED_CERTIFICATES: async function (config) {
+  TRUST_SYSTEM_CA_SIGNED_CERTIFICATES: function (config) {
     return Deno.connectTls({ 
       hostname: config.address.resolvedHost(), 
       port: config.address.port()
     })
   },
-  TRUST_ALL_CERTIFICATES:  async function (config) {
+  TRUST_ALL_CERTIFICATES: function (config) {
     throw newError(
       `"${config.trust}" is not available in DenoJS. ` +
       'For trust in any certificates, you should use the DenoJS flag ' +
@@ -310,7 +313,7 @@ function getTrustStrategyName (config) {
 
 async function setupReader (channel) {
   try {
-    for await (const message of Deno.iter(channel._conn)) {
+    for await (const message of iterateReader(channel._conn)) {
       channel._resetTimeout()
   
       if (!channel._open) {

@@ -47,11 +47,13 @@ export function NewDriver (neo4j, context, data, wire) {
           wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
         })
     : undefined
+
+  const envLogLevel = typeof process === 'undefined' ? undefined : process.env.LOG_LEVEL
   const config = {
     userAgent,
     resolver,
     useBigInt: true,
-    logging: neo4j.logging.console(process.env.LOG_LEVEL || context.logLevel)
+    logging: neo4j.logging.console(envLogLevel || context.logLevel)
   }
   if ('encrypted' in data) {
     config.encrypted = data.encrypted ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF'

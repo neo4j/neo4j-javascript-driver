@@ -1,5 +1,5 @@
 import { TestkitRequest, TestkitResponse } from "./domain.ts";
-
+import { iterateReader } from "./deps.ts";
 export interface TestkitClient {
   id: number;
   requests: () => AsyncIterable<TestkitRequest>;
@@ -21,7 +21,7 @@ export async function* listen(port: number): AsyncIterable<TestkitClient> {
 async function* readRequests(conn: Deno.Conn): AsyncIterable<TestkitRequest> {
   let inRequest = false;
   let requestString = "";
-  for await (const message of Deno.iter(conn)) {
+  for await (const message of iterateReader(conn)) {
     const rawTxtMessage = new TextDecoder().decode(message);
     const lines = rawTxtMessage.split("\n");
     for (const line of lines) {
@@ -36,8 +36,7 @@ async function* readRequests(conn: Deno.Conn): AsyncIterable<TestkitRequest> {
           if (!inRequest) {
             throw new Error("Not in request");
           }
-          const request = JSON.parse(requestString);
-          yield request;
+          yield JSON.parse(requestString);
           inRequest = false;
           requestString = "";
           break;
