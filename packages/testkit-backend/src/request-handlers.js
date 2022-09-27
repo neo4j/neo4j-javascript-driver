@@ -42,10 +42,10 @@ export function NewDriver (neo4j, context, data, wire) {
   }
   const resolver = resolverRegistered
     ? address =>
-      new Promise((resolve, reject) => {
-        const id = context.addResolverRequest(resolve, reject)
-        wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
-      })
+        new Promise((resolve, reject) => {
+          const id = context.addResolverRequest(resolve, reject)
+          wire.writeResponse(responses.ResolverResolutionRequired({ id, address }))
+        })
     : undefined
   const config = {
     userAgent,
@@ -249,7 +249,7 @@ export function SessionReadTransaction (_, context, data, wire) {
     .catch(error => wire.writeError(error))
 }
 
-export function TransactionRun (_, context, data, wire) {
+export function TransactionRun (neo4j, context, data, wire) {
   const { txId, cypher, params } = data
   const tx = context.getTx(txId)
   const binder = new CypherNativeBinders(neo4j)
@@ -421,7 +421,7 @@ export function ResolverResolutionCompleted (
 }
 
 export function NewBookmarkManager (
-  _,
+  neo4j,
   context,
   {
     initialBookmarks,

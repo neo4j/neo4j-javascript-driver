@@ -69,10 +69,11 @@ export function SessionClose (_, context, data, wire) {
     .catch(err => wire.writeError(err))
 }
 
-export function SessionRun (_, context, data, wire) {
+export function SessionRun (neo4j, context, data, wire) {
   const { sessionId, cypher, params, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
   if (params) {
+    const binder = new CypherNativeBinders(neo4j)
     for (const [key, value] of Object.entries(params)) {
       params[key] = binder.cypherToNative(value)
     }
@@ -133,9 +134,10 @@ export function SessionBeginTransaction (_, context, data, wire) {
   }
 }
 
-export function TransactionRun (_, context, data, wire) {
+export function TransactionRun (neo4j, context, data, wire) {
   const { txId, cypher, params } = data
   const tx = context.getTx(txId)
+  const binder = new CypherNativeBinders(neo4j)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       params[key] = binder.cypherToNative(value)
