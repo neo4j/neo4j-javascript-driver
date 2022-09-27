@@ -1,8 +1,8 @@
-import Context from './context.js';
-import { getShouldRunTest } from './skipped-tests/index.js';
+import Context from '../src/context.js';
+import { getShouldRunTest } from '../src/skipped-tests/index.js';
 import neo4j from '../../neo4j-driver-deno/lib/mod.ts'
-import { createGetFeatures } from './feature/index.js';
-import * as handlers from './request-handlers.js';
+import { createGetFeatures } from '../src/feature/index.js';
+import * as handlers from '../src/request-handlers.js';
 
 const listener = Deno.listen({ port: 9876 });
 let index = 0;
