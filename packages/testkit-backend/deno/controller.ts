@@ -54,8 +54,13 @@ export function createHandler(
     requests: () => AsyncIterable<TestkitRequest>,
   ) {
     const context = newContext();
-    const wire = newWire(context, reply);
+    const wire = newWire(context, response => {
+      console.log('response:', response)
+      return reply(response)
+    });
+
     for await (const request of requests()) {
+      console.log('request:', request)
       const { data, name } = request;
       if (!(name in requestHandlers)) {
         console.log("Unknown request: " + name);

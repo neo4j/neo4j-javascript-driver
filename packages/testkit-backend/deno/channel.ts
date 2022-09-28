@@ -63,7 +63,6 @@ function createReply(conn: Deno.Conn) {
 
     const responseArr =
       ["#response begin", responseStr, "#response end"].join("\n") + "\n";
-    console.log("response", responseArr);
     const buffer = new Uint8Array(responseArr.length);
     new TextEncoder().encodeInto(responseArr, buffer);
 
