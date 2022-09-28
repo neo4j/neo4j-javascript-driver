@@ -159,9 +159,10 @@ await copyAndTransform(
 await copyAndTransform("../neo4j-driver-lite/src", rootOutDir);
 // Deno convention is to use "mod.ts" not "index.ts", so let's do that at least for the main/root import:
 await Deno.rename(join(rootOutDir, "index.ts"), join(rootOutDir, "mod.ts"))
+const copyright = await Deno.readTextFile("./copyright.txt");
 await Deno.writeTextFile(
   join(rootOutDir, "version.ts"),
-  `export default "${version}" // Specified using --version when running generate.ts\n`,
+  [copyright, `export default "${version}" // Specified using --version when running generate.ts\n`].join('\n'),
 );
 
 ////////////////////////////////////////////////////////////////////////////////
