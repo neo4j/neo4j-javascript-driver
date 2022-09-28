@@ -70,6 +70,7 @@ async function* readRequests(conn: Deno.Conn, state: State ): AsyncIterable<Test
 }
 
 function createReply(conn: Deno.Conn, state: State) {
+  const textEncoder = new TextEncoder()
   return async function (response: TestkitResponse): Promise<void> {
     if (state.finishedReading) {
       console.warn('Discarded response:', response)
@@ -82,8 +83,7 @@ function createReply(conn: Deno.Conn, state: State) {
 
     const responseArr =
       ["#response begin", responseStr, "#response end"].join("\n") + "\n";
-    const buffer = new Uint8Array(responseArr.length);
-    new TextEncoder().encodeInto(responseArr, buffer);
+    const buffer = textEncoder.encode(responseArr)
 
     async function writeBuffer(buff: Uint8Array, size: number) {
       try {

@@ -1,8 +1,10 @@
-import Context from "../src/context.js";
-import { getShouldRunTest } from "../src/skipped-tests/index.js";
-import neo4j from "../../neo4j-driver-deno/lib/mod.ts";
-import { createGetFeatures } from "../src/feature/index.js";
-import * as handlers from "../src/request-handlers.js";
+import {
+  handlers,
+  getShouldRunTest,
+  createGetFeatures,
+  Context,
+  neo4j
+} from "./deps.ts"
 import channel from "./channel.ts";
 import controller from "./controller.ts";
 import { RequestHandlerMap } from "./domain.ts";
