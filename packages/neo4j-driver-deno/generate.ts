@@ -130,11 +130,11 @@ async function copyAndTransform(inDir: string, outDir: string) {
       }
 
       // Special fix for bolt-connection/channel/index.js
-      // Replace the "node channel" with the "browser channel", since Deno supports browser APIs
+      // Replace the "node channel" with the "deno channel", since Deno supports browser APIs
       if (inPath.endsWith("channel/index.js")) {
         contents = contents.replace(
           `export * from './node/index.js'`,
-          `export * from './browser/index.js'`,
+          `export * from './deno/index.js'`,
         );
       }
       
@@ -163,12 +163,6 @@ await Deno.writeTextFile(
   join(rootOutDir, "version.ts"),
   `export default "${version}" // Specified using --version when running generate.ts\n`,
 );
-
-// Copy custom files
-await Deno.copyFile(
-  "src/deno-channel.js", 
-  join(rootOutDir, "/bolt-connection/channel/browser/browser-channel.js"));
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Warnings show up at the end
