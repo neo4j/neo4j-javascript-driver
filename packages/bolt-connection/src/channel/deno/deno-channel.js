@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-env deno */
+/* eslint-disable */
 import ChannelBuffer from '../channel-buf'
 import { newError, internal } from 'neo4j-driver-core'
 import { iterateReader } from 'https://deno.land/std@0.157.0/streams/conversion.ts';
