@@ -13,6 +13,11 @@ addEventListener("events.errorMonitor", (event) => {
   console.log("something here ========================", event);
 });
 
+addEventListener("unhandledrejection", (event) => {
+  console.log("unhandledrejection", event)
+  console.error("unhandledrejection", event)
+})
+
 const descriptor = ["async", "deno"];
 const shouldRunTest = getShouldRunTest(descriptor);
 const getFeatures = createGetFeatures(descriptor);

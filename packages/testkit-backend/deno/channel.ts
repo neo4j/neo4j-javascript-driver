@@ -67,8 +67,6 @@ async function* readRequests(conn: Deno.Conn, state: State ): AsyncIterable<Test
   } finally {
     state.finishedReading = true
   }
-  
-
 }
 
 function createReply(conn: Deno.Conn, state: State) {
