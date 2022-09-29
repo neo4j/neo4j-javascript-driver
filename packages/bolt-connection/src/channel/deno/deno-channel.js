@@ -85,6 +85,7 @@ export default class DenoChannel {
       return setTimeout(() => {
         this._connectionTimeoutFired = true
         this.close()
+          .then(e => this._handleConnectionError(newError(`Connection timeout after ${timeout} ms`)))
           .catch(this._handleConnectionError)
       }, timeout)
     }
@@ -202,7 +203,6 @@ export default class DenoChannel {
 
     this._receiveTimeoutId = setTimeout(() => {
       this._receiveTimeoutId = null
-      this._timedout = true
       this.stopReceiveTimeout()
       this._error = newError(
         `Connection lost. Server didn't respond in ${this._receiveTimeout}ms`,

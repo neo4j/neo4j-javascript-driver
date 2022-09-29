@@ -13,8 +13,7 @@ const skippedTests = [
     ifStartsWith('tls.test_self_signed_scheme.TestSelfSignedScheme.')
   ),
   skip('Takes a bit longer to complete in TeamCity',
-    ifEquals('neo4j.test_session_run.TestSessionRun.test_long_string'),
-    ifEquals('stub.driver_parameters.test_connection_acquisition_timeout_ms.TestConnectionAcquisitionTimeoutMs.test_should_fail_when_connection_timeout_is_reached_first)')
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_long_string')
   )
 ]
 
