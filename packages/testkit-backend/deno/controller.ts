@@ -21,7 +21,7 @@ function newWire(context: Context, reply: Reply): Wire {
     writeError: (e: Error) => {
       if (e.name) {
         if (e.message === "TestKit FrontendError") {
-          reply({
+          return reply({
             name: "FrontendError",
             data: {
               msg: "Simulating the client code throwing some error.",
@@ -29,7 +29,7 @@ function newWire(context: Context, reply: Reply): Wire {
           });
         } else {
           const id = context.addError(e);
-          reply({
+          return reply({
             name: "DriverError",
             data: {
               id,
@@ -39,10 +39,9 @@ function newWire(context: Context, reply: Reply): Wire {
             },
           });
         }
-        return;
       }
       const msg = e.message;
-      reply({ name: "BackendError", data: { msg } });
+      return reply({ name: "BackendError", data: { msg } });
     },
     writeBackendError: (msg: string) =>
       reply({ name: "BackendError", data: { msg } }),
