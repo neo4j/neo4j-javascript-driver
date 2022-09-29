@@ -1,4 +1,4 @@
-import skip, { ifEndsWith, ifStartsWith } from './skip.js'
+import skip, { ifEndsWith, ifStartsWith, ifEquals } from './skip.js'
 
 const skippedTests = [
   skip('DenoJS fail hard on certificate error',
@@ -6,11 +6,14 @@ const skippedTests = [
     ifEndsWith('test_trusted_ca_wrong_hostname'),
     ifEndsWith('test_unencrypted'),
     ifEndsWith('test_untrusted_ca_correct_hostname'),
-    ifEndsWith('test_1_1'),
+    ifEndsWith('test_1_1')
   ),
   skip('Trust All is no available as configuration',
     ifStartsWith('tls.test_self_signed_scheme.TestTrustAllCertsConfig.'),
     ifStartsWith('tls.test_self_signed_scheme.TestSelfSignedScheme.')
+  ),
+  skip('Takes a bit longer to complete in TeamCity',
+    ifEquals('neo4j.test_session_run.TestSessionRun.test_long_string')
   )
 ]
 
