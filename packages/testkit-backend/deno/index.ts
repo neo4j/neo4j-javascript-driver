@@ -1,10 +1,10 @@
 import {
-  handlers,
-  getShouldRunTest,
-  createGetFeatures,
   Context,
-  neo4j
-} from "./deps.ts"
+  createGetFeatures,
+  getShouldRunTest,
+  handlers,
+  neo4j,
+} from "./deps.ts";
 import channel from "./channel.ts";
 import controller from "./controller.ts";
 import { RequestHandlerMap } from "./domain.ts";
@@ -15,10 +15,10 @@ addEventListener("events.errorMonitor", (event) => {
   console.log("something here ========================", event);
 });
 
-addEventListener("unhandledrejection", (event) => {
-  console.log("unhandledrejection", event)
-  console.error("unhandledrejection", event)
-})
+addEventListener("unhandledrejection", (event: Event) => {
+  // @ts-ignore PromiseRejectionEvent has reason property
+  console.error("unhandledrejection", event.reason);
+});
 
 const descriptor = ["async", "deno"];
 const shouldRunTest = getShouldRunTest(descriptor);
