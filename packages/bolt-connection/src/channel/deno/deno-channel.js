@@ -137,7 +137,7 @@ export default class DenoChannel {
     if (this._pending !== null) {
       this._pending.push(buffer)
     } else if (buffer instanceof ChannelBuffer) {
-      this._conn.write(buffer._buffer)
+      this._conn.write(buffer._buffer).catch(this._handleConnectionError)
     } else {
       throw newError("Don't know how to send buffer: " + buffer)
     }
