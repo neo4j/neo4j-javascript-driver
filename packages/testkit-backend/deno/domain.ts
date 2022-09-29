@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import Context from "../src/context.js";
 
 export interface TestkitRequest {

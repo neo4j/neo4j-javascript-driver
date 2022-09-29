@@ -9,7 +9,13 @@ interface Reply {
   (response: TestkitResponse): Promise<void>;
 }
 
-function newWire(context: Context, reply: Reply): any {
+interface Wire {
+  writeResponse(response: TestkitRequest): Promise<void>;
+  writeError(e: Error): Promise<void>;
+  writeBackendError(msg: string): Promise<void>;
+}
+
+function newWire(context: Context, reply: Reply): Wire {
   return {
     writeResponse: (response: TestkitResponse) => reply(response),
     writeError: (e: Error) => {
@@ -54,13 +60,13 @@ export function createHandler(
     requests: () => AsyncIterable<TestkitRequest>,
   ) {
     const context = newContext();
-    const wire = newWire(context, response => {
-      console.log('response:', response)
-      return reply(response)
+    const wire = newWire(context, (response) => {
+      console.log("response:", response);
+      return reply(response);
     });
 
     for await (const request of requests()) {
-      console.log('request:', request)
+      console.log("request:", request);
       const { data, name } = request;
       if (!(name in requestHandlers)) {
         console.log("Unknown request: " + name);

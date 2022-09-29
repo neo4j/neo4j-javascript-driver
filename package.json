@@ -30,6 +30,11 @@
     "packages/neo4j-driver/**/*.ts": [
       "npm run ts-standard::neo4j-driver",
       "git add"
+    ],
+    "packages/testkit-backend/deno/**/*.{ts,js}": [
+      "deno fmt",
+      "deno lint",
+      "git add"
     ]
   },
   "scripts": {
