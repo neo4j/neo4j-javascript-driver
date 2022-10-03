@@ -209,9 +209,15 @@ export default class DenoChannel {
       )
 
       this.close()
-      if (this.onerror) {
-        this.onerror(this._error)
-      }
+        .catch(() => {
+          // ignoring error during the close timeout connections since they
+          // not valid 
+        })
+        .finally(() => {
+          if (this.onerror) {
+            this.onerror(this._error)
+          }
+        })
     }, this._receiveTimeout)
   }
 }
