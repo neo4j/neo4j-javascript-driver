@@ -2,7 +2,7 @@ import Context from '../context'
 import Controller from './interface'
 import stringify from '../stringify'
 import { isFrontendError } from '../request-handlers'
-import CypherNativeBinders from './cypher-native-binders'
+import CypherNativeBinders from '../cypher-native-binders'
 
 /**
  * Local controller handles the requests locally by redirecting them to the correct request handler/service.
