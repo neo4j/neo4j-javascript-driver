@@ -2,6 +2,7 @@ import Context from '../context'
 import Controller from './interface'
 import stringify from '../stringify'
 import { isFrontendError } from '../request-handlers'
+import CypherNativeBinders from './cypher-native-binders'
 
 /**
  * Local controller handles the requests locally by redirecting them to the correct request handler/service.
@@ -16,10 +17,11 @@ export default class LocalController extends Controller {
     this._getFeatures = getFeatures
     this._contexts = new Map()
     this._neo4j = neo4j
+    this._binder = new CypherNativeBinders(neo4j)
   }
 
   openContext (contextId) {
-    this._contexts.set(contextId, new Context(this._shouldRunTest, this._getFeatures))
+    this._contexts.set(contextId, new Context(this._shouldRunTest, this._getFeatures, this._binder, process.env.LOG_LEVEL))
   }
 
   closeContext (contextId) {

@@ -1,6 +1,7 @@
 import {
   Context,
   createGetFeatures,
+  CypherNativeBinders,
   getShouldRunTest,
   handlers,
   neo4j,
@@ -20,10 +21,13 @@ addEventListener("unhandledrejection", (event: Event) => {
   console.error("unhandledrejection", event.reason);
 });
 
+const binder = new CypherNativeBinders(neo4j);
 const descriptor = ["async", "deno"];
 const shouldRunTest = getShouldRunTest(descriptor);
 const getFeatures = createGetFeatures(descriptor);
-const createContext = () => new Context(shouldRunTest, getFeatures);
+const logLevel = Deno.env.get("LOG_LEVEL");
+const createContext = () =>
+  new Context(shouldRunTest, getFeatures, binder, logLevel);
 
 const listener = channel.listen(9876);
 const handle = controller.createHandler(neo4j, createContext, requestHandlers);

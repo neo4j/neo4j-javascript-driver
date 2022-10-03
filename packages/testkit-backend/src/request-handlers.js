@@ -1,4 +1,3 @@
-import CypherNativeBinders from './cypher-native-binders.js'
 import * as responses from './responses.js'
 
 export function throwFrontendError () {
@@ -48,12 +47,11 @@ export function NewDriver (neo4j, context, data, wire) {
         })
     : undefined
 
-  const envLogLevel = typeof process === 'undefined' ? undefined : process.env.LOG_LEVEL
   const config = {
     userAgent,
     resolver,
     useBigInt: true,
-    logging: neo4j.logging.console(envLogLevel || context.logLevel)
+    logging: neo4j.logging.console(context.logLevel || context.environmentLogLevel)
   }
   if ('encrypted' in data) {
     config.encrypted = data.encrypted ? 'ENCRYPTION_ON' : 'ENCRYPTION_OFF'
@@ -152,13 +150,12 @@ export function SessionClose (_, context, data, wire) {
     .catch(err => wire.writeError(err))
 }
 
-export function SessionRun (neo4j, context, data, wire) {
+export function SessionRun (_, context, data, wire) {
   const { sessionId, cypher, params, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
-  const binder = new CypherNativeBinders(neo4j)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      params[key] = binder.cypherToNative(value)
+      params[key] = context.binder.cypherToNative(value)
     }
   }
 
@@ -176,10 +173,9 @@ export function SessionRun (neo4j, context, data, wire) {
   wire.writeResponse(responses.Result({ id }))
 }
 
-export function ResultNext (neo4j, context, data, wire) {
+export function ResultNext (_, context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
-  const binder = new CypherNativeBinders(neo4j)
   if (!('recordIt' in result)) {
     result.recordIt = result[Symbol.asyncIterator]()
   }
@@ -187,7 +183,7 @@ export function ResultNext (neo4j, context, data, wire) {
     if (done) {
       wire.writeResponse(responses.NullRecord())
     } else {
-      wire.writeResponse(responses.Record({ record: value }, { binder }))
+      wire.writeResponse(responses.Record({ record: value }, { binder: context.binder }))
     }
   }).catch(e => {
     console.log('got some err: ' + JSON.stringify(e))
@@ -195,10 +191,9 @@ export function ResultNext (neo4j, context, data, wire) {
   })
 }
 
-export function ResultPeek (neo4j, context, data, wire) {
+export function ResultPeek (_, context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
-  const binder = new CypherNativeBinders(neo4j)
   if (!('recordIt' in result)) {
     result.recordIt = result[Symbol.asyncIterator]()
   }
@@ -206,7 +201,7 @@ export function ResultPeek (neo4j, context, data, wire) {
     if (done) {
       wire.writeResponse(responses.NullRecord())
     } else {
-      wire.writeResponse(responses.Record({ record: value }, { binder }))
+      wire.writeResponse(responses.Record({ record: value }, { binder: context.binder }))
     }
   }).catch(e => {
     console.log('got some err: ' + JSON.stringify(e))
@@ -214,24 +209,22 @@ export function ResultPeek (neo4j, context, data, wire) {
   })
 }
 
-export function ResultConsume (neo4j, context, data, wire) {
+export function ResultConsume (_, context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
-  const binder = new CypherNativeBinders(neo4j)
 
   return result.summary().then(summary => {
-    wire.writeResponse(responses.Summary({ summary }, { binder }))
+    wire.writeResponse(responses.Summary({ summary }, { binder: context.binder }))
   }).catch(e => wire.writeError(e))
 }
 
-export function ResultList (neo4j, context, data, wire) {
+export function ResultList (_, context, data, wire) {
   const { resultId } = data
-  const binder = new CypherNativeBinders(neo4j)
   const result = context.getResult(resultId)
 
   return result
     .then(({ records }) => {
-      wire.writeResponse(responses.RecordList({ records }, { binder }))
+      wire.writeResponse(responses.RecordList({ records }, { binder: context.binder }))
     })
     .catch(error => wire.writeError(error))
 }
@@ -251,13 +244,12 @@ export function SessionReadTransaction (_, context, data, wire) {
     .catch(error => wire.writeError(error))
 }
 
-export function TransactionRun (neo4j, context, data, wire) {
+export function TransactionRun (_, context, data, wire) {
   const { txId, cypher, params } = data
   const tx = context.getTx(txId)
-  const binder = new CypherNativeBinders(neo4j)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      params[key] = binder.cypherToNative(value)
+      params[key] = context.binder.cypherToNative(value)
     }
   }
   const result = tx.tx.run(cypher, params)
