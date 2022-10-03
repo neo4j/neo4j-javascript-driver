@@ -3,7 +3,6 @@ export default function CypherNativeBinders (neo4j) {
   function valueResponse (name, value) {
     return { name: name, data: { value: value } }
   }
-  
   function objectToCypher (obj) {
     return objectMapper(obj, nativeToCypher)
   }
