@@ -25,7 +25,7 @@ import DenoHostNameResolver from './deno-host-name-resolver'
  This module exports a set of components to be used in deno environment.
  They are not compatible with NodeJS environment.
  All files import/require APIs from `node/index.js` by default.
- Such imports are replaced at build time with `browser/index.js` when building a browser bundle.
+ Such imports are replaced at build time with `deno/index.js` when building a deno bundle.
 
  NOTE: exports in this module should have exactly the same names/structure as exports in `node/index.js`.
 

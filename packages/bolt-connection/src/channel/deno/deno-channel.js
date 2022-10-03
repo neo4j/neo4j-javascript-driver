@@ -27,7 +27,7 @@ const {
 
 let _CONNECTION_IDGEN = 0
 /**
- * Create a new DenoChannel to be used in web browsers.
+ * Create a new DenoChannel to be used in Deno runtime.
  * @access private
  */
 export default class DenoChannel {
@@ -42,21 +42,20 @@ export default class DenoChannel {
     this.id = _CONNECTION_IDGEN++
     this._conn = null
     this._pending = []
-    this._error = null
     this._open = true
-    this._config = config
-
-    this._receiveTimeout = null
-    this._receiveTimeoutStarted = false
-    this._receiveTimeoutId = null
-
-    this._connectionErrorCode = config.connectionErrorCode
+    this._error = null
     this._handleConnectionError = this._handleConnectionError.bind(this)
     this._handleConnectionTerminated = this._handleConnectionTerminated.bind(
       this
     )
+    this._connectionErrorCode = config.connectionErrorCode
+    this._receiveTimeout = null
+    this._receiveTimeoutStarted = false
+    this._receiveTimeoutId = null
 
-    this._socketPromise = connect(config)
+    this._config = config
+
+    connect(config)
       .then(conn => {
         this._clearConnectionTimeout()
         if (!this._open) {
@@ -68,7 +67,7 @@ export default class DenoChannel {
           .catch(this._handleConnectionError)
 
         const pending = this._pending
-        this._pending = null 
+        this._pending = null
         for (let i = 0; i < pending.length; i++) {
           this.write(pending[i])
         }

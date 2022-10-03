@@ -130,7 +130,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
       }
 
       // Special fix for bolt-connection/channel/index.js
-      // Replace the "node channel" with the "deno channel", since Deno supports browser APIs
+      // Replace the "node channel" with the "deno channel", since Deno supports different APIs
       if (inPath.endsWith("channel/index.js")) {
         contents = contents.replace(
           `export * from './node/index.js'`,
