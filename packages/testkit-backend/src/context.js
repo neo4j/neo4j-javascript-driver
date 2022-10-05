@@ -1,5 +1,5 @@
 export default class Context {
-  constructor (shouldRunTest, getFeatures) {
+  constructor (shouldRunTest, getFeatures, binder, environmentLogLevel) {
     this._id = 0
     this._drivers = {}
     this._sessions = {}
@@ -12,6 +12,16 @@ export default class Context {
     this._bookmarkSupplierRequests = {}
     this._notifyBookmarksRequests = {}
     this._bookmarksManagers = {}
+    this._binder = binder
+    this._environmentLogLevel = environmentLogLevel
+  }
+
+  get binder () {
+    return this._binder
+  }
+
+  get environmentLogLevel () {
+    return this._environmentLogLevel
   }
 
   addDriver (driver) {

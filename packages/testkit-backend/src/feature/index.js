@@ -1,17 +1,19 @@
-import commonFeatures from './common'
-import rxFeatures from './rx'
-import asyncFeatures from './async'
+import commonFeatures from './common.js'
+import rxFeatures from './rx.js'
+import asyncFeatures from './async.js'
+import denoFeatures from './deno.js'
 
 const featuresByContext = new Map([
   ['async', asyncFeatures],
-  ['rx', rxFeatures]
+  ['rx', rxFeatures],
+  ['deno', denoFeatures]
 ])
 
-export function createGetFeatures (contexts) {
+export function createGetFeatures (contexts, extraFeatures = []) {
   const features = contexts
     .filter(context => featuresByContext.has(context))
     .map(context => featuresByContext.get(context))
-    .reduce((previous, current) => [...previous, ...current], commonFeatures)
+    .reduce((previous, current) => [...previous, ...current], [...commonFeatures, ...extraFeatures])
 
   return () => features
 }

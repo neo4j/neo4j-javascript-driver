@@ -1,6 +1,7 @@
 FROM ubuntu:20.04
 
 ARG NODE_VERSION=10
+ARG DENO_VERSION=1.19.3
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV NODE_OPTIONS --max_old_space_size=4096 --use-openssl-ca
@@ -47,8 +48,10 @@ COPY CustomCAs/* /usr/local/share/custom-ca-certificates/
 RUN update-ca-certificates --verbose
 
 # Add Deno
-RUN curl -fsSL https://deno.land/x/install/install.sh | sh
+RUN curl -fsSL https://deno.land/x/install/install.sh | sh -s v$DENO_VERSION
 RUN mv /root/.deno/bin/deno /usr/bin/
+# Using System CA in Deno
+ENV DENO_TLS_CA_STORE=system
 
 # Creating an user for building the driver and running the tests
 RUN useradd -m driver && echo "driver:driver" | chpasswd && adduser driver sudo

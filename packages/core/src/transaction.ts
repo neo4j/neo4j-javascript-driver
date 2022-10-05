@@ -109,6 +109,7 @@ class Transaction {
     this._lowRecordWatermak = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
     this._bookmarks = Bookmarks.empty()
+    this._acceptActive = () => { } // satisfy DenoJS 
     this._activePromise = new Promise((resolve, reject) => {
       this._acceptActive = resolve
     })

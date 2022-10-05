@@ -2,7 +2,7 @@
 Executed in Javascript driver container.
 Responsible for building driver and test backend.
 """
-from common import run, run_in_driver_repo, DRIVER_REPO
+from common import is_deno, run, run_in_driver_repo, DRIVER_REPO
 import os
 
 

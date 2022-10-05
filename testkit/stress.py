@@ -1,6 +1,7 @@
 import os
 from common import (
     is_browser,
+    is_deno,
     is_lite,
     run_in_driver_repo,
 )
@@ -17,4 +18,5 @@ if __name__ == "__main__":
         else:
             ignore = "--ignore=neo4j-driver-lite"
 
-        run_in_driver_repo(["npm", "run", "test::stress", "--", ignore])
+        if not is_deno():
+            run_in_driver_repo(["npm", "run", "test::stress", "--", ignore])

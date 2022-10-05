@@ -1,8 +1,4 @@
 import * as responses from './responses.js'
-import neo4j from './neo4j.js'
-import {
-  cypherToNative
-} from './cypher-native-binders.js'
 import { from } from 'rxjs'
 
 // Handlers which didn't change depending
@@ -28,7 +24,7 @@ export {
   StartSubTest
 } from './request-handlers.js'
 
-export function NewSession (context, data, wire) {
+export function NewSession (neo4j, context, data, wire) {
   let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
   switch (accessMode) {
     case 'r':
@@ -62,7 +58,7 @@ export function NewSession (context, data, wire) {
   wire.writeResponse(responses.Session({ id }))
 }
 
-export function SessionClose (context, data, wire) {
+export function SessionClose (_, context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
   return session
@@ -72,12 +68,12 @@ export function SessionClose (context, data, wire) {
     .catch(err => wire.writeError(err))
 }
 
-export function SessionRun (context, data, wire) {
+export function SessionRun (_, context, data, wire) {
   const { sessionId, cypher, params, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      params[key] = cypherToNative(value)
+      params[key] = context.binder.cypherToNative(value)
     }
   }
 
@@ -104,18 +100,18 @@ export function SessionRun (context, data, wire) {
     })
 }
 
-export function ResultConsume (context, data, wire) {
+export function ResultConsume (_, context, data, wire) {
   const { resultId } = data
   const result = context.getResult(resultId)
 
   return result.consume()
     .toPromise()
     .then(summary => {
-      wire.writeResponse(responses.Summary({ summary }))
+      wire.writeResponse(responses.Summary({ summary }, { binder: context.binder }))
     }).catch(e => wire.writeError(e))
 }
 
-export function SessionBeginTransaction (context, data, wire) {
+export function SessionBeginTransaction (_, context, data, wire) {
   const { sessionId, txMeta: metadata, timeout } = data
   const session = context.getSession(sessionId)
 
@@ -135,12 +131,12 @@ export function SessionBeginTransaction (context, data, wire) {
   }
 }
 
-export function TransactionRun (context, data, wire) {
+export function TransactionRun (_, context, data, wire) {
   const { txId, cypher, params } = data
   const tx = context.getTx(txId)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      params[key] = cypherToNative(value)
+      params[key] = context.binder.cypherToNative(value)
     }
   }
 
@@ -158,7 +154,7 @@ export function TransactionRun (context, data, wire) {
     })
 }
 
-export function TransactionRollback (context, data, wire) {
+export function TransactionRollback (_, context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.rollback()
@@ -170,7 +166,7 @@ export function TransactionRollback (context, data, wire) {
     })
 }
 
-export function TransactionCommit (context, data, wire) {
+export function TransactionCommit (_, context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.commit()
@@ -182,7 +178,7 @@ export function TransactionCommit (context, data, wire) {
     })
 }
 
-export function TransactionClose (context, data, wire) {
+export function TransactionClose (_, context, data, wire) {
   const { txId: id } = data
   const { tx } = context.getTx(id)
   return tx.close()
@@ -191,7 +187,7 @@ export function TransactionClose (context, data, wire) {
     .catch(e => wire.writeError(e))
 }
 
-export function SessionReadTransaction (context, data, wire) {
+export function SessionReadTransaction (_, context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
 
@@ -210,7 +206,7 @@ export function SessionReadTransaction (context, data, wire) {
   }
 }
 
-export function SessionWriteTransaction (context, data, wire) {
+export function SessionWriteTransaction (_, context, data, wire) {
   const { sessionId, txMeta: metadata } = data
   const session = context.getSession(sessionId)
 

@@ -21,7 +21,7 @@ The script will:
 1. Copy `neo4j-driver-lite` and the Neo4j packages it uses into a subfolder here
    called `lib`.
 1. Rewrite all imports to Deno-compatible versions
-1. Replace the "node channel" with the "browser channel"
+1. Replace the "node channel" with the "deno channel"
 1. Test that the resulting driver can be imported by Deno and passes type checks
 
 It is not necessary to do any other setup first; in particular, you don't need
@@ -53,7 +53,42 @@ you don't have a running Neo4j instance, you can use
 `docker run --rm -p 7687:7687 -e NEO4J_AUTH=neo4j/driverdemo neo4j:4.4` to
 quickly spin one up.
 
+## TLS
+
+For using system certificates, the `DENO_TLS_CA_STORE` should be set to `"system"`.
+`TRUST_ALL_CERTIFICATES` should be handle by `--unsafely-ignore-certificate-errors` and not by driver configuration. See, https://deno.com/blog/v1.13#disable-tls-verification;
+
 ## Tests
 
-It is not yet possible to run the test suite with this driver. Contributions to
-make that possible would be welcome.
+Tests **require** latest [Testkit 5.0](https://github.com/neo4j-drivers/testkit/tree/5.0), Python3 and Docker.
+
+Testkit is needed to be cloned and configured to run against the Javascript Lite Driver. Use the following steps to configure Testkit.
+
+1. Clone the Testkit repository
+
+```
+git clone https://github.com/neo4j-drivers/testkit.git
+```
+
+2. Under the Testkit folder, install the requirements.
+
+```
+pip3 install -r requirements.txt
+```
+
+3. Define some enviroment variables to configure Testkit
+
+```
+export TEST_DRIVER_NAME=javascript
+export TEST_DRIVER_REPO=<path for the root folder of driver repository>
+export TEST_DRIVER_DENO=1
+```
+
+To run test against against some Neo4j version:
+
+```
+python3 main.py
+```
+
+More details about how to use Teskit could be found on [its repository](https://github.com/neo4j-drivers/testkit/tree/5.0)
+

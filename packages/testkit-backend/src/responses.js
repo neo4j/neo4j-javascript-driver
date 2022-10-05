@@ -1,8 +1,4 @@
 import {
-  nativeToCypher
-} from './cypher-native-binders.js'
-
-import {
   nativeToTestkitSummary
 } from './summary-binder.js'
 
@@ -50,20 +46,20 @@ export function NullRecord () {
   return response('NullRecord', null)
 }
 
-export function Record ({ record }) {
-  const values = Array.from(record.values()).map(nativeToCypher)
+export function Record ({ record }, { binder }) {
+  const values = Array.from(record.values()).map(binder.nativeToCypher)
   return response('Record', { values })
 }
 
-export function RecordList ({ records }) {
+export function RecordList ({ records }, { binder }) {
   const cypherRecords = records.map(rec => {
-    return { values: Array.from(rec.values()).map(nativeToCypher) }
+    return { values: Array.from(rec.values()).map(binder.nativeToCypher) }
   })
   return response('RecordList', { records: cypherRecords })
 }
 
-export function Summary ({ summary }) {
-  return response('Summary', nativeToTestkitSummary(summary))
+export function Summary ({ summary }, { binder }) {
+  return response('Summary', nativeToTestkitSummary(summary, binder))
 }
 
 export function Bookmarks ({ bookmarks }) {

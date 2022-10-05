@@ -42,3 +42,7 @@ def is_lite():
 
 def is_browser():
     return is_enabled(os.environ.get("TEST_DRIVER_BROWSER", "false"))
+
+
+def is_deno():
+    return is_enabled(os.environ.get("TEST_DRIVER_DENO", "false"))
