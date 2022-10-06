@@ -27,7 +27,7 @@ const isDir = (path: string) => {
 ////////////////////////////////////////////////////////////////////////////////
 // Parse arguments
 const parsedArgs = parse(Deno.args, {
-  string: ["version"],
+  string: ["version", "output"],
   boolean: ["transform"], // Pass --no-transform to disable
   default: { transform: true },
   unknown: (arg) => {
@@ -42,7 +42,7 @@ const version = parsedArgs.version ?? "0.0.0dev";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Clear out the destination folder
-const rootOutDir = "lib/";
+const rootOutDir = parsedArgs.output ?? "lib/";
 await ensureDir(rootOutDir); // Make sure it exists
 for await (const existingFile of Deno.readDir(rootOutDir)) {
   await Deno.remove(`${rootOutDir}${existingFile.name}`, { recursive: true });
