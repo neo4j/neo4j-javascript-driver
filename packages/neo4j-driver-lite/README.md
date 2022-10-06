@@ -8,7 +8,7 @@ Resources to get you started:
 - [Neo4j Manual](https://neo4j.com/docs/)
 - [Neo4j Refcard](https://neo4j.com/docs/cypher-refcard/current/)
 
-## What's New in 5.0
+## What's New in 5.x
 
 - [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/5.0-changelog)
 
