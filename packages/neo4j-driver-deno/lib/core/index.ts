@@ -67,6 +67,7 @@ import ResultSummary, {
   Stats
 } from './result-summary.ts'
 import Result, { QueryResult, ResultObserver } from './result.ts'
+import EagerResult from './result-eager.ts'
 import ConnectionProvider from './connection-provider.ts'
 import Connection from './connection.ts'
 import Transaction from './transaction.ts'
@@ -76,7 +77,7 @@ import Session, { TransactionConfig } from './session.ts'
 import Driver, * as driver from './driver.ts'
 import auth from './auth.ts'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager.ts'
-import { SessionConfig } from './driver.ts'
+import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver.ts'
 import * as types from './types.ts'
 import * as json from './json.ts'
 import * as internal from './internal/index.ts'
@@ -139,6 +140,7 @@ const forExport = {
   QueryStatistics,
   Stats,
   Result,
+  EagerResult,
   Transaction,
   ManagedTransaction,
   TransactionPromise,
@@ -149,7 +151,8 @@ const forExport = {
   driver,
   json,
   auth,
-  bookmarkManager
+  bookmarkManager,
+  routing
 }
 
 export {
@@ -198,6 +201,7 @@ export {
   QueryStatistics,
   Stats,
   Result,
+  EagerResult,
   ConnectionProvider,
   Connection,
   Transaction,
@@ -209,7 +213,8 @@ export {
   driver,
   json,
   auth,
-  bookmarkManager
+  bookmarkManager,
+  routing
 }
 
 export type {
@@ -221,7 +226,9 @@ export type {
   TransactionConfig,
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  QueryConfig,
+  RoutingControl
 }
 
 export default forExport

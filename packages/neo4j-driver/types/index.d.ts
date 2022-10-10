@@ -60,6 +60,7 @@ import {
   ServerInfo,
   QueryStatistics,
   Result,
+  EagerResult,
   ResultObserver,
   QueryResult,
   Transaction,
@@ -68,7 +69,10 @@ import {
   BookmarkManager,
   bookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  QueryConfig,
+  RoutingControl,
+  routing
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -120,6 +124,7 @@ declare const types: {
   PathSegment: typeof PathSegment
   Path: typeof Path
   Result: typeof Result
+  EagerResult: typeof EagerResult
   ResultSummary: typeof ResultSummary
   Record: typeof Record
   Point: typeof Point
@@ -186,6 +191,7 @@ declare const forExport: {
   auth: typeof auth
   types: typeof types
   session: typeof session
+  routing: typeof routing
   error: typeof error
   graph: typeof graph
   spatial: typeof spatial
@@ -198,6 +204,7 @@ declare const forExport: {
   SessionMode: SessionMode
   Neo4jError: typeof Neo4jError
   isRetriableError: typeof isRetriableError
+<<<<<<< HEAD
   Node: typeof Node
   Relationship: typeof Relationship
   UnboundRelationship: typeof UnboundRelationship
@@ -206,6 +213,17 @@ declare const forExport: {
   Integer: typeof Integer
   Record: typeof Record
   Result: typeof Result
+=======
+  Node: Node
+  Relationship: Relationship
+  UnboundRelationship: UnboundRelationship
+  PathSegment: PathSegment
+  Path: Path
+  Integer: Integer
+  Record: Record
+  Result: Result
+  EagerResult: EagerResult
+>>>>>>> Introduce `Driver.executeQuery`
   QueryResult: QueryResult
   ResultObserver: ResultObserver
   ResultSummary: typeof ResultSummary
@@ -253,6 +271,7 @@ export {
   auth,
   types,
   session,
+  routing,
   error,
   graph,
   spatial,
@@ -273,6 +292,7 @@ export {
   Integer,
   Record,
   Result,
+  EagerResult,
   QueryResult,
   ResultObserver,
   ResultSummary,
@@ -314,7 +334,9 @@ export {
 export type {
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  QueryConfig,
+  RoutingControl
 }
 
 export default forExport

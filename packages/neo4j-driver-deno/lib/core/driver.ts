@@ -40,7 +40,11 @@ import {
   SessionMode
 } from './types.ts'
 import { ServerAddress } from './internal/server-address.ts'
-import BookmarkManager from './bookmark-manager.ts'
+import BookmarkManager, { bookmarkManager } from './bookmark-manager.ts'
+import EagerResult, { createEagerResultFromResult } from './result-eager.ts'
+import ManagedTransaction from './transaction-managed.ts'
+import Result from './result.ts'
+import { Dict } from './record.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -231,6 +235,85 @@ class SessionConfig {
   }
 }
 
+type RoutingControl = 'WRITERS' | 'READERS'
+const WRITERS: RoutingControl = 'WRITERS'
+const READERS: RoutingControl = 'READERS'
+/**
+ * @typedef {'WRITERS'|'READERS'} RoutingControl
+ */
+/**
+ * Constant that represents writers routing control.
+ *
+ * @example
+ * driver.query("<QUERY>", <PARAMETERS>, { routing: neo4j.routing.WRITERS })
+ */
+const routing = {
+  WRITERS,
+  READERS
+}
+
+Object.freeze(routing)
+
+/**
+ * The query configuration
+ * @interface
+ */
+class QueryConfig<Entries extends Dict = Dict, T = EagerResult<Entries>> {
+  routing?: RoutingControl
+  database?: string
+  impersonatedUser?: string
+  bookmarkManager?: BookmarkManager
+  resultTransformer?: (result: Result) => Promise<T>
+
+  /**
+   * @constructor
+   * @private
+   */
+  private constructor () {
+    /**
+     * Define the type of cluster member the query will be routed to.
+     *
+     * @type {RoutingControl}
+     */
+    this.routing = routing.WRITERS
+
+    /**
+     * Define the transformation will be applied to the Result before return from the
+     * query method.
+     *
+     * @type {function<T>(result:Result): Promise<T>}
+     */
+    this.resultTransformer = undefined
+
+    /**
+     * The database this session will operate on.
+     *
+     * @type {string|undefined}
+     */
+    this.database = ''
+
+    /**
+     * The username which the user wants to impersonate for the duration of the query.
+     *
+     * @type {string|undefined}
+     */
+    this.impersonatedUser = undefined
+
+    /**
+     * Configure a BookmarkManager for the session to use
+     *
+     * A BookmarkManager is a piece of software responsible for keeping casual consistency between different sessions by sharing bookmarks
+     * between the them.
+     *
+     * By default, it uses the drivers non mutable driver level bookmark manager.
+     *
+     * Can be set to null to disable causal chaining.
+     * @type {BookmarkManager}
+     */
+    this.bookmarkManager = undefined
+  }
+}
+
 /**
  * A driver maintains one or more {@link Session}s with a remote
  * Neo4j instance. Through the {@link Session}s you can send queries
@@ -249,6 +332,7 @@ class Driver {
   private readonly _createConnectionProvider: CreateConnectionProvider
   private _connectionProvider: ConnectionProvider | null
   private readonly _createSession: CreateSession
+  private readonly _queryBookmarkManager: BookmarkManager
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -256,13 +340,13 @@ class Driver {
    * @protected
    * @param {Object} meta Metainformation about the driver
    * @param {Object} config
-   * @param {function(id: number, config:Object, log:Logger, hostNameResolver: ConfiguredCustomResolver): ConnectionProvider } createConnectonProvider Creates the connection provider
+   * @param {function(id: number, config:Object, log:Logger, hostNameResolver: ConfiguredCustomResolver): ConnectionProvider } createConnectionProvider Creates the connection provider
    * @param {function(args): Session } createSession Creates the a session
   */
   constructor (
     meta: MetaInfo,
     config: DriverConfig = {},
-    createConnectonProvider: CreateConnectionProvider,
+    createConnectionProvider: CreateConnectionProvider,
     createSession: CreateSession = args => new Session(args)
   ) {
     sanitizeConfig(config)
@@ -275,8 +359,9 @@ class Driver {
     this._meta = meta
     this._config = config
     this._log = log
-    this._createConnectionProvider = createConnectonProvider
+    this._createConnectionProvider = createConnectionProvider
     this._createSession = createSession
+    this._queryBookmarkManager = bookmarkManager()
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
@@ -286,6 +371,85 @@ class Driver {
     this._connectionProvider = null
 
     this._afterConstruction()
+  }
+
+  /**
+   * The bookmark managed used by {@link Driver.executeQuery}
+   *
+   * @type {BookmarkManager}
+   * @returns {BookmarkManager}
+   */
+  get queryBookmarkManager (): BookmarkManager {
+    return this._queryBookmarkManager
+  }
+
+  /**
+   * Executes a query in a retriable context and returns a {@link EagerResult}.
+   *
+   * This method is a shortcut for a transaction function
+   *
+   * @example
+   * // Run a simple write query
+   * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
+   *
+   * @example
+   * // Run a read query
+   * const { keys, records, summary } = await driver.executeQuery(
+   *                  'MATCH (p:Person{ name: $name }) RETURN p',
+   *                  { name: 'Person1'},
+   *                  { routing: neo4j.routing.READERS})
+   *
+   * @example
+   * // this lines
+   * const transformedResult = await driver.executeQuery(
+   *       "<QUERY>",
+   *       <PARAMETERS>,
+   *       QueryConfig {
+   *           routing: neo4j.routing.WRITERS,
+   *           resultTransformer: transformer,
+   *           database: "<DATABASE>",
+   *           impersonatedUser: "<USER>",
+   *           bookmarkManager: bookmarkManager
+   *       }
+   *   )
+   * // are equivalent to this ones
+   * const session = driver.session({
+   *            database: "<DATABASE>",
+   *            impersonatedUser: "<USER>",
+   *            bookmarkManager: bookmarkManager
+   * })
+   *
+   * try {
+   *    const transformedResult = await session.executeWrite(tx => {
+   *        const result = tx.run("<QUERY>", <PARAMETERS>)
+   *        return transformer(result)
+   *    })
+   * } finally {
+   *    await session.close()
+   * }
+   *
+   * @public
+   * @param {string} query - Cypher query to execute
+   * @param {Object} parameters - Map with parameters to use in query
+   * @param {QueryConfig<T>} config - The query configuration
+   * @returns {Promise<T>}
+   */
+  async executeQuery<Entries extends Dict = Dict, T = EagerResult<Entries>> (query: string, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
+    const bookmarkManager = config.bookmarkManager === null ? undefined : config.bookmarkManager ?? this.queryBookmarkManager
+    const session = this.session({ database: config.database, bookmarkManager })
+    try {
+      const execute = config.routing === routing.READERS
+        ? session.executeRead.bind(session)
+        : session.executeWrite.bind(session)
+      const transformer = config.resultTransformer ?? createEagerResultFromResult
+
+      return (await execute((tx: ManagedTransaction) => {
+        const result = tx.run(query, parameters)
+        return transformer(result)
+      })) as unknown as T
+    } finally {
+      await session.close()
+    }
   }
 
   /**
@@ -456,6 +620,7 @@ class Driver {
 
   /**
    * @protected
+   * @returns {void}
    */
   _afterConstruction (): void {
     this._log.info(
@@ -627,5 +792,6 @@ function createHostNameResolver (config: any): ConfiguredCustomResolver {
   return new ConfiguredCustomResolver(config.resolver)
 }
 
-export { Driver, READ, WRITE, SessionConfig }
+export { Driver, READ, WRITE, routing, SessionConfig}
+export type { QueryConfig, RoutingControl }
 export default Driver

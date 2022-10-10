@@ -43,6 +43,7 @@ class ConnectionProvider {
    * @property {Bookmarks} param.bookmarks - the bookmarks to send to routing discovery
    * @property {string} param.impersonatedUser - the impersonated user
    * @property {function (databaseName:string?)} param.onDatabaseNameResolved - Callback called when the database name get resolved
+   * @returns {Promise<Connection>}
    */
   acquireConnection (param?: {
     accessMode?: string

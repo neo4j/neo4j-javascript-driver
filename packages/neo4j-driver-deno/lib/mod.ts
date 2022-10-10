@@ -57,6 +57,7 @@ import {
   Record,
   ResultSummary,
   Result,
+  EagerResult,
   ConnectionProvider,
   Driver,
   QueryResult,
@@ -78,7 +79,10 @@ import {
   BookmarkManager,
   bookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  QueryConfig,
+  RoutingControl,
+  routing
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import {
@@ -370,6 +374,7 @@ const types = {
   PathSegment,
   Path,
   Result,
+  EagerResult,
   ResultSummary,
   Record,
   Point,
@@ -456,12 +461,14 @@ const forExport = {
   logging,
   types,
   session,
+  routing,
   error,
   graph,
   spatial,
   temporal,
   Driver,
   Result,
+  EagerResult,
   Record,
   ResultSummary,
   Node,
@@ -515,12 +522,14 @@ export {
   logging,
   types,
   session,
+  routing,
   error,
   graph,
   spatial,
   temporal,
   Driver,
   Result,
+  EagerResult,
   Record,
   ResultSummary,
   Node,
@@ -560,6 +569,8 @@ export type {
   NotificationPosition,
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  QueryConfig,
+  RoutingControl
 }
 export default forExport
