@@ -402,5 +402,9 @@ describe('index', () => {
     )
 
     expect(graph.isPathSegment(pathSeg)).toBe(true)
+  it('should export routing', () => {
+    expect(neo4j.routing).toBeDefined()
+    expect(neo4j.routing.WRITERS).toBeDefined()
+    expect(neo4j.routing.READERS).toBeDefined()
   })
 })
