@@ -25,7 +25,7 @@ import QueryExecutor from '../src/internal/query-executor'
 import { ConfiguredCustomResolver } from '../src/internal/resolver'
 import { LogLevel } from '../src/types'
 import { createEagerResultFromResult } from '../src/result-eager'
-import { Dict } from '../src/record'
+import Record, { Dict } from '../src/record'
 
 describe('Driver', () => {
   let driver: Driver | null
@@ -340,6 +340,42 @@ describe('Driver', () => {
           database: undefined,
           impersonatedUser: undefined
         }, query, params)
+      })
+
+      it('should be able get type-safe Records', async () => {
+        interface Person {
+          name: string
+          age: number
+        }
+
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+        const expected: EagerResult = {
+          keys: ['name', 'age'],
+          records: [
+            new Record(['name', 'age'], ['A Person', 25])
+          ],
+          summary: new ResultSummary(query, params, {}, 5.0)
+        }
+        spiedExecute.mockResolvedValue(expected)
+
+        const eagerResult: EagerResult<Person> | undefined = await driver?.executeQuery(query, params)
+
+        const [aPerson] = eagerResult?.records ?? []
+
+        expect(aPerson).toBeDefined()
+        if (aPerson != null) {
+          expect(aPerson.get('name')).toEqual('A Person')
+          expect(aPerson.get('age')).toEqual(25)
+        } else {
+          fail('aPerson should not be null')
+        }
+
+        const aObject: Person = aPerson.toObject()
+
+        expect(aObject.name).toBe('A Person')
+        expect(aObject.age).toBe(25)
       })
     })
 
