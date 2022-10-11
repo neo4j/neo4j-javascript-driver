@@ -17,17 +17,22 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { bookmarkManager, ConnectionProvider, newError, ServerInfo, Session } from '../src'
-import Driver, { READ } from '../src/driver'
+import { bookmarkManager, ConnectionProvider, EagerResult, newError, Result, ResultSummary, ServerInfo, Session } from '../src'
+import Driver, { QueryConfig, READ, routing } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
+import QueryExecutor from '../src/internal/query-executor'
 import { ConfiguredCustomResolver } from '../src/internal/resolver'
 import { LogLevel } from '../src/types'
+import { createEagerResultFromResult } from '../src/result-eager'
+import { Dict } from '../src/record'
 
 describe('Driver', () => {
   let driver: Driver | null
   let connectionProvider: ConnectionProvider
   let createSession: any
+  let createQueryExecutor: any
+  let queryExecutor: QueryExecutor
   const META_INFO = {
     routing: false,
     typename: '',
@@ -39,11 +44,16 @@ describe('Driver', () => {
     connectionProvider = new ConnectionProvider()
     connectionProvider.close = jest.fn(() => Promise.resolve())
     createSession = jest.fn(args => new Session(args))
+    createQueryExecutor = jest.fn((createSession) => {
+      queryExecutor = new QueryExecutor(createSession)
+      return queryExecutor
+    })
     driver = new Driver(
       META_INFO,
       CONFIG,
       mockCreateConnectonProvider(connectionProvider),
-      createSession
+      createSession,
+      createQueryExecutor
     )
   })
 
@@ -305,6 +315,124 @@ describe('Driver', () => {
       .toBeCalledWith({ database: input?.database ?? '', accessMode: READ })
 
     promise?.catch(_ => 'Do nothing').finally(() => { })
+  })
+
+  describe('.executeQuery()', () => {
+    describe('when config is not defined', () => {
+      it('should call executor with default params', async () => {
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+        const expected: EagerResult = {
+          keys: ['a'],
+          records: [],
+          summary: new ResultSummary(query, params, {}, 5.0)
+        }
+        spiedExecute.mockResolvedValue(expected)
+
+        const eagerResult: EagerResult | undefined = await driver?.executeQuery(query, params)
+
+        expect(eagerResult).toEqual(expected)
+        expect(spiedExecute).toBeCalledWith({
+          resultTransformer: createEagerResultFromResult,
+          bookmarkManager: driver?.queryBookmarkManager,
+          routing: routing.WRITERS,
+          database: undefined,
+          impersonatedUser: undefined
+        }, query, params)
+      })
+    })
+
+    describe('when config is defined', () => {
+      const theBookmarkManager = bookmarkManager()
+      async function aTransformer (result: Result): Promise<string> {
+        const summary = await result.summary()
+        return summary.database.name ?? 'no-db-set'
+      }
+
+      it.each([
+        ['empty config', 'the query', {}, {}, extendsDefaultWith({})],
+        ['config.routing=WRITERS', 'another query $s', { s: 'str' }, { routing: routing.WRITERS }, extendsDefaultWith({ routing: routing.WRITERS })],
+        ['config.routing=READERS', 'create num $d', { d: 1 }, { routing: routing.READERS }, extendsDefaultWith({ routing: routing.READERS })],
+        ['config.database="dbname"', 'q', {}, { database: 'dbname' }, extendsDefaultWith({ database: 'dbname' })],
+        ['config.impersonatedUser="the_user"', 'q', {}, { impersonatedUser: 'the_user' }, extendsDefaultWith({ impersonatedUser: 'the_user' })],
+        ['config.bookmarkManager=null', 'q', {}, { bookmarkManager: null }, extendsDefaultWith({ bookmarkManager: undefined })],
+        ['config.bookmarkManager set to non-null/empty', 'q', {}, { bookmarkManager: theBookmarkManager }, extendsDefaultWith({ bookmarkManager: theBookmarkManager })],
+        ['config.resultTransformer set', 'q', {}, { resultTransformer: aTransformer }, extendsDefaultWith({ resultTransformer: aTransformer })]
+      ])('should handle the params for %s', async (_, query, params, config, buildExpectedConfig) => {
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+
+        spiedExecute.mockResolvedValue(null)
+
+        await driver?.executeQuery(query, params, config)
+
+        expect(spiedExecute).toBeCalledWith(buildExpectedConfig(), query, params)
+      })
+
+      it('should handle correct type mapping for a custom result transformer', async () => {
+        async function customResultMapper (result: Result): Promise<string> {
+          return 'myMock'
+        }
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+
+        const expected: string = 'myMock'
+        spiedExecute.mockResolvedValue(expected)
+
+        const output: string | undefined = await driver?.executeQuery(query, params, {
+          resultTransformer: customResultMapper
+        })
+
+        expect(output).toEqual(expected)
+      })
+
+      it('should explicity handle correct type mapping for a custom result transformer', async () => {
+        async function customResultMapper (result: Result): Promise<string> {
+          return 'myMock'
+        }
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+
+        const expected: string = 'myMock'
+        spiedExecute.mockResolvedValue(expected)
+
+        const output: string | undefined = await driver?.executeQuery<string>(query, params, {
+          resultTransformer: customResultMapper
+        })
+
+        expect(output).toEqual(expected)
+      })
+
+      function extendsDefaultWith<T = EagerResult<Dict>> (config: QueryConfig<Dict, T>) {
+        return () => {
+          const defaultConfig = {
+            resultTransformer: createEagerResultFromResult,
+            bookmarkManager: driver?.queryBookmarkManager,
+            routing: routing.WRITERS,
+            database: undefined,
+            impersonatedUser: undefined
+          }
+          return {
+            ...defaultConfig,
+            ...config
+          }
+        }
+      }
+    })
+
+    describe('when executor failed', () => {
+      it('should return the failure', async () => {
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+        const failure = newError('something was wrong')
+        spiedExecute.mockRejectedValue(failure)
+
+        await expect(driver?.executeQuery(query, params)).rejects.toThrow(failure)
+      })
+    })
   })
 
   function mockCreateConnectonProvider (connectionProvider: ConnectionProvider) {

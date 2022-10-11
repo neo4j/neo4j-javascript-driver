@@ -42,8 +42,8 @@ import {
 import { ServerAddress } from './internal/server-address'
 import BookmarkManager, { bookmarkManager } from './bookmark-manager'
 import EagerResult, { createEagerResultFromResult } from './result-eager'
-import ManagedTransaction from './transaction-managed'
 import Result from './result'
+import QueryExecutor from './internal/query-executor'
 import { Dict } from './record'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
@@ -94,6 +94,8 @@ type CreateSession = (args: {
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
 }) => Session
+
+type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
 
 interface DriverConfig {
   encrypted?: EncryptionLevel | boolean
@@ -254,6 +256,8 @@ const routing = {
 
 Object.freeze(routing)
 
+type ResultTransformer<T> = (result: Result) => Promise<T>
+
 /**
  * The query configuration
  * @interface
@@ -262,8 +266,8 @@ class QueryConfig<Entries extends Dict = Dict, T = EagerResult<Entries>> {
   routing?: RoutingControl
   database?: string
   impersonatedUser?: string
-  bookmarkManager?: BookmarkManager
-  resultTransformer?: (result: Result) => Promise<T>
+  bookmarkManager?: BookmarkManager | null
+  resultTransformer?: ResultTransformer<T>
 
   /**
    * @constructor
@@ -308,7 +312,7 @@ class QueryConfig<Entries extends Dict = Dict, T = EagerResult<Entries>> {
      * By default, it uses the drivers non mutable driver level bookmark manager.
      *
      * Can be set to null to disable causal chaining.
-     * @type {BookmarkManager}
+     * @type {BookmarkManager|null}
      */
     this.bookmarkManager = undefined
   }
@@ -333,6 +337,7 @@ class Driver {
   private _connectionProvider: ConnectionProvider | null
   private readonly _createSession: CreateSession
   private readonly _queryBookmarkManager: BookmarkManager
+  private readonly _queryExecutor: QueryExecutor
 
   /**
    * You should not be calling this directly, instead use {@link driver}.
@@ -347,7 +352,8 @@ class Driver {
     meta: MetaInfo,
     config: DriverConfig = {},
     createConnectionProvider: CreateConnectionProvider,
-    createSession: CreateSession = args => new Session(args)
+    createSession: CreateSession = args => new Session(args),
+    createQueryExecutor: CreateQueryExecutor = createQuery => new QueryExecutor(createQuery)
   ) {
     sanitizeConfig(config)
 
@@ -362,6 +368,7 @@ class Driver {
     this._createConnectionProvider = createConnectionProvider
     this._createSession = createSession
     this._queryBookmarkManager = bookmarkManager()
+    this._queryExecutor = createQueryExecutor(this.session.bind(this))
 
     /**
      * Reference to the connection provider. Initialized lazily by {@link _getOrCreateConnectionProvider}.
@@ -434,22 +441,17 @@ class Driver {
    * @param {QueryConfig<T>} config - The query configuration
    * @returns {Promise<T>}
    */
-  async executeQuery<Entries extends Dict = Dict, T = EagerResult<Entries>> (query: string, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
+  async executeQuery<T> (query: string, parameters?: any, config: QueryConfig<Dict, T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : config.bookmarkManager ?? this.queryBookmarkManager
-    const session = this.session({ database: config.database, bookmarkManager })
-    try {
-      const execute = config.routing === routing.READERS
-        ? session.executeRead.bind(session)
-        : session.executeWrite.bind(session)
-      const transformer = config.resultTransformer ?? createEagerResultFromResult
+    const resultTransformer: ResultTransformer<T> = (config.resultTransformer ?? createEagerResultFromResult) as unknown as ResultTransformer<T>
 
-      return (await execute((tx: ManagedTransaction) => {
-        const result = tx.run(query, parameters)
-        return transformer(result)
-      })) as unknown as T
-    } finally {
-      await session.close()
-    }
+    return await this._queryExecutor.execute({
+      resultTransformer,
+      bookmarkManager,
+      routing: config.routing ?? routing.WRITERS,
+      database: config.database,
+      impersonatedUser: config.impersonatedUser
+    }, query, parameters)
   }
 
   /**
