@@ -21,10 +21,10 @@ import {
   Connection,
   newError,
   Record,
-  ResultObserver,
   ResultSummary
 } from '../src'
 
+import ResultStreamObserverMock from './utils/result-stream-observer.mock'
 import Result from '../src/result'
 import FakeConnection from './utils/connection.fake'
 
@@ -1653,93 +1653,6 @@ describe('Result', () => {
     }
   })
 })
-
-class ResultStreamObserverMock implements observer.ResultStreamObserver {
-  private readonly _queuedRecords: Record[]
-  private _fieldKeys?: string[]
-  private readonly _observers: ResultObserver[]
-  private _error?: Error
-  private _meta?: any
-
-  constructor () {
-    this._queuedRecords = []
-    this._observers = []
-  }
-
-  cancel (): void {}
-
-  prepareToHandleSingleResponse (): void {}
-
-  markCompleted (): void {}
-
-  subscribe (observer: ResultObserver): void {
-    this._observers.push(observer)
-
-    if ((observer.onError != null) && (this._error != null)) {
-      observer.onError(this._error)
-      return
-    }
-
-    if ((observer.onKeys != null) && (this._fieldKeys != null)) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      observer.onKeys(this._fieldKeys)
-    }
-
-    if (observer.onNext != null) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this._queuedRecords.forEach(record => observer.onNext!(record))
-    }
-
-    if ((observer.onCompleted != null) && this._meta != null) {
-      observer.onCompleted(this._meta)
-    }
-  }
-
-  onKeys (keys: string[]): void {
-    this._fieldKeys = keys
-    this._observers.forEach(o => {
-      if (o.onKeys != null) {
-        o.onKeys(keys)
-      }
-    })
-  }
-
-  onNext (rawRecord: any[]): void {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const record = new Record(this._fieldKeys!, rawRecord)
-    const streamed = this._observers
-      .filter(o => o.onNext)
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      .map(o => o.onNext!(record))
-      .reduce(() => true, false)
-
-    if (!streamed) {
-      this._queuedRecords.push(record)
-    }
-  }
-
-  onError (error: Error): void {
-    this._error = error
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this._observers.filter(o => o.onError).forEach(o => o.onError!(error))
-  }
-
-  onCompleted (meta: any): void {
-    this._meta = meta
-    this._observers
-      .filter(o => o.onCompleted)
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      .forEach(o => o.onCompleted!(meta))
-  }
-
-  pause (): void {
-    // do nothing
-  }
-
-  resume (): void {
-    // do nothing
-  }
-}
 
 function simulateStream (
   records: any[][],

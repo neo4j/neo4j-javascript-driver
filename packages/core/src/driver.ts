@@ -37,7 +37,8 @@ import {
   EncryptionLevel,
   LoggingConfig,
   TrustStrategy,
-  SessionMode
+  SessionMode,
+  Query
 } from './types'
 import { ServerAddress } from './internal/server-address'
 import BookmarkManager, { bookmarkManager } from './bookmark-manager'
@@ -436,12 +437,12 @@ class Driver {
    * }
    *
    * @public
-   * @param {string} query - Cypher query to execute
+   * @param {string| {text:string, parameters?: object}} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in query
    * @param {QueryConfig<T>} config - The query configuration
    * @returns {Promise<T>}
    */
-  async executeQuery<T> (query: string, parameters?: any, config: QueryConfig<Dict, T> = {}): Promise<T> {
+  async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<Dict, T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : config.bookmarkManager ?? this.queryBookmarkManager
     const resultTransformer: ResultTransformer<T> = (config.resultTransformer ?? createEagerResultFromResult) as unknown as ResultTransformer<T>
 

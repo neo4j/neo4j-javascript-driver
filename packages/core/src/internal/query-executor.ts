@@ -21,9 +21,9 @@ import BookmarkManager from '../bookmark-manager'
 import Session from '../session'
 import Result from '../result'
 import ManagedTransaction from '../transaction-managed'
+import { Query } from '../types'
 
-type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session
-
+type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkManager, impersonatedUser?: string }) => Session
 interface ExecutionConfig<T> {
   routing: 'WRITERS' | 'READERS'
   database?: string
@@ -37,10 +37,11 @@ export default class QueryExecutor {
 
   }
 
-  public async execute<T> (config: ExecutionConfig<T>, query: string, parameters?: any): Promise<T> {
+  public async execute<T> (config: ExecutionConfig<T>, query: Query, parameters?: any): Promise<T> {
     const session = this._createSession({
       database: config.database,
-      bookmarkManager: config.bookmarkManager
+      bookmarkManager: config.bookmarkManager,
+      impersonatedUser: config.impersonatedUser
     })
     try {
       const execute = config.routing === 'READERS'
