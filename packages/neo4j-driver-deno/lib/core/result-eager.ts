@@ -30,31 +30,31 @@ export default class EagerResult<Entries extends Dict = Dict> {
   summary: ResultSummary
 
   /**
-     * @constructor
-     * @private
-     * @param {string[]} keys The records keys
-     * @param {Record[]} records The resulted records
-     * @param {ResultSummary[]} summary The result Summary
-     */
+   * @constructor
+   * @private
+   * @param {string[]} keys The records keys
+   * @param {Record[]} records The resulted records
+   * @param {ResultSummary[]} summary The result Summary
+   */
   constructor (
     keys: string[],
     records: Record[],
     summary: ResultSummary
   ) {
     /**
-       * Field keys, in the order the fields appear in the records.
-       * @type {string[]}
-       */
+     * Field keys, in the order the fields appear in the records.
+     * @type {string[]}
+     */
     this.keys = keys
     /**
-       * Field records, in the order the records arrived from the server.
-       * @type {Record[]}
-       */
+     * Field records, in the order the records arrived from the server.
+     * @type {Record[]}
+     */
     this.records = records
     /**
-       * Field summary
-       * @type {ResultSummary}
-       */
+     * Field summary
+     * @type {ResultSummary}
+     */
     this.summary = summary
   }
 }
