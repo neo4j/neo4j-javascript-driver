@@ -546,10 +546,10 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
   if (config) {
     if ('routing' in config && config.routing != null) {
       switch (config.routing) {
-        case 'W':
+        case 'w':
           configuration.routing = neo4j.routing.WRITERS
           break
-        case 'R':
+        case 'r':
           configuration.routing = neo4j.routing.READERS
           break
         default:
