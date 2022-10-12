@@ -537,7 +537,9 @@ export function ForcedRoutingTableUpdate (_, context, { driverId, database, book
 export function ExecuteQuery (_, context, { driverId, cypher, params, config }, wire) {
   const driver = context.getDriver(driverId)
   if (params) {
-    params = params.map(value => context.binder.cypherToNative(value))
+    for (const [key, value] of Object.entries(params)) {
+      params[key] = context.binder.cypherToNative(value)
+    }
   }
 
   driver.executeQuery(cypher, params, config)
