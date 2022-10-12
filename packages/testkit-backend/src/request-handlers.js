@@ -561,6 +561,10 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
     if ('database' in config) {
       configuration.database = config.database
     }
+
+    if ('impersonatedUser' in config) {
+      configuration.impersonatedUser = config.impersonatedUser
+    }
   }
 
   driver.executeQuery(cypher, params, configuration)
