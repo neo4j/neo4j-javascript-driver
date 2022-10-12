@@ -557,6 +557,10 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
           return
       }
     }
+
+    if ('database' in config) {
+      configuration.database = config.database
+    }
   }
 
   driver.executeQuery(cypher, params, configuration)
