@@ -566,10 +566,17 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
       configuration.impersonatedUser = config.impersonatedUser
     }
 
-    if ('bookmarkManager' in config) {
-      configuration.bookmarkManager = config.bookmarkManager != null
-        ? config.bookmarkManager
-        : null
+    if ('bookmarkManagerId' in config) {
+      if (config.bookmarkManagerId != null) {
+        const bookmarkManager = context.getBookmarkManager(config.bookmarkManagerId)
+        if (bookmarkManager == null) {
+          wire.writeBackendError(`Bookmark manager ${config.bookmarkManagerId} not found`)
+          return
+        }
+        configuration.bookmarkManager = bookmarkManager
+      } else {
+        configuration.bookmarkManager = null
+      }
     }
   }
 
