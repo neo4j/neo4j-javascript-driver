@@ -533,3 +533,16 @@ export function ForcedRoutingTableUpdate (_, context, { driverId, database, book
     wire.writeError('Driver does not support routing')
   }
 }
+
+export function ExecuteQuery (_, context, { driverId, cypher, params, config }, wire) {
+  const driver = context.getDriver(driverId)
+  if (params) {
+    params = params.map(value => context.binder.cypherToNative(value))
+  }
+
+  driver.executeQuery(cypher, params, config)
+    .then(eagerResult => {
+      wire.writeResponse(responses.EagerResult(eagerResult, { binder: context.binder }))
+    })
+    .catch(e => wire.writeError(e))
+}

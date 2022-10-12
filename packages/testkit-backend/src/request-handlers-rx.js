@@ -21,7 +21,8 @@ export {
   BookmarkManagerClose,
   BookmarksSupplierCompleted,
   BookmarksConsumerCompleted,
-  StartSubTest
+  StartSubTest,
+  ExecuteQuery
 } from './request-handlers.js'
 
 export function NewSession (neo4j, context, data, wire) {
