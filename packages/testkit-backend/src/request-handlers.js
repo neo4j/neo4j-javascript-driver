@@ -565,6 +565,12 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
     if ('impersonatedUser' in config) {
       configuration.impersonatedUser = config.impersonatedUser
     }
+
+    if ('bookmarkManager' in config) {
+      configuration.bookmarkManager = config.bookmarkManager != null
+        ? config.bookmarkManager
+        : null
+    }
   }
 
   driver.executeQuery(cypher, params, configuration)
