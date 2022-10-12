@@ -24,6 +24,9 @@ import ManagedTransaction from '../transaction-managed.ts'
 import { Query } from '../types.ts'
 
 type SessionFactory = (config: { database?: string, bookmarkManager?: BookmarkManager, impersonatedUser?: string }) => Session
+
+type TransactionFunction<T> = (transactionWork: (tx: ManagedTransaction) => Promise<T>) => Promise<T>
+
 interface ExecutionConfig<T> {
   routing: 'WRITERS' | 'READERS'
   database?: string
@@ -37,18 +40,18 @@ export default class QueryExecutor {
 
   }
 
-  public async execute<T> (config: ExecutionConfig<T>, query: Query, parameters?: any): Promise<T> {
+  public async execute<T>(config: ExecutionConfig<T>, query: Query, parameters?: any): Promise<T> {
     const session = this._createSession({
       database: config.database,
       bookmarkManager: config.bookmarkManager,
       impersonatedUser: config.impersonatedUser
     })
     try {
-      const execute = config.routing === 'READERS'
+      const execute: TransactionFunction<T> = config.routing === 'READERS'
         ? session.executeRead.bind(session)
         : session.executeWrite.bind(session)
 
-      return execute(async (tx: ManagedTransaction) => {
+      return await execute(async (tx: ManagedTransaction) => {
         const result = tx.run(query, parameters)
         return await config.resultTransformer(result)
       })

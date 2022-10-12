@@ -265,7 +265,7 @@ describe('QueryExecutor', () => {
       expect(resultTransformer).toBeCalledWith(result)
     })
 
-    it('should handle error during executeRead', async () => {
+    it('should handle error during executeWrite', async () => {
       const error = newError('expected error')
       const { queryExecutor, sessionsCreated } = createExecutor({
         mockSessionExecuteWrite (spy) {
