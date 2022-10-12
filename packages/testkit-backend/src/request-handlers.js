@@ -534,15 +534,32 @@ export function ForcedRoutingTableUpdate (_, context, { driverId, database, book
   }
 }
 
-export function ExecuteQuery (_, context, { driverId, cypher, params, config }, wire) {
+export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config }, wire) {
   const driver = context.getDriver(driverId)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       params[key] = context.binder.cypherToNative(value)
     }
   }
+  const configuration = {}
 
-  driver.executeQuery(cypher, params, config)
+  if (config) {
+    if ('routing' in config && config.routing != null) {
+      switch (config.routing) {
+        case 'W':
+          configuration.routing = neo4j.routing.WRITERS
+          break
+        case 'R':
+          configuration.routing = neo4j.routing.READERS
+          break
+        default:
+          wire.writeBackendError('Unknown routing: ' + config.routing)
+          return
+      }
+    }
+  }
+
+  driver.executeQuery(cypher, params, configuration)
     .then(eagerResult => {
       wire.writeResponse(responses.EagerResult(eagerResult, { binder: context.binder }))
     })
