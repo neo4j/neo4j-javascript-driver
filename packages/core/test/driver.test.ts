@@ -441,7 +441,7 @@ describe('Driver', () => {
         expect(output).toEqual(expected)
       })
 
-      function extendsDefaultWith<T = EagerResult<Dict>> (config: QueryConfig<Dict, T>) {
+      function extendsDefaultWith<T = EagerResult<Dict>> (config: QueryConfig<T>) {
         return () => {
           const defaultConfig = {
             resultTransformer: createEagerResultFromResult,

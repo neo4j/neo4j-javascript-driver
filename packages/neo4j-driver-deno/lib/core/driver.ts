@@ -45,7 +45,6 @@ import BookmarkManager, { bookmarkManager } from './bookmark-manager.ts'
 import EagerResult, { createEagerResultFromResult } from './result-eager.ts'
 import Result from './result.ts'
 import QueryExecutor from './internal/query-executor.ts'
-import { Dict } from './record.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -263,7 +262,7 @@ type ResultTransformer<T> = (result: Result) => Promise<T>
  * The query configuration
  * @interface
  */
-class QueryConfig<Entries extends Dict = Dict, T = EagerResult<Entries>> {
+class QueryConfig<T = EagerResult> {
   routing?: RoutingControl
   database?: string
   impersonatedUser?: string
@@ -441,7 +440,7 @@ class Driver {
    * @param {QueryConfig<T>} config - The query configuration
    * @returns {Promise<T>}
    */
-  async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<Dict, T> = {}): Promise<T> {
+  async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)
     const resultTransformer: ResultTransformer<T> = (config.resultTransformer ?? createEagerResultFromResult) as unknown as ResultTransformer<T>
 
