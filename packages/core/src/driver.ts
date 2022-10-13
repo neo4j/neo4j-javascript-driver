@@ -442,7 +442,7 @@ class Driver {
    */
   async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)
-    const resultTransformer: ResultTransformer<T> = (config.resultTransformer ?? createEagerResultFromResult) as unknown as ResultTransformer<T>
+    const resultTransformer = (config.resultTransformer ?? createEagerResultFromResult) as ResultTransformer<T>
 
     return await this._queryExecutor.execute({
       resultTransformer,
