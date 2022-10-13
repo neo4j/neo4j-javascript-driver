@@ -47,11 +47,11 @@ export default class QueryExecutor {
       impersonatedUser: config.impersonatedUser
     })
     try {
-      const execute: TransactionFunction<T> = config.routing === 'READERS'
+      const executeInTransaction: TransactionFunction<T> = config.routing === 'READERS'
         ? session.executeRead.bind(session)
         : session.executeWrite.bind(session)
 
-      return await execute(async (tx: ManagedTransaction) => {
+      return await executeInTransaction(async (tx: ManagedTransaction) => {
         const result = tx.run(query, parameters)
         return await config.resultTransformer(result)
       })

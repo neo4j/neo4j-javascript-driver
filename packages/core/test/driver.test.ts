@@ -441,6 +441,20 @@ describe('Driver', () => {
         expect(output).toEqual(expected)
       })
 
+      it('should validate the routing configuration', async () => {
+        const expectedError = newError('Illegal query routing config: "GO FIGURE"')
+
+        const query = 'Query'
+        const params = {}
+
+        const output = driver?.executeQuery<string>(query, params, {
+          // @ts-expect-error
+          routing: 'GO FIGURE'
+        })
+
+        await expect(output).rejects.toThrow(expectedError)
+      })
+
       function extendsDefaultWith<T = EagerResult<Dict>> (config: QueryConfig<T>) {
         return () => {
           const defaultConfig = {

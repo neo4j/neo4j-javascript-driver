@@ -45,6 +45,7 @@ import BookmarkManager, { bookmarkManager } from './bookmark-manager'
 import EagerResult, { createEagerResultFromResult } from './result-eager'
 import Result from './result'
 import QueryExecutor from './internal/query-executor'
+import { newError } from './error'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -443,11 +444,16 @@ class Driver {
   async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)
     const resultTransformer = (config.resultTransformer ?? createEagerResultFromResult) as ResultTransformer<T>
+    const routingConfig: string = config.routing ?? routing.WRITERS
+
+    if (routingConfig !== routing.READERS && routingConfig !== routing.WRITERS) {
+      throw newError(`Illegal query routing config: "${routingConfig}"`)
+    }
 
     return await this._queryExecutor.execute({
       resultTransformer,
       bookmarkManager,
-      routing: config.routing ?? routing.WRITERS,
+      routing: routingConfig,
       database: config.database,
       impersonatedUser: config.impersonatedUser
     }, query, parameters)
