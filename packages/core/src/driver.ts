@@ -403,28 +403,27 @@ class Driver {
    * @example
    * // Run a read query
    * const { keys, records, summary } = await driver.executeQuery(
-   *                  'MATCH (p:Person{ name: $name }) RETURN p',
-   *                  { name: 'Person1'},
-   *                  { routing: neo4j.routing.READERS})
+   *     'MATCH (p:Person{ name: $name }) RETURN p',
+   *      { name: 'Person1'},
+   *      { routing: neo4j.routing.READERS})
    *
    * @example
    * // these lines
    * const transformedResult = await driver.executeQuery(
-   *       "<QUERY>",
-   *       <PARAMETERS>,
-   *       QueryConfig {
-   *           routing: neo4j.routing.WRITERS,
-   *           resultTransformer: transformer,
-   *           database: "<DATABASE>",
-   *           impersonatedUser: "<USER>",
-   *           bookmarkManager: bookmarkManager
-   *       }
-   *   )
+   *    "<QUERY>",
+   *    <PARAMETERS>,
+   *    QueryConfig {
+   *      routing: neo4j.routing.WRITERS,
+   *      resultTransformer: transformer,
+   *      database: "<DATABASE>",
+   *      impersonatedUser: "<USER>",
+   *       bookmarkManager: bookmarkManager
+   *    })
    * // are equivalent to those
    * const session = driver.session({
-   *            database: "<DATABASE>",
-   *            impersonatedUser: "<USER>",
-   *            bookmarkManager: bookmarkManager
+   *    database: "<DATABASE>",
+   *    impersonatedUser: "<USER>",
+   *    bookmarkManager: bookmarkManager
    * })
    *
    * try {
@@ -443,7 +442,7 @@ class Driver {
    * @returns {Promise<T>}
    */
   async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<Dict, T> = {}): Promise<T> {
-    const bookmarkManager = config.bookmarkManager === null ? undefined : config.bookmarkManager ?? this.queryBookmarkManager
+    const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)
     const resultTransformer: ResultTransformer<T> = (config.resultTransformer ?? createEagerResultFromResult) as unknown as ResultTransformer<T>
 
     return await this._queryExecutor.execute({
