@@ -153,7 +153,7 @@ describe('QueryExecutor', () => {
       expect(spyOnClose).toHaveBeenCalled()
     })
 
-    xit('should give precedence to errors during session close', async () => {
+    it('should give precedence to errors during session close', async () => {
       const error = newError('non expected error')
       const closeError = newError('expected error')
       const { queryExecutor } = createExecutor({
@@ -280,7 +280,7 @@ describe('QueryExecutor', () => {
       expect(spyOnClose).toHaveBeenCalled()
     })
 
-    xit('should give precedence to errors during session close', async () => {
+    it('should give precedence to errors during session close', async () => {
       const error = newError('non expected error')
       const closeError = newError('expected error')
       const { queryExecutor } = createExecutor({
