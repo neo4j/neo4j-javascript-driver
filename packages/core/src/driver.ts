@@ -307,10 +307,10 @@ class QueryConfig<Entries extends Dict = Dict, T = EagerResult<Entries>> {
     /**
      * Configure a BookmarkManager for the session to use
      *
-     * A BookmarkManager is a piece of software responsible for keeping casual consistency between different sessions by sharing bookmarks
+     * A BookmarkManager is a piece of software responsible for keeping casual consistency between different pieces of work by sharing bookmarks
      * between the them.
      *
-     * By default, it uses the drivers non mutable driver level bookmark manager.
+     * By default, it uses the driver's non mutable driver level bookmark manager.
      *
      * Can be set to null to disable causal chaining.
      * @type {BookmarkManager|null}
@@ -394,7 +394,7 @@ class Driver {
   /**
    * Executes a query in a retriable context and returns a {@link EagerResult}.
    *
-   * This method is a shortcut for a transaction function
+   * This method is a shortcut for a transaction function.
    *
    * @example
    * // Run a simple write query
@@ -408,7 +408,7 @@ class Driver {
    *                  { routing: neo4j.routing.READERS})
    *
    * @example
-   * // this lines
+   * // these lines
    * const transformedResult = await driver.executeQuery(
    *       "<QUERY>",
    *       <PARAMETERS>,
@@ -420,7 +420,7 @@ class Driver {
    *           bookmarkManager: bookmarkManager
    *       }
    *   )
-   * // are equivalent to this ones
+   * // are equivalent to those
    * const session = driver.session({
    *            database: "<DATABASE>",
    *            impersonatedUser: "<USER>",
@@ -437,8 +437,8 @@ class Driver {
    * }
    *
    * @public
-   * @param {string| {text:string, parameters?: object}} query - Cypher query to execute
-   * @param {Object} parameters - Map with parameters to use in query
+   * @param {string | {text: string, parameters?: object}} query - Cypher query to execute
+   * @param {Object} parameters - Map with parameters to use in the query
    * @param {QueryConfig<T>} config - The query configuration
    * @returns {Promise<T>}
    */

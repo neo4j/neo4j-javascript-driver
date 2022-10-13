@@ -60,12 +60,12 @@ export default class EagerResult<Entries extends Dict = Dict> {
 }
 
 /**
- * Creates a {@link EagerResult} from a given {@link Result} by
- * consuming all the stream.
+ * Creates an {@link EagerResult} from a given {@link Result} by
+ * consuming the whole stream.
  *
  * @private
  * @param {Result} result The result to be consumed
- * @returns A promise of a EagerResult
+ * @returns A promise of an EagerResult
  */
 export async function createEagerResultFromResult<Entries extends Dict = Dict> (result: Result): Promise<EagerResult<Entries>> {
   const { summary, records } = await result

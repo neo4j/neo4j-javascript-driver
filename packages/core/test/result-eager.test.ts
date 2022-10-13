@@ -36,7 +36,7 @@ describe('EagerResult', () => {
 })
 
 describe('createEagerResultFromResult', () => {
-  describe('when a valid result', () => {
+  describe('with a valid result', () => {
     it('it should return an EagerResult', async () => {
       const resultStreamObserverMock = new ResultStreamObserverMock()
       const query = 'Query'
