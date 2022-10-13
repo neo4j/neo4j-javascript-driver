@@ -364,7 +364,7 @@ describe('QueryExecutor', () => {
     const results: Result[] = []
 
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const managedTransaction: ManagedTransaction = {
+    const managedTransaction = {
       run: (query: string, parameters?: any): Result => {
         const resultObserver = new ResultStreamObserverMock()
         resultObservers.push(resultObserver)
