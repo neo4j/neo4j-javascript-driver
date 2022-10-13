@@ -245,10 +245,10 @@ const READERS: RoutingControl = 'READERS'
  * @typedef {'WRITERS'|'READERS'} RoutingControl
  */
 /**
- * Constant that represents writers routing control.
+ * Constants that represents routing mode.
  *
  * @example
- * driver.query("<QUERY>", <PARAMETERS>, { routing: neo4j.routing.WRITERS })
+ * driver.executeQuery("<QUERY>", <PARAMETERS>, { routing: neo4j.routing.WRITERS })
  */
 const routing = {
   WRITERS,
@@ -310,7 +310,7 @@ class QueryConfig<T = EagerResult> {
      * A BookmarkManager is a piece of software responsible for keeping casual consistency between different pieces of work by sharing bookmarks
      * between the them.
      *
-     * By default, it uses the driver's non mutable driver level bookmark manager.
+     * By default, it uses the driver's non mutable driver level bookmark manager. See, {@link Driver.queryBookmarkManager}
      *
      * Can be set to null to disable causal chaining.
      * @type {BookmarkManager|null}
