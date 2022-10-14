@@ -245,7 +245,7 @@ const READERS: RoutingControl = 'READERS'
  * @typedef {'WRITERS'|'READERS'} RoutingControl
  */
 /**
- * Constants that represents routing mode.
+ * Constants that represents routing modes.
  *
  * @example
  * driver.executeQuery("<QUERY>", <PARAMETERS>, { routing: neo4j.routing.WRITERS })
