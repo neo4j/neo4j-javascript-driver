@@ -38,7 +38,7 @@ export default class EagerResult<Entries extends Dict = Dict> {
    */
   constructor (
     keys: string[],
-    records: Record[],
+    records: Array<Record<Entries>>,
     summary: ResultSummary
   ) {
     /**
@@ -70,5 +70,5 @@ export default class EagerResult<Entries extends Dict = Dict> {
 export async function createEagerResultFromResult<Entries extends Dict = Dict> (result: Result): Promise<EagerResult<Entries>> {
   const { summary, records } = await result
   const keys = await result.keys()
-  return new EagerResult(keys, records, summary)
+  return new EagerResult<Entries>(keys, records, summary)
 }
