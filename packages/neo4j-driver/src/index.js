@@ -61,7 +61,9 @@ import {
   Session,
   Transaction,
   ManagedTransaction,
-  bookmarkManager
+  bookmarkManager,
+  notificationCategory,
+  notificationSeverityLevel
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -455,7 +457,9 @@ const forExport = {
   Date,
   LocalDateTime,
   DateTime,
-  bookmarkManager
+  bookmarkManager,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export {
@@ -509,6 +513,8 @@ export {
   Date,
   LocalDateTime,
   DateTime,
-  bookmarkManager
+  bookmarkManager,
+  notificationCategory,
+  notificationSeverityLevel
 }
 export default forExport

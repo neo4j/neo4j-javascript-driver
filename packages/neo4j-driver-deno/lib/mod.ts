@@ -73,7 +73,11 @@ import {
   BookmarkManager,
   bookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  notificationCategory,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  NotificationCategory
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import {
@@ -466,7 +470,9 @@ const forExport = {
   DateTime,
   ConnectionProvider,
   Connection,
-  bookmarkManager
+  bookmarkManager,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export {
@@ -519,7 +525,9 @@ export {
   DateTime,
   ConnectionProvider,
   Connection,
-  bookmarkManager
+  bookmarkManager,
+  notificationCategory,
+  notificationSeverityLevel
 }
 export type {
   QueryResult,
@@ -532,6 +540,8 @@ export type {
   NotificationPosition,
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  NotificationCategory,
+  NotificationSeverityLevel
 }
 export default forExport

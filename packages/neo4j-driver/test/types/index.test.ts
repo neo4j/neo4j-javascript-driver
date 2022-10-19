@@ -28,7 +28,11 @@ import {
   session,
   spatial,
   temporal,
-  DateTime
+  DateTime,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  notificationCategory,
+  NotificationCategory
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -86,3 +90,25 @@ const isNeo4jLocalDateTime: boolean = temporal.isLocalDateTime({})
 const isNeo4jLocalTime: boolean = temporal.isLocalTime({})
 const isNeo4jTime: boolean = temporal.isTime({})
 const dateTime = DateTime.fromStandardDate(new Date())
+
+const unknownSeverityString: string = notificationSeverityLevel.UNKNOWN
+const warningSeverityString: string = notificationSeverityLevel.WARNING
+const informationSeverityString: string = notificationSeverityLevel.INFORMATION
+const unknownSeverity: NotificationSeverityLevel = notificationSeverityLevel.UNKNOWN
+const warningSeverity: NotificationSeverityLevel = notificationSeverityLevel.WARNING
+const informationSeverity: NotificationSeverityLevel = notificationSeverityLevel.INFORMATION
+
+const hintCategoryString: string = notificationCategory.HINT
+const deprecationCategoryString: string = notificationCategory.DEPRECATION
+const performanceCategoryString: string = notificationCategory.PERFORMANCE
+const queryCategoryString: string = notificationCategory.QUERY
+const runtimeCategoryString: string = notificationCategory.RUNTIME
+const unsupportedCategoryString: string = notificationCategory.UNSUPPORTED
+const unknownCategoryString: string = notificationCategory.UNKNOWN
+const hintCategory: NotificationCategory = notificationCategory.HINT
+const deprecationCategory: NotificationCategory = notificationCategory.DEPRECATION
+const performanceCategory: NotificationCategory = notificationCategory.PERFORMANCE
+const queryCategory: NotificationCategory = notificationCategory.QUERY
+const runtimeCategory: NotificationCategory = notificationCategory.RUNTIME
+const unsupportedCategory: NotificationCategory = notificationCategory.UNSUPPORTED
+const unknownCategory: NotificationCategory = notificationCategory.UNKNOWN

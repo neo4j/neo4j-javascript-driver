@@ -307,4 +307,22 @@ describe('index', () => {
     const date: DateTime<number> = new DateTime(1, 2, 3, 3, 5, 6, 6, 5)
     expect(date).toBeDefined()
   })
+
+  it('should export notificationSeverityLevel', () => {
+    expect(neo4j.notificationSeverityLevel).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.WARNING).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.INFORMATION).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.UNKNOWN).toBeDefined()
+  })
+
+  it('should export notificationCategory', () => {
+    expect(neo4j.notificationCategory).toBeDefined()
+    expect(neo4j.notificationCategory.HINT).toBeDefined()
+    expect(neo4j.notificationCategory.QUERY).toBeDefined()
+    expect(neo4j.notificationCategory.UNSUPPORTED).toBeDefined()
+    expect(neo4j.notificationCategory.PERFORMANCE).toBeDefined()
+    expect(neo4j.notificationCategory.DEPRECATION).toBeDefined()
+    expect(neo4j.notificationCategory.RUNTIME).toBeDefined()
+    expect(neo4j.notificationCategory.UNKNOWN).toBeDefined()
+  })
 })

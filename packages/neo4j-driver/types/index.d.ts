@@ -64,7 +64,11 @@ import {
   BookmarkManager,
   bookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  notificationCategory,
+  notificationSeverityLevel,
+  NotificationCategory,
+  NotificationSeverityLevel
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -225,6 +229,8 @@ declare const forExport: {
   isLocalDateTime: typeof isLocalDateTime
   isDateTime: typeof isDateTime
   bookmarkManager: typeof bookmarkManager
+  notificationCategory: typeof notificationCategory
+  notificationSeverityLevel: typeof notificationSeverityLevel
 }
 
 export {
@@ -286,13 +292,17 @@ export {
   isDate,
   isLocalDateTime,
   isDateTime,
-  bookmarkManager
+  bookmarkManager,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export type {
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  NotificationCategory,
+  NotificationSeverityLevel
 }
 
 export default forExport

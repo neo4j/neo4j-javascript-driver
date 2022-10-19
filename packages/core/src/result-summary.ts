@@ -419,6 +419,43 @@ interface NotificationPosition {
   column?: number
 }
 
+type NotificationSeverityLevel = 'WARNING' | 'INFORMATION' | 'UNKNOWN'
+/**
+ * @typedef {'WARNING' | 'INFORMATION' | 'UNKNOWN'} NotificationSeverityLevel
+ */
+/**
+ * Constants that represents the Severity level in the {@link Notification}
+ */
+const notificationSeverityLevel: { [key in NotificationSeverityLevel]: key } = {
+  WARNING: 'WARNING',
+  INFORMATION: 'INFORMATION',
+  UNKNOWN: 'UNKNOWN'
+}
+
+Object.freeze(notificationSeverityLevel)
+const severityLevels = Object.values(notificationSeverityLevel)
+
+type NotificationCategory = 'HINT' | 'QUERY' | 'UNSUPPORTED' |'PERFORMANCE' |
+'DEPRECATION' | 'RUNTIME' | 'UNKNOWN'
+/**
+ * @typedef {'HINT' | 'QUERY' | 'UNSUPPORTED' |'PERFORMANCE' | 'DEPRECATION' | 'RUNTIME' | 'UNKNOWN'} NotificationCategory
+ */
+/**
+ * Constants that represents the Category in the {@link Notification}
+ */
+const notificationCategory: { [key in NotificationCategory]: key } = {
+  HINT: 'HINT',
+  QUERY: 'QUERY',
+  UNSUPPORTED: 'UNSUPPORTED',
+  PERFORMANCE: 'PERFORMANCE',
+  DEPRECATION: 'DEPRECATION',
+  RUNTIME: 'RUNTIME',
+  UNKNOWN: 'UNKNOWN'
+}
+
+Object.freeze(notificationCategory)
+const categories = Object.values(notificationCategory)
+
 /**
  * Class for Cypher notifications
  * @access public
@@ -429,6 +466,10 @@ class Notification {
   description: string
   severity: string
   position: NotificationPosition | {}
+  severityLevel: NotificationSeverityLevel
+  category: NotificationCategory
+  rawSeverityLevel: string
+  rawCategory: string
 
   /**
    * Create a Notification instance
@@ -436,11 +477,111 @@ class Notification {
    * @param {Object} notification - Object with notification data
    */
   constructor (notification: any) {
+    /**
+     * The code
+     * @type {string}
+     * @public
+     */
     this.code = notification.code
+    /**
+     * The title
+     * @type {string}
+     * @public
+     */
     this.title = notification.title
+    /**
+     * The description
+     * @type {string}
+     * @public
+     */
     this.description = notification.description
+    /**
+     * The raw severity
+     * @type {string}
+     * @public
+     * @deprecated This property will be removed in 6.0.
+     * Use {@link Notification.rawSeverityLevel} for the raw value or {@link Notification.severityLevel} enumerated value.
+     */
     this.severity = notification.severity
+    /**
+     * The position which the notification had occur.
+     *
+     * @type {NotificationPosition}
+     * @public
+     */
     this.position = Notification._constructPosition(notification.position)
+
+    /**
+     * The severity level
+     *
+     * @type {NotificationSeverityLevel}
+     * @public
+     * @example
+     * const { summary } = await session.run("RETURN 1")
+     *
+     * for (const notification of summary.notifications) {
+     *     switch(notification.severityLevel) {
+     *         case neo4j.notificationSeverityLevel.INFORMATION: // or simply 'INFORMATION'
+     *             console.info(`${notification.title} - ${notification.description}`)
+     *             break
+     *         case neo4j.notificationSeverityLevel.WARNING: // or simply 'WARNING'
+     *             console.warn(`${notification.title} - ${notification.description}`)
+     *             break
+     *         case neo4j.notificationSeverityLevel.UNKNOWN: // or simply 'UNKNOWN'
+     *         default:
+     *             // the raw info came from the server could be found at notification.rawSeverityLevel
+     *             console.log(`${notification.title} - ${notification.description}`)
+     *             break
+     *     }
+     * }
+     */
+    this.severityLevel = severityLevels.includes(notification.severity)
+      ? notification.severity
+      : notificationSeverityLevel.UNKNOWN
+
+    /**
+     * The severity level returned by the server without any validation.
+     *
+     * @type {string}
+     * @public
+     */
+    this.rawSeverityLevel = notification.severity
+
+    /**
+     * The severity level
+     *
+     * @type {NotificationCategory}
+     * @public
+     * @example
+     * const { summary } = await session.run("RETURN 1")
+     *
+     * for (const notification of summary.notifications) {
+     *     switch(notification.category) {
+     *         case neo4j.notificationCategory.QUERY: // or simply 'QUERY'
+     *             console.info(`${notification.title} - ${notification.description}`)
+     *             break
+     *         case neo4j.notificationCategory.PERFORMANCE: // or simply 'PERFORMANCE'
+     *             console.warn(`${notification.title} - ${notification.description}`)
+     *             break
+     *         case neo4j.notificationCategory.UNKNOWN: // or simply 'UNKNOWN'
+     *         default:
+     *             // the raw info came from the server could be found at notification.rawCategory
+     *             console.log(`${notification.title} - ${notification.description}`)
+     *             break
+     *     }
+     * }
+     */
+    this.category = categories.includes(notification.category)
+      ? notification.category
+      : notificationCategory.UNKNOWN
+
+    /**
+     * The category returned by the server without any validation.
+     *
+     * @type {string}
+     * @public
+     */
+    this.rawCategory = notification.category
   }
 
   static _constructPosition (pos: NotificationPosition): NotificationPosition {
@@ -540,10 +681,14 @@ export {
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Stats
+  Stats,
+  notificationSeverityLevel,
+  notificationCategory
 }
 export type {
-  NotificationPosition
+  NotificationPosition,
+  NotificationSeverityLevel,
+  NotificationCategory
 }
 
 export default ResultSummary

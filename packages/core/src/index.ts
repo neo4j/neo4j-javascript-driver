@@ -64,7 +64,11 @@ import ResultSummary, {
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Stats
+  Stats,
+  NotificationSeverityLevel,
+  NotificationCategory,
+  notificationCategory,
+  notificationSeverityLevel
 } from './result-summary'
 import Result, { QueryResult, ResultObserver } from './result'
 import ConnectionProvider from './connection-provider'
@@ -149,7 +153,9 @@ const forExport = {
   driver,
   json,
   auth,
-  bookmarkManager
+  bookmarkManager,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export {
@@ -209,7 +215,9 @@ export {
   driver,
   json,
   auth,
-  bookmarkManager
+  bookmarkManager,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export type {
@@ -221,7 +229,9 @@ export type {
   TransactionConfig,
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  NotificationCategory,
+  NotificationSeverityLevel
 }
 
 export default forExport
