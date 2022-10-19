@@ -469,7 +469,7 @@ class Notification {
   severityLevel: NotificationSeverityLevel
   category: NotificationCategory
   rawSeverityLevel: string
-  rawCategory: string
+  rawCategory?: string
 
   /**
    * Create a Notification instance
@@ -578,7 +578,7 @@ class Notification {
     /**
      * The category returned by the server without any validation.
      *
-     * @type {string}
+     * @type {string|undefined}
      * @public
      */
     this.rawCategory = notification.category
