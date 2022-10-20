@@ -303,7 +303,7 @@ describe('#integration examples', () => {
     // tag::cypher-error[]
     const session = driver.session()
     try {
-      await session.readTransaction(tx =>
+      await session.executeRead(tx =>
         tx.run('SELECT * FROM Employees WHERE name = $name', {
           name: personName
         })
@@ -360,7 +360,7 @@ describe('#integration examples', () => {
     const session = driver.session()
 
     try {
-      const result = await session.writeTransaction(tx =>
+      const result = await session.executeWrite(tx =>
         tx.run(
           'CREATE (a:Greeting) SET a.message = $message RETURN a.message + ", from node " + id(a)',
           { message: 'hello, world' }
@@ -454,7 +454,7 @@ describe('#integration examples', () => {
                           RETURN p1, p2, k`
 
       // Write transactions allow the driver to handle retries and transient errors
-      const writeResult = await session.writeTransaction(tx =>
+      const writeResult = await session.executeWrite(tx =>
         tx.run(writeQuery, { person1Name, person2Name, knowsFrom })
       )
       writeResult.records.forEach(record => {
@@ -469,7 +469,7 @@ describe('#integration examples', () => {
       const readQuery = `MATCH (p:Person)
                          WHERE p.name = $personName
                          RETURN p.name AS name`
-      const readResult = await session.readTransaction(tx =>
+      const readResult = await session.executeRead(tx =>
         tx.run(readQuery, { personName: person1Name })
       )
       readResult.records.forEach(record => {
@@ -500,11 +500,11 @@ describe('#integration examples', () => {
     const session = driver.session()
 
     try {
-      await session.writeTransaction(tx =>
+      await session.executeWrite(tx =>
         tx.run('CREATE (a:Person {name: $name})', { name: personName })
       )
 
-      const result = await session.readTransaction(tx =>
+      const result = await session.executeRead(tx =>
         tx.run('MATCH (a:Person {name: $name}) RETURN id(a)', {
           name: personName
         })
@@ -580,12 +580,12 @@ describe('#integration examples', () => {
       // tag::async-multiple-tx[]
       const session = driver.session()
       try {
-        const names = await session.readTransaction(async tx => {
+        const names = await session.executeRead(async tx => {
           const result = await tx.run('MATCH (a:Person) RETURN a.name AS name')
           return result.records.map(record => record.get('name'))
         })
 
-        const relationshipsCreated = await session.writeTransaction(tx =>
+        const relationshipsCreated = await session.executeWrite(tx =>
           Promise.all(
             names.map(name =>
               tx
@@ -675,7 +675,7 @@ describe('#integration examples', () => {
       // tag::async-result-retain[]
       const session = driver.session()
       try {
-        const result = await session.readTransaction(tx =>
+        const result = await session.executeRead(tx =>
           tx.run('MATCH (a:Person) RETURN a.name AS name')
         )
 
@@ -683,7 +683,7 @@ describe('#integration examples', () => {
         for (let i = 0; i < nameRecords.length; i++) {
           const name = nameRecords[i].get('name')
 
-          await session.writeTransaction(tx =>
+          await session.executeWrite(tx =>
             tx.run(
               'MATCH (emp:Person {name: $person_name}) ' +
                 'MERGE (com:Company {name: $company_name}) ' +
@@ -717,7 +717,7 @@ describe('#integration examples', () => {
     })
     const session = driver.session()
 
-    const writeTxPromise = session.writeTransaction(tx =>
+    const writeTxPromise = session.executeWrite(tx =>
       tx.run('CREATE (a:Item)')
     )
 
@@ -777,7 +777,7 @@ describe('#integration examples', () => {
     const session = driver.session()
     const titles = []
     try {
-      const result = await session.readTransaction(tx =>
+      const result = await session.executeRead(tx =>
         tx.run('MATCH (p:Product) WHERE p.id = $id RETURN p.title', { id: 0 })
       )
 
@@ -814,7 +814,7 @@ describe('#integration examples', () => {
 
     // tag::rx-transaction-function[]
     const session = driver.rxSession()
-    const result = session.readTransaction(tx =>
+    const result = session.executeRead(tx =>
       tx
         .run('MATCH (p:Product) WHERE p.id = $id RETURN p.title', { id: 0 })
         .records()
@@ -848,7 +848,7 @@ describe('#integration examples', () => {
     // tag::transaction-timeout-config[]
     const session = driver.session()
     try {
-      const result = await session.writeTransaction(
+      const result = await session.executeWrite(
         tx => addPerson(tx, personName),
         { timeout: 10 }
       )
@@ -878,7 +878,7 @@ describe('#integration examples', () => {
     // tag::transaction-metadata-config[]
     const session = driver.session()
     try {
-      const result = await session.writeTransaction(
+      const result = await session.executeWrite(
         tx => addPerson(tx, personName),
         { metadata: { applicationId: '123' } }
       )
@@ -919,7 +919,7 @@ describe('#integration examples', () => {
     // tag::database-selection[]
     const session = driver.session({ database: 'examples' })
     try {
-      const result = await session.writeTransaction(tx =>
+      const result = await session.executeWrite(tx =>
         tx.run(
           'CREATE (a:Greeting {message: "Hello, Example-Database"}) RETURN a.message'
         )
@@ -938,7 +938,7 @@ describe('#integration examples', () => {
       defaultAccessMode: neo4j.READ
     })
     try {
-      const result = await readSession.writeTransaction(tx =>
+      const result = await readSession.executeWrite(tx =>
         tx.run('MATCH (a:Greeting) RETURN a.message')
       )
 
@@ -1012,10 +1012,10 @@ describe('#integration examples', () => {
     // Create the first person and employment relationship.
     const session1 = driver.session({ defaultAccessMode: neo4j.WRITE })
     const first = session1
-      .writeTransaction(tx => addCompany(tx, 'Wayne Enterprises'))
-      .then(() => session1.writeTransaction(tx => addPerson(tx, 'Alice')))
+      .executeWrite(tx => addCompany(tx, 'Wayne Enterprises'))
+      .then(() => session1.executeWrite(tx => addPerson(tx, 'Alice')))
       .then(() =>
-        session1.writeTransaction(tx =>
+        session1.executeWrite(tx =>
           addEmployee(tx, 'Alice', 'Wayne Enterprises')
         )
       )
@@ -1027,10 +1027,10 @@ describe('#integration examples', () => {
     // Create the second person and employment relationship.
     const session2 = driver.session({ defaultAccessMode: neo4j.WRITE })
     const second = session2
-      .writeTransaction(tx => addCompany(tx, 'LexCorp'))
-      .then(() => session2.writeTransaction(tx => addPerson(tx, 'Bob')))
+      .executeWrite(tx => addCompany(tx, 'LexCorp'))
+      .then(() => session2.executeWrite(tx => addPerson(tx, 'Bob')))
       .then(() =>
-        session2.writeTransaction(tx => addEmployee(tx, 'Bob', 'LexCorp'))
+        session2.executeWrite(tx => addEmployee(tx, 'Bob', 'LexCorp'))
       )
       .then(() => {
         savedBookmarks.push(session2.lastBookmarks())
@@ -1045,9 +1045,9 @@ describe('#integration examples', () => {
       })
 
       return session3
-        .writeTransaction(tx => makeFriends(tx, 'Alice', 'Bob'))
+        .executeWrite(tx => makeFriends(tx, 'Alice', 'Bob'))
         .then(() =>
-          session3.readTransaction(findFriendships).then(() => session3.close())
+          session3.executeRead(findFriendships).then(() => session3.close())
         )
     })
     // end::pass-bookmarks[]
@@ -1506,7 +1506,7 @@ describe('#integration examples', () => {
     })
 
     async function echo (session, value) {
-      return await session.readTransaction(async tx => {
+      return await session.executeRead(async tx => {
         const result = await tx.run('RETURN $value as fieldName', {
           value
         })
