@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { newError } from 'neo4j-driver-core'
+import { newError, json } from 'neo4j-driver-core'
 // eslint-disable-next-line no-unused-vars
 import { ResultStreamObserver } from './stream-observers'
 
@@ -79,4 +79,23 @@ function assertImpersonatedUserIsEmpty (impersonatedUser, onProtocolError = () =
   }
 }
 
-export { assertDatabaseIsEmpty, assertTxConfigIsEmpty, assertImpersonatedUserIsEmpty }
+/* Asserts that the passed-in notificationFilters is empty
+ * @param {string[]} notificationFilters
+ * @param {function (err:Error)} onProtocolError Called when it does have notificationFilters user set
+ * @param {any} observer
+ */
+function assertNotificationFiltersIsEmpty (notificationFilters, onProtocolError = () => {}, observer) {
+  if (notificationFilters != null) {
+    const error = newError(
+      'Driver is connected to the database that does not support user notification filters. ' +
+        'Please upgrade to neo4j 5.3.0 or later in order to use this functionality. ' +
+        `Trying to set notifications to ${json.stringify(notificationFilters)}.`
+    )
+    // unsupported API was used, consider this a fatal error for the current connection
+    onProtocolError(error.message)
+    observer.onError(error)
+    throw error
+  }
+}
+
+export { assertDatabaseIsEmpty, assertTxConfigIsEmpty, assertImpersonatedUserIsEmpty, assertNotificationFiltersIsEmpty }

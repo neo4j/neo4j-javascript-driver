@@ -18,7 +18,7 @@
  */
 import BoltProtocolV2 from './bolt-protocol-v2.js'
 import RequestMessage from './request-message.js'
-import { assertDatabaseIsEmpty, assertImpersonatedUserIsEmpty } from './bolt-protocol-util.js'
+import { assertDatabaseIsEmpty, assertImpersonatedUserIsEmpty, assertNotificationFiltersIsEmpty } from './bolt-protocol-util.js'
 import {
   StreamObserver,
   LoginObserver,
@@ -69,11 +69,14 @@ export default class BoltProtocol extends BoltProtocolV2 {
     return metadata
   }
 
-  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+  initialize ({ userAgent, authToken, onError, onComplete, notificationFilters } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
     })
+
+    // passing notification filters user on this protocol version throws an error
+    assertNotificationFiltersIsEmpty(notificationFilters, this._onProtocolError, observer)
 
     this.write(RequestMessage.hello(userAgent, authToken), observer, true)
 

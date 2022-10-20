@@ -25,6 +25,7 @@ import utcTransformersFactories from './bolt-protocol-v5x0.utc.transformer.js'
 import Transformer from './transformer.js'
 
 import { internal } from '../../core/index.ts'
+import { assertNotificationFiltersIsEmpty } from './bolt-protocol-util.js'
 
 const {
   bookmarks: { Bookmarks },
@@ -85,9 +86,10 @@ export default class BoltProtocol extends BoltProtocolV42 {
    * @param {any} param0.authToken The auth token
    * @param {function(error)} param0.onError On error callback
    * @param {function(onComplte)} param0.onComplete On complete callback
+   * @param {?string[]} param0.notificationFilters the filtering for notifications.
    * @returns {LoginObserver} The Login observer
    */
-  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+  initialize ({ userAgent, authToken, onError, onComplete, notificationFilters } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => {
@@ -97,6 +99,9 @@ export default class BoltProtocol extends BoltProtocolV42 {
         return this._onLoginCompleted(metadata, onComplete)
       }
     })
+
+    // passing notification filters user on this protocol version throws an error
+    assertNotificationFiltersIsEmpty(notificationFilters, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.hello(userAgent, authToken, this._serversideRouting, ['utc']),

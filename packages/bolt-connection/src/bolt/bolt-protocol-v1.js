@@ -19,7 +19,8 @@
 import {
   assertDatabaseIsEmpty,
   assertTxConfigIsEmpty,
-  assertImpersonatedUserIsEmpty
+  assertImpersonatedUserIsEmpty,
+  assertNotificationFiltersIsEmpty
 } from './bolt-protocol-util'
 // eslint-disable-next-line no-unused-vars
 import { Chunker } from '../channel'
@@ -149,13 +150,17 @@ export default class BoltProtocol {
    * @param {Object} param.authToken the authentication token.
    * @param {function(err: Error)} param.onError the callback to invoke on error.
    * @param {function()} param.onComplete the callback to invoke on completion.
+   * @param {?string[]} param.notificationFilters the filtering for notifications.
    * @returns {StreamObserver} the stream observer that monitors the corresponding server response.
    */
-  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+  initialize ({ userAgent, authToken, onError, onComplete, notificationFilters } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
     })
+
+    // passing notification filters user on this protocol version throws an error
+    assertNotificationFiltersIsEmpty(notificationFilters, this._onProtocolError, observer)
 
     this.write(RequestMessage.init(userAgent, authToken), observer, true)
 

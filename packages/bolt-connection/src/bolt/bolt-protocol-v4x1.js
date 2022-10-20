@@ -23,6 +23,7 @@ import { internal } from 'neo4j-driver-core'
 
 import transformersFactories from './bolt-protocol-v4x1.transformer'
 import Transformer from './transformer'
+import { assertNotificationFiltersIsEmpty } from './bolt-protocol-util'
 
 const {
   constants: { BOLT_PROTOCOL_V4_1 }
@@ -72,11 +73,14 @@ export default class BoltProtocol extends BoltProtocolV4 {
     return this._transformer
   }
 
-  initialize ({ userAgent, authToken, onError, onComplete } = {}) {
+  initialize ({ userAgent, authToken, onError, onComplete, notificationFilters } = {}) {
     const observer = new LoginObserver({
       onError: error => this._onLoginError(error, onError),
       onCompleted: metadata => this._onLoginCompleted(metadata, onComplete)
     })
+
+    // passing notification filters user on this protocol version throws an error
+    assertNotificationFiltersIsEmpty(notificationFilters, this._onProtocolError, observer)
 
     this.write(
       RequestMessage.hello(userAgent, authToken, this._serversideRouting),
