@@ -28,6 +28,11 @@ import {
 import Result from '../src/result'
 import FakeConnection from './utils/connection.fake'
 
+interface AB {
+  a: number
+  b: number
+}
+
 describe('Result', () => {
   const expectedError = newError('some error')
 
@@ -305,6 +310,34 @@ describe('Result', () => {
         ])
       })
 
+      it('should redirect onNext to the client observer with type safety', async () => {
+        const result = new Result<AB>(Promise.resolve(streamObserverMock), 'query')
+
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+        const receivedRecords: Array<[number, number]> = []
+
+        streamObserverMock.onKeys(keys)
+        streamObserverMock.onNext(rawRecord1)
+        streamObserverMock.onNext(rawRecord2)
+
+        await result.subscribe({
+          onNext (record) {
+            const a: number = record.get('a')
+            const b: number = record.get('b')
+
+            // @ts-expect-error
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _: string = record.get('a')
+
+            receivedRecords.push([a, b])
+          }
+        })
+
+        expect(receivedRecords).toEqual([rawRecord1, rawRecord2])
+      })
+
       describe.each([
         ['query', {}, { query: 'query', parameters: {} }],
         ['query', { a: 1 }, { query: 'query', parameters: { a: 1 } }],
@@ -539,6 +572,45 @@ describe('Result', () => {
             new Record(keys, rawRecord1),
             new Record(keys, rawRecord2)
           ])
+        })
+
+        it('should resolve with summary and records type safety', async () => {
+          const result = new Result<AB>(Promise.resolve(streamObserverMock), expected.query, expected.parameters)
+          const metadata = {
+            resultConsumedAfter: 20,
+            resultAvailableAfter: 124,
+            extraInfo: 'extra'
+          }
+          const expectedSummary = new ResultSummary(
+            expected.query,
+            expected.parameters,
+            metadata
+          )
+          const keys = ['a', 'b']
+          const rawRecord1 = [1, 2]
+          const rawRecord2 = [3, 4]
+
+          streamObserverMock.onKeys(keys)
+          streamObserverMock.onNext(rawRecord1)
+          streamObserverMock.onNext(rawRecord2)
+
+          streamObserverMock.onCompleted(metadata)
+
+          const { summary, records } = await result
+
+          const rawRecords = records.map(record => {
+            const a: number = record.get('a')
+            const b: number = record.get('b')
+
+            // @ts-expect-error
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _: string = record.get('a')
+
+            return [a, b]
+          })
+
+          expect(summary).toEqual(expectedSummary)
+          expect(rawRecords).toEqual([rawRecord1, rawRecord2])
         })
       })
 
@@ -806,6 +878,34 @@ describe('Result', () => {
           new Record(keys, rawRecord1),
           new Record(keys, rawRecord2)
         ])
+      })
+
+      it('should iterate over record with type safety', async () => {
+        const result = new Result<AB>(Promise.resolve(streamObserverMock), 'query')
+
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+
+        streamObserverMock.onKeys(keys)
+        streamObserverMock.onNext(rawRecord1)
+        streamObserverMock.onNext(rawRecord2)
+
+        streamObserverMock.onCompleted({})
+
+        const receivedRawRecords = []
+        for await (const record of result) {
+          const a: number = record.get('a')
+          const b: number = record.get('b')
+
+          // @ts-expect-error
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const _: string = record.get('a')
+
+          receivedRawRecords.push([a, b])
+        }
+
+        expect(receivedRawRecords).toEqual([rawRecord1, rawRecord2])
       })
 
       it('should return summary when it finishes', async () => {
