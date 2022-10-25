@@ -234,11 +234,16 @@ const personExecuteRead = session.executeRead(tx => tx.run<Person>('MATCH (p:Per
 
 personExecuteRead.then(({ records }) => {
   for (const person of records) {
-    const age: Integer = person.get('age')
-    const name: string = person.get('name')
+    let age: Integer = person.get('age')
+    let name: string = person.get('name')
 
     // @ts-expect-error
     const nameInt: Integer = person.get('name')
+
+    const p = person.toObject()
+
+    age = p.age
+    name = p.name
   }
 }).catch(err => console.error(err))
 

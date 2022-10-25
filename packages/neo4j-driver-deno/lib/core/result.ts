@@ -65,7 +65,7 @@ interface QueryResult<Entries extends Dict = Dict> {
  * Interface to observe updates on the Result which is being produced.
  *
  */
-interface ResultObserver {
+interface ResultObserver<Entries=Dict> {
   /**
    * Receive the keys present on the record whenever this information is available
    *
@@ -77,7 +77,7 @@ interface ResultObserver {
    * Receive the each record present on the {@link @Result}
    * @param {Record} record The {@link Record} produced
    */
-  onNext?: (record: Record) => void
+  onNext?: (record: Record<Entries>) => void
 
   /**
    * Called when the result is fully received
@@ -391,7 +391,7 @@ class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return {void}
    */
-  subscribe (observer: ResultObserver): void {
+  subscribe (observer: ResultObserver<Entries>): void {
     this._subscribe(observer)
       .catch(() => {})
   }
