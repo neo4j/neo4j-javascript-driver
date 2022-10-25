@@ -243,3 +243,4 @@ class Record<
 }
 
 export default Record
+export type { Dict }

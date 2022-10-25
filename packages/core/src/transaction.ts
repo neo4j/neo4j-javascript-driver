@@ -37,6 +37,7 @@ import {
 import { newError } from './error'
 import Result from './result'
 import { Query } from './types'
+import { Dict } from './record'
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -109,7 +110,7 @@ class Transaction {
     this._lowRecordWatermak = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
     this._bookmarks = Bookmarks.empty()
-    this._acceptActive = () => { } // satisfy DenoJS 
+    this._acceptActive = () => { } // satisfy DenoJS
     this._activePromise = new Promise((resolve, reject) => {
       this._acceptActive = resolve
     })
@@ -174,7 +175,7 @@ class Transaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run (query: Query, parameters?: any): Result {
+  run<Entries = Dict> (query: Query, parameters?: any): Result<Entries> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters

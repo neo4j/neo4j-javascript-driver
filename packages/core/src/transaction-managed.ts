@@ -20,6 +20,7 @@
 import Result from './result'
 import Transaction from './transaction'
 import { Query } from './types'
+import { Dict } from './record'
 
 type Run = (query: Query, parameters?: any) => Result
 
@@ -60,7 +61,7 @@ class ManagedTransaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run (query: Query, parameters?: any): Result {
+  run<Entries=Dict> (query: Query, parameters?: any): Result<Entries> {
     return this._run(query, parameters)
   }
 }

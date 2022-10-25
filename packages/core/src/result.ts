@@ -20,7 +20,7 @@
 /* eslint-disable @typescript-eslint/promise-function-async */
 
 import ResultSummary from './result-summary'
-import Record from './record'
+import Record, { Dict } from './record'
 import { Query, PeekableAsyncIterator } from './types'
 import { observer, util, connectionHolder } from './internal'
 import { newError, PROTOCOL_ERROR } from './error'
@@ -56,8 +56,8 @@ const DEFAULT_ON_KEYS = (keys: string[]): void => {}
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
  */
-interface QueryResult {
-  records: Record[]
+interface QueryResult<Entries extends Dict = Dict> {
+  records: Array<Record<Entries>>
   summary: ResultSummary
 }
 
@@ -111,7 +111,7 @@ interface QueuedResultObserver extends ResultObserver {
  * Alternatively can be consumed lazily using {@link Result#subscribe} function.
  * @access public
  */
-class Result implements Promise<QueryResult> {
+class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries>> {
   private readonly _stack: string | null
   private readonly _streamObserverPromise: Promise<observer.ResultStreamObserver>
   private _p: Promise<QueryResult> | null
@@ -212,7 +212,7 @@ class Result implements Promise<QueryResult> {
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise (): Promise<QueryResult> {
+  private _getOrCreatePromise (): Promise<QueryResult<Entries>> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
         const records: Record[] = []
@@ -240,9 +240,9 @@ class Result implements Promise<QueryResult> {
    * *Should not be combined with {@link Result#subscribe} or ${@link Result#then} functions.*
    *
    * @public
-   * @returns {PeekableAsyncIterator<Record, ResultSummary>} The async iterator for the Results
+   * @returns {PeekableAsyncIterator<Record<Entries>, ResultSummary>} The async iterator for the Results
    */
-  [Symbol.asyncIterator] (): PeekableAsyncIterator<Record, ResultSummary> {
+  [Symbol.asyncIterator] (): PeekableAsyncIterator<Record<Entries>, ResultSummary> {
     if (!this.isOpen()) {
       const error = newError('Result is already consumed')
       return {
@@ -345,9 +345,9 @@ class Result implements Promise<QueryResult> {
    * @param {function(error: {message:string, code:string})} onRejected - function to be called upon errors.
    * @return {Promise} promise.
    */
-  then<TResult1 = QueryResult, TResult2 = never>(
+  then<TResult1 = QueryResult<Entries>, TResult2 = never>(
     onFulfilled?:
-    | ((value: QueryResult) => TResult1 | PromiseLike<TResult1>)
+    | ((value: QueryResult<Entries>) => TResult1 | PromiseLike<TResult1>)
     | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
@@ -364,7 +364,7 @@ class Result implements Promise<QueryResult> {
    */
   catch <TResult = never>(
     onRejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
-  ): Promise<QueryResult | TResult> {
+  ): Promise<QueryResult<Entries> | TResult> {
     return this._getOrCreatePromise().catch(onRejected)
   }
 
@@ -376,7 +376,7 @@ class Result implements Promise<QueryResult> {
    * @return {Promise} promise.
    */
   [Symbol.toStringTag]: string
-  finally (onfinally?: (() => void) | null): Promise<QueryResult> {
+  finally (onfinally?: (() => void) | null): Promise<QueryResult<Entries>> {
     return this._getOrCreatePromise().finally(onfinally)
   }
 

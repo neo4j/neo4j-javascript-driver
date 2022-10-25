@@ -24,7 +24,10 @@ import {
   ResultSummary,
   Result,
   QueryResult,
-  Transaction
+  Transaction,
+  Integer,
+  Node,
+  Relationship
 } from 'neo4j-driver-core'
 
 const dummy: any = null
@@ -94,4 +97,55 @@ tx.commit().then(() => {
 
 tx.rollback().then(() => {
   console.log('transaction rolled back')
+}).catch(error => console.error(error))
+
+interface Person {
+  age: Integer
+  name: string
+}
+
+interface Friendship {
+  since: Integer
+}
+
+interface PersonAndFriendship {
+  p: Node<number, Person>
+  f: Relationship<number, Friendship>
+}
+
+const personTxRun = tx.run<Person>('MATCH (p:Person) RETURN p.name, p.age')
+personTxRun.then(({ records }) => {
+  for (const person of records) {
+    const age: Integer = person.get('age')
+    const name: string = person.get('name')
+
+    // @ts-expect-error
+    const nameInt: Integer = person.get('name')
+  }
+}).catch(error => console.error(error))
+
+const personAndFriend = tx.run<PersonAndFriendship>('MATCH (p:Person)-[f:Friendship]-() RETURN p, f')
+personAndFriend.then(({ records }) => {
+  for (const r of records) {
+    const person = r.get('p')
+
+    const age: Integer = person.properties.age
+    const name: string = person.properties.name
+
+    // @ts-expect-error
+    const nameInt: Integer = person.properties.name
+
+    // @ts-expect-error
+    const err: string = person.properties.err
+
+    const friendship = r.get('f')
+
+    const since: Integer = friendship.properties.since
+
+    // @ts-expect-error
+    const sinceString: string = friendship.properties.since
+
+    // @ts-expect-error
+    const err2: string = friendship.properties.err
+  }
 }).catch(error => console.error(error))
