@@ -124,6 +124,27 @@ describe('ChannelConnection', () => {
         )
       }
     )
+
+    it.each([
+      undefined,
+      null,
+      [],
+      ['*.*', 'WARNING.*']
+    ])('should call protocol.initialize with notification filters when notificationFilters is %o',
+      async (notificationFilters) => {
+        const protocol = {
+          initialize: jest.fn(observer => observer.onComplete({}))
+        }
+        const protocolSupplier = () => protocol
+        const connection = spyOnConnectionChannel({ protocolSupplier })
+
+        await connection.connect('userAgent', {}, notificationFilters)
+
+        expect(protocol.initialize).toHaveBeenCalledTimes(1)
+        expect(protocol.initialize).toBeCalledWith(expect.objectContaining({
+          notificationFilters
+        }))
+      })
   })
 
   describe('._handleFatalError()', () => {

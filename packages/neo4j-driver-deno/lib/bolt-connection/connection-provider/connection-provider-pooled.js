@@ -24,7 +24,7 @@ import { error, ConnectionProvider, ServerInfo } from '../../core/index.ts'
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
-    { id, config, log, userAgent, authToken },
+    { id, config, log, userAgent, authToken, notificationFilters },
     createChannelConnectionHook = null
   ) {
     super()
@@ -34,6 +34,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._log = log
     this._userAgent = userAgent
     this._authToken = authToken
+    this._notificationFilters = notificationFilters
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
@@ -76,7 +77,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       }
       this._openConnections[connection.id] = connection
       return connection
-        .connect(this._userAgent, this._authToken)
+        .connect(this._userAgent, this._authToken, this._notificationFilters)
         .catch(error => {
           // let's destroy this connection
           this._destroyConnection(connection)

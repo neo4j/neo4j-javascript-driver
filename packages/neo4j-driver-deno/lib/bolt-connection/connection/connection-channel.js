@@ -169,24 +169,27 @@ export default class ChannelConnection extends Connection {
    * Send initialization message.
    * @param {string} userAgent the user agent for this driver.
    * @param {Object} authToken the object containing auth information.
+   * @param {?string[]} notificationFilters the notification filters.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
-  connect (userAgent, authToken) {
-    return this._initialize(userAgent, authToken)
+  connect (userAgent, authToken, notificationFilters) {
+    return this._initialize(userAgent, authToken, notificationFilters)
   }
 
   /**
    * Perform protocol-specific initialization which includes authentication.
    * @param {string} userAgent the user agent for this driver.
    * @param {Object} authToken the object containing auth information.
+   * @param {?string[]} notificationFilters the notification filters.
    * @return {Promise<Connection>} promise resolved with the current connection if initialization is successful. Rejected promise otherwise.
    */
-  _initialize (userAgent, authToken) {
+  _initialize (userAgent, authToken, notificationFilters) {
     const self = this
     return new Promise((resolve, reject) => {
       this._protocol.initialize({
         userAgent,
         authToken,
+        notificationFilters,
         onError: err => reject(err),
         onComplete: metadata => {
           if (metadata) {
@@ -340,13 +343,14 @@ export default class ChannelConnection extends Connection {
     })
   }
 
-  _reset(observer) {
+  _reset (observer) {
     if (this._reseting) {
       if (!this._protocol.isLastMessageReset()) {
         this._protocol.reset({
           onError: error => {
             observer.onError(error)
-          }, onComplete: () => {
+          },
+          onComplete: () => {
             observer.onComplete()
           }
         })
@@ -369,7 +373,8 @@ export default class ChannelConnection extends Connection {
     this._protocol.reset({
       onError: error => {
         notifyFinish(obs => obs.onError(error))
-      }, onComplete: () => {
+      },
+      onComplete: () => {
         notifyFinish(obs => obs.onComplete())
       }
     })
