@@ -182,6 +182,7 @@ export default class BoltProtocol {
    * @param {string} param.database the target database name.
    * @param {string} param.mode the access mode.
    * @param {string} param.impersonatedUser the impersonated user
+   * @param {?string[]} param.notificationFilters the filtering for notifications.
    * @param {function(err: Error)} param.beforeError the callback to invoke before handling the error.
    * @param {function(err: Error)} param.afterError the callback to invoke after handling the error.
    * @param {function()} param.beforeComplete the callback to invoke before handling the completion.
@@ -194,6 +195,7 @@ export default class BoltProtocol {
     database,
     mode,
     impersonatedUser,
+    notificationFilters,
     beforeError,
     afterError,
     beforeComplete,
@@ -208,6 +210,7 @@ export default class BoltProtocol {
         database,
         mode,
         impersonatedUser,
+        notificationFilters,
         beforeError,
         afterError,
         beforeComplete,
@@ -290,6 +293,7 @@ export default class BoltProtocol {
    * @param {TxConfig} param.txConfig the transaction configuration.
    * @param {string} param.database the target database name.
    * @param {string} param.impersonatedUser the impersonated user
+   * @param {?string[]} param.notificationFilters the filtering for notifications.
    * @param {string} param.mode the access mode.
    * @param {function(keys: string[])} param.beforeKeys the callback to invoke before handling the keys.
    * @param {function(keys: string[])} param.afterKeys the callback to invoke after handling the keys.
@@ -309,6 +313,7 @@ export default class BoltProtocol {
       database,
       mode,
       impersonatedUser,
+      notificationFilters,
       beforeKeys,
       afterKeys,
       beforeError,
@@ -332,6 +337,8 @@ export default class BoltProtocol {
       lowRecordWatermark
     })
 
+    // passing notification filters user on this protocol version throws an error
+    assertNotificationFiltersIsEmpty(notificationFilters, this._onProtocolError, observer)
     // bookmarks and mode are ignored in this version of the protocol
     assertTxConfigIsEmpty(txConfig, this._onProtocolError, observer)
     // passing in a database name on this protocol version throws an error

@@ -111,6 +111,59 @@ describe('#unit BoltProtocolV2', () => {
     })
   })
 
+  describe('Bolt v5.1', () => {
+    /**
+     * @param {string[]} notificationFilters The impersonated user.
+     * @param {function(protocol: BoltProtocolV2)} fn
+     */
+    function verifyNotificationFiltersNotSupportedError (notificationFilters, fn) {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV2(recorder, null, false, undefined, undefined, () => {})
+
+      expect(() => fn(protocol)).toThrowError(
+        'Driver is connected to the database that does not support user notification filters. ' +
+        'Please upgrade to neo4j 5.3.0 or later in order to use this functionality. ' +
+        `Trying to set notifications to ${JSON.stringify(notificationFilters)}.`
+      )
+    }
+
+    describe('initialize', () => {
+      function verifyInitialize (notificationFilters) {
+        verifyNotificationFiltersNotSupportedError(
+          notificationFilters,
+          protocol => protocol.initialize({ notificationFilters }))
+      }
+
+      it('should throw error when notificationFilters is set', () => {
+        verifyInitialize('test')
+      })
+    })
+
+    describe('beginTransaction', () => {
+      function verifyBeginTransaction (notificationFilters) {
+        verifyNotificationFiltersNotSupportedError(
+          notificationFilters,
+          protocol => protocol.beginTransaction({ notificationFilters }))
+      }
+
+      it('should throw error when notificationFilters is set', () => {
+        verifyBeginTransaction('test')
+      })
+    })
+
+    describe('run', () => {
+      function verifyRun (notificationFilters) {
+        verifyNotificationFiltersNotSupportedError(
+          notificationFilters,
+          protocol => protocol.run('query', {}, { notificationFilters }))
+      }
+
+      it('should throw error when notificationFilters is set', () => {
+        verifyRun('test')
+      })
+    })
+  })
+
   describe('watermarks', () => {
     it('.run() should configure watermarks', () => {
       const recorder = new utils.MessageRecordingConnection()

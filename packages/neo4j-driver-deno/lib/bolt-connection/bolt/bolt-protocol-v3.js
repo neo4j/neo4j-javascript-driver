@@ -92,6 +92,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
     txConfig,
     database,
     impersonatedUser,
+    notificationFilters,
     mode,
     beforeError,
     afterError,
@@ -107,6 +108,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
     })
     observer.prepareToHandleSingleResponse()
 
+    // passing notification filters user on this protocol version throws an error
+    assertNotificationFiltersIsEmpty(notificationFilters, this._onProtocolError, observer)
     // passing in a database name on this protocol version throws an error
     assertDatabaseIsEmpty(database, this._onProtocolError, observer)
     // passing impersonated user on this protocol version throws an error
@@ -169,6 +172,7 @@ export default class BoltProtocol extends BoltProtocolV2 {
       txConfig,
       database,
       impersonatedUser,
+      notificationFilters,
       mode,
       beforeKeys,
       afterKeys,
@@ -193,6 +197,8 @@ export default class BoltProtocol extends BoltProtocolV2 {
       lowRecordWatermark
     })
 
+    // passing notification filters user on this protocol version throws an error
+    assertNotificationFiltersIsEmpty(notificationFilters, this._onProtocolError, observer)
     // passing in a database name on this protocol version throws an error
     assertDatabaseIsEmpty(database, this._onProtocolError, observer)
     // passing impersonated user on this protocol version throws an error
