@@ -104,15 +104,20 @@ export default class RequestMessage {
    * @param {string} userAgent the user agent.
    * @param {Object} authToken the authentication token.
    * @param {Object} optional server side routing, set to routing context to turn on server side routing (> 4.1)
+   * @param {?string[]} patchs patches to be applied to the server (valid in 4.3 and 4.4)
+   * @param {?string[]} notificationFilters the cypher notification filters
    * @return {RequestMessage} new HELLO message.
    */
-  static hello (userAgent, authToken, routing = null, patchs = null) {
+  static hello (userAgent, authToken, routing = null, patchs = null, { notificationFilters } = {}) {
     const metadata = Object.assign({ user_agent: userAgent }, authToken)
     if (routing) {
       metadata.routing = routing
     }
     if (patchs) {
       metadata.patch_bolt = patchs
+    }
+    if (notificationFilters) {
+      metadata.notifications = notificationFilters
     }
     return new RequestMessage(
       HELLO,
@@ -128,10 +133,11 @@ export default class RequestMessage {
    * @param {string} database the database name.
    * @param {string} mode the access mode.
    * @param {string} impersonatedUser the impersonated user.
+   * @param {?string[]} notificationFilters the notification filters
    * @return {RequestMessage} new BEGIN message.
    */
-  static begin ({ bookmarks, txConfig, database, mode, impersonatedUser } = {}) {
-    const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser)
+  static begin ({ bookmarks, txConfig, database, mode, impersonatedUser, notificationFilters } = {}) {
+    const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser, notificationFilters)
     return new RequestMessage(
       BEGIN,
       [metadata],
@@ -164,14 +170,15 @@ export default class RequestMessage {
    * @param {string} database the database name.
    * @param {string} mode the access mode.
    * @param {string} impersonatedUser the impersonated user.
+   * @param {?string[]} notificationFilters the notification filters
    * @return {RequestMessage} new RUN message with additional metadata.
    */
   static runWithMetadata (
     query,
     parameters,
-    { bookmarks, txConfig, database, mode, impersonatedUser } = {}
+    { bookmarks, txConfig, database, mode, impersonatedUser, notificationFilters } = {}
   ) {
-    const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser)
+    const metadata = buildTxMetadata(bookmarks, txConfig, database, mode, impersonatedUser, notificationFilters)
     return new RequestMessage(
       RUN,
       [query, parameters, metadata],
@@ -282,9 +289,10 @@ export default class RequestMessage {
  * @param {string} database the database name.
  * @param {string} mode the access mode.
  * @param {string} impersonatedUser the impersonated user mode.
+ * @param {?string[]} notificationFilters the notification filters
  * @return {Object} a metadata object.
  */
-function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser) {
+function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser, notificationFilters) {
   const metadata = {}
   if (!bookmarks.isEmpty()) {
     metadata.bookmarks = bookmarks.values()
@@ -300,6 +308,9 @@ function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser)
   }
   if (impersonatedUser) {
     metadata.imp_user = assertString(impersonatedUser, 'impersonatedUser')
+  }
+  if (notificationFilters) {
+    metadata.notifications = notificationFilters
   }
   if (mode === ACCESS_MODE_READ) {
     metadata.mode = READ_MODE

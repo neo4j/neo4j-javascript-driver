@@ -429,4 +429,173 @@ describe('#unit RequestMessage', () => {
       })
     })
   })
+
+  describe('BoltV5.1', () => {
+    it('should create HELLO message with notification filters', () => {
+      const userAgent = 'my-driver/1.0.2'
+      const authToken = { username: 'neo4j', password: 'secret' }
+      const notificationFilters = ['*.*', 'WARNING.*']
+
+      const message = RequestMessage.hello(userAgent, authToken, null, null, { notificationFilters })
+
+      expect(message.signature).toEqual(0x01)
+      expect(message.fields).toEqual([
+        { user_agent: userAgent, username: 'neo4j', password: 'secret', notifications: notificationFilters }
+      ])
+      expect(message.toString()).toEqual(
+        `HELLO {user_agent: '${userAgent}', ...}`
+      )
+    })
+
+    it('should create HELLO message without notification filters if it is not supplied or null', () => {
+      ;[null, undefined].forEach(notificationFilters => {
+        const userAgent = 'my-driver/1.0.2'
+        const authToken = { username: 'neo4j', password: 'secret' }
+
+        const message = RequestMessage.hello(userAgent, authToken, null, null, { notificationFilters })
+
+        expect(message.signature).toEqual(0x01)
+        expect(message.fields).toEqual([
+          { user_agent: userAgent, username: 'neo4j', password: 'secret' }
+        ])
+        expect(message.toString()).toEqual(
+          `HELLO {user_agent: '${userAgent}', ...}`
+        )
+      })
+    })
+
+    it('should create BEGIN message with notification filters', () => {
+      ;[READ, WRITE].forEach(mode => {
+        const bookmarks = new Bookmarks([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10'
+        ])
+        const notificationFilters = ['*.*', 'WARNING.*']
+        const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
+
+        const message = RequestMessage.begin({ bookmarks, txConfig, mode, notificationFilters })
+
+        const expectedMetadata = {
+          bookmarks: bookmarks.values(),
+          tx_timeout: int(42),
+          tx_metadata: { key: 42 },
+          notifications: notificationFilters
+        }
+        if (mode === READ) {
+          expectedMetadata.mode = 'r'
+        }
+
+        expect(message.signature).toEqual(0x11)
+        expect(message.fields).toEqual([expectedMetadata])
+        expect(message.toString()).toEqual(
+          `BEGIN ${json.stringify(expectedMetadata)}`
+        )
+      })
+    })
+
+    it('should create BEGIN message without notification filters if it is not supplied or null', () => {
+      ;[undefined, null].forEach(notificationFilters => {
+        const bookmarks = new Bookmarks([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10'
+        ])
+        const mode = WRITE
+        const txConfig = new TxConfig({ timeout: 42, metadata: { key: 42 } })
+
+        const message = RequestMessage.begin({ bookmarks, txConfig, mode, notificationFilters })
+
+        const expectedMetadata = {
+          bookmarks: bookmarks.values(),
+          tx_timeout: int(42),
+          tx_metadata: { key: 42 }
+        }
+
+        expect(message.signature).toEqual(0x11)
+        expect(message.fields).toEqual([expectedMetadata])
+        expect(message.toString()).toEqual(
+          `BEGIN ${json.stringify(expectedMetadata)}`
+        )
+      })
+    })
+
+    it('should create RUN message with the notification filters', () => {
+      ;[READ, WRITE].forEach(mode => {
+        const query = 'RETURN $x'
+        const parameters = { x: 42 }
+        const bookmarks = new Bookmarks([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10',
+          'neo4j:bookmark:v1:tx100'
+        ])
+        const txConfig = new TxConfig({
+          timeout: 999,
+          metadata: { a: 'a', b: 'b' }
+        })
+        const notificationFilters = ['*.*', 'WARNING.*']
+
+        const message = RequestMessage.runWithMetadata(query, parameters, {
+          bookmarks,
+          txConfig,
+          mode,
+          notificationFilters
+        })
+
+        const expectedMetadata = {
+          bookmarks: bookmarks.values(),
+          tx_timeout: int(999),
+          tx_metadata: { a: 'a', b: 'b' },
+          notifications: notificationFilters
+        }
+        if (mode === READ) {
+          expectedMetadata.mode = 'r'
+        }
+
+        expect(message.signature).toEqual(0x10)
+        expect(message.fields).toEqual([query, parameters, expectedMetadata])
+        expect(message.toString()).toEqual(
+          `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+            expectedMetadata
+          )}`
+        )
+      })
+    })
+
+    it('should create RUN message without notification filters if it is not supplied or null', () => {
+      ;[undefined, null].forEach(notificationFilters => {
+        const mode = WRITE
+        const query = 'RETURN $x'
+        const parameters = { x: 42 }
+        const bookmarks = new Bookmarks([
+          'neo4j:bookmark:v1:tx1',
+          'neo4j:bookmark:v1:tx10',
+          'neo4j:bookmark:v1:tx100'
+        ])
+        const txConfig = new TxConfig({
+          timeout: 999,
+          metadata: { a: 'a', b: 'b' }
+        })
+
+        const message = RequestMessage.runWithMetadata(query, parameters, {
+          bookmarks,
+          txConfig,
+          mode,
+          notificationFilters
+        })
+
+        const expectedMetadata = {
+          bookmarks: bookmarks.values(),
+          tx_timeout: int(999),
+          tx_metadata: { a: 'a', b: 'b' }
+        }
+
+        expect(message.signature).toEqual(0x10)
+        expect(message.fields).toEqual([query, parameters, expectedMetadata])
+        expect(message.toString()).toEqual(
+          `RUN ${query} ${json.stringify(parameters)} ${json.stringify(
+            expectedMetadata
+          )}`
+        )
+      })
+    })
+  })
 })
