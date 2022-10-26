@@ -1669,6 +1669,7 @@ describe.each([
       'Neo.ClientError.Database.DatabaseNotFound',
       'Neo.ClientError.Transaction.InvalidBookmark',
       'Neo.ClientError.Transaction.InvalidBookmarkMixture',
+      'Neo.ClientError.Statement.ArgumentError',
       'Neo.ClientError.Security.Forbidden',
       'Neo.ClientError.Security.IWontTellYou'
     ])('with "%s"', errorCode => {

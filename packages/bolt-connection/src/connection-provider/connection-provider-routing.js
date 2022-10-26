@@ -48,6 +48,7 @@ const INVALID_BOOKMARK_MIXTURE_CODE =
   'Neo.ClientError.Transaction.InvalidBookmarkMixture'
 const AUTHORIZATION_EXPIRED_CODE =
   'Neo.ClientError.Security.AuthorizationExpired'
+const INVALID_ARGUMENT_ERROR = 'Neo.ClientError.Statement.ArgumentError'
 
 const SYSTEM_DB_NAME = 'system'
 const DEFAULT_DB_NAME = null
@@ -703,7 +704,8 @@ function _isFailFastError (error) {
   return [
     DATABASE_NOT_FOUND_CODE,
     INVALID_BOOKMARK_CODE,
-    INVALID_BOOKMARK_MIXTURE_CODE
+    INVALID_BOOKMARK_MIXTURE_CODE,
+    INVALID_ARGUMENT_ERROR
   ].includes(error.code)
 }
 
