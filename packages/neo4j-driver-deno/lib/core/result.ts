@@ -56,8 +56,8 @@ const DEFAULT_ON_KEYS = (keys: string[]): void => {}
  * The query result is the combination of the {@link ResultSummary} and
  * the array {@link Record[]} produced by the query
  */
-interface QueryResult<Entries extends Dict = Dict> {
-  records: Array<Record<Entries>>
+interface QueryResult<RecordShape extends Dict = Dict> {
+  records: Array<Record<RecordShape>>
   summary: ResultSummary
 }
 
@@ -65,7 +65,7 @@ interface QueryResult<Entries extends Dict = Dict> {
  * Interface to observe updates on the Result which is being produced.
  *
  */
-interface ResultObserver<Entries=Dict> {
+interface ResultObserver<RecordShape extends Dict =Dict> {
   /**
    * Receive the keys present on the record whenever this information is available
    *
@@ -77,7 +77,7 @@ interface ResultObserver<Entries=Dict> {
    * Receive the each record present on the {@link @Result}
    * @param {Record} record The {@link Record} produced
    */
-  onNext?: (record: Record<Entries>) => void
+  onNext?: (record: Record<RecordShape>) => void
 
   /**
    * Called when the result is fully received
@@ -111,7 +111,7 @@ interface QueuedResultObserver extends ResultObserver {
  * Alternatively can be consumed lazily using {@link Result#subscribe} function.
  * @access public
  */
-class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries>> {
+class Result<RecordShape extends Dict = Dict> implements Promise<QueryResult<RecordShape>> {
   private readonly _stack: string | null
   private readonly _streamObserverPromise: Promise<observer.ResultStreamObserver>
   private _p: Promise<QueryResult> | null
@@ -212,7 +212,7 @@ class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries
    * @private
    * @return {Promise} new Promise.
    */
-  private _getOrCreatePromise (): Promise<QueryResult<Entries>> {
+  private _getOrCreatePromise (): Promise<QueryResult<RecordShape>> {
     if (this._p == null) {
       this._p = new Promise((resolve, reject) => {
         const records: Record[] = []
@@ -240,9 +240,9 @@ class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries
    * *Should not be combined with {@link Result#subscribe} or ${@link Result#then} functions.*
    *
    * @public
-   * @returns {PeekableAsyncIterator<Record<Entries>, ResultSummary>} The async iterator for the Results
+   * @returns {PeekableAsyncIterator<Record<RecordShape>, ResultSummary>} The async iterator for the Results
    */
-  [Symbol.asyncIterator] (): PeekableAsyncIterator<Record<Entries>, ResultSummary> {
+  [Symbol.asyncIterator] (): PeekableAsyncIterator<Record<RecordShape>, ResultSummary> {
     if (!this.isOpen()) {
       const error = newError('Result is already consumed')
       return {
@@ -345,9 +345,9 @@ class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries
    * @param {function(error: {message:string, code:string})} onRejected - function to be called upon errors.
    * @return {Promise} promise.
    */
-  then<TResult1 = QueryResult<Entries>, TResult2 = never>(
+  then<TResult1 = QueryResult<RecordShape>, TResult2 = never>(
     onFulfilled?:
-    | ((value: QueryResult<Entries>) => TResult1 | PromiseLike<TResult1>)
+    | ((value: QueryResult<RecordShape>) => TResult1 | PromiseLike<TResult1>)
     | null,
     onRejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null
   ): Promise<TResult1 | TResult2> {
@@ -364,7 +364,7 @@ class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries
    */
   catch <TResult = never>(
     onRejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null
-  ): Promise<QueryResult<Entries> | TResult> {
+  ): Promise<QueryResult<RecordShape> | TResult> {
     return this._getOrCreatePromise().catch(onRejected)
   }
 
@@ -376,7 +376,7 @@ class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries
    * @return {Promise} promise.
    */
   [Symbol.toStringTag]: string
-  finally (onfinally?: (() => void) | null): Promise<QueryResult<Entries>> {
+  finally (onfinally?: (() => void) | null): Promise<QueryResult<RecordShape>> {
     return this._getOrCreatePromise().finally(onfinally)
   }
 
@@ -391,7 +391,7 @@ class Result<Entries extends Dict = Dict> implements Promise<QueryResult<Entries
    * @param {function(error: {message:string, code:string})} observer.onError - handle errors.
    * @return {void}
    */
-  subscribe (observer: ResultObserver<Entries>): void {
+  subscribe (observer: ResultObserver<RecordShape>): void {
     this._subscribe(observer)
       .catch(() => {})
   }

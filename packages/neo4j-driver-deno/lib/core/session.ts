@@ -155,11 +155,11 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
    * @return {Result} New Result.
    */
-  run<Entries = Dict> (
+  run<RecordShape extends Dict = Dict> (
     query: Query,
     parameters?: any,
     transactionConfig?: TransactionConfig
-  ): Result<Entries> {
+  ): Result<RecordShape> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters

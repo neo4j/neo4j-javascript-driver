@@ -175,7 +175,7 @@ class Transaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run<Entries = Dict> (query: Query, parameters?: any): Result<Entries> {
+  run<RecordShape extends Dict = Dict> (query: Query, parameters?: any): Result<RecordShape> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters
