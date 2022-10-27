@@ -20,6 +20,7 @@
 import Result from './result.ts'
 import Transaction from './transaction.ts'
 import { Query } from './types.ts'
+import { Dict } from './record.ts'
 
 type Run = (query: Query, parameters?: any) => Result
 
@@ -60,7 +61,7 @@ class ManagedTransaction {
    * @param {Object} parameters - Map with parameters to use in query
    * @return {Result} New Result
    */
-  run (query: Query, parameters?: any): Result {
+  run<RecordShape extends Dict =Dict> (query: Query, parameters?: any): Result<RecordShape> {
     return this._run(query, parameters)
   }
 }

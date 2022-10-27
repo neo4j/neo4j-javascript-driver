@@ -163,3 +163,26 @@ const path2Start: Node<number> = path2.start
 const path2End: Node<number> = path2.end
 const path2Segments: Array<PathSegment<number>> = path2.segments
 const isPath2: boolean = path2 instanceof Path
+
+interface Person {
+  age: number
+  name: string
+}
+
+const dummy: any = null
+
+{
+  const personNode: Node<number, Person> = dummy
+  const age: number = personNode.properties.age
+  const name: string = personNode.properties.name
+  // @ts-expect-error
+  const nameInt: number = personNode.properties.name
+}
+
+{
+  const personRel: Relationship<number, Person> = dummy
+  const age: number = personRel.properties.age
+  const name: string = personRel.properties.name
+  // @ts-expect-error
+  const nameInt: number = personRel.properties.name
+}

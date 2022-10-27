@@ -36,6 +36,7 @@ import { NumberOrInteger } from './graph-types'
 import TransactionPromise from './transaction-promise'
 import ManagedTransaction from './transaction-managed'
 import BookmarkManager from './bookmark-manager'
+import { Dict } from './record'
 
 type ConnectionConsumer = (connection: Connection | null) => any | undefined | Promise<any> | Promise<undefined>
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
@@ -154,11 +155,11 @@ class Session {
    * @param {TransactionConfig} [transactionConfig] - Configuration for the new auto-commit transaction.
    * @return {Result} New Result.
    */
-  run (
+  run<RecordShape extends Dict = Dict> (
     query: Query,
     parameters?: any,
     transactionConfig?: TransactionConfig
-  ): Result {
+  ): Result<RecordShape> {
     const { validatedQuery, params } = validateQueryAndParameters(
       query,
       parameters

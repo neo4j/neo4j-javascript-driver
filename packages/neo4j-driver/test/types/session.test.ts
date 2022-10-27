@@ -27,7 +27,9 @@ import {
   Result,
   Transaction,
   Session,
-  TransactionConfig
+  TransactionConfig,
+  Node,
+  Relationship
 } from 'neo4j-driver-core'
 
 const dummy: any = null
@@ -176,3 +178,83 @@ const promise6: Promise<number> = session.writeTransaction(
 )
 
 const lastBookmarks: string[] = session.lastBookmarks()
+
+interface Person {
+  age: Integer
+  name: string
+}
+
+interface Friendship {
+  since: Integer
+}
+
+interface PersonAndFriendship {
+  p: Node<number, Person>
+  f: Relationship<number, Friendship>
+}
+
+const personSessionRun = session.run<Person>('MATCH (p:Person) RETURN p.name, p.age')
+personSessionRun.then(({ records }) => {
+  for (const person of records) {
+    const age: Integer = person.get('age')
+    const name: string = person.get('name')
+
+    // @ts-expect-error
+    const nameInt: Integer = person.get('name')
+  }
+}).catch(err => console.error(err))
+
+const personAndFriend = session.run<PersonAndFriendship>('MATCH (p:Person)-[f:Friendship]-() RETURN p, f')
+personAndFriend.then(({ records }) => {
+  for (const r of records) {
+    const person = r.get('p')
+
+    const age: Integer = person.properties.age
+    const name: string = person.properties.name
+
+    // @ts-expect-error
+    const nameInt: Integer = person.properties.name
+
+    // @ts-expect-error
+    const err: string = person.properties.err
+
+    const friendship = r.get('f')
+
+    const since: Integer = friendship.properties.since
+
+    // @ts-expect-error
+    const sinceString: string = friendship.properties.since
+
+    // @ts-expect-error
+    const err2: string = friendship.properties.err
+  }
+}).catch(error => console.error(error))
+
+const personExecuteRead = session.executeRead(tx => tx.run<Person>('MATCH (p:Person) RETURN p.name, p.age'))
+
+personExecuteRead.then(({ records }) => {
+  for (const person of records) {
+    let age: Integer = person.get('age')
+    let name: string = person.get('name')
+
+    // @ts-expect-error
+    const nameInt: Integer = person.get('name')
+
+    const p = person.toObject()
+
+    age = p.age
+    name = p.name
+  }
+}).catch(err => console.error(err))
+
+const personExecuteWrite = session.executeWrite(tx => tx.run<Person>('MATCH (p:Person) RETURN p.name, p.age'))
+
+personExecuteWrite.then(({ records }) => {
+  for (const person of records) {
+    const age: Integer = person.get('age')
+    const name: string = person.get('name')
+
+    // @ts-expect-error
+    const nameInt: Integer = person.get('name')
+  }
+}).catch(err => console.error(err))
