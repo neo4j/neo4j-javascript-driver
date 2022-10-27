@@ -83,6 +83,10 @@ export function NewDriver (neo4j, context, data, wire) {
   if ('maxTxRetryTimeMs' in data) {
     config.maxTransactionRetryTime = data.maxTxRetryTimeMs
   }
+  if ('notificationFilters' in data) {
+    config.notificationFilters = data.notificationFilters
+  }
+
   let driver
   try {
     driver = neo4j.driver(uri, parsedAuthToken, config)
@@ -106,7 +110,17 @@ export function DriverClose (_, context, data, wire) {
 }
 
 export function NewSession (neo4j, context, data, wire) {
-  let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
+  let {
+    driverId,
+    accessMode,
+    bookmarks,
+    database,
+    fetchSize,
+    impersonatedUser,
+    bookmarkManagerId,
+    notificationFilters
+  } = data
+
   switch (accessMode) {
     case 'r':
       accessMode = neo4j.session.READ
@@ -133,7 +147,8 @@ export function NewSession (neo4j, context, data, wire) {
     database,
     fetchSize,
     impersonatedUser,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilters
   })
   const id = context.addSession(session)
   wire.writeResponse(responses.Session({ id }))

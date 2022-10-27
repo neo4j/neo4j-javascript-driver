@@ -1,6 +1,4 @@
 
-
-
 const features = [
   'Feature:Auth:Custom',
   'Feature:Auth:Kerberos',
@@ -18,10 +16,13 @@ const features = [
   'Feature:Bolt:4.3',
   'Feature:Bolt:4.4',
   'Feature:Bolt:5.0',
+  'Feature:Bolt:5.1',
   'Feature:Bolt:Patch:UTC',
   'Feature:API:ConnectionAcquisitionTimeout',
   'Feature:API:Driver:GetServerInfo',
+  'Feature:API:Driver.NotificationFilters',
   'Feature:API:Driver.VerifyConnectivity',
+  'Feature:API:Session.NotificationFilters',
   'Optimization:EagerTransactionBegin',
   'Optimization:ImplicitDefaultArguments',
   'Optimization:MinimalBookmarksSet',
