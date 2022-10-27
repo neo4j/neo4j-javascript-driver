@@ -58,7 +58,8 @@ class Driver extends CoreDriver {
     database = '',
     fetchSize,
     impersonatedUser,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilters
   } = {}) {
     return new RxSession({
       session: this._newSession({
@@ -68,7 +69,8 @@ class Driver extends CoreDriver {
         impersonatedUser,
         reactive: false,
         fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize),
-        bookmarkManager
+        bookmarkManager,
+        notificationFilters
       }),
       config: this._config
     })

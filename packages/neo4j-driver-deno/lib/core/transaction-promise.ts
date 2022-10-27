@@ -65,7 +65,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     fetchSize,
     impersonatedUser,
     highRecordWatermark,
-    lowRecordWatermark
+    lowRecordWatermark,
+    notificationFilters
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -76,6 +77,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
+    notificationFilters?: string[]
   }) {
     super({
       connectionHolder,
@@ -86,7 +88,8 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
       fetchSize,
       impersonatedUser,
       highRecordWatermark,
-      lowRecordWatermark
+      lowRecordWatermark,
+      notificationFilters
     })
   }
 

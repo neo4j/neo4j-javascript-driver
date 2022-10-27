@@ -61,6 +61,7 @@ class Transaction {
   private _bookmarks: Bookmarks
   private readonly _activePromise: Promise<void>
   private _acceptActive: () => void
+  private readonly _notificationFilters?: string[]
 
   /**
    * @constructor
@@ -84,7 +85,8 @@ class Transaction {
     fetchSize,
     impersonatedUser,
     highRecordWatermark,
-    lowRecordWatermark
+    lowRecordWatermark,
+    notificationFilters
   }: {
     connectionHolder: ConnectionHolder
     onClose: () => void
@@ -95,6 +97,7 @@ class Transaction {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
+    notificationFilters?: string[]
   }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive
@@ -110,6 +113,7 @@ class Transaction {
     this._lowRecordWatermak = lowRecordWatermark
     this._highRecordWatermark = highRecordWatermark
     this._bookmarks = Bookmarks.empty()
+    this._notificationFilters = notificationFilters
     this._acceptActive = () => { } // satisfy DenoJS
     this._activePromise = new Promise((resolve, reject) => {
       this._acceptActive = resolve
@@ -138,6 +142,7 @@ class Transaction {
             mode: this._connectionHolder.mode(),
             database: this._connectionHolder.database(),
             impersonatedUser: this._impersonatedUser,
+            notificationFilters: this._notificationFilters,
             beforeError: (error: Error) => {
               if (events != null) {
                 events.onError(error)

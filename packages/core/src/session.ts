@@ -72,6 +72,7 @@ class Session {
   private readonly _highRecordWatermark: number
   private readonly _results: Result[]
   private readonly _bookmarkManager?: BookmarkManager
+  private readonly _notificationFilters?: string[]
   /**
    * @constructor
    * @protected
@@ -94,7 +95,8 @@ class Session {
     reactive,
     fetchSize,
     impersonatedUser,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilters
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -105,6 +107,7 @@ class Session {
     fetchSize: number
     impersonatedUser?: string
     bookmarkManager?: BookmarkManager
+    notificationFilters?: string[]
   }) {
     this._mode = mode
     this._database = database
@@ -142,6 +145,7 @@ class Session {
     this._highRecordWatermark = calculatedWatermaks.high
     this._results = []
     this._bookmarkManager = bookmarkManager
+    this._notificationFilters = notificationFilters
   }
 
   /**
@@ -181,7 +185,8 @@ class Session {
         reactive: this._reactive,
         fetchSize: this._fetchSize,
         lowRecordWatermark: this._lowRecordWatermark,
-        highRecordWatermark: this._highRecordWatermark
+        highRecordWatermark: this._highRecordWatermark,
+        notificationFilters: this._notificationFilters
       })
     })
     this._results.push(result)
@@ -292,6 +297,7 @@ class Session {
     const tx = new TransactionPromise({
       connectionHolder,
       impersonatedUser: this._impersonatedUser,
+      notificationFilters: this._notificationFilters,
       onClose: this._transactionClosed.bind(this),
       onBookmarks: (newBm, oldBm, db) => this._updateBookmarks(newBm, oldBm, db),
       onConnection: this._assertSessionIsOpen.bind(this),

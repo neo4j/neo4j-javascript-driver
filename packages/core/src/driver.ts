@@ -89,6 +89,7 @@ type CreateSession = (args: {
   fetchSize: number
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
+  notificationFilters?: string[]
 }) => Session
 
 interface DriverConfig {
@@ -96,6 +97,7 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
+  notificationFilters?: string[]
 }
 
 /**
@@ -110,6 +112,7 @@ class SessionConfig {
   impersonatedUser?: string
   fetchSize?: number
   bookmarkManager?: BookmarkManager
+  notificationFilters?: string[]
 
   /**
    * @constructor
@@ -190,6 +193,11 @@ class SessionConfig {
      * @since 5.0
      */
     this.bookmarkManager = undefined
+
+    /**
+     * @todo docs
+     */
+    this.notificationFilters = undefined
   }
 }
 
@@ -388,7 +396,8 @@ class Driver {
     database = '',
     impersonatedUser,
     fetchSize,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilters
   }: SessionConfig = {}): Session {
     return this._newSession({
       defaultAccessMode,
@@ -398,7 +407,8 @@ class Driver {
       impersonatedUser,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!),
-      bookmarkManager
+      bookmarkManager,
+      notificationFilters
     })
   }
 
@@ -435,7 +445,8 @@ class Driver {
     reactive,
     impersonatedUser,
     fetchSize,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilters
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
@@ -444,6 +455,7 @@ class Driver {
     impersonatedUser?: string
     fetchSize: number
     bookmarkManager?: BookmarkManager
+    notificationFilters?: string[]
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -460,7 +472,8 @@ class Driver {
       reactive,
       impersonatedUser,
       fetchSize,
-      bookmarkManager
+      bookmarkManager,
+      notificationFilters
     })
   }
 
