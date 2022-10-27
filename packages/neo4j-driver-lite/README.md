@@ -2,6 +2,12 @@
 
 This is the lite version of the official Neo4j driver for JavaScript.
 
+Starting with 5.0, the Neo4j Drivers will be moving to a monthly release cadence. A minor version will be released on the last Friday of each month so as to maintain versioning consistency with the core product (Neo4j DBMS) which has also moved to a monthly cadence.
+
+As a policy, patch versions will not be released except on rare occasions. Bug fixes and updates will go into the latest minor version and users should upgrade to that. Driver upgrades within a major version will never contain breaking API changes.
+
+See also: https://neo4j.com/developer/kb/neo4j-supported-versions/
+
 Resources to get you started:
 
 - [API Documentation](https://neo4j.com/docs/api/javascript-driver/current/)
@@ -11,9 +17,6 @@ Resources to get you started:
 ## What's New in 5.x
 
 - [Changelog](https://github.com/neo4j/neo4j-javascript-driver/wiki/5.0-changelog)
-
-> *Starting with 5.0, the Neo4j Drivers will be moving to a monthly release cadence. A minor version will be released on the last Friday of each month so as to maintain versioning consistency with the core product (Neo4j DBMS) which has also moved to a monthly cadence.*
-*As a policy, patch versions will not be released except on rare occasions. Bug fixes and updates will go into the latest minor version and users should upgrade to that. Driver upgrades within a major version will never contain breaking API changes.*
 
 ## Including the Driver
 
