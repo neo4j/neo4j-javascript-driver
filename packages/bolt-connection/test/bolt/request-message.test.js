@@ -436,14 +436,15 @@ describe('#unit RequestMessage', () => {
       const authToken = { username: 'neo4j', password: 'secret' }
       const notificationFilters = ['*.*', 'WARNING.*']
 
-      const message = RequestMessage.hello(userAgent, authToken, null, null, { notificationFilters })
+      const message = RequestMessage.hello5x1(authToken, { userAgent, notificationFilters })
 
       expect(message.signature).toEqual(0x01)
       expect(message.fields).toEqual([
-        { user_agent: userAgent, username: 'neo4j', password: 'secret', notifications: notificationFilters }
+        { username: 'neo4j', password: 'secret' },
+        { user_agent: userAgent, notifications: notificationFilters }
       ])
       expect(message.toString()).toEqual(
-        `HELLO {user_agent: '${userAgent}', ...}`
+        `HELLO {...} {"user_agent":"${userAgent}","notifications":["*.*","WARNING.*"]}`
       )
     })
 
@@ -452,16 +453,34 @@ describe('#unit RequestMessage', () => {
         const userAgent = 'my-driver/1.0.2'
         const authToken = { username: 'neo4j', password: 'secret' }
 
-        const message = RequestMessage.hello(userAgent, authToken, null, null, { notificationFilters })
+        const message = RequestMessage.hello5x1(authToken, { userAgent, notificationFilters })
 
         expect(message.signature).toEqual(0x01)
         expect(message.fields).toEqual([
-          { user_agent: userAgent, username: 'neo4j', password: 'secret' }
+          { username: 'neo4j', password: 'secret' },
+          { user_agent: userAgent }
         ])
         expect(message.toString()).toEqual(
-          `HELLO {user_agent: '${userAgent}', ...}`
+          `HELLO {...} {"user_agent":"${userAgent}"}`
         )
       })
+    })
+
+    it('should create HELLO message with routing', () => {
+      const userAgent = 'my-driver/1.0.2'
+      const authToken = { username: 'neo4j', password: 'secret' }
+      const routing = { address: 'localhost123:9090', otherInfo: 'info' }
+
+      const message = RequestMessage.hello5x1(authToken, { userAgent, routing })
+
+      expect(message.signature).toEqual(0x01)
+      expect(message.fields).toEqual([
+        { username: 'neo4j', password: 'secret' },
+        { user_agent: userAgent, routing }
+      ])
+      expect(message.toString()).toEqual(
+        `HELLO {...} {"user_agent":"${userAgent}","routing":{"address":"localhost123:9090","otherInfo":"info"}}`
+      )
     })
 
     it('should create BEGIN message with notification filters', () => {

@@ -59,7 +59,11 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
     })
 
     this.write(
-      RequestMessage.hello(userAgent, authToken, this._serversideRouting, null, { notificationFilters }),
+      RequestMessage.hello5x1(authToken, {
+        userAgent,
+        notificationFilters,
+        routing: this._serversideRouting
+      }),
       observer,
       true
     )

@@ -105,10 +105,9 @@ export default class RequestMessage {
    * @param {Object} authToken the authentication token.
    * @param {Object} optional server side routing, set to routing context to turn on server side routing (> 4.1)
    * @param {?string[]} patchs patches to be applied to the server (valid in 4.3 and 4.4)
-   * @param {?string[]} notificationFilters the cypher notification filters
    * @return {RequestMessage} new HELLO message.
    */
-  static hello (userAgent, authToken, routing = null, patchs = null, { notificationFilters } = {}) {
+  static hello (userAgent, authToken, routing = null, patchs = null) {
     const metadata = Object.assign({ user_agent: userAgent }, authToken)
     if (routing) {
       metadata.routing = routing
@@ -116,13 +115,35 @@ export default class RequestMessage {
     if (patchs) {
       metadata.patch_bolt = patchs
     }
-    if (notificationFilters) {
-      metadata.notifications = notificationFilters
-    }
     return new RequestMessage(
       HELLO,
       [metadata],
       () => `HELLO {user_agent: '${userAgent}', ...}`
+    )
+  }
+
+  /**
+   * Create a new HELLO message.
+   * @param {Object} authToken the authentication token.
+   * @param {Object} param1 the extra information
+   * @param {string} param1.userAgent the user agent
+   * @param {?Object} param1.routing the server side routing context, when set the server side routing is enabled
+   * @param {?string[]} param1.notificationFilters the cypher notification filters
+   */
+  static hello5x1 (authToken, { userAgent, routing, notificationFilters } = {}) {
+    const extra = { user_agent: userAgent }
+    if (routing) {
+      extra.routing = routing
+    }
+
+    if (notificationFilters) {
+      extra.notifications = notificationFilters
+    }
+
+    return new RequestMessage(
+      HELLO,
+      [authToken, extra],
+      () => `HELLO {...} ${json.stringify(extra)}`
     )
   }
 

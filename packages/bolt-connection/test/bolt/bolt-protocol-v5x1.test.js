@@ -346,7 +346,7 @@ describe('#unit BoltProtocolV5x1', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello(clientName, authToken)
+      RequestMessage.hello5x1(authToken, { userAgent: clientName })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
@@ -365,7 +365,7 @@ describe('#unit BoltProtocolV5x1', () => {
 
     protocol.verifyMessageCount(1)
     expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello(clientName, authToken, false, null, { notificationFilters })
+      RequestMessage.hello5x1(authToken, { routing: false, userAgent: clientName, notificationFilters })
     )
     expect(protocol.observers).toEqual([observer])
     expect(protocol.flushes).toEqual([true])
