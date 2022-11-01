@@ -48,7 +48,7 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
    * @param {string} param0.userAgent The user agent
    * @param {any} param0.authToken The auth token
    * @param {function(error)} param0.onError On error callback
-   * @param {function(onComplte)} param0.onComplete On complete callback
+   * @param {function(onComplete)} param0.onComplete On complete callback
    * @param {?string[]} param0.notificationFilters the filtering for notifications.
    * @returns {LoginObserver} The Login observer
    */
