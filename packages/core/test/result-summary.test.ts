@@ -170,10 +170,11 @@ function getValidCategories (): NotificationCategory[] {
   return [
     'HINT',
     'QUERY',
+    'UNRECOGNIZED',
     'UNSUPPORTED',
     'PERFORMANCE',
     'DEPRECATION',
-    'RUNTIME',
+    'GENERIC',
     'UNKNOWN'
   ]
 }
