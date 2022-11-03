@@ -35,6 +35,9 @@ type NotificationFilter =
   'WARNING.PERFORMANCE' | 'WARNING.QUERY' | 'WARNING.UNRECOGNIZED' | 'WARNING.UNSUPPORTED'
 
 /**
+ *
+ * Notifications filters used during the {@link Driver} and {@link Session} configuration.
+ *
  * @typedef { 'NONE' | 'SERVER_DEFAULT' |
  * 'ALL.ALL' | 'ALL.DEPRECATION' | 'ALL.GENERIC' | 'ALL.HINT' |
  * 'ALL.PERFORMANCE' | 'ALL.QUERY' | 'ALL.UNRECOGNIZED' | 'ALL.UNSUPPORTED' |
@@ -43,12 +46,27 @@ type NotificationFilter =
  * 'WARNING.ALL' | 'WARNING.DEPRECATION' | 'WARNING.GENERIC' | 'WARNING.HINT' |
  * 'WARNING.PERFORMANCE' | 'WARNING.QUERY' | 'WARNING.UNRECOGNIZED' | 'WARNING.UNSUPPORTED' } NotificationFilter
  */
-
+/**
+ * Defines the category filters available for a given severity level filter
+ *
+ * @typedef {object} CategoryFiltersInSeverityLevel
+ * @property {NotificationFilter} ALL
+ * @property {NotificationFilter} DEPRECATION
+ * @property {NotificationFilter} GENERIC
+ * @property {NotificationFilter} HINT
+ * @property {NotificationFilter} PERFORMANCE
+ * @property {NotificationFilter} QUERY
+ * @property {NotificationFilter} UNRECOGNIZED
+ * @property {NotificationFilter} UNSUPPORTED
+ */
 /**
  * Constants that represents the available notification filters
  *
  * @property {function(): Array<NotificationFilter>} disabled Creates a configuration with notifications disabled
  * @property {function(): Array<NotificationFilter>} serverDefault Creates a configuration for using the server default
+ * @property {CategoryFiltersInSeverityLevel} ALL Filters with all severities for category
+ * @property {CategoryFiltersInSeverityLevel} WARNING Filters with warning severity for category
+ * @property {CategoryFiltersInSeverityLevel} INFORMATION Filters with information severity for category
  */
 const notificationFilter: SeverityDotCategoryFilters & {
   disabled: () => NotificationFilter[]
