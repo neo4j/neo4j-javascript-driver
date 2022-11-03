@@ -20,7 +20,7 @@
 import ConnectionProvider from './connection-provider.ts'
 import { Bookmarks } from './internal/bookmarks.ts'
 import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver.ts'
-import { NotificationFilter } from './notification-filter.ts'
+import { isValidFilter, NotificationFilter } from './notification-filter.ts'
 
 import {
   ACCESS_MODE_READ,
@@ -42,6 +42,7 @@ import {
 } from './types.ts'
 import { ServerAddress } from './internal/server-address.ts'
 import BookmarkManager from './bookmark-manager.ts'
+import { stringify } from './json.ts'
 
 const DEFAULT_MAX_CONNECTION_LIFETIME: number = 60 * 60 * 1000 // 1 hour
 
@@ -459,6 +460,7 @@ class Driver {
     bookmarkManager?: BookmarkManager
     notificationFilters?: NotificationFilter[]
   }): Session {
+    validateNotificationFilters(notificationFilters)
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
     const bookmarks = bookmarkOrBookmarks != null
@@ -516,6 +518,9 @@ function validateConfig (config: any, log: Logger): any {
       'where a new connection is created while it is acquired'
     )
   }
+
+  validateNotificationFilters(config.notificationFilters)
+
   return config
 }
 
@@ -602,6 +607,36 @@ function extractConnectionTimeout (config: any): number | null {
  */
 function createHostNameResolver (config: any): ConfiguredCustomResolver {
   return new ConfiguredCustomResolver(config.resolver)
+}
+
+/**
+ * @private
+ */
+function validateNotificationFilters (filters: any): void {
+  if (filters == null || filters === []) {
+    return filters
+  }
+
+  if (!Array.isArray(filters)) {
+    throw new TypeError('Expect "notificationFilters" to be instance of Array<NotificationFilter>.')
+  }
+
+  if (filters.length > 1) {
+    if (filters.includes('NONE')) {
+      throw new Error('Expect "notificationFilters" to not have "NONE" configured along with other filters.')
+    }
+
+    if (filters.includes('SERVER_DEFAULT')) {
+      throw new Error('Expect "notificationFilters" to not have "SERVER_DEFAULT" configured along with other filters.')
+    }
+  }
+
+  const invalidFilters = filters.filter(filter => !isValidFilter(filter))
+
+  if (invalidFilters.length > 0) {
+    const invalidValuesString = invalidFilters.map(stringify).join(', ')
+    throw new Error(`Invalid "notificationFilters". Invalid values: ${invalidValuesString}`)
+  }
 }
 
 export { Driver, READ, WRITE }

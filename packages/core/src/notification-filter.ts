@@ -90,7 +90,27 @@ const notificationFilter: SeverityDotCategoryFilters & {
 
 Object.freeze(notificationFilter)
 
+const filters = Object.values(notificationFilter)
+  .map(value => {
+    if (typeof value === 'function') {
+      return value()
+    }
+    return Object.values(value)
+  })
+  .reduce((previous, current) => [...previous, ...current], [])
+
+/**
+ * @private
+ */
+function isValidFilter (value: any): boolean {
+  return filters.includes(value)
+}
+
 export default notificationFilter
+
+export {
+  isValidFilter
+}
 
 export type {
   NotificationFilter

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/promise-function-async */
-import { bookmarkManager, ConnectionProvider, newError, ServerInfo, Session } from '../src'
+import { bookmarkManager, ConnectionProvider, newError, NotificationFilter, notificationFilter, ServerInfo, Session } from '../src'
 import Driver, { READ } from '../src/driver'
 import { Bookmarks } from '../src/internal/bookmarks'
 import { Logger } from '../src/internal/logger'
@@ -151,6 +151,106 @@ describe('Driver', () => {
           }))
         } finally {
           await session.close()
+          await driver.close()
+        }
+      })
+    })
+
+    describe('when set config.notificationFilters', () => {
+      it.each([
+        [],
+        undefined,
+        notificationFilter.disabled(),
+        notificationFilter.serverDefault(),
+        [notificationFilter.ALL.ALL, notificationFilter.INFORMATION.GENERIC],
+        ['WARNING.QUERY', 'INFORMATION.GENERIC']
+      ])('should send valid "notificationFilters" to the session', async (notificationFilters?: NotificationFilter[]) => {
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        const session = driver.session({ notificationFilters })
+
+        try {
+          expect(createSession).toBeCalledWith(expect.objectContaining({
+            notificationFilters
+          }))
+        } finally {
+          await session.close()
+          await driver.close()
+        }
+      })
+
+      it.each([
+        notificationFilter.ALL.DEPRECATION,
+        'WARNING.QUERY',
+        'INFO',
+        1234,
+        { 'WARNING.QUERY': notificationFilter.WARNING.QUERY },
+        () => [notificationFilter.ALL.DEPRECATION]
+      ])('should thrown when "notificationFilters" is not an array', async (notificationFilters?: any) => {
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        try {
+          expect(() => driver.session({ notificationFilters })).toThrow(new TypeError('Expect "notificationFilters" to be instance of Array<NotificationFilter>.'))
+        } finally {
+          await driver.close()
+        }
+      })
+
+      it('should throw when "NONE" is configured with other filters', async () => {
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        try {
+          expect(() => driver.session({ notificationFilters: ['NONE', 'ALL.DEPRECATION'] }))
+            .toThrow(new Error('Expect "notificationFilters" to not have "NONE" configured along with other filters.'))
+        } finally {
+          await driver.close()
+        }
+      })
+
+      it('should throw when "SERVER_DEFAULT" is configured with other filters', async () => {
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        try {
+          expect(() => driver.session({ notificationFilters: ['SERVER_DEFAULT', 'ALL.DEPRECATION'] }))
+            .toThrow(new Error('Expect "notificationFilters" to not have "SERVER_DEFAULT" configured along with other filters.'))
+        } finally {
+          await driver.close()
+        }
+      })
+
+      it('should throw when invalid filters are configured', async () => {
+        const driver = new Driver(
+          META_INFO,
+          { ...CONFIG },
+          mockCreateConnectonProvider(connectionProvider),
+          createSession
+        )
+
+        try {
+          // @ts-expect-error
+          expect(() => driver.session({ notificationFilters: ['ALL.DEPRECATION', 'ABC', 123] }))
+            .toThrow(new Error('Invalid "notificationFilters". Invalid values: "ABC", 123'))
+        } finally {
           await driver.close()
         }
       })
@@ -305,6 +405,90 @@ describe('Driver', () => {
       .toBeCalledWith({ database: input?.database ?? '', accessMode: READ })
 
     promise?.catch(_ => 'Do nothing').finally(() => { })
+  })
+
+  describe('constructor', () => {
+    describe('when set config.notificationFilters', () => {
+      it.each([
+        [],
+        undefined,
+        notificationFilter.disabled(),
+        notificationFilter.serverDefault(),
+        [notificationFilter.ALL.ALL, notificationFilter.INFORMATION.GENERIC],
+        ['WARNING.QUERY', 'INFORMATION.GENERIC']
+      ])('should send valid "notificationFilters" to the connection provider', async (notificationFilters?: NotificationFilter[]) => {
+        const createConnectionProviderMock = jest.fn(mockCreateConnectonProvider(connectionProvider))
+        const driver = new Driver(
+          META_INFO,
+          { notificationFilters },
+          createConnectionProviderMock,
+          createSession
+        )
+
+        driver._getOrCreateConnectionProvider()
+
+        expect(createConnectionProviderMock).toHaveBeenCalledWith(
+          expect.any(Number),
+          expect.objectContaining({ notificationFilters }),
+          expect.any(Object),
+          expect.any(Object)
+        )
+
+        await driver.close()
+      })
+
+      it.each([
+        notificationFilter.ALL.DEPRECATION,
+        'WARNING.QUERY',
+        'INFO',
+        1234,
+        { 'WARNING.QUERY': notificationFilter.WARNING.QUERY },
+        () => [notificationFilter.ALL.DEPRECATION]
+      ])('should thrown when "notificationFilters" is not an array', async (notificationFilters?: any) => {
+        const createConnectionProviderMock = mockCreateConnectonProvider(connectionProvider)
+
+        expect(() => new Driver(
+          META_INFO,
+          { notificationFilters },
+          createConnectionProviderMock,
+          createSession
+        )).toThrow(new TypeError('Expect "notificationFilters" to be instance of Array<NotificationFilter>.'))
+      })
+
+      it('should throw when "NONE" is configured with other filters', async () => {
+        const createConnectionProviderMock = mockCreateConnectonProvider(connectionProvider)
+
+        expect(() => new Driver(
+          META_INFO,
+          { notificationFilters: ['NONE', 'ALL.DEPRECATION'] },
+          createConnectionProviderMock,
+          createSession
+        )).toThrow(new Error('Expect "notificationFilters" to not have "NONE" configured along with other filters.'))
+      })
+
+      it('should throw when "SERVER_DEFAULT" is configured with other filters', async () => {
+        const createConnectionProviderMock = mockCreateConnectonProvider(connectionProvider)
+
+        expect(() => new Driver(
+          META_INFO,
+          { notificationFilters: ['ALL.DEPRECATION', 'SERVER_DEFAULT'] },
+          createConnectionProviderMock,
+          createSession
+        )).toThrow(new Error('Expect "notificationFilters" to not have "SERVER_DEFAULT" configured along with other filters.'))
+      })
+
+      it('should throw when invalid filters are configured', async () => {
+        const createConnectionProviderMock = mockCreateConnectonProvider(connectionProvider)
+
+        expect(() => new Driver(
+          META_INFO,
+          // @ts-expect-error
+          { notificationFilters: ['ALL.DEPRECATION', 'ABC', 123] },
+          createConnectionProviderMock,
+          createSession
+        )).toThrow(new Error('Invalid "notificationFilters". Invalid values: "ABC", 123'))
+      })
+    })
   })
 
   function mockCreateConnectonProvider (connectionProvider: ConnectionProvider) {
