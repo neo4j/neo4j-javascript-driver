@@ -77,7 +77,9 @@ import {
   notificationCategory,
   notificationSeverityLevel,
   NotificationSeverityLevel,
-  NotificationCategory
+  NotificationCategory,
+  notificationFilter,
+  NotificationFilter
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -471,7 +473,8 @@ const forExport = {
   Connection,
   bookmarkManager,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilter
 }
 
 export {
@@ -526,7 +529,8 @@ export {
   Connection,
   bookmarkManager,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilter
 }
 export type {
   QueryResult,
@@ -541,6 +545,7 @@ export type {
   BookmarkManagerConfig,
   SessionConfig,
   NotificationCategory,
-  NotificationSeverityLevel
+  NotificationSeverityLevel,
+  NotificationFilter
 }
 export default forExport

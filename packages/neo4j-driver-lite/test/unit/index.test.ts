@@ -326,4 +326,13 @@ describe('index', () => {
     expect(neo4j.notificationCategory.GENERIC).toBeDefined()
     expect(neo4j.notificationCategory.UNKNOWN).toBeDefined()
   })
+
+  it('should export notificationFilter', () => {
+    expect(neo4j.notificationFilter).toBeDefined()
+    expect(neo4j.notificationFilter.ALL).toBeDefined()
+    expect(neo4j.notificationFilter.INFORMATION).toBeDefined()
+    expect(neo4j.notificationFilter.WARNING).toBeDefined()
+    expect(neo4j.notificationFilter.disabled).toBeDefined()
+    expect(neo4j.notificationFilter.serverDefault).toBeDefined()
+  })
 })

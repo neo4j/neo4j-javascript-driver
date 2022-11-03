@@ -24,10 +24,6 @@ type FilterKeys = ExcludeUnknown<NotificationSeverityLevel> | 'ALL'
 type FilterInnerKeys = ExcludeUnknown<NotificationCategory> | 'ALL'
 
 type SeverityDotCategoryFilters = { [key in FilterKeys]: { [k in FilterInnerKeys]: NotificationFilter } }
-interface AuxFunctions {
-  disabled: () => NotificationFilter[]
-  serverDefault: () => NotificationFilter[]
-}
 
 type NotificationFilter =
   'NONE' | 'SERVER_DEFAULT' |
@@ -54,7 +50,10 @@ type NotificationFilter =
  * @property {function(): Array<NotificationFilter>} disabled Creates a configuration with notifications disabled
  * @property {function(): Array<NotificationFilter>} serverDefault Creates a configuration for using the server default
  */
-const notificationFilter: SeverityDotCategoryFilters & AuxFunctions = {
+const notificationFilter: SeverityDotCategoryFilters & {
+  disabled: () => NotificationFilter[]
+  serverDefault: () => NotificationFilter[]
+} = {
   disabled: () => ['NONE'],
   serverDefault: () => ['SERVER_DEFAULT'],
   ALL: {

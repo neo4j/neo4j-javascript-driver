@@ -70,6 +70,7 @@ import ResultSummary, {
   notificationCategory,
   notificationSeverityLevel
 } from './result-summary.ts'
+import notificationFilter, { NotificationFilter } from './notification-filter.ts'
 import Result, { QueryResult, ResultObserver } from './result.ts'
 import ConnectionProvider from './connection-provider.ts'
 import Connection from './connection.ts'
@@ -155,7 +156,8 @@ const forExport = {
   auth,
   bookmarkManager,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilter
 }
 
 export {
@@ -217,7 +219,8 @@ export {
   auth,
   bookmarkManager,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilter
 }
 
 export type {
@@ -231,7 +234,8 @@ export type {
   BookmarkManagerConfig,
   SessionConfig,
   NotificationCategory,
-  NotificationSeverityLevel
+  NotificationSeverityLevel,
+  NotificationFilter
 }
 
 export default forExport

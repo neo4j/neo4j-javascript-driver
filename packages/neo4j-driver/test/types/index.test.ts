@@ -32,7 +32,9 @@ import {
   notificationSeverityLevel,
   NotificationSeverityLevel,
   notificationCategory,
-  NotificationCategory
+  NotificationCategory,
+  notificationFilter,
+  NotificationFilter
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -114,3 +116,57 @@ const genericCategory: NotificationCategory = notificationCategory.GENERIC
 const unrecognizedCategory: NotificationCategory = notificationCategory.UNRECOGNIZED
 const unsupportedCategory: NotificationCategory = notificationCategory.UNSUPPORTED
 const unknownCategory: NotificationCategory = notificationCategory.UNKNOWN
+
+const allAllString: string = notificationFilter.ALL.ALL
+const allDeprecationString: string = notificationFilter.ALL.DEPRECATION
+const allPerformanceString: string = notificationFilter.ALL.PERFORMANCE
+const allGenericString: string = notificationFilter.ALL.GENERIC
+const allUnrecognizedString: string = notificationFilter.ALL.UNRECOGNIZED
+const allUnsupportedString: string = notificationFilter.ALL.UNSUPPORTED
+const allQueryString: string = notificationFilter.ALL.QUERY
+const allHintString: string = notificationFilter.ALL.HINT
+
+const allAllFilter: NotificationFilter = notificationFilter.ALL.ALL
+const allDeprecationFilter: NotificationFilter = notificationFilter.ALL.DEPRECATION
+const allPerformanceFilter: NotificationFilter = notificationFilter.ALL.PERFORMANCE
+const allGenericFilter: NotificationFilter = notificationFilter.ALL.GENERIC
+const allUnrecognizedFilter: NotificationFilter = notificationFilter.ALL.UNRECOGNIZED
+const allUnsupportedFilter: NotificationFilter = notificationFilter.ALL.UNSUPPORTED
+const allQueryFilter: NotificationFilter = notificationFilter.ALL.QUERY
+const allHintFilter: NotificationFilter = notificationFilter.ALL.HINT
+
+const informationAllString: string = notificationFilter.INFORMATION.ALL
+const informationDeprecationString: string = notificationFilter.INFORMATION.DEPRECATION
+const informationPerformanceString: string = notificationFilter.INFORMATION.PERFORMANCE
+const informationGenericString: string = notificationFilter.INFORMATION.GENERIC
+const informationUnrecognizedString: string = notificationFilter.INFORMATION.UNRECOGNIZED
+const informationUnsupportedString: string = notificationFilter.INFORMATION.UNSUPPORTED
+const informationQueryString: string = notificationFilter.INFORMATION.QUERY
+const informationHintString: string = notificationFilter.INFORMATION.HINT
+
+const informationAllFilter: NotificationFilter = notificationFilter.INFORMATION.ALL
+const informationDeprecationFilter: NotificationFilter = notificationFilter.INFORMATION.DEPRECATION
+const informationPerformanceFilter: NotificationFilter = notificationFilter.INFORMATION.PERFORMANCE
+const informationGenericFilter: NotificationFilter = notificationFilter.INFORMATION.GENERIC
+const informationUnrecognizedFilter: NotificationFilter = notificationFilter.INFORMATION.UNRECOGNIZED
+const informationUnsupportedFilter: NotificationFilter = notificationFilter.INFORMATION.UNSUPPORTED
+const informationQueryFilter: NotificationFilter = notificationFilter.INFORMATION.QUERY
+const informationHintFilter: NotificationFilter = notificationFilter.INFORMATION.HINT
+
+const warningAllString: string = notificationFilter.WARNING.ALL
+const warningDeprecationString: string = notificationFilter.WARNING.DEPRECATION
+const warningPerformanceString: string = notificationFilter.WARNING.PERFORMANCE
+const warningGenericString: string = notificationFilter.WARNING.GENERIC
+const warningUnrecognizedString: string = notificationFilter.WARNING.UNRECOGNIZED
+const warningUnsupportedString: string = notificationFilter.WARNING.UNSUPPORTED
+const warningQueryString: string = notificationFilter.WARNING.QUERY
+const warningHintString: string = notificationFilter.WARNING.HINT
+
+const warningAllFilter: NotificationFilter = notificationFilter.WARNING.ALL
+const warningDeprecationFilter: NotificationFilter = notificationFilter.WARNING.DEPRECATION
+const warningPerformanceFilter: NotificationFilter = notificationFilter.WARNING.PERFORMANCE
+const warningGenericFilter: NotificationFilter = notificationFilter.WARNING.GENERIC
+const warningUnrecognizedFilter: NotificationFilter = notificationFilter.WARNING.UNRECOGNIZED
+const warningUnsupportedFilter: NotificationFilter = notificationFilter.WARNING.UNSUPPORTED
+const warningQueryFilter: NotificationFilter = notificationFilter.WARNING.QUERY
+const warningHintFilter: NotificationFilter = notificationFilter.WARNING.HINT

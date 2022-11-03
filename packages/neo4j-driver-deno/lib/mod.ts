@@ -77,7 +77,9 @@ import {
   notificationCategory,
   notificationSeverityLevel,
   NotificationSeverityLevel,
-  NotificationCategory
+  NotificationCategory,
+  notificationFilter,
+  NotificationFilter
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import {
@@ -472,7 +474,8 @@ const forExport = {
   Connection,
   bookmarkManager,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilter
 }
 
 export {
@@ -527,7 +530,8 @@ export {
   Connection,
   bookmarkManager,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilter
 }
 export type {
   QueryResult,
@@ -542,6 +546,7 @@ export type {
   BookmarkManagerConfig,
   SessionConfig,
   NotificationCategory,
-  NotificationSeverityLevel
+  NotificationSeverityLevel,
+  NotificationFilter
 }
 export default forExport
