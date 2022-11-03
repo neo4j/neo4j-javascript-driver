@@ -26,6 +26,7 @@ import {
 
 import { Bookmarks } from './internal/bookmarks'
 import { TxConfig } from './internal/tx-config'
+import { NotificationFilter } from './notification-filter'
 
 /**
  * Represents a {@link Promise<Transaction>} object and a {@link Transaction} object.
@@ -77,7 +78,7 @@ class TransactionPromise extends Transaction implements Promise<Transaction> {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
-    notificationFilters?: string[]
+    notificationFilters?: NotificationFilter[]
   }) {
     super({
       connectionHolder,

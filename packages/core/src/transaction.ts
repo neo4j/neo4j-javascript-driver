@@ -38,6 +38,7 @@ import { newError } from './error'
 import Result from './result'
 import { Query } from './types'
 import { Dict } from './record'
+import { NotificationFilter } from './notification-filter'
 
 /**
  * Represents a transaction in the Neo4j database.
@@ -61,7 +62,7 @@ class Transaction {
   private _bookmarks: Bookmarks
   private readonly _activePromise: Promise<void>
   private _acceptActive: () => void
-  private readonly _notificationFilters?: string[]
+  private readonly _notificationFilters?: NotificationFilter[]
 
   /**
    * @constructor
@@ -97,7 +98,7 @@ class Transaction {
     impersonatedUser?: string
     highRecordWatermark: number
     lowRecordWatermark: number
-    notificationFilters?: string[]
+    notificationFilters?: NotificationFilter[]
   }) {
     this._connectionHolder = connectionHolder
     this._reactive = reactive

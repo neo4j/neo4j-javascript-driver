@@ -20,6 +20,7 @@
 import ConnectionProvider from './connection-provider'
 import { Bookmarks } from './internal/bookmarks'
 import ConfiguredCustomResolver from './internal/resolver/configured-custom-resolver'
+import { NotificationFilter } from './notification-filter'
 
 import {
   ACCESS_MODE_READ,
@@ -89,7 +90,7 @@ type CreateSession = (args: {
   fetchSize: number
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
-  notificationFilters?: string[]
+  notificationFilters?: NotificationFilter[]
 }) => Session
 
 interface DriverConfig {
@@ -97,7 +98,7 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
-  notificationFilters?: string[]
+  notificationFilters?: NotificationFilter[]
 }
 
 /**
@@ -112,7 +113,7 @@ class SessionConfig {
   impersonatedUser?: string
   fetchSize?: number
   bookmarkManager?: BookmarkManager
-  notificationFilters?: string[]
+  notificationFilters?: NotificationFilter[]
 
   /**
    * @constructor
@@ -196,6 +197,7 @@ class SessionConfig {
 
     /**
      * @todo docs
+     * @type {NotificationFilter[]|undefined}
      */
     this.notificationFilters = undefined
   }
@@ -455,7 +457,7 @@ class Driver {
     impersonatedUser?: string
     fetchSize: number
     bookmarkManager?: BookmarkManager
-    notificationFilters?: string[]
+    notificationFilters?: NotificationFilter[]
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()

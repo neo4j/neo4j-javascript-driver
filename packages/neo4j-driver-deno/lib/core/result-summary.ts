@@ -498,10 +498,12 @@ class Notification {
     this.description = notification.description
     /**
      * The raw severity
+     *
+     * Use {@link Notification#rawSeverityLevel} for the raw value or {@link Notification#severityLevel} enumerated value.
+     *
      * @type {string}
      * @public
      * @deprecated This property will be removed in 6.0.
-     * Use {@link Notification.rawSeverityLevel} for the raw value or {@link Notification.severityLevel} enumerated value.
      */
     this.severity = notification.severity
     /**

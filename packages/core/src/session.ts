@@ -37,6 +37,7 @@ import TransactionPromise from './transaction-promise'
 import ManagedTransaction from './transaction-managed'
 import BookmarkManager from './bookmark-manager'
 import { Dict } from './record'
+import { NotificationFilter } from './notification-filter'
 
 type ConnectionConsumer = (connection: Connection | null) => any | undefined | Promise<any> | Promise<undefined>
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
@@ -72,7 +73,7 @@ class Session {
   private readonly _highRecordWatermark: number
   private readonly _results: Result[]
   private readonly _bookmarkManager?: BookmarkManager
-  private readonly _notificationFilters?: string[]
+  private readonly _notificationFilters?: NotificationFilter[]
   /**
    * @constructor
    * @protected
@@ -107,7 +108,7 @@ class Session {
     fetchSize: number
     impersonatedUser?: string
     bookmarkManager?: BookmarkManager
-    notificationFilters?: string[]
+    notificationFilters?: NotificationFilter[]
   }) {
     this._mode = mode
     this._database = database
