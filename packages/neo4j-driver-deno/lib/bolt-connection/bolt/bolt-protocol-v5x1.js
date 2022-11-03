@@ -61,7 +61,7 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
     this.write(
       RequestMessage.hello5x1(authToken, {
         userAgent,
-        notificationFilters,
+        notificationFilters: sanitizeNotificationFilters(notificationFilters),
         routing: this._serversideRouting
       }),
       observer,
@@ -118,7 +118,7 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
         database,
         mode,
         impersonatedUser,
-        notificationFilters
+        notificationFilters: sanitizeNotificationFilters(notificationFilters)
       }),
       observer,
       flushRun && flush
@@ -153,11 +153,34 @@ export default class BoltProtocol extends BoltProtocolV5x0 {
     observer.prepareToHandleSingleResponse()
 
     this.write(
-      RequestMessage.begin({ bookmarks, txConfig, database, mode, impersonatedUser, notificationFilters }),
+      RequestMessage.begin({
+        bookmarks,
+        txConfig,
+        database,
+        mode,
+        impersonatedUser,
+        notificationFilters: sanitizeNotificationFilters(notificationFilters)
+      }),
       observer,
       true
     )
 
     return observer
   }
+}
+
+function sanitizeNotificationFilters (filters) {
+  if (filters == null || filters === []) {
+    return filters
+  }
+
+  if (filters[0] === 'NONE') {
+    return []
+  }
+
+  if (filters[0] === 'SERVER_DEFAULT') {
+    return undefined
+  }
+
+  return filters.map(filter => filter.replace(/^ALL\./, '*.').replace(/\.ALL$/, '.*'))
 }

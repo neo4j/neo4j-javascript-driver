@@ -181,47 +181,47 @@ describe('#unit BoltProtocolV5x1', () => {
     expect(protocol.flushes).toEqual([false, true])
   })
 
-  it('should run a with notification filters', () => {
-    const database = 'testdb'
-    const notificationFilters = ['*.*', 'WARNING.*']
-    const bookmarks = new Bookmarks([
-      'neo4j:bookmark:v1:tx1',
-      'neo4j:bookmark:v1:tx2'
-    ])
-    const txConfig = new TxConfig({
-      timeout: 5000,
-      metadata: { x: 1, y: 'something' }
-    })
-    const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x1(recorder, null, false)
-    utils.spyProtocolWrite(protocol)
+  it.each(notificationFiltersFixtures())('should run a with notification filters',
+    (notificationFilters, sentNotificationFilters) => {
+      const database = 'testdb'
+      const bookmarks = new Bookmarks([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx2'
+      ])
+      const txConfig = new TxConfig({
+        timeout: 5000,
+        metadata: { x: 1, y: 'something' }
+      })
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV5x1(recorder, null, false)
+      utils.spyProtocolWrite(protocol)
 
-    const query = 'RETURN $x, $y'
-    const parameters = { x: 'x', y: 'y' }
+      const query = 'RETURN $x, $y'
+      const parameters = { x: 'x', y: 'y' }
 
-    const observer = protocol.run(query, parameters, {
-      bookmarks,
-      txConfig,
-      database,
-      mode: WRITE,
-      notificationFilters
-    })
-
-    protocol.verifyMessageCount(2)
-
-    expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.runWithMetadata(query, parameters, {
+      const observer = protocol.run(query, parameters, {
         bookmarks,
         txConfig,
         database,
         mode: WRITE,
         notificationFilters
       })
-    )
-    expect(protocol.messages[1]).toBeMessage(RequestMessage.pull())
-    expect(protocol.observers).toEqual([observer, observer])
-    expect(protocol.flushes).toEqual([false, true])
-  })
+
+      protocol.verifyMessageCount(2)
+
+      expect(protocol.messages[0]).toBeMessage(
+        RequestMessage.runWithMetadata(query, parameters, {
+          bookmarks,
+          txConfig,
+          database,
+          mode: WRITE,
+          notificationFilters: sentNotificationFilters
+        })
+      )
+      expect(protocol.messages[1]).toBeMessage(RequestMessage.pull())
+      expect(protocol.observers).toEqual([observer, observer])
+      expect(protocol.flushes).toEqual([false, true])
+    })
 
   it('should begin a transaction', () => {
     const database = 'testdb'
@@ -283,36 +283,36 @@ describe('#unit BoltProtocolV5x1', () => {
     expect(protocol.flushes).toEqual([true])
   })
 
-  it('should begin a transaction with notification filters', () => {
-    const database = 'testdb'
-    const notificationFilters = ['*.*', 'WARNING.*']
-    const bookmarks = new Bookmarks([
-      'neo4j:bookmark:v1:tx1',
-      'neo4j:bookmark:v1:tx2'
-    ])
-    const txConfig = new TxConfig({
-      timeout: 5000,
-      metadata: { x: 1, y: 'something' }
-    })
-    const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x1(recorder, null, false)
-    utils.spyProtocolWrite(protocol)
+  it.each(notificationFiltersFixtures())('should begin a transaction with notification filters',
+    (notificationFilters, sentNotificationFilters) => {
+      const database = 'testdb'
+      const bookmarks = new Bookmarks([
+        'neo4j:bookmark:v1:tx1',
+        'neo4j:bookmark:v1:tx2'
+      ])
+      const txConfig = new TxConfig({
+        timeout: 5000,
+        metadata: { x: 1, y: 'something' }
+      })
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV5x1(recorder, null, false)
+      utils.spyProtocolWrite(protocol)
 
-    const observer = protocol.beginTransaction({
-      bookmarks,
-      txConfig,
-      database,
-      mode: WRITE,
-      notificationFilters
-    })
+      const observer = protocol.beginTransaction({
+        bookmarks,
+        txConfig,
+        database,
+        mode: WRITE,
+        notificationFilters
+      })
 
-    protocol.verifyMessageCount(1)
-    expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.begin({ bookmarks, txConfig, database, mode: WRITE, notificationFilters })
-    )
-    expect(protocol.observers).toEqual([observer])
-    expect(protocol.flushes).toEqual([true])
-  })
+      protocol.verifyMessageCount(1)
+      expect(protocol.messages[0]).toBeMessage(
+        RequestMessage.begin({ bookmarks, txConfig, database, mode: WRITE, notificationFilters: sentNotificationFilters })
+      )
+      expect(protocol.observers).toEqual([observer])
+      expect(protocol.flushes).toEqual([true])
+    })
 
   it('should return correct bolt version number', () => {
     const protocol = new BoltProtocolV5x1(null, null, false)
@@ -352,24 +352,24 @@ describe('#unit BoltProtocolV5x1', () => {
     expect(protocol.flushes).toEqual([true])
   })
 
-  it('should initialize connection with notification filters', () => {
-    const recorder = new utils.MessageRecordingConnection()
-    const protocol = new BoltProtocolV5x1(recorder, null, false)
-    utils.spyProtocolWrite(protocol)
+  it.each(notificationFiltersFixtures())('should initialize connection with notification filters [%s]',
+    (notificationFilters, sentNotificationFilters) => {
+      const recorder = new utils.MessageRecordingConnection()
+      const protocol = new BoltProtocolV5x1(recorder, null, false)
+      utils.spyProtocolWrite(protocol)
 
-    const clientName = 'js-driver/1.2.3'
-    const authToken = { username: 'neo4j', password: 'secret' }
-    const notificationFilters = ['*.*', 'WARNING.*']
+      const clientName = 'js-driver/1.2.3'
+      const authToken = { username: 'neo4j', password: 'secret' }
 
-    const observer = protocol.initialize({ userAgent: clientName, authToken, notificationFilters })
+      const observer = protocol.initialize({ userAgent: clientName, authToken, notificationFilters })
 
-    protocol.verifyMessageCount(1)
-    expect(protocol.messages[0]).toBeMessage(
-      RequestMessage.hello5x1(authToken, { routing: false, userAgent: clientName, notificationFilters })
-    )
-    expect(protocol.observers).toEqual([observer])
-    expect(protocol.flushes).toEqual([true])
-  })
+      protocol.verifyMessageCount(1)
+      expect(protocol.messages[0]).toBeMessage(
+        RequestMessage.hello5x1(authToken, { routing: false, userAgent: clientName, notificationFilters: sentNotificationFilters })
+      )
+      expect(protocol.observers).toEqual([observer])
+      expect(protocol.flushes).toEqual([true])
+    })
 
   it('should begin a transaction', () => {
     const bookmarks = new Bookmarks([
@@ -1119,4 +1119,12 @@ describe('#unit BoltProtocolV5x1', () => {
       expect(unpacked).toEqual(struct)
     })
   })
+
+  function notificationFiltersFixtures () {
+    return [
+      [['ALL.ALL', 'WARNING.ALL', 'ALL.HINT', 'INFORMATION.QUERY'], ['*.*', 'WARNING.*', '*.HINT', 'INFORMATION.QUERY']],
+      [['NONE'], []],
+      [['SERVER_DEFAULT'], undefined]
+    ]
+  }
 })
