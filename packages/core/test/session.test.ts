@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction, BookmarkManager, bookmarkManager } from '../src'
+import { ConnectionProvider, Session, Connection, TransactionPromise, Transaction, BookmarkManager, bookmarkManager, notificationFilter, NotificationFilter } from '../src'
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import ManagedTransaction from '../src/transaction-managed'
@@ -446,6 +446,30 @@ describe('session', () => {
 
       expect(updateBookmarksSpy).not.toBeCalled()
     })
+
+    it.each([
+      undefined,
+      [],
+      [notificationFilter.ALL.ALL],
+      [notificationFilter.INFORMATION.DEPRECATION, 'WARNING.QUERY']
+    ])('should call run query with notificationFilters', async (notificationFilters: NotificationFilter[]) => {
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session } = setupSession({
+        connection,
+        beginTx: false,
+        database: 'neo4j',
+        notificationFilters
+      })
+
+      await session.beginTransaction()
+
+      expect(connection.seenBeginTransaction[0][0]).toEqual(
+        expect.objectContaining({
+          notificationFilters
+        })
+      )
+    })
   })
 
   describe('.commit()', () => {
@@ -839,6 +863,30 @@ describe('session', () => {
 
       expect(updateBookmarksSpy).not.toBeCalled()
     })
+
+    it.each([
+      undefined,
+      [],
+      [notificationFilter.ALL.ALL],
+      [notificationFilter.INFORMATION.DEPRECATION, 'WARNING.QUERY']
+    ])('should call run query with notificationFilters', async (notificationFilters: NotificationFilter[]) => {
+      const connection = newFakeConnection()
+
+      const { session } = setupSession({
+        connection,
+        beginTx: false,
+        database: 'neo4j',
+        notificationFilters
+      })
+
+      await session.run('query')
+
+      expect(connection.seenProtocolOptions[0]).toEqual(
+        expect.objectContaining({
+          notificationFilters
+        })
+      )
+    })
   })
 })
 
@@ -890,7 +938,8 @@ function setupSession ({
   fetchSize = 1000,
   database = '',
   lastBookmarks = bookmarks.Bookmarks.empty(),
-  bookmarkManager
+  bookmarkManager,
+  notificationFilters
 }: {
   connection: Connection
   beginTx?: boolean
@@ -898,6 +947,7 @@ function setupSession ({
   lastBookmarks?: bookmarks.Bookmarks
   database?: string
   bookmarkManager?: BookmarkManager
+  notificationFilters?: NotificationFilter[]
 }): { session: Session, connectionProvider: ConnectionProvider } {
   const connectionProvider = new ConnectionProvider()
   connectionProvider.acquireConnection = jest.fn(async () => await Promise.resolve(connection))
@@ -911,7 +961,8 @@ function setupSession ({
     config: {},
     reactive: false,
     bookmarks: lastBookmarks,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilters
   })
 
   if (beginTx) {
