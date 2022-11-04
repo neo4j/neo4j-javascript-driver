@@ -18,7 +18,7 @@
  */
 import { NotificationCategory, NotificationSeverityLevel } from './result-summary.ts'
 
-type Combine<Enum1 extends string, Enum2 extends string, Separator extends string = "."> = `${Enum1}${Separator}${Enum2}`;
+type Combine<Enum1 extends string, Enum2 extends string, Separator extends string = '.'> = `${Enum1}${Separator}${Enum2}`
 type ExcludeUnknown<T> = Exclude<T, 'UNKNOWN'>
 
 type FilterKeys = ExcludeUnknown<NotificationSeverityLevel> | 'ALL'
@@ -28,7 +28,7 @@ type CombinedFilter = Combine<FilterKeys, FilterInnerKeys>
 type SeverityDotCategoryFilters = { [key in FilterKeys]: { [k in FilterInnerKeys]: NotificationFilter } }
 
 type NotificationFilter = 'NONE' | 'SERVER_DEFAULT' | CombinedFilter
-  
+
 /**
  *
  * Notifications filters used during the {@link Driver} and {@link Session} configuration.
