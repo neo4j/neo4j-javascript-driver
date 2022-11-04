@@ -18,21 +18,16 @@
  */
 import { NotificationCategory, NotificationSeverityLevel } from './result-summary'
 
+type Combine<Enum1 extends string, Enum2 extends string, Separator extends string = '.'> = `${Enum1}${Separator}${Enum2}`
 type ExcludeUnknown<T> = Exclude<T, 'UNKNOWN'>
 
 type FilterKeys = ExcludeUnknown<NotificationSeverityLevel> | 'ALL'
 type FilterInnerKeys = ExcludeUnknown<NotificationCategory> | 'ALL'
+type CombinedFilter = Combine<FilterKeys, FilterInnerKeys>
 
 type SeverityDotCategoryFilters = { [key in FilterKeys]: { [k in FilterInnerKeys]: NotificationFilter } }
 
-type NotificationFilter =
-  'NONE' | 'SERVER_DEFAULT' |
-  'ALL.ALL' | 'ALL.DEPRECATION' | 'ALL.GENERIC' | 'ALL.HINT' |
-  'ALL.PERFORMANCE' | 'ALL.QUERY' | 'ALL.UNRECOGNIZED' | 'ALL.UNSUPPORTED' |
-  'INFORMATION.ALL' | 'INFORMATION.DEPRECATION' | 'INFORMATION.GENERIC' | 'INFORMATION.HINT' |
-  'INFORMATION.PERFORMANCE' | 'INFORMATION.QUERY' | 'INFORMATION.UNRECOGNIZED' | 'INFORMATION.UNSUPPORTED' |
-  'WARNING.ALL' | 'WARNING.DEPRECATION' | 'WARNING.GENERIC' | 'WARNING.HINT' |
-  'WARNING.PERFORMANCE' | 'WARNING.QUERY' | 'WARNING.UNRECOGNIZED' | 'WARNING.UNSUPPORTED'
+type NotificationFilter = 'NONE' | 'SERVER_DEFAULT' | CombinedFilter
 
 /**
  *
