@@ -223,7 +223,11 @@ const {
  *         return ['127.0.0.1:8888', 'fallback.db.com:7687'];
  *       },
  *
- *      // Optionally override the default user agent name.
+ *       // Configure filter for Notification objects returned in ResultSummary#notifications.
+ *       // See SessionConfig#notificationFilters for usage instructions.
+ *       notificationFilters: ['SERVER_DEFAULT']
+ *
+ *       // Optionally override the default user agent name.
  *       userAgent: USER_AGENT
  *     }
  *

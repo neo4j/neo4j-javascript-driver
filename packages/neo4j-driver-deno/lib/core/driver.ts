@@ -164,10 +164,10 @@ class SessionConfig {
      * Enabling it is done by supplying an BookmarkManager implementation instance to this param.
      * A default implementation could be acquired by calling the factory function {@link bookmarkManager}.
      *
-     * **Warning**: Share the same BookmarkManager instance accross all session can have a negative impact
+     * **Warning**: Share the same BookmarkManager instance across all session can have a negative impact
      * on performance since all the queries will wait for the latest changes being propagated across the cluster.
      * For keeping consistency between a group of queries, use {@link Session} for grouping them.
-     * For keeping consistency between a group of sessions, use {@link BookmarkManager} instance for groupping them.
+     * For keeping consistency between a group of sessions, use {@link BookmarkManager} instance for grouping them.
      *
      * @example
      * const bookmarkManager = neo4j.bookmarkManager()
@@ -184,7 +184,7 @@ class SessionConfig {
      *
      * // Reading Driver User will wait of the changes being propagated to the server before RUN the query
      * // So the 'Driver User' person should exist in the Result, unless deleted.
-     * const linkedSesssion2 = await linkedSession2.run('CREATE (p:Person {name: $name}) RETURN p', { name: 'Driver User'})
+     * const linkedSession2 = await linkedSession2.run('CREATE (p:Person {name: $name}) RETURN p', { name: 'Driver User'})
      *
      * await linkedSession1.close()
      * await linkedSession2.close()
@@ -197,8 +197,57 @@ class SessionConfig {
     this.bookmarkManager = undefined
 
     /**
-     * @todo docs
+     * Configure filter for {@link Notification} objects returned in {@link ResultSummary#notifications}.
+     *
+     * The filters are defined by "{@link NotificationSeverityLevel}.{@link NotificationCategory}" with the
+     * exception of the "UNKNOWN" severity and category.
+     * "ALL" is added for possible value of category and severity filters.
+     *
+     * Disabling the filters is done by setting this configuration to ["NONE"].
+     * Using the default values is done by setting this configuration to ["SERVER_DEFAULT"].
+     *
+     * Helper constants and methods are defined at {@link notificationFilter}.
+     *
+     * @example
+     * // disabling notifications
+     * const sessionWithoutNotifications = driver.session({ database:'neo4j', notificationFilters: neo4j.notificationFilter.disabled() })
+     * // EQUIVALENT TO:  const sessionWithoutNotifications = driver.session({ database:'neo4j', notificationFilters: ["NONE"] })
+     *
+     * // using default server configuration
+     * const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j', notificationFilters: neo4j.notificationFilter.serverDefault() })
+     * // EQUIVALENT TO:  const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j', notificationFilters: ["SERVER_DEFAULT"] })
+     * // OR SIMPLY:  const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j' })
+     *
+     * // Enable all notifications
+     * const sessionWithAllNotifications = driver.session({ database:'neo4j', notificationFilters: [neo4j.notificationFilter.ALL.ALL] })
+     * // EQUIVALENT TO: const sessionWithAllNotifications = driver.session({ database:'neo4j', notificationFilters: ['ALL.ALL'] })
+     *
+     * // Configuring for any categories with severity "WARNING",
+     * // or any severity with category "QUERY"
+     * // or severity "INFORMATION" and category "PERFORMANCE".
+     * const sessionFineConfigured = driver.session({
+     *    database: 'neo4j',
+     *    notificationFilters: [
+     *        neo4j.notificationFilter.WARNING.ALL,
+     *        neo4j.notificationFilter.ALL.QUERY,
+     *        neo4j.notificationFilter.INFORMATION.PERFORMANCE
+     *    ]
+     * })
+     *
+     * // Configuring for any categories with severity "WARNING",
+     * // or any severity with category "QUERY"
+     * // or severity "INFORMATION" and category "PERFORMANCE".
+     * // const sessionFineConfigured = driver.session({
+     * //    database: 'neo4j',
+     * //    notificationFilters: [
+     * //        'WARNING.ALL',
+     * //        'ALL.QUERY',
+     * //        'INFORMATION.PERFORMANCE'
+     * //    ]
+     * // })
+     *
      * @type {NotificationFilter[]|undefined}
+     * @since 5.3
      */
     this.notificationFilters = undefined
   }
@@ -639,6 +688,5 @@ function validateNotificationFilters (filters: any): void {
   }
 }
 
-export { Driver, READ, WRITE }
-export type { SessionConfig }
+export { Driver, READ, WRITE, SessionConfig }
 export default Driver

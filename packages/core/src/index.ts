@@ -220,7 +220,8 @@ export {
   bookmarkManager,
   notificationCategory,
   notificationSeverityLevel,
-  notificationFilter
+  notificationFilter,
+  SessionConfig
 }
 
 export type {
@@ -232,7 +233,6 @@ export type {
   TransactionConfig,
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig,
   NotificationCategory,
   NotificationSeverityLevel,
   NotificationFilter
