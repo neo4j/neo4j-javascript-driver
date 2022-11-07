@@ -179,7 +179,7 @@ function sanitizeNotificationFilters (filters) {
   }
 
   if (filters[0] === 'SERVER_DEFAULT') {
-    return undefined
+    return null
   }
 
   return filters.map(filter => filter.replace(/^ALL\./, '*.').replace(/\.ALL$/, '.*'))

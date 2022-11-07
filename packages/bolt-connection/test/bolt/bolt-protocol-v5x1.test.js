@@ -1124,7 +1124,7 @@ describe('#unit BoltProtocolV5x1', () => {
     return [
       [['ALL.ALL', 'WARNING.ALL', 'ALL.HINT', 'INFORMATION.QUERY'], ['*.*', 'WARNING.*', '*.HINT', 'INFORMATION.QUERY']],
       [['NONE'], []],
-      [['SERVER_DEFAULT'], undefined]
+      [['SERVER_DEFAULT'], null]
     ]
   }
 })

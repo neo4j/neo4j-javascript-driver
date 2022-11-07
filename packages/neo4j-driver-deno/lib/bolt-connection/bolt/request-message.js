@@ -136,7 +136,7 @@ export default class RequestMessage {
       extra.routing = routing
     }
 
-    if (notificationFilters) {
+    if (notificationFilters !== undefined) {
       extra.notifications = notificationFilters
     }
 
@@ -330,7 +330,7 @@ function buildTxMetadata (bookmarks, txConfig, database, mode, impersonatedUser,
   if (impersonatedUser) {
     metadata.imp_user = assertString(impersonatedUser, 'impersonatedUser')
   }
-  if (notificationFilters) {
+  if (notificationFilters !== undefined) {
     metadata.notifications = notificationFilters
   }
   if (mode === ACCESS_MODE_READ) {

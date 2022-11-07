@@ -216,7 +216,9 @@ class SessionConfig {
      * // using default server configuration
      * const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j', notificationFilters: neo4j.notificationFilter.serverDefault() })
      * // EQUIVALENT TO:  const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j', notificationFilters: ["SERVER_DEFAULT"] })
-     * // OR SIMPLY:  const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j' })
+     *
+     * // using default configured in the connection/driver configuration
+     * const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j' })
      *
      * // Enable all notifications
      * const sessionWithAllNotifications = driver.session({ database:'neo4j', notificationFilters: [neo4j.notificationFilter.ALL.ALL] })
