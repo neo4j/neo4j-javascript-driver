@@ -318,7 +318,6 @@ describe('index', () => {
   it('should export notificationCategory', () => {
     expect(neo4j.notificationCategory).toBeDefined()
     expect(neo4j.notificationCategory.HINT).toBeDefined()
-    expect(neo4j.notificationCategory.QUERY).toBeDefined()
     expect(neo4j.notificationCategory.UNRECOGNIZED).toBeDefined()
     expect(neo4j.notificationCategory.UNSUPPORTED).toBeDefined()
     expect(neo4j.notificationCategory.PERFORMANCE).toBeDefined()

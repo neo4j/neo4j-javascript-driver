@@ -164,7 +164,7 @@ describe('Driver', () => {
         notificationFilter.disabled(),
         notificationFilter.serverDefault(),
         [notificationFilter.ALL.ALL, notificationFilter.INFORMATION.GENERIC],
-        ['WARNING.QUERY', 'INFORMATION.GENERIC']
+        ['WARNING.HINT', 'INFORMATION.GENERIC']
       ])('should send valid "notificationFilters" to the session', async (notificationFilters?: NotificationFilter[]) => {
         const driver = new Driver(
           META_INFO,
@@ -187,10 +187,10 @@ describe('Driver', () => {
 
       it.each([
         notificationFilter.ALL.DEPRECATION,
-        'WARNING.QUERY',
+        'WARNING.HINT',
         'INFO',
         1234,
-        { 'WARNING.QUERY': notificationFilter.WARNING.QUERY },
+        { 'WARNING.HINT': notificationFilter.WARNING.HINT },
         () => [notificationFilter.ALL.DEPRECATION]
       ])('should thrown when "notificationFilters" is not an array', async (notificationFilters?: any) => {
         const driver = new Driver(
@@ -417,7 +417,7 @@ describe('Driver', () => {
         notificationFilter.disabled(),
         notificationFilter.serverDefault(),
         [notificationFilter.ALL.ALL, notificationFilter.INFORMATION.GENERIC],
-        ['WARNING.QUERY', 'INFORMATION.GENERIC']
+        ['WARNING.HINT', 'INFORMATION.GENERIC']
       ])('should send valid "notificationFilters" to the connection provider', async (notificationFilters?: NotificationFilter[]) => {
         const createConnectionProviderMock = jest.fn(mockCreateConnectonProvider(connectionProvider))
         const driver = new Driver(
@@ -441,10 +441,10 @@ describe('Driver', () => {
 
       it.each([
         notificationFilter.ALL.DEPRECATION,
-        'WARNING.QUERY',
+        'WARNING.HINT',
         'INFO',
         1234,
-        { 'WARNING.QUERY': notificationFilter.WARNING.QUERY },
+        { 'WARNING.HINT': notificationFilter.WARNING.HINT },
         () => [notificationFilter.ALL.DEPRECATION]
       ])('should thrown when "notificationFilters" is not an array', async (notificationFilters?: any) => {
         const createConnectionProviderMock = mockCreateConnectonProvider(connectionProvider)

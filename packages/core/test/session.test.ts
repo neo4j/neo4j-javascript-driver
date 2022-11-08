@@ -451,7 +451,7 @@ describe('session', () => {
       undefined,
       [],
       [notificationFilter.ALL.ALL],
-      [notificationFilter.INFORMATION.DEPRECATION, 'WARNING.QUERY']
+      [notificationFilter.INFORMATION.DEPRECATION, 'WARNING.HINT']
     ])('should call run query with notificationFilters', async (notificationFilters: NotificationFilter[]) => {
       const connection = mockBeginWithSuccess(newFakeConnection())
 
@@ -868,7 +868,7 @@ describe('session', () => {
       undefined,
       [],
       [notificationFilter.ALL.ALL],
-      [notificationFilter.INFORMATION.DEPRECATION, 'WARNING.QUERY']
+      [notificationFilter.INFORMATION.DEPRECATION, 'WARNING.HINT']
     ])('should call run query with notificationFilters', async (notificationFilters: NotificationFilter[]) => {
       const connection = newFakeConnection()
 

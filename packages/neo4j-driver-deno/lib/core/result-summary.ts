@@ -435,17 +435,16 @@ const notificationSeverityLevel: { [key in NotificationSeverityLevel]: key } = {
 Object.freeze(notificationSeverityLevel)
 const severityLevels = Object.values(notificationSeverityLevel)
 
-type NotificationCategory = 'HINT' | 'QUERY' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' |
+type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' |
 'DEPRECATION' | 'GENERIC' | 'UNKNOWN'
 /**
- * @typedef {'HINT' | 'QUERY' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'DEPRECATION' | 'RUNTIME' | 'UNKNOWN'} NotificationCategory
+ * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'DEPRECATION' | 'RUNTIME' | 'UNKNOWN'} NotificationCategory
  */
 /**
  * Constants that represents the Category in the {@link Notification}
  */
 const notificationCategory: { [key in NotificationCategory]: key } = {
   HINT: 'HINT',
-  QUERY: 'QUERY',
   UNRECOGNIZED: 'UNRECOGNIZED',
   UNSUPPORTED: 'UNSUPPORTED',
   PERFORMANCE: 'PERFORMANCE',

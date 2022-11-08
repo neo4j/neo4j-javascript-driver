@@ -169,7 +169,6 @@ function getValidSeverityLevels (): NotificationSeverityLevel[] {
 function getValidCategories (): NotificationCategory[] {
   return [
     'HINT',
-    'QUERY',
     'UNRECOGNIZED',
     'UNSUPPORTED',
     'PERFORMANCE',

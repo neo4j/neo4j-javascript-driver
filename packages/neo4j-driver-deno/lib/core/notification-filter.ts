@@ -36,11 +36,11 @@ type NotificationFilter = 'NONE' | 'SERVER_DEFAULT' | CombinedFilter
  *
  * @typedef { 'NONE' | 'SERVER_DEFAULT' |
  * 'ALL.ALL' | 'ALL.DEPRECATION' | 'ALL.GENERIC' | 'ALL.HINT' |
- * 'ALL.PERFORMANCE' | 'ALL.QUERY' | 'ALL.UNRECOGNIZED' | 'ALL.UNSUPPORTED' |
+ * 'ALL.PERFORMANCE' | 'ALL.UNRECOGNIZED' | 'ALL.UNSUPPORTED' |
  * 'INFORMATION.ALL' | 'INFORMATION.DEPRECATION' | 'INFORMATION.GENERIC' | 'INFORMATION.HINT' |
- * 'INFORMATION.PERFORMANCE' | 'INFORMATION.QUERY' | 'INFORMATION.UNRECOGNIZED' | 'INFORMATION.UNSUPPORTED' |
+ * 'INFORMATION.PERFORMANCE' | 'INFORMATION.UNRECOGNIZED' | 'INFORMATION.UNSUPPORTED' |
  * 'WARNING.ALL' | 'WARNING.DEPRECATION' | 'WARNING.GENERIC' | 'WARNING.HINT' |
- * 'WARNING.PERFORMANCE' | 'WARNING.QUERY' | 'WARNING.UNRECOGNIZED' | 'WARNING.UNSUPPORTED' } NotificationFilter
+ * 'WARNING.PERFORMANCE' | 'WARNING.UNRECOGNIZED' | 'WARNING.UNSUPPORTED' } NotificationFilter
  */
 /**
  * Defines the category filters available for a given severity level filter
@@ -51,7 +51,6 @@ type NotificationFilter = 'NONE' | 'SERVER_DEFAULT' | CombinedFilter
  * @property {NotificationFilter} GENERIC
  * @property {NotificationFilter} HINT
  * @property {NotificationFilter} PERFORMANCE
- * @property {NotificationFilter} QUERY
  * @property {NotificationFilter} UNRECOGNIZED
  * @property {NotificationFilter} UNSUPPORTED
  */
@@ -76,7 +75,6 @@ const notificationFilter: SeverityDotCategoryFilters & {
     GENERIC: 'ALL.GENERIC',
     HINT: 'ALL.HINT',
     PERFORMANCE: 'ALL.PERFORMANCE',
-    QUERY: 'ALL.QUERY',
     UNRECOGNIZED: 'ALL.UNRECOGNIZED',
     UNSUPPORTED: 'ALL.UNSUPPORTED'
   },
@@ -86,7 +84,6 @@ const notificationFilter: SeverityDotCategoryFilters & {
     GENERIC: 'INFORMATION.GENERIC',
     HINT: 'INFORMATION.HINT',
     PERFORMANCE: 'INFORMATION.PERFORMANCE',
-    QUERY: 'INFORMATION.QUERY',
     UNRECOGNIZED: 'INFORMATION.UNRECOGNIZED',
     UNSUPPORTED: 'INFORMATION.UNSUPPORTED'
   },
@@ -96,7 +93,6 @@ const notificationFilter: SeverityDotCategoryFilters & {
     GENERIC: 'WARNING.GENERIC',
     HINT: 'WARNING.HINT',
     PERFORMANCE: 'WARNING.PERFORMANCE',
-    QUERY: 'WARNING.QUERY',
     UNRECOGNIZED: 'WARNING.UNRECOGNIZED',
     UNSUPPORTED: 'WARNING.UNSUPPORTED'
   }

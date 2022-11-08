@@ -225,25 +225,25 @@ class SessionConfig {
      * // EQUIVALENT TO: const sessionWithAllNotifications = driver.session({ database: 'neo4j', notificationFilters: ['ALL.ALL'] })
      *
      * // Configuring for any categories with severity 'WARNING',
-     * // or any severity with category 'QUERY'
+     * // or any severity with category 'HINT'
      * // or severity 'INFORMATION' and category 'PERFORMANCE'.
      * const sessionFineConfigured = driver.session({
      *    database: 'neo4j',
      *    notificationFilters: [
      *        neo4j.notificationFilter.WARNING.ALL,
-     *        neo4j.notificationFilter.ALL.QUERY,
+     *        neo4j.notificationFilter.ALL.HINT,
      *        neo4j.notificationFilter.INFORMATION.PERFORMANCE
      *    ]
      * })
      *
      * // Configuring for any categories with severity 'WARNING',
-     * // or any severity with category 'QUERY'
+     * // or any severity with category 'HINT'
      * // or severity 'INFORMATION' and category 'PERFORMANCE'.
      * // const sessionFineConfigured = driver.session({
      * //    database: 'neo4j',
      * //    notificationFilters: [
      * //        'WARNING.ALL',
-     * //        'ALL.QUERY',
+     * //        'ALL.HINT',
      * //        'INFORMATION.PERFORMANCE'
      * //    ]
      * // })
