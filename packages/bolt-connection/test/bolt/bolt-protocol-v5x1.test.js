@@ -181,7 +181,7 @@ describe('#unit BoltProtocolV5x1', () => {
     expect(protocol.flushes).toEqual([false, true])
   })
 
-  it.each(notificationFiltersFixtures())('should run a with notification filters',
+  it.each(notificationFiltersFixtures())('should run a with notification filters [%s]',
     (notificationFilters, sentNotificationFilters) => {
       const database = 'testdb'
       const bookmarks = new Bookmarks([
@@ -283,7 +283,7 @@ describe('#unit BoltProtocolV5x1', () => {
     expect(protocol.flushes).toEqual([true])
   })
 
-  it.each(notificationFiltersFixtures())('should begin a transaction with notification filters',
+  it.each(notificationFiltersFixtures())('should begin a transaction with notification filters [%s]',
     (notificationFilters, sentNotificationFilters) => {
       const database = 'testdb'
       const bookmarks = new Bookmarks([

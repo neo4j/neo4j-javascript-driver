@@ -160,6 +160,7 @@ describe('Driver', () => {
       it.each([
         [],
         undefined,
+        null,
         notificationFilter.disabled(),
         notificationFilter.serverDefault(),
         [notificationFilter.ALL.ALL, notificationFilter.INFORMATION.GENERIC],
@@ -411,6 +412,7 @@ describe('Driver', () => {
     describe('when set config.notificationFilters', () => {
       it.each([
         [],
+        null,
         undefined,
         notificationFilter.disabled(),
         notificationFilter.serverDefault(),

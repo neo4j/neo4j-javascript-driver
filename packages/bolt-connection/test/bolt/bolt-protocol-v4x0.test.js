@@ -213,7 +213,7 @@ describe('#unit BoltProtocolV4x0', () => {
 
   describe('Bolt v5.1', () => {
     /**
-     * @param {string[]} notificationFilters The impersonated user.
+     * @param {string[]} notificationFilters The notification filters.
      * @param {function(protocol: BoltProtocolV4x0)} fn
      */
     function verifyNotificationFiltersNotSupportedError (notificationFilters, fn) {
@@ -221,7 +221,7 @@ describe('#unit BoltProtocolV4x0', () => {
       const protocol = new BoltProtocolV4x0(recorder, null, false, undefined, undefined, () => {})
 
       expect(() => fn(protocol)).toThrowError(
-        'Driver is connected to the database that does not support user notification filters. ' +
+        'Driver is connected to a database that does not support user notification filters. ' +
         'Please upgrade to neo4j 5.3.0 or later in order to use this functionality. ' +
         `Trying to set notifications to ${JSON.stringify(notificationFilters)}.`
       )
@@ -235,7 +235,7 @@ describe('#unit BoltProtocolV4x0', () => {
       }
 
       it('should throw error when notificationFilters is set', () => {
-        verifyInitialize('test')
+        verifyInitialize(['test'])
       })
     })
 
@@ -247,7 +247,7 @@ describe('#unit BoltProtocolV4x0', () => {
       }
 
       it('should throw error when notificationFilters is set', () => {
-        verifyBeginTransaction('test')
+        verifyBeginTransaction(['test'])
       })
     })
 
@@ -259,7 +259,7 @@ describe('#unit BoltProtocolV4x0', () => {
       }
 
       it('should throw error when notificationFilters is set', () => {
-        verifyRun('test')
+        verifyRun(['test'])
       })
     })
   })
