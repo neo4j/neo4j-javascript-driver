@@ -210,23 +210,23 @@ class SessionConfig {
      *
      * @example
      * // disabling notifications
-     * const sessionWithoutNotifications = driver.session({ database:'neo4j', notificationFilters: neo4j.notificationFilter.disabled() })
+     * const sessionWithoutNotifications = driver.session({ database: 'neo4j', notificationFilters: neo4j.notificationFilter.disabled() })
      * // EQUIVALENT TO:  const sessionWithoutNotifications = driver.session({ database:'neo4j', notificationFilters: ["NONE"] })
      *
      * // using default server configuration
-     * const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j', notificationFilters: neo4j.notificationFilter.serverDefault() })
-     * // EQUIVALENT TO:  const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j', notificationFilters: ["SERVER_DEFAULT"] })
+     * const sessionWithSeverDefaultNotifications = driver.session({ database: 'neo4j', notificationFilters: neo4j.notificationFilter.serverDefault() })
+     * // EQUIVALENT TO:  const sessionWithSeverDefaultNotifications = driver.session({ database: 'neo4j', notificationFilters: ["SERVER_DEFAULT"] })
      *
      * // using default configured in the connection/driver configuration
-     * const sessionWithSeverDefaultNotifications = driver.session({ database:'neo4j' })
+     * const sessionWithSeverDefaultNotifications = driver.session({ database: 'neo4j' })
      *
      * // Enable all notifications
-     * const sessionWithAllNotifications = driver.session({ database:'neo4j', notificationFilters: [neo4j.notificationFilter.ALL.ALL] })
-     * // EQUIVALENT TO: const sessionWithAllNotifications = driver.session({ database:'neo4j', notificationFilters: ['ALL.ALL'] })
+     * const sessionWithAllNotifications = driver.session({ database: 'neo4j', notificationFilters: [neo4j.notificationFilter.ALL.ALL] })
+     * // EQUIVALENT TO: const sessionWithAllNotifications = driver.session({ database: 'neo4j', notificationFilters: ['ALL.ALL'] })
      *
-     * // Configuring for any categories with severity "WARNING",
-     * // or any severity with category "QUERY"
-     * // or severity "INFORMATION" and category "PERFORMANCE".
+     * // Configuring for any categories with severity 'WARNING',
+     * // or any severity with category 'QUERY'
+     * // or severity 'INFORMATION' and category 'PERFORMANCE'.
      * const sessionFineConfigured = driver.session({
      *    database: 'neo4j',
      *    notificationFilters: [
@@ -236,9 +236,9 @@ class SessionConfig {
      *    ]
      * })
      *
-     * // Configuring for any categories with severity "WARNING",
-     * // or any severity with category "QUERY"
-     * // or severity "INFORMATION" and category "PERFORMANCE".
+     * // Configuring for any categories with severity 'WARNING',
+     * // or any severity with category 'QUERY'
+     * // or severity 'INFORMATION' and category 'PERFORMANCE'.
      * // const sessionFineConfigured = driver.session({
      * //    database: 'neo4j',
      * //    notificationFilters: [
