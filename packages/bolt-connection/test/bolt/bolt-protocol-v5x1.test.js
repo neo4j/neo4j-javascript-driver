@@ -657,8 +657,8 @@ describe('#unit BoltProtocolV5x1', () => {
       expect(loggerFunction)
         .toBeCalledWith('warn',
           'DateTime objects without "timeZoneOffsetSeconds" property ' +
-           'are prune to bugs related to ambiguous times. For instance, ' +
-           '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
+          'are prune to bugs related to ambiguous times. For instance, ' +
+          '2022-10-30T2:30:00[Europe/Berlin] could be GMT+1 or GMT+2.')
 
       buffer.reset()
 

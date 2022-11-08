@@ -87,7 +87,7 @@ function assertImpersonatedUserIsEmpty (impersonatedUser, onProtocolError = () =
 function assertNotificationFiltersIsEmpty (notificationFilters, onProtocolError = () => {}, observer) {
   if (notificationFilters !== undefined) {
     const error = newError(
-      'Driver is connected to the database that does not support user notification filters. ' +
+      'Driver is connected to a database that does not support user notification filters. ' +
         'Please upgrade to neo4j 5.3.0 or later in order to use this functionality. ' +
         `Trying to set notifications to ${json.stringify(notificationFilters)}.`
     )

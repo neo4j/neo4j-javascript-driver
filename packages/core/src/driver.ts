@@ -201,10 +201,10 @@ class SessionConfig {
      *
      * The filters are defined by "{@link NotificationSeverityLevel}.{@link NotificationCategory}" with the
      * exception of the "UNKNOWN" severity and category.
-     * "ALL" is added for possible value of category and severity filters.
+     * Additionally, "ALL" can be set as category, severity, or both.
      *
-     * Disabling the filters is done by setting this configuration to ["NONE"].
-     * Using the default values is done by setting this configuration to ["SERVER_DEFAULT"].
+     * Disabling the filters is done by setting this configuration to ['NONE'].
+     * Using the default values is done by setting this configuration to ['SERVER_DEFAULT'].
      *
      * Helper constants and methods are defined at {@link notificationFilter}.
      *

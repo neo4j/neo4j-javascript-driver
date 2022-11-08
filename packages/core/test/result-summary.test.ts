@@ -125,7 +125,7 @@ describe('notificationSeverityLevel', () => {
     }
   })
 
-  it('should values be assignable to NotificationSeverityLevel', () => {
+  it('should have values assignable to NotificationSeverityLevel', () => {
     for (const [, value] of Object.entries(notificationSeverityLevel)) {
       const assignableValue: NotificationSeverityLevel = value
       expect(assignableValue).toBeDefined()

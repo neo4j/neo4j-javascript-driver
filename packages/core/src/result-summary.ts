@@ -499,7 +499,7 @@ class Notification {
     /**
      * The raw severity
      *
-     * Use {@link Notification#rawSeverityLevel} for the raw value or {@link Notification#severityLevel} enumerated value.
+     * Use {@link Notification#rawSeverityLevel} for the raw value or {@link Notification#severityLevel} for an enumerated value.
      *
      * @type {string}
      * @public
@@ -551,7 +551,7 @@ class Notification {
     this.rawSeverityLevel = notification.severity
 
     /**
-     * The severity level
+     * The category
      *
      * @type {NotificationCategory}
      * @public

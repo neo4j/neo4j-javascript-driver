@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ 
 import { NotificationCategory, NotificationSeverityLevel } from './result-summary'
 
 type Combine<Enum1 extends string, Enum2 extends string, Separator extends string = '.'> = `${Enum1}${Separator}${Enum2}`
@@ -31,7 +32,7 @@ type NotificationFilter = 'NONE' | 'SERVER_DEFAULT' | CombinedFilter
 
 /**
  *
- * Notifications filters used during the {@link Driver} and {@link Session} configuration.
+ * Notification filters used for configuring {@link Driver} and {@link Session}.
  *
  * @typedef { 'NONE' | 'SERVER_DEFAULT' |
  * 'ALL.ALL' | 'ALL.DEPRECATION' | 'ALL.GENERIC' | 'ALL.HINT' |
