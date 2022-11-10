@@ -187,24 +187,22 @@ class Record<
     return obj
   }
 
-  get<K extends Key>(key: K): Entries[K]
-  get (key: keyof FieldLookup | number): any
-
+  get <K extends keyof Entries = keyof Entries> (key: K): Entries[K]
+  get (n: number): any
   /**
    * Get a value from this record, either by index or by field key.
    *
    * @param {string|Number} key Field key, or the index of the field.
    * @returns {*}
    */
-  get (key: string | number): any {
-    let index
+  get <K extends keyof Entries = keyof Entries> (key: K | number): any {
+    let index: number
     if (!(typeof key === 'number')) {
+      // @ts-expect-error
       index = this._fieldLookup[key]
       if (index === undefined) {
         throw newError(
-          "This record has no field with key '" +
-            key +
-            "', available key are: [" +
+          `This record has no field with key '${key.toString()}', available key are: [` +
             this.keys.toString() +
             '].'
         )
