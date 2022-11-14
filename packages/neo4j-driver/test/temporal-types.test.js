@@ -1452,10 +1452,10 @@ describe('#integration temporal-types', () => {
   }
 
   async function testSendReceiveTemporalValue (value) {
-    const result = await session.run(
+    const result = await session.executeWrite(tx => tx.run(
       'CREATE (n:Node {value: $value}) RETURN n.value',
       { value: value }
-    )
+    ))
 
     const records = result.records
     expect(records.length).toEqual(1)
