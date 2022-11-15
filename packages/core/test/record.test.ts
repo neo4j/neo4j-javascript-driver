@@ -65,7 +65,7 @@ describe('Record', () => {
       record.get('age')
     }).toThrow(
       newError(
-        "This record has no field with key 'age', available key are: [name]."
+        "This record has no field with key 'age', available keys are: [name]."
       )
     )
   })
@@ -194,5 +194,46 @@ describe('Record', () => {
 
     // Then
     expect(values).toEqual(['Bob', 45])
+  })
+
+  it('should be able call .get() and use the field types', () => {
+    // Given
+    interface Person {
+      age: number
+      name: string
+    }
+
+    const record = new Record<Person>(['age', 'name'], [32, 'Dave'])
+
+    // When & Then
+    expect(() => {
+      // @ts-expect-error
+      record.get('something')
+    }).toThrow(
+      newError(
+        "This record has no field with key 'something', available keys are: [age,name]."
+      )
+    )
+
+    expect(record.get('age')).toBe(32)
+    expect(record.get('name')).toBe('Dave')
+  })
+
+  it('should be able call .get() with plain string', () => {
+    // Given
+
+    const record: Record = new Record(['age', 'name'], [32, 'Dave'])
+
+    // When & Then
+    expect(() => {
+      record.get('something')
+    }).toThrow(
+      newError(
+        "This record has no field with key 'something', available keys are: [age,name]."
+      )
+    )
+
+    expect(record.get('age')).toBe(32)
+    expect(record.get('name')).toBe('Dave')
   })
 })

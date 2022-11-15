@@ -79,9 +79,11 @@ const record2Get2: string[] = record2.get('age')
 
 const record3Get1: string = record3.get('name')
 const record3Get2: number = record3.get('age')
+const record3Get3: any = record3.get(0)
+const record3Get4: any = record3.get(1)
 
 const record2Get3: string = record2.get('firstName')
 const record2Get4: number = record2.get(1)
 
 // @ts-expect-error
-const record2Get5: any = record2.get('does-not-exist')
+const record3Get5: any = record3.get('does-not-exist')

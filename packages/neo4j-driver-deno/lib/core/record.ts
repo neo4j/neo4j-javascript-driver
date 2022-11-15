@@ -68,7 +68,7 @@ function generateFieldLookup<
 class Record<
   Entries extends Dict = Dict,
   Key extends keyof Entries = keyof Entries,
-  FieldLookup extends Dict<string, number> = Dict<string, number>
+  FieldLookup extends Dict<keyof Entries, number> = Dict<keyof Entries, number>
 > {
   keys: Key[]
   length: number
@@ -187,24 +187,21 @@ class Record<
     return obj
   }
 
-  get<K extends Key>(key: K): Entries[K]
-  get (key: keyof FieldLookup | number): any
-
+  get <K extends keyof Entries = keyof Entries> (key: K): Entries[K]
+  get (n: number): any
   /**
    * Get a value from this record, either by index or by field key.
    *
    * @param {string|Number} key Field key, or the index of the field.
    * @returns {*}
    */
-  get (key: string | number): any {
-    let index
+  get <K extends keyof Entries = keyof Entries> (key: K | number): any {
+    let index: number
     if (!(typeof key === 'number')) {
       index = this._fieldLookup[key]
       if (index === undefined) {
         throw newError(
-          "This record has no field with key '" +
-            key +
-            "', available key are: [" +
+          `This record has no field with key '${key.toString()}', available keys are: [` +
             this.keys.toString() +
             '].'
         )
