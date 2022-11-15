@@ -65,7 +65,7 @@ describe('Record', () => {
       record.get('age')
     }).toThrow(
       newError(
-        "This record has no field with key 'age', available key are: [name]."
+        "This record has no field with key 'age', available keys are: [name]."
       )
     )
   })
@@ -211,7 +211,7 @@ describe('Record', () => {
       record.get('something')
     }).toThrow(
       newError(
-        "This record has no field with key 'something', available key are: [age,name]."
+        "This record has no field with key 'something', available keys are: [age,name]."
       )
     )
 
@@ -229,7 +229,7 @@ describe('Record', () => {
       record.get('something')
     }).toThrow(
       newError(
-        "This record has no field with key 'something', available key are: [age,name]."
+        "This record has no field with key 'something', available keys are: [age,name]."
       )
     )
 
