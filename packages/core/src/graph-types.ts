@@ -47,9 +47,9 @@ function hasIdentifierProperty (obj: any, property: string): boolean {
 /**
  * Class for Node Type.
  */
-class Node<T extends NumberOrInteger = Integer, P extends Properties = Properties> {
+class Node<T extends NumberOrInteger = Integer, P extends Properties = Properties, Label extends string = string> {
   identity: T
-  labels: string[]
+  labels: Label[]
   properties: P
   elementId: string
   /**
@@ -60,7 +60,7 @@ class Node<T extends NumberOrInteger = Integer, P extends Properties = Propertie
    * @param {Properties} properties - Map with node properties
    * @param {string} elementId - Node element identifier
    */
-  constructor (identity: T, labels: string[], properties: P, elementId?: string) {
+  constructor (identity: T, labels: Label[], properties: P, elementId?: string) {
     /**
      * Identity of the node.
      * @type {NumberOrInteger}
@@ -124,11 +124,11 @@ function isNode (obj: object): obj is Node {
 /**
  * Class for Relationship Type.
  */
-class Relationship<T extends NumberOrInteger = Integer, P extends Properties = Properties> {
+class Relationship<T extends NumberOrInteger = Integer, P extends Properties = Properties, Type extends string = string> {
   identity: T
   start: T
   end: T
-  type: string
+  type: Type
   properties: P
   elementId: string
   startNodeElementId: string
@@ -147,7 +147,7 @@ class Relationship<T extends NumberOrInteger = Integer, P extends Properties = P
    * @param {string} endNodeElementId - End Node element identifier
    */
   constructor (
-    identity: T, start: T, end: T, type: string, properties: P,
+    identity: T, start: T, end: T, type: Type, properties: P,
     elementId?: string, startNodeElementId?: string, endNodeElementId?: string
   ) {
     /**
@@ -236,9 +236,9 @@ function isRelationship (obj: object): obj is Relationship {
  * Class for UnboundRelationship Type.
  * @access private
  */
-class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Properties = Properties> {
+class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Properties = Properties, Type extends string = string> {
   identity: T
-  type: string
+  type: Type
   properties: P
   elementId: string
 
@@ -250,7 +250,7 @@ class UnboundRelationship<T extends NumberOrInteger = Integer, P extends Propert
    * @param {Properties} properties - Map with relationship properties
    * @param {string} elementId - Relationship element identifier
    */
-  constructor (identity: T, type: string, properties: any, elementId?: string) {
+  constructor (identity: T, type: Type, properties: any, elementId?: string) {
     /**
      * Identity of the relationship.
      * @type {NumberOrInteger}

@@ -78,6 +78,22 @@ describe('Node', () => {
     expect(isNode(nonNode)).toBe(false)
   })
 
+  test('should type mapping labels', () => {
+    type PersonLabels = 'Person' | 'Actor'
+    const labels: PersonLabels[] = ['Actor', 'Person']
+    type Person = Node<number, {}, PersonLabels>
+
+    const p: Person = new Node(1, labels, {})
+
+    const receivedLabels: PersonLabels[] = p.labels
+
+    expect(receivedLabels).toEqual(labels)
+
+    // @ts-expect-error
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _: 'Movie'|Array<'TvShow'> = p.labels
+  })
+
   function validNodes (): any[] {
     return [
       [new Node(1, ['label'], {}, 'elementId')],
@@ -189,6 +205,18 @@ describe('Relationship', () => {
 
   test.each(nonRelationships())('should not consider a non-relationship object as relationship', nonRelationship => {
     expect(isRelationship(nonRelationship)).toBe(false)
+  })
+
+  test('should type mapping relationship type', () => {
+    type ActedIn = Relationship<number, { [key in string]: any }, 'ACTED_IN'>
+    const a: ActedIn = new Relationship(1, 1, 2, 'ACTED_IN', {})
+
+    const receivedType: 'ACTED_IN' = a.type
+    expect(receivedType).toEqual('ACTED_IN')
+
+    // @ts-expect-error
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _: 'DIRECTED' = a.type
   })
 
   function validRelationships (): any[] {
@@ -304,6 +332,18 @@ describe('UnboundRelationship', () => {
           endNode.elementId
         )
       )
+  })
+
+  test('should type mapping relationship type', () => {
+    type ActedIn = UnboundRelationship<number, { [key in string]: any }, 'ACTED_IN'>
+    const a: ActedIn = new UnboundRelationship(1, 'ACTED_IN', {})
+
+    const receivedType: 'ACTED_IN' = a.type
+    expect(receivedType).toEqual('ACTED_IN')
+
+    // @ts-expect-error
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _: 'DIRECTED' = a.type
   })
 
   function validUnboundRelationships (): any[] {
