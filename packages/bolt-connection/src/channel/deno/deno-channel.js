@@ -150,6 +150,7 @@ export default class DenoChannel {
   async close () {
     if (this._open) {
       this._open = false 
+      this.stopReceiveTimeout()
       if (this._conn != null) {
         await this._conn.close()
       }
@@ -185,7 +186,7 @@ export default class DenoChannel {
    * Start the receive timeout for the channel.
    */
   startReceiveTimeout () {
-    if (this._receiveTimeout !== null && !this._receiveTimeoutStarted) {
+    if (this._open && this._receiveTimeout !== null && !this._receiveTimeoutStarted) {
       this._receiveTimeoutStarted = true
       this._resetTimeout()
     }

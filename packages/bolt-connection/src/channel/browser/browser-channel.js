@@ -168,6 +168,7 @@ export default class WebSocketChannel {
     return new Promise((resolve, reject) => {
       if (this._ws && this._ws.readyState !== WS_CLOSED) {
         this._open = false
+        this.stopReceiveTimeout()
         this._clearConnectionTimeout()
         this._ws.onclose = () => resolve()
         this._ws.close()
@@ -206,7 +207,7 @@ export default class WebSocketChannel {
    * Start the receive timeout for the channel.
    */
   startReceiveTimeout () {
-    if (this._receiveTimeout !== null && !this._receiveTimeoutStarted) {
+    if (this._open && this._receiveTimeout !== null && !this._receiveTimeoutStarted) {
       this._receiveTimeoutStarted = true
       this._resetTimeout()
     }
