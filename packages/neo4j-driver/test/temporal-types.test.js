@@ -20,7 +20,6 @@
 import neo4j from '../src'
 import sharedNeo4j from './internal/shared-neo4j'
 import { toNumber, internal } from 'neo4j-driver-core'
-import timesSeries from 'async/timesSeries'
 import testUtils from './internal/test-utils'
 
 const {
@@ -55,11 +54,11 @@ describe('#integration temporal-types', () => {
 
   beforeAll(() => {
     driver = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `${sharedNeo4j.scheme}://${sharedNeo4j.hostname}`,
       sharedNeo4j.authToken
     )
     driverWithNativeNumbers = neo4j.driver(
-      `bolt://${sharedNeo4j.hostname}`,
+      `${sharedNeo4j.scheme}://${sharedNeo4j.hostname}`,
       sharedNeo4j.authToken,
       { disableLosslessIntegers: true }
     )
@@ -101,13 +100,13 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  it('should send and receive random Duration', async () => {
+  describe('Duration', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() => randomDuration())
-  }, 90000)
+    testSendAndReceiveRandomTemporalValues('Duration', () => randomDuration())
+  })
 
   it('should send and receive Duration when disableLosslessIntegers=true', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -169,13 +168,13 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  it('should send and receive random LocalTime', async () => {
+  describe('LocalTime', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() => randomLocalTime())
-  }, 90000)
+    testSendAndReceiveRandomTemporalValues('LocalTime', () => randomLocalTime())
+  })
 
   it('should send and receive array of LocalTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -226,13 +225,13 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  it('should send and receive random Time', async () => {
+  describe('Time', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() => randomTime())
-  }, 90000)
+    testSendAndReceiveRandomTemporalValues('Time', () => randomTime())
+  })
 
   it('should send and receive array of Time', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -281,13 +280,13 @@ describe('#integration temporal-types', () => {
     await testSendReceiveTemporalValue(new neo4j.types.Date(1923, 8, 14))
   }, 90000)
 
-  it('should send and receive random Date', async () => {
+  describe('Date', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() => randomDate())
-  }, 90000)
+    testSendAndReceiveRandomTemporalValues('Date', () => randomDate())
+  })
 
   it('should send and receive array of Date', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -346,13 +345,13 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  it('should send and receive random LocalDateTime', async () => {
+  describe('LocalDateTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() => randomLocalDateTime())
-  }, 90000)
+    testSendAndReceiveRandomTemporalValues('LocalDateTime', () => randomLocalDateTime())
+  })
 
   it('should send and receive array of random LocalDateTime', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -442,15 +441,15 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  it('should send and receive random DateTime with zone offset', async () => {
+  describe('DateTime with zone offset', () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() =>
+    testSendAndReceiveRandomTemporalValues('DateTime with zone offset', () =>
       randomDateTimeWithZoneOffset()
     )
-  }, 90000)
+  })
 
   it('should send and receive array of DateTime with zone offset', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -540,15 +539,15 @@ describe('#integration temporal-types', () => {
     )
   }, 90000)
 
-  it('should send and receive random DateTime with zone id', async () => {
+  describe('DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
       return
     }
 
-    await testSendAndReceiveRandomTemporalValues(() =>
+    testSendAndReceiveRandomTemporalValues('DateTime with zone id', () =>
       randomDateTimeWithZoneId()
     )
-  }, 90000)
+  })
 
   it('should send and receive array of DateTime with zone id', async () => {
     if (neo4jDoesNotSupportTemporalTypes()) {
@@ -1403,22 +1402,12 @@ describe('#integration temporal-types', () => {
     )
   })
 
-  function testSendAndReceiveRandomTemporalValues (valueGenerator) {
-    const asyncFunction = (index, callback) => {
-      testSendReceiveTemporalValue(valueGenerator())
-        .then(() => callback())
-        .catch(error => callback(error))
-    }
-
-    return new Promise((resolve, reject) => {
-      timesSeries(RANDOM_VALUES_TO_TEST, asyncFunction, (error, result) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(result)
-        }
+  function testSendAndReceiveRandomTemporalValues (temporalType, valueGenerator) {
+    for (let i = 0; i < RANDOM_VALUES_TO_TEST; i++) {
+      it(`should send and receive random ${temporalType} [index=${i}]`, async () => {
+        await testSendReceiveTemporalValue(valueGenerator())
       })
-    })
+    }
   }
 
   async function testSendAndReceiveArrayOfRandomTemporalValues (valueGenerator) {
@@ -1463,10 +1452,10 @@ describe('#integration temporal-types', () => {
   }
 
   async function testSendReceiveTemporalValue (value) {
-    const result = await session.run(
+    const result = await session.executeWrite(tx => tx.run(
       'CREATE (n:Node {value: $value}) RETURN n.value',
       { value: value }
-    )
+    ))
 
     const records = result.records
     expect(records.length).toEqual(1)

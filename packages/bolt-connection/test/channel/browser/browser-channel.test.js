@@ -412,6 +412,31 @@ describe('WebSocketChannel', () => {
         expect(fakeSetTimeout.clearedTimeouts).toEqual([])
       })
 
+      it('should be cleared when connection closes', async () => {
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+        expect(fakeSetTimeout.calls.length).toEqual(1)
+        expect(fakeSetTimeout.calls[0][1]).toEqual(receiveTimeout)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+
+        await webSocketChannel.close()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(1)
+        expect(fakeSetTimeout.calls.length).toEqual(1)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([0])
+      })
+
+      it('should call not setTimeout(receiveTimeout) when connection is closed', async () => {
+        await webSocketChannel.close()
+
+        webSocketChannel.startReceiveTimeout()
+
+        expect(fakeSetTimeout._timeoutIdCounter).toEqual(0)
+        expect(fakeSetTimeout.calls.length).toEqual(0)
+        expect(fakeSetTimeout.clearedTimeouts).toEqual([])
+      })
+
       it('should call setTimeout(receiveTimeout) after stopped', () => {
         webSocketChannel.startReceiveTimeout()
 
