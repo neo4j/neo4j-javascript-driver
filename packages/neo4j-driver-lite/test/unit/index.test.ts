@@ -93,16 +93,10 @@ describe('index', () => {
 
   it('should treat BookmarkManager as an interface', () => {
     const bookmarkManager: BookmarkManager = {
-      async getAllBookmarks (): Promise<string[]> {
+      async getBookmarks (): Promise<string[]> {
         return []
       },
-      async getBookmarks (database: string): Promise<string[]> {
-        return []
-      },
-      async updateBookmarks (database: string, previousBookmarks: string[], newBookmarks: string[]): Promise<void> {
-
-      },
-      async forget (databases: string[]): Promise<void> {
+      async updateBookmarks (previousBookmarks: string[], newBookmarks: string[]): Promise<void> {
 
       }
     }

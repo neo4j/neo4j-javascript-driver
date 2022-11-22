@@ -343,7 +343,7 @@ class Session {
   }
 
   private async _bookmarks (): Promise<Bookmarks> {
-    const bookmarks = await this._bookmarkManager?.getAllBookmarks()
+    const bookmarks = await this._bookmarkManager?.getBookmarks()
     if (bookmarks === undefined) {
       return this._lastBookmarks
     }
@@ -489,7 +489,7 @@ class Session {
   }
 
   private async _getConnectionAcquistionBookmarks (): Promise<Bookmarks> {
-    const bookmarks = await this._bookmarkManager?.getBookmarks('system')
+    const bookmarks = await this._bookmarkManager?.getBookmarks()
     if (bookmarks === undefined) {
       return this._lastBookmarks
     }
@@ -505,7 +505,6 @@ class Session {
   _updateBookmarks (newBookmarks?: Bookmarks, previousBookmarks?: Bookmarks, database?: string): void {
     if ((newBookmarks != null) && !newBookmarks.isEmpty()) {
       this._bookmarkManager?.updateBookmarks(
-        database ?? this._database,
         previousBookmarks?.values() ?? [],
         newBookmarks?.values() ?? []
       )
