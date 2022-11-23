@@ -67,7 +67,7 @@ export interface BookmarkManagerConfig {
  *
  * @since 5.0
  * @experimental
- * @property {Iterable<string>} [initialBookmarks@experimental] Defines the initial set of bookmarks. The key is the database name and the values are the bookmarks.
+ * @property {Iterable<string>} [initialBookmarks] Defines the initial set of bookmarks. The key is the database name and the values are the bookmarks.
  * @property {function():Promise<Iterable<string>>} [bookmarksSupplier] Called for supplying extra bookmarks to the BookmarkManager
  * @property {function(bookmarks: Iterable<string>): Promise<void>} [bookmarksConsumer] Called when the set of bookmarks  get updated
  */

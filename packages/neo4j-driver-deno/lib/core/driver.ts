@@ -194,7 +194,7 @@ class SessionConfig {
      * Enabling it is done by supplying an BookmarkManager implementation instance to this param.
      * A default implementation could be acquired by calling the factory function {@link bookmarkManager}.
      *
-     * **Warning**: Share the same BookmarkManager instance across all session can have a negative impact
+     * **Warning**: Sharing the same BookmarkManager instance across multiple sessions can have a negative impact
      * on performance since all the queries will wait for the latest changes being propagated across the cluster.
      * For keeping consistency between a group of queries, use {@link Session} for grouping them.
      * For keeping consistency between a group of sessions, use {@link BookmarkManager} instance for grouping them.
