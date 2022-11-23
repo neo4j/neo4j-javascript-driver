@@ -66,7 +66,9 @@ describe('BookmarkManager', () => {
     it('should not leak bookmarks from bookmarks supplier to the internal state', async () => {
       const extraBookmarks = ['neo4j:bmextra', 'system:bmextra', 'adb:bmextra']
       const bookmarksSupplier = jest.fn()
-      bookmarksSupplier.mockReturnValueOnce(Promise.resolve(extraBookmarks)).mockReturnValue(Promise.resolve([]))
+      bookmarksSupplier
+        .mockReturnValueOnce(Promise.resolve(extraBookmarks))
+        .mockReturnValue(Promise.resolve([]))
       const manager = bookmarkManager({
         initialBookmarks: [...neo4jBookmarks, ...systemBookmarks],
         bookmarksSupplier
@@ -80,7 +82,7 @@ describe('BookmarkManager', () => {
 
       const internalBookmarks = await manager.getBookmarks()
 
-      expect(bookmarksWithExtraBookmarks).toBeSortedEqual(
+      expect(internalBookmarks).toBeSortedEqual(
         [...neo4jBookmarks, ...systemBookmarks]
       )
     })
