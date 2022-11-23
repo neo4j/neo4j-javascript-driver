@@ -63,6 +63,28 @@ describe('BookmarkManager', () => {
       )
     })
 
+    it('should return not leak bookmarks from bookmarks supplier', async () => {
+      const extraBookmarks = ['neo4j:bmextra', 'system:bmextra', 'adb:bmextra']
+      const bookmarksSupplier = jest.fn()
+      bookmarkManager.mockReturnValueOnce(Promise.resolve(extraBookmarks)).mockReturnValue(Promise.resolve([]))
+      const manager = bookmarkManager({
+        initialBookmarks: [...neo4jBookmarks, ...systemBookmarks],
+        bookmarksSupplier
+      })
+
+      const bookmarksWithExtraBookmarks = await manager.getBookmarks()
+
+      expect(bookmarksWithExtraBookmarks).toBeSortedEqual(
+        [...neo4jBookmarks, ...systemBookmarks, ...extraBookmarks]
+      )
+
+      const internalBookmarks = await manager.getBookmarks()
+
+      expect(bookmarksWithExtraBookmarks).toBeSortedEqual(
+        [...neo4jBookmarks, ...systemBookmarks]
+      )
+    })
+
     it('should return duplicate bookmarks if bookmarksSupplier returns already existing bm', async () => {
       const extraBookmarks = ['neo4j:bmextra', 'system:bmextra', 'adb:bmextra']
       const bookmarksSupplier = jest.fn(async () => await Promise.resolve([...extraBookmarks, ...systemBookmarks]))
