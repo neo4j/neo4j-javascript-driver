@@ -92,7 +92,7 @@ describe('BookmarkManager', () => {
   })
 
   describe('updateBookmarks()', () => {
-    it('should remove previous bookmarks and new bookmarks', async () => {
+    it('should replace previous bookmarks with new bookmarks', async () => {
       const newBookmarks = ['neo4j:bm03']
       const manager = bookmarkManager({
         initialBookmarks: [...neo4jBookmarks, ...systemBookmarks]
