@@ -50,6 +50,7 @@ const AUTHORIZATION_EXPIRED_CODE =
   'Neo.ClientError.Security.AuthorizationExpired'
 const INVALID_ARGUMENT_ERROR = 'Neo.ClientError.Statement.ArgumentError'
 const INVALID_REQUEST_ERROR = 'Neo.ClientError.Request.Invalid'
+const STATEMENT_TYPE_ERROR = 'Neo.ClientError.Statement.TypeError'
 
 const SYSTEM_DB_NAME = 'system'
 const DEFAULT_DB_NAME = null
@@ -707,7 +708,8 @@ function _isFailFastError (error) {
     INVALID_BOOKMARK_CODE,
     INVALID_BOOKMARK_MIXTURE_CODE,
     INVALID_ARGUMENT_ERROR,
-    INVALID_REQUEST_ERROR
+    INVALID_REQUEST_ERROR,
+    STATEMENT_TYPE_ERROR
   ].includes(error.code)
 }
 
