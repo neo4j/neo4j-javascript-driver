@@ -131,7 +131,7 @@ class SessionConfig {
 
     /**
      * The database this session will operate on.
-     * 
+     *
      * This option has no explicit value by default, but it is recommended to set
      * one if the target database is known in advance. This has the benefit of
      * ensuring a consistent target database name throughout the session in a
