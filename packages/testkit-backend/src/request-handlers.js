@@ -428,21 +428,18 @@ export function NewBookmarkManager (
   const id = context.addBookmarkManager((bookmarkManagerId) => {
     let bookmarksSupplier
     let bookmarksConsumer
-    if (initialBookmarks != null) {
-      initialBookmarks = new Map(Object.entries(initialBookmarks))
-    }
     if (bookmarksSupplierRegistered === true) {
-      bookmarksSupplier = (database) =>
+      bookmarksSupplier = () =>
         new Promise((resolve, reject) => {
           const id = context.addBookmarkSupplierRequest(resolve, reject)
-          wire.writeResponse(responses.BookmarksSupplierRequest({ id, bookmarkManagerId, database }))
+          wire.writeResponse(responses.BookmarksSupplierRequest({ id, bookmarkManagerId }))
         })
     }
     if (bookmarksConsumerRegistered === true) {
-      bookmarksConsumer = (database, bookmarks) =>
+      bookmarksConsumer = (bookmarks) =>
         new Promise((resolve, reject) => {
           const id = context.addNotifyBookmarksRequest(resolve, reject)
-          wire.writeResponse(responses.BookmarksConsumerRequest({ id, bookmarkManagerId, database, bookmarks }))
+          wire.writeResponse(responses.BookmarksConsumerRequest({ id, bookmarkManagerId, bookmarks }))
         })
     }
     bookmarkManager = neo4j.bookmarkManager({
