@@ -251,7 +251,8 @@ function createFullyControlledSubject (
       } else {
         subject.next(value)
         if (!streamControl.paused) {
-          setImmediate(async () => await pushNextValue(iterator.next()))
+          pushNextValue(iterator.next())
+            .catch(() => {})
         }
       }
     } catch (error) {
