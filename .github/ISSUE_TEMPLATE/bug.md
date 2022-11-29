@@ -42,7 +42,7 @@ labels: "bug"
 
 
 # My Environment
-Node Version: <!-- output of `node --version` -->
+Javascript Runtime Version: <!-- for instance, the output of `node --version` or the browser version -->
 Driver Version: <!-- 5.3.0, for instance -->
 Neo4j Version and Edition: <!-- e.g., Neo4j 4.4.3 enterprise cluster -->
 Operating System: <!-- e.g., Windows 10, Ubuntu 18.04, macOS 10.15 -->
