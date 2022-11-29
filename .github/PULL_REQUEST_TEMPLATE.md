@@ -13,10 +13,7 @@
     Title:
     PRs targeting the current default branch (nightly driver) don't follow a
     fixed naming scheme.
-    If your PR is a backport, please use the following naming scheme:
-    [targeted version] description
-    e.g.,
-    [4.4] Remove a banana from the code
+    If your PR is a backport, please link the original PR in the comments.
 -->
 
 <!--
