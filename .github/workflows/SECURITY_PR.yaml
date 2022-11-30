@@ -1,7 +1,7 @@
 name: CI
 
 on:
-  push:
+  pull_request:
     branches: [ "5.0" ]
 
 env:
@@ -20,15 +20,3 @@ jobs:
           node-version: 16.x
       - name: Snyk test dependencies
         run: snyk test --all-projects --severity-threshold=medium --fail-on=all
-
-  snyk-monitor:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: snyk/actions/setup@master
-      - name: Set up Node 16
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-      - name: Snyk monitor dependencies
-        run: snyk monitor --all-projects --target-reference=${GITHUB_REF}
