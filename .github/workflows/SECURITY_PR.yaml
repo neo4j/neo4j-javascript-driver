@@ -19,4 +19,4 @@ jobs:
         with:
           node-version: 16.x
       - name: Snyk test dependencies
-        run: snyk test --all-projects --project-name="JavascriptDriver" --strict-out-of-sync=false --severity-threshold=medium --fail-on=all
+        run: snyk test --all-projects --strict-out-of-sync=false --severity-threshold=medium --fail-on=all
