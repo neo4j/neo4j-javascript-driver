@@ -7,7 +7,6 @@ on:
 env:
   SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-
 jobs: 
   snyk-test:
     runs-on: ubuntu-latest
