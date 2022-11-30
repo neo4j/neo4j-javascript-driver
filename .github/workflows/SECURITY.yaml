@@ -4,9 +4,6 @@ on:
   push:
     branches: [ "5.0" ]
 
-env:
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
 jobs: 
   snyk-monitor:
     runs-on: ubuntu-latest
@@ -18,4 +15,6 @@ jobs:
         with:
           node-version: 16.x
       - name: Snyk monitor dependencies
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: snyk monitor --all-projects --strict-out-of-sync=false --target-reference=${GITHUB_REF}

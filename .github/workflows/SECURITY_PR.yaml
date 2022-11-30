@@ -4,9 +4,6 @@ on:
   pull_request:
     branches: [ "5.0" ]
 
-env:
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
 jobs: 
   snyk-test:
     runs-on: ubuntu-latest
@@ -18,4 +15,6 @@ jobs:
         with:
           node-version: 16.x
       - name: Snyk test dependencies
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: snyk test --all-projects --strict-out-of-sync=false --severity-threshold=medium --fail-on=all
