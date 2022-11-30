@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 16.x
       - name: Snyk test dependencies
-        run: snyk test --all-projects --severity-threshold=medium --fail-on=all
+        run: snyk test --all-projects --project-name="JavascriptDriver" --strict-out-of-sync=false --severity-threshold=medium --fail-on=all
 
   snyk-monitor:
     runs-on: ubuntu-latest
@@ -31,4 +31,4 @@ jobs:
         with:
           node-version: 16.x
       - name: Snyk monitor dependencies
-        run: snyk monitor --all-projects --target-reference=${GITHUB_REF}
+        run: snyk monitor --all-projects --project-name="JavascriptDriver" --strict-out-of-sync=false --target-reference=${GITHUB_REF}
