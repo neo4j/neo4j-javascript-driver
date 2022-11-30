@@ -7,7 +7,7 @@ on:
     branches: [ "5.0" ]
 
 env:
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  SNYK_TOKEN: ${{ secrets.SYNK_TOKEN }}
 
 
 jobs: 
