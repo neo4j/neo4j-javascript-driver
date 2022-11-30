@@ -1,4 +1,4 @@
-name: CI
+name: Snyk PR
 
 on:
   pull_request:
