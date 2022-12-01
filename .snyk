@@ -1,9 +1,0 @@
-# Snyk (https://snyk.io) policy file
-exclude:
- global:
-  - packages/testkit-backend/**
-  - testkit/**
-  - packages/core/test/**
-  - packages/bolt-connection/test/**
-  - packages/neo4j-driver-lite/test/**
-  - packages/neo4j-driver/test/**
