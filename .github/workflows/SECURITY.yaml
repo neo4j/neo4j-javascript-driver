@@ -17,4 +17,4 @@ jobs:
       - name: Snyk monitor dependencies
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk monitor --all-projects --strict-out-of-sync=false --target-reference=${GITHUB_REF}
+        run: snyk monitor --all-projects --exclude=testkit-backend --strict-out-of-sync=false --target-reference=${GITHUB_REF}

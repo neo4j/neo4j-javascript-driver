@@ -17,4 +17,4 @@ jobs:
       - name: Snyk test dependencies
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        run: snyk test --all-projects --strict-out-of-sync=false --severity-threshold=medium --fail-on=all
+        run: snyk test --all-projects --exclude=testkit-backend --strict-out-of-sync=false --severity-threshold=medium --fail-on=all
