@@ -4,8 +4,10 @@ on:
   pull_request:
     branches: [ "5.0" ]
 
+
 jobs: 
   snyk-test:
+    environment: actions
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
