@@ -29,7 +29,7 @@ export default class BookmarkManager {
    * @private
    */
   private constructor () {
-    throw new Error('Not implemented')
+    throw new Error('Not implementeda')
   }
 
   /**
