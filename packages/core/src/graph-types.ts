@@ -117,7 +117,10 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Node}, `false` otherwise.
  */
-function isNode (obj: object): obj is Node {
+function isNode<
+    T extends NumberOrInteger = Integer,
+    P extends Properties = Properties,
+    Label extends string = string> (obj: unknown): obj is Node<T, P, Label> {
   return hasIdentifierProperty(obj, NODE_IDENTIFIER_PROPERTY)
 }
 
@@ -228,7 +231,10 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Relationship}, `false` otherwise.
  */
-function isRelationship (obj: object): obj is Relationship {
+function isRelationship<
+    T extends NumberOrInteger = Integer,
+    P extends Properties = Properties,
+    Type extends string = string> (obj: unknown): obj is Relationship<T, P, Type> {
   return hasIdentifierProperty(obj, RELATIONSHIP_IDENTIFIER_PROPERTY)
 }
 
@@ -346,7 +352,10 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link UnboundRelationship}, `false` otherwise.
  */
-function isUnboundRelationship (obj: object): obj is UnboundRelationship {
+function isUnboundRelationship<
+    T extends NumberOrInteger = Integer,
+    P extends Properties = Properties,
+    Type extends string = string> (obj: unknown): obj is UnboundRelationship<T, P, Type> {
   return hasIdentifierProperty(obj, UNBOUND_RELATIONSHIP_IDENTIFIER_PROPERTY)
 }
 
@@ -394,7 +403,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link PathSegment}, `false` otherwise.
  */
-function isPathSegment (obj: object): obj is PathSegment {
+function isPathSegment<T extends NumberOrInteger = Integer> (obj: unknown): obj is PathSegment<T> {
   return hasIdentifierProperty(obj, PATH_SEGMENT_IDENTIFIER_PROPERTY)
 }
 
@@ -448,7 +457,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Path}, `false` otherwise.
  */
-function isPath (obj: object): obj is Path {
+function isPath<T extends NumberOrInteger = Integer> (obj: unknown): obj is Path<T> {
   return hasIdentifierProperty(obj, PATH_IDENTIFIER_PROPERTY)
 }
 

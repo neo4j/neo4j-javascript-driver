@@ -94,14 +94,34 @@ describe('isPoint', () => {
     new Point(CARTESIAN_3D_CRS_CODE, 19.24, 100.29, 20.22222),
     new Point(CARTESIAN_3D_CRS_CODE, 19.24, 100.29),
     new Point(0, 19.24, 100.29, 20.22222)
-  ])('isPoint(%s) should be truthy', point =>
+  ])('isPoint(%s) should be truthy', (point: unknown) => {
     expect(isPoint(point)).toBeTruthy()
-  )
+
+    if (isPoint(point)) {
+      const typedPoint: Point = point
+      expect(typedPoint).toEqual(point)
+    } else {
+      // @ts-expect-error
+      const typedPoint: Point = point
+      expect(typedPoint).toEqual(point)
+    }
+  })
 
   test.each([
     { srid: CARTESIAN_3D_CRS_CODE, x: 18.24, y: 13.8, z: 124 },
     { srid: 0, x: 18.24, y: 13.8 },
     ['srid', CARTESIAN_3D_CRS_CODE, 'x', 18.24, 'y', 12.8, 'z', 124],
     'Point(1, 2, 3, 4)'
-  ])('isPoint(%s) should be falsy', point => expect(isPoint(point)).toBeFalsy())
+  ])('isPoint(%s) should be falsy', (point: unknown) => {
+    expect(isPoint(point)).toBeFalsy()
+
+    if (isPoint(point)) {
+      const typedPoint: Point = point
+      expect(typedPoint).toEqual(point)
+    } else {
+      // @ts-expect-error
+      const typedPoint: Point = point
+      expect(typedPoint).toEqual(point)
+    }
+  })
 })
