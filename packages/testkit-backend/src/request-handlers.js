@@ -151,13 +151,10 @@ export function SessionClose (_, context, data, wire) {
 }
 
 export function SessionRun (_, context, data, wire) {
-  const { sessionId, cypher, params, txMeta: metadata, timeout } = data
+  const { sessionId, cypher, timeout } = data
   const session = context.getSession(sessionId)
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      params[key] = context.binder.cypherToNative(value)
-    }
-  }
+  const params = context.binder.objectToNative(data.params)
+  const metadata = context.binder.objectToNative(data.txMeta)
 
   let result
   try {
@@ -230,8 +227,9 @@ export function ResultList (_, context, data, wire) {
 }
 
 export function SessionReadTransaction (_, context, data, wire) {
-  const { sessionId, txMeta: metadata } = data
+  const { sessionId } = data
   const session = context.getSession(sessionId)
+  const metadata = context.binder.objectToNative(data.txMeta)
   return session
     .executeRead(
       tx =>
@@ -274,8 +272,9 @@ export function RetryableNegative (_, context, data, wire) {
 }
 
 export function SessionBeginTransaction (_, context, data, wire) {
-  const { sessionId, txMeta: metadata, timeout } = data
+  const { sessionId, timeout } = data
   const session = context.getSession(sessionId)
+  const metadata = context.binder.objectToNative(data.txMeta)
 
   try {
     return session.beginTransaction({ metadata, timeout })
@@ -327,8 +326,9 @@ export function SessionLastBookmarks (_, context, data, wire) {
 }
 
 export function SessionWriteTransaction (_, context, data, wire) {
-  const { sessionId, txMeta: metadata } = data
+  const { sessionId } = data
   const session = context.getSession(sessionId)
+  const metadata = context.binder.objectToNative(data.txMeta)
   return session
     .executeWrite(
       tx =>
