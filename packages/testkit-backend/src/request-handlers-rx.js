@@ -74,12 +74,6 @@ export function SessionRun (_, context, data, wire) {
   const params = context.binder.objectToNative(data.params)
   const metadata = context.binder.objectToNative(data.txMeta)
 
-  if (params) {
-    for (const [key, value] of Object.entries(params)) {
-      params[key] = context.binder.cypherToNative(value)
-    }
-  }
-
   let rxResult
   try {
     rxResult = session.run(cypher, params, { metadata, timeout })
