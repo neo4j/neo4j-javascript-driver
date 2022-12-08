@@ -500,7 +500,7 @@ describe('#integration ChannelConnection', () => {
 
     try {
       const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
-      setImmediate(() => clock.tick(1001))
+      setTimeout(() => clock.tick(1001), 0)
       connection = await createConnection(
         boltUri,
         { encrypted: encrypted, connectionTimeout: 1000 },
