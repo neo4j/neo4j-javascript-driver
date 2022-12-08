@@ -230,6 +230,7 @@ export function SessionReadTransaction (_, context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
   const metadata = context.binder.objectToNative(data.txMeta)
+
   return session
     .executeRead(
       tx =>
@@ -329,6 +330,7 @@ export function SessionWriteTransaction (_, context, data, wire) {
   const { sessionId } = data
   const session = context.getSession(sessionId)
   const metadata = context.binder.objectToNative(data.txMeta)
+
   return session
     .executeWrite(
       tx =>
