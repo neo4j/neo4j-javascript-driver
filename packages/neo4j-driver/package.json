@@ -35,9 +35,7 @@
   "types": "types/index.d.ts",
   "devDependencies": {
     "@babel/core": "^7.17.8",
-    "@babel/eslint-parser": "^7.17.0",
     "@babel/plugin-transform-runtime": "^7.17.0",
-    "@babel/preset-env": "^7.16.11",
     "@babel/register": "^7.17.7",
     "@istanbuljs/nyc-config-babel": "^3.0.0",
     "@rollup/plugin-commonjs": "^21.0.1",
@@ -67,7 +65,6 @@
     "istanbul": "^0.4.5",
     "jasmine-spec-reporter": "^7.0.0",
     "karma": "^6.3.17",
-    "karma-browserify": "^8.1.0",
     "karma-chrome-launcher": "^3.1.1",
     "karma-edge-launcher": "^0.4.2",
     "karma-firefox-launcher": "^2.1.2",
@@ -79,7 +76,6 @@
     "karma-typescript-es6-transform": "^5.5.3",
     "lolex": "^6.0.0",
     "minimist": "^1.2.6",
-    "nyc": "^15.1.0",
     "rollup": "^2.59.0",
     "rollup-plugin-polyfill-node": "^0.11.0",
     "semver": "^7.3.5",
@@ -89,7 +85,6 @@
     "webpack": "^5.70.0"
   },
   "dependencies": {
-    "@babel/runtime": "^7.17.8",
     "neo4j-driver-bolt-connection": "5.0.0-dev",
     "neo4j-driver-core": "5.0.0-dev",
     "rxjs": "^7.5.5"
