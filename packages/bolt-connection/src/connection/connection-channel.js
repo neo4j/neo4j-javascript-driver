@@ -124,7 +124,7 @@ export default class ChannelConnection extends Connection {
     protocolSupplier
   ) {
     super(errorHandler)
-
+    this._authToken = null
     this._reseting = false
     this._resetObservers = []
     this._id = idGenerator++
@@ -148,12 +148,26 @@ export default class ChannelConnection extends Connection {
      */
     this._protocol = protocolSupplier(this)
 
+    this._supportsReAuth = this._protocol.version > 5.0
+
     // Set to true on fatal errors, to get this out of connection pool.
     this._isBroken = false
 
     if (this._log.isDebugEnabled()) {
       this._log.debug(`created towards ${address}`)
     }
+  }
+
+  get authToken () {
+    return this._authToken
+  }
+
+  set authToken (value) {
+    this._authToken = value
+  }
+
+  get supportsReAuth () {
+    return this._supportsReAuth
   }
 
   get id () {
@@ -175,7 +189,14 @@ export default class ChannelConnection extends Connection {
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
   connect (userAgent, authToken) {
+    this._authToken = authToken
     return this._initialize(userAgent, authToken)
+  }
+
+  async reAuth (authToken) {
+    this._authToken = authToken
+    console.log('re aut')
+    return this
   }
 
   /**

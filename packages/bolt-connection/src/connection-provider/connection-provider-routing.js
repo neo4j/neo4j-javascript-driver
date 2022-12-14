@@ -109,11 +109,17 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return error
   }
 
-  _handleAuthorizationExpired (error, address, database) {
+  _handleAuthorizationExpired (error, address, conn, database) {
     this._log.warn(
       `Routing driver ${this._id} will close connections to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
-    this._connectionPool.purge(address).catch(() => {})
+
+    if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {
+      this._connectionPool.apply(address, (conn) => conn.authToken === null)
+    } else {
+      this._refreshToken()
+    }
+
     return error
   }
 
@@ -142,8 +148,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       SESSION_EXPIRED,
       (error, address) => this._handleUnavailability(error, address, context.database),
       (error, address) => this._handleWriteFailure(error, address, context.database),
-      (error, address) =>
-        this._handleAuthorizationExpired(error, address, context.database)
+      (error, address, conn) =>
+        this._handleAuthorizationExpired(error, address, conn, context.database)
     )
 
     const routingTable = await this._freshRoutingTable({
@@ -522,7 +528,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
       const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
         errorCode: SESSION_EXPIRED,
-        handleAuthorizationExpired: (error, address) => this._handleAuthorizationExpired(error, address)
+        handleAuthorizationExpired: (error, address, conn) => this._handleAuthorizationExpired(error, address, conn)
       })
 
       const connectionProvider = new SingleConnectionProvider(

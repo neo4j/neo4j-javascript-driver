@@ -90,10 +90,48 @@ export default class PooledConnectionProvider extends ConnectionProvider {
 
   async _getAuthToken () {
     if (!this._isRenewableTokenAcquired() || this._isRenewableTokenExpired()) {
-      this._renewableAuthToken = await this._authTokenProvider()
+      this._refreshToken()
     }
 
-    return this._renewableAuthToken
+    if (this._refreshObserver) {
+      const promiseState = {}
+      const promise = new Promise((resolve, reject) => {
+        promiseState.resolve = resolve
+        promiseState.reject = reject
+      })
+
+      this._refreshObserver.subscribe({
+        onSuccess: promiseState.resolve,
+        onError: promiseState.onError
+      })
+
+      await promise
+    }
+
+    return this._renewableAuthToken.authToken
+  }
+
+  _refreshToken () {
+    if (!this._refreshObserver) {
+      const subscribers = []
+      this._refreshObserver = {
+        subscribe: (sub) => subscribers.push(sub),
+        notify: () => subscribers.forEach(sub => sub.onSuccess()),
+        notifyError: (e) => subscribers.forEach(sub => sub.onError(e))
+      }
+      Promise.resolve(this._authTokenProvider())
+        .then(token => {
+          this._renewableAuthToken = token
+          this._refreshObserver.notify()
+          return token
+        })
+        .catch(e => {
+          this._refreshObserver.notifyError(e)
+        })
+        .finally(() => {
+          this._refreshObserver = undefined
+        })
+    }
   }
 
   _isRenewableTokenAcquired () {
@@ -110,14 +148,30 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    * @return {boolean} true if the connection is open
    * @access private
    **/
-  _validateConnection (conn) {
+  async _validateConnection (conn) {
     if (!conn.isOpen()) {
       return false
     }
 
     const maxConnectionLifetime = this._config.maxConnectionLifetime
     const lifetime = Date.now() - conn.creationTimestamp
-    return lifetime <= maxConnectionLifetime
+    if (lifetime > maxConnectionLifetime) {
+      return false
+    }
+
+    if (this._renewableAuthToken.authToken !== conn.authToken || this._isRenewableTokenExpired()) {
+      if (!conn.supportsReAuth) {
+        return false
+      }
+      try {
+        const authToken = await this._getAuthToken()
+        await conn.reAuth(authToken)
+      } catch (e) {
+        return false
+      }
+    }
+
+    return true
   }
 
   /**

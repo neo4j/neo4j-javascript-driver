@@ -123,6 +123,14 @@ class Pool {
     return this._purgeKey(address.asKey())
   }
 
+  apply (address, resourceConsumer) {
+    const key = address.asKey()
+
+    if (key in this._pools) {
+      this._pools[key].apply(resourceConsumer)
+    }
+  }
+
   /**
    * Destroy all idle resources in this pool.
    * @returns {Promise<void>} A promise that is resolved when the resources are purged
@@ -195,7 +203,7 @@ class Pool {
     while (pool.length) {
       const resource = pool.pop()
 
-      if (this._validate(resource)) {
+      if (await this._validate(resource)) {
         if (this._removeIdleObserver) {
           this._removeIdleObserver(resource)
         }
@@ -207,6 +215,7 @@ class Pool {
         }
         return { resource, pool }
       } else {
+        pool.removeInUse(resource)
         await this._destroy(resource)
       }
     }
@@ -231,6 +240,7 @@ class Pool {
       // Invoke callback that creates actual connection
       resource = await this._create(address, (address, resource) => this._release(address, resource, pool))
 
+      pool.pushInUse(resource)
       resourceAcquired(key, this._activeResourceCounts)
       if (this._log.isDebugEnabled()) {
         this._log.debug(`${resource} created for the pool ${key}`)
@@ -246,12 +256,13 @@ class Pool {
 
     if (pool.isActive()) {
       // there exist idle connections for the given key
-      if (!this._validate(resource)) {
+      if (!await this._validate(resource)) {
         if (this._log.isDebugEnabled()) {
           this._log.debug(
             `${resource} destroyed and can't be released to the pool ${key} because it is not functional`
           )
         }
+        pool.removeInUse(resource)
         await this._destroy(resource)
       } else {
         if (this._installIdleObserver) {
@@ -263,6 +274,7 @@ class Pool {
               const pool = this._pools[key]
               if (pool) {
                 this._pools[key] = pool.filter(r => r !== resource)
+                pool.removeInUse(resource)
               }
               // let's not care about background clean-ups due to errors but just trigger the destroy
               // process for the resource, we especially catch any errors and ignore them to avoid
@@ -283,6 +295,7 @@ class Pool {
           `${resource} destroyed and can't be released to the pool ${key} because pool has been purged`
         )
       }
+      pool.removeInUse(resource)
       await this._destroy(resource)
     }
     resourceReleased(key, this._activeResourceCounts)
@@ -419,6 +432,7 @@ class SingleAddressPool {
   constructor () {
     this._active = true
     this._elements = []
+    this._elementsInUse = new Set()
   }
 
   isActive () {
@@ -427,6 +441,8 @@ class SingleAddressPool {
 
   close () {
     this._active = false
+    this._elements = []
+    this._elementsInUse = new Set()
   }
 
   filter (predicate) {
@@ -434,16 +450,32 @@ class SingleAddressPool {
     return this
   }
 
+  apply (resourceConsumer) {
+    this._elements.forEach(resourceConsumer)
+    this._elementsInUse.forEach(resourceConsumer)
+  }
+
   get length () {
     return this._elements.length
   }
 
   pop () {
-    return this._elements.pop()
+    const element = this._elements.pop()
+    this._elementsInUse.add(element)
+    return element
   }
 
   push (element) {
+    this._elementsInUse.delete(element)
     return this._elements.push(element)
+  }
+
+  pushInUse (element) {
+    this._elementsInUse.add(element)
+  }
+
+  removeInUse (element) {
+    this._elementsInUse.delete(element)
   }
 }
 

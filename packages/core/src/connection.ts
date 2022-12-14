@@ -37,6 +37,10 @@ class Connection {
     return {}
   }
 
+  get authToken (): any {
+    return {}
+  }
+
   /**
    * @property {ServerAddress} the server address this connection is opened against
    */
@@ -49,6 +53,10 @@ class Connection {
    */
   get version (): any {
     return undefined
+  }
+
+  get supportsReAuth (): boolean {
+    return false
   }
 
   /**
