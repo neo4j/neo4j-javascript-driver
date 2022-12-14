@@ -24,7 +24,7 @@ import { error, ConnectionProvider, ServerInfo } from 'neo4j-driver-core'
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
-    { id, config, log, userAgent, authToken },
+    { id, config, log, userAgent, authTokenProvider },
     createChannelConnectionHook = null
   ) {
     super()
@@ -33,7 +33,8 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._config = config
     this._log = log
     this._userAgent = userAgent
-    this._authToken = authToken
+    this._renewableAuthToken = undefined
+    this._authTokenProvider = authTokenProvider
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
@@ -75,15 +76,33 @@ export default class PooledConnectionProvider extends ConnectionProvider {
         return release(address, connection)
       }
       this._openConnections[connection.id] = connection
-      return connection
-        .connect(this._userAgent, this._authToken)
-        .catch(error => {
-          // let's destroy this connection
-          this._destroyConnection(connection)
-          // propagate the error because connection failed to connect / initialize
-          throw error
-        })
+      return this._getAuthToken()
+        .then(authToken => connection
+          .connect(this._userAgent, authToken)
+          .catch(error => {
+            // let's destroy this connection
+            this._destroyConnection(connection)
+            // propagate the error because connection failed to connect / initialize
+            throw error
+          }))
     })
+  }
+
+  async _getAuthToken () {
+    if (!this._isRenewableTokenAcquired() || this._isRenewableTokenExpired()) {
+      this._renewableAuthToken = await this._authTokenProvider()
+    }
+
+    return this._renewableAuthToken
+  }
+
+  _isRenewableTokenAcquired () {
+    return !!this._renewableAuthToken
+  }
+
+  _isRenewableTokenExpired () {
+    return this._renewableAuthToken.expectedExpirationTime &&
+        this._renewableAuthToken.expectedExpirationTime < new Date()
   }
 
   /**
