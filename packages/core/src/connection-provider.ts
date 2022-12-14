@@ -21,6 +21,7 @@
 import Connection from './connection'
 import { bookmarks } from './internal'
 import { ServerInfo } from './result-summary'
+import { AuthToken } from './types'
 
 /**
  * Inteface define a common way to acquire a connection
@@ -51,6 +52,7 @@ class ConnectionProvider {
     bookmarks: bookmarks.Bookmarks
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
+    auth?: AuthToken
   }): Promise<Connection> {
     throw Error('Not implemented')
   }

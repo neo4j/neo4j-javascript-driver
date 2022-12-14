@@ -139,7 +139,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth } = {}) {
     let name
     let address
     const context = { database: database || DEFAULT_DB_NAME }
@@ -157,6 +157,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       database: context.database,
       bookmarks,
       impersonatedUser,
+      auth,
       onDatabaseNameResolved: (databaseName) => {
         context.database = context.database || databaseName
         if (onDatabaseNameResolved) {
@@ -190,6 +191,17 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         name,
         routingTable
       )
+
+      if (auth && auth !== connection.authToken) {
+        console.log('need to re-auth')
+        if (connection.supportsReAuth) {
+          connection.reAuth(auth, true)
+        } else {
+          await connection._release()
+          console.log('create sticky connection')
+          return await this._createStickyConnection({ address, auth })
+        }
+      }
 
       return new DelegateConnection(connection, databaseSpecificErrorHandler)
     } catch (error) {
@@ -310,7 +322,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return this._connectionPool.acquire(address)
   }
 
-  _freshRoutingTable ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved } = {}) {
+  _freshRoutingTable ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth } = {}) {
     const currentRoutingTable = this._routingTableRegistry.get(
       database,
       () => new RoutingTable({ database })
@@ -322,10 +334,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._log.info(
       `Routing table is stale for database: "${database}" and access mode: "${accessMode}": ${currentRoutingTable}`
     )
-    return this._refreshRoutingTable(currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved)
+    return this._refreshRoutingTable(currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved, auth)
   }
 
-  _refreshRoutingTable (currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved) {
+  _refreshRoutingTable (currentRoutingTable, bookmarks, impersonatedUser, onDatabaseNameResolved, auth) {
     const knownRouters = currentRoutingTable.routers
 
     if (this._useSeedRouter) {
@@ -334,7 +346,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         currentRoutingTable,
         bookmarks,
         impersonatedUser,
-        onDatabaseNameResolved
+        onDatabaseNameResolved,
+        auth
       )
     }
     return this._fetchRoutingTableFromKnownRoutersFallbackToSeedRouter(
@@ -342,7 +355,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       currentRoutingTable,
       bookmarks,
       impersonatedUser,
-      onDatabaseNameResolved
+      onDatabaseNameResolved,
+      auth
     )
   }
 
@@ -351,7 +365,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     currentRoutingTable,
     bookmarks,
     impersonatedUser,
-    onDatabaseNameResolved
+    onDatabaseNameResolved,
+    auth
   ) {
     // we start with seed router, no routers were probed before
     const seenRouters = []
@@ -360,7 +375,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       this._seedRouter,
       currentRoutingTable,
       bookmarks,
-      impersonatedUser
+      impersonatedUser,
+      auth
     )
 
     if (newRoutingTable) {
@@ -371,7 +387,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         knownRouters,
         currentRoutingTable,
         bookmarks,
-        impersonatedUser
+        impersonatedUser,
+        auth
       )
       newRoutingTable = newRoutingTable2
       error = error2 || error
@@ -390,13 +407,15 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     currentRoutingTable,
     bookmarks,
     impersonatedUser,
-    onDatabaseNameResolved
+    onDatabaseNameResolved,
+    auth
   ) {
     let [newRoutingTable, error] = await this._fetchRoutingTableUsingKnownRouters(
       knownRouters,
       currentRoutingTable,
       bookmarks,
-      impersonatedUser
+      impersonatedUser,
+      auth
     )
 
     if (!newRoutingTable) {
@@ -406,7 +425,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         this._seedRouter,
         currentRoutingTable,
         bookmarks,
-        impersonatedUser
+        impersonatedUser,
+        auth
       )
     }
 
@@ -422,13 +442,15 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     knownRouters,
     currentRoutingTable,
     bookmarks,
-    impersonatedUser
+    impersonatedUser,
+    auth
   ) {
     const [newRoutingTable, error] = await this._fetchRoutingTable(
       knownRouters,
       currentRoutingTable,
       bookmarks,
-      impersonatedUser
+      impersonatedUser,
+      auth
     )
 
     if (newRoutingTable) {
@@ -453,7 +475,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     seedRouter,
     routingTable,
     bookmarks,
-    impersonatedUser
+    impersonatedUser,
+    auth
   ) {
     const resolvedAddresses = await this._resolveSeedRouter(seedRouter)
 
@@ -462,7 +485,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       address => seenRouters.indexOf(address) < 0
     )
 
-    return await this._fetchRoutingTable(newAddresses, routingTable, bookmarks, impersonatedUser)
+    return await this._fetchRoutingTable(newAddresses, routingTable, bookmarks, impersonatedUser, auth)
   }
 
   async _resolveSeedRouter (seedRouter) {
@@ -474,7 +497,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     return [].concat.apply([], dnsResolvedAddresses)
   }
 
-  async _fetchRoutingTable (routerAddresses, routingTable, bookmarks, impersonatedUser) {
+  async _fetchRoutingTable (routerAddresses, routingTable, bookmarks, impersonatedUser, auth) {
     return routerAddresses.reduce(
       async (refreshedTablePromise, currentRouter, currentIndex) => {
         const [newRoutingTable] = await refreshedTablePromise
@@ -497,7 +520,8 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         const [session, error] = await this._createSessionForRediscovery(
           currentRouter,
           bookmarks,
-          impersonatedUser
+          impersonatedUser,
+          auth
         )
         if (session) {
           try {
@@ -522,9 +546,34 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
   }
 
-  async _createSessionForRediscovery (routerAddress, bookmarks, impersonatedUser) {
+  async _createStickyConnection ({ address, auth }) {
+    const connection = await this._createChannelConnection(address)
+    connection._release = () => this._destroyConnection(connection)
+    this._openConnections[connection.id] = connection
+
     try {
-      const connection = await this._connectionPool.acquire(routerAddress)
+      return await connection.connect(this._userAgent, auth)
+    } catch (error) {
+      await this._destroyConnection()
+      throw error
+    }
+  }
+
+  async _createSessionForRediscovery (routerAddress, bookmarks, impersonatedUser, auth) {
+    try {
+      let connection = await this._connectionPool.acquire(routerAddress)
+
+      if (auth && connection.authToken !== auth) {
+        if (connection.supportsReAuth) {
+          await connection.reAuth(auth)
+        } else {
+          await connection._release()
+          connection = await this._createStickyConnection({
+            address: routerAddress,
+            auth
+          })
+        }
+      }
 
       const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
         errorCode: SESSION_EXPIRED,
@@ -720,6 +769,7 @@ function _isFailFastError (error) {
 }
 
 function _isFailFastSecurityError (error) {
+  console.error(error)
   return error.code.startsWith('Neo.ClientError.Security.') &&
     ![
       AUTHORIZATION_EXPIRED_CODE
