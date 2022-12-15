@@ -44,7 +44,6 @@
     "async": "^3.2.3",
     "babel-plugin-istanbul": "^6.1.1",
     "browserify": "^17.0.0",
-    "browserify-transform-tools": "^1.7.0",
     "esdoc": "^1.1.0",
     "esdoc-importpath-plugin": "^1.0.2",
     "esdoc-standard-plugin": "^1.0.0",
