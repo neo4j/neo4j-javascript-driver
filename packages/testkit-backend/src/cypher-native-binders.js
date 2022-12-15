@@ -6,7 +6,10 @@ export default function CypherNativeBinders (neo4j) {
   function objectToCypher (obj) {
     return objectMapper(obj, nativeToCypher)
   }
-  
+  function objectToNative (obj) {
+    return objectMapper(obj, cypherToNative)
+  }
+
   function objectMemberBitIntToNumber (obj, recursive = false) {
     return objectMapper(obj, val => {
       if (typeof val === 'bigint') {
@@ -19,7 +22,7 @@ export default function CypherNativeBinders (neo4j) {
       return val
     })
   }
-  
+
   function objectMapper (obj, mapper) {
     if (obj === null || obj === undefined) {
       return obj
@@ -28,7 +31,7 @@ export default function CypherNativeBinders (neo4j) {
       return { ...acc, [key]: mapper(obj[key]) }
     }, {})
   }
-  
+
   function nativeToCypher (x) {
     if (x == null) {
       return valueResponse('CypherNull', null)
@@ -53,7 +56,7 @@ export default function CypherNativeBinders (neo4j) {
     console.log(err)
     throw Error(err)
   }
-  
+
   function valueResponseOfObject (x) {
     if (neo4j.isInt(x)) {
       // TODO: Broken!!!
@@ -105,7 +108,7 @@ export default function CypherNativeBinders (neo4j) {
           },
           { nodes: [x.start], relationships: [] }
         )
-  
+
       return {
         name: 'CypherPath',
         data: {
@@ -114,7 +117,7 @@ export default function CypherNativeBinders (neo4j) {
         }
       }
     }
-  
+
     if (neo4j.isDate(x)) {
       return structResponse('CypherDate', {
         year: x.year,
@@ -149,7 +152,7 @@ export default function CypherNativeBinders (neo4j) {
         nanoseconds: x.nanoseconds
       })
     }
-  
+
     // If all failed, interpret as a map
     const map = {}
     for (const [key, value] of Object.entries(x)) {
@@ -157,7 +160,7 @@ export default function CypherNativeBinders (neo4j) {
     }
     return valueResponse('CypherMap', map)
   }
-  
+
   function structResponse (name, data) {
     const map = {}
     for (const [key, value] of Object.entries(data)) {
@@ -167,7 +170,7 @@ export default function CypherNativeBinders (neo4j) {
     }
     return { name, data: map }
   }
-  
+
   function cypherToNative (c) {
     const {
       name,
@@ -249,9 +252,10 @@ export default function CypherNativeBinders (neo4j) {
     console.log(err)
     throw Error(err)
   }
-  
+
   this.valueResponse = valueResponse
   this.objectToCypher = objectToCypher
+  this.objectToNative = objectToNative
   this.objectMemberBitIntToNumber = objectMemberBitIntToNumber
   this.nativeToCypher = nativeToCypher
   this.cypherToNative = cypherToNative
