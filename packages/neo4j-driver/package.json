@@ -43,7 +43,6 @@
     "@types/jasmine": "^4.3.1",
     "async": "^3.2.3",
     "babel-plugin-istanbul": "^6.1.1",
-    "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "browserify-transform-tools": "^1.7.0",
     "esdoc": "^1.1.0",
