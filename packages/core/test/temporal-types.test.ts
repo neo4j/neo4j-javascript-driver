@@ -18,7 +18,7 @@
  */
 
 import { StandardDate } from '../src/graph-types'
-import { LocalDateTime, Date, DateTime } from '../src/temporal-types'
+import { LocalDateTime, Date, DateTime, Duration, isDuration, LocalTime, isLocalTime, Time, isTime, isDate, isLocalDateTime, isDateTime } from '../src/temporal-types'
 import { temporalUtil } from '../src/internal'
 import fc from 'fast-check'
 
@@ -163,6 +163,127 @@ describe('DateTime', () => {
         })
       )
     })
+  })
+})
+
+describe('isDuration', () => {
+  it.each([
+    [new Duration(1, 2, 3, 4), true],
+    [null, false],
+    [LocalDateTime.fromStandardDate(new global.Date()), false],
+    [{ months: 1, days: 1, seconds: 2, nanoseconds: 2 }, false]
+  ])('should be a type guard [%o]', (obj: unknown, objIsDuration: boolean) => {
+    expect(isDuration(obj)).toEqual(objIsDuration)
+
+    if (isDuration(obj)) {
+      const duration: Duration = obj
+      expect(duration).toEqual(obj)
+    } else {
+      // @ts-expect-error
+      const duration: Duration = obj
+      expect(duration).toEqual(obj)
+    }
+  })
+})
+
+describe('isLocalTime', () => {
+  it.each([
+    [new LocalTime(1, 2, 3, 4), true],
+    [null, false],
+    [LocalDateTime.fromStandardDate(new global.Date()), false],
+    [{ months: 1, days: 1, seconds: 2, nanoseconds: 2 }, false]
+  ])('should be a type guard [%o]', (obj: unknown, objIsLocalTime: boolean) => {
+    expect(isLocalTime(obj)).toEqual(objIsLocalTime)
+
+    if (isLocalTime(obj)) {
+      const localTime: LocalTime = obj
+      expect(localTime).toEqual(obj)
+    } else {
+      // @ts-expect-error
+      const localTime: LocalTime = obj
+      expect(localTime).toEqual(obj)
+    }
+  })
+})
+
+describe('isTime', () => {
+  it.each([
+    [new Time(1, 2, 3, 2, 300), true],
+    [null, false],
+    [LocalDateTime.fromStandardDate(new global.Date()), false],
+    [{ months: 1, days: 1, seconds: 2, nanoseconds: 2 }, false]
+  ])('should be a type guard [%o]', (obj: unknown, objIsTime: boolean) => {
+    expect(isTime(obj)).toEqual(objIsTime)
+
+    if (isTime(obj)) {
+      const time: Time = obj
+      expect(time).toEqual(obj)
+    } else {
+      // @ts-expect-error
+      const time: Time = obj
+      expect(time).toEqual(obj)
+    }
+  })
+})
+
+describe('isDate', () => {
+  it.each([
+    [new Date(1, 2, 3), true],
+    [null, false],
+    [LocalDateTime.fromStandardDate(new global.Date()), false],
+    [{ months: 1, days: 1, seconds: 2, nanoseconds: 2 }, false]
+  ])('should be a type guard [%o]', (obj: unknown, objIsDate: boolean) => {
+    expect(isDate(obj)).toEqual(objIsDate)
+
+    if (isDate(obj)) {
+      const date: Date = obj
+      expect(date).toEqual(obj)
+    } else {
+      // @ts-expect-error
+      const date: Date = obj
+      expect(date).toEqual(obj)
+    }
+  })
+})
+
+describe('isLocalDateTime', () => {
+  it.each([
+    [LocalDateTime.fromStandardDate(new global.Date()), true],
+    [new Date(1, 2, 3), false],
+    [null, false],
+    [{ months: 1, days: 1, seconds: 2, nanoseconds: 2 }, false]
+  ])('should be a type guard [%o]', (obj: unknown, objIsLocalDateTime: boolean) => {
+    expect(isLocalDateTime(obj)).toEqual(objIsLocalDateTime)
+
+    if (isLocalDateTime(obj)) {
+      const localDateTime: LocalDateTime = obj
+      expect(localDateTime).toEqual(obj)
+    } else {
+      // @ts-expect-error
+      const localDateTime: LocalDateTime = obj
+      expect(localDateTime).toEqual(obj)
+    }
+  })
+})
+
+describe('isDateTime', () => {
+  it.each([
+    [DateTime.fromStandardDate(new global.Date()), true],
+    [new Date(1, 2, 3), false],
+    [null, false],
+    [1, false],
+    [{ months: 1, days: 1, seconds: 2, nanoseconds: 2 }, false]
+  ])('should be a type guard [%o]', (obj: unknown, objIsDateTime: boolean) => {
+    expect(isDateTime(obj)).toEqual(objIsDateTime)
+
+    if (isDateTime(obj)) {
+      const dateTime: DateTime = obj
+      expect(dateTime).toEqual(obj)
+    } else {
+      // @ts-expect-error
+      const dateTime: DateTime = obj
+      expect(dateTime).toEqual(obj)
+    }
   })
 })
 

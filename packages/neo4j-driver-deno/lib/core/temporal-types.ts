@@ -108,7 +108,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Duration}, `false` otherwise.
  */
-export function isDuration (obj: object): obj is Duration {
+export function isDuration<T extends NumberOrInteger = Integer> (obj: unknown): obj is Duration<T> {
   return hasIdentifierProperty(obj, DURATION_IDENTIFIER_PROPERTY)
 }
 
@@ -206,7 +206,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link LocalTime}, `false` otherwise.
  */
-export function isLocalTime (obj: object): boolean {
+export function isLocalTime<T extends NumberOrInteger = Integer> (obj: unknown): obj is LocalTime<T> {
   return hasIdentifierProperty(obj, LOCAL_TIME_IDENTIFIER_PROPERTY)
 }
 
@@ -315,7 +315,7 @@ Object.defineProperty(
  * @param {Object} obj the object to test.
  * @return {boolean} `true` if given object is a {@link Time}, `false` otherwise.
  */
-export function isTime (obj: object): obj is Time {
+export function isTime<T extends NumberOrInteger = Integer> (obj: unknown): obj is Time<T> {
   return hasIdentifierProperty(obj, TIME_IDENTIFIER_PROPERTY)
 }
 
@@ -399,7 +399,7 @@ Object.defineProperty(
  * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link Date}, `false` otherwise.
  */
-export function isDate (obj: object): boolean {
+export function isDate<T extends NumberOrInteger = Integer> (obj: unknown): obj is Date<T> {
   return hasIdentifierProperty(obj, DATE_IDENTIFIER_PROPERTY)
 }
 
@@ -532,7 +532,7 @@ Object.defineProperty(
  * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link LocalDateTime}, `false` otherwise.
  */
-export function isLocalDateTime (obj: any): obj is LocalDateTime {
+export function isLocalDateTime<T extends NumberOrInteger = Integer> (obj: unknown): obj is LocalDateTime<T> {
   return hasIdentifierProperty(obj, LOCAL_DATE_TIME_IDENTIFIER_PROPERTY)
 }
 
@@ -733,7 +733,7 @@ Object.defineProperty(
  * @param {Object} obj - The object to test.
  * @return {boolean} `true` if given object is a {@link DateTime}, `false` otherwise.
  */
-export function isDateTime (obj: object): boolean {
+export function isDateTime<T extends NumberOrInteger = Integer> (obj: unknown): obj is DateTime<T> {
   return hasIdentifierProperty(obj, DATE_TIME_IDENTIFIER_PROPERTY)
 }
 

@@ -22,7 +22,11 @@ import {
   Relationship,
   isRelationship,
   UnboundRelationship,
-  isUnboundRelationship
+  isUnboundRelationship,
+  Path,
+  PathSegment,
+  isPath,
+  isPathSegment
 } from '../src/graph-types'
 
 import {
@@ -70,12 +74,30 @@ describe('Node', () => {
     expect(node.toString()).toMatchSnapshot()
   })
 
-  test.each(validNodes())('should be consider a node', (node: any) => {
+  test.each(validNodes())('should be consider a node', (node: unknown) => {
     expect(isNode(node)).toBe(true)
+
+    if (isNode(node)) {
+      const typedNode: Node = node
+      expect(typedNode).toEqual(node)
+    } else {
+      // @ts-expect-error
+      const typedNode: Node = node
+      expect(typedNode).toEqual(node)
+    }
   })
 
-  test.each(nonNodes())('should not consider a non-node object as node', nonNode => {
+  test.each(nonNodes())('should not consider a non-node object as node', (nonNode: unknown) => {
     expect(isNode(nonNode)).toBe(false)
+
+    if (isNode(nonNode)) {
+      const typedNode: Node = nonNode
+      expect(typedNode).toEqual(nonNode)
+    } else {
+      // @ts-expect-error
+      const typedNode: Node = nonNode
+      expect(typedNode).toEqual(nonNode)
+    }
   })
 
   test('should type mapping labels', () => {
@@ -219,6 +241,32 @@ describe('Relationship', () => {
     const _: 'DIRECTED' = a.type
   })
 
+  test.each(validRelationships())('should be consider a relationship', (relationship: unknown) => {
+    expect(isRelationship(relationship)).toBe(true)
+
+    if (isRelationship(relationship)) {
+      const typedRelationship: Relationship = relationship
+      expect(typedRelationship).toEqual(relationship)
+    } else {
+      // @ts-expect-error
+      const typedRelationship: Relationship = relationship
+      expect(typedRelationship).toEqual(relationship)
+    }
+  })
+
+  test.each(nonRelationships())('should not consider a non-relationship object as relationship', (nonRelationship: unknown) => {
+    expect(isRelationship(nonRelationship)).toBe(false)
+
+    if (isRelationship(nonRelationship)) {
+      const typedRelationship: Relationship = nonRelationship
+      expect(typedRelationship).toEqual(nonRelationship)
+    } else {
+      // @ts-expect-error
+      const typedRelationship: Relationship = nonRelationship
+      expect(typedRelationship).toEqual(nonRelationship)
+    }
+  })
+
   function validRelationships (): any[] {
     return [
       [new Relationship(1, 2, 3, 'Rel', {}, 'elementId', 'startNodeElementId', 'endNodeElementId')],
@@ -346,6 +394,32 @@ describe('UnboundRelationship', () => {
     const _: 'DIRECTED' = a.type
   })
 
+  test.each(validUnboundRelationships())('should be consider a unbound relationship', (unboundRelationship: unknown) => {
+    expect(isUnboundRelationship(unboundRelationship)).toBe(true)
+
+    if (isUnboundRelationship(unboundRelationship)) {
+      const typedRelationship: UnboundRelationship = unboundRelationship
+      expect(typedRelationship).toEqual(unboundRelationship)
+    } else {
+      // @ts-expect-error
+      const typedRelationship: UnboundRelationship = unboundRelationship
+      expect(typedRelationship).toEqual(unboundRelationship)
+    }
+  })
+
+  test.each(nonUnboundRelationships())('should not consider a non-unbound relationship object as unbound relationship', (nonUnboundRelationship: unknown) => {
+    expect(isUnboundRelationship(nonUnboundRelationship)).toBe(false)
+
+    if (isUnboundRelationship(nonUnboundRelationship)) {
+      const typedRelationship: UnboundRelationship = nonUnboundRelationship
+      expect(typedRelationship).toEqual(nonUnboundRelationship)
+    } else {
+      // @ts-expect-error
+      const typedRelationship: UnboundRelationship = nonUnboundRelationship
+      expect(typedRelationship).toEqual(nonUnboundRelationship)
+    }
+  })
+
   function validUnboundRelationships (): any[] {
     return [
       [new UnboundRelationship(1, 'Rel', {}, 'elementId')],
@@ -384,6 +458,111 @@ describe('UnboundRelationship', () => {
       [new UnboundRelationship(0, 'Rel', {}), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {})],
       [new UnboundRelationship(0, 'Rel', {}), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {}), 'nodeElementId2'],
       [new UnboundRelationship(0, 'Rel', {}, 'elementId'), new Node(1, ['Node'], {}, 'nodeElementId'), new Node(2, ['Node'], {}), 'nodeElementId2']
+    ]
+  }
+})
+
+describe('Path', () => {
+  test.each(validPaths())('should be consider a path', (path: unknown) => {
+    expect(isPath(path)).toBe(true)
+
+    if (isPath(path)) {
+      const typed: Path = path
+      expect(typed).toEqual(path)
+    } else {
+      // @ts-expect-error
+      const typed: Path = path
+      expect(typed).toEqual(path)
+    }
+  })
+
+  test.each(nonPaths())('should not consider a non-path object as path', (nonPath: unknown) => {
+    expect(isPath(nonPath)).toBe(false)
+
+    if (isPath(nonPath)) {
+      const typed: Path = nonPath
+      expect(typed).toEqual(nonPath)
+    } else {
+      // @ts-expect-error
+      const typed: Path = nonPath
+      expect(typed).toEqual(nonPath)
+    }
+  })
+
+  function validPaths (): any[] {
+    return [
+      [new Path(new Node(1, [], {}), new Node(2, [], {}), [])],
+      [new Path(new Node(1, [], {}), new Node(2, [], {}), [new PathSegment(new Node(1, [], {}), new Relationship(1, 1, 2, 'type', {}), new Node(2, [], {}))])]
+    ]
+  }
+
+  function nonPaths (): any[] {
+    return [
+      [{
+        start: new Node(1, [], {}),
+        end: new Node(2, [], {}),
+        length: 1,
+        segments: [
+          new PathSegment(
+            new Node(1, [], {}),
+            new Relationship(1, 1, 2, 'type', {}),
+            new Node(2, [], {}))
+        ]
+      }],
+      [null],
+      [undefined],
+      [{}],
+      [1]
+    ]
+  }
+})
+
+describe('Path', () => {
+  test.each(validPathSegments())('should be consider a path segment', (pathSegment: unknown) => {
+    expect(isPathSegment(pathSegment)).toBe(true)
+
+    if (isPathSegment(pathSegment)) {
+      const typed: PathSegment = pathSegment
+      expect(typed).toEqual(pathSegment)
+    } else {
+      // @ts-expect-error
+      const typed: PathSegment = pathSegment
+      expect(typed).toEqual(pathSegment)
+    }
+  })
+
+  test.each(nonPathSegments())('should not consider a non-path object as path segument', (nonPathSegment: unknown) => {
+    expect(isPathSegment(nonPathSegment)).toBe(false)
+
+    if (isPathSegment(nonPathSegment)) {
+      const typed: PathSegment = nonPathSegment
+      expect(typed).toEqual(nonPathSegment)
+    } else {
+      // @ts-expect-error
+      const typed: PathSegment = nonPathSegment
+      expect(typed).toEqual(nonPathSegment)
+    }
+  })
+
+  function validPathSegments (): any[] {
+    return [
+      [new PathSegment(new Node(1, [], {}), new Relationship(1, 1, 2, 'type', {}), new Node(2, [], {}))],
+      [new PathSegment(new Node(int(1), [], {}), new Relationship(int(1), int(1), int(2), 'type', {}), new Node(int(2), [], {}))]
+    ]
+  }
+
+  function nonPathSegments (): any[] {
+    return [
+      [{
+
+        start: new Node(1, [], {}),
+        end: new Node(2, [], {}),
+        relationship: new Relationship(1, 1, 2, 'type', {})
+      }],
+      [null],
+      [undefined],
+      [{}],
+      [1]
     ]
   }
 })
