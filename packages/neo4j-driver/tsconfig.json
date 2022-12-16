@@ -1,16 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES5",
-    "lib": ["ES6"],
+    "module": "es6",
+    "target": "es6",
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "strictNullChecks": true,
-    "esModuleInterop": true,
     "moduleResolution": "node",
-    "downlevelIteration": true,
-    "outDir": "lib",
-    "allowJs": true,
-    "isolatedModules": true
+    "types": []
   },
-  "include": ["src/**/*.js", "types/**/*.ts"]
+  "include": ["types/**/*.ts", "test/types/**/*.ts"]
 }
