@@ -94,8 +94,8 @@ describe('isPoint', () => {
     new Point(CARTESIAN_3D_CRS_CODE, 19.24, 100.29, 20.22222),
     new Point(CARTESIAN_3D_CRS_CODE, 19.24, 100.29),
     new Point(0, 19.24, 100.29, 20.22222)
-  ])('isPoint(%s) should be truthy', (point: unknown) => {
-    expect(isPoint(point)).toBeTruthy()
+  ])('isPoint(%s) should be true', (point: unknown) => {
+    expect(isPoint(point)).toBe(true)
 
     if (isPoint(point)) {
       const typedPoint: Point = point
