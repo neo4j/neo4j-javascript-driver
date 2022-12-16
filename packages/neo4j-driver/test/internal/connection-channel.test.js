@@ -495,12 +495,8 @@ describe('#integration ChannelConnection', () => {
   }
 
   async function testConnectionTimeout (encrypted) {
-    const clock = jasmine.clock()
-    clock.install()
-
     try {
       const boltUri = 'bolt://10.0.0.0' // use non-routable IP address which never responds
-      setTimeout(() => clock.tick(1001), 0)
       connection = await createConnection(
         boltUri,
         { encrypted: encrypted, connectionTimeout: 1000 },
@@ -518,8 +514,6 @@ describe('#integration ChannelConnection', () => {
       }
 
       return
-    } finally {
-      clock.uninstall()
     }
 
     expect(false).toBeTruthy('exception expected')
