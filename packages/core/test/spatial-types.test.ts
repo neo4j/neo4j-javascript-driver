@@ -112,8 +112,8 @@ describe('isPoint', () => {
     { srid: 0, x: 18.24, y: 13.8 },
     ['srid', CARTESIAN_3D_CRS_CODE, 'x', 18.24, 'y', 12.8, 'z', 124],
     'Point(1, 2, 3, 4)'
-  ])('isPoint(%s) should be true', (point: unknown) => {
-    expect(isPoint(point)).toBe(true)
+  ])('isPoint(%s) should be false', (point: unknown) => {
+    expect(isPoint(point)).toBe(false)
 
     if (isPoint(point)) {
       const typedPoint: Point = point
