@@ -1,6 +1,4 @@
 
-
-
 const features = [
   'Feature:Auth:Custom',
   'Feature:Auth:Kerberos',
