@@ -19,20 +19,31 @@
 module.exports = function (config) {
   config.set({
     basePath: '../../',
-    browserify: {
-      debug: true,
-      transform: ['babelify', './support/inject-browser-transform']
+    karmaTypescriptConfig: {
+      compilerOptions: {
+        target: 'ES5',
+        lib: ['ES6'],
+        noImplicitAny: true,
+        noImplicitReturns: true,
+        strictNullChecks: true,
+        esModuleInterop: true,
+        moduleResolution: 'node',
+        downlevelIteration: true,
+        allowJs: true,
+        isolatedModules: true,
+        types: ['jasmine']
+      },
+      bundlerOptions: {
+        transforms: [
+          require('karma-typescript-es6-transform')()
+        ]
+      }
     },
-    files: [
-      'src/**/!(node)/*.js',
-      'test/**/!(node)/*.test.js',
-      'test/!(examples).test.js'
-    ],
     preprocessors: {
-      'src/**/*.js': ['browserify'],
-      'test/**/*.test.js': ['browserify']
+      'src/**/*.js': ['karma-typescript'],
+      'test/**/*.test.js': ['karma-typescript']
     },
-    frameworks: ['browserify', 'source-map-support', 'jasmine'],
+    frameworks: ['karma-typescript', 'source-map-support', 'jasmine'],
     reporters: ['spec'],
     port: 9876, // karma web server port
     colors: true,

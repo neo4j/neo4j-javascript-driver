@@ -78,6 +78,27 @@ var driver = neo4j.driver(
 )
 ```
 
+From `5.4.0`, this version is also exported as ECMA Script Module.
+It can be imported from a module using the following statements:
+
+```javascript
+// Direct reference
+import neo4j from 'lib/browser/neo4j-web.esm.min.js'
+
+// unpkg CDN non-minified , version X.Y.Z where X.Y.Z >= 5.4.0
+import neo4j from 'https://unpkg.com/browse/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.js'
+
+// unpkg CDN minified for production use, version X.Y.Z where X.Y.Z >= 5.4.0
+import neo4j from 'https://unpkg.com/browse/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.min.js'
+
+// jsDelivr CDN non-minified, version X.Y.Z where X.Y.Z >= 5.4.0
+import neo4j from 'https://cdn.jsdelivr.net/npm/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.js'
+
+// jsDelivr CDN minified for production use, version X.Y.Z where X.Y.Z >= 5.4.0
+import neo4j from 'https://cdn.jsdelivr.net/npm/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.min.js'
+
+```
+
 It is not required to explicitly close the driver on a web page. Web browser should gracefully close all open
 WebSockets when the page is unloaded. However, driver instance should be explicitly closed when it's lifetime
 is not the same as the lifetime of the web page:

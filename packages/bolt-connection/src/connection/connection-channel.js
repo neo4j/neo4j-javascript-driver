@@ -340,13 +340,14 @@ export default class ChannelConnection extends Connection {
     })
   }
 
-  _reset(observer) {
+  _reset (observer) {
     if (this._reseting) {
       if (!this._protocol.isLastMessageReset()) {
         this._protocol.reset({
           onError: error => {
             observer.onError(error)
-          }, onComplete: () => {
+          },
+          onComplete: () => {
             observer.onComplete()
           }
         })
@@ -369,7 +370,8 @@ export default class ChannelConnection extends Connection {
     this._protocol.reset({
       onError: error => {
         notifyFinish(obs => obs.onError(error))
-      }, onComplete: () => {
+      },
+      onComplete: () => {
         notifyFinish(obs => obs.onComplete())
       }
     })

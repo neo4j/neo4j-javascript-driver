@@ -17,13 +17,10 @@
  * limitations under the License.
  */
 
-const browserify = require('browserify')
-const source = require('vinyl-source-stream')
 const buffer = require('vinyl-buffer')
 const gulp = require('gulp')
 const uglify = require('gulp-uglify')
 const jasmine = require('gulp-jasmine')
-const babel = require('gulp-babel')
 const watch = require('gulp-watch')
 const batch = require('gulp-batch')
 const replace = require('gulp-replace')
@@ -32,8 +29,13 @@ const path = require('path')
 const minimist = require('minimist')
 const install = require('gulp-install')
 const file = require('gulp-file')
+const rollup = require('rollup')
+const rollupCommonJs = require('@rollup/plugin-commonjs')
+const rollupNodeResolve = require('@rollup/plugin-node-resolve').default
+const rollupPolyfillNode = require('rollup-plugin-polyfill-node')
 const semver = require('semver')
 const sharedNeo4j = require('./test/internal/shared-neo4j').default
+const stream = require('stream')
 const ts = require('gulp-typescript')
 const JasmineReporter = require('jasmine-spec-reporter').SpecReporter
 const karma = require('karma')
@@ -45,38 +47,54 @@ const JasmineExec = require('jasmine')
  */
 const enableActiveNodeHandlesLogging = false
 
-/** Build all-in-one files for use in the browser */
-gulp.task('browser', async function () {
-  const browserOutput = 'lib/browser'
-  // Our app bundler
-  const appBundler = browserify({
-    entries: ['src/index.js'],
-    cache: {},
-    standalone: 'neo4j',
-    packageCache: {},
-    transform: ['babelify', './support/inject-browser-transform']
-  }).bundle()
-
-  // Un-minified browser package
-  await appBundler
-    .on('error', log.error)
-    .pipe(source('neo4j-web.js'))
-    .pipe(gulp.dest(browserOutput))
-
-  await appBundler
-    .on('error', log.error)
-    .pipe(source('neo4j-web.min.js'))
-    .pipe(buffer())
-    .pipe(uglify())
-    .pipe(gulp.dest(browserOutput))
-})
+const browserOutput = 'lib/browser'
 
 gulp.task('nodejs', function () {
   return gulp
     .src('src/**/*.js')
-    .pipe(babel())
+    .pipe(ts({
+      target: 'ES5',
+      lib: ['ES6'],
+      noImplicitAny: true,
+      noImplicitReturns: true,
+      strictNullChecks: true,
+      esModuleInterop: true,
+      moduleResolution: 'node',
+      downlevelIteration: true,
+      allowJs: true,
+      isolatedModules: true
+    }))
     .pipe(gulp.dest('lib'))
 })
+
+gulp.task('generate-umd-bundle', generateBrowserBundleTask({
+  outputFile: 'neo4j-web.js',
+  outputFileMin: 'neo4j-web.min.js',
+  name: 'neo4j',
+  format: 'umd'
+}))
+
+gulp.task('minify-umd-bundle', minifyBrowserBundleTask({
+  inputFile: 'neo4j-web.js',
+  outputFile: 'neo4j-web.min.js'
+}))
+
+gulp.task('browser::umd', gulp.series('generate-umd-bundle', 'minify-umd-bundle'))
+
+gulp.task('generate-esm-bundle', generateBrowserBundleTask({
+  outputFile: 'neo4j-web.esm.js',
+  format: 'esm'
+}))
+
+gulp.task('minify-esm-bundle', minifyBrowserBundleTask({
+  inputFile: 'neo4j-web.esm.js',
+  outputFile: 'neo4j-web.esm.min.js'
+}))
+
+gulp.task('browser::esm', gulp.series('generate-esm-bundle', 'minify-esm-bundle'))
+
+/** Build all-in-one files for use in the browser */
+gulp.task('browser', gulp.series('nodejs', gulp.parallel('browser::umd', 'browser::esm')))
 
 // prepares directory for package.test.js
 gulp.task(
@@ -291,4 +309,47 @@ function runJasmineTests (filterString) {
         }
       })
   })
+}
+
+function generateBrowserBundleTask ({ format, name, outputFile }) {
+  return async function () {
+    return await rollup.rollup({
+      input: 'lib/index.js',
+      plugins: [
+        rollupNodeResolve({
+          browser: true,
+          preferBuiltins: false
+        }),
+        rollupCommonJs(),
+        rollupPolyfillNode()
+      ]
+    }).then(bundle => {
+      return bundle.write({
+        file: `${browserOutput}/${outputFile}`,
+        format,
+        name
+      })
+    })
+  }
+}
+
+function minifyBrowserBundleTask ({ inputFile, outputFile }) {
+  return async function () {
+    const input = `${browserOutput}/${inputFile}`
+    const output = `${browserOutput}/${outputFile}`
+
+    return gulp.src(input)
+      .on('error', log.error)
+      .pipe(new stream.Transform({
+        objectMode: true,
+        transform (file, _, callback) {
+          const clone = file.clone()
+          clone.path = output
+          callback(null, clone)
+        }
+      }))
+      .pipe(buffer())
+      .pipe(uglify())
+      .pipe(gulp.dest(browserOutput))
+  }
 }

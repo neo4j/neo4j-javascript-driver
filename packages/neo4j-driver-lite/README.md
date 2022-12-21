@@ -37,8 +37,16 @@ npm install neo4j-driver-lite@next
 Please note that `@next` only points to pre-releases that are not suitable for production use.
 To get the latest stable release omit `@next` part altogether or use `@latest` instead.
 
+In Common JS modules:
+
 ```javascript
 var neo4j = require('neo4j-driver-lite')
+```
+
+In ECMA Script modules:
+
+```javascript
+import neo4j from 'neo4j-driver-lite'
 ```
 
 Driver instance should be closed when Node.js application exits:
@@ -76,6 +84,27 @@ var driver = neo4j.driver(
   'neo4j://localhost',
   neo4j.auth.basic('neo4j', 'password')
 )
+```
+
+From `5.4.0`, this version is also exported as ECMA Script Module.
+It can be imported from a module using the following statements:
+
+```javascript
+// Direct reference
+import neo4j from 'lib/browser/neo4j-lite-web.esm.min.js'
+
+// unpkg CDN non-minified , version X.Y.Z where X.Y.Z >= 5.4.0
+import neo4j from 'https://unpkg.com/browse/neo4j-driver-lite@X.Y.Z/lib/browser/neo4j-lite-web.esm.js'
+
+// unpkg CDN minified for production use, version X.Y.Z where X.Y.Z >= 5.4.0
+import neo4j from 'https://unpkg.com/browse/neo4j-driver-lite@X.Y.Z/lib/browser/neo4j-lite-web.esm.min.js'
+
+// jsDelivr CDN non-minified, version X.Y.Z where X.Y.Z >= 5.4.0
+import neo4j from 'https://cdn.jsdelivr.net/npm/neo4j-driver-lite@X.Y.Z/lib/browser/neo4j-lite-web.esm.js'
+
+// jsDelivr CDN minified for production use, version X.Y.Z where X.Y.Z >= 5.4.0
+import neo4j from 'https://cdn.jsdelivr.net/npm/neo4j-driver-lite@X.Y.Z/lib/browser/neo4j-lite-web.esm.min.js'
+
 ```
 
 It is not required to explicitly close the driver on a web page. Web browser should gracefully close all open
