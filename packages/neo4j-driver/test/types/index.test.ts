@@ -28,7 +28,13 @@ import {
   session,
   spatial,
   temporal,
-  DateTime
+  DateTime,
+  graph,
+  isNode,
+  isPath,
+  isPathSegment,
+  isRelationship,
+  isUnboundRelationship
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -86,3 +92,15 @@ const isNeo4jLocalDateTime: boolean = temporal.isLocalDateTime({})
 const isNeo4jLocalTime: boolean = temporal.isLocalTime({})
 const isNeo4jTime: boolean = temporal.isTime({})
 const dateTime = DateTime.fromStandardDate(new Date())
+
+const graphIsNode: boolean = graph.isNode({})
+const graphIsPath: boolean = graph.isPath({})
+const graphIsPathSegment: boolean = graph.isPathSegment({})
+const graphIsRelationship: boolean = graph.isRelationship({})
+const graphIsUnboundRelationship: boolean = graph.isUnboundRelationship({})
+
+const neo4jIsNode: boolean = isNode({})
+const neo4jIsPath: boolean = isPath({})
+const neo4jIsPathSegment: boolean = isPathSegment({})
+const neo4jIsRelationship: boolean = isRelationship({})
+const neo4jIsUnboundRelationship: boolean = isUnboundRelationship({})
