@@ -40,7 +40,12 @@ import {
   isDuration,
   isLocalDateTime,
   isLocalTime,
+  isNode,
+  isPath,
+  isPathSegment,
+  isRelationship,
   isTime,
+  isUnboundRelationship,
   LocalDateTime,
   LocalTime,
   Time,
@@ -414,6 +419,17 @@ const temporal = {
 }
 
 /**
+ * Object containing functions to work with graph types, like {@link Node} or {@link Relationship}.
+ */
+const graph = {
+  isNode,
+  isPath,
+  isPathSegment,
+  isRelationship,
+  isUnboundRelationship
+}
+
+/**
  * @private
  */
 const forExport = {
@@ -428,6 +444,11 @@ const forExport = {
   isDate,
   isLocalDateTime,
   isDateTime,
+  isNode,
+  isPath,
+  isPathSegment,
+  isRelationship,
+  isUnboundRelationship,
   integer,
   Neo4jError,
   isRetriableError,
@@ -436,6 +457,7 @@ const forExport = {
   types,
   session,
   error,
+  graph,
   spatial,
   temporal,
   Driver,
@@ -481,6 +503,11 @@ export {
   isDate,
   isLocalDateTime,
   isDateTime,
+  isNode,
+  isPath,
+  isPathSegment,
+  isRelationship,
+  isUnboundRelationship,
   integer,
   Neo4jError,
   isRetriableError,
@@ -489,6 +516,7 @@ export {
   types,
   session,
   error,
+  graph,
   spatial,
   temporal,
   Driver,
