@@ -19,7 +19,7 @@
 import { Parameters } from './query-runner'
 import RxResult from './result-rx'
 
-declare interface RxManagedTransaction {
+declare class RxManagedTransaction {
   run: (query: string, parameters?: Parameters) => RxResult
 }
 

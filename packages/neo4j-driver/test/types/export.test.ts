@@ -20,13 +20,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { Bookmarks } from 'neo4j-driver-core/types/internal/bookmarks'
+import { ConnectionProvider } from 'neo4j-driver-core'
 import driver, {
   DateTime,
   RxSession,
   RxTransaction,
   RxResult,
   Session,
-  ConnectionProvider,
   Record,
   types
 } from '../../'
@@ -89,3 +89,38 @@ const instanceOfInteger: boolean = dummy instanceof types.Integer
 const instanceOfResult: boolean = dummy instanceof types.Result
 const instanceOfResultSummary: boolean = dummy instanceof types.ResultSummary
 const instanceOfRecord: boolean = dummy instanceof types.Record
+const instanceOfRxSession: boolean = dummy instanceof types.RxSession
+const instanceOfRxTransaction: boolean = dummy instanceof types.RxTransaction
+const instanceOfRxManagedTransaction: boolean = dummy instanceof types.RxManagedTransaction
+const instanceOfRxResult: boolean = dummy instanceof types.RxResult
+
+const instanceOfDriverDriver: boolean = dummy instanceof driver.Driver
+const instanceOfDriverNeo4jError: boolean = dummy instanceof driver.Neo4jError
+const instanceOfDriverNode: boolean = dummy instanceof driver.Node
+const instanceOfDriverRelationship: boolean = dummy instanceof driver.Relationship
+const instanceOfDriverUnboundRelationship: boolean = dummy instanceof driver.UnboundRelationship
+const instanceOfDriverPathSegment: boolean = dummy instanceof driver.PathSegment
+const instanceOfDriverPath: boolean = dummy instanceof driver.Path
+const instanceOfDriverInteger: boolean = dummy instanceof driver.Integer
+const instanceOfDriverRecord: boolean = dummy instanceof driver.Record
+const instanceOfDriverResult: boolean = dummy instanceof driver.Result
+const instanceOfDriverResultSummary: boolean = dummy instanceof driver.ResultSummary
+const instanceOfDriverPlan: boolean = dummy instanceof driver.Plan
+const instanceOfDriverProfiledPlan: boolean = dummy instanceof driver.ProfiledPlan
+const instanceOfDriverQueryStatistics: boolean = dummy instanceof driver.QueryStatistics
+const instanceOfDriverNotification: boolean = dummy instanceof driver.Notification
+const instanceOfDriverServerInfo: boolean = dummy instanceof driver.ServerInfo
+const instanceOfDriverSession: boolean = dummy instanceof driver.Session
+const instanceOfDriverTransaction: boolean = dummy instanceof driver.Transaction
+const instanceOfDriverManagedTransaction: boolean = dummy instanceof driver.ManagedTransaction
+const instanceOfDriverPoint: boolean = dummy instanceof driver.Point
+const instanceOfDriverDuration: boolean = dummy instanceof driver.Duration
+const instanceOfDriverLocalTime: boolean = dummy instanceof driver.LocalTime
+const instanceOfDriverTime: boolean = dummy instanceof driver.Time
+const instanceOfDriverDate: boolean = dummy instanceof driver.Date
+const instanceOfDriverLocalDateTime: boolean = dummy instanceof driver.LocalDateTime
+const instanceOfDriverDateTime: boolean = dummy instanceof driver.DateTime
+const instanceOfDriverRxSession: boolean = dummy instanceof driver.RxSession
+const instanceOfDriverRxTransaction: boolean = dummy instanceof driver.RxTransaction
+const instanceOfDriverRxManagedTransaction: boolean = dummy instanceof driver.RxManagedTransaction
+const instanceOfDriverRxResult: boolean = dummy instanceof driver.RxResult

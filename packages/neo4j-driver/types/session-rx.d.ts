@@ -24,7 +24,7 @@ import { Observable } from 'rxjs'
 
 declare type RxTransactionWork<T> = (tx: RxTransaction) => Observable<T>
 
-declare interface RxSession {
+declare class RxSession {
   run: (
     query: string,
     parameters?: Parameters,
