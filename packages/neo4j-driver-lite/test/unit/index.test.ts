@@ -50,7 +50,13 @@ import neo4j, {
   Date,
   LocalDateTime,
   DateTime,
-  BookmarkManager
+  BookmarkManager,
+  graph,
+  isNode,
+  isRelationship,
+  isPath,
+  isPathSegment,
+  isUnboundRelationship
 } from '../../'
 
 describe('index', () => {
@@ -300,5 +306,101 @@ describe('index', () => {
   it('should export an instanciable DateTime', () => {
     const date: DateTime<number> = new DateTime(1, 2, 3, 3, 5, 6, 6, 5)
     expect(date).toBeDefined()
+  })
+
+  it('should export isNode', () => {
+    const node = new Node(int(123), ['abc'], [1])
+
+    expect(isNode(node)).toBe(true)
+  })
+
+  it('should export graph.isNode', () => {
+    const node = new Node(int(123), ['abc'], [1])
+
+    expect(graph.isNode(node)).toBe(true)
+  })
+
+  it('should export isRelationship', () => {
+    const rel = new Relationship(
+      int(123),
+      int(1),
+      int(1),
+      'rel',
+      {}
+    )
+
+    expect(isRelationship(rel)).toBe(true)
+  })
+
+  it('should export graph.isRelationship', () => {
+    const rel = new Relationship(
+      int(123),
+      int(1),
+      int(1),
+      'rel',
+      {}
+    )
+
+    expect(graph.isRelationship(rel)).toBe(true)
+  })
+
+  it('should export isUnboundRelationship', () => {
+    const rel = new UnboundRelationship(
+      int(123),
+      'rel',
+      {}
+    )
+
+    expect(isUnboundRelationship(rel)).toBe(true)
+  })
+
+  it('should export graph.isUnboundRelationship', () => {
+    const rel = new UnboundRelationship(
+      int(123),
+      'rel',
+      {}
+    )
+
+    expect(graph.isUnboundRelationship(rel)).toBe(true)
+  })
+
+  it('should export isPath', () => {
+    const path = new Path(
+      new Node(int(1), ['a'], ['1']),
+      new Node(int(1), ['a'], ['1']),
+      []
+    )
+
+    expect(isPath(path)).toBe(true)
+  })
+
+  it('should export graph.isPath', () => {
+    const path = new Path(
+      new Node(int(1), ['a'], ['1']),
+      new Node(int(1), ['a'], ['1']),
+      []
+    )
+
+    expect(graph.isPath(path)).toBe(true)
+  })
+
+  it('should export isPathSegment', () => {
+    const pathSeg = new PathSegment(
+      new Node(int(1), ['a'], ['1']),
+      new Relationship(int(123), int(1), int(1), 'rel', {}),
+      new Node(int(1), ['a'], ['1'])
+    )
+
+    expect(isPathSegment(pathSeg)).toBe(true)
+  })
+
+  it('should export graph.isPath', () => {
+    const pathSeg = new PathSegment(
+      new Node(int(1), ['a'], ['1']),
+      new Relationship(int(123), int(1), int(1), 'rel', {}),
+      new Node(int(1), ['a'], ['1'])
+    )
+
+    expect(graph.isPathSegment(pathSeg)).toBe(true)
   })
 })

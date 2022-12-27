@@ -38,6 +38,11 @@ import {
   isLocalDateTime,
   isLocalTime,
   isTime,
+  isNode,
+  isPath,
+  isPathSegment,
+  isRelationship,
+  isUnboundRelationship,
   LocalDateTime,
   LocalTime,
   Time,
@@ -155,6 +160,14 @@ declare const temporal: {
   isDateTime: typeof isDateTime
 }
 
+declare const graph: {
+  isNode: typeof isNode
+  isPath: typeof isPath
+  isPathSegment: typeof isPathSegment
+  isRelationship: typeof isRelationship
+  isUnboundRelationship: typeof isUnboundRelationship
+}
+
 /*
  Both default and non-default exports declare all visible types so that they can be used in client code like this:
 
@@ -174,6 +187,7 @@ declare const forExport: {
   types: typeof types
   session: typeof session
   error: typeof error
+  graph: typeof graph
   spatial: typeof spatial
   temporal: typeof temporal
   Driver: typeof Driver
@@ -222,6 +236,11 @@ declare const forExport: {
   isDate: typeof isDate
   isLocalDateTime: typeof isLocalDateTime
   isDateTime: typeof isDateTime
+  isNode: typeof isNode
+  isPath: typeof isPath
+  isPathSegment: typeof isPathSegment
+  isRelationship: typeof isRelationship
+  isUnboundRelationship: typeof isUnboundRelationship
   bookmarkManager: typeof bookmarkManager
 }
 
@@ -235,6 +254,7 @@ export {
   types,
   session,
   error,
+  graph,
   spatial,
   temporal,
   Driver,
@@ -283,6 +303,11 @@ export {
   isDate,
   isLocalDateTime,
   isDateTime,
+  isNode,
+  isPath,
+  isPathSegment,
+  isRelationship,
+  isUnboundRelationship,
   bookmarkManager
 }
 
