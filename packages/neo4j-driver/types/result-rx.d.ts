@@ -19,7 +19,7 @@
 import { Observable } from 'rxjs'
 import { Record, ResultSummary } from 'neo4j-driver-core'
 
-declare interface RxResult {
+declare class RxResult {
   keys: () => Observable<string[]>
 
   records: () => Observable<Record>

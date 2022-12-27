@@ -34,7 +34,7 @@ declare type SessionMode = types.SessionMode
 declare const READ: SessionMode
 declare const WRITE: SessionMode
 
-declare interface Driver extends CoreDriver {
+declare class Driver extends CoreDriver {
   rxSession: (sessionParams?: SessionConfig) => RxSession
 }
 

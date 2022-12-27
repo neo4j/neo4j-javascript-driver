@@ -20,7 +20,7 @@ import { Observable } from 'rxjs'
 import { Parameters } from './query-runner'
 import RxResult from './result-rx'
 
-declare interface RxTransaction {
+declare class RxTransaction {
   run: (query: string, parameters?: Parameters) => RxResult
 
   isOpen: () => boolean

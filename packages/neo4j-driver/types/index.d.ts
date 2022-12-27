@@ -60,7 +60,6 @@ import {
   Transaction,
   ManagedTransaction,
   Session,
-  ConnectionProvider,
   BookmarkManager,
   bookmarkManager,
   BookmarkManagerConfig,
@@ -126,10 +125,10 @@ declare const types: {
   LocalDateTime: typeof LocalDateTime
   DateTime: typeof DateTime
   Integer: typeof Integer
-  RxSession: RxSession
-  RxTransaction: RxTransaction
-  RxManagedTransaction: RxManagedTransaction
-  RxResult: RxResult
+  RxSession: typeof RxSession
+  RxTransaction: typeof RxTransaction
+  RxManagedTransaction: typeof RxManagedTransaction
+  RxResult: typeof RxResult
 }
 
 declare const session: {
@@ -177,47 +176,46 @@ declare const forExport: {
   error: typeof error
   spatial: typeof spatial
   temporal: typeof temporal
-  Driver: Driver
+  Driver: typeof Driver
   AuthToken: AuthToken
   Config: Config
   EncryptionLevel: EncryptionLevel
   TrustStrategy: TrustStrategy
   SessionMode: SessionMode
-  Neo4jError: Neo4jError
+  Neo4jError: typeof Neo4jError
   isRetriableError: typeof isRetriableError
-  Node: Node
-  Relationship: Relationship
-  UnboundRelationship: UnboundRelationship
-  PathSegment: PathSegment
-  Path: Path
-  Integer: Integer
-  Record: Record
-  Result: Result
+  Node: typeof Node
+  Relationship: typeof Relationship
+  UnboundRelationship: typeof UnboundRelationship
+  PathSegment: typeof PathSegment
+  Path: typeof Path
+  Integer: typeof Integer
+  Record: typeof Record
+  Result: typeof Result
   QueryResult: QueryResult
   ResultObserver: ResultObserver
-  ResultSummary: ResultSummary
-  Plan: Plan
-  ProfiledPlan: ProfiledPlan
-  QueryStatistic: QueryStatistics
-  Notification: Notification
-  ServerInfo: ServerInfo
+  ResultSummary: typeof ResultSummary
+  Plan: typeof Plan
+  ProfiledPlan: typeof ProfiledPlan
+  QueryStatistics: typeof QueryStatistics
+  Notification: typeof Notification
+  ServerInfo: typeof ServerInfo
   NotificationPosition: NotificationPosition
-  Session: Session
-  Transaction: Transaction
-  ManagedTransaction: ManagedTransaction
-  Point: Point
+  Session: typeof Session
+  Transaction: typeof Transaction
+  ManagedTransaction: typeof ManagedTransaction
+  Point: typeof Point
   isPoint: typeof isPoint
-  Duration: Duration
-  LocalTime: LocalTime
-  Time: Time
-  Date: Date
-  LocalDateTime: LocalDateTime
-  DateTime: DateTime
-  RxSession: RxSession
-  RxTransaction: RxTransaction
-  RxManagedTransaction: RxManagedTransaction
-  RxResult: RxResult
-  ConnectionProvider: ConnectionProvider
+  Duration: typeof Duration
+  LocalTime: typeof LocalTime
+  Time: typeof Time
+  Date: typeof Date
+  LocalDateTime: typeof LocalDateTime
+  DateTime: typeof DateTime
+  RxSession: typeof RxSession
+  RxTransaction: typeof RxTransaction
+  RxManagedTransaction: typeof RxManagedTransaction
+  RxResult: typeof RxResult
   isDuration: typeof isDuration
   isLocalTime: typeof isLocalTime
   isTime: typeof isTime
@@ -279,7 +277,6 @@ export {
   RxTransaction,
   RxManagedTransaction,
   RxResult,
-  ConnectionProvider,
   isDuration,
   isLocalTime,
   isTime,
