@@ -86,10 +86,10 @@ It can be imported from a module using the following statements:
 import neo4j from 'lib/browser/neo4j-web.esm.min.js'
 
 // unpkg CDN non-minified , version X.Y.Z where X.Y.Z >= 5.4.0
-import neo4j from 'https://unpkg.com/browse/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.js'
+import neo4j from 'https://unpkg.com/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.js'
 
 // unpkg CDN minified for production use, version X.Y.Z where X.Y.Z >= 5.4.0
-import neo4j from 'https://unpkg.com/browse/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.min.js'
+import neo4j from 'https://unpkg.com/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.min.js'
 
 // jsDelivr CDN non-minified, version X.Y.Z where X.Y.Z >= 5.4.0
 import neo4j from 'https://cdn.jsdelivr.net/npm/neo4j-driver@X.Y.Z/lib/browser/neo4j-web.esm.js'
