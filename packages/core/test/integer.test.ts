@@ -450,7 +450,7 @@ describe('Integer', () => {
     fc.assert(
       fc.property(
         fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
-        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }).filter(n => n !== BigInt(0)),
         (num1, num2) =>
           // @ts-expect-error
           num1 / int(num2) === num1 / num2 &&
@@ -460,7 +460,6 @@ describe('Integer', () => {
           int(num1) / int(num2) === num1 / num2
       ))
   })
-
 
   test('int(string) should match int(Integer)', () => {
     fc.assert(fc.property(fc.integer(), i => int(i).equals(int(i.toString()))))
