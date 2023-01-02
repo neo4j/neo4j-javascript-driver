@@ -398,6 +398,70 @@ describe('Integer', () => {
     )
   })
 
+  test('Integer should be able to use + operator as bigint', () => {
+    fc.assert(
+      fc.property(
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        (num1, num2) =>
+          // @ts-expect-error
+          // eslint-disable-next-line  @typescript-eslint/restrict-plus-operands
+          num1 + int(num2) === num1 + num2 &&
+          // @ts-expect-error
+          // eslint-disable-next-line  @typescript-eslint/restrict-plus-operands
+          int(num1) + num2 === num1 + num2 &&
+          // @ts-expect-error
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+          int(num1) + int(num2) === num1 + num2
+      ))
+  })
+
+  test('Integer should be able to use - operator as bigint', () => {
+    fc.assert(
+      fc.property(
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        (num1, num2) =>
+          // @ts-expect-error
+          num1 - int(num2) === num1 - num2 &&
+          // @ts-expect-error
+          int(num1) - num2 === num1 - num2 &&
+          // @ts-expect-error
+          int(num1) - int(num2) === num1 - num2
+      ))
+  })
+
+  test('Integer should be able to use * operator as bigint', () => {
+    fc.assert(
+      fc.property(
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        (num1, num2) =>
+          // @ts-expect-error
+          num1 * int(num2) === num1 * num2 &&
+          // @ts-expect-error
+          int(num1) * num2 === num1 * num2 &&
+          // @ts-expect-error
+          int(num1) * int(num2) === num1 * num2
+      ))
+  })
+
+  test('Integer should be able to use / operator as bigint', () => {
+    fc.assert(
+      fc.property(
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
+        (num1, num2) =>
+          // @ts-expect-error
+          num1 / int(num2) === num1 / num2 &&
+          // @ts-expect-error
+          int(num1) / num2 === num1 / num2 &&
+          // @ts-expect-error
+          int(num1) / int(num2) === num1 / num2
+      ))
+  })
+
+
   test('int(string) should match int(Integer)', () => {
     fc.assert(fc.property(fc.integer(), i => int(i).equals(int(i.toString()))))
   })
