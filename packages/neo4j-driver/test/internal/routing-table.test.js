@@ -265,7 +265,7 @@ describe('#unit RoutingTable', () => {
       }))
 
     it('should return Integer.MAX_VALUE as expirationTime when ttl overflowed', async () => {
-      const ttl = int(Integer.MAX_VALUE - 2)
+      const ttl = int(Integer.MAX_VALUE - 2n)
       const routers = ['router:7699']
       const readers = ['reader1:7699', 'reader2:7699']
       const writers = ['writer1:7693', 'writer2:7692', 'writer3:7629']
