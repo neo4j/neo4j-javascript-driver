@@ -389,7 +389,7 @@ describe('Integer', () => {
     )
   })
 
-  test('Integer should be able to used in the string interpolation', () => {
+  test('Integer should be able to be used in the string interpolation', () => {
     fc.assert(
       fc.property(
         fc.bigInt({ max: Integer.MAX_SAFE_VALUE.toBigInt(), min: Integer.MIN_SAFE_VALUE.toBigInt() }),
