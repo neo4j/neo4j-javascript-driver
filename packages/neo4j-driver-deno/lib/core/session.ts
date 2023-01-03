@@ -325,9 +325,10 @@ class Session {
   /**
    * Return the bookmarks received following the last completed {@link Transaction}.
    *
-   * @deprecated This method will be removed in version 6.0. Please, use {@link Session#lastBookmarks} instead.
+   * @deprecated This method will be removed in version 6.0. Please, use Session#lastBookmarks instead.
    *
    * @return {string[]} A reference to a previous transaction.
+   * @see {@link Session#lastBookmarks}
    */
   lastBookmark (): string[] {
     return this.lastBookmarks()
@@ -358,13 +359,14 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
-   * @deprecated This method will be removed in version 6.0. Please, use {@link Session#executeRead} instead.
+   * @deprecated This method will be removed in version 6.0. Please, use Session#executeRead instead.
    *
    * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
    * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
    * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
+   * @see {@link Session#executeRead}
    */
   readTransaction<T>(
     transactionWork: TransactionWork<T>,
@@ -382,13 +384,14 @@ class Session {
    * delay of 1 second and maximum retry time of 30 seconds. Maximum retry time is configurable via driver config's
    * `maxTransactionRetryTime` property in milliseconds.
    *
-   * @deprecated This method will be removed in version 6.0. Please, use {@link Session#executeWrite} instead.
+   * @deprecated This method will be removed in version 6.0. Please, use Session#executeWrite instead.
    *
    * @param {function(tx: Transaction): Promise} transactionWork - Callback that executes operations against
    * a given {@link Transaction}.
    * @param {TransactionConfig} [transactionConfig] - Configuration for all transactions started to execute the unit of work.
    * @return {Promise} Resolved promise as returned by the given function or rejected promise when given
    * function or commit fails.
+   * @see {@link Session#executeWrite}
    */
   writeTransaction<T>(
     transactionWork: TransactionWork<T>,
