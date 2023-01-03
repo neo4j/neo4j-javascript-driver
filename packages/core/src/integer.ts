@@ -198,6 +198,21 @@ class Integer {
   }
 
   /**
+   * Converts the Integer to it primitive value.
+   *
+   * @since 5.4.0
+   * @returns {bigint}
+   *
+   * @see {@link Integer#toBigInt}
+   * @see {@link Integer#toInt}
+   * @see {@link Integer#toNumber}
+   * @see {@link Integer#toString}
+   */
+  valueOf (): bigint {
+    return this.toBigInt()
+  }
+
+  /**
    * Gets the high 32 bits as a signed integer.
    * @returns {number} Signed high bits
    * @expose
