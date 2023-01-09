@@ -172,7 +172,17 @@ export default class ChannelConnection extends Connection {
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
   connect (userAgent, authToken) {
-    return this._initialize(userAgent, authToken)
+    const self = this
+    // credentialsRefresher is function to refresh credentials
+    if (authToken && authToken.credentialsRefresher) {
+        var maybePromise = authToken.credentialsRefresher(authToken)
+        return Promise.resolve(maybePromise).then(function(creds) {
+            authToken.credentials = creds
+            return self._initialize(userAgent, authToken);
+        })
+    }
+
+    return self._initialize(userAgent, authToken)
   }
 
   /**

@@ -119,14 +119,14 @@ class Packer {
 
         let count = 0
         for (let i = 0; i < keys.length; i++) {
-          if (x[keys[i]] !== undefined) {
+          if (x[keys[i]] !== undefined && keys[i] !== "credentialsRefresher") {
             count++
           }
         }
         this.packMapHeader(count)
         for (let i = 0; i < keys.length; i++) {
           const key = keys[i]
-          if (x[key] !== undefined) {
+          if (x[key] !== undefined && key !== "credentialsRefresher") {
             this.packString(key)
             this.packable(x[key], dehydrateStruct)()
           }
