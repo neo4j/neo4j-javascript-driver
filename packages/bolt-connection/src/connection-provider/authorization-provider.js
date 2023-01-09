@@ -22,7 +22,7 @@
  */
 export default class AuthenticationProvider {
   constructor ({ authTokenProvider, userAgent }) {
-    this._getAuthToken = authTokenProvider
+    this._getAuthToken = authTokenProvider || (() => ({}))
     this._renewableAuthToken = undefined
     this._userAgent = userAgent
     this._refreshObserver = undefined
@@ -41,8 +41,8 @@ export default class AuthenticationProvider {
   }
 
   async handleError ({ connection, code }) {
-    if ( 
-      connection.authToken === this._authToken &&  
+    if (
+      connection.authToken === this._authToken &&
       [
         'Neo.ClientError.Security.Unauthorized',
         'Neo.ClientError.Security.TokenExpired'

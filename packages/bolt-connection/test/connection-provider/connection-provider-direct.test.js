@@ -56,7 +56,7 @@ describe('#unit DirectConnectionProvider', () => {
     expect(conn instanceof DelegateConnection).toBeTruthy()
   })
 
-  it('should purge connections for address when AuthorizationExpired happens', async () => {
+  it('should not purge connections for address when AuthorizationExpired happens', async () => {
     const address = ServerAddress.fromUrl('localhost:123')
     const pool = newPool()
     jest.spyOn(pool, 'purge')
@@ -74,7 +74,7 @@ describe('#unit DirectConnectionProvider', () => {
 
     conn.handleAndTransformError(error, address)
 
-    expect(pool.purge).toHaveBeenCalledWith(address)
+    expect(pool.purge).not.toHaveBeenCalledWith(address)
   })
 
   it('should purge not change error when AuthorizationExpired happens', async () => {
@@ -98,7 +98,7 @@ describe('#unit DirectConnectionProvider', () => {
   })
 })
 
-it('should purge connections for address when TokenExpired happens', async () => {
+it('should not purge connections for address when TokenExpired happens', async () => {
   const address = ServerAddress.fromUrl('localhost:123')
   const pool = newPool()
   jest.spyOn(pool, 'purge')
@@ -116,7 +116,7 @@ it('should purge connections for address when TokenExpired happens', async () =>
 
   conn.handleAndTransformError(error, address)
 
-  expect(pool.purge).toHaveBeenCalledWith(address)
+  expect(pool.purge).not.toHaveBeenCalledWith(address)
 })
 
 it('should not change error when TokenExpired happens', async () => {
@@ -345,6 +345,10 @@ class FakeConnection extends Connection {
     this._address = address
     this._release = jest.fn(() => release(address, this))
     this._server = server
+  }
+
+  get authToken () {
+    return this._authToken
   }
 
   get address () {

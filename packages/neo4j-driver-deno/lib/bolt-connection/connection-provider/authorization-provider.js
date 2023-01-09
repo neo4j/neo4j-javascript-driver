@@ -22,7 +22,7 @@
  */
 export default class AuthenticationProvider {
   constructor ({ authTokenProvider, userAgent }) {
-    this._getAuthToken = authTokenProvider
+    this._getAuthToken = authTokenProvider || (() => ({}))
     this._renewableAuthToken = undefined
     this._userAgent = userAgent
     this._refreshObserver = undefined

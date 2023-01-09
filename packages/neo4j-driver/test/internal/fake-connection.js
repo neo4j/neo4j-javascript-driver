@@ -79,6 +79,10 @@ export default class FakeConnection extends Connection {
     this._server.version = value
   }
 
+  get authToken () {
+    return this._authToken
+  }
+
   protocol () {
     // return fake protocol object that simply records seen queries and parameters
     return {

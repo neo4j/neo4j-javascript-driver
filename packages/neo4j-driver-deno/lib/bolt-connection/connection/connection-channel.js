@@ -148,7 +148,7 @@ export default class ChannelConnection extends Connection {
      */
     this._protocol = protocolSupplier(this)
 
-    this._supportsReAuth = this._protocol.version > 5.0
+    this._supportsReAuth = this._protocol ? this._protocol.version > 5.0 : false // TODO: Move logic to the protocol
 
     // Set to true on fatal errors, to get this out of connection pool.
     this._isBroken = false

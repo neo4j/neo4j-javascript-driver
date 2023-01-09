@@ -1434,7 +1434,7 @@ describe.each([
       })
   }, 10000)
 
-  it.each(usersDataSet)('should purge connections for address when AuthorizationExpired happens [user=%s]', async (user) => {
+  it.each(usersDataSet)('should not purge connections for address when AuthorizationExpired happens [user=%s]', async (user) => {
     const pool = newPool()
 
     jest.spyOn(pool, 'purge')
@@ -1471,8 +1471,8 @@ describe.each([
     server3Connection.handleAndTransformError(error, server3)
     server2Connection.handleAndTransformError(error, server2)
 
-    expect(pool.purge).toHaveBeenCalledWith(server3)
-    expect(pool.purge).toHaveBeenCalledWith(server2)
+    expect(pool.purge).not.toHaveBeenCalledWith(server3)
+    expect(pool.purge).not.toHaveBeenCalledWith(server2)
   })
 
   it.each(usersDataSet)('should purge not change error when AuthorizationExpired happens [user=%s]', async (user) => {
@@ -1511,7 +1511,7 @@ describe.each([
     expect(error).toBe(expectedError)
   })
 
-  it.each(usersDataSet)('should purge connections for address when TokenExpired happens [user=%s]', async (user) => {
+  it.each(usersDataSet)('should not purge connections for address when TokenExpired happens [user=%s]', async (user) => {
     const pool = newPool()
 
     jest.spyOn(pool, 'purge')
@@ -1548,8 +1548,8 @@ describe.each([
     server3Connection.handleAndTransformError(error, server3)
     server2Connection.handleAndTransformError(error, server2)
 
-    expect(pool.purge).toHaveBeenCalledWith(server3)
-    expect(pool.purge).toHaveBeenCalledWith(server2)
+    expect(pool.purge).not.toHaveBeenCalledWith(server3)
+    expect(pool.purge).not.toHaveBeenCalledWith(server2)
   })
 
   it.each(usersDataSet)('should not change error when TokenExpired happens [user=%s]', async (user) => {
@@ -1784,7 +1784,7 @@ describe.each([
       expect(conn2.address).toBe(serverA)
     }, 10000)
 
-    it.each(usersDataSet)('should purge connections for address when AuthorizationExpired happens [user=%s]', async (user) => {
+    it.each(usersDataSet)('should not purge connections for address when AuthorizationExpired happens [user=%s]', async (user) => {
       const pool = newPool()
 
       jest.spyOn(pool, 'purge')
@@ -1822,11 +1822,11 @@ describe.each([
       serverAConnection.handleAndTransformError(error, serverA)
       server2Connection.handleAndTransformError(error, server2)
 
-      expect(pool.purge).toHaveBeenCalledWith(serverA)
-      expect(pool.purge).toHaveBeenCalledWith(server2)
+      expect(pool.purge).not.toHaveBeenCalledWith(serverA)
+      expect(pool.purge).not.toHaveBeenCalledWith(server2)
     })
 
-    it.each(usersDataSet)('should purge not change error when AuthorizationExpired happens [user=%s]', async (user) => {
+    it.each(usersDataSet)('should not purge change error when AuthorizationExpired happens [user=%s]', async (user) => {
       const pool = newPool()
 
       const connectionProvider = newRoutingConnectionProvider(
@@ -1861,7 +1861,7 @@ describe.each([
       expect(error).toBe(expectedError)
     })
 
-    it.each(usersDataSet)('should purge connections for address when TokenExpired happens [user=%s]', async (user) => {
+    it.each(usersDataSet)('should not purge connections for address when TokenExpired happens [user=%s]', async (user) => {
       const pool = newPool()
 
       jest.spyOn(pool, 'purge')
@@ -1899,8 +1899,8 @@ describe.each([
       serverAConnection.handleAndTransformError(error, serverA)
       server2Connection.handleAndTransformError(error, server2)
 
-      expect(pool.purge).toHaveBeenCalledWith(serverA)
-      expect(pool.purge).toHaveBeenCalledWith(server2)
+      expect(pool.purge).not.toHaveBeenCalledWith(serverA)
+      expect(pool.purge).not.toHaveBeenCalledWith(server2)
     })
 
     it.each(usersDataSet)('should not change error when TokenExpired happens [user=%s]', async (user) => {
@@ -3103,6 +3103,10 @@ class FakeConnection extends Connection {
     this._release = jest.fn(() => release(address, this))
     this.resetAndFlush = jest.fn(() => Promise.resolve())
     this._server = server
+  }
+
+  get authToken () {
+    return this._authToken
   }
 
   get address () {
