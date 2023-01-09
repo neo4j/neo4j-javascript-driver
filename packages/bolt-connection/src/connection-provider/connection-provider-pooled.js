@@ -20,6 +20,7 @@
 import { createChannelConnection, ConnectionErrorHandler } from '../connection'
 import Pool, { PoolConfig } from '../pool'
 import { error, ConnectionProvider, ServerInfo } from 'neo4j-driver-core'
+import AuthenticationProvider from './authorization-provider'
 
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
@@ -32,9 +33,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._id = id
     this._config = config
     this._log = log
-    this._userAgent = userAgent
-    this._renewableAuthToken = undefined
-    this._authTokenProvider = authTokenProvider
+    this._authenticationProvider = new AuthenticationProvider({ authTokenProvider, userAgent })
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
@@ -76,71 +75,14 @@ export default class PooledConnectionProvider extends ConnectionProvider {
         return release(address, connection)
       }
       this._openConnections[connection.id] = connection
-      return this._getAuthToken()
-        .then(authToken => connection
-          .connect(this._userAgent, authToken)
-          .catch(error => {
-            // let's destroy this connection
-            this._destroyConnection(connection)
-            // propagate the error because connection failed to connect / initialize
-            throw error
-          }))
+      return this._authenticationProvider.authenticate({ connection })
+        .catch(error => {
+          // let's destroy this connection
+          this._destroyConnection(connection)
+          // propagate the error because connection failed to connect / initialize
+          throw error
+        })
     })
-  }
-
-  async _getAuthToken () {
-    if (!this._isRenewableTokenAcquired() || this._isRenewableTokenExpired()) {
-      this._refreshToken()
-    }
-
-    if (this._refreshObserver) {
-      const promiseState = {}
-      const promise = new Promise((resolve, reject) => {
-        promiseState.resolve = resolve
-        promiseState.reject = reject
-      })
-
-      this._refreshObserver.subscribe({
-        onSuccess: promiseState.resolve,
-        onError: promiseState.onError
-      })
-
-      await promise
-    }
-
-    return this._renewableAuthToken.authToken
-  }
-
-  _refreshToken () {
-    if (!this._refreshObserver) {
-      const subscribers = []
-      this._refreshObserver = {
-        subscribe: (sub) => subscribers.push(sub),
-        notify: () => subscribers.forEach(sub => sub.onSuccess()),
-        notifyError: (e) => subscribers.forEach(sub => sub.onError(e))
-      }
-      Promise.resolve(this._authTokenProvider())
-        .then(token => {
-          this._renewableAuthToken = token
-          this._refreshObserver.notify()
-          return token
-        })
-        .catch(e => {
-          this._refreshObserver.notifyError(e)
-        })
-        .finally(() => {
-          this._refreshObserver = undefined
-        })
-    }
-  }
-
-  _isRenewableTokenAcquired () {
-    return !!this._renewableAuthToken
-  }
-
-  _isRenewableTokenExpired () {
-    return this._renewableAuthToken.expectedExpirationTime &&
-        this._renewableAuthToken.expectedExpirationTime < new Date()
   }
 
   /**
@@ -159,16 +101,13 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       return false
     }
 
-    if (this._renewableAuthToken.authToken !== conn.authToken || this._isRenewableTokenExpired()) {
-      if (!conn.supportsReAuth) {
-        return false
-      }
-      try {
-        const authToken = await this._getAuthToken()
-        await conn.reAuth(authToken)
-      } catch (e) {
-        return false
-      }
+    try {
+      await this._authenticationProvider.authenticate({ connection: conn })
+    } catch (error) {
+      this._log.info(
+        `The connection ${conn.id} is not valid because of an error ${error.code} '${error.message}'`
+      )
+      return false
     }
 
     return true

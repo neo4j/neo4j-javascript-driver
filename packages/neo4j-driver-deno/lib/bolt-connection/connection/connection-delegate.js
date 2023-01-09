@@ -51,6 +51,18 @@ export default class DelegateConnection extends Connection {
     return this._delegate.server
   }
 
+  get authToken () {
+    return this._delegate.authToken
+  }
+
+  get supportsReAuth () {
+    return this._delegate.supportsReAuth
+  }
+
+  set authToken (value) {
+    this._delegate.authToken = value
+  }
+
   get address () {
     return this._delegate.address
   }
@@ -65,6 +77,10 @@ export default class DelegateConnection extends Connection {
 
   isOpen () {
     return this._delegate.isOpen()
+  }
+
+  reAuth (authToken) {
+    return this._delegate.reAuth(authToken)
   }
 
   protocol () {

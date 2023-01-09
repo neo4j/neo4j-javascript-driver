@@ -37,6 +37,9 @@ class Connection {
     return {}
   }
 
+  /**
+   * @property {object} authToken The auth registered in the connection
+   */
   get authToken (): any {
     return {}
   }
@@ -55,6 +58,9 @@ class Connection {
     return undefined
   }
 
+  /**
+   * @property {boolean} supportsReAuth Indicates the connection supports re-auth
+   */
   get supportsReAuth (): boolean {
     return false
   }

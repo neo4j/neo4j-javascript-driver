@@ -62,15 +62,15 @@ export default class ConnectionErrorHandler {
    * @param {ServerAddress} address the address of the connection where the error happened.
    * @return {Neo4jError} new error that should be propagated to the user.
    */
-  handleAndTransformError (error, address) {
+  handleAndTransformError (error, address, connection) {
     if (isAutorizationExpiredError(error)) {
-      return this._handleAuthorizationExpired(error, address)
+      return this._handleAuthorizationExpired(error, address, connection)
     }
     if (isAvailabilityError(error)) {
-      return this._handleUnavailability(error, address)
+      return this._handleUnavailability(error, address, connection)
     }
     if (isFailureToWrite(error)) {
-      return this._handleWriteFailure(error, address)
+      return this._handleWriteFailure(error, address, connection)
     }
     return error
   }

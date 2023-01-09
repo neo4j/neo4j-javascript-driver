@@ -57,14 +57,15 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
       )
   }
 
-  _handleAuthorizationExpired (error, address, conn, database) {
+  _handleAuthorizationExpired (error, address, connection, database) {
     this._log.warn(
       `Direct driver ${this._id} will close connection to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
+    
+    this._authenticationProvider.handleError({ connection, code: error.code })
+    
     if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {
       this._connectionPool.apply(address, (conn) => conn.authToken === null)
-    } else {
-      this._refreshToken()
     }
 
     return error

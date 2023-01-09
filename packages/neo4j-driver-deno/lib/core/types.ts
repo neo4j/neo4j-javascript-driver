@@ -48,6 +48,15 @@ export interface AuthToken {
   realm?: string
   parameters?: Parameters
 }
+
+export interface RenewableAuthToken {
+  expectedExpirationTime?: Date
+  authToken: AuthToken
+}
+
+// Can be async, the user probably wants to do some IO.
+export type AuthTokenProvider = () => Promise<RenewableAuthToken> | RenewableAuthToken
+
 export interface Config {
   encrypted?: boolean | EncryptionLevel
   trust?: TrustStrategy

@@ -102,6 +102,8 @@ import {
 } from './bolt-connection/index.js'
 
 type AuthToken = coreTypes.AuthToken
+type RenewableAuthToken = coreTypes.RenewableAuthToken
+type AuthTokenProvider = coreTypes.AuthTokenProvider
 type Config = coreTypes.Config
 type TrustStrategy = coreTypes.TrustStrategy
 type EncryptionLevel = coreTypes.EncryptionLevel
@@ -116,6 +118,22 @@ const {
   serverAddress: { ServerAddress },
   urlUtil
 } = internal
+
+function createAuthProvider (authTokenOrProvider: AuthToken | AuthTokenProvider): AuthTokenProvider {
+  if (typeof authTokenOrProvider === 'function') {
+    return authTokenOrProvider
+  }
+
+  let authToken: AuthToken = authTokenOrProvider
+  // Sanitize authority token. Nicer error from server when a scheme is set.
+  authToken = authToken ?? {}
+  authToken.scheme = authToken.scheme ?? 'none'
+  return function (): RenewableAuthToken {
+    return {
+      authToken
+    }
+  }
+}
 
 /**
  * Construct a new Neo4j Driver. This is your main entry point for this
@@ -247,13 +265,13 @@ const {
  *     }
  *
  * @param {string} url The URL for the Neo4j database, for instance "neo4j://localhost" and/or "bolt://localhost"
- * @param {Map<string,string>} authToken Authentication credentials. See {@link auth} for helpers.
+ * @param {Map<string,string>| function()} authToken Authentication credentials. See {@link auth} for helpers.
  * @param {Object} config Configuration object. See the configuration section above for details.
  * @returns {Driver}
  */
 function driver (
   url: string,
-  authToken: AuthToken,
+  authToken: AuthToken | AuthTokenProvider,
   config: Config = {}
 ): Driver {
   assertString(url, 'Bolt URL')
@@ -303,9 +321,7 @@ function driver (
     config.trust = trust
   }
 
-  // Sanitize authority token. Nicer error from server when a scheme is set.
-  authToken = authToken ?? {}
-  authToken.scheme = authToken.scheme ?? 'none'
+  const authTokenProvider = createAuthProvider(authToken)
 
   // Use default user agent or user agent specified by user.
   config.userAgent = config.userAgent ?? USER_AGENT
@@ -332,7 +348,7 @@ function driver (
           config,
           log,
           hostNameResolver,
-          authToken,
+          authTokenProvider,
           address,
           userAgent: config.userAgent,
           routingContext: parsedUrl.query
@@ -349,7 +365,7 @@ function driver (
           id,
           config,
           log,
-          authToken,
+          authTokenProvider,
           address,
           userAgent: config.userAgent
         })
@@ -586,6 +602,8 @@ export {
 export type {
   QueryResult,
   AuthToken,
+  AuthTokenProvider,
+  RenewableAuthToken,
   Config,
   EncryptionLevel,
   TrustStrategy,

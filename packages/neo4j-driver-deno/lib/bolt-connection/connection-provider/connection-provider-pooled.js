@@ -20,11 +20,12 @@
 import { createChannelConnection, ConnectionErrorHandler } from '../connection/index.js'
 import Pool, { PoolConfig } from '../pool/index.js'
 import { error, ConnectionProvider, ServerInfo } from '../../core/index.ts'
+import AuthenticationProvider from './authorization-provider.js'
 
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
-    { id, config, log, userAgent, authToken },
+    { id, config, log, userAgent, authTokenProvider },
     createChannelConnectionHook = null
   ) {
     super()
@@ -32,8 +33,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._id = id
     this._config = config
     this._log = log
-    this._userAgent = userAgent
-    this._authToken = authToken
+    this._authenticationProvider = new AuthenticationProvider({ authTokenProvider, userAgent })
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
@@ -75,8 +75,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
         return release(address, connection)
       }
       this._openConnections[connection.id] = connection
-      return connection
-        .connect(this._userAgent, this._authToken)
+      return this._authenticationProvider.authenticate({ connection })
         .catch(error => {
           // let's destroy this connection
           this._destroyConnection(connection)
@@ -91,14 +90,27 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    * @return {boolean} true if the connection is open
    * @access private
    **/
-  _validateConnection (conn) {
+  async _validateConnection (conn) {
     if (!conn.isOpen()) {
       return false
     }
 
     const maxConnectionLifetime = this._config.maxConnectionLifetime
     const lifetime = Date.now() - conn.creationTimestamp
-    return lifetime <= maxConnectionLifetime
+    if (lifetime > maxConnectionLifetime) {
+      return false
+    }
+
+    try {
+      await this._authenticationProvider.authenticate({ connection: conn })
+    } catch (error) {
+      this._log.info(
+        `The connection ${conn.id} is not valid because of an error ${error.code} '${error.message}'`
+      )
+      return false
+    }
+
+    return true
   }
 
   /**

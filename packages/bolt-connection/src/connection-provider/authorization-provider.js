@@ -17,28 +17,56 @@
  * limitations under the License.
  */
 
-export class AuthTokenHolder {
-  constructor ({ authTokenProvider }) {
+/**
+ * Class which provides Authorization for {@link Connection}
+ */
+export default class AuthenticationProvider {
+  constructor ({ authTokenProvider, userAgent }) {
     this._getAuthToken = authTokenProvider
     this._renewableAuthToken = undefined
+    this._userAgent = userAgent
     this._refreshObserver = undefined
   }
 
-  get () {
+  async authenticate ({ connection }) {
+    if (!this._authToken) {
+      await this._getFreshAuthToken()
+    }
+
+    if (this._renewableAuthToken.authToken !== connection.authToken || this._isTokenExpired()) {
+      return await connection.connect(this._userAgent, this._authToken)
+    }
+
+    return connection
+  }
+
+  async handleError ({ connection, code }) {
+    if ( 
+      connection.authToken === this._authToken &&  
+      [
+        'Neo.ClientError.Security.Unauthorized',
+        'Neo.ClientError.Security.TokenExpired'
+      ].includes(code)
+    ) {
+      this._scheduleRefresh()
+    }
+  }
+
+  get _authToken () {
     if (this._renewableAuthToken) {
       return this._renewableAuthToken.authToken
     }
     return undefined
   }
 
-  isTokenExpired () {
+  get _isTokenExpired () {
     return !this._renewableAuthToken ||
       (this._renewableAuthToken.expectedExpirationTime &&
       this._renewableAuthToken.expectedExpirationTime < new Date())
   }
 
-  async getFresh () {
-    if (this.isTokenExpired()) {
+  async _getFreshAuthToken () {
+    if (this._isTokenExpired) {
       const promiseState = {}
       const promise = new Promise((resolve, reject) => {
         promiseState.resolve = resolve
@@ -53,10 +81,10 @@ export class AuthTokenHolder {
       await promise
     }
 
-    return this.get()
+    return this._authToken
   }
 
-  scheduleRefresh (observer) {
+  _scheduleRefresh (observer) {
     // there is no refresh schedule
     if (!this._refreshObserver) {
       const subscribers = []

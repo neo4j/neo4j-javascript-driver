@@ -38,7 +38,8 @@ import {
   LoggingConfig,
   TrustStrategy,
   SessionMode,
-  Query
+  Query,
+  AuthToken
 } from './types.ts'
 import { ServerAddress } from './internal/server-address.ts'
 import BookmarkManager, { bookmarkManager } from './bookmark-manager.ts'
@@ -96,6 +97,7 @@ type CreateSession = (args: {
   impersonatedUser?: string
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
+  auth?: AuthToken
 }) => Session
 
 type CreateQueryExecutor = (createSession: (config: { database?: string, bookmarkManager?: BookmarkManager }) => Session) => QueryExecutor
@@ -121,6 +123,7 @@ class SessionConfig {
   fetchSize?: number
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
+  auth?: AuthToken
 
   /**
    * @constructor
@@ -696,7 +699,8 @@ class Driver {
     impersonatedUser,
     fetchSize,
     bookmarkManager,
-    notificationFilter
+    notificationFilter,
+    auth
   }: SessionConfig = {}): Session {
     return this._newSession({
       defaultAccessMode,
@@ -707,7 +711,8 @@ class Driver {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       fetchSize: validateFetchSizeValue(fetchSize, this._config.fetchSize!),
       bookmarkManager,
-      notificationFilter
+      notificationFilter,
+      auth
     })
   }
 
@@ -746,7 +751,8 @@ class Driver {
     impersonatedUser,
     fetchSize,
     bookmarkManager,
-    notificationFilter
+    notificationFilter,
+    auth
   }: {
     defaultAccessMode: SessionMode
     bookmarkOrBookmarks?: string | string[]
@@ -755,7 +761,8 @@ class Driver {
     impersonatedUser?: string
     fetchSize: number
     bookmarkManager?: BookmarkManager
-    notificationFilter?: NotificationFilter
+    notificationFilter?: NotificationFilter,
+    auth?: AuthToken
   }): Session {
     const sessionMode = Session._validateSessionMode(defaultAccessMode)
     const connectionProvider = this._getOrCreateConnectionProvider()
@@ -773,7 +780,8 @@ class Driver {
       impersonatedUser,
       fetchSize,
       bookmarkManager,
-      notificationFilter
+      notificationFilter,
+      auth
     })
   }
 
