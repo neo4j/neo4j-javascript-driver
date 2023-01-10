@@ -113,13 +113,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._log.warn(
       `Routing driver ${this._id} will close connections to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
-    
+
     this._authenticationProvider.handleError({ connection, code: error.code })
 
     if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {
       this._connectionPool.apply(address, (conn) => conn.authToken === null)
     }
-
 
     return error
   }
@@ -194,12 +193,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       )
 
       if (auth && auth !== connection.authToken) {
-        console.log('need to re-auth')
         if (connection.supportsReAuth) {
-          connection.reAuth(auth, true)
+          await connection.connect(this._userAgent, auth)
         } else {
           await connection._release()
-          console.log('create sticky connection')
           return await this._createStickyConnection({ address, auth })
         }
       }
@@ -566,7 +563,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
       if (auth && connection.authToken !== auth) {
         if (connection.supportsReAuth) {
-          await connection.reAuth(auth)
+          await await connection.connect(this._userAgent, auth)
         } else {
           await connection._release()
           connection = await this._createStickyConnection({

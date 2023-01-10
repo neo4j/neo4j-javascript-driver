@@ -41,8 +41,8 @@ export default class AuthenticationProvider {
   }
 
   async handleError ({ connection, code }) {
-    if (
-      connection.authToken === this._authToken &&
+    if ( 
+      connection.authToken === this._authToken &&  
       [
         'Neo.ClientError.Security.Unauthorized',
         'Neo.ClientError.Security.TokenExpired'
@@ -67,17 +67,12 @@ export default class AuthenticationProvider {
 
   async _getFreshAuthToken () {
     if (this._isTokenExpired) {
-      const promiseState = {}
       const promise = new Promise((resolve, reject) => {
-        promiseState.resolve = resolve
-        promiseState.reject = reject
+        this.scheduleRefresh({
+          onSuccess: resolve,
+          onError: reject
+        })
       })
-
-      this.scheduleRefresh({
-        onSuccess: promiseState.resolve,
-        onError: promiseState.onError
-      })
-
       await promise
     }
 

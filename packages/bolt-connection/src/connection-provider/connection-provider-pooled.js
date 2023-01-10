@@ -20,7 +20,7 @@
 import { createChannelConnection, ConnectionErrorHandler } from '../connection'
 import Pool, { PoolConfig } from '../pool'
 import { error, ConnectionProvider, ServerInfo } from 'neo4j-driver-core'
-import AuthenticationProvider from './authorization-provider'
+import AuthenticationProvider from './authentication-provider'
 
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {

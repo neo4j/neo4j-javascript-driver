@@ -20,7 +20,7 @@
 import { createChannelConnection, ConnectionErrorHandler } from '../connection/index.js'
 import Pool, { PoolConfig } from '../pool/index.js'
 import { error, ConnectionProvider, ServerInfo } from '../../core/index.ts'
-import AuthenticationProvider from './authorization-provider.js'
+import AuthenticationProvider from './authentication-provider.js'
 
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {

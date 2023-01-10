@@ -148,8 +148,6 @@ export default class ChannelConnection extends Connection {
      */
     this._protocol = protocolSupplier(this)
 
-    this._supportsReAuth = this._protocol ? this._protocol.version > 5.0 : false // TODO: Move logic to the protocol
-
     // Set to true on fatal errors, to get this out of connection pool.
     this._isBroken = false
 
@@ -167,7 +165,7 @@ export default class ChannelConnection extends Connection {
   }
 
   get supportsReAuth () {
-    return this._supportsReAuth
+    return this._protocol.supportsLogoff
   }
 
   get id () {
@@ -188,15 +186,26 @@ export default class ChannelConnection extends Connection {
    * @param {Object} authToken the object containing auth information.
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
-  connect (userAgent, authToken) {
+  async connect (userAgent, authToken) {
     this._authToken = authToken
-    return this._initialize(userAgent, authToken)
-  }
+    if (!this._protocol.initialized) {
+      return await this._initialize(userAgent, authToken)
+    }
 
-  async reAuth (authToken) {
-    this._authToken = authToken
-    console.log('re aut')
-    return this
+    if (!this._protocol.supportsLogoff) {
+      throw newError('Connection does not support re-auth')
+    }
+
+    const logoffPromise = new Promise((resolve, reject) => {
+      this._protocol.logoff({ onComplete: resolve, onError: reject })
+    })
+
+    const loginPromise = new Promise((resolve, reject) => {
+      this._protocol.login({ onComplete: resolve, onError: reject, flush: true })
+    })
+
+    return await Promise.all(logoffPromise, loginPromise)
+      .then(() => this)
   }
 
   /**

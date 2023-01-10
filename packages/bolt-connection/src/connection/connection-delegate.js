@@ -79,10 +79,6 @@ export default class DelegateConnection extends Connection {
     return this._delegate.isOpen()
   }
 
-  reAuth (authToken) {
-    return this._delegate.reAuth(authToken)
-  }
-
   protocol () {
     return this._delegate.protocol()
   }
