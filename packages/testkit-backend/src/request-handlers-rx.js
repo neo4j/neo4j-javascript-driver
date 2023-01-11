@@ -22,7 +22,10 @@ export {
   BookmarksSupplierCompleted,
   BookmarksConsumerCompleted,
   StartSubTest,
-  ExecuteQuery
+  ExecuteQuery,
+  NewAuthTokenProvider,
+  AuthTokenProviderCompleted,
+  AuthTokenProviderClose
 } from './request-handlers.js'
 
 export function NewSession (neo4j, context, data, wire) {

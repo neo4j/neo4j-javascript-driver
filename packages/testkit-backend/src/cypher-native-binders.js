@@ -253,10 +253,34 @@ export default function CypherNativeBinders (neo4j) {
     throw Error(err)
   }
 
+  function parseAuthToken (authToken) {
+    switch (authToken.scheme) {
+      case 'basic':
+        return neo4j.auth.basic(
+          authToken.principal,
+          authToken.credentials,
+          authToken.realm
+        )
+      case 'kerberos':
+        return neo4j.auth.kerberos(authToken.credentials)
+      case 'bearer':
+        return neo4j.auth.bearer(authToken.credentials)
+      default:
+        return neo4j.auth.custom(
+          authToken.principal,
+          authToken.credentials,
+          authToken.realm,
+          authToken.scheme,
+          authToken.parameters
+        )
+    }
+  }
+
   this.valueResponse = valueResponse
   this.objectToCypher = objectToCypher
   this.objectToNative = objectToNative
   this.objectMemberBitIntToNumber = objectMemberBitIntToNumber
   this.nativeToCypher = nativeToCypher
   this.cypherToNative = cypherToNative
+  this.parseAuthToken = parseAuthToken
 }

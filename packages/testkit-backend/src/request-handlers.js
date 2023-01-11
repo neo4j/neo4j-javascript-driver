@@ -11,33 +11,21 @@ export function isFrontendError (error) {
 export function NewDriver (neo4j, context, data, wire) {
   const {
     uri,
-    authorizationToken: { data: authToken },
+    authorizationToken,
+    authTokenProviderId,
     userAgent,
     resolverRegistered
   } = data
-  let parsedAuthToken = authToken
-  switch (authToken.scheme) {
-    case 'basic':
-      parsedAuthToken = neo4j.auth.basic(
-        authToken.principal,
-        authToken.credentials,
-        authToken.realm
-      )
-      break
-    case 'kerberos':
-      parsedAuthToken = neo4j.auth.kerberos(authToken.credentials)
-      break
-    case 'bearer':
-      parsedAuthToken = neo4j.auth.bearer(authToken.credentials)
-      break
-    default:
-      parsedAuthToken = neo4j.auth.custom(
-        authToken.principal,
-        authToken.credentials,
-        authToken.realm,
-        authToken.scheme,
-        authToken.parameters
-      )
+
+  let parsedAuthToken = null
+
+  if (authorizationToken != null && authTokenProviderId != null) {
+    throw new Error('Can not set authorizationToken and authTokenProviderId')
+  } else if (authorizationToken) {
+    const { data: authToken } = authorizationToken
+    parsedAuthToken = context.binder.parseAuthToken(authToken)
+  } else {
+    parsedAuthToken = context.getAuthTokenProvider(authTokenProviderId)
   }
 
   const resolver = resolverRegistered
@@ -504,6 +492,34 @@ export function BookmarksConsumerCompleted (
 ) {
   const notifyBookmarksRequest = context.getNotifyBookmarksRequest(requestId)
   notifyBookmarksRequest.resolve()
+}
+
+export function NewAuthTokenProvider (_, context, _data, wire) {
+  const id = context.addAuthTokenProvider(authTokenProviderId => {
+    return () => new Promise((resolve, reject) => {
+      const id = context.addAuthTokenProviderRequest(resolve, reject)
+      wire.writeResponse(responses.AuthTokenProviderRequest({ id, authTokenProviderId }))
+    })
+  })
+
+  wire.writeResponse(responses.AuthTokenProvider({ id }))
+}
+
+export function AuthTokenProviderCompleted (_, context, { requestId, auth }, _wire) {
+  const request = context.getAuthTokenProviderRequest(requestId)
+  const renewableToken = {
+    expectedExpirationTime: auth.data.expiresInMs != null
+      ? new Date(new Date().getUTCMilliseconds() + auth.data.expiresInMs)
+      : undefined,
+    authToken: context.binder.parseAuthToken(auth.data.auth.data)
+  }
+  request.resolve(renewableToken)
+  context.removeAuthTokenProviderRequest(requestId)
+}
+
+export function AuthTokenProviderClose (_, context, { id }, wire) {
+  context.removeAuthTokenProvider(id)
+  wire.writeResponse(responses.AuthTokenProvider({ id }))
 }
 
 export function GetRoutingTable (_, context, { driverId, database }, wire) {

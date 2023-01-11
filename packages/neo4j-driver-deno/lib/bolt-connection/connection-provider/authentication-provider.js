@@ -33,7 +33,7 @@ export default class AuthenticationProvider {
       await this._getFreshAuthToken()
     }
 
-    if (this._renewableAuthToken.authToken !== connection.authToken || this._isTokenExpired()) {
+    if (this._renewableAuthToken.authToken !== connection.authToken || this._isTokenExpired) {
       return await connection.connect(this._userAgent, this._authToken)
     }
 
@@ -68,7 +68,7 @@ export default class AuthenticationProvider {
   async _getFreshAuthToken () {
     if (this._isTokenExpired) {
       const promise = new Promise((resolve, reject) => {
-        this.scheduleRefresh({
+        this._scheduleRefresh({
           onSuccess: resolve,
           onError: reject
         })

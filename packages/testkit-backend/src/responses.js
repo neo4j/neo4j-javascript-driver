@@ -99,6 +99,14 @@ export function EagerResult ({ keys, records, summary }, { binder }) {
   })
 }
 
+export function AuthTokenProvider ({ id }) {
+  return response('AuthTokenProvider', { id })
+}
+
+export function AuthTokenProviderRequest ({ id, authTokenProviderId }) {
+  return response('AuthTokenProviderRequest', { id, authTokenProviderId })
+}
+
 // Testkit controller messages
 export function RunTest () {
   return response('RunTest', null)

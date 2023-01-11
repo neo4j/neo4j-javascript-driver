@@ -12,6 +12,8 @@ export default class Context {
     this._bookmarkSupplierRequests = {}
     this._notifyBookmarksRequests = {}
     this._bookmarksManagers = {}
+    this._authTokenProviders = {}
+    this._authTokenProviderRequests = {}
     this._binder = binder
     this._environmentLogLevel = environmentLogLevel
   }
@@ -159,6 +161,34 @@ export default class Context {
 
   removeBookmarkManager (id) {
     delete this._bookmarksManagers[id]
+  }
+
+  addAuthTokenProvider (authTokenProviderFactory) {
+    this._id++
+    this._authTokenProviders[this._id] = authTokenProviderFactory(this._id)
+    return this._id
+  }
+
+  getAuthTokenProvider (id) {
+    return this._authTokenProviders[id]
+  }
+
+  removeAuthTokenProvider (id) {
+    delete this._authTokenProviders[id]
+  }
+
+  addAuthTokenProviderRequest (resolve, reject) {
+    return this._add(this._authTokenProviderRequests, {
+      resolve, reject
+    })
+  }
+
+  removeAuthTokenProviderRequest (id) {
+    delete this._authTokenProviderRequests[id]
+  }
+
+  getAuthTokenProviderRequest (id) {
+    return this._authTokenProviderRequests[id]
   }
 
   _add (map, object) {

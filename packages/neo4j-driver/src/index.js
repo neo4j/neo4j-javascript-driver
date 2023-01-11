@@ -91,6 +91,22 @@ const {
   urlUtil
 } = internal
 
+function createAuthProvider (authTokenOrProvider) {
+  if (typeof authTokenOrProvider === 'function') {
+    return authTokenOrProvider
+  }
+
+  let authToken = authTokenOrProvider
+  // Sanitize authority token. Nicer error from server when a scheme is set.
+  authToken = authToken ?? {}
+  authToken.scheme = authToken.scheme ?? 'none'
+  return function () {
+    return {
+      authToken
+    }
+  }
+}
+
 /**
  * Construct a new Neo4j Driver. This is your main entry point for this
  * library.
@@ -273,9 +289,7 @@ function driver (url, authToken, config = {}) {
     config.trust = trust
   }
 
-  // Sanitize authority token. Nicer error from server when a scheme is set.
-  authToken = authToken || {}
-  authToken.scheme = authToken.scheme || 'none'
+  const authTokenProvider = createAuthProvider(authToken)
 
   // Use default user agent or user agent specified by user.
   config.userAgent = config.userAgent || USER_AGENT
@@ -297,7 +311,7 @@ function driver (url, authToken, config = {}) {
           config,
           log,
           hostNameResolver,
-          authToken,
+          authTokenProvider,
           address,
           userAgent: config.userAgent,
           routingContext: parsedUrl.query
@@ -314,7 +328,7 @@ function driver (url, authToken, config = {}) {
           id,
           config,
           log,
-          authToken,
+          authTokenProvider,
           address,
           userAgent: config.userAgent
         })
