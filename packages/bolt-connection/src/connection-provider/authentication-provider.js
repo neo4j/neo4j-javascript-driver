@@ -29,11 +29,11 @@ export default class AuthenticationProvider {
   }
 
   async authenticate ({ connection }) {
-    if (!this._authToken) {
+    if (!this._authToken || this._isTokenExpired) {
       await this._getFreshAuthToken()
     }
 
-    if (this._renewableAuthToken.authToken !== connection.authToken || this._isTokenExpired) {
+    if (this._renewableAuthToken.authToken !== connection.authToken) {
       return await connection.connect(this._userAgent, this._authToken)
     }
 

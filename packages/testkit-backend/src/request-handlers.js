@@ -1,4 +1,5 @@
 import * as responses from './responses.js'
+import sinon from 'sinon'
 
 export function throwFrontendError () {
   throw new Error('TestKit FrontendError')
@@ -509,7 +510,7 @@ export function AuthTokenProviderCompleted (_, context, { requestId, auth }, _wi
   const request = context.getAuthTokenProviderRequest(requestId)
   const renewableToken = {
     expectedExpirationTime: auth.data.expiresInMs != null
-      ? new Date(new Date().getUTCMilliseconds() + auth.data.expiresInMs)
+      ? new Date(new Date().getTime() + auth.data.expiresInMs)
       : undefined,
     authToken: context.binder.parseAuthToken(auth.data.auth.data)
   }
@@ -616,4 +617,19 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
       wire.writeResponse(responses.EagerResult(eagerResult, { binder: context.binder }))
     })
     .catch(e => wire.writeError(e))
+}
+
+export function FakeTimeInstall (_, context, _data, wire) {
+  context.clock = sinon.useFakeTimers(new Date().getTime())
+  wire.writeResponse(responses.FakeTimeAck())
+}
+
+export function FakeTimeTick (_, context, { incrementMs }, wire) {
+  context.clock.tick(incrementMs)
+  wire.writeResponse(responses.FakeTimeAck())
+}
+
+export function FakeTimeUninstall (_, context, _data, wire) {
+  context.clock.restore()
+  wire.writeResponse(responses.FakeTimeAck())
 }

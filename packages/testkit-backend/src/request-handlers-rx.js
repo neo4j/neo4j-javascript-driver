@@ -25,7 +25,11 @@ export {
   ExecuteQuery,
   NewAuthTokenProvider,
   AuthTokenProviderCompleted,
-  AuthTokenProviderClose
+  AuthTokenProviderClose,
+  StartSubTest,
+  FakeTimeInstall,
+  FakeTimeTick,
+  FakeTimeUninstall
 } from './request-handlers.js'
 
 export function NewSession (neo4j, context, data, wire) {

@@ -203,11 +203,11 @@ class Pool {
     while (pool.length) {
       const resource = pool.pop()
 
-      if (await this._validate(resource)) {
-        if (this._removeIdleObserver) {
-          this._removeIdleObserver(resource)
-        }
+      if (this._removeIdleObserver) {
+        this._removeIdleObserver(resource)
+      }
 
+      if (await this._validate(resource)) {
         // idle resource is valid and can be acquired
         resourceAcquired(key, this._activeResourceCounts)
         if (this._log.isDebugEnabled()) {

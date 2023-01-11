@@ -124,6 +124,10 @@ export function FeatureList ({ features }) {
   return response('FeatureList', { features })
 }
 
+export function FakeTimeAck () {
+  return response('FakeTimeAck', {})
+}
+
 function response (name, data) {
   return { name, data }
 }

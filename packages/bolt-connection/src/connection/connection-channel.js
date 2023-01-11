@@ -201,10 +201,10 @@ export default class ChannelConnection extends Connection {
     })
 
     const loginPromise = new Promise((resolve, reject) => {
-      this._protocol.login({ onComplete: resolve, onError: reject, flush: true })
+      this._protocol.login({ onComplete: resolve, onError: reject, authToken, flush: true })
     })
 
-    return await Promise.all(logoffPromise, loginPromise)
+    return await Promise.all([logoffPromise, loginPromise])
       .then(() => this)
   }
 
