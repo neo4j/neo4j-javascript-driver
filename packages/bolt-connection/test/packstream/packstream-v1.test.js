@@ -182,6 +182,13 @@ describe('#unit PackStreamV1', () => {
     expect(unpacked[0]).toBe(list[0])
     expect(unpacked[1]).toBe(list[1])
   })
+
+  it('should pack object with credentialsRefresher function', () => {
+    const obj = { foo: 'bar', credentialsRefresher: () => 'top-secret-password' }
+    const unpacked = packAndUnpack(obj)
+    expect(unpacked.foo).toBe(obj.foo)
+    expect(unpacked.credentialsRefresher).toBe(undefined)
+  })
 })
 
 function packAndUnpack (

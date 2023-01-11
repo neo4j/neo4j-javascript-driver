@@ -175,11 +175,11 @@ export default class ChannelConnection extends Connection {
     const self = this
     // credentialsRefresher is function to refresh credentials
     if (authToken && authToken.credentialsRefresher) {
-        var maybePromise = authToken.credentialsRefresher(authToken)
-        return Promise.resolve(maybePromise).then(function(creds) {
-            authToken.credentials = creds
-            return self._initialize(userAgent, authToken);
-        })
+      const maybePromise = authToken.credentialsRefresher()
+      return Promise.resolve(maybePromise).then(function (creds) {
+        authToken.credentials = creds
+        return self._initialize(userAgent, authToken)
+      })
     }
 
     return self._initialize(userAgent, authToken)
