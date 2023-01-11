@@ -47,6 +47,7 @@ export interface AuthToken {
   credentials: string
   realm?: string
   parameters?: Parameters
+  credentialsRefresher?: () => string | Promise<string>
 }
 export interface Config {
   encrypted?: boolean | EncryptionLevel
