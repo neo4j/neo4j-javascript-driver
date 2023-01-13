@@ -333,7 +333,7 @@ function newPool ({ create, config } = {}) {
   }
   return new Pool({
     config,
-    create: (address, release) =>
+    create: (_, address, release) =>
       Promise.resolve(_create(address, release))
   })
 }

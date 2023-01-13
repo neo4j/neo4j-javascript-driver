@@ -28,6 +28,7 @@ import {
   ConnectionErrorHandler,
   DelegateConnection
 } from '../connection/index.js'
+import { object } from '../lang/index.js'
 
 const { SERVICE_UNAVAILABLE, SESSION_EXPIRED } = error
 const {
@@ -186,19 +187,11 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     }
 
     try {
-      const connection = await this._acquireConnectionToServer(
-        address,
-        name,
-        routingTable
-      )
+      const connection = await this._connectionPool.acquire({ auth }, address)
 
       if (auth && auth !== connection.authToken) {
-        if (connection.supportsReAuth) {
-          await connection.connect(this._userAgent, auth)
-        } else {
-          await connection._release()
-          return await this._createStickyConnection({ address, auth })
-        }
+        await connection._release()
+        return await this._createStickyConnection({ address, auth })
       }
 
       return new DelegateConnection(connection, databaseSpecificErrorHandler)
@@ -314,10 +307,6 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._routingTableRegistry.apply(database, {
       applyWhenExists: routingTable => routingTable.forgetWriter(address)
     })
-  }
-
-  _acquireConnectionToServer (address, serverName, routingTable) {
-    return this._connectionPool.acquire(address)
   }
 
   _freshRoutingTable ({ accessMode, database, bookmarks, impersonatedUser, onDatabaseNameResolved, auth } = {}) {
@@ -544,33 +533,16 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     )
   }
 
-  async _createStickyConnection ({ address, auth }) {
-    const connection = await this._createChannelConnection(address)
-    connection._release = () => this._destroyConnection(connection)
-    this._openConnections[connection.id] = connection
-
-    try {
-      return await connection.connect(this._userAgent, auth)
-    } catch (error) {
-      await this._destroyConnection()
-      throw error
-    }
-  }
-
   async _createSessionForRediscovery (routerAddress, bookmarks, impersonatedUser, auth) {
     try {
-      let connection = await this._connectionPool.acquire(routerAddress)
+      let connection = await this._connectionPool.acquire({ auth }, routerAddress)
 
-      if (auth && connection.authToken !== auth) {
-        if (connection.supportsReAuth) {
-          await await connection.connect(this._userAgent, auth)
-        } else {
-          await connection._release()
-          connection = await this._createStickyConnection({
-            address: routerAddress,
-            auth
-          })
-        }
+      if (auth && object.equals(auth, connection.authToken)) {
+        await connection._release()
+        connection = await this._createStickyConnection({
+          address: routerAddress,
+          auth
+        })
       }
 
       const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
@@ -767,7 +739,6 @@ function _isFailFastError (error) {
 }
 
 function _isFailFastSecurityError (error) {
-  console.error(error)
   return error.code.startsWith('Neo.ClientError.Security.') &&
     ![
       AUTHORIZATION_EXPIRED_CODE

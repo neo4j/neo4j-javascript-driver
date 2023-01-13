@@ -26,6 +26,7 @@ const features = [
   'Feature:API:Driver:GetServerInfo',
   'Feature:API:Driver.VerifyConnectivity',
   'Feature:API:Session:NotificationsConfig',
+  'Optimization:AuthPipelining',
   'Optimization:EagerTransactionBegin',
   'Optimization:ImplicitDefaultArguments',
   'Optimization:MinimalBookmarksSet',

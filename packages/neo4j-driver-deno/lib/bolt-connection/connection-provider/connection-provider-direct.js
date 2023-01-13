@@ -24,6 +24,7 @@ import {
   ConnectionErrorHandler
 } from '../connection/index.js'
 import { internal, error } from '../../core/index.ts'
+import { object } from '../lang/index.js'
 
 const {
   constants: { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V4_4 }
@@ -42,28 +43,30 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
    * See {@link ConnectionProvider} for more information about this method and
    * its arguments.
    */
-  acquireConnection ({ accessMode, database, bookmarks } = {}) {
+  async acquireConnection ({ accessMode, database, bookmarks, auth } = {}) {
     const databaseSpecificErrorHandler = ConnectionErrorHandler.create({
       errorCode: SERVICE_UNAVAILABLE,
       handleAuthorizationExpired: (error, address, conn) =>
         this._handleAuthorizationExpired(error, address, conn, database)
     })
 
-    return this._connectionPool
-      .acquire(this._address)
-      .then(
-        connection =>
-          new DelegateConnection(connection, databaseSpecificErrorHandler)
-      )
+    const connection = await this._connectionPool.acquire({ auth }, this._address)
+
+    if (auth && !object.equals(auth, connection.authToken)) {
+      await connection._release()
+      return await this._createStickyConnection({ address: this._address, auth })
+    }
+
+    return new DelegateConnection(connection, databaseSpecificErrorHandler)
   }
 
   _handleAuthorizationExpired (error, address, connection, database) {
     this._log.warn(
       `Direct driver ${this._id} will close connection to ${address} for database '${database}' because of an error ${error.code} '${error.message}'`
     )
-    
+
     this._authenticationProvider.handleError({ connection, code: error.code })
-    
+
     if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {
       this._connectionPool.apply(address, (conn) => conn.authToken === null)
     }

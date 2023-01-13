@@ -24,6 +24,7 @@ import {
   ConnectionErrorHandler
 } from '../connection'
 import { internal, error } from 'neo4j-driver-core'
+import { object } from '../lang'
 
 const {
   constants: { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V4_4 }
@@ -49,15 +50,11 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
         this._handleAuthorizationExpired(error, address, conn, database)
     })
 
-    const connection = await this._connectionPool.acquire(this._address)
+    const connection = await this._connectionPool.acquire({ auth }, this._address)
 
-    if (auth && auth !== connection.authToken) {
-      if (connection.supportsReAuth) {
-        await connection.connect(this._userAgent, auth)
-      } else {
-        await connection._release()
-        return await this._createStickyConnection({ address: this._address, auth })
-      }
+    if (auth && !object.equals(auth, connection.authToken)) {
+      await connection._release()
+      return await this._createStickyConnection({ address: this._address, auth })
     }
 
     return new DelegateConnection(connection, databaseSpecificErrorHandler)

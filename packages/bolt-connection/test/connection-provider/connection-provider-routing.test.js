@@ -129,9 +129,9 @@ describe.each([
   it('purges connections when address is forgotten', () => {
     const pool = newPool()
 
-    pool.acquire(server1)
-    pool.acquire(server3)
-    pool.acquire(server5)
+    pool.acquire({}, server1)
+    pool.acquire({}, server3)
+    pool.acquire({}, server5)
     expectPoolToContain(pool, [server1, server3, server5])
 
     const connectionProvider = newRoutingConnectionProvider(
@@ -2589,7 +2589,7 @@ describe.each([
 
         const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
         const address = targetServers[0]
-        expect(acquireSpy).toHaveBeenCalledWith(address)
+        expect(acquireSpy).toHaveBeenCalledWith({}, address)
 
         const connections = seenConnectionsPerAddress.get(address)
 
@@ -2608,7 +2608,7 @@ describe.each([
 
         const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
         const address = targetServers[0]
-        expect(acquireSpy).toHaveBeenCalledWith(address)
+        expect(acquireSpy).toHaveBeenCalledWith({}, address)
 
         const connections = seenConnectionsPerAddress.get(address)
 
@@ -2628,7 +2628,7 @@ describe.each([
 
         const targetServers = accessMode === WRITE ? routingTable.readers : routingTable.writers
         for (const address of targetServers) {
-          expect(acquireSpy).not.toHaveBeenCalledWith(address)
+          expect(acquireSpy).not.toHaveBeenCalledWith({}, address)
           expect(seenConnectionsPerAddress.get(address)).toBeUndefined()
         }
       })
@@ -2711,7 +2711,7 @@ describe.each([
           } finally {
             const targetServers = accessMode === WRITE ? routingTable.writers : routingTable.readers
             for (const address of targetServers) {
-              expect(acquireSpy).toHaveBeenCalledWith(address)
+              expect(acquireSpy).toHaveBeenCalledWith({}, address)
 
               const connections = seenConnectionsPerAddress.get(address)
 
@@ -2947,7 +2947,7 @@ describe.each([
     }
     return new Pool({
       config,
-      create: (address, release) => _create(address, release)
+      create: (_, address, release) => _create(address, release)
     })
   }
 

@@ -26,15 +26,18 @@ const {
 
 class Pool {
   /**
-   * @param {function(address: ServerAddress, function(address: ServerAddress, resource: object): Promise<object>): Promise<object>} create
+   * @param {function(acquisitionContext: object, address: ServerAddress, function(address: ServerAddress, resource: object): Promise<object>): Promise<object>} create
    *                an allocation function that creates a promise with a new resource. It's given an address for which to
    *                allocate the connection and a function that will return the resource to the pool if invoked, which is
    *                meant to be called on .dispose or .close or whatever mechanism the resource uses to finalize.
+   * @param {function(acquisitionContext: object, resource: object): boolean} validateOnAcquire
+   *                called at various times when an instance is acquired
+   *                If this returns false, the resource will be evicted
+   * @param {function(resource: object): boolean} validateOnRelease
+   *                called at various times when an instance is released
+   *                If this returns false, the resource will be evicted
    * @param {function(resource: object): Promise<void>} destroy
    *                called with the resource when it is evicted from this pool
-   * @param {function(resource: object): boolean} validate
-   *                called at various times (like when an instance is acquired and when it is returned.
-   *                If this returns false, the resource will be evicted
    * @param {function(resource: object, observer: { onError }): void} installIdleObserver
    *                called when the resource is released back to pool
    * @param {function(resource: object): void} removeIdleObserver
@@ -43,9 +46,10 @@ class Pool {
    * @param {Logger} log the driver logger.
    */
   constructor ({
-    create = (address, release) => Promise.resolve(),
+    create = (acquisitionContext, address, release) => Promise.resolve(),
     destroy = conn => Promise.resolve(),
-    validate = conn => true,
+    validateOnAcquire = (acquisitionContext, conn) => true,
+    validateOnRelease = (conn) => true,
     installIdleObserver = (conn, observer) => {},
     removeIdleObserver = conn => {},
     config = PoolConfig.defaultConfig(),
@@ -53,7 +57,8 @@ class Pool {
   } = {}) {
     this._create = create
     this._destroy = destroy
-    this._validate = validate
+    this._validateOnAcquire = validateOnAcquire
+    this._validateOnRelease = validateOnRelease
     this._installIdleObserver = installIdleObserver
     this._removeIdleObserver = removeIdleObserver
     this._maxSize = config.maxSize
@@ -69,10 +74,11 @@ class Pool {
 
   /**
    * Acquire and idle resource fom the pool or create a new one.
+   * @param {object} acquisitionContext the acquisition context used for create and validateOnAcquire connection
    * @param {ServerAddress} address the address for which we're acquiring.
    * @return {Promise<Object>} resource that is ready to use.
    */
-  acquire (address) {
+  acquire (acquisitionContext, address) {
     const key = address.asKey()
 
     // We're out of resources and will try to acquire later on when an existing resource is released.
@@ -108,7 +114,7 @@ class Pool {
         }
       }, this._acquisitionTimeout)
 
-      request = new PendingRequest(key, resolve, reject, timeoutId, this._log)
+      request = new PendingRequest(key, acquisitionContext, resolve, reject, timeoutId, this._log)
       allRequests[key].push(request)
       this._processPendingAcquireRequests(address)
     })
@@ -193,7 +199,7 @@ class Pool {
     return pool
   }
 
-  async _acquire (address) {
+  async _acquire (acquisitionContext, address) {
     if (this._closed) {
       throw newError('Pool is closed, it is no more able to serve requests.')
     }
@@ -207,7 +213,7 @@ class Pool {
         this._removeIdleObserver(resource)
       }
 
-      if (await this._validate(resource)) {
+      if (await this._validateOnAcquire(acquisitionContext, resource)) {
         // idle resource is valid and can be acquired
         resourceAcquired(key, this._activeResourceCounts)
         if (this._log.isDebugEnabled()) {
@@ -238,7 +244,7 @@ class Pool {
     let resource
     try {
       // Invoke callback that creates actual connection
-      resource = await this._create(address, (address, resource) => this._release(address, resource, pool))
+      resource = await this._create(acquisitionContext, address, (address, resource) => this._release(address, resource, pool))
 
       pool.pushInUse(resource)
       resourceAcquired(key, this._activeResourceCounts)
@@ -256,7 +262,7 @@ class Pool {
 
     if (pool.isActive()) {
       // there exist idle connections for the given key
-      if (!await this._validate(resource)) {
+      if (!await this._validateOnRelease(resource)) {
         if (this._log.isDebugEnabled()) {
           this._log.debug(
             `${resource} destroyed and can't be released to the pool ${key} because it is not functional`
@@ -327,7 +333,7 @@ class Pool {
       const pendingRequest = requests.shift() // pop a pending acquire request
 
       if (pendingRequest) {
-        this._acquire(address)
+        this._acquire(pendingRequest.context, address)
           .catch(error => {
             // failed to acquire/create a new connection to resolve the pending acquire request
             // propagate the error by failing the pending request
@@ -391,13 +397,18 @@ function resourceReleased (key, activeResourceCounts) {
 }
 
 class PendingRequest {
-  constructor (key, resolve, reject, timeoutId, log) {
+  constructor (key, context, resolve, reject, timeoutId, log) {
     this._key = key
+    this._context = context
     this._resolve = resolve
     this._reject = reject
     this._timeoutId = timeoutId
     this._log = log
     this._completed = false
+  }
+
+  get context () {
+    return this._context
   }
 
   isCompleted () {

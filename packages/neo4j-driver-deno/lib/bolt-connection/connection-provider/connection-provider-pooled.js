@@ -47,7 +47,8 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._connectionPool = new Pool({
       create: this._createConnection.bind(this),
       destroy: this._destroyConnection.bind(this),
-      validate: this._validateConnection.bind(this),
+      validateOnAcquire: this._validateConnectionOnAcquire.bind(this),
+      validateOnRelease: this._validateConnectionOnRelease.bind(this),
       installIdleObserver: PooledConnectionProvider._installIdleObserverOnConnection.bind(
         this
       ),
@@ -69,13 +70,13 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    * @return {Promise<Connection>} promise resolved with a new connection or rejected when failed to connect.
    * @access private
    */
-  _createConnection (address, release) {
+  _createConnection ({ auth }, address, release) {
     return this._createChannelConnection(address).then(connection => {
       connection._release = () => {
         return release(address, connection)
       }
       this._openConnections[connection.id] = connection
-      return this._authenticationProvider.authenticate({ connection })
+      return this._authenticationProvider.authenticate({ connection, auth })
         .catch(error => {
           // let's destroy this connection
           this._destroyConnection(connection)
@@ -85,12 +86,32 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     })
   }
 
+  async _validateConnectionOnAcquire ({ auth }, conn) {
+    if (!this._validateConnection(conn)) {
+      return false
+    }
+
+    try {
+      await this._authenticationProvider.authenticate({ connection: conn, auth })
+      return true
+    } catch (error) {
+      this._log.info(
+        `The connection ${conn.id} is not valid because of an error ${error.code} '${error.message}'`
+      )
+      return false
+    }
+  }
+
+  _validateConnectionOnRelease (conn) {
+    return this._validateConnection(conn)
+  }
+
   /**
    * Check that a connection is usable
    * @return {boolean} true if the connection is open
    * @access private
    **/
-  async _validateConnection (conn) {
+  _validateConnection (conn) {
     if (!conn.isOpen()) {
       return false
     }
@@ -101,16 +122,20 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       return false
     }
 
-    try {
-      await this._authenticationProvider.authenticate({ connection: conn })
-    } catch (error) {
-      this._log.info(
-        `The connection ${conn.id} is not valid because of an error ${error.code} '${error.message}'`
-      )
-      return false
-    }
-
     return true
+  }
+
+  async _createStickyConnection ({ address, auth }) {
+    const connection = this._createChannelConnection(address)
+    connection._release = () => this._destroyConnection(connection)
+    this._openConnections[connection.id] = connection
+
+    try {
+      return await connection.connect(this._userAgent, auth)
+    } catch (error) {
+      await this._destroyConnection()
+      throw error
+    }
   }
 
   /**
@@ -130,7 +155,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
    * @return {Promise<ServerInfo>} the server info
    */
   async _verifyConnectivityAndGetServerVersion ({ address }) {
-    const connection = await this._connectionPool.acquire(address)
+    const connection = await this._connectionPool.acquire({}, address)
     const serverInfo = new ServerInfo(connection.server, connection.protocol().version)
     try {
       if (!connection.protocol().isLastMessageLogon()) {

@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+import { object } from '../lang'
+
 /**
  * Class which provides Authorization for {@link Connection}
  */
@@ -28,7 +30,14 @@ export default class AuthenticationProvider {
     this._refreshObserver = undefined
   }
 
-  async authenticate ({ connection }) {
+  async authenticate ({ connection, auth }) {
+    if (auth != null) {
+      if (connection.authToken == null || (connection.supportsReAuth && !object.equals(connection.authToken, auth))) {
+        return await connection.connect(this._userAgent, auth)
+      }
+      return connection
+    }
+
     if (!this._authToken || this._isTokenExpired) {
       await this._getFreshAuthToken()
     }
