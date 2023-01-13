@@ -4,6 +4,7 @@ const features = [
   'Feature:Auth:Kerberos',
   'Feature:Auth:Bearer',
   'Feature:API:BookmarkManager',
+  'Feature:API:Session:AuthConfig',
   'Feature:API:SSLConfig',
   'Feature:API:SSLSchemes',
   'Feature:API:Type.Temporal',
