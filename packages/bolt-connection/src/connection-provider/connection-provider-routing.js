@@ -191,7 +191,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     try {
       const connection = await this._connectionPool.acquire({ auth }, address)
 
-      if (auth && auth !== connection.authToken) {
+      if (auth && !object.equals(auth, connection.authToken)) {
         await connection._release()
         return await this._createStickyConnection({ address, auth })
       }
@@ -539,7 +539,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     try {
       let connection = await this._connectionPool.acquire({ auth }, routerAddress)
 
-      if (auth && object.equals(auth, connection.authToken)) {
+      if (auth && !object.equals(auth, connection.authToken)) {
         await connection._release()
         connection = await this._createStickyConnection({
           address: routerAddress,

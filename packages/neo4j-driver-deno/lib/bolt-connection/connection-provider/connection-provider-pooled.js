@@ -133,7 +133,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     try {
       return await connection.connect(this._userAgent, auth)
     } catch (error) {
-      await this._destroyConnection()
+      await this._destroyConnection(connection)
       throw error
     }
   }
