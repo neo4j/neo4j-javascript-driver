@@ -1,5 +1,6 @@
 
 const features = [
+  'Backend:MockTime',
   'Feature:Auth:Custom',
   'Feature:Auth:Kerberos',
   'Feature:Auth:Bearer',

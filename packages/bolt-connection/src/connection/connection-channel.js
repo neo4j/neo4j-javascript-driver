@@ -196,16 +196,10 @@ export default class ChannelConnection extends Connection {
       throw newError('Connection does not support re-auth')
     }
 
-    const logoffPromise = new Promise((resolve, reject) => {
-      this._protocol.logoff({ onComplete: resolve, onError: reject })
-    })
+    this._protocol.logoff()
+    this._protocol.login({ authToken })
 
-    const loginPromise = new Promise((resolve, reject) => {
-      this._protocol.login({ onComplete: resolve, onError: reject, authToken, flush: true })
-    })
-
-    return await Promise.all([logoffPromise, loginPromise])
-      .then(() => this)
+    return this
   }
 
   /**

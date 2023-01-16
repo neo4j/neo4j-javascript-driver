@@ -118,8 +118,10 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     this._authenticationProvider.handleError({ connection, code: error.code })
 
     if (error.code === 'Neo.ClientError.Security.AuthorizationExpired') {
-      this._connectionPool.apply(address, (conn) => conn.authToken === null)
+      this._connectionPool.apply(address, (conn) => { conn.authToken = null })
     }
+
+    connection.close().catch(() => undefined)
 
     return error
   }
