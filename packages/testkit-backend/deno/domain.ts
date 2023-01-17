@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
 import Context from "../src/context.js";
+import { FakeTime } from "./deps.ts";
 
 export interface TestkitRequest {
   name: string;
@@ -11,8 +12,12 @@ export interface TestkitResponse {
   data?: any;
 }
 
+export interface Mock {
+  FakeTime: typeof FakeTime;
+}
+
 export interface RequestHandler {
-  (neo4j: any, c: Context, data: any, wire: any): void;
+  (service: { neo4j: any; mock: Mock }, c: Context, data: any, wire: any): void;
 }
 
 export interface RequestHandlerMap {

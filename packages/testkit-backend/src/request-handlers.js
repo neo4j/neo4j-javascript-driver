@@ -1,5 +1,4 @@
 import * as responses from './responses.js'
-import sinon from 'sinon'
 
 export function throwFrontendError () {
   throw new Error('TestKit FrontendError')
@@ -9,7 +8,7 @@ export function isFrontendError (error) {
   return error.message === 'TestKit FrontendError'
 }
 
-export function NewDriver (neo4j, context, data, wire) {
+export function NewDriver ({ neo4j }, context, data, wire) {
   const {
     uri,
     authorizationToken,
@@ -101,7 +100,7 @@ export function DriverClose (_, context, data, wire) {
     .catch(err => wire.writeError(err))
 }
 
-export function NewSession (neo4j, context, data, wire) {
+export function NewSession ({ neo4j }, context, data, wire) {
   let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
   switch (accessMode) {
     case 'r':
@@ -629,6 +628,10 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
 
 export function FakeTimeInstall (_, context, _data, wire) {
   context.clock = sinon.useFakeTimers(new Date().getTime())
+}
+
+export function FakeTimeInstall ({ mock }, context, _data, wire) {
+  context.clock = new mock.FakeTime()
   wire.writeResponse(responses.FakeTimeAck())
 }
 
@@ -639,5 +642,6 @@ export function FakeTimeTick (_, context, { incrementMs }, wire) {
 
 export function FakeTimeUninstall (_, context, _data, wire) {
   context.clock.restore()
+  delete context.clock
   wire.writeResponse(responses.FakeTimeAck())
 }

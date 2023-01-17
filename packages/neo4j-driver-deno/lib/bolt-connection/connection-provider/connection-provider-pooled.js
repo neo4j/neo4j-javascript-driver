@@ -126,7 +126,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
   }
 
   async _createStickyConnection ({ address, auth }) {
-    const connection = this._createChannelConnection(address)
+    const connection = await this._createChannelConnection(address)
     connection._release = () => this._destroyConnection(connection)
     this._openConnections[connection.id] = connection
 

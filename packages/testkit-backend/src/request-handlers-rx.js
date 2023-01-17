@@ -32,7 +32,7 @@ export {
   FakeTimeUninstall
 } from './request-handlers.js'
 
-export function NewSession (neo4j, context, data, wire) {
+export function NewSession ({ neo4j }, context, data, wire) {
   let { driverId, accessMode, bookmarks, database, fetchSize, impersonatedUser, bookmarkManagerId } = data
   switch (accessMode) {
     case 'r':
