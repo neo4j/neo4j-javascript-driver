@@ -187,13 +187,14 @@ export default class ChannelConnection extends Connection {
    * @return {Promise<Connection>} promise resolved with the current connection if connection is successful. Rejected promise otherwise.
    */
   async connect (userAgent, authToken) {
-    this._authToken = authToken
-    if (!this._protocol.initialized) {
-      return await this._initialize(userAgent, authToken)
+    if (this._protocol.initialized && !this._protocol.supportsLogoff) {
+      throw newError('Connection does not support re-auth')
     }
 
-    if (!this._protocol.supportsLogoff) {
-      throw newError('Connection does not support re-auth')
+    this._authToken = authToken
+
+    if (!this._protocol.initialized) {
+      return await this._initialize(userAgent, authToken)
     }
 
     this._protocol.logoff()
