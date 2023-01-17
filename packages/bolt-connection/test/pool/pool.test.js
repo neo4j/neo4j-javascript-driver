@@ -125,6 +125,126 @@ describe('#unit Pool', () => {
     expect(destroyed[1].id).toBe(r1.id)
   })
 
+  it('frees if validateOnRelease returns Promise.resolve(false)', async () => {
+    // Given a pool that allocates
+    let counter = 0
+    const destroyed = []
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (_acquisitionContext, server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        destroyed.push(res)
+        return Promise.resolve()
+      },
+      validateOnRelease: res => Promise.resolve(false),
+      config: new PoolConfig(1000, 60000)
+    })
+
+    // When
+    const r0 = await pool.acquire({}, address)
+    const r1 = await pool.acquire({}, address)
+
+    // Then
+    await r0.close()
+    await r1.close()
+
+    expect(destroyed.length).toBe(2)
+    expect(destroyed[0].id).toBe(r0.id)
+    expect(destroyed[1].id).toBe(r1.id)
+  })
+
+  it('does not free if validateOnRelease returns Promise.resolve(true)', async () => {
+    // Given a pool that allocates
+    let counter = 0
+    const destroyed = []
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (_acquisitionContext, server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        destroyed.push(res)
+        return Promise.resolve()
+      },
+      validateOnRelease: res => Promise.resolve(true),
+      config: new PoolConfig(1000, 60000)
+    })
+
+    // When
+    const r0 = await pool.acquire({}, address)
+    const r1 = await pool.acquire({}, address)
+
+    // Then
+    await r0.close()
+    await r1.close()
+
+    expect(destroyed.length).toBe(0)
+  })
+
+  it('frees if validateOnAcquire returns Promise.resolve(false)', async () => {
+    // Given a pool that allocates
+    let counter = 0
+    const destroyed = []
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (_acquisitionContext, server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        destroyed.push(res)
+        return Promise.resolve()
+      },
+      validateOnAcquire: res => Promise.resolve(false),
+      config: new PoolConfig(1000, 60000)
+    })
+
+    // When
+    const r0 = await pool.acquire({}, address)
+    const r1 = await pool.acquire({}, address)
+    await r1.close()
+    await r0.close()
+
+    // Then
+    const r2 = await pool.acquire({}, address)
+
+    // Closing
+    await r2.close()
+
+    expect(destroyed.length).toBe(2)
+    expect(destroyed[0].id).toBe(r0.id)
+    expect(destroyed[1].id).toBe(r1.id)
+  })
+
+  it('does not free if validateOnAcquire returns Promise.resolve(true)', async () => {
+    // Given a pool that allocates
+    let counter = 0
+    const destroyed = []
+    const address = ServerAddress.fromUrl('bolt://localhost:7687')
+    const pool = new Pool({
+      create: (_acquisitionContext, server, release) =>
+        Promise.resolve(new Resource(server, counter++, release)),
+      destroy: res => {
+        destroyed.push(res)
+        return Promise.resolve()
+      },
+      validateOnAcquire: res => Promise.resolve(true),
+      config: new PoolConfig(1000, 60000)
+    })
+
+    // When
+    const r0 = await pool.acquire({}, address)
+    const r1 = await pool.acquire({}, address)
+    await r0.close()
+    await r1.close()
+
+    // Then
+    const r2 = await pool.acquire({}, address)
+
+    // Closing
+    await r2.close()
+
+    expect(destroyed.length).toBe(0)
+  })
+
   it('purges keys', async () => {
     // Given a pool that allocates
     let counter = 0
