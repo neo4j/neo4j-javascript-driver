@@ -42,7 +42,7 @@ export default class AuthenticationProvider {
       await this._getFreshAuthToken()
     }
 
-    if (this._renewableAuthToken.authToken !== connection.authToken) {
+    if (!object.equals(this._renewableAuthToken.authToken, connection.authToken)) {
       return await connection.connect(this._userAgent, this._authToken)
     }
 
