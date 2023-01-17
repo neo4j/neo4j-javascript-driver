@@ -351,11 +351,19 @@ class FakeConnection extends Connection {
     return this._authToken
   }
 
+  set authToken (authToken) {
+    this._authToken = this.authToken
+  }
+
   get address () {
     return this._address
   }
 
   get server () {
     return this._server
+  }
+
+  async close () {
+
   }
 }

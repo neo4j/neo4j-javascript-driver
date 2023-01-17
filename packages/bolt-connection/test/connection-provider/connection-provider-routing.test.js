@@ -3109,6 +3109,10 @@ class FakeConnection extends Connection {
     return this._authToken
   }
 
+  set authToken (authToken) {
+    this._authToken = authToken
+  }
+
   get address () {
     return this._address
   }
@@ -3119,6 +3123,10 @@ class FakeConnection extends Connection {
 
   get server () {
     return this._server
+  }
+
+  async close () {
+
   }
 
   protocol () {
