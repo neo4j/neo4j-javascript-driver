@@ -556,6 +556,159 @@ describe('AuthenticationProvider', () => {
     })
   })
 
+  describe('.handleError()', () => {
+    it.each(
+      shouldNotScheduleRefreshScenarios()
+    )('should not schedule a refresh when %s', (_, createScenario) => {
+      const {
+        connection,
+        code,
+        authTokenProvider,
+        authenticationProvider
+      } = createScenario()
+
+      authenticationProvider.handleError({ code, connection })
+
+      expect(authTokenProvider).not.toHaveBeenCalled()
+    })
+
+    it.each(
+      errorCodeTriggerRefreshAuth()
+    )('should schedule refresh when auth are the same, valid error code (%s) and no refresh schedule', async (code) => {
+      const authToken = { scheme: 'bearer', credentials: 'token' }
+      const newTokenPromiseState = {}
+      const newTokenPromise = new Promise((resolve) => { newTokenPromiseState.resolve = resolve })
+      const authTokenProvider = jest.fn(() => newTokenPromise)
+      const renewableAuthToken = toRenewableToken(authToken)
+      const connection = mockConnection({
+        authToken: { ...authToken }
+      })
+      const authenticationProvider = createAuthenticationProvider(authTokenProvider, {
+        renewableAuthToken
+      })
+
+      authenticationProvider.handleError({ code, connection })
+
+      expect(authTokenProvider).toHaveBeenCalled()
+
+      // Test implementation details
+      expect(authenticationProvider._renewableAuthToken).toEqual(renewableAuthToken)
+
+      const newRenewableToken = toRenewableToken({ scheme: 'bearer', credentials: 'token2' })
+      newTokenPromiseState.resolve(newRenewableToken)
+
+      await newTokenPromise
+
+      expect(authenticationProvider._renewableAuthToken).toBe(newRenewableToken)
+    })
+
+    function shouldNotScheduleRefreshScenarios () {
+      return [
+        ...nonValidCodesScenarios(),
+        ...validCodesWithDifferentAuthScenarios(),
+        ...nonValidCodesWithDifferentAuthScenarios(),
+        ...validCodesWithSameAuthButWithRescheduleInPlaceScenarios()
+      ]
+
+      function nonValidCodesScenarios () {
+        return [
+          'Neo.ClientError.Security.AuthorizationExpired',
+          'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase',
+          'Neo.Made.Up.Error'
+        ].flatMap(code => [
+          [
+              `connection and provider has same auth token and error code does not trigger re-fresh (code=${code})`, () => {
+                const authToken = { scheme: 'bearer', credentials: 'token' }
+                const authTokenProvider = jest.fn(() => {})
+                return {
+                  connection: mockConnection({
+                    authToken: { ...authToken }
+                  }),
+                  code,
+                  authTokenProvider,
+                  authenticationProvider: createAuthenticationProvider(authTokenProvider, {
+                    renewableAuthToken: toRenewableToken(authToken)
+                  })
+                }
+              }
+          ]
+        ])
+      }
+
+      function validCodesWithDifferentAuthScenarios () {
+        return errorCodeTriggerRefreshAuth().flatMap(code => [
+          [
+            `connection and provider has different auth token and error code does trigger re-fresh (code=${code})`,
+            () => {
+              const authToken = { scheme: 'bearer', credentials: 'token' }
+              const authTokenProvider = jest.fn(() => {})
+              return {
+                connection: mockConnection({
+                  authToken: { ...authToken, credentials: 'token2' }
+                }),
+                code,
+                authTokenProvider,
+                authenticationProvider: createAuthenticationProvider(authTokenProvider, {
+                  renewableAuthToken: toRenewableToken(authToken)
+                })
+              }
+            }
+          ]
+
+        ])
+      }
+
+      function nonValidCodesWithDifferentAuthScenarios () {
+        return [
+          'Neo.ClientError.Security.AuthorizationExpired',
+          'Neo.ClientError.General.ForbiddenOnReadOnlyDatabase',
+          'Neo.Made.Up.Error'
+        ].flatMap(code => [
+          [
+            `connection and provider has different auth token and error code does not trigger re-fresh (code=${code})`,
+            () => {
+              const authToken = { scheme: 'bearer', credentials: 'token' }
+              const authTokenProvider = jest.fn(() => {})
+              return {
+                connection: mockConnection({
+                  authToken: { ...authToken, credentials: 'token2' }
+                }),
+                code,
+                authTokenProvider,
+                authenticationProvider: createAuthenticationProvider(authTokenProvider, {
+                  renewableAuthToken: toRenewableToken(authToken)
+                })
+              }
+            }
+          ]
+
+        ])
+      }
+
+      function validCodesWithSameAuthButWithRescheduleInPlaceScenarios () {
+        return errorCodeTriggerRefreshAuth().flatMap(code => [
+          [
+              `connection and provider has same auth token and error code does trigger re-fresh (code=${code}), but refresh already schedule`, () => {
+                const authToken = { scheme: 'bearer', credentials: 'token' }
+                const authTokenProvider = jest.fn(() => {})
+                return {
+                  connection: mockConnection({
+                    authToken: { ...authToken }
+                  }),
+                  code,
+                  authTokenProvider,
+                  authenticationProvider: createAuthenticationProvider(authTokenProvider, {
+                    renewableAuthToken: toRenewableToken(authToken),
+                    refreshObserver: refreshObserverMock()
+                  })
+                }
+              }
+          ]
+        ])
+      }
+    }
+  })
+
   function createAuthenticationProvider (authTokenProvider, mocks) {
     const provider = new AuthenticationProvider({
       authTokenProvider,
@@ -564,6 +717,7 @@ describe('AuthenticationProvider', () => {
 
     if (mocks) {
       provider._renewableAuthToken = mocks.renewableAuthToken
+      provider._refreshObserver = mocks.refreshObserver
     }
 
     return provider
@@ -589,6 +743,23 @@ describe('AuthenticationProvider', () => {
     return {
       authToken,
       expectedExpirationTime: new Date(new Date().getTime() - 1)
+    }
+  }
+
+  function errorCodeTriggerRefreshAuth () {
+    return [
+      'Neo.ClientError.Security.Unauthorized',
+      'Neo.ClientError.Security.TokenExpired'
+    ]
+  }
+
+  function refreshObserverMock () {
+    const subscribers = []
+
+    return {
+      subscribe: (sub) => subscribers.push(sub),
+      notify: () => subscribers.forEach(sub => sub.onSuccess()),
+      notifyError: (e) => subscribers.forEach(sub => sub.onError(e))
     }
   }
 })

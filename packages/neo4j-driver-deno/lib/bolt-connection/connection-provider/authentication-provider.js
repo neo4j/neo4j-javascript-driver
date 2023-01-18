@@ -49,9 +49,9 @@ export default class AuthenticationProvider {
     return connection
   }
 
-  async handleError ({ connection, code }) {
-    if ( 
-      connection.authToken === this._authToken &&  
+  handleError ({ connection, code }) {
+    if (
+      object.equals(connection.authToken, this._authToken) &&
       [
         'Neo.ClientError.Security.Unauthorized',
         'Neo.ClientError.Security.TokenExpired'
