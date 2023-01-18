@@ -385,6 +385,175 @@ describe('AuthenticationProvider', () => {
         })
       })
     })
+
+    describe.each([
+      ['and first call', createAuthenticationProvider],
+      ['and token has expired', (authTokenProvider) => createAuthenticationProvider(authTokenProvider, {
+        renewableAuthToken: toExpiredRenewableToken({ scheme: 'none', credentials: 'token expired' })
+      })],
+      ['and toke is not expired', (authTokenProvider) => createAuthenticationProvider(authTokenProvider, {
+        renewableAuthToken: toExpiredRenewableToken({ scheme: 'none' })
+      })]
+    ])('when called with an auth and %s', (_, createAuthenticationProvider) => {
+      describe.each([false, true])('and connection is not authenticated (supportsReAuth=%s)', (supportsReAuth) => {
+        it('should call connection connect with the supplied auth', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth })
+
+          await authenticationProvider.authenticate({ connection, auth })
+
+          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth)
+        })
+
+        it('should return the connection', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth })
+
+          await expect(authenticationProvider.authenticate({ connection, auth })).resolves.toBe(connection)
+        })
+
+        it('should not refresh the token', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth })
+
+          await authenticationProvider.authenticate({ connection, auth })
+
+          expect(authTokenProvider).not.toHaveBeenCalled()
+        })
+
+        it('should throws if connection fails', async () => {
+          const error = new Error('nope')
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({
+            supportsReAuth,
+            connect: jest.fn(() => Promise.reject(error))
+          })
+
+          await expect(authenticationProvider.authenticate({ connection, auth })).rejects.toThrow(error)
+        })
+      })
+
+      describe.each([false, true])('and connection is authenticated with same token (supportsReAuth=%s)', (supportsReAuth) => {
+        it('should not call connection connect with the supplied auth', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { ...auth } })
+
+          await authenticationProvider.authenticate({ connection, auth })
+
+          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, auth)
+        })
+
+        it('should return the connection', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { ...auth } })
+
+          await expect(authenticationProvider.authenticate({ connection, auth })).resolves.toBe(connection)
+        })
+
+        it('should not refresh the token', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { ...auth } })
+
+          await authenticationProvider.authenticate({ connection, auth })
+
+          expect(authTokenProvider).not.toHaveBeenCalled()
+        })
+      })
+
+      describe.each([true])('and connection is authenticated with different token (supportsReAuth=%s)', (supportsReAuth) => {
+        it('should call connection connect with the supplied auth', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { scheme: 'bearer', credentials: 'other' } })
+
+          await authenticationProvider.authenticate({ connection, auth })
+
+          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth)
+        })
+
+        it('should return the connection', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { scheme: 'bearer', credentials: 'other' } })
+
+          await expect(authenticationProvider.authenticate({ connection, auth })).resolves.toBe(connection)
+        })
+
+        it('should not refresh the token', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { scheme: 'bearer', credentials: 'other' } })
+
+          await authenticationProvider.authenticate({ connection, auth })
+
+          expect(authTokenProvider).not.toHaveBeenCalled()
+        })
+
+        it('should throws if connection fails', async () => {
+          const error = new Error('nope')
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({
+            supportsReAuth,
+            connect: jest.fn(() => Promise.reject(error)),
+            authToken: { scheme: 'bearer', credentials: 'other' }
+          })
+
+          await expect(authenticationProvider.authenticate({ connection, auth })).rejects.toThrow(error)
+        })
+      })
+
+      describe.each([false])('and connection is authenticated with different token (supportsReAuth=%s)', (supportsReAuth) => {
+        it('should not call connection connect with the supplied auth', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { ...auth, credentials: 'other' } })
+
+          await authenticationProvider.authenticate({ connection, auth })
+
+          expect(connection.connect).not.toHaveBeenCalledWith(USER_AGENT, auth)
+        })
+
+        it('should return the connection', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { ...auth, credentials: 'other' } })
+
+          await expect(authenticationProvider.authenticate({ connection, auth })).resolves.toBe(connection)
+        })
+
+        it('should not refresh the token', async () => {
+          const auth = { scheme: 'bearer', credentials: 'my token' }
+          const authTokenProvider = jest.fn(() => toRenewableToken({}))
+          const authenticationProvider = createAuthenticationProvider(authTokenProvider)
+          const connection = mockConnection({ supportsReAuth, authToken: { ...auth, credentials: 'other' } })
+
+          await authenticationProvider.authenticate({ connection, auth })
+
+          expect(authTokenProvider).not.toHaveBeenCalled()
+        })
+      })
+    })
   })
 
   function createAuthenticationProvider (authTokenProvider, mocks) {
