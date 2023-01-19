@@ -48,7 +48,8 @@ describe.each([
   4.2,
   4.3,
   4.4,
-  5.0
+  5.0,
+  5.1
 ])('#unit RoutingConnectionProvider (PROTOCOL_VERSION=%d)', (PROTOCOL_VERSION) => {
   const server0 = ServerAddress.fromUrl('server0')
   const server1 = ServerAddress.fromUrl('server1')
