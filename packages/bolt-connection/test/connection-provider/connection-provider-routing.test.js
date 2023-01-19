@@ -31,6 +31,7 @@ import { Pool } from '../../src/pool'
 import SimpleHostNameResolver from '../../src/channel/browser/browser-host-name-resolver'
 import RoutingConnectionProvider from '../../src/connection-provider/connection-provider-routing'
 import { DelegateConnection, Connection } from '../../src/connection'
+import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
 
 const {
   serverAddress: { ServerAddress },
@@ -3047,6 +3048,101 @@ describe.each([
     })
   })
 
+  describe('constructor', () => {
+    describe('newPool', () => {
+      describe('param.create', () => {
+        it('should create connection', async () => {
+          const { create, createChannelConnectionHook, provider } = setup()
+
+          const connection = await create({}, server0, undefined)
+
+          expect(createChannelConnectionHook).toHaveBeenCalledWith(server0)
+          expect(provider._openConnections[connection.id]).toBe(connection)
+          await expect(createChannelConnectionHook.mock.results[0].value).resolves.toBe(connection)
+        })
+
+        it('should register the release function into the connection', async () => {
+          const { create } = setup()
+          const releaseResult = { property: 'some property' }
+          const release = jest.fn(() => releaseResult)
+
+          const connection = await create({}, server0, release)
+
+          const released = connection._release()
+
+          expect(released).toBe(releaseResult)
+          expect(release).toHaveBeenCalledWith(server0, connection)
+        })
+
+        it.each([
+          null,
+          undefined,
+          { scheme: 'bearer', credentials: 'token01' }
+        ])('should authenticate connection (auth = %o)', async (auth) => {
+          const { create, authenticationProviderHook } = setup()
+
+          const connection = await create({ auth }, server0)
+
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
+            connection,
+            auth
+          })
+        })
+
+        it('should handle create connection failures', async () => {
+          const error = newError('some error')
+          const createConnection = jest.fn(() => Promise.reject(error))
+          const { create, authenticationProviderHook, provider } = setup({ createConnection })
+          const openConnections = { ...provider._openConnections }
+
+          await expect(create({}, server0)).rejects.toThrow(error)
+
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+          expect(provider._openConnections).toEqual(openConnections)
+        })
+
+        it.each([
+          null,
+          undefined,
+          { scheme: 'bearer', credentials: 'token01' }
+        ])('should handle authentication failures (auth = %o)', async (auth) => {
+          const error = newError('some error')
+          const authenticationProvider = jest.fn(() => Promise.reject(error))
+          const { create, authenticationProviderHook, createChannelConnectionHook, provider } = setup({ authenticationProvider })
+          const openConnections = { ...provider._openConnections }
+
+          await expect(create({ auth }, server0)).rejects.toThrow(error)
+
+          const connection = await createChannelConnectionHook.mock.results[0].value
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({ auth, connection })
+          expect(provider._openConnections).toEqual(openConnections)
+          expect(connection._closed).toBe(true)
+        })
+      })
+
+      function setup ({ createConnection, authenticationProvider } = {}) {
+        const newPool = jest.fn((...args) => new Pool(...args))
+        const createChannelConnectionHook = createConnection || jest.fn(async (address) => new FakeConnection(address))
+        const authenticationProviderHook = new AuthenticationProvider({ })
+        jest.spyOn(authenticationProviderHook, 'authenticate')
+          .mockImplementation(authenticationProvider || jest.fn(({ connection }) => Promise.resolve(connection)))
+        const provider = new RoutingConnectionProvider({
+          newPool,
+          config: {},
+          address: server01
+        })
+        provider._createChannelConnection = createChannelConnectionHook
+        provider._authenticationProvider = authenticationProviderHook
+        return {
+          provider,
+          ...newPool.mock.calls[0][0],
+          createChannelConnectionHook,
+          authenticationProviderHook
+        }
+      }
+    })
+  })
+
   function newPool ({ create, config } = {}) {
     const _create = (address, release) => {
       if (create) {
@@ -3220,6 +3316,12 @@ class FakeConnection extends Connection {
     this.resetAndFlush = jest.fn(() => Promise.resolve())
     this._server = server
     this._authToken = authToken
+    this._id = 1
+    this._closed = false
+  }
+
+  get id () {
+    return this._id
   }
 
   get authToken () {
@@ -3243,7 +3345,7 @@ class FakeConnection extends Connection {
   }
 
   async close () {
-
+    this._closed = true
   }
 
   protocol () {

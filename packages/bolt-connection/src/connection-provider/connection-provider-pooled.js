@@ -25,7 +25,7 @@ import AuthenticationProvider from './authentication-provider'
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
-    { id, config, log, userAgent, authTokenProvider },
+    { id, config, log, userAgent, authTokenProvider, newPool = (...args) => new Pool(...args) },
     createChannelConnectionHook = null
   ) {
     super()
@@ -44,7 +44,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
           this._log
         )
       })
-    this._connectionPool = new Pool({
+    this._connectionPool = newPool({
       create: this._createConnection.bind(this),
       destroy: this._destroyConnection.bind(this),
       validateOnAcquire: this._validateConnectionOnAcquire.bind(this),
