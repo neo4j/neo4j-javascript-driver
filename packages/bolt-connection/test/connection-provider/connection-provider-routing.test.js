@@ -3120,16 +3120,147 @@ describe.each([
         })
       })
 
-      function setup ({ createConnection, authenticationProvider } = {}) {
+      describe('param.destroy', () => {
+        it('should close connection and unregister it', async () => {
+          const { create, destroy, provider } = setup()
+          const openConnections = { ...provider._openConnections }
+          const connection = await create({}, server0, undefined)
+
+          await destroy(connection)
+
+          expect(connection._closed).toBe(true)
+          expect(provider._openConnections).toEqual(openConnections)
+        })
+      })
+
+      describe('param.validateOnAcquire', () => {
+        it.each([
+          null,
+          undefined,
+          { scheme: 'bearer', credentials: 'token01' }
+        ])('should return true when connection is open and within the lifetime and authentication succeed (auth=%o)', async (auth) => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+
+          const { validateOnAcquire, authenticationProviderHook } = setup()
+
+          await expect(validateOnAcquire({ auth }, connection)).resolves.toBe(true)
+
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
+            connection, auth
+          })
+        })
+
+        it.each([
+          null,
+          undefined,
+          { scheme: 'bearer', credentials: 'token01' }
+        ])('should return true when connection is open and within the lifetime and authentication fails (auth=%o)', async (auth) => {
+          const connection = new FakeConnection(server0)
+          const error = newError('failed')
+          const authenticationProvider = jest.fn(() => Promise.reject(error))
+          connection.creationTimestamp = Date.now()
+
+          const { validateOnAcquire, authenticationProviderHook, log } = setup({ authenticationProvider })
+
+          await expect(validateOnAcquire({ auth }, connection)).resolves.toBe(false)
+
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
+            connection, auth
+          })
+
+          expect(log.debug).toHaveBeenCalledWith(
+            `The connection ${connection.id} is not valid because of an error ${error.code} '${error.message}'`
+          )
+        })
+        it('should return false when connection is closed and within the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+          await connection.close()
+
+          const { validateOnAcquire, authenticationProviderHook } = setup()
+
+          await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+        })
+
+        it('should return false when connection is open and out of the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now() - 4000
+
+          const { validateOnAcquire, authenticationProviderHook } = setup({ maxConnectionLifetime: 3000 })
+
+          await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+        })
+
+        it('should return false when connection is closed and out of the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          await connection.close()
+          connection.creationTimestamp = Date.now() - 4000
+
+          const { validateOnAcquire, authenticationProviderHook } = setup({ maxConnectionLifetime: 3000 })
+
+          await expect(validateOnAcquire({}, connection)).resolves.toBe(false)
+          expect(authenticationProviderHook.authenticate).not.toHaveBeenCalled()
+        })
+      })
+
+      describe('param.validateOnRelease', () => {
+        it('should return true when connection is open and within the lifetime', () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+
+          const { validateOnRelease } = setup()
+
+          expect(validateOnRelease(connection)).toBe(true)
+        })
+
+        it('should return false when connection is closed and within the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now()
+          await connection.close()
+
+          const { validateOnRelease } = setup()
+
+          expect(validateOnRelease(connection)).toBe(false)
+        })
+
+        it('should return false when connection is open and out of the lifetime', () => {
+          const connection = new FakeConnection(server0)
+          connection.creationTimestamp = Date.now() - 4000
+
+          const { validateOnRelease } = setup({ maxConnectionLifetime: 3000 })
+
+          expect(validateOnRelease(connection)).toBe(false)
+        })
+
+        it('should return false when connection is closed and out of the lifetime', async () => {
+          const connection = new FakeConnection(server0)
+          await connection.close()
+          connection.creationTimestamp = Date.now() - 4000
+
+          const { validateOnRelease } = setup({ maxConnectionLifetime: 3000 })
+
+          expect(validateOnRelease(connection)).toBe(false)
+        })
+      })
+
+      function setup ({ createConnection, authenticationProvider, maxConnectionLifetime } = {}) {
         const newPool = jest.fn((...args) => new Pool(...args))
+        const log = new Logger('debug', () => undefined)
+        jest.spyOn(log, 'debug')
         const createChannelConnectionHook = createConnection || jest.fn(async (address) => new FakeConnection(address))
         const authenticationProviderHook = new AuthenticationProvider({ })
         jest.spyOn(authenticationProviderHook, 'authenticate')
           .mockImplementation(authenticationProvider || jest.fn(({ connection }) => Promise.resolve(connection)))
         const provider = new RoutingConnectionProvider({
           newPool,
-          config: {},
-          address: server01
+          config: {
+            maxConnectionLifetime: maxConnectionLifetime || 1000
+          },
+          address: server01,
+          log
         })
         provider._createChannelConnection = createChannelConnectionHook
         provider._authenticationProvider = authenticationProviderHook
@@ -3137,7 +3268,8 @@ describe.each([
           provider,
           ...newPool.mock.calls[0][0],
           createChannelConnectionHook,
-          authenticationProviderHook
+          authenticationProviderHook,
+          log
         }
       }
     })
@@ -3346,6 +3478,10 @@ class FakeConnection extends Connection {
 
   async close () {
     this._closed = true
+  }
+
+  isOpen () {
+    return !this._closed
   }
 
   protocol () {

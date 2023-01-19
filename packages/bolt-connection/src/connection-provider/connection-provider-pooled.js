@@ -95,7 +95,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       await this._authenticationProvider.authenticate({ connection: conn, auth })
       return true
     } catch (error) {
-      this._log.info(
+      this._log.debug(
         `The connection ${conn.id} is not valid because of an error ${error.code} '${error.message}'`
       )
       return false
