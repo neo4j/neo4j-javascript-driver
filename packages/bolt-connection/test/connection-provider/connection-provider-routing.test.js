@@ -1434,10 +1434,11 @@ describe.each([
       })
   }, 10000)
 
-  it.each(usersDataSet)('should not purge connections for address when AuthorizationExpired happens [user=%s]', async (user) => {
+  it.each(usersDataSet)('should close connection and erase authToken for connection with address when AuthorizationExpired happens [user=%s]', async (user) => {
     const pool = newPool()
 
     jest.spyOn(pool, 'purge')
+    jest.spyOn(pool, 'apply')
 
     const connectionProvider = newRoutingConnectionProvider(
       [
@@ -1468,11 +1469,78 @@ describe.each([
       impersonatedUser: user
     })
 
+    jest.spyOn(server2Connection, 'close')
+    jest.spyOn(server3Connection, 'close')
+
     server3Connection.handleAndTransformError(error, server3)
     server2Connection.handleAndTransformError(error, server2)
 
+    expect(server2Connection.close).toHaveBeenCalled()
+    expect(server3Connection.close).toHaveBeenCalled()
+
     expect(pool.purge).not.toHaveBeenCalledWith(server3)
     expect(pool.purge).not.toHaveBeenCalledWith(server2)
+
+    expect(pool.apply).toHaveBeenCalledTimes(2)
+
+    const [[
+      calledAddress1, appliedFunction1
+    ],
+    [
+      calledAddress2, appliedFunction2
+    ]] = pool.apply.mock.calls
+
+    expect(calledAddress1).toBe(server3)
+    let fakeConn = { authToken: 'some token' }
+    appliedFunction1(fakeConn)
+    expect(fakeConn.authToken).toBe(null)
+    pool.apply(server3, conn => expect(conn.authToken).toBe(null))
+
+    expect(calledAddress2).toBe(server2)
+    fakeConn = { authToken: 'some token' }
+    appliedFunction2(fakeConn)
+    expect(fakeConn.authToken).toBe(null)
+    pool.apply(server2, conn => expect(conn.authToken).toBe(null))
+  })
+
+  it.each(usersDataSet)('should call authenticationAuthProvider.handleError when AuthorizationExpired happens [user=%s]', async (user) => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+
+    const handleError = jest.spyOn(connectionProvider._authenticationProvider, 'handleError')
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.AuthorizationExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null,
+      impersonatedUser: user
+    })
+
+    server3Connection.handleAndTransformError(error, server3)
+    server2Connection.handleAndTransformError(error, server2)
+
+    expect(handleError).toBeCalledWith({ connection: server3Connection, code: 'Neo.ClientError.Security.AuthorizationExpired' })
+    expect(handleError).toBeCalledWith({ connection: server2Connection, code: 'Neo.ClientError.Security.AuthorizationExpired' })
   })
 
   it.each(usersDataSet)('should purge not change error when AuthorizationExpired happens [user=%s]', async (user) => {
@@ -1515,6 +1583,7 @@ describe.each([
     const pool = newPool()
 
     jest.spyOn(pool, 'purge')
+    jest.spyOn(pool, 'apply')
 
     const connectionProvider = newRoutingConnectionProvider(
       [
@@ -1550,6 +1619,49 @@ describe.each([
 
     expect(pool.purge).not.toHaveBeenCalledWith(server3)
     expect(pool.purge).not.toHaveBeenCalledWith(server2)
+    expect(pool.apply).toHaveBeenCalledTimes(0)
+    pool.apply(server2, conn => expect(conn.authToken).toBeDefined())
+    pool.apply(server3, conn => expect(conn.authToken).toBeDefined())
+  })
+
+  it.each(usersDataSet)('should call authenticationAuthProvider.handleError when TokenExpired happens [user=%s]', async (user) => {
+    const pool = newPool()
+    const connectionProvider = newRoutingConnectionProvider(
+      [
+        newRoutingTable(
+          null,
+          [server1, server2],
+          [server3, server2],
+          [server2, server4]
+        )
+      ],
+      pool
+    )
+
+    const handleError = jest.spyOn(connectionProvider._authenticationProvider, 'handleError')
+
+    const error = newError(
+      'Message',
+      'Neo.ClientError.Security.TokenExpired'
+    )
+
+    const server2Connection = await connectionProvider.acquireConnection({
+      accessMode: 'WRITE',
+      database: null,
+      impersonatedUser: user
+    })
+
+    const server3Connection = await connectionProvider.acquireConnection({
+      accessMode: 'READ',
+      database: null,
+      impersonatedUser: user
+    })
+
+    server3Connection.handleAndTransformError(error, server3)
+    server2Connection.handleAndTransformError(error, server2)
+
+    expect(handleError).toBeCalledWith({ connection: server3Connection, code: 'Neo.ClientError.Security.TokenExpired' })
+    expect(handleError).toBeCalledWith({ connection: server2Connection, code: 'Neo.ClientError.Security.TokenExpired' })
   })
 
   it.each(usersDataSet)('should not change error when TokenExpired happens [user=%s]', async (user) => {
@@ -2943,7 +3055,10 @@ describe.each([
           return Promise.reject(e)
         }
       }
-      return Promise.resolve(new FakeConnection(address, release, 'version', PROTOCOL_VERSION))
+      return Promise.resolve(new FakeConnection(address, release, 'version', PROTOCOL_VERSION, undefined, {
+        scheme: 'bearer',
+        credentials: 'token'
+      }))
     }
     return new Pool({
       config,
@@ -3093,7 +3208,7 @@ function expectPoolToNotContain (pool, addresses) {
 }
 
 class FakeConnection extends Connection {
-  constructor (address, release, version, protocolVersion, server) {
+  constructor (address, release, version, protocolVersion, server, authToken) {
     super(null)
 
     this._address = address
@@ -3103,6 +3218,7 @@ class FakeConnection extends Connection {
     this._release = jest.fn(() => release(address, this))
     this.resetAndFlush = jest.fn(() => Promise.resolve())
     this._server = server
+    this._authToken = authToken
   }
 
   get authToken () {
