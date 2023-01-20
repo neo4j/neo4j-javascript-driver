@@ -22,6 +22,10 @@ export function equals (a, b) {
     return true
   }
 
+  if (a === null || b === null) {
+    return false
+  }
+
   if (typeof a === 'object' && typeof b === 'object') {
     const keysA = Object.keys(a)
     const keysB = Object.keys(b)
