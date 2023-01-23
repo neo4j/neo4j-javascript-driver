@@ -80,6 +80,7 @@ import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookm
 import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver.ts'
 import * as types from './types.ts'
 import * as json from './json.ts'
+import resultTransformers, { ResultTransformer } from './result-transformers.ts'
 import * as internal from './internal/index.ts'
 
 /**
@@ -152,7 +153,8 @@ const forExport = {
   json,
   auth,
   bookmarkManager,
-  routing
+  routing,
+  resultTransformers
 }
 
 export {
@@ -214,7 +216,8 @@ export {
   json,
   auth,
   bookmarkManager,
-  routing
+  routing,
+  resultTransformers
 }
 
 export type {
@@ -228,7 +231,8 @@ export type {
   BookmarkManagerConfig,
   SessionConfig,
   QueryConfig,
-  RoutingControl
+  RoutingControl,
+  ResultTransformer
 }
 
 export default forExport

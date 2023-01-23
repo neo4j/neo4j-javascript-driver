@@ -72,7 +72,9 @@ import {
   SessionConfig,
   QueryConfig,
   RoutingControl,
-  routing
+  routing,
+  resultTransformers,
+  ResultTransformer
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -249,6 +251,7 @@ declare const forExport: {
   isRelationship: typeof isRelationship
   isUnboundRelationship: typeof isUnboundRelationship
   bookmarkManager: typeof bookmarkManager
+  resultTransformers: typeof resultTransformers
 }
 
 export {
@@ -317,7 +320,8 @@ export {
   isPathSegment,
   isRelationship,
   isUnboundRelationship,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 
 export type {
@@ -325,7 +329,8 @@ export type {
   BookmarkManagerConfig,
   SessionConfig,
   QueryConfig,
-  RoutingControl
+  RoutingControl,
+  ResultTransformer
 }
 
 export default forExport

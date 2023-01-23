@@ -19,7 +19,6 @@
 
 import Record, { Dict } from './record'
 import ResultSummary from './result-summary'
-import Result from './result'
 
 /**
  * Represents the fully streamed result
@@ -57,18 +56,4 @@ export default class EagerResult<Entries extends Dict = Dict> {
      */
     this.summary = summary
   }
-}
-
-/**
- * Creates an {@link EagerResult} from a given {@link Result} by
- * consuming the whole stream.
- *
- * @private
- * @param {Result} result The result to be consumed
- * @returns A promise of an EagerResult
- */
-export async function createEagerResultFromResult<Entries extends Dict = Dict> (result: Result): Promise<EagerResult<Entries>> {
-  const { summary, records } = await result
-  const keys = await result.keys()
-  return new EagerResult<Entries>(keys, records, summary)
 }

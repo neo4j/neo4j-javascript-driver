@@ -82,7 +82,9 @@ import {
   SessionConfig,
   QueryConfig,
   RoutingControl,
-  routing
+  routing,
+  resultTransformers,
+  ResultTransformer
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -494,7 +496,8 @@ const forExport = {
   DateTime,
   ConnectionProvider,
   Connection,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 
 export {
@@ -555,7 +558,8 @@ export {
   DateTime,
   ConnectionProvider,
   Connection,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 export type {
   QueryResult,
@@ -570,6 +574,7 @@ export type {
   BookmarkManagerConfig,
   SessionConfig,
   QueryConfig,
-  RoutingControl
+  RoutingControl,
+  ResultTransformer
 }
 export default forExport

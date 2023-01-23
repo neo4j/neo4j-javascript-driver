@@ -42,8 +42,8 @@ import {
 } from './types'
 import { ServerAddress } from './internal/server-address'
 import BookmarkManager, { bookmarkManager } from './bookmark-manager'
-import EagerResult, { createEagerResultFromResult } from './result-eager'
-import Result from './result'
+import EagerResult from './result-eager'
+import resultTransformers, { ResultTransformer } from './result-transformers'
 import QueryExecutor from './internal/query-executor'
 import { newError } from './error'
 
@@ -257,8 +257,6 @@ const routing = {
 
 Object.freeze(routing)
 
-type ResultTransformer<T> = (result: Result) => Promise<T>
-
 /**
  * The query configuration
  * @interface
@@ -412,11 +410,11 @@ class Driver {
    * const transformedResult = await driver.executeQuery(
    *    "<QUERY>",
    *    <PARAMETERS>,
-   *    QueryConfig {
-   *      routing: neo4j.routing.WRITERS,
-   *      resultTransformer: transformer,
-   *      database: "<DATABASE>",
-   *      impersonatedUser: "<USER>",
+   *    {
+   *       routing: neo4j.routing.WRITERS,
+   *       resultTransformer: transformer,
+   *       database: "<DATABASE>",
+   *       impersonatedUser: "<USER>",
    *       bookmarkManager: bookmarkManager
    *    })
    * // are equivalent to those
@@ -436,6 +434,7 @@ class Driver {
    * }
    *
    * @public
+   * @experimental
    * @param {string | {text: string, parameters?: object}} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in the query
    * @param {QueryConfig<T>} config - The query configuration
@@ -443,7 +442,7 @@ class Driver {
    */
   async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)
-    const resultTransformer = (config.resultTransformer ?? createEagerResultFromResult) as ResultTransformer<T>
+    const resultTransformer = (config.resultTransformer ?? resultTransformers.eagerResultTransformer()) as ResultTransformer<T>
     const routingConfig: string = config.routing ?? routing.WRITERS
 
     if (routingConfig !== routing.READERS && routingConfig !== routing.WRITERS) {
@@ -799,6 +798,6 @@ function createHostNameResolver (config: any): ConfiguredCustomResolver {
   return new ConfiguredCustomResolver(config.resolver)
 }
 
-export { Driver, READ, WRITE, routing, SessionConfig}
+export { Driver, READ, WRITE, routing, SessionConfig }
 export type { QueryConfig, RoutingControl }
 export default Driver

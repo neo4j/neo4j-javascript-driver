@@ -82,7 +82,9 @@ import {
   SessionConfig,
   QueryConfig,
   RoutingControl,
-  routing
+  routing,
+  resultTransformers,
+  ResultTransformer
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import {
@@ -495,7 +497,8 @@ const forExport = {
   DateTime,
   ConnectionProvider,
   Connection,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 
 export {
@@ -556,7 +559,8 @@ export {
   DateTime,
   ConnectionProvider,
   Connection,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 export type {
   QueryResult,
@@ -571,6 +575,7 @@ export type {
   BookmarkManagerConfig,
   SessionConfig,
   QueryConfig,
-  RoutingControl
+  RoutingControl,
+  ResultTransformer
 }
 export default forExport

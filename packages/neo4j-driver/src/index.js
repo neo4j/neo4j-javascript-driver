@@ -68,7 +68,8 @@ import {
   Transaction,
   ManagedTransaction,
   bookmarkManager,
-  routing
+  routing,
+  resultTransformers
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -482,7 +483,8 @@ const forExport = {
   Date,
   LocalDateTime,
   DateTime,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 
 export {
@@ -544,6 +546,7 @@ export {
   Date,
   LocalDateTime,
   DateTime,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 export default forExport

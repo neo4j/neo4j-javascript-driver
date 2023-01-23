@@ -24,7 +24,7 @@ import { Logger } from '../src/internal/logger'
 import QueryExecutor from '../src/internal/query-executor'
 import { ConfiguredCustomResolver } from '../src/internal/resolver'
 import { LogLevel } from '../src/types'
-import { createEagerResultFromResult } from '../src/result-eager'
+import resultTransformers from '../src/result-transformers'
 import Record, { Dict } from '../src/record'
 
 describe('Driver', () => {
@@ -334,7 +334,7 @@ describe('Driver', () => {
 
         expect(eagerResult).toEqual(expected)
         expect(spiedExecute).toBeCalledWith({
-          resultTransformer: createEagerResultFromResult,
+          resultTransformer: resultTransformers.eagerResultTransformer(),
           bookmarkManager: driver?.queryBookmarkManager,
           routing: routing.WRITERS,
           database: undefined,
@@ -458,7 +458,7 @@ describe('Driver', () => {
       function extendsDefaultWith<T = EagerResult<Dict>> (config: QueryConfig<T>) {
         return () => {
           const defaultConfig = {
-            resultTransformer: createEagerResultFromResult,
+            resultTransformer: resultTransformers.eagerResultTransformer(),
             bookmarkManager: driver?.queryBookmarkManager,
             routing: routing.WRITERS,
             database: undefined,

@@ -17,9 +17,7 @@
  * limitations under the License.
  */
 
-import { EagerResult, newError, Record, Result, ResultSummary } from '../src'
-import { createEagerResultFromResult } from '../src/result-eager'
-import ResultStreamObserverMock from './utils/result-stream-observer.mock'
+import { EagerResult, Record, ResultSummary } from '../src'
 
 describe('EagerResult', () => {
   it('should construct with keys, records and summary', () => {
@@ -32,83 +30,5 @@ describe('EagerResult', () => {
     expect(eagerResult.keys).toBe(keys)
     expect(eagerResult.records).toBe(records)
     expect(eagerResult.summary).toBe(summary)
-  })
-})
-
-describe('createEagerResultFromResult', () => {
-  describe('with a valid result', () => {
-    it('it should return an EagerResult', async () => {
-      const resultStreamObserverMock = new ResultStreamObserverMock()
-      const query = 'Query'
-      const params = { a: 1 }
-      const meta = { db: 'adb' }
-      const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
-      const keys = ['a', 'b']
-      const rawRecord1 = [1, 2]
-      const rawRecord2 = [3, 4]
-      resultStreamObserverMock.onKeys(keys)
-      resultStreamObserverMock.onNext(rawRecord1)
-      resultStreamObserverMock.onNext(rawRecord2)
-      resultStreamObserverMock.onCompleted(meta)
-
-      const eagerResult: EagerResult = await createEagerResultFromResult(result)
-
-      expect(eagerResult.keys).toEqual(keys)
-      expect(eagerResult.records).toEqual([
-        new Record(keys, rawRecord1),
-        new Record(keys, rawRecord2)
-      ])
-      expect(eagerResult.summary).toEqual(
-        new ResultSummary(query, params, meta)
-      )
-    })
-
-    it('it should return a type-safe EagerResult', async () => {
-      interface Car {
-        model: string
-        year: number
-      }
-      const resultStreamObserverMock = new ResultStreamObserverMock()
-      const query = 'Query'
-      const params = { a: 1 }
-      const meta = { db: 'adb' }
-      const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
-      const keys = ['model', 'year']
-      const rawRecord1 = ['Beautiful Sedan', 1987]
-      const rawRecord2 = ['Hot Hatch', 1995]
-
-      resultStreamObserverMock.onKeys(keys)
-      resultStreamObserverMock.onNext(rawRecord1)
-      resultStreamObserverMock.onNext(rawRecord2)
-      resultStreamObserverMock.onCompleted(meta)
-
-      const eagerResult: EagerResult<Car> = await createEagerResultFromResult(result)
-
-      expect(eagerResult.keys).toEqual(keys)
-      expect(eagerResult.records).toEqual([
-        new Record(keys, rawRecord1),
-        new Record(keys, rawRecord2)
-      ])
-      expect(eagerResult.summary).toEqual(
-        new ResultSummary(query, params, meta)
-      )
-
-      const [car1, car2] = eagerResult.records.map(record => record.toObject())
-
-      expect(car1.model).toEqual(rawRecord1[0])
-      expect(car1.year).toEqual(rawRecord1[1])
-
-      expect(car2.model).toEqual(rawRecord2[0])
-      expect(car2.year).toEqual(rawRecord2[1])
-    })
-  })
-
-  describe('when results fail', () => {
-    it('should propagate the exception', async () => {
-      const expectedError = newError('expected error')
-      const result = new Result(Promise.reject(expectedError), 'query')
-
-      await expect(createEagerResultFromResult(result)).rejects.toThrow(expectedError)
-    })
   })
 })
