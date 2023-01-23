@@ -204,7 +204,6 @@ declare const forExport: {
   SessionMode: SessionMode
   Neo4jError: typeof Neo4jError
   isRetriableError: typeof isRetriableError
-<<<<<<< HEAD
   Node: typeof Node
   Relationship: typeof Relationship
   UnboundRelationship: typeof UnboundRelationship
@@ -213,17 +212,7 @@ declare const forExport: {
   Integer: typeof Integer
   Record: typeof Record
   Result: typeof Result
-=======
-  Node: Node
-  Relationship: Relationship
-  UnboundRelationship: UnboundRelationship
-  PathSegment: PathSegment
-  Path: Path
-  Integer: Integer
-  Record: Record
-  Result: Result
-  EagerResult: EagerResult
->>>>>>> Introduce `Driver.executeQuery`
+  EagerResult: typeof EagerResult
   QueryResult: QueryResult
   ResultObserver: ResultObserver
   ResultSummary: typeof ResultSummary
