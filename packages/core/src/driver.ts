@@ -385,6 +385,7 @@ class Driver {
   /**
    * The bookmark managed used by {@link Driver.executeQuery}
    *
+   * @experimental
    * @type {BookmarkManager}
    * @returns {BookmarkManager}
    */
