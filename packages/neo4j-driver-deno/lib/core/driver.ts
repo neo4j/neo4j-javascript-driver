@@ -284,7 +284,8 @@ class QueryConfig<T = EagerResult> {
      * Define the transformation will be applied to the Result before return from the
      * query method.
      *
-     * @type {function<T>(result:Result): Promise<T>}
+     * @type {ResultTransformer}
+     * @see {@link resultTransformers} for provided implementations.
      */
     this.resultTransformer = undefined
 
@@ -401,9 +402,26 @@ class Driver {
    * @example
    * // Run a read query
    * const { keys, records, summary } = await driver.executeQuery(
-   *     'MATCH (p:Person{ name: $name }) RETURN p',
-   *      { name: 'Person1'},
-   *      { routing: neo4j.routing.READERS})
+   *    'MATCH (p:Person{ name: $name }) RETURN p',
+   *    { name: 'Person1'},
+   *    { routing: neo4j.routing.READERS})
+   *
+   * @example
+   * // Run a read query return a Person Node
+   * const person1 = await driver.executeQuery(
+   *    'MATCH (p:Person{ name: $name }) RETURN p',
+   *    { name: 'Person1'},
+   *    {
+   *      resultTransformer: neo4j.resultTransformers.mappedResultTransformer({
+   *        map(record) {
+   *          return record.get('p')
+   *        },
+   *        collect(personArray) {
+   *          return personArray[0]
+   *        }
+   *      })
+   *    }
+   * )
    *
    * @example
    * // these lines
@@ -439,6 +457,8 @@ class Driver {
    * @param {Object} parameters - Map with parameters to use in the query
    * @param {QueryConfig<T>} config - The query configuration
    * @returns {Promise<T>}
+   *
+   * @see {@link resultTransformers} for provided result transformers.
    */
   async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)
@@ -798,6 +818,6 @@ function createHostNameResolver (config: any): ConfiguredCustomResolver {
   return new ConfiguredCustomResolver(config.resolver)
 }
 
-export { Driver, READ, WRITE, routing, SessionConfig }
-export type { QueryConfig, RoutingControl }
+export { Driver, READ, WRITE, routing, SessionConfig, QueryConfig }
+export type { RoutingControl }
 export default Driver
