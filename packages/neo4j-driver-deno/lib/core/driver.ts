@@ -260,6 +260,8 @@ Object.freeze(routing)
 /**
  * The query configuration
  * @interface
+ * @experimental
+ * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 class QueryConfig<T = EagerResult> {
   routing?: RoutingControl
@@ -459,6 +461,7 @@ class Driver {
    * @returns {Promise<T>}
    *
    * @see {@link resultTransformers} for provided result transformers.
+   * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
   async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)

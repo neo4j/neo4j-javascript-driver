@@ -39,12 +39,13 @@ type ResultTransformer<T> = (result: Result) => Promise<T>
  *
  * @see {@link resultTransformers} for provided implementations.
  * @see {@link Driver#executeQuery} for usage.
- *
+ * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 /**
  * Defines the object which holds the common {@link ResultTransformer} used with {@link Driver#executeQuery}.
  *
  * @experimental
+ * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 class ResultTransformers {
   /**
@@ -64,6 +65,7 @@ class ResultTransformers {
    *
    * @experimental
    * @returns {ResultTransformer<EagerResult<Entries>>} The result transformer
+   * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
   eagerResultTransformer<Entries extends Dict = Dict>(): ResultTransformer<EagerResult<Entries>> {
     return createEagerResultFromResult
@@ -131,6 +133,7 @@ class ResultTransformers {
    * the result data to the transformer output.
    * @returns {ResultTransformer<T>} The result transformer
    * @see {@link Driver#executeQuery}
+   * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
   mappedResultTransformer <
     R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
@@ -174,6 +177,7 @@ class ResultTransformers {
  * Holds the common {@link ResultTransformer} used with {@link Driver#executeQuery}.
  *
  * @experimental
+ * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 const resultTransformers = new ResultTransformers()
 
