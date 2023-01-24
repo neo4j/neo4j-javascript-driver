@@ -98,4 +98,148 @@ describe('resultTransformers', () => {
       })
     })
   })
+
+  describe('.mappedResultTransformer', () => {
+    describe('with a valid result', () => {
+      it('should map and collect the result', async () => {
+        const {
+          rawRecords,
+          result,
+          keys,
+          meta,
+          query,
+          params
+        } = scenario()
+
+        const map = jest.fn((record) => record.get('a') as number)
+        const collect = jest.fn((records: number[], summary: ResultSummary, keys: string[]) => ({
+          as: records,
+          db: summary.database.name,
+          ks: keys
+        }))
+
+        const transform = resultTransformers.mappedResultTransformer({ map, collect })
+
+        const { as, db, ks }: { as: number[], db: string | undefined | null, ks: string[] } = await transform(result)
+
+        expect(as).toEqual(rawRecords.map(rec => rec[0]))
+        expect(db).toEqual(meta.db)
+        expect(ks).toEqual(keys)
+
+        expect(map).toHaveBeenCalledTimes(rawRecords.length)
+
+        for (const rawRecord of rawRecords) {
+          expect(map).toHaveBeenCalledWith(new Record(keys, rawRecord))
+        }
+
+        expect(collect).toHaveBeenCalledTimes(1)
+        expect(collect).toHaveBeenCalledWith(rawRecords.map(rec => rec[0]), new ResultSummary(query, params, meta), keys)
+      })
+
+      it('should map the records', async () => {
+        const {
+          rawRecords,
+          result,
+          keys,
+          meta,
+          query,
+          params
+        } = scenario()
+
+        const map = jest.fn((record) => record.get('a') as number)
+
+        const transform = resultTransformers.mappedResultTransformer({ map })
+
+        const { records: as, summary, keys: receivedKeys }: { records: number[], summary: ResultSummary, keys: string[] } = await transform(result)
+
+        expect(as).toEqual(rawRecords.map(rec => rec[0]))
+        expect(summary).toEqual(new ResultSummary(query, params, meta))
+        expect(receivedKeys).toEqual(keys)
+
+        expect(map).toHaveBeenCalledTimes(rawRecords.length)
+
+        for (const rawRecord of rawRecords) {
+          expect(map).toHaveBeenCalledWith(new Record(keys, rawRecord))
+        }
+      })
+
+      it('should collect the result', async () => {
+        const {
+          rawRecords,
+          result,
+          keys,
+          meta,
+          query,
+          params
+        } = scenario()
+
+        const collect = jest.fn((records: Record[], summary: ResultSummary, keys: string[]) => ({
+          recordsFetched: records.length,
+          db: summary.database.name,
+          ks: keys
+        }))
+
+        const transform = resultTransformers.mappedResultTransformer({ collect })
+
+        const { recordsFetched, db, ks }: { recordsFetched: number, db: string | undefined | null, ks: string[] } = await transform(result)
+
+        expect(recordsFetched).toEqual(rawRecords.length)
+        expect(db).toEqual(meta.db)
+        expect(ks).toEqual(keys)
+
+        expect(collect).toHaveBeenCalledTimes(1)
+        expect(collect).toHaveBeenCalledWith(rawRecords.map(rec => new Record(keys, rec)), new ResultSummary(query, params, meta), keys)
+      })
+
+      it.each([
+        undefined,
+        null,
+        {},
+        { Map: () => {} },
+        { Collect: () => {} }
+      ])('should throw if miss-configured [config=%o]', (config) => {
+        // @ts-expect-error
+        expect(() => resultTransformers.mappedResultTransformer(config))
+          .toThrow(newError('Requires a map or/and a collect functions.'))
+      })
+
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+      function scenario () {
+        const resultStreamObserverMock = new ResultStreamObserverMock()
+        const query = 'Query'
+        const params = { a: 1 }
+        const meta = { db: 'adb' }
+        const result = new Result(Promise.resolve(resultStreamObserverMock), query, params)
+        const keys = ['a', 'b']
+        const rawRecord1 = [1, 2]
+        const rawRecord2 = [3, 4]
+        resultStreamObserverMock.onKeys(keys)
+        resultStreamObserverMock.onNext(rawRecord1)
+        resultStreamObserverMock.onNext(rawRecord2)
+        resultStreamObserverMock.onCompleted(meta)
+
+        return {
+          resultStreamObserverMock,
+          result,
+          meta,
+          params,
+          keys,
+          query,
+          rawRecords: [rawRecord1, rawRecord2]
+        }
+      }
+    })
+
+    describe('when results fail', () => {
+      it('should propagate the exception', async () => {
+        const expectedError = newError('expected error')
+        const result = new Result(Promise.reject(expectedError), 'query')
+        const transformer = resultTransformers.mappedResultTransformer({
+          collect: (records) => records
+        })
+
+        await expect(transformer(result)).rejects.toThrow(expectedError)
+      })
+    })
+  })
 })
