@@ -410,7 +410,7 @@ class Driver {
    *    { routing: neo4j.routing.READERS})
    *
    * @example
-   * // Run a read query return a Person Node
+   * // Run a read query returning a Person Node
    * const person1 = await driver.executeQuery(
    *    'MATCH (p:Person{ name: $name }) RETURN p',
    *    { name: 'Person1'},

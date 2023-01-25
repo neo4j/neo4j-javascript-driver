@@ -59,7 +59,7 @@ class ResultTransformers {
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'}, {
    *   resultTransformer: neo4j.resultTransformers.eagerResultTransformer()
    * })
-   * // equivalent to:
+   * // is equivalent to:
    * const { keys, records, summary } = await driver.executeQuery('CREATE (p:Person{ name: $name }) RETURN p', { name: 'Person1'})
    *
    *
