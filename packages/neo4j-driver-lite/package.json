@@ -1,7 +1,7 @@
 {
   "name": "neo4j-driver-lite",
   "version": "5.0.0-dev",
-  "description": "The official Neo4j driver for Javascript (lite)",
+  "description": "The official Neo4j lite driver for Javascript",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "scripts": {
