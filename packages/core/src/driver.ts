@@ -398,7 +398,9 @@ class Driver {
    *
    * This method is a shortcut for a {@link Session#executeRead} and {@link Session#executeWrite}.
    *
-   * NOTE: `CALL {} IN TRANSACTIONS` and `USING PERIODIC COMMIT` are not supported by this method.
+   * NOTE: Because it is an explicit transaction from the server point of view, Cypher queries using
+   * "CALL {} IN TRANSACTIONS" or the older "USING PERIODIC COMMIT" construct will not work (call
+   * {@link Session#run} for these).
    *
    * @example
    * // Run a simple write query
