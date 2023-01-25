@@ -1,6 +1,9 @@
-# Neo4j Driver for JavaScript
+# Neo4j Lite Driver for JavaScript
 
 This is the lite version of the official Neo4j driver for JavaScript.
+
+This version of the driver has the same capabilities as the Neo4j Driver except for the support of reactive sessions.
+This means it doesn't have the `RxJS` dependency and the `Driver#rxSession` api.
 
 Starting with 5.0, the Neo4j Drivers will be moving to a monthly release cadence. A minor version will be released on the last Friday of each month so as to maintain versioning consistency with the core product (Neo4j DBMS) which has also moved to a monthly cadence.
 
