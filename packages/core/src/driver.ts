@@ -260,7 +260,7 @@ Object.freeze(routing)
 /**
  * The query configuration
  * @interface
- * @experimental
+ * @experimental This can be changed or removed anytime.
  * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
  */
 class QueryConfig<T = EagerResult> {
@@ -385,7 +385,7 @@ class Driver {
   /**
    * The bookmark managed used by {@link Driver.executeQuery}
    *
-   * @experimental
+   * @experimental This can be changed or removed anytime.
    * @type {BookmarkManager}
    * @returns {BookmarkManager}
    */
@@ -396,7 +396,9 @@ class Driver {
   /**
    * Executes a query in a retriable context and returns a {@link EagerResult}.
    *
-   * This method is a shortcut for a transaction function.
+   * This method is a shortcut for a {@link Session#executeRead} and {@link Session#executeWrite}.
+   *
+   * NOTE: `CALL {} IN TRANSACTIONS` and `USING PERIODIC COMMIT` are not supported by this method.
    *
    * @example
    * // Run a simple write query
@@ -410,21 +412,24 @@ class Driver {
    *    { routing: neo4j.routing.READERS})
    *
    * @example
-   * // Run a read query returning a Person Node
-   * const person1 = await driver.executeQuery(
+   * // Run a read query returning a Person Nodes per elementId
+   * const peopleMappedById = await driver.executeQuery(
    *    'MATCH (p:Person{ name: $name }) RETURN p',
    *    { name: 'Person1'},
    *    {
    *      resultTransformer: neo4j.resultTransformers.mappedResultTransformer({
    *        map(record) {
-   *          return record.get('p')
+   *          const p = record.get('p')
+   *          return [p.elementId, p]
    *        },
-   *        collect(personArray) {
-   *          return personArray[0]
+   *        collect(elementIdPersonPairArray) {
+   *          return new Map(elementIdPersonPairArray)
    *        }
    *      })
    *    }
    * )
+   *
+   * const person = peopleMappedById.get("<ELEMENT_ID>")
    *
    * @example
    * // these lines
@@ -455,7 +460,7 @@ class Driver {
    * }
    *
    * @public
-   * @experimental
+   * @experimental This can be changed or removed anytime.
    * @param {string | {text: string, parameters?: object}} query - Cypher query to execute
    * @param {Object} parameters - Map with parameters to use in the query
    * @param {QueryConfig<T>} config - The query configuration
