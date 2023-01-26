@@ -88,6 +88,17 @@ export function RoutingTable ({ routingTable }) {
   })
 }
 
+export function EagerResult ({ keys, records, summary }, { binder }) {
+  const cypherRecords = records.map(rec => {
+    return { values: Array.from(rec.values()).map(binder.nativeToCypher) }
+  })
+  return response('EagerResult', {
+    keys,
+    summary: nativeToTestkitSummary(summary, binder),
+    records: cypherRecords
+  })
+}
+
 // Testkit controller messages
 export function RunTest () {
   return response('RunTest', null)

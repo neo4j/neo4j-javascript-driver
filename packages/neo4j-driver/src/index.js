@@ -62,11 +62,14 @@ import {
   Notification,
   ServerInfo,
   Result,
+  EagerResult,
   auth,
   Session,
   Transaction,
   ManagedTransaction,
-  bookmarkManager
+  bookmarkManager,
+  routing,
+  resultTransformers
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -358,6 +361,7 @@ const types = {
   PathSegment,
   Path,
   Result,
+  EagerResult,
   ResultSummary,
   Record,
   Point,
@@ -444,6 +448,7 @@ const forExport = {
   logging,
   types,
   session,
+  routing,
   error,
   graph,
   spatial,
@@ -453,6 +458,7 @@ const forExport = {
   Transaction,
   ManagedTransaction,
   Result,
+  EagerResult,
   RxSession,
   RxTransaction,
   RxManagedTransaction,
@@ -477,7 +483,8 @@ const forExport = {
   Date,
   LocalDateTime,
   DateTime,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 
 export {
@@ -504,6 +511,7 @@ export {
   logging,
   types,
   session,
+  routing,
   error,
   graph,
   spatial,
@@ -513,6 +521,7 @@ export {
   Transaction,
   ManagedTransaction,
   Result,
+  EagerResult,
   RxSession,
   RxTransaction,
   RxManagedTransaction,
@@ -537,6 +546,7 @@ export {
   Date,
   LocalDateTime,
   DateTime,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 export default forExport

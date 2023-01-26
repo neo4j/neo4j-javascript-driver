@@ -60,6 +60,7 @@ import {
   ServerInfo,
   QueryStatistics,
   Result,
+  EagerResult,
   ResultObserver,
   QueryResult,
   Transaction,
@@ -68,7 +69,12 @@ import {
   BookmarkManager,
   bookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  QueryConfig,
+  RoutingControl,
+  routing,
+  resultTransformers,
+  ResultTransformer
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -120,6 +126,7 @@ declare const types: {
   PathSegment: typeof PathSegment
   Path: typeof Path
   Result: typeof Result
+  EagerResult: typeof EagerResult
   ResultSummary: typeof ResultSummary
   Record: typeof Record
   Point: typeof Point
@@ -186,6 +193,7 @@ declare const forExport: {
   auth: typeof auth
   types: typeof types
   session: typeof session
+  routing: typeof routing
   error: typeof error
   graph: typeof graph
   spatial: typeof spatial
@@ -206,6 +214,7 @@ declare const forExport: {
   Integer: typeof Integer
   Record: typeof Record
   Result: typeof Result
+  EagerResult: typeof EagerResult
   QueryResult: QueryResult
   ResultObserver: ResultObserver
   ResultSummary: typeof ResultSummary
@@ -242,6 +251,7 @@ declare const forExport: {
   isRelationship: typeof isRelationship
   isUnboundRelationship: typeof isUnboundRelationship
   bookmarkManager: typeof bookmarkManager
+  resultTransformers: typeof resultTransformers
 }
 
 export {
@@ -253,6 +263,7 @@ export {
   auth,
   types,
   session,
+  routing,
   error,
   graph,
   spatial,
@@ -273,6 +284,7 @@ export {
   Integer,
   Record,
   Result,
+  EagerResult,
   QueryResult,
   ResultObserver,
   ResultSummary,
@@ -308,13 +320,17 @@ export {
   isPathSegment,
   isRelationship,
   isUnboundRelationship,
-  bookmarkManager
+  bookmarkManager,
+  resultTransformers
 }
 
 export type {
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  QueryConfig,
+  RoutingControl,
+  ResultTransformer
 }
 
 export default forExport

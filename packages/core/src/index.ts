@@ -67,6 +67,7 @@ import ResultSummary, {
   Stats
 } from './result-summary'
 import Result, { QueryResult, ResultObserver } from './result'
+import EagerResult from './result-eager'
 import ConnectionProvider from './connection-provider'
 import Connection from './connection'
 import Transaction from './transaction'
@@ -76,9 +77,10 @@ import Session, { TransactionConfig } from './session'
 import Driver, * as driver from './driver'
 import auth from './auth'
 import BookmarkManager, { BookmarkManagerConfig, bookmarkManager } from './bookmark-manager'
-import { SessionConfig } from './driver'
+import { SessionConfig, QueryConfig, RoutingControl, routing } from './driver'
 import * as types from './types'
 import * as json from './json'
+import resultTransformers, { ResultTransformer } from './result-transformers'
 import * as internal from './internal' // todo: removed afterwards
 
 /**
@@ -139,6 +141,7 @@ const forExport = {
   QueryStatistics,
   Stats,
   Result,
+  EagerResult,
   Transaction,
   ManagedTransaction,
   TransactionPromise,
@@ -149,7 +152,9 @@ const forExport = {
   driver,
   json,
   auth,
-  bookmarkManager
+  bookmarkManager,
+  routing,
+  resultTransformers
 }
 
 export {
@@ -198,6 +203,7 @@ export {
   QueryStatistics,
   Stats,
   Result,
+  EagerResult,
   ConnectionProvider,
   Connection,
   Transaction,
@@ -209,7 +215,9 @@ export {
   driver,
   json,
   auth,
-  bookmarkManager
+  bookmarkManager,
+  routing,
+  resultTransformers
 }
 
 export type {
@@ -221,7 +229,10 @@ export type {
   TransactionConfig,
   BookmarkManager,
   BookmarkManagerConfig,
-  SessionConfig
+  SessionConfig,
+  QueryConfig,
+  RoutingControl,
+  ResultTransformer
 }
 
 export default forExport

@@ -533,3 +533,56 @@ export function ForcedRoutingTableUpdate (_, context, { driverId, database, book
     wire.writeError('Driver does not support routing')
   }
 }
+
+export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config }, wire) {
+  const driver = context.getDriver(driverId)
+  if (params) {
+    for (const [key, value] of Object.entries(params)) {
+      params[key] = context.binder.cypherToNative(value)
+    }
+  }
+  const configuration = {}
+
+  if (config) {
+    if ('routing' in config && config.routing != null) {
+      switch (config.routing) {
+        case 'w':
+          configuration.routing = neo4j.routing.WRITERS
+          break
+        case 'r':
+          configuration.routing = neo4j.routing.READERS
+          break
+        default:
+          wire.writeBackendError('Unknown routing: ' + config.routing)
+          return
+      }
+    }
+
+    if ('database' in config) {
+      configuration.database = config.database
+    }
+
+    if ('impersonatedUser' in config) {
+      configuration.impersonatedUser = config.impersonatedUser
+    }
+
+    if ('bookmarkManagerId' in config) {
+      if (config.bookmarkManagerId !== -1) {
+        const bookmarkManager = context.getBookmarkManager(config.bookmarkManagerId)
+        if (bookmarkManager == null) {
+          wire.writeBackendError(`Bookmark manager ${config.bookmarkManagerId} not found`)
+          return
+        }
+        configuration.bookmarkManager = bookmarkManager
+      } else {
+        configuration.bookmarkManager = null
+      }
+    }
+  }
+
+  driver.executeQuery(cypher, params, configuration)
+    .then(eagerResult => {
+      wire.writeResponse(responses.EagerResult(eagerResult, { binder: context.binder }))
+    })
+    .catch(e => wire.writeError(e))
+}
