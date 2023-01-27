@@ -26,7 +26,6 @@ export {
   NewAuthTokenProvider,
   AuthTokenProviderCompleted,
   AuthTokenProviderClose,
-  StartSubTest,
   FakeTimeInstall,
   FakeTimeTick,
   FakeTimeUninstall

@@ -626,10 +626,6 @@ export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config
     .catch(e => wire.writeError(e))
 }
 
-export function FakeTimeInstall (_, context, _data, wire) {
-  context.clock = sinon.useFakeTimers(new Date().getTime())
-}
-
 export function FakeTimeInstall ({ mock }, context, _data, wire) {
   context.clock = new mock.FakeTime()
   wire.writeResponse(responses.FakeTimeAck())
