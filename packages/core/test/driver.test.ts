@@ -342,6 +342,32 @@ describe('Driver', () => {
         }, query, params)
       })
 
+      it('should be able to destruct the result in records, keys and summary', async () => {
+        const query = 'Query'
+        const params = {}
+        const spiedExecute = jest.spyOn(queryExecutor, 'execute')
+        const expected: EagerResult = {
+          keys: ['a'],
+          records: [],
+          summary: new ResultSummary(query, params, {}, 5.0)
+        }
+        spiedExecute.mockResolvedValue(expected)
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const { records, keys, summary } = await driver!.executeQuery(query, params)
+
+        expect(records).toEqual(expected.records)
+        expect(keys).toEqual(expected.keys)
+        expect(summary).toEqual(expected.summary)
+        expect(spiedExecute).toBeCalledWith({
+          resultTransformer: resultTransformers.eagerResultTransformer(),
+          bookmarkManager: driver?.queryBookmarkManager,
+          routing: routing.WRITERS,
+          database: undefined,
+          impersonatedUser: undefined
+        }, query, params)
+      })
+
       it('should be able get type-safe Records', async () => {
         interface Person {
           name: string
