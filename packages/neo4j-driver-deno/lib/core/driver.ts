@@ -471,7 +471,7 @@ class Driver {
    * @see {@link resultTransformers} for provided result transformers.
    * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
-  async executeQuery<T> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
+  async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
     const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)
     const resultTransformer = (config.resultTransformer ?? resultTransformers.eagerResultTransformer()) as ResultTransformer<T>
     const routingConfig: string = config.routing ?? routing.WRITERS
