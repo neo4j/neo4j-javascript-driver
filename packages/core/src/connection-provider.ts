@@ -53,6 +53,7 @@ class ConnectionProvider {
     impersonatedUser?: string
     onDatabaseNameResolved?: (databaseName?: string) => void
     auth?: AuthToken
+    allowStickyConnection?: boolean
   }): Promise<Connection> {
     throw Error('Not implemented')
   }

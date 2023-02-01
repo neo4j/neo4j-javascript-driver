@@ -22,6 +22,7 @@ import { Pool } from '../../src/pool'
 import { Connection, DelegateConnection } from '../../src/connection'
 import { internal, newError, ServerInfo } from 'neo4j-driver-core'
 import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
+import { functional } from '../../src/lang'
 
 const {
   serverAddress: { ServerAddress },
@@ -605,6 +606,36 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
           log
         }
       }
+    })
+  })
+
+  describe('user-switching', () => {
+    describe.each([
+      undefined,
+      false,
+      null
+    ])('when allowStickyConnection is %s', (allowStickyConnection) => {
+      it('should raise and error when try switch user on acquire', async () => {
+        const address = ServerAddress.fromUrl('localhost:123')
+        const pool = newPool()
+        const connection = new FakeConnection(address, () => {}, undefined, { some: 'auth' })
+        const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+        const connectionProvider = newDirectConnectionProvider(address, pool)
+        const auth = { other: 'token' }
+
+        const error = await connectionProvider
+          .acquireConnection({
+            accessMode: 'READ',
+            database: '',
+            allowStickyConnection,
+            auth
+          })
+          .catch(functional.identity)
+
+        expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+        expect(poolAcquire).toHaveBeenCalledWith({ auth }, address)
+        expect(connection._release).toHaveBeenCalled()
+      })
     })
   })
 })

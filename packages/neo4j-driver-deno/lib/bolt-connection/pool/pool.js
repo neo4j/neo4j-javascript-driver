@@ -245,7 +245,6 @@ class Pool {
     try {
       // Invoke callback that creates actual connection
       resource = await this._create(acquisitionContext, address, (address, resource) => this._release(address, resource, pool))
-
       pool.pushInUse(resource)
       resourceAcquired(key, this._activeResourceCounts)
       if (this._log.isDebugEnabled()) {

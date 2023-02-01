@@ -19,8 +19,9 @@
 
 import { createChannelConnection, ConnectionErrorHandler } from '../connection/index.js'
 import Pool, { PoolConfig } from '../pool/index.js'
-import { error, ConnectionProvider, ServerInfo } from '../../core/index.ts'
+import { error, ConnectionProvider, ServerInfo, newError } from '../../core/index.ts'
 import AuthenticationProvider from './authentication-provider.js'
+import { object } from '../lang/index.js'
 
 const { SERVICE_UNAVAILABLE } = error
 export default class PooledConnectionProvider extends ConnectionProvider {
@@ -165,6 +166,19 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       await connection._release()
     }
     return serverInfo
+  }
+
+  async _getStickyConnection ({ auth, connection, allowStickyConnection }) {
+    const connectionWithSameCredentials = object.equals(auth, connection.authToken)
+    const shouldCreateStickyConnection = !connectionWithSameCredentials
+    const stickyConnectionWasCreated = connectionWithSameCredentials && !connection.supportsReAuth
+    if (allowStickyConnection !== true && (shouldCreateStickyConnection || stickyConnectionWasCreated)) {
+      await connection._release()
+      throw newError('Driver is connected to a database that does not support user switch.')
+    } else if (allowStickyConnection === true && shouldCreateStickyConnection) {
+      await connection._release()
+      return await this._createStickyConnection({ address: this._address, auth })
+    }
   }
 
   async close () {

@@ -34,7 +34,7 @@ describe('#unit PooledConnectionProvider', () => {
     expect(connectionValid).toBeFalsy()
   })
 
-  xit('should treat not old open connections as valid', async () => {
+  it('should treat not old open connections as valid', async () => {
     const provider = new PooledConnectionProvider({
       id: 0,
       config: {
