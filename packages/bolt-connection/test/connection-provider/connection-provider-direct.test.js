@@ -615,25 +615,27 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
       false,
       null
     ])('when allowStickyConnection is %s', (allowStickyConnection) => {
-      it('should raise and error when try switch user on acquire', async () => {
+      it.each([
+        ['new connection', { other: 'auth' }, { other: 'token' }],
+        ['old connection', { some: 'auth' }, { other: 'token' }]
+      ])('should raise and error when try switch user on acquire [%s]', async (_, connAuth, acquireAuth) => {
         const address = ServerAddress.fromUrl('localhost:123')
         const pool = newPool()
-        const connection = new FakeConnection(address, () => {}, undefined, { some: 'auth' })
+        const connection = new FakeConnection(address, () => {}, undefined, connAuth)
         const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
         const connectionProvider = newDirectConnectionProvider(address, pool)
-        const auth = { other: 'token' }
 
         const error = await connectionProvider
           .acquireConnection({
             accessMode: 'READ',
             database: '',
             allowStickyConnection,
-            auth
+            auth: acquireAuth
           })
           .catch(functional.identity)
 
         expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-        expect(poolAcquire).toHaveBeenCalledWith({ auth }, address)
+        expect(poolAcquire).toHaveBeenCalledWith({ auth: acquireAuth }, address)
         expect(connection._release).toHaveBeenCalled()
       })
     })
