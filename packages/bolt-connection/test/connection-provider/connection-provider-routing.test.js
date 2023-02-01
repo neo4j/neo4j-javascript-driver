@@ -1825,7 +1825,7 @@ describe.each([
           expect(capturedError.code).toBe(SERVICE_UNAVAILABLE)
           expect(capturedError.message).toBe(
             'Server at server-non-existing-seed-router:7687 can\'t ' +
-             'perform routing. Make sure you are connecting to a causal cluster'
+            'perform routing. Make sure you are connecting to a causal cluster'
           )
           // Error should be the cause of the given capturedError
           expect(capturedError).toEqual(newError(capturedError.message, capturedError.code, error))
@@ -2907,7 +2907,7 @@ describe.each([
         })
       })
 
-      function setup ({ resetAndFlush, releaseMock, newConnection } = { }) {
+      function setup ({ resetAndFlush, releaseMock, newConnection } = {}) {
         const routingTable = newRoutingTable(
           database || null,
           [server1, server2],
@@ -3252,7 +3252,7 @@ describe.each([
         const log = new Logger('debug', () => undefined)
         jest.spyOn(log, 'debug')
         const createChannelConnectionHook = createConnection || jest.fn(async (address) => new FakeConnection(address))
-        const authenticationProviderHook = new AuthenticationProvider({ })
+        const authenticationProviderHook = new AuthenticationProvider({})
         jest.spyOn(authenticationProviderHook, 'authenticate')
           .mockImplementation(authenticationProvider || jest.fn(({ connection }) => Promise.resolve(connection)))
         const provider = new RoutingConnectionProvider({
@@ -3282,15 +3282,168 @@ describe.each([
       false,
       null
     ])('when allowStickyConnection is %s', (allowStickyConnection) => {
-      describe.each([
-        ['new connection', { other: 'auth' }, { other: 'token' }],
-        ['old connection', { some: 'auth' }, { other: 'token' }]
-      ])('%s', (_, connAuth, acquireAuth) => {
-        it('should raise and error when try switch user on acquire', async () => {
+      describe('when does not support re-auth', () => {
+        describe.each([
+          ['new connection', { other: 'auth' }, { other: 'token' }],
+          ['old connection', { some: 'auth' }, { other: 'token' }]
+        ])('%s', (_, connAuth, acquireAuth) => {
+          it('should raise and error when try switch user on acquire', async () => {
+            const address = ServerAddress.fromUrl('localhost:123')
+            const pool = newPool()
+            const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+            const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+            const connectionProvider = newRoutingConnectionProvider([
+              newRoutingTable(
+                null,
+                [server1, server2],
+                [server3, server2],
+                [server2, server4]
+              )
+            ],
+            pool
+            )
+            const auth = acquireAuth
+
+            const error = await connectionProvider
+              .acquireConnection({
+                accessMode: 'READ',
+                database: '',
+                allowStickyConnection,
+                auth
+              })
+              .catch(functional.identity)
+
+            expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+            expect(poolAcquire).toHaveBeenCalledWith({ auth }, server3)
+            expect(connection._release).toHaveBeenCalled()
+          })
+
+          it('should raise and error when try switch user on acquire [expired rt]', async () => {
+            const address = ServerAddress.fromUrl('localhost:123')
+            const pool = newPool()
+            const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+            const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+            const connectionProvider = newRoutingConnectionProvider([
+              newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4],
+                int(0) // expired
+              )
+            ],
+            pool,
+            {
+              dba: newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4]
+              )
+            }
+            )
+            connectionProvider._useSeedRouter = false
+
+            const auth = acquireAuth
+
+            const error = await connectionProvider
+              .acquireConnection({
+                accessMode: 'READ',
+                database: 'dba',
+                allowStickyConnection,
+                auth
+              })
+              .catch(functional.identity)
+
+            expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+            expect(poolAcquire).toHaveBeenCalledWith({ auth }, server1)
+            expect(connection._release).toHaveBeenCalled()
+          })
+
+          it('should raise and error when try switch user on acquire [expired rt and userSeedRouter]', async () => {
+            const address = ServerAddress.fromUrl('localhost:123')
+            const pool = newPool()
+            const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+            const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+            const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+              server0,
+              [server0],
+              [
+                newRoutingTable(
+                  'dba',
+                  [server1, server2],
+                  [server3, server2],
+                  [server2, server4],
+                  int(0) // expired
+                )
+              ],
+              {
+                dba: newRoutingTable(
+                  'dba',
+                  [server1, server2],
+                  [server3, server2],
+                  [server2, server4]
+                )
+              },
+              pool
+            )
+
+            const auth = acquireAuth
+
+            const error = await connectionProvider
+              .acquireConnection({
+                accessMode: 'READ',
+                database: 'dba',
+                allowStickyConnection,
+                auth
+              })
+              .catch(functional.identity)
+
+            expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+            expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
+            expect(connection._release).toHaveBeenCalled()
+          })
+
+          it('should raise and error when try switch user on acquire [firstCall and userSeedRouter]', async () => {
+            const address = ServerAddress.fromUrl('localhost:123')
+            const pool = newPool()
+            const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+            const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+            const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+              server0,
+              [server0],
+              [],
+              {},
+              pool
+            )
+
+            const auth = acquireAuth
+
+            const error = await connectionProvider
+              .acquireConnection({
+                accessMode: 'READ',
+                database: 'dba',
+                allowStickyConnection,
+                auth
+              })
+              .catch(functional.identity)
+
+            expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+            expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
+            expect(connection._release).toHaveBeenCalled()
+          })
+        })
+      })
+
+      describe('when does it support re-auth', () => {
+        const connAuth = { myAuth: 'auth' }
+        const acquireAuth = connAuth
+
+        it('should return connection when try switch user on acquire', async () => {
           const address = ServerAddress.fromUrl('localhost:123')
           const pool = newPool()
-          const connection = new FakeConnection(address, () => {}, undefined, connAuth)
-          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
           const connectionProvider = newRoutingConnectionProvider([
             newRoutingTable(
               null,
@@ -3303,25 +3456,23 @@ describe.each([
           )
           const auth = acquireAuth
 
-          const error = await connectionProvider
+          const delegatedConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: '',
               allowStickyConnection,
               auth
             })
-            .catch(functional.identity)
 
-          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server3)
-          expect(connection._release).toHaveBeenCalled()
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
         })
 
-        it('should raise and error when try switch user on acquire [expired rt]', async () => {
+        it('should return connection when try switch user on acquire [expired rt]', async () => {
           const address = ServerAddress.fromUrl('localhost:123')
           const pool = newPool()
-          const connection = new FakeConnection(address, () => {}, undefined, connAuth)
-          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
           const connectionProvider = newRoutingConnectionProvider([
             newRoutingTable(
               'dba',
@@ -3333,37 +3484,37 @@ describe.each([
           ],
           pool,
           {
-            dba: newRoutingTable(
-              'dba',
-              [server1, server2],
-              [server3, server2],
-              [server2, server4]
-            )
+            dba: {
+              [server1.asHostPort()]: newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4]
+              )
+            }
           }
           )
           connectionProvider._useSeedRouter = false
 
           const auth = acquireAuth
 
-          const error = await connectionProvider
+          const delegatedConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
               allowStickyConnection,
               auth
             })
-            .catch(functional.identity)
 
-          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server1)
-          expect(connection._release).toHaveBeenCalled()
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
         })
 
-        it('should raise and error when try switch user on acquire [expired rt and userSeedRouter]', async () => {
+        it('should return delegated connection when try switch user on acquire [expired rt and userSeedRouter]', async () => {
           const address = ServerAddress.fromUrl('localhost:123')
           const pool = newPool()
-          const connection = new FakeConnection(address, () => {}, undefined, connAuth)
-          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
           const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
             server0,
             [server0],
@@ -3377,59 +3528,66 @@ describe.each([
               )
             ],
             {
-              dba: newRoutingTable(
-                'dba',
-                [server1, server2],
-                [server3, server2],
-                [server2, server4]
-              )
+              dba: {
+                [server0.asHostPort()]: newRoutingTable(
+                  'dba',
+                  [server1, server2],
+                  [server3, server2],
+                  [server2, server4]
+                )
+              }
             },
             pool
           )
 
           const auth = acquireAuth
 
-          const error = await connectionProvider
+          const delegatedConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
               allowStickyConnection,
               auth
             })
-            .catch(functional.identity)
 
-          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
-          expect(connection._release).toHaveBeenCalled()
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
         })
 
-        it('should raise and error when try switch user on acquire [firstCall and userSeedRouter]', async () => {
+        it('should delegated connection when try switch user on acquire [firstCall and userSeedRouter]', async () => {
           const address = ServerAddress.fromUrl('localhost:123')
           const pool = newPool()
-          const connection = new FakeConnection(address, () => {}, undefined, connAuth)
-          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
           const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
             server0,
             [server0],
             [],
-            {},
+            {
+              dba: {
+                [server0.asHostPort()]: newRoutingTable(
+                  'dba',
+                  [server1, server2],
+                  [server3, server2],
+                  [server2, server4]
+                )
+              }
+            },
             pool
           )
 
           const auth = acquireAuth
 
-          const error = await connectionProvider
+          const delegatedConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
               allowStickyConnection,
               auth
             })
-            .catch(functional.identity)
 
-          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-          expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
-          expect(connection._release).toHaveBeenCalled()
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
         })
       })
     })
@@ -3597,7 +3755,7 @@ function expectPoolToNotContain (pool, addresses) {
 }
 
 class FakeConnection extends Connection {
-  constructor (address, release, version, protocolVersion, server, authToken) {
+  constructor (address, release, version, protocolVersion, server, authToken, { supportsReAuth } = {}) {
     super(null)
 
     this._address = address
@@ -3610,6 +3768,7 @@ class FakeConnection extends Connection {
     this._authToken = authToken
     this._id = 1
     this._closed = false
+    this._supportsReAuth = supportsReAuth || false
   }
 
   get id () {
@@ -3634,6 +3793,10 @@ class FakeConnection extends Connection {
 
   get server () {
     return this._server
+  }
+
+  get supportsReAuth () {
+    return this._supportsReAuth
   }
 
   async close () {

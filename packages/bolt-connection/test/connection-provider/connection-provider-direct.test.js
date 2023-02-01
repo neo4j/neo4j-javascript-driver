@@ -615,28 +615,54 @@ describe('.verifyConnectivityAndGetServerInfo()', () => {
       false,
       null
     ])('when allowStickyConnection is %s', (allowStickyConnection) => {
-      it.each([
-        ['new connection', { other: 'auth' }, { other: 'token' }],
-        ['old connection', { some: 'auth' }, { other: 'token' }]
-      ])('should raise and error when try switch user on acquire [%s]', async (_, connAuth, acquireAuth) => {
-        const address = ServerAddress.fromUrl('localhost:123')
-        const pool = newPool()
-        const connection = new FakeConnection(address, () => {}, undefined, connAuth)
-        const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
-        const connectionProvider = newDirectConnectionProvider(address, pool)
+      describe('when does not supports re-auth', () => {
+        it.each([
+          ['new connection', { other: 'auth' }, { other: 'token' }],
+          ['old connection', { some: 'auth' }, { other: 'token' }]
+        ])('should raise and error when try switch user on acquire [%s]', async (_, connAuth, acquireAuth) => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => {}, undefined, connAuth)
+          const poolAcquire = jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newDirectConnectionProvider(address, pool)
 
-        const error = await connectionProvider
-          .acquireConnection({
-            accessMode: 'READ',
-            database: '',
-            allowStickyConnection,
-            auth: acquireAuth
-          })
-          .catch(functional.identity)
+          const error = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: '',
+              allowStickyConnection,
+              auth: acquireAuth
+            })
+            .catch(functional.identity)
 
-        expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
-        expect(poolAcquire).toHaveBeenCalledWith({ auth: acquireAuth }, address)
-        expect(connection._release).toHaveBeenCalled()
+          expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
+          expect(poolAcquire).toHaveBeenCalledWith({ auth: acquireAuth }, address)
+          expect(connection._release).toHaveBeenCalled()
+        })
+      })
+
+      describe('when supports re-auth', () => {
+        const connAuth = { some: 'auth' }
+        const acquireAuth = connAuth
+
+        it('should raise and error when try switch user on acquire', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => {}, undefined, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newDirectConnectionProvider(address, pool)
+
+          const delegatedConnection = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: '',
+              allowStickyConnection,
+              auth: acquireAuth
+            })
+
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
+        })
       })
     })
   })
@@ -669,7 +695,7 @@ function newPool ({ create, config } = {}) {
 }
 
 class FakeConnection extends Connection {
-  constructor (address, release, server, auth) {
+  constructor (address, release, server, auth, { supportsReAuth } = {}) {
     super(null)
 
     this._address = address
@@ -678,6 +704,7 @@ class FakeConnection extends Connection {
     this._authToken = auth
     this._closed = false
     this._id = 1
+    this._supportsReAuth = supportsReAuth || false
   }
 
   get id () {
@@ -698,6 +725,10 @@ class FakeConnection extends Connection {
 
   get server () {
     return this._server
+  }
+
+  get supportsReAuth () {
+    return this._supportsReAuth
   }
 
   async close () {
