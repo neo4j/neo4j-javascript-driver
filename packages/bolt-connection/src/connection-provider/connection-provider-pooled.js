@@ -104,7 +104,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
   }
 
   _validateConnectionOnRelease (conn) {
-    return this._validateConnection(conn)
+    return conn._sticky !== true && this._validateConnection(conn)
   }
 
   /**

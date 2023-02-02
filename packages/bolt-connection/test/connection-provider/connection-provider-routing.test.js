@@ -3245,6 +3245,15 @@ describe.each([
 
           expect(validateOnRelease(connection)).toBe(false)
         })
+
+        it('should return false when connection is sticky', async () => {
+          const connection = new FakeConnection(server0)
+          connection._sticky = true
+
+          const { validateOnRelease } = setup()
+
+          expect(validateOnRelease(connection)).toBe(false)
+        })
       })
 
       function setup ({ createConnection, authenticationProvider, maxConnectionLifetime } = {}) {
