@@ -467,6 +467,7 @@ describe('#unit Pool', () => {
       message: expect.stringMatching('Pool is closed')
     })
   })
+
   it('purges keys other than the ones to keep', async () => {
     let counter = 0
 
@@ -1063,6 +1064,196 @@ describe('#unit Pool', () => {
       resource2, resource1
     ])
   })
+
+  describe('when acquire force new', () => {
+    it('allocates if pool is empty', async () => {
+      // Given
+      let counter = 0
+      const address = ServerAddress.fromUrl('bolt://localhost:7687')
+      const pool = new Pool({
+        create: (_, server, release) =>
+          Promise.resolve(new Resource(server, counter++, release))
+      })
+
+      // When
+      const r0 = await pool.acquire({}, address)
+      const r1 = await pool.acquire({}, address, { requireNew: true })
+
+      // Then
+      expect(r0.id).toBe(0)
+      expect(r1.id).toBe(1)
+      expect(r0).not.toBe(r1)
+    })
+
+    it('not pools if resources are returned', async () => {
+      // Given a pool that allocates
+      let counter = 0
+      const address = ServerAddress.fromUrl('bolt://localhost:7687')
+      const pool = new Pool({
+        create: (_, server, release) =>
+          Promise.resolve(new Resource(server, counter++, release))
+      })
+
+      // When
+      const r0 = await pool.acquire({}, address)
+      await r0.close()
+
+      const r1 = await pool.acquire({}, address, { requireNew: true })
+
+      // Then
+      expect(r0.id).toBe(0)
+      expect(r1.id).toBe(1)
+      expect(r0).not.toBe(r1)
+    })
+
+    it('should fail to acquire when closed', async () => {
+      const address = ServerAddress.fromUrl('bolt://localhost:7687')
+      const pool = new Pool({
+        create: (_, server, release) =>
+          Promise.resolve(new Resource(server, 0, release)),
+        destroy: res => {
+          return Promise.resolve()
+        }
+      })
+
+      // Close the pool
+      await pool.close()
+
+      await expect(pool.acquire({}, address, { requireNew: true })).rejects.toMatchObject({
+        message: expect.stringMatching('Pool is closed')
+      })
+    })
+
+    it('should fail to acquire when closed with idle connections', async () => {
+      const address = ServerAddress.fromUrl('bolt://localhost:7687')
+
+      const pool = new Pool({
+        create: (_, server, release) =>
+          Promise.resolve(new Resource(server, 0, release)),
+        destroy: res => {
+          return Promise.resolve()
+        }
+      })
+
+      // Acquire and release a resource
+      const resource = await pool.acquire({}, address)
+      await resource.close()
+
+      // Close the pool
+      await pool.close()
+
+      await expect(pool.acquire({}, address, { requireNew: true })).rejects.toMatchObject({
+        message: expect.stringMatching('Pool is closed')
+      })
+    })
+
+    it('should wait for a returned connection when max pool size is reached', async () => {
+      let counter = 0
+
+      const address = ServerAddress.fromUrl('bolt://localhost:7687')
+      const pool = new Pool({
+        create: (_, server, release) =>
+          Promise.resolve(new Resource(server, counter++, release)),
+        destroy: res => Promise.resolve(),
+        config: new PoolConfig(2, 5000)
+      })
+
+      const r0 = await pool.acquire({}, address)
+      const r1 = await pool.acquire({}, address, { requireNew: true })
+
+      setTimeout(() => {
+        expectNumberOfAcquisitionRequests(pool, address, 1)
+        r1.close()
+      }, 1000)
+
+      expect(r1).not.toBe(r0)
+      const r2 = await pool.acquire({}, address)
+      expect(r2).toBe(r1)
+    })
+
+    it('should wait for a returned connection when max pool size is reached and return new', async () => {
+      let counter = 0
+
+      const address = ServerAddress.fromUrl('bolt://localhost:7687')
+      const pool = new Pool({
+        create: (_, server, release) =>
+          Promise.resolve(new Resource(server, counter++, release)),
+        destroy: res => Promise.resolve(),
+        config: new PoolConfig(2, 5000)
+      })
+
+      const r0 = await pool.acquire({}, address)
+      const r1 = await pool.acquire({}, address, { requireNew: true })
+
+      setTimeout(() => {
+        expectNumberOfAcquisitionRequests(pool, address, 1)
+        r1.close()
+      }, 1000)
+
+      expect(r1).not.toBe(r0)
+      const r2 = await pool.acquire({}, address, { requireNew: true })
+      expect(r2).not.toBe(r1)
+    })
+
+    it('should handle a sequence of request new and the regular request', async () => {
+      let counter = 0
+
+      const destroy = jest.fn(res => Promise.resolve())
+      const removeIdleObserver = jest.fn(res => undefined)
+      const address = ServerAddress.fromUrl('bolt://localhost:7687')
+      const pool = new Pool({
+        create: (_, server, release) =>
+          Promise.resolve(new Resource(server, counter++, release)),
+        destroy: destroy,
+        removeIdleObserver: removeIdleObserver,
+        config: new PoolConfig(1, 5000)
+      })
+
+      const r0 = await pool.acquire({}, address, { requireNew: true })
+      expect(pool.activeResourceCount(address)).toEqual(1)
+      expect(idleResources(pool, address)).toBe(0)
+      expect(resourceInUse(pool, address)).toBe(1)
+
+      setTimeout(() => {
+        expectNumberOfAcquisitionRequests(pool, address, 1)
+        r0.close()
+      }, 1000)
+
+      const r1 = await pool.acquire({}, address, { requireNew: true })
+      expect(destroy).toHaveBeenCalledWith(r0)
+      expect(removeIdleObserver).toHaveBeenCalledWith(r0)
+      expect(pool.activeResourceCount(address)).toEqual(1)
+      expect(idleResources(pool, address)).toBe(0)
+      expect(resourceInUse(pool, address)).toBe(1)
+
+      setTimeout(() => {
+        expectNumberOfAcquisitionRequests(pool, address, 1)
+        r1.close()
+      }, 1000)
+
+      expect(r1).not.toBe(r0)
+      const r2 = await pool.acquire({}, address, { requireNew: true })
+      expect(removeIdleObserver).toHaveBeenCalledWith(r1)
+      expect(destroy).toHaveBeenCalledWith(r1)
+      expect(r2).not.toBe(r1)
+      expect(pool.activeResourceCount(address)).toEqual(1)
+      expect(idleResources(pool, address)).toBe(0)
+      expect(resourceInUse(pool, address)).toBe(1)
+
+      setTimeout(() => {
+        expectNumberOfAcquisitionRequests(pool, address, 1)
+        r2.close()
+      }, 1000)
+
+      const r3 = await pool.acquire({}, address)
+      expect(r3).toBe(r2)
+      expect(removeIdleObserver).toHaveBeenCalledWith(r2)
+      expect(destroy).not.toHaveBeenCalledWith(r2)
+      expect(pool.activeResourceCount(address)).toEqual(1)
+      expect(idleResources(pool, address)).toBe(0)
+      expect(resourceInUse(pool, address)).toBe(1)
+    })
+  })
 })
 
 function expectNoPendingAcquisitionRequests (pool) {
@@ -1084,6 +1275,13 @@ function expectNoIdleResources (pool, address) {
 function idleResources (pool, address) {
   if (pool.has(address)) {
     return pool._pools[address.asKey()].length
+  }
+  return undefined
+}
+
+function resourceInUse (pool, address) {
+  if (pool.has(address)) {
+    return pool._pools[address.asKey()]._elementsInUse.size
   }
   return undefined
 }

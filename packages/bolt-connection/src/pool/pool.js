@@ -76,9 +76,11 @@ class Pool {
    * Acquire and idle resource fom the pool or create a new one.
    * @param {object} acquisitionContext the acquisition context used for create and validateOnAcquire connection
    * @param {ServerAddress} address the address for which we're acquiring.
+   * @param {object} config the config
+   * @param {boolean} config.requireNew Indicate it requires a new resource
    * @return {Promise<Object>} resource that is ready to use.
    */
-  acquire (acquisitionContext, address) {
+  acquire (acquisitionContext, address, config) {
     const key = address.asKey()
 
     // We're out of resources and will try to acquire later on when an existing resource is released.
@@ -114,7 +116,7 @@ class Pool {
         }
       }, this._acquisitionTimeout)
 
-      request = new PendingRequest(key, acquisitionContext, resolve, reject, timeoutId, this._log)
+      request = new PendingRequest(key, acquisitionContext, config, resolve, reject, timeoutId, this._log)
       allRequests[key].push(request)
       this._processPendingAcquireRequests(address)
     })
@@ -199,30 +201,32 @@ class Pool {
     return pool
   }
 
-  async _acquire (acquisitionContext, address) {
+  async _acquire (acquisitionContext, address, requireNew) {
     if (this._closed) {
       throw newError('Pool is closed, it is no more able to serve requests.')
     }
 
     const key = address.asKey()
     const pool = this._getOrInitializePoolFor(key)
-    while (pool.length) {
-      const resource = pool.pop()
+    if (!requireNew) {
+      while (pool.length) {
+        const resource = pool.pop()
 
-      if (this._removeIdleObserver) {
-        this._removeIdleObserver(resource)
-      }
-
-      if (await this._validateOnAcquire(acquisitionContext, resource)) {
-        // idle resource is valid and can be acquired
-        resourceAcquired(key, this._activeResourceCounts)
-        if (this._log.isDebugEnabled()) {
-          this._log.debug(`${resource} acquired from the pool ${key}`)
+        if (this._removeIdleObserver) {
+          this._removeIdleObserver(resource)
         }
-        return { resource, pool }
-      } else {
-        pool.removeInUse(resource)
-        await this._destroy(resource)
+
+        if (await this._validateOnAcquire(acquisitionContext, resource)) {
+          // idle resource is valid and can be acquired
+          resourceAcquired(key, this._activeResourceCounts)
+          if (this._log.isDebugEnabled()) {
+            this._log.debug(`${resource} acquired from the pool ${key}`)
+          }
+          return { resource, pool }
+        } else {
+          pool.removeInUse(resource)
+          await this._destroy(resource)
+        }
       }
     }
 
@@ -243,6 +247,15 @@ class Pool {
     this._pendingCreates[key] = this._pendingCreates[key] + 1
     let resource
     try {
+      if (pool.length && requireNew) {
+        const resource = pool.pop()
+        if (this._removeIdleObserver) {
+          this._removeIdleObserver(resource)
+        }
+        pool.removeInUse(resource)
+        await this._destroy(resource)
+      }
+
       // Invoke callback that creates actual connection
       resource = await this._create(acquisitionContext, address, (address, resource) => this._release(address, resource, pool))
       pool.pushInUse(resource)
@@ -332,7 +345,7 @@ class Pool {
       const pendingRequest = requests.shift() // pop a pending acquire request
 
       if (pendingRequest) {
-        this._acquire(pendingRequest.context, address)
+        this._acquire(pendingRequest.context, address, pendingRequest.requireNew)
           .catch(error => {
             // failed to acquire/create a new connection to resolve the pending acquire request
             // propagate the error by failing the pending request
@@ -396,7 +409,7 @@ function resourceReleased (key, activeResourceCounts) {
 }
 
 class PendingRequest {
-  constructor (key, context, resolve, reject, timeoutId, log) {
+  constructor (key, context, config, resolve, reject, timeoutId, log) {
     this._key = key
     this._context = context
     this._resolve = resolve
@@ -404,10 +417,15 @@ class PendingRequest {
     this._timeoutId = timeoutId
     this._log = log
     this._completed = false
+    this._config = config || {}
   }
 
   get context () {
     return this._context
+  }
+
+  get requireNew () {
+    return this._config.requireNew || false
   }
 
   isCompleted () {
