@@ -194,7 +194,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       const connection = await this._connectionPool.acquire({ auth }, address)
 
       if (auth) {
-        const stickyConnection = await this._getStickyConnection({ auth, connection, allowStickyConnection })
+        const stickyConnection = await this._getStickyConnection({
+          auth,
+          connection,
+          address,
+          allowStickyConnection
+        })
         if (stickyConnection) {
           return stickyConnection
         }
@@ -553,12 +558,17 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
 
   async _createSessionForRediscovery (routerAddress, bookmarks, impersonatedUser, auth, allowStickyConnection) {
     try {
-      const connection = await this._connectionPool.acquire({ auth }, routerAddress)
+      let connection = await this._connectionPool.acquire({ auth }, routerAddress)
 
       if (auth) {
-        const stickyConnection = await this._getStickyConnection({ auth, connection, allowStickyConnection })
+        const stickyConnection = await this._getStickyConnection({
+          auth,
+          connection,
+          address: routerAddress,
+          allowStickyConnection
+        })
         if (stickyConnection) {
-          return stickyConnection
+          connection = stickyConnection
         }
       }
 
@@ -567,8 +577,11 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         handleAuthorizationExpired: (error, address, conn) => this._handleAuthorizationExpired(error, address, conn)
       })
 
-      const connectionProvider = new SingleConnectionProvider(
-        new DelegateConnection(connection, databaseSpecificErrorHandler))
+      const delegateConnection = !connection._sticky
+        ? new DelegateConnection(connection, databaseSpecificErrorHandler)
+        : new DelegateConnection(connection)
+
+      const connectionProvider = new SingleConnectionProvider(delegateConnection)
 
       const protocolVersion = connection.protocol().version
       if (protocolVersion < 4.0) {

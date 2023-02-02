@@ -52,7 +52,12 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
     const connection = await this._connectionPool.acquire({ auth }, this._address)
 
     if (auth) {
-      const stickyConnection = await this._getStickyConnection({ auth, connection, allowStickyConnection })
+      const stickyConnection = await this._getStickyConnection({
+        auth,
+        connection,
+        address: this._address,
+        allowStickyConnection
+      })
       if (stickyConnection) {
         return stickyConnection
       }

@@ -126,19 +126,6 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     return true
   }
 
-  async _createStickyConnection ({ address, auth }) {
-    const connection = await this._createChannelConnection(address)
-    connection._release = () => this._destroyConnection(connection)
-    this._openConnections[connection.id] = connection
-
-    try {
-      return await connection.connect(this._userAgent, auth)
-    } catch (error) {
-      await this._destroyConnection(connection)
-      throw error
-    }
-  }
-
   /**
    * Dispose of a connection.
    * @return {Connection} the connection to dispose.
@@ -168,7 +155,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     return serverInfo
   }
 
-  async _getStickyConnection ({ auth, connection, allowStickyConnection }) {
+  async _getStickyConnection ({ auth, connection, address, allowStickyConnection }) {
     const connectionWithSameCredentials = object.equals(auth, connection.authToken)
     const shouldCreateStickyConnection = !connectionWithSameCredentials
     connection._sticky = connectionWithSameCredentials && !connection.supportsReAuth
@@ -178,7 +165,9 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       throw newError('Driver is connected to a database that does not support user switch.')
     } else if (allowStickyConnection === true && shouldCreateStickyConnection) {
       await connection._release()
-      return await this._createStickyConnection({ address: this._address, auth })
+      connection = await this._connectionPool.acquire({ auth }, address, { requireNew: true })
+      connection._sticky = true
+      return connection
     } else if (connection._sticky) {
       return connection
     }

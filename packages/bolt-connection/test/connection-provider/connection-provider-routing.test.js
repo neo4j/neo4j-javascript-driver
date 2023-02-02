@@ -3608,6 +3608,414 @@ describe.each([
         })
       })
     })
+
+    describe.each([
+      true
+    ])('when allowStickyConnection is %s', (allowStickyConnection) => {
+      describe('when does not support re-auth', () => {
+        describe.each([
+          ['new connection', { other: 'auth' }, { other: 'auth' }, false],
+          ['old connection', { some: 'auth' }, { other: 'token' }, true]
+        ])('%s', (_, connAuth, acquireAuth, shouldCreateNew) => {
+          it('should raise and error when try switch user on acquire', async () => {
+            const pool = newPool()
+            const createdConnections = {}
+            const poolAcquire = jest.spyOn(pool, 'acquire')
+              .mockImplementation((_, address) => {
+                const conn = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+                createdConnections[address.asKey()] = [...createdConnections[address.asKey()] || [], conn]
+                return conn
+              })
+            const connectionProvider = newRoutingConnectionProvider([
+              newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4]
+              )
+            ],
+            pool
+            )
+            const auth = acquireAuth
+
+            const acquiredConnection = await connectionProvider
+              .acquireConnection({
+                accessMode: 'READ',
+                database: 'dba',
+                allowStickyConnection,
+                auth
+              })
+
+            expect(poolAcquire).toHaveBeenCalledWith({ auth }, server3)
+            const connections = createdConnections[server3.asKey()]
+            if (shouldCreateNew) {
+              // discarded connection should not be marked as sticky and release
+              expect(connections[0]._release).toHaveBeenCalled()
+              expect(connections[0]._sticky).toBe(false)
+              expect(poolAcquire).toHaveBeenCalledWith({ auth }, server3, { requireNew: true })
+            } else {
+              expect(poolAcquire).not.toHaveBeenCalledWith({ auth }, server3, { requireNew: true })
+            }
+
+            // used connection should be marked as sticky
+            expect(connections[connections.length - 1]._release).not.toHaveBeenCalled()
+            expect(connections[connections.length - 1]._sticky).toBe(true)
+
+            expect(acquiredConnection).toBe(connections[connections.length - 1])
+            expect(acquiredConnection._release).not.toHaveBeenCalled()
+            expect(acquiredConnection._sticky).toEqual(true)
+          })
+
+          it('should raise and error when try switch user on acquire [expired rt]', async () => {
+            const pool = newPool()
+            const createdConnections = {}
+            const database = 'dba'
+            const poolAcquire = jest.spyOn(pool, 'acquire')
+              .mockImplementation((_, address) => {
+                const conn = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+                createdConnections[address.asKey()] = [...createdConnections[address.asKey()] || [], conn]
+                return conn
+              })
+            const connectionProvider = newRoutingConnectionProvider([
+              newRoutingTable(
+                database,
+                [server1, server2],
+                [server3, server2],
+                [server2, server4],
+                int(0) // expired
+              )
+            ],
+            pool,
+            {
+              [database]: {
+                [server1.asKey()]: newRoutingTable(
+                  database,
+                  [server1, server2],
+                  [server3, server2],
+                  [server2, server4]
+                )
+              }
+            })
+            connectionProvider._useSeedRouter = false
+
+            const auth = acquireAuth
+
+            await connectionProvider
+              .acquireConnection({
+                accessMode: 'READ',
+                database,
+                allowStickyConnection,
+                auth
+              })
+
+            expect(poolAcquire).toHaveBeenCalledWith({ auth }, server1)
+            const connections = createdConnections[server1.asKey()]
+            if (shouldCreateNew) {
+              // discarded connection should not be marked as sticky and release
+              expect(connections[0]._release).toHaveBeenCalled()
+              expect(connections[0]._sticky).toBe(false)
+              expect(connections.length).toBe(2)
+              expect(poolAcquire).toHaveBeenCalledWith({ auth }, server1, { requireNew: true })
+            } else {
+              expect(connections.length).toBe(1)
+              expect(poolAcquire).not.toHaveBeenCalledWith({ auth }, server1, { requireNew: true })
+            }
+
+            // used connection should be marked as sticky and released
+            expect(connections[connections.length - 1]._sticky).toBe(true)
+            // the release will be done by the session.close(),
+            // since the rediscovery is mocked, the session doesn't acquire the connection.
+            // thus, never release the connection.
+            expect(connections[connections.length - 1]._release).not.toHaveBeenCalled()
+          })
+
+          it('should raise and error when try switch user on acquire [expired rt and userSeedRouter]', async () => {
+            const pool = newPool()
+            const createdConnections = {}
+            const database = 'dba'
+            const poolAcquire = jest.spyOn(pool, 'acquire')
+              .mockImplementation((_, address) => {
+                const conn = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+                createdConnections[address.asKey()] = [...createdConnections[address.asKey()] || [], conn]
+                return conn
+              })
+
+            const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+              server0,
+              [server0],
+              [
+                newRoutingTable(
+                  database,
+                  [server1, server2],
+                  [server3, server2],
+                  [server2, server4],
+                  int(0) // expired
+                )
+              ],
+              {
+                [database]: {
+                  [server0.asKey()]: newRoutingTable(
+                    database,
+                    [server1, server2],
+                    [server3, server2],
+                    [server2, server4]
+                  )
+                }
+              },
+              pool
+            )
+
+            const auth = acquireAuth
+
+            await connectionProvider
+              .acquireConnection({
+                accessMode: 'READ',
+                database,
+                allowStickyConnection,
+                auth
+              })
+
+            expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
+            const connections = createdConnections[server0.asKey()]
+            if (shouldCreateNew) {
+              // discarded connection should not be marked as sticky and release
+              expect(connections[0]._release).toHaveBeenCalled()
+              expect(connections[0]._sticky).toBe(false)
+              expect(connections.length).toBe(2)
+              expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0, { requireNew: true })
+            } else {
+              expect(connections.length).toBe(1)
+              expect(poolAcquire).not.toHaveBeenCalledWith({ auth }, server0, { requireNew: true })
+            }
+
+            // used connection should be marked as sticky and released
+            expect(connections[connections.length - 1]._sticky).toBe(true)
+            // the release will be done by the session.close(),
+            // since the rediscovery is mocked, the session doesn't acquire the connection.
+            // thus, never release the connection.
+            expect(connections[connections.length - 1]._release).not.toHaveBeenCalled()
+          })
+
+          it('should raise and error when try switch user on acquire [firstCall and userSeedRouter]', async () => {
+            const pool = newPool()
+            const createdConnections = {}
+            const database = 'dba'
+            const poolAcquire = jest.spyOn(pool, 'acquire')
+              .mockImplementation((_, address) => {
+                const conn = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth)
+                createdConnections[address.asKey()] = [...createdConnections[address.asKey()] || [], conn]
+                return conn
+              })
+            const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+              server0,
+              [server0],
+              [],
+              {
+                [database]: {
+                  [server0.asKey()]: newRoutingTable(
+                    database,
+                    [server1, server2],
+                    [server3, server2],
+                    [server2, server4]
+                  )
+                }
+              },
+              pool
+            )
+
+            const auth = acquireAuth
+
+            await connectionProvider
+              .acquireConnection({
+                accessMode: 'READ',
+                database,
+                allowStickyConnection,
+                auth
+              })
+
+            expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
+            const connections = createdConnections[server0.asKey()]
+            if (shouldCreateNew) {
+              // discarded connection should not be marked as sticky and release
+              expect(connections[0]._release).toHaveBeenCalled()
+              expect(connections[0]._sticky).toBe(false)
+              expect(connections.length).toBe(2)
+              expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0, { requireNew: true })
+            } else {
+              expect(connections.length).toBe(1)
+              expect(poolAcquire).not.toHaveBeenCalledWith({ auth }, server0, { requireNew: true })
+            }
+
+            // used connection should be marked as sticky and released
+            expect(connections[connections.length - 1]._sticky).toBe(true)
+            // the release will be done by the session.close(),
+            // since the rediscovery is mocked, the session doesn't acquire the connection.
+            // thus, never release the connection.
+            expect(connections[connections.length - 1]._release).not.toHaveBeenCalled()
+          })
+        })
+      })
+
+      describe('when does it support re-auth', () => {
+        const connAuth = { myAuth: 'auth' }
+        const acquireAuth = connAuth
+
+        it('should return connection when try switch user on acquire', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newRoutingConnectionProvider([
+            newRoutingTable(
+              null,
+              [server1, server2],
+              [server3, server2],
+              [server2, server4]
+            )
+          ],
+          pool
+          )
+          const auth = acquireAuth
+
+          const delegatedConnection = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: '',
+              allowStickyConnection,
+              auth
+            })
+
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
+          expect(connection._sticky).toEqual(false)
+        })
+
+        it('should return connection when try switch user on acquire [expired rt]', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newRoutingConnectionProvider([
+            newRoutingTable(
+              'dba',
+              [server1, server2],
+              [server3, server2],
+              [server2, server4],
+              int(0) // expired
+            )
+          ],
+          pool,
+          {
+            dba: {
+              [server1.asHostPort()]: newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4]
+              )
+            }
+          }
+          )
+          connectionProvider._useSeedRouter = false
+
+          const auth = acquireAuth
+
+          const delegatedConnection = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: 'dba',
+              allowStickyConnection,
+              auth
+            })
+
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
+          expect(connection._sticky).toEqual(false)
+        })
+
+        it('should return delegated connection when try switch user on acquire [expired rt and userSeedRouter]', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+            server0,
+            [server0],
+            [
+              newRoutingTable(
+                'dba',
+                [server1, server2],
+                [server3, server2],
+                [server2, server4],
+                int(0) // expired
+              )
+            ],
+            {
+              dba: {
+                [server0.asHostPort()]: newRoutingTable(
+                  'dba',
+                  [server1, server2],
+                  [server3, server2],
+                  [server2, server4]
+                )
+              }
+            },
+            pool
+          )
+
+          const auth = acquireAuth
+
+          const delegatedConnection = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: 'dba',
+              allowStickyConnection,
+              auth
+            })
+
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
+          expect(connection._sticky).toEqual(false)
+        })
+
+        it('should delegated connection when try switch user on acquire [firstCall and userSeedRouter]', async () => {
+          const address = ServerAddress.fromUrl('localhost:123')
+          const pool = newPool()
+          const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
+          jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
+          const connectionProvider = newRoutingConnectionProviderWithSeedRouter(
+            server0,
+            [server0],
+            [],
+            {
+              dba: {
+                [server0.asHostPort()]: newRoutingTable(
+                  'dba',
+                  [server1, server2],
+                  [server3, server2],
+                  [server2, server4]
+                )
+              }
+            },
+            pool
+          )
+
+          const auth = acquireAuth
+
+          const delegatedConnection = await connectionProvider
+            .acquireConnection({
+              accessMode: 'READ',
+              database: 'dba',
+              allowStickyConnection,
+              auth
+            })
+
+          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
+          expect(delegatedConnection._delegate).toBe(connection)
+          expect(connection._sticky).toEqual(false)
+        })
+      })
+    })
   })
 
   function newPool ({ create, config } = {}) {
@@ -3834,7 +4242,7 @@ class FakeConnection extends Connection {
 
 class FakeRediscovery {
   constructor (routerToRoutingTable, error) {
-    this._routerToRoutingTable = routerToRoutingTable
+    this._routerToRoutingTable = routerToRoutingTable || {}
     this._error = error
   }
 
