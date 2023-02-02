@@ -171,13 +171,16 @@ export default class PooledConnectionProvider extends ConnectionProvider {
   async _getStickyConnection ({ auth, connection, allowStickyConnection }) {
     const connectionWithSameCredentials = object.equals(auth, connection.authToken)
     const shouldCreateStickyConnection = !connectionWithSameCredentials
-    const stickyConnectionWasCreated = connectionWithSameCredentials && !connection.supportsReAuth
-    if (allowStickyConnection !== true && (shouldCreateStickyConnection || stickyConnectionWasCreated)) {
+    connection._sticky = connectionWithSameCredentials && !connection.supportsReAuth
+
+    if (allowStickyConnection !== true && (shouldCreateStickyConnection || connection._sticky)) {
       await connection._release()
       throw newError('Driver is connected to a database that does not support user switch.')
     } else if (allowStickyConnection === true && shouldCreateStickyConnection) {
       await connection._release()
       return await this._createStickyConnection({ address: this._address, auth })
+    } else if (connection._sticky) {
+      return connection
     }
   }
 

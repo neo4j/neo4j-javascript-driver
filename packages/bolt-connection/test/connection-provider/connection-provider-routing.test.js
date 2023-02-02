@@ -3284,9 +3284,9 @@ describe.each([
     ])('when allowStickyConnection is %s', (allowStickyConnection) => {
       describe('when does not support re-auth', () => {
         describe.each([
-          ['new connection', { other: 'auth' }, { other: 'token' }],
-          ['old connection', { some: 'auth' }, { other: 'token' }]
-        ])('%s', (_, connAuth, acquireAuth) => {
+          ['new connection', { other: 'auth' }, { other: 'auth' }, true],
+          ['old connection', { some: 'auth' }, { other: 'token' }, false]
+        ])('%s', (_, connAuth, acquireAuth, isStickyConn) => {
           it('should raise and error when try switch user on acquire', async () => {
             const address = ServerAddress.fromUrl('localhost:123')
             const pool = newPool()
@@ -3316,6 +3316,7 @@ describe.each([
             expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
             expect(poolAcquire).toHaveBeenCalledWith({ auth }, server3)
             expect(connection._release).toHaveBeenCalled()
+            expect(connection._sticky).toEqual(isStickyConn)
           })
 
           it('should raise and error when try switch user on acquire [expired rt]', async () => {
@@ -3358,6 +3359,7 @@ describe.each([
             expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
             expect(poolAcquire).toHaveBeenCalledWith({ auth }, server1)
             expect(connection._release).toHaveBeenCalled()
+            expect(connection._sticky).toEqual(isStickyConn)
           })
 
           it('should raise and error when try switch user on acquire [expired rt and userSeedRouter]', async () => {
@@ -3402,6 +3404,7 @@ describe.each([
             expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
             expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
             expect(connection._release).toHaveBeenCalled()
+            expect(connection._sticky).toEqual(isStickyConn)
           })
 
           it('should raise and error when try switch user on acquire [firstCall and userSeedRouter]', async () => {
@@ -3431,6 +3434,7 @@ describe.each([
             expect(error).toEqual(newError('Driver is connected to a database that does not support user switch.'))
             expect(poolAcquire).toHaveBeenCalledWith({ auth }, server0)
             expect(connection._release).toHaveBeenCalled()
+            expect(connection._sticky).toEqual(isStickyConn)
           })
         })
       })
@@ -3466,6 +3470,7 @@ describe.each([
 
           expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
           expect(delegatedConnection._delegate).toBe(connection)
+          expect(connection._sticky).toEqual(false)
         })
 
         it('should return connection when try switch user on acquire [expired rt]', async () => {
@@ -3508,6 +3513,7 @@ describe.each([
 
           expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
           expect(delegatedConnection._delegate).toBe(connection)
+          expect(connection._sticky).toEqual(false)
         })
 
         it('should return delegated connection when try switch user on acquire [expired rt and userSeedRouter]', async () => {
@@ -3552,6 +3558,7 @@ describe.each([
 
           expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
           expect(delegatedConnection._delegate).toBe(connection)
+          expect(connection._sticky).toEqual(false)
         })
 
         it('should delegated connection when try switch user on acquire [firstCall and userSeedRouter]', async () => {
@@ -3588,6 +3595,7 @@ describe.each([
 
           expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
           expect(delegatedConnection._delegate).toBe(connection)
+          expect(connection._sticky).toEqual(false)
         })
       })
     })
