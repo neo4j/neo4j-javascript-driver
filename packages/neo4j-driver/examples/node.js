@@ -20,9 +20,9 @@
 var neo4j = require('neo4j')
 
 var query = [
-  'MERGE (alice:Person {name:{name_a},age:{age_a}})',
-  'MERGE (bob:Person {name:{name_b},age:{age_b}})',
-  'CREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)',
+  'MATCH (alice:Person {name:{name_a},age:{age_a}})',
+  'MATCH (bob:Person {name:{name_b},age:{age_b}})',
+  'MERGE (alice)-[alice_knows_bob:KNOWS]->(bob)',
   'RETURN alice, bob, alice_knows_bob'
 ]
 
