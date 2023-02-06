@@ -577,6 +577,22 @@ class Driver {
   }
 
   /**
+   * This method verifies the authorization credentials work by trying to acquire a connection
+   * to one of the servers with the given credentials.
+   *
+   * @param {object} param - object parameter
+   * @property {AuthToken} param.auth - the target auth for the to-be-acquired connection
+   * @property {string} param.database - the target database for the to-be-acquired connection
+   *
+   * @returns {Promise<boolean>} promise resolved with true if succeed, false if failed with
+   *  authentication issue and rejected with error if non-authentication error happens.
+   */
+  verifyAuthentication ({ database, auth }: { auth?: AuthToken, database?: string } = {}): Promise<boolean> {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.verifyAuthentication({ database: database ?? '', auth, accessMode: READ })
+  }
+
+  /**
    * Get ServerInfo for the giver database.
    *
    * @param {Object} param - The object parameter

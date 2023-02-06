@@ -24,6 +24,13 @@ import AuthenticationProvider from './authentication-provider.js'
 import { object } from '../lang/index.js'
 
 const { SERVICE_UNAVAILABLE } = error
+const AUTHENTICATION_ERRORS = [
+  'Neo.ClientError.Security.CredentialsExpired',
+  'Neo.ClientError.Security.Forbidden',
+  'Neo.ClientError.Security.TokenExpired',
+  'Neo.ClientError.Security.Unauthorized'
+]
+
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
     { id, config, log, userAgent, authTokenProvider, newPool = (...args) => new Pool(...args) },
@@ -60,6 +67,19 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       log: this._log
     })
     this._openConnections = {}
+  }
+
+  async verifyAuthentication ({ auth, database, accessMode } = {}) {
+    try {
+      const connection = await this.acquireConnection({ accessMode, database, auth })
+      await connection._release()
+      return true
+    } catch (error) {
+      if (AUTHENTICATION_ERRORS.includes(error.code)) {
+        return false
+      }
+      throw error
+    }
   }
 
   _createConnectionErrorHandler () {

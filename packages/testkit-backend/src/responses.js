@@ -111,6 +111,10 @@ export function AuthTokenProviderRequest ({ id, authTokenProviderId }) {
   return response('AuthTokenProviderRequest', { id, authTokenProviderId })
 }
 
+export function DriverIsAuthenticated ({ id, authenticated }) {
+  return response('DriverIsAuthenticated', { id, authenticated })
+}
+
 // Testkit controller messages
 export function RunTest () {
   return response('RunTest', null)

@@ -113,6 +113,22 @@ class ConnectionProvider {
   }
 
   /**
+   * This method verifies the authorization credentials work by trying to acquire a connection
+   * to one of the servers with the given credentials.
+   *
+   * @param {object} param - object parameter
+   * @property {AuthToken} param.auth - the target auth for the to-be-acquired connection
+   * @property {string} param.database - the target database for the to-be-acquired connection
+   * @property {string} param.accessMode - the access mode for the to-be-acquired connection
+   *
+   * @returns {Promise<boolean>} promise resolved with true if succeed, false if failed with
+   *  authentication issue and rejected with error if non-authentication error happens.
+   */
+  verifyAuthentication (param?: { auth?: AuthToken, database?: string, accessMode?: string }): Promise<boolean> {
+    throw Error('Not implemented')
+  }
+
+  /**
    * Returns the protocol version negotiated via handshake.
    *
    * Note that this function call _always_ causes a round-trip to the server.

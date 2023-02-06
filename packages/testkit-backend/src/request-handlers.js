@@ -399,6 +399,18 @@ export function VerifyConnectivity (_, context, { driverId }, wire) {
     .catch(error => wire.writeError(error))
 }
 
+export function VerifyAuthentication (_, context, { driverId, auth_token: authToken }, wire) {
+  const auth = authToken != null
+    ? context.binder.parseAuthToken(authToken.data)
+    : undefined
+
+  const driver = context.getDriver(driverId)
+  return driver
+    .verifyAuthentication({ auth })
+    .then(authenticated => responses.DriverIsAuthenticated({ id: driverId, authenticated }))
+    .catch(error => wire.writeError(error))
+}
+
 export function GetServerInfo (_, context, { driverId }, wire) {
   const driver = context.getDriver(driverId)
   return driver
