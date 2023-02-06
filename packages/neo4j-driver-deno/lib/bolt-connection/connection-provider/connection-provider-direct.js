@@ -26,7 +26,12 @@ import {
 import { internal, error } from '../../core/index.ts'
 
 const {
-  constants: { BOLT_PROTOCOL_V3, BOLT_PROTOCOL_V4_0, BOLT_PROTOCOL_V4_4 }
+  constants: {
+    BOLT_PROTOCOL_V3,
+    BOLT_PROTOCOL_V4_0,
+    BOLT_PROTOCOL_V4_4,
+    BOLT_PROTOCOL_V5_1
+  }
 } = internal
 
 const { SERVICE_UNAVAILABLE } = error
@@ -125,6 +130,12 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
   async supportsUserImpersonation () {
     return await this._hasProtocolVersion(
       version => version >= BOLT_PROTOCOL_V4_4
+    )
+  }
+
+  async supportsSessionAuth () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V5_1
     )
   }
 

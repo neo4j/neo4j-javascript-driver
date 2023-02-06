@@ -248,6 +248,23 @@ describe('Driver', () => {
   })
 
   it.each([
+    ['Promise.resolve(true)', Promise.resolve(true)],
+    ['Promise.resolve(false)', Promise.resolve(false)],
+    [
+      "Promise.reject(newError('something went wrong'))",
+      Promise.reject(newError('something went wrong'))
+    ]
+  ])('.supportsSessionAuth() => %s', (_, expectedPromise) => {
+    connectionProvider.supportsSessionAuth = jest.fn(() => expectedPromise)
+
+    const promise: Promise<boolean> | undefined = driver?.supportsSessionAuth()
+
+    expect(promise).toBe(expectedPromise)
+
+    promise?.catch(_ => 'Do nothing').finally(() => {})
+  })
+
+  it.each([
     [{ encrypted: true }, true],
     [{ encrypted: false }, false],
     [{}, false],

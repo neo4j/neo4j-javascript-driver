@@ -37,7 +37,8 @@ const {
     ACCESS_MODE_WRITE: WRITE,
     BOLT_PROTOCOL_V3,
     BOLT_PROTOCOL_V4_0,
-    BOLT_PROTOCOL_V4_4
+    BOLT_PROTOCOL_V4_4,
+    BOLT_PROTOCOL_V5_1
   }
 } = internal
 
@@ -265,6 +266,12 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
   async supportsUserImpersonation () {
     return await this._hasProtocolVersion(
       version => version >= BOLT_PROTOCOL_V4_4
+    )
+  }
+
+  async supportsSessionAuth () {
+    return await this._hasProtocolVersion(
+      version => version >= BOLT_PROTOCOL_V5_1
     )
   }
 

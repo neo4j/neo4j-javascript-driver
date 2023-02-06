@@ -24,7 +24,7 @@ import { ServerInfo } from './result-summary.ts'
 import { AuthToken } from './types.ts'
 
 /**
- * Inteface define a common way to acquire a connection
+ * Interface define a common way to acquire a connection
  *
  * @private
  */
@@ -85,6 +85,16 @@ class ConnectionProvider {
    * @returns {Promise<boolean>}
    */
   supportsUserImpersonation (): Promise<boolean> {
+    throw Error('Not implemented')
+  }
+
+  /**
+   * This method checks whether the driver session re-auth functionality
+   * by checking protocol handshake result
+   *
+   * @returns {Promise<boolean>}
+   */
+  supportsSessionAuth (): Promise<boolean> {
     throw Error('Not implemented')
   }
 

@@ -628,6 +628,19 @@ class Driver {
   }
 
   /**
+   * Returns whether the driver session re-auth functionality capabilities based on the protocol
+   * version negotiated via handshake.
+   *
+   * Note that this function call _always_ causes a round-trip to the server.
+   *
+   * @returns {Promise<boolean>} promise resolved with a boolean or rejected with error.
+   */
+  supportsSessionAuth (): Promise<boolean> {
+    const connectionProvider = this._getOrCreateConnectionProvider()
+    return connectionProvider.supportsSessionAuth()
+  }
+
+  /**
    * Returns the protocol version negotiated via handshake.
    *
    * Note that this function call _always_ causes a round-trip to the server.
