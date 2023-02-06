@@ -82,6 +82,26 @@ describe('Driver', () => {
       expect(createSession).toHaveBeenCalledWith(expectedSessionParams())
     })
 
+    it('should create the session with auth', () => {
+      const auth = {
+        scheme: 'basic',
+        principal: 'the imposter',
+        credentials: 'super safe password'
+      }
+
+      const session = driver?.session({ auth })
+
+      expect(session).not.toBeUndefined()
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams({ auth }))
+    })
+
+    it('should create the session without auth', () => {
+      const session = driver?.session()
+
+      expect(session).not.toBeUndefined()
+      expect(createSession).toHaveBeenCalledWith(expectedSessionParams())
+    })
+
     it.each([
       [undefined, Bookmarks.empty()],
       [null, Bookmarks.empty()],

@@ -20,6 +20,7 @@ import { ConnectionProvider, Session, Connection, TransactionPromise, Transactio
 import { bookmarks } from '../src/internal'
 import { ACCESS_MODE_READ, FETCH_ALL } from '../src/internal/constants'
 import ManagedTransaction from '../src/transaction-managed'
+import { AuthToken } from '../src/types'
 import FakeConnection from './utils/connection.fake'
 import { validNotificationFilters } from './utils/notification-filters.fixtures'
 
@@ -432,6 +433,47 @@ describe('session', () => {
 
       expect(updateBookmarksSpy).not.toBeCalled()
     })
+
+    it('should acquire connection with auth', async () => {
+      const auth = {
+        scheme: 'bearer',
+        credentials: 'bearer some-nice-token'
+      }
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        auth,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.beginTransaction()
+
+      expect(connectionProvider.acquireConnection).toBeCalledWith(
+        expect.objectContaining({ auth })
+      )
+    })
+
+    it('should acquire connection without auth', async () => {
+      const auth = {
+        scheme: 'bearer',
+        credentials: 'bearer some-nice-token'
+      }
+      const connection = mockBeginWithSuccess(newFakeConnection())
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.beginTransaction()
+
+      expect(connectionProvider.acquireConnection).not.toBeCalledWith(
+        expect.objectContaining({ auth })
+      )
+    })
   })
 
   describe('.commit()', () => {
@@ -835,6 +877,47 @@ describe('session', () => {
         })
       )
     })
+
+    it('should acquire with auth', async () => {
+      const auth = {
+        scheme: 'bearer',
+        credentials: 'bearer some-nice-token'
+      }
+      const connection = newFakeConnection()
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        auth,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+      
+      expect(connectionProvider.acquireConnection).toBeCalledWith(
+        expect.objectContaining({ auth })
+      )
+    })
+
+    it('should acquire without auth', async () => {
+      const auth = {
+        scheme: 'bearer',
+        credentials: 'bearer some-nice-token'
+      }
+      const connection = newFakeConnection()
+
+      const { session, connectionProvider } = setupSession({
+        connection,
+        beginTx: false,
+        database: 'neo4j'
+      })
+
+      await session.run('query')
+
+      expect(connectionProvider.acquireConnection).not.toBeCalledWith(
+        expect.objectContaining({ auth })
+      )
+    })
   })
 })
 
@@ -887,7 +970,8 @@ function setupSession ({
   database = '',
   lastBookmarks = bookmarks.Bookmarks.empty(),
   bookmarkManager,
-  notificationFilter
+  notificationFilter,
+  auth
 }: {
   connection: Connection
   beginTx?: boolean
@@ -896,6 +980,7 @@ function setupSession ({
   database?: string
   bookmarkManager?: BookmarkManager
   notificationFilter?: NotificationFilter
+  auth?: AuthToken
 }): { session: Session, connectionProvider: ConnectionProvider } {
   const connectionProvider = new ConnectionProvider()
   connectionProvider.acquireConnection = jest.fn(async () => await Promise.resolve(connection))
@@ -910,7 +995,8 @@ function setupSession ({
     reactive: false,
     bookmarks: lastBookmarks,
     bookmarkManager,
-    notificationFilter
+    notificationFilter,
+    auth
   })
 
   if (beginTx) {
