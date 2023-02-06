@@ -11,6 +11,7 @@ export {
   VerifyConnectivity,
   GetServerInfo,
   CheckMultiDBSupport,
+  CheckSessionAuthSupport,
   ResolverResolutionCompleted,
   GetRoutingTable,
   ForcedRoutingTableUpdate,

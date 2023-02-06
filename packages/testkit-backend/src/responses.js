@@ -77,6 +77,10 @@ export function MultiDBSupport ({ id, available }) {
   return response('MultiDBSupport', { id, available })
 }
 
+export function SessionAuthSupport ({ id, available }) {
+  return response('SessionAuthSupport', { id, available })
+}
+
 export function RoutingTable ({ routingTable }) {
   const serverAddressToString = serverAddress => serverAddress.asHostPort()
   return response('RoutingTable', {

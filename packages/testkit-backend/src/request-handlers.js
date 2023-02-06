@@ -417,6 +417,16 @@ export function CheckMultiDBSupport (_, context, { driverId }, wire) {
     .catch(error => wire.writeError(error))
 }
 
+export function CheckSessionAuthSupport (_, context, { driverId }, wire) {
+  const driver = context.getDriver(driverId)
+  return driver
+    .supportsSessionAuth()
+    .then(available =>
+      wire.writeResponse(responses.SessionAuthSupport({ id: driverId, available }))
+    )
+    .catch(error => wire.writeError(error))
+}
+
 export function ResolverResolutionCompleted (
   _,
   context,
