@@ -145,6 +145,20 @@ describe('#unit driver', () => {
       })
     })
 
+    it('should create session using auth', () => {
+      driver = neo4j.driver(
+        `neo4j+ssc://${sharedNeo4j.hostname}`,
+        sharedNeo4j.authToken
+      )
+
+      const auth = { scheme: 'none' }
+
+      const session = driver.rxSession({ auth })
+
+      expect(session._session._readConnectionHolder._auth).toEqual(auth)
+      expect(session._session._writeConnectionHolder._auth).toEqual(auth)
+    })
+
     ;[
       [manager, manager],
       [undefined, undefined]
