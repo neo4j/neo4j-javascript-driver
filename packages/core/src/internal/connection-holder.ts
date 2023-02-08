@@ -87,6 +87,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
   private readonly _getConnectionAcquistionBookmarks: () => Promise<Bookmarks>
   private readonly _onDatabaseNameResolved?: (databaseName?: string) => void
   private readonly _auth?: AuthToken
+  private readonly _backwardsCompatibleAuth?: boolean
   private _closed: boolean
 
   /**
@@ -99,6 +100,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
    * @property {string?} params.impersonatedUser - the user which will be impersonated
    * @property {function(databaseName:string)} params.onDatabaseNameResolved - callback called when the database name is resolved
    * @property {function():Promise<Bookmarks>} params.getConnectionAcquistionBookmarks - called for getting Bookmarks for acquiring connections
+   * @property {AuthToken} params.auth - the target auth for the to-be-acquired connection
+   * @property {boolean} params.backwardsCompatibleAuth - Enables backwards compatible re-auth
    */
   constructor ({
     mode = ACCESS_MODE_WRITE,
@@ -108,7 +111,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
     impersonatedUser,
     onDatabaseNameResolved,
     getConnectionAcquistionBookmarks,
-    auth
+    auth,
+    backwardsCompatibleAuth
   }: {
     mode?: string
     database?: string
@@ -118,6 +122,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     onDatabaseNameResolved?: (databaseName?: string) => void
     getConnectionAcquistionBookmarks?: () => Promise<Bookmarks>
     auth?: AuthToken
+    backwardsCompatibleAuth?: boolean
   } = {}) {
     this._mode = mode
     this._closed = false
@@ -129,6 +134,7 @@ class ConnectionHolder implements ConnectionHolderInterface {
     this._connectionPromise = Promise.resolve(null)
     this._onDatabaseNameResolved = onDatabaseNameResolved
     this._auth = auth
+    this._backwardsCompatibleAuth = backwardsCompatibleAuth
     this._getConnectionAcquistionBookmarks = getConnectionAcquistionBookmarks ?? (() => Promise.resolve(Bookmarks.empty()))
   }
 
@@ -174,7 +180,8 @@ class ConnectionHolder implements ConnectionHolderInterface {
       bookmarks: await this._getBookmarks(),
       impersonatedUser: this._impersonatedUser,
       onDatabaseNameResolved: this._onDatabaseNameResolved,
-      auth: this._auth
+      auth: this._auth,
+      allowStickyConnection: this._backwardsCompatibleAuth
     })
   }
 

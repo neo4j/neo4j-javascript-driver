@@ -120,11 +120,12 @@ class ConnectionProvider {
    * @property {AuthToken} param.auth - the target auth for the to-be-acquired connection
    * @property {string} param.database - the target database for the to-be-acquired connection
    * @property {string} param.accessMode - the access mode for the to-be-acquired connection
+   * @property {boolean} param.allowStickyConnection - enables the usage of sticky connection for backwards compatibility
    *
    * @returns {Promise<boolean>} promise resolved with true if succeed, false if failed with
    *  authentication issue and rejected with error if non-authentication error happens.
    */
-  verifyAuthentication (param?: { auth?: AuthToken, database?: string, accessMode?: string }): Promise<boolean> {
+  verifyAuthentication (param?: { auth?: AuthToken, database?: string, accessMode?: string, allowStickyConnection?: boolean }): Promise<boolean> {
     throw Error('Not implemented')
   }
 

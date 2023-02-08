@@ -123,7 +123,9 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
       this._connectionPool.apply(address, (conn) => { conn.authToken = null })
     }
 
-    connection.close().catch(() => undefined)
+    if (connection) {
+      connection.close().catch(() => undefined)
+    }
 
     return error
   }

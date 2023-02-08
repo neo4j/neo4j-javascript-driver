@@ -196,6 +196,24 @@ class SessionConfig {
     this.impersonatedUser = undefined
 
     /**
+     * The {@link AuthToken} which will be used for the duration of the session.
+     *
+     * By default, the session will use connections authenticated with {@link AuthToken} configured in the
+     * driver creation. This configuration allows switch user and/or authorization information for the
+     * session lifetime.
+     *
+     * **Warning**: This option is only enable by default when the driver is connected with Neo4j Database servers
+     * which supports Bolt 5.1 and onwards. For enabling backwards compatibility mode, please configure the
+     * driver with `backwardsCompatibleAuth` enable. Beware, the backwards compatible mode comes with
+     * a huge performance penalty since it uses a new connection for each unit of work run in a session
+     * configured with an auth.
+     *
+     * @type {AuthToken|undefined}
+     * @see {@link driver}
+     */
+    this.auth = undefined
+
+    /**
      * The record fetch size of each batch of this session.
      *
      * Use {@link FETCH_ALL} to always pull all records in one batch. This will override the config value set on driver config.
@@ -587,9 +605,13 @@ class Driver {
    * @returns {Promise<boolean>} promise resolved with true if succeed, false if failed with
    *  authentication issue and rejected with error if non-authentication error happens.
    */
-  verifyAuthentication ({ database, auth }: { auth?: AuthToken, database?: string } = {}): Promise<boolean> {
+  async verifyAuthentication ({ database, auth }: { auth?: AuthToken, database?: string } = {}): Promise<boolean> {
     const connectionProvider = this._getOrCreateConnectionProvider()
-    return connectionProvider.verifyAuthentication({ database: database ?? '', auth, accessMode: READ })
+    return await connectionProvider.verifyAuthentication({
+      database: database ?? 'system',
+      auth,
+      accessMode: READ
+    })
   }
 
   /**

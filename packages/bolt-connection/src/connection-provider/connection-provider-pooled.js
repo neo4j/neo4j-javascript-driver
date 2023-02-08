@@ -69,9 +69,9 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._openConnections = {}
   }
 
-  async verifyAuthentication ({ auth, database, accessMode } = {}) {
+  async verifyAuthentication ({ auth, database, accessMode, allowStickyConnection } = {}) {
     try {
-      const connection = await this.acquireConnection({ accessMode, database, auth })
+      const connection = await this.acquireConnection({ accessMode, database, auth, allowStickyConnection })
       await connection._release()
       return true
     } catch (error) {

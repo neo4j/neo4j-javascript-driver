@@ -59,6 +59,7 @@ export default class LocalController extends Controller {
   }
 
   _writeError (contextId, e) {
+    console.trace(e)
     if (e.name) {
       if (isFrontendError(e)) {
         this._writeResponse(contextId, newResponse('FrontendError', {

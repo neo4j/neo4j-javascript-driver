@@ -14,7 +14,8 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     authorizationToken,
     authTokenProviderId,
     userAgent,
-    resolverRegistered
+    resolverRegistered,
+    backwardsCompatibleAuth
   } = data
 
   let parsedAuthToken = null
@@ -40,6 +41,7 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     userAgent,
     resolver,
     useBigInt: true,
+    backwardsCompatibleAuth,
     logging: neo4j.logging.console(context.logLevel || context.environmentLogLevel)
   }
   if ('encrypted' in data) {
@@ -400,14 +402,14 @@ export function VerifyConnectivity (_, context, { driverId }, wire) {
 }
 
 export function VerifyAuthentication (_, context, { driverId, auth_token: authToken }, wire) {
-  const auth = authToken != null
+  const auth = authToken != null && authToken.data != null
     ? context.binder.parseAuthToken(authToken.data)
     : undefined
 
   const driver = context.getDriver(driverId)
   return driver
     .verifyAuthentication({ auth })
-    .then(authenticated => responses.DriverIsAuthenticated({ id: driverId, authenticated }))
+    .then(authenticated => wire.writeResponse(responses.DriverIsAuthenticated({ id: driverId, authenticated })))
     .catch(error => wire.writeError(error))
 }
 

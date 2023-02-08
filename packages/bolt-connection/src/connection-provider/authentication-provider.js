@@ -51,6 +51,7 @@ export default class AuthenticationProvider {
 
   handleError ({ connection, code }) {
     if (
+      connection &&
       object.equals(connection.authToken, this._authToken) &&
       [
         'Neo.ClientError.Security.Unauthorized',

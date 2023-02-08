@@ -617,7 +617,8 @@ describe('Driver', () => {
         fetchSize: 1000,
         maxConnectionLifetime: 3600000,
         maxConnectionPoolSize: 100,
-        connectionTimeout: 30000
+        connectionTimeout: 30000,
+        backwardsCompatibleAuth: false
       },
       connectionProvider,
       database: '',
@@ -625,6 +626,7 @@ describe('Driver', () => {
       mode: 'WRITE',
       reactive: false,
       impersonatedUser: undefined,
+      backwardsCompatibleAuth: false,
       ...extra
     }
   }
