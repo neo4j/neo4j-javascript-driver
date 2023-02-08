@@ -66,13 +66,27 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       config: PoolConfig.fromDriverConfig(config),
       log: this._log
     })
+    this._userAgent = userAgent
     this._openConnections = {}
   }
 
   async verifyAuthentication ({ auth, database, accessMode, allowStickyConnection } = {}) {
     try {
       const connection = await this.acquireConnection({ accessMode, database, auth, allowStickyConnection })
-      await connection._release()
+      const address = connection.address
+      const lastMessageIsNotLogin = !connection.protocol().isLastMessageLogin()
+      try {
+        if (lastMessageIsNotLogin && connection.supportsReAuth) {
+          await connection.connect(this._userAgent, auth)
+        }
+      } finally {
+        await connection._release()
+      }
+      if (lastMessageIsNotLogin && !connection.supportsReAuth) {
+        const stickyConnection = await this._connectionPool.acquire({ auth }, address, { requireNew: true })
+        stickyConnection._sticky = true
+        await stickyConnection._release()
+      }
       return true
     } catch (error) {
       if (AUTHENTICATION_ERRORS.includes(error.code)) {
