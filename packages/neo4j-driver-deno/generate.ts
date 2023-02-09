@@ -94,11 +94,11 @@ async function copyAndTransform(inDir: string, outDir: string) {
         // Special fix. Replace:
         //  import { DirectConnectionProvider, RoutingConnectionProvider } from 'neo4j-driver-bolt-connection'
         // With:
-        //  // @deno-types=../../bolt-connection/types
+        //  // @deno-types="../../bolt-connection/types"
         //  import { DirectConnectionProvider, RoutingConnectionProvider } from '../../bolt-connection/index.js'
         contents = contents.replace(
           /import {([^}]*)} from \'neo4j-driver-bolt-connection\'/,
-          `// @deno-types=${relativeRoot}/bolt-connection/types/index.d.ts\n` +
+          `// @deno-types="${relativeRoot}/bolt-connection/types/index.d.ts"\n` +
             `import {$1} from '${relativeRoot}/bolt-connection/index.js'`,
         );
       } else if (existingFile.name.endsWith(".js")) {
@@ -137,7 +137,7 @@ async function copyAndTransform(inDir: string, outDir: string) {
           `export * from './deno/index.js'`,
         );
       }
-      
+
     }
 
     await Deno.writeTextFile(outPath, contents);

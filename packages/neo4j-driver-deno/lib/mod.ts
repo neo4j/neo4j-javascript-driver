@@ -86,7 +86,7 @@ import {
   resultTransformers,
   ResultTransformer
 } from './core/index.ts'
-// @deno-types=./bolt-connection/types/index.d.ts
+// @deno-types="./bolt-connection/types/index.d.ts"
 import {
   DirectConnectionProvider,
   RoutingConnectionProvider
