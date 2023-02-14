@@ -191,6 +191,33 @@ describe('resultTransformers', () => {
         expect(collect).toHaveBeenCalledWith(rawRecords.map(rec => new Record(keys, rec)), new ResultSummary(query, params, meta), keys)
       })
 
+      it('should skip the undefined records', async () => {
+        const {
+          rawRecords,
+          result,
+          keys
+        } = scenario()
+        let firstCall = true
+        const map = jest.fn((record) => {
+          if (firstCall) {
+            firstCall = false
+            return undefined
+          }
+          return record.get('a') as number
+        })
+
+        const transform = resultTransformers.mappedResultTransformer({ map })
+
+        const { records: as }: { records: number[] } = await transform(result)
+
+        const [,...tailRecords] = rawRecords
+        expect(as).toEqual(tailRecords.map(record => record[keys.indexOf('a')]))
+        expect(map).toHaveBeenCalledTimes(rawRecords.length)
+        for (const rawRecord of rawRecords) {
+          expect(map).toHaveBeenCalledWith(new Record(keys, rawRecord))
+        }
+      })
+
       it.each([
         undefined,
         null,
