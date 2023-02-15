@@ -137,7 +137,7 @@ class ResultTransformers {
    */
   mappedResultTransformer <
     R = Record, T = { records: R[], keys: string[], summary: ResultSummary }
-  >(config: { map?: (rec: Record) => R, collect?: (records: R[], summary: ResultSummary, keys: string[]) => T }): ResultTransformer<T> {
+  >(config: { map?: (rec: Record) => R | undefined, collect?: (records: R[], summary: ResultSummary, keys: string[]) => T }): ResultTransformer<T> {
     if (config == null || (config.collect == null && config.map == null)) {
       throw newError('Requires a map or/and a collect functions.')
     }
@@ -151,7 +151,10 @@ class ResultTransformers {
           },
           onNext (record: Record) {
             if (config.map != null) {
-              state.records.push(config.map(record))
+              const mappedRecord = config.map(record)
+              if (mappedRecord !== undefined) {
+                state.records.push(mappedRecord)
+              }
             } else {
               state.records.push(record as unknown as R)
             }
