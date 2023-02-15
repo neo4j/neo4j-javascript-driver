@@ -311,7 +311,7 @@ class QueryConfig<T = EagerResult> {
      * A BookmarkManager is a piece of software responsible for keeping casual consistency between different pieces of work by sharing bookmarks
      * between the them.
      *
-     * By default, it uses the driver's non mutable driver level bookmark manager. See, {@link Driver.queryBookmarkManager}
+     * By default, it uses the driver's non mutable driver level bookmark manager. See, {@link Driver.defaultExecuteQueryBookmarkManager}
      *
      * Can be set to null to disable causal chaining.
      * @type {BookmarkManager|null}
@@ -338,7 +338,7 @@ class Driver {
   private readonly _createConnectionProvider: CreateConnectionProvider
   private _connectionProvider: ConnectionProvider | null
   private readonly _createSession: CreateSession
-  private readonly _queryBookmarkManager: BookmarkManager
+  private readonly _defaultExecuteQueryBookmarkManager: BookmarkManager
   private readonly _queryExecutor: QueryExecutor
 
   /**
@@ -369,7 +369,7 @@ class Driver {
     this._log = log
     this._createConnectionProvider = createConnectionProvider
     this._createSession = createSession
-    this._queryBookmarkManager = bookmarkManager()
+    this._defaultExecuteQueryBookmarkManager = bookmarkManager()
     this._queryExecutor = createQueryExecutor(this.session.bind(this))
 
     /**
@@ -389,8 +389,8 @@ class Driver {
    * @type {BookmarkManager}
    * @returns {BookmarkManager}
    */
-  get queryBookmarkManager (): BookmarkManager {
-    return this._queryBookmarkManager
+  get defaultExecuteQueryBookmarkManager (): BookmarkManager {
+    return this._defaultExecuteQueryBookmarkManager
   }
 
   /**
@@ -472,7 +472,7 @@ class Driver {
    * @see https://github.com/neo4j/neo4j-javascript-driver/discussions/1052
    */
   async executeQuery<T = EagerResult> (query: Query, parameters?: any, config: QueryConfig<T> = {}): Promise<T> {
-    const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.queryBookmarkManager)
+    const bookmarkManager = config.bookmarkManager === null ? undefined : (config.bookmarkManager ?? this.defaultExecuteQueryBookmarkManager)
     const resultTransformer = (config.resultTransformer ?? resultTransformers.eagerResultTransformer()) as ResultTransformer<T>
     const routingConfig: string = config.routing ?? routing.WRITERS
 

@@ -335,7 +335,7 @@ describe('Driver', () => {
         expect(eagerResult).toEqual(expected)
         expect(spiedExecute).toBeCalledWith({
           resultTransformer: resultTransformers.eagerResultTransformer(),
-          bookmarkManager: driver?.queryBookmarkManager,
+          bookmarkManager: driver?.defaultExecuteQueryBookmarkManager,
           routing: routing.WRITERS,
           database: undefined,
           impersonatedUser: undefined
@@ -361,7 +361,7 @@ describe('Driver', () => {
         expect(summary).toEqual(expected.summary)
         expect(spiedExecute).toBeCalledWith({
           resultTransformer: resultTransformers.eagerResultTransformer(),
-          bookmarkManager: driver?.queryBookmarkManager,
+          bookmarkManager: driver?.defaultExecuteQueryBookmarkManager,
           routing: routing.WRITERS,
           database: undefined,
           impersonatedUser: undefined
@@ -485,7 +485,7 @@ describe('Driver', () => {
         return () => {
           const defaultConfig = {
             resultTransformer: resultTransformers.eagerResultTransformer(),
-            bookmarkManager: driver?.queryBookmarkManager,
+            bookmarkManager: driver?.defaultExecuteQueryBookmarkManager,
             routing: routing.WRITERS,
             database: undefined,
             impersonatedUser: undefined
