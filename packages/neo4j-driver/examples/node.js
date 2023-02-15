@@ -20,8 +20,8 @@
 var neo4j = require('neo4j')
 
 var query = [
-  'MATCH (alice:Person {name:{name_a},age:{age_a}})',
-  'MATCH (bob:Person {name:{name_b},age:{age_b}})',
+  'MERGE (alice:Person {name:$name_a}) ON CREATE SET alice.age = $age_a',
+  'MERGE (bob:Person {name:$name_b}) ON CREATE SET bob.age = $age_b',
   'MERGE (alice)-[alice_knows_bob:KNOWS]->(bob)',
   'RETURN alice, bob, alice_knows_bob'
 ]
