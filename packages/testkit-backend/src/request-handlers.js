@@ -542,10 +542,10 @@ export function NewAuthTokenProvider (_, context, _data, wire) {
 export function AuthTokenProviderCompleted (_, context, { requestId, auth }, _wire) {
   const request = context.getAuthTokenProviderRequest(requestId)
   const renewableToken = {
-    expectedExpirationTime: auth.data.expiresInMs != null
+    expiry: auth.data.expiresInMs != null
       ? new Date(new Date().getTime() + auth.data.expiresInMs)
       : undefined,
-    authToken: context.binder.parseAuthToken(auth.data.auth.data)
+    token: context.binder.parseAuthToken(auth.data.auth.data)
   }
   request.resolve(renewableToken)
   context.removeAuthTokenProviderRequest(requestId)
