@@ -16,6 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { temporalAuthDataManager } from 'neo4j-driver-core'
 import AuthenticationProvider from '../../src/connection-provider/authentication-provider'
 
 describe('AuthenticationProvider', () => {
@@ -592,14 +593,14 @@ describe('AuthenticationProvider', () => {
       expect(authTokenProvider).toHaveBeenCalled()
 
       // Test implementation details
-      expect(authenticationProvider._renewableAuthToken).toEqual(renewableAuthToken)
+      expect(authenticationProvider._authTokenManager._currentAuthData).toEqual(undefined)
 
       const newRenewableToken = toRenewableToken({ scheme: 'bearer', credentials: 'token2' })
       newTokenPromiseState.resolve(newRenewableToken)
 
       await newTokenPromise
 
-      expect(authenticationProvider._renewableAuthToken).toBe(newRenewableToken)
+      expect(authenticationProvider._authTokenManager._currentAuthData).toBe(newRenewableToken)
     })
 
     function shouldNotScheduleRefreshScenarios () {
@@ -710,14 +711,15 @@ describe('AuthenticationProvider', () => {
   })
 
   function createAuthenticationProvider (authTokenProvider, mocks) {
+    const authTokenManager = temporalAuthDataManager({ getAuthData: authTokenProvider })
     const provider = new AuthenticationProvider({
-      authTokenProvider,
+      authTokenManager,
       userAgent: USER_AGENT
     })
 
     if (mocks) {
-      provider._renewableAuthToken = mocks.renewableAuthToken
-      provider._refreshObserver = mocks.refreshObserver
+      authTokenManager._currentAuthData = mocks.renewableAuthToken
+      authTokenManager._refreshObservable = mocks.refreshObserver
     }
 
     return provider
@@ -732,18 +734,15 @@ describe('AuthenticationProvider', () => {
     return connection
   }
 
-  function toRenewableToken (authToken, expectedExpirationTime) {
+  function toRenewableToken (token, expiry) {
     return {
-      authToken,
-      expectedExpirationTime
+      token,
+      expiry
     }
   }
 
-  function toExpiredRenewableToken (authToken) {
-    return {
-      authToken,
-      expectedExpirationTime: new Date(new Date().getTime() - 1)
-    }
+  function toExpiredRenewableToken (token) {
+    return toRenewableToken(token, new Date(new Date().getTime() - 1))
   }
 
   function errorCodeTriggerRefreshAuth () {
@@ -758,8 +757,8 @@ describe('AuthenticationProvider', () => {
 
     return {
       subscribe: (sub) => subscribers.push(sub),
-      notify: () => subscribers.forEach(sub => sub.onSuccess()),
-      notifyError: (e) => subscribers.forEach(sub => sub.onError(e))
+      onCompleted: (data) => subscribers.forEach(sub => sub.onCompleted(data)),
+      onError: (e) => subscribers.forEach(sub => sub.onError(e))
     }
   }
 })

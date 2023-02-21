@@ -37,8 +37,8 @@ const {
 const { SERVICE_UNAVAILABLE } = error
 
 export default class DirectConnectionProvider extends PooledConnectionProvider {
-  constructor ({ id, config, log, address, userAgent, authTokenProvider, newPool }) {
-    super({ id, config, log, userAgent, authTokenProvider, newPool })
+  constructor ({ id, config, log, address, userAgent, authTokenManager, newPool }) {
+    super({ id, config, log, userAgent, authTokenManager, newPool })
 
     this._address = address
   }

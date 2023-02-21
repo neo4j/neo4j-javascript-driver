@@ -33,7 +33,7 @@ const AUTHENTICATION_ERRORS = [
 
 export default class PooledConnectionProvider extends ConnectionProvider {
   constructor (
-    { id, config, log, userAgent, authTokenProvider, newPool = (...args) => new Pool(...args) },
+    { id, config, log, userAgent, authTokenManager, newPool = (...args) => new Pool(...args) },
     createChannelConnectionHook = null
   ) {
     super()
@@ -41,7 +41,7 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._id = id
     this._config = config
     this._log = log
-    this._authenticationProvider = new AuthenticationProvider({ authTokenProvider, userAgent })
+    this._authenticationProvider = new AuthenticationProvider({ authTokenManager, userAgent })
     this._createChannelConnection =
       createChannelConnectionHook ||
       (address => {
@@ -66,13 +66,27 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       config: PoolConfig.fromDriverConfig(config),
       log: this._log
     })
+    this._userAgent = userAgent
     this._openConnections = {}
   }
 
   async verifyAuthentication ({ auth, database, accessMode, allowStickyConnection } = {}) {
     try {
       const connection = await this.acquireConnection({ accessMode, database, auth, allowStickyConnection })
-      await connection._release()
+      const address = connection.address
+      const lastMessageIsNotLogin = !connection.protocol().isLastMessageLogin()
+      try {
+        if (lastMessageIsNotLogin && connection.supportsReAuth) {
+          await connection.connect(this._userAgent, auth)
+        }
+      } finally {
+        await connection._release()
+      }
+      if (lastMessageIsNotLogin && !connection.supportsReAuth) {
+        const stickyConnection = await this._connectionPool.acquire({ auth }, address, { requireNew: true })
+        stickyConnection._sticky = true
+        await stickyConnection._release()
+      }
       return true
     } catch (error) {
       if (AUTHENTICATION_ERRORS.includes(error.code)) {

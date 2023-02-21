@@ -93,7 +93,10 @@ import {
   NotificationFilterDisabledCategory,
   NotificationFilterMinimumSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  AuthTokenManager,
+  temporalAuthDataManager,
+  TemporalAuthData
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -101,8 +104,6 @@ import {
 } from 'neo4j-driver-bolt-connection'
 
 type AuthToken = coreTypes.AuthToken
-type RenewableAuthToken = coreTypes.RenewableAuthToken
-type AuthTokenProvider = coreTypes.AuthTokenProvider
 type Config = coreTypes.Config
 type TrustStrategy = coreTypes.TrustStrategy
 type EncryptionLevel = coreTypes.EncryptionLevel
@@ -118,20 +119,36 @@ const {
   urlUtil
 } = internal
 
-function createAuthProvider (authTokenOrProvider: AuthToken | AuthTokenProvider): AuthTokenProvider {
-  if (typeof authTokenOrProvider === 'function') {
+function isAuthTokenManager (value: unknown): value is AuthTokenManager {
+  if (typeof value === 'object' &&
+    value != null &&
+    'getToken' in value &&
+    'onTokenExpired' in value) {
+    const manager = value as AuthTokenManager
+
+    return typeof manager.getToken === 'function' &&
+      typeof manager.onTokenExpired === 'function'
+  }
+
+  return false
+}
+
+function createAuthManager (authTokenOrProvider: AuthToken | AuthTokenManager): AuthTokenManager {
+  if (isAuthTokenManager(authTokenOrProvider)) {
     return authTokenOrProvider
   }
 
-  let authToken: AuthToken = authTokenOrProvider
+  let token: AuthToken = authTokenOrProvider
   // Sanitize authority token. Nicer error from server when a scheme is set.
-  authToken = authToken ?? {}
-  authToken.scheme = authToken.scheme ?? 'none'
-  return function (): RenewableAuthToken {
-    return {
-      authToken
+  token = token ?? {}
+  token.scheme = token.scheme ?? 'none'
+  return temporalAuthDataManager({
+    getAuthData: async function (): Promise<TemporalAuthData> {
+      return {
+        token
+      }
     }
-  }
+  })
 }
 
 /**
@@ -270,7 +287,7 @@ function createAuthProvider (authTokenOrProvider: AuthToken | AuthTokenProvider)
  */
 function driver (
   url: string,
-  authToken: AuthToken | AuthTokenProvider,
+  authToken: AuthToken | AuthTokenManager,
   config: Config = {}
 ): Driver {
   assertString(url, 'Bolt URL')
@@ -320,7 +337,7 @@ function driver (
     config.trust = trust
   }
 
-  const authTokenProvider = createAuthProvider(authToken)
+  const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
   config.userAgent = config.userAgent ?? USER_AGENT
@@ -347,7 +364,7 @@ function driver (
           config,
           log,
           hostNameResolver,
-          authTokenProvider,
+          authTokenManager,
           address,
           userAgent: config.userAgent,
           routingContext: parsedUrl.query
@@ -364,7 +381,7 @@ function driver (
           id,
           config,
           log,
-          authTokenProvider,
+          authTokenManager,
           address,
           userAgent: config.userAgent
         })
@@ -530,7 +547,8 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  temporalAuthDataManager
 }
 
 export {
@@ -596,13 +614,14 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  temporalAuthDataManager
 }
 export type {
   QueryResult,
   AuthToken,
-  AuthTokenProvider,
-  RenewableAuthToken,
+  AuthTokenManager,
+  TemporalAuthData,
   Config,
   EncryptionLevel,
   TrustStrategy,

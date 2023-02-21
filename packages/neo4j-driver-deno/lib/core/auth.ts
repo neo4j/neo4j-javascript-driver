@@ -53,6 +53,11 @@ const auth = {
       credentials: base64EncodedToken
     }
   },
+  none: () => {
+    return {
+      scheme: 'none'
+    }
+  },
   custom: (
     principal: string,
     credentials: string,

@@ -67,11 +67,11 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     config,
     log,
     userAgent,
-    authTokenProvider,
+    authTokenManager,
     routingTablePurgeDelay,
     newPool
   }) {
-    super({ id, config, log, userAgent, authTokenProvider, newPool }, address => {
+    super({ id, config, log, userAgent, authTokenManager, newPool }, address => {
       return createChannelConnection(
         address,
         this._config,

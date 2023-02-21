@@ -26,7 +26,9 @@ export function NewDriver ({ neo4j }, context, data, wire) {
     const { data: authToken } = authorizationToken
     parsedAuthToken = context.binder.parseAuthToken(authToken)
   } else {
-    parsedAuthToken = context.getAuthTokenProvider(authTokenProviderId)
+    parsedAuthToken = neo4j.temporalAuthDataManager({
+      getAuthData: context.getAuthTokenProvider(authTokenProviderId)
+    })
   }
 
   const resolver = resolverRegistered

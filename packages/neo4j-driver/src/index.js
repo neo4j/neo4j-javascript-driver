@@ -73,7 +73,8 @@ import {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  temporalAuthDataManager
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -91,20 +92,31 @@ const {
   urlUtil
 } = internal
 
-function createAuthProvider (authTokenOrProvider) {
-  if (typeof authTokenOrProvider === 'function') {
-    return authTokenOrProvider
+function isAuthTokenManager (value) {
+  return typeof value === 'object' &&
+    value != null &&
+    'getToken' in value &&
+    'onTokenExpired' in value &&
+    typeof value.getToken === 'function' &&
+    typeof value.onTokenExpired === 'function'
+}
+
+function createAuthManager (authTokenOrManager) {
+  if (isAuthTokenManager(authTokenOrManager)) {
+    return authTokenOrManager
   }
 
-  let authToken = authTokenOrProvider
+  let token = authTokenOrManager
   // Sanitize authority token. Nicer error from server when a scheme is set.
-  authToken = authToken ?? {}
-  authToken.scheme = authToken.scheme ?? 'none'
-  return function () {
-    return {
-      authToken
+  token = token || {}
+  token.scheme = token.scheme || 'none'
+  return temporalAuthDataManager({
+    getAuthData: async function () {
+      return {
+        token
+      }
     }
-  }
+  })
 }
 
 /**
@@ -289,7 +301,7 @@ function driver (url, authToken, config = {}) {
     config.trust = trust
   }
 
-  const authTokenProvider = createAuthProvider(authToken)
+  const authTokenManager = createAuthManager(authToken)
 
   // Use default user agent or user agent specified by user.
   config.userAgent = config.userAgent || USER_AGENT
@@ -311,7 +323,7 @@ function driver (url, authToken, config = {}) {
           config,
           log,
           hostNameResolver,
-          authTokenProvider,
+          authTokenManager,
           address,
           userAgent: config.userAgent,
           routingContext: parsedUrl.query
@@ -328,7 +340,7 @@ function driver (url, authToken, config = {}) {
           id,
           config,
           log,
-          authTokenProvider,
+          authTokenManager,
           address,
           userAgent: config.userAgent
         })
@@ -510,7 +522,8 @@ const forExport = {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  temporalAuthDataManager
 }
 
 export {
@@ -577,6 +590,7 @@ export {
   notificationCategory,
   notificationSeverityLevel,
   notificationFilterDisabledCategory,
-  notificationFilterMinimumSeverityLevel
+  notificationFilterMinimumSeverityLevel,
+  temporalAuthDataManager
 }
 export default forExport
