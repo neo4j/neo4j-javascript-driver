@@ -247,7 +247,8 @@ class Pool {
     this._pendingCreates[key] = this._pendingCreates[key] + 1
     let resource
     try {
-      if (pool.length >= this._maxSize && requireNew) {
+      const numConnections = this.activeResourceCount(address) + pool.length
+      if (numConnections >= this._maxSize && requireNew) {
         const resource = pool.pop()
         if (this._removeIdleObserver) {
           this._removeIdleObserver(resource)
