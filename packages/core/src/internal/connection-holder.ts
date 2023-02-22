@@ -232,10 +232,6 @@ class ConnectionHolder implements ConnectionHolderInterface {
               .catch(ignoreError)
               .then(() => connection._release().then(() => null))
           }
-
-          if (!this._closed && (this._auth != null) && !connection.supportsReAuth) {
-            return connection
-          }
           return connection._release().then(() => null)
         } else {
           return Promise.resolve(null)
