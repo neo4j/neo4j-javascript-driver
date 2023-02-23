@@ -284,6 +284,37 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
     })
   }
 
+  async verifyAuthentication ({ database, accessMode, auth, allowStickyConnection }) {
+    return this._verifyAuthentication({
+      allowStickyConnection,
+      auth,
+      getAddress: async () => {
+        const context = { database: database || DEFAULT_DB_NAME }
+
+        const routingTable = await this._freshRoutingTable({
+          accessMode,
+          database: context.database,
+          auth,
+          allowStickyConnection,
+          onDatabaseNameResolved: (databaseName) => {
+            context.database = context.database || databaseName
+          }
+        })
+
+        const servers = accessMode === WRITE ? routingTable.writers : routingTable.readers
+
+        if (servers.length === 0) {
+          throw newError(
+            `No servers available for database '${context.database}' with access mode '${accessMode}'`,
+            SERVICE_UNAVAILABLE
+          )
+        }
+
+        return servers[0]
+      }
+    })
+  }
+
   async verifyConnectivityAndGetServerInfo ({ database, accessMode }) {
     const context = { database: database || DEFAULT_DB_NAME }
 

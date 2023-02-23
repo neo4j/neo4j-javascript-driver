@@ -185,7 +185,7 @@ describe('ChannelConnection', () => {
 
           expect(protocol.initialize).not.toHaveBeenCalled()
           expect(protocol.logoff).toHaveBeenCalledWith()
-          expect(protocol.login).toHaveBeenCalledWith({ authToken })
+          expect(protocol.login).toHaveBeenCalledWith({ authToken, flush: true })
           expect(connection.authToken).toEqual(authToken)
         })
       })

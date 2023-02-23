@@ -405,7 +405,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth })
 
-          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth)
+          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth, false)
         })
 
         it('should return the connection', async () => {
@@ -484,7 +484,7 @@ describe('AuthenticationProvider', () => {
 
           await authenticationProvider.authenticate({ connection, auth })
 
-          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth)
+          expect(connection.connect).toHaveBeenCalledWith(USER_AGENT, auth, false)
         })
 
         it('should return the connection', async () => {

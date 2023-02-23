@@ -31,10 +31,14 @@ export default class AuthenticationProvider {
     this._userAgent = userAgent
   }
 
-  async authenticate ({ connection, auth }) {
+  async authenticate ({ connection, auth, skipReAuth, waitReAuth, forceReAuth }) {
     if (auth != null) {
-      if (connection.authToken == null || (connection.supportsReAuth && !object.equals(connection.authToken, auth))) {
-        return await connection.connect(this._userAgent, auth)
+      const shouldReAuth = connection.supportsReAuth === true && (
+        (!object.equals(connection.authToken, auth) && skipReAuth !== true) ||
+        forceReAuth === true
+      )
+      if (connection.authToken == null || shouldReAuth) {
+        return await connection.connect(this._userAgent, auth, waitReAuth || false)
       }
       return connection
     }

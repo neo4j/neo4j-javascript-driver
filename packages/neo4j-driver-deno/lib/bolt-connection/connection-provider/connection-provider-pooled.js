@@ -70,32 +70,6 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     this._openConnections = {}
   }
 
-  async verifyAuthentication ({ auth, database, accessMode, allowStickyConnection } = {}) {
-    try {
-      const connection = await this.acquireConnection({ accessMode, database, auth, allowStickyConnection })
-      const address = connection.address
-      const lastMessageIsNotLogin = !connection.protocol().isLastMessageLogin()
-      try {
-        if (lastMessageIsNotLogin && connection.supportsReAuth) {
-          await connection.connect(this._userAgent, auth)
-        }
-      } finally {
-        await connection._release()
-      }
-      if (lastMessageIsNotLogin && !connection.supportsReAuth) {
-        const stickyConnection = await this._connectionPool.acquire({ auth }, address, { requireNew: true })
-        stickyConnection._sticky = true
-        await stickyConnection._release()
-      }
-      return true
-    } catch (error) {
-      if (AUTHENTICATION_ERRORS.includes(error.code)) {
-        return false
-      }
-      throw error
-    }
-  }
-
   _createConnectionErrorHandler () {
     return new ConnectionErrorHandler(SERVICE_UNAVAILABLE)
   }
@@ -121,13 +95,13 @@ export default class PooledConnectionProvider extends ConnectionProvider {
     })
   }
 
-  async _validateConnectionOnAcquire ({ auth }, conn) {
+  async _validateConnectionOnAcquire ({ auth, skipReAuth }, conn) {
     if (!this._validateConnection(conn)) {
       return false
     }
 
     try {
-      await this._authenticationProvider.authenticate({ connection: conn, auth })
+      await this._authenticationProvider.authenticate({ connection: conn, auth, skipReAuth })
       return true
     } catch (error) {
       this._log.debug(
@@ -187,6 +161,36 @@ export default class PooledConnectionProvider extends ConnectionProvider {
       await connection._release()
     }
     return serverInfo
+  }
+
+  async _verifyAuthentication ({ getAddress, auth, allowStickyConnection }) {
+    const connectionsToRelease = []
+    try {
+      const address = await getAddress()
+      const connection = await this._connectionPool.acquire({ auth, skipReAuth: true }, address)
+      connectionsToRelease.push(connection)
+
+      const lastMessageIsNotLogin = !connection.protocol().isLastMessageLogin()
+
+      if (!connection.supportsReAuth && !allowStickyConnection) {
+        throw newError('Driver is connected to a database that does not support user switch.')
+      }
+      if (lastMessageIsNotLogin && connection.supportsReAuth) {
+        await this._authenticationProvider.authenticate({ connection, auth, waitReAuth: true, forceReAuth: true })
+      } else if (lastMessageIsNotLogin && !connection.supportsReAuth) {
+        const stickyConnection = await this._connectionPool.acquire({ auth }, address, { requireNew: true })
+        stickyConnection._sticky = true
+        connectionsToRelease.push(stickyConnection)
+      }
+      return true
+    } catch (error) {
+      if (AUTHENTICATION_ERRORS.includes(error.code)) {
+        return false
+      }
+      throw error
+    } finally {
+      await Promise.all(connectionsToRelease.map(conn => conn._release()))
+    }
   }
 
   async _getStickyConnection ({ auth, connection, address, allowStickyConnection }) {
