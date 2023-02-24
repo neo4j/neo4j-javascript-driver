@@ -265,7 +265,7 @@
 
       if (document.location.href.indexOf('example') >= 0) {
         document.getElementById('statement').textContent =
-          'MERGE (alice:Person {name: $name_a, age: $age_a})\nMERGE (bob:Person {name: $name_b, age: $age_b})\nCREATE UNIQUE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob'
+          'MERGE (alice:Person {name: $name_a) ON CREATE SET alice.age = $age_a\nMERGE (bob:Person {name: $name_b}) ON CREATE SET bob.age = $age_b\nMERGE (alice)-[alice_knows_bob:KNOWS]->(bob)\nRETURN alice, bob, alice_knows_bob'
 
         addParameter('name_a', 'Alice')
         addParameter('age_a', 33)
