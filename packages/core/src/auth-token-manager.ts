@@ -24,7 +24,7 @@ import { util } from './internal'
 /**
  * Interface for the piece of software responsible for keeping track of current active {@link AuthToken} across the driver.
  * @interface
- * @since 5.6
+ * @since 5.7
  */
 export default class AuthTokenManager {
   /**
@@ -44,7 +44,7 @@ export default class AuthTokenManager {
 /**
  * Interface which defines an {@link AuthToken} with an expiry data time associated
  * @interface
- * @since 5.6
+ * @since 5.7
  */
 export class TemporalAuthData {
   public readonly token: AuthToken

@@ -3174,6 +3174,24 @@ describe.each([
             `The connection ${connection.id} is not valid because of an error ${error.code} '${error.message}'`
           )
         })
+
+        it.each([
+          true,
+          false
+        ])('should call authenticationProvider.authenticate with skipReAuth=%s', async (skipReAuth) => {
+          const connection = new FakeConnection(server0)
+          const auth = {}
+          connection.creationTimestamp = Date.now()
+
+          const { validateOnAcquire, authenticationProviderHook } = setup()
+
+          await expect(validateOnAcquire({ auth, skipReAuth }, connection)).resolves.toBe(true)
+
+          expect(authenticationProviderHook.authenticate).toHaveBeenCalledWith({
+            connection, auth, skipReAuth
+          })
+        })
+
         it('should return false when connection is closed and within the lifetime', async () => {
           const connection = new FakeConnection(server0)
           connection.creationTimestamp = Date.now()
