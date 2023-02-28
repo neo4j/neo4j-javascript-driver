@@ -409,4 +409,22 @@ describe('index', () => {
     expect(neo4j.routing.WRITERS).toBeDefined()
     expect(neo4j.routing.READERS).toBeDefined()
   })
+
+  it('should export notificationSeverityLevel', () => {
+    expect(neo4j.notificationSeverityLevel).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.WARNING).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.INFORMATION).toBeDefined()
+    expect(neo4j.notificationSeverityLevel.UNKNOWN).toBeDefined()
+  })
+
+  it('should export notificationCategory', () => {
+    expect(neo4j.notificationCategory).toBeDefined()
+    expect(neo4j.notificationCategory.HINT).toBeDefined()
+    expect(neo4j.notificationCategory.UNRECOGNIZED).toBeDefined()
+    expect(neo4j.notificationCategory.UNSUPPORTED).toBeDefined()
+    expect(neo4j.notificationCategory.PERFORMANCE).toBeDefined()
+    expect(neo4j.notificationCategory.DEPRECATION).toBeDefined()
+    expect(neo4j.notificationCategory.GENERIC).toBeDefined()
+    expect(neo4j.notificationCategory.UNKNOWN).toBeDefined()
+  })
 })

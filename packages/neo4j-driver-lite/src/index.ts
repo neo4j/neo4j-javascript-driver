@@ -84,7 +84,11 @@ import {
   RoutingControl,
   routing,
   resultTransformers,
-  ResultTransformer
+  ResultTransformer,
+  notificationCategory,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  NotificationCategory
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -497,7 +501,9 @@ const forExport = {
   ConnectionProvider,
   Connection,
   bookmarkManager,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export {
@@ -559,7 +565,9 @@ export {
   ConnectionProvider,
   Connection,
   bookmarkManager,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel
 }
 export type {
   QueryResult,
@@ -575,6 +583,8 @@ export type {
   SessionConfig,
   QueryConfig,
   RoutingControl,
-  ResultTransformer
+  ResultTransformer,
+  NotificationCategory,
+  NotificationSeverityLevel
 }
 export default forExport

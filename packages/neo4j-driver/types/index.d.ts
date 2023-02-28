@@ -74,7 +74,11 @@ import {
   RoutingControl,
   routing,
   resultTransformers,
-  ResultTransformer
+  ResultTransformer,
+  notificationCategory,
+  notificationSeverityLevel,
+  NotificationCategory,
+  NotificationSeverityLevel
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -252,6 +256,8 @@ declare const forExport: {
   isUnboundRelationship: typeof isUnboundRelationship
   bookmarkManager: typeof bookmarkManager
   resultTransformers: typeof resultTransformers
+  notificationCategory: typeof notificationCategory
+  notificationSeverityLevel: typeof notificationSeverityLevel
 }
 
 export {
@@ -321,7 +327,9 @@ export {
   isRelationship,
   isUnboundRelationship,
   bookmarkManager,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export type {
@@ -330,7 +338,9 @@ export type {
   SessionConfig,
   QueryConfig,
   RoutingControl,
-  ResultTransformer
+  ResultTransformer,
+  NotificationCategory,
+  NotificationSeverityLevel
 }
 
 export default forExport

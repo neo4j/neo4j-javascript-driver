@@ -36,7 +36,11 @@ import {
   isPathSegment,
   isRelationship,
   isUnboundRelationship,
-  RoutingControl
+  RoutingControl,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  notificationCategory,
+  NotificationCategory
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -111,3 +115,25 @@ const neo4jIsPath: boolean = isPath({})
 const neo4jIsPathSegment: boolean = isPathSegment({})
 const neo4jIsRelationship: boolean = isRelationship({})
 const neo4jIsUnboundRelationship: boolean = isUnboundRelationship({})
+
+const unknownSeverityString: string = notificationSeverityLevel.UNKNOWN
+const warningSeverityString: string = notificationSeverityLevel.WARNING
+const informationSeverityString: string = notificationSeverityLevel.INFORMATION
+const unknownSeverity: NotificationSeverityLevel = notificationSeverityLevel.UNKNOWN
+const warningSeverity: NotificationSeverityLevel = notificationSeverityLevel.WARNING
+const informationSeverity: NotificationSeverityLevel = notificationSeverityLevel.INFORMATION
+
+const hintCategoryString: string = notificationCategory.HINT
+const deprecationCategoryString: string = notificationCategory.DEPRECATION
+const performanceCategoryString: string = notificationCategory.PERFORMANCE
+const genericCategoryString: string = notificationCategory.GENERIC
+const unrecognizedCategoryString: string = notificationCategory.UNRECOGNIZED
+const unsupportedCategoryString: string = notificationCategory.UNSUPPORTED
+const unknownCategoryString: string = notificationCategory.UNKNOWN
+const hintCategory: NotificationCategory = notificationCategory.HINT
+const deprecationCategory: NotificationCategory = notificationCategory.DEPRECATION
+const performanceCategory: NotificationCategory = notificationCategory.PERFORMANCE
+const genericCategory: NotificationCategory = notificationCategory.GENERIC
+const unrecognizedCategory: NotificationCategory = notificationCategory.UNRECOGNIZED
+const unsupportedCategory: NotificationCategory = notificationCategory.UNSUPPORTED
+const unknownCategory: NotificationCategory = notificationCategory.UNKNOWN
