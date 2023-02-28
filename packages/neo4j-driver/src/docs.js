@@ -31,7 +31,8 @@
  * @property {number} timeout - the transaction timeout in **milliseconds**. Transactions that execute longer than the configured timeout will
  * be terminated by the database. This functionality allows to limit query/transaction execution time. Specified timeout overrides the default timeout
  * configured in the database using `dbms.transaction.timeout` setting. Value should not represent a duration of zero or negative duration.
- * @property {Object} metadata - the transaction metadata. Specified metadata will be attached to the executing transaction and visible in the output of
- * `dbms.listQueries` and `dbms.listTransactions` procedures. It will also get logged to the `query.log`. This functionality makes it easier to tag
- * transactions and is equivalent to `dbms.setTXMetaData` procedure.
+ * @property {Object} metadata - the transaction metadata. Specified metadata will be attached to the executing transaction and visible in the output
+ * of `SHOW TRANSACTIONS YIELD *`. It will also get logged to the `query.log` file. This functionality makes it easier to tag transactions and is
+ * equivalent to the `dbms.setTXMetaData` procedure, see https://neo4j.com/docs/cypher-manual/current/clauses/transaction-clauses/#query-listing-transactions
+ * and https://neo4j.com/docs/operations-manual/current/reference/procedures/ for reference.
  */
