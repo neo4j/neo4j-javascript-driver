@@ -84,7 +84,11 @@ import {
   RoutingControl,
   routing,
   resultTransformers,
-  ResultTransformer
+  ResultTransformer,
+  notificationCategory,
+  notificationSeverityLevel,
+  NotificationSeverityLevel,
+  NotificationCategory
 } from './core/index.ts'
 // @deno-types=./bolt-connection/types/index.d.ts
 import {
@@ -498,7 +502,9 @@ const forExport = {
   ConnectionProvider,
   Connection,
   bookmarkManager,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export {
@@ -560,7 +566,9 @@ export {
   ConnectionProvider,
   Connection,
   bookmarkManager,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel
 }
 export type {
   QueryResult,
@@ -576,6 +584,8 @@ export type {
   SessionConfig,
   QueryConfig,
   RoutingControl,
-  ResultTransformer
+  ResultTransformer,
+  NotificationCategory,
+  NotificationSeverityLevel
 }
 export default forExport

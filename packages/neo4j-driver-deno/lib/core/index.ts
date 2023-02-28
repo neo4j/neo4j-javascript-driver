@@ -64,7 +64,11 @@ import ResultSummary, {
   Plan,
   ProfiledPlan,
   QueryStatistics,
-  Stats
+  Stats,
+  NotificationSeverityLevel,
+  NotificationCategory,
+  notificationCategory,
+  notificationSeverityLevel
 } from './result-summary.ts'
 import Result, { QueryResult, ResultObserver } from './result.ts'
 import EagerResult from './result-eager.ts'
@@ -154,7 +158,9 @@ const forExport = {
   auth,
   bookmarkManager,
   routing,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export {
@@ -217,7 +223,9 @@ export {
   auth,
   bookmarkManager,
   routing,
-  resultTransformers
+  resultTransformers,
+  notificationCategory,
+  notificationSeverityLevel
 }
 
 export type {
@@ -232,7 +240,9 @@ export type {
   SessionConfig,
   QueryConfig,
   RoutingControl,
-  ResultTransformer
+  ResultTransformer,
+  NotificationCategory,
+  NotificationSeverityLevel
 }
 
 export default forExport
