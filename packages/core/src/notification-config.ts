@@ -22,20 +22,30 @@ import {
 } from './result-summary'
 
 type ExcludeUnknown<T> = Exclude<T, 'UNKNOWN'>
-type DISABLED = 'DISABLED'
+type OFF = 'OFF'
 type EnumRecord<T extends string | symbol> = { [key in T]: key }
 
-type NotificationsMinimumSeverityLevel = ExcludeUnknown<NotificationSeverityLevel> | DISABLED
-type NotificationsCategory = ExcludeUnknown<NotificationCategory>
-
+type NotificationsMinimumSeverityLevel = ExcludeUnknown<NotificationSeverityLevel> | OFF
+/**
+ * @typedef {'WARNING' | 'INFORMATION' | 'DISABLED'} NotificationsMinimumSeverityLevel
+ */
+/**
+ * Constants that represents the minimum Severity level in the {@link NotificationConfig}
+ */
 const notificationsMinimumSeverityLevel: EnumRecord<NotificationsMinimumSeverityLevel> = {
-  DISABLED: 'DISABLED',
+  OFF: 'OFF',
   WARNING: 'WARNING',
   INFORMATION: 'INFORMATION'
 }
-
 Object.freeze(notificationsMinimumSeverityLevel)
 
+type NotificationsCategory = ExcludeUnknown<NotificationCategory>
+/**
+ * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'DEPRECATION' | 'GENERIC' } NotificationsCategory
+ */
+/**
+ * Constants that represents the disabled categories in the {@link NotificationConfig}
+ */
 const notificationsCategory: EnumRecord<NotificationsCategory> = {
   HINT: 'HINT',
   UNRECOGNIZED: 'UNRECOGNIZED',
@@ -44,20 +54,59 @@ const notificationsCategory: EnumRecord<NotificationsCategory> = {
   DEPRECATION: 'DEPRECATION',
   GENERIC: 'GENERIC'
 }
-
 Object.freeze(notificationsCategory)
 
+/**
+ * The notification config object used
+ *
+ * @interface
+ */
 class NotificationConfig {
   minimumSeverityLevel?: NotificationsMinimumSeverityLevel
   disabledCategories?: NotificationsCategory[]
-}
 
-function notificationsDisabled (): NotificationConfig {
-  return {
-    minimumSeverityLevel: notificationsMinimumSeverityLevel.DISABLED
+  /**
+   * @constructor
+   * @private
+   */
+  constructor () {
+    /**
+     * The minimum level of all notifications to receive.
+     *
+     * @public
+     * @type {?NotificationsMinimumSeverityLevel}
+     */
+    this.minimumSeverityLevel = undefined
+
+    /**
+     * Categories the user would like to opt-out of receiving.
+     * @type {?NotificationsCategory[]}
+     */
+    this.disabledCategories = undefined
+
+    throw new Error('Not implemented')
   }
 }
 
+/**
+ * Creates a {@link NotificationConfig} for disabling the notifications.
+ *
+ * @returns {NotificationConfig} Notification configuration with disabled.
+ */
+function notificationsOff (): NotificationConfig {
+  return {
+    minimumSeverityLevel: notificationsMinimumSeverityLevel.OFF
+  }
+}
+
+/**
+ * Creates a {@link NotificationConfig} with {@link NotificationConfig#minimumSeverityLevel}
+ * and {@link NotificationConfig#disabledCategories}.
+ *
+ * @param {NotificationsMinimumSeverityLevel} [minimumSeverityLevel=undefined] The minimum level of all notifications to receive.
+ * @param {NotificationsCategory[]} [disabledCategories=undefined] Categories the user would like to opt-out of receiving.
+ * @returns {NotificationConfig}
+ */
 function notifications (
   minimumSeverityLevel?: NotificationsMinimumSeverityLevel,
   disabledCategories?: NotificationsCategory[]
@@ -71,12 +120,12 @@ function notifications (
 export {
   notificationsMinimumSeverityLevel,
   notificationsCategory,
-  notificationsDisabled,
-  notifications
+  notificationsOff,
+  notifications,
+  NotificationConfig
 }
 
 export type {
   NotificationsMinimumSeverityLevel,
-  NotificationsCategory,
-  NotificationConfig
+  NotificationsCategory
 }

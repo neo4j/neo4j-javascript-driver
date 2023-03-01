@@ -21,15 +21,15 @@ import {
   notificationsCategory,
   NotificationsMinimumSeverityLevel,
   notificationsMinimumSeverityLevel,
-  notificationsDisabled,
+  notificationsOff,
   notifications,
   NotificationConfig
 } from '../src/notification-config'
 
-describe('notificationsDisabled()', () => {
+describe('notificationsOff()', () => {
   it('should return disable notification config', () => {
-    expect(notificationsDisabled()).toEqual({
-      minimumSeverityLevel: 'DISABLED'
+    expect(notificationsOff()).toEqual({
+      minimumSeverityLevel: 'OFF'
     })
   })
 })
@@ -47,7 +47,7 @@ describe('notifications()', () => {
   ]> {
     return [
       [undefined, undefined, {}],
-      ['DISABLED', undefined, { minimumSeverityLevel: 'DISABLED' }],
+      ['OFF', undefined, { minimumSeverityLevel: 'OFF' }],
       [undefined, ['DEPRECATION', 'PERFORMANCE'], { disabledCategories: ['DEPRECATION', 'PERFORMANCE'] }],
       ['WARNING', ['UNRECOGNIZED', 'GENERIC'], { minimumSeverityLevel: 'WARNING', disabledCategories: ['UNRECOGNIZED', 'GENERIC'] }]
     ]
@@ -96,7 +96,7 @@ describe('notificationsCategory', () => {
 
 function getValidNotificationsSeverityLevels (): NotificationsMinimumSeverityLevel[] {
   return [
-    'DISABLED',
+    'OFF',
     'INFORMATION',
     'WARNING'
   ]
