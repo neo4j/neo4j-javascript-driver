@@ -71,7 +71,9 @@ import {
   routing,
   resultTransformers,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 } from 'neo4j-driver-core'
 import {
   DirectConnectionProvider,
@@ -488,7 +490,9 @@ const forExport = {
   bookmarkManager,
   resultTransformers,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 }
 
 export {
@@ -553,6 +557,8 @@ export {
   bookmarkManager,
   resultTransformers,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 }
 export default forExport

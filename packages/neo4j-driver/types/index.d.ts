@@ -78,7 +78,12 @@ import {
   notificationCategory,
   notificationSeverityLevel,
   NotificationCategory,
-  NotificationSeverityLevel
+  NotificationSeverityLevel,
+  NotificationFilter,
+  NotificationFilterDisabledCategory,
+  NotificationFilterMinimumSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 } from 'neo4j-driver-core'
 import {
   AuthToken,
@@ -258,6 +263,8 @@ declare const forExport: {
   resultTransformers: typeof resultTransformers
   notificationCategory: typeof notificationCategory
   notificationSeverityLevel: typeof notificationSeverityLevel
+  notificationFilterDisabledCategory: typeof notificationFilterDisabledCategory
+  notificationFilterMinimumSeverityLevel: typeof notificationFilterMinimumSeverityLevel
 }
 
 export {
@@ -329,7 +336,9 @@ export {
   bookmarkManager,
   resultTransformers,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 }
 
 export type {
@@ -340,7 +349,10 @@ export type {
   RoutingControl,
   ResultTransformer,
   NotificationCategory,
-  NotificationSeverityLevel
+  NotificationSeverityLevel,
+  NotificationFilter,
+  NotificationFilterDisabledCategory,
+  NotificationFilterMinimumSeverityLevel
 }
 
 export default forExport

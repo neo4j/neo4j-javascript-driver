@@ -438,7 +438,7 @@ const severityLevels = Object.values(notificationSeverityLevel)
 type NotificationCategory = 'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' |
 'DEPRECATION' | 'GENERIC' | 'UNKNOWN'
 /**
- * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'DEPRECATION' | 'RUNTIME' | 'UNKNOWN'} NotificationCategory
+ * @typedef {'HINT' | 'UNRECOGNIZED' | 'UNSUPPORTED' |'PERFORMANCE' | 'DEPRECATION' | 'GENERIC' | 'UNKNOWN'} NotificationCategory
  */
 /**
  * Constants that represents the Category in the {@link Notification}

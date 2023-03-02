@@ -427,4 +427,21 @@ describe('index', () => {
     expect(neo4j.notificationCategory.GENERIC).toBeDefined()
     expect(neo4j.notificationCategory.UNKNOWN).toBeDefined()
   })
+
+  it('should export notificationFilterMinimumSeverityLevel', () => {
+    expect(neo4j.notificationFilterMinimumSeverityLevel).toBeDefined()
+    expect(neo4j.notificationFilterMinimumSeverityLevel.WARNING).toBeDefined()
+    expect(neo4j.notificationFilterMinimumSeverityLevel.INFORMATION).toBeDefined()
+    expect(neo4j.notificationFilterMinimumSeverityLevel.OFF).toBeDefined()
+  })
+
+  it('should export notificationFilterDisabledCategory', () => {
+    expect(neo4j.notificationFilterDisabledCategory).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.HINT).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.UNRECOGNIZED).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.UNSUPPORTED).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.PERFORMANCE).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.DEPRECATION).toBeDefined()
+    expect(neo4j.notificationFilterDisabledCategory.GENERIC).toBeDefined()
+  })
 })

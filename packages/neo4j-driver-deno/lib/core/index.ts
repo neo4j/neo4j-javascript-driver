@@ -70,6 +70,12 @@ import ResultSummary, {
   notificationCategory,
   notificationSeverityLevel
 } from './result-summary.ts'
+import NotificationFilter, {
+  notificationFilterDisabledCategory,
+  NotificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel,
+  NotificationFilterMinimumSeverityLevel
+} from './notification-filter.ts'
 import Result, { QueryResult, ResultObserver } from './result.ts'
 import EagerResult from './result-eager.ts'
 import ConnectionProvider from './connection-provider.ts'
@@ -160,7 +166,9 @@ const forExport = {
   routing,
   resultTransformers,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 }
 
 export {
@@ -225,7 +233,9 @@ export {
   routing,
   resultTransformers,
   notificationCategory,
-  notificationSeverityLevel
+  notificationSeverityLevel,
+  notificationFilterDisabledCategory,
+  notificationFilterMinimumSeverityLevel
 }
 
 export type {
@@ -242,7 +252,10 @@ export type {
   RoutingControl,
   ResultTransformer,
   NotificationCategory,
-  NotificationSeverityLevel
+  NotificationSeverityLevel,
+  NotificationFilter,
+  NotificationFilterDisabledCategory,
+  NotificationFilterMinimumSeverityLevel
 }
 
 export default forExport

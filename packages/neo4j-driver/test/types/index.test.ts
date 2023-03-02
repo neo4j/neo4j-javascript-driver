@@ -40,7 +40,11 @@ import {
   notificationSeverityLevel,
   NotificationSeverityLevel,
   notificationCategory,
-  NotificationCategory
+  NotificationCategory,
+  notificationFilterMinimumSeverityLevel,
+  NotificationFilterMinimumSeverityLevel,
+  NotificationFilterDisabledCategory,
+  notificationFilterDisabledCategory
 } from '../../types/index'
 
 import Driver from '../../types/driver'
@@ -137,3 +141,23 @@ const genericCategory: NotificationCategory = notificationCategory.GENERIC
 const unrecognizedCategory: NotificationCategory = notificationCategory.UNRECOGNIZED
 const unsupportedCategory: NotificationCategory = notificationCategory.UNSUPPORTED
 const unknownCategory: NotificationCategory = notificationCategory.UNKNOWN
+
+const offNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.OFF
+const warningNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.WARNING
+const infoNotificationFilterMinimumSeverityLevelString: string = notificationFilterMinimumSeverityLevel.INFORMATION
+const offNotificationFilterMinimumSeverityLevel: NotificationFilterMinimumSeverityLevel = notificationFilterMinimumSeverityLevel.OFF
+const warningNotificationFilterMinimumSeverityLevel: NotificationFilterMinimumSeverityLevel = notificationFilterMinimumSeverityLevel.WARNING
+const infoNotificationFilterMinimumSeverityLevel: NotificationFilterMinimumSeverityLevel = notificationFilterMinimumSeverityLevel.INFORMATION
+
+const hintDisabledCategoryString: string = notificationFilterDisabledCategory.HINT
+const deprecationDisabledCategoryString: string = notificationFilterDisabledCategory.DEPRECATION
+const performanceDisabledCategoryString: string = notificationFilterDisabledCategory.PERFORMANCE
+const genericDisabledCategoryString: string = notificationFilterDisabledCategory.GENERIC
+const unrecognizedDisabledCategoryString: string = notificationFilterDisabledCategory.UNRECOGNIZED
+const unsupportedDisabledCategoryString: string = notificationFilterDisabledCategory.UNSUPPORTED
+const hintDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.HINT
+const deprecationDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.DEPRECATION
+const performanceDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.PERFORMANCE
+const genericDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.GENERIC
+const unrecognizedDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.UNRECOGNIZED
+const unsupportedDisabledCategory: NotificationFilterDisabledCategory = notificationFilterDisabledCategory.UNSUPPORTED
