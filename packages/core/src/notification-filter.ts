@@ -27,7 +27,7 @@ type EnumRecord<T extends string | symbol> = { [key in T]: key }
 
 type NotificationFilterMinimumSeverityLevel = ExcludeUnknown<NotificationSeverityLevel> | OFF
 /**
- * @typedef {'WARNING' | 'INFORMATION' | 'DISABLED'} NotificationFilterMinimumSeverityLevel
+ * @typedef {'WARNING' | 'INFORMATION' | 'OFF'} NotificationFilterMinimumSeverityLevel
  */
 /**
  * Constants that represents the minimum Severity level in the {@link NotificationFilter}
@@ -57,7 +57,10 @@ const notificationFilterDisabledCategory: EnumRecord<NotificationFilterDisabledC
 Object.freeze(notificationFilterDisabledCategory)
 
 /**
- * The notification config object used
+ * The notification filter object which can be configured in
+ * the session and driver creation.
+ *
+ * Values not defined are interpreted as default.
  *
  * @interface
  */

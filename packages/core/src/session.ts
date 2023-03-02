@@ -37,6 +37,7 @@ import TransactionPromise from './transaction-promise'
 import ManagedTransaction from './transaction-managed'
 import BookmarkManager from './bookmark-manager'
 import { Dict } from './record'
+import NotificationFilter from './notification-filter'
 
 type ConnectionConsumer = (connection: Connection | null) => any | undefined | Promise<any> | Promise<undefined>
 type TransactionWork<T> = (tx: Transaction) => Promise<T> | T
@@ -72,6 +73,7 @@ class Session {
   private readonly _highRecordWatermark: number
   private readonly _results: Result[]
   private readonly _bookmarkManager?: BookmarkManager
+  private readonly _notificationFilter?: NotificationFilter
   /**
    * @constructor
    * @protected
@@ -84,6 +86,7 @@ class Session {
    * @param {boolean} args.reactive - Whether this session should create reactive streams
    * @param {number} args.fetchSize - Defines how many records is pulled in each pulling batch
    * @param {string} args.impersonatedUser - The username which the user wants to impersonate for the duration of the session.
+   * @param {NotificationFilter} args.notificationFilter - The notification filter used for this session.
    */
   constructor ({
     mode,
@@ -94,7 +97,8 @@ class Session {
     reactive,
     fetchSize,
     impersonatedUser,
-    bookmarkManager
+    bookmarkManager,
+    notificationFilter
   }: {
     mode: SessionMode
     connectionProvider: ConnectionProvider
@@ -105,6 +109,7 @@ class Session {
     fetchSize: number
     impersonatedUser?: string
     bookmarkManager?: BookmarkManager
+    notificationFilter?: NotificationFilter
   }) {
     this._mode = mode
     this._database = database
@@ -142,6 +147,7 @@ class Session {
     this._highRecordWatermark = calculatedWatermaks.high
     this._results = []
     this._bookmarkManager = bookmarkManager
+    this._notificationFilter = notificationFilter
   }
 
   /**
@@ -181,7 +187,8 @@ class Session {
         reactive: this._reactive,
         fetchSize: this._fetchSize,
         lowRecordWatermark: this._lowRecordWatermark,
-        highRecordWatermark: this._highRecordWatermark
+        highRecordWatermark: this._highRecordWatermark,
+        notificationFilter: this._notificationFilter
       })
     })
     this._results.push(result)
@@ -298,7 +305,8 @@ class Session {
       reactive: this._reactive,
       fetchSize: this._fetchSize,
       lowRecordWatermark: this._lowRecordWatermark,
-      highRecordWatermark: this._highRecordWatermark
+      highRecordWatermark: this._highRecordWatermark,
+      notificationFilter: this._notificationFilter
     })
     tx._begin(() => this._bookmarks(), txConfig)
     return tx
