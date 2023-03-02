@@ -105,6 +105,7 @@ interface DriverConfig {
   trust?: TrustStrategy
   fetchSize?: number
   logging?: LoggingConfig
+  notificationFilter?: NotificationFilter
 }
 
 /**

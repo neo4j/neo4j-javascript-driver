@@ -536,6 +536,33 @@ describe('Driver', () => {
     })
   })
 
+  describe('constructor', () => {
+    describe('when set config.notificationFilters', () => {
+      it.each(
+        validNotificationFilters()
+      )('should send valid "notificationFilters" to the connection provider', async (notificationFilter?: NotificationFilter) => {
+        const createConnectionProviderMock = jest.fn(mockCreateConnectonProvider(connectionProvider))
+        const driver = new Driver(
+          META_INFO,
+          { notificationFilter },
+          createConnectionProviderMock,
+          createSession
+        )
+
+        driver._getOrCreateConnectionProvider()
+
+        expect(createConnectionProviderMock).toHaveBeenCalledWith(
+          expect.any(Number),
+          expect.objectContaining({ notificationFilter }),
+          expect.any(Object),
+          expect.any(Object)
+        )
+
+        await driver.close()
+      })
+    })
+  })
+
   function mockCreateConnectonProvider (connectionProvider: ConnectionProvider) {
     return (
       id: number,
