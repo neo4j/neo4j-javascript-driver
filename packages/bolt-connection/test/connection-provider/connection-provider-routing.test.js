@@ -3487,7 +3487,7 @@ describe.each([
           )
           const auth = acquireAuth
 
-          const delegatedConnection = await connectionProvider
+          const acquiredConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: '',
@@ -3495,9 +3495,8 @@ describe.each([
               auth
             })
 
-          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-          expect(delegatedConnection._delegate).toBe(connection)
-          expect(connection._sticky).toEqual(false)
+          expect(acquiredConnection).toBe(connection)
+          expect(acquiredConnection._sticky).toEqual(false)
         })
 
         it('should return connection when try switch user on acquire [expired rt]', async () => {
@@ -3530,7 +3529,7 @@ describe.each([
 
           const auth = acquireAuth
 
-          const delegatedConnection = await connectionProvider
+          const acquiredConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
@@ -3538,12 +3537,11 @@ describe.each([
               auth
             })
 
-          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-          expect(delegatedConnection._delegate).toBe(connection)
-          expect(connection._sticky).toEqual(false)
+          expect(acquiredConnection).toBe(connection)
+          expect(acquiredConnection._sticky).toEqual(false)
         })
 
-        it('should return delegated connection when try switch user on acquire [expired rt and userSeedRouter]', async () => {
+        it('should return connection when try switch user on acquire [expired rt and userSeedRouter]', async () => {
           const address = ServerAddress.fromUrl('localhost:123')
           const pool = newPool()
           const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
@@ -3575,7 +3573,7 @@ describe.each([
 
           const auth = acquireAuth
 
-          const delegatedConnection = await connectionProvider
+          const acquiredConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
@@ -3583,12 +3581,11 @@ describe.each([
               auth
             })
 
-          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-          expect(delegatedConnection._delegate).toBe(connection)
-          expect(connection._sticky).toEqual(false)
+          expect(acquiredConnection).toBe(connection)
+          expect(acquiredConnection._sticky).toEqual(false)
         })
 
-        it('should delegated connection when try switch user on acquire [firstCall and userSeedRouter]', async () => {
+        it('should not delegated connection when try switch user on acquire [firstCall and userSeedRouter]', async () => {
           const address = ServerAddress.fromUrl('localhost:123')
           const pool = newPool()
           const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
@@ -3612,7 +3609,7 @@ describe.each([
 
           const auth = acquireAuth
 
-          const delegatedConnection = await connectionProvider
+          const acquiredConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
@@ -3620,9 +3617,8 @@ describe.each([
               auth
             })
 
-          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-          expect(delegatedConnection._delegate).toBe(connection)
-          expect(connection._sticky).toEqual(false)
+          expect(acquiredConnection).toBe(connection)
+          expect(acquiredConnection._sticky).toEqual(false)
         })
       })
     })
@@ -3895,7 +3891,7 @@ describe.each([
           )
           const auth = acquireAuth
 
-          const delegatedConnection = await connectionProvider
+          const acquiredConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: '',
@@ -3903,9 +3899,8 @@ describe.each([
               auth
             })
 
-          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-          expect(delegatedConnection._delegate).toBe(connection)
-          expect(connection._sticky).toEqual(false)
+          expect(acquiredConnection).toBe(connection)
+          expect(acquiredConnection._sticky).toEqual(false)
         })
 
         it('should return connection when try switch user on acquire [expired rt]', async () => {
@@ -3938,7 +3933,7 @@ describe.each([
 
           const auth = acquireAuth
 
-          const delegatedConnection = await connectionProvider
+          const acquiredConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
@@ -3946,12 +3941,11 @@ describe.each([
               auth
             })
 
-          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-          expect(delegatedConnection._delegate).toBe(connection)
-          expect(connection._sticky).toEqual(false)
+          expect(acquiredConnection).toBe(connection)
+          expect(acquiredConnection._sticky).toEqual(false)
         })
 
-        it('should return delegated connection when try switch user on acquire [expired rt and userSeedRouter]', async () => {
+        it('should return connection when try switch user on acquire [expired rt and userSeedRouter]', async () => {
           const address = ServerAddress.fromUrl('localhost:123')
           const pool = newPool()
           const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
@@ -3983,7 +3977,7 @@ describe.each([
 
           const auth = acquireAuth
 
-          const delegatedConnection = await connectionProvider
+          const acquiredConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
@@ -3991,12 +3985,11 @@ describe.each([
               auth
             })
 
-          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-          expect(delegatedConnection._delegate).toBe(connection)
-          expect(connection._sticky).toEqual(false)
+          expect(acquiredConnection).toBe(connection)
+          expect(acquiredConnection._sticky).toEqual(false)
         })
 
-        it('should delegated connection when try switch user on acquire [firstCall and userSeedRouter]', async () => {
+        it('should not delegated connection when try switch user on acquire [firstCall and userSeedRouter]', async () => {
           const address = ServerAddress.fromUrl('localhost:123')
           const pool = newPool()
           const connection = new FakeConnection(address, () => { }, undefined, PROTOCOL_VERSION, null, connAuth, { supportsReAuth: true })
@@ -4020,7 +4013,7 @@ describe.each([
 
           const auth = acquireAuth
 
-          const delegatedConnection = await connectionProvider
+          const acquiredConnection = await connectionProvider
             .acquireConnection({
               accessMode: 'READ',
               database: 'dba',
@@ -4028,9 +4021,8 @@ describe.each([
               auth
             })
 
-          expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-          expect(delegatedConnection._delegate).toBe(connection)
-          expect(connection._sticky).toEqual(false)
+          expect(acquiredConnection).toBe(connection)
+          expect(acquiredConnection._sticky).toEqual(false)
         })
       })
     })

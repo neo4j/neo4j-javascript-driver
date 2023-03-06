@@ -12,8 +12,9 @@ export default class Context {
     this._bookmarkSupplierRequests = {}
     this._notifyBookmarksRequests = {}
     this._bookmarksManagers = {}
-    this._authTokenProviders = {}
-    this._authTokenProviderRequests = {}
+    this._authTokenManagers = {}
+    this._authTokenManagerGetAuthRequests = {}
+    this._authTokenManagerOnAuthExpiredRequests = {}
     this._binder = binder
     this._environmentLogLevel = environmentLogLevel
   }
@@ -163,32 +164,40 @@ export default class Context {
     delete this._bookmarksManagers[id]
   }
 
-  addAuthTokenProvider (authTokenProviderFactory) {
+  addAuthTokenManager (authTokenManagersFactory) {
     this._id++
-    this._authTokenProviders[this._id] = authTokenProviderFactory(this._id)
+    this._authTokenManagers[this._id] = authTokenManagersFactory(this._id)
     return this._id
   }
 
-  getAuthTokenProvider (id) {
-    return this._authTokenProviders[id]
+  getAuthTokenManager (id) {
+    return this._authTokenManagers[id]
   }
 
-  removeAuthTokenProvider (id) {
-    delete this._authTokenProviders[id]
+  removeAuthTokenManager (id) {
+    delete this._authTokenManagers[id]
   }
 
-  addAuthTokenProviderRequest (resolve, reject) {
-    return this._add(this._authTokenProviderRequests, {
+  addAuthTokenManagerGetAuthRequest (resolve, reject) {
+    return this._add(this._authTokenManagerGetAuthRequests, {
       resolve, reject
     })
   }
 
-  removeAuthTokenProviderRequest (id) {
-    delete this._authTokenProviderRequests[id]
+  getAuthTokenManagerGetAuthRequest (id) {
+    return this._authTokenManagerGetAuthRequests[id]
   }
 
-  getAuthTokenProviderRequest (id) {
-    return this._authTokenProviderRequests[id]
+  removeAuthTokenManagerGetAuthRequest (id) {
+    delete this._authTokenManagerGetAuthRequests[id]
+  }
+
+  addAuthTokenManagerOnAuthExpiredRequest (request) {
+    return this._add(this._authTokenManagerOnAuthExpiredRequests, request)
+  }
+
+  removeAuthTokenManagerOnAuthExpiredRequest (id) {
+    delete this._authTokenManagerOnAuthExpiredRequests[id]
   }
 
   _add (map, object) {

@@ -66,6 +66,7 @@ export default class DirectConnectionProvider extends PooledConnectionProvider {
       if (stickyConnection) {
         return stickyConnection
       }
+      return connection
     }
 
     return new DelegateConnection(connection, databaseSpecificErrorHandler)

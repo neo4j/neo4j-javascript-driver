@@ -103,12 +103,20 @@ export function EagerResult ({ keys, records, summary }, { binder }) {
   })
 }
 
-export function AuthTokenProvider ({ id }) {
-  return response('AuthTokenProvider', { id })
+export function AuthTokenManager ({ id }) {
+  return response('AuthTokenManager', { id })
 }
 
-export function AuthTokenProviderRequest ({ id, authTokenProviderId }) {
-  return response('AuthTokenProviderRequest', { id, authTokenProviderId })
+export function AuthTokenManagerGetAuthRequest ({ id, authTokenManagerId }) {
+  return response('AuthTokenManagerGetAuthRequest', { id, authTokenManagerId })
+}
+
+export function AuthorizationToken (data) {
+  return response('AuthorizationToken', data)
+}
+
+export function AuthTokenManagerOnAuthExpiredRequest ({ id, authTokenManagerId, auth }) {
+  return response('AuthTokenManagerOnAuthExpiredRequest', { id, authTokenManagerId, auth: AuthorizationToken(auth) })
 }
 
 export function DriverIsAuthenticated ({ id, authenticated }) {

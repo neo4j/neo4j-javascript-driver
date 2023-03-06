@@ -507,7 +507,7 @@ describe('user-switching', () => {
         jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
         const connectionProvider = newDirectConnectionProvider(address, pool)
 
-        const delegatedConnection = await connectionProvider
+        const acquiredConnection = await connectionProvider
           .acquireConnection({
             accessMode: 'READ',
             database: '',
@@ -515,9 +515,8 @@ describe('user-switching', () => {
             auth: acquireAuth
           })
 
-        expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-        expect(delegatedConnection._delegate).toBe(connection)
-        expect(connection._sticky).toEqual(false)
+        expect(acquiredConnection).toBe(connection)
+        expect(acquiredConnection._sticky).toEqual(false)
       })
     })
   })
@@ -574,7 +573,7 @@ describe('user-switching', () => {
         jest.spyOn(pool, 'acquire').mockResolvedValue(connection)
         const connectionProvider = newDirectConnectionProvider(address, pool)
 
-        const delegatedConnection = await connectionProvider
+        const acquiredConnection = await connectionProvider
           .acquireConnection({
             accessMode: 'READ',
             database: '',
@@ -582,9 +581,8 @@ describe('user-switching', () => {
             auth: acquireAuth
           })
 
-        expect(delegatedConnection).toBeInstanceOf(DelegateConnection)
-        expect(delegatedConnection._delegate).toBe(connection)
-        expect(connection._sticky).toEqual(false)
+        expect(acquiredConnection).toBe(connection)
+        expect(acquiredConnection._sticky).toEqual(false)
       })
     })
   })

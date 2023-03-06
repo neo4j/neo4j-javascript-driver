@@ -12,7 +12,7 @@ export function NewDriver ({ neo4j }, context, data, wire) {
   const {
     uri,
     authorizationToken,
-    authTokenProviderId,
+    authTokenManagerId,
     userAgent,
     resolverRegistered,
     backwardsCompatibleAuth
@@ -20,15 +20,13 @@ export function NewDriver ({ neo4j }, context, data, wire) {
 
   let parsedAuthToken = null
 
-  if (authorizationToken != null && authTokenProviderId != null) {
-    throw new Error('Can not set authorizationToken and authTokenProviderId')
+  if (authorizationToken != null && authTokenManagerId != null) {
+    throw new Error('Can not set authorizationToken and authTokenManagerId')
   } else if (authorizationToken) {
     const { data: authToken } = authorizationToken
     parsedAuthToken = context.binder.parseAuthToken(authToken)
   } else {
-    parsedAuthToken = neo4j.temporalAuthDataManager({
-      getAuthData: context.getAuthTokenProvider(authTokenProviderId)
-    })
+    parsedAuthToken = context.getAuthTokenManager(authTokenManagerId)
   }
 
   const resolver = resolverRegistered
@@ -528,32 +526,36 @@ export function BookmarksConsumerCompleted (
   notifyBookmarksRequest.resolve()
 }
 
-export function NewAuthTokenProvider (_, context, _data, wire) {
-  const id = context.addAuthTokenProvider(authTokenProviderId => {
-    return () => new Promise((resolve, reject) => {
-      const id = context.addAuthTokenProviderRequest(resolve, reject)
-      wire.writeResponse(responses.AuthTokenProviderRequest({ id, authTokenProviderId }))
-    })
+export function NewAuthTokenManager (_, context, _data, wire) {
+  const id = context.addAuthTokenManager((authTokenManagerId) => {
+    return {
+      getToken: () => new Promise((resolve, reject) => {
+        const id = context.addAuthTokenManagerGetAuthRequest(resolve, reject)
+        wire.writeResponse(responses.AuthTokenManagerGetAuthRequest({ id, authTokenManagerId }))
+      }),
+      onTokenExpired: (auth) => {
+        const id = context.addAuthTokenManagerOnAuthExpiredRequest()
+        wire.writeResponse(responses.AuthTokenManagerOnAuthExpiredRequest({ id, authTokenManagerId, auth }))
+      }
+    }
   })
 
-  wire.writeResponse(responses.AuthTokenProvider({ id }))
+  wire.writeResponse(responses.AuthTokenManager({ id }))
 }
 
-export function AuthTokenProviderCompleted (_, context, { requestId, auth }, _wire) {
-  const request = context.getAuthTokenProviderRequest(requestId)
-  const renewableToken = {
-    expiry: auth.data.expiresInMs != null
-      ? new Date(new Date().getTime() + auth.data.expiresInMs)
-      : undefined,
-    token: context.binder.parseAuthToken(auth.data.auth.data)
-  }
-  request.resolve(renewableToken)
-  context.removeAuthTokenProviderRequest(requestId)
+export function AuthTokenManagerClose (_, context, { id }, wire) {
+  context.removeAuthTokenManager(id)
+  wire.writeResponse(responses.AuthTokenManager({ id }))
 }
 
-export function AuthTokenProviderClose (_, context, { id }, wire) {
-  context.removeAuthTokenProvider(id)
-  wire.writeResponse(responses.AuthTokenProvider({ id }))
+export function AuthTokenManagerGetAuthCompleted (_, context, { requestId, auth }) {
+  const request = context.getAuthTokenManagerGetAuthRequest(requestId)
+  request.resolve(auth.data)
+  context.removeAuthTokenManagerGetAuthRequest(requestId)
+}
+
+export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId, auth }) {
+  context.removeAuthTokenManagerOnAuthExpiredRequest(requestId)
 }
 
 export function GetRoutingTable (_, context, { driverId, database }, wire) {

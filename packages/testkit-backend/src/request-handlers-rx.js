@@ -25,9 +25,10 @@ export {
   BookmarksConsumerCompleted,
   StartSubTest,
   ExecuteQuery,
-  NewAuthTokenProvider,
-  AuthTokenProviderCompleted,
-  AuthTokenProviderClose,
+  NewAuthTokenManager,
+  AuthTokenManagerClose,
+  AuthTokenManagerGetAuthCompleted,
+  AuthTokenManagerOnAuthExpiredCompleted,
   FakeTimeInstall,
   FakeTimeTick,
   FakeTimeUninstall

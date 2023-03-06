@@ -206,6 +206,7 @@ export default class RoutingConnectionProvider extends PooledConnectionProvider 
         if (stickyConnection) {
           return stickyConnection
         }
+        return connection
       }
 
       return new DelegateConnection(connection, databaseSpecificErrorHandler)
