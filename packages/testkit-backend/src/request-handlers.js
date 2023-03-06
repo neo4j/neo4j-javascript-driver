@@ -452,7 +452,7 @@ export function ResolverResolutionCompleted (
 }
 
 export function NewBookmarkManager (
-  neo4j,
+  { neo4j },
   context,
   {
     initialBookmarks,
@@ -543,6 +543,19 @@ export function NewAuthTokenManager (_, context, _data, wire) {
   wire.writeResponse(responses.AuthTokenManager({ id }))
 }
 
+export function NewTemporalAuthTokenManager ({ neo4j }, context, _, wire) {
+  const id = context.addAuthTokenManager((temporalAuthTokenManagerId) => {
+    return neo4j.temporalAuthDataManager({
+      getAuthData: () => new Promise((resolve, reject) => {
+        const id = context.addTemporalAuthTokenProviderRequest(resolve, reject)
+        wire.writeResponse(responses.TemporalAuthTokenProviderRequest({ id, temporalAuthTokenManagerId }))
+      })
+    })
+  })
+
+  wire.writeResponse(responses.TemporalAuthTokenManager({ id }))
+}
+
 export function AuthTokenManagerClose (_, context, { id }, wire) {
   context.removeAuthTokenManager(id)
   wire.writeResponse(responses.AuthTokenManager({ id }))
@@ -554,8 +567,19 @@ export function AuthTokenManagerGetAuthCompleted (_, context, { requestId, auth 
   context.removeAuthTokenManagerGetAuthRequest(requestId)
 }
 
-export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId, auth }) {
+export function AuthTokenManagerOnAuthExpiredCompleted (_, context, { requestId }) {
   context.removeAuthTokenManagerOnAuthExpiredRequest(requestId)
+}
+
+export function TemporalAuthTokenProviderCompleted (_, context, { requestId, auth }) {
+  const request = context.getTemporalAuthTokenProviderRequest(requestId)
+  request.resolve({
+    expiry: auth.data.expiresInMs != null
+      ? new Date(new Date().getTime() + auth.data.expiresInMs)
+      : undefined,
+    token: context.binder.parseAuthToken(auth.data.auth.data)
+  })
+  context.removeTemporalAuthTokenProviderRequest(requestId)
 }
 
 export function GetRoutingTable (_, context, { driverId, database }, wire) {
@@ -601,7 +625,7 @@ export function ForcedRoutingTableUpdate (_, context, { driverId, database, book
   }
 }
 
-export function ExecuteQuery (neo4j, context, { driverId, cypher, params, config }, wire) {
+export function ExecuteQuery ({ neo4j }, context, { driverId, cypher, params, config }, wire) {
   const driver = context.getDriver(driverId)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
